@@ -690,8 +690,8 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/modules/court_forms/router.py:194; app/modules/intake/router.py:536",
-    "status": "pending",
-    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported \u2014 do not start. Acceptance: both call sites match the real function signature and no longer await a sync call.",
+    "status": "resolved",
+    "notes": "Target call sites already use app.core.auto_refresh.ensure_valid_token() correctly. Added tests in tests/test_async_token_calls.py to fail on `await get_valid_token_for_user(...)` and on `get_valid_token_for_user(user_id, db)` (wrong signature). Acceptance: both call sites match the real function signature and no longer await a sync call.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-08T00:00:00Z",
     "assigned_agent": ""

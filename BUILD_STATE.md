@@ -1,3 +1,31 @@
+## Session -- 2026-08-08 — todo-048 resolved: no `await` on sync `get_valid_token_for_user` and no wrong `db` argument
+
+### Overview
+
+Task todo-048 called for fixing incorrect `await` on non-async `get_valid_token_for_user()` calls and a wrong `db` argument in `app/modules/court_forms/router.py:194` and `app/modules/intake/router.py:536`. Upon pre-flight inspection, both call sites already use `app.core.auto_refresh.ensure_valid_token()` correctly (async, accepts `db`), and the original line numbers now point to unrelated code (`base64.b64encode()` and `ensure_valid_token()` respectively). To prevent regression, two additional assertions were added to `tests/test_async_token_calls.py`: one fails on `await <sync-token-helper>(...)`, and one fails on `get_valid_token_for_user(user_id, db)` (wrong signature — the sync helper takes only `user_id`).
+
+### What was done
+
+- Confirmed `app/modules/court_forms/router.py` form-fill overlay path uses `await ensure_valid_token(user.user_id, db)` and extracts `token_obj.access_token`.
+- Confirmed `app/modules/intake/router.py` upload/auto fallback chain uses `await ensure_valid_token(user_id, db)`.
+- Added `test_no_await_on_sync_token_helpers()` to `tests/test_async_token_calls.py`.
+- Added `test_sync_token_helpers_not_called_with_db_argument()` to `tests/test_async_token_calls.py`.
+- Updated todo tracking:
+  - `tools/new_audit_tasks.json` — todo-048 marked resolved
+  - `tools/docs_todos.json` — todo-048 marked resolved
+  - `tools/agent_orchestrator_tasks.json` — todo-048 marked resolved
+
+### Verification
+
+- `python -m py_compile tests/test_async_token_calls.py`: PASS
+- `pytest tests/test_async_token_calls.py -q --no-cov`: 3 passed
+
+### Next Session
+
+- todo-049: Add missing imports (F821 undefined names)
+
+---
+
 ## Session -- 2026-08-08 — todo-045 resolved: sync_orchestrator queue-wipe guard verified
 
 ### Overview

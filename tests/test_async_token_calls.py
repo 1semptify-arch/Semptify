@@ -117,7 +117,59 @@ def test_no_sync_token_calls_in_async_routes():
                             f"{relative_path}:{line_num} - async def calls sync token helper: {forbidden}"
                         )
 
+def test_no_await_on_sync_token_helpers():
+    """Catch `await get_valid_token_for_user(...)` (sync function) inside async def."""
+    violations: list[str] = []
+
+    for file_path in APP_DIR.rglob("*.py"):
+        relative_path = str(file_path.relative_to(PROJECT_ROOT)).replace("\\", "/")
+
+        if relative_path in EXEMPT_FILES:
+            continue
+
+        content = file_path.read_text(encoding="utf-8")
+
+        for start_line, body in _function_bodies(content):
+            for forbidden in FORBIDDEN_SYNC_CALLS:
+                # Find `await <forbidden>` anywhere in the async function body
+                pattern = re.compile(r"\bawait\s+" + re.escape(forbidden) + r"[^\)]*\)")
+                for match in pattern.finditer(body):
+                    line_num = body[: match.start()].count("\n") + start_line
+                    violations.append(
+                        f"{relative_path}:{line_num} - await used on sync token helper: {forbidden}"
+                    )
+
     if violations:
-        msg = "Sync token helpers called from async def routes:\n" + "\n".join(violations)
-        msg += "\n\nUse app.core.auto_refresh.ensure_valid_token() or aget_valid_token_for_user() instead."
+        msg = "Sync token helpers incorrectly awaited in async def routes:\n" + "\n".join(violations)
+        msg += "\n\nRemove `await` or switch to app.core.auto_refresh.ensure_valid_token()."
         pytest.fail(msg)
+
+
+def test_sync_token_helpers_not_called_with_db_argument():
+    """Catch `get_valid_token_for_user(user_id, db)` — sync helper has no db parameter."""
+    violations: list[str] = []
+
+    for file_path in APP_DIR.rglob("*.py"):
+        relative_path = str(file_path.relative_to(PROJECT_ROOT)).replace("\\", "/")
+
+        if relative_path in EXEMPT_FILES:
+            continue
+
+        content = file_path.read_text(encoding="utf-8")
+
+        for start_line, body in _function_bodies(content):
+            # Match get_valid_token_for_user(..., ...) with more than one argument
+            pattern = re.compile(
+                r"\bget_valid_token_for_user\s*\(\s*[^,\)]+\s*,\s*[^\)]+\)"
+            )
+            for match in pattern.finditer(body):
+                line_num = body[: match.start()].count("\n") + start_line
+                violations.append(
+                    f"{relative_path}:{line_num} - get_valid_token_for_user called with extra argument(s)"
+                )
+
+    if violations:
+        msg = "get_valid_token_for_user() called with wrong signature:\n" + "\n".join(violations)
+        msg += "\n\nget_valid_token_for_user(user_id) takes only one argument. Use ensure_valid_token(user_id, db) for async DB-backed refresh."
+        pytest.fail(msg)
+
