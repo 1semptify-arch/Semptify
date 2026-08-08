@@ -20,10 +20,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from app.modules.context_engine.taxonomy import SUBJECT_LABELS
 from app.modules.page_composer.models import PageAssemblyResult
 from app.modules.page_composer.service import compose_page
-from app.modules.page_shell.blends import BLEND_PRESETS, get_blend
+from app.modules.page_shell.blends import get_blend
 from app.modules.page_shell.govern import apply_govern_rules
 from app.modules.page_shell.models import (
     AnyBlock,
@@ -34,7 +33,6 @@ from app.modules.page_shell.models import (
     PageConfig,
     Zone,
 )
-from app.modules.page_shell.skeletons import skeleton_for
 from app.modules.page_shell.zones import level_to_prominence
 from app.services.ui_composer import compose_page as ui_compose_page
 
@@ -82,6 +80,7 @@ _FACT_TO_READING_LEVEL: dict[str, str] = {
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 async def assemble_page(
     subject: str,
@@ -172,6 +171,7 @@ async def assemble_page(
 # Phase implementations
 # ---------------------------------------------------------------------------
 
+
 async def _resolve_context(
     user_id: str | None,
     user_context: dict[str, Any],
@@ -181,6 +181,7 @@ async def _resolve_context(
     if user_id:
         try:
             from app.services.context_loop import context_loop
+
             state = context_loop.get_state(user_id)
             if state and isinstance(state, dict):
                 merged.update(state.get("context", {}))
@@ -310,7 +311,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
     for idx, fact in enumerate(facts):
         tags = fact.get("tags") or []
         source_name = fact.get("source_name", "verified source")
-        label = _fact_label(fact)
+        _fact_label(fact)
         reading = _fact_reading_level(tags)
         blocks["know"].append(
             InfoBlock(
@@ -414,8 +415,6 @@ def _apply_capability_filter(
         return page_config
 
     try:
-        from app.core.capabilities import get_user_capabilities
-
         # Synchronous DB access not available here; skip unless we already
         # have cached capabilities in context.
         cached_caps = context.get("capabilities")
@@ -471,6 +470,7 @@ def _build_ui_context(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _fact_label(fact: dict[str, Any]) -> str:
     """Extract a short display label from a fact."""

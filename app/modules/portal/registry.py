@@ -24,8 +24,8 @@ Categories group services for the visitor:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import ClassVar, Dict, List, Optional
+from dataclasses import dataclass
+from typing import ClassVar
 
 
 @dataclass(frozen=True)
@@ -34,17 +34,18 @@ class PortalService:
 
     Immutable — SSOT for one service block on the portal page.
     """
-    id: str                          # unique identifier (e.g. "tenant_organizer")
-    name: str                        # human-readable name
-    short_description: str           # one-line description for the card
-    cta_label: str                   # call-to-action button text
-    cta_path: str                    # SSOT navigation path (from navigation.get_stage)
-    icon: str = ""                   # emoji or icon
-    category: str = "tenant"         # grouping category
-    order: int = 100                 # sort priority within category (lower = first)
-    visible: bool = True             # toggle visibility (future: tied to module flags)
-    requires_auth: bool = False      # does this service require login?
-    description_long: str = ""       # longer description for the service detail page
+
+    id: str  # unique identifier (e.g. "tenant_organizer")
+    name: str  # human-readable name
+    short_description: str  # one-line description for the card
+    cta_label: str  # call-to-action button text
+    cta_path: str  # SSOT navigation path (from navigation.get_stage)
+    icon: str = ""  # emoji or icon
+    category: str = "tenant"  # grouping category
+    order: int = 100  # sort priority within category (lower = first)
+    visible: bool = True  # toggle visibility (future: tied to module flags)
+    requires_auth: bool = False  # does this service require login?
+    description_long: str = ""  # longer description for the service detail page
 
 
 @dataclass
@@ -56,7 +57,7 @@ class PortalRegistry:
     """
 
     # --- Portal Services (SSOT) ---
-    SERVICES: ClassVar[List[PortalService]] = [
+    SERVICES: ClassVar[list[PortalService]] = [
         # =====================================================================
         # TENANT SERVICES
         # =====================================================================
@@ -329,7 +330,7 @@ class PortalRegistry:
     ]
 
     # --- Category Metadata ---
-    CATEGORIES: ClassVar[Dict[str, Dict[str, str]]] = {
+    CATEGORIES: ClassVar[dict[str, dict[str, str]]] = {
         "tenant": {
             "label": "For Tenants",
             "icon": "🏠",
@@ -374,7 +375,7 @@ class PortalRegistry:
 
     # --- Utility Methods ---
     @classmethod
-    def get_visible_services(cls) -> List[PortalService]:
+    def get_visible_services(cls) -> list[PortalService]:
         """Return all visible services, sorted by category order then service order."""
         return sorted(
             [s for s in cls.SERVICES if s.visible],
@@ -382,7 +383,7 @@ class PortalRegistry:
         )
 
     @classmethod
-    def get_services_by_category(cls, category: str) -> List[PortalService]:
+    def get_services_by_category(cls, category: str) -> list[PortalService]:
         """Return visible services in a specific category."""
         return sorted(
             [s for s in cls.SERVICES if s.visible and s.category == category],
@@ -390,7 +391,7 @@ class PortalRegistry:
         )
 
     @classmethod
-    def get_service(cls, service_id: str) -> Optional[PortalService]:
+    def get_service(cls, service_id: str) -> PortalService | None:
         """Get a single service by ID."""
         for s in cls.SERVICES:
             if s.id == service_id:
@@ -398,15 +399,11 @@ class PortalRegistry:
         return None
 
     @classmethod
-    def get_categories_with_services(cls) -> Dict[str, Dict[str, str]]:
+    def get_categories_with_services(cls) -> dict[str, dict[str, str]]:
         """Return categories that have at least one visible service."""
         visible = cls.get_visible_services()
         active_categories = {s.category for s in visible}
-        return {
-            cat: cls.CATEGORIES[cat]
-            for cat in active_categories
-            if cat in cls.CATEGORIES
-        }
+        return {cat: cls.CATEGORIES[cat] for cat in active_categories if cat in cls.CATEGORIES}
 
     @classmethod
     def to_dict(cls) -> dict:

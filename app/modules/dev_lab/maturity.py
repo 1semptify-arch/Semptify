@@ -4,11 +4,9 @@ Module Maturity Checklist — Phase 3.3
 Defines the requirements for each lifecycle stage transition.
 Used by dev_lab to determine if a module is ready for promotion.
 """
-from typing import Dict, List
-
 
 # Maturity checklist — what's required at each stage
-MATURITY_CHECKLIST: Dict[str, List[str]] = {
+MATURITY_CHECKLIST: dict[str, list[str]] = {
     "dev_only": [
         "Module registered in product_manifest.py",
         "Router module exists and imports cleanly",
@@ -45,10 +43,10 @@ MATURITY_CHECKLIST: Dict[str, List[str]] = {
 }
 
 # Lifecycle progression order
-LIFECYCLE_ORDER: List[str] = ["dev_only", "experimental", "beta", "stable"]
+LIFECYCLE_ORDER: list[str] = ["dev_only", "experimental", "beta", "stable"]
 
 
-def get_checklist(lifecycle: str) -> List[str]:
+def get_checklist(lifecycle: str) -> list[str]:
     """Get the maturity checklist for a lifecycle stage."""
     return MATURITY_CHECKLIST.get(lifecycle, [])
 

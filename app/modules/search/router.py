@@ -15,52 +15,52 @@ Provides unified search results with BM25 relevance scoring, highlights, and sug
 
 import logging
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select, or_, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import or_, select
 
-from app.core.database import get_db_session
-from app.core.security import require_user, StorageUser, green_access
 from app.core.capabilities import require_capability
-from app.core.search_engine import get_search_engine, SearchType, SearchOperator
+from app.core.database import get_db_session
+from app.core.search_engine import SearchOperator, SearchType, get_search_engine
+from app.core.security import StorageUser, green_access
 from app.models.models import (
+    Contact as ContactModel,
     Document as DocumentModel,
     TimelineEvent as TimelineEventModel,
-    Contact as ContactModel,
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter(
-    dependencies=[Depends(require_capability("app.modules.search.router"))]
-)
+router = APIRouter(dependencies=[Depends(require_capability("app.modules.search.router"))])
 
 
 # =============================================================================
 # Schemas
 # =============================================================================
 
+
 class SearchResult(BaseModel):
     """A single search result."""
+
     id: str
     type: str  # document, timeline, contact, law
     title: str
     snippet: str
     url: str
     score: float = 1.0
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class SearchResponse(BaseModel):
     """Search response with results grouped by type."""
+
     query: str
     total_results: int
-    documents: List[SearchResult] = Field(default_factory=list)
-    timeline: List[SearchResult] = Field(default_factory=list)
-    contacts: List[SearchResult] = Field(default_factory=list)
-    law_library: List[SearchResult] = Field(default_factory=list)
+    documents: list[SearchResult] = Field(default_factory=list)
+    timeline: list[SearchResult] = Field(default_factory=list)
+    contacts: list[SearchResult] = Field(default_factory=list)
+    law_library: list[SearchResult] = Field(default_factory=list)
 
 
 # =============================================================================
@@ -73,56 +73,56 @@ MINNESOTA_LAW_ENTRIES = [
         "title": "Minnesota Statute 504B.161 - Covenants of Landlord",
         "content": "Landlord must keep premises fit for use, make repairs, keep in reasonable repair, comply with health codes. Implied warranty of habitability.",
         "url": "/static/law_library.html#504b-161",
-        "keywords": ["habitability", "repair", "health", "safety", "warranty", "fit", "condition"]
+        "keywords": ["habitability", "repair", "health", "safety", "warranty", "fit", "condition"],
     },
     {
         "id": "504b-178",
         "title": "Minnesota Statute 504B.178 - Security Deposits",
         "content": "Security deposit return within 21 days. Interest required after 6 months. Itemized list of deductions. Maximum one month rent.",
         "url": "/static/law_library.html#504b-178",
-        "keywords": ["security deposit", "deposit", "return", "21 days", "deductions", "interest"]
+        "keywords": ["security deposit", "deposit", "return", "21 days", "deductions", "interest"],
     },
     {
         "id": "504b-285",
         "title": "Minnesota Statute 504B.285 - Eviction Actions",
         "content": "Eviction procedures, notice requirements, court process. Must file unlawful detainer action. Tenant has right to answer.",
         "url": "/static/law_library.html#504b-285",
-        "keywords": ["eviction", "unlawful detainer", "notice", "court", "answer", "hearing"]
+        "keywords": ["eviction", "unlawful detainer", "notice", "court", "answer", "hearing"],
     },
     {
         "id": "504b-321",
         "title": "Minnesota Statute 504B.321 - Notice to Quit",
         "content": "Proper notice requirements for termination. 14-day notice for nonpayment. Written notice required.",
         "url": "/static/law_library.html#504b-321",
-        "keywords": ["notice", "quit", "14 days", "termination", "nonpayment", "written"]
+        "keywords": ["notice", "quit", "14 days", "termination", "nonpayment", "written"],
     },
     {
         "id": "504b-211",
         "title": "Minnesota Statute 504B.211 - Retaliation",
         "content": "Landlord cannot retaliate against tenant for exercising rights. Presumption of retaliation within 90 days.",
         "url": "/static/law_library.html#504b-211",
-        "keywords": ["retaliation", "rights", "complaint", "90 days", "protected"]
+        "keywords": ["retaliation", "rights", "complaint", "90 days", "protected"],
     },
     {
         "id": "504b-181",
         "title": "Minnesota Statute 504B.181 - Landlord Access",
         "content": "Landlord must give reasonable notice before entry. Emergency exceptions. Tenant right to privacy.",
         "url": "/static/law_library.html#504b-181",
-        "keywords": ["access", "entry", "notice", "privacy", "reasonable"]
+        "keywords": ["access", "entry", "notice", "privacy", "reasonable"],
     },
     {
         "id": "504b-155",
         "title": "Minnesota Statute 504B.155 - Tenant Remedies",
         "content": "Rent escrow, repair and deduct, lease termination for habitability issues. Relief through housing court.",
         "url": "/static/law_library.html#504b-155",
-        "keywords": ["remedies", "escrow", "repair", "deduct", "termination", "relief"]
+        "keywords": ["remedies", "escrow", "repair", "deduct", "termination", "relief"],
     },
     {
         "id": "minn-ag-rights",
         "title": "Minnesota Tenant Rights - Attorney General Guide",
         "content": "Comprehensive tenant rights guide. Lease requirements, discrimination, repairs, eviction process, resources.",
         "url": "/static/law_library.html",
-        "keywords": ["rights", "guide", "tenant", "lease", "discrimination", "resources"]
+        "keywords": ["rights", "guide", "tenant", "lease", "discrimination", "resources"],
     },
 ]
 
@@ -131,18 +131,19 @@ MINNESOTA_LAW_ENTRIES = [
 # Helper Functions
 # =============================================================================
 
+
 def _snippet(text: str, query: str, max_length: int = 150) -> str:
     """Create a snippet highlighting the query match."""
     if not text:
         return ""
-    
+
     text = text.strip()
     query_lower = query.lower()
     text_lower = text.lower()
-    
+
     # Find query position
     pos = text_lower.find(query_lower)
-    
+
     if pos >= 0:
         # Show context around match
         start = max(0, pos - 50)
@@ -153,7 +154,7 @@ def _snippet(text: str, query: str, max_length: int = 150) -> str:
         if end < len(text):
             snippet = snippet + "..."
         return snippet
-    
+
     # No match, just truncate
     return text[:max_length] + ("..." if len(text) > max_length else "")
 
@@ -162,17 +163,17 @@ def _score_match(text: str, query: str) -> float:
     """Calculate relevance score for a match."""
     if not text:
         return 0.0
-    
+
     text_lower = text.lower()
     query_lower = query.lower()
     query_words = query_lower.split()
-    
+
     score = 0.0
-    
+
     # Exact match bonus
     if query_lower in text_lower:
         score += 1.0
-    
+
     # Word match scoring
     for word in query_words:
         if word in text_lower:
@@ -180,43 +181,45 @@ def _score_match(text: str, query: str) -> float:
             # Title/start bonus
             if text_lower.startswith(word):
                 score += 0.3
-    
+
     return min(score, 2.0)  # Cap at 2.0
 
 
-def _search_law_library(query: str) -> List[SearchResult]:
+def _search_law_library(query: str) -> list[SearchResult]:
     """Search Minnesota law entries."""
     results = []
     query_lower = query.lower()
     query_words = query_lower.split()
-    
+
     for entry in MINNESOTA_LAW_ENTRIES:
         # Check title, content, and keywords
         searchable = f"{entry['title']} {entry['content']} {' '.join(entry['keywords'])}".lower()
-        
+
         # Score based on matches
         score = 0.0
-        
+
         if query_lower in searchable:
             score += 1.5
-        
+
         for word in query_words:
             if word in searchable:
                 score += 0.5
-            if word in entry['keywords']:
+            if word in entry["keywords"]:
                 score += 0.3  # Keyword bonus
-        
+
         if score > 0:
-            results.append(SearchResult(
-                id=entry['id'],
-                type="law",
-                title=entry['title'],
-                snippet=_snippet(entry['content'], query),
-                url=entry['url'],
-                score=score,
-                metadata={"keywords": entry['keywords']}
-            ))
-    
+            results.append(
+                SearchResult(
+                    id=entry["id"],
+                    type="law",
+                    title=entry["title"],
+                    snippet=_snippet(entry["content"], query),
+                    url=entry["url"],
+                    score=score,
+                    metadata={"keywords": entry["keywords"]},
+                )
+            )
+
     # Sort by score
     results.sort(key=lambda r: r.score, reverse=True)
     return results[:5]  # Top 5
@@ -225,6 +228,7 @@ def _search_law_library(query: str) -> List[SearchResult]:
 # =============================================================================
 # Search Endpoint
 # =============================================================================
+
 
 @router.get("/", response_model=SearchResponse)
 async def global_search(
@@ -252,12 +256,7 @@ async def global_search(
         # Build search query with filters
         from app.core.search_engine import SearchQuery as EngineSearchQuery, SearchType
 
-        search_q = EngineSearchQuery(
-            query=q,
-            search_type=SearchType.HYBRID,
-            user_id=user.user_id,
-            limit=limit
-        )
+        search_q = EngineSearchQuery(query=q, search_type=SearchType.HYBRID, user_id=user.user_id, limit=limit)
 
         # Execute BM25 search
         results = search_engine.search(search_q)
@@ -265,21 +264,23 @@ async def global_search(
         # Convert results to API format
         for result in results:
             doc = result.document
-            response.documents.append(SearchResult(
-                id=doc.document_id,
-                type="document",
-                title=doc.title,
-                snippet=result.highlights[0] if result.highlights else doc.content[:150] + "...",
-                url=f"/static/documents.html?id={doc.document_id}",
-                score=result.score,
-                metadata={
-                    "document_type": doc.metadata.get("doc_type", "unknown"),
-                    "file_type": doc.file_type,
-                    "tags": doc.tags,
-                    "created_at": doc.created_at.isoformat() if doc.created_at else None,
-                    "highlights": result.highlights,
-                }
-            ))
+            response.documents.append(
+                SearchResult(
+                    id=doc.document_id,
+                    type="document",
+                    title=doc.title,
+                    snippet=result.highlights[0] if result.highlights else doc.content[:150] + "...",
+                    url=f"/static/documents.html?id={doc.document_id}",
+                    score=result.score,
+                    metadata={
+                        "document_type": doc.metadata.get("doc_type", "unknown"),
+                        "file_type": doc.file_type,
+                        "tags": doc.tags,
+                        "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                        "highlights": result.highlights,
+                    },
+                )
+            )
 
         logger.info(f"🔍 BM25 search found {len(results)} documents for query: {q}")
 
@@ -288,14 +289,18 @@ async def global_search(
         # Fallback to SQL search if advanced search fails
         try:
             async with get_db_session() as session:
-                doc_query = select(DocumentModel).where(
-                    DocumentModel.user_id == user.user_id,
-                    or_(
-                        DocumentModel.filename.ilike(f"%{q}%"),
-                        DocumentModel.document_type.ilike(f"%{q}%"),
-                        DocumentModel.extracted_text.ilike(f"%{q}%"),
+                doc_query = (
+                    select(DocumentModel)
+                    .where(
+                        DocumentModel.user_id == user.user_id,
+                        or_(
+                            DocumentModel.filename.ilike(f"%{q}%"),
+                            DocumentModel.document_type.ilike(f"%{q}%"),
+                            DocumentModel.extracted_text.ilike(f"%{q}%"),
+                        ),
                     )
-                ).limit(limit)
+                    .limit(limit)
+                )
 
                 result = await session.execute(doc_query)
                 docs = result.scalars().all()
@@ -304,18 +309,20 @@ async def global_search(
                     searchable = f"{doc.filename or ''} {doc.extracted_text or ''}"
                     score = _score_match(searchable, q)
 
-                    response.documents.append(SearchResult(
-                        id=doc.id,
-                        type="document",
-                        title=doc.filename or "Untitled Document",
-                        snippet=_snippet(doc.extracted_text or doc.filename or "", q),
-                        url=f"/static/documents.html?id={doc.id}",
-                        score=score,
-                        metadata={
-                            "document_type": doc.document_type,
-                            "created_at": doc.created_at.isoformat() if doc.created_at else None,
-                        }
-                    ))
+                    response.documents.append(
+                        SearchResult(
+                            id=doc.id,
+                            type="document",
+                            title=doc.filename or "Untitled Document",
+                            snippet=_snippet(doc.extracted_text or doc.filename or "", q),
+                            url=f"/static/documents.html?id={doc.id}",
+                            score=score,
+                            metadata={
+                                "document_type": doc.document_type,
+                                "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                            },
+                        )
+                    )
         except Exception as e2:
             logger.warning(f"Fallback document search error: {e2}")
 
@@ -324,13 +331,17 @@ async def global_search(
     # =========================================================================
     async with get_db_session() as session:
         try:
-            timeline_query = select(TimelineEventModel).where(
-                TimelineEventModel.user_id == user.user_id,
-                or_(
-                    TimelineEventModel.title.ilike(f"%{q}%"),
-                    TimelineEventModel.description.ilike(f"%{q}%"),
+            timeline_query = (
+                select(TimelineEventModel)
+                .where(
+                    TimelineEventModel.user_id == user.user_id,
+                    or_(
+                        TimelineEventModel.title.ilike(f"%{q}%"),
+                        TimelineEventModel.description.ilike(f"%{q}%"),
+                    ),
                 )
-            ).limit(limit)
+                .limit(limit)
+            )
 
             result = await session.execute(timeline_query)
             events = result.scalars().all()
@@ -339,33 +350,39 @@ async def global_search(
                 searchable = f"{event.title or ''} {event.description or ''}"
                 score = _score_match(searchable, q)
 
-                response.timeline.append(SearchResult(
-                    id=event.id,
-                    type="timeline",
-                    title=event.title or "Timeline Event",
-                    snippet=_snippet(event.description or "", q),
-                    url=f"/static/timeline.html?event={event.id}",
-                    score=score,
-                    metadata={
-                        "event_type": event.event_type,
-                        "event_date": event.event_date.isoformat() if event.event_date else None,
-                        "is_evidence": event.is_evidence,
-                    }
-                ))
+                response.timeline.append(
+                    SearchResult(
+                        id=event.id,
+                        type="timeline",
+                        title=event.title or "Timeline Event",
+                        snippet=_snippet(event.description or "", q),
+                        url=f"/static/timeline.html?event={event.id}",
+                        score=score,
+                        metadata={
+                            "event_type": event.event_type,
+                            "event_date": event.event_date.isoformat() if event.event_date else None,
+                            "is_evidence": event.is_evidence,
+                        },
+                    )
+                )
         except Exception as e:
             logger.warning(f"Timeline search error: {e}")
 
         # Search Contacts
         try:
-            contact_query = select(ContactModel).where(
-                ContactModel.user_id == user.user_id,
-                or_(
-                    ContactModel.name.ilike(f"%{q}%"),
-                    ContactModel.role.ilike(f"%{q}%"),
-                    ContactModel.organization.ilike(f"%{q}%"),
-                    ContactModel.notes.ilike(f"%{q}%"),
+            contact_query = (
+                select(ContactModel)
+                .where(
+                    ContactModel.user_id == user.user_id,
+                    or_(
+                        ContactModel.name.ilike(f"%{q}%"),
+                        ContactModel.role.ilike(f"%{q}%"),
+                        ContactModel.organization.ilike(f"%{q}%"),
+                        ContactModel.notes.ilike(f"%{q}%"),
+                    ),
                 )
-            ).limit(limit)
+                .limit(limit)
+            )
 
             result = await session.execute(contact_query)
             contacts = result.scalars().all()
@@ -374,38 +391,37 @@ async def global_search(
                 searchable = f"{contact.name or ''} {contact.role or ''} {contact.organization or ''}"
                 score = _score_match(searchable, q)
 
-                response.contacts.append(SearchResult(
-                    id=contact.id,
-                    type="contact",
-                    title=contact.name or "Contact",
-                    snippet=f"{contact.role or ''} - {contact.organization or ''}".strip(" -"),
-                    url=f"/static/contacts.html?id={contact.id}",
-                    score=score,
-                    metadata={
-                        "role": contact.role,
-                        "phone": contact.phone,
-                        "email": contact.email,
-                    }
-                ))
+                response.contacts.append(
+                    SearchResult(
+                        id=contact.id,
+                        type="contact",
+                        title=contact.name or "Contact",
+                        snippet=f"{contact.role or ''} - {contact.organization or ''}".strip(" -"),
+                        url=f"/static/contacts.html?id={contact.id}",
+                        score=score,
+                        metadata={
+                            "role": contact.role,
+                            "phone": contact.phone,
+                            "email": contact.email,
+                        },
+                    )
+                )
         except Exception as e:
             logger.warning(f"Contact search error: {e}")
 
     # Search Law Library (no DB, just local data)
     response.law_library = _search_law_library(q)
-    
+
     # Sort each category by score
     response.documents.sort(key=lambda r: r.score, reverse=True)
     response.timeline.sort(key=lambda r: r.score, reverse=True)
     response.contacts.sort(key=lambda r: r.score, reverse=True)
-    
+
     # Calculate total
     response.total_results = (
-        len(response.documents) + 
-        len(response.timeline) + 
-        len(response.contacts) + 
-        len(response.law_library)
+        len(response.documents) + len(response.timeline) + len(response.contacts) + len(response.law_library)
     )
-    
+
     return response
 
 
@@ -414,17 +430,17 @@ async def advanced_search(
     q: str = Query(..., min_length=1, description="Search query"),
     search_type: str = Query("full_text", description="Search type: full_text, metadata, content, hybrid"),
     operator: str = Query("and", description="Search operator: and, or, not"),
-    file_types: Optional[str] = Query(None, description="Comma-separated file types to filter"),
-    tags: Optional[str] = Query(None, description="Comma-separated tags to filter"),
-    date_from: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
-    date_to: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    file_types: str | None = Query(None, description="Comma-separated file types to filter"),
+    tags: str | None = Query(None, description="Comma-separated tags to filter"),
+    date_from: str | None = Query(None, description="Start date (YYYY-MM-DD)"),
+    date_to: str | None = Query(None, description="End date (YYYY-MM-DD)"),
     limit: int = Query(20, ge=1, le=100, description="Max results"),
     offset: int = Query(0, ge=0, description="Results offset"),
     user: StorageUser = Depends(green_access),
 ):
     """
     Advanced search with BM25 relevance scoring and filters.
-    
+
     Features:
     - Full-text search with BM25 scoring
     - Multiple search operators (AND, OR, NOT)
@@ -436,10 +452,10 @@ async def advanced_search(
         # Parse search parameters
         search_type_enum = SearchType(search_type)
         operator_enum = SearchOperator(operator)
-        
-        file_type_list = file_types.split(',') if file_types else None
-        tag_list = tags.split(',') if tags else None
-        
+
+        file_type_list = file_types.split(",") if file_types else None
+        tag_list = tags.split(",") if tags else None
+
         date_range = None
         if date_from and date_to:
             try:
@@ -448,7 +464,7 @@ async def advanced_search(
                 date_range = (start_date, end_date)
             except ValueError:
                 pass
-        
+
         # Perform advanced search
         search_engine = get_search_engine()
         results = search_engine.search(
@@ -460,24 +476,17 @@ async def advanced_search(
             tags=tag_list,
             date_range=date_range,
             limit=limit,
-            offset=offset
+            offset=offset,
         )
-        
+
         return results
-        
+
     except ValueError as e:
-        return {
-            "error": f"Invalid search parameters: {str(e)}",
-            "results": [],
-            "total": 0
-        }
+        return {"error": f"Invalid search parameters: {str(e)}", "results": [], "total": 0}
     except Exception as e:
         logger.error(f"Advanced search error: {e}")
-        return {
-            "error": "Search failed",
-            "results": [],
-            "total": 0
-        }
+        return {"error": "Search failed", "results": [], "total": 0}
+
 
 @router.get("/suggestions")
 async def search_suggestions(
@@ -492,20 +501,13 @@ async def search_suggestions(
     try:
         search_engine = get_search_engine()
         suggestions = search_engine.suggest_queries(q, user.user_id, limit)
-        
-        return {
-            "query": q,
-            "suggestions": suggestions,
-            "total": len(suggestions)
-        }
-        
+
+        return {"query": q, "suggestions": suggestions, "total": len(suggestions)}
+
     except Exception as e:
         logger.error(f"Search suggestions error: {e}")
-        return {
-            "query": q,
-            "suggestions": [],
-            "total": 0
-        }
+        return {"query": q, "suggestions": [], "total": 0}
+
 
 @router.get("/statistics")
 async def search_statistics(
@@ -517,16 +519,13 @@ async def search_statistics(
     try:
         search_engine = get_search_engine()
         stats = search_engine.get_search_statistics()
-        
+
         return stats
-        
+
     except Exception as e:
         logger.error(f"Search statistics error: {e}")
-        return {
-            "error": "Failed to get statistics",
-            "search_stats": {},
-            "index_stats": {}
-        }
+        return {"error": "Failed to get statistics", "search_stats": {}, "index_stats": {}}
+
 
 @router.post("/index")
 async def index_document(
@@ -540,15 +539,14 @@ async def index_document(
         # Get document from database
         async with get_db_session() as session:
             doc_query = select(DocumentModel).where(
-                DocumentModel.id == document_id,
-                DocumentModel.user_id == user.user_id
+                DocumentModel.id == document_id, DocumentModel.user_id == user.user_id
             )
             result = await session.execute(doc_query)
             doc = result.scalar_one_or_none()
-            
+
             if not doc:
                 return {"error": "Document not found"}
-            
+
             # Index document
             search_engine = get_search_engine()
             success = search_engine.index_document(
@@ -558,24 +556,22 @@ async def index_document(
                 content=doc.extracted_text or "",
                 metadata={
                     "document_type": doc.document_type,
-                    "created_at": doc.created_at.isoformat() if doc.created_at else None
+                    "created_at": doc.created_at.isoformat() if doc.created_at else None,
                 },
                 file_type=doc.document_type or "unknown",
-                tags=[]
+                tags=[],
             )
-            
+
             return {
                 "success": success,
                 "document_id": document_id,
-                "message": "Document indexed successfully" if success else "Indexing failed"
+                "message": "Document indexed successfully" if success else "Indexing failed",
             }
-            
+
     except Exception as e:
         logger.error(f"Document indexing error: {e}")
-        return {
-            "error": f"Indexing failed: {str(e)}",
-            "document_id": document_id
-        }
+        return {"error": f"Indexing failed: {str(e)}", "document_id": document_id}
+
 
 @router.delete("/index/{document_id}")
 async def remove_from_index(
@@ -588,19 +584,17 @@ async def remove_from_index(
     try:
         search_engine = get_search_engine()
         success = search_engine.remove_document(document_id)
-        
+
         return {
             "success": success,
             "document_id": document_id,
-            "message": "Document removed from index" if success else "Removal failed"
+            "message": "Document removed from index" if success else "Removal failed",
         }
-        
+
     except Exception as e:
         logger.error(f"Document removal error: {e}")
-        return {
-            "error": f"Removal failed: {str(e)}",
-            "document_id": document_id
-        }
+        return {"error": f"Removal failed: {str(e)}", "document_id": document_id}
+
 
 @router.get("/quick")
 async def quick_search(
@@ -612,17 +606,12 @@ async def quick_search(
     Returns top 5 results across all categories.
     """
     full_results = await global_search(q=q, limit=3, user=user)
-    
+
     # Combine and sort all results
-    all_results = (
-        full_results.documents + 
-        full_results.timeline + 
-        full_results.contacts + 
-        full_results.law_library
-    )
-    
+    all_results = full_results.documents + full_results.timeline + full_results.contacts + full_results.law_library
+
     all_results.sort(key=lambda r: r.score, reverse=True)
-    
+
     return {
         "query": q,
         "results": [r.dict() for r in all_results[:5]],

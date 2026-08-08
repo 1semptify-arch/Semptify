@@ -4,8 +4,9 @@ Async SQLAlchemy with SQLite (dev) / PostgreSQL (prod) support.
 Includes connection pooling configuration for production.
 """
 
-from typing import AsyncGenerator
 import logging
+from collections.abc import AsyncGenerator
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -15,7 +16,8 @@ try:
         create_async_engine,
     )
     from sqlalchemy.orm import DeclarativeBase
-    from sqlalchemy.pool import NullPool, AsyncAdaptedQueuePool
+    from sqlalchemy.pool import AsyncAdaptedQueuePool, NullPool
+
     SQLALCHEMY_AVAILABLE = True
 except ImportError:
     AsyncSession = object
@@ -31,6 +33,7 @@ from app.core.config import get_settings
 
 class Base(DeclarativeBase):
     """Base class for all ORM models."""
+
     pass
 
 
@@ -66,7 +69,7 @@ def get_engine():
             # PostgreSQL: use async-compatible connection pooling
             # Auto-detect localhost (no SSL) vs production (SSL required)
             is_localhost = "localhost" in settings.database_url or "127.0.0.1" in settings.database_url
-            
+
             pool_config = {
                 "poolclass": AsyncAdaptedQueuePool,
                 "pool_size": 5,  # Base connections
@@ -74,7 +77,7 @@ def get_engine():
                 "pool_timeout": 30,  # Seconds to wait for connection
                 "pool_recycle": 1800,  # Recycle connections after 30 min
                 "pool_pre_ping": True,  # Verify connections before use
-                "connect_args": {"ssl": False if is_localhost else True},
+                "connect_args": {"ssl": not is_localhost},
             }
 
         _engine = create_async_engine(
@@ -104,7 +107,7 @@ def get_session_factory():
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     FastAPI dependency for database sessions.
-    
+
     Usage:
         @router.get("/items")
         async def get_items(db: AsyncSession = Depends(get_db)):
@@ -128,7 +131,6 @@ async def init_db():
     Initialize the database - create all tables.
     Call this on startup.
     """
-    import os
 
     # Tables that require explicit opt-in or a separate Alembic migration.
     # They are excluded from auto create_all to avoid permission errors on
@@ -146,15 +148,8 @@ async def init_db():
     engine = get_engine()
     async with engine.begin() as conn:
         # Only create tables that are not in the optional/migration-only set
-        target_tables = [
-            t for t in Base.metadata.sorted_tables
-            if t.name not in _OPTIONAL_TABLES
-        ]
-        await conn.run_sync(
-            lambda sync_conn: Base.metadata.create_all(
-                sync_conn, tables=target_tables
-            )
-        )
+        target_tables = [t for t in Base.metadata.sorted_tables if t.name not in _OPTIONAL_TABLES]
+        await conn.run_sync(lambda sync_conn: Base.metadata.create_all(sync_conn, tables=target_tables))
 
 
 async def close_db():

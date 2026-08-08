@@ -20,26 +20,25 @@ logger = logging.getLogger(__name__)
 
 __version__ = "1.0.0"
 
-from app.sdk.vault.client import VaultClient
-from app.sdk.vault.folder_spec import (
-    VaultFolderSpec,
-    BASE_VAULT,
-    TENANT_VAULT,
-    ADVOCATE_VAULT,
-    LEGAL_VAULT,
-    RESEARCH_VAULT,
+from app.sdk.vault.client import VaultClient, VaultResult
+from app.sdk.vault.encryption import (
+    MasterToken,
+    decrypt_token,
+    encrypt_token,
 )
 from app.sdk.vault.errors import (
     VaultError,
-    VaultProviderError,
     VaultFolderError,
+    VaultProviderError,
     VaultTokenError,
 )
-from app.sdk.vault.client import VaultResult
-from app.sdk.vault.encryption import (
-    MasterToken,
-    encrypt_token,
-    decrypt_token,
+from app.sdk.vault.folder_spec import (
+    ADVOCATE_VAULT,
+    BASE_VAULT,
+    LEGAL_VAULT,
+    RESEARCH_VAULT,
+    TENANT_VAULT,
+    VaultFolderSpec,
 )
 
 __all__ = [

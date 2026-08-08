@@ -24,6 +24,7 @@ from app.core.validation import (
 
 # ── sanitize_html ────────────────────────────────────────────────────────────
 
+
 class TestSanitizeHtml:
     def test_escapes_angle_brackets(self):
         assert "&lt;script&gt;" in sanitize_html("<script>")
@@ -43,6 +44,7 @@ class TestSanitizeHtml:
 
 
 # ── strip_control_chars ──────────────────────────────────────────────────────
+
 
 class TestStripControlChars:
     def test_removes_null_byte(self):
@@ -66,6 +68,7 @@ class TestStripControlChars:
 
 # ── normalize_whitespace ─────────────────────────────────────────────────────
 
+
 class TestNormalizeWhitespace:
     def test_collapses_spaces(self):
         assert normalize_whitespace("a   b") == "a b"
@@ -81,6 +84,7 @@ class TestNormalizeWhitespace:
 
 
 # ── sanitize_filename ────────────────────────────────────────────────────────
+
 
 class TestSanitizeFilename:
     def test_removes_path_separators(self):
@@ -108,6 +112,7 @@ class TestSanitizeFilename:
 
 # ── sanitize_path ────────────────────────────────────────────────────────────
 
+
 class TestSanitizePath:
     def test_removes_traversal(self):
         result = sanitize_path("../../etc/passwd")
@@ -130,6 +135,7 @@ class TestSanitizePath:
 
 
 # ── validate_email ───────────────────────────────────────────────────────────
+
 
 class TestValidateEmail:
     def test_valid_email(self):
@@ -156,6 +162,7 @@ class TestValidateEmail:
 
 # ── validate_phone ───────────────────────────────────────────────────────────
 
+
 class TestValidatePhone:
     def test_us_phone(self):
         result = validate_phone("(555) 123-4567")
@@ -179,6 +186,7 @@ class TestValidatePhone:
 
 # ── validate_uuid ────────────────────────────────────────────────────────────
 
+
 class TestValidateUuid:
     def test_valid_uuid(self):
         uuid = "550e8400-e29b-41d4-a716-446655440000"
@@ -194,6 +202,7 @@ class TestValidateUuid:
 
 
 # ── check_sql_injection ─────────────────────────────────────────────────────
+
 
 class TestCheckSqlInjection:
     def test_clean_text(self):
@@ -217,6 +226,7 @@ class TestCheckSqlInjection:
 
 # ── sanitize_for_search ─────────────────────────────────────────────────────
 
+
 class TestSanitizeForSearch:
     def test_removes_quotes(self):
         result = sanitize_for_search("it's a test")
@@ -236,6 +246,7 @@ class TestSanitizeForSearch:
 
 # ── create_length_validator ──────────────────────────────────────────────────
 
+
 class TestCreateLengthValidator:
     def test_within_range(self):
         validator = create_length_validator(1, 10)
@@ -253,6 +264,7 @@ class TestCreateLengthValidator:
 
 
 # ── pydantic validator wrappers ──────────────────────────────────────────────
+
 
 class TestValidatorWrappers:
     def test_validate_no_html(self):
@@ -273,6 +285,7 @@ class TestValidatorWrappers:
 
 
 # ── constants ────────────────────────────────────────────────────────────────
+
 
 class TestConstants:
     def test_json_body_size(self):

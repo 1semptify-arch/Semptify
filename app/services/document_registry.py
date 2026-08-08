@@ -27,8 +27,8 @@ import logging
 import re
 import secrets
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from enum import Enum
+from datetime import datetime, timedelta
+from enum import StrEnum
 from pathlib import Path
 
 from app.core.config import get_settings
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class DocumentStatus(str, Enum):
+class DocumentStatus(StrEnum):
     """Document registry status."""
 
     ORIGINAL = "original"  # First instance of this document
@@ -54,7 +54,7 @@ class DocumentStatus(str, Enum):
     QUARANTINED = "quarantined"  # Suspected tampering/forgery
 
 
-class IntegrityStatus(str, Enum):
+class IntegrityStatus(StrEnum):
     """Document integrity verification status."""
 
     VERIFIED = "verified"  # Hash matches, no tampering detected
@@ -64,7 +64,7 @@ class IntegrityStatus(str, Enum):
     UNVERIFIED = "unverified"  # Not yet verified
 
 
-class ForgeryIndicator(str, Enum):
+class ForgeryIndicator(StrEnum):
     """Types of forgery/alteration indicators."""
 
     NONE = "none"
@@ -81,7 +81,7 @@ class ForgeryIndicator(str, Enum):
     DUPLICATE_WITH_CHANGES = "duplicate_with_changes"
 
 
-class CustodyAction(str, Enum):
+class CustodyAction(StrEnum):
     """Chain of custody actions."""
 
     RECEIVED = "received"

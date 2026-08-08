@@ -3,19 +3,23 @@ Enterprise Dashboard Router
 High-performance, real-time dashboard for multi-billion dollar law office operations.
 """
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
-from pydantic import BaseModel
 import asyncio
+import contextlib
 import json
-from app.core.utc import utc_now
 import logging
+from datetime import datetime, timedelta
+from typing import Any
+
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
+
+from app.core.utc import utc_now
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_PREFS_STORE: Dict[str, Any] = {
+_PREFS_STORE: dict[str, Any] = {
     "theme": "dark",
     "widgets": ["stats", "activity", "progress", "documents"],
     "notifications_enabled": True,
@@ -23,10 +27,11 @@ _PREFS_STORE: Dict[str, Any] = {
     "chart_type": "line",
 }
 
+
 # WebSocket connection manager for real-time updates
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        self.active_connections: list[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -37,15 +42,14 @@ class ConnectionManager:
 
     async def broadcast(self, message: dict):
         for connection in self.active_connections:
-            try:
+            with contextlib.suppress(json.JSONDecodeError):
                 await connection.send_json(message)
-            except json.JSONDecodeError:
-                pass
+
 
 manager = ConnectionManager()
 
 # In-memory store (replace with DB in production)
-IN_MEMORY_NOTIFICATIONS: List[Dict[str, Any]] = [
+IN_MEMORY_NOTIFICATIONS: list[dict[str, Any]] = [
     {"id": "notif_1", "message": "Welcome to the dashboard", "read": False, "timestamp": utc_now()},
     {"id": "notif_2", "message": "New case assigned", "read": False, "timestamp": utc_now()},
 ]
@@ -87,7 +91,7 @@ class DocumentItem(BaseModel):
     status: str
     date_added: datetime
     file_type: str
-    size: Optional[int] = None
+    size: int | None = None
 
 
 class QuickAction(BaseModel):
@@ -113,6 +117,7 @@ class AIInsight(BaseModel):
 # Dashboard Endpoints
 # ============================================================================
 
+
 @router.get("/api/dashboard/stats", response_model=DashboardStats)
 async def get_dashboard_stats():
     """
@@ -120,7 +125,7 @@ async def get_dashboard_stats():
     Real-time aggregation of all case metrics.
     """
     # Minimal in-memory implementation for development; replace with real DB queries.
-    notifications = [n for n in IN_MEMORY_NOTIFICATIONS if not n.get("read")]
+    [n for n in IN_MEMORY_NOTIFICATIONS if not n.get("read")]
 
     return DashboardStats(
         documents_count=44,
@@ -134,7 +139,7 @@ async def get_dashboard_stats():
     )
 
 
-@router.get("/api/dashboard/activity", response_model=List[ActivityItem])
+@router.get("/api/dashboard/activity", response_model=list[ActivityItem])
 async def get_recent_activity(limit: int = 10):
     """
     Get recent activity timeline.
@@ -148,7 +153,7 @@ async def get_recent_activity(limit: int = 10):
             description="Lease Agreement - 2024.pdf",
             timestamp=utc_now() - timedelta(hours=2),
             icon="file-upload",
-            color="#3b82f6"
+            color="#3b82f6",
         ),
         ActivityItem(
             id="act_002",
@@ -157,7 +162,7 @@ async def get_recent_activity(limit: int = 10):
             description="Document analysis finished",
             timestamp=utc_now() - timedelta(hours=5),
             icon="check",
-            color="#10b981"
+            color="#10b981",
         ),
         ActivityItem(
             id="act_003",
@@ -166,7 +171,7 @@ async def get_recent_activity(limit: int = 10):
             description="Court hearing scheduled",
             timestamp=utc_now() - timedelta(days=1),
             icon="calendar-plus",
-            color="#f59e0b"
+            color="#f59e0b",
         ),
         ActivityItem(
             id="act_004",
@@ -175,7 +180,7 @@ async def get_recent_activity(limit: int = 10):
             description="Case strength updated to 92%",
             timestamp=utc_now() - timedelta(days=1, hours=3),
             icon="brain",
-            color="#7c3aed"
+            color="#7c3aed",
         ),
         ActivityItem(
             id="act_005",
@@ -184,10 +189,10 @@ async def get_recent_activity(limit: int = 10):
             description="Property photos authenticated",
             timestamp=utc_now() - timedelta(days=1, hours=8),
             icon="shield-check",
-            color="#10b981"
+            color="#10b981",
         ),
     ]
-    
+
     return activities[:limit]
 
 
@@ -198,14 +203,11 @@ async def get_case_progress():
     Tracks completion status of various case preparation stages.
     """
     return CaseProgress(
-        evidence_collection=85.0,
-        legal_research=70.0,
-        document_preparation=60.0,
-        court_filing_ready=45.0
+        evidence_collection=85.0, legal_research=70.0, document_preparation=60.0, court_filing_ready=45.0
     )
 
 
-@router.get("/api/dashboard/recent-documents", response_model=List[DocumentItem])
+@router.get("/api/dashboard/recent-documents", response_model=list[DocumentItem])
 async def get_recent_documents(limit: int = 10):
     """
     Get recently uploaded/modified documents.
@@ -218,7 +220,7 @@ async def get_recent_documents(limit: int = 10):
             status="Verified",
             date_added=utc_now() - timedelta(hours=2),
             file_type="pdf",
-            size=2458000
+            size=2458000,
         ),
         DocumentItem(
             id="doc_002",
@@ -227,7 +229,7 @@ async def get_recent_documents(limit: int = 10):
             status="Verified",
             date_added=utc_now() - timedelta(days=1),
             file_type="images",
-            size=8450000
+            size=8450000,
         ),
         DocumentItem(
             id="doc_003",
@@ -236,7 +238,7 @@ async def get_recent_documents(limit: int = 10):
             status="Processing",
             date_added=utc_now() - timedelta(days=2),
             file_type="pdf",
-            size=1250000
+            size=1250000,
         ),
         DocumentItem(
             id="doc_004",
@@ -245,7 +247,7 @@ async def get_recent_documents(limit: int = 10):
             status="Verified",
             date_added=utc_now() - timedelta(days=3),
             file_type="excel",
-            size=450000
+            size=450000,
         ),
         DocumentItem(
             id="doc_005",
@@ -254,14 +256,14 @@ async def get_recent_documents(limit: int = 10):
             status="Verified",
             date_added=utc_now() - timedelta(days=5),
             file_type="pdf",
-            size=980000
+            size=980000,
         ),
     ]
-    
+
     return documents[:limit]
 
 
-@router.get("/api/dashboard/quick-actions", response_model=List[QuickAction])
+@router.get("/api/dashboard/quick-actions", response_model=list[QuickAction])
 async def get_quick_actions():
     """
     Get personalized quick actions based on case status.
@@ -275,7 +277,7 @@ async def get_quick_actions():
             icon="cloud-upload-alt",
             color="#3b82f6",
             url="/documents",
-            priority=1
+            priority=1,
         ),
         QuickAction(
             id="action_002",
@@ -284,7 +286,7 @@ async def get_quick_actions():
             icon="calendar-check",
             color="#f59e0b",
             url="/calendar",
-            priority=2
+            priority=2,
         ),
         QuickAction(
             id="action_003",
@@ -293,7 +295,7 @@ async def get_quick_actions():
             icon="book-open",
             color="#10b981",
             url="/law-library",
-            priority=3
+            priority=3,
         ),
         QuickAction(
             id="action_004",
@@ -302,14 +304,14 @@ async def get_quick_actions():
             icon="file-signature",
             color="#7c3aed",
             url="/eviction-defense",
-            priority=4
+            priority=4,
         ),
     ]
-    
+
     return actions
 
 
-@router.get("/api/dashboard/ai-insights", response_model=List[AIInsight])
+@router.get("/api/dashboard/ai-insights", response_model=list[AIInsight])
 async def get_ai_insights():
     """
     Get AI-powered insights and recommendations.
@@ -322,7 +324,7 @@ async def get_ai_insights():
             description="AI detected incomplete email communication with landlord. Consider uploading recent correspondence.",
             confidence=0.87,
             action_required=True,
-            severity="medium"
+            severity="medium",
         ),
         AIInsight(
             type="legal_opportunity",
@@ -330,7 +332,7 @@ async def get_ai_insights():
             description="Based on your photos, you may have a strong habitability claim under MN Stat § 504B.161.",
             confidence=0.92,
             action_required=False,
-            severity="high"
+            severity="high",
         ),
         AIInsight(
             type="deadline_warning",
@@ -338,7 +340,7 @@ async def get_ai_insights():
             description="Your court answer is due in 5 days. Start preparation now to ensure timely filing.",
             confidence=1.0,
             action_required=True,
-            severity="critical"
+            severity="critical",
         ),
         AIInsight(
             type="case_strength",
@@ -346,10 +348,10 @@ async def get_ai_insights():
             description="Your evidence collection is 85% complete. Case strength rated at 92%.",
             confidence=0.94,
             action_required=False,
-            severity="low"
+            severity="low",
         ),
     ]
-    
+
     return insights
 
 
@@ -381,7 +383,7 @@ async def get_analytics():
             "completed": 8,
             "in_progress": 5,
             "not_started": 3,
-        }
+        },
     }
 
 
@@ -398,7 +400,7 @@ async def get_notifications(unread_only: bool = False):
             "message": "Your answer is due in 5 days",
             "timestamp": utc_now() - timedelta(hours=1),
             "read": False,
-            "priority": "high"
+            "priority": "high",
         },
         {
             "id": "notif_002",
@@ -407,7 +409,7 @@ async def get_notifications(unread_only: bool = False):
             "message": "Your lease agreement has been analyzed",
             "timestamp": utc_now() - timedelta(hours=5),
             "read": False,
-            "priority": "medium"
+            "priority": "medium",
         },
         {
             "id": "notif_003",
@@ -416,7 +418,7 @@ async def get_notifications(unread_only: bool = False):
             "message": "Habitability defense opportunity detected",
             "timestamp": utc_now() - timedelta(days=1),
             "read": True,
-            "priority": "medium"
+            "priority": "medium",
         },
         {
             "id": "notif_004",
@@ -425,7 +427,7 @@ async def get_notifications(unread_only: bool = False):
             "message": "Property photos have been verified",
             "timestamp": utc_now() - timedelta(days=1),
             "read": True,
-            "priority": "low"
+            "priority": "low",
         },
         {
             "id": "notif_005",
@@ -434,17 +436,14 @@ async def get_notifications(unread_only: bool = False):
             "message": "New features added to Law Library",
             "timestamp": utc_now() - timedelta(days=2),
             "read": True,
-            "priority": "low"
+            "priority": "low",
         },
     ]
-    
+
     if unread_only:
         notifications = [n for n in notifications if not n["read"]]
-    
-    return {
-        "notifications": notifications,
-        "unread_count": len([n for n in notifications if not n["read"]])
-    }
+
+    return {"notifications": notifications, "unread_count": len([n for n in notifications if not n["read"]])}
 
 
 @router.post("/api/dashboard/notifications/{notification_id}/read")
@@ -463,6 +462,7 @@ async def mark_notification_read(notification_id: str):
 # WebSocket Endpoint for Real-Time Updates
 # ============================================================================
 
+
 @router.websocket("/ws/dashboard")
 async def websocket_dashboard(websocket: WebSocket):
     """
@@ -470,24 +470,26 @@ async def websocket_dashboard(websocket: WebSocket):
     Pushes live updates for stats, activity, notifications, etc.
     """
     await manager.connect(websocket)
-    
+
     try:
         while True:
             # Send periodic updates every 30 seconds
             await asyncio.sleep(30)
-            
+
             # Send updated stats
-            await websocket.send_json({
-                "type": "stats_update",
-                "data": {
-                    "documents_count": 24,
-                    "tasks_completed": 8,
-                    "upcoming_deadlines": 3,
-                    "case_strength": 92.0,
-                    "timestamp": utc_now().isoformat()
+            await websocket.send_json(
+                {
+                    "type": "stats_update",
+                    "data": {
+                        "documents_count": 24,
+                        "tasks_completed": 8,
+                        "upcoming_deadlines": 3,
+                        "case_strength": 92.0,
+                        "timestamp": utc_now().isoformat(),
+                    },
                 }
-            })
-            
+            )
+
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
@@ -499,6 +501,7 @@ async def websocket_dashboard(websocket: WebSocket):
 # Search Endpoints
 # ============================================================================
 
+
 @router.get("/api/search")
 async def global_search(q: str, limit: int = 20):
     """
@@ -507,7 +510,7 @@ async def global_search(q: str, limit: int = 20):
     """
     # Basic in-memory search with simulated results for development.
     # In production, integrate with a real search index (e.g., ElasticSearch, Postgres full-text search).
-    
+
     results = {
         "documents": [
             {
@@ -516,7 +519,7 @@ async def global_search(q: str, limit: int = 20):
                 "title": "Lease Agreement 2024",
                 "subtitle": "Contract",
                 "url": "/documents/doc_001",
-                "relevance": 0.95
+                "relevance": 0.95,
             }
         ],
         "timeline_events": [
@@ -526,7 +529,7 @@ async def global_search(q: str, limit: int = 20):
                 "title": "Notice Received",
                 "subtitle": "2024-11-20",
                 "url": "/timeline?event=evt_001",
-                "relevance": 0.82
+                "relevance": 0.82,
             }
         ],
         "contacts": [
@@ -536,7 +539,7 @@ async def global_search(q: str, limit: int = 20):
                 "title": "Property Manager",
                 "subtitle": "ABC Property Management",
                 "url": "/contacts/contact_001",
-                "relevance": 0.78
+                "relevance": 0.78,
             }
         ],
         "legal_resources": [
@@ -546,28 +549,25 @@ async def global_search(q: str, limit: int = 20):
                 "title": "MN Stat § 504B.161",
                 "subtitle": "Habitability Standards",
                 "url": "/law-library/statutes/504B.161",
-                "relevance": 0.89
+                "relevance": 0.89,
             }
-        ]
+        ],
     }
-    
+
     # Flatten and sort by relevance
     all_results = []
-    for category, items in results.items():
+    for _category, items in results.items():
         all_results.extend(items)
-    
+
     all_results.sort(key=lambda x: x["relevance"], reverse=True)
-    
-    return {
-        "query": q,
-        "total_results": len(all_results),
-        "results": all_results[:limit]
-    }
+
+    return {"query": q, "total_results": len(all_results), "results": all_results[:limit]}
 
 
 # ============================================================================
 # Export Endpoints
 # ============================================================================
+
 
 @router.get("/api/dashboard/export/report")
 async def export_dashboard_report(format: str = "pdf"):
@@ -580,6 +580,7 @@ async def export_dashboard_report(format: str = "pdf"):
 
     if format == "json":
         from fastapi.responses import JSONResponse as _JSONResponse
+
         report_data = {
             "generated_at": utc_now().isoformat(),
             "report_type": "dashboard_export",
@@ -592,13 +593,14 @@ async def export_dashboard_report(format: str = "pdf"):
         "format": format,
         "message": f"{format.upper()} export is queued — download link will be emailed when ready.",
         "download_url": f"/api/downloads/dashboard-report-{utc_now().strftime('%Y%m%d')}.{format}",
-        "expires_at": (utc_now() + timedelta(hours=1)).isoformat()
+        "expires_at": (utc_now() + timedelta(hours=1)).isoformat(),
     }
 
 
 # ============================================================================
 # User Preferences
 # ============================================================================
+
 
 @router.get("/api/dashboard/preferences")
 async def get_dashboard_preferences():
@@ -608,7 +610,7 @@ async def get_dashboard_preferences():
         "widgets": ["stats", "activity", "progress", "documents"],
         "notifications_enabled": True,
         "default_view": "dashboard",
-        "chart_type": "line"
+        "chart_type": "line",
     }
 
 
@@ -616,7 +618,4 @@ async def get_dashboard_preferences():
 async def update_dashboard_preferences(preferences: dict):
     """Update user's dashboard preferences."""
     _PREFS_STORE.update(preferences)
-    return {
-        "status": "success",
-        "preferences": _PREFS_STORE
-    }
+    return {"status": "success", "preferences": _PREFS_STORE}

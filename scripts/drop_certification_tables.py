@@ -14,12 +14,15 @@ Usage:
 
 Safe to re-run — checks if table exists before dropping.
 """
+
 import asyncio
 import sys
-sys.path.insert(0, '.')
+
+sys.path.insert(0, ".")
+
+from sqlalchemy import text
 
 from app.core.database import get_engine
-from sqlalchemy import text
 
 
 async def drop_certification_tables():
@@ -27,10 +30,9 @@ async def drop_certification_tables():
     async with engine.begin() as conn:
         # Check if tables exist (PostgreSQL)
         for table_name in ("certification_events", "document_registry"):
-            result = await conn.execute(text(
-                "SELECT table_name FROM information_schema.tables "
-                "WHERE table_name = :name"
-            ), {"name": table_name})
+            result = await conn.execute(
+                text("SELECT table_name FROM information_schema.tables WHERE table_name = :name"), {"name": table_name}
+            )
             if result.fetchone():
                 print(f"Dropping table: {table_name}...")
                 await conn.execute(text(f"DROP TABLE IF EXISTS {table_name} CASCADE"))

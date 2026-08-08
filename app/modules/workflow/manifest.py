@@ -4,8 +4,10 @@ Workflow Module Manifest
 Self-contained SDK module for Workflow management and execution.
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

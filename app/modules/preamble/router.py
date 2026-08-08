@@ -23,14 +23,13 @@ not content. Add content to the welcome page, not here.
 # All imports remain absolute since preamble is a CORE module.
 
 import logging
-from typing import Optional
 
-from fastapi import APIRouter, Cookie, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
+from app.core.cookie_auth import verify_user_id
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
-from app.core.cookie_auth import verify_user_id
 from app.core.user_id import COOKIE_USER_ID
 
 logger = logging.getLogger(__name__)
@@ -81,12 +80,17 @@ async def preamble(request: Request):
             # This handles users who onboarded before the gate system was implemented
             if not state.storage_connected:
                 from app.modules.storage.router import get_valid_session
+
                 session = await get_valid_session(db, raw_uid, auto_refresh=False)
                 if session and session.get("access_token"):
                     # Valid tokens exist — auto-mark the gate to prevent repeated onboarding
                     from app.modules.onboarding.gates import mark_gate
+
                     await mark_gate(db, raw_uid, "storage_connected")
-                    logger.info("Preamble: auto-repaired storage_connected gate for user %s (valid tokens found)", raw_uid[:6] + "***")
+                    logger.info(
+                        "Preamble: auto-repaired storage_connected gate for user %s (valid tokens found)",
+                        raw_uid[:6] + "***",
+                    )
                     # Re-read state after auto-repair
                     state = await get_onboarding_state(raw_uid, db)
     except Exception as exc:
@@ -97,6 +101,7 @@ async def preamble(request: Request):
     if state.is_fully_onboarded:
         # Returning user — send to their role-specific home
         from app.core.workflow_engine import route_user
+
         destination = await route_user(raw_uid)
         logger.info("Preamble: returning user %s → %s", raw_uid[:6] + "***", destination)
         return ssot_redirect(destination, context="preamble returning user")
