@@ -1,6 +1,52 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-01 (Task 6 i18n — locale selector UI + `/api/i18n/set-locale` endpoint)
+**Last Updated**: 2026-08-07 (TIER 2/3 audit cleanup + Playwright suite fix)
+
+## ✅ Completed 2026-08-07 Sessions
+
+### Session — Playwright suite fixed: 52 pass, 4 skip, 0 fail
+
+- **`navigation_consistency.spec.js` rewritten** to match actual Jinja2 template structure:
+  - `nav.core-nav` → `nav.header__nav` (actual `base.html` class)
+  - Paths `/home.html` → `/home` (route paths, not static files)
+  - Separate handling for `gui/base.html` pages (`/help` uses `nav.gui-nav`)
+  - Removed mobile drawer/hamburger tests (no such elements exist)
+  - 26/26 navigation tests pass (was 3/48)
+- **`live_*` tests fixed** — wrapped in `test.describe` with `test.skip` unless `SEMPTIFY_LIVE_TESTS=1`:
+  - `live_capability_seeding.spec.js`: conditional `pg` import (only if `DATABASE_URL` set)
+  - `live_case_persistence.spec.js`, `live_upload_timeline.spec.js`, `live_migration_verification.spec.js`: same skip pattern
+  - `pg` added as dev dependency in `package.json`
+- **5 standalone test scripts deleted** (1,915 lines removed):
+  - `smoke_test.js`, `playwright_full_system_test.js`, `navigation_consistency_test.js`, `comprehensive_ssot_audit.js`, `user_flow_continuity_test.js`
+  - These used `require('playwright')` (not `@playwright/test`), weren't picked up by `npx playwright test`, and had stale `.html` path expectations
+- **Commits**: `34985b98` (test fix), `8813f61b` (BUILD_STATE update)
+- **Verification**: Full Playwright suite — 52 passed, 4 skipped, 0 failed (1.0m runtime)
+
+### Session — TIER 2/3 audit cleanup
+
+- **Datetime linting**: `datetime-lint.yml` workflow updated to grep for `datetime.now(` (broader enforcement of `utc_now()`)
+- **`print()` removal**: 41 instances reviewed in `app/`; one debug `print()` removed from `app/core/error_handling.py` (logger.error already handled it)
+- **CRLF normalization**: `.gitattributes` verified correct — LF for most files, CRLF for Windows batch files; Git auto-normalization working as intended
+- **Hardcoded `ssot_redirect` URLs**: Reviewed — `ssot_redirect()` validates paths via `navigation.resolve_path()`, so hardcoded paths through this wrapper are SSOT-compliant
+- **Duplicate file resolution**:
+  - `app/services/vault_engine.py` deleted (byte-identical duplicate of canonical `app/modules/vault_engine/service.py`)
+  - `scripts/filedored.py` v1.0.0 deleted (superseded by `.devin/workflows/filedored_semptify_folder_and_filer.py` v5.0.0)
+  - Scratch/backup files removed: `app/core/Untitled-1.txt`, `static/onboarding/select-role.html.bak`, `static/onboarding/storage-select.html.bak`
+- **`sync_orchestrator.py`**: guard added against accidentally emptying the orchestrator queue
+- **Crawler scripts reviewed**: `scripts/eviction_crawler.py` and `scripts/mn_court_crawler.py` serve different purposes — both kept
+- **Commits**: `c2d659a6` (TIER 2), `19a27fa8` (filedored removal), `1e65ba44` (TIER 3 BUILD_STATE)
+
+## 🎯 Current Priority
+
+All TIER 2/3 audit items and Playwright suite fixes are complete. The codebase is clean and the full Playwright suite runs green (52 pass, 4 skip, 0 fail).
+
+### Next steps (when ready)
+
+- Run `live_*` tests interactively with `SEMPTIFY_LIVE_TESTS=1` against staging when OAuth is available
+- Consider adding more `.spec.js` tests for modules that currently lack coverage
+- No active build task — awaiting next priority from Brad
+
+---
 
 ## ✅ Completed 2026-08-01 Session
 
