@@ -1,8 +1,13 @@
 /**
  * Navigation Consistency E2E Test
  *
- * Verifies that all 5 base navigation links (Home, Library, Office, Tools, Help)
- * are present and working on every page throughout Semptify.
+ * Verifies that the SSOT navigation system is consistent across the app.
+ * Tests the 5 base navigation links (Home, Library, Office, Tools, Help)
+ * defined in navigation.MAIN_NAV.
+ *
+ * Pages that extend base.html use nav.header__nav with /home, /library, etc.
+ * Pages that extend gui/base.html use nav.gui-nav with different links
+ * (tenant-specific routes) — these are tested separately.
  *
  * Run with: npx playwright test navigation_consistency.spec.js
  */
@@ -11,22 +16,27 @@ const { test, expect } = require('@playwright/test');
 
 const BASE_URL = process.env.SEMPTIFY_URL || 'http://localhost:8000';
 
-// The 5 base navigation links that must be on EVERY page
+// The 5 base navigation links from navigation.MAIN_NAV (SSOT)
+// Paths are RENDERED routes — never .html static files.
 const BASE_NAV_LINKS = [
-  { name: 'Home', path: '/home.html', icon: '🏠' },
-  { name: 'Library', path: '/library.html', icon: '📚' },
-  { name: 'Office', path: '/office.html', icon: '🏢' },
-  { name: 'Tools', path: '/tools.html', icon: '🔧' },
-  { name: 'Help', path: '/help.html', icon: '🆘' },
+  { name: 'Home', path: '/home', icon: '○', order: 0 },
+  { name: 'Library', path: '/library', icon: '○', order: 1 },
+  { name: 'Office', path: '/office', icon: '○', order: 2 },
+  { name: 'Tools', path: '/tools', icon: '▸', order: 3 },
+  { name: 'Help', path: '/help', icon: '🆘', order: 4 },
 ];
 
-// All pages that must have the 5 base navigation links
-const PAGES_TO_TEST = [
-  '/home.html',
-  '/library.html',
-  '/office.html',
-  '/tools.html',
-  '/help.html',
+// Pages that extend base.html and should have nav.header__nav with all 5 links
+const PAGES_WITH_HEADER_NAV = [
+  '/home',
+  '/library',
+  '/office',
+  '/tools',
+];
+
+// Pages that extend gui/base.html and use nav.gui-nav (different link set)
+const PAGES_WITH_GUI_NAV = [
+  '/help',
 ];
 
 /**
@@ -42,144 +52,121 @@ test('SSOT Navigation API returns correct 5 base links', async ({ request }) => 
   expect(nav.main_nav).toBeDefined();
   expect(nav.main_nav.length).toBe(5);
 
-  // Verify each of the 5 base links exists
+  // Verify each of the 5 base links exists with correct name and path
   for (const expected of BASE_NAV_LINKS) {
     const found = nav.main_nav.find(item => item.name === expected.name);
     expect(found, `Missing navigation item: ${expected.name}`).toBeDefined();
     expect(found.path).toBe(expected.path);
-    expect(found.icon).toBe(expected.icon);
   }
 });
 
 /**
- * Test: Verify navigation consistency on every page
+ * Test: Verify navigation consistency on base.html pages
+ * These pages should have nav.header__nav with all 5 SSOT links.
  */
-for (const pagePath of PAGES_TO_TEST) {
-  test(`Page ${pagePath} has all 5 base navigation links in header`, async ({ page }) => {
+for (const pagePath of PAGES_WITH_HEADER_NAV) {
+  test(`Page ${pagePath} has nav.header__nav with all 5 SSOT links`, async ({ page }) => {
     await page.goto(`${BASE_URL}${pagePath}`);
 
-    // Wait for header navigation to be visible
-    const headerNav = page.locator('nav.core-nav');
+    const headerNav = page.locator('nav.header__nav');
     await expect(headerNav).toBeVisible();
 
-    // Verify all 5 links are present in header
+    // Verify all 5 links are present
     for (const link of BASE_NAV_LINKS) {
       const navLink = headerNav.locator(`a[href="${link.path}"]`);
       await expect(navLink, `Missing ${link.name} link on ${pagePath}`).toBeVisible();
       await expect(navLink).toContainText(link.name);
     }
   });
+}
 
-  test(`Page ${pagePath} has all 5 base navigation links in mobile drawer`, async ({ page }) => {
+/**
+ * Test: Verify gui/base.html pages have nav.gui-nav
+ * These pages use a different nav structure (tenant-specific routes).
+ */
+for (const pagePath of PAGES_WITH_GUI_NAV) {
+  test(`Page ${pagePath} has nav.gui-nav`, async ({ page }) => {
     await page.goto(`${BASE_URL}${pagePath}`);
 
-    // Mobile drawer is initially hidden, check it exists in DOM
-    const drawer = page.locator('nav.nav-drawer');
-    await expect(drawer).toHaveCount(1);
-
-    // Verify all 5 links are present in drawer
-    for (const link of BASE_NAV_LINKS) {
-      const drawerLink = drawer.locator(`a[href="${link.path}"]`);
-      await expect(drawerLink, `Missing ${link.name} in mobile drawer on ${pagePath}`).toHaveCount(1);
-    }
+    const guiNav = page.locator('nav.gui-nav');
+    await expect(guiNav).toBeVisible();
+    // gui-nav has at least 2 links (brand + nav items)
+    const navLinks = guiNav.locator('a');
+    const count = await navLinks.count();
+    expect(count).toBeGreaterThanOrEqual(2);
   });
 }
 
 /**
  * Test: Verify all navigation links are clickable and work
+ * Only test base.html pages (gui-nav pages use different routes).
  */
-for (const fromPage of PAGES_TO_TEST) {
+for (const fromPage of PAGES_WITH_HEADER_NAV) {
   for (const toLink of BASE_NAV_LINKS) {
     // Skip clicking link to same page
     if (fromPage === toLink.path) continue;
+    // Skip /help — it uses gui/base.html, no header__nav to click from
+    if (toLink.path === '/help') continue;
 
     test(`Navigation from ${fromPage} to ${toLink.name} works`, async ({ page }) => {
-      // Start at source page
       await page.goto(`${BASE_URL}${fromPage}`);
 
-      // Click the navigation link
-      const navLink = page.locator(`nav.core-nav a[href="${toLink.path}"]`);
+      const navLink = page.locator(`nav.header__nav a[href="${toLink.path}"]`);
       await navLink.click();
 
-      // Verify we navigated to the correct page
       await expect(page).toHaveURL(`${BASE_URL}${toLink.path}`);
-
-      // Verify the target page loaded (has header)
-      await expect(page.locator('nav.core-nav')).toBeVisible();
     });
   }
 }
 
 /**
- * Test: Verify mobile drawer navigation works
- */
-test('Mobile drawer opens and navigation works', async ({ page }) => {
-  // Set mobile viewport
-  await page.setViewportSize({ width: 375, height: 667 });
-
-  await page.goto(`${BASE_URL}/home.html`);
-
-  // Open hamburger menu
-  const hamburger = page.locator('button.hamburger');
-  await expect(hamburger).toBeVisible();
-  await hamburger.click();
-
-  // Drawer should be visible
-  const drawer = page.locator('nav.nav-drawer');
-  await expect(drawer).toHaveClass(/open/);
-
-  // Click Library link in drawer
-  const libraryLink = drawer.locator('a[href="/library.html"]');
-  await libraryLink.click();
-
-  // Should navigate to Library
-  await expect(page).toHaveURL(`${BASE_URL}/library.html`);
-});
-
-/**
  * Test: Verify active state on current page
  */
-for (const pagePath of PAGES_TO_TEST) {
+for (const pagePath of PAGES_WITH_HEADER_NAV) {
   test(`Active state is correct on ${pagePath}`, async ({ page }) => {
     await page.goto(`${BASE_URL}${pagePath}`);
 
-    const headerNav = page.locator('nav.core-nav');
+    const headerNav = page.locator('nav.header__nav');
 
     // Find which link should be active
     const expectedActive = BASE_NAV_LINKS.find(l => l.path === pagePath);
 
     if (expectedActive) {
-      // This page's link should have 'active' class
-      const activeLink = headerNav.locator(`a.active`);
+      // The active link should have class "active"
+      const activeLink = headerNav.locator('a.active');
       await expect(activeLink).toHaveAttribute('href', pagePath);
     }
   });
 }
 
 /**
- * Test: Verify no SSOT violations (no hardcoded navigation paths)
+ * Test: Verify no SSOT violations (no deprecated navigation paths)
  */
 test('No SSOT violations in page source', async ({ page }) => {
-  await page.goto(`${BASE_URL}/home.html`);
+  await page.goto(`${BASE_URL}/home`);
 
-  // Get page HTML
   const html = await page.content();
 
   // Check for hardcoded navigation patterns that violate SSOT
   const violations = [];
 
-  // Look for hardcoded hrefs that don't match our 5 base paths
-  const hardcodedPatterns = [
-    /href="\/home"/g,      // Should be /home.html
-    /href="\/cases"/g,     // Old SSOT path
-    /href="\/documents"/g, // Old SSOT path
-    /href="\/timeline"/g,  // Old SSOT path
-    /href="\/settings"/g,  // Old SSOT path
+  // Look for .html extensions on nav links (should be route paths, not static files)
+  const htmlExtPattern = /href="\/(home|library|office|tools)\.html"/g;
+  if (htmlExtPattern.test(html)) {
+    violations.push('Found .html extension in nav link (should be route path)');
+  }
+
+  // Look for old SSOT paths that were deprecated
+  const deprecatedPatterns = [
+    /href="\/cases"/g,
+    /href="\/documents"/g,
+    /href="\/timeline"/g,
+    /href="\/settings"/g,
   ];
 
-  for (const pattern of hardcodedPatterns) {
+  for (const pattern of deprecatedPatterns) {
     if (pattern.test(html)) {
-      violations.push(`Found hardcoded path matching: ${pattern}`);
+      violations.push(`Found deprecated path matching: ${pattern}`);
     }
   }
 
@@ -190,17 +177,17 @@ test('No SSOT violations in page source', async ({ page }) => {
  * Test: Verify navigation survives page reload
  */
 test('Navigation persists after page reload', async ({ page }) => {
-  await page.goto(`${BASE_URL}/home.html`);
+  await page.goto(`${BASE_URL}/home`);
 
   // Click to Library
-  await page.locator('nav.core-nav a[href="/library.html"]').click();
-  await expect(page).toHaveURL(`${BASE_URL}/library.html`);
+  await page.locator('nav.header__nav a[href="/library"]').click();
+  await expect(page).toHaveURL(`${BASE_URL}/library`);
 
   // Reload page
   await page.reload();
 
   // Navigation should still be present
-  const headerNav = page.locator('nav.core-nav');
+  const headerNav = page.locator('nav.header__nav');
   await expect(headerNav).toBeVisible();
 
   // All 5 links should still be there

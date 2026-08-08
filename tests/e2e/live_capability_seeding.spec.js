@@ -18,10 +18,24 @@
  */
 
 const { test, expect } = require('@playwright/test');
-const { Pool } = require('pg');
 
 const BASE = process.env.SEMPTIFY_URL || 'https://semptify.org';
 const DATABASE_URL = process.env.DATABASE_URL;
+
+// Conditionally import pg — only needed if DATABASE_URL is set
+let Pool;
+if (DATABASE_URL) {
+  try {
+    Pool = require('pg').Pool;
+  } catch (e) {
+    console.warn('pg module not installed but DATABASE_URL is set — DB checks will be skipped');
+  }
+}
+
+// Skip all tests in this file unless running interactively with a real server
+// These tests require manual OAuth sign-in in a browser window
+test.describe('live capability seeding (requires manual OAuth)', () => {
+  test.skip(!process.env.SEMPTIFY_LIVE_TESTS, 'Set SEMPTIFY_LIVE_TESTS=1 to run interactive OAuth tests');
 
 test('fresh login seeds capabilities', async ({ page, request }) => {
   // Clear existing session (logout)
@@ -68,7 +82,7 @@ test('fresh login seeds capabilities', async ({ page, request }) => {
   }
 
   // If DATABASE_URL is provided, verify DB directly
-  if (DATABASE_URL) {
+  if (DATABASE_URL && Pool) {
     const pool = new Pool({ connectionString: DATABASE_URL });
 
     try {
@@ -86,4 +100,5 @@ test('fresh login seeds capabilities', async ({ page, request }) => {
       await pool.end();
     }
   }
+});
 });
