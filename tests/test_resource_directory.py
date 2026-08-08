@@ -1,14 +1,13 @@
 """Tests for the resource directory module."""
 
 import io
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.utc import utc_now
 from app.main import app
-from app.models.models import Resource
 
 
 def _client() -> AsyncClient:

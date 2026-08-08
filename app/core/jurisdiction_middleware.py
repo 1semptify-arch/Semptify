@@ -16,6 +16,7 @@ Design:
 """
 
 import logging
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
@@ -27,7 +28,7 @@ _SKIP_PREFIXES = (
     "/static/",
     "/favicon",
     "/health",
-    "/api/location/",   # Location module handles its own jurisdiction
+    "/api/location/",  # Location module handles its own jurisdiction
     "/api/states/detect/",
 )
 
@@ -51,6 +52,7 @@ class JurisdictionMiddleware(BaseHTTPMiddleware):
             client_ip = self._get_client_ip(request)
             # Fire-and-forget: never await — never blocks the request
             import asyncio
+
             asyncio.ensure_future(self._detect(user_id, client_ip))
 
         return await call_next(request)
@@ -59,6 +61,7 @@ class JurisdictionMiddleware(BaseHTTPMiddleware):
     def _get_user_id(request: Request) -> str | None:
         try:
             from app.core.cookie_auth import extract_user_id
+
             return extract_user_id(request)
         except Exception:
             return None
@@ -78,6 +81,7 @@ class JurisdictionMiddleware(BaseHTTPMiddleware):
     async def _detect(user_id: str, client_ip: str) -> None:
         try:
             from app.services.location_service import auto_detect_jurisdiction
+
             await auto_detect_jurisdiction(user_id, client_ip)
         except Exception as e:
             logger.debug("JurisdictionMiddleware: detection failed: %s", e)

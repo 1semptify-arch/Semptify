@@ -4,8 +4,10 @@ Guided Intake Module Manifest
 Self-contained SDK module for Guided document intake.
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

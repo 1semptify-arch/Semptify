@@ -52,10 +52,10 @@ This module is the single source of truth for UPL risk classification.
 Other modules import the enum from here — they MUST NOT redefine it.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 
-class UPLRiskTier(str, Enum):
+class UPLRiskTier(StrEnum):
     """
     Risk tier for Unauthorized Practice of Law (UPL) enforcement.
 
@@ -112,9 +112,7 @@ class UPLRiskTier(str, Enum):
 # UPL_DISCLAIMER_LONG for page-level banners and footers. Both are canonical —
 # do not reword, paraphrase, or invent new variants in other modules.
 
-UPL_DISCLAIMER: str = (
-    "We do not give legal advice. Get legal advice from a qualified attorney."
-)
+UPL_DISCLAIMER: str = "We do not give legal advice. Get legal advice from a qualified attorney."
 """Short canonical notice. Displayed inline with MEDIUM_HIGH+ output."""
 
 UPL_DISCLAIMER_LONG: str = (
@@ -211,9 +209,7 @@ def get_disclaimer_for_tier(tier: UPLRiskTier) -> str:
         TypeError: if `tier` is not a UPLRiskTier member.
     """
     if not isinstance(tier, UPLRiskTier):
-        raise TypeError(
-            f"get_disclaimer_for_tier requires a UPLRiskTier member, got {type(tier).__name__}"
-        )
+        raise TypeError(f"get_disclaimer_for_tier requires a UPLRiskTier member, got {type(tier).__name__}")
 
     if tier in (UPLRiskTier.LOW, UPLRiskTier.LOW_MEDIUM, UPLRiskTier.MEDIUM):
         return UPL_DISCLAIMER

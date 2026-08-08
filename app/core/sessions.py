@@ -9,35 +9,35 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
+
 from app.core.utc import utc_now
-from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
 
 class SessionBackend(ABC):
     """Abstract base class for session storage backends."""
-    
+
     @abstractmethod
-    async def get(self, key: str) -> Optional[dict]:
+    async def get(self, key: str) -> dict | None:
         """Get session data by key."""
         pass
-    
+
     @abstractmethod
     async def set(self, key: str, value: dict, ttl_seconds: int = 3600) -> bool:
         """Set session data with TTL."""
         pass
-    
+
     @abstractmethod
     async def delete(self, key: str) -> bool:
         """Delete a session."""
         pass
-    
+
     @abstractmethod
     async def exists(self, key: str) -> bool:
         """Check if session exists."""
         pass
-    
+
     @abstractmethod
     async def extend(self, key: str, ttl_seconds: int = 3600) -> bool:
         """Extend session TTL."""
@@ -49,12 +49,12 @@ class MemorySessionBackend(SessionBackend):
     In-memory session storage for development.
     NOT suitable for production (data lost on restart, no horizontal scaling).
     """
-    
+
     def __init__(self):
         self._store: dict[str, dict] = {}
         self._expiry: dict[str, datetime] = {}
-    
-    async def get(self, key: str) -> Optional[dict]:
+
+    async def get(self, key: str) -> dict | None:
         self._cleanup_expired()
         if key in self._store and key in self._expiry:
             if utc_now() < self._expiry[key]:
@@ -64,28 +64,28 @@ class MemorySessionBackend(SessionBackend):
                 del self._store[key]
                 del self._expiry[key]
         return None
-    
+
     async def set(self, key: str, value: dict, ttl_seconds: int = 3600) -> bool:
         self._store[key] = value
         self._expiry[key] = utc_now() + timedelta(seconds=ttl_seconds)
         return True
-    
+
     async def delete(self, key: str) -> bool:
         deleted = key in self._store
         self._store.pop(key, None)
         self._expiry.pop(key, None)
         return deleted
-    
+
     async def exists(self, key: str) -> bool:
         self._cleanup_expired()
         return key in self._store and key in self._expiry and utc_now() < self._expiry[key]
-    
+
     async def extend(self, key: str, ttl_seconds: int = 3600) -> bool:
         if key in self._store:
             self._expiry[key] = utc_now() + timedelta(seconds=ttl_seconds)
             return True
         return False
-    
+
     def _cleanup_expired(self):
         """Remove expired sessions."""
         now = utc_now()
@@ -100,33 +100,31 @@ class RedisSessionBackend(SessionBackend):
     Redis-backed session storage for production.
     Supports horizontal scaling and persistent sessions.
     """
-    
+
     def __init__(self, redis_url: str = None, prefix: str = "semptify:session:"):
         import os
+
         self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379")
         self.prefix = prefix
         self._client = None
-    
+
     async def _get_client(self):
         """Lazy-load Redis client."""
         if self._client is None:
             try:
                 import redis.asyncio as aioredis
-                self._client = aioredis.from_url(
-                    self.redis_url,
-                    encoding="utf-8",
-                    decode_responses=True
-                )
+
+                self._client = aioredis.from_url(self.redis_url, encoding="utf-8", decode_responses=True)
             except ImportError:
                 logger.error("redis package not installed. Run: pip install redis")
                 raise
         return self._client
-    
+
     def _key(self, key: str) -> str:
         """Add prefix to key."""
         return f"{self.prefix}{key}"
-    
-    async def get(self, key: str) -> Optional[dict]:
+
+    async def get(self, key: str) -> dict | None:
         try:
             client = await self._get_client()
             data = await client.get(self._key(key))
@@ -135,7 +133,7 @@ class RedisSessionBackend(SessionBackend):
         except Exception as e:
             logger.error("Redis GET error: %s", e)
         return None
-    
+
     async def set(self, key: str, value: dict, ttl_seconds: int = 3600) -> bool:
         try:
             client = await self._get_client()
@@ -145,7 +143,7 @@ class RedisSessionBackend(SessionBackend):
         except Exception as e:
             logger.error("Redis SET error: %s", e)
         return False
-    
+
     async def delete(self, key: str) -> bool:
         try:
             client = await self._get_client()
@@ -154,7 +152,7 @@ class RedisSessionBackend(SessionBackend):
         except Exception as e:
             logger.error("Redis DELETE error: %s", e)
         return False
-    
+
     async def exists(self, key: str) -> bool:
         try:
             client = await self._get_client()
@@ -162,7 +160,7 @@ class RedisSessionBackend(SessionBackend):
         except Exception as e:
             logger.error("Redis EXISTS error: %s", e)
         return False
-    
+
     async def extend(self, key: str, ttl_seconds: int = 3600) -> bool:
         try:
             client = await self._get_client()
@@ -170,7 +168,7 @@ class RedisSessionBackend(SessionBackend):
         except Exception as e:
             logger.error("Redis EXPIRE error: %s", e)
         return False
-    
+
     async def close(self):
         """Close Redis connection."""
         if self._client:
@@ -182,7 +180,7 @@ class RedisSessionBackend(SessionBackend):
 # Session Manager (Singleton)
 # =============================================================================
 
-_session_backend: Optional[SessionBackend] = None
+_session_backend: SessionBackend | None = None
 
 
 def get_session_backend() -> SessionBackend:
@@ -195,19 +193,19 @@ def get_session_backend() -> SessionBackend:
     return _session_backend
 
 
-def configure_session_backend(redis_url: Optional[str] = None):
+def configure_session_backend(redis_url: str | None = None):
     """
     Configure the session backend.
-    
+
     Call this during application startup:
         import os
         configure_session_backend(os.getenv("REDIS_URL", "redis://localhost:6379"))
-    
+
     Args:
         redis_url: Redis connection URL. If None, uses in-memory storage.
     """
     global _session_backend
-    
+
     if redis_url:
         _session_backend = RedisSessionBackend(redis_url)
         logger.info("Using Redis session backend: %s", redis_url.split("@")[-1])  # Hide credentials

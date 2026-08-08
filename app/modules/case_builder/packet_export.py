@@ -315,7 +315,7 @@ def _build_annotation_pdf(
 
     story.append(
         Paragraph(
-            "This page contains user highlights, notes, and footnotes. " "It does not modify the original document.",
+            "This page contains user highlights, notes, and footnotes. It does not modify the original document.",
             styles["Italic"],
         )
     )

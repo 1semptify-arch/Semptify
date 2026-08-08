@@ -21,21 +21,27 @@ Key Minnesota Statutes Covered:
 
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, date, timedelta
-from app.core.utc import utc_now
-from typing import List, Dict, Any, Optional, Tuple, Set
+from datetime import date, timedelta
 from enum import Enum
+from typing import Any
+
+from app.core.utc import utc_now
 
 from .models import (
-    LegalIssue, IssueSeverity, DocumentType, DocumentCategory,
-    ExtractedEntity, EntityType, PartyRole,
-    ReasoningChain, ReasoningStep, ReasoningType,
+    DocumentType,
+    EntityType,
+    ExtractedEntity,
+    IssueSeverity,
+    LegalIssue,
+    ReasoningChain,
+    ReasoningType,
     TimelineEntry,
 )
 
 
 class IssueType(Enum):
     """Types of legal issues that can be detected"""
+
     IMPROPER_NOTICE_PERIOD = "improper_notice_period"
     NOTICE_NOT_SERVED_PROPERLY = "notice_not_served_properly"
     ILLEGAL_LATE_FEE = "illegal_late_fee"
@@ -55,29 +61,31 @@ class IssueType(Enum):
 @dataclass
 class MinnesotaStatute:
     """Minnesota statute reference"""
+
     section: str
     title: str
     summary: str
-    key_provisions: List[str] = field(default_factory=list)
-    tenant_protections: List[str] = field(default_factory=list)
-    violations: List[str] = field(default_factory=list)
-    penalties: List[str] = field(default_factory=list)
+    key_provisions: list[str] = field(default_factory=list)
+    tenant_protections: list[str] = field(default_factory=list)
+    violations: list[str] = field(default_factory=list)
+    penalties: list[str] = field(default_factory=list)
 
 
 @dataclass
 class NoticeRequirement:
     """Notice period requirements by situation"""
+
     notice_type: str
     days_required: int
     statute: str
-    exceptions: List[str] = field(default_factory=list)
-    service_requirements: List[str] = field(default_factory=list)
+    exceptions: list[str] = field(default_factory=list)
+    service_requirements: list[str] = field(default_factory=list)
 
 
 class MinnesotaTenantLawExpert:
     """
     Expert system for Minnesota tenant law.
-    
+
     Provides:
     - Legal issue detection specific to MN law
     - Notice period compliance checking
@@ -85,14 +93,14 @@ class MinnesotaTenantLawExpert:
     - Eviction defense identification
     - Court deadline calculation
     """
-    
+
     def __init__(self):
         self.statutes = self._load_statutes()
         self.notice_requirements = self._load_notice_requirements()
         self.issue_patterns = self._build_issue_patterns()
         self.defense_patterns = self._build_defense_patterns()
-        
-    def _load_statutes(self) -> Dict[str, MinnesotaStatute]:
+
+    def _load_statutes(self) -> dict[str, MinnesotaStatute]:
         """Load Minnesota tenant law statutes"""
         return {
             "504B.135": MinnesotaStatute(
@@ -280,8 +288,8 @@ class MinnesotaTenantLawExpert:
                 ],
             ),
         }
-    
-    def _load_notice_requirements(self) -> Dict[str, NoticeRequirement]:
+
+    def _load_notice_requirements(self) -> dict[str, NoticeRequirement]:
         """Load notice period requirements"""
         return {
             "nonpayment_cure": NoticeRequirement(
@@ -346,8 +354,8 @@ class MinnesotaTenantLawExpert:
                 ],
             ),
         }
-    
-    def _build_issue_patterns(self) -> Dict[IssueType, List[Dict[str, Any]]]:
+
+    def _build_issue_patterns(self) -> dict[IssueType, list[dict[str, Any]]]:
         """Build patterns for detecting legal issues"""
         return {
             IssueType.IMPROPER_NOTICE_PERIOD: [
@@ -471,8 +479,8 @@ class MinnesotaTenantLawExpert:
                 },
             ],
         }
-    
-    def _build_defense_patterns(self) -> Dict[str, Dict[str, Any]]:
+
+    def _build_defense_patterns(self) -> dict[str, dict[str, Any]]:
         """Build patterns for identifying potential defenses"""
         return {
             "retaliation_defense": {
@@ -516,18 +524,18 @@ class MinnesotaTenantLawExpert:
                 "description": "Waiver defense - landlord accepted rent after notice period",
             },
         }
-    
-    async def analyze(self, text: str, entities: List[ExtractedEntity],
-                      document_type: DocumentType,
-                      timeline: List[TimelineEntry]) -> Tuple[
-        List[LegalIssue], 
-        List[str],  # applicable statutes
-        List[str],  # defense options
-        ReasoningChain
+
+    async def analyze(
+        self, text: str, entities: list[ExtractedEntity], document_type: DocumentType, timeline: list[TimelineEntry]
+    ) -> tuple[
+        list[LegalIssue],
+        list[str],  # applicable statutes
+        list[str],  # defense options
+        ReasoningChain,
     ]:
         """
         Perform legal analysis on document.
-        
+
         Returns:
             Tuple of (issues, applicable_statutes, defense_options, reasoning_chain)
         """
@@ -536,107 +544,117 @@ class MinnesotaTenantLawExpert:
             ReasoningType.LEGAL_RULE,
             "Beginning Minnesota tenant law analysis",
             {"document_type": document_type.value},
-            {}
+            {},
         )
-        
+
         issues = []
         applicable_statutes = set()
         defense_options = []
-        
+
         # Step 1: Detect legal issues
         detected_issues = await self._detect_issues(text, entities, document_type, reasoning)
         issues.extend(detected_issues)
-        
+
         # Step 2: Check notice compliance if applicable
-        if document_type in [DocumentType.EVICTION_NOTICE, DocumentType.NOTICE_TO_QUIT,
-                            DocumentType.NOTICE_TO_VACATE, DocumentType.FOURTEEN_DAY_NOTICE,
-                            DocumentType.THIRTY_DAY_NOTICE]:
+        if document_type in [
+            DocumentType.EVICTION_NOTICE,
+            DocumentType.NOTICE_TO_QUIT,
+            DocumentType.NOTICE_TO_VACATE,
+            DocumentType.FOURTEEN_DAY_NOTICE,
+            DocumentType.THIRTY_DAY_NOTICE,
+        ]:
             notice_issues, notice_statutes = await self._check_notice_compliance(
                 text, entities, document_type, timeline, reasoning
             )
             issues.extend(notice_issues)
             applicable_statutes.update(notice_statutes)
-        
+
         # Step 3: Check for defenses
         defenses = await self._identify_defenses(text, entities, document_type, reasoning)
         defense_options.extend(defenses)
-        
+
         # Step 4: Add applicable statutes from issues
         for issue in issues:
             if issue.mn_statute:
                 applicable_statutes.add(issue.mn_statute)
             applicable_statutes.update(issue.legal_basis)
-        
+
         # Step 5: Calculate urgency and deadlines
         await self._calculate_urgency(issues, timeline, reasoning)
-        
+
         reasoning.completed_at = utc_now()
         reasoning.conclusion = f"Found {len(issues)} legal issues, {len(defense_options)} potential defenses"
         reasoning.new_findings = [issue.title for issue in issues[:5]]
-        
+
         return issues, list(applicable_statutes), defense_options, reasoning
-    
-    async def _detect_issues(self, text: str, entities: List[ExtractedEntity],
-                             document_type: DocumentType,
-                             reasoning: ReasoningChain) -> List[LegalIssue]:
+
+    async def _detect_issues(
+        self, text: str, entities: list[ExtractedEntity], document_type: DocumentType, reasoning: ReasoningChain
+    ) -> list[LegalIssue]:
         """Detect legal issues using patterns"""
         issues = []
-        
+
         for issue_type, patterns in self.issue_patterns.items():
             for pattern_def in patterns:
                 matches = re.finditer(pattern_def["pattern"], text)
-                
+
                 for match in matches:
                     # Get surrounding context
                     start = max(0, match.start() - 50)
                     end = min(len(text), match.end() + 50)
                     context = text[start:end]
-                    
+
                     issue = LegalIssue(
                         issue_type=issue_type.value,
                         title=pattern_def["description"],
                         description=f"Found in text: '{match.group()}'",
                         severity=pattern_def["severity"],
                         mn_statute=pattern_def.get("statute"),
-                        legal_basis=[f"Minn. Stat. § {pattern_def.get('statute')}"] if pattern_def.get("statute") else [],
+                        legal_basis=[f"Minn. Stat. § {pattern_def.get('statute')}"]
+                        if pattern_def.get("statute")
+                        else [],
                         supporting_text=context,
                         text_location=(match.start(), match.end()),
                         confidence=0.85,
                         reasoning=f"Matched pattern for {issue_type.value}",
                     )
-                    
+
                     # Add recommended actions based on issue type
                     issue.recommended_actions = self._get_actions_for_issue(issue_type)
-                    
+
                     # Add defense strategies
                     issue.defense_available = self._has_defense(issue_type)
                     if issue.defense_available:
                         issue.defense_strategies = self._get_defense_strategies(issue_type)
-                    
+
                     issues.append(issue)
-        
+
         reasoning.add_step(
             ReasoningType.LEGAL_RULE,
             f"Detected {len(issues)} potential legal issues",
             {},
-            {"issue_types": list(set(i.issue_type for i in issues))},
-            confidence_impact=len(issues) * 2
+            {"issue_types": list({i.issue_type for i in issues})},
+            confidence_impact=len(issues) * 2,
         )
-        
+
         return issues
-    
-    async def _check_notice_compliance(self, text: str, entities: List[ExtractedEntity],
-                                       document_type: DocumentType,
-                                       timeline: List[TimelineEntry],
-                                       reasoning: ReasoningChain) -> Tuple[List[LegalIssue], Set[str]]:
+
+    async def _check_notice_compliance(
+        self,
+        text: str,
+        entities: list[ExtractedEntity],
+        document_type: DocumentType,
+        timeline: list[TimelineEntry],
+        reasoning: ReasoningChain,
+    ) -> tuple[list[LegalIssue], set[str]]:
         """Check if notice complies with Minnesota requirements"""
         issues = []
         statutes = set()
-        
+
         # Determine notice type
         notice_req = None
         text_lower = text.lower()
-        
+
         if "nonpayment" in text_lower or "rent" in text_lower:
             notice_req = self.notice_requirements.get("nonpayment_cure")
         elif "violation" in text_lower or "breach" in text_lower:
@@ -647,16 +665,16 @@ class MinnesotaTenantLawExpert:
             notice_req = self.notice_requirements.get("nonpayment_cure")
         elif document_type == DocumentType.THIRTY_DAY_NOTICE:
             notice_req = self.notice_requirements.get("month_to_month_termination")
-        
+
         if notice_req:
             statutes.add(notice_req.statute)
-            
+
             # Check notice period mentioned in document
             period_match = re.search(r"(\d+)\s*[-\s]?days?", text, re.IGNORECASE)
             if period_match:
                 stated_days = int(period_match.group(1))
                 required_days = notice_req.days_required
-                
+
                 if stated_days < required_days:
                     issue = LegalIssue(
                         issue_type=IssueType.IMPROPER_NOTICE_PERIOD.value,
@@ -668,8 +686,10 @@ class MinnesotaTenantLawExpert:
                         confidence=0.9,
                         reasoning=f"Stated {stated_days} days vs required {required_days} days",
                         defense_available=True,
-                        defense_strategies=["Challenge notice as insufficient", 
-                                           "Request dismissal for improper notice"],
+                        defense_strategies=[
+                            "Challenge notice as insufficient",
+                            "Request dismissal for improper notice",
+                        ],
                         recommended_actions=[
                             f"Note that proper notice should be {required_days} days",
                             "Consider challenging the notice in court",
@@ -677,7 +697,7 @@ class MinnesotaTenantLawExpert:
                         ],
                     )
                     issues.append(issue)
-            
+
             # Check for required content
             for requirement in notice_req.service_requirements:
                 if "amount" in requirement.lower():
@@ -696,72 +716,72 @@ class MinnesotaTenantLawExpert:
                             recommended_actions=["Request specific amount from landlord"],
                         )
                         issues.append(issue)
-        
+
         reasoning.add_step(
             ReasoningType.LEGAL_RULE,
             f"Checked notice compliance: {len(issues)} issues found",
             {"notice_type": notice_req.notice_type if notice_req else "unknown"},
             {"issues_found": len(issues)},
         )
-        
+
         return issues, statutes
-    
-    async def _identify_defenses(self, text: str, entities: List[ExtractedEntity],
-                                 document_type: DocumentType,
-                                 reasoning: ReasoningChain) -> List[str]:
+
+    async def _identify_defenses(
+        self, text: str, entities: list[ExtractedEntity], document_type: DocumentType, reasoning: ReasoningChain
+    ) -> list[str]:
         """Identify potential legal defenses"""
         defenses = []
-        
-        for defense_name, defense_def in self.defense_patterns.items():
+
+        for _defense_name, defense_def in self.defense_patterns.items():
             for trigger in defense_def["triggers"]:
                 if re.search(trigger, text, re.IGNORECASE):
                     defenses.append(defense_def["description"])
                     break
-        
+
         # Add document-type specific defenses
         if document_type in [DocumentType.EVICTION_NOTICE, DocumentType.SUMMONS]:
             # Check for common eviction defenses
             text_lower = text.lower()
-            
+
             if "rent" in text_lower and any(e.entity_type == EntityType.MONEY for e in entities):
                 defenses.append("Consider whether rent was actually owed - verify amounts")
-            
+
             if "lease" not in text_lower:
                 defenses.append("Request copy of lease to verify terms")
-        
+
         reasoning.add_step(
             ReasoningType.LEGAL_RULE,
             f"Identified {len(defenses)} potential defenses",
             {},
             {"defenses": defenses},
-            confidence_impact=len(defenses) * 3
+            confidence_impact=len(defenses) * 3,
         )
-        
+
         return list(set(defenses))
-    
-    async def _calculate_urgency(self, issues: List[LegalIssue], 
-                                 timeline: List[TimelineEntry],
-                                 reasoning: ReasoningChain):
+
+    async def _calculate_urgency(
+        self, issues: list[LegalIssue], timeline: list[TimelineEntry], reasoning: ReasoningChain
+    ):
         """Calculate urgency based on deadlines and issue severity"""
         today = date.today()
-        
+
         # Find nearest deadline
         deadlines = [t for t in timeline if t.is_deadline and t.event_date]
         if deadlines:
             nearest = min(deadlines, key=lambda t: t.event_date)
             days_until = (nearest.event_date - today).days
-            
+
             for issue in issues:
                 if issue.is_deadline or issue.issue_type == IssueType.COURT_DEADLINE.value:
                     issue.deadline = nearest.event_date
                     issue.days_to_act = days_until
-        
+
         # Check for court dates
         court_dates = [t for t in timeline if t.is_court_date and t.event_date]
         if court_dates:
             nearest_court = min(court_dates, key=lambda t: t.event_date)
             days_until_court = (nearest_court.event_date - today).days
-            
+
             if days_until_court <= 7:
                 # Add critical court deadline issue
                 court_issue = LegalIssue(
@@ -779,8 +799,8 @@ class MinnesotaTenantLawExpert:
                     ],
                 )
                 issues.append(court_issue)
-    
-    def _get_actions_for_issue(self, issue_type: IssueType) -> List[str]:
+
+    def _get_actions_for_issue(self, issue_type: IssueType) -> list[str]:
         """Get recommended actions for an issue type"""
         actions = {
             IssueType.IMPROPER_NOTICE_PERIOD: [
@@ -817,7 +837,7 @@ class MinnesotaTenantLawExpert:
             ],
         }
         return actions.get(issue_type, ["Consult with legal aid"])
-    
+
     def _has_defense(self, issue_type: IssueType) -> bool:
         """Check if issue type has associated defense"""
         return issue_type in [
@@ -827,8 +847,8 @@ class MinnesotaTenantLawExpert:
             IssueType.HABITABILITY,
             IssueType.PROCEDURAL_DEFECT,
         ]
-    
-    def _get_defense_strategies(self, issue_type: IssueType) -> List[str]:
+
+    def _get_defense_strategies(self, issue_type: IssueType) -> list[str]:
         """Get defense strategies for an issue type"""
         strategies = {
             IssueType.IMPROPER_NOTICE_PERIOD: [
@@ -856,23 +876,23 @@ class MinnesotaTenantLawExpert:
             ],
         }
         return strategies.get(issue_type, [])
-    
-    def get_statute_info(self, section: str) -> Optional[MinnesotaStatute]:
+
+    def get_statute_info(self, section: str) -> MinnesotaStatute | None:
         """Get information about a Minnesota statute"""
         return self.statutes.get(section)
-    
-    def get_notice_requirement(self, notice_type: str) -> Optional[NoticeRequirement]:
+
+    def get_notice_requirement(self, notice_type: str) -> NoticeRequirement | None:
         """Get notice requirement by type"""
         return self.notice_requirements.get(notice_type)
-    
-    def calculate_deadline(self, notice_date: date, notice_type: str) -> Optional[date]:
+
+    def calculate_deadline(self, notice_date: date, notice_type: str) -> date | None:
         """Calculate compliance deadline from notice date"""
         req = self.notice_requirements.get(notice_type)
         if req:
             return notice_date + timedelta(days=req.days_required)
         return None
-    
-    def get_all_applicable_statutes(self, document_type: DocumentType) -> List[str]:
+
+    def get_all_applicable_statutes(self, document_type: DocumentType) -> list[str]:
         """Get all potentially applicable statutes for a document type"""
         statute_map = {
             DocumentType.EVICTION_NOTICE: ["504B.291", "504B.321", "504B.345"],

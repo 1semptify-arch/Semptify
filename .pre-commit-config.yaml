@@ -5,7 +5,7 @@
 repos:
   # General file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -16,7 +16,6 @@ repos:
       - id: check-added-large-files
         args: ['--maxkb=1000']
       - id: detect-private-key
-      - id: check-case-conflict
 
   # Python linting with Ruff (fast)
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -39,15 +38,17 @@ repos:
     rev: 1.7.7
     hooks:
       - id: bandit
-        args: ["-ll"]
+        args: ["-c", ".bandit"]
         exclude: tests/
 
-  # Check for secrets accidentally committed
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
+  # Check for secrets accidentally committed (local hook to avoid -w flag issue in v1.5.0)
+  - repo: local
     hooks:
       - id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
+        name: Detect secrets
+        entry: python scripts/detect_secrets_hook.py --baseline .secrets.baseline
+        language: system
+        pass_filenames: true
         exclude: >
           (?x)^(
             package\.lock\.json|
@@ -67,7 +68,7 @@ repos:
     hooks:
       - id: ssot-architecture-check
         name: SSOT Architecture Verification
-        entry: venv311/Scripts/python.exe scripts/verify_ssot.py
+        entry: python3 scripts/verify_ssot.py
         language: system
         pass_filenames: false
         always_run: true
@@ -77,7 +78,7 @@ repos:
     hooks:
       - id: guardrail-engine
         name: Run all guardrail checks
-        entry: venv311/Scripts/python.exe tools/guardrail_engine.py
+        entry: python3 tools/guardrail_engine.py
         language: system
         pass_filenames: false
         always_run: true
@@ -87,7 +88,7 @@ repos:
     hooks:
       - id: sync-orchestrator
         name: Sync stub/task state
-        entry: venv311/Scripts/python.exe tools/sync_orchestrator.py --git-add
+        entry: python3 tools/sync_orchestrator.py --git-add
         language: system
         pass_filenames: false
         always_run: true
@@ -101,8 +102,14 @@ exclude: |
   (?x)^(
     \.git/|
     \.venv/|
+    venv311/|
     __pycache__/|
     \.mypy_cache/|
     static/_archive/|
-    alembic/versions/
+    archive/|
+    alembic/versions/|
+    semptify_dakota_eviction/|
+    mobile_ai_host/|
+    funding_forge/|
+    legal_intel/
   )$

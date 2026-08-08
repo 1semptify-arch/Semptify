@@ -13,6 +13,7 @@ from app.models.functionx_models import (
     FunctionXExecuteRequest,
     FunctionXExecuteResponse,
 )
+
 from .service import functionx_service
 
 router = APIRouter(prefix="/api/functionx", tags=["FunctionX"])

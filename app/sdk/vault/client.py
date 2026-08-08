@@ -20,12 +20,11 @@ Usage:
 
 import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Coroutine, List, Optional, Any
 
 from app.core.vault_paths import VAULT_ROOT
-from app.sdk.vault.folder_spec import VaultFolderSpec, TENANT_VAULT
-from app.sdk.vault.errors import VaultError, VaultProviderError, VaultFolderError
+from app.sdk.vault.folder_spec import TENANT_VAULT, VaultFolderSpec
 
 logger = logging.getLogger("semptify.vault.sdk")
 
@@ -34,9 +33,11 @@ logger = logging.getLogger("semptify.vault.sdk")
 # Result Types
 # ============================================================================
 
+
 @dataclass
 class FolderResult:
     """Result for a single folder creation/verification attempt."""
+
     path: str
     status: str  # "ok", "error", "skipped"
     detail: str = ""
@@ -45,18 +46,19 @@ class FolderResult:
 @dataclass
 class VaultResult:
     """Aggregate result for a vault operation."""
-    folders: List[FolderResult] = field(default_factory=list)
+
+    folders: list[FolderResult] = field(default_factory=list)
 
     @property
     def all_ok(self) -> bool:
         return all(f.status == "ok" for f in self.folders)
 
     @property
-    def failed(self) -> List[FolderResult]:
+    def failed(self) -> list[FolderResult]:
         return [f for f in self.folders if f.status == "error"]
 
     @property
-    def succeeded(self) -> List[FolderResult]:
+    def succeeded(self) -> list[FolderResult]:
         return [f for f in self.folders if f.status == "ok"]
 
     def to_dict(self) -> dict:
@@ -65,19 +67,17 @@ class VaultResult:
             "total": len(self.folders),
             "ok_count": len(self.succeeded),
             "error_count": len(self.failed),
-            "folders": [
-                {"path": f.path, "status": f.status, "detail": f.detail}
-                for f in self.folders
-            ],
+            "folders": [{"path": f.path, "status": f.status, "detail": f.detail} for f in self.folders],
         }
 
 
 @dataclass
 class HealthResult:
     """Result of a vault health check."""
+
     healthy: bool
-    folders_exist: List[str]
-    folders_missing: List[str]
+    folders_exist: list[str]
+    folders_missing: list[str]
     provider_connected: bool
     detail: str = ""
 
@@ -94,6 +94,7 @@ class HealthResult:
 # ============================================================================
 # VaultClient
 # ============================================================================
+
 
 class VaultClient:
     """
@@ -120,7 +121,7 @@ class VaultClient:
         access_token: str,
         user_id: str,
         folder_spec: VaultFolderSpec,
-        token_refresher: Optional[Callable] = None,
+        token_refresher: Callable | None = None,
         inter_call_delay: float = 0.5,  # Increased to avoid rate limiting
     ):
         self._provider_name = provider
@@ -139,6 +140,7 @@ class VaultClient:
         """Get or create the storage provider instance."""
         if self._storage is None:
             from app.services.storage import get_provider
+
             self._storage = get_provider(
                 self._provider_name,
                 access_token=self._access_token,
@@ -166,18 +168,22 @@ class VaultClient:
                 if created:
                     result.folders.append(FolderResult(path=folder_path, status="ok"))
                 else:
-                    result.folders.append(FolderResult(
-                        path=folder_path,
-                        status="error",
-                        detail="create_folder returned False",
-                    ))
+                    result.folders.append(
+                        FolderResult(
+                            path=folder_path,
+                            status="error",
+                            detail="create_folder returned False",
+                        )
+                    )
             except Exception as exc:
                 logger.error("Folder creation failed for %s: %s", folder_path, exc)
-                result.folders.append(FolderResult(
-                    path=folder_path,
-                    status="error",
-                    detail=str(exc),
-                ))
+                result.folders.append(
+                    FolderResult(
+                        path=folder_path,
+                        status="error",
+                        detail=str(exc),
+                    )
+                )
 
             # Rate limit protection
             if self._inter_call_delay > 0:
@@ -205,25 +211,29 @@ class VaultClient:
                 if exists:
                     result.folders.append(FolderResult(path=folder_path, status="ok"))
                 else:
-                    result.folders.append(FolderResult(
+                    result.folders.append(
+                        FolderResult(
+                            path=folder_path,
+                            status="error",
+                            detail="folder not found",
+                        )
+                    )
+            except Exception as exc:
+                result.folders.append(
+                    FolderResult(
                         path=folder_path,
                         status="error",
-                        detail="folder not found",
-                    ))
-            except Exception as exc:
-                result.folders.append(FolderResult(
-                    path=folder_path,
-                    status="error",
-                    detail=str(exc),
-                ))
+                        detail=str(exc),
+                    )
+                )
 
         return result
 
-    def list_expected_folders(self) -> List[str]:
+    def list_expected_folders(self) -> list[str]:
         """Return the list of folder paths this vault should contain."""
         return self._folder_spec.all_folders
 
-    def register_folders(self, folders: List[str]) -> None:
+    def register_folders(self, folders: list[str]) -> None:
         """
         Add product-specific folders to the spec.
 
@@ -240,7 +250,7 @@ class VaultClient:
         subfolder: str,
         filename: str,
         content: bytes,
-        mime_type: Optional[str] = None,
+        mime_type: str | None = None,
     ):
         """
         Upload a file to a vault subfolder.

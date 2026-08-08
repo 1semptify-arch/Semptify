@@ -9,6 +9,7 @@ Usage:
 """
 
 import logging
+
 from fastapi import FastAPI
 
 from app.modules.local_ai.config import LocalAIConfig

@@ -15,13 +15,13 @@ Usage:
 """
 
 from app.sdk.navigation.client import (
-    get_stage,
-    get_path,
-    get_onboarding_start,
-    get_reconnect_path,
-    get_next_path,
-    is_canonical_path,
     all_paths,
+    get_next_path,
+    get_onboarding_start,
+    get_path,
+    get_reconnect_path,
+    get_stage,
+    is_canonical_path,
 )
 
 __all__ = [

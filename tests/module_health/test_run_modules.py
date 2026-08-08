@@ -1,4 +1,5 @@
 """Auto-generated regression test for run_modules."""
+
 from tools.module_health import check_run_modules
 
 

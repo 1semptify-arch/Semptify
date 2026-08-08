@@ -1,19 +1,19 @@
 """Generate Semptify Technical Overview PDF for sharing with tech people."""
+
 from pathlib import Path
 
-from reportlab.lib.pagesizes import LETTER
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.lib.enums import TA_LEFT
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import LETTER
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
 from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer,
+    HRFlowable,
     ListFlowable,
     ListItem,
+    Paragraph,
     Preformatted,
-    HRFlowable,
+    SimpleDocTemplate,
+    Spacer,
 )
 
 OUTPUT = Path(__file__).resolve().parent.parent / "Semptify_Technical_Overview.pdf"
@@ -118,7 +118,7 @@ def main() -> None:
     story.append(
         bullet(
             [
-                "User clicks \"Connect with Google Drive\" (or Dropbox/OneDrive)",
+                'User clicks "Connect with Google Drive" (or Dropbox/OneDrive)',
                 "OAuth2 flow → Semptify gets a token scoped to a private app folder",
                 "Encrypted auth token is stored in the user's own storage (.semptify/auth_token.enc)",
                 "HMAC-signed session cookie issued: &lt;user_id&gt;.&lt;hmac_signature&gt;",
@@ -182,7 +182,7 @@ def main() -> None:
     )
 
     # Forge
-    story.append(Paragraph("Module System (\"The Forge\")", styles["Heading2"]))
+    story.append(Paragraph('Module System ("The Forge")', styles["Heading2"]))
     story.append(Paragraph("Not a monolith — it's a lifecycle-pipelined module system:", styles["Normal"]))
     story.append(
         bullet(
@@ -202,7 +202,7 @@ def main() -> None:
     story.append(
         bullet(
             [
-                "<b>RECORD</b> — Document capture, vault, timeline, journal. Big \"Add Record\" button everywhere.",
+                '<b>RECORD</b> — Document capture, vault, timeline, journal. Big "Add Record" button everywhere.',
                 "<b>KNOW</b> — Library of verified facts, rights guides, context engine. Facts only, no opinions.",
             ],
             styles,

@@ -5,7 +5,7 @@ Tracks sensitive operations for compliance, security, and debugging.
 
 Usage:
     from app.core.audit import audit_log, AuditAction
-    
+
     # Log an action
     await audit_log(
         action=AuditAction.DOCUMENT_ACCESS,
@@ -14,7 +14,7 @@ Usage:
         resource_id="doc456",
         details={"filename": "lease.pdf"}
     )
-    
+
     # Decorator for automatic logging
     @audit_logged(AuditAction.DOCUMENT_DELETE)
     async def delete_document(doc_id: str, user_id: str):
@@ -23,67 +23,69 @@ Usage:
 
 import json
 import logging
+from collections.abc import Callable
 from datetime import datetime
-from app.core.utc import utc_now
-from enum import Enum
+from enum import StrEnum
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
+
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
 
-class AuditAction(str, Enum):
+class AuditAction(StrEnum):
     """Enumeration of auditable actions."""
-    
+
     # Authentication
     LOGIN_SUCCESS = "auth.login.success"
     LOGIN_FAILURE = "auth.login.failure"
     LOGOUT = "auth.logout"
     TOKEN_REFRESH = "auth.token.refresh"
     PASSWORD_CHANGE = "auth.password.change"
-    
+
     # User Management
     USER_CREATE = "user.create"
     USER_UPDATE = "user.update"
     USER_DELETE = "user.delete"
     USER_ROLE_CHANGE = "user.role.change"
-    
+
     # Document Operations
     DOCUMENT_UPLOAD = "document.upload"
     DOCUMENT_ACCESS = "document.access"
     DOCUMENT_DOWNLOAD = "document.download"
     DOCUMENT_DELETE = "document.delete"
     DOCUMENT_SHARE = "document.share"
-    
+
     # Vault Operations
     VAULT_UNLOCK = "vault.unlock"
     VAULT_LOCK = "vault.lock"
     VAULT_FILE_ADD = "vault.file.add"
     VAULT_FILE_REMOVE = "vault.file.remove"
-    
+
     # Legal Actions
     CASE_CREATE = "case.create"
     CASE_UPDATE = "case.update"
     CASE_DELETE = "case.delete"
     COMPLAINT_FILE = "complaint.file"
     FORM_SUBMIT = "form.submit"
-    
+
     # AI Operations
     AI_QUERY = "ai.query"
     AI_DOCUMENT_ANALYSIS = "ai.document.analysis"
     AI_LEGAL_ADVICE = "ai.legal.advice"
-    
+
     # System Operations
     CONFIG_CHANGE = "system.config.change"
     BACKUP_CREATE = "system.backup.create"
     BACKUP_RESTORE = "system.backup.restore"
     DATA_EXPORT = "system.data.export"
     DATA_IMPORT = "system.data.import"
-    
+
     # Security Events
     RATE_LIMIT_EXCEEDED = "security.rate_limit"
     INVALID_TOKEN = "security.invalid_token"
@@ -93,7 +95,7 @@ class AuditAction(str, Enum):
 
 class AuditEntry:
     """Represents a single audit log entry."""
-    
+
     def __init__(
         self,
         action: AuditAction,
@@ -117,7 +119,7 @@ class AuditEntry:
         self.user_agent = user_agent
         self.success = success
         self.error_message = error_message
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -133,7 +135,7 @@ class AuditEntry:
             "success": self.success,
             "error_message": self.error_message,
         }
-    
+
     def to_json(self) -> str:
         """Convert to JSON string."""
         return json.dumps(self.to_dict(), default=str)
@@ -142,13 +144,13 @@ class AuditEntry:
 class AuditLogger:
     """
     Manages audit logging with multiple backends.
-    
+
     Backends:
     - File: JSON lines file (default)
     - Database: SQLAlchemy table (optional)
     - External: Webhook/API (optional)
     """
-    
+
     def __init__(self):
         self._log_dir = Path("logs/audit")
         self._log_dir.mkdir(parents=True, exist_ok=True)
@@ -156,25 +158,25 @@ class AuditLogger:
         self._file_handle = None
         self._db_enabled = False
         self._webhook_url: str | None = None
-    
+
     def _get_log_file(self) -> Path:
         """Get current log file (rotated daily)."""
         date_str = utc_now().strftime("%Y-%m-%d")
         return self._log_dir / f"audit_{date_str}.jsonl"
-    
+
     async def log(self, entry: AuditEntry) -> None:
         """Log an audit entry."""
         # Always log to file
         await self._log_to_file(entry)
-        
+
         # Log to database if enabled
         if self._db_enabled:
             await self._log_to_database(entry)
-        
+
         # Send to webhook if configured
         if self._webhook_url:
             await self._log_to_webhook(entry)
-        
+
         # Also log to standard logger for visibility
         log_level = logging.WARNING if not entry.success else logging.INFO
         logger.log(
@@ -186,7 +188,7 @@ class AuditLogger:
             entry.resource_id or "-",
             entry.success,
         )
-    
+
     async def _log_to_file(self, entry: AuditEntry) -> None:
         """Write audit entry to JSON lines file."""
         try:
@@ -195,7 +197,7 @@ class AuditLogger:
                 f.write(entry.to_json() + "\n")
         except Exception as e:
             logger.error("Failed to write audit log: %s", e)
-    
+
     async def _log_to_database(self, entry: AuditEntry) -> None:
         """
         Write audit entry to the admin_audit_logs table.
@@ -230,11 +232,12 @@ class AuditLogger:
                 await db.commit()
         except Exception as e:
             logger.error("Failed to write audit log to database: %s", e)
-    
+
     async def _log_to_webhook(self, entry: AuditEntry) -> None:
         """Send audit entry to external webhook."""
         try:
             import httpx
+
             async with httpx.AsyncClient() as client:
                 await client.post(
                     self._webhook_url,
@@ -243,15 +246,15 @@ class AuditLogger:
                 )
         except Exception as e:
             logger.error("Failed to send audit to webhook: %s", e)
-    
+
     def enable_database_logging(self) -> None:
         """Enable database logging backend."""
         self._db_enabled = True
-    
+
     def set_webhook(self, url: str) -> None:
         """Configure webhook for external audit logging."""
         self._webhook_url = url
-    
+
     async def query(
         self,
         action: AuditAction | None = None,
@@ -263,26 +266,26 @@ class AuditLogger:
     ) -> list[dict[str, Any]]:
         """
         Query audit logs from files.
-        
+
         Note: For production, use database backend for efficient querying.
         """
         results = []
-        
+
         # Determine which files to search
         files_to_search = sorted(self._log_dir.glob("audit_*.jsonl"), reverse=True)
-        
+
         for log_file in files_to_search:
             if len(results) >= limit:
                 break
-            
+
             try:
-                with open(log_file, "r", encoding="utf-8") as f:
+                with open(log_file, encoding="utf-8") as f:
                     for line in f:
                         if len(results) >= limit:
                             break
-                        
+
                         entry = json.loads(line)
-                        
+
                         # Apply filters
                         if action and entry.get("action") != action.value:
                             continue
@@ -290,17 +293,17 @@ class AuditLogger:
                             continue
                         if resource_type and entry.get("resource_type") != resource_type:
                             continue
-                        
+
                         entry_time = datetime.fromisoformat(entry.get("timestamp", ""))
                         if start_date and entry_time < start_date:
                             continue
                         if end_date and entry_time > end_date:
                             continue
-                        
+
                         results.append(entry)
             except Exception as e:
                 logger.error("Error reading audit file %s: %s", log_file, e)
-        
+
         return results
 
 
@@ -321,7 +324,7 @@ async def audit_log(
 ) -> None:
     """
     Log an audit event.
-    
+
     Usage:
         await audit_log(
             action=AuditAction.DOCUMENT_UPLOAD,
@@ -353,23 +356,28 @@ def audit_logged(
 ):
     """
     Decorator to automatically log function execution.
-    
+
     Usage:
         @audit_logged(AuditAction.DOCUMENT_DELETE, resource_type="document")
         async def delete_document(doc_id: str, user_id: str):
             ...
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> T:
             # Extract IDs if extractors provided
             user_id = extract_user_id(*args, **kwargs) if extract_user_id else kwargs.get("user_id")
-            resource_id = extract_resource_id(*args, **kwargs) if extract_resource_id else kwargs.get("resource_id", kwargs.get("doc_id"))
-            
+            resource_id = (
+                extract_resource_id(*args, **kwargs)
+                if extract_resource_id
+                else kwargs.get("resource_id", kwargs.get("doc_id"))
+            )
+
             success = True
             error_msg = None
             result = None
-            
+
             try:
                 result = await func(*args, **kwargs)
                 return result
@@ -387,9 +395,9 @@ def audit_logged(
                     success=success,
                     error_message=error_msg,
                 )
-        
+
         return wrapper
-    
+
     return decorator
 
 
@@ -435,7 +443,9 @@ async def audit_document_access(user_id: str, doc_id: str, action: str = "view",
     )
 
 
-async def audit_security_event(event_type: AuditAction, ip_address: str | None = None, details: dict | None = None) -> None:
+async def audit_security_event(
+    event_type: AuditAction, ip_address: str | None = None, details: dict | None = None
+) -> None:
     """Log security event."""
     await audit_log(
         action=event_type,

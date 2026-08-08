@@ -6,16 +6,19 @@ Migrated from app/routers/free_api.py into the free_api SDK module.
 All endpoints mounted at /freeapi/*
 """
 
+import logging
+
 from fastapi import APIRouter
 
 from app.modules.free_api_pack import api
-import logging
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/freeapi", tags=["Free API Pack"])
 
 
 # ---------------- PROPERTY LOOKUP ----------------
+
 
 @router.get("/property/parcel")
 async def property_parcel(county: str, parcel_id: str):
@@ -31,6 +34,7 @@ async def property_address(county: str, address: str):
 
 # ---------------- LANDLORD LOOKUP ----------------
 
+
 @router.get("/landlord/business")
 async def landlord_business(name: str):
     """Search MN Secretary of State business records."""
@@ -44,6 +48,7 @@ async def landlord_owner(property_id: str):
 
 
 # ---------------- COURT SCRAPER ----------------
+
 
 @router.get("/courts/evictions")
 async def court_evictions(name: str):
@@ -59,6 +64,7 @@ async def court_federal(query: str):
 
 # ---------------- VIOLATIONS ----------------
 
+
 @router.get("/violations/city")
 async def city_violations(city: str, address: str):
     """Lookup city inspection violations for an address."""
@@ -73,6 +79,7 @@ async def env_violations(facility: str):
 
 # ---------------- INSPECTIONS ----------------
 
+
 @router.get("/inspections/hud")
 async def hud_inspection(property_id: str):
     """Lookup HUD REAC inspection scores."""
@@ -86,6 +93,7 @@ async def local_inspection(city: str, address: str):
 
 
 # ---------------- STATUTES ----------------
+
 
 @router.get("/statutes")
 async def statute(section: str):

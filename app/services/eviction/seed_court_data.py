@@ -38,19 +38,16 @@ MN_DEFENSE_SUCCESS_RATES = {
     "IMPROPER_SERVICE": {"success_rate": 0.68, "description": "Service not per MN Rules of Civil Procedure"},
     "WRONG_NOTICE_PERIOD": {"success_rate": 0.65, "description": "14-day notice when should be different"},
     "NOTICE_MATH_ERROR": {"success_rate": 0.61, "description": "Incorrect amounts in notice"},
-
     # Substantive Defenses
     "HABITABILITY": {"success_rate": 0.58, "description": "Unit uninhabitable per MN 504B.161"},
     "RETALIATION": {"success_rate": 0.54, "description": "Eviction retaliates against protected activity"},
     "DISCRIMINATION": {"success_rate": 0.52, "description": "Fair housing violation"},
     "RENT_PAID": {"success_rate": 0.71, "description": "Rent was actually paid"},
     "RENT_ESCROW": {"success_rate": 0.49, "description": "Rent withheld for repairs"},
-
     # Affirmative Defenses
     "WAIVER": {"success_rate": 0.45, "description": "Landlord accepted rent after notice"},
     "LACHES": {"success_rate": 0.38, "description": "Landlord delayed too long"},
     "ESTOPPEL": {"success_rate": 0.42, "description": "Landlord's conduct prevents eviction"},
-
     # COVID/Emergency Defenses (historical)
     "EMERGENCY_MORATORIUM": {"success_rate": 0.85, "description": "Emergency protections applied"},
     "ERA_PENDING": {"success_rate": 0.78, "description": "Emergency Rental Assistance pending"},
@@ -127,17 +124,18 @@ COMMON_LANDLORDS = {
 # Historical outcome distribution for Minnesota evictions
 MN_OUTCOME_DISTRIBUTION = {
     "landlord_default_judgment": 0.45,  # Tenant didn't show up
-    "landlord_won_contested": 0.25,      # Landlord won at hearing
-    "tenant_won": 0.08,                  # Tenant won outright
-    "settled": 0.15,                     # Negotiated agreement
-    "dismissed": 0.05,                   # Case dismissed (procedural)
-    "continued": 0.02,                   # Still ongoing
+    "landlord_won_contested": 0.25,  # Landlord won at hearing
+    "tenant_won": 0.08,  # Tenant won outright
+    "settled": 0.15,  # Negotiated agreement
+    "dismissed": 0.05,  # Case dismissed (procedural)
+    "continued": 0.02,  # Still ongoing
 }
 
 
 # =============================================================================
 # Seed Data Generator
 # =============================================================================
+
 
 class CourtDataSeeder:
     """Seeds the learning engine with historical court data."""
@@ -228,7 +226,9 @@ class CourtDataSeeder:
             if (i + 1) % 100 == 0:
                 logger.info(f"  Seeded {i + 1}/{num_cases} cases...")
 
-        logger.info(f"✅ Seeding complete: {results['cases_seeded']} cases, {results['defenses_learned']} defense records")
+        logger.info(
+            f"✅ Seeding complete: {results['cases_seeded']} cases, {results['defenses_learned']} defense records"
+        )
         return results
 
     def _generate_historical_case(self, case_index: int) -> dict:
@@ -283,7 +283,9 @@ class CourtDataSeeder:
         # Settlement amount (if settled)
         settlement_amount = None
         if final_outcome == "settled":
-            settlement_amount = int(amount_claimed * landlord_data["typical_settlement_percent"] * random.uniform(0.8, 1.2))
+            settlement_amount = int(
+                amount_claimed * landlord_data["typical_settlement_percent"] * random.uniform(0.8, 1.2)
+            )
 
         return {
             "case_number": f"19HA-CV-{case_date.year % 100}-{10000 + case_index}",
@@ -311,6 +313,7 @@ class CourtDataSeeder:
 # Seed Data API
 # =============================================================================
 
+
 async def seed_learning_engine(engine: CourtLearningEngine, num_cases: int = 500) -> dict:
     """
     Seed the learning engine with historical Minnesota eviction data.
@@ -324,6 +327,7 @@ async def seed_learning_engine(engine: CourtLearningEngine, num_cases: int = 500
 # =============================================================================
 # Real Court Data Import (Future Enhancement)
 # =============================================================================
+
 
 class RealCourtDataImporter:
     """
@@ -380,21 +384,23 @@ class RealCourtDataImporter:
         imported = []
         warnings = []
 
-        with csv_path.open(newline='', encoding='utf-8') as csvfile:
+        with csv_path.open(newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 if "case_number" not in row or "outcome" not in row:
                     warnings.append(f"Skipped row because required columns are missing: {row}")
                     continue
 
-                imported.append({
-                    "case_number": row.get("case_number"),
-                    "outcome": row.get("outcome"),
-                    "hearing_date": row.get("hearing_date"),
-                    "defenses_used": row.get("defenses_used"),
-                    "judge_name": row.get("judge_name"),
-                    "raw": row,
-                })
+                imported.append(
+                    {
+                        "case_number": row.get("case_number"),
+                        "outcome": row.get("outcome"),
+                        "hearing_date": row.get("hearing_date"),
+                        "defenses_used": row.get("defenses_used"),
+                        "judge_name": row.get("judge_name"),
+                        "raw": row,
+                    }
+                )
 
         return {
             "source": "CSV",
@@ -408,6 +414,7 @@ class RealCourtDataImporter:
 # =============================================================================
 # Quick Stats (What We Know)
 # =============================================================================
+
 
 def get_baseline_stats() -> dict:
     """Get baseline statistics we know about MN evictions."""

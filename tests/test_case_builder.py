@@ -26,18 +26,18 @@ async def test_court_info_public(client: AsyncClient):
     response = await client.get("/eviction/court-info")
     assert response.status_code == 200
     data = response.json()
-    
+
     # Basic structure
     assert data["county"] == "Dakota"
     assert data["state"] == "Minnesota"
     assert "efiling" in data
     assert "filing_requirements" in data
     assert "fees" in data
-    
+
     # Filing requirements
     assert data["filing_requirements"]["copies_required"] > 0
     assert "pdf" in data["filing_requirements"]["allowed_formats"]
-    
+
     # E-filing info
     assert data["efiling"]["available"] is True
     assert "url" in data["efiling"]
@@ -111,54 +111,54 @@ async def test_case_form_data_unauthenticated(client: AsyncClient):
 
 class TestMNCourtRules:
     """Test Minnesota Court Rules constants."""
-    
+
     def test_rules_constants_exist(self):
         """MN court rules should be accessible."""
         from app.services.eviction.case_builder import MNCourtRules
-        
+
         # Required constants
         assert MNCourtRules.ANSWER_DEADLINE_DAYS == 7
         assert MNCourtRules.REQUIRED_COPIES > 0
         assert "pdf" in MNCourtRules.ALLOWED_FORMATS
         assert MNCourtRules.COUNTERCLAIM_FILING_FEE > 0
         assert MNCourtRules.ZOOM_APPEARANCE_ALLOWED is True
-        
+
     def test_in_person_requirements(self):
         """Certain hearings require in-person appearance."""
         from app.services.eviction.case_builder import MNCourtRules
-        
+
         assert len(MNCourtRules.IN_PERSON_REQUIRED_FOR) > 0
         assert "jury_trial" in MNCourtRules.IN_PERSON_REQUIRED_FOR
 
 
 class TestCaseBuilder:
     """Test EvictionCaseBuilder service directly."""
-    
+
     def test_builder_import(self):
         """Case builder should be importable."""
         from app.services.eviction.case_builder import (
-            EvictionCaseBuilder,
-            EvictionCase,
             ComplianceReport,
             ComplianceStatus,
+            EvictionCase,
+            EvictionCaseBuilder,
         )
-        
+
         # Classes exist
         assert EvictionCaseBuilder is not None
         assert EvictionCase is not None
         assert ComplianceReport is not None
-        
+
         # Enum values - check that expected values exist
         values = [e.value for e in ComplianceStatus]
         assert "compliant" in values or "pass" in values
-        
+
     def test_case_dataclass(self):
         """EvictionCase should have expected fields."""
         from app.services.eviction.case_builder import EvictionCase
-        
+
         # Create empty case
         case = EvictionCase(user_id="test123")
-        
+
         assert case.user_id == "test123"
         assert case.tenant is None
         assert case.landlord is None
@@ -166,11 +166,11 @@ class TestCaseBuilder:
         assert case.defenses == []
         assert case.evidence == []
         assert case.timeline == []
-        
+
     def test_compliance_status_values(self):
         """ComplianceStatus should have correct values."""
         from app.services.eviction.case_builder import ComplianceStatus
-        
+
         # Get all enum values
         values = [e.value for e in ComplianceStatus]
         # Actual values: compliant, warning, error, missing
@@ -182,15 +182,15 @@ class TestCaseBuilder:
 
 class TestIntegrationDataFlow:
     """Test the data flow integration concept."""
-    
+
     def test_extracted_landlord_info_structure(self):
         """ExtractedLandlordInfo should capture extracted data."""
         from app.services.eviction.case_builder import ExtractedLandlordInfo
-        
+
         landlord = ExtractedLandlordInfo(
             name="ABC Property Management",
             address="456 Corporate Blvd, Eagan, MN 55122",
         )
-        
+
         assert landlord.name == "ABC Property Management"
         assert landlord.address == "456 Corporate Blvd, Eagan, MN 55122"

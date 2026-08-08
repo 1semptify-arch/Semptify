@@ -9,32 +9,22 @@ Uses Vault SDK for storage operations (SSOT for vault management).
 
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.sdk.vault import VaultClient, TENANT_VAULT, VaultResult
-from app.core.vault_paths import (
-    CANONICAL_VAULT_FOLDERS,
-    SEMPTIFY_ROOT,
-    VAULT_FOLDER,
-    AUTH_FOLDER,
-    VAULT_DOCUMENTS,
-    VAULT_CERTIFICATES,
-    VAULT_TIMELINE,
-    VAULT_OVERLAYS,
-    VAULT_OVERLAY_DOCUMENTS,
-    VAULT_OVERLAY_QUERIES,
-    VAULT_OVERLAYS_FORMS,
-    VAULT_OVERLAY_REDACTIONS,
-    VAULT_TIMELINE_EVENTS_FILENAME,
-    VAULT_OVERLAY_REGISTRY,
-    VAULT_ROOT,
-)
 from app.core.rehome import generate_rehome_html
-from app.core.path_utils import normalize_cloud_path
 from app.core.utc import utc_now
+from app.core.vault_paths import (
+    AUTH_FOLDER,
+    SEMPTIFY_ROOT,
+    VAULT_DOCUMENTS,
+    VAULT_FOLDER,
+    VAULT_OVERLAYS,
+    VAULT_ROOT,
+    VAULT_TIMELINE,
+    VAULT_TIMELINE_EVENTS_FILENAME,
+)
+from app.sdk.vault import TENANT_VAULT, VaultClient
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +32,10 @@ logger = logging.getLogger(__name__)
 class VaultInstaller:
     """
     Standalone vault installer that creates the complete Semptify vault structure.
-    
+
     Takes OAuth tokens and directly creates folders, files, and marks activation.
     No complex onboarding flow required.
-    
+
     Uses Vault SDK for storage operations (SSOT for vault management).
     """
 
@@ -53,7 +43,7 @@ class VaultInstaller:
         self.provider_name = provider_name
         self.access_token = access_token
         self.user_id = user_id
-        
+
         # Use Vault SDK for storage operations (SSOT).
         # Only TENANT_VAULT folders (7 total) are created at onboarding time.
         # Filedored, overlay, and AI-classified folders are created on-demand
@@ -65,10 +55,10 @@ class VaultInstaller:
             folder_spec=TENANT_VAULT,
         )
 
-    async def install_vault(self) -> Dict:
+    async def install_vault(self) -> dict:
         """
         Install the complete vault structure using Vault SDK.
-        
+
         Returns:
             Dict with installation status and details.
         """
@@ -88,44 +78,44 @@ class VaultInstaller:
                 results["errors"].extend([f"{f.path}: {f.detail}" for f in vault_result.failed])
                 logger.error("Vault folder creation failed: %s", results["errors"])
                 return results
-            
+
             results["folders_created"] = [f.path for f in vault_result.succeeded]
             logger.info(f"Step 1 completed: Created {len(results['folders_created'])} vault folders via SDK")
-            
+
             # Step 2: Create system files
             logger.info("Step 2: Creating system files")
             await self._create_system_files(results)
             logger.info("Step 2 completed: System files created")
-            
+
             # Step 3: Create data files
             logger.info("Step 3: Creating data files")
             await self._create_data_files(results)
             logger.info("Step 3 completed: Data files created")
-            
+
             # Step 4: Create encrypted token backup and device keys
             logger.info("Step 4: Creating token backup and device keys")
             await self._create_token_backup(results)
             logger.info("Step 4 completed: Token backup and device keys created")
-            
+
             # Step 5: Verify installation using Vault SDK
             verification = await self._verify_installation()
             if not verification["ok"]:
                 results["errors"].append(f"Verification failed: {verification['message']}")
                 return results
-            
+
             # Step 6: Generate activation code
             results["activation_code"] = self._generate_activation_code()
             results["success"] = True
-            
+
             logger.info(f"Vault installed successfully for user {self.user_id[:6]}***")
             return results
-            
+
         except Exception as e:
             logger.error(f"Vault installation failed: {e}")
             results["errors"].append(str(e))
             return results
 
-    async def _create_system_files(self, results: Dict):
+    async def _create_system_files(self, results: dict):
         """Create essential system files using Vault SDK."""
         storage = self.vault_client._get_storage()
 
@@ -152,6 +142,7 @@ class VaultInstaller:
         # VaultClient.upload() prepends VAULT_ROOT so we use the storage provider directly.
         try:
             from app.core.config import get_settings
+
             settings = get_settings()
             base_url = (settings.public_base_url or "https://semptify.org").rstrip("/")
             rehome_html = generate_rehome_html(
@@ -171,12 +162,13 @@ class VaultInstaller:
         except Exception as e:
             results["errors"].append(f"Failed to create Rehome.html: {str(e)}")
 
-    async def _create_data_files(self, results: Dict):
+    async def _create_data_files(self, results: dict):
         """Create initial data files using Vault SDK."""
+
         # SDK expects relative paths to VAULT_ROOT. Strip prefix from full paths.
         def to_relative(full_path: str) -> str:
             if full_path.startswith(f"{VAULT_ROOT}/"):
-                return full_path[len(f"{VAULT_ROOT}/"):]
+                return full_path[len(f"{VAULT_ROOT}/") :]
             return full_path
 
         timeline_events = self._timeline_events_content()
@@ -195,7 +187,7 @@ class VaultInstaller:
                 subfolder=to_relative(VAULT_DOCUMENTS),
                 filename="index.json",
                 content=json.dumps(doc_index, indent=2).encode(),
-                mime_type="application/json"
+                mime_type="application/json",
             )
             results["files_created"].append(f"{VAULT_DOCUMENTS}/index.json")
         except Exception as e:
@@ -206,7 +198,7 @@ class VaultInstaller:
                 subfolder=to_relative(VAULT_TIMELINE),
                 filename=VAULT_TIMELINE_EVENTS_FILENAME,
                 content=json.dumps(timeline_events, indent=2).encode(),
-                mime_type="application/json"
+                mime_type="application/json",
             )
             results["files_created"].append(f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}")
         except Exception as e:
@@ -217,22 +209,23 @@ class VaultInstaller:
                 subfolder=to_relative(VAULT_OVERLAYS),
                 filename="registry.json",
                 content=json.dumps(overlay_registry, indent=2).encode(),
-                mime_type="application/json"
+                mime_type="application/json",
             )
             results["files_created"].append(f"{VAULT_OVERLAYS}/registry.json")
         except Exception as e:
             results["errors"].append(f"Failed to create overlay registry: {str(e)}")
 
-    async def _verify_installation(self) -> Dict:
+    async def _verify_installation(self) -> dict:
         """Comprehensive system test using Vault SDK - proves the vault is fully operational."""
         try:
             import secrets as _secrets
+
             details = []
 
             # SDK expects relative paths to VAULT_ROOT. Strip prefix from full paths.
             def to_relative(full_path: str) -> str:
                 if full_path.startswith(f"{VAULT_ROOT}/"):
-                    return full_path[len(f"{VAULT_ROOT}/"):]
+                    return full_path[len(f"{VAULT_ROOT}/") :]
                 return full_path
 
             # 1. Use Vault SDK health check
@@ -266,8 +259,7 @@ class VaultInstaller:
             # 3. Read test using Vault SDK
             try:
                 read_back = await self.vault_client.download(
-                    subfolder=to_relative(VAULT_DOCUMENTS),
-                    filename=test_filename
+                    subfolder=to_relative(VAULT_DOCUMENTS), filename=test_filename
                 )
                 if read_back != test_content:
                     raise ValueError("Content mismatch")
@@ -281,10 +273,7 @@ class VaultInstaller:
 
             # 4. Delete test using Vault SDK
             try:
-                await self.vault_client.delete(
-                    subfolder=to_relative(VAULT_DOCUMENTS),
-                    filename=test_filename
-                )
+                await self.vault_client.delete(subfolder=to_relative(VAULT_DOCUMENTS), filename=test_filename)
                 details.append("delete_test: cleaned up")
             except Exception as exc:
                 return {
@@ -318,30 +307,31 @@ class VaultInstaller:
                         "message": f"System file check failed ({desc}): {exc}",
                         "details": details,
                     }
-            
+
             return {
                 "ok": True,
                 "message": "Vault fully operational - all tests passed",
                 "details": details,
             }
-            
+
         except Exception as e:
             return {"ok": False, "message": f"Verification error: {str(e)}"}
 
     def _generate_activation_code(self) -> str:
         """Generate a unique activation code."""
         import secrets
+
         return f"SV-{secrets.token_hex(4).upper()}-{utc_now().strftime('%Y%m%d')}"
 
     def _readme_content(self) -> str:
         """Generate README.txt content."""
-        return f"""Semptify Vault - Installed {utc_now().strftime('%Y-%m-%d %H:%M:%S UTC')}
+        return f"""Semptify Vault - Installed {utc_now().strftime("%Y-%m-%d %H:%M:%S UTC")}
 
 This vault contains your protected housing documents and evidence.
 
 📁 Folders:
 • documents/ - Your uploaded documents
-• certificates/ - Official certificates and filings  
+• certificates/ - Official certificates and filings
 • timeline/ - Event timeline and journal
 • overlays/ - Analysis and evidence overlays
 
@@ -380,7 +370,7 @@ Generated by Semptify Vault Installer v1.0
         }
         return json.dumps(status_data, indent=2)
 
-    def _timeline_events_content(self) -> Dict:
+    def _timeline_events_content(self) -> dict:
         """Generate initial timeline events structure."""
         return {
             "version": "1.0",
@@ -394,7 +384,7 @@ Generated by Semptify Vault Installer v1.0
             },
         }
 
-    def _overlay_registry_content(self) -> Dict:
+    def _overlay_registry_content(self) -> dict:
         """Generate overlay registry structure."""
         return {
             "version": "1.0",
@@ -407,13 +397,13 @@ Generated by Semptify Vault Installer v1.0
             },
         }
 
-    async def _create_token_backup(self, results: Dict):
+    async def _create_token_backup(self, results: dict):
         """Create encrypted token backup and device keys using Vault SDK encryption."""
         try:
-            from app.sdk.vault.encryption import MasterToken, encrypt_token, decrypt_token
-            from app.core.config import get_settings
-            from app.core.vault_paths import TOKEN_FILE
             import secrets as _secrets
+
+            from app.core.config import get_settings
+            from app.sdk.vault.encryption import MasterToken, decrypt_token, encrypt_token
 
             # Get server secret key for encryption
             settings = get_settings()
@@ -433,8 +423,9 @@ Generated by Semptify Vault Installer v1.0
             # SDK expects relative paths to VAULT_ROOT. Strip prefix from full paths.
             def to_relative(full_path: str) -> str:
                 if full_path.startswith(f"{VAULT_ROOT}/"):
-                    return full_path[len(f"{VAULT_ROOT}/"):]
+                    return full_path[len(f"{VAULT_ROOT}/") :]
                 return full_path
+
             # Get storage client from Vault SDK
             storage = self.vault_client._get_storage()
 
@@ -473,7 +464,7 @@ Generated by Semptify Vault Installer v1.0
             results["files_created"].append(f"{AUTH_FOLDER}/device_keys.json")
 
             logger.info("Encrypted token backup stored for user %s", self.user_id[:6] + "***")
-            
+
         except Exception as e:
             results["errors"].append(f"Token backup failed: {str(e)}")
             raise
@@ -484,17 +475,19 @@ async def install_vault_for_user(
     user_id: str,
     provider_name: str,
     access_token: str,
-) -> Dict:
+) -> dict:
     """
     Install vault for a user with existing OAuth tokens.
-    
+
     This is the main entry point - use existing tokens, install vault, mark active.
     """
     installer = VaultInstaller(provider_name, access_token, user_id)
     result = await installer.install_vault()
-    
+
     if result["success"]:
-        logger.info("Vault folders installed for user %s — gate marked by caller after full onboarding", user_id[:6] + "***")
+        logger.info(
+            "Vault folders installed for user %s — gate marked by caller after full onboarding", user_id[:6] + "***"
+        )
 
     return result
 
@@ -505,15 +498,15 @@ async def install_vault_folders_only(
     provider_name: str,
     access_token: str,
     include_content: bool = True,
-) -> Dict:
+) -> dict:
     """
     Install vault folders and essential content.
-    
+
     This creates the folder structure and essential system files.
     Files are created quickly to stay within Cloudflare timeout.
     """
     installer = VaultInstaller(provider_name, access_token, user_id)
-    
+
     results = {
         "success": False,
         "folders_created": [],
@@ -521,42 +514,42 @@ async def install_vault_folders_only(
         "errors": [],
         "activation_code": None,
     }
-    
+
     try:
         logger.info("Creating vault folders for user %s", user_id[:6] + "***")
-        
+
         # Step 1: Create all folders using Vault SDK
         vault_result = await installer.vault_client.create_folders()
         if not vault_result.all_ok:
             results["errors"].extend([f"{f.path}: {f.detail}" for f in vault_result.failed])
             logger.error("Vault folder creation failed: %s", results["errors"])
             return results
-        
+
         results["folders_created"] = [f.path for f in vault_result.succeeded]
         logger.info(f"Created {len(results['folders_created'])} vault folders via SDK")
-        
+
         # Step 2: Create essential system files (fast, small files)
         if include_content:
             logger.info("Creating essential system files...")
             await installer._create_system_files(results)
             logger.info(f"Created {len(results['files_created'])} system files")
-            
+
             # Step 3: Create essential data files
             logger.info("Creating essential data files...")
             await installer._create_data_files(results)
             logger.info(f"Total files created: {len(results['files_created'])}")
-        
+
         # Generate activation code
         results["activation_code"] = installer._generate_activation_code()
         results["success"] = True
-        
+
         # NOTE: This helper creates folders and optional seed files only.
         # It does NOT mark vault_initialized because that gate should be set
         # only after a final validation step confirms the vault is fully usable.
         logger.info(f"Vault created successfully for user {user_id[:6]}*** with {len(results['files_created'])} files")
-        
+
     except Exception as e:
         results["errors"].append(f"Vault creation failed: {str(e)}")
         logger.error("Vault creation error: %s", str(e))
-    
+
     return results

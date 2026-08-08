@@ -26,10 +26,10 @@ is amended. For now, last_verified dates are manually maintained and displayed
 on every card so users know the freshness of each link.
 """
 
-import re
 import logging
+import re
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Optional, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -37,11 +37,12 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class LawSource:
     """A single official source mapping."""
+
     source_name: str
     url_builder: Callable[[str], str]
     last_verified: str
     jurisdiction: str  # "federal", "state", "local"
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 def _mn_stat_url(citation: str) -> str:
@@ -145,47 +146,73 @@ def _ada_url(citation: str) -> str:
 
 REGISTRY: list[tuple[re.Pattern, LawSource]] = [
     # Minnesota Statutes — section level (e.g. § 504B.321, Sec. 504B.321, Section 504B.321)
-    (re.compile(r"Minn\.?\s*Stat\.?\s*(?:§|Sec\.?|Section)?\s*\d+[A-Z]?\.\d+", re.IGNORECASE),
-     LawSource("Minnesota Revisor of Statutes", _mn_stat_url, "2026-01-15", "state")),
+    (
+        re.compile(r"Minn\.?\s*Stat\.?\s*(?:§|Sec\.?|Section)?\s*\d+[A-Z]?\.\d+", re.IGNORECASE),
+        LawSource("Minnesota Revisor of Statutes", _mn_stat_url, "2026-01-15", "state"),
+    ),
     # Minnesota Statutes — chapter level (e.g. § 504B, Sec. 504, Section 580)
-    (re.compile(r"Minn\.?\s*Stat\.?\s*(?:§|Sec\.?|Section)?\s*\d+[A-Z]?(?:\s|$)", re.IGNORECASE),
-     LawSource("Minnesota Revisor of Statutes", _mn_stat_chapter_url, "2026-01-15", "state")),
+    (
+        re.compile(r"Minn\.?\s*Stat\.?\s*(?:§|Sec\.?|Section)?\s*\d+[A-Z]?(?:\s|$)", re.IGNORECASE),
+        LawSource("Minnesota Revisor of Statutes", _mn_stat_chapter_url, "2026-01-15", "state"),
+    ),
     # US Code
-    (re.compile(r"\d+\s*U\.?S\.?C\.?", re.IGNORECASE),
-     LawSource("Cornell LII (U.S. Code)", _usc_url, "2026-01-15", "federal")),
+    (
+        re.compile(r"\d+\s*U\.?S\.?C\.?", re.IGNORECASE),
+        LawSource("Cornell LII (U.S. Code)", _usc_url, "2026-01-15", "federal"),
+    ),
     # Code of Federal Regulations
-    (re.compile(r"\d+\s*C\.?F\.?R\.?", re.IGNORECASE),
-     LawSource("eCFR (Electronic CFR)", _cfr_url, "2026-01-15", "federal")),
+    (
+        re.compile(r"\d+\s*C\.?F\.?R\.?", re.IGNORECASE),
+        LawSource("eCFR (Electronic CFR)", _cfr_url, "2026-01-15", "federal"),
+    ),
     # IRS Publications
-    (re.compile(r"IRS\s*Publication\s*\d+", re.IGNORECASE),
-     LawSource("IRS.gov", _irs_pub_url, "2026-01-15", "federal")),
+    (
+        re.compile(r"IRS\s*Publication\s*\d+", re.IGNORECASE),
+        LawSource("IRS.gov", _irs_pub_url, "2026-01-15", "federal"),
+    ),
     # Minneapolis Code
-    (re.compile(r"Minneapolis\s*(?:Code|Ordinance)", re.IGNORECASE),
-     LawSource("Minneapolis Municode", _minneapolis_code_url, "2026-01-15", "local")),
+    (
+        re.compile(r"Minneapolis\s*(?:Code|Ordinance)", re.IGNORECASE),
+        LawSource("Minneapolis Municode", _minneapolis_code_url, "2026-01-15", "local"),
+    ),
     # St. Paul Code
-    (re.compile(r"St\.?\s*Paul\s*(?:Code|Ordinance|Legislative)", re.IGNORECASE),
-     LawSource("St. Paul Municode", _stpaul_code_url, "2026-01-15", "local")),
+    (
+        re.compile(r"St\.?\s*Paul\s*(?:Code|Ordinance|Legislative)", re.IGNORECASE),
+        LawSource("St. Paul Municode", _stpaul_code_url, "2026-01-15", "local"),
+    ),
     # Hennepin County
-    (re.compile(r"Hennepin\s*County", re.IGNORECASE),
-     LawSource("Hennepin County", _hennepin_url, "2026-01-15", "local")),
+    (
+        re.compile(r"Hennepin\s*County", re.IGNORECASE),
+        LawSource("Hennepin County", _hennepin_url, "2026-01-15", "local"),
+    ),
     # US Supreme Court
-    (re.compile(r"\d+\s*U\.?S\.?\s*\d+\s*\(\d{4}\)", re.IGNORECASE),
-     LawSource("CourtListener (SCOTUS)", _scotus_url, "2026-01-15", "federal")),
+    (
+        re.compile(r"\d+\s*U\.?S\.?\s*\d+\s*\(\d{4}\)", re.IGNORECASE),
+        LawSource("CourtListener (SCOTUS)", _scotus_url, "2026-01-15", "federal"),
+    ),
     # Federal appellate
-    (re.compile(r"\d+\s*F\.\w*\s*\d+\s*\(\w+\s*Cir\.\s*\d{4}\)", re.IGNORECASE),
-     LawSource("CourtListener (Federal Appeals)", _federal_appellate_url, "2026-01-15", "federal")),
+    (
+        re.compile(r"\d+\s*F\.\w*\s*\d+\s*\(\w+\s*Cir\.\s*\d{4}\)", re.IGNORECASE),
+        LawSource("CourtListener (Federal Appeals)", _federal_appellate_url, "2026-01-15", "federal"),
+    ),
     # Federal district
-    (re.compile(r"\d+\s*F\.\s*Supp\.\s*\w*\s*\d+", re.IGNORECASE),
-     LawSource("CourtListener (Federal District)", _federal_appellate_url, "2026-01-15", "federal")),
+    (
+        re.compile(r"\d+\s*F\.\s*Supp\.\s*\w*\s*\d+", re.IGNORECASE),
+        LawSource("CourtListener (Federal District)", _federal_appellate_url, "2026-01-15", "federal"),
+    ),
     # Minnesota case law
-    (re.compile(r"\d+\s*Minn\.\s*\d+", re.IGNORECASE),
-     LawSource("CourtListener (MN Cases)", _mn_case_url, "2026-01-15", "state")),
-    (re.compile(r"\d+\s*N\.?W\.?\w*\s*\d+\s*\(", re.IGNORECASE),
-     LawSource("CourtListener (MN Cases)", _mn_case_url, "2026-01-15", "state")),
+    (
+        re.compile(r"\d+\s*Minn\.\s*\d+", re.IGNORECASE),
+        LawSource("CourtListener (MN Cases)", _mn_case_url, "2026-01-15", "state"),
+    ),
+    (
+        re.compile(r"\d+\s*N\.?W\.?\w*\s*\d+\s*\(", re.IGNORECASE),
+        LawSource("CourtListener (MN Cases)", _mn_case_url, "2026-01-15", "state"),
+    ),
 ]
 
 
-def resolve_source(citation: str) -> Optional[LawSource]:
+def resolve_source(citation: str) -> LawSource | None:
     """Resolve a citation string to its LawSource, or None if no match."""
     if not citation:
         return None
@@ -195,7 +222,7 @@ def resolve_source(citation: str) -> Optional[LawSource]:
     return None
 
 
-def build_official_url(citation: str) -> Optional[str]:
+def build_official_url(citation: str) -> str | None:
     """Build the official URL for a citation, or None if no source matched."""
     source = resolve_source(citation)
     if source is None:

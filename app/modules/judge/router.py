@@ -17,7 +17,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Request
 
 from app.core.request_utils import require_request_user_id
-from app.core.user_context import get_role_from_user_id, UserRole, is_legal_sub_role
+from app.core.user_context import UserRole, get_role_from_user_id, is_legal_sub_role
 
 logger = logging.getLogger(__name__)
 

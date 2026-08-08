@@ -1,4 +1,5 @@
 """Auto-generated regression test for correspondence."""
+
 from tools.module_health import check_correspondence
 
 

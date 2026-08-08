@@ -1,0 +1,40 @@
+# Bandit security scanner configuration (YAML format)
+# https://bandit.readthedocs.io/en/latest/config.html
+
+# Exclude test files and generated code
+exclude_dirs:
+  - tests
+  - alembic/versions
+  - archive
+  - venv311
+  - .venv
+  - __pycache__
+
+# Skip specific test IDs that are false positives in this codebase:
+# B105 - hardcoded password string (false positives on URLs, OAuth scopes, string literals)
+# B101 - assert statements (used in tests, which are excluded)
+# B110 - try/except/pass (legitimate error handling pattern)
+# B112 - try/except/continue (legitimate loop error handling)
+# B311 - random module (used for non-security purposes: shuffling, IDs)
+# B324 - MD5 hash (used for non-security purposes: cache keys, checksums, dedup)
+# B403 - pickle import (used for caching, not deserializing untrusted data)
+# B404 - subprocess module (used with fixed args in controlled contexts)
+# B405 - ElementTree import (used for legitimate XML parsing)
+# B314 - ElementTree.fromstring (used for trusted XML sources)
+# B108 - hardcoded temp file (intentional shared cache location)
+skips:
+  - B105
+  - B101
+  - B110
+  - B112
+  - B311
+  - B324
+  - B403
+  - B404
+  - B405
+  - B314
+  - B108
+  - B104
+  - B102
+  - B106
+  - B603

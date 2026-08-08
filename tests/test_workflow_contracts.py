@@ -1,4 +1,5 @@
 import pytest
+
 from app.services.positronic_brain import get_brain
 
 
@@ -97,6 +98,7 @@ async def test_root_renders_template_welcome_contract_link(client):
     # a static fallback; verify the template itself contains the contract
     # link and "Process A" label.
     from pathlib import Path
+
     template_path = Path(__file__).parent.parent / "app" / "templates" / "pages" / "welcome.html"
     assert template_path.exists(), "welcome.html template must exist"
     text = template_path.read_text(encoding="utf-8")
@@ -107,6 +109,7 @@ async def test_root_renders_template_welcome_contract_link(client):
 @pytest.mark.anyio
 async def test_tenant_help_route_renders_with_valid_tenant_cookie(client):
     from app.core.cookie_auth import sign_user_id
+
     response = await client.get(
         "/tenant/help",
         follow_redirects=True,
@@ -129,16 +132,19 @@ async def test_help_telemetry_summary_aggregates_help_clicks(client):
 
     # Brain router is disabled; emit events directly to the brain service.
     from app.services.positronic_brain import BrainEvent, EventType, ModuleType
+
     for page, action, href in [
         ("tenant_help", "hotline_211", "tel:211"),
         ("tenant_help", "hotline_211", "tel:211"),
         ("welcome", "welcome_county_hennepin", "tel:612-348-3000"),
     ]:
-        await brain.emit(BrainEvent(
-            event_type=EventType.USER_ACTION,
-            source_module=ModuleType.UI,
-            data={"page": page, "action": action, "href": href},
-        ))
+        await brain.emit(
+            BrainEvent(
+                event_type=EventType.USER_ACTION,
+                source_module=ModuleType.UI,
+                data={"page": page, "action": action, "href": href},
+            )
+        )
 
     response = await client.get("/api/workflow/help-telemetry-summary?limit=200")
 
@@ -157,15 +163,18 @@ async def test_help_telemetry_summary_filters_by_page(client):
     brain.event_history.clear()
 
     from app.services.positronic_brain import BrainEvent, EventType, ModuleType
+
     for page, action, href in [
         ("tenant_help", "hotline_home_line", "tel:612-728-5767"),
         ("welcome", "welcome_call_211", "tel:211"),
     ]:
-        await brain.emit(BrainEvent(
-            event_type=EventType.USER_ACTION,
-            source_module=ModuleType.UI,
-            data={"page": page, "action": action, "href": href},
-        ))
+        await brain.emit(
+            BrainEvent(
+                event_type=EventType.USER_ACTION,
+                source_module=ModuleType.UI,
+                data={"page": page, "action": action, "href": href},
+            )
+        )
 
     response = await client.get("/api/workflow/help-telemetry-summary?page=tenant_help")
 
@@ -355,6 +364,7 @@ async def test_workflow_case_state_anonymous_user_returns_safe_defaults(client):
 @pytest.mark.anyio
 async def test_workflow_case_state_connected_tenant_defaults_to_b1_without_docs(client):
     from app.core.cookie_auth import sign_user_id
+
     response = await client.get(
         "/api/workflow/case-state",
         cookies={"semptify_uid": sign_user_id("GUtenant1234")},
@@ -376,6 +386,7 @@ async def test_workflow_case_state_connected_tenant_defaults_to_b1_without_docs(
 @pytest.mark.anyio
 async def test_workflow_case_state_professional_role_maps_to_b4(client):
     from app.core.cookie_auth import sign_user_id
+
     response = await client.get(
         "/api/workflow/case-state",
         cookies={"semptify_uid": sign_user_id("GLlegal1234")},
@@ -397,12 +408,14 @@ async def test_workflow_case_state_professional_role_maps_to_b4(client):
 
 @pytest.mark.anyio
 async def test_workflow_case_state_normalizes_partial_stage_cards_and_alerts(client, monkeypatch):
-    from app.core.cookie_auth import sign_user_id
     import sys
+
     # Import the router.py module directly via sys.modules to avoid the
     # __init__.py re-export that shadows the submodule with the APIRouter
     # object (from .router import router).
     import app.modules.workflow.router  # noqa: F401 — ensures submodule is loaded
+    from app.core.cookie_auth import sign_user_id
+
     workflow_router_module = sys.modules["app.modules.workflow.router"]
 
     monkeypatch.setattr(

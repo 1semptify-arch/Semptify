@@ -4,8 +4,10 @@ Form Field Extraction Module Manifest
 Self-contained SDK module for Form field extraction AI.
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

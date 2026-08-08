@@ -16,22 +16,21 @@ All endpoints require advocate role (verified via user_id cookie).
 """
 
 import logging
-from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.core.database import get_db_session
 from app.core.request_utils import require_request_user_id
-from app.core.user_context import get_role_from_user_id, UserRole
-from app.core.utc import utc_now
+from app.core.user_context import UserRole, get_role_from_user_id
 from app.core.user_id import get_provider_from_user_id
+from app.core.utc import utc_now
 from app.models.models import (
+    Document,
+    RelationshipType,
+    TimelineEvent,
     User,
     UserRelationship,
-    RelationshipType,
-    Document,
-    TimelineEvent,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,6 +41,7 @@ router = APIRouter(prefix="/api/advocate", tags=["Advocate"])
 # =============================================================================
 # Helpers
 # =============================================================================
+
 
 def _require_advocate(user_id: str) -> None:
     """Verify the current user has advocate role."""
@@ -90,19 +90,21 @@ def _check_client_link(db, advocate_id: str, client_id: str) -> UserRelationship
 # Request Models
 # =============================================================================
 
+
 class IntakeRequest(BaseModel):
     tenant_user_id: str = Field(..., min_length=8, max_length=128, description="Tenant's user_id")
-    notes: Optional[str] = Field(default=None, max_length=500, description="Optional intake notes")
+    notes: str | None = Field(default=None, max_length=500, description="Optional intake notes")
 
 
 class ReviewRequest(BaseModel):
     status: str = Field(default="reviewed", description="Review status: reviewed, flagged, approved")
-    notes: Optional[str] = Field(default=None, max_length=500, description="Review notes")
+    notes: str | None = Field(default=None, max_length=500, description="Review notes")
 
 
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.get("/dashboard")
 async def advocate_dashboard(request: Request):
@@ -143,13 +145,15 @@ async def advocate_dashboard(request: Request):
                 else:
                     pending_reviews += 1
 
-            recent_clients.append({
-                "user_id": tenant.id,
-                "primary_provider": tenant.primary_provider,
-                "doc_count": doc_count,
-                "event_count": event_count,
-                "linked_at": rel.created_at.isoformat() if rel.created_at else None,
-            })
+            recent_clients.append(
+                {
+                    "user_id": tenant.id,
+                    "primary_provider": tenant.primary_provider,
+                    "doc_count": doc_count,
+                    "event_count": event_count,
+                    "linked_at": rel.created_at.isoformat() if rel.created_at else None,
+                }
+            )
 
         # Sort by linked_at desc, take 5
         recent_clients.sort(key=lambda c: c.get("linked_at") or "", reverse=True)
@@ -184,14 +188,16 @@ async def list_clients(request: Request):
                 continue
             doc_count = db.query(Document).filter_by(user_id=tenant.id).count()
             event_count = db.query(TimelineEvent).filter_by(user_id=tenant.id).count()
-            clients.append({
-                "user_id": tenant.id,
-                "primary_provider": tenant.primary_provider,
-                "doc_count": doc_count,
-                "event_count": event_count,
-                "linked_at": rel.created_at.isoformat() if rel.created_at else None,
-                "context": rel.context,
-            })
+            clients.append(
+                {
+                    "user_id": tenant.id,
+                    "primary_provider": tenant.primary_provider,
+                    "doc_count": doc_count,
+                    "event_count": event_count,
+                    "linked_at": rel.created_at.isoformat() if rel.created_at else None,
+                    "context": rel.context,
+                }
+            )
         return {"advocate_id": user_id, "clients": clients, "count": len(clients)}
 
 
@@ -267,15 +273,17 @@ async def case_queue(request: Request):
         for e in events:
             title = getattr(e, "title", None) or getattr(e, "description", "")
             severity = getattr(e, "severity", "normal")
-            queue.append({
-                "client_id": e.user_id,
-                "event_id": e.id,
-                "title": title,
-                "severity": severity,
-                "event_date": e.event_date.isoformat() if getattr(e, "event_date", None) else None,
-                "created_at": e.created_at.isoformat() if e.created_at else None,
-                "urgent": severity in ("high", "urgent", "critical"),
-            })
+            queue.append(
+                {
+                    "client_id": e.user_id,
+                    "event_id": e.id,
+                    "title": title,
+                    "severity": severity,
+                    "event_date": e.event_date.isoformat() if getattr(e, "event_date", None) else None,
+                    "created_at": e.created_at.isoformat() if e.created_at else None,
+                    "urgent": severity in ("high", "urgent", "critical"),
+                }
+            )
 
         # Sort: urgent first, then by created_at desc
         queue.sort(key=lambda x: (not x["urgent"], x["created_at"] or ""), reverse=False)
@@ -334,7 +342,7 @@ async def new_intake(body: IntakeRequest, request: Request):
 
 
 @router.get("/timeline")
-async def merged_timeline(request: Request, client_id: Optional[str] = None):
+async def merged_timeline(request: Request, client_id: str | None = None):
     """Get merged timeline across all clients, or a single client's timeline."""
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
@@ -387,13 +395,7 @@ async def client_documents(client_id: str, request: Request):
 
     with get_db_session() as db:
         _check_client_link(db, user_id, client_id)
-        docs = (
-            db.query(Document)
-            .filter_by(user_id=client_id)
-            .order_by(Document.created_at.desc())
-            .limit(100)
-            .all()
-        )
+        docs = db.query(Document).filter_by(user_id=client_id).order_by(Document.created_at.desc()).limit(100).all()
 
         return {
             "client_id": client_id,
@@ -459,6 +461,7 @@ async def review_document(
 # when viewing their document.
 # =============================================================================
 
+
 def _get_tenant_storage(tenant_user_id: str):
     """Get a storage provider instance for a tenant user.
 
@@ -476,6 +479,7 @@ def _get_tenant_storage(tenant_user_id: str):
 
     try:
         from app.core.oauth_token_manager import get_valid_token_for_user
+
         token = get_valid_token_for_user(tenant_user_id)
     except Exception as e:
         logger.warning("Advocate annotate: token lookup failed for %s: %s", tenant_user_id, e)
@@ -495,6 +499,7 @@ def _get_tenant_storage(tenant_user_id: str):
 
 class AnnotateRequest(BaseModel):
     """Request to create an annotation overlay on a client's document."""
+
     overlay_type: str = Field(
         ...,
         description="Overlay type: NOTE, HIGHLIGHT, FOOTNOTE, or TRACKED_EDIT",
@@ -503,7 +508,7 @@ class AnnotateRequest(BaseModel):
         ...,
         description="Type-specific payload (see unified_overlay_models.py for schema)",
     )
-    metadata: Optional[dict] = Field(
+    metadata: dict | None = Field(
         default=None,
         description="Optional metadata (source, jurisdiction, reason, etc.)",
     )
@@ -549,20 +554,22 @@ async def annotate_document(
     storage = _get_tenant_storage(client_id)
 
     try:
-        from app.services.unified_overlay_manager import UnifiedOverlayManager
-        from app.models.unified_overlay_models import CreateOverlayRequest
         from app.core.overlay_types import OverlayType
+        from app.models.unified_overlay_models import CreateOverlayRequest
+        from app.services.unified_overlay_manager import UnifiedOverlayManager
 
         overlay_type_enum = OverlayType[body.overlay_type]
         mgr = UnifiedOverlayManager(storage, user_id)
-        resp = await mgr.create_overlay(CreateOverlayRequest(
-            overlay_type=overlay_type_enum,
-            document_id=document_id,
-            vault_path=vault_path,
-            payload=body.payload,
-            metadata=body.metadata or {"source": "advocate_review"},
-            ephemeral=False,
-        ))
+        resp = await mgr.create_overlay(
+            CreateOverlayRequest(
+                overlay_type=overlay_type_enum,
+                document_id=document_id,
+                vault_path=vault_path,
+                payload=body.payload,
+                metadata=body.metadata or {"source": "advocate_review"},
+                ephemeral=False,
+            )
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -574,7 +581,11 @@ async def annotate_document(
 
     logger.info(
         "Advocate %s annotated doc %s for client %s (type=%s, overlay_id=%s)",
-        user_id, doc_id, client_id, body.overlay_type, resp.overlay_id,
+        user_id,
+        doc_id,
+        client_id,
+        body.overlay_type,
+        resp.overlay_id,
     )
     return {
         "success": True,
@@ -608,6 +619,7 @@ async def list_document_overlays(
 
     try:
         from app.services.unified_overlay_manager import UnifiedOverlayManager
+
         mgr = UnifiedOverlayManager(storage, client_id)
         resp = await mgr.get_overlays(document_id=doc_id, include_ephemeral=False)
     except HTTPException:
@@ -656,6 +668,7 @@ async def delete_annotation(
 
     try:
         from app.services.unified_overlay_manager import UnifiedOverlayManager
+
         mgr = UnifiedOverlayManager(storage, user_id)
         overlay = await mgr.get_overlay(overlay_id)
         if overlay is None:
@@ -677,7 +690,9 @@ async def delete_annotation(
 
     logger.info(
         "Advocate %s deleted overlay %s for client %s",
-        user_id, overlay_id, client_id,
+        user_id,
+        overlay_id,
+        client_id,
     )
     return {"success": True, "overlay_id": overlay_id}
 
@@ -690,6 +705,7 @@ async def delete_annotation(
 # The advocate's org is determined via TEAM_MEMBER relationship to their
 # manager, and the manager's user_id[:12] is used as org_id.
 # =============================================================================
+
 
 @router.get("/invite-codes")
 async def list_org_invite_codes(request: Request):
@@ -706,11 +722,15 @@ async def list_org_invite_codes(request: Request):
 
     with get_db_session() as db:
         # Find advocate's manager via TEAM_MEMBER relationship
-        team_rel = db.query(UserRelationship).filter_by(
-            from_user_id=user_id,
-            relationship_type=RelationshipType.TEAM_MEMBER.value,
-            is_active=True,
-        ).first()
+        team_rel = (
+            db.query(UserRelationship)
+            .filter_by(
+                from_user_id=user_id,
+                relationship_type=RelationshipType.TEAM_MEMBER.value,
+                is_active=True,
+            )
+            .first()
+        )
 
         if not team_rel:
             return {
@@ -723,13 +743,16 @@ async def list_org_invite_codes(request: Request):
         org_id = manager_id[:12]
 
         # Get active, non-expired codes from this org
-        codes = db.query(InviteCode).filter_by(
-            organization_id=org_id,
-            is_active=True,
-        ).all()
+        codes = (
+            db.query(InviteCode)
+            .filter_by(
+                organization_id=org_id,
+                is_active=True,
+            )
+            .all()
+        )
 
         # Filter out expired and used-up codes
-        from datetime import datetime, timezone
         now = utc_now()
         available = []
         for c in codes:
@@ -739,16 +762,18 @@ async def list_org_invite_codes(request: Request):
                 continue
             if c.remaining_uses <= 0:
                 continue
-            available.append({
-                "code": c.code,
-                "role": c.role,
-                "max_uses": c.max_uses,
-                "uses_count": c.uses_count,
-                "remaining_uses": c.remaining_uses,
-                "expires_at": c.expires_at.isoformat() if c.expires_at else None,
-                "created_at": c.created_at.isoformat() if c.created_at else None,
-                "description": c.description,
-            })
+            available.append(
+                {
+                    "code": c.code,
+                    "role": c.role,
+                    "max_uses": c.max_uses,
+                    "uses_count": c.uses_count,
+                    "remaining_uses": c.remaining_uses,
+                    "expires_at": c.expires_at.isoformat() if c.expires_at else None,
+                    "created_at": c.created_at.isoformat() if c.created_at else None,
+                    "description": c.description,
+                }
+            )
 
         return {
             "codes": available,
@@ -766,14 +791,19 @@ async def list_org_invite_codes(request: Request):
 # to_user_id=tenant, matching the existing intake pattern.
 # =============================================================================
 
+
 class LinkAdvocateRequest(BaseModel):
     """Tenant requests to link to an advocate by entering the advocate's user_id."""
+
     advocate_user_id: str = Field(
-        ..., min_length=8, max_length=128,
+        ...,
+        min_length=8,
+        max_length=128,
         description="The advocate's user_id (shared by the advocate)",
     )
-    notes: Optional[str] = Field(
-        default=None, max_length=500,
+    notes: str | None = Field(
+        default=None,
+        max_length=500,
         description="Optional message from tenant to advocate",
     )
 
@@ -841,7 +871,8 @@ async def tenant_link_advocate(body: LinkAdvocateRequest, request: Request):
 
     logger.info(
         "Tenant %s linked to advocate %s (tenant-initiated)",
-        user_id, body.advocate_user_id,
+        user_id,
+        body.advocate_user_id,
     )
     return {
         "success": True,
@@ -912,6 +943,7 @@ async def revoke_advocate_access(advocate_user_id: str, request: Request):
 
     logger.info(
         "Tenant %s revoked advocate %s access",
-        user_id, advocate_user_id,
+        user_id,
+        advocate_user_id,
     )
     return {"success": True, "message": "Advocate access revoked."}
