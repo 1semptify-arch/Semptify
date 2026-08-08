@@ -4,8 +4,10 @@ WebSocket Events Module Manifest
 Self-contained SDK module for Real-time WebSocket event streaming.
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

@@ -7,7 +7,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.core.cookie_auth import sign_user_id
 from app.main import app
-from app.modules.litigation_intelligence.reporting_layer import create_reporting_layer, ReportingLayer
+from app.modules.litigation_intelligence.reporting_layer import ReportingLayer, create_reporting_layer
 
 
 def _client() -> AsyncClient:
@@ -31,9 +31,7 @@ async def test_generate_case_summary_report_and_export_pdf():
         assert gen_data["success"] is True
         report_id = gen_data["report"]["report_id"]
 
-        export_resp = await client.get(
-            f"/api/litigation-intelligence/report/{report_id}/export?format=pdf"
-        )
+        export_resp = await client.get(f"/api/litigation-intelligence/report/{report_id}/export?format=pdf")
         assert export_resp.status_code == 200
         export_data = export_resp.json()
         assert export_data["success"] is True

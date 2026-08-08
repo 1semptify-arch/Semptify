@@ -39,7 +39,6 @@ except ImportError:
     select = None
     SQLALCHEMY_AVAILABLE = False
 
-from app.core.auto_refresh import _decrypt_string, _encrypt_string
 from app.core.config import get_settings
 from app.core.cookie_auth import set_auth_cookie
 from app.core.database import get_db
@@ -660,7 +659,7 @@ async def _mark_group_complete(db: AsyncSession, user_id: str, group_name: str) 
     if not user:
         return
     existing = user.completed_groups or ""
-    groups = set(g for g in existing.split(",") if g)
+    groups = {g for g in existing.split(",") if g}
     if group_name not in groups:
         groups.add(group_name)
         user.completed_groups = ",".join(sorted(groups))
@@ -1005,13 +1004,14 @@ async def list_providers(
 ):
     """Serve storage reconnect providers page with correct OAuth links."""
     from pathlib import Path
-    
+
     # Serve the reconnect-specific HTML file with /storage/auth/ links
     # Navigate from router.py to repo root: app/modules/storage/router.py -> app/ -> repo root
     base_dir = Path(__file__).parent.parent.parent.parent
     reconnect_page = base_dir / "static" / "onboarding" / "providers-reconnect.html"
     if reconnect_page.exists():
         from fastapi.responses import FileResponse
+
         return FileResponse(reconnect_page)
     """
     Show storage provider selection page.
@@ -1849,7 +1849,9 @@ async def oauth_callback(
                     user_id = matched_user.id
                     # Use stored default_role from DB — authoritative source for role
                     role = (matched_user.default_role or "tenant").strip().lower()
-                    logger.info(f"🔄 OAuth callback: Matched existing user by provider subject (different from existing_uid): {user_id} (role={role})")
+                    logger.info(
+                        f"🔄 OAuth callback: Matched existing user by provider subject (different from existing_uid): {user_id} (role={role})"
+                    )
                 else:
                     # Completely new user - generate new ID
                     role = (state_data.get("role") or "tenant").strip().lower()
@@ -1872,7 +1874,9 @@ async def oauth_callback(
                     matched_user.default_role = state_role
                     await db.commit()
                     role = state_role
-                    logger.info(f"🔄 OAuth callback: Updated default_role for existing user {user_id[:6]}... from {db_role} to {state_role}")
+                    logger.info(
+                        f"🔄 OAuth callback: Updated default_role for existing user {user_id[:6]}... from {db_role} to {state_role}"
+                    )
                 else:
                     role = db_role
                 logger.info(f"🔄 OAuth callback: Matched existing user by provider subject: {user_id} (role={role})")
@@ -1966,6 +1970,7 @@ async def oauth_callback(
         # Use a nested transaction to prevent permission errors from affecting the main flow.
         try:
             from app.core.capabilities import seed_capability_defaults
+
             await db.begin_nested()
             await seed_capability_defaults(user_id, role, db)
             await db.commit()
@@ -2477,7 +2482,7 @@ async def rehome_device(
     import os
 
     is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
-    is_secure = False if is_localhost else True
+    is_secure = not is_localhost
     set_auth_cookie(response, user_id, secure=is_secure)
 
     # Show success page
@@ -2550,7 +2555,7 @@ async def rehome_device(
             </div>
             <div class="row">
                 <span class="label">Account Type</span>
-                <span class="value" style="text-transform: capitalize;">{role or 'User'}</span>
+                <span class="value" style="text-transform: capitalize;">{role or "User"}</span>
             </div>
             <div class="row">
                 <span class="label">Account ID</span>
@@ -3083,10 +3088,11 @@ async def switch_role(
         # Re-raise HTTP exceptions (already formatted)
         raise
     except Exception as e:
-        logger.error(f"Role switch failed for {semptify_uid} → {request.role}: {type(e).__name__}: {str(e)}", exc_info=True)
+        logger.error(
+            f"Role switch failed for {semptify_uid} → {request.role}: {type(e).__name__}: {str(e)}", exc_info=True
+        )
         raise HTTPException(
-            status_code=500,
-            detail=f"Role switch failed: {type(e).__name__}. Check server logs for details."
+            status_code=500, detail=f"Role switch failed: {type(e).__name__}. Check server logs for details."
         )
 
 
@@ -3234,7 +3240,7 @@ async def create_document_proof(
 @router.post("/integrity/verify")
 async def verify_document_integrity(
     content: bytes = b"",
-    proof_data: dict = {},
+    proof_data: dict = None,
     semptify_uid: str | None = Cookie(None),
 ):
     """
@@ -3243,6 +3249,8 @@ async def verify_document_integrity(
     """
     from app.services.storage.legal_integrity import DocumentProof, get_legal_integrity
 
+    if proof_data is None:
+        proof_data = {}
     if not semptify_uid:
         raise HTTPException(status_code=401, detail="Authentication required")
 
@@ -3425,7 +3433,7 @@ async def verify_certificate(
         <div class="icon">🛡️</div>
         <h1>Certificate Verification</h1>
         <div class="cert-id">{certificate_id}</div>
-        {'<div class="code">Code: ' + code + '</div>' if code else ''}
+        {'<div class="code">Code: ' + code + "</div>" if code else ""}
         <div class="status">
             ✅ Certificate format is valid
         </div>

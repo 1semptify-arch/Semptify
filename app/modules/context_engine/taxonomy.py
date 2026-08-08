@@ -1,9 +1,9 @@
 """Context Engine taxonomy — 13 housing-rights subjects."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class Subject(str, Enum):
+class Subject(StrEnum):
     """Canonical 13 subjects for Context Engine."""
 
     EVICTION = "eviction"

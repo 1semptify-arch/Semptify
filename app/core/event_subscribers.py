@@ -25,15 +25,15 @@ async def _on_document_added(event: Any) -> None:
         user_id: str = data.get("user_id") or getattr(event, "user_id", None)
         vault_id: str = data.get("vault_id") or data.get("doc_id") or ""
         filename: str = data.get("filename") or data.get("original_filename") or "Uploaded document"
-        doc_type: str = data.get("document_type") or "document"
+        data.get("document_type") or "document"
 
         if not user_id:
             logger.warning("_on_document_added: no user_id in event data, skipping")
             return
 
         from app.core.database import get_db_session
-        from app.core.utc import utc_now
         from app.core.id_gen import make_id
+        from app.core.utc import utc_now
         from app.models.models import TimelineEvent
 
         async with get_db_session() as session:
@@ -64,7 +64,7 @@ def register_all_subscribers() -> None:
     Register all async event subscribers.
     Call this once during application startup (Stage 5).
     """
-    from app.core.event_bus import subscribe_async_to_event, EventType
+    from app.core.event_bus import EventType, subscribe_async_to_event
 
     subscribe_async_to_event(EventType.DOCUMENT_ADDED, _on_document_added)
     logger.info("Event subscribers registered: DOCUMENT_ADDED → timeline")

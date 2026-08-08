@@ -129,8 +129,7 @@ def run(repo_root: Path) -> CheckResult:
             # Public exposure: only T0 routes may live under public prefixes/paths.
             if is_public_path(route) and not all(t == "T0" for t in tiers):
                 failures.append(
-                    f"{module}: non-T0 route {route!r} is under a public prefix/path "
-                    f"(tier={sorted(tiers)})"
+                    f"{module}: non-T0 route {route!r} is under a public prefix/path (tier={sorted(tiers)})"
                 )
 
         # Every declared allowed_route should start with an allowed prefix

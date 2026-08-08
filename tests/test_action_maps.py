@@ -85,9 +85,7 @@ class TestRegistryCompleteness:
     def test_every_action_id_matches_key(self):
         for page_id, actions in ALL_ACTION_MAPS.items():
             for key, action in actions.items():
-                assert action.action_id == key, (
-                    f"{page_id}: key={key} but action_id={action.action_id}"
-                )
+                assert action.action_id == key, f"{page_id}: key={key} but action_id={action.action_id}"
 
 
 # ---------------------------------------------------------------------------
@@ -132,18 +130,14 @@ class TestFilterActionsByRole:
 
     def test_matching_role_included(self):
         actions = {
-            "a": QuickAction(
-                action_id="a", label="A", required_roles=["admin", "user"]
-            ),
+            "a": QuickAction(action_id="a", label="A", required_roles=["admin", "user"]),
         }
         result = filter_actions_by_role(actions, ["user"])
         assert "a" in result
 
     def test_non_matching_role_excluded(self):
         actions = {
-            "a": QuickAction(
-                action_id="a", label="A", required_roles=["admin"]
-            ),
+            "a": QuickAction(action_id="a", label="A", required_roles=["admin"]),
         }
         result = filter_actions_by_role(actions, ["user"])
         assert "a" not in result
@@ -151,12 +145,8 @@ class TestFilterActionsByRole:
     def test_mixed_filter(self):
         actions = {
             "pub": QuickAction(action_id="pub", label="Public"),
-            "adm": QuickAction(
-                action_id="adm", label="Admin", required_roles=["admin"]
-            ),
-            "usr": QuickAction(
-                action_id="usr", label="User", required_roles=["user"]
-            ),
+            "adm": QuickAction(action_id="adm", label="Admin", required_roles=["admin"]),
+            "usr": QuickAction(action_id="usr", label="User", required_roles=["user"]),
         }
         result = filter_actions_by_role(actions, ["user"])
         assert set(result.keys()) == {"pub", "usr"}

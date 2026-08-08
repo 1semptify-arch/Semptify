@@ -10,10 +10,9 @@ every fact includes a source URL from the Context Engine.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from app.modules.context_engine import cache as ctx_cache
-from app.modules.context_engine import stories as ctx_stories
+from app.modules.context_engine import cache as ctx_cache, stories as ctx_stories
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
 
 logger = logging.getLogger(__name__)
@@ -22,10 +21,10 @@ logger = logging.getLogger(__name__)
 async def compose_page(
     subject: str,
     jurisdiction: str = "MN",
-    user_id: Optional[str] = None,
+    user_id: str | None = None,
     fact_limit: int = 10,
     story_limit: int = 5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compose a unified page view for a subject + jurisdiction.
 
     Returns a dict with:
@@ -46,7 +45,7 @@ async def compose_page(
     # Pull user's case data (optional, best-effort)
     case = await _gather_user_case(subject, user_id) if user_id else None
 
-    sections: List[str] = []
+    sections: list[str] = []
     if facts:
         sections.append("facts")
     if stories:
@@ -75,19 +74,18 @@ async def _gather_context(
     import asyncio
 
     facts_task = ctx_cache.get_facts(subject, jurisdiction, limit=fact_limit)
-    stories_task = ctx_stories.get_published_stories(
-        subject=subject, jurisdiction=jurisdiction, limit=story_limit
-    )
+    stories_task = ctx_stories.get_published_stories(subject=subject, jurisdiction=jurisdiction, limit=story_limit)
     return await asyncio.gather(facts_task, stories_task)
 
 
-async def _gather_user_case(subject: str, user_id: str) -> Optional[Dict[str, Any]]:
+async def _gather_user_case(subject: str, user_id: str) -> dict[str, Any] | None:
     """Pull the user's case data for this subject, if any.
 
     Best-effort: returns None if case_builder is unavailable or no case exists.
     """
     try:
         from app.modules.case_builder import case_builder as cb_module
+
         if hasattr(cb_module, "get_cases_for_user"):
             cases = await cb_module.get_cases_for_user(user_id, subject=subject)
             if cases:
@@ -108,7 +106,7 @@ async def _gather_user_case(subject: str, user_id: str) -> Optional[Dict[str, An
     return None
 
 
-def _serialize_facts(facts) -> List[Dict[str, Any]]:
+def _serialize_facts(facts) -> list[dict[str, Any]]:
     return [
         {
             "id": f.id,
@@ -123,7 +121,7 @@ def _serialize_facts(facts) -> List[Dict[str, Any]]:
     ]
 
 
-def _serialize_stories(stories) -> List[Dict[str, Any]]:
+def _serialize_stories(stories) -> list[dict[str, Any]]:
     return [
         {
             "id": s.id,

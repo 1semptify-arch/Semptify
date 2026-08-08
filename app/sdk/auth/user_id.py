@@ -11,25 +11,20 @@ Wraps app.core.user_id — single source of truth stays in core.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 from app.core.user_id import (
     generate_user_id,
     parse_user_id as _parse_user_id,
-    get_role_from_user_id,
-    get_provider_from_user_id,
-    COOKIE_STORAGE_PROVIDER,
-    CODE_TO_PROVIDER,
-    CODE_TO_ROLE,
 )
 
 
 @dataclass(frozen=True)
 class UserIdComponents:
     """Parsed components of a Semptify user ID."""
-    provider: Optional[str]
-    role: Optional[str]
-    unique_part: Optional[str]
+
+    provider: str | None
+    role: str | None
+    unique_part: str | None
     raw: str
 
     @property

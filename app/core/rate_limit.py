@@ -5,13 +5,14 @@ Uses slowapi with configurable limits per endpoint category.
 Supports Redis backend for production distributed rate limiting.
 """
 
+import logging
 import os
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
-import logging
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 logger = logging.getLogger(__name__)
 
@@ -26,13 +27,13 @@ def get_user_identifier(request: Request) -> str:
     if storage_token:
         # Use first 16 chars of token as identifier (enough for uniqueness)
         return f"user:{storage_token[:16]}"
-    
+
     # Check X-Forwarded-For for proxy setups
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
         # Take first IP in chain (original client)
         return f"ip:{forwarded.split(',')[0].strip()}"
-    
+
     # Fall back to direct client IP
     return f"ip:{get_remote_address(request)}"
 
@@ -84,17 +85,12 @@ def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSO
     Returns a user-friendly JSON response with retry information.
     """
     # Extract limit details
-    limit_value = str(exc.detail) if hasattr(exc, 'detail') else "Rate limit exceeded"
-    
+    limit_value = str(exc.detail) if hasattr(exc, "detail") else "Rate limit exceeded"
+
     # Log rate limit hit
     identifier = get_user_identifier(request)
-    logger.warning(
-        "Rate limit exceeded: %s on %s %s",
-        identifier,
-        request.method,
-        request.url.path
-    )
-    
+    logger.warning("Rate limit exceeded: %s on %s %s", identifier, request.method, request.url.path)
+
     return JSONResponse(
         status_code=429,
         content={
@@ -102,18 +98,19 @@ def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSO
             "message": "Too many requests. Please slow down.",
             "detail": limit_value,
             "retry_after": 60,  # seconds
-            "documentation": "https://semptify.org/docs/api/rate-limits"
+            "documentation": "https://semptify.org/docs/api/rate-limits",
         },
         headers={
             "Retry-After": "60",
             "X-RateLimit-Limit": limit_value,
-        }
+        },
     )
 
 
 # =============================================================================
 # Helper decorators for common patterns
 # =============================================================================
+
 
 def limit_ai(func):
     """Decorator for AI/LLM endpoints."""

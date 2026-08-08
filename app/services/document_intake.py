@@ -19,7 +19,7 @@ import logging
 import re
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from app.core.id_gen import make_id
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class DocumentType(str, Enum):
+class DocumentType(StrEnum):
     """Types of documents in tenant defense."""
 
     LEASE = "lease"
@@ -67,7 +67,7 @@ class DocumentType(str, Enum):
     OTHER = "other"
 
 
-class IntakeStatus(str, Enum):
+class IntakeStatus(StrEnum):
     """Document intake processing status."""
 
     RECEIVED = "received"  # Just uploaded
@@ -80,7 +80,7 @@ class IntakeStatus(str, Enum):
     NEEDS_REVIEW = "needs_review"  # Human review needed
 
 
-class IssueSeverity(str, Enum):
+class IssueSeverity(StrEnum):
     """Severity of detected issues."""
 
     CRITICAL = "critical"  # Immediate action needed (eviction, court date)
@@ -90,7 +90,7 @@ class IssueSeverity(str, Enum):
     INFO = "info"  # Just information
 
 
-class LanguageCode(str, Enum):
+class LanguageCode(StrEnum):
     """Supported languages."""
 
     ENGLISH = "en"
@@ -764,9 +764,11 @@ class IssueDetector:
                 r"(\d+)\s*day\s*notice",
                 r"notice\s*(?:of|to)\s*(\d+)\s*days?",
             ],
-            "check": lambda match, text: int(match.group(1)) < 14
-            if "non-payment" in text.lower() or "rent" in text.lower()
-            else int(match.group(1)) < 30,
+            "check": lambda match, text: (
+                int(match.group(1)) < 14
+                if "non-payment" in text.lower() or "rent" in text.lower()
+                else int(match.group(1)) < 30
+            ),
             "title": "Potentially Insufficient Notice Period",
             "description": "The notice period may be shorter than required by Minnesota law. Non-payment requires 14 days; other lease violations may require different periods.",
             "severity": IssueSeverity.HIGH,
