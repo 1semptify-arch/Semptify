@@ -23,6 +23,11 @@ const { test, expect } = require('@playwright/test');
 
 const BASE = process.env.SEMPTIFY_URL || 'https://semptify.org';
 
+// Skip all tests in this file unless running interactively
+// This test requires manual OAuth sign-in AND manual Render restart
+test.describe('live case persistence (requires manual OAuth + Render restart)', () => {
+  test.skip(!process.env.SEMPTIFY_LIVE_TESTS, 'Set SEMPTIFY_LIVE_TESTS=1 to run interactive tests');
+
 test('case persists after render restart', async ({ page, request }) => {
   // Navigate to storage providers (OAuth entry point)
   await page.goto(BASE + '/storage/providers');
@@ -148,4 +153,5 @@ test('case persists after render restart', async ({ page, request }) => {
   // Verify document still attached
   const attachedDoc = afterData.documents.find(d => d.vault_id === vaultId);
   expect(attachedDoc).toBeDefined();
+});
 });

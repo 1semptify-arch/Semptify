@@ -17,6 +17,9 @@
 
 const { test, expect } = require('@playwright/test');
 
+test.describe('live migration verification (requires Render DB access)', () => {
+  test.skip(!process.env.SEMPTIFY_LIVE_TESTS, 'Set SEMPTIFY_LIVE_TESTS=1 to run DB verification tests');
+
 test('admin_audit_logs table exists - manual verification required', async () => {
   // This test requires manual verification via Render dashboard or MCP
   // Skipping automated check since pg module not available
@@ -26,4 +29,5 @@ test('admin_audit_logs table exists - manual verification required', async () =>
   console.log('2. Run query: SELECT * FROM information_schema.tables WHERE table_name = \'admin_audit_logs\'');
   console.log('3. Verify table exists and has columns: id, user_id, action, timestamp, details\n');
   expect(true).toBe(true); // Placeholder - manual verification
+});
 });

@@ -21,6 +21,11 @@ const { test, expect } = require('@playwright/test');
 
 const BASE = process.env.SEMPTIFY_URL || 'https://semptify.org';
 
+// Skip all tests in this file unless running interactively
+// This test requires manual OAuth sign-in in a browser window
+test.describe('live upload timeline (requires manual OAuth)', () => {
+  test.skip(!process.env.SEMPTIFY_LIVE_TESTS, 'Set SEMPTIFY_LIVE_TESTS=1 to run interactive OAuth tests');
+
 test('upload document creates timeline row', async ({ page, request }) => {
   // Navigate to storage providers (OAuth entry point)
   await page.goto(BASE + '/storage/providers');
@@ -91,4 +96,5 @@ test('upload document creates timeline row', async ({ page, request }) => {
 
   expect(uploadEvent).toBeDefined();
   expect(uploadEvent.timestamp).toBeDefined();
+});
 });
