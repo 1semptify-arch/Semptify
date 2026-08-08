@@ -12,16 +12,17 @@ Semptify includes multiple crawler components for gathering tenant rights inform
 
 **Purpose:** Real-time API for crawling public legal information.
 
-**Endpoints:**
+#### Endpoints:
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
+| ---------- | -------- | ------------- |
 | `/api/crawler/sources` | GET | List all available data sources |
 | `/api/crawler/crawl` | POST | Crawl a specific URL |
 | `/api/crawler/search` | POST | Search crawled content |
 | `/api/crawler/statute/{chapter}` | GET | Look up MN statute by chapter |
 
-**Configuration:**
+#### Configuration:
+
 ```python
 class CrawlerConfig:
     USER_AGENT = "Semptify/5.0 (Tenant Rights Research Bot)"
@@ -31,9 +32,10 @@ class CrawlerConfig:
     CACHE_DIR = Path("data/crawler_cache")
     CACHE_TTL_HOURS = 24
     MAX_CONTENT_SIZE = 10 * 1024 * 1024  # 10MB
-```
+```text
 
 **Supported Sources (Minnesota):**
+
 - MN Courts (`mncourts.gov`) - Court records, forms
 - MN Revisor (`revisor.mn.gov`) - State statutes
 - Dakota County (`co.dakota.mn.us`) - Property records
@@ -47,12 +49,14 @@ class CrawlerConfig:
 **Purpose:** Batch download of eviction defense documents for training data.
 
 **Usage:**
+
 ```bash
 cd C:\Semptify\Semptify-FastAPI
 .venv\Scripts\python.exe scripts\eviction_crawler.py
 ```
 
-**What it downloads:**
+#### What it downloads:
+
 1. MN Courts eviction forms
 2. Attorney General's tenant handbook
 3. LawHelpMN resources
@@ -67,20 +71,22 @@ cd C:\Semptify\Semptify-FastAPI
 
 **Purpose:** Internal code quality auditor - scans the Semptify codebase itself.
 
-**Usage:**
+#### Usage:
+
 ```bash
 cd C:\Semptify\Semptify-FastAPI
 .venv\Scripts\python.exe tools\app_crawler.py --help
 
-# Options:
-#   --fix       Auto-fix issues
-#   --verbose   Detailed output
-#   --json      Output JSON report
-#   --html      Output HTML report
-#   --no-api    Skip API testing
-```
+## Options:
+##   --fix       Auto-fix issues
+##   --verbose   Detailed output
+##   --json      Output JSON report
+##   --html      Output HTML report
+##   --no-api    Skip API testing
+```text
 
 **What it checks:**
+
 - HTML files for broken links/missing assets
 - JavaScript for undefined variables
 - Python for missing docstrings
@@ -91,11 +97,13 @@ cd C:\Semptify\Semptify-FastAPI
 ## API Usage Examples
 
 ### List Available Sources
+
 ```bash
 curl http://localhost:8000/api/crawler/sources
 ```
 
 Response:
+
 ```json
 {
   "sources": [
@@ -107,9 +115,10 @@ Response:
     }
   ]
 }
-```
+```text
 
 ### Crawl a URL
+
 ```bash
 curl -X POST http://localhost:8000/api/crawler/crawl \
   -H "Content-Type: application/json" \
@@ -117,6 +126,7 @@ curl -X POST http://localhost:8000/api/crawler/crawl \
 ```
 
 Response:
+
 ```json
 {
   "url": "https://www.lawhelpmn.org/topics/housing",
@@ -126,14 +136,16 @@ Response:
   "cached": false,
   "crawled_at": "2025-12-31T14:00:00Z"
 }
-```
+```text
 
 ### Look Up a Statute
+
 ```bash
 curl http://localhost:8000/api/crawler/statute/504B
 ```
 
 Response:
+
 ```json
 {
   "chapter": "504B",
@@ -145,7 +157,7 @@ Response:
     {"number": "504B.211", "title": "Tenant Remedies"}
   ]
 }
-```
+```text
 
 ---
 
@@ -162,13 +174,15 @@ Response:
 ## Running the Eviction Crawler
 
 ### Full Crawl
+
 ```powershell
 cd C:\Semptify\Semptify-FastAPI
 .venv\Scripts\python.exe scripts\eviction_crawler.py
 ```
 
 ### Expected Output
-```
+
+```text
 ============================================================
 Minnesota Eviction & Tenant Rights Crawler
 Focus: Eviction Defense + Sue the Landlord
@@ -184,7 +198,8 @@ Total: 45 documents saved to data/eviction_training/
 ```
 
 ### Output Structure
-```
+
+```text
 data/eviction_training/
 ├── court_forms/
 │   ├── eviction_answer_form.pdf
@@ -207,18 +222,23 @@ data/eviction_training/
 ## Troubleshooting
 
 ### "No module named 'bs4'"
+
 ```bash
 pip install beautifulsoup4 lxml
-```
+```text
 
 ### Rate Limit Errors
+
 Increase `RATE_LIMIT_SECONDS` in config or wait before retrying.
 
 ### Timeouts
+
 Some government sites are slow. Increase `REQUEST_TIMEOUT` if needed.
 
 ### Cache Issues
+
 Clear the cache:
+
 ```bash
 rm -rf data/crawler_cache/
 ```
@@ -240,15 +260,18 @@ MN_SOURCES = {
     ),
     # ... existing sources
 }
-```
+```text
 
 ---
 
 ## Dependencies
 
 Required packages (in `requirements.txt`):
+
 ```
+
 beautifulsoup4>=4.12.0    # HTML parsing
 lxml>=5.0.0               # Fast XML/HTML parser
 httpx>=0.26.0             # Async HTTP client
+
 ```

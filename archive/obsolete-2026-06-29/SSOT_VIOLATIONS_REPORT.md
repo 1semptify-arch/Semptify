@@ -1,10 +1,11 @@
 # SSOT Violations & Standards Audit Report
+
 **Generated:** 2026-05-07
 
 ## Summary
 
 | Category | Violations Found | Status |
-|----------|------------------|--------|
+| ---------- | ------------------ | -------- |
 | Hardcoded Old Paths | 24 | ❌ |
 | Navigation Inconsistencies | 5 | ❌ |
 | SSOT Registry Mismatches | 3 | ❌ |
@@ -17,9 +18,10 @@
 
 **Violation:** Using deprecated `/tenant/home` path that doesn't exist as a static file.
 
-**Files Affected:**
+#### Files Affected:
+
 - `@static/home.html:112`
-- `@static/library.html:87` 
+- `@static/library.html:87`
 - `@static/office.html:87`
 - `@static/tools.html:87`
 - `@static/help.html:100`
@@ -32,12 +34,14 @@
 
 **Violation:** Links to `/onboarding/select-role.html` but only `.bak` file exists.
 
-**Files Affected:**
+#### Files Affected:
+
 - `@static/home.html:139` (inline comment)
 - All 5 base pages reference this in mobile drawer
 
-**Current State:**
-```
+#### Current State:
+
+```text
 static/onboarding/
 ├── index.html ✓
 ├── select-role.html.bak (backup only)
@@ -54,6 +58,7 @@ static/onboarding/
 ### 3. Inconsistent "My Account" Links
 
 All 5 base pages have different "My Account" destinations:
+
 - `home.html` → `/tenant/home` (doesn't exist)
 - `library.html` → `/onboarding/select-role.html` (dynamically generated)
 
@@ -63,7 +68,8 @@ All 5 base pages have different "My Account" destinations:
 
 ### 4. Missing Navigation on Tenant Pages
 
-**Files Affected:**
+#### Files Affected:
+
 - `@static/tenant/dashboard.html`
 - `@static/tenant/help.html`
 - `@static/tenant/tools/*.html`
@@ -78,13 +84,16 @@ All 5 base pages have different "My Account" destinations:
 ## ✅ WHAT'S WORKING
 
 ### Navigation Present on 5 Base Pages
+
 All 5 base pages (`home.html`, `library.html`, `office.html`, `tools.html`, `help.html`) have:
+
 - ✅ Header navigation with all 5 links
 - ✅ Mobile drawer with all 5 links
 - ✅ Consistent styling and icons
 - ✅ Active state indicators
 
 ### SSOT Registry
+
 - ✅ `app/core/navigation.py` has correct MAIN_NAV definition
 - ✅ 5 base links match actual pages
 
@@ -97,13 +106,13 @@ All 5 base pages (`home.html`, `library.html`, `office.html`, `tools.html`, `hel
 Update all `/tenant/home` links to `/office.html`:
 
 ```bash
-# Files to fix:
+## Files to fix:
 static/home.html:112
 static/library.html:87
 static/office.html:87
 static/tools.html:87
 static/help.html:100
-```
+```text
 
 ### Priority 2: Fix My Account Links
 
@@ -121,6 +130,7 @@ Standardize "My Account" to use SSOT navigation:
 ### Priority 3: Audit Tenant Pages
 
 Check all tenant pages for navigation consistency:
+
 - Ensure they have the 5-base navigation
 - Or redirect to base pages
 
@@ -129,7 +139,7 @@ Check all tenant pages for navigation consistency:
 ## 📋 COMPLIANCE CHECKLIST
 
 | Requirement | Status | Notes |
-|-------------|--------|-------|
+| ------------- | -------- | ------- |
 | 5 base nav links on all pages | ⚠️ | 5 base pages OK, tenant pages need audit |
 | No hardcoded old paths | ❌ | `/tenant/home` found in 5 files |
 | Consistent "My Account" links | ❌ | Multiple destinations used |
@@ -142,7 +152,7 @@ Check all tenant pages for navigation consistency:
 ## 🛡️ PROTECTION MEASURES ACTIVE
 
 | Layer | Status |
-|-------|--------|
+| ------- | -------- |
 | CI/CD SSOT gate | ✅ Active in `.github/workflows/ci.yml` |
 | Pre-commit hook | ✅ Active in `.pre-commit-config.yaml` |
 | `verify_ssot.py` script | ✅ Available for local checks |

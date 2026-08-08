@@ -1,27 +1,30 @@
 # SDK Modular Integration Plan
 
 ## Problem Statement
+
 The current SDK is designed as a unified client (`SemptifyClient`) that imports all modules. For individual module extraction and use in other repositories, we need a modular design where each module can stand alone.
 
 ## Current Structure Issues
+
 ```python
-# Current: Everything coupled through SemptifyClient
+## Current: Everything coupled through SemptifyClient
 from sdk import SemptifyClient
 client = SemptifyClient()
 client.documents.upload()  # Requires all modules
-```
+```text
 
 ## Target Modular Structure
+
 ```python
-# Target: Individual modules can be used alone
+## Target: Individual modules can be used alone
 from sdk.documents import DocumentClient
 from sdk.auth import AuthClient
 
-# Standalone document module
+## Standalone document module
 docs = DocumentClient(base_url="http://api.example.com", token="jwt_token")
 docs.upload("lease.pdf")
 
-# Standalone auth module
+## Standalone auth module
 auth = AuthClient(base_url="http://api.example.com")
 auth.login("google", code)
 ```
@@ -30,14 +33,16 @@ auth.login("google", code)
 
 ### 1. Module Self-Containment (Priority: HIGH)
 
-**Each module must:**
+#### Each module must:
+
 - Have its own `__init__.py` that exports only its classes
 - Import `BaseClient` from `sdk.base` (shared dependency)
 - Define its own data models and exceptions
 - Work independently without requiring other modules
 
-**Files to modify:**
-```
+#### Files to modify:
+
+```text
 sdk/
 ├── auth/
 │   ├── __init__.py      # Export AuthClient, UserInfo
@@ -74,33 +79,36 @@ sdk/
 **Problem:** Current modules assume cookie-based auth through shared client.
 
 **Solution:** Each module accepts multiple auth methods:
+
 ```python
-# Option 1: Direct token
+## Option 1: Direct token
 client = DocumentClient(
     base_url="http://api.example.com",
     auth_token="jwt_token_here"
 )
 
-# Option 2: API Key
+## Option 2: API Key
 client = DocumentClient(
     base_url="http://api.example.com",
     api_key="api_key_here"
 )
 
-# Option 3: OAuth flow (auth module integration)
+## Option 3: OAuth flow (auth module integration)
 auth = AuthClient(base_url="http://api.example.com")
 user = auth.login("google", code)
 docs = DocumentClient(base_url="http://api.example.com", auth_token=user.token)
-```
+```text
 
 ### 3. Minimal Dependencies (Priority: MEDIUM)
 
 **Shared dependencies only:**
+
 - `sdk.base` - BaseClient with HTTP handling
 - `sdk.exceptions` - Common exception hierarchy
 - `pydantic` - Data models (if used)
 
 **No cross-module imports:**
+
 - `documents` must not import `auth`
 - `timeline` must not import `documents`
 - Each module stands alone
@@ -108,8 +116,9 @@ docs = DocumentClient(base_url="http://api.example.com", auth_token=user.token)
 ### 4. Unified Client as Facade (Priority: LOW)
 
 **Keep `SemptifyClient` as convenience wrapper:**
+
 ```python
-# sdk/client.py (facade pattern)
+## sdk/client.py (facade pattern)
 class SemptifyClient:
     def __init__(self, base_url, ...):
         # Initialize all modules for convenience
@@ -120,17 +129,19 @@ class SemptifyClient:
 
 ### 5. Package Structure for Distribution
 
-**Option A: Single Package with Submodules**
+#### Option A: Single Package with Submodules
+
 ```python
-# pip install semptify-sdk
+## pip install semptify-sdk
 from semptify_sdk import DocumentClient
 from semptify_sdk.auth import AuthClient
-```
+```text
 
 **Option B: Individual Packages**
+
 ```python
-# pip install semptify-documents
-# pip install semptify-auth
+## pip install semptify-documents
+## pip install semptify-auth
 from semptify_documents import DocumentClient
 from semptify_auth import AuthClient
 ```
@@ -140,24 +151,28 @@ from semptify_auth import AuthClient
 ## Implementation Steps
 
 ### Phase 1: Module Extraction (Week 1)
+
 1. Create module directories
 2. Move existing code to module files
 3. Update imports to be self-contained
 4. Test each module independently
 
 ### Phase 2: Auth Flexibility (Week 1)
+
 1. Modify BaseClient to accept auth tokens directly
 2. Update each module to support token auth
 3. Add API key support
 4. Test with different auth methods
 
 ### Phase 3: Documentation & Examples (Week 2)
+
 1. Write individual module READMEs
 2. Create standalone usage examples
 3. Update main SDK documentation
 4. Add integration tests
 
 ### Phase 4: Packaging (Week 2)
+
 1. Update setup.py/pyproject.toml
 2. Test package installation
 3. Publish to PyPI (if desired)
@@ -173,23 +188,25 @@ from semptify_auth import AuthClient
 
 ## Migration Path
 
-**For existing users:**
+### For existing users:
+
 ```python
-# Before (still works)
+## Before (still works)
 from sdk import SemptifyClient
 client = SemptifyClient()
 client.documents.upload()
 
-# After (new options)
+## After (new options)
 from sdk import SemptifyClient  # Still available
 from sdk.documents import DocumentClient  # New standalone
 docs = DocumentClient()
 docs.upload()
-```
+```text
 
 **For new projects:**
+
 ```python
-# Use only what's needed
+## Use only what's needed
 from sdk.documents import DocumentClient
 docs = DocumentClient(base_url="https://api.semptify.com", token="...")
 ```

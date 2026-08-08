@@ -5,22 +5,22 @@ Real browser automation testing using Playwright. Actually clicks buttons, follo
 ## Quick Start
 
 ```bash
-# 1. Install Playwright
+## 1. Install Playwright
 npm install -g playwright
 npx playwright install chromium
 
-# 2. Start Semptify
+## 2. Start Semptify
 python -m app.main
 
-# 3. Run tests (in another terminal)
+## 3. Run tests (in another terminal)
 cd tests/e2e
 ./run_e2e_tests.sh
-```
+```text
 
 ## Test Types
 
 | Test | Command | Time | What It Does |
-|------|---------|------|--------------|
+| ------ | --------- | ------ | -------------- |
 | **Smoke** | `./run_e2e_tests.sh --quick` | 30s | Basic health checks, 6 endpoints |
 | **Full** | `./run_e2e_tests.sh` | 3-5min | Every page, every link, every flow |
 | **Flows** | `./run_e2e_tests.sh --flows` | 2-3min | User journey continuity: Welcome → Role → Storage → Home |
@@ -29,6 +29,7 @@ cd tests/e2e
 ## What Gets Tested
 
 ### 1. Static Pages (13 pages)
+
 - `/` - Root
 - `/static/welcome.html` - Welcome
 - `/static/help.html` - Help
@@ -40,11 +41,13 @@ cd tests/e2e
 - And more...
 
 ### 2. Link Validation
+
 - Crawls welcome page
 - Tests up to 50 internal links
 - Verifies they return HTTP 200
 
 ### 3. API Endpoints (6 endpoints)
+
 - `/healthz` - Health check
 - `/api/health` - API health
 - `/ui/available-roles` - Role list
@@ -53,12 +56,15 @@ cd tests/e2e
 - `/api/docs` - Swagger docs
 
 ### 4. Flow Tests
+
 - **Onboarding Flow**: Welcome → Start → Role Select → Providers
 - **Reconnect Flow**: Entry point with return_to parameter
 - **UI Router**: All role-based UI endpoints
 
 ### 5. User Flow Continuity Tests (`--flows`)
+
 Comprehensive end-to-end user journey testing:
+
 - **Flow 1**: New User Onboarding (Welcome → Role → Storage → Home)
 - **Flow 2**: Returning User (Reconnect → Home)
 - **Flow 3**: Document Upload (Home → Upload → Vault)
@@ -68,6 +74,7 @@ Comprehensive end-to-end user journey testing:
 - **SSOT Compliance**: Detects hardcoded URLs (navigation violations)
 
 ### 5. Responsive Design
+
 - Mobile (375x667)
 - Tablet (768x1024)
 - Desktop (1920x1080)
@@ -75,9 +82,12 @@ Comprehensive end-to-end user journey testing:
 ## Output
 
 ### Console Output
+
 ```
+
 🔥 SEMPTIFY SMOKE TEST
 =======================
+
 ✅ Health Check: OK
 ✅ Welcome Page: OK
 ✅ API Health: OK
@@ -89,10 +99,13 @@ Comprehensive end-to-end user journey testing:
 Passed: 6/6
 Failed: 0/6
 ✅ Smoke test PASSED
-```
+
+```text
 
 ### Screenshots
+
 Saved to `/tmp/`:
+
 - `semptify_welcome_page.png`
 - `semptify_help_page.png`
 - `semptify_responsive_mobile.png`
@@ -100,11 +113,13 @@ Saved to `/tmp/`:
 - etc.
 
 ### JSON Report
+
 ```bash
 cat /tmp/semptify_e2e_report.json
 ```
 
 Contains:
+
 - All pages tested with status
 - All links checked with status
 - All forms tested
@@ -114,7 +129,7 @@ Contains:
 ## CI/CD Integration
 
 ```yaml
-# .github/workflows/e2e.yml
+## .github/workflows/e2e.yml
 name: E2E Tests
 
 on: [push, pull_request]
@@ -141,11 +156,12 @@ jobs:
         with:
           name: screenshots
           path: /tmp/semptify_*.png
-```
+```text
 
 ## Custom Test Scripts
 
 ### Test a specific page
+
 ```javascript
 const { chromium } = require('playwright');
 
@@ -167,6 +183,7 @@ const { chromium } = require('playwright');
 ```
 
 ### Test form submission
+
 ```javascript
 // Fill and submit a form
 await page.fill('input[name="email"]', 'test@example.com');
@@ -175,12 +192,12 @@ await page.click('button[type="submit"]');
 
 // Wait for success message
 await page.waitForSelector('.success-message');
-```
+```text
 
 ## Environment Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| ---------- | --------- | ------------- |
 | `SEMPTIFY_URL` | `http://localhost:8000` | Target server URL |
 | `HEADLESS` | `false` | Run without browser window |
 | `SLOW_MO` | `50` | Slow down operations by N ms |
@@ -188,26 +205,30 @@ await page.waitForSelector('.success-message');
 ## Troubleshooting
 
 ### "Server not responding"
+
 ```bash
-# Start the server first
+## Start the server first
 python -m app.main
 
-# In another terminal, run tests
+## In another terminal, run tests
 cd tests/e2e && ./run_e2e_tests.sh
 ```
 
 ### "Playwright not installed"
+
 ```bash
 npm install -g playwright
 npx playwright install chromium
-```
+```text
 
 ### "Test times out"
+
 - Server might be slow
 - Increase timeout in script
 - Check server logs for errors
 
 ### "Browser doesn't open"
+
 - Use `--ci` mode for headless
 - Check display/X11 settings on Linux
 - Try running with `headless: true`
@@ -216,6 +237,7 @@ npx playwright install chromium
 
 1. Edit `playwright_full_system_test.js`
 2. Add test function following the pattern:
+
 ```javascript
 async function testMyFeature(browser) {
   const context = await browser.newContext();
@@ -232,11 +254,12 @@ async function testMyFeature(browser) {
   }
 }
 ```
-3. Call it in `runAllTests()`
+
+1. Call it in `runAllTests()`
 
 ## Architecture
 
-```
+```text
 ┌─────────────────┐
 │  Playwright     │  ← Browser automation library
 │  (Chromium)     │
@@ -255,7 +278,7 @@ async function testMyFeature(browser) {
 └─────────────────┘
 ```
 
-## Why Playwright?
+## Why Playwright
 
 - **Real browser**: Tests actual Chromium, not mocks
 - **Visual**: Can see what happens (screenshots)

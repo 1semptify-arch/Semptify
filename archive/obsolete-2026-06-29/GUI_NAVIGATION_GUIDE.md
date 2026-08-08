@@ -1,9 +1,11 @@
 # 🎨 Semptify 5.0 - GUI Navigation Guide
 
 ## Central Hub
+
 **Location**: `/static/admin/gui_navigation_hub.html`  
 **Purpose**: Master landing page with links to all GUIs  
-**Features**: 
+**Features**:
+
 - Quick access buttons
 - Organized by category
 - Smooth scrolling navigation
@@ -14,6 +16,7 @@
 ## ⚙️ SETTINGS & CONFIGURATION
 
 ### 1. Easy Mode Selector
+
 - **URL**: `/static/admin/easy_mode_selector.html`
 - **For**: Everyone (beginners, non-technical users)
 - **Features**:
@@ -30,6 +33,7 @@
   - Hints toggle
 
 ### 2. Advanced Mode Selector
+
 - **URL**: `/static/admin/mode_selector.html`
 - **For**: Power users, administrators
 - **Features**:
@@ -51,6 +55,7 @@
 ## 📊 DASHBOARDS & VIEWS
 
 ### 3. Main Dashboard
+
 - **URL**: `/` (root)
 - **For**: All users (daily use)
 - **Features**:
@@ -62,6 +67,7 @@
   - Crisis mode support
 
 ### 4. Mission Control
+
 - **URL**: `/static/admin/mission_control.html`
 - **For**: Administrators only
 - **Features**:
@@ -72,6 +78,7 @@
   - Admin console
 
 ### 5. API Documentation
+
 - **URL**: `/api/docs`
 - **For**: Developers, API users
 - **Features**:
@@ -81,6 +88,7 @@
   - Generate API keys
 
 ### 6. Welcome Page
+
 - **URL**: `/static/welcome.html`
 - **For**: First-time users
 - **Features**:
@@ -94,6 +102,7 @@
 ## 🛠️ TOOLS & UTILITIES
 
 ### 7. Document Upload
+
 - **URL**: `/api/vault/upload`
 - **For**: All users
 - **Features**:
@@ -103,6 +112,7 @@
   - Progress tracking
 
 ### 8. Form Generator
+
 - **URL**: `/api/forms/`
 - **For**: All users
 - **Features**:
@@ -113,6 +123,7 @@
   - Export to PDF
 
 ### 9. Timeline Editor
+
 - **URL**: `/api/timeline/`
 - **For**: All users
 - **Features**:
@@ -122,6 +133,7 @@
   - Color-coded priority
 
 ### 10. Legal Research Tool
+
 - **URL**: `/api/laws/`
 - **For**: All users
 - **Features**:
@@ -131,6 +143,7 @@
   - Statute citations
 
 ### 11. AI Copilot
+
 - **URL**: `/api/copilot/`
 - **For**: All users
 - **Features**:
@@ -140,6 +153,7 @@
   - 24/7 availability
 
 ### 12. System Health
+
 - **URL**: `/healthz`
 - **For**: Administrators
 - **Features**:
@@ -153,7 +167,7 @@
 ## 📱 QUICK ACCESS LINKS
 
 | Purpose | Beginner | Advanced | Admin |
-|---------|----------|----------|-------|
+| --------- | ---------- | ---------- | ------- |
 | Home | `/` | `/` | `/` |
 | Settings (Easy) | `/static/admin/easy_mode_selector.html` | - | - |
 | Settings (Advanced) | - | `/static/admin/mode_selector.html` | ✓ |
@@ -166,7 +180,7 @@
 
 ## 🗺️ SITE MAP
 
-```
+```text
 Semptify 5.0
 │
 ├── Home (/)
@@ -212,6 +226,7 @@ Semptify 5.0
 ## 🎯 USER JOURNEY BY ROLE
 
 ### 👶 Beginner User
+
 1. Land on welcome page → `/static/welcome.html`
 2. Setup settings → `/static/admin/easy_mode_selector.html`
 3. Use dashboard → `/`
@@ -220,6 +235,7 @@ Semptify 5.0
 6. Chat with AI → `/api/copilot/`
 
 ### 🧠 Power User / Advocate
+
 1. Dashboard home → `/`
 2. Customize settings → `/static/admin/mode_selector.html`
 3. Access all tools → Use navigation hub → `/static/admin/gui_navigation_hub.html`
@@ -228,6 +244,7 @@ Semptify 5.0
 6. Use copilot → `/api/copilot/`
 
 ### 👨‍💼 Administrator
+
 1. Mission Control → `/static/admin/mission_control.html`
 2. Check system health → `/healthz`
 3. API documentation → `/api/docs`
@@ -240,6 +257,7 @@ Semptify 5.0
 ## 💾 NAVIGATION INTEGRATION
 
 ### Add to Header Navigation
+
 ```html
 <nav class="main-nav">
     <a href="/">Home</a>
@@ -247,9 +265,10 @@ Semptify 5.0
     <a href="/static/admin/easy_mode_selector.html">Settings</a>
     <a href="/api/docs">API Docs</a>
 </nav>
-```
+```text
 
 ### Add to User Menu
+
 ```html
 <div class="user-menu">
     <a href="/static/admin/easy_mode_selector.html">⚙️ Easy Settings</a>
@@ -263,7 +282,7 @@ Semptify 5.0
 ## 🔐 ACCESS CONTROL
 
 | Page | Public | Authenticated | Admin |
-|------|--------|---------------|-------|
+| ------ | -------- | --------------- | ------- |
 | Easy Mode Selector | ✓ | ✓ | ✓ |
 | Advanced Mode Selector | ✓ | ✓ | ✓ |
 | Dashboard | ✓ | ✓ | ✓ |
@@ -276,7 +295,7 @@ Semptify 5.0
 
 ## 🚀 LAUNCHING THE HUB
 
-**Main Entry Points:**
+### Main Entry Points:
 
 1. **For Everyone**: `/static/admin/gui_navigation_hub.html`
    - Central hub with all options
@@ -316,17 +335,20 @@ Semptify 5.0
 ## 🎓 GETTING STARTED
 
 **Step 1**: Visit the Navigation Hub
-```
+
+```text
 http://localhost:8000/static/admin/gui_navigation_hub.html
 ```
 
 **Step 2**: Choose your path:
+
 - **Beginner?** → Click "Easy Settings"
 - **Experienced?** → Click "Advanced Settings"  
 - **Admin?** → Click "Mission Control"
 - **Developer?** → Click "API Docs"
 
 **Step 3**: Explore the interface
+
 - Click any card to open that tool
 - Use quick links in the toolbar
 - Scroll to see all available options

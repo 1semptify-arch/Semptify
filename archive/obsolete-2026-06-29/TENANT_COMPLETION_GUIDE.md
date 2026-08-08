@@ -1,7 +1,10 @@
 # Tenant Role Completion Guide
-# Every promise made on the welcome page — what's needed to honor it.
-# Source of truth: static/public/welcome.html
-# Last updated: 2026-05-04
+
+## Every promise made on the welcome page — what's needed to honor it
+
+## Source of truth: static/public/welcome.html
+
+## Last updated: 2026-05-04
 
 ---
 
@@ -13,8 +16,9 @@ Nothing ships as "complete" until every checkbox is ticked.
 ---
 
 ## 1. 📓 Tenant Journal (Timeline)
+>
 > "Log rent payments, maintenance requests, communications with your landlord,
->  and anything important. Build a timeline of your rental life."
+> and anything important. Build a timeline of your rental life."
 
 - [ ] Create journal entry (text, date, category)
 - [ ] Categories: rent_payment, maintenance_request, landlord_communication, general_note
@@ -29,8 +33,9 @@ Nothing ships as "complete" until every checkbox is ticked.
 ---
 
 ## 2. 📚 Know Your Rights & Responsibilities
+>
 > "Access plain-language guides to tenant law in your state.
->  Understand what your landlord must do, and what you must do. Both matter equally."
+> Understand what your landlord must do, and what you must do. Both matter equally."
 
 - [ ] Rights content page — plain language, no jargon
 - [ ] Responsibilities content page — equally prominent, not an afterthought
@@ -45,8 +50,9 @@ Nothing ships as "complete" until every checkbox is ticked.
 ---
 
 ## 3. 📁 Document Storage (Vault)
+>
 > "Keep your lease, move-in photos, receipts, and communications organized
->  in your own cloud storage. We never store your documents on our servers."
+> in your own cloud storage. We never store your documents on our servers."
 
 - [ ] Upload a document to vault (Google Drive / Dropbox / OneDrive)
 - [ ] Document categories: lease, move_in_photo, receipt, communication, other
@@ -62,8 +68,9 @@ Nothing ships as "complete" until every checkbox is ticked.
 ---
 
 ## 4. 🛠️ Be Prepared (Just in Case)
+>
 > "Template letters, deadline trackers, and educational resources
->  about court procedures. We hope you never need them."
+> about court procedures. We hope you never need them."
 
 - [ ] Template letter: Maintenance request (written request to landlord)
 - [ ] Template letter: Security deposit demand (after move-out)
@@ -78,6 +85,7 @@ Nothing ships as "complete" until every checkbox is ticked.
 ---
 
 ## 5. 💰 Free Forever
+>
 > "Free to use. Free Forever. No Ads."
 
 - [ ] No paywall anywhere in tenant flow
@@ -90,6 +98,7 @@ Nothing ships as "complete" until every checkbox is ticked.
 ---
 
 ## 6. 🔒 Data In Your Control
+>
 > "Your documents stay in your control. We never store your documents on our servers."
 
 - [ ] All uploads go directly to user's own cloud vault (Drive/Dropbox/OneDrive)
@@ -100,6 +109,7 @@ Nothing ships as "complete" until every checkbox is ticked.
 ---
 
 ## 7. ⚖️ Tenant-First, Truth-Based
+>
 > We are on the side of tenants — always.
 > We stand for what is lawful and factual. We do not mislead, balance-both-sides into silence, or soften the truth.
 > The "two-way street" framing on the welcome page means: we won't help bad-faith tenants weaponize the app.
@@ -118,6 +128,7 @@ Nothing ships as "complete" until every checkbox is ticked.
 ---
 
 ## 8. 🏛️ Not Legal Advice
+>
 > "Semptify is an organizational tool and educational resource — not a law firm."
 
 - [ ] Disclaimer shown on all rights/law content pages
@@ -153,7 +164,7 @@ clear entry points to every promise:
 ## COMPLETION STATUS
 
 | Area | Status | Blocker |
-|------|--------|---------|
+| ------ | -------- | --------- |
 | Journal / Timeline | ❓ Unknown | Need to verify route + UI |
 | Rights & Responsibilities | ⚠️ Partial | Law library exists, two-sided framing TBD |
 | Document Storage (upload) | ⚠️ Partial | Vault provisioned, upload UI TBD |
@@ -185,6 +196,7 @@ clear entry points to every promise:
 ## DEFINITION OF DONE
 
 The tenant role is complete when:
+
 - A brand new user can: sign up → connect storage → reach dashboard
 - From the dashboard they can: write a journal entry, upload a document,
   read their rights, access a template letter, see a deadline tracker

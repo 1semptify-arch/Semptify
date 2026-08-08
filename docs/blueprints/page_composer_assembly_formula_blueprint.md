@@ -42,7 +42,7 @@ Without this formula, the three composers risk producing conflicting pages for t
 ## 3. Roles
 
 | Role | Default access | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `tenant` | YES | Primary consumer; formula drives their dashboard, timeline, library, and subject pages. |
 | `advocate` | YES | Can invoke formula on behalf of a linked tenant; same output shape. |
 | `admin` | YES | Can introspect formula inputs/outputs for debugging. |
@@ -57,7 +57,7 @@ No new tables. The formula reads existing sources and writes nothing to the data
 All endpoints live under the existing `app.modules.page_composer.router` prefix `/api/page`.
 
 | Method | Path | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/api/page/{subject}` | Assemble a page for a canonical subject (legacy JSON view). |
 | GET | `/api/page/{subject}/preview` | Public preview of a subject page, no user case data. |
 | GET | `/api/page/{subject}/config` | **NEW** Return the assembled `PageConfig` for Page Shell rendering. |
@@ -68,7 +68,7 @@ All endpoints live under the existing `app.modules.page_composer.router` prefix 
 ## 6. Modules / services it calls
 
 | Callee | Data provided |
-|---|---|
+| --- | --- |
 | `app.services.context_loop` | User context (document count, deadlines, urgency, active case flags). |
 | `app.modules.context_engine.cache` | Verified facts for `subject` + `jurisdiction`. |
 | `app.modules.context_engine.stories` | Published tenant stories. |
@@ -82,14 +82,14 @@ All endpoints live under the existing `app.modules.page_composer.router` prefix 
 
 ## 7. The assembly formula
 
-```
+```text
 Page = Assemble(UserContext, Subject, Jurisdiction, RequestedIntent)
 ```
 
 ### 7.1 Inputs
 
 | Input | Source | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `user_id` | Cookie / auth gate | Optional for public preview. |
 | `subject` | Path param or intent | One of the 13 `context_engine.taxonomy.Subject` values, or `null` for intent-only pages. |
 | `jurisdiction` | Query param, default `MN` | Drives fact lookup and action availability. |
@@ -100,7 +100,7 @@ Page = Assemble(UserContext, Subject, Jurisdiction, RequestedIntent)
 
 Compute the user's **intensity** (0-100) from Context Loop signals:
 
-```
+```text
 intensity = max(
   deadline_proximity_score,   # 0-100, higher as nearest deadline approaches
   case_active_score,          # 0 or 70 if any open case
@@ -115,7 +115,7 @@ The exact scoring function is hand-tunable in `assembly.py`; the formula only re
 From `subject` + `intent` + `intensity`, choose a `major_pillar`:
 
 | Situation | `major_pillar` | Rationale |
-|---|---|---|
+| --- | --- | --- |
 | New user, ≤1 doc, no urgency | `record` | First job is to start capturing evidence. |
 | User browsing a subject with no active case | `know` | Library-style, facts-first. |
 | Active case + upcoming deadline/hearing | `act` | User needs to do something now. |
@@ -128,7 +128,7 @@ From `subject` + `intent` + `intensity`, choose a `major_pillar`:
 The blend is a named preset in `app.modules.page_shell.blends`. The formula picks the blend, then derives `ChannelLevels` from it. Channel levels can be *modified* by intensity but never beyond the blend's intent.
 
 | `major_pillar` + intensity | Blend | Channels (record, know, act, govern) |
-|---|---|---|
+| --- | --- | --- |
 | `record`, low intensity | `first_contact` | 70, 60, 15, 30 |
 | `record`, high capture need | `quiet_capture` | 90, 10, 5, 25 |
 | `know`, low intensity | `orientation` | 20, 80, 20, 20 |
@@ -209,7 +209,7 @@ The formula returns a `PageAssemblyResult`:
 ## 8. Data mapping reference
 
 | Source data | Becomes | Block kind | Zone |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Context Engine fact | InfoBlock | `info` | KNOW |
 | Tenant story | InfoBlock (collapsed) | `info` | KNOW |
 | Vault document count | Stat badge / empty state | `info` | RECORD |
@@ -223,7 +223,7 @@ The formula returns a `PageAssemblyResult`:
 ## 9. Risk
 
 | Risk | Mitigation |
-|---|---|
+| --- | --- |
 | Different pages for the same user state | Formula is deterministic; all tunable weights live in one file and are versioned. |
 | GOVERN under-weighted for high-risk cases | Floor rules in `page_shell.govern` clamp GOVERN before render; formula cannot override them. |
 | Capabilities leak blocks to wrong role | Capability filter in Phase 4 gates every `OutputBlock` and `InputBlock`. |

@@ -3,14 +3,14 @@
 Tenant rights protection platform - rebuilt with async-first FastAPI architecture.
 
 > **Empowering tenants with knowledge, organization, and legal tools**
-> 
+>
 > **Version:** 5.0.0 | **Python:** 3.11.9 (MANDATED) | **Status:** Production Ready
-> 
+>
 > Canonical project guide: see `PROJECT_BIBLE.md` for the single source-of-truth hierarchy, build reference rules, and governance.
 
 ## Core Promise
 
-**Help tenants with tools and information to uphold tenant rights as a renter, in court if it goes that far - hopefully it won't.**
+### Help tenants with tools and information to uphold tenant rights as a renter, in court if it goes that far - hopefully it won't
 
 ## 🔐 Storage-Based Authentication
 
@@ -23,7 +23,7 @@ Semptify 5.0 introduces a unique authentication model: **your cloud storage IS y
 3. **Automatic Token**: An encrypted auth token is stored in your storage (`.semptify/auth_token.enc`)
 4. **You're In**: If you can access your storage, you're authenticated
 
-### Why Storage-Based Auth?
+### Why Storage-Based Auth
 
 - **No Passwords**: Can't forget what doesn't exist
 - **No Email Verification**: Your storage account already verified you
@@ -34,7 +34,7 @@ Semptify 5.0 introduces a unique authentication model: **your cloud storage IS y
 ### Supported Storage Providers
 
 | Provider | Status | Features |
-|----------|--------|----------|
+| ---------- | -------- | ---------- |
 | Google Drive | ✅ Ready | OAuth2, app folder isolation |
 | Dropbox | ✅ Ready | OAuth2, app folder isolation |
 | OneDrive | ✅ Ready | OAuth2, app folder isolation |
@@ -45,35 +45,38 @@ Semptify 5.0 introduces a unique authentication model: **your cloud storage IS y
 Semptify 5.0 uses a **canonical launcher** for all startup scenarios.
 
 ### Production Mode (Enforced Security)
+
 ```powershell
-# Double-click or run:
+## Double-click or run:
 .\START-SEMPTIFY.bat
 
-# Or directly with PowerShell:
+## Or directly with PowerShell:
 .\start-semptify.ps1
-```
+```text
 
 ### Development Mode (Open Security)
+
 ```powershell
 .\start-semptify.ps1 -DevMode
 ```
 
 ### Manual Setup (if needed)
+
 ```powershell
-# 1. Create virtual environment (if not exists)
+## 1. Create virtual environment (if not exists)
 python -m venv venv311
 .\venv311\Scripts\Activate.ps1
 
-# 2. Install dependencies
+## 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Copy environment template and configure OAuth credentials
+## 3. Copy environment template and configure OAuth credentials
 Copy-Item .env.template .env
-# Edit .env with your OAuth client IDs/secrets
+## Edit .env with your OAuth client IDs/secrets
 
-# 4. Run via canonical launcher (NEVER use uvicorn directly)
+## 4. Run via canonical launcher (NEVER use uvicorn directly)
 .\start-semptify.ps1
-```
+```powershell
 
 > **IMPORTANT:** Always use `start-semptify.ps1` to start the application.  
 > This ensures SECURITY_MODE=enforced and all production requirements are met.  
@@ -82,12 +85,14 @@ Copy-Item .env.template .env
 ## API Documentation
 
 When running in debug mode, visit:
-- Swagger UI: http://localhost:8000/api/docs
-- ReDoc: http://localhost:8000/api/redoc
+
+- Swagger UI: <http://localhost:8000/api/docs>
+- ReDoc: <http://localhost:8000/api/redoc>
 
 ## Project Structure
 
 ```
+
 Semptify-FastAPI/
 ├── app/
 │   ├── main.py              # FastAPI application entry
@@ -96,7 +101,7 @@ Semptify-FastAPI/
 │   │   ├── security.py      # Storage-based auth, rate limiting
 │   │   └── database.py      # Async SQLAlchemy
 │   ├── routers/
-│   │   ├── storage.py       # /storage/* - OAuth flows, auth
+│   │   ├── storage.py       # /storage/*- OAuth flows, auth
 │   │   ├── vault.py         # /api/vault/* - documents in user storage
 │   │   ├── timeline.py      # /api/timeline/*
 │   │   ├── calendar.py      # /api/calendar/*
@@ -115,18 +120,21 @@ Semptify-FastAPI/
 ├── requirements.txt
 ├── .env.template
 └── README.md
-```
+
+```python
 
 > Before working in this repository, run `python scripts/require_read_project_bible.py` to confirm you have reviewed the canonical governance and build docs.
 
 ## API Endpoints
 
 ### Health & Monitoring
+
 - `GET /healthz` - Health check
 - `GET /readyz` - Readiness check
 - `GET /metrics` - Prometheus metrics
 
 ### Storage Authentication (NEW in 5.0)
+
 - `GET /storage/providers` - List available storage providers
 - `GET /storage/auth/{provider}` - Start OAuth flow
 - `GET /storage/callback/{provider}` - OAuth callback
@@ -135,6 +143,7 @@ Semptify-FastAPI/
 - `POST /storage/logout` - End session
 
 ### Document Vault (Cloud Storage)
+
 - `POST /api/vault/upload` - Upload to user's cloud storage
 - `GET /api/vault/` - List documents from user's storage
 - `GET /api/vault/{id}/download` - Download from user's storage
@@ -142,22 +151,26 @@ Semptify-FastAPI/
 - `DELETE /api/vault/{id}` - Delete from user's storage
 
 ### Timeline
+
 - `POST /api/timeline/` - Create event
 - `GET /api/timeline/` - List events
 - `GET /api/timeline/{id}` - Get event
 
 ### Calendar
+
 - `POST /api/calendar/` - Create event/deadline
 - `GET /api/calendar/` - List events
 - `GET /api/calendar/upcoming` - Upcoming deadlines
 
 ### AI Copilot
+
 - `GET /api/copilot/status` - Check AI availability
 - `POST /api/copilot/` - Ask a question
 
 ## Authentication Flow
 
 ```
+
 ┌─────────────┐         ┌─────────────┐         ┌─────────────┐
 │   User      │         │  Semptify   │         │   Storage   │
 │   Browser   │         │   Server    │         │   Provider  │
@@ -191,7 +204,8 @@ Semptify-FastAPI/
        │ 9. Access protected   │                       │
        │    resources          │                       │
        ├──────────────────────>│                       │
-```
+
+```text
 
 ## Security Modes
 
@@ -203,6 +217,7 @@ Set via `SECURITY_MODE` environment variable.
 ## AI Copilot Providers
 
 Configure `AI_PROVIDER` environment variable:
+
 - `openai` - OpenAI API (requires `OPENAI_API_KEY`)
 - `azure` - Azure OpenAI (requires Azure credentials)
 - `ollama` - Local Ollama server
@@ -211,6 +226,7 @@ Configure `AI_PROVIDER` environment variable:
 ## 📊 Latest Updates (June 2026)
 
 ### Filedored Document Organization System
+
 - **Virtual folder organization** without moving files
 - **Automatic duplicate detection** across vault
 - **AI classification integration** ready (SWE 1.6 compatible)
@@ -218,12 +234,14 @@ Configure `AI_PROVIDER` environment variable:
 - **Zero impact** on upload pipeline
 
 ### GUI Requirements Contract
+
 - **Universal UI specification** system for all modules
 - **Standardized input/output** definitions
 - **Accessibility requirements** built-in
 - **Consistent module integration** pattern
 
 ### AI Tool Crib & Accountability Planner
+
 - **Centralized AI service** management
 - **Multiple provider support** (OpenAI, Anthropic, Local, SWE 1.6)
 - **Cost tracking** and rate limiting
@@ -231,6 +249,7 @@ Configure `AI_PROVIDER` environment variable:
 - **GDPR/CCPA compliance** framework
 
 ### Contracts & Waivers Framework
+
 - **Complete legal agreement** management
 - **User consent tracking** system
 - **Multi-jurisdiction** support
@@ -253,7 +272,7 @@ pytest -v
 ## Production Deployment
 
 ```powershell
-# Using Gunicorn with Uvicorn workers
+## Using Gunicorn with Uvicorn workers
 gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
 
@@ -270,6 +289,7 @@ gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 This is a complete rewrite of Semptify, not a port. The Flask version remains at `../Semptify/` for reference.
 
 Key improvements:
+
 - **Storage-based auth** (no passwords, no email verification)
 - **User-owned data** (documents in user's cloud storage)
 - Async I/O (non-blocking AI calls, database queries)
@@ -280,7 +300,7 @@ Key improvements:
 ## Architecture Comparison
 
 | Aspect | Flask (4.x) | FastAPI (5.0) |
-|--------|-------------|---------------|
+| -------- | ------------- | --------------- |
 | Authentication | Anonymous tokens in local JSON | Storage-based OAuth2 |
 | Document Storage | Local filesystem | User's cloud storage |
 | User Data | Server-side | User-owned (self-custody) |

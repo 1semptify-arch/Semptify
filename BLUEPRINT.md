@@ -1,4 +1,5 @@
 # SEMPTIFY COURT DEFENSE SYSTEM - MASTER BLUEPRINT
+
 ## Bi-Directional Data Flow Architecture
 
 ---
@@ -14,8 +15,9 @@
 ## 📊 CURRENT ASSETS INVENTORY
 
 ### ROUTERS (API Endpoints)
+
 | Router | Purpose | Status |
-|--------|---------|--------|
+| -------- | --------- | -------- |
 | `auth.py` | User authentication, OAuth | ⚠️ Needs integration |
 | `vault.py` | Document storage/retrieval | ✅ Working |
 | `timeline.py` | Case timeline events | ✅ Working |
@@ -35,8 +37,9 @@
 | `eviction/*` | Dakota County flows | ✅ Working |
 
 ### SERVICES (Business Logic)
+
 | Service | Purpose | Status |
-|---------|---------|--------|
+| --------- | --------- | -------- |
 | `form_data.py` | Central data integration | ✅ Created |
 | `document_pipeline.py` | Document processing | ⚠️ Needs integration |
 | `document_intake.py` | Intake processing | ⚠️ Needs integration |
@@ -51,8 +54,9 @@
 | `unified_overlay_system` | Document overlay engine | 🅿️ PARKED (Design in `docs/OVERLAY_SYSTEM_DESIGN.md`) |
 
 ### STATIC PAGES (GUI)
+
 | Page | Purpose | Status |
-|------|---------|--------|
+| ------ | --------- | -------- |
 | `command_center.html` | Main dashboard | ✅ Created |
 | `welcome.html` | Setup wizard | 🔴 Needs rebuild |
 | `dashboard.html` | Old dashboard | 🔄 Replace |
@@ -66,7 +70,7 @@
 
 ## 🔄 BI-DIRECTIONAL DATA FLOW ARCHITECTURE
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           SEMPTIFY DATA MESH                                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -115,6 +119,7 @@
 ## ✅ MASTER TODO LIST
 
 ### PHASE 1: FOUNDATION (Do First)
+
 - [ ] **1.1** Create Setup Wizard Router (`/api/setup/*`)
   - [ ] Profile endpoint (user info)
   - [ ] Case info endpoint (case number, parties)
@@ -138,6 +143,7 @@
   - [ ] Case configuration table
 
 ### PHASE 2: DATA HUB INTEGRATION
+
 - [ ] **2.1** Connect Document Pipeline to Form Data Hub
   - [ ] On document upload → extract data → update hub
   - [ ] Date extraction → timeline + calendar
@@ -160,6 +166,7 @@
   - [ ] Defense recommendations from documents
 
 ### PHASE 3: DOCUMENT PROCESSING ENGINE
+
 - [ ] **3.1** Document Intake Pipeline
   - [ ] File upload → vault storage
   - [ ] Hash verification (SHA256)
@@ -180,6 +187,7 @@
   - [ ] Modification tracking
 
 ### PHASE 4: FORM GENERATION
+
 - [ ] **4.1** Answer Form Generator
   - [ ] Pre-fill from Form Data Hub
   - [ ] Defense checkboxes
@@ -199,6 +207,7 @@
   - [ ] Discrimination counterclaim
 
 ### PHASE 5: AI INTEGRATION
+
 - [ ] **5.1** Copilot Integration
   - [ ] Document analysis
   - [ ] Defense suggestions
@@ -212,6 +221,7 @@
   - [ ] Trigger notifications
 
 ### PHASE 6: UNIFIED GUI
+
 - [ ] **6.1** Navigation System
   - [ ] Sidebar with all modules
   - [ ] Breadcrumb navigation
@@ -233,6 +243,7 @@
   - [ ] Progress indicators
 
 ### PHASE 7: ZOOM COURT PREPARATION
+
 - [ ] **7.1** Virtual Court Checklist
   - [ ] Technical setup verification
   - [ ] Document preparation
@@ -250,31 +261,35 @@
 ## 🔧 IMPLEMENTATION ORDER
 
 ### TODAY (Priority 1 - Setup Wizard)
+
 1. Create `/api/setup/` router with all endpoints
 2. Create `setup_wizard.html` with all 7 steps
 3. Connect wizard to Form Data Hub
 4. Test complete flow
 
 ### NEXT (Priority 2 - Document Flow)
-5. Fix document upload → processing → form data flow
-6. Implement event extraction from documents
-7. Auto-populate timeline and calendar
+
+1. Fix document upload → processing → form data flow
+2. Implement event extraction from documents
+3. Auto-populate timeline and calendar
 
 ### THEN (Priority 3 - Forms)
-8. Generate pre-filled answer form
-9. Generate motion forms
-10. PDF generation
+
+1. Generate pre-filled answer form
+2. Generate motion forms
+3. PDF generation
 
 ### FINALLY (Priority 4 - Polish)
-11. AI integration
-12. Real-time updates
-13. Final testing
+
+ 1. AI integration
+ 2. Real-time updates
+ 3. Final testing
 
 ---
 
 ## 📁 FILE STRUCTURE
 
-```
+```text
 app/
 ├── routers/
 │   ├── setup.py          # NEW: Setup wizard API
@@ -321,8 +336,9 @@ static/
 ## 🚀 READY TO BUILD
 
 Starting with Phase 1: Setup Wizard
+
 - Router: `/api/setup/`
 - Frontend: `setup_wizard.html`
 - Integration: Form Data Hub connection
 
-**LET'S GO!**
+### LET'S GO

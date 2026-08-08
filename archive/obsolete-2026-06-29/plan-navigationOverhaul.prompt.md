@@ -19,13 +19,13 @@
 ### 1. Entry Points (2 pages)
 
 | Page | Purpose | When Shown |
-|------|---------|------------|
+| ------ | --------- | ------------ |
 | `welcome.html` | First-time user onboarding | No session/first visit |
 | `home.html` | Returning user dashboard | Has active case |
 
 ### 2. Core Workflow Stages (Linear Progression)
 
-```
+```text
 STAGE 1: SETUP (First Visit)
 ├── Welcome → Choose situation
 ├── Intake → Enter basic info
@@ -120,11 +120,12 @@ sections: [
         ]
     },
 ]
-```
+```text
 
 ### 4. Pages to Keep vs. Consolidate
 
 **KEEP (Core Pages - 20)**
+
 - home.html (new - returning user dashboard)
 - welcome.html (first visit)
 - document_intake.html
@@ -147,6 +148,7 @@ sections: [
 - case.html
 
 **CONSOLIDATE (Merge into core pages)**
+
 - dashboard.html → home.html
 - dashboard-v2.html → home.html
 - my_tenancy.html → case.html
@@ -157,6 +159,7 @@ sections: [
 - settings-v2.html → profile section
 
 **DEPRECATE (Remove or archive)**
+
 - index-simple.html
 - evaluation_report.html
 - mesh_network.html
@@ -170,21 +173,25 @@ sections: [
 ## Implementation Steps
 
 ### Phase 1: Navigation Fix (Immediate)
+
 1. Update `shared-nav.js` with simplified 7-section structure
 2. Add shared-nav to ALL active pages
 3. Create `home.html` as returning user landing page
 
 ### Phase 2: Entry Flow
+
 1. Update `welcome.html` for first-time users
 2. Add session detection to route appropriately
 3. Create progressive disclosure in intake
 
 ### Phase 3: Page Consolidation
+
 1. Merge duplicate pages
 2. Remove deprecated pages
 3. Update all internal links
 
 ### Phase 4: Workflow Optimization
+
 1. Add "Next Step" buttons on each page
 2. Show progress indicator
 3. Implement smart routing based on case status
