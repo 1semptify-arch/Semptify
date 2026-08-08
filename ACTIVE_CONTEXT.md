@@ -1,10 +1,24 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-08 (todo-045 resolved: sync_orchestrator queue-wipe guard verified)
+**Last Updated**: 2026-08-08 (todo-048 resolved: no await on sync token calls, no wrong db argument)
 
 ## ✅ Completed 2026-08-08 Session
 
-### Session — todo-045 resolved: sync_orchestrator queue-wipe guard verified
+### Session — todo-048 resolved: no `await` on sync `get_valid_token_for_user`, no wrong `db` argument
+
+- **Task**: Fix incorrect `await` on non-async `get_valid_token_for_user()` calls and wrong `db` argument in `court_forms/router.py:194` and `intake/router.py:536`
+- **Status**: Resolved — no code changes needed; both call sites already use `app.core.auto_refresh.ensure_valid_token(user_id, db)` correctly
+- **Call sites confirmed clean**:
+  - `app/modules/court_forms/router.py` form-fill overlay path: `await ensure_valid_token(user.user_id, db)`
+  - `app/modules/intake/router.py` upload/auto fallback: `await ensure_valid_token(user_id, db)`
+  - Original task line numbers were stale (now point to `base64.b64encode()` and `ensure_valid_token()`)
+- **Regression test additions**: `tests/test_async_token_calls.py`
+  - `test_no_await_on_sync_token_helpers()` — fails on `await get_valid_token_for_user(...)` or similar
+  - `test_sync_token_helpers_not_called_with_db_argument()` — fails on `get_valid_token_for_user(user_id, db)` (wrong signature)
+  - Verification: 3 passed
+- **Todo tracking updated**: `todo-048` marked resolved in `new_audit_tasks.json`, `docs_todos.json`, `agent_orchestrator_tasks.json`
+
+### Session — todo-047 resolved: sync token calls migrated out of async routes
 
 - **Task**: Fix stub-detection logic in `tools/sync_orchestrator.py` (historical queue wipe: 171 → 16 tasks)
 - **Status**: Resolved — protection already in place
