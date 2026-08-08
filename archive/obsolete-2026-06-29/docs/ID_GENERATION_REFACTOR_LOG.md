@@ -9,6 +9,7 @@
 ## 1. Single Source of Truth (NEW)
 
 ### `app/core/id_gen.py`
+
 - **Purpose:** Centralized ID generation for all entities
 - **Format:** `{prefix}_{16-char alphanumeric}` (e.g., `doc_K8mXp2nR4jW7qF9a`)
 - **Entropy:** ~95 bits (16 chars from 62-char alphabet)
@@ -22,7 +23,7 @@
 ## 2. Prefix Registry (Entity Types)
 
 | Prefix | Entity | Files Using |
-|--------|--------|-------------|
+| -------- | -------- | ------------- |
 | `doc` | Document | documents.py, document_pipeline.py, document_intelligence.py |
 | `evt` | Timeline Event | documents.py, briefcase.py, calendar.py, document_intelligence.py, document_flow_orchestrator.py |
 | `cal` | Calendar Event | calendar.py |
@@ -70,10 +71,12 @@
 ## 3. Files Modified (34 Total)
 
 ### Models (2)
+
 - `app/models/communication_models.py` — Replaced `uuid4` with `make_id()` for `sigreq`, `sig`, `att`
 - `app/models/document_delivery_models.py` — Replaced `uuid4` with `make_id("del")`
 
 ### Routers (10)
+
 - `app/routers/briefcase.py` — `doc`, `hlt`, `ann`, `evt` prefixes
 - `app/routers/contacts.py` — `con` prefix for contacts/interactions
 - `app/routers/overlays.py` — `ovl` prefix
@@ -86,6 +89,7 @@
 - `app/routers/campaign.py` — `camp` prefix
 
 ### Core Modules (11)
+
 - `app/core/distributed_mesh.py` — `node`, `req`, `msg`, `evt` prefixes
 - `app/core/mesh_network.py` — `req`, `collab`, `ask` prefixes
 - `app/core/batch_operations.py` — `batch`, `item`, `ext`, `prs` prefixes
@@ -99,6 +103,7 @@
 - `app/core/id_gen.py` — **NEW SSOT FILE**
 
 ### Services (7)
+
 - `app/services/document_intelligence.py` — `doc`, `evt`, `act` prefixes
 - `app/services/document_flow_orchestrator.py` — `con`, `evt` prefixes
 - `app/services/eviction/court_learning.py` — `cout`, `def`, `mot` prefixes
@@ -108,13 +113,16 @@
 - `app/services/document_registry.py` — Replaced `uuid4().hex[:4]` with `secrets.token_hex(2)` for random suffix (format preserved)
 
 ### Modules (2)
+
 - `app/modules/tenant_defense.py` — `evid` prefix
 - `app/modules/research_module.py` — `chk` prefix
 
 ### SDK (1)
+
 - `app/sdk/module_sdk.py` — `pack` prefix
 
 ### Application (1)
+
 - `app/main.py` — `req` prefix for request ID middleware
 
 ---
@@ -122,6 +130,7 @@
 ## 4. Exception: Preserved Formats
 
 ### Document Registry (`app/services/document_registry.py`)
+
 - **Format:** `SEM-{YYYY}-{NNNNNN}-{XXXX}` (e.g., `SEM-2025-000042-A7B3`)
 - **Status:** Unchanged (deterministic sequential format preserved)
 - **Change:** Only replaced `uuid4().hex[:4]` with `secrets.token_hex(2).upper()` for the 4-char random suffix
@@ -132,14 +141,14 @@
 ## 5. Verification
 
 ```bash
-# Confirm zero uuid4() calls remain
+## Confirm zero uuid4() calls remain
 grep -r "uuid4()" app/ --include="*.py"
-# Result: No matches
+## Result: No matches
 
-# Confirm no dead imports
+## Confirm no dead imports
 grep -r "^import uuid$" app/ --include="*.py"
 grep -r "^from uuid import" app/ --include="*.py"
-# Result: No matches
+## Result: No matches
 ```
 
 ---
@@ -149,7 +158,7 @@ grep -r "^from uuid import" app/ --include="*.py"
 All FK columns now match the new ID format sizes:
 
 | Table | Column | Size | References |
-|-------|--------|------|------------|
+| ------- | -------- | ------ | ------------ |
 | `timeline_events` | `id` | String(36) | PK |
 | `timeline_events` | `user_id` | String(24) | users.id |
 | `timeline_events` | `parent_event_id` | String(36) | self |
@@ -177,7 +186,7 @@ All FK columns now match the new ID format sizes:
 ## 8. SSOT Compliance
 
 | Rule | Status |
-|------|--------|
+| ------ | -------- |
 | All IDs generated through `app/core/id_gen.py` | ✅ |
 | No inline `uuid4()` calls | ✅ |
 | No `import uuid` in app/ | ✅ |

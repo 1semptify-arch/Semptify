@@ -1,13 +1,15 @@
 # Semptify 5 Core Navigation Groups
+
 ## Function/Module Organization by Role
 
 ---
 
 ## 🏠 HOME
-**Dashboard, overview, quick access for each role**
+
+### Dashboard, overview, quick access for each role
 
 | Function | Public | Tenant | Advocate | Legal | Manager |
-|----------|--------|--------|----------|-------|---------|
+| ---------- | -------- | -------- | ---------- | ------- | --------- |
 | Welcome/Landing | ✅ | - | - | - | - |
 | Dashboard | - | ✅ | ✅ | ✅ | ✅ |
 | Quick Journal Entry | - | ✅ | - | - | - |
@@ -22,10 +24,11 @@
 ---
 
 ## 📚 LIBRARY
-**Research, law, rights, guides, resources**
+
+### Research, law, rights, guides, resources
 
 | Function | Public | Tenant | Advocate | Legal | Manager |
-|----------|--------|--------|----------|-------|---------|
+| ---------- | -------- | -------- | ---------- | ------- | --------- |
 | Rights Guides | ✅ | ✅ | ✅ | ✅ | ✅ |
 | State Law Database | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Local Ordinances | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -47,10 +50,11 @@
 ---
 
 ## 🏢 OFFICE
-**Documents, files, communication, paperwork center**
+
+### Documents, files, communication, paperwork center
 
 | Function | Public | Tenant | Advocate | Legal | Manager |
-|----------|--------|--------|----------|-------|---------|
+| ---------- | -------- | -------- | ---------- | ------- | --------- |
 | **Document Vault** | - | ✅ | ✅ | ✅ | ✅ |
 | - Upload/Store | - | ✅ | ✅ | ✅ | ✅ |
 | - Organize | - | ✅ | ✅ | ✅ | ✅ |
@@ -83,10 +87,11 @@
 ---
 
 ## 🔧 TOOLS
-**Utilities, calculators, generators**
+
+### Utilities, calculators, generators
 
 | Function | Public | Tenant | Advocate | Legal | Manager |
-|----------|--------|--------|----------|-------|---------|
+| ---------- | -------- | -------- | ---------- | ------- | --------- |
 | **Rent Calculator** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | - Proration | ✅ | ✅ | ✅ | ✅ | ✅ |
 | - Late Fees | - | ✅ | ✅ | ✅ | ✅ |
@@ -114,10 +119,11 @@
 ---
 
 ## 🆘 HELP
-**Support, contacts, crisis resources, FAQ**
+
+### Support, contacts, crisis resources, FAQ
 
 | Function | Public | Tenant | Advocate | Legal | Manager |
-|----------|--------|--------|----------|-------|---------|
+| ---------- | -------- | -------- | ---------- | ------- | --------- |
 | **FAQ** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | - General | ✅ | ✅ | ✅ | ✅ | ✅ |
 | - Technical | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -173,7 +179,7 @@ These appear in **Tenant** dashboard when emergency mode is active:
 ## Summary by Role
 
 | Role | Core Functions | Theme |
-|------|---------------|-------|
+| ------ | --------------- | ------- |
 | **Public** | Limited Library access, Tools (calculators), Help resources | Ocean |
 | **Tenant** | Full access to all 5 cores + Emergency state | Royal |
 | **Advocate** | Home caseload, Library research, Office delivery, Tools, Help | Forest |
@@ -186,6 +192,7 @@ These appear in **Tenant** dashboard when emergency mode is active:
 ## Next: Build These Pages
 
 ### Priority 1 (Core Navigation Landing Pages)
+
 1. `/home.html` - Role-aware dashboard
 2. `/library.html` - Research center
 3. `/office.html` - Document & communication center
@@ -193,12 +200,14 @@ These appear in **Tenant** dashboard when emergency mode is active:
 5. `/help.html` - Support center
 
 ### Priority 2 (Role-Specific Home Pages)
+
 1. `/tenant/index.html` ✅ (exists)
 2. `/advocate/index.html` ✅ (exists)
 3. `/legal/index.html` ✅ (exists)
 4. `/manager/index.html` ✅ (exists)
 
 ### Priority 3 (Office Sub-Pages)
+
 - `/office/vault.html` - Document vault
 - `/office/inbox.html` - Communication center
 - `/office/timeline.html` - Journal/timeline

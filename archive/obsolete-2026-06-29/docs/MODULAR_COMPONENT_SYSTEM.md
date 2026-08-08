@@ -16,7 +16,7 @@ The Semptify Modular Component System is a comprehensive, stateless, event-drive
 
 ### System Layers
 
-```
+```text
 Role Pages (tenant_dashboard.html, advocate_dashboard.html, etc.)
     |
     v
@@ -37,6 +37,7 @@ Backend Integration (components.py API endpoints)
 ### Function Groups
 
 #### Capture Function Group
+
 Components for information intake and document management:
 
 - **Upload Zone** (`upload-zone.html/.css`): Drag-and-drop file upload with progress tracking
@@ -44,6 +45,7 @@ Components for information intake and document management:
 - **Voice Intake** (`voice-intake.html/.css`): Real-time speech-to-text recording
 
 #### Understand Function Group
+
 Components for analysis and rights understanding:
 
 - **Timeline View** (`timeline-view.html/.css`): Chronological and grouped timeline views
@@ -51,6 +53,7 @@ Components for analysis and rights understanding:
 - **Risk Detection** (`risk-detection.html/.css`): Risk assessment with priority levels
 
 #### Plan Function Group
+
 Components for action planning and deadline management:
 
 - **Action List** (`action-list.html/.css`): Prioritized action items with progress tracking
@@ -60,19 +63,23 @@ Components for action planning and deadline management:
 ### Role-Specific Components
 
 #### Tenant Role (Blue Theme)
+
 - **Dashboard** (`tenant/dashboard.html`): Comprehensive tenant dashboard with emergency actions
 - **Case Summary** (`tenant/case-summary.html`): Focused case overview with key metrics
 - **Emergency Actions** (`tenant/emergency-actions.html`): Critical action items requiring immediate attention
 
 #### Advocate Role (Purple Theme)
+
 - **Dashboard** (`advocate/dashboard.html`): Client management and case oversight
 - **Client Management** (`advocate/client-management.html`): Comprehensive client tracking with handoff capabilities
 
 #### Legal Role (Green Theme)
+
 - **Dashboard** (`legal/dashboard.html`): Legal case review and document analysis
 - **Case Review Queue**: Pending legal cases needing review
 
 #### Admin Role (Red Theme)
+
 - **Dashboard** (`admin/dashboard.html`): System oversight and user management
 - **System Metrics**: Performance monitoring and health indicators
 
@@ -97,7 +104,7 @@ const event = new CustomEvent('capture-upload', {
     total_size: 1024
   }
 });
-```
+```text
 
 ### Event Handling
 
@@ -123,27 +130,33 @@ document.addEventListener('capture-upload', async (event) => {
 ### API Endpoints
 
 #### Component Configuration
+
 - `GET /api/components/config/{role}` - Get role-specific component configuration
 
 #### Workspace Stage Integration
+
 - `GET /api/components/workspace-stage` - Get current workspace stage
 - `GET /api/components/next-step` - Get recommended next step
 
 #### Capture Function Group
+
 - `POST /api/components/capture/upload` - Handle file uploads
 - `POST /api/components/capture/input` - Handle text input
 - `POST /api/components/capture/voice` - Handle voice recordings
 
 #### Understand Function Group
+
 - `POST /api/components/understand/timeline` - Handle timeline selections
 - `POST /api/components/understand/rights` - Handle rights analysis
 - `POST /api/components/understand/risk` - Handle risk assessments
 
 #### Plan Function Group
+
 - `POST /api/components/plan/action` - Handle action selections
 - `POST /api/components/plan/deadline` - Handle deadline selections
 
 #### Role-Specific Actions
+
 - `POST /api/components/tenant/emergency-action` - Handle tenant emergency actions
 - `POST /api/components/advocate/handoff-client` - Handle client handoffs
 - `POST /api/components/legal/start-review` - Start legal reviews
@@ -176,7 +189,7 @@ if (workspaceStage.urgency === 'high') {
 if (!workspaceStage.has_documents) {
   document.querySelector('.upload-zone').classList.add('priority');
 }
-```
+```text
 
 ### Stage-Based Component Visibility
 
@@ -265,7 +278,7 @@ Run the validation script to test the complete system:
 
 ```bash
 python scripts/validate_modular_system.py
-```
+```text
 
 The validation script checks:
 
@@ -301,7 +314,7 @@ The validation script checks:
      data-auto-upload="true"
      data-max-file-size="10485760">
 </div>
-```
+```text
 
 ### JavaScript Integration
 

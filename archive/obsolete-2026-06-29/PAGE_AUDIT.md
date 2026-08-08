@@ -9,6 +9,7 @@
 ## How To Read This Audit
 
 Each page is scored on:
+
 - **Purpose:** Why does it exist? (one sentence)
 - **Tier:** Which product tier does it serve?
 - **Division:** Which user division does it belong to?
@@ -23,7 +24,7 @@ Each page is scored on:
 ## TIER MAP (from `product_manifest.py`)
 
 | Tier | Purpose | Serves |
-|------|---------|--------|
+| ------ | --------- | -------- |
 | CORE | Tenant-rights essentials | Tenants |
 | EXTENDED | Legal tools | Tenants needing court prep |
 | ADVOCATE | Advocate network | Advocates, attorneys |
@@ -36,7 +37,7 @@ Each page is scored on:
 ## DIVISION MAP (proposed)
 
 | Division | User | Pages belong here |
-|----------|------|-------------------|
+| ---------- | ------ | ------------------- |
 | **Tenant** | The person facing housing problems | Dashboard, Journal, Documents, Timeline, Inbox, Capture, Help, Home |
 | **Advocate** | The helper | Dashboard, Clients, Case Queue, Intake, Timeline |
 | **Office** | Tools for getting things done | Vault, Signer, Delivery, Generators, Calculators, Checklists |
@@ -48,6 +49,7 @@ Each page is scored on:
 ## JINJA TEMPLATES (27 files in `app/templates/pages/`)
 
 ### 1. `semptify_hub.html` (353 lines, 13.6KB)
+
 - **Route:** `/home`
 - **Purpose:** Tenant home page — "your home, your documents, your rights"
 - **Tier:** CORE
@@ -57,6 +59,7 @@ Each page is scored on:
 - **Verdict:** **MERGE** with `tenant_home.html` — one home page, not two.
 
 ### 2. `tenant_home.html` (463 lines, 13.1KB)
+
 - **Route:** `/tenant/home` (likely)
 - **Purpose:** "Your safe space to organize your housing situation"
 - **Tier:** CORE
@@ -66,6 +69,7 @@ Each page is scored on:
 - **Verdict:** **MERGE** with `semptify_hub.html`.
 
 ### 3. `tenant_dashboard.html` (557 lines, 21.3KB)
+
 - **Route:** `/tenant/dashboard`
 - **Purpose:** Main tenant dashboard with modular components
 - **Tier:** CORE
@@ -75,6 +79,7 @@ Each page is scored on:
 - **Verdict:** **REWRITE** — extend `tenant_base.html`, integrate with overlay system.
 
 ### 4. `tenant.html` (85 lines, 2.6KB)
+
 - **Route:** `/tenant` (likely)
 - **Purpose:** "My Case" — role grid with links
 - **Tier:** CORE
@@ -84,6 +89,7 @@ Each page is scored on:
 - **Verdict:** **MERGE** into tenant dashboard as a navigation panel.
 
 ### 5. `tenant_capture.html` (10.9KB)
+
 - **Route:** `/tenant/capture`
 - **Purpose:** Document capture tool
 - **Tier:** CORE
@@ -93,6 +99,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — needs purpose clarification.
 
 ### 6. `tenant_help.html` (16.4KB)
+
 - **Route:** `/tenant/help`
 - **Purpose:** Tenant rights guide
 - **Tier:** CORE
@@ -102,6 +109,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — this is the rights guide, distinct from platform help.
 
 ### 7. `tenant_inbox.html` (8.9KB)
+
 - **Route:** `/tenant/inbox`
 - **Purpose:** Tenant messaging inbox
 - **Tier:** CORE
@@ -111,6 +119,7 @@ Each page is scored on:
 - **Verdict:** **KEEP**.
 
 ### 8. `tenant_journal.html` (7.9KB)
+
 - **Route:** `/tenant/journal`
 - **Purpose:** Tenant journal entries
 - **Tier:** CORE
@@ -120,6 +129,7 @@ Each page is scored on:
 - **Verdict:** **CLARIFY** — is journal different from timeline? If yes, keep both. If no, merge.
 
 ### 9. `timeline.html` (12.8KB)
+
 - **Route:** `/timeline`
 - **Purpose:** Chronological record of events
 - **Tier:** CORE
@@ -129,6 +139,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — shared component across divisions.
 
 ### 10. `documents.html` (6.3KB)
+
 - **Route:** `/documents`
 - **Purpose:** Document vault view
 - **Tier:** CORE
@@ -138,6 +149,7 @@ Each page is scored on:
 - **Verdict:** **CLARIFY** — documents vs vault. One should be the canonical vault UI.
 
 ### 11. `vault.html` (15KB)
+
 - **Route:** `/vault`
 - **Purpose:** Vault UI page (post-OAuth)
 - **Tier:** CORE
@@ -147,6 +159,7 @@ Each page is scored on:
 - **Verdict:** **CLARIFY** — merge with documents or make vault the canonical UI.
 
 ### 12. `office.html` (46 lines, 2.1KB)
+
 - **Route:** `/office`
 - **Purpose:** Office hub — case management center
 - **Tier:** CORE
@@ -156,6 +169,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — serves as division landing page.
 
 ### 13. `tools.html` (34 lines, 1.7KB)
+
 - **Route:** `/tools`
 - **Purpose:** Tools hub — document generators and utilities
 - **Tier:** CORE
@@ -165,6 +179,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — serves as division landing page.
 
 ### 14. `library.html` (33 lines, 1.7KB)
+
 - **Route:** `/library`
 - **Purpose:** Library hub — legal resources
 - **Tier:** CORE
@@ -174,6 +189,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — serves as division landing page.
 
 ### 15. `law_library.html` (1414 lines, 157.5KB)
+
 - **Route:** `/law-library`
 - **Purpose:** Minnesota law library — statutes, constitution, cases
 - **Tier:** CORE
@@ -183,6 +199,7 @@ Each page is scored on:
 - **Verdict:** **REWRITE** — split into: library home, constitution, federal, minnesota, local, procedures, state lookup, eviction answer.
 
 ### 16. `help.html` (42 lines, 2.2KB)
+
 - **Route:** `/help`
 - **Purpose:** Platform help and support
 - **Tier:** CORE
@@ -192,6 +209,7 @@ Each page is scored on:
 - **Verdict:** **CLARIFY** — three help pages is two too many.
 
 ### 17. `welcome.html` (24.6KB)
+
 - **Route:** `/welcome`
 - **Purpose:** Welcome page for new users
 - **Tier:** CORE
@@ -201,6 +219,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — onboarding is critical.
 
 ### 18. `admin.html` (92 lines, 2.8KB)
+
 - **Route:** `/admin` (redirects to dashboard)
 - **Purpose:** Admin role grid
 - **Tier:** ADMIN
@@ -210,6 +229,7 @@ Each page is scored on:
 - **Verdict:** **MERGE** — redirect or embed in admin dashboard.
 
 ### 19. `advocate.html` (193 lines, 9.6KB)
+
 - **Route:** `/advocate/dashboard`
 - **Purpose:** Advocate dashboard with clients, case queue, stats
 - **Tier:** ADVOCATE
@@ -219,6 +239,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — needs to extend `advocate_base.html`.
 
 ### 20. `manager_dashboard.html` (212 lines, 10.3KB)
+
 - **Route:** `/manager/dashboard`
 - **Purpose:** Multi-tenant case oversight for agencies
 - **Tier:** ADVOCATE (or its own)
@@ -228,6 +249,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — needs to extend `advocate_base.html`.
 
 ### 21. `legal.html` (89 lines, 2.8KB)
+
 - **Route:** `/legal/dashboard`
 - **Purpose:** Legal dashboard — role grid
 - **Tier:** EXTENDED
@@ -237,6 +259,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — needs real content.
 
 ### 22. `case_builder.html` (339 lines, 9.8KB)
+
 - **Route:** `/case-builder`
 - **Purpose:** Organize documents and evidence for a case
 - **Tier:** EXTENDED
@@ -246,6 +269,7 @@ Each page is scored on:
 - **Verdict:** **CLARIFY** — what does case builder do that timeline + vault don't?
 
 ### 23. `complaints.html` (276 lines, 8.6KB)
+
 - **Route:** `/complaints`
 - **Purpose:** Where to file housing complaints in MN
 - **Tier:** CORE
@@ -255,6 +279,7 @@ Each page is scored on:
 - **Verdict:** **MERGE** into library.
 
 ### 24. `action_plan.html` (335 lines, 10.8KB)
+
 - **Route:** `/action-plan`
 - **Purpose:** Prioritized next steps for a housing case
 - **Tier:** CORE
@@ -264,6 +289,7 @@ Each page is scored on:
 - **Verdict:** **MERGE** into tenant dashboard as a panel.
 
 ### 25. `auto_mode_panel.html` (435 lines, 12.9KB)
+
 - **Route:** `/auto-mode`
 - **Purpose:** Auto Mode control panel
 - **Tier:** DEV
@@ -273,6 +299,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — admin only.
 
 ### 26. `auto_analysis_summary.html` (366 lines, 9.7KB)
+
 - **Route:** `/auto-analysis`
 - **Purpose:** Auto analysis summary
 - **Tier:** DEV
@@ -282,6 +309,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — admin only.
 
 ### 27. `module_page.html` (288 lines, 6.9KB)
+
 - **Route:** Dynamic (module pages)
 - **Purpose:** Generic module page template
 - **Tier:** All
@@ -291,6 +319,7 @@ Each page is scored on:
 - **Verdict:** **KEEP** — this is the right pattern.
 
 ### 28. `error.html` (1267 bytes)
+
 - **Route:** Error pages
 - **Purpose:** Error display
 - **Tier:** All
@@ -304,42 +333,49 @@ Each page is scored on:
 ## STATIC HTML PAGES (in `static/`)
 
 ### `static/home.html` (21.6KB)
+
 - **Route:** Served by `/home` fallback?
 - **Purpose:** Static home page
 - **Status:** **DUPLICATE** — `/home` route serves `semptify_hub.html` template.
 - **Verdict:** **DELETE** — dead duplicate.
 
 ### `static/welcome.html` (21.5KB)
+
 - **Route:** `/welcome.html`
 - **Purpose:** Static welcome page
 - **Status:** **DUPLICATE** — `welcome.html` template exists.
 - **Verdict:** **DELETE** — dead duplicate.
 
 ### `static/help.html` (46KB) + `static/help_old.html` (43.9KB)
+
 - **Route:** `/help` fallback?
 - **Purpose:** Static help page
 - **Status:** **DUPLICATE** — `/help` route serves `help.html` template.
 - **Verdict:** **DELETE BOTH** — dead duplicates.
 
 ### `static/office.html` (12KB)
+
 - **Route:** `/office` fallback?
 - **Purpose:** Static office page
 - **Status:** **DUPLICATE** — `/office` route serves `office.html` template.
 - **Verdict:** **DELETE** — dead duplicate.
 
 ### `static/library.html` (29.8KB)
+
 - **Route:** `/library` fallback?
 - **Purpose:** Static library page with context panels
 - **Status:** **DUPLICATE** — `/library` route serves `library.html` template. BUT has Context Engine panels wired in.
 - **Verdict:** **CLARIFY** — move context panels to the Jinja template, then delete this.
 
 ### `static/tools.html` (20.7KB)
+
 - **Route:** `/tools` fallback?
 - **Purpose:** Static tools page
 - **Status:** **DUPLICATE** — `/tools` route serves `tools.html` template.
 - **Verdict:** **DELETE** — dead duplicate.
 
 ### `static/search.html` (19KB)
+
 - **Route:** `/search`?
 - **Purpose:** Search page
 - **Status:** Live
@@ -347,6 +383,7 @@ Each page is scored on:
 - **Verdict:** **CLARIFY** — is this used? If not, delete.
 
 ### `static/filedored.html` (10.6KB)
+
 - **Route:** `/filedored`?
 - **Purpose:** Filedored (virtual folder) UI
 - **Status:** Live
@@ -354,6 +391,7 @@ Each page is scored on:
 - **Verdict:** **CLARIFY** — should be in Office division.
 
 ### `static/tenant/` (8 items)
+
 - `dashboard.html` — **DUPLICATE** of `tenant_dashboard.html` template
 - `journal.html` — **DUPLICATE** of `tenant_journal.html` template
 - `documents.html` — **DUPLICATE** of `documents.html` template
@@ -361,6 +399,7 @@ Each page is scored on:
 - **Verdict:** **CLARIFY** — which versions are actually served?
 
 ### `static/admin/` (11 items)
+
 - `dashboard.html` (84KB) — **Live** — the real admin dashboard
 - `dev_lab.html`, `module_flags.html`, `review-checklist.html` — Live
 - `api_workbook.html`, `contract-browser.html`, `function-browser.html` — Live
@@ -369,37 +408,46 @@ Each page is scored on:
 - **Verdict:** **KEEP** — these are the real admin pages. Need to extend `admin_base.html`.
 
 ### `static/office/` (4 items)
+
 - `inbox.html`, `signer.html`, `delivery.html`, `vault.html` — Live
 - **Verdict:** **KEEP** — need to extend `office_base.html`.
 
 ### `static/tools/` (3 items)
+
 - `generators.html`, `checklists.html`, `calculators.html` — Live
 - **Verdict:** **KEEP** — need to extend `office_base.html`.
 
 ### `static/advocate/` (2 items)
+
 - `dashboard.html` — **DUPLICATE** of `advocate.html` template
 - **Verdict:** **CLARIFY**.
 
 ### `static/manager/` (2 items)
+
 - `dashboard.html` — **DUPLICATE** of `manager_dashboard.html` template
 - **Verdict:** **CLARIFY**.
 
 ### `static/legal/` (2 items)
+
 - **Verdict:** **CHECK** — likely stubs.
 
 ### `static/onboarding/` (11 items)
+
 - Onboarding flow pages
 - **Verdict:** **KEEP** — onboarding is critical.
 
 ### `static/public/` (8 items)
+
 - Public pages including `welcome.html`
 - **Verdict:** **CLARIFY** — duplicates with templates?
 
 ### `static/mndes/` (2 items)
+
 - MNDES (Minnesota Digital Evidence System) pages
 - **Verdict:** **KEEP** — court exhibit compliance.
 
 ### `static/templates/` (4 items)
+
 - **Verdict:** **CHECK** — likely dead.
 
 ---
@@ -407,7 +455,7 @@ Each page is scored on:
 ## DEAD PAGES TO DELETE IMMEDIATELY
 
 | File | Reason | Status |
-|------|--------|--------|
+| ------ | -------- | -------- |
 | `static/home.html` | Duplicate of `semptify_hub.html` template | ✅ DELETED 2026-06-23 |
 | `static/welcome.html` | Duplicate of `welcome.html` template | ✅ DELETED 2026-06-23 |
 | `static/help.html` | Duplicate of `help.html` template | ✅ DELETED 2026-06-23 |
@@ -416,9 +464,10 @@ Each page is scored on:
 | `static/tools.html` | Duplicate of `tools.html` template | ✅ DELETED 2026-06-23 |
 | `app/templates/journal-refactored.html` | Dead template, never referenced | ✅ Already absent |
 
-**6 files deleted (1 already gone). Saved ~165KB of dead code.**
+### 6 files deleted (1 already gone). Saved ~165KB of dead code
 
 ### References Fixed Before Deletion
+
 - `app/services/action_router.py:383` — `/static/help.html` → `/help`
 - `app/modules/storage/router.py:2485` — `/static/welcome.html` → `/welcome`
 - `app/core/page_manifest.py:1498` — `static/help.html` → `app/templates/pages/help.html` (jinja)
@@ -429,7 +478,7 @@ Each page is scored on:
 ## DUPLICATE PAGES TO MERGE
 
 | Keep | Delete | Reason |
-|------|--------|--------|
+| ------ | -------- | -------- |
 | `semptify_hub.html` | `tenant_home.html` | Same purpose: tenant home |
 | `tenant_dashboard.html` | `tenant.html` | Dashboard supersedes link grid |
 | `documents.html` | `vault.html` | Both are vault UI — pick one |
@@ -441,7 +490,8 @@ Each page is scored on:
 ## PROPOSED DIVISION STRUCTURE
 
 ### Tenant Division
-```
+
+```text
 tenant_base.html (extends base.html)
 ├── dashboard.html    ← merges tenant_dashboard + action_plan + tenant.html
 ├── journal.html      ← tenant_journal (if different from timeline)
@@ -453,7 +503,8 @@ tenant_base.html (extends base.html)
 ```
 
 ### Advocate Division
-```
+
+```text
 advocate_base.html (extends base.html)
 ├── dashboard.html    ← advocate.html
 ├── manager.html      ← manager_dashboard.html
@@ -463,7 +514,8 @@ advocate_base.html (extends base.html)
 ```
 
 ### Office Division
-```
+
+```text
 office_base.html (extends base.html)
 ├── vault.html        ← canonical vault UI
 ├── signer.html       ← static/office/signer.html
@@ -476,7 +528,8 @@ office_base.html (extends base.html)
 ```
 
 ### Admin Division
-```
+
+```text
 admin_base.html (extends base.html)
 ├── dashboard.html    ← static/admin/dashboard.html (split into components)
 ├── dev_lab.html      ← static/admin/dev_lab.html
@@ -492,7 +545,8 @@ admin_base.html (extends base.html)
 ```
 
 ### Public Division
-```
+
+```text
 public_base.html (extends base.html, no sidebar)
 ├── welcome.html      ← onboarding entry
 ├── library.html      ← library hub
@@ -505,9 +559,10 @@ public_base.html (extends base.html, no sidebar)
 
 ## OVERLAY SYSTEM STATUS
 
-**Status: BUILT, not exposed in GUI.**
+### Status: BUILT, not exposed in GUI
 
 The `UnifiedOverlayManager` (566 lines) is live with 20 overlay types:
+
 - Upload manifests
 - Document extraction, classification, timeline extraction
 - Highlights, notes, footnotes, tracked edits
@@ -517,6 +572,7 @@ The `UnifiedOverlayManager` (566 lines) is live with 20 overlay types:
 - Identity adapters, communication, filedored, duplicate detection
 
 **The GUI doesn't expose any of this to users.** Tenants can't:
+
 - See overlays on their documents
 - Add highlights or notes
 - View classifications
@@ -530,7 +586,7 @@ The `UnifiedOverlayManager` (566 lines) is live with 20 overlay types:
 ## TECHNICAL DEBT SUMMARY
 
 | Category | Count | Severity |
-|----------|-------|----------|
+| ---------- | ------- | ---------- |
 | Dead pages | 7 | Low (delete) |
 | Duplicate pages | 5 pairs | Medium (merge) |
 | Pages > 50KB | 3 | High (split) |

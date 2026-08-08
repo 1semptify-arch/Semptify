@@ -1,4 +1,5 @@
 # Semptify GUI Codemap
+
 ## Complete mapping of contracts, routes, templates, and static files
 
 **Generated**: 2026-04-21
@@ -23,7 +24,7 @@
 ### ✅ Fully Wired (Contract + Router + Static HTML)
 
 | Contract ID | Route | Static HTML | Template | Status |
-|-------------|-------|-------------|----------|--------|
+| ------------- | ------- | ------------- | ---------- | -------- |
 | `welcome` | `/` | `welcome.html` | `pages/welcome.html` | ✅ |
 | `dashboard` | `/dashboard` | `dashboard.html` | `pages/dashboard.html` | ✅ |
 | `document_intake` | `/document-intake` | `document_intake.html` | - | ✅ |
@@ -54,13 +55,14 @@
 ### 📬 Document Delivery System (2026-04-21)
 
 | Contract ID | Route | Static HTML | Template | Status |
-|-------------|-------|-------------|----------|--------|
+| ------------- | ------- | ------------- | ---------- | -------- |
 | `document_signature` | `/delivery/sign` | `document_signer.html` | - | ✅ Fill & Sign |
 | `document_delivery_inbox` | `/delivery/inbox` | `delivery_inbox.html` | - | ✅ List view |
 | `document_delivery_send` | `/delivery/send` | `delivery_send.html` | - | ✅ Send with Communication |
 | `document_rejection` | `/delivery/reject` | `document_signer.html` (reject modal) | - | ✅ Rejection with vault |
 
-**API Endpoints:**
+#### API Endpoints:
+
 - `/api/delivery/send` - Send documents (Advocate, Legal, Admin, Manager)
 - `/api/delivery/inbox` - List deliveries for tenant
 - `/api/delivery/{id}/sign` - Sign document
@@ -71,16 +73,18 @@
 ### 💬 Communication System (2026-04-21)
 
 | Contract ID | Route | Static HTML | Template | Status |
-|-------------|-------|-------------|----------|--------|
+| ------------- | ------- | ------------- | ---------- | -------- |
 | `communications` | `/api/communications/*` | `document_signer.html` (chat panel) | - | ✅ |
 
-**API Endpoints:**
+#### API Endpoints:
+
 - `/api/communications/conversations` - List/create conversations
 - `/api/communications/conversations/{id}/messages` - Send messages
 - `/api/communications/documents/{id}/fill-and-sign` - Sign with messaging
 - `/api/communications/documents/{id}/reject` - Reject with vault record
 
-**Features:**
+#### Features:
+
 - Direct messaging between tenant and all roles
 - Document collaboration threads
 - In-browser document filling and signing
@@ -92,7 +96,7 @@
 ### ✅ Recently Upgraded from Placeholder
 
 | Contract ID | Route | Static HTML | Size | Status |
-|-------------|-------|-------------|------|--------|
+| ------------- | ------- | ------------- | ------ | -------- |
 | `tenancy` | `/tenancy` | `my_tenancy.html` | ~15KB | ✅ Full tenancy dashboard |
 | `zoom_court` | `/zoom-court` | `zoom_court.html` | ~12KB | ✅ Zoom prep with checklist |
 | `journey` | `/journey` | `journey.html` | ~35KB | ✅ 4-phase tenant journey guide |
@@ -103,13 +107,13 @@
 ### ⚠️ Remaining Placeholder Pages
 
 | Contract ID | Route | Static HTML | Size | Status |
-|-------------|-------|-------------|------|--------|
+| ------------- | ------- | ------------- | ------ | -------- |
 | `document_calendar` | `/document-calendar` | `document_calendar.html` | 45KB | ✅ Verify |
 
 ### 📁 Directory-Based (Role Portals)
 
 | Contract ID | Route | Directory | Status |
-|-------------|-------|-----------|--------|
+| ------------- | ------- | ----------- | -------- |
 | `tenant` | `/tenant` | `static/tenant/` | ✅ |
 | `advocate_portal` | `/advocate` | `static/advocate/` | ✅ |
 | `manager_portal` | `/manager` | `static/manager/` | ✅ New - caseload dashboard |
@@ -119,7 +123,7 @@
 ### ✅ Recently Confirmed Wired
 
 | Contract ID | Route | Static HTML | Status |
-|-------------|-------|-------------|--------|
+| ------------- | ------- | ------------- | -------- |
 | `document_delivery_inbox` | `/delivery/inbox` | `delivery_inbox.html` | ✅ Wired to `/api/delivery/inbox` |
 | `document_signature` | `/delivery/sign` | `document_signer.html` | ✅ Sign + view modes, linked from inbox |
 | `document_delivery_send` | `/delivery/send` | `delivery_send.html` | ✅ Professional send flow with vault integration |
@@ -128,7 +132,7 @@
 ### ❌ Missing GUI (No HTML Found)
 
 | Contract ID | Route | Priority | Notes |
-|-------------|-------|----------|-------|
+| ------------- | ------- | ---------- | ------- |
 | `storage_reconnect` | `/storage-reconnect` | Low | PARKED — awaiting identity format decision |
 
 ---
@@ -136,7 +140,8 @@
 ## Static HTML Inventory
 
 ### Primary Pages (Full Implementation)
-```
+
+```text
 static/
 ├── welcome.html              (34KB) - Landing page
 ├── dashboard.html            (94KB) - Main dashboard
@@ -169,7 +174,8 @@ static/
 ```
 
 ### Subsystem Pages
-```
+
+```text
 static/
 ├── brain.html                (29KB) - Brain interface
 ├── command_center.html       (79KB) - Admin operations
@@ -201,7 +207,8 @@ static/
 ```
 
 ### Placeholder Pages (Need Content)
-```
+
+```text
 static/
 ├── my_tenancy.html           (622b) ⚠️
 ├── journey.html              (622b) ⚠️
@@ -227,7 +234,8 @@ static/
 ## Template Inventory
 
 ### Core Templates
-```
+
+```text
 app/templates/
 ├── base.html                           - Base layout
 ├── components/
@@ -269,7 +277,8 @@ app/templates/
 ## Router Inventory
 
 ### Core Routers (83 files)
-```
+
+```text
 app/routers/
 ├── actions.py                  - Action endpoints
 ├── brain.py                   - Brain interface
@@ -331,9 +340,11 @@ app/routers/
 ### Priority: Medium (New Contracts)
 
 #### 1. Document Delivery Inbox (`/delivery/inbox`)
+
 **Contract**: `CONTRACT_DOCUMENT_DELIVERY_INBOX`
 **Purpose**: Tenant receives PENDING documents from advocates
 **Needed**:
+
 - `static/delivery_inbox.html` or `app/templates/pages/delivery_inbox.html`
 - Router endpoint in `app/routers/delivery.py`
 - List PENDING items from vault
@@ -342,9 +353,11 @@ app/routers/
 - Link to signature flow
 
 #### 2. Document Delivery Send (`/delivery/send`)
+
 **Contract**: `CONTRACT_DOCUMENT_DELIVERY_SEND`
 **Purpose**: Advocates send documents to tenants
 **Needed**:
+
 - `static/delivery_send.html` or template
 - Router endpoint
 - Document selection from vault
@@ -354,9 +367,11 @@ app/routers/
 - Send button
 
 #### 3. Document Signature (`/delivery/sign`)
+
 **Contract**: `CONTRACT_DOCUMENT_SIGNATURE`
 **Purpose**: Tenant signs received documents
 **Needed**:
+
 - `static/delivery_sign.html` or template
 - Router endpoint
 - Document preview
@@ -367,6 +382,7 @@ app/routers/
 ### Priority: Low
 
 #### 4. Storage Reconnect (`/storage-reconnect`)
+
 **Contract**: `CONTRACT_STORAGE_RECONNECT`
 **Purpose**: OAuth token recovery
 **Status**: PARKED - awaiting identity format decision
@@ -377,16 +393,18 @@ app/routers/
 ## Wiring Patterns
 
 ### Pattern A: Static HTML Only
+
 ```python
-# app/routers/my_page.py
+## app/routers/my_page.py
 @router.get("/my-page")
 async def my_page():
     return FileResponse("static/my_page.html")
-```
+```python
 
 ### Pattern B: Jinja2 Template
+
 ```python
-# app/routers/my_page.py
+## app/routers/my_page.py
 @router.get("/my-page")
 async def my_page(request: Request):
     return templates.TemplateResponse(
@@ -396,6 +414,7 @@ async def my_page(request: Request):
 ```
 
 ### Pattern C: Template + Static Fallback
+
 ```python
 @router.get("/my-page")
 async def my_page(request: Request):
@@ -409,7 +428,7 @@ async def my_page(request: Request):
 ## Statistics
 
 | Category | Count | Complete | Placeholder | Missing |
-|----------|-------|----------|-------------|---------|
+| ---------- | ------- | ---------- | ------------- | --------- |
 | **Contracts** | 95 | 73 | 11 | 1 |
 | **Static HTML** | 83 | 67 | 14 | 2 |
 | **Templates** | 29 | 29 | 0 | 0 |

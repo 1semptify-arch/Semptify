@@ -32,7 +32,7 @@
 ### Main Navigation
 
 | Page | URL | Purpose |
-|------|-----|---------|
+| ------ | ----- | --------- |
 | 🏠 Dashboard | `/dashboard.html` | Overview of your cases and deadlines |
 | 📋 My Tenancy | `/my_tenancy.html` | Create and manage tenancy cases |
 | ⚖️ Legal Analysis | `/legal_analysis.html` | Analyze your case strength |
@@ -45,9 +45,10 @@
 
 ## Creating Your First Tenancy Case
 
-### What is a Tenancy Case?
+### What is a Tenancy Case
 
 A **Tenancy Case** is a container that holds all information about your rental situation:
+
 - Your personal info (tenant)
 - Landlord/property manager info
 - Property details
@@ -78,32 +79,32 @@ The My Tenancy page is organized into **stages** - complete each stage to build 
 ### Stage 1: Tenant Information (You)
 
 | Field | Description | Example |
-|-------|-------------|---------|
+| ------- | ------------- | --------- |
 | Full Name | Your legal name | John Smith |
 | Address | Your current mailing address | 123 Main St, Apt 4B |
 | City/State/ZIP | Location | Minneapolis, MN 55401 |
 | Phone | Best contact number | (612) 555-1234 |
-| Email | Your email address | john.smith@email.com |
+| Email | Your email address | <john.smith@email.com> |
 
 **Why it matters**: This information appears on legal documents and court filings.
 
 ### Stage 2: Landlord Information
 
 | Field | Description | Example |
-|-------|-------------|---------|
+| ------- | ------------- | --------- |
 | Name | Landlord or property manager | Jane Doe |
 | Company Name | Management company (if applicable) | ABC Property Management |
 | Address | Their business address | 456 Business Blvd |
 | City/State/ZIP | Location | Minneapolis, MN 55402 |
 | Phone | Their contact number | (612) 555-5678 |
-| Email | Their email | manager@abcproperty.com |
+| Email | Their email | <manager@abcproperty.com> |
 
 **Tip**: Look on your lease for the correct legal entity name. It might be an LLC.
 
 ### Stage 3: Property Details
 
 | Field | Description | Example |
-|-------|-------------|---------|
+| ------- | ------------- | --------- |
 | Street Address | Rental property address | 123 Main Street |
 | Unit Number | Apartment/unit number | 4B |
 | City/State/ZIP | Property location | Minneapolis, MN 55401 |
@@ -118,7 +119,7 @@ The My Tenancy page is organized into **stages** - complete each stage to build 
 ### Stage 4: Lease Terms
 
 | Field | Description | Example |
-|-------|-------------|---------|
+| ------- | ------------- | --------- |
 | Lease Start Date | When your lease began | 2024-01-01 |
 | Lease End Date | When your lease expires | 2024-12-31 |
 | Monthly Rent | Rent amount | $1,200.00 |
@@ -136,7 +137,7 @@ The My Tenancy page is organized into **stages** - complete each stage to build 
 Track all rent payments to prove your payment history:
 
 | Field | Description | Example |
-|-------|-------------|---------|
+| ------- | ------------- | --------- |
 | Payment Date | When you paid | 2024-11-01 |
 | Due Date | When it was due | 2024-11-01 |
 | Amount | Amount paid | $1,200.00 |
@@ -153,7 +154,7 @@ Track all rent payments to prove your payment history:
 Upload and organize all relevant documents:
 
 | Category | Examples |
-|----------|----------|
+| ---------- | ---------- |
 | lease | Signed lease agreement |
 | notice | Any notices received (eviction, rent increase, etc.) |
 | communication | Emails, texts, letters with landlord |
@@ -167,7 +168,7 @@ Upload and organize all relevant documents:
 Document important events chronologically:
 
 | Event Type | Examples |
-|------------|----------|
+| ------------ | ---------- |
 | notice | Received 14-day notice on Nov 1 |
 | filing | Landlord filed eviction on Nov 15 |
 | hearing | Court hearing scheduled Dec 1 |
@@ -179,7 +180,7 @@ Document important events chronologically:
 Document any problems with the rental:
 
 | Field | Description |
-|-------|-------------|
+| ------- | ------------- |
 | Category | maintenance, habitability, lease_violation, harassment |
 | Severity | low, medium, high, critical |
 | Title | Brief description |
@@ -190,6 +191,7 @@ Document any problems with the rental:
 | Violates Statute | Legal code violated (if known) |
 
 **Habitability Issues** (landlord MUST fix):
+
 - No heat in winter
 - No running water
 - Broken locks/security
@@ -216,7 +218,7 @@ Navigate to **`/legal_analysis.html`** after creating your tenancy case.
 Click **"🔍 Quick Check"** to get an instant assessment:
 
 | Check | What It Analyzes |
-|-------|------------------|
+| ------- | ------------------ |
 | 📊 Evidence | Do you have enough documents to support your case? |
 | 🔄 Consistency | Is your story consistent across documents and timeline? |
 | ⏱️ Timeline | Are all deadlines accounted for? Any conflicts? |
@@ -224,7 +226,8 @@ Click **"🔍 Quick Check"** to get an instant assessment:
 
 ### Understanding the Results
 
-**Health Status Colors:**
+#### Health Status Colors:
+
 - 🟢 **Green (Healthy)**: This area is strong
 - 🟡 **Yellow (Warning)**: Needs attention
 - 🔴 **Red (Critical)**: Major issue to address
@@ -232,7 +235,9 @@ Click **"🔍 Quick Check"** to get an instant assessment:
 ### Step 3: Deep Analysis (Tabs)
 
 #### Evidence Tab
+
 Shows all your evidence organized by type:
+
 - Documents
 - Photos
 - Communications
@@ -241,21 +246,27 @@ Shows all your evidence organized by type:
 **Tip**: Upload more documents to strengthen weak areas.
 
 #### Timeline Tab
+
 Visual representation of your case chronology:
+
 - Notices received
 - Deadlines
 - Court dates
 - Important events
 
 #### Issues Tab
+
 Problems identified with your case:
+
 - Missing documents
 - Timeline gaps
 - Conflicting information
 - Expired deadlines
 
 #### Motions Tab
+
 Suggested legal motions based on your situation:
+
 - Motion to Dismiss
 - Motion for Continuance
 - Request for Jury Trial
@@ -278,6 +289,7 @@ Click **"📄 Export Full Report"** to generate a PDF summary of your legal anal
 ### Document Processing
 
 Semptify automatically:
+
 - Extracts text (OCR for images)
 - Identifies document type
 - Extracts key dates, names, amounts
@@ -287,7 +299,7 @@ Semptify automatically:
 ### Document Categories
 
 | Category | Use For |
-|----------|---------|
+| ---------- | --------- |
 | lease | Lease agreements, renewals |
 | notice | Eviction notices, rent increase notices |
 | court_filing | Summons, complaints, motions |
@@ -300,6 +312,7 @@ Semptify automatically:
 ### Document Registry
 
 The Document Registry (**`/document_intake.html`** → Registry tab) provides:
+
 - Chain of custody tracking
 - Forgery detection scores
 - Document verification
@@ -312,6 +325,7 @@ The Document Registry (**`/document_intake.html`** → Registry tab) provides:
 ### Timeline Page (`/timeline.html`)
 
 Shows all events in chronological order:
+
 - Past events (what happened)
 - Upcoming deadlines (what's due)
 - Future hearings (what's scheduled)
@@ -319,6 +333,7 @@ Shows all events in chronological order:
 ### Calendar Page (`/calendar.html`)
 
 Monthly/weekly view of:
+
 - Court dates
 - Filing deadlines
 - Notice periods
@@ -339,6 +354,7 @@ Monthly/weekly view of:
 ### Deadline Alerts
 
 Semptify calculates important deadlines:
+
 - **14-day notice period** (MN non-payment)
 - **Answer due date** (typically 7-14 days after service)
 - **Appeal deadlines**
@@ -361,7 +377,8 @@ Generate legal motions based on your case:
 3. Edit as needed
 4. Download or print
 
-**Common Motions:**
+#### Common Motions:
+
 - Motion to Dismiss (procedural defects)
 - Motion for Continuance (more time needed)
 - Answer with Affirmative Defenses
@@ -373,7 +390,7 @@ Generate legal motions based on your case:
 Based on your case data, Semptify suggests defenses:
 
 | Defense | When It Applies |
-|---------|-----------------|
+| --------- | ----------------- |
 | Improper Notice | Notice period too short or wrong form |
 | Retaliation | Eviction after you complained about repairs |
 | Habitability | Landlord failed to maintain safe conditions |
@@ -384,6 +401,7 @@ Based on your case data, Semptify suggests defenses:
 ### Minnesota-Specific Information
 
 Semptify includes Minnesota tenant rights:
+
 - **Minn. Stat. § 504B** - Landlord-Tenant laws
 - Required notice periods
 - Tenant remedies
@@ -393,14 +411,14 @@ Semptify includes Minnesota tenant rights:
 
 ## Brain Mesh - System Overview
 
-### What is Brain Mesh?
+### What is Brain Mesh
 
 The **Brain Mesh** (`/brain.html`) is Semptify's central nervous system showing how all modules connect.
 
 ### Module Status
 
 | Module | Function |
-|--------|----------|
+| -------- | ---------- |
 | 📄 Documents | Document storage and analysis |
 | ⏱️ Timeline | Event tracking |
 | 🏠 Tenancy | Case management |
@@ -417,6 +435,7 @@ The **Brain Mesh** (`/brain.html`) is Semptify's central nervous system showing 
 ### Real-Time Updates
 
 Brain Mesh shows live updates:
+
 - Document uploads
 - Analysis completions
 - Timeline changes
@@ -435,6 +454,7 @@ Brain Mesh shows live updates:
 #### Documents not appearing
 
 **Solutions**:
+
 1. Refresh the page
 2. Check if document finished processing (status should be "ready")
 3. Verify the document is linked to your case
@@ -446,6 +466,7 @@ Brain Mesh shows live updates:
 #### Analysis shows all red/critical
 
 **Solutions**:
+
 1. Add more documents to your case
 2. Complete all stages in My Tenancy
 3. Add timeline events
@@ -454,6 +475,7 @@ Brain Mesh shows live updates:
 #### Can't select a case
 
 **Solutions**:
+
 1. Make sure you're logged in (storage connected)
 2. Create a case first
 3. Check browser console for errors (F12)
@@ -471,7 +493,7 @@ Brain Mesh shows live updates:
 ### Key URLs
 
 | Page | URL |
-|------|-----|
+| ------ | ----- |
 | Dashboard | `/dashboard.html` |
 | My Tenancy | `/my_tenancy.html` |
 | Legal Analysis | `/legal_analysis.html` |
@@ -485,7 +507,7 @@ Brain Mesh shows live updates:
 
 ### Workflow Summary
 
-```
+```text
 1. Create Case (My Tenancy)
       ↓
 2. Add Your Info (Tenant details)

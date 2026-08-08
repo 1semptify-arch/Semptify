@@ -1,6 +1,6 @@
 # Dakota County Eviction Defense Module
 
-**Quad-lingual interactive eviction defense system for Dakota County, Minnesota tenants.**
+## Quad-lingual interactive eviction defense system for Dakota County, Minnesota tenants
 
 ## Features
 
@@ -17,23 +17,24 @@
 ## Quick Start
 
 ```powershell
-# Navigate to module directory
+## Navigate to module directory
 cd C:\Semptify\Semptify\semptify_dakota_eviction
 
-# Install dependencies
+## Install dependencies
 pip install -r requirements.txt
 
-# Run the server
+## Run the server
 python run.py
-```
+```text
 
-Server starts at: http://localhost:8001
+Server starts at: <http://localhost:8001>
 
-API docs at: http://localhost:8001/docs
+API docs at: <http://localhost:8001/docs>
 
 ## Directory Structure
 
 ```
+
 semptify_dakota_eviction/
 ├── app/
 │   ├── main.py           # FastAPI application
@@ -54,7 +55,8 @@ semptify_dakota_eviction/
 ├── requirements.txt
 ├── run.py
 └── README.md
-```
+
+```text
 
 ## Integration with Semptify
 
@@ -71,6 +73,7 @@ app.include_router(dakota_forms, prefix="/dakota/forms", tags=["Dakota Court For
 ## API Endpoints
 
 ### Flows
+
 - `GET /flows/answer` - Answer to Eviction wizard
 - `POST /flows/answer/generate` - Generate Answer PDF
 - `GET /flows/counterclaim` - Counterclaim wizard
@@ -81,12 +84,14 @@ app.include_router(dakota_forms, prefix="/dakota/forms", tags=["Dakota Court For
 - `POST /flows/complete-packet` - Generate complete defense packet ZIP
 
 ### Forms
+
 - `GET /forms/library` - Forms library UI
 - `GET /forms/api/list` - List all forms (JSON)
 - `GET /forms/api/form/{id}` - Get form details
 - `GET /forms/download/{id}` - Redirect to official form download
 
 ### API
+
 - `GET /api/strings/{lang}` - Get all translated strings
 - `GET /api/forms` - Get forms manifest
 - `GET /api/resources` - Get legal aid resources
@@ -104,7 +109,7 @@ Switch language by adding `?lang=XX` to any URL:
 ## Court Forms Included
 
 | Form ID | Name | Category |
-|---------|------|----------|
+| --------- | ------ | ---------- |
 | HOU301 | Answer to Eviction Complaint | answer |
 | HOU302 | Motion to Dismiss Eviction | motion |
 | HOU303 | Tenant Counterclaim Form | counterclaim |
