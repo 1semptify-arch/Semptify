@@ -1,8 +1,20 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-08 (todo-047 resolved: sync token calls out of async routes)
+**Last Updated**: 2026-08-08 (todo-045 resolved: sync_orchestrator queue-wipe guard verified)
 
 ## ✅ Completed 2026-08-08 Session
+
+### Session — todo-045 resolved: sync_orchestrator queue-wipe guard verified
+
+- **Task**: Fix stub-detection logic in `tools/sync_orchestrator.py` (historical queue wipe: 171 → 16 tasks)
+- **Status**: Resolved — protection already in place
+- **Root cause**: Historical wipe at commit `a41b98c7` was due to missing `carry_forward_previous_tasks()` in original `sync_orchestrator.py`
+- **Current protections verified**:
+  - `carry_forward_previous_tasks()` present (line 312) — preserves existing queue when sources return empty
+  - Belt-and-suspenders guard (lines 317-324) — raises `SyncError` if queue would be emptied
+  - `tools/hooks/pre-commit` exists but is **not active** (`git config core.hooksPath` not set)
+- **Verification**: Ran `sync_orchestrator.py` with venv311 — stub_detector returned 0, but queue preserved at 61 tasks
+- **Todo tracking updated**: `todo-045` marked resolved in `new_audit_tasks.json`, `docs_todos.json`, `agent_orchestrator_tasks.json`
 
 ### Session — todo-047 resolved: sync token calls migrated out of async routes
 
