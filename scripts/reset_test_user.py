@@ -1,9 +1,13 @@
 """Reset test user state for a clean onboarding run."""
+
 import asyncio
-from app.core.database import get_db_session
+
 from sqlalchemy import text
 
+from app.core.database import get_db_session
+
 LIST_TABLES = "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename"
+
 
 async def main():
     async with get_db_session() as db:
@@ -11,10 +15,8 @@ async def main():
         tables = [r[0] for r in result.fetchall()]
         print("Tables:", tables)
 
-        gate_table = None
         for t in tables:
             if "gate" in t.lower():
-                gate_table = t
                 break
 
         await db.execute(text("DELETE FROM oauth_states"))
@@ -25,5 +27,6 @@ async def main():
 
         await db.commit()
         print("Done — fresh onboarding state ready")
+
 
 asyncio.run(main())

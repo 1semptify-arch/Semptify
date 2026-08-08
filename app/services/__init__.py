@@ -1,31 +1,30 @@
 # Business logic services - engines and processors
 
 from app.services.document_intake import (
+    DetectedIssue,
     DocumentIntakeEngine,
-    get_intake_engine,
     DocumentType,
+    ExtractedAmount,
+    ExtractedDate,
+    ExtractedParty,
+    ExtractionResult,
+    IntakeDocument,
     IntakeStatus,
     IssueSeverity,
     LanguageCode,
-    IntakeDocument,
-    ExtractionResult,
-    ExtractedDate,
-    ExtractedParty,
-    ExtractedAmount,
-    DetectedIssue,
+    get_intake_engine,
 )
-
 from app.services.document_registry import (
-    DocumentRegistry,
-    get_document_registry,
-    DocumentStatus,
-    IntegrityStatus,
-    ForgeryIndicator,
     CustodyAction,
     CustodyRecord,
-    ForgeryAlert,
+    DocumentRegistry,
+    DocumentStatus,
     DocumentVersion,
+    ForgeryAlert,
+    ForgeryIndicator,
+    IntegrityStatus,
     RegisteredDocument,
+    get_document_registry,
 )
 
 __all__ = [

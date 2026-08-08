@@ -4,9 +4,9 @@ Tests all endpoints, database, and functionality
 """
 
 import asyncio
-import httpx
-import json
 from pathlib import Path
+
+import httpx
 
 BASE_URL = "http://localhost:8000"
 
@@ -17,19 +17,21 @@ FAILED = 0
 
 def test(name):
     """Decorator for test functions."""
+
     def decorator(func):
         TESTS.append((name, func))
         return func
+
     return decorator
 
 
 async def run_tests():
     global PASSED, FAILED
-    
+
     print("=" * 60)
     print("🔍 SEMPTIFY FULL SYSTEM VALIDATION")
     print("=" * 60)
-    
+
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=30.0) as client:
         for name, test_func in TESTS:
             try:
@@ -43,7 +45,7 @@ async def run_tests():
             except Exception as e:
                 print(f"❌ {name} - Error: {e}")
                 FAILED += 1
-    
+
     print("=" * 60)
     print(f"RESULTS: {PASSED} passed, {FAILED} failed")
     print("=" * 60)
@@ -53,6 +55,7 @@ async def run_tests():
 # ============================================================================
 # API ENDPOINT TESTS
 # ============================================================================
+
 
 @test("GET / - Dashboard loads")
 async def test_dashboard(client):
@@ -114,6 +117,7 @@ async def test_health(client):
 # STATIC PAGES
 # ============================================================================
 
+
 @test("GET /static/welcome.html - Welcome Page")
 async def test_welcome_page(client):
     r = await client.get("/static/welcome.html")
@@ -142,6 +146,7 @@ async def test_timeline_route(client):
 # EVICTION DEFENSE MODULE
 # ============================================================================
 
+
 @test("GET /eviction/ - Eviction Defense Home")
 async def test_eviction_home(client):
     r = await client.get("/eviction/")
@@ -164,6 +169,7 @@ async def test_forms_library(client):
 # DATABASE VALIDATION
 # ============================================================================
 
+
 @test("Database - Documents exist")
 async def test_db_documents(client):
     r = await client.get("/api/documents/")
@@ -182,6 +188,7 @@ async def test_db_timeline(client):
 # EXPORT FUNCTIONALITY
 # ============================================================================
 
+
 @test("GET /api/documents/export - Export endpoint exists")
 async def test_export_endpoint(client):
     r = await client.get("/api/documents/export")
@@ -199,6 +206,7 @@ async def test_timeline_export(client):
 # LAW LIBRARY
 # ============================================================================
 
+
 @test("GET /api/laws - Law Library API")
 async def test_law_library(client):
     r = await client.get("/api/laws")
@@ -214,6 +222,7 @@ async def test_law_search(client):
 # ============================================================================
 # FILE STRUCTURE VALIDATION
 # ============================================================================
+
 
 @test("File: data/semptify.db exists")
 async def test_db_file(client):

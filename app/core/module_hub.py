@@ -27,15 +27,15 @@ Architecture:
 
 import asyncio
 import logging
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
 from collections import deque
-from app.core.id_gen import make_id
-import json
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import StrEnum
+from typing import Any, Optional
 
-from app.core.event_bus import event_bus, EventType as BusEventType
+from app.core.event_bus import EventType as BusEventType, event_bus
+from app.core.id_gen import make_id
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -45,8 +45,10 @@ logger = logging.getLogger(__name__)
 # ENUMS AND TYPES
 # =============================================================================
 
-class ModuleType(str, Enum):
+
+class ModuleType(StrEnum):
     """All registered module types"""
+
     EVICTION_DEFENSE = "eviction_defense"
     TIMELINE = "timeline"
     CALENDAR = "calendar"
@@ -68,8 +70,9 @@ class ModuleType(str, Enum):
     CUSTOM = "custom"  # For unknown/plugin modules
 
 
-class DocumentCategory(str, Enum):
+class DocumentCategory(StrEnum):
     """Document categories that trigger module routing"""
+
     EVICTION_NOTICE = "eviction_notice"
     LEASE = "lease"
     RENT_RECEIPT = "rent_receipt"
@@ -88,8 +91,9 @@ class DocumentCategory(str, Enum):
     PHOTO = "photo"
 
 
-class PackType(str, Enum):
+class PackType(StrEnum):
     """Types of info packs"""
+
     EVICTION_CASE = "eviction_case"
     LEASE_INFO = "lease_info"
     PAYMENT_HISTORY = "payment_history"
@@ -110,8 +114,9 @@ class PackType(str, Enum):
     USER_DATA = "user_data"
 
 
-class RequestType(str, Enum):
+class RequestType(StrEnum):
     """Types of data requests modules can make"""
+
     GET_USER_DOCUMENTS = "get_user_documents"
     GET_DOCUMENT_BY_TYPE = "get_document_by_type"
     GET_TIMELINE_EVENTS = "get_timeline_events"
@@ -129,37 +134,39 @@ class RequestType(str, Enum):
 # DATA STRUCTURES
 # =============================================================================
 
+
 @dataclass
 class InfoPack:
     """
     An Info Pack - Pre-filled data bundle sent to modules.
-    
+
     Created when document intake recognizes a document type
     and needs to initialize a module with relevant data.
     """
+
     id: str
     pack_type: PackType
     user_id: str
-    source_document_id: Optional[str] = None
-    target_module: Optional[ModuleType] = None
-    
+    source_document_id: str | None = None
+    target_module: ModuleType | None = None
+
     # The actual data payload
-    data: Dict[str, Any] = field(default_factory=dict)
-    
+    data: dict[str, Any] = field(default_factory=dict)
+
     # What data is available vs what user needs to provide
-    auto_filled: Dict[str, Any] = field(default_factory=dict)
-    user_required: List[str] = field(default_factory=list)
-    optional_fields: List[str] = field(default_factory=list)
-    
+    auto_filled: dict[str, Any] = field(default_factory=dict)
+    user_required: list[str] = field(default_factory=list)
+    optional_fields: list[str] = field(default_factory=list)
+
     # Status tracking
     status: str = "pending"  # pending, sent, received, processed, failed
     created_at: datetime = field(default_factory=lambda: utc_now())
-    processed_at: Optional[datetime] = None
-    
+    processed_at: datetime | None = None
+
     # Confidence scores for auto-filled data
-    confidence: Dict[str, float] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    confidence: dict[str, float] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "pack_type": self.pack_type.value,
@@ -177,7 +184,7 @@ class InfoPack:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict) -> "InfoPack":
+    def from_dict(cls, data: dict) -> "InfoPack":
         data["pack_type"] = PackType(data["pack_type"])
         if data.get("target_module"):
             data["target_module"] = ModuleType(data["target_module"])
@@ -192,26 +199,27 @@ class InfoPack:
 class DataRequest:
     """
     A data request from a module to the hub.
-    
+
     Modules use this to request data they need from the central system.
     """
+
     id: str
     request_type: RequestType
     requesting_module: ModuleType
     user_id: str
-    
-    # Request parameters
-    params: Dict[str, Any] = field(default_factory=dict)
-    
-    # Response
-    response_data: Optional[Dict[str, Any]] = None
-    status: str = "pending"  # pending, processing, completed, failed
-    error: Optional[str] = None
-    
-    created_at: datetime = field(default_factory=lambda: utc_now())
-    completed_at: Optional[datetime] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    # Request parameters
+    params: dict[str, Any] = field(default_factory=dict)
+
+    # Response
+    response_data: dict[str, Any] | None = None
+    status: str = "pending"  # pending, processing, completed, failed
+    error: str | None = None
+
+    created_at: datetime = field(default_factory=lambda: utc_now())
+    completed_at: datetime | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "request_type": self.request_type.value,
@@ -230,27 +238,28 @@ class DataRequest:
 class ModuleUpdate:
     """
     An update from a module back to the hub.
-    
+
     Modules send these when they have new data to share
     with other modules or the main application.
     """
+
     id: str
     source_module: ModuleType
     user_id: str
     update_type: str
-    
+
     # The update data
-    data: Dict[str, Any] = field(default_factory=dict)
-    
+    data: dict[str, Any] = field(default_factory=dict)
+
     # Optional: which modules should receive this update
-    target_modules: List[ModuleType] = field(default_factory=list)
-    
+    target_modules: list[ModuleType] = field(default_factory=list)
+
     # Broadcast to all modules?
     broadcast: bool = False
-    
+
     created_at: datetime = field(default_factory=lambda: utc_now())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "source_module": self.source_module.value,
@@ -263,24 +272,25 @@ class ModuleUpdate:
         }
 
 
-@dataclass 
+@dataclass
 class RegisteredModule:
     """A registered module in the hub"""
+
     module_type: ModuleType
     name: str
     description: str
-    
+
     # What document types this module handles
-    handles_documents: List[DocumentCategory] = field(default_factory=list)
-    
+    handles_documents: list[DocumentCategory] = field(default_factory=list)
+
     # What pack types this module accepts
-    accepts_packs: List[PackType] = field(default_factory=list)
-    
+    accepts_packs: list[PackType] = field(default_factory=list)
+
     # Callbacks
-    on_pack_received: Optional[Callable] = None
-    on_data_request: Optional[Callable] = None
-    on_update_received: Optional[Callable] = None
-    
+    on_pack_received: Callable | None = None
+    on_data_request: Callable | None = None
+    on_update_received: Callable | None = None
+
     # Status
     active: bool = True
     registered_at: datetime = field(default_factory=lambda: utc_now())
@@ -297,11 +307,17 @@ DOCUMENT_ROUTING = {
         "pack_type": PackType.EVICTION_CASE,
         "priority": "critical",
         "auto_extract": [
-            "landlord_name", "tenant_name", "property_address",
-            "notice_date", "deadline_date", "reason", "amount_claimed"
+            "landlord_name",
+            "tenant_name",
+            "property_address",
+            "notice_date",
+            "deadline_date",
+            "reason",
+            "amount_claimed",
         ],
         "user_required": [
-            "county", "case_number"  # Often not on notice
+            "county",
+            "case_number",  # Often not on notice
         ],
     },
     DocumentCategory.COURT_SUMMONS: {
@@ -309,8 +325,13 @@ DOCUMENT_ROUTING = {
         "pack_type": PackType.COURT_CASE,
         "priority": "critical",
         "auto_extract": [
-            "case_number", "hearing_date", "hearing_time", "court_location",
-            "judge_name", "plaintiff", "defendant"
+            "case_number",
+            "hearing_date",
+            "hearing_time",
+            "court_location",
+            "judge_name",
+            "plaintiff",
+            "defendant",
         ],
         "user_required": [],
     },
@@ -318,18 +339,14 @@ DOCUMENT_ROUTING = {
         "target_module": ModuleType.EVICTION_DEFENSE,
         "pack_type": PackType.EVICTION_CASE,
         "priority": "critical",
-        "auto_extract": [
-            "landlord_name", "notice_date", "quit_date", "reason"
-        ],
+        "auto_extract": ["landlord_name", "notice_date", "quit_date", "reason"],
         "user_required": ["property_address"],
     },
     DocumentCategory.PAY_OR_QUIT: {
         "target_module": ModuleType.EVICTION_DEFENSE,
         "pack_type": PackType.EVICTION_CASE,
         "priority": "high",
-        "auto_extract": [
-            "amount_due", "due_date", "landlord_name"
-        ],
+        "auto_extract": ["amount_due", "due_date", "landlord_name"],
         "user_required": ["property_address"],
     },
     DocumentCategory.LEASE: {
@@ -337,8 +354,13 @@ DOCUMENT_ROUTING = {
         "pack_type": PackType.LEASE_INFO,
         "priority": "medium",
         "auto_extract": [
-            "landlord_name", "tenant_name", "property_address",
-            "lease_start", "lease_end", "rent_amount", "security_deposit"
+            "landlord_name",
+            "tenant_name",
+            "property_address",
+            "lease_start",
+            "lease_end",
+            "rent_amount",
+            "security_deposit",
         ],
         "user_required": [],
     },
@@ -346,18 +368,14 @@ DOCUMENT_ROUTING = {
         "target_module": ModuleType.TIMELINE,
         "pack_type": PackType.PAYMENT_HISTORY,
         "priority": "low",
-        "auto_extract": [
-            "payment_date", "amount", "period_covered"
-        ],
+        "auto_extract": ["payment_date", "amount", "period_covered"],
         "user_required": [],
     },
     DocumentCategory.REPAIR_REQUEST: {
         "target_module": ModuleType.TIMELINE,
         "pack_type": PackType.REPAIR_ISSUE,
         "priority": "medium",
-        "auto_extract": [
-            "issue_description", "request_date", "landlord_response"
-        ],
+        "auto_extract": ["issue_description", "request_date", "landlord_response"],
         "user_required": ["issue_resolved"],
     },
 }
@@ -367,10 +385,11 @@ DOCUMENT_ROUTING = {
 # MODULE HUB
 # =============================================================================
 
+
 class ModuleHub:
     """
     The Module Hub - Central communication system for all modules.
-    
+
     Responsibilities:
     1. Route documents to appropriate modules via Info Packs
     2. Handle data requests from modules
@@ -378,14 +397,14 @@ class ModuleHub:
     4. Maintain central data store for shared information
     5. Log all communications for debugging/auditing
     """
-    
+
     _instance: Optional["ModuleHub"] = None
-    
+
     def __new__(cls) -> "ModuleHub":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    
+
     def __init__(self):
         # Always initialize _initialized before checking it
         if not hasattr(self, "_initialized"):
@@ -394,42 +413,46 @@ class ModuleHub:
             return
 
         self._initialized = True
-        
+
         # Module registry
-        self._modules: Dict[ModuleType, RegisteredModule] = {}
-        
+        self._modules: dict[ModuleType, RegisteredModule] = {}
+
         # Data stores (per user)
-        self._user_data: Dict[str, Dict[str, Any]] = {}
-        
+        self._user_data: dict[str, dict[str, Any]] = {}
+
         # Info pack storage
-        self._info_packs: Dict[str, InfoPack] = {}
-        
+        self._info_packs: dict[str, InfoPack] = {}
+
         # Request/update history (bounded to prevent memory growth)
         self._requests: deque = deque(maxlen=500)
         self._updates: deque = deque(maxlen=500)
 
         # Communication log (bounded)
         self._comm_log: deque = deque(maxlen=1000)
-        
+
         logger.info("🔄 Module Hub initialized")
-    
+
     # =========================================================================
     # MODULE REGISTRATION
     # =========================================================================
-    
+
     def register_module(
         self,
-        module_type: Union[ModuleType, str],
+        module_type: ModuleType | str,
         name: str,
         description: str = "",
-        handles_documents: List[Union[DocumentCategory, str]] = [],
-        accepts_packs: List[Union[PackType, str]] = [],
+        handles_documents: list[DocumentCategory | str] = None,
+        accepts_packs: list[PackType | str] = None,
         on_pack_received: Callable = None,
         on_data_request: Callable = None,
         on_update_received: Callable = None,
     ) -> RegisteredModule:
         """Register a module with the hub"""
         # Convert string to enum if needed
+        if accepts_packs is None:
+            accepts_packs = []
+        if handles_documents is None:
+            handles_documents = []
         if isinstance(module_type, str):
             try:
                 module_type = ModuleType(module_type)
@@ -444,10 +467,10 @@ class ModuleHub:
                     # Create a pseudo-module type for unknown modules
                     logger.warning(f"Unknown module type: {module_type}, using CUSTOM")
                     module_type = ModuleType.CUSTOM
-        
+
         # Convert document categories
         doc_categories = []
-        for doc in (handles_documents or []):
+        for doc in handles_documents or []:
             if isinstance(doc, str):
                 try:
                     doc_categories.append(DocumentCategory(doc))
@@ -455,10 +478,10 @@ class ModuleHub:
                     logger.warning(f"Unknown document category: {doc}")
             else:
                 doc_categories.append(doc)
-        
+
         # Convert pack types
         pack_types = []
-        for pack in (accepts_packs or []):
+        for pack in accepts_packs or []:
             if isinstance(pack, str):
                 try:
                     pack_types.append(PackType(pack))
@@ -466,7 +489,7 @@ class ModuleHub:
                     logger.warning(f"Unknown pack type: {pack}")
             else:
                 pack_types.append(pack)
-        
+
         module = RegisteredModule(
             module_type=module_type,
             name=name,
@@ -482,12 +505,12 @@ class ModuleHub:
         self._log_comm("register", module_type.value, {"name": name})
         logger.info(f"📦 Module registered: {name} ({module_type.value})")
         return module
-    
-    def get_module(self, module_type: ModuleType) -> Optional[RegisteredModule]:
+
+    def get_module(self, module_type: ModuleType) -> RegisteredModule | None:
         """Get a registered module"""
         return self._modules.get(module_type)
-    
-    def list_modules(self) -> List[Dict]:
+
+    def list_modules(self) -> list[dict]:
         """List all registered modules"""
         return [
             {
@@ -499,22 +522,22 @@ class ModuleHub:
             }
             for m in self._modules.values()
         ]
-    
+
     # =========================================================================
     # DOCUMENT ROUTING & INFO PACK CREATION
     # =========================================================================
-    
+
     async def route_document(
         self,
         user_id: str,
         document_id: str,
         document_type: str,
-        extracted_data: Dict[str, Any],
-        confidence_scores: Dict[str, float] = None,
-    ) -> Optional[InfoPack]:
+        extracted_data: dict[str, Any],
+        confidence_scores: dict[str, float] = None,
+    ) -> InfoPack | None:
         """
         Route a document to the appropriate module.
-        
+
         Called by document pipeline after classification.
         Creates an Info Pack and sends it to the target module.
         """
@@ -523,13 +546,13 @@ class ModuleHub:
             doc_category = DocumentCategory(document_type.lower().replace(" ", "_"))
         except ValueError:
             doc_category = DocumentCategory.OTHER
-        
+
         # Get routing rules
         routing = DOCUMENT_ROUTING.get(doc_category)
         if not routing:
             logger.info(f"No routing rule for document type: {doc_category}")
             return None
-        
+
         # Create Info Pack
         pack = self._create_info_pack(
             user_id=user_id,
@@ -539,13 +562,13 @@ class ModuleHub:
             extracted_data=extracted_data,
             confidence_scores=confidence_scores or {},
         )
-        
+
         # Store pack
         self._info_packs[pack.id] = pack
-        
+
         # Send to target module
         await self._send_pack_to_module(pack)
-        
+
         # Log
         self._log_comm(
             "route_document",
@@ -557,46 +580,43 @@ class ModuleHub:
             },
             user_id=user_id,
         )
-        
-        logger.info(
-            f"📨 Document routed: {doc_category.value} → "
-            f"{routing['target_module'].value} (pack: {pack.id})"
-        )
-        
+
+        logger.info(f"📨 Document routed: {doc_category.value} → {routing['target_module'].value} (pack: {pack.id})")
+
         return pack
-    
+
     def _create_info_pack(
         self,
         user_id: str,
         document_id: str,
         doc_category: DocumentCategory,
-        routing: Dict,
-        extracted_data: Dict[str, Any],
-        confidence_scores: Dict[str, float],
+        routing: dict,
+        extracted_data: dict[str, Any],
+        confidence_scores: dict[str, float],
     ) -> InfoPack:
         """Create an Info Pack from extracted document data"""
-        
+
         pack_id = make_id("pack")
-        
+
         # Separate auto-filled from user-required
         auto_filled = {}
-        for field in routing.get("auto_extract", []):
-            if field in extracted_data:
-                auto_filled[field] = extracted_data[field]
-        
+        for field_name in routing.get("auto_extract", []):
+            if field_name in extracted_data:
+                auto_filled[field_name] = extracted_data[field_name]
+
         # Get existing user data if available
         user_store = self._get_user_store(user_id)
-        
+
         # Merge with existing data (don't overwrite if already have good data)
-        for field, value in auto_filled.items():
-            existing = user_store.get(field)
-            existing_conf = user_store.get(f"{field}_confidence", 0)
-            new_conf = confidence_scores.get(field, 0.5)
-            
+        for field_name, value in auto_filled.items():
+            existing = user_store.get(field_name)
+            existing_conf = user_store.get(f"{field_name}_confidence", 0)
+            new_conf = confidence_scores.get(field_name, 0.5)
+
             if not existing or new_conf > existing_conf:
-                user_store[field] = value
-                user_store[f"{field}_confidence"] = new_conf
-        
+                user_store[field_name] = value
+                user_store[f"{field_name}_confidence"] = new_conf
+
         # Build complete data package
         pack_data = {
             **auto_filled,
@@ -604,16 +624,13 @@ class ModuleHub:
             "document_type": doc_category.value,
             "priority": routing.get("priority", "medium"),
         }
-        
+
         # Add any additional context from user store
-        context_fields = [
-            "landlord_name", "tenant_name", "property_address",
-            "lease_start", "lease_end", "rent_amount"
-        ]
-        for field in context_fields:
-            if field not in pack_data and field in user_store:
-                pack_data[field] = user_store[field]
-        
+        context_fields = ["landlord_name", "tenant_name", "property_address", "lease_start", "lease_end", "rent_amount"]
+        for field_name in context_fields:
+            if field_name not in pack_data and field_name in user_store:
+                pack_data[field_name] = user_store[field_name]
+
         return InfoPack(
             id=pack_id,
             pack_type=routing["pack_type"],
@@ -626,20 +643,20 @@ class ModuleHub:
             optional_fields=routing.get("optional_fields", []),
             confidence=confidence_scores,
         )
-    
+
     async def _send_pack_to_module(self, pack: InfoPack):
         """Send an Info Pack to its target module"""
         if not pack.target_module:
             return
-        
+
         module = self._modules.get(pack.target_module)
         if not module:
             logger.warning(f"Target module not registered: {pack.target_module}")
             pack.status = "failed"
             return
-        
+
         pack.status = "sent"
-        
+
         # Call module's pack handler if registered
         if module.on_pack_received:
             try:
@@ -651,7 +668,7 @@ class ModuleHub:
             except Exception as e:
                 logger.error(f"Error sending pack to {pack.target_module}: {e}")
                 pack.status = "failed"
-        
+
         # Also publish to event bus
         await event_bus.publish(
             BusEventType.NOTIFICATION,
@@ -665,21 +682,21 @@ class ModuleHub:
             source="module_hub",
             user_id=pack.user_id,
         )
-    
+
     # =========================================================================
     # DATA REQUESTS (Module → Hub)
     # =========================================================================
-    
+
     async def request_data(
         self,
         requesting_module: ModuleType,
         request_type: RequestType,
         user_id: str,
-        params: Dict[str, Any] = None,
+        params: dict[str, Any] = None,
     ) -> DataRequest:
         """
         Handle a data request from a module.
-        
+
         Modules call this to get data they need from the hub.
         """
         request = DataRequest(
@@ -689,9 +706,9 @@ class ModuleHub:
             user_id=user_id,
             params=params or {},
         )
-        
+
         self._requests.append(request)
-        
+
         # Process the request
         try:
             request.status = "processing"
@@ -703,7 +720,7 @@ class ModuleHub:
             request.status = "failed"
             request.error = str(e)
             logger.error(f"Request failed: {e}")
-        
+
         self._log_comm(
             "data_request",
             requesting_module.value,
@@ -713,14 +730,14 @@ class ModuleHub:
             },
             user_id=user_id,
         )
-        
+
         return request
-    
-    async def _process_request(self, request: DataRequest) -> Dict[str, Any]:
+
+    async def _process_request(self, request: DataRequest) -> dict[str, Any]:
         """Process a data request and return response data"""
-        user_store = self._get_user_store(request.user_id)
+        self._get_user_store(request.user_id)
         params = request.params
-        
+
         handlers = {
             RequestType.GET_USER_DOCUMENTS: self._get_user_documents,
             RequestType.GET_DOCUMENT_BY_TYPE: self._get_document_by_type,
@@ -734,17 +751,18 @@ class ModuleHub:
             RequestType.GET_APPLICABLE_LAWS: self._get_applicable_laws,
             RequestType.GET_USER_CONTEXT: self._get_user_context,
         }
-        
+
         handler = handlers.get(request.request_type)
         if handler:
             return await handler(request.user_id, params)
-        
+
         return {"error": f"Unknown request type: {request.request_type}"}
-    
-    async def _get_user_documents(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_user_documents(self, user_id: str, params: dict) -> dict:
         """Get all documents for a user"""
         try:
             from app.services.document_pipeline import get_document_pipeline
+
             pipeline = get_document_pipeline()
             docs = pipeline.get_user_documents(user_id)
             return {
@@ -753,13 +771,14 @@ class ModuleHub:
             }
         except Exception as e:
             return {"documents": [], "error": str(e)}
-    
-    async def _get_document_by_type(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_document_by_type(self, user_id: str, params: dict) -> dict:
         """Get documents filtered by type"""
         doc_type = params.get("type")
         try:
-            from app.services.document_pipeline import get_document_pipeline
             from app.services.azure_ai import DocumentType
+            from app.services.document_pipeline import get_document_pipeline
+
             pipeline = get_document_pipeline()
             docs = pipeline.get_user_documents_by_type(user_id, DocumentType(doc_type))
             return {
@@ -768,11 +787,12 @@ class ModuleHub:
             }
         except Exception as e:
             return {"documents": [], "error": str(e)}
-    
-    async def _get_timeline_events(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_timeline_events(self, user_id: str, params: dict) -> dict:
         """Get timeline events for a user"""
         try:
             from app.services.document_pipeline import get_document_pipeline
+
             pipeline = get_document_pipeline()
             timeline = pipeline.get_timeline(user_id)
             return {
@@ -781,8 +801,8 @@ class ModuleHub:
             }
         except Exception as e:
             return {"events": [], "error": str(e)}
-    
-    async def _get_calendar_deadlines(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_calendar_deadlines(self, user_id: str, params: dict) -> dict:
         """Get calendar deadlines for a user"""
         user_store = self._get_user_store(user_id)
         deadlines = user_store.get("deadlines", [])
@@ -790,66 +810,72 @@ class ModuleHub:
             "deadlines": deadlines,
             "count": len(deadlines),
         }
-    
-    async def _get_case_info(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_case_info(self, user_id: str, params: dict) -> dict:
         """Get eviction case info for a user"""
         user_store = self._get_user_store(user_id)
         case_fields = [
-            "case_number", "hearing_date", "hearing_time", "court_location",
-            "judge_name", "answer_deadline", "case_type", "filing_date"
+            "case_number",
+            "hearing_date",
+            "hearing_time",
+            "court_location",
+            "judge_name",
+            "answer_deadline",
+            "case_type",
+            "filing_date",
         ]
         case_info = {k: user_store.get(k) for k in case_fields if k in user_store}
         return case_info
-    
-    async def _get_lease_data(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_lease_data(self, user_id: str, params: dict) -> dict:
         """Get lease information for a user"""
         user_store = self._get_user_store(user_id)
         lease_fields = [
-            "lease_start", "lease_end", "rent_amount", "security_deposit",
-            "landlord_name", "property_address", "lease_terms"
+            "lease_start",
+            "lease_end",
+            "rent_amount",
+            "security_deposit",
+            "landlord_name",
+            "property_address",
+            "lease_terms",
         ]
         lease_data = {k: user_store.get(k) for k in lease_fields if k in user_store}
         return lease_data
-    
-    async def _get_payment_history(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_payment_history(self, user_id: str, params: dict) -> dict:
         """Get payment history for a user"""
         user_store = self._get_user_store(user_id)
         return {
             "payments": user_store.get("payment_history", []),
         }
-    
-    async def _get_landlord_info(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_landlord_info(self, user_id: str, params: dict) -> dict:
         """Get landlord information"""
         user_store = self._get_user_store(user_id)
-        landlord_fields = [
-            "landlord_name", "landlord_address", "landlord_phone",
-            "landlord_email", "property_manager"
-        ]
+        landlord_fields = ["landlord_name", "landlord_address", "landlord_phone", "landlord_email", "property_manager"]
         return {k: user_store.get(k) for k in landlord_fields if k in user_store}
-    
-    async def _get_property_info(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_property_info(self, user_id: str, params: dict) -> dict:
         """Get property information"""
         user_store = self._get_user_store(user_id)
-        property_fields = [
-            "property_address", "unit_number", "property_type",
-            "move_in_date", "move_out_date"
-        ]
+        property_fields = ["property_address", "unit_number", "property_type", "move_in_date", "move_out_date"]
         return {k: user_store.get(k) for k in property_fields if k in user_store}
-    
-    async def _get_applicable_laws(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_applicable_laws(self, user_id: str, params: dict) -> dict:
         """Get applicable laws for user's situation"""
         user_store = self._get_user_store(user_id)
         try:
             from app.services.law_engine import get_law_engine
+
             law_engine = get_law_engine()
-            
+
             # Get laws based on document types and issues
             context = {
                 "document_types": user_store.get("document_types", []),
                 "issues": user_store.get("active_issues", []),
                 "county": user_store.get("county", "Dakota"),
             }
-            
+
             doc_types = context["document_types"]
             issues = context["issues"]
             doc_text = " ".join(issues)
@@ -861,31 +887,32 @@ class ModuleHub:
             return {"laws": laws, "context": context}
         except Exception as e:
             return {"laws": [], "error": str(e)}
-    
-    async def _get_user_context(self, user_id: str, params: Dict) -> Dict:
+
+    async def _get_user_context(self, user_id: str, params: dict) -> dict:
         """Get full user context from context loop"""
         try:
             from app.services.context_loop import context_loop
+
             return context_loop.get_state(user_id)
         except Exception as e:
             return {"error": str(e)}
-    
+
     # =========================================================================
     # MODULE UPDATES (Module → Hub → Other Modules)
     # =========================================================================
-    
+
     async def send_update(
         self,
         source_module: ModuleType,
         user_id: str,
         update_type: str,
-        data: Dict[str, Any],
-        target_modules: List[ModuleType] = None,
+        data: dict[str, Any],
+        target_modules: list[ModuleType] = None,
         broadcast: bool = False,
     ) -> ModuleUpdate:
         """
         Send an update from a module to other modules.
-        
+
         Modules call this to share new data or state changes.
         """
         update = ModuleUpdate(
@@ -897,15 +924,15 @@ class ModuleHub:
             target_modules=target_modules or [],
             broadcast=broadcast,
         )
-        
+
         self._updates.append(update)
-        
+
         # Update user store if applicable
         self._apply_update_to_store(user_id, update)
-        
+
         # Route to target modules
         await self._route_update(update)
-        
+
         self._log_comm(
             "module_update",
             source_module.value,
@@ -916,13 +943,13 @@ class ModuleHub:
             },
             user_id=user_id,
         )
-        
+
         return update
-    
+
     def _apply_update_to_store(self, user_id: str, update: ModuleUpdate):
         """Apply an update to the user's data store"""
         user_store = self._get_user_store(user_id)
-        
+
         # Merge data into user store
         for key, value in update.data.items():
             if key.endswith("_list"):
@@ -937,15 +964,15 @@ class ModuleHub:
             else:
                 # Overwrite value
                 user_store[key] = value
-    
+
     async def _route_update(self, update: ModuleUpdate):
         """Route an update to target modules"""
         targets = update.target_modules if not update.broadcast else list(self._modules.keys())
-        
+
         for module_type in targets:
             if module_type == update.source_module:
                 continue  # Don't send back to source
-            
+
             module = self._modules.get(module_type)
             if module and module.on_update_received:
                 try:
@@ -955,91 +982,90 @@ class ModuleHub:
                         module.on_update_received(update)
                 except Exception as e:
                     logger.error(f"Error routing update to {module_type}: {e}")
-    
+
     # =========================================================================
     # USER DATA STORE
     # =========================================================================
-    
-    def _get_user_store(self, user_id: str) -> Dict[str, Any]:
+
+    def _get_user_store(self, user_id: str) -> dict[str, Any]:
         """Get or create user data store"""
         if user_id not in self._user_data:
             self._user_data[user_id] = {}
         return self._user_data[user_id]
-    
-    def get_user_data(self, user_id: str) -> Dict[str, Any]:
+
+    def get_user_data(self, user_id: str) -> dict[str, Any]:
         """Public method to get user data"""
         return self._get_user_store(user_id).copy()
-    
+
     def set_user_data(self, user_id: str, key: str, value: Any):
         """Set a value in user data store"""
         user_store = self._get_user_store(user_id)
         user_store[key] = value
-    
-    def update_user_data(self, user_id: str, data: Dict[str, Any]):
+
+    def update_user_data(self, user_id: str, data: dict[str, Any]):
         """Update multiple values in user data store"""
         user_store = self._get_user_store(user_id)
         user_store.update(data)
-    
+
     # =========================================================================
     # INFO PACK MANAGEMENT
     # =========================================================================
-    
-    def get_info_pack(self, pack_id: str) -> Optional[InfoPack]:
+
+    def get_info_pack(self, pack_id: str) -> InfoPack | None:
         """Get an info pack by ID"""
         return self._info_packs.get(pack_id)
-    
-    def get_user_packs(self, user_id: str) -> List[InfoPack]:
+
+    def get_user_packs(self, user_id: str) -> list[InfoPack]:
         """Get all info packs for a user"""
         return [p for p in self._info_packs.values() if p.user_id == user_id]
-    
-    def get_pending_packs(self, user_id: str) -> List[InfoPack]:
+
+    def get_pending_packs(self, user_id: str) -> list[InfoPack]:
         """Get pending info packs requiring user input"""
         return [
-            p for p in self._info_packs.values()
-            if p.user_id == user_id and p.user_required and p.status != "processed"
+            p for p in self._info_packs.values() if p.user_id == user_id and p.user_required and p.status != "processed"
         ]
-    
+
     async def complete_pack(
         self,
         pack_id: str,
-        user_provided_data: Dict[str, Any],
-    ) -> Optional[InfoPack]:
+        user_provided_data: dict[str, Any],
+    ) -> InfoPack | None:
         """
         Complete an info pack with user-provided data.
-        
+
         Called when user fills in required fields.
         """
         pack = self._info_packs.get(pack_id)
         if not pack:
             return None
-        
+
         # Merge user data
         pack.data.update(user_provided_data)
-        
+
         # Update user store
         user_store = self._get_user_store(pack.user_id)
         user_store.update(user_provided_data)
-        
+
         # Mark as processed
         pack.status = "processed"
         pack.processed_at = utc_now()
-        
+
         # Notify target module
         await self._send_pack_to_module(pack)
-        
+
         logger.info(f"✅ Info pack completed: {pack_id}")
-        
+
         return pack
-    
+
     # =========================================================================
     # LOGGING & DEBUGGING
     # =========================================================================
-    
+
     def _log_comm(
         self,
         action: str,
         module: str,
-        details: Dict,
+        details: dict,
         user_id: str = None,
     ):
         """Log a communication event"""
@@ -1053,25 +1079,25 @@ class ModuleHub:
         self._comm_log.append(entry)
 
         # deque(maxlen=1000) auto-trims — no manual slicing needed
-    
+
     def get_comm_log(
         self,
         user_id: str = None,
         module: str = None,
         limit: int = 100,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Get communication log"""
         log = self._comm_log
-        
+
         if user_id:
             log = [e for e in log if e.get("user_id") == user_id]
-        
+
         if module:
             log = [e for e in log if e.get("module") == module]
-        
+
         return log[-limit:]
-    
-    def get_hub_status(self) -> Dict:
+
+    def get_hub_status(self) -> dict:
         """Get hub status and statistics"""
         return {
             "modules_registered": len(self._modules),
@@ -1102,36 +1128,30 @@ async def route_document_to_module(
     user_id: str,
     document_id: str,
     document_type: str,
-    extracted_data: Dict[str, Any],
-    confidence_scores: Dict[str, float] = None,
-) -> Optional[InfoPack]:
+    extracted_data: dict[str, Any],
+    confidence_scores: dict[str, float] = None,
+) -> InfoPack | None:
     """Convenience function to route a document"""
-    return await module_hub.route_document(
-        user_id, document_id, document_type, extracted_data, confidence_scores
-    )
+    return await module_hub.route_document(user_id, document_id, document_type, extracted_data, confidence_scores)
 
 
 async def request_module_data(
     requesting_module: ModuleType,
     request_type: RequestType,
     user_id: str,
-    params: Dict[str, Any] = None,
+    params: dict[str, Any] = None,
 ) -> DataRequest:
     """Convenience function to request data"""
-    return await module_hub.request_data(
-        requesting_module, request_type, user_id, params
-    )
+    return await module_hub.request_data(requesting_module, request_type, user_id, params)
 
 
 async def send_module_update(
     source_module: ModuleType,
     user_id: str,
     update_type: str,
-    data: Dict[str, Any],
-    target_modules: List[ModuleType] = None,
+    data: dict[str, Any],
+    target_modules: list[ModuleType] = None,
     broadcast: bool = False,
 ) -> ModuleUpdate:
     """Convenience function to send an update"""
-    return await module_hub.send_update(
-        source_module, user_id, update_type, data, target_modules, broadcast
-    )
+    return await module_hub.send_update(source_module, user_id, update_type, data, target_modules, broadcast)

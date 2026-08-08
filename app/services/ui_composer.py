@@ -35,12 +35,12 @@ from __future__ import annotations
 
 import logging
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def _modal_data() -> Dict[str, Any]:
+def _modal_data() -> dict[str, Any]:
     """Shared data for the Add Record modal (pre-fills today's date)."""
     return {"today": date.today().isoformat()}
 
@@ -78,14 +78,14 @@ PILLAR_RECORD = "RECORD"
 PILLAR_KNOW = "KNOW"
 
 
-def _component(ctype: str, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def _component(ctype: str, data: dict[str, Any] | None = None) -> dict[str, Any]:
     """Build a component dict. Validates type against COMPONENT_TYPES."""
     if ctype not in COMPONENT_TYPES:
         raise ValueError(f"Unknown component type: {ctype}. Valid: {sorted(COMPONENT_TYPES)}")
     return {"type": ctype, "data": data or {}}
 
 
-def _get_user_context(user_id: str) -> Dict[str, Any]:
+def _get_user_context(user_id: str) -> dict[str, Any]:
     """Get user context from the Context Loop.
 
     Falls back to empty context if Context Loop is unavailable — the UI Composer
@@ -93,6 +93,7 @@ def _get_user_context(user_id: str) -> Dict[str, Any]:
     """
     try:
         from app.services.context_loop import context_loop
+
         ctx = context_loop.get_user_context(user_id) if hasattr(context_loop, "get_user_context") else {}
         if ctx is None:
             return {}
@@ -102,7 +103,7 @@ def _get_user_context(user_id: str) -> Dict[str, Any]:
         return {}
 
 
-def _get_resolved_modules(user_id: str, role: str = "tenant") -> List[str]:
+def _get_resolved_modules(user_id: str, role: str = "tenant") -> list[str]:
     """Get the list of module paths the user can see.
 
     Falls back to empty list if Module Resolver is unavailable.
@@ -117,7 +118,7 @@ def _get_resolved_modules(user_id: str, role: str = "tenant") -> List[str]:
         return []
 
 
-def _is_new_user(context: Dict[str, Any]) -> bool:
+def _is_new_user(context: dict[str, Any]) -> bool:
     """Heuristic: a user is 'new' if they have ≤1 document and no urgency."""
     doc_count = context.get("document_count", 0)
     intensity = context.get("intensity", 0)
@@ -127,8 +128,8 @@ def _is_new_user(context: Dict[str, Any]) -> bool:
 def compose_page(
     user_id: str,
     page_intent: str,
-    context: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Compose a page as a list of components.
 
     Args:
@@ -147,9 +148,7 @@ def compose_page(
         ValueError: If page_intent is not in PAGE_INTENTS.
     """
     if page_intent not in PAGE_INTENTS:
-        raise ValueError(
-            f"Unknown page intent: {page_intent}. Valid: {sorted(PAGE_INTENTS)}"
-        )
+        raise ValueError(f"Unknown page intent: {page_intent}. Valid: {sorted(PAGE_INTENTS)}")
 
     # Get user context (from caller or Context Loop)
     ctx = context if context is not None else _get_user_context(user_id)
@@ -171,7 +170,7 @@ def compose_page(
     raise ValueError(f"Unhandled page intent: {page_intent}")
 
 
-def _compose_landing(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_landing(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose the landing page for a new or returning user.
 
     New user (≤1 doc, low intensity):
@@ -180,37 +179,67 @@ def _compose_landing(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     Returning user:
         stat_badges + prompt_card + add_record_button
     """
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
     if _is_new_user(ctx):
-        components.append(_component("welcome_message", {
-            "user_name": ctx.get("user_name", ""),
-            "doc_count": ctx.get("document_count", 0),
-        }))
-        components.append(_component("settings_prompt", {
-            "has_settings": ctx.get("has_settings", False),
-        }))
-        components.append(_component("document_review_prompt", {
-            "doc_count": ctx.get("document_count", 0),
-        }))
+        components.append(
+            _component(
+                "welcome_message",
+                {
+                    "user_name": ctx.get("user_name", ""),
+                    "doc_count": ctx.get("document_count", 0),
+                },
+            )
+        )
+        components.append(
+            _component(
+                "settings_prompt",
+                {
+                    "has_settings": ctx.get("has_settings", False),
+                },
+            )
+        )
+        components.append(
+            _component(
+                "document_review_prompt",
+                {
+                    "doc_count": ctx.get("document_count", 0),
+                },
+            )
+        )
     else:
         # Returning user — show stats and a prompt
-        components.append(_component("stat_badge", {
-            "label": "Documents",
-            "value": ctx.get("document_count", 0),
-            "icon": "📄",
-        }))
-        components.append(_component("stat_badge", {
-            "label": "Upcoming deadlines",
-            "value": ctx.get("upcoming_deadlines", 0),
-            "icon": "⏰",
-        }))
-        components.append(_component("prompt_card", {
-            "title": "Welcome back",
-            "body": "Pick up where you left off, or add a new record.",
-            "cta_label": "View timeline",
-            "cta_path": "/tenant/timeline",
-        }))
+        components.append(
+            _component(
+                "stat_badge",
+                {
+                    "label": "Documents",
+                    "value": ctx.get("document_count", 0),
+                    "icon": "📄",
+                },
+            )
+        )
+        components.append(
+            _component(
+                "stat_badge",
+                {
+                    "label": "Upcoming deadlines",
+                    "value": ctx.get("upcoming_deadlines", 0),
+                    "icon": "⏰",
+                },
+            )
+        )
+        components.append(
+            _component(
+                "prompt_card",
+                {
+                    "title": "Welcome back",
+                    "body": "Pick up where you left off, or add a new record.",
+                    "cta_label": "View timeline",
+                    "cta_path": "/tenant/timeline",
+                },
+            )
+        )
 
     components.append(_component("add_record_button"))
     components.append(_component("add_record_modal", _modal_data()))
@@ -222,7 +251,7 @@ def _compose_landing(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _compose_timeline(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_timeline(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose the RECORD pillar — timeline of everything.
 
     Components:
@@ -232,39 +261,59 @@ def _compose_timeline(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     For Phase 1A, we emit the structure with empty data — the router will
     enrich with real feed data when available.
     """
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
     # Stat badges in timeline header
-    components.append(_component("stat_badge", {
-        "label": "Documents",
-        "value": ctx.get("document_count", 0),
-        "icon": "📄",
-    }))
-    components.append(_component("stat_badge", {
-        "label": "Upcoming deadlines",
-        "value": ctx.get("upcoming_deadlines", 0),
-        "icon": "⏰",
-    }))
+    components.append(
+        _component(
+            "stat_badge",
+            {
+                "label": "Documents",
+                "value": ctx.get("document_count", 0),
+                "icon": "📄",
+            },
+        )
+    )
+    components.append(
+        _component(
+            "stat_badge",
+            {
+                "label": "Upcoming deadlines",
+                "value": ctx.get("upcoming_deadlines", 0),
+                "icon": "⏰",
+            },
+        )
+    )
 
     # Filter chips (HTMX swaps the timeline_group below)
-    components.append(_component("filter_chips", {
-        "filters": [
-            {"id": "all", "label": "All", "active": True},
-            {"id": "documents", "label": "Documents"},
-            {"id": "events", "label": "Events"},
-            {"id": "journal", "label": "Journal"},
-            {"id": "letters", "label": "Letters"},
-            {"id": "deadlines", "label": "Deadlines"},
-        ],
-        "hx_target": "/api/ui/fragment/timeline_group",
-    }))
+    components.append(
+        _component(
+            "filter_chips",
+            {
+                "filters": [
+                    {"id": "all", "label": "All", "active": True},
+                    {"id": "documents", "label": "Documents"},
+                    {"id": "events", "label": "Events"},
+                    {"id": "journal", "label": "Journal"},
+                    {"id": "letters", "label": "Letters"},
+                    {"id": "deadlines", "label": "Deadlines"},
+                ],
+                "hx_target": "/api/ui/fragment/timeline_group",
+            },
+        )
+    )
 
     # Timeline group (placeholder — Phase 1B will feed real data)
-    components.append(_component("timeline_group", {
-        "date_label": "Today",
-        "events": [],  # Filled by tenant_feed aggregator
-        "empty": ctx.get("document_count", 0) == 0,
-    }))
+    components.append(
+        _component(
+            "timeline_group",
+            {
+                "date_label": "Today",
+                "events": [],  # Filled by tenant_feed aggregator
+                "empty": ctx.get("document_count", 0) == 0,
+            },
+        )
+    )
 
     components.append(_component("add_record_button"))
     components.append(_component("add_record_modal", _modal_data()))
@@ -276,7 +325,7 @@ def _compose_timeline(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_library(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose the KNOW pillar — library of verified facts.
 
     Components:
@@ -306,7 +355,7 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
         "timeline": "📅",
     }
 
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
     selected_subject = ctx.get("subject")
     if selected_subject and selected_subject in ALL_SUBJECTS:
@@ -315,39 +364,52 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
         label = ctx.get("label") or SUBJECT_LABELS.get(selected_subject, selected_subject)
 
         if not facts and not stories:
-            components.append(_component("empty_state", {
-                "icon": "📚",
-                "title": f"No verified facts yet for {label}",
-                "body": "This topic has not been populated yet. Choose another topic or check back later.",
-            }))
+            components.append(
+                _component(
+                    "empty_state",
+                    {
+                        "icon": "📚",
+                        "title": f"No verified facts yet for {label}",
+                        "body": "This topic has not been populated yet. Choose another topic or check back later.",
+                    },
+                )
+            )
         else:
             story_texts = [
-                {"text": s.get("title") or s.get("body") or ""}
-                for s in stories
-                if s.get("title") or s.get("body")
+                {"text": s.get("title") or s.get("body") or ""} for s in stories if s.get("title") or s.get("body")
             ]
             for idx, fact in enumerate(facts):
-                components.append(_component("fact_card", {
-                    "title": fact.get("claim") or "Verified fact",
-                    "body": fact.get("citation") or fact.get("body") or "",
-                    "source_url": fact.get("source_url") or "",
-                    "source_label": fact.get("source_name") or fact.get("source_url") or "",
-                    "stories": story_texts if idx == 0 else [],
-                }))
+                components.append(
+                    _component(
+                        "fact_card",
+                        {
+                            "title": fact.get("claim") or "Verified fact",
+                            "body": fact.get("citation") or fact.get("body") or "",
+                            "source_url": fact.get("source_url") or "",
+                            "source_label": fact.get("source_name") or fact.get("source_url") or "",
+                            "stories": story_texts if idx == 0 else [],
+                        },
+                    )
+                )
 
     # 13 subjects — the KNOW pillar root (from the canonical taxonomy)
-    components.append(_component("subject_grid", {
-        "subjects": [
+    components.append(
+        _component(
+            "subject_grid",
             {
-                "id": s,
-                "label": SUBJECT_LABELS.get(s, s),
-                "icon": _SUBJECT_ICONS.get(s, "•"),
-            }
-            for s in ALL_SUBJECTS
-        ],
-        "active_subject": selected_subject,
-        "hx_target": "/api/ui/fragment/library/",
-    }))
+                "subjects": [
+                    {
+                        "id": s,
+                        "label": SUBJECT_LABELS.get(s, s),
+                        "icon": _SUBJECT_ICONS.get(s, "•"),
+                    }
+                    for s in ALL_SUBJECTS
+                ],
+                "active_subject": selected_subject,
+                "hx_target": "/api/ui/fragment/library/",
+            },
+        )
+    )
 
     components.append(_component("add_record_button"))
     components.append(_component("add_record_modal", _modal_data()))
@@ -365,32 +427,47 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _compose_documents(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_documents(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose the documents page — document vault grid."""
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
-    components.append(_component("stat_badge", {
-        "label": "Total documents",
-        "value": ctx.get("document_count", 0),
-        "icon": "📄",
-    }))
+    components.append(
+        _component(
+            "stat_badge",
+            {
+                "label": "Total documents",
+                "value": ctx.get("document_count", 0),
+                "icon": "📄",
+            },
+        )
+    )
 
     if ctx.get("document_count", 0) == 0:
-        components.append(_component("empty_state", {
-            "icon": "📄",
-            "title": "No documents yet",
-            "body": "Add your first document — lease, photos, receipts, communications.",
-            "cta_label": "Add a document",
-            "cta_path": "/tenant/documents",
-        }))
+        components.append(
+            _component(
+                "empty_state",
+                {
+                    "icon": "📄",
+                    "title": "No documents yet",
+                    "body": "Add your first document — lease, photos, receipts, communications.",
+                    "cta_label": "Add a document",
+                    "cta_path": "/tenant/documents",
+                },
+            )
+        )
     else:
         # The actual document list is rendered by the existing documents endpoint.
         # UI Composer emits a placeholder — the router can enrich with real data.
-        components.append(_component("timeline_group", {
-            "date_label": "Recent documents",
-            "events": [],  # Filled by documents endpoint
-            "empty": False,
-        }))
+        components.append(
+            _component(
+                "timeline_group",
+                {
+                    "date_label": "Recent documents",
+                    "events": [],  # Filled by documents endpoint
+                    "empty": False,
+                },
+            )
+        )
 
     components.append(_component("add_record_button"))
     components.append(_component("add_record_modal", _modal_data()))
@@ -402,22 +479,32 @@ def _compose_documents(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _compose_tools(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_tools(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose the tools page — deadline tracker + letter generators."""
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
-    components.append(_component("prompt_card", {
-        "title": "Deadlines",
-        "body": "Track important dates — court, lease end, repair deadlines.",
-        "cta_label": "Open deadline tracker",
-        "cta_path": "/tenant/tools/deadlines",
-    }))
-    components.append(_component("prompt_card", {
-        "title": "Letters",
-        "body": "Generate template letters — repair request, notice to vacate, etc.",
-        "cta_label": "Open letter generator",
-        "cta_path": "/tenant/tools/letters",
-    }))
+    components.append(
+        _component(
+            "prompt_card",
+            {
+                "title": "Deadlines",
+                "body": "Track important dates — court, lease end, repair deadlines.",
+                "cta_label": "Open deadline tracker",
+                "cta_path": "/tenant/tools/deadlines",
+            },
+        )
+    )
+    components.append(
+        _component(
+            "prompt_card",
+            {
+                "title": "Letters",
+                "body": "Generate template letters — repair request, notice to vacate, etc.",
+                "cta_label": "Open letter generator",
+                "cta_path": "/tenant/tools/letters",
+            },
+        )
+    )
 
     components.append(_component("add_record_button"))
     components.append(_component("add_record_modal", _modal_data()))
@@ -429,21 +516,26 @@ def _compose_tools(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _compose_workflow_step(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_workflow_step(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose a single workflow step view with a process indicator."""
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
     workflow_id = ctx.get("workflow_id", "")
     step_label = ctx.get("step_label", "Working...")
     state = ctx.get("state", "running")
     progress = ctx.get("progress_pct", 0)
 
-    components.append(_component("process_indicator", {
-        "workflow_id": workflow_id,
-        "step_label": step_label,
-        "state": state,  # pending | running | complete | error
-        "progress_pct": progress,
-    }))
+    components.append(
+        _component(
+            "process_indicator",
+            {
+                "workflow_id": workflow_id,
+                "step_label": step_label,
+                "state": state,  # pending | running | complete | error
+                "progress_pct": progress,
+            },
+        )
+    )
 
     return {
         "page_title": "Processing — Semptify",
@@ -452,7 +544,7 @@ def _compose_workflow_step(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def render_fragment(component_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
+def render_fragment(component_type: str, data: dict[str, Any]) -> dict[str, Any]:
     """Render a single component as a fragment (for HTMX swaps).
 
     Returns the component dict — the router will render it via Jinja.
@@ -470,7 +562,7 @@ def render_fragment(component_type: str, data: Dict[str, Any]) -> Dict[str, Any]
     return _component(component_type, data)
 
 
-def get_process_status(workflow_id: str) -> Dict[str, Any]:
+def get_process_status(workflow_id: str) -> dict[str, Any]:
     """Get the current status of a workflow for the process indicator.
 
     Reads from the Positronic Mesh if available. Falls back to a
@@ -484,6 +576,7 @@ def get_process_status(workflow_id: str) -> Dict[str, Any]:
     """
     try:
         from app.core.positronic_mesh import positronic_mesh
+
         status = positronic_mesh.get_workflow_status(workflow_id)
         if status:
             return {

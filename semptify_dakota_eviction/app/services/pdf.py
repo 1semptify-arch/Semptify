@@ -3,58 +3,55 @@ Dakota County Eviction Defense - PDF Generation Service
 Uses WeasyPrint for high-quality court-ready PDF documents.
 """
 
-import io
-import os
-import json
 from datetime import datetime
-from typing import Dict, Any, Optional
-from pathlib import Path
+from typing import Any
 
 # Try WeasyPrint, fallback to basic HTML export
 try:
-    from weasyprint import HTML, CSS
+    from weasyprint import CSS, HTML
+
     WEASYPRINT_AVAILABLE = True
 except ImportError:
     WEASYPRINT_AVAILABLE = False
     print("[WARN] WeasyPrint not installed - PDF generation will use fallback")
 
 
-def generate_pdf_from_html(html_content: str, css_content: Optional[str] = None) -> bytes:
+def generate_pdf_from_html(html_content: str, css_content: str | None = None) -> bytes:
     """Generate PDF from HTML string."""
     if not WEASYPRINT_AVAILABLE:
         # Fallback: return HTML as bytes
-        return html_content.encode('utf-8')
-    
+        return html_content.encode("utf-8")
+
     stylesheets = []
     if css_content:
         stylesheets.append(CSS(string=css_content))
-    
+
     # Add default court document styling
     stylesheets.append(CSS(string=COURT_DOCUMENT_CSS))
-    
+
     html = HTML(string=html_content)
     return html.write_pdf(stylesheets=stylesheets)
 
 
-def generate_answer_pdf(data: Dict[str, Any], lang: str = "en") -> bytes:
+def generate_answer_pdf(data: dict[str, Any], lang: str = "en") -> bytes:
     """Generate Answer to Eviction PDF."""
     html = render_answer_html(data, lang)
     return generate_pdf_from_html(html)
 
 
-def generate_counterclaim_pdf(data: Dict[str, Any], lang: str = "en") -> bytes:
+def generate_counterclaim_pdf(data: dict[str, Any], lang: str = "en") -> bytes:
     """Generate Counterclaim PDF."""
     html = render_counterclaim_html(data, lang)
     return generate_pdf_from_html(html)
 
 
-def generate_motion_pdf(motion_type: str, data: Dict[str, Any], lang: str = "en") -> bytes:
+def generate_motion_pdf(motion_type: str, data: dict[str, Any], lang: str = "en") -> bytes:
     """Generate Motion PDF (dismiss, continuance, stay, etc.)."""
     html = render_motion_html(motion_type, data, lang)
     return generate_pdf_from_html(html)
 
 
-def generate_hearing_prep_pdf(data: Dict[str, Any], lang: str = "en") -> bytes:
+def generate_hearing_prep_pdf(data: dict[str, Any], lang: str = "en") -> bytes:
     """Generate Hearing Preparation checklist PDF."""
     html = render_hearing_prep_html(data, lang)
     return generate_pdf_from_html(html)
@@ -64,7 +61,8 @@ def generate_hearing_prep_pdf(data: Dict[str, Any], lang: str = "en") -> bytes:
 # HTML Rendering Functions
 # ============================================================================
 
-def render_answer_html(data: Dict[str, Any], lang: str = "en") -> str:
+
+def render_answer_html(data: dict[str, Any], lang: str = "en") -> str:
     """Render Answer to Eviction HTML."""
     tenant_name = data.get("tenant_name", "")
     landlord_name = data.get("landlord_name", "")
@@ -73,11 +71,11 @@ def render_answer_html(data: Dict[str, Any], lang: str = "en") -> str:
     served_date = data.get("served_date", "")
     defenses = data.get("defenses", [])
     defense_details = data.get("defense_details", "")
-    
+
     defenses_html = ""
     for defense in defenses:
         defenses_html += f'<li class="defense-item">{defense}</li>'
-    
+
     return f"""
     <!DOCTYPE html>
     <html lang="{lang}">
@@ -126,7 +124,7 @@ def render_answer_html(data: Dict[str, Any], lang: str = "en") -> str:
         </section>
         
         <section class="signature">
-            <p>Date: {datetime.now().strftime('%B %d, %Y')}</p>
+            <p>Date: {datetime.now().strftime("%B %d, %Y")}</p>
             <br><br>
             <p>_______________________________</p>
             <p>{tenant_name}, Defendant</p>
@@ -142,7 +140,7 @@ def render_answer_html(data: Dict[str, Any], lang: str = "en") -> str:
     """
 
 
-def render_counterclaim_html(data: Dict[str, Any], lang: str = "en") -> str:
+def render_counterclaim_html(data: dict[str, Any], lang: str = "en") -> str:
     """Render Counterclaim HTML."""
     tenant_name = data.get("tenant_name", "")
     landlord_name = data.get("landlord_name", "")
@@ -151,11 +149,11 @@ def render_counterclaim_html(data: Dict[str, Any], lang: str = "en") -> str:
     claims = data.get("claims", [])
     damages_requested = data.get("damages_requested", "")
     claim_details = data.get("claim_details", "")
-    
+
     claims_html = ""
     for i, claim in enumerate(claims, 1):
-        claims_html += f'<li><strong>Count {i}:</strong> {claim}</li>'
-    
+        claims_html += f"<li><strong>Count {i}:</strong> {claim}</li>"
+
     return f"""
     <!DOCTYPE html>
     <html lang="{lang}">
@@ -207,7 +205,7 @@ def render_counterclaim_html(data: Dict[str, Any], lang: str = "en") -> str:
         </section>
         
         <section class="signature">
-            <p>Date: {datetime.now().strftime('%B %d, %Y')}</p>
+            <p>Date: {datetime.now().strftime("%B %d, %Y")}</p>
             <br><br>
             <p>_______________________________</p>
             <p>{tenant_name}, Counter-Plaintiff</p>
@@ -222,23 +220,23 @@ def render_counterclaim_html(data: Dict[str, Any], lang: str = "en") -> str:
     """
 
 
-def render_motion_html(motion_type: str, data: Dict[str, Any], lang: str = "en") -> str:
+def render_motion_html(motion_type: str, data: dict[str, Any], lang: str = "en") -> str:
     """Render Motion HTML (dismiss, continuance, stay)."""
     tenant_name = data.get("tenant_name", "")
     landlord_name = data.get("landlord_name", "")
     case_number = data.get("case_number", "")
     grounds = data.get("grounds", "")
     hearing_date = data.get("hearing_date", "")
-    
+
     motion_titles = {
         "dismiss": "MOTION TO DISMISS",
         "continuance": "MOTION FOR CONTINUANCE",
         "stay": "MOTION TO STAY WRIT OF RECOVERY",
-        "fee_waiver": "APPLICATION FOR WAIVER OF FILING FEES"
+        "fee_waiver": "APPLICATION FOR WAIVER OF FILING FEES",
     }
-    
+
     title = motion_titles.get(motion_type, "MOTION")
-    
+
     return f"""
     <!DOCTYPE html>
     <html lang="{lang}">
@@ -277,7 +275,7 @@ def render_motion_html(motion_type: str, data: Dict[str, Any], lang: str = "en")
         </section>
         
         <section class="signature">
-            <p>Date: {datetime.now().strftime('%B %d, %Y')}</p>
+            <p>Date: {datetime.now().strftime("%B %d, %Y")}</p>
             <p>Hearing Date: {hearing_date}</p>
             <br><br>
             <p>_______________________________</p>
@@ -288,7 +286,7 @@ def render_motion_html(motion_type: str, data: Dict[str, Any], lang: str = "en")
     """
 
 
-def render_hearing_prep_html(data: Dict[str, Any], lang: str = "en") -> str:
+def render_hearing_prep_html(data: dict[str, Any], lang: str = "en") -> str:
     """Render Hearing Preparation checklist HTML."""
     tenant_name = data.get("tenant_name", "")
     hearing_date = data.get("hearing_date", "")
@@ -296,15 +294,15 @@ def render_hearing_prep_html(data: Dict[str, Any], lang: str = "en") -> str:
     is_zoom = data.get("is_zoom", False)
     checklist_items = data.get("checklist_items", [])
     documents_needed = data.get("documents_needed", [])
-    
+
     checklist_html = ""
     for item in checklist_items:
-        checklist_html += f'<li>☐ {item}</li>'
-    
+        checklist_html += f"<li>☐ {item}</li>"
+
     docs_html = ""
     for doc in documents_needed:
-        docs_html += f'<li>☐ {doc}</li>'
-    
+        docs_html += f"<li>☐ {doc}</li>"
+
     zoom_section = ""
     if is_zoom:
         zoom_section = """
@@ -320,7 +318,7 @@ def render_hearing_prep_html(data: Dict[str, Any], lang: str = "en") -> str:
             <li>☐ Keep phone number ready as backup audio</li>
         </ul>
         """
-    
+
     return f"""
     <!DOCTYPE html>
     <html lang="{lang}">
@@ -366,7 +364,7 @@ def render_hearing_prep_html(data: Dict[str, Any], lang: str = "en") -> str:
         
         <footer>
             <p><em>Generated by Semptify Dakota County Eviction Defense System</em></p>
-            <p><em>Date: {datetime.now().strftime('%B %d, %Y')}</em></p>
+            <p><em>Date: {datetime.now().strftime("%B %d, %Y")}</em></p>
         </footer>
     </body>
     </html>

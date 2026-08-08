@@ -18,7 +18,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class EvidenceType(str, Enum):
+class EvidenceType(StrEnum):
     """Classification of evidence types"""
 
     DIRECT = "direct"  # First-hand evidence (documents, photos)
@@ -41,7 +41,7 @@ class EvidenceType(str, Enum):
     EXPERT = "expert"  # Expert opinion
 
 
-class DocumentLegalStatus(str, Enum):
+class DocumentLegalStatus(StrEnum):
     """Legal standing of a document"""
 
     LEGALLY_BINDING = "legally_binding"
@@ -52,7 +52,7 @@ class DocumentLegalStatus(str, Enum):
     NEEDS_AUTHENTICATION = "needs_authentication"
 
 
-class CredibilityLevel(str, Enum):
+class CredibilityLevel(StrEnum):
     """Credibility assessment"""
 
     HIGH = "high"
@@ -62,7 +62,7 @@ class CredibilityLevel(str, Enum):
     DISPUTED = "disputed"
 
 
-class ConsistencyStatus(str, Enum):
+class ConsistencyStatus(StrEnum):
     """Consistency check results"""
 
     CONSISTENT = "consistent"
@@ -71,7 +71,7 @@ class ConsistencyStatus(str, Enum):
     UNVERIFIED = "unverified"
 
 
-class LegalMeritLevel(str, Enum):
+class LegalMeritLevel(StrEnum):
     """Assessment of legal merit"""
 
     STRONG = "strong"
@@ -81,7 +81,7 @@ class LegalMeritLevel(str, Enum):
     UNKNOWN = "unknown"
 
 
-class NoticeComplianceStatus(str, Enum):
+class NoticeComplianceStatus(StrEnum):
     """Notice requirement compliance"""
 
     COMPLIANT = "compliant"
@@ -570,9 +570,8 @@ class LegalAnalysisEngine:
             issues.append("Relevance may need to be established")
 
         # Check for chain of custody for physical evidence
-        if doc_type in ["photo_evidence", "video_evidence", "physical"]:
-            if not document.get("created_at"):
-                issues.append("Chain of custody should be documented")
+        if doc_type in ["photo_evidence", "video_evidence", "physical"] and not document.get("created_at"):
+            issues.append("Chain of custody should be documented")
 
         return issues
 
@@ -603,12 +602,12 @@ class LegalAnalysisEngine:
         # Compare each pair of items
         for i, item1 in enumerate(items):
             for item2 in items[i + 1 :]:
-                for field in fields_to_check:
-                    value1 = self._extract_field_value(item1, field)
-                    value2 = self._extract_field_value(item2, field)
+                for field_name in fields_to_check:
+                    value1 = self._extract_field_value(item1, field_name)
+                    value2 = self._extract_field_value(item2, field_name)
 
                     if value1 and value2:
-                        status, explanation, significance = self._compare_values(field, value1, value2)
+                        status, explanation, significance = self._compare_values(field_name, value1, value2)
 
                         if status != ConsistencyStatus.CONSISTENT:
                             results.append(
@@ -618,7 +617,7 @@ class LegalAnalysisEngine:
                                     item2_id=item2.get("id", "unknown"),
                                     item2_type=item2.get("category", item2.get("event_type", "unknown")),
                                     status=status,
-                                    field_checked=field,
+                                    field_checked=field_name,
                                     item1_value=str(value1),
                                     item2_value=str(value2),
                                     significance=significance,
@@ -851,10 +850,7 @@ class LegalAnalysisEngine:
         if len(sorted_events) >= 2:
             first_date = self._parse_date(sorted_events[0].get("event_date", ""))
             last_date = self._parse_date(sorted_events[-1].get("event_date", ""))
-            if first_date and last_date:
-                total_span = (last_date - first_date).days
-            else:
-                total_span = 0
+            total_span = (last_date - first_date).days if first_date and last_date else 0
         else:
             total_span = 0
 
@@ -1036,7 +1032,7 @@ class LegalAnalysisEngine:
         doc_classifications = []
         total_doc_weight = 0
 
-        for doc_id, doc in documents.items():
+        for _doc_id, doc in documents.items():
             classification = self.classify_evidence(doc)
             doc_classifications.append(classification)
             total_doc_weight += classification.weight

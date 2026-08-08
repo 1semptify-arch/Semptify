@@ -8,11 +8,10 @@ requiring a live server or DB. All tests are pure-function unit tests against
 the canonical JSON shape defined in router.py:2501-2601.
 """
 
-from datetime import datetime
-from typing import Any
-
 import io
 import zipfile
+from datetime import datetime
+from typing import Any
 
 from app.modules.case_builder.router import (
     _build_attorney_intake_packet,
@@ -392,4 +391,3 @@ def test_zip_empty_case_evidence_index_says_no_evidence():
     with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
         idx_text = zf.read("evidence-index.txt").decode("utf-8")
         assert "No evidence items" in idx_text
-

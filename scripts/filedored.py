@@ -5,9 +5,9 @@ Purpose: Semptify Vault Post‑Processing + AI Classification (SWE 1.6 compatibl
 Tier: DEV (safe, optional)
 """
 
+import hashlib
 import os
 import shutil
-import hashlib
 from pathlib import Path
 
 # -----------------------------
@@ -39,6 +39,7 @@ HASH_ALGO = "sha256"
 # UTILITIES
 # -----------------------------
 
+
 def ensure_dir(base: Path, rel: str) -> Path:
     """Create folder if missing."""
     target = base / rel
@@ -58,6 +59,7 @@ def file_hash(path: Path, algo: str = HASH_ALGO) -> str:
 # -----------------------------
 # AI CLASSIFICATION HOOK
 # -----------------------------
+
 
 def ai_classify_document(path: Path) -> str:
     """
@@ -88,6 +90,7 @@ def ai_route(base: Path, file_path: Path, label: str) -> Path:
 # -----------------------------
 # MAIN VAULT POST‑PROCESSOR
 # -----------------------------
+
 
 def filedored_run(root_path: str, enable_ai: bool = True) -> dict:
     """
@@ -138,22 +141,14 @@ def filedored_run(root_path: str, enable_ai: bool = True) -> dict:
                     continue
 
             # Extension‑based routing
-            if ext in DOCUMENT_EXTENSIONS:
-                target_rel = DOCUMENT_EXTENSIONS[ext]
-            else:
-                target_rel = OTHER_FOLDER
+            target_rel = DOCUMENT_EXTENSIONS.get(ext, OTHER_FOLDER)
 
             target_dir = ensure_dir(root, target_rel)
             dst = target_dir / name
             shutil.move(str(src), str(dst))
             moved.append(str(dst))
 
-    return {
-        "sorted": moved,
-        "duplicates": duplicates,
-        "ai_classified": ai_sorted,
-        "status": "complete"
-    }
+    return {"sorted": moved, "duplicates": duplicates, "ai_classified": ai_sorted, "status": "complete"}
 
 
 # -----------------------------

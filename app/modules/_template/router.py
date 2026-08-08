@@ -4,17 +4,17 @@ Module Template — FastAPI Router
 Skeleton with health check + CRUD endpoints. Replace with your module's
 endpoints. Keep routers thin — delegate to service.py.
 """
+
 import logging
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
+from app.core.request_utils import get_request_user_id
 from app.core.security import get_current_user
 from app.core.user_context import UserContext
-from app.core.request_utils import get_request_user_id
 from app.core.utc import utc_now
 
-from .models import ItemCreate, ItemUpdate, ItemResponse
+from .models import ItemCreate, ItemResponse, ItemUpdate
 from .service import service
 
 logger = logging.getLogger(__name__)
@@ -33,13 +33,13 @@ async def health_check():
     }
 
 
-@router.get("/items", response_model=List[ItemResponse])
+@router.get("/items", response_model=list[ItemResponse])
 async def list_items(
     request: Request,
     user: UserContext = Depends(get_current_user),
 ):
     """List items for the current user."""
-    user_id = get_request_user_id(request)
+    get_request_user_id(request)
     # TODO: Replace with real list query
     return []
 

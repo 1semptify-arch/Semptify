@@ -3,14 +3,16 @@ Semptify 5.0 - Basic Tests
 Verifies the FastAPI application structure and storage-based auth.
 """
 
-import pytest
-from httpx import AsyncClient, ASGITransport
-from unittest.mock import patch, MagicMock
-
 # We need to set up the test before importing the app
 import os
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
 os.environ["SECURITY_MODE"] = "open"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_semptify.db"
+
+import contextlib
 
 from app.main import app
 
@@ -31,6 +33,7 @@ async def client():
 # =============================================================================
 # Health Check Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_healthz(client: AsyncClient):
@@ -58,6 +61,7 @@ async def test_root(client: AsyncClient):
 # =============================================================================
 # Storage Provider Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_storage_providers_list(client: AsyncClient):
@@ -88,6 +92,7 @@ async def test_storage_session_unauthenticated(client: AsyncClient):
 # =============================================================================
 # Timeline Tests (Open Mode)
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_timeline_create_event(client: AsyncClient):
@@ -123,7 +128,7 @@ async def test_timeline_list_events(client: AsyncClient):
             "is_evidence": False,
         },
     )
-    
+
     response = await client.get("/api/timeline/")
     assert response.status_code in [200, 401, 404]
     if response.status_code == 200:
@@ -135,6 +140,7 @@ async def test_timeline_list_events(client: AsyncClient):
 # =============================================================================
 # Calendar Tests (Open Mode)
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_calendar_create_event(client: AsyncClient):
@@ -171,6 +177,7 @@ async def test_calendar_upcoming(client: AsyncClient):
 # Copilot Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_copilot_status(client: AsyncClient):
     """Test AI copilot status endpoint."""
@@ -185,6 +192,7 @@ async def test_copilot_status(client: AsyncClient):
 # =============================================================================
 # Auth Tests (Legacy - should redirect to storage)
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_auth_me_open_mode(client: AsyncClient):
@@ -201,13 +209,13 @@ async def test_auth_me_open_mode(client: AsyncClient):
 # Cleanup
 # =============================================================================
 
+
 @pytest.fixture(autouse=True)
 async def cleanup():
     """Clean up test database after tests."""
     yield
     import os
+
     if os.path.exists("test_semptify.db"):
-        try:
+        with contextlib.suppress(PermissionError):
             os.remove("test_semptify.db")
-        except PermissionError:
-            pass

@@ -15,11 +15,10 @@ so the form still shows success to the user (no broken UX in dev).
 # All imports remain absolute since public_forms is a CORE module.
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, field_validator
 
 from app.core.rate_limit import limiter
 
@@ -32,11 +31,12 @@ router = APIRouter(prefix="/api", tags=["Public Forms"])
 # Request Models
 # =============================================================================
 
+
 class FeedbackRequest(BaseModel):
     type: str
     message: str
-    email: Optional[str] = None
-    page: Optional[str] = None
+    email: str | None = None
+    page: str | None = None
 
     @field_validator("message")
     @classmethod
@@ -58,7 +58,7 @@ class ContactRequest(BaseModel):
     name: str
     email: str
     message: str
-    subject: Optional[str] = None
+    subject: str | None = None
 
     @field_validator("name", "message")
     @classmethod
@@ -71,6 +71,7 @@ class ContactRequest(BaseModel):
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.post("/feedback")
 async def submit_feedback(body: FeedbackRequest):
@@ -141,8 +142,8 @@ async def load_tenant_autofill(user_id: str) -> dict:
     cloud_loaded = False
     try:
         from app.core.database import get_db_session
-        from app.modules.storage.router import get_valid_session
         from app.modules.cloud_sync.service import UserCloudSync
+        from app.modules.storage.router import get_valid_session
 
         async with get_db_session() as db:
             session = await get_valid_session(db, user_id)
@@ -154,12 +155,15 @@ async def load_tenant_autofill(user_id: str) -> dict:
 
             if provider == "google_drive":
                 from app.services.storage.google_drive import GoogleDriveProvider
+
                 storage = GoogleDriveProvider(access_token)
             elif provider == "dropbox":
                 from app.services.storage.dropbox import DropboxProvider
+
                 storage = DropboxProvider(access_token)
             elif provider == "onedrive":
                 from app.services.storage.onedrive import OneDriveProvider
+
                 storage = OneDriveProvider(access_token)
 
             if storage:
@@ -194,16 +198,16 @@ async def load_tenant_autofill(user_id: str) -> dict:
     # -------------------------------------------------------------------------
     if not result["landlord_name"] or not result["property_address"]:
         try:
+            from sqlalchemy import select
+
             from app.core.database import get_db_session
             from app.models.models import Contact
-            from sqlalchemy import select
 
             async with get_db_session() as db:
                 contact_result = await db.execute(
-                    select(Contact).where(
-                        Contact.user_id == user_id,
-                        Contact.contact_type == "landlord"
-                    ).order_by(Contact.created_at.desc())
+                    select(Contact)
+                    .where(Contact.user_id == user_id, Contact.contact_type == "landlord")
+                    .order_by(Contact.created_at.desc())
                 )
                 landlord = contact_result.scalars().first()
                 if landlord:
@@ -228,6 +232,7 @@ async def load_tenant_autofill(user_id: str) -> dict:
     if not result["tenant_name"]:
         try:
             from app.core.tenant_briefcase import get_tenant_briefcase
+
             briefcase = await get_tenant_briefcase(user_id)
             if briefcase and briefcase.user_name:
                 result["tenant_name"] = briefcase.user_name
@@ -252,6 +257,7 @@ async def tenant_autofill(request: Request):
     POST to prevent CSRF.
     """
     from app.core.cookie_auth import extract_user_id
+
     user_id = extract_user_id(request) or ""
     result = await load_tenant_autofill(user_id)
     return JSONResponse(result)
@@ -265,7 +271,6 @@ async def submit_contact(body: ContactRequest):
     """
     from app.services.email_service import send_contact_email
 
-    subject = body.subject or f"Contact: {body.name}"
 
     sent = await send_contact_email(
         sender_name=body.name,

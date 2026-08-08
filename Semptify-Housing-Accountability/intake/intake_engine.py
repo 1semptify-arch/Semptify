@@ -1,14 +1,13 @@
 """Evidence intake workflows for housing accountability documentation."""
 
-import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 from uuid import uuid4
 
 from app.core.utc import utc_now
 
 
-def extract_metadata(file: Dict[str, Any]) -> Dict[str, Any]:
+def extract_metadata(file: dict[str, Any]) -> dict[str, Any]:
     """Extract basic metadata from an intake file descriptor.
 
     The file descriptor is expected to contain at least a `filename` and
@@ -25,7 +24,7 @@ def extract_metadata(file: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def tag_category(file: Dict[str, Any]) -> str:
+def tag_category(file: dict[str, Any]) -> str:
     """Assign a broad evidence category based on filename keywords."""
     filename = (file.get("filename", "") or "").lower()
     categories = [
@@ -42,7 +41,7 @@ def tag_category(file: Dict[str, Any]) -> str:
     return "uncategorized"
 
 
-def append_to_timeline(event: Dict[str, Any]) -> Dict[str, Any]:
+def append_to_timeline(event: dict[str, Any]) -> dict[str, Any]:
     """Normalize and append an intake event to the module timeline."""
     return {
         "event_id": event.get("event_id") or str(uuid4()),
@@ -53,7 +52,7 @@ def append_to_timeline(event: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def save_intake_record(record: Dict[str, Any]) -> Dict[str, Any]:
+def save_intake_record(record: dict[str, Any]) -> dict[str, Any]:
     """Persist an intake record by returning a normalized copy with an ID."""
     saved = dict(record)
     saved.setdefault("record_id", str(uuid4()))

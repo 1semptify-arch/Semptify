@@ -1,4 +1,5 @@
 """FEMS file ingestion — deduplication, classification, text extraction."""
+
 import hashlib
 import logging
 import re
@@ -19,9 +20,7 @@ from app.modules.fems.models import (
 
 logger = logging.getLogger(__name__)
 
-PHONE_RE = re.compile(
-    r"(\+?1[\s\-.]?)?(\(?\d{3}\)?[\s\-.]?\d{3}[\s\-.]?\d{4})"
-)
+PHONE_RE = re.compile(r"(\+?1[\s\-.]?)?(\(?\d{3}\)?[\s\-.]?\d{3}[\s\-.]?\d{4})")
 
 
 def compute_hash(file_path: Path) -> str:
@@ -40,6 +39,7 @@ def extract_text(file_path: Path) -> str:
         elif suffix == ".pdf":
             try:
                 import pypdf
+
                 reader = pypdf.PdfReader(str(file_path))
                 return "\n".join(p.extract_text() or "" for p in reader.pages)
             except Exception as e:
@@ -49,6 +49,7 @@ def extract_text(file_path: Path) -> str:
             try:
                 import pytesseract
                 from PIL import Image
+
                 return pytesseract.image_to_string(Image.open(str(file_path)))
             except Exception as e:
                 logger.warning("OCR failed for %s: %s", file_path.name, e)
@@ -56,6 +57,7 @@ def extract_text(file_path: Path) -> str:
         elif suffix == ".eml":
             try:
                 import email
+
                 msg = email.message_from_bytes(file_path.read_bytes())
                 parts = []
                 if msg.is_multipart():
@@ -102,9 +104,7 @@ async def ingest_file(file_path: Path, case_id: int | None, db: AsyncSession) ->
     file_hash = compute_hash(file_path)
 
     # Check for duplicate
-    existing = (await db.execute(
-        select(FemsDocument).where(FemsDocument.file_hash == file_hash)
-    )).scalar_one_or_none()
+    existing = (await db.execute(select(FemsDocument).where(FemsDocument.file_hash == file_hash))).scalar_one_or_none()
 
     if existing:
         FEMS_QUARANTINE_DIR.mkdir(parents=True, exist_ok=True)
@@ -141,9 +141,7 @@ async def ingest_file(file_path: Path, case_id: int | None, db: AsyncSession) ->
     # Extract and link phone numbers
     phone_numbers = extract_phone_numbers(text)
     for number in phone_numbers:
-        phone = (await db.execute(
-            select(FemsPhoneNumber).where(FemsPhoneNumber.number == number)
-        )).scalar_one_or_none()
+        phone = (await db.execute(select(FemsPhoneNumber).where(FemsPhoneNumber.number == number))).scalar_one_or_none()
 
         if not phone:
             phone = FemsPhoneNumber(number=number)

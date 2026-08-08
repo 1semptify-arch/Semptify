@@ -10,8 +10,10 @@ Self-contained SDK module for building eviction defense cases.
 - Defense strategy analysis
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

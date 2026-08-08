@@ -9,8 +9,10 @@ Self-contained SDK module for managing case-related contacts.
 - Any person/organization involved in your case
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

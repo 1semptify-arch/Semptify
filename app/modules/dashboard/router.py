@@ -10,19 +10,20 @@ Single endpoint that combines data from:
 This provides everything the frontend needs in one call.
 """
 
-from fastapi import APIRouter, Query, Depends
-from typing import Dict, Any, Optional
-from pydantic import BaseModel
-from datetime import datetime
-
-from app.core.security import get_optional_user_id, green_access
-from app.core.user_context import UserContext
-from app.services.emotion_engine import emotion_engine
-from .service import progress_tracker
-from app.services.action_router import action_router
-from app.core.utc import utc_now
-from app.core.capabilities import require_capability
 import logging
+
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+
+from app.core.capabilities import require_capability
+from app.core.security import green_access
+from app.core.user_context import UserContext
+from app.core.utc import utc_now
+from app.services.action_router import action_router
+from app.services.emotion_engine import emotion_engine
+
+from .service import progress_tracker
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,6 +39,7 @@ def resolve_user_id(
 
 class DashboardContext(BaseModel):
     """Context for dashboard generation"""
+
     has_court_date: bool = False
     has_lease: bool = False
     has_payment_records: bool = False
@@ -47,12 +49,11 @@ class DashboardContext(BaseModel):
 
 @router.get("/")
 async def get_unified_dashboard(
-    user_id: str = Depends(resolve_user_id),
-    _ = Depends(require_capability("admin_dashboard"))
+    user_id: str = Depends(resolve_user_id), _=Depends(require_capability("admin_dashboard"))
 ):
     """
     Get complete dashboard data in a single call.
-    
+
     Returns:
     - Emotional state and UI adaptation
     - Progress and case readiness
@@ -63,19 +64,19 @@ async def get_unified_dashboard(
     emotional_state = emotion_engine.get_state(user_id)
     ui_adaptation = emotion_engine.calculate_ui_adaptation(user_id)
     dashboard_config = emotion_engine.get_dashboard_config(user_id)
-    
+
     # Get progress
     progress = progress_tracker.get_progress(user_id)
     readiness = progress_tracker.get_case_readiness(user_id)
     next_milestones = progress_tracker.get_next_milestones(user_id, 3)
-    
+
     # Build case context from progress
     case_context = {
         "has_court_date": progress.court_date is not None,
         "has_lease": "upload_lease" in progress.completed_milestones,
         "has_payment_records": "upload_payment_proof" in progress.completed_milestones,
         "maintenance_issues": "upload_maintenance" in progress.completed_milestones,
-        "has_notice": "upload_notice" in progress.completed_milestones
+        "has_notice": "upload_notice" in progress.completed_milestones,
     }
 
     # Get action plan (convert EmotionalState to dict for action router)
@@ -86,20 +87,19 @@ async def get_unified_dashboard(
         "momentum": emotional_state.momentum,
         "overwhelm": emotional_state.overwhelm,
         "trust": emotional_state.trust,
-        "resolve": emotional_state.resolve
+        "resolve": emotional_state.resolve,
     }
-    action_plan = action_router.generate_action_plan(emotional_dict, case_context)    # Calculate timeline info
+    action_plan = action_router.generate_action_plan(emotional_dict, case_context)  # Calculate timeline info
     journey_days = 0
     days_to_court = None
     if progress.journey_started:
         journey_days = (utc_now() - progress.journey_started).days + 1
     if progress.court_date:
         days_to_court = (progress.court_date - utc_now()).days
-    
+
     return {
         "success": True,
         "timestamp": utc_now().isoformat(),
-        
         # Emotional Layer
         "emotion": {
             "state": emotional_state,
@@ -112,48 +112,44 @@ async def get_unified_dashboard(
                 "max_items_shown": ui_adaptation.max_items_shown,
                 "information_depth": ui_adaptation.information_depth,
                 "guidance_level": ui_adaptation.guidance_level,
-                "message_tone": ui_adaptation.message_tone
-            }
+                "message_tone": ui_adaptation.message_tone,
+            },
         },
-        
         # Progress Layer
         "progress": {
             "readiness": {
                 "percent": readiness["percent"],
                 "level": readiness["level"],
-                "message": readiness["message"]
+                "message": readiness["message"],
             },
             "stats": {
                 "documents": progress.documents_uploaded,
                 "violations": progress.violations_found,
                 "points": readiness["total_points"],
                 "streak": progress.streak_days,
-                "tasks_completed": progress.tasks_completed
+                "tasks_completed": progress.tasks_completed,
             },
-            "next_milestones": next_milestones
+            "next_milestones": next_milestones,
         },
-        
         # Timeline Layer
         "timeline": {
             "journey_days": journey_days,
             "days_to_court": days_to_court,
             "court_date": progress.court_date.strftime("%b %d, %Y") if progress.court_date else None,
-            "case_type": progress.case_type
+            "case_type": progress.case_type,
         },
-        
         # Action Layer
         "actions": {
             "primary": action_plan.primary_action.to_dict() if action_plan.primary_action else None,
             "secondary": [a.to_dict() for a in action_plan.secondary_actions],
             "self_care": action_plan.self_care_reminder.to_dict() if action_plan.self_care_reminder else None,
             "encouragement": action_plan.encouragement_message,
-            "total_estimated_time": action_plan.total_estimated_time
+            "total_estimated_time": action_plan.total_estimated_time,
         },
-        
         # Visible Sections (based on mode)
-        "visible_sections": dashboard_config.get("visible_sections", [
-            "mission_status", "today_tasks", "timeline", "quick_actions", "evidence_summary"
-        ])
+        "visible_sections": dashboard_config.get(
+            "visible_sections", ["mission_status", "today_tasks", "timeline", "quick_actions", "evidence_summary"]
+        ),
     }
 
 
@@ -176,11 +172,11 @@ async def refresh_dashboard(context: DashboardContext, user_id: str = Depends(re
         "momentum": emotional_state.momentum,
         "overwhelm": emotional_state.overwhelm,
         "trust": emotional_state.trust,
-        "resolve": emotional_state.resolve
+        "resolve": emotional_state.resolve,
     }
 
     # Get action plan with provided context
-    action_plan = action_router.generate_action_plan(emotional_dict, case_context)    # Get dashboard config
+    action_plan = action_router.generate_action_plan(emotional_dict, case_context)  # Get dashboard config
     dashboard_config = emotion_engine.get_dashboard_config(user_id)
 
     return {
@@ -189,9 +185,9 @@ async def refresh_dashboard(context: DashboardContext, user_id: str = Depends(re
         "actions": {
             "primary": action_plan.primary_action.to_dict() if action_plan.primary_action else None,
             "secondary": [a.to_dict() for a in action_plan.secondary_actions],
-            "encouragement": action_plan.encouragement_message
+            "encouragement": action_plan.encouragement_message,
         },
-        "messages": dashboard_config.get("messages", {})
+        "messages": dashboard_config.get("messages", {}),
     }
 
 
@@ -203,7 +199,7 @@ async def get_status_bar(user_id: str = Depends(resolve_user_id)):
     progress = progress_tracker.get_progress(user_id)
     readiness = progress_tracker.get_case_readiness(user_id)
     emotional_state = emotion_engine.get_state(user_id)
-    
+
     # Convert to dict for action router
     emotional_dict = {
         "intensity": emotional_state.intensity,
@@ -212,10 +208,10 @@ async def get_status_bar(user_id: str = Depends(resolve_user_id)):
         "momentum": emotional_state.momentum,
         "overwhelm": emotional_state.overwhelm,
         "trust": emotional_state.trust,
-        "resolve": emotional_state.resolve
+        "resolve": emotional_state.resolve,
     }
     mode = action_router.get_dashboard_mode(emotional_dict)
-    
+
     days_to_court = None
     urgent_count = 0
     if progress.court_date:
@@ -223,7 +219,7 @@ async def get_status_bar(user_id: str = Depends(resolve_user_id)):
         # Count as urgent if court date is within 14 days
         if days_to_court is not None and 0 < days_to_court <= 14:
             urgent_count = 1
-    
+
     return {
         "mode": mode,
         "readiness_percent": readiness["percent"],
@@ -233,7 +229,7 @@ async def get_status_bar(user_id: str = Depends(resolve_user_id)):
         "documents": progress.documents_uploaded,
         "violations": progress.violations_found,
         "streak": progress.streak_days,
-        "urgent_count": urgent_count
+        "urgent_count": urgent_count,
     }
 
 
@@ -244,7 +240,7 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
     """
     progress = progress_tracker.get_progress(user_id)
     emotional_state = emotion_engine.get_state(user_id)
-    
+
     # Convert to dict for action router
     emotional_dict = {
         "intensity": emotional_state.intensity,
@@ -253,10 +249,10 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
         "momentum": emotional_state.momentum,
         "overwhelm": emotional_state.overwhelm,
         "trust": emotional_state.trust,
-        "resolve": emotional_state.resolve
+        "resolve": emotional_state.resolve,
     }
     mode = action_router.get_dashboard_mode(emotional_dict)
-    
+
     # Time-based greeting
     hour = utc_now().hour
     if hour < 12:
@@ -265,23 +261,23 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
         time_greeting = "Good afternoon"
     else:
         time_greeting = "Good evening"
-    
+
     # Mode-based suffix
     mode_messages = {
         "crisis": "Let's focus on what matters most right now.",
         "focused": "Ready to make progress today?",
         "guided": "Let me help you take the next step.",
         "flow": "You're doing great! Let's keep the momentum.",
-        "power": "You're on fire today!"
+        "power": "You're on fire today!",
     }
-    
+
     # Streak recognition
     streak_message = ""
     if progress.streak_days >= 7:
         streak_message = f"🔥 {progress.streak_days} day streak!"
     elif progress.streak_days >= 3:
         streak_message = f"Great consistency - {progress.streak_days} days in a row!"
-    
+
     # Court urgency
     urgency_message = ""
     if progress.court_date:
@@ -290,13 +286,13 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
             urgency_message = "⚠️ Court is very soon. Let's make sure you're ready."
         elif days_to_court <= 7:
             urgency_message = "Court is coming up. Time to finalize your preparation."
-    
+
     return {
         "greeting": time_greeting,
         "message": mode_messages.get(mode, "Welcome back."),
         "streak_message": streak_message,
         "urgency_message": urgency_message,
-        "mode": mode
+        "mode": mode,
     }
 
 
@@ -307,16 +303,13 @@ async def get_quick_stats(user_id: str = Depends(resolve_user_id)):
     """
     progress = progress_tracker.get_progress(user_id)
     readiness = progress_tracker.get_case_readiness(user_id)
-    
+
     return {
         "documents_uploaded": progress.documents_uploaded,
         "violations_found": progress.violations_found,
         "case_readiness": readiness["percent"],
-        "days_active": (
-            (utc_now() - progress.journey_started).days + 1
-            if progress.journey_started else 0
-        ),
+        "days_active": ((utc_now() - progress.journey_started).days + 1 if progress.journey_started else 0),
         "streak_days": progress.streak_days,
         "total_points": readiness["total_points"],
-        "tasks_completed": progress.tasks_completed
+        "tasks_completed": progress.tasks_completed,
     }

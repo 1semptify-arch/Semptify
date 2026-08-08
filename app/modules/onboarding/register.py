@@ -9,11 +9,12 @@ Usage:
 """
 
 import logging
+
 from fastapi import FastAPI
 
 from app.modules.onboarding.config import OnboardingConfig
-from app.modules.onboarding.router import create_router
 from app.modules.onboarding.middleware import OnboardingGateMiddleware
+from app.modules.onboarding.router import create_router
 
 logger = logging.getLogger(__name__)
 

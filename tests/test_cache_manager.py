@@ -13,6 +13,7 @@ from app.core.cache_manager import (
 
 # ── CacheEntry ───────────────────────────────────────────────────────────────
 
+
 class TestCacheEntry:
     def test_defaults(self):
         entry = CacheEntry(
@@ -27,7 +28,8 @@ class TestCacheEntry:
 
     def test_is_expired_false_when_no_expiry(self):
         entry = CacheEntry(
-            key="k", value="v",
+            key="k",
+            value="v",
             expires_at=None,
             created_at=datetime.now(UTC),
         )
@@ -35,7 +37,8 @@ class TestCacheEntry:
 
     def test_is_expired_false_when_future(self):
         entry = CacheEntry(
-            key="k", value="v",
+            key="k",
+            value="v",
             expires_at=datetime.now(UTC) + timedelta(hours=1),
             created_at=datetime.now(UTC),
         )
@@ -43,7 +46,8 @@ class TestCacheEntry:
 
     def test_is_expired_true_when_past(self):
         entry = CacheEntry(
-            key="k", value="v",
+            key="k",
+            value="v",
             expires_at=datetime.now(UTC) - timedelta(seconds=1),
             created_at=datetime.now(UTC),
         )
@@ -51,7 +55,8 @@ class TestCacheEntry:
 
     def test_touch_increments(self):
         entry = CacheEntry(
-            key="k", value="v",
+            key="k",
+            value="v",
             expires_at=None,
             created_at=datetime.now(UTC),
         )
@@ -62,7 +67,8 @@ class TestCacheEntry:
 
     def test_to_dict(self):
         entry = CacheEntry(
-            key="k", value="v",
+            key="k",
+            value="v",
             expires_at=None,
             created_at=datetime.now(UTC),
             tags=["t1"],
@@ -75,6 +81,7 @@ class TestCacheEntry:
 
 
 # ── MemoryCache ──────────────────────────────────────────────────────────────
+
 
 class TestMemoryCache:
     def test_set_and_get(self):
@@ -157,6 +164,7 @@ class TestMemoryCache:
 
 # ── CacheManager ─────────────────────────────────────────────────────────────
 
+
 class TestCacheManager:
     @pytest.mark.asyncio
     async def test_set_and_get(self):
@@ -230,6 +238,7 @@ class TestCacheManager:
 
 
 # ── CacheBackend enum ────────────────────────────────────────────────────────
+
 
 class TestCacheBackendEnum:
     def test_values(self):

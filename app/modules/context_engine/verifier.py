@@ -9,11 +9,9 @@ Runs periodically (cron/manual) to mark facts stale.
 """
 
 import logging
-from datetime import timedelta
-from typing import List
 
 import httpx
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now
@@ -36,9 +34,7 @@ async def verify_fact(fact: ContextFact) -> bool:
         logger.info("Verify failed for fact %s: %s", fact.id, e)
         ok = False
     async with get_db_session() as db:
-        result = await db.execute(
-            select(ContextFact).where(ContextFact.id == fact.id)
-        )
+        result = await db.execute(select(ContextFact).where(ContextFact.id == fact.id))
         db_fact = result.scalars().first()
         if db_fact:
             db_fact.is_verified = ok
@@ -50,12 +46,16 @@ async def verify_fact(fact: ContextFact) -> bool:
 async def verify_subject(subject: str, jurisdiction: str = "MN", limit: int = 20) -> dict:
     """Verify all facts for a subject. Returns summary."""
     async with get_db_session() as db:
-        stmt = select(ContextFact).where(
-            and_(
-                ContextFact.subject == subject,
-                ContextFact.jurisdiction == jurisdiction,
+        stmt = (
+            select(ContextFact)
+            .where(
+                and_(
+                    ContextFact.subject == subject,
+                    ContextFact.jurisdiction == jurisdiction,
+                )
             )
-        ).limit(limit)
+            .limit(limit)
+        )
         result = await db.execute(stmt)
         facts = list(result.scalars().all())
 

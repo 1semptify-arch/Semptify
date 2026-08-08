@@ -12,9 +12,7 @@ Framework-specific helpers (set_auth_cookie) accept a response object genericall
 Wraps app.core.cookie_auth — single source of truth stays in core.
 """
 
-from typing import Optional
 from app.core.cookie_auth import sign_user_id, verify_user_id
-
 
 COOKIE_NAME = "semptify_uid"
 COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
@@ -34,7 +32,7 @@ class CookieAuth:
         """Sign a user_id for cookie storage."""
         return sign_user_id(user_id)
 
-    def verify(self, cookie_value: Optional[str]) -> Optional[str]:
+    def verify(self, cookie_value: str | None) -> str | None:
         """Verify cookie and return raw user_id, or None if invalid."""
         return verify_user_id(cookie_value)
 
@@ -60,7 +58,7 @@ def set_auth_cookie(response, user_id: str, secure: bool = True) -> str:
     return signed
 
 
-def verify_auth_cookie(cookie_value: Optional[str]) -> Optional[str]:
+def verify_auth_cookie(cookie_value: str | None) -> str | None:
     """
     Verify a semptify_uid cookie value.
 

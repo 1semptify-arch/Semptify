@@ -39,8 +39,10 @@ logger = logging.getLogger(__name__)
 # Enums
 # =============================================================================
 
+
 class CaseOutcome(Enum):
     """Possible case outcomes."""
+
     PENDING = "pending"
     WON = "won"  # Tenant prevailed
     LOST = "lost"  # Landlord prevailed
@@ -53,6 +55,7 @@ class CaseOutcome(Enum):
 
 class DefenseEffectiveness(Enum):
     """How effective a defense was."""
+
     HIGHLY_EFFECTIVE = "highly_effective"  # Primary reason for win
     EFFECTIVE = "effective"  # Contributed to favorable outcome
     NEUTRAL = "neutral"  # Neither helped nor hurt
@@ -63,6 +66,7 @@ class DefenseEffectiveness(Enum):
 
 class MotionOutcome(Enum):
     """Outcome of filed motions."""
+
     GRANTED = "granted"
     DENIED = "denied"
     PARTIALLY_GRANTED = "partially_granted"
@@ -74,9 +78,11 @@ class MotionOutcome(Enum):
 # Data Classes
 # =============================================================================
 
+
 @dataclass
 class CaseOutcomeRecord:
     """Record of a completed case for learning."""
+
     id: str = field(default_factory=lambda: make_id("cout"))
     user_id: str = ""
     case_number: str = ""
@@ -122,6 +128,7 @@ class CaseOutcomeRecord:
 @dataclass
 class DefenseOutcomeRecord:
     """Track effectiveness of specific defenses."""
+
     id: str = field(default_factory=lambda: make_id("def"))
     case_outcome_id: str = ""
     defense_code: str = ""
@@ -133,6 +140,7 @@ class DefenseOutcomeRecord:
 @dataclass
 class MotionOutcomeRecord:
     """Track outcomes of specific motions."""
+
     id: str = field(default_factory=lambda: make_id("mot"))
     case_outcome_id: str = ""
     motion_type: str = ""
@@ -146,6 +154,7 @@ class MotionOutcomeRecord:
 @dataclass
 class DefenseSuccessRate:
     """Aggregated success rate for a defense."""
+
     defense_code: str
     defense_name: str
     total_uses: int
@@ -161,6 +170,7 @@ class DefenseSuccessRate:
 @dataclass
 class JudgePattern:
     """Learned patterns about specific judges."""
+
     judge_name: str
     total_cases: int
     tenant_win_rate: float
@@ -173,6 +183,7 @@ class JudgePattern:
 @dataclass
 class LandlordPattern:
     """Learned patterns about landlords/property managers."""
+
     landlord_name: str
     total_cases: int
     settlement_rate: float
@@ -185,6 +196,7 @@ class LandlordPattern:
 # =============================================================================
 # Court Learning Service
 # =============================================================================
+
 
 class CourtLearningEngine:
     """
@@ -214,7 +226,7 @@ class CourtLearningEngine:
         outcome: CaseOutcome,
         defenses_used: list[str],
         primary_defense: str | None = None,
-        **kwargs
+        **kwargs,
     ) -> CaseOutcomeRecord:
         """
         Record the outcome of a case for learning.
@@ -229,7 +241,7 @@ class CourtLearningEngine:
             defenses_used=defenses_used,
             primary_defense=primary_defense,
             outcome_date=utc_now(),
-            **kwargs
+            **kwargs,
         )
 
         # Calculate days to resolution if we have dates
@@ -246,7 +258,7 @@ class CourtLearningEngine:
         defense_code: str,
         effectiveness: DefenseEffectiveness,
         judge_response: str = "",
-        notes: str = ""
+        notes: str = "",
     ) -> DefenseOutcomeRecord:
         """Record how effective a specific defense was."""
         record = DefenseOutcomeRecord(
@@ -265,7 +277,7 @@ class CourtLearningEngine:
         motion_type: str,
         outcome: MotionOutcome,
         judge_name: str | None = None,
-        reasoning: str = ""
+        reasoning: str = "",
     ) -> MotionOutcomeRecord:
         """Record the outcome of a motion."""
         record = MotionOutcomeRecord(
@@ -283,11 +295,7 @@ class CourtLearningEngine:
     # Learning & Analysis
     # ==========================================================================
 
-    async def get_defense_success_rates(
-        self,
-        county: str = "Dakota",
-        min_cases: int = 5
-    ) -> list[DefenseSuccessRate]:
+    async def get_defense_success_rates(self, county: str = "Dakota", min_cases: int = 5) -> list[DefenseSuccessRate]:
         """
         Calculate success rates for each defense based on recorded outcomes.
 
@@ -342,26 +350,25 @@ class CourtLearningEngine:
             if stats["partial"] > 0:
                 avg_savings = stats["settlements_sum"] // stats["partial"]
 
-            results.append(DefenseSuccessRate(
-                defense_code=code,
-                defense_name=self._get_defense_name(code),
-                total_uses=total,
-                wins=stats["wins"],
-                partial_wins=stats["partial"],
-                losses=stats["losses"],
-                win_rate=round(win_rate, 3),
-                confidence=confidence,
-                avg_settlement_savings_cents=avg_savings,
-            ))
+            results.append(
+                DefenseSuccessRate(
+                    defense_code=code,
+                    defense_name=self._get_defense_name(code),
+                    total_uses=total,
+                    wins=stats["wins"],
+                    partial_wins=stats["partial"],
+                    losses=stats["losses"],
+                    win_rate=round(win_rate, 3),
+                    confidence=confidence,
+                    avg_settlement_savings_cents=avg_savings,
+                )
+            )
 
         # Sort by win rate
         results.sort(key=lambda x: x.win_rate, reverse=True)
         return results
 
-    async def get_judge_patterns(
-        self,
-        county: str = "Dakota"
-    ) -> list[JudgePattern]:
+    async def get_judge_patterns(self, county: str = "Dakota") -> list[JudgePattern]:
         """
         Analyze patterns by judge.
 
@@ -403,28 +410,23 @@ class CourtLearningEngine:
                 continue
 
             # Find top defenses
-            sorted_defenses = sorted(
-                stats["defenses"].items(),
-                key=lambda x: x[1],
-                reverse=True
-            )
+            sorted_defenses = sorted(stats["defenses"].items(), key=lambda x: x[1], reverse=True)
             favored = [d[0] for d in sorted_defenses[:3]]
 
-            results.append(JudgePattern(
-                judge_name=judge,
-                total_cases=total,
-                tenant_win_rate=round(stats["tenant_wins"] / total, 3) if total > 0 else 0,
-                favored_defenses=favored,
-                motion_grant_rate=0.5,  # Would calculate from motion outcomes
-                avg_days_to_decision=stats["days_sum"] // total if total > 0 else 0,
-            ))
+            results.append(
+                JudgePattern(
+                    judge_name=judge,
+                    total_cases=total,
+                    tenant_win_rate=round(stats["tenant_wins"] / total, 3) if total > 0 else 0,
+                    favored_defenses=favored,
+                    motion_grant_rate=0.5,  # Would calculate from motion outcomes
+                    avg_days_to_decision=stats["days_sum"] // total if total > 0 else 0,
+                )
+            )
 
         return results
 
-    async def get_landlord_patterns(
-        self,
-        landlord_name: str | None = None
-    ) -> list[LandlordPattern]:
+    async def get_landlord_patterns(self, landlord_name: str | None = None) -> list[LandlordPattern]:
         """
         Analyze patterns by landlord/property management company.
 
@@ -472,14 +474,16 @@ class CourtLearningEngine:
             if stats["settlement_percents"]:
                 avg_pct = sum(stats["settlement_percents"]) / len(stats["settlement_percents"])
 
-            results.append(LandlordPattern(
-                landlord_name=name,
-                total_cases=total,
-                settlement_rate=round(stats["settled"] / total, 3) if total > 0 else 0,
-                avg_settlement_percent=round(avg_pct, 3),
-                common_violations=[],  # Would populate from case data
-                typical_attorney=list(stats["attorneys"])[0] if stats["attorneys"] else None,
-            ))
+            results.append(
+                LandlordPattern(
+                    landlord_name=name,
+                    total_cases=total,
+                    settlement_rate=round(stats["settled"] / total, 3) if total > 0 else 0,
+                    avg_settlement_percent=round(avg_pct, 3),
+                    common_violations=[],  # Would populate from case data
+                    typical_attorney=list(stats["attorneys"])[0] if stats["attorneys"] else None,
+                )
+            )
 
         return results
 
@@ -560,9 +564,7 @@ class CourtLearningEngine:
         # Suggest motions based on case type
         if notice_type == "14-day" and amount_claimed_cents > 0:
             recommendations["motions_to_consider"].append("motion_to_dismiss")
-            recommendations["notes"].append(
-                "14-day notices often have technical defects - review notice carefully"
-            )
+            recommendations["notes"].append("14-day notices often have technical defects - review notice carefully")
 
         # Calculate confidence based on data availability
         data_points = len(self._case_outcomes)
@@ -602,7 +604,9 @@ class CourtLearningEngine:
             "date_range": {
                 "earliest": min((c.created_at for c in self._case_outcomes), default=None),
                 "latest": max((c.created_at for c in self._case_outcomes), default=None),
-            } if self._case_outcomes else None,
+            }
+            if self._case_outcomes
+            else None,
         }
 
 

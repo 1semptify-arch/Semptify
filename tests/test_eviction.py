@@ -18,6 +18,7 @@ pytestmark = pytest.mark.skip(
 # Eviction Home & Navigation Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_eviction_home(client: AsyncClient):
     """Test eviction defense home page loads."""
@@ -82,6 +83,7 @@ async def test_eviction_zoom_tips(client: AsyncClient):
 # i18n / Translation Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 @pytest.mark.parametrize("lang", ["en", "es", "so", "ar"])
 async def test_eviction_i18n_strings(client: AsyncClient, lang: str):
@@ -115,6 +117,7 @@ async def test_eviction_invalid_language_fallback(client: AsyncClient):
 # Deadline Calculation Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_eviction_deadline_calculation(client: AsyncClient):
     """Test deadline calculation API."""
@@ -128,6 +131,7 @@ async def test_eviction_deadline_calculation(client: AsyncClient):
 # =============================================================================
 # Forms Library Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_forms_library_page(client: AsyncClient):
@@ -158,6 +162,7 @@ async def test_forms_api_resources(client: AsyncClient):
 # PDF Generation Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_answer_generate_pdf(client: AsyncClient, sample_eviction_form_data):
     """Test answer PDF generation."""
@@ -171,7 +176,7 @@ async def test_answer_generate_pdf(client: AsyncClient, sample_eviction_form_dat
             "served_date": sample_eviction_form_data["served_date"],
             "defenses": ",".join(sample_eviction_form_data["defenses"]),
             "defense_details": sample_eviction_form_data["defense_details"],
-        }
+        },
     )
     # PDF generation may succeed (200) or fail gracefully if WeasyPrint not installed
     assert response.status_code in [200, 500, 422]
@@ -191,7 +196,7 @@ async def test_motion_generate_pdf(client: AsyncClient):
             "case_number": "27-CV-25-12345",
             "reason": "Need more time to gather evidence",
             "requested_date": "2025-12-30",
-        }
+        },
     )
     assert response.status_code in [200, 500, 422]
 
@@ -206,7 +211,7 @@ async def test_hearing_generate_pdf(client: AsyncClient):
             "hearing_date": "2025-12-15",
             "hearing_time": "09:00",
             "key_points": "Habitability issues, rent receipts",
-        }
+        },
     )
     assert response.status_code in [200, 500, 422]
 
@@ -214,6 +219,7 @@ async def test_hearing_generate_pdf(client: AsyncClient):
 # =============================================================================
 # Counterclaim Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_counterclaim_page(client: AsyncClient):
@@ -234,7 +240,7 @@ async def test_counterclaim_generate_pdf(client: AsyncClient):
             "claim_type": "habitability",
             "claim_amount": "5000",
             "claim_details": "Landlord failed to repair heating for 3 months",
-        }
+        },
     )
     assert response.status_code in [200, 500, 422]
 
@@ -242,6 +248,7 @@ async def test_counterclaim_generate_pdf(client: AsyncClient):
 # =============================================================================
 # Edge Case & Error Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_invalid_motion_type(client: AsyncClient):
@@ -258,7 +265,7 @@ async def test_answer_generate_missing_required_fields(client: AsyncClient):
         data={
             "tenant_name": "John Doe",
             # Missing required fields
-        }
+        },
     )
     # Should fail validation or return error
     assert response.status_code in [400, 422, 200, 500]

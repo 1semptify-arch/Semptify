@@ -222,7 +222,7 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
             </div>
             <div class="info-row">
                 <span class="info-label">Account Type</span>
-                <span class="info-value" style="text-transform: capitalize;">🏷️ {role or 'User'}</span>
+                <span class="info-value" style="text-transform: capitalize;">🏷️ {role or "User"}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Account ID</span>

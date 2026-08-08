@@ -14,15 +14,16 @@ DB is source of truth. In-memory cache with TTL for performance.
 
 import logging
 import time
-from typing import Any, Optional
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-class ModuleStatus(str, Enum):
+class ModuleStatus(StrEnum):
     """Canonical module lifecycle states."""
+
     UNKNOWN = "unknown"
     ACTIVE = "active"
     BETA = "beta"
@@ -33,14 +34,15 @@ class ModuleStatus(str, Enum):
 @dataclass
 class ModuleInfo:
     """In-memory representation of a module registry row."""
+
     name: str
     display_name: str
     description: str
     status: str
     is_enabled: bool
     dev_mode: bool
-    version: Optional[str]
-    route_prefix: Optional[str]
+    version: str | None
+    route_prefix: str | None
     depends_on: list[str]
     notes: str
 
@@ -64,14 +66,18 @@ class ModuleOverlayManager:
 
     async def _refresh_from_db(self) -> None:
         try:
-            from app.core.database import get_session_factory
             from sqlalchemy import text
+
+            from app.core.database import get_session_factory
+
             async with get_session_factory()() as session:
-                result = await session.execute(text(
-                    "SELECT name, display_name, description, status, is_enabled, "
-                    "dev_mode, version, route_prefix, depends_on, notes "
-                    "FROM module_registry"
-                ))
+                result = await session.execute(
+                    text(
+                        "SELECT name, display_name, description, status, is_enabled, "
+                        "dev_mode, version, route_prefix, depends_on, notes "
+                        "FROM module_registry"
+                    )
+                )
                 rows = result.fetchall()
             self._cache = {}
             for r in rows:
@@ -150,13 +156,18 @@ class ModuleOverlayManager:
 
     async def set_module_enabled(self, name: str, enabled: bool, updated_by: str = "system") -> bool:
         """Toggle module on/off. Returns True if module exists."""
-        from app.core.database import get_session_factory
         from sqlalchemy import text
+
+        from app.core.database import get_session_factory
+
         async with get_session_factory()() as session:
-            result = await session.execute(text(
-                "UPDATE module_registry SET is_enabled = :enabled, updated_by = :by, updated_at = NOW() "
-                "WHERE name = :name RETURNING id"
-            ), {"name": name, "enabled": enabled, "by": updated_by})
+            result = await session.execute(
+                text(
+                    "UPDATE module_registry SET is_enabled = :enabled, updated_by = :by, updated_at = NOW() "
+                    "WHERE name = :name RETURNING id"
+                ),
+                {"name": name, "enabled": enabled, "by": updated_by},
+            )
             row = result.fetchone()
             if not row:
                 logger.warning("set_module_enabled: %s not found", name)
@@ -170,13 +181,18 @@ class ModuleOverlayManager:
 
     async def set_dev_mode(self, name: str, dev_mode: bool, updated_by: str = "system") -> bool:
         """Enable/disable dev mode strict logging."""
-        from app.core.database import get_session_factory
         from sqlalchemy import text
+
+        from app.core.database import get_session_factory
+
         async with get_session_factory()() as session:
-            result = await session.execute(text(
-                "UPDATE module_registry SET dev_mode = :dev_mode, updated_by = :by, updated_at = NOW() "
-                "WHERE name = :name RETURNING id"
-            ), {"name": name, "dev_mode": dev_mode, "by": updated_by})
+            result = await session.execute(
+                text(
+                    "UPDATE module_registry SET dev_mode = :dev_mode, updated_by = :by, updated_at = NOW() "
+                    "WHERE name = :name RETURNING id"
+                ),
+                {"name": name, "dev_mode": dev_mode, "by": updated_by},
+            )
             row = result.fetchone()
             if not row:
                 logger.warning("set_dev_mode: %s not found", name)
@@ -189,13 +205,18 @@ class ModuleOverlayManager:
 
     async def set_status(self, name: str, status: str, updated_by: str = "system") -> bool:
         """Set module status (unknown/active/beta/deprecated/broken)."""
-        from app.core.database import get_session_factory
         from sqlalchemy import text
+
+        from app.core.database import get_session_factory
+
         async with get_session_factory()() as session:
-            result = await session.execute(text(
-                "UPDATE module_registry SET status = :status, updated_by = :by, updated_at = NOW() "
-                "WHERE name = :name RETURNING id"
-            ), {"name": name, "status": status, "by": updated_by})
+            result = await session.execute(
+                text(
+                    "UPDATE module_registry SET status = :status, updated_by = :by, updated_at = NOW() "
+                    "WHERE name = :name RETURNING id"
+                ),
+                {"name": name, "status": status, "by": updated_by},
+            )
             row = result.fetchone()
             if not row:
                 return False

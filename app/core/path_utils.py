@@ -3,49 +3,49 @@ Semptify Path Utilities
 Normalize paths for different storage systems to prevent folder creation conflicts.
 """
 
-import re
-from typing import Union
-from pathlib import Path, PurePosixPath, PureWindowsPath
 import logging
+import re
+from pathlib import Path
+
 logger = logging.getLogger(__name__)
 
 
-def normalize_cloud_path(path: Union[str, Path]) -> str:
+def normalize_cloud_path(path: str | Path) -> str:
     """
     Normalize path for cloud storage APIs (Google Drive, Dropbox, OneDrive).
-    
+
     All cloud APIs expect forward slashes (/) as path separators.
     Removes leading/trailing slashes and ensures consistent format.
-    
+
     Args:
         path: Path to normalize (string or Path object)
-        
+
     Returns:
         Normalized path with forward slashes
-        
+
     Examples:
         >>> normalize_cloud_path("Semptify5.0\\Vault\\documents")
         'Semptify5.0/Vault/documents'
-        
+
         >>> normalize_cloud_path("/Semptify5.0/Vault/documents/")
         'Semptify5.0/Vault/documents'
     """
     if isinstance(path, Path):
         path = str(path)
-    
+
     # Convert all backslashes to forward slashes
     normalized = path.replace("\\", "/")
-    
+
     # Remove leading/trailing slashes
     normalized = normalized.strip("/")
-    
+
     # Replace multiple consecutive slashes with single slash
     normalized = re.sub(r"/+", "/", normalized)
-    
+
     return normalized
 
 
-def normalize_local_path(path: Union[str, Path]) -> str:
+def normalize_local_path(path: str | Path) -> str:
     r"""
     Normalize path for local Windows file system.
 
@@ -63,10 +63,10 @@ def normalize_local_path(path: Union[str, Path]) -> str:
     """
     if isinstance(path, Path):
         path = str(path)
-    
+
     # Convert all forward slashes to backslashes
     normalized = path.replace("/", "\\")
-    
+
     # Remove leading/trailing backslashes (but preserve drive letters)
     if len(normalized) > 1 and normalized[1] == ":":
         # Drive letter case - preserve drive, trim trailing
@@ -74,51 +74,51 @@ def normalize_local_path(path: Union[str, Path]) -> str:
     else:
         # Regular path - trim both ends
         normalized = normalized.strip("\\")
-    
+
     # Replace multiple consecutive backslashes with single backslash
     normalized = re.sub(r"\\+", "\\", normalized)
-    
+
     return normalized
 
 
-def ensure_cloud_path(path: Union[str, Path]) -> str:
+def ensure_cloud_path(path: str | Path) -> str:
     """
     Ensure path is in cloud format (forward slashes).
     Alias for normalize_cloud_path for semantic clarity.
-    
+
     Args:
         path: Path to ensure is cloud format
-        
+
     Returns:
         Cloud-formatted path
     """
     return normalize_cloud_path(path)
 
 
-def ensure_local_path(path: Union[str, Path]) -> str:
+def ensure_local_path(path: str | Path) -> str:
     """
     Ensure path is in local Windows format (backslashes).
     Alias for normalize_local_path for semantic clarity.
-    
+
     Args:
         path: Path to ensure is local format
-        
+
     Returns:
         Local-formatted path
     """
     return normalize_local_path(path)
 
 
-def split_cloud_path(path: Union[str, Path]) -> list[str]:
+def split_cloud_path(path: str | Path) -> list[str]:
     """
     Split cloud path into components.
-    
+
     Args:
         path: Cloud-formatted path
-        
+
     Returns:
         List of path components
-        
+
     Examples:
         >>> split_cloud_path("Semptify5.0/Vault/documents")
         ['Semptify5.0', 'Vault', 'documents']
@@ -127,16 +127,16 @@ def split_cloud_path(path: Union[str, Path]) -> list[str]:
     return normalized.split("/") if normalized else []
 
 
-def join_cloud_path(*parts: Union[str, Path]) -> str:
+def join_cloud_path(*parts: str | Path) -> str:
     """
     Join path components using cloud format (forward slashes).
-    
+
     Args:
         *parts: Path components to join
-        
+
     Returns:
         Joined cloud path
-        
+
     Examples:
         >>> join_cloud_path("Semptify5.0", "Vault", "documents")
         'Semptify5.0/Vault/documents'
@@ -145,16 +145,16 @@ def join_cloud_path(*parts: Union[str, Path]) -> str:
     return "/".join(normalized_parts)
 
 
-def get_cloud_parent(path: Union[str, Path]) -> str:
+def get_cloud_parent(path: str | Path) -> str:
     """
     Get parent directory of cloud path.
-    
+
     Args:
         path: Cloud-formatted path
-        
+
     Returns:
         Parent path (empty string if no parent)
-        
+
     Examples:
         >>> get_cloud_parent("Semptify5.0/Vault/documents")
         'Semptify5.0/Vault'
@@ -163,16 +163,16 @@ def get_cloud_parent(path: Union[str, Path]) -> str:
     return join_cloud_path(*parts[:-1]) if len(parts) > 1 else ""
 
 
-def get_cloud_basename(path: Union[str, Path]) -> str:
+def get_cloud_basename(path: str | Path) -> str:
     """
     Get basename (last component) of cloud path.
-    
+
     Args:
         path: Cloud-formatted path
-        
+
     Returns:
         Basename of path
-        
+
     Examples:
         >>> get_cloud_basename("Semptify5.0/Vault/documents")
         'documents'
@@ -181,13 +181,13 @@ def get_cloud_basename(path: Union[str, Path]) -> str:
     return parts[-1] if parts else ""
 
 
-def is_cloud_path(path: Union[str, Path]) -> bool:
+def is_cloud_path(path: str | Path) -> bool:
     """
     Check if path is already in cloud format.
-    
+
     Args:
         path: Path to check
-        
+
     Returns:
         True if path uses forward slashes, False otherwise
     """
@@ -196,13 +196,13 @@ def is_cloud_path(path: Union[str, Path]) -> bool:
     return "/" in path and "\\" not in path
 
 
-def is_local_path(path: Union[str, Path]) -> bool:
+def is_local_path(path: str | Path) -> bool:
     """
     Check if path is in local Windows format.
-    
+
     Args:
         path: Path to check
-        
+
     Returns:
         True if path uses backslashes, False otherwise
     """
@@ -211,17 +211,17 @@ def is_local_path(path: Union[str, Path]) -> bool:
     return "\\" in path
 
 
-def convert_path_format(path: Union[str, Path], target_format: str = "cloud") -> str:
+def convert_path_format(path: str | Path, target_format: str = "cloud") -> str:
     """
     Convert path between cloud and local formats.
-    
+
     Args:
         path: Path to convert
         target_format: "cloud" or "local"
-        
+
     Returns:
         Converted path
-        
+
     Raises:
         ValueError: If target_format is not "cloud" or "local"
     """
@@ -237,47 +237,44 @@ def convert_path_format(path: Union[str, Path], target_format: str = "cloud") ->
 # Path Validation
 # =============================================================================
 
-def validate_cloud_path(path: Union[str, Path]) -> bool:
+
+def validate_cloud_path(path: str | Path) -> bool:
     """
     Validate cloud path format.
-    
+
     Args:
         path: Path to validate
-        
+
     Returns:
         True if valid cloud path, False otherwise
     """
     if isinstance(path, Path):
         path = str(path)
-    
+
     # Check for invalid characters (cloud APIs typically reject these)
-    invalid_chars = ['<', '>', ':', '"', '|', '?', '*']
+    invalid_chars = ["<", ">", ":", '"', "|", "?", "*"]
     path_str = normalize_cloud_path(path)
-    
+
     return not any(char in path_str for char in invalid_chars)
 
 
-def validate_local_path(path: Union[str, Path]) -> bool:
+def validate_local_path(path: str | Path) -> bool:
     """
     Validate local Windows path format.
-    
+
     Args:
         path: Path to validate
-        
+
     Returns:
         True if valid local path, False otherwise
     """
     if isinstance(path, Path):
         path = str(path)
-    
+
     # Check for invalid Windows filename characters
-    invalid_chars = ['<', '>', ':', '"', '|', '?', '*']
+    invalid_chars = ["<", ">", ":", '"', "|", "?", "*"]
     path_str = normalize_local_path(path)
-    
+
     # Split path and check each component
     components = path_str.split("\\")
-    for component in components:
-        if component and any(char in component for char in invalid_chars):
-            return False
-    
-    return True
+    return all(not (component and any(char in component for char in invalid_chars)) for component in components)

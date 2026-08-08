@@ -19,18 +19,22 @@ Search Capabilities:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
-from typing import Any, Optional
+from enum import StrEnum
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import select, and_, or_, func, text, desc, asc
+from sqlalchemy import asc, desc, func, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
-from app.models.models import VaultItem, Incident, VaultAuditLog
-import logging
+from app.models.models import VaultItem
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
 logger = logging.getLogger(__name__)
 
 VAULT_SEARCH_FUNCTION_GROUP = "vault_search"
@@ -62,16 +66,18 @@ register_function_group(
 )
 
 
-class TimelineMode(str, Enum):
+class TimelineMode(StrEnum):
     """Timeline ordering modes (three-timestamp model)."""
-    EVENT_TIME = "event_time"           # Factual occurrence time
-    RECORD_TIME = "record_time"         # When evidence created
+
+    EVENT_TIME = "event_time"  # Factual occurrence time
+    RECORD_TIME = "record_time"  # When evidence created
     SEMPTIFY_ENTRY_TIME = "semptify_entry_time"  # When added to system
-    CREATED_AT = "created_at"           # Internal creation timestamp
+    CREATED_AT = "created_at"  # Internal creation timestamp
 
 
-class SortOrder(str, Enum):
+class SortOrder(StrEnum):
     """Sort order for results."""
+
     ASC = "asc"
     DESC = "desc"
 
@@ -80,39 +86,40 @@ class SortOrder(str, Enum):
 class SearchCriteria:
     """
     Search criteria for vault items.
-    
+
     All fields are optional; omitted fields are not filtered.
     """
+
     # Text search
-    query: Optional[str] = None  # General text search across title, summary, metadata
-    metadata_query: Optional[str] = None  # Deep search in JSONB metadata
-    
+    query: str | None = None  # General text search across title, summary, metadata
+    metadata_query: str | None = None  # Deep search in JSONB metadata
+
     # Classification filters
-    item_type: Optional[str | list[str]] = None
-    folder: Optional[str] = None
-    tags: Optional[list[str]] = None  # Must have all specified tags
-    
+    item_type: str | list[str] | None = None
+    folder: str | None = None
+    tags: list[str] | None = None  # Must have all specified tags
+
     # Relationship filters
-    related_incident_id: Optional[int] = None
-    
+    related_incident_id: int | None = None
+
     # Status filters
-    severity: Optional[str | list[str]] = None  # critical, high, normal, low
-    status: Optional[str | list[str]] = None    # pending, verified, disputed, archived
-    source: Optional[str] = None
-    
+    severity: str | list[str] | None = None  # critical, high, normal, low
+    status: str | list[str] | None = None  # pending, verified, disputed, archived
+    source: str | None = None
+
     # Location search
-    location_lat: Optional[float] = None
-    location_lon: Optional[float] = None
-    location_radius_meters: Optional[float] = None  # For geo-radius search
-    
+    location_lat: float | None = None
+    location_lon: float | None = None
+    location_radius_meters: float | None = None  # For geo-radius search
+
     # Date range filters (applied to selected timeline mode)
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
-    
+    date_from: datetime | None = None
+    date_to: datetime | None = None
+
     # Pagination
     offset: int = 0
     limit: int = 100
-    
+
     # Sorting
     timeline_mode: TimelineMode = TimelineMode.EVENT_TIME
     sort_order: SortOrder = SortOrder.DESC
@@ -121,6 +128,7 @@ class SearchCriteria:
 @dataclass
 class SearchResult:
     """Result of vault search."""
+
     items: list[VaultItem] = field(default_factory=list)
     total_count: int = 0
     has_more: bool = False
@@ -130,7 +138,7 @@ class SearchResult:
 class VaultSearchService:
     """
     Service for searching and querying the unified vault.
-    
+
     Features:
     - Deep metadata search via JSONB GIN indexes
     - Timeline ordering by any of three timestamps
@@ -138,19 +146,19 @@ class VaultSearchService:
     - Incident-based grouping
     - Location-based search
     """
-    
+
     def __init__(self, db: AsyncSession):
         self.db = db
-    
+
     def _build_base_query(self, user_id: str) -> select:
         """Build base query with user filter."""
         return select(VaultItem).where(VaultItem.user_id == user_id)
-    
+
     def _apply_text_search(self, query: select, criteria: SearchCriteria) -> select:
         """Apply general text search across title and summary."""
         if not criteria.query:
             return query
-        
+
         search_pattern = f"%{criteria.query}%"
         return query.where(
             or_(
@@ -158,100 +166,90 @@ class VaultSearchService:
                 VaultItem.summary.ilike(search_pattern),
             )
         )
-    
+
     def _apply_metadata_search(self, query: select, criteria: SearchCriteria) -> select:
         """
         Apply deep metadata search using JSONB.
-        
+
         Uses PostgreSQL's JSONB text containment for efficient searching
         through nested metadata structures.
         """
         if not criteria.metadata_query:
             return query
-        
+
         # Use PostgreSQL's JSONB text search
         # Cast metadata to text and search
         search_term = f"%{criteria.metadata_query}%"
-        return query.where(
-            func.cast(VaultItem.metadata, JSONB).cast(JSONB).cast(str).ilike(search_term)
-        )
-    
-    def _apply_classification_filters(
-        self, query: select, criteria: SearchCriteria
-    ) -> select:
+        return query.where(func.cast(VaultItem.metadata, JSONB).cast(JSONB).cast(str).ilike(search_term))
+
+    def _apply_classification_filters(self, query: select, criteria: SearchCriteria) -> select:
         """Apply item type, folder, and tag filters."""
-        
+
         # Item type filter
         if criteria.item_type:
             if isinstance(criteria.item_type, list):
                 query = query.where(VaultItem.item_type.in_(criteria.item_type))
             else:
                 query = query.where(VaultItem.item_type == criteria.item_type)
-        
+
         # Folder filter
         if criteria.folder:
             query = query.where(VaultItem.folder == criteria.folder)
-        
+
         # Tags filter (must have ALL specified tags)
         if criteria.tags:
             # JSONB containment: tags @> ["tag1", "tag2"]
-            query = query.where(
-                VaultItem.tags.contains(criteria.tags)
-            )
-        
+            query = query.where(VaultItem.tags.contains(criteria.tags))
+
         return query
-    
-    def _apply_relationship_filters(
-        self, query: select, criteria: SearchCriteria
-    ) -> select:
+
+    def _apply_relationship_filters(self, query: select, criteria: SearchCriteria) -> select:
         """Apply incident and source filters."""
-        
+
         if criteria.related_incident_id is not None:
-            query = query.where(
-                VaultItem.related_incident_id == criteria.related_incident_id
-            )
-        
+            query = query.where(VaultItem.related_incident_id == criteria.related_incident_id)
+
         if criteria.source:
             query = query.where(VaultItem.source == criteria.source)
-        
+
         return query
-    
+
     def _apply_status_filters(self, query: select, criteria: SearchCriteria) -> select:
         """Apply severity and status filters."""
-        
+
         # Severity filter
         if criteria.severity:
             if isinstance(criteria.severity, list):
                 query = query.where(VaultItem.severity.in_(criteria.severity))
             else:
                 query = query.where(VaultItem.severity == criteria.severity)
-        
+
         # Status filter
         if criteria.status:
             if isinstance(criteria.status, list):
                 query = query.where(VaultItem.status.in_(criteria.status))
             else:
                 query = query.where(VaultItem.status == criteria.status)
-        
+
         return query
-    
+
     def _apply_date_range(self, query: select, criteria: SearchCriteria) -> select:
         """
         Apply date range filter based on selected timeline mode.
-        
+
         This is the key feature of the three-timestamp model - you can
         filter by event time, record time, or semptify entry time.
         """
         date_column = self._get_timeline_column(criteria.timeline_mode)
-        
+
         if criteria.date_from:
             query = query.where(date_column >= criteria.date_from)
-        
+
         if criteria.date_to:
             query = query.where(date_column <= criteria.date_to)
-        
+
         return query
-    
+
     def _get_timeline_column(self, mode: TimelineMode):
         """Get the SQL column for the selected timeline mode."""
         column_map = {
@@ -261,24 +259,24 @@ class VaultSearchService:
             TimelineMode.CREATED_AT: VaultItem.created_at,
         }
         return column_map[mode]
-    
+
     def _apply_sorting(self, query: select, criteria: SearchCriteria) -> select:
         """Apply sorting based on timeline mode and sort order."""
         date_column = self._get_timeline_column(criteria.timeline_mode)
-        
+
         if criteria.sort_order == SortOrder.ASC:
             return query.order_by(asc(date_column))
         else:
             return query.order_by(desc(date_column))
-    
+
     async def search(self, user_id: str, criteria: SearchCriteria) -> SearchResult:
         """
         Execute search with given criteria.
-        
+
         Args:
             user_id: User ID to filter by
             criteria: SearchCriteria with all filter conditions
-        
+
         Returns:
             SearchResult with items, count, and timeline sequence
         """
@@ -290,64 +288,64 @@ class VaultSearchService:
         query = self._apply_relationship_filters(query, criteria)
         query = self._apply_status_filters(query, criteria)
         query = self._apply_date_range(query, criteria)
-        
+
         # Get total count
         count_query = select(func.count()).select_from(query.subquery())
         total_result = await self.db.execute(count_query)
         total_count = total_result.scalar() or 0
-        
+
         # Apply sorting and pagination
         query = self._apply_sorting(query, criteria)
         query = query.offset(criteria.offset).limit(criteria.limit + 1)  # +1 to check has_more
-        
+
         # Execute
         result = await self.db.execute(query)
         items = result.scalars().all()
-        
+
         # Check if there are more results
         has_more = len(items) > criteria.limit
-        items = items[:criteria.limit]  # Remove the extra item
-        
+        items = items[: criteria.limit]  # Remove the extra item
+
         # Build timeline sequence for UI
         timeline_sequence = self._build_timeline_sequence(items, criteria.timeline_mode)
-        
+
         return SearchResult(
             items=list(items),
             total_count=total_count,
             has_more=has_more,
             timeline_sequence=timeline_sequence,
         )
-    
-    def _build_timeline_sequence(
-        self, items: list[VaultItem], timeline_mode: TimelineMode
-    ) -> list[dict[str, Any]]:
+
+    def _build_timeline_sequence(self, items: list[VaultItem], timeline_mode: TimelineMode) -> list[dict[str, Any]]:
         """
         Build timeline sequence for UI presentation.
-        
+
         Each item gets a sequence number and displays all three timestamps
         for the three-timestamp timeline UI.
         """
         sequence = []
         for idx, item in enumerate(items, start=1):
-            sequence.append({
-                "sequence": idx,
-                "item_id": item.item_id,
-                "title": item.title,
-                "item_type": item.item_type,
-                # All three timestamps for three-timestamp UI
-                "event_time": item.event_time.isoformat() if item.event_time else None,
-                "record_time": item.record_time.isoformat() if item.record_time else None,
-                "semptify_entry_time": item.semptify_entry_time.isoformat() if item.semptify_entry_time else None,
-                # Primary sort timestamp (based on timeline mode)
-                "sort_timestamp": self._get_sort_timestamp(item, timeline_mode),
-                "severity": item.severity,
-                "status": item.status,
-                "folder": item.folder,
-                "tags": item.tags,
-            })
+            sequence.append(
+                {
+                    "sequence": idx,
+                    "item_id": item.item_id,
+                    "title": item.title,
+                    "item_type": item.item_type,
+                    # All three timestamps for three-timestamp UI
+                    "event_time": item.event_time.isoformat() if item.event_time else None,
+                    "record_time": item.record_time.isoformat() if item.record_time else None,
+                    "semptify_entry_time": item.semptify_entry_time.isoformat() if item.semptify_entry_time else None,
+                    # Primary sort timestamp (based on timeline mode)
+                    "sort_timestamp": self._get_sort_timestamp(item, timeline_mode),
+                    "severity": item.severity,
+                    "status": item.status,
+                    "folder": item.folder,
+                    "tags": item.tags,
+                }
+            )
         return sequence
-    
-    def _get_sort_timestamp(self, item: VaultItem, mode: TimelineMode) -> Optional[str]:
+
+    def _get_sort_timestamp(self, item: VaultItem, mode: TimelineMode) -> str | None:
         """Get the primary sort timestamp for display."""
         timestamp_map = {
             TimelineMode.EVENT_TIME: item.event_time,
@@ -357,7 +355,7 @@ class VaultSearchService:
         }
         ts = timestamp_map[mode]
         return ts.isoformat() if ts else None
-    
+
     async def get_timeline_by_incident(
         self,
         user_id: str,
@@ -366,12 +364,12 @@ class VaultSearchService:
     ) -> SearchResult:
         """
         Get timeline of all items for a specific incident.
-        
+
         Args:
             user_id: User ID
             incident_id: Incident ID to filter by
             timeline_mode: Which timestamp to order by
-        
+
         Returns:
             SearchResult with incident timeline
         """
@@ -382,7 +380,7 @@ class VaultSearchService:
             limit=1000,  # Higher limit for full timeline
         )
         return await self.search(user_id, criteria)
-    
+
     async def deep_metadata_search(
         self,
         user_id: str,
@@ -391,7 +389,7 @@ class VaultSearchService:
     ) -> SearchResult:
         """
         Search for items with specific metadata field value.
-        
+
         Example:
             # Find all items with metadata.landlord = "ABC Management"
             results = await service.deep_metadata_search(
@@ -402,24 +400,24 @@ class VaultSearchService:
         """
         # Use JSONB containment for exact match
         metadata_filter = {metadata_field: value}
-        
+
         query = (
             select(VaultItem)
             .where(VaultItem.user_id == user_id)
             .where(VaultItem.metadata.contains(metadata_filter))
             .order_by(desc(VaultItem.event_time))
         )
-        
+
         result = await self.db.execute(query)
         items = result.scalars().all()
-        
+
         return SearchResult(
             items=list(items),
             total_count=len(items),
             has_more=False,
             timeline_sequence=self._build_timeline_sequence(items, TimelineMode.EVENT_TIME),
         )
-    
+
     async def location_search(
         self,
         user_id: str,
@@ -429,9 +427,9 @@ class VaultSearchService:
     ) -> SearchResult:
         """
         Search for items near a geographic location.
-        
+
         Assumes location_data contains {"gps": {"lat": X, "lon": Y}}.
-        
+
         Note: For production, consider using PostGIS for proper geo queries.
         This implementation uses a simple bounding box approximation.
         """
@@ -440,7 +438,7 @@ class VaultSearchService:
         degrees_per_meter = 1.0 / 111000.0
         lat_delta = radius_meters * degrees_per_meter
         lon_delta = radius_meters * degrees_per_meter / max(abs(lat) * 0.01745, 0.001)
-        
+
         # Build query for location data within bounding box
         # This is a simplified approach - PostGIS would be better for production
         query = (
@@ -449,10 +447,10 @@ class VaultSearchService:
             .where(VaultItem.location_data.isnot(None))
             .order_by(desc(VaultItem.event_time))
         )
-        
+
         result = await self.db.execute(query)
         items = result.scalars().all()
-        
+
         # Filter items by actual distance (in Python for simplicity)
         # Production: Use PostGIS ST_DWithin
         nearby_items = []
@@ -463,10 +461,9 @@ class VaultSearchService:
                 item_lon = gps.get("lon")
                 if item_lat and item_lon:
                     # Simple distance check (would use Haversine for production)
-                    if (abs(item_lat - lat) < lat_delta and 
-                        abs(item_lon - lon) < lon_delta):
+                    if abs(item_lat - lat) < lat_delta and abs(item_lon - lon) < lon_delta:
                         nearby_items.append(item)
-        
+
         return SearchResult(
             items=nearby_items,
             total_count=len(nearby_items),
@@ -477,14 +474,15 @@ class VaultSearchService:
 
 # Convenience functions
 
+
 async def search_vault(
     db: AsyncSession,
     user_id: str,
-    query: Optional[str] = None,
-    item_type: Optional[str] = None,
-    incident_id: Optional[int] = None,
-    date_from: Optional[datetime] = None,
-    date_to: Optional[datetime] = None,
+    query: str | None = None,
+    item_type: str | None = None,
+    incident_id: int | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
     timeline_mode: TimelineMode = TimelineMode.EVENT_TIME,
     limit: int = 100,
 ) -> SearchResult:

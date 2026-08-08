@@ -1,2 +1,3 @@
 """Hello World Plugin"""
-from .main import *
+
+from .main import *  # noqa: F403  # intentional re-export of plugin public API

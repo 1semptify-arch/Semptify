@@ -19,55 +19,53 @@ Output:
     Compliance validation for MN court rules
 """
 
+import contextlib
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Optional
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now
-from app.models.models import (
-    User, Document, TimelineEvent, CalendarEvent, RentPayment
-)
-
+from app.models.models import CalendarEvent, Document, RentPayment, TimelineEvent, User
 
 # =============================================================================
 # Minnesota Court Compliance Rules
 # =============================================================================
+
 
 class MNCourtRules:
     """
     Minnesota Housing Court Rules - Dakota County
     These are the rules that MUST be followed for valid filings.
     """
-    
-    # Answer deadline: Must be filed before hearing or within 
+
+    # Answer deadline: Must be filed before hearing or within
     # time specified in summons (typically 7-14 days)
     ANSWER_DEADLINE_DAYS = 7
-    
+
     # Service requirements
     SERVICE_METHODS = ["personal", "substitute", "mail", "posting"]
     REQUIRED_SERVICE_PROOF = True
-    
+
     # Counterclaim requirements
     MAX_COUNTERCLAIM_AMOUNT = 15000  # Small claims limit
     COUNTERCLAIM_FILING_FEE = 75  # As of 2024
-    
+
     # Document requirements
     REQUIRED_COPIES = 3  # Original + 2 copies
     ALLOWED_FORMATS = ["pdf", "jpg", "png", "doc", "docx"]
     MAX_FILE_SIZE_MB = 25
-    
+
     # Hearing requirements
     ZOOM_APPEARANCE_ALLOWED = True
     IN_PERSON_REQUIRED_FOR = ["jury_trial", "contempt"]
-    
+
     # Fee waiver (IFP - In Forma Pauperis)
     IFP_INCOME_THRESHOLD_PERCENT = 125  # % of federal poverty guidelines
-    
+
     # Dakota County specific
     DAKOTA_COUNTY_CODE = "19"
     COURT_ADDRESS = "1560 Highway 55, Hastings, MN 55033"
@@ -75,8 +73,9 @@ class MNCourtRules:
     GUIDE_AND_FILE_URL = "https://www.mncourts.gov/Help-Topics/Guide-and-File.aspx"
 
 
-class ComplianceStatus(str, Enum):
+class ComplianceStatus(StrEnum):
     """Compliance check status."""
+
     COMPLIANT = "compliant"
     WARNING = "warning"
     ERROR = "error"
@@ -86,22 +85,24 @@ class ComplianceStatus(str, Enum):
 @dataclass
 class ComplianceCheck:
     """Result of a single compliance check."""
+
     rule: str
     status: ComplianceStatus
     message: str
-    fix_action: Optional[str] = None
-    deadline: Optional[datetime] = None
+    fix_action: str | None = None
+    deadline: datetime | None = None
 
 
 @dataclass
 class ComplianceReport:
     """Full compliance report for a case."""
+
     overall_status: ComplianceStatus
     checks: list[ComplianceCheck] = field(default_factory=list)
     blocking_issues: int = 0
     warnings: int = 0
     ready_to_file: bool = False
-    
+
     def to_dict(self) -> dict:
         return {
             "overall_status": self.overall_status.value,
@@ -125,61 +126,67 @@ class ComplianceReport:
 # Case Data Structures
 # =============================================================================
 
+
 @dataclass
 class ExtractedTenantInfo:
     """Tenant information extracted from Semptify data."""
+
     full_name: str
     address: str
     city: str
     state: str
     zip_code: str
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    
+    phone: str | None = None
+    email: str | None = None
+
     # From lease
-    lease_start: Optional[datetime] = None
-    lease_end: Optional[datetime] = None
-    monthly_rent: Optional[int] = None  # cents
-    security_deposit: Optional[int] = None  # cents
+    lease_start: datetime | None = None
+    lease_end: datetime | None = None
+    monthly_rent: int | None = None  # cents
+    security_deposit: int | None = None  # cents
 
 
 @dataclass
 class ExtractedLandlordInfo:
     """Landlord information extracted from documents."""
+
     name: str
-    address: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    agent_name: Optional[str] = None  # Property manager
+    address: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    agent_name: str | None = None  # Property manager
 
 
 @dataclass
 class EvictionNoticeInfo:
     """Information extracted from the eviction notice."""
+
     notice_type: str  # nonpayment, lease_violation, holdover, etc.
-    date_served: Optional[datetime] = None
-    service_method: Optional[str] = None
-    amount_claimed: Optional[int] = None  # cents
-    court_date: Optional[datetime] = None
-    case_number: Optional[str] = None
-    response_deadline: Optional[datetime] = None
+    date_served: datetime | None = None
+    service_method: str | None = None
+    amount_claimed: int | None = None  # cents
+    court_date: datetime | None = None
+    case_number: str | None = None
+    response_deadline: datetime | None = None
 
 
 @dataclass
 class EvidenceItem:
     """A piece of evidence for the case."""
+
     document_id: str
     filename: str
     document_type: str
     description: str
-    date_created: Optional[datetime] = None
-    exhibit_label: Optional[str] = None  # A, B, C, etc.
+    date_created: datetime | None = None
+    exhibit_label: str | None = None  # A, B, C, etc.
     relevance: str = ""  # Why this matters
 
 
 @dataclass
 class TimelineEntry:
     """A timeline entry for court narrative."""
+
     date: datetime
     event_type: str
     title: str
@@ -188,9 +195,10 @@ class TimelineEntry:
     evidence_ids: list[str] = field(default_factory=list)
 
 
-@dataclass 
+@dataclass
 class Defense:
     """A legal defense that may apply."""
+
     code: str
     name: str
     description: str
@@ -203,37 +211,38 @@ class Defense:
 @dataclass
 class EvictionCase:
     """Complete eviction case data assembled from Semptify."""
+
     user_id: str
-    case_number: Optional[str] = None
-    
+    case_number: str | None = None
+
     # Parties
-    tenant: Optional[ExtractedTenantInfo] = None
-    landlord: Optional[ExtractedLandlordInfo] = None
-    
+    tenant: ExtractedTenantInfo | None = None
+    landlord: ExtractedLandlordInfo | None = None
+
     # The eviction
-    notice: Optional[EvictionNoticeInfo] = None
-    
+    notice: EvictionNoticeInfo | None = None
+
     # Evidence and timeline
     evidence: list[EvidenceItem] = field(default_factory=list)
     timeline: list[TimelineEntry] = field(default_factory=list)
-    
+
     # Legal analysis
     defenses: list[Defense] = field(default_factory=list)
     counterclaims: list[dict] = field(default_factory=list)
-    
+
     # Payment history
     rent_history: list[dict] = field(default_factory=list)
     total_paid: int = 0  # cents
     total_owed: int = 0  # cents
-    
+
     # Compliance
-    compliance: Optional[ComplianceReport] = None
-    
+    compliance: ComplianceReport | None = None
+
     # Metadata
     created_at: datetime = field(default_factory=lambda: utc_now())
     updated_at: datetime = field(default_factory=lambda: utc_now())
     language: str = "en"
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -248,23 +257,30 @@ class EvictionCase:
                 "phone": self.tenant.phone if self.tenant else "",
                 "email": self.tenant.email if self.tenant else "",
                 "monthly_rent": self.tenant.monthly_rent if self.tenant else 0,
-            } if self.tenant else None,
+            }
+            if self.tenant
+            else None,
             "landlord": {
                 "name": self.landlord.name if self.landlord else "",
                 "address": self.landlord.address if self.landlord else "",
-            } if self.landlord else None,
+            }
+            if self.landlord
+            else None,
             "notice": {
                 "type": self.notice.notice_type if self.notice else "",
                 "date_served": self.notice.date_served.isoformat() if self.notice and self.notice.date_served else None,
                 "court_date": self.notice.court_date.isoformat() if self.notice and self.notice.court_date else None,
                 "case_number": self.notice.case_number if self.notice else None,
                 "amount_claimed": self.notice.amount_claimed if self.notice else 0,
-            } if self.notice else None,
+            }
+            if self.notice
+            else None,
             "evidence_count": len(self.evidence),
             "timeline_count": len(self.timeline),
             "defenses": [
                 {"code": d.code, "name": d.name, "applicable": d.applicable, "strength": d.strength}
-                for d in self.defenses if d.applicable
+                for d in self.defenses
+                if d.applicable
             ],
             "rent_history_summary": {
                 "total_paid": self.total_paid,
@@ -339,10 +355,11 @@ MINNESOTA_DEFENSES = [
 # Case Builder Service
 # =============================================================================
 
+
 class EvictionCaseBuilder:
     """
     Builds an eviction defense case from Semptify data.
-    
+
     This is THE integration point that connects:
     - User profile
     - Document vault
@@ -350,70 +367,68 @@ class EvictionCaseBuilder:
     - Calendar deadlines
     - Rent ledger
     - AI document analysis
-    
+
     Into a court-ready eviction defense package.
     """
-    
+
     def __init__(self):
         self.defenses = [Defense(**d.__dict__) for d in MINNESOTA_DEFENSES]
-    
+
     async def build_case(self, user_id: str, language: str = "en") -> EvictionCase:
         """
         Build a complete eviction case from all Semptify data sources.
-        
+
         Args:
             user_id: The user's Semptify ID
             language: Preferred language (en, es, so, ar)
-            
+
         Returns:
             EvictionCase with all data assembled
         """
         case = EvictionCase(user_id=user_id, language=language)
-        
+
         async with get_db_session() as session:
             # 1. Get user profile
             user = await self._get_user(session, user_id)
-            if user:
-                case.tenant = await self._extract_tenant_info(session, user)
-            
+
             # 2. Get all documents and extract info
             documents = await self._get_documents(session, user_id)
+
+            if user:
+                case.tenant = await self._extract_tenant_info(session, user, documents)
+
             case.evidence = self._build_evidence_list(documents)
             case.landlord = self._extract_landlord_info(documents)
             case.notice = self._extract_notice_info(documents)
-            
+
             # 3. Get timeline events
             events = await self._get_timeline_events(session, user_id)
             case.timeline = self._build_timeline(events, documents)
-            
+
             # 4. Get calendar events (court dates)
             calendar = await self._get_calendar_events(session, user_id)
             self._update_from_calendar(case, calendar)
-            
+
             # 5. Get rent payment history
             payments = await self._get_rent_payments(session, user_id)
             case.rent_history = self._build_rent_history(payments)
             case.total_paid = sum(p.amount for p in payments if p.status == "paid")
             case.total_owed = sum(p.amount for p in payments if p.status in ["late", "missed"])
-            
+
             # 6. Analyze applicable defenses
             case.defenses = self._analyze_defenses(case)
-            
+
             # 7. Run compliance check
             case.compliance = self._check_compliance(case)
-        
+
         return case
-    
-    async def _get_user(self, session: AsyncSession, user_id: str) -> Optional[User]:
+
+    async def _get_user(self, session: AsyncSession, user_id: str) -> User | None:
         """Get user from database."""
-        result = await session.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await session.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
-    
-    async def _extract_tenant_info(
-        self, session: AsyncSession, user: User
-    ) -> ExtractedTenantInfo:
+
+    async def _extract_tenant_info(self, session: AsyncSession, user: User, documents: list[Document]) -> ExtractedTenantInfo:
         """Extract tenant info from user profile and documents."""
         # Start with what we know from user profile
         tenant = ExtractedTenantInfo(
@@ -424,8 +439,9 @@ class EvictionCaseBuilder:
             zip_code="",
             email=user.email,
         )
-        
+
         import re as _re
+
         for doc in documents:
             doc_type = (doc.document_type or "").lower()
             text = (getattr(doc, "extracted_text", None) or "").lower()
@@ -435,35 +451,38 @@ class EvictionCaseBuilder:
             # Tenant name from lease ("tenant:", "lessee:", "resident:")
             if not tenant.full_name or tenant.full_name == (user.email or ""):
                 name_m = _re.search(
-                    r'(?:tenant|lessee|resident)\s*[:\-]?\s*([A-Z][a-zA-Z\s\.\,]+?)(?:\n|,|address|phone|$)',
-                    text, _re.IGNORECASE
+                    r"(?:tenant|lessee|resident)\s*[:\-]?\s*([A-Z][a-zA-Z\s\.\,]+?)(?:\n|,|address|phone|$)",
+                    text,
+                    _re.IGNORECASE,
                 )
                 if name_m:
-                    tenant.full_name = name_m.group(1).strip().rstrip(',').title()
+                    tenant.full_name = name_m.group(1).strip().rstrip(",").title()
 
             # Address from lease
             if not tenant.address:
                 addr_m = _re.search(
-                    r'(?:property\s+address|rental\s+(?:unit|property)|premises)[^\n]{0,40}?'
-                    r'(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)',
-                    text, _re.IGNORECASE
+                    r"(?:property\s+address|rental\s+(?:unit|property)|premises)[^\n]{0,40}?"
+                    r"(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)",
+                    text,
+                    _re.IGNORECASE,
                 )
                 if not addr_m:
                     addr_m = _re.search(
-                        r'(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)',
-                        text, _re.IGNORECASE
+                        r"(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)",
+                        text,
+                        _re.IGNORECASE,
                     )
                 if addr_m:
                     tenant.address = addr_m.group(1).strip().title()
 
             # Append unit number to address if found
-            unit_m = _re.search(r'(?:unit|apt\.?|apartment)\s*#?\s*([A-Za-z0-9\-]+)', text, _re.IGNORECASE)
+            unit_m = _re.search(r"(?:unit|apt\.?|apartment)\s*#?\s*([A-Za-z0-9\-]+)", text, _re.IGNORECASE)
             if unit_m and tenant.address and "unit" not in tenant.address.lower():
                 tenant.address = f"{tenant.address} Unit {unit_m.group(1).strip()}"
 
             # City / state / zip
             if not tenant.city:
-                city_m = _re.search(r',\s*([A-Za-z\s]+),\s*(MN|Minnesota)\s+(\d{5})', text, _re.IGNORECASE)
+                city_m = _re.search(r",\s*([A-Za-z\s]+),\s*(MN|Minnesota)\s+(\d{5})", text, _re.IGNORECASE)
                 if city_m:
                     tenant.city = city_m.group(1).strip().title()
                     tenant.state = "MN"
@@ -472,43 +491,41 @@ class EvictionCaseBuilder:
             break
 
         return tenant
-    
-    async def _get_documents(
-        self, session: AsyncSession, user_id: str
-    ) -> list[Document]:
+
+    async def _get_documents(self, session: AsyncSession, user_id: str) -> list[Document]:
         """Get all documents for user."""
         result = await session.execute(
-            select(Document)
-            .where(Document.user_id == user_id)
-            .order_by(Document.uploaded_at.desc())
+            select(Document).where(Document.user_id == user_id).order_by(Document.uploaded_at.desc())
         )
         return list(result.scalars().all())
-    
+
     def _build_evidence_list(self, documents: list[Document]) -> list[EvidenceItem]:
         """Build evidence list with exhibit labels."""
         evidence = []
         exhibit_num = 0
-        
+
         for doc in documents:
             exhibit_num += 1
             exhibit_label = chr(64 + exhibit_num) if exhibit_num <= 26 else f"AA{exhibit_num - 26}"
-            
-            evidence.append(EvidenceItem(
-                document_id=doc.id,
-                filename=doc.original_filename,
-                document_type=doc.document_type or "unknown",
-                description=doc.description or "",
-                date_created=doc.uploaded_at,
-                exhibit_label=f"Exhibit {exhibit_label}",
-                relevance=self._determine_relevance(doc),
-            ))
-        
+
+            evidence.append(
+                EvidenceItem(
+                    document_id=doc.id,
+                    filename=doc.original_filename,
+                    document_type=doc.document_type or "unknown",
+                    description=doc.description or "",
+                    date_created=doc.uploaded_at,
+                    exhibit_label=f"Exhibit {exhibit_label}",
+                    relevance=self._determine_relevance(doc),
+                )
+            )
+
         return evidence
-    
+
     def _determine_relevance(self, doc: Document) -> str:
         """Determine why a document is relevant to the case."""
         doc_type = (doc.document_type or "").lower()
-        
+
         relevance_map = {
             "lease": "Establishes terms of tenancy agreement",
             "eviction_notice": "The notice being challenged",
@@ -518,16 +535,23 @@ class EvictionCaseBuilder:
             "repair_request": "Evidence of maintenance issues reported",
             "bank_statement": "Financial records showing payments",
         }
-        
+
         return relevance_map.get(doc_type, "Supporting evidence")
-    
-    def _extract_landlord_info(self, documents: list[Document]) -> Optional[ExtractedLandlordInfo]:
+
+    def _extract_landlord_info(self, documents: list[Document]) -> ExtractedLandlordInfo | None:
         """Extract landlord info from documents."""
         import re
+
         for doc in documents:
             doc_type = (doc.document_type or "").lower()
             text = (getattr(doc, "extracted_text", None) or "").lower()
-            if not text or doc_type not in ("lease", "eviction_notice", "notice_to_quit", "court_summons", "court_complaint"):
+            if not text or doc_type not in (
+                "lease",
+                "eviction_notice",
+                "notice_to_quit",
+                "court_summons",
+                "court_complaint",
+            ):
                 continue
 
             name = ""
@@ -535,16 +559,18 @@ class EvictionCaseBuilder:
 
             # Name: "landlord: X", "plaintiff: X", "lessor: X", "owner: X"
             name_m = re.search(
-                r'(?:landlord|plaintiff|lessor|property\s+owner|owner)\s*[:\-]?\s*([A-Z][a-zA-Z\s\.\,]+?)(?:\n|,|address|phone|$)',
-                text, re.IGNORECASE
+                r"(?:landlord|plaintiff|lessor|property\s+owner|owner)\s*[:\-]?\s*([A-Z][a-zA-Z\s\.\,]+?)(?:\n|,|address|phone|$)",
+                text,
+                re.IGNORECASE,
             )
             if name_m:
-                name = name_m.group(1).strip().rstrip(',').title()
+                name = name_m.group(1).strip().rstrip(",").title()
 
             # Address: first street address following landlord name block
             addr_m = re.search(
-                r'(?:landlord|plaintiff|lessor)[^\n]{0,80}?\n\s*(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)',
-                text, re.IGNORECASE
+                r"(?:landlord|plaintiff|lessor)[^\n]{0,80}?\n\s*(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)",
+                text,
+                re.IGNORECASE,
             )
             if addr_m:
                 address = addr_m.group(1).strip().title()
@@ -553,53 +579,54 @@ class EvictionCaseBuilder:
                 return ExtractedLandlordInfo(name=name, address=address)
 
         return ExtractedLandlordInfo(name="")
-    
-    def _extract_notice_info(self, documents: list[Document]) -> Optional[EvictionNoticeInfo]:
+
+    def _extract_notice_info(self, documents: list[Document]) -> EvictionNoticeInfo | None:
         """Extract eviction notice info from documents."""
         import re
+
         NOTICE_TYPES = ("eviction_notice", "notice_to_quit", "court_summons", "court_complaint")
         for doc in documents:
             doc_type = (doc.document_type or "").lower()
             filename = (doc.original_filename or doc.filename or "").lower()
             text = (getattr(doc, "extracted_text", None) or "").lower()
 
-            is_notice = any(t in doc_type for t in NOTICE_TYPES) or \
-                any(kw in filename for kw in ("eviction", "notice", "summons", "complaint"))
+            is_notice = any(t in doc_type for t in NOTICE_TYPES) or any(
+                kw in filename for kw in ("eviction", "notice", "summons", "complaint")
+            )
             if not is_notice:
                 continue
 
             # Determine notice type
             notice_type = "nonpayment"  # default
-            if re.search(r'non[- ]?payment|failure\s+to\s+pay|unpaid\s+rent', text):
+            if re.search(r"non[- ]?payment|failure\s+to\s+pay|unpaid\s+rent", text):
                 notice_type = "nonpayment"
-            elif re.search(r'lease\s+violation|breach\s+of\s+lease|violation\s+of', text):
+            elif re.search(r"lease\s+violation|breach\s+of\s+lease|violation\s+of", text):
                 notice_type = "lease_violation"
-            elif re.search(r'holdover|end\s+of\s+tenancy|termination\s+of\s+tenancy', text):
+            elif re.search(r"holdover|end\s+of\s+tenancy|termination\s+of\s+tenancy", text):
                 notice_type = "holdover"
-            elif re.search(r'30[- ]day|thirty[- ]day', text):
+            elif re.search(r"30[- ]day|thirty[- ]day", text):
                 notice_type = "30day_notice"
-            elif re.search(r'14[- ]day|fourteen[- ]day', text):
+            elif re.search(r"14[- ]day|fourteen[- ]day", text):
                 notice_type = "14day_notice"
 
             # Notice amount claimed
             amount = None
-            amt_m = re.search(r'\$\s*([\d,]+(?:\.\d{2})?)\s*(?:in\s+)?(?:rent|unpaid|owed|due)', text)
+            amt_m = re.search(r"\$\s*([\d,]+(?:\.\d{2})?)\s*(?:in\s+)?(?:rent|unpaid|owed|due)", text)
             if amt_m:
-                try:
+                with contextlib.suppress(ValueError):
                     amount = int(float(amt_m.group(1).replace(",", "")) * 100)
-                except ValueError:
-                    pass
 
             # Date served — look for "served on", "dated", or fall back to uploaded_at
             date_served = doc.uploaded_at
             date_m = re.search(
-                r'(?:served|dated|notice\s+date|date\s+of\s+notice)\s*[:\-]?\s*(\w+\s+\d{1,2},?\s+\d{4})',
-                text, re.IGNORECASE
+                r"(?:served|dated|notice\s+date|date\s+of\s+notice)\s*[:\-]?\s*(\w+\s+\d{1,2},?\s+\d{4})",
+                text,
+                re.IGNORECASE,
             )
             if date_m:
                 for fmt in ("%B %d %Y", "%B %d, %Y"):
                     try:
-                        date_served = datetime.strptime(date_m.group(1).strip().rstrip(','), fmt).replace(tzinfo=timezone.utc)
+                        date_served = datetime.strptime(date_m.group(1).strip().rstrip(","), fmt).replace(tzinfo=UTC)
                         break
                     except ValueError:
                         pass
@@ -610,54 +637,44 @@ class EvictionCaseBuilder:
                 amount_claimed=amount,
             )
         return None
-    
-    async def _get_timeline_events(
-        self, session: AsyncSession, user_id: str
-    ) -> list[TimelineEvent]:
+
+    async def _get_timeline_events(self, session: AsyncSession, user_id: str) -> list[TimelineEvent]:
         """Get timeline events for user."""
         result = await session.execute(
-            select(TimelineEvent)
-            .where(TimelineEvent.user_id == user_id)
-            .order_by(TimelineEvent.event_date.asc())
+            select(TimelineEvent).where(TimelineEvent.user_id == user_id).order_by(TimelineEvent.event_date.asc())
         )
         return list(result.scalars().all())
-    
-    def _build_timeline(
-        self, events: list[TimelineEvent], documents: list[Document]
-    ) -> list[TimelineEntry]:
+
+    def _build_timeline(self, events: list[TimelineEvent], documents: list[Document]) -> list[TimelineEntry]:
         """Build timeline for court narrative."""
         timeline = []
-        doc_map = {d.id: d for d in documents}
-        
+        {d.id: d for d in documents}
+
         for event in events:
             has_evidence = event.document_id is not None
             evidence_ids = [event.document_id] if event.document_id else []
-            
-            timeline.append(TimelineEntry(
-                date=event.event_date,
-                event_type=event.event_type,
-                title=event.title,
-                description=event.description or "",
-                has_evidence=has_evidence,
-                evidence_ids=evidence_ids,
-            ))
-        
+
+            timeline.append(
+                TimelineEntry(
+                    date=event.event_date,
+                    event_type=event.event_type,
+                    title=event.title,
+                    description=event.description or "",
+                    has_evidence=has_evidence,
+                    evidence_ids=evidence_ids,
+                )
+            )
+
         return timeline
-    
-    async def _get_calendar_events(
-        self, session: AsyncSession, user_id: str
-    ) -> list[CalendarEvent]:
+
+    async def _get_calendar_events(self, session: AsyncSession, user_id: str) -> list[CalendarEvent]:
         """Get calendar events for user."""
         result = await session.execute(
-            select(CalendarEvent)
-            .where(CalendarEvent.user_id == user_id)
-            .order_by(CalendarEvent.start_datetime.asc())
+            select(CalendarEvent).where(CalendarEvent.user_id == user_id).order_by(CalendarEvent.start_datetime.asc())
         )
         return list(result.scalars().all())
-    
-    def _update_from_calendar(
-        self, case: EvictionCase, calendar: list[CalendarEvent]
-    ) -> None:
+
+    def _update_from_calendar(self, case: EvictionCase, calendar: list[CalendarEvent]) -> None:
         """Update case with calendar information."""
         for event in calendar:
             if event.event_type == "hearing":
@@ -668,18 +685,14 @@ class EvictionCaseBuilder:
                         notice_type="unknown",
                         court_date=event.start_datetime,
                     )
-    
-    async def _get_rent_payments(
-        self, session: AsyncSession, user_id: str
-    ) -> list[RentPayment]:
+
+    async def _get_rent_payments(self, session: AsyncSession, user_id: str) -> list[RentPayment]:
         """Get rent payment history."""
         result = await session.execute(
-            select(RentPayment)
-            .where(RentPayment.user_id == user_id)
-            .order_by(RentPayment.payment_date.desc())
+            select(RentPayment).where(RentPayment.user_id == user_id).order_by(RentPayment.payment_date.desc())
         )
         return list(result.scalars().all())
-    
+
     def _build_rent_history(self, payments: list[RentPayment]) -> list[dict]:
         """Build rent history summary."""
         return [
@@ -692,11 +705,11 @@ class EvictionCaseBuilder:
             }
             for p in payments
         ]
-    
+
     def _analyze_defenses(self, case: EvictionCase) -> list[Defense]:
         """Analyze which defenses may apply based on case data."""
         defenses = [Defense(**d.__dict__) for d in MINNESOTA_DEFENSES]
-        
+
         for defense in defenses:
             if defense.code == "rent_paid":
                 # Check if rent history shows payments
@@ -704,148 +717,168 @@ class EvictionCaseBuilder:
                     defense.applicable = True
                     defense.strength = "moderate"
                     defense.notes = f"Records show ${case.total_paid / 100:.2f} in payments"
-            
+
             elif defense.code == "habitability":
                 # Check for maintenance-related documents or timeline events
-                has_maintenance = any(
-                    e.event_type in ["maintenance", "repair_request"]
-                    for e in case.timeline
-                )
-                has_photos = any(
-                    e.document_type == "photo"
-                    for e in case.evidence
-                )
+                has_maintenance = any(e.event_type in ["maintenance", "repair_request"] for e in case.timeline)
+                has_photos = any(e.document_type == "photo" for e in case.evidence)
                 if has_maintenance or has_photos:
                     defense.applicable = True
                     defense.strength = "moderate" if has_photos else "weak"
                     defense.notes = "Evidence of habitability issues found"
-            
+
             elif defense.code == "improper_notice":
                 # Would analyze notice details
                 pass
-            
+
             elif defense.code == "retaliation":
                 # Check timeline for complaints before eviction
                 pass
-        
+
         return defenses
-    
+
     def _check_compliance(self, case: EvictionCase) -> ComplianceReport:
         """Check case for Minnesota court compliance."""
         checks = []
         blocking = 0
         warnings = 0
-        
+
         # Check 1: Tenant info complete
         if not case.tenant or not case.tenant.full_name:
-            checks.append(ComplianceCheck(
-                rule="tenant_name_required",
-                status=ComplianceStatus.ERROR,
-                message="Tenant name is required for court forms",
-                fix_action="Enter your full legal name in your profile",
-            ))
+            checks.append(
+                ComplianceCheck(
+                    rule="tenant_name_required",
+                    status=ComplianceStatus.ERROR,
+                    message="Tenant name is required for court forms",
+                    fix_action="Enter your full legal name in your profile",
+                )
+            )
             blocking += 1
         else:
-            checks.append(ComplianceCheck(
-                rule="tenant_name_required",
-                status=ComplianceStatus.COMPLIANT,
-                message="Tenant name is provided",
-            ))
-        
+            checks.append(
+                ComplianceCheck(
+                    rule="tenant_name_required",
+                    status=ComplianceStatus.COMPLIANT,
+                    message="Tenant name is provided",
+                )
+            )
+
         # Check 2: Address required
         if not case.tenant or not case.tenant.address:
-            checks.append(ComplianceCheck(
-                rule="address_required",
-                status=ComplianceStatus.ERROR,
-                message="Property address is required",
-                fix_action="Upload your lease to extract address, or enter manually",
-            ))
+            checks.append(
+                ComplianceCheck(
+                    rule="address_required",
+                    status=ComplianceStatus.ERROR,
+                    message="Property address is required",
+                    fix_action="Upload your lease to extract address, or enter manually",
+                )
+            )
             blocking += 1
         else:
-            checks.append(ComplianceCheck(
-                rule="address_required",
-                status=ComplianceStatus.COMPLIANT,
-                message="Property address is provided",
-            ))
-        
+            checks.append(
+                ComplianceCheck(
+                    rule="address_required",
+                    status=ComplianceStatus.COMPLIANT,
+                    message="Property address is provided",
+                )
+            )
+
         # Check 3: Court date known
         if not case.notice or not case.notice.court_date:
-            checks.append(ComplianceCheck(
-                rule="court_date_required",
-                status=ComplianceStatus.WARNING,
-                message="Court date not found - check your summons",
-                fix_action="Add court date to your calendar",
-            ))
+            checks.append(
+                ComplianceCheck(
+                    rule="court_date_required",
+                    status=ComplianceStatus.WARNING,
+                    message="Court date not found - check your summons",
+                    fix_action="Add court date to your calendar",
+                )
+            )
             warnings += 1
         else:
             # Check if deadline is approaching
             days_until = (case.notice.court_date - utc_now()).days
             if days_until < 0:
-                checks.append(ComplianceCheck(
-                    rule="court_date_required",
-                    status=ComplianceStatus.ERROR,
-                    message="Court date has passed!",
-                    deadline=case.notice.court_date,
-                ))
+                checks.append(
+                    ComplianceCheck(
+                        rule="court_date_required",
+                        status=ComplianceStatus.ERROR,
+                        message="Court date has passed!",
+                        deadline=case.notice.court_date,
+                    )
+                )
                 blocking += 1
             elif days_until <= 3:
-                checks.append(ComplianceCheck(
-                    rule="court_date_required",
-                    status=ComplianceStatus.WARNING,
-                    message=f"Court date is in {days_until} days - file immediately!",
-                    deadline=case.notice.court_date,
-                ))
+                checks.append(
+                    ComplianceCheck(
+                        rule="court_date_required",
+                        status=ComplianceStatus.WARNING,
+                        message=f"Court date is in {days_until} days - file immediately!",
+                        deadline=case.notice.court_date,
+                    )
+                )
                 warnings += 1
             else:
-                checks.append(ComplianceCheck(
-                    rule="court_date_required",
-                    status=ComplianceStatus.COMPLIANT,
-                    message=f"Court date: {case.notice.court_date.strftime('%B %d, %Y')}",
-                    deadline=case.notice.court_date,
-                ))
-        
+                checks.append(
+                    ComplianceCheck(
+                        rule="court_date_required",
+                        status=ComplianceStatus.COMPLIANT,
+                        message=f"Court date: {case.notice.court_date.strftime('%B %d, %Y')}",
+                        deadline=case.notice.court_date,
+                    )
+                )
+
         # Check 4: Evidence available
         if len(case.evidence) == 0:
-            checks.append(ComplianceCheck(
-                rule="evidence_recommended",
-                status=ComplianceStatus.WARNING,
-                message="No evidence documents uploaded - your case will be stronger with documentation",
-                fix_action="Upload relevant documents to your vault",
-            ))
+            checks.append(
+                ComplianceCheck(
+                    rule="evidence_recommended",
+                    status=ComplianceStatus.WARNING,
+                    message="No evidence documents uploaded - your case will be stronger with documentation",
+                    fix_action="Upload relevant documents to your vault",
+                )
+            )
             warnings += 1
         else:
-            checks.append(ComplianceCheck(
-                rule="evidence_recommended",
-                status=ComplianceStatus.COMPLIANT,
-                message=f"{len(case.evidence)} evidence documents available",
-            ))
-        
+            checks.append(
+                ComplianceCheck(
+                    rule="evidence_recommended",
+                    status=ComplianceStatus.COMPLIANT,
+                    message=f"{len(case.evidence)} evidence documents available",
+                )
+            )
+
         # Check 5: Landlord name
         if not case.landlord or not case.landlord.name:
-            checks.append(ComplianceCheck(
-                rule="landlord_name_required",
-                status=ComplianceStatus.ERROR,
-                message="Landlord/Plaintiff name is required for Answer form",
-                fix_action="Check your summons or lease for landlord name",
-            ))
+            checks.append(
+                ComplianceCheck(
+                    rule="landlord_name_required",
+                    status=ComplianceStatus.ERROR,
+                    message="Landlord/Plaintiff name is required for Answer form",
+                    fix_action="Check your summons or lease for landlord name",
+                )
+            )
             blocking += 1
         else:
-            checks.append(ComplianceCheck(
-                rule="landlord_name_required",
-                status=ComplianceStatus.COMPLIANT,
-                message="Landlord name is provided",
-            ))
-        
+            checks.append(
+                ComplianceCheck(
+                    rule="landlord_name_required",
+                    status=ComplianceStatus.COMPLIANT,
+                    message="Landlord name is provided",
+                )
+            )
+
         # Check 6: Case number (if summons received)
         if case.notice and case.notice.court_date and not case.case_number:
-            checks.append(ComplianceCheck(
-                rule="case_number_required",
-                status=ComplianceStatus.WARNING,
-                message="Case number not found - check your summons",
-                fix_action="Enter case number from court summons",
-            ))
+            checks.append(
+                ComplianceCheck(
+                    rule="case_number_required",
+                    status=ComplianceStatus.WARNING,
+                    message="Case number not found - check your summons",
+                    fix_action="Enter case number from court summons",
+                )
+            )
             warnings += 1
-        
+
         # Determine overall status
         if blocking > 0:
             overall = ComplianceStatus.ERROR
@@ -853,7 +886,7 @@ class EvictionCaseBuilder:
             overall = ComplianceStatus.WARNING
         else:
             overall = ComplianceStatus.COMPLIANT
-        
+
         return ComplianceReport(
             overall_status=overall,
             checks=checks,
@@ -879,7 +912,6 @@ DAKOTA_COUNTY_FORM_FIELDS = {
     "landlord_address": "PlaintiffAddress",
     "court_date": "HearingDate",
     "answer_date": "AnswerDate",
-    
     # Answer checkboxes
     "deny_all": "DenyAllAllegations",
     "deny_amount": "DenyAmountOwed",
@@ -888,7 +920,6 @@ DAKOTA_COUNTY_FORM_FIELDS = {
     "defense_retaliation": "DefenseRetaliation",
     "defense_discrimination": "DefenseDiscrimination",
     "defense_rent_paid": "DefenseRentPaid",
-    
     # Counterclaim fields
     "counterclaim_amount": "CounterclaimAmount",
     "counterclaim_description": "CounterclaimFacts",

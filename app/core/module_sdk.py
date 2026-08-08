@@ -40,22 +40,23 @@ module a runtime identity, contract hooks, and registry tracking.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import TYPE_CHECKING, Any
 
-from fastapi import FastAPI
-
-from app.core.product_manifest import (
-    ProductTier,
-    ModuleEntry,
-    MANIFEST,
-    _load_router,
-)
 from app.core.module_contracts import (
     FunctionGroupContract,
     contract_registry,
 )
+from app.core.product_manifest import (
+    MANIFEST,
+    ModuleEntry,
+    ProductTier,
+    _load_router,
+)
+
+if TYPE_CHECKING:
+    from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
 
@@ -64,19 +65,22 @@ logger = logging.getLogger(__name__)
 # Capabilities
 # =============================================================================
 
-class ModuleCapability(str, Enum):
+
+class ModuleCapability(StrEnum):
     """Capabilities a module can declare."""
-    ROUTER = "router"           # Provides FastAPI routes
-    CONTRACT = "contract"       # Declares function-group contracts
-    MESH = "mesh"               # Integrates with Positronic Mesh
-    DOCUMENT = "document"       # Handles document processing
-    WIDGET = "widget"           # Provides UI widgets
-    BACKGROUND = "background"   # Has background tasks
+
+    ROUTER = "router"  # Provides FastAPI routes
+    CONTRACT = "contract"  # Declares function-group contracts
+    MESH = "mesh"  # Integrates with Positronic Mesh
+    DOCUMENT = "document"  # Handles document processing
+    WIDGET = "widget"  # Provides UI widgets
+    BACKGROUND = "background"  # Has background tasks
 
 
 # =============================================================================
 # Manifest
 # =============================================================================
+
 
 @dataclass(frozen=True)
 class ModuleManifest:
@@ -94,24 +98,24 @@ class ModuleManifest:
     tier: ProductTier
 
     # Capabilities
-    capabilities: Tuple[ModuleCapability, ...] = ()
+    capabilities: tuple[ModuleCapability, ...] = ()
 
     # Router configuration (only used when ModuleCapability.ROUTER present)
-    router_module: Optional[str] = None
+    router_module: str | None = None
     router_attr: str = "router"
-    tags: Tuple[str, ...] = ()
+    tags: tuple[str, ...] = ()
     prefix: str = ""
 
     # Contracts (only used when ModuleCapability.CONTRACT present)
-    contracts: Tuple[FunctionGroupContract, ...] = ()
+    contracts: tuple[FunctionGroupContract, ...] = ()
 
     # Mesh actions (only used when ModuleCapability.MESH present)
-    mesh_actions: Tuple[str, ...] = ()
+    mesh_actions: tuple[str, ...] = ()
 
     # Registration behavior
     optional: bool = True
 
-    def to_module_entry(self) -> Optional[ModuleEntry]:
+    def to_module_entry(self) -> ModuleEntry | None:
         """Convert to a product-manifest ``ModuleEntry`` for router registration.
 
         Returns ``None`` if this module does not declare a router.
@@ -148,13 +152,15 @@ class ModuleManifest:
 # Installed Module (runtime)
 # =============================================================================
 
+
 @dataclass
 class InstalledModule:
     """Runtime representation of a module that has been registered."""
+
     manifest: ModuleManifest
     router: Any = None
     initialized: bool = False
-    error: Optional[str] = None
+    error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -169,6 +175,7 @@ class InstalledModule:
 # Registry
 # =============================================================================
 
+
 class ModuleRegistry:
     """Global singleton registry tracking all installed Semptify modules.
 
@@ -176,7 +183,7 @@ class ModuleRegistry:
     Writes happen once at startup, so no locking is needed.
     """
 
-    _instance: Optional[ModuleRegistry] = None
+    _instance: ModuleRegistry | None = None
 
     def __new__(cls) -> ModuleRegistry:
         if cls._instance is None:
@@ -187,10 +194,8 @@ class ModuleRegistry:
         if hasattr(self, "_initialized") and self._initialized:
             return
         self._initialized = True
-        self._modules: Dict[str, InstalledModule] = {}
-        self._tier_index: Dict[ProductTier, List[str]] = {
-            t: [] for t in ProductTier.all()
-        }
+        self._modules: dict[str, InstalledModule] = {}
+        self._tier_index: dict[ProductTier, list[str]] = {t: [] for t in ProductTier.all()}
 
     # ------------------------------------------------------------------
     # Mutation (startup only)
@@ -209,40 +214,37 @@ class ModuleRegistry:
     # Queries
     # ------------------------------------------------------------------
 
-    def get(self, name: str) -> Optional[InstalledModule]:
+    def get(self, name: str) -> InstalledModule | None:
         return self._modules.get(name)
 
-    def list_by_tier(self, tier: ProductTier) -> List[InstalledModule]:
-        return [
-            self._modules[n]
-            for n in self._tier_index.get(tier, [])
-            if n in self._modules
-        ]
+    def list_by_tier(self, tier: ProductTier) -> list[InstalledModule]:
+        return [self._modules[n] for n in self._tier_index.get(tier, []) if n in self._modules]
 
-    def list_by_capability(self, capability: ModuleCapability) -> List[InstalledModule]:
-        return [
-            m for m in self._modules.values()
-            if capability in m.manifest.capabilities
-        ]
+    def list_by_capability(self, capability: ModuleCapability) -> list[InstalledModule]:
+        return [m for m in self._modules.values() if capability in m.manifest.capabilities]
 
-    def all(self) -> List[InstalledModule]:
+    def all(self) -> list[InstalledModule]:
         return list(self._modules.values())
 
     def validate(self) -> dict[str, Any]:
         """Validate the installed module set."""
-        violations: List[dict[str, str]] = []
+        violations: list[dict[str, str]] = []
         for module in self._modules.values():
             m = module.manifest
             if ModuleCapability.ROUTER in m.capabilities and not m.router_module:
-                violations.append({
-                    "module": m.name,
-                    "reason": "declares ROUTER but router_module is empty",
-                })
+                violations.append(
+                    {
+                        "module": m.name,
+                        "reason": "declares ROUTER but router_module is empty",
+                    }
+                )
             if ModuleCapability.CONTRACT in m.capabilities and not m.contracts:
-                violations.append({
-                    "module": m.name,
-                    "reason": "declares CONTRACT but contracts is empty",
-                })
+                violations.append(
+                    {
+                        "module": m.name,
+                        "reason": "declares CONTRACT but contracts is empty",
+                    }
+                )
         return {
             "valid": len(violations) == 0,
             "total": len(self._modules),
@@ -256,6 +258,7 @@ module_registry = ModuleRegistry()
 # =============================================================================
 # Registration API
 # =============================================================================
+
 
 def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
     """Register a single module with the Semptify platform.
@@ -283,7 +286,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
             try:
                 router = _load_router(entry)
                 if router is not None:
-                    kwargs: Dict[str, Any] = {"tags": list(entry.tags)}
+                    kwargs: dict[str, Any] = {"tags": list(entry.tags)}
                     if entry.prefix:
                         kwargs["prefix"] = entry.prefix
                     app.include_router(router, **kwargs)
@@ -354,7 +357,7 @@ def register_tier_modules(app: FastAPI, *tiers: ProductTier) -> dict[str, Any]:
     installed_count = 0
     skipped_count = 0
     error_count = 0
-    modules: List[InstalledModule] = []
+    modules: list[InstalledModule] = []
 
     logger.info("=" * 60)
     logger.info("Registering modules for tiers: %s", ", ".join(t.value for t in tiers))
@@ -412,13 +415,7 @@ def get_module_status() -> dict[str, Any]:
     validation = registry.validate()
     return {
         "installed_modules": [m.to_dict() for m in registry.all()],
-        "by_tier": {
-            t.value: [m.manifest.name for m in registry.list_by_tier(t)]
-            for t in ProductTier.all()
-        },
-        "by_capability": {
-            c.value: [m.manifest.name for m in registry.list_by_capability(c)]
-            for c in ModuleCapability
-        },
+        "by_tier": {t.value: [m.manifest.name for m in registry.list_by_tier(t)] for t in ProductTier.all()},
+        "by_capability": {c.value: [m.manifest.name for m in registry.list_by_capability(c)] for c in ModuleCapability},
         "validation": validation,
     }
