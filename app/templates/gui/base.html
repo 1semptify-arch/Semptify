@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ get_locale(request) | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +15,10 @@
 
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        html { font-size: 16px; scroll-behavior: smooth; }
+        html { font-size: 16px; }
+        @media (prefers-reduced-motion: no-preference) {
+            html { scroll-behavior: smooth; }
+        }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -24,6 +27,18 @@
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
+
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            left: 0;
+            z-index: 1000;
+            padding: 0.75rem 1rem;
+            background: var(--color-calm-dark, #3a4f66);
+            color: var(--color-white, #fff);
+            text-decoration: none;
+        }
+        .skip-link:focus { top: 0; }
 
         .gui-container {
             max-width: 900px;
@@ -93,8 +108,13 @@
     {% block styles %}{% endblock %}
 </head>
 <body>
-    <div class="gui-container">
-        <nav class="gui-nav">
+    <a href="#gui-main-content" class="skip-link">Skip to main content</a>
+
+    {% set help_path = (navigation.MAIN_NAV | selectattr('name', 'equalto', 'Help') | map(attribute='path') | first) | default('/help', true) %}
+    <a href="{{ help_path }}" class="gui-help-now" aria-label="Get help now">Get help now</a>
+
+    <div class="gui-container {% block container_class %}{% endblock %}">
+        <nav class="gui-nav" aria-label="Main">
             <a href="/gui/home" class="gui-nav--brand">Semptify</a>
             <ul class="gui-nav--items">
                 <li><a href="/gui/home" class="gui-nav--link {% block nav_home %}{% endblock %}">Home</a></li>
@@ -104,12 +124,13 @@
             </ul>
         </nav>
 
-        <main class="gui-main">
+        <main id="gui-main-content" class="gui-main">
             {% block content %}{% endblock %}
         </main>
 
         <footer class="gui-footer">
-            <p>Semptify does not give legal advice. <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help">Find legal help</a>.</p>
+            <p>Semptify is an organizational tool, not a law firm. We can't give legal advice. <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help">Find legal help</a> · <a href="/public/feedback.html">Report a problem</a></p>
+            {% include "components/locale_selector.html" %}
         </footer>
     </div>
     {% block scripts %}{% endblock %}

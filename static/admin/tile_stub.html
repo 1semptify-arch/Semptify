@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Tile</title>
+<link rel="stylesheet" href="/css/admin-nav.css">
+<style>
+  :root {
+    --bg: #121212;
+    --text: #e8e8e8;
+    --muted: #9a9a9a;
+    --accent: #4f8cff;
+    --card: #1a1a1a;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 2rem;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .back {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  h1 { margin: 0; font-size: 1.4rem; }
+  .subtitle { color: var(--muted); margin-top: 0.25rem; font-size: 0.9rem; }
+  .box {
+    max-width: 600px;
+    background: var(--card);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+  }
+  .box p { color: var(--muted); line-height: 1.5; }
+  .box strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="/admin">&larr; Admin Hub</a>
+</div>
+
+<h1 id="title">Admin Tile</h1>
+<p class="subtitle" id="desc">This administrative function is not yet implemented.</p>
+
+<div class="box">
+  <p>Placeholder for <strong id="tile-id">this tile</strong>.</p>
+  <p>Check back once the module is wired to the registry and a health check is defined.</p>
+</div>
+
+<script>
+const TILES = {
+  testing: { name: "Testing", desc: "Test suite runner and conformance checks." },
+  "invite-codes": { name: "Invite Codes & Authorizations", desc: "Issue, revoke, and audit invite codes and roles." },
+  correspondence: { name: "Correspondence", desc: "Semptify-originated emails and templates." },
+  "user-concerns": { name: "User Concerns", desc: "Support queue and flagged issues." },
+  advanced: { name: "Advanced / Dev Tools", desc: "Build Orchestrator, Guardrail Engine, Sync Monitor." },
+};
+
+const id = window.location.pathname.split("/").pop();
+const tile = TILES[id] || { name: id, desc: "Admin tile placeholder." };
+
+document.title = `Admin — ${tile.name}`;
+document.getElementById("title").textContent = tile.name;
+document.getElementById("desc").textContent = tile.desc;
+document.getElementById("tile-id").textContent = tile.name;
+</script>
+
+</body>
+</html>

@@ -42,6 +42,8 @@ class TestOverlayTypeEnum:
             "SENSITIVE_REDACTION",
             "IDENTITY_ADAPTER",
             "COMMUNICATION",
+            "FILEDORED",
+            "DUPLICATE_DETECTION",
         }
         assert {m.name for m in OverlayType} == expected
 
@@ -55,7 +57,9 @@ class TestCategorySets:
         assert OverlayType.DOCUMENT_CLASSIFICATION in PROCESSING_OVERLAYS
         assert OverlayType.TIMELINE_EXTRACTION in PROCESSING_OVERLAYS
         assert OverlayType.PARTY_EXTRACTION in PROCESSING_OVERLAYS
-        assert len(PROCESSING_OVERLAYS) == 4
+        assert OverlayType.FILEDORED in PROCESSING_OVERLAYS
+        assert OverlayType.DUPLICATE_DETECTION in PROCESSING_OVERLAYS
+        assert len(PROCESSING_OVERLAYS) == 6
 
     def test_annotation_overlays(self):
         assert OverlayType.HIGHLIGHT in ANNOTATION_OVERLAYS

@@ -110,17 +110,22 @@ async def _refresh_from_db(
     db: AsyncSession
 ) -> Tuple[bool, Optional[OAuthToken], str]:
     """
-    Load refresh token from DB and attempt refresh.
+    Load refresh token from DB and attempt async refresh.
+
+    This uses the async provider-specific refresh path in storage/router.py
+    instead of the synchronous token_manager.refresh_token_if_needed(). The
+    synchronous path blocks the async event loop and causes timeouts / reconnect
+    loops under uvicorn (especially on Render free-tier spin-down).
     """
     try:
         # Get session from DB (not User - sessions store the tokens)
         result = await db.execute(select(SessionModel).where(SessionModel.user_id == user_id))
         session_row = result.scalar_one_or_none()
-        
+
         if not session_row:
             logger.warning(f"Session {user_id[:6]}*** not found in DB")
             return False, None, RefreshResult.USER_NOT_FOUND
-        
+
         # Decrypt refresh token
         refresh_token = None
         if session_row.refresh_token_encrypted:
@@ -128,17 +133,17 @@ async def _refresh_from_db(
                 refresh_token = _decrypt_string(session_row.refresh_token_encrypted, user_id)
             except Exception as e:
                 logger.warning(f"Failed to decrypt refresh token for {user_id[:6]}***: {e}")
-        
+
         if not refresh_token:
             logger.warning(f"No refresh token for user {user_id[:6]}***")
             return False, None, RefreshResult.NO_REFRESH_TOKEN
-        
+
         # Parse provider from user_id
         provider, role, unique = parse_user_id(user_id)
         if not provider:
             logger.error(f"Could not parse provider from user_id {user_id[:6]}***")
             return False, None, RefreshResult.PROVIDER_ERROR
-        
+
         # Decrypt access token
         access_token = ""
         if session_row.access_token_encrypted:
@@ -146,36 +151,56 @@ async def _refresh_from_db(
                 access_token = _decrypt_string(session_row.access_token_encrypted, user_id)
             except Exception as e:
                 logger.warning(f"Failed to decrypt access token for {user_id[:6]}***: {e}")
-        
+
+        # Normalize naive expires_at to UTC so token.is_expired() does not crash
+        # comparing aware and naive datetimes (SQLite returns naive datetimes).
+        expires_at = session_row.expires_at
+        if expires_at and expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+
         # Create token object from DB data
         token = OAuthToken(
             access_token=access_token,  # May be expired
             refresh_token=refresh_token,
-            expires_at=session_row.expires_at,
+            expires_at=expires_at,
             provider=provider,
         )
-        
-        # Store in token_manager cache so refresh_token_if_needed can use it
+
+        # Store in token_manager cache so sync helpers can find a valid token
         token_manager.store_token(user_id, token)
-        
-        # Attempt refresh
-        new_token = token_manager.refresh_token_if_needed(user_id)
-        
-        if new_token and not new_token.is_expired():
-            # Update DB with new encrypted tokens
-            session_row.access_token_encrypted = _encrypt_string(new_token.access_token, user_id)
-            if new_token.refresh_token and new_token.refresh_token != refresh_token:
-                session_row.refresh_token_encrypted = _encrypt_string(new_token.refresh_token, user_id)
-            session_row.expires_at = new_token.expires_at
-            session_row.last_activity = utc_now()
-            await db.commit()
-            
-            logger.info(f"Silent refresh succeeded for user {user_id[:6]}***")
-            return True, new_token, RefreshResult.SUCCESS
-        else:
+
+        # If the token is still valid, no provider call needed.
+        if not token.is_expired():
+            logger.debug(f"Token still valid for user {user_id[:6]}***")
+            return True, token, RefreshResult.SUCCESS
+
+        # Token expired/melting - use the async provider-specific refresh.
+        # Local import avoids a top-level circular import with storage/router.py,
+        # which imports _encrypt_string/_decrypt_string from this module.
+        try:
+            from app.modules.storage.router import refresh_access_token
+            new_token_data = await refresh_access_token(db, user_id, provider, refresh_token)
+        except Exception as e:
+            logger.error(f"Async token refresh raised for user {user_id[:6]}***: {e}", exc_info=True)
+            return False, None, RefreshResult.PROVIDER_ERROR
+
+        if not new_token_data:
             logger.warning(f"Token refresh failed for user {user_id[:6]}***")
             return False, None, RefreshResult.REFRESH_FAILED
-            
+
+        # refresh_access_token already persists new tokens to the DB.
+        # Rebuild the in-memory OAuthToken and cache it.
+        new_token = OAuthToken(
+            access_token=new_token_data["access_token"],
+            refresh_token=new_token_data.get("refresh_token", refresh_token),
+            expires_at=new_token_data["expires_at"],
+            provider=provider,
+        )
+        token_manager.store_token(user_id, new_token)
+
+        logger.info(f"Silent refresh succeeded for user {user_id[:6]}***")
+        return True, new_token, RefreshResult.SUCCESS
+
     except Exception as e:
         logger.error(f"Error during silent refresh for user {user_id[:6]}***: {e}", exc_info=True)
         return False, None, RefreshResult.PROVIDER_ERROR

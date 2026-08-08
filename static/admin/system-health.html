@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Health & Updates</title>
+<link rel="stylesheet" href="/css/admin-nav.css">
+<style>
+  :root {
+    --bg: #121212;
+    --text: #e8e8e8;
+    --muted: #9a9a9a;
+    --accent: #4f8cff;
+    --ok: #22c55e;
+    --warning: #eab308;
+    --broken: #ef4444;
+    --unverified: #9a9a9a;
+    --orphaned: #f97316;
+    --card: #1a1a1a;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 2rem;
+  }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .back {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  #update-now {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    background: #2f6f4f;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  #update-now:disabled { background: #444; cursor: wait; }
+  #update-status { color: var(--muted); font-size: 0.85rem; margin-left: 0.75rem; }
+  h1 { margin: 0; }
+  .subtitle { color: var(--muted); margin: 0.25rem 0 1.5rem 0; font-size: 0.9rem; }
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .card {
+    background: var(--card);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+  .card .value { font-size: 1.6rem; font-weight: 700; }
+  .card .label { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; margin-top: 0.25rem; }
+  .status-ok { color: var(--ok); }
+  .status-warning { color: var(--warning); }
+  .status-broken { color: var(--broken); }
+  .status-unverified { color: var(--unverified); }
+  .status-orphaned { color: var(--orphaned); }
+  h2 { font-size: 1.1rem; margin-top: 2rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 0.75rem;
+  }
+  th, td {
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  th { color: var(--muted); text-transform: uppercase; font-size: 0.7rem; }
+  .badge { font-size: 1.1rem; }
+  .orphan-list {
+    background: var(--card);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 0.75rem;
+  }
+  .orphan-list ul { margin: 0.5rem 0 0; padding-left: 1.25rem; color: var(--muted); }
+  .orphan-list li { margin-bottom: 0.4rem; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="/admin">&larr; Admin Hub</a>
+  <div>
+    <button id="update-now">Update Now</button>
+    <span id="update-status"></span>
+  </div>
+</div>
+
+<h1>System Health & Updates</h1>
+<p class="subtitle">Module registry status, orphaned cleanup, and verification trigger.</p>
+
+<div class="summary" id="summary"></div>
+
+<h2>Orphaned Modules</h2>
+<div class="orphan-list" id="orphan-list"><p style="color: var(--muted);">Loading...</p></div>
+
+<h2>All Modules</h2>
+<table id="registry-table">
+  <thead>
+    <tr><th>ID</th><th>Display Name</th><th>Category</th><th>Status</th><th>Last Verified</th><th>Health</th><th>Tests</th></tr>
+  </thead>
+  <tbody>
+    <tr><td colspan="7" style="color: var(--muted);">Loading...</td></tr>
+  </tbody>
+</table>
+
+<script>
+const REGISTRY_ENDPOINT = "/admin/api/registry";
+const VERIFY_ENDPOINT = "/admin/api/verify";
+
+const BADGE = {
+  ok: { symbol: "🟢", class: "status-ok", label: "OK" },
+  warning: { symbol: "🟡", class: "status-warning", label: "Needs attention" },
+  broken: { symbol: "🔴", class: "status-broken", label: "Broken" },
+  unverified: { symbol: "⚪", class: "status-unverified", label: "Untested" },
+  orphaned: { symbol: "🟠", class: "status-orphaned", label: "Orphaned" },
+};
+
+const STATUS_ORDER = { broken: 0, orphaned: 1, warning: 2, unverified: 3, ok: 4 };
+
+function formatTime(iso) {
+  if (!iso) return "never";
+  try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
+}
+
+async function loadRegistry() {
+  try {
+    const res = await fetch(REGISTRY_ENDPOINT);
+    if (!res.ok) throw new Error(res.statusText);
+    return await res.json();
+  } catch (e) {
+    console.error("Registry fetch failed:", e);
+    return [];
+  }
+}
+
+function renderSummary(registry) {
+  const counts = { ok: 0, warning: 0, broken: 0, unverified: 0, orphaned: 0 };
+  for (const e of registry) counts[e.status || "unverified"] = (counts[e.status || "unverified"] || 0) + 1;
+  const summary = document.getElementById("summary");
+  summary.innerHTML = "";
+  for (const [status, meta] of Object.entries(BADGE)) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<div class="value ${meta.class}">${meta.symbol} ${counts[status] || 0}</div><div class="label">${meta.label}</div>`;
+    summary.appendChild(card);
+  }
+}
+
+function renderOrphans(registry) {
+  const orphans = registry.filter(e => e.status === "orphaned");
+  const list = document.getElementById("orphan-list");
+  if (!orphans.length) {
+    list.innerHTML = `<p style="color: var(--ok);">No orphaned modules. Registry is in sync with the product manifest.</p>`;
+    return;
+  }
+  list.innerHTML = `<p style="color: var(--orphaned);">These modules are in the registry but no longer in the product manifest. Review and remove them manually or run cleanup.</p><ul>${orphans.map(o => `<li><strong>${o.id}</strong> — ${o.display_name || o.id}</li>`).join("")}</ul>`;
+}
+
+function renderTable(registry) {
+  const sorted = [...registry].sort((a, b) => (STATUS_ORDER[a.status] ?? 5) - (STATUS_ORDER[b.status] ?? 5));
+  const tbody = document.querySelector("#registry-table tbody");
+  tbody.innerHTML = "";
+  for (const e of sorted) {
+    const meta = BADGE[e.status] || BADGE.unverified;
+    const last = e.last_verified ? formatTime(e.last_verified) : "never";
+    const health = e.last_result?.health_check || e.health_check || "—";
+    const tests = e.last_result?.test_suite || e.test_suite || "—";
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${e.id}</td>
+      <td>${e.display_name || e.id}</td>
+      <td>${e.category || "—"}</td>
+      <td><span class="badge ${meta.class}" title="${meta.label}">${meta.symbol}</span></td>
+      <td style="color: var(--muted);">${last}</td>
+      <td style="color: var(--muted); max-width: 200px;" title="${health}">${health.length > 40 ? health.slice(0, 40) + "…" : health}</td>
+      <td style="color: var(--muted); max-width: 200px;" title="${tests}">${tests.length > 40 ? tests.slice(0, 40) + "…" : tests}</td>
+    `;
+    tbody.appendChild(row);
+  }
+}
+
+async function loadHealth() {
+  const registry = await loadRegistry();
+  renderSummary(registry);
+  renderOrphans(registry);
+  renderTable(registry);
+}
+
+document.getElementById("update-now").addEventListener("click", async (e) => {
+  const btn = e.target;
+  const status = document.getElementById("update-status");
+  btn.disabled = true;
+  status.textContent = "Running sync + verify...";
+  try {
+    const res = await fetch(VERIFY_ENDPOINT, { method: "POST" });
+    if (!res.ok) throw new Error(res.statusText);
+    status.textContent = "Done.";
+    await loadHealth();
+  } catch (err) {
+    status.textContent = `Failed: ${err.message}`;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+loadHealth();
+</script>
+
+</body>
+</html>

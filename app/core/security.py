@@ -46,6 +46,7 @@ try:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from app.models.models import UserRelationship
+
     SQLALCHEMY_AVAILABLE = True
 except ImportError:
     SQLALCHEMY_AVAILABLE = False
@@ -56,6 +57,20 @@ except ImportError:
 # =============================================================================
 
 logger = logging.getLogger("semptify.security")
+
+# Data-sensitivity tiers are ordered from least to most sensitive. Professional
+# roles can handle court evidence, while tenants are limited to their own T2
+# data; route-level user_id filters remain responsible for resource scoping.
+_TIER_ORDER = {"T0": 0, "T1": 1, "T2": 2, "T3": 3}
+ROLE_MAX_TIER: dict[UserRole, str] = {
+    UserRole.ADMIN: "T3",
+    UserRole.ADVOCATE: "T3",
+    UserRole.MANAGER: "T3",
+    UserRole.LEGAL: "T3",
+    UserRole.JUDGE: "T3",
+    UserRole.TENANT: "T2",
+    UserRole.USER: "T2",
+}
 
 
 # =============================================================================
@@ -160,6 +175,7 @@ def log_event(event_type: str, details: dict | None = None) -> None:
 # =============================================================================
 # Anonymous User Tokens (Flask Parity)
 # =============================================================================
+
 
 class UserTokenStore:
     """
@@ -267,6 +283,7 @@ def save_user_token() -> tuple[str, str]:
 # Breakglass Emergency Admin Access (Flask Parity)
 # =============================================================================
 
+
 def is_breakglass_active() -> bool:
     """Check if breakglass flag file exists."""
     return Path("security/breakglass.flag").exists()
@@ -297,6 +314,7 @@ def _get_redis():
         import os as _os
 
         import redis as _redis
+
         url = _os.getenv("REDIS_URL", "")
         if not url:
             return None
@@ -373,6 +391,7 @@ def _delete_session(session_id: str) -> bool:
         return True
     return False
 
+
 # Short-lived function access tokens (used for overlay/function vault access checks)
 FUNCTION_ACCESS_TOKENS: dict[str, dict] = {}
 FUNCTION_REVOKED_ACCESS_TOKENS: dict[str, datetime] = {}
@@ -383,18 +402,12 @@ FUNCTION_TOKEN_REVERIFY_SECONDS = 120
 def _purge_expired_function_tokens() -> None:
     now = utc_now()
     expired = [
-        token
-        for token, data in FUNCTION_ACCESS_TOKENS.items()
-        if data.get("expires_at") and data["expires_at"] <= now
+        token for token, data in FUNCTION_ACCESS_TOKENS.items() if data.get("expires_at") and data["expires_at"] <= now
     ]
     for token in expired:
         FUNCTION_ACCESS_TOKENS.pop(token, None)
 
-    revoked_expired = [
-        token
-        for token, revoked_until in FUNCTION_REVOKED_ACCESS_TOKENS.items()
-        if revoked_until <= now
-    ]
+    revoked_expired = [token for token, revoked_until in FUNCTION_REVOKED_ACCESS_TOKENS.items() if revoked_until <= now]
     for token in revoked_expired:
         FUNCTION_REVOKED_ACCESS_TOKENS.pop(token, None)
 
@@ -557,11 +570,7 @@ def get_function_token_user_id(token: str) -> str | None:
 def invalidate_function_access_tokens(user_id: str) -> int:
     """Invalidate all function tokens for a user (used on logout/disconnect/role switch)."""
     _purge_expired_function_tokens()
-    tokens = [
-        token
-        for token, data in FUNCTION_ACCESS_TOKENS.items()
-        if data.get("user_id") == user_id
-    ]
+    tokens = [token for token, data in FUNCTION_ACCESS_TOKENS.items() if data.get("user_id") == user_id]
     for token in tokens:
         expires_at = FUNCTION_ACCESS_TOKENS[token].get("expires_at")
         if expires_at:
@@ -628,6 +637,7 @@ def invalidate_session(session_id: str) -> bool:
 # User ID Extraction (FastAPI Dependencies)
 # =============================================================================
 
+
 def get_client_ip_from_request(request: Request) -> str | None:
     """
     Extract the real client IP address from a request.
@@ -657,6 +667,7 @@ def get_client_ip_from_request(request: Request) -> str | None:
 # User ID Generation
 # =============================================================================
 
+
 def derive_user_id(provider: str, storage_user_id: str) -> str:
     """
     Derive a stable internal user ID from storage identity.
@@ -672,6 +683,7 @@ def derive_user_id(provider: str, storage_user_id: str) -> str:
 # Token Generation & Hashing
 # =============================================================================
 
+
 def generate_token() -> str:
     """Generate a secure token (hex string)."""
     return secrets.token_hex(32)
@@ -685,6 +697,7 @@ def hash_token(token: str) -> str:
 # =============================================================================
 # Admin Token Storage
 # =============================================================================
+
 
 class AdminTokenStore:
     """
@@ -795,6 +808,7 @@ def get_admin_token_store() -> AdminTokenStore:
 # Rate Limiting
 # =============================================================================
 
+
 class RateLimiter:
     """In-memory sliding window rate limiter."""
 
@@ -814,9 +828,7 @@ class RateLimiter:
         now = time.time()
         window_start = now - window_seconds
 
-        self._requests[key] = [
-            ts for ts in self._requests[key] if ts > window_start
-        ]
+        self._requests[key] = [ts for ts in self._requests[key] if ts > window_start]
 
         if len(self._requests[key]) >= max_requests:
             oldest_in_window = min(self._requests[key])
@@ -841,6 +853,7 @@ def get_rate_limiter() -> RateLimiter:
 # =============================================================================
 # Request Token Extraction (Flask Parity)
 # =============================================================================
+
 
 def get_token_from_request(request: Request) -> str | None:
     """
@@ -875,8 +888,8 @@ def get_token_from_request(request: Request) -> str | None:
 # =============================================================================
 
 # Dangerous patterns for path traversal and injection
-_PATH_TRAVERSAL_PATTERN = re.compile(r'\.\.[\\/]|[\\/]\.\.|\.\./|/\.\.')
-_SCRIPT_TAG_PATTERN = re.compile(r'<\s*script', re.IGNORECASE)
+_PATH_TRAVERSAL_PATTERN = re.compile(r"\.\.[\\/]|[\\/]\.\.|\.\./|/\.\.")
+_SCRIPT_TAG_PATTERN = re.compile(r"<\s*script", re.IGNORECASE)
 _SQL_INJECTION_PATTERNS = [
     re.compile(r";\s*(DROP|DELETE|INSERT|UPDATE|ALTER|CREATE)\s", re.IGNORECASE),
     re.compile(r"'\s*OR\s+'?1'?\s*=\s*'?1'?", re.IGNORECASE),
@@ -908,10 +921,10 @@ def sanitize_filename(filename: str) -> str:
     filename = filename.split("/")[-1]  # Take only the filename part
 
     # Remove null bytes and control characters
-    filename = re.sub(r'[\x00-\x1f\x7f]', '', filename)
+    filename = re.sub(r"[\x00-\x1f\x7f]", "", filename)
 
     # Remove dangerous characters
-    filename = re.sub(r'[<>:"|?*]', '', filename)
+    filename = re.sub(r'[<>:"|?*]', "", filename)
 
     # Limit length
     if len(filename) > 255:
@@ -988,12 +1001,12 @@ def check_xss(text: str) -> bool:
         return False
 
     # Check for javascript: URLs
-    if re.search(r'javascript\s*:', text, re.IGNORECASE):
+    if re.search(r"javascript\s*:", text, re.IGNORECASE):
         logger.warning("Potential XSS (javascript:) detected: %s...", text[:50])
         return False
 
     # Check for event handlers
-    if re.search(r'on\w+\s*=', text, re.IGNORECASE):
+    if re.search(r"on\w+\s*=", text, re.IGNORECASE):
         logger.warning("Potential XSS (event handler) detected: %s...", text[:50])
         return False
 
@@ -1079,6 +1092,7 @@ async def get_current_user(
     # We must strip the signature to get the raw user_id for token lookups.
     if semptify_uid and len(str(semptify_uid)) >= 10:
         from app.core.cookie_auth import verify_user_id
+
         raw_uid = verify_user_id(semptify_uid)
         if not raw_uid:
             # Signature invalid — fall through to unauthenticated
@@ -1089,18 +1103,18 @@ async def get_current_user(
 
         # Map provider code to StorageProvider
         provider_map = {
-            'G': StorageProvider.GOOGLE_DRIVE,
-            'D': StorageProvider.DROPBOX,
-            'O': StorageProvider.ONEDRIVE,
-            'L': StorageProvider.LOCAL,  # Local/admin users
+            "G": StorageProvider.GOOGLE_DRIVE,
+            "D": StorageProvider.DROPBOX,
+            "O": StorageProvider.ONEDRIVE,
+            "L": StorageProvider.LOCAL,  # Local/admin users
         }
         role_map = {
-            'A': UserRole.ADMIN,
-            'M': UserRole.MANAGER,
-            'U': UserRole.USER,
-            'T': UserRole.TENANT,
-            'V': UserRole.ADVOCATE,
-            'L': UserRole.LEGAL,
+            "A": UserRole.ADMIN,
+            "M": UserRole.MANAGER,
+            "U": UserRole.USER,
+            "T": UserRole.TENANT,
+            "V": UserRole.ADVOCATE,
+            "L": UserRole.LEGAL,
         }
 
         provider = provider_map.get(provider_code)
@@ -1108,27 +1122,32 @@ async def get_current_user(
 
         # Only create context if we have valid provider and role codes
         if provider and role:
-            # Get real access token: in-memory cache first, then DB (survives server restarts)
-            # Use raw_uid (unsigned) — token manager and session DB key on raw user_id
+            # Get a valid access token, refreshing silently if expired.
+            # Use raw_uid (unsigned) — token manager and session DB key on raw user_id.
+            #
+            # ICE-CUBE TOKEN MODEL (same as storage_middleware):
+            #   1. Check in-memory cache (ice cube) — fastest, no DB/provider call.
+            #   2. Cache empty or melted (expired) → load refresh_token from DB (freezer)
+            #      and knock on provider's door to get a new access_token.
+            #   3. Provider says no → return "no-token" so yellow/red access redirects
+            #      to /storage/reconnect.
+            #
+            # CRITICAL: This must use auto_refresh.ensure_valid_token(), NOT
+            # get_session_from_db() alone. The latter returns the stored access_token
+            # without checking expiry or refreshing — which causes a reconnect loop
+            # after server restarts (Render free-tier spin-down) because the stored
+            # token is expired and the provider rejects it with 401.
+            # See: app.core.auto_refresh.ensure_valid_token()
+            # Tracking: RECONNECT-LOOP-001
             real_token = None
             try:
-                from app.core.oauth_token_manager import get_valid_token_for_user
-                real_token = get_valid_token_for_user(raw_uid)
-            except Exception as _e:
-                logger.debug("Failed to load cached token for %s: %s", raw_uid[:6], _e)
+                from app.core.auto_refresh import ensure_valid_token
 
-            if not real_token:
-                # In-memory cache empty (e.g. after server restart) — load from DB
-                try:
-                    from app.core.database import get_session_factory
-                    from app.modules.storage.router import get_session_from_db
-                    _factory = get_session_factory()
-                    async with _factory() as _db:
-                        _session = await get_session_from_db(_db, raw_uid)
-                        if _session:
-                            real_token = _session.get("access_token")
-                except Exception as _e:
-                    logger.debug("Failed to load session from DB for %s: %s", raw_uid[:6], _e)
+                _is_valid, _token_obj, _status = await ensure_valid_token(raw_uid)
+                if _is_valid and _token_obj:
+                    real_token = _token_obj.access_token
+            except Exception as _e:
+                logger.warning("Token refresh failed for %s***: %s", raw_uid[:6], _e)
 
             return UserContext(
                 user_id=raw_uid,
@@ -1175,12 +1194,12 @@ def is_valid_user_storage(user_id: str) -> bool:
 
     # Check provider code is valid (G, D, O)
     provider_code = user_id[0].upper()
-    if provider_code not in ['G', 'D', 'O']:
+    if provider_code not in ["G", "D", "O"]:
         return False
 
     # Check role code is valid (A, M, U, V, L)
     role_code = user_id[1].upper()
-    return role_code in ['A', 'M', 'U', 'V', 'L']
+    return role_code in ["A", "M", "U", "V", "L"]
 
 
 async def require_user(
@@ -1206,7 +1225,7 @@ async def require_user(
                     "error": "storage_required",
                     "message": "We're setting up your storage. You'll be ready to continue in just a moment.",
                     "action": "redirect",
-                    "redirect_url": "/storage/providers"
+                    "redirect_url": "/storage/providers",
                 },
             )
         return user
@@ -1217,10 +1236,12 @@ async def require_user(
             "error": "auth_required",
             "message": "We're setting up your storage. You'll be ready to continue in just a moment.",
             "action": "redirect",
-            "redirect_url": "/storage/providers"
+            "redirect_url": "/storage/providers",
         },
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+
 # =============================================================================
 # TRAFFIC LIGHT ACCESS LEVELS
 # =============================================================================
@@ -1244,6 +1265,7 @@ async def require_user(
 #
 # =============================================================================
 
+
 def auth_gate(
     user: UserContext | None = Depends(get_current_user),
 ) -> UserContext:
@@ -1258,6 +1280,30 @@ def auth_gate(
             detail={"error": "auth_required", "gate": "auth_gate"},
         )
     return user
+
+
+def require_tier(max_tier: str):
+    """Require an authenticated user whose role permits the requested tier."""
+    if max_tier not in _TIER_ORDER:
+        raise ValueError(f"Unknown data-sensitivity tier: {max_tier}")
+
+    async def check_tier(
+        user: UserContext = Depends(auth_gate),
+    ) -> UserContext:
+        role = user.get_effective_role()
+        permitted_tier = ROLE_MAX_TIER.get(role, "T1")
+        if _TIER_ORDER[max_tier] > _TIER_ORDER[permitted_tier]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "error": "tier_forbidden",
+                    "required": max_tier,
+                    "permitted": permitted_tier,
+                },
+            )
+        return user
+
+    return check_tier
 
 
 def green_access(
@@ -1330,12 +1376,11 @@ async def red_access(
     try:
         from app.core.stateless_oauth import StatelessOAuthManager
         from app.services.storage import get_provider as _get_provider
+
         storage = _get_provider(user.provider.value, access_token=user.access_token)
         if storage:
             mgr = StatelessOAuthManager(storage)
-            valid = await mgr.validate_token_with_provider(
-                user.provider.value, user.access_token
-            )
+            valid = await mgr.validate_token_with_provider(user.provider.value, user.access_token)
             if not valid:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -1363,6 +1408,7 @@ def require_role(*roles: UserRole):
         async def admin_endpoint(user: UserContext = Depends(require_role(UserRole.ADMIN))):
             ...
     """
+
     async def check_role(
         user: UserContext = Depends(require_user),
         settings: Settings = Depends(get_settings),
@@ -1386,6 +1432,7 @@ def require_permission(*permissions: str):
         async def upload(user: UserContext = Depends(require_permission("vault_write"))):
             ...
     """
+
     async def check_permission(
         user: UserContext = Depends(require_user),
         settings: Settings = Depends(get_settings),
@@ -1411,11 +1458,7 @@ async def require_admin(
     client_ip = request.client.host if request.client else "unknown"
     key = f"admin:{client_ip}:{request.url.path}"
 
-    allowed, retry_after = limiter.check(
-        key,
-        settings.admin_rate_limit_window,
-        settings.admin_rate_limit_max_requests
-    )
+    allowed, retry_after = limiter.check(key, settings.admin_rate_limit_window, settings.admin_rate_limit_max_requests)
 
     if not allowed:
         incr_metric("rate_limited_total")
@@ -1467,7 +1510,7 @@ async def get_user_id(
             "error": "storage_required",
             "message": "We're setting up your storage. You'll be ready to continue in just a moment.",
             "action": "redirect",
-            "redirect_url": "/storage/providers"
+            "redirect_url": "/storage/providers",
         },
         headers={"WWW-Authenticate": "Bearer"},
     )
@@ -1494,6 +1537,7 @@ def rate_limit_dependency(
     max_requests: int | None = None,
 ):
     """Create a rate limiting dependency."""
+
     async def check_rate_limit(
         request: Request,
         settings: Settings = Depends(get_settings),
@@ -1520,6 +1564,7 @@ def rate_limit_dependency(
 # =============================================================================
 # CSRF Protection
 # =============================================================================
+
 
 def generate_csrf_token() -> str:
     """Generate a CSRF token."""
@@ -1551,6 +1596,7 @@ async def validate_csrf(
 # =============================================================================
 # Anonymous User Auth Dependency (Flask Parity)
 # =============================================================================
+
 
 async def require_anonymous_user(
     request: Request,
@@ -1645,6 +1691,7 @@ __all__ = [
     # FastAPI dependencies
     "get_current_user",
     "require_user",
+    "require_tier",
     "require_role",
     "require_permission",
     "require_admin",
@@ -1679,6 +1726,7 @@ __all__ = [
 # =============================================================================
 # Role Hierarchy — Permission Check
 # =============================================================================
+
 
 async def can_access(
     from_user_id: str,
@@ -1724,15 +1772,15 @@ async def can_access(
         query = query.where(UserRelationship.relationship_type == relationship_type)
 
     # Check for non-expired relationships
-    query = query.where(
-        (UserRelationship.expires_at.is_(None)) | (UserRelationship.expires_at > utc_now())
-    )
+    query = query.where((UserRelationship.expires_at.is_(None)) | (UserRelationship.expires_at > utc_now()))
 
     result = await db.execute(query)
     relationship = result.scalar_one_or_none()
 
     if relationship:
-        logger.info(f"Access granted: {from_user_id[:6]}... -> {to_user_id[:6]}... via {relationship.relationship_type}")
+        logger.info(
+            f"Access granted: {from_user_id[:6]}... -> {to_user_id[:6]}... via {relationship.relationship_type}"
+        )
         return True
 
     logger.info(f"Access denied: {from_user_id[:6]}... -> {to_user_id[:6]}... (no active relationship)")

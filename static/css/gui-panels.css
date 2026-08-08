@@ -143,6 +143,149 @@
     margin-top: 0.25rem;
 }
 
+/* =========================================================================
+   Viewport-Locked Screen + Function Budget (Task 1 — Master Handoff)
+   Desktop primary screens fit the viewport. Mobile keeps the existing
+   stacked-scrolling renderer. Function budget: one primary action, up to
+   three secondary, max two supporting content blocks per screen.
+   ========================================================================= */
+
+/* Apply to .gui-container when a page should be viewport-locked on desktop.
+   Child pages keep overflow: auto on mobile. */
+.gui-viewport-locked {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Mobile base styles — desktop enhancements in @media (min-width: 768px) below.
+   On mobile the page stacks and scrolls naturally; these just keep the
+   secondary/support zones visually grouped without forcing viewport height. */
+.gui-screen {
+    display: flex;
+    flex-direction: column;
+}
+
+.gui-screen--primary {
+    flex: 1 1 auto;
+}
+
+.gui-screen--secondary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3, 0.75rem);
+    padding: var(--space-3, 0.75rem) 0;
+}
+
+.gui-screen--support {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3, 0.75rem);
+    padding: var(--space-3, 0.75rem) 0;
+}
+
+/* Secondary action button — full-width tap target on mobile, auto on desktop */
+.gui-screen--secondary .frame-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 0.625rem 1rem;
+    text-decoration: none;
+}
+
+@media (min-width: 768px) {
+    .gui-viewport-locked {
+        height: 100vh;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    .gui-viewport-locked .gui-main {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .gui-screen {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .gui-screen--primary {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .gui-screen--secondary {
+        flex: 0 0 auto;
+        display: flex;
+        gap: var(--space-3, 0.75rem);
+        padding: var(--space-3, 0.75rem) 0;
+    }
+
+    .gui-screen--support {
+        flex: 0 0 auto;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-3, 0.75rem);
+        padding: var(--space-3, 0.75rem) 0;
+        overflow: auto;
+    }
+
+    .gui-screen--support:only-child,
+    .gui-screen--support:last-child:nth-child(odd) {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Persistent "Get help now" action — fixed position, same on every screen.
+   Large tap target, high contrast, alarm color reserved for genuine urgency. */
+.gui-help-now {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: var(--z-sticky, 200);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    min-width: 48px;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25;
+    text-decoration: none;
+    border: 1px solid var(--color-alarm, #d97706);
+    background: var(--color-alarm, #d97706);
+    color: var(--color-alarm-text, #ffffff);
+    border-radius: 0;
+    box-shadow: none;
+    cursor: pointer;
+    transition: background-color var(--transition-fast, 0.15s ease), border-color var(--transition-fast, 0.15s ease);
+}
+
+.gui-help-now:hover,
+.gui-help-now:focus-visible {
+    background: var(--color-alarm-hover, #b45309);
+    border-color: var(--color-alarm-hover, #b45309);
+    color: var(--color-alarm-text, #ffffff);
+}
+
+.gui-help-now:focus-visible {
+    outline: 3px solid var(--color-calm-light, #8aa3bf);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gui-help-now,
+    .frame-btn,
+    .frame-item {
+        transition: none;
+    }
+}
+
 /* Responsive */
 @media (max-width: 375px) {
     .frame-item {

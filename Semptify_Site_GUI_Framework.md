@@ -270,3 +270,59 @@ This is a stronger promise than "we don't store your files" — it's not a polic
 - How much should the AI Copilot be allowed to draft (e.g., a response letter to a landlord) vs. purely explain?
 - What's the offline/low-connectivity fallback for a user with an unstable phone plan?
 - How is the "Advocate/Helper" persona (legal aid workers, case managers) supported — a distinct view, or just shared export?
+
+---
+
+## 10. Viewport-Locked Desktop + Function Budget Convention (Task 1 — Master Handoff)
+
+These rules apply to the four-pillar GUI shell (`gui/base.html` and child pages). They are enforced by CSS class structure and template convention, not just copy.
+
+### 10.1 No-scroll desktop
+
+- Every primary desktop screen fits in the viewport (`height: 100vh`, `overflow: hidden`).
+- If the content does not fit, it is a signal that the page is doing too much — paginate, step-flow, or split into child screens. Do not compress or scroll the desktop viewport.
+- Mobile keeps the existing stacked-scrolling renderer. The `gui-viewport-locked` class is desktop-only (`@media (min-width: 768px)`).
+- Apply `gui-viewport-locked` to `.gui-container` via `{% block container_class %}` on child pages that are ready for viewport-locking.
+
+### 10.2 Function budget (per screen)
+
+A primary screen may contain, at most:
+- **One primary action** — the dominant next step (e.g., "Upload your lease", "Begin").
+- **Up to three secondary actions** — supporting choices that don't compete with the primary action.
+- **Max two supporting content blocks** — context, explanation, or related data.
+
+Use the CSS layout classes in `gui-panels.css` to enforce this:
+- `.gui-screen` — flex column filling the viewport
+- `.gui-screen--primary` — the one primary action / main interaction
+- `.gui-screen--secondary` — up to three secondary actions
+- `.gui-screen--support` — up to two supporting content blocks
+
+### 10.3 "Get help now" is fixed and non-negotiable
+
+- One visually dominant "Get help now" action appears on every GUI page.
+- It is fixed to the bottom-right of the viewport (`position: fixed; right: 1rem; bottom: 1rem`).
+- It uses the reserved alarm color (`--color-alarm`) only because it routes to crisis/legal-aid help.
+- It is not relocated, hidden, or de-emphasized for any specific page layout.
+- The path is sourced from the SSOT `navigation.MAIN_NAV` entry named "Help".
+
+### 10.4 Calm baseline + reserved alarm color
+
+- Rest-state UI uses the calm palette (`--color-calm-*`, `--zone-bg-*`, template body colors).
+- The alarm color (`--color-alarm`) is reserved for genuine urgency only:
+  - Real deadlines (eviction date, response window, hearing date)
+  - The "Get help now" action
+- Do not use alarm color for general emphasis, buttons, or marketing.
+
+### 10.5 Plain language + action-first copy
+
+- Lead with the action: "Upload your lease" before "Semptify helps you organize documents."
+- One instruction per line/block; no compound sentences stacking two required actions.
+- Restate the minimum context the user needs on every screen — do not force them to remember context from a previous screen.
+- Once translations exist (Task 6), every language gets its own plain-language review; do not assume English tone carries over.
+
+### 10.6 Accessibility
+
+- Skip link as the first focusable element in `gui/base.html`.
+- `prefers-reduced-motion` respected: no smooth scroll or transitions when the user requests reduced motion.
+- Focus-visible rings on all interactive controls.
+- No rounded corners (existing design handoff rule preserved).

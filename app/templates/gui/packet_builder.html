@@ -1,0 +1,352 @@
+{% extends "gui/base.html" %}
+
+{% block title %}Build Packet — Semptify{% endblock %}
+{% block nav_act %}active{% endblock %}
+{% block container_class %}gui-viewport-locked{% endblock %}
+
+{% block styles %}
+<style>
+    .packet-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .packet-form--row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+    }
+    .packet-form--label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #e2e8f0;
+    }
+    .packet-form--hint {
+        font-size: 0.8125rem;
+        color: #94a3b8;
+    }
+    .packet-form--input,
+    .packet-form--textarea,
+    .packet-form--select {
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        background: #0f172a;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 0.375rem;
+        color: #f8fafc;
+        font-size: 0.9375rem;
+        font-family: inherit;
+    }
+    .packet-form--input:focus,
+    .packet-form--textarea:focus,
+    .packet-form--select:focus {
+        outline: 2px solid #3b82f6;
+        border-color: #3b82f6;
+    }
+    .packet-form--textarea {
+        min-height: 5rem;
+        resize: vertical;
+    }
+    .packet-form--options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+    }
+    .packet-form--option {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: 0.9375rem;
+        color: #cbd5e1;
+        cursor: pointer;
+    }
+    .packet-form--option input[type="radio"],
+    .packet-form--option input[type="checkbox"] {
+        accent-color: #3b82f6;
+    }
+    .packet-source-group {
+        display: none;
+    }
+    .packet-source-group.active {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+    }
+    .packet-result {
+        display: none;
+        padding: 1rem;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 0.375rem;
+    }
+    .packet-result.active {
+        display: block;
+    }
+    .packet-result--title {
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 0.25rem;
+    }
+    .packet-result--meta {
+        font-size: 0.875rem;
+        color: #94a3b8;
+        margin-bottom: 0.75rem;
+    }
+    .packet-result--actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    .packet-status {
+        font-size: 0.875rem;
+        color: #94a3b8;
+        min-height: 1.25rem;
+    }
+    .packet-status.error {
+        color: #f87171;
+    }
+    .packet-status.success {
+        color: #34d399;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gui-screen">
+
+    <div class="gui-screen--primary">
+        <section class="frame-panel">
+            <div class="frame-panel--header">
+                <span class="frame-panel--title">Build a packet</span>
+            </div>
+            <div class="frame-panel--body">
+                <p style="color:#94a3b8; font-size:0.9375rem; margin-bottom:1rem;">
+                    Gather your documents into one organized download for court, your landlord, or a legal aid advocate.
+                </p>
+
+                <form id="packetForm" class="packet-form">
+                    <div class="packet-form--row">
+                        <span class="packet-form--label">What do you want to include?</span>
+                        <div class="packet-form--options" id="sourceTypeOptions">
+                            <label class="packet-form--option">
+                                <input type="radio" name="source_type" value="vault" checked>
+                                Vault documents
+                            </label>
+                            <label class="packet-form--option">
+                                <input type="radio" name="source_type" value="case">
+                                A case
+                            </label>
+                            <label class="packet-form--option">
+                                <input type="radio" name="source_type" value="folder">
+                                A briefcase folder
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="packet-form--row packet-source-group active" data-source="vault">
+                        <label class="packet-form--label" for="vaultIds">Document IDs</label>
+                        <span class="packet-form--hint">Enter one or more vault document IDs, separated by commas or new lines.</span>
+                        <textarea id="vaultIds" class="packet-form--textarea" placeholder="doc_abc123, doc_def456"></textarea>
+                    </div>
+
+                    <div class="packet-form--row packet-source-group" data-source="case">
+                        <label class="packet-form--label" for="caseId">Case ID</label>
+                        <input id="caseId" class="packet-form--input" type="text" placeholder="case_123">
+                    </div>
+
+                    <div class="packet-form--row packet-source-group" data-source="folder">
+                        <label class="packet-form--label" for="folderId">Folder ID</label>
+                        <input id="folderId" class="packet-form--input" type="text" placeholder="folder_123">
+                    </div>
+
+                    <div class="packet-form--row">
+                        <span class="packet-form--label">Export mode</span>
+                        <div class="packet-form--options">
+                            <label class="packet-form--option">
+                                <input type="radio" name="mode" value="overlay" checked>
+                                Overlay (with notes & highlights)
+                            </label>
+                            <label class="packet-form--option">
+                                <input type="radio" name="mode" value="clean">
+                                Clean (documents only)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="packet-form--row">
+                        <span class="packet-form--label">Include</span>
+                        <div class="packet-form--options">
+                            <label class="packet-form--option">
+                                <input type="checkbox" id="includeHighlights" checked>
+                                Highlights
+                            </label>
+                            <label class="packet-form--option">
+                                <input type="checkbox" id="includeNotes" checked>
+                                Notes
+                            </label>
+                            <label class="packet-form--option">
+                                <input type="checkbox" id="includeFootnotes" checked>
+                                Footnotes
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="packet-form--row">
+                        <label class="packet-form--label" for="packetName">Packet name (optional)</label>
+                        <input id="packetName" class="packet-form--input" type="text" placeholder="Evidence packet — July 2026">
+                    </div>
+
+                    <div class="packet-form--row">
+                        <button type="submit" class="frame-btn frame-btn--primary">Build packet</button>
+                        <div id="packetStatus" class="packet-status"></div>
+                    </div>
+                </form>
+
+                <div id="packetResult" class="packet-result">
+                    <div class="packet-result--title" id="resultTitle">Packet ready</div>
+                    <div class="packet-result--meta" id="resultMeta"></div>
+                    <div class="packet-result--actions">
+                        <a id="downloadZip" class="frame-btn frame-btn--primary" href="#">Download ZIP</a>
+                        <a id="downloadPdf" class="frame-btn" href="#">Download PDF</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="gui-screen--secondary">
+        <a href="/gui/act" class="frame-btn">Back to Act</a>
+        <a href="/tenant/documents" class="frame-btn">View documents</a>
+    </div>
+
+    <div class="gui-screen--support">
+        <section class="frame-panel">
+            <div class="frame-panel--body">
+                <p style="font-size:0.8125rem; color:#64748b;">
+                    Semptify does not give legal advice. Review every packet before filing or sending it.
+                </p>
+            </div>
+        </section>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, function (c) {
+            return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+        });
+    }
+
+    const form = document.getElementById('packetForm');
+    const statusEl = document.getElementById('packetStatus');
+    const resultEl = document.getElementById('packetResult');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultMeta = document.getElementById('resultMeta');
+    const downloadZip = document.getElementById('downloadZip');
+    const downloadPdf = document.getElementById('downloadPdf');
+
+    const sourceTypeOptions = document.querySelectorAll('input[name="source_type"]');
+    const sourceGroups = document.querySelectorAll('.packet-source-group');
+
+    function updateSourceGroup() {
+        const selected = document.querySelector('input[name="source_type"]:checked').value;
+        sourceGroups.forEach(function (g) {
+            g.classList.toggle('active', g.dataset.source === selected);
+        });
+    }
+
+    sourceTypeOptions.forEach(function (radio) {
+        radio.addEventListener('change', updateSourceGroup);
+    });
+
+    function setStatus(msg, type) {
+        statusEl.textContent = msg;
+        statusEl.className = 'packet-status ' + (type || '');
+    }
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        resultEl.classList.remove('active');
+
+        const sourceType = document.querySelector('input[name="source_type"]:checked').value;
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        const name = document.getElementById('packetName').value.trim() || null;
+        const includeHighlights = document.getElementById('includeHighlights').checked;
+        const includeNotes = document.getElementById('includeNotes').checked;
+        const includeFootnotes = document.getElementById('includeFootnotes').checked;
+
+        const payload = {
+            mode: mode,
+            include_highlights: includeHighlights,
+            include_notes: includeNotes,
+            include_footnotes: includeFootnotes,
+            name: name,
+            vault_ids: [],
+            case_id: null,
+            folder_id: null,
+        };
+
+        if (sourceType === 'vault') {
+            const raw = document.getElementById('vaultIds').value;
+            const ids = raw.split(/[\n,]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+            if (!ids.length) {
+                setStatus('Enter at least one document ID.', 'error');
+                return;
+            }
+            payload.vault_ids = ids;
+        } else if (sourceType === 'case') {
+            const caseId = document.getElementById('caseId').value.trim();
+            if (!caseId) {
+                setStatus('Enter a case ID.', 'error');
+                return;
+            }
+            payload.case_id = caseId;
+        } else if (sourceType === 'folder') {
+            const folderId = document.getElementById('folderId').value.trim();
+            if (!folderId) {
+                setStatus('Enter a folder ID.', 'error');
+                return;
+            }
+            payload.folder_id = folderId;
+        }
+
+        setStatus('Building packet…');
+
+        try {
+            const r = await fetch('/api/packet-builder/build', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload),
+            });
+
+            const data = await r.json().catch(function () { return {}; });
+
+            if (!r.ok) {
+                setStatus(data.detail || data.message || 'Could not build packet.', 'error');
+                return;
+            }
+
+            const packetId = data.packet_id;
+            const itemCount = data.item_count || 0;
+
+            resultTitle.textContent = escapeHtml(data.name || 'Packet ready');
+            resultMeta.textContent = itemCount + ' document' + (itemCount === 1 ? '' : 's') + ' included · ID: ' + escapeHtml(packetId);
+
+            const baseUrl = '/api/packet-builder/packets/' + encodeURIComponent(packetId) + '/download';
+            downloadZip.href = baseUrl + '?format=zip';
+            downloadPdf.href = baseUrl + '?format=pdf';
+
+            resultEl.classList.add('active');
+            setStatus('Packet built successfully.', 'success');
+        } catch (err) {
+            setStatus('Network error. Please try again.', 'error');
+        }
+    });
+})();
+</script>
+{% endblock %}

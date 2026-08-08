@@ -489,7 +489,12 @@ class TestIntakeUploadAPI:
         if "detail" in data:
             assert "empty" in data["detail"].lower() or "storage" in data["detail"].lower()
         elif "error" in data:
-            assert "storage" in data.get("error", "").lower() or "empty" in data.get("message", "").lower()
+            error_val = data.get("error", "")
+            if isinstance(error_val, dict):
+                msg = error_val.get("message", "")
+            else:
+                msg = str(error_val)
+            assert "empty" in msg.lower() or "storage" in msg.lower()
     
     def test_upload_valid_file(self, client, engine):
         """Valid file upload succeeds."""

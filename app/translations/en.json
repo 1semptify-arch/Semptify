@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "locale": "en",
+    "status": "human_reviewed",
+    "note": "Source of truth for Semptify UI strings. Keep plain-language and action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "Tenant rights tools — privacy-first, stateless, zero-log",
+  "action.get_help": "Get help now",
+  "action.continue": "Continue",
+  "action.back": "Back",
+  "action.save": "Save",
+  "action.cancel": "Cancel",
+  "action.close": "Close",
+  "nav.record": "Record",
+  "nav.know": "Know",
+  "nav.act": "Act",
+  "nav.govern": "Govern",
+  "welcome.title": "Semptify — On-The-Fly Composer",
+  "welcome.lead": "No accounts. No logs. All UI routing happens in your browser.",
+  "welcome.cta": "Get Started",
+  "help.headline": "What's happening to you right now?",
+  "footer.upl": "Semptify is not a law firm and does not give legal advice.",
+  "footer.privacy": "Privacy Policy",
+  "footer.terms": "Terms of Use",
+  "footer.report": "Report a problem",
+  "language.label": "Language",
+  "language.selector.aria": "Choose your preferred language"
+}

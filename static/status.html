@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semptify Status</title>
+  <style>
+    body { font-family: sans-serif; background: #0f172a; color: #e2e8f0; padding: 2rem; }
+    h1 { font-size: 1.5rem; }
+    .card { background: #1e293b; padding: 1rem; margin: 1rem 0; border-left: 4px solid #3b82f6; }
+    .ok { color: #22c55e; }
+    .bad { color: #ef4444; }
+    a { color: #3b82f6; }
+  </style>
+</head>
+<body>
+  <h1>Semptify Status</h1>
+  <p>Current service health.</p>
+  <div id="board"><p>Loading…</p></div>
+  <p><a href="mailto:support@semptify.org?subject=Semptify%20status%20report">Report a problem</a></p>
+  <script>
+  async function check(name, url) {
+    try {
+      const r = await fetch(url, { cache: 'no-store' });
+      const text = await r.text();
+      let json = null;
+      try { json = JSON.parse(text); } catch (e) {}
+      const ok = r.ok && (!json || json.status === 'ok');
+      return `<div class="card"><h2>${name}</h2><p class="${ok ? 'ok' : 'bad'}">${ok ? 'Operational' : 'Unavailable'}</p><p>${r.status}</p></div>`;
+    } catch (err) {
+      return `<div class="card"><h2>${name}</h2><p class="bad">Unavailable</p><p>${err.message}</p></div>`;
+    }
+  }
+  async function load() {
+    document.getElementById('board').innerHTML = (await Promise.all([
+      check('Liveness', '/healthz'),
+      check('Readiness', '/readyz'),
+      check('API Health', '/api/health'),
+    ])).join('');
+  }
+  load();
+  setInterval(load, 30000);
+  </script>
+</body>
+</html>

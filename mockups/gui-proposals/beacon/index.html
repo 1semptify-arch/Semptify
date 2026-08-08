@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Semptify is a public-service tool for tenants facing housing problems." />
+  <title>Semptify — Protect your housing rights</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black: #000000;
+      --white: #FFFFFF;
+      --amber: #F5A623;
+      --red: #D7263D;
+      --font-display: 'Inter', sans-serif;
+      --font-body: 'IBM Plex Sans', sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      border-radius: 0 !important;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: 24px;
+      line-height: 1.45;
+      color: var(--black);
+      background: var(--white);
+      padding-bottom: 4.5rem;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        font-size: 18px;
+        padding-bottom: 1rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+      main > section,
+      .truth,
+      .pillars,
+      .who-for,
+      .privacy,
+      .deadline-now {
+        opacity: 1 !important;
+      }
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid var(--amber);
+      outline-offset: 2px;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 0.5rem;
+      z-index: 2000;
+      background: var(--black);
+      color: var(--white);
+      padding: 0.75rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      text-decoration: underline;
+      border: 2px solid var(--white);
+    }
+
+    .skip-link:focus {
+      top: 0.5rem;
+      outline: 3px solid var(--amber);
+      outline-offset: 2px;
+    }
+
+    /* Deadline beacon */
+    .deadline-beacon {
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      background: var(--black);
+      color: var(--white);
+      border-left: 8px solid var(--amber);
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .beacon-label {
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .beacon-separator {
+      opacity: 0.7;
+    }
+
+    /* Top bar */
+    .top-bar {
+      background: var(--black);
+      color: var(--white);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .top-bar-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      color: var(--white);
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .brand:hover,
+    .brand:focus {
+      color: var(--amber);
+    }
+
+    .tagline {
+      display: none;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--white);
+      opacity: 0.85;
+      margin: 0;
+      letter-spacing: 0.04em;
+    }
+
+    .desktop-nav {
+      display: none;
+      align-items: center;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+    }
+
+    .desktop-nav a {
+      color: var(--white);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      text-decoration: none;
+      padding: 0.6rem 0.5rem;
+      min-height: 48px;
+      min-width: 48px;
+      display: inline-flex;
+      align-items: center;
+      border-bottom: 3px solid transparent;
+    }
+
+    .desktop-nav a:hover,
+    .desktop-nav a:focus {
+      color: var(--amber);
+      border-bottom-color: var(--amber);
+    }
+
+    @media (min-width: 768px) {
+      .desktop-nav {
+        display: flex;
+      }
+      .tagline {
+        display: block;
+      }
+    }
+
+    /* Mobile bottom nav */
+    .mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--black);
+      border-top: 2px solid var(--white);
+      display: flex;
+      justify-content: space-around;
+      align-items: stretch;
+      z-index: 100;
+    }
+
+    .mobile-nav a {
+      color: var(--white);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-decoration: none;
+      text-transform: uppercase;
+      flex: 1;
+      min-height: 64px;
+      min-width: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      padding: 0.35rem 0.25rem;
+      border-top: 3px solid transparent;
+    }
+
+    .mobile-nav a svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    .mobile-nav a:hover,
+    .mobile-nav a:focus {
+      background: var(--white);
+      color: var(--black);
+      border-top-color: var(--amber);
+    }
+
+    @media (min-width: 768px) {
+      .mobile-nav {
+        display: none;
+      }
+    }
+
+    /* Main */
+    main {
+      padding-bottom: 2rem;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    main > section,
+    .truth,
+    .pillars,
+    .who-for,
+    .privacy,
+    .deadline-now {
+      opacity: 0;
+      animation: fadeInUp 0.55s ease-out forwards;
+    }
+
+    main > section:nth-child(1) { animation-delay: 0.05s; }
+    main > section:nth-child(2) { animation-delay: 0.12s; }
+    main > section:nth-child(3) { animation-delay: 0.19s; }
+    main > section:nth-child(4) { animation-delay: 0.26s; }
+    main > section:nth-child(5) { animation-delay: 0.33s; }
+    main > section:nth-child(6) { animation-delay: 0.40s; }
+
+    /* Hero */
+    .hero {
+      padding: 3rem 1rem 4rem;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(48px, 12vw, 104px);
+      line-height: 1.02;
+      margin: 0 0 1.5rem;
+      max-width: 14ch;
+    }
+
+    .hero-subhead {
+      font-family: var(--font-body);
+      font-size: clamp(24px, 3.2vw, 36px);
+      line-height: 1.45;
+      margin: 0 0 2.5rem;
+      max-width: 34ch;
+    }
+
+    .cta-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 64px;
+      min-width: 48px;
+      padding: 1rem 2.5rem;
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 24px;
+      text-decoration: none;
+      border: 3px solid var(--black);
+      cursor: pointer;
+    }
+
+    .cta-button:hover,
+    .cta-button:focus {
+      background: var(--white);
+      color: var(--black);
+    }
+
+    .cta-button:focus-visible {
+      outline: 3px solid var(--amber);
+      outline-offset: 4px;
+    }
+
+    .cta-button:active {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    .cta-line {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      margin: 1.25rem 0 0;
+      color: var(--black);
+    }
+
+    /* Truth */
+    .truth {
+      background: var(--black);
+      color: var(--white);
+      padding: 4rem 1rem;
+    }
+
+    .truth-inner,
+    .pillars-inner,
+    .who-inner,
+    .privacy-inner,
+    .deadline-now {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .truth h2 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(40px, 7vw, 72px);
+      margin: 0 0 1.25rem;
+      line-height: 1.05;
+    }
+
+    .truth p {
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.45;
+      max-width: 40ch;
+      margin: 0;
+    }
+
+    /* Four pillars */
+    .pillars {
+      padding: 4rem 1rem;
+      background: var(--white);
+    }
+
+    .pillars h2 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(36px, 5.5vw, 64px);
+      margin: 0 0 2rem;
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2px;
+      background: var(--black);
+      border: 2px solid var(--black);
+    }
+
+    @media (min-width: 768px) {
+      .pillars-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .pillar {
+      background: var(--white);
+      padding: 2rem 1.25rem;
+    }
+
+    .pillar h3 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(32px, 4.5vw, 48px);
+      margin: 0 0 0.75rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+    }
+
+    .numeral {
+      font-family: var(--font-mono);
+      font-size: 0.65em;
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .pillar p {
+      font-family: var(--font-body);
+      font-size: clamp(22px, 2.6vw, 28px);
+      margin: 0;
+      color: var(--black);
+    }
+
+    /* Who this is for */
+    .who-for {
+      padding: 4rem 1rem;
+      background: var(--white);
+    }
+
+    .who-for h2 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(40px, 6vw, 72px);
+      margin: 0 0 2rem;
+    }
+
+    .who-for ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .who-for li {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: clamp(24px, 3vw, 32px);
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .who-for li svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--black);
+      flex-shrink: 0;
+    }
+
+    /* Privacy */
+    .privacy {
+      background: var(--black);
+      color: var(--white);
+      padding: 4rem 1rem;
+    }
+
+    .privacy h2 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(40px, 6vw, 72px);
+      margin: 0 0 1.25rem;
+    }
+
+    .privacy p {
+      font-size: clamp(24px, 3vw, 32px);
+      line-height: 1.45;
+      max-width: 44ch;
+      margin: 0;
+    }
+
+    /* Deadline now */
+    .deadline-now {
+      margin: 4rem 1rem;
+      padding: 2rem 1.25rem;
+      border: 4px solid var(--red);
+      background: var(--white);
+      color: var(--black);
+    }
+
+    .deadline-now h2 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(32px, 5vw, 56px);
+      color: var(--red);
+      margin: 0 0 1rem;
+      line-height: 1.05;
+    }
+
+    .deadline-now p {
+      font-size: clamp(22px, 2.8vw, 30px);
+      line-height: 1.45;
+      margin: 0 0 2rem;
+      max-width: 42ch;
+    }
+
+    .deadline-now .cta-button {
+      background: var(--red);
+      border-color: var(--red);
+      color: var(--white);
+    }
+
+    .deadline-now .cta-button:hover,
+    .deadline-now .cta-button:focus {
+      background: var(--white);
+      color: var(--red);
+    }
+
+    /* Footer */
+    footer {
+      background: var(--black);
+      color: var(--white);
+      padding: 2rem 1rem 7rem;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      text-align: center;
+    }
+
+    @media (min-width: 768px) {
+      footer {
+        padding-bottom: 2rem;
+      }
+    }
+
+    footer nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    footer a {
+      color: var(--white);
+      text-decoration: underline;
+      padding: 0.25rem;
+      min-height: 48px;
+      min-width: 48px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    footer a:hover,
+    footer a:focus {
+      color: var(--amber);
+      text-decoration: none;
+    }
+
+    footer p {
+      margin: 0;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <div class="deadline-beacon" role="status" aria-live="polite">
+    <span class="beacon-label">NO DEADLINE YET</span>
+    <span class="beacon-separator" aria-hidden="true">·</span>
+    <span class="beacon-action">BEGIN WHEN YOU’RE READY</span>
+  </div>
+
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <a class="brand" href="/" aria-label="Semptify home">SEMPTIFY</a>
+      <nav class="desktop-nav" aria-label="Primary">
+        <a href="/">HOME</a>
+        <a href="/library">LIBRARY</a>
+        <a href="/office">OFFICE</a>
+        <a href="/tools">TOOLS</a>
+        <a href="/help">HELP</a>
+      </nav>
+      <p class="tagline">PUBLIC SERVICE · HOUSING RIGHTS</p>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <h1>Protect your housing rights.</h1>
+      <p class="hero-subhead">Semptify is a public-service tool for tenants facing housing problems. Calm, lawful, one step at a time.</p>
+      <a class="cta-button" href="/onboarding/start" aria-label="Begin protecting your housing rights">Begin</a>
+      <p class="cta-line">No account needed. Your documents stay in your own cloud storage.</p>
+    </section>
+
+    <section class="truth" aria-labelledby="truth-heading">
+      <div class="truth-inner">
+        <h2 id="truth-heading">The law is on your side.</h2>
+        <p>Semptify helps you gather facts, meet deadlines, and take lawful steps. If you follow your lease and document the truth, the law protects you.</p>
+      </div>
+    </section>
+
+    <section class="pillars" aria-labelledby="pillars-heading">
+      <div class="pillars-inner">
+        <h2 id="pillars-heading">Four pillars</h2>
+        <div class="pillars-grid">
+          <article class="pillar">
+            <h3><span class="numeral">I.</span> RECORD</h3>
+            <p>Capture & organize evidence.</p>
+          </article>
+          <article class="pillar">
+            <h3><span class="numeral">II.</span> KNOW</h3>
+            <p>Facts only.</p>
+          </article>
+          <article class="pillar">
+            <h3><span class="numeral">III.</span> ACT</h3>
+            <p>Lawful, guided action.</p>
+          </article>
+          <article class="pillar">
+            <h3><span class="numeral">IV.</span> GOVERN</h3>
+            <p>Platform integrity.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="who-for" aria-labelledby="who-heading">
+      <div class="who-inner">
+        <h2 id="who-heading">Who this is for</h2>
+        <ul>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            You just got a notice.
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            You're in an ongoing dispute.
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            You have a hearing date.
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            You want to be ready.
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            You're helping someone.
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="privacy" aria-labelledby="privacy-heading">
+      <div class="privacy-inner">
+        <h2 id="privacy-heading">Your documents stay yours.</h2>
+        <p>Your records live in your own Google Drive, Dropbox, or OneDrive — not on Semptify servers. You control access. You keep the keys.</p>
+      </div>
+    </section>
+
+    <section class="deadline-now" aria-labelledby="deadline-now-heading">
+      <h2 id="deadline-now-heading">If you have a deadline right now</h2>
+      <p>Eviction notice? Hearing date? Begin now. Deadlines matter.</p>
+      <a class="cta-button" href="/onboarding/start" aria-label="Begin now — deadlines matter">Begin</a>
+    </section>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Primary">
+    <a href="/">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l9 7h-3v11h-5v-7h-4v7H6V10H3z"/></svg>
+      <span>HOME</span>
+    </a>
+    <a href="/library">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 4h5v16H4zm6 0h5v16h-5zm6 0h5v16h-5z"/></svg>
+      <span>LIBRARY</span>
+    </a>
+    <a href="/office">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 2h4v5h-4zM4 7h16v15H4z"/></svg>
+      <span>OFFICE</span>
+    </a>
+    <a href="/tools">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.7 18.3l-3-3c.8-1.5.3-3.4-1.1-4.8-1.4-1.4-3.3-1.9-4.8-1.1l-3-3c.3-.4.3-1 0-1.4l-1.4-1.4c-.4-.4-1-.4-1.4 0l-3.4 3.4c-.4.4-.4 1 0 1.4l1.4 1.4c.4.3 1 .3 1.4 0l3 3c-.8 1.5-.3 3.4 1.1 4.8 1.4 1.4 3.3 1.9 4.8 1.1l3 3c.3.4.3 1 0 1.4l-1.4 1.4c-.4.4-.4 1 0 1.4l3.4 3.4c.4.4 1 .4 1.4 0l3.4-3.4c.4-.4.4-1 0-1.4l-1.4-1.4c-.4-.3-1-.3-1.4 0z"/></svg>
+      <span>TOOLS</span>
+    </a>
+    <a href="/help">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 16h-2v-2h2v2zm2.1-7.5c-.4.7-1.1 1.3-1.9 1.7v1.8h-2v-2.5c0-.3.1-.5.3-.7.6-.5 1.1-.9 1.4-1.3.3-.4.4-.8.4-1.2 0-1.1-.9-2-2-2s-2 .9-2 2h-2c0-2.2 1.8-4 4-4s4 1.8 4 4c0 .9-.3 1.7-.8 2.4z"/></svg>
+      <span>HELP</span>
+    </a>
+  </nav>
+
+  <footer>
+    <nav aria-label="Footer">
+      <a href="/about">ABOUT</a>
+      <span aria-hidden="true">·</span>
+      <a href="/privacy">PRIVACY</a>
+      <span aria-hidden="true">·</span>
+      <a href="/contact">CONTACT</a>
+    </nav>
+    <p>Semptify is a public-service housing-rights tool. No ads, ever.</p>
+  </footer>
+</body>
+</html>

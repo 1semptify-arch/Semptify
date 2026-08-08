@@ -39,6 +39,7 @@ DOCS_TODOS_OUT = TOOLS_DIR / "docs_todos.json"
 ORCHESTRATOR_TASKS = TOOLS_DIR / "agent_orchestrator_tasks.json"
 ORCHESTRATOR_HTML = TOOLS_DIR / "agent_orchestrator.html"
 DASHBOARD_HTML = TOOLS_DIR / "orchestrator_dashboard.html"
+SYNC_REGISTRY = TOOLS_DIR / "sync_registry.py"
 WORKBOOK_XLSX = REPO_ROOT / "Semptify_Master_Inventory_LIVE_reviewed.xlsx"
 
 EMBED_START = "<!-- SYNC_ORCHESTRATOR:TASKS_START -->"
@@ -74,6 +75,12 @@ def step_workbook_bridge() -> None:
     if not WORKBOOK_XLSX.exists():
         raise SyncError(f"missing {WORKBOOK_XLSX.name} at repo root — workbook_bridge.py needs it")
     run([sys.executable, str(WORKBOOK_BRIDGE)], "workbook_bridge.py")
+
+
+def step_sync_registry() -> None:
+    if not SYNC_REGISTRY.exists():
+        raise SyncError(f"missing {SYNC_REGISTRY}")
+    run([sys.executable, str(SYNC_REGISTRY), "--write"], "sync_registry.py")
 
 
 def step_docs_todos() -> None:
@@ -284,6 +291,7 @@ def main() -> int:
             step_docs_todos()
             merge_tasks()
             preserve_manual_fields(previous_tasks)
+            step_sync_registry()
 
         stub_count = verify_stub_tasks()
         task_count, missing = verify_orchestrator_tasks()

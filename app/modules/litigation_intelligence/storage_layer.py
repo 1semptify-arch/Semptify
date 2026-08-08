@@ -7,8 +7,9 @@ Handles case data, entity relationships, and intelligence reports.
 """
 
 import logging
+import re
 from typing import Dict, Any, List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, asdict, field
 import json
 import asyncio
@@ -434,12 +435,68 @@ class LitigationStorageLayer:
             logger.error(f"Failed to get relationships for {entity_id}: {e}")
             return []
     
+    async def get_case_metrics(self, time_period: str = "30_days") -> Dict[str, Any]:
+        """Get case-related metrics from the litigation_cases table.
+
+        Metrics:
+        - total_cases: total cases filed within the period
+        - active_cases: cases with status 'active'
+        - success_rate: ratio of resolved/closed/settled/won cases to total
+        - avg_case_duration: average days from filing to last update
+        """
+        if not POSTGRESQL_AVAILABLE or not self.pool:
+            logger.warning("PostgreSQL not available or uninitialized - case metrics disabled")
+            return {}
+
+        # Parse numeric days from strings like "30_days", "90_days", "1_year"
+        days = 30
+        match = re.search(r"(\d+)", time_period)
+        if match:
+            days = int(match.group(1))
+            if "year" in time_period.lower():
+                days *= 365
+            elif "month" in time_period.lower():
+                days *= 30
+
+        cutoff = utc_now() - timedelta(days=days)
+
+        try:
+            async with self.pool.acquire() as conn:
+                row = await conn.fetchrow("""
+                    SELECT
+                        COUNT(*) AS total_cases,
+                        COUNT(*) FILTER (WHERE status = 'active') AS active_cases,
+                        COUNT(*) FILTER (WHERE status IN ('resolved', 'closed', 'settled', 'won')) AS resolved_cases,
+                        AVG(EXTRACT(EPOCH FROM (updated_at - filing_date)) / 86400.0)
+                            FILTER (WHERE updated_at IS NOT NULL AND filing_date IS NOT NULL) AS avg_duration_days
+                    FROM litigation_cases
+                    WHERE filing_date >= $1
+                """, cutoff)
+
+                total = row["total_cases"] or 0
+                resolved = row["resolved_cases"] or 0
+                success_rate = (resolved / total) if total > 0 else 0.0
+
+                return {
+                    "total_cases": total,
+                    "active_cases": row["active_cases"] or 0,
+                    "resolved_cases": resolved,
+                    "success_rate": round(success_rate, 4),
+                    "avg_case_duration_days": round(row["avg_duration_days"] or 0.0, 2),
+                    "time_period": time_period,
+                    "cutoff": cutoff.isoformat(),
+                }
+
+        except Exception as e:
+            logger.error(f"Failed to get case metrics: {e}")
+            return {}
+
     async def get_statistics(self) -> Dict[str, Any]:
         """Get storage statistics."""
-        if not POSTGRESQL_AVAILABLE:
-            logger.warning("PostgreSQL not available - statistics disabled")
+        if not POSTGRESQL_AVAILABLE or not self.pool:
+            logger.warning("PostgreSQL not available or uninitialized - statistics disabled")
             return {}
-        
+
         try:
             async with self.pool.acquire() as conn:
                 # Case statistics

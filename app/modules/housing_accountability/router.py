@@ -190,6 +190,76 @@ _REPEATED_FEES_LEGAL_BASIS = {
     "IL": "735 ILCS 5/9-212 - Retaliatory eviction prohibited; Chicago RLTO §5-12-030",
 }
 
+# Common fee-type aliases normalized to a canonical label for clustering.
+_FEE_TYPE_ALIASES: dict[str, tuple[str, ...]] = {
+    "late fee": ("late fee", "late charge", "late penalty", "late fees", "late-fee", "latefee"),
+    "application fee": ("application fee", "application", "app fee", "screening fee"),
+    "pet fee": ("pet fee", "pet rent", "animal fee", "pet deposit"),
+    "admin fee": ("admin fee", "administration fee", "administrative fee", "processing fee"),
+    "cleaning fee": ("cleaning fee", "cleaning charge", "move-out fee", "move out fee"),
+    "security deposit": ("security deposit", "deposit"),
+    "utility fee": ("utility fee", "utilities fee", "water fee", "sewer fee", "trash fee"),
+    "parking fee": ("parking fee", "parking", "garage fee", "carport fee"),
+    "repair fee": ("repair fee", "maintenance fee", "damage charge"),
+    "rent": ("rent", "monthly rent"),
+}
+_CANONICAL_FEE_TYPES: dict[str, str] = {
+    alias: canonical for canonical, aliases in _FEE_TYPE_ALIASES.items() for alias in aliases
+}
+
+
+def _canonicalize_fee_type(fee_type: str) -> str:
+    """Return a canonical fee-type label, collapsing common aliases."""
+    normalized = fee_type.strip().lower()
+    return _CANONICAL_FEE_TYPES.get(normalized, normalized)
+
+
+def _amounts_similar(a: float, b: float) -> bool:
+    """Return True if two fee amounts are similar enough to be the same charge.
+
+    Uses an absolute $5 floor and a 5% relative tolerance for larger amounts.
+    """
+    if a is None or b is None:
+        return False
+    diff = abs(a - b)
+    if diff < 0.01:
+        return True
+    max_amount = max(abs(a), abs(b), 1.0)
+    return diff < max(5.0, 0.05 * max_amount)
+
+
+def _build_recurring_clusters(fees: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
+    """Group a list of same-type fees into recurring clusters.
+
+    Fees are sorted by date. A fee joins an existing cluster if it occurs
+    within 35 days of the cluster's last fee and has a similar amount.
+    """
+    sorted_fees = sorted(
+        fees,
+        key=lambda f: _parse_date_safe(f.get("date", "")) or datetime.min.replace(tzinfo=UTC),
+    )
+    clusters: list[list[dict[str, Any]]] = []
+    for fee in sorted_fees:
+        fee_date = _parse_date_safe(fee.get("date", ""))
+        fee_amount = _parse_amount(fee.get("amount"), 0.0)
+        if fee_date is None:
+            continue
+        placed = False
+        for cluster in clusters:
+            last_fee = cluster[-1]
+            last_date = _parse_date_safe(last_fee.get("date", ""))
+            last_amount = _parse_amount(last_fee.get("amount"), 0.0)
+            if last_date is None:
+                continue
+            days_apart = (fee_date - last_date).days
+            if 0 <= days_apart <= 35 and _amounts_similar(fee_amount, last_amount):
+                cluster.append(fee)
+                placed = True
+                break
+        if not placed:
+            clusters.append([fee])
+    return clusters
+
 
 # Housing Accountability Services
 class PatternDetectionService:
@@ -201,9 +271,11 @@ class PatternDetectionService:
     def detect_repeated_fees(self, data: dict[str, Any]) -> dict[str, Any]:
         """Detect repeated fee patterns that may indicate unlawful landlord practices.
 
-        Groups fees by type/description, counts frequency within rolling 35-day
-        windows, and flags patterns that exceed thresholds. Jurisdiction-aware
-        legal basis. Confidence scales with amount of evidence found.
+        Groups fees by canonical type, collapses common aliases, and clusters
+        recurring charges within 35-day windows with amount similarity. Produces
+        one pattern per recurring cluster with instance counts, totals, and
+        cadence. Jurisdiction-aware legal basis. Confidence scales with the
+        number of instances found.
         """
         patterns: list[dict[str, Any]] = []
         fee_history = data.get("fee_history") or _extract_fee_history(data)
@@ -212,76 +284,62 @@ class PatternDetectionService:
         if len(fee_history) < 2:
             return {"patterns": patterns, "confidence": 0.3, "reason": "insufficient_data"}
 
-        # Group fees by type or description (case-insensitive)
+        # Group fees by canonical type, collapsing aliases.
         fee_groups: dict[str, list[dict[str, Any]]] = {}
         for fee in fee_history:
-            fee_type = (
+            raw_type = (
                 str(fee.get("fee_type") or fee.get("type") or fee.get("description") or "unknown").strip().lower()
             )
-            fee_groups.setdefault(fee_type, []).append(fee)
+            canonical = _canonicalize_fee_type(raw_type)
+            fee_groups.setdefault(canonical, []).append(fee)
 
         legal_basis = _REPEATED_FEES_LEGAL_BASIS.get(
             jurisdiction,
             f"State landlord-tenant act ({jurisdiction}) — prohibited practices",
         )
 
-        recurring_evidence: list[dict[str, Any]] = []
         for fee_type, fees in fee_groups.items():
             if len(fees) < 2:
                 continue
-            # Sort by parsed date (fees with unparseable dates sort to end)
-            sorted_fees = sorted(
-                fees,
-                key=lambda f: _parse_date_safe(f.get("date", "")) or datetime.min.replace(tzinfo=UTC),
-            )
-            # Check all pairs within each fee type (not just adjacent)
-            for i in range(len(sorted_fees)):
-                for j in range(i + 1, len(sorted_fees)):
-                    current_fee = sorted_fees[i]
-                    compare_fee = sorted_fees[j]
-                    current_date = _parse_date_safe(current_fee.get("date", ""))
-                    compare_date = _parse_date_safe(compare_fee.get("date", ""))
-                    if current_date is None or compare_date is None:
-                        continue
-                    days_apart = abs((compare_date - current_date).days)
-                    amount_diff = abs(
-                        _parse_amount(current_fee.get("amount"), 0.0) - _parse_amount(compare_fee.get("amount"), 0.0)
-                    )
-                    # Same type, similar amount (within $5), within 35 days
-                    if days_apart <= 35 and amount_diff < 5:
-                        recurring_evidence.append(
-                            {
-                                "fee_type": fee_type,
-                                "fee_1": current_fee,
-                                "fee_2": compare_fee,
-                                "days_apart": days_apart,
-                                "amount_diff": amount_diff,
-                            }
-                        )
+            for cluster in _build_recurring_clusters(fees):
+                if len(cluster) < 2:
+                    continue
+                amounts = [_parse_amount(f.get("amount"), 0.0) for f in cluster]
+                dates = sorted(d for f in cluster if (d := _parse_date_safe(f.get("date", ""))) is not None)
+                intervals = [(dates[i] - dates[i - 1]).days for i in range(1, len(dates))]
+                total_amount = sum(amounts)
+                instance_count = len(cluster)
 
-        if recurring_evidence:
-            affected_types = sorted({e["fee_type"] for e in recurring_evidence})
-            if len(affected_types) >= 3:
-                severity = "high"
-            elif len(affected_types) >= 2:
-                severity = "medium"
-            else:
-                severity = "low"
-            confidence = min(0.95, 0.5 + 0.1 * len(recurring_evidence))
-            patterns.append(
-                {
-                    "type": "repeated_fees",
-                    "severity": severity,
-                    "description": (
-                        f"Detected {len(recurring_evidence)} potentially recurring fee "
-                        f"instances across {len(affected_types)} fee type(s)"
-                    ),
-                    "evidence": recurring_evidence,
-                    "legal_basis": legal_basis,
-                    "affected_fee_types": affected_types,
-                    "jurisdiction": jurisdiction,
-                }
-            )
+                if instance_count >= 4 or total_amount >= 500:
+                    severity = "high"
+                elif instance_count >= 2 and (total_amount >= 200 or (intervals and min(intervals) <= 7)):
+                    severity = "medium"
+                else:
+                    severity = "low"
+
+                patterns.append(
+                    {
+                        "type": "repeated_fees",
+                        "severity": severity,
+                        "description": (
+                            f"Detected {instance_count} recurring {fee_type} charges totaling ${total_amount:,.2f}"
+                        ),
+                        "fee_type": fee_type,
+                        "instance_count": instance_count,
+                        "total_amount": total_amount,
+                        "first_date": dates[0].isoformat() if dates else None,
+                        "last_date": dates[-1].isoformat() if dates else None,
+                        "median_days_between": (float(sorted(intervals)[len(intervals) // 2]) if intervals else 0.0),
+                        "evidence": cluster,
+                        "legal_basis": legal_basis,
+                        "affected_fee_types": [fee_type],
+                        "jurisdiction": jurisdiction,
+                    }
+                )
+
+        if patterns:
+            total_instances = sum(p["instance_count"] for p in patterns)
+            confidence = min(0.95, 0.5 + 0.05 * total_instances)
             return {"patterns": patterns, "confidence": confidence}
 
         return {"patterns": patterns, "confidence": 0.4, "reason": "no_recurring_patterns_detected"}

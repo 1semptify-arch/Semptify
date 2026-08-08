@@ -74,6 +74,8 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.case_builder.register",
     "app.modules.packet_builder.register",
     "app.modules.plan_maker.register",
+    "app.modules.dispute_tracker.register",
+    "app.modules.eviction_timeline.register",
     "app.modules.public_forms.register",
     "app.modules.guided_intake.register",
     # Phase 1d: Remaining modules (auto-generated)
