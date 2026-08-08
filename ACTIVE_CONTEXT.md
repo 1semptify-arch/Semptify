@@ -1,6 +1,26 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-07 (TIER 2/3 audit cleanup + Playwright suite fix)
+**Last Updated**: 2026-08-08 (todo-047 resolved: sync token calls out of async routes)
+
+## ✅ Completed 2026-08-08 Session
+
+### Session — todo-047 resolved: sync token calls migrated out of async routes
+
+- **Task**: Migrate sync `get_valid_token_for_user()` calls out of `async def` routes (Known Failure Registry #19)
+- **Status**: Resolved — no code changes needed; all target call sites already use `app.core.auto_refresh.ensure_valid_token()`
+- **Files confirmed clean**:
+  - `app/main.py:4288` (media capture fallback)
+  - `app/modules/voice/router.py:58` (keep-audio upload)
+  - `app/modules/workflow/router.py:114` (timeline cloud load)
+  - `app/modules/document_center/router.py:97,702,780,1116` (overlay, document content, update type, share)
+  - `app/modules/filedored/router.py:64,133,175,247` (process, check folders, browse, list)
+  - `app/services/duplicate_detection_service.py:35,140`
+  - `app/modules/packet_builder/service.py:61,314`
+- **Regression test added**: `tests/test_async_token_calls.py`
+  - Scans `app/` for `async def` functions
+  - Fails if any calls `get_valid_token_for_user(`, `token_manager.get_valid_token(`, `token_manager.validate_token(`, or `token_manager.refresh_token_if_needed(`
+  - Verification: 1 passed
+- **Todo tracking updated**: `todo-047` marked resolved in `new_audit_tasks.json`, `docs_todos.json`, `agent_orchestrator_tasks.json`
 
 ## ✅ Completed 2026-08-07 Sessions
 

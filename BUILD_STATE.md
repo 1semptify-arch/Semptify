@@ -1,3 +1,43 @@
+## Session -- 2026-08-08 — todo-047 resolved: sync token calls migrated out of async routes
+
+### Overview
+
+Task todo-047 called for migrating synchronous `get_valid_token_for_user()` calls out of `async def` routes (Known Failure Registry #19). Upon pre-flight inspection, all listed target call sites (`app/main.py:4288`, `app/modules/voice/router.py:58`, `app/modules/workflow/router.py:114`, `app/modules/document_center/router.py:97,702,780,1116`, `app/modules/filedored/router.py:64,133,175,247`, `app/services/duplicate_detection_service.py:35,140`, `app/modules/packet_builder/service.py:61,314`) already used `app.core.auto_refresh.ensure_valid_token()` or `get_valid_token_or_redirect()`. To prevent regression, a new test `tests/test_async_token_calls.py` was added that scans `app/` and fails if any `async def` route calls the sync token helpers.
+
+### What was done
+
+- Confirmed all target call sites use `ensure_valid_token()` (returns `is_valid, token_obj, status`) and extract `token_obj.access_token` when needed.
+- Confirmed `app/main.py` media capture fallback and `app/modules/voice/router.py` keep-audio path both use `ensure_valid_token()`.
+- Confirmed `app/modules/document_center/router.py` overlay/document-content/share endpoints use `ensure_valid_token()`.
+- Confirmed `app/modules/filedored/router.py` process/check_folders/browse_folder/list_folders endpoints use `ensure_valid_token()`.
+- Confirmed `app/services/duplicate_detection_service.py` and `app/modules/packet_builder/service.py` use `ensure_valid_token()`.
+- Added `tests/test_async_token_calls.py` — CI guard that fails if any `async def` in `app/` calls:
+  - `get_valid_token_for_user(`
+  - `token_manager.get_valid_token(`
+  - `token_manager.validate_token(`
+  - `token_manager.refresh_token_if_needed(`
+- Updated todo tracking:
+  - `tools/new_audit_tasks.json` — todo-047 marked resolved
+  - `tools/docs_todos.json` — todo-047 marked resolved
+  - `tools/agent_orchestrator_tasks.json` — todo-047 marked resolved
+
+### Verification
+
+- `python -m py_compile tests/test_async_token_calls.py app/core/oauth_token_manager.py`: PASS
+- `pytest tests/test_async_token_calls.py -q --no-cov`: 1 passed
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed
+
+### Notes
+
+- The sync helper `get_valid_token_for_user()` is preserved in `app/core/oauth_token_manager.py` for legitimate synchronous callers (tests, scripts, non-async code paths). The acceptance criterion is that `async def` routes no longer call it.
+- Todo-047 was originally marked BLOCKED on todo-045, but the code migration was already complete in `main`; this session finished the regression test and tracker updates.
+
+### Next Session
+
+- todo-045: fix stub-detection logic in `tools/sync_orchestrator.py`
+
+---
+
 ## Session -- 2026-08-07 — Playwright suite fixed: 52 pass, 4 skip, 0 fail
 
 ### Overview
