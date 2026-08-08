@@ -1,3 +1,45 @@
+## Session -- 2026-08-07 — TIER 3: filedored consolidation, crawler review, Playwright smoke run
+
+### Overview
+
+Completed all remaining audit items. Removed the obsolete filedored v1.0.0 script (superseded by v5.0.0 in `.devin/workflows/`). Reviewed the two MN court crawler scripts — they serve different purposes (tenant resources vs court opinions) and were kept as-is. Ran the Playwright smoke test suite against a local dev server: 29/67 tests passed. The 38 failures are all in `navigation_consistency.spec.js` — a pre-existing test/template mismatch where the test expects `nav.core-nav` with 5 specific links (`/home.html`, `/library.html`, `/office.html`, `/tools.html`, `/help.html`) but the Jinja2 templates use a different nav structure. This is not a regression from this session's changes.
+
+### Commits
+
+| Commit | Title | Files | Summary |
+|--------|-------|-------|---------|
+| `19a27fa8` | chore: remove obsolete scripts/filedored.py v1.0.0 | 1 | Deleted v1.0.0 (171 lines), superseded by v5.0.0 in .devin/workflows/ |
+
+### Playwright Results
+
+- **capabilities_smoke.spec.js**: 7/7 PASS
+- **onboarding_smoke.spec.js**: 8/8 PASS
+- **role_hierarchy_smoke.spec.js**: 2/2 PASS
+- **timeline_smoke.spec.js**: 4/4 PASS
+- **rent_ledger_smoke.spec.js**: 5/5 PASS
+- **navigation_consistency.spec.js**: 3/48 PASS (38 failed) — PRE-EXISTING test/template mismatch
+- **Total**: 29 passed, 38 failed
+
+### Crawler Script Review
+
+- `scripts/eviction_crawler.py` (653 lines) — broader tenant-rights focus: eviction defense forms, AG handbook, LawHelpMN, HOME Line
+- `scripts/mn_court_crawler.py` (374 lines) — court-case focus: court forms, recent opinions, archived opinions
+- **Decision**: Keep both — they serve different crawl targets and neither is imported by the app.
+
+### Known Broken / Pending
+
+- `navigation_consistency.spec.js` — 38 failures. Test expects `nav.core-nav` with 5 base links (`/home.html`, `/library.html`, `/office.html`, `/tools.html`, `/help.html`) and an SSOT Navigation API at `/onboarding/ssot-navigation`. The Jinja2 templates (converted in the 2026-08-03 session) use a different nav structure. Either update the tests to match the current template structure, or add the expected `nav.core-nav` element to the templates.
+- `live_capability_seeding.spec.js`, `live_case_persistence.spec.js`, `live_migration_verification.spec.js`, `live_upload_timeline.spec.js` — require `pg` npm package (PostgreSQL). Skipped.
+- `user_flow_continuity_test.js`, `comprehensive_ssot_audit.js`, `navigation_consistency_test.js`, `playwright_full_system_test.js`, `smoke_test.js` — not run (not `.spec.js` files, not picked up by Playwright config).
+
+### Next Session
+
+- Fix `navigation_consistency.spec.js` — either update tests to match current Jinja2 template nav structure, or add `nav.core-nav` with 5 base links to templates.
+- Install `pg` npm package and run the `live_*` tests if PostgreSQL is available.
+- Consider converting the standalone test scripts (`smoke_test.js`, etc.) to `.spec.js` format so Playwright picks them up.
+
+---
+
 ## Session -- 2026-08-07 — TIER 2 cleanup: orphan files, print() fix, datetime CI, sync guard
 
 ### Overview
