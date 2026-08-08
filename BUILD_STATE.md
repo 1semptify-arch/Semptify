@@ -1,3 +1,36 @@
+## Session -- 2026-08-08 — todo-045 resolved: sync_orchestrator queue-wipe guard verified
+
+### Overview
+
+Task todo-045 called for fixing stub-detection logic in `tools/sync_orchestrator.py` due to a historical queue wipe (171 → 16 tasks at commit `a41b98c7`). Upon investigation, the root cause was that the original `sync_orchestrator.py` lacked `carry_forward_previous_tasks()`. The current version already includes both `carry_forward_previous_tasks()` (line 312) and a belt-and-suspenders guard (lines 317-324) that raises `SyncError` if the queue would be emptied. The pre-commit hook exists at `tools/hooks/pre-commit` but is not active (`git config core.hooksPath` not set).
+
+### What was done
+
+- Verified `carry_forward_previous_tasks()` is present in current `sync_orchestrator.py`
+- Verified belt-and-suspenders guard prevents queue wipe when stub_detector returns 0
+- Confirmed `tools/hooks/pre-commit` exists but is not currently active
+- Ran `sync_orchestrator.py` with venv311 — stub_detector returned 0, but queue preserved at 61 tasks
+- Updated todo tracking:
+  - `tools/new_audit_tasks.json` — todo-045 marked resolved
+  - `tools/docs_todos.json` — todo-045 marked resolved
+  - `tools/agent_orchestrator_tasks.json` — todo-045 marked resolved
+
+### Verification
+
+- `python -m py_compile tools/sync_orchestrator.py`: PASS
+- Manual run of `sync_orchestrator.py`: 0 stubs, 61 tasks preserved
+
+### Notes
+
+- The historical wipe was a one-time event when the carry-forward logic was missing. The current implementation is safe.
+- No code changes were needed — the protection was already in place.
+
+### Next Session
+
+- todo-046: Delete or fix broken root scratch files (syntax errors)
+
+---
+
 ## Session -- 2026-08-08 — todo-047 resolved: sync token calls migrated out of async routes
 
 ### Overview

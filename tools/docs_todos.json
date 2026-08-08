@@ -122,7 +122,7 @@
     "line_start": 490,
     "line_end": 494,
     "status": "resolved",
-    "notes": "FNG_TODO.md design system task\n[2026-07-28 18:13 UTC - SWE-1.7-Max] base.html nav uses line-icon characters (⌂, ≡, ⊞, ✎, ?), not emoji.",
+    "notes": "FNG_TODO.md design system task\n[2026-07-28 18:13 UTC - SWE-1.7-Max] base.html nav uses line-icon characters (\u00e2\u0152\u201a, \u00e2\u2030\u00a1, \u00e2\u0160\u017e, \u00e2\u0153\u017d, ?), not emoji.",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T18:13:04.550542+00:00",
     "assigned_agent": "SWE-1.7-Max"
@@ -495,7 +495,7 @@
     "priority": "high",
     "file_path": "app/modules/intake/router.py",
     "status": "resolved",
-    "notes": "Preflight: app/modules/intake/router.py and the existing OCR call; check existing job/queue infrastructure. Scope: keep Pass 1 (raw OCR + bounding boxes) inside Light Intake unchanged; create a separate queued job that picks up documents in `deep_ocr_status=pending`, sets status to `processing`, and runs Pass 2 (logic in Ticket 4; can be a stub for this ticket). Do not touch: Intake's existing rough OCR call — reuse its output, don't duplicate it. Acceptance: upload flow sets `deep_ocr_status` to `processing` and the queue picks up the job; Pass 2 can be a no-op.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
+    "notes": "Preflight: app/modules/intake/router.py and the existing OCR call; check existing job/queue infrastructure. Scope: keep Pass 1 (raw OCR + bounding boxes) inside Light Intake unchanged; create a separate queued job that picks up documents in `deep_ocr_status=pending`, sets status to `processing`, and runs Pass 2 (logic in Ticket 4; can be a stub for this ticket). Do not touch: Intake's existing rough OCR call \u00e2\u20ac\u201d reuse its output, don't duplicate it. Acceptance: upload flow sets `deep_ocr_status` to `processing` and the queue picks up the job; Pass 2 can be a no-op.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T18:02:39.377392+00:00",
     "assigned_agent": "SWE-1.7-Max"
@@ -593,7 +593,7 @@
     "priority": "medium",
     "file_path": "app/modules/journal/router.py",
     "status": "resolved",
-    "notes": "Preflight: ACTIVE_CONTEXT.md (Journal listed as not-yet-built) and current JournalEntry/JournalSummary in app/core/tenant_briefcase.py (auto-generated, do not conflate). Scope: new app/modules/journal/ with model, create/read endpoints, and basic UI; each entry has free text, timestamp, optional document link, and integrity treatment via the TSA path when available. Do not touch: existing auto-generated journal summary logic — this is additive. Acceptance: a tenant can create a free-text journal entry unrelated to any document upload and retrieve it later.\n[2026-07-28 18:07 UTC - SWE-1.7-Max] Journal module with create/read/update/delete endpoints, model, register, and tests already exists.",
+    "notes": "Preflight: ACTIVE_CONTEXT.md (Journal listed as not-yet-built) and current JournalEntry/JournalSummary in app/core/tenant_briefcase.py (auto-generated, do not conflate). Scope: new app/modules/journal/ with model, create/read endpoints, and basic UI; each entry has free text, timestamp, optional document link, and integrity treatment via the TSA path when available. Do not touch: existing auto-generated journal summary logic \u00e2\u20ac\u201d this is additive. Acceptance: a tenant can create a free-text journal entry unrelated to any document upload and retrieve it later.\n[2026-07-28 18:07 UTC - SWE-1.7-Max] Journal module with create/read/update/delete endpoints, model, register, and tests already exists.",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T18:07:34.589773+00:00",
     "assigned_agent": "SWE-1.7-Max"
@@ -635,7 +635,7 @@
     "priority": "medium",
     "file_path": "app/modules/case_builder/router.py",
     "status": "resolved",
-    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding — merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.\n[2026-07-28 18:44 UTC - SWE-1.7-Max] User chose option 3 (both marked-up and clean copies + summary in same ZIP). Starting implementation.\n[2026-07-28 19:09 UTC - devin] Implemented curated packet export endpoint and UI",
+    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding \u00e2\u20ac\u201d merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.\n[2026-07-28 18:44 UTC - SWE-1.7-Max] User chose option 3 (both marked-up and clean copies + summary in same ZIP). Starting implementation.\n[2026-07-28 19:09 UTC - devin] Implemented curated packet export endpoint and UI",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T19:09:27.790379+00:00",
     "assigned_agent": "devin"
@@ -648,11 +648,11 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "tools/sync_orchestrator.py; tools/hooks/pre-commit",
-    "status": "pending",
-    "notes": "Preflight: read tools/hooks/pre-commit to confirm whether it currently invokes sync_orchestrator.py on every commit. Scope: fix stub detection so it doesn't return 0 against a non-empty codebase; confirm stub_tasks_new.json stops writing []. Do not touch: existing 44 resolved tasks in agent_orchestrator_tasks.json. Acceptance: running the script against the current repo produces a non-zero, accurate stub count, and does not overwrite the live task queue. STATUS: BLOCKS all todo-046 through todo-061 below — nothing else in this batch should start until this is resolved and reported.",
+    "status": "resolved",
+    "notes": "Preflight: read tools/hooks/pre-commit to confirm whether it currently invokes sync_orchestrator.py on every commit. Scope: fix stub detection so it doesn't return 0 against a non-empty codebase; confirm stub_tasks_new.json stops writing []. Do not touch: existing 44 resolved tasks in agent_orchestrator_tasks.json. Acceptance: running the script against the current repo produces a non-zero, accurate stub count, and does not overwrite the live task queue. STATUS: BLOCKS all todo-046 through todo-061 below \u00e2\u20ac\u201d nothing else in this batch should start until this is resolved and reported.\n[2026-08-08 01:00 UTC - SWE-1.7] Resolved: carry_forward_previous_tasks() and queue-wipe guard already present in sync_orchestrator.py. Historical wipe (171\u219216 at a41b98c7) was due to missing carry-forward. Current script preserves 61-task queue even when stub_detector returns 0. Pre-commit hook exists but is not active (core.hooksPath not set).",
     "created_at": "2026-08-08T00:00:00Z",
-    "updated_at": "2026-08-08T00:00:00Z",
-    "assigned_agent": ""
+    "updated_at": "2026-08-08T01:00:00Z",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-046",
@@ -663,7 +663,7 @@
     "priority": "high",
     "file_path": "deploy_part1.py; OAUTH_STATE_FIX.py; _ll_part5.py",
     "status": "pending",
-    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported — do not start. Acceptance: python -m compileall . reports 0 syntax errors in repo root.",
+    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported \u00e2\u20ac\u201d do not start. Acceptance: python -m compileall . reports 0 syntax errors in repo root.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-08T00:00:00Z",
     "assigned_agent": ""
@@ -691,7 +691,7 @@
     "priority": "high",
     "file_path": "app/modules/court_forms/router.py:194; app/modules/intake/router.py:536",
     "status": "pending",
-    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported — do not start. Acceptance: both call sites match the real function signature and no longer await a sync call.",
+    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported \u00e2\u20ac\u201d do not start. Acceptance: both call sites match the real function signature and no longer await a sync call.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-08T00:00:00Z",
     "assigned_agent": ""
@@ -705,7 +705,7 @@
     "priority": "high",
     "file_path": "app/modules/pdf_tools/router.py; app/modules/vault/router.py:1445-1508; app/modules/security/advanced_security.py:278-280; app/modules/*/batch_operations.py:266-374; app/sdk/generate_module.py:280-387; router.py:36-38,443-486",
     "status": "pending",
-    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported — do not start. Acceptance: ruff check . --select F821 returns 0 in these files.",
+    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported \u00e2\u20ac\u201d do not start. Acceptance: ruff check . --select F821 returns 0 in these files.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-08T00:00:00Z",
     "assigned_agent": ""
@@ -719,7 +719,7 @@
     "priority": "high",
     "file_path": "app/core/oauth_token_manager.py:206,241,276; app/services/ollama_ai.py:55; app/core/offline_manager.py:57",
     "status": "pending",
-    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported — do not start. Acceptance: no httpx.Client instantiation remains in these files; token refresh and connectivity checks still pass existing tests.",
+    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported \u00e2\u20ac\u201d do not start. Acceptance: no httpx.Client instantiation remains in these files; token refresh and connectivity checks still pass existing tests.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-08T00:00:00Z",
     "assigned_agent": ""
@@ -829,7 +829,7 @@
     "category": "other",
     "target_model": "swe-1.6",
     "priority": "low",
-    "file_path": "repo root — see full audit list",
+    "file_path": "repo root \u00e2\u20ac\u201d see full audit list",
     "status": "pending",
     "notes": "Depends on todo-056.",
     "created_at": "2026-08-08T00:00:00Z",
@@ -873,7 +873,7 @@
     "priority": "low",
     "file_path": "app/main.py; app/modules/*/router.py",
     "status": "pending",
-    "notes": "Depends on todo-056. Related to already-resolved todo-001 (SSOT redirect URL fixes) — check for overlap before starting.",
+    "notes": "Depends on todo-056. Related to already-resolved todo-001 (SSOT redirect URL fixes) \u00e2\u20ac\u201d check for overlap before starting.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-08T00:00:00Z",
     "assigned_agent": ""
