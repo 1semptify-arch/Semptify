@@ -1,6 +1,7 @@
 """Page Composer API router.
 
 Endpoints:
+- GET /api/page/{subject}/render     - assemble and render Page Shell HTML
 - GET /api/page/                     — list composable subjects
 - GET /api/page/{subject}/preview    — compose legacy page view without user case data
 - GET /api/page/{subject}/assemble   — assemble full PageConfig + components
@@ -11,14 +12,15 @@ Endpoints:
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Query, Request, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.core.security import auth_gate
 from app.core.user_context import UserContext
-
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
 from app.modules.page_composer.assembly import assemble_page
 from app.modules.page_composer.service import compose_page
+from app.modules.page_shell.renderer import render_page_shell
+from app.modules.page_shell.skeletons import skeleton_for
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +31,7 @@ router = APIRouter(prefix="/api/page", tags=["Page Composer"])
 async def list_composable_pages():
     """List all subjects that can be composed into pages."""
     return {
-        "subjects": [
-            {"value": s, "label": SUBJECT_LABELS.get(s, s)}
-            for s in ALL_SUBJECTS
-        ],
+        "subjects": [{"value": s, "label": SUBJECT_LABELS.get(s, s)} for s in ALL_SUBJECTS],
         "count": len(ALL_SUBJECTS),
     }
 
@@ -148,6 +147,40 @@ async def get_assembled_page_components(
     return {
         "page_title": result.page_config.page_id,
         "components": result.components,
+    }
+
+
+@router.get("/{subject}/render")
+async def render_assembled_page(
+    subject: str,
+    request: Request,
+    jurisdiction: str = Query(default="MN"),
+    fact_limit: int = Query(default=10, ge=1, le=50),
+    story_limit: int = Query(default=5, ge=1, le=20),
+    user: UserContext = Depends(auth_gate),
+):
+    """Assemble a subject page and render it through the Page Shell."""
+    user_id = user.user_id
+    if subject not in ALL_SUBJECTS:
+        raise HTTPException(status_code=400, detail=f"Unknown subject: {subject}")
+    try:
+        result = await assemble_page(
+            subject=subject,
+            jurisdiction=jurisdiction,
+            user_id=user_id,
+            fact_limit=fact_limit,
+            story_limit=story_limit,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+    return {
+        "html": render_page_shell(result.page_config),
+        "skeleton": skeleton_for(result.page_config.major_pillar),
+        "blend": result.page_config.blend,
+        "govern_report": result.govern_report,
+        "config": result.page_config.model_dump(),
+        "metadata": result.metadata.model_dump(),
     }
 
 

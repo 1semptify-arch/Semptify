@@ -35,6 +35,7 @@ PUBLIC_PATHS: set[str] = {
     "/metrics",
     "/api/version",
     "/api/core/status",
+    "/status",  # Independent status page (Master Handoff Task 4)
     "/risc/google/webhook",  # Google Cross-Account Protection — no cookie
     # Preamble — single entry point, must always be reachable (no storage required)
     "/preamble",
@@ -103,6 +104,7 @@ PUBLIC_PATHS: set[str] = {
     "/tenant/library",
     "/tenant/library/",
     # Public website sub-pages (semptify.org guest portal)
+    "/portal",
     "/about",
     "/services",
     "/renters-guide",
@@ -114,6 +116,8 @@ PUBLIC_PATHS: set[str] = {
     "/contact",
     "/privacy",
     "/terms",
+    # Resource directory — public list endpoint (detail routes covered by prefix)
+    "/api/resources",
     # SEO files
     "/robots.txt",
     "/sitemap.xml",
@@ -135,6 +139,9 @@ PUBLIC_PREFIXES = (
     "/api/vault-installer/",  # Vault installer — auth checked by route
     "/api/law-library/",  # Law library — public education content (page is already public)
     "/api/portal/",  # Portal services catalog — public, no auth (semptify.org guest portal)
+    "/api/resources/",  # Resource directory — public read endpoints
+    "/api/i18n/",  # i18n — public locale read/set endpoints
+    "/admin/api/",  # Admin API endpoints — auth checked by route (elevation/capability)
     "/debug/",  # TEMPORARY: diagnostic endpoints
     "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)
 )
@@ -301,27 +308,28 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         # See: app.core.auto_refresh.ensure_valid_token()
         # Tracking: ICE-CUBE-TOKEN-001 (resolved)
         # ─────────────────────────────────────────────────────────────────────
-        from app.core.auto_refresh import get_valid_token_or_redirect
-        from app.core.database import get_session_factory
+        if self.enforce:
+            from app.core.auto_refresh import get_valid_token_or_redirect
+            from app.core.database import get_session_factory
 
-        factory = get_session_factory()
-        async with factory() as refresh_db:
-            token, reconnect_url = await get_valid_token_or_redirect(raw_user_id, return_to=path, db=refresh_db)
+            factory = get_session_factory()
+            async with factory() as refresh_db:
+                token, reconnect_url = await get_valid_token_or_redirect(raw_user_id, return_to=path, db=refresh_db)
 
-            if reconnect_url:
-                if path.startswith("/api/"):
-                    return JSONResponse(
-                        status_code=401,
-                        content={
-                            "error": "token_expired",
-                            "message": "Your storage connection expired. Please reconnect.",
-                            "action": "redirect",
-                            "redirect_url": reconnect_url,
-                        },
-                    )
-                return ssot_redirect(reconnect_url, context="storage_middleware reconnect")
+                if reconnect_url:
+                    if path.startswith("/api/"):
+                        return JSONResponse(
+                            status_code=401,
+                            content={
+                                "error": "token_expired",
+                                "message": "Your storage connection expired. Please reconnect.",
+                                "action": "redirect",
+                                "redirect_url": reconnect_url,
+                            },
+                        )
+                    return ssot_redirect(reconnect_url, context="storage_middleware reconnect")
 
-            logger.debug("ICE-CUBE-TOKEN-001: token valid for user %s***", raw_user_id[:6])
+                logger.debug("ICE-CUBE-TOKEN-001: token valid for user %s***", raw_user_id[:6])
         # ── END ice-cube token model ─────────────────────────────────────────
 
         # Valid user — check onboarding gate state via the canonical single reader.

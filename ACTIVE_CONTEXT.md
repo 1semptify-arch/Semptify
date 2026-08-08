@@ -1,24 +1,121 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-25
+**Last Updated**: 2026-08-01 (Task 6 i18n — locale selector UI + `/api/i18n/set-locale` endpoint)
+
+## ✅ Completed 2026-08-01 Session
+
+- **Task 6 i18n completion pass**: added public `GET /api/i18n/locale` and `POST /api/i18n/set-locale` endpoints, wired a reusable `locale_selector.html` component into `public_base.html`, `gui/base.html`, `base.html`, and `index.html`, and set the `<html lang>` attribute from the resolved locale.
+- Added `get_locale` to the Jinja2 global context so templates can resolve the active locale.
+- Added `/api/i18n/` to `PUBLIC_PREFIXES` (storage middleware) and `EXEMPT_PATHS` (checkpoint middleware) so the language switcher works without a storage session.
+- Added Spanish UI strings for the language selector (`es.json`).
+- Updated `tests/test_i18n.py` with endpoint tests for locale read, set-cookie/redirect, and invalid-locale rejection.
+- Verification: `python -m py_compile` on changed files PASS; `pytest tests/test_i18n.py -q --no-cov` 14/14 passed; `pytest tests/test_ssot_architecture.py -q --no-cov` 8/8 passed; `pytest tests/module_health -q --no-cov` 122/122 passed.
+
+## ✅ Completed 2026-07-29 Session
+
+## ✅ Completed 2026-07-29 Session
+
+- Implemented a generic, registry-driven module health-check framework (`tools/module_health.py`).
+- Generated 115 `tests/module_health/test_<id>.py` regression tests covering module import, router presence, duplicate routes, and admin public-route exposure.
+- Updated `tools/module_registry.yaml` so 114 modules have real `health_check` / `test_suite` entries.
+- Flagged 7 modules with `flag_reason` (`vault_sync` on hold, `filedored` and `housing_accountability` pending Brad's swe-1.7 decision, 4 optional missing routers).
+- Fixed `tools/verify_modules.py` to run per-module tests with `--no-cov` so the repo-wide `cov-fail-under=40` does not mask health results.
+- Fixed `app/modules/document_delivery/router.py` duplicate `GET /api/delivery/inbox` route by moving the HTML page endpoint to `/inbox/page`.
+- Verification: `pytest tests/module_health -q --no-cov` (115 passed), `tools/verify_modules.py --sync` (114 ok), `sync_orchestrator`, `guardrail_engine` all pass.
+
+## 🎯 Current Priority: Master Handoff — B1 Admin Hub Stub Tiles COMPLETE
+
+- `system_health` (Tier 0) — ✅ complete.
+- `run_modules` (Tier 1) — ✅ complete.
+- `correspondence` (Tier 2 wiring pass, PII-free) — ✅ complete.
+- `user_concerns` (Tier 2 wiring pass, PII-free) — ✅ complete.
+- `advanced` (Tier 1/T0; `detect_repeated_fees` cost-guard only) — ✅ complete.
+
+B1 is done.
+
+## 🎯 Current Priority: B2 `dispute_tracker` + B3 `eviction_timeline` greenfield build
+
+### Done in this session
+- Core `FunctionGroupContract` extended with `tier`, `allowed_routes`, `allowed_prefixes`.
+- B2 Commits 1–3: `dispute_tracker` scaffold, product manifest + registry, T2 contracts, `DisputeRecord` and `ComparisonEntry` data models + schemas.
+- B3 Commits 1–3: `eviction_timeline` scaffold, product manifest + registry, T2 contracts, `EvictionTimelineEvent` data model + schemas.
+- PII is stored in overlay pointers, not PostgreSQL, per the DB boundary rule.
+- `subject_id` is a placeholder (no FK) pending the accountability_ledger boundary decision (Option 3).
+
+### Done in this session (continued)
+- B2 Commit 4 — minimal GUI: `GET /api/dispute-tracker/` page, `POST /api/dispute-tracker/disputes`, `POST /api/dispute-tracker/comparisons`.
+- B2 Commit 5 — `FunctionGroupContract` allowed_routes aligned with actual routes.
+- B3 Commit 4 — minimal GUI: `GET /api/eviction-timeline/` page, `POST /api/eviction-timeline/events`.
+- B3 Commit 5 — `FunctionGroupContract` allowed_routes aligned; `tools/checks/contract_route_check.py` guardrail added (Build Orchestrator hard-gate) and passes.
+- Post-GUI SSOT fix: all POST redirects use `ssot_redirect()` instead of raw `RedirectResponse`.
+- `tools/checks/contract_route_check.py` enforces tier validity, manifest-prefix coverage, actual route-to-contract matching, and `PUBLIC_PREFIXES` exposure (only T0 routes may be public).
+
+### Still pending / open
+- T2 tier for `dispute_tracker` and `eviction_timeline` is flagged in commit messages for Brad's review.
+- `EvictionTimelineEvent.subject_id` remains a placeholder (no FK) pending accountability_ledger boundary.
+- Live manual test of the HTML pages has not been run (only `verify_modules`, `guardrail_engine`, and `pytest` passed).
 
 ---
 
-## 🎯 Current Priority: Review/merge Funding Forge standalone add-on
+## 🎯 Current Priority: Trauma-Informed UX + Admin/Logging + Input/Import/Resource Directory
 
-A standalone FastAPI funding and contact manager (`funding_forge/`) is built and ready for review.
-It provides ACT!-style contact management, a full opportunity/application pipeline, interactions,
-tasks, documents, and a pre-seeded catalog of suggested funding entities. No tenant-facing pages.
-Funding Forge is admin-only and can persist documents to Cloudflare R2 system storage; it does not
-touch tenant privacy paths or store tenant PII.
+Master Handoff promoted from `temp/Semptify_MASTER_HANDOFF.md`, consolidating:
+- `temp/Semptify_TraumaInformed_UX_Admin_Spec.md`
+- `temp/Semptify_Input_Import_Resource_Spec.md`
 
-Previous priority: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).
-The `/gui/*` navigation, `know.html`, `act.html`, `record.html`, `home.html` all extend
-`gui/base.html` and link to real routes. Icon policy from 2026-07-19 applies.
+Scope: 11 build tasks across shared UX foundation, footer/help content, voice-to-text,
+multi-language, mobile media capture, third-party contact model, asymmetric redaction,
+communication import pipeline, and resource directory. All tasks are tenant-side,
+public-service, and follow the four-pillar model (RECORD/KNOW/ACT/GOVERN).
+
+Task 1 — Shared UX foundation — is complete (viewport-locked CSS, function-budget classes,
+persistent "Get help now" in `gui/base.html`, calm/alarm color tokens, convention documented).
+
+Task 2 — Footer + Help page redo — is complete. Shared Jinja/public/static footers and the
+unified footer loader now show a one-line UPL boundary, "Get help", and "Report a problem" only.
+`/help` is a no-scroll, action-first page routed by "What's happening to you right now?" into
+RECORD / KNOW / ACT / GOVERN.
+
+Task 3 — Content pass — is functionally complete. `app/core/subject_starters.py`, the reusable
+starter-chips component, and the previous `free`-wording audit are in `main` (commit `8e58602b`).
+This session added an action-first rewrite of `app/templates/public/portal.html` with a concrete
+tenant-rights fact in place of an inspirational quote.
+
+Master Handoff Tasks 4-11 are reconciled with the working tree:
+- 4 Admin/logging: middleware + buffered flusher + live tail and level endpoints wired.
+- 5 Voice: `/api/voice/transcribe` route and module health pass.
+- 6 i18n: catalog files and Jinja `_()` global wired.
+- 7 Media capture: `/tenant/capture` page, `/api/tenant/capture`, `/api/media/capture` wired.
+- 8 Third-party contacts: `ThirdPartyContact` model + `contacts` router; module health pass.
+- 9 Redaction: `redaction_service` wired into `intake_service` before storage.
+- 10 Communication import: `.eml`/`.mbox`/SMS/call-log/voicemail flows; module health pass.
+- 11 Resource directory: public/admin routes, CSV import, staleness tracking; module health pass.
+
+### Live verification blockers fixed
+
+- `app/core/storage_middleware.py`: added `/api/resources` to `PUBLIC_PATHS` and `/api/resources/` to `PUBLIC_PREFIXES`. `GET /api/resources` now returns 200 instead of 401.
+- `app/core/checkpoint_middleware.py`: added `/portal` to `EXEMPT_PATHS`.
+
+### Root landing / portal wiring
+
+Implemented the hotel analogy:
+- `/` (lobby) — `app/templates/index.html`, stateless composer, fixed CSS and CTAs to `/preamble` (app entry) and `/portal` (concierge).
+- `/portal` (concierge) — `app/templates/public/portal.html` with the services catalog; now a registered `PortalPage` and public in both `storage_middleware` and `checkpoint_middleware`.
+- Floors — existing `/gui/*`, `/tenant/*`, standalone modules, etc.
+
+### Remaining blocker before assembly
+
+- Missing `feature_flags` DB table — causes fallback warnings but does not block public pages or the reconciled modules.
+
+Next: GUI/site assembly.
+
+Previous priority: Review/merge Funding Forge standalone add-on — completed 2026-07-25.
+Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).
 
 ## ✅ Completed 2026-07-25 Session
 
 - **Funding Forge add-on** — standalone package `funding_forge/` with FastAPI backend, async SQLAlchemy models, full CRUD JSON API, SPA GUI, document uploads, admin-only auth, optional Cloudflare R2 document storage, and 33 pre-seeded suggested funding entities. Tests pass.
+- **Document Center gap fill** — persisted field confirm/correct state via `VaultReviewState`, user-controlled verification status, real document sharing via `DocumentShare`, old `documents.html` pages redirected to `/dc`, and frontend wiring in `document_center.html` to load/save state and create share links. Backend and integration tests pass; full live browser viewer verification pending storage-connected onboarding.
 
 ## ✅ Completed 2026-07-19 Session
 
@@ -40,27 +137,42 @@ The `/gui/*` navigation, `know.html`, `act.html`, `record.html`, `home.html` all
   `app/modules/case_builder/router.py`, download UI added to `case_builder.html`,
   `test_intake_packet.py` updated with 3 new helper tests, all 21 tests pass.
 
-## 🅿️ NEXT TO BUILD (in priority order)
+## 🅿️ NEXT TO BUILD (in priority order) — Master Handoff
 
 | # | Project | Design Doc | Status | Blocked By |
 |---|---------|------------|--------|------------|
-| 1 | **Funding Forge** — standalone funding & contact manager | `docs/blueprints/funding_forge_blueprint.md` | ✅ Complete 2026-07-25 | — |
-| 2 | **UPL guardrail wiring** | `app/core/upl_guardrails.py` | ✅ Complete 2026-07-10 | — |
-| 3 | **GUI Phase 1 — Four-pillar interface** | `Semptify_Site_GUI_Framework.md` | ✅ Pages live + icons shipped 2026-07-19 | — |
-| 4 | **Document Center** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | ✅ Implemented (22 tests pass, live at `/tenant/documents`) | — |
-| 5 | **Attorney Intake Packet** — PDF/ZIP rendering + GUI trigger | `app/modules/case_builder/router.py:2477-2930` | ✅ Complete 2026-07-19 | — |
-| 6 | **Journal module** — free-form tenant journal CRUD + briefcase integration | `app/modules/journal/router.py` | ✅ Complete 2026-07-20 | — |
-| 7 | **Rent Ledger** — full account ledger (payments, fees, deposits, credits, charges) with running balance | `app/modules/rent/router.py` | ✅ Complete 2026-07-20 | — |
-| 8 | **Packet Builder** — unified curated export across case and briefcase | `app/modules/packet_builder/router.py` | ✅ Complete 2026-07-20 | — |
+| 1 | **Shared UX foundation** — viewport-locked desktop template, function-budget convention, persistent "Get help now" component, calm/alarm CSS tokens | `Semptify_MASTER_HANDOFF.md` section A–B | ✅ Complete | — |
+| 2 | **Footer + Help page redo** — trust-signaling footer, "What's happening to you right now?" Help page | `Semptify_MASTER_HANDOFF.md` Task 2 | ✅ Complete | — |
+| 3 | **Content pass** — welcome/about plain-language rewrite, words of wisdom moved to About only, subject starters | `Semptify_MASTER_HANDOFF.md` Task 3 | ✅ Complete | — |
+| 4 | **Admin/dev access + logging** — Tailscale-gated admin, JSON logging, R2 async flush, live tail, feature flags, health/status page | `Semptify_MASTER_HANDOFF.md` Task 4 | ✅ Complete | — |
+| 5 | **Voice-to-text** — Web Speech API client-side default, Whisper fallback with raw-audio discard | `Semptify_MASTER_HANDOFF.md` Task 5 | ✅ Complete | — |
+| 6 | **Multi-language i18n** — JSON/.po catalogs, human-reviewed legal/plain-language translation | `Semptify_MASTER_HANDOFF.md` Task 6 | ✅ Complete | Human review of 13 stub catalogs pending |
+| 7 | **Mobile media capture** — `getUserMedia` photo/audio evidence capture with recording-consent note | `Semptify_MASTER_HANDOFF.md` Task 7 | ✅ Complete | Browser permission UX pending live device test |
+| 8 | **Third-party contact model** — `ThirdPartyContact` table, case-linked, entity types, audit source | `Semptify_MASTER_HANDOFF.md` Task 8 | ✅ Complete | — |
+| 9 | **Asymmetric redaction pass** — strip user's own PII while preserving third-party info from imports | `Semptify_MASTER_HANDOFF.md` Task 9 | ✅ Complete | — |
+| 10 | **Communication import pipeline** — `.eml`/`.mbox`, SMS CSV/XML, voicemail audio→transcription→discard, call logs CSV | `Semptify_MASTER_HANDOFF.md` Task 10 | ✅ Complete | — |
+| 11 | **Resource directory** — `Resource` table, bulk CSV import, staleness tracking | `Semptify_MASTER_HANDOFF.md` Task 11 | ✅ Complete | Admin UI not yet built; endpoints are API-only |
 
-> **Note:** Rows #1-#8 are complete. The `feature/attorney-intake-packet` branch was merged and deleted on 2026-07-10. The endpoint `GET /cases/{case_id}/intake-packet` returns a canonical facts-only JSON packet; `/pdf` and `/zip` render it for attorney review. GUI download panel added to `case_builder.html`.
-> **Journal:** `/api/journal` CRUD, `/api/journal/summary`, and `/tenant/journal` are live; `app/modules/journal/tests/test_journal.py` passes 8/8.
-> **Rent Ledger:** `/api/rent/payments` endpoints support full ledger entry types and compute running balance; `app/modules/rent/tests/test_ledger.py` passes 6/6.
-> **Packet Builder:** `/api/packet-builder/build`, `/api/packet-builder/packets/{packet_id}`, and `/api/packet-builder/packets/{packet_id}/download` are live; `app/modules/packet_builder/tests/test_packet_builder.py` passes 8/8.
+> **Open decisions before Tasks 4/6/9–10 can be fully scoped:**
+> 1. ✅ Log retention window — **90 days rolling** (resolved 2026-07-26).
+> 2. ✅ Confirmed language priority list — English, Spanish, Somali, Hmong, Arabic, Amharic, Tigrinya, Mandarin, French, German, Korean, Japanese, Portuguese, Italian.
+> 3. ✅ Redaction matching strategy — user-known contact info plus heuristic PII detection with a `ThirdPartyContact` allowlist.
+
+### ✅ Completed (reference, not to-do)
+- Funding Forge — complete 2026-07-25.
+- UPL guardrail wiring — complete 2026-07-10.
+- GUI Phase 1 — complete 2026-07-19.
+- Document Center — 22 tests pass, live at `/tenant/documents`.
+- Attorney Intake Packet — complete 2026-07-19.
+- Journal, Rent Ledger, Packet Builder — complete 2026-07-20.
 
 ## 🎯 Candidate Next Priorities (awaiting user direction)
 
-- **Packet Builder UI** — four-pillar GUI panel for building and downloading packets. Not yet built.
+- **Packet Builder UI** ✅ — four-pillar GUI panel shipped 2026-07-28 and live-tested with Google Drive; todo-044 complete.
+- **Semantic Context Engine (Deep OCR Pass 2)** — `todo-036` resolved 2026-07-28; rule-based engine + acceptance tests + async token refresh in deep OCR job.
+- **Litigation Intelligence graph endpoints** — `todo-020` resolved 2026-07-28; graph engine and build/visualize/path endpoints already live and tested.
+- **Orchestrator todo sweep** ✅ — `todo-021` through `todo-032` resolved 2026-07-28.
+- **Next `swe-1.7` candidates** — `todo-022` (housing_accountability detect_repeated_fees) and `todo-024` (filedored_service classification) are now hardened and resolved.
 - **vault_sync** — ON HOLD per user 2026-07-01. Plan captured in memory.
 
 ### Action Feedback Helper — COMPLETE
@@ -89,10 +201,14 @@ and unlock panel to live vault data. 22 tests pass.
 
 ## 🚫 Anti-Priorities (Don't Start These)
 
-1. **New features** that aren't Action Feedback, GUI Phase 1 (four-pillar interface), or DC planning
-2. **Refactoring** unrelated to Phase 5
-3. **Documentation** that isn't critical path
-4. **Testing** of non-core systems
+> **Exception for this session:** the Master Handoff tasks below are explicitly promoted
+to active priority, overriding the "no new features" rule for this scope only.
+> This exception is recorded in the Decision Log.
+
+1. **Refactoring** unrelated to the Master Handoff tasks
+2. **Documentation** that isn't critical path for the Master Handoff
+3. **Testing** of non-core systems
+4. **New features outside the Master Handoff scope**
 
 ---
 
@@ -100,6 +216,8 @@ and unlock panel to live vault data. 22 tests pass.
 
 | Date | Decision | Reason |
 |------|----------|--------|
+| 2026-07-26 | ✅ Log retention window set to 90 days rolling | Default recommended in `Semptify_TraumaInformed_UX_Admin_Spec.md`; balances operational troubleshooting needs against unbounded R2 storage growth. Task 4 admin/logging can now scope R2 lifecycle policy and async flush with a fixed window. |
+| 2026-07-25 | ✅ Master Handoff promoted to active priority (11 tasks: UX foundation, admin/logging, voice, i18n, media capture, contacts, redaction, import pipeline, resource directory) | User explicitly promoted `temp/Semptify_MASTER_HANDOFF.md` to active priority; recorded in this file. Anti-priority "no new features" temporarily lifted for this scope only. Three open decisions (retention, language list, redaction strategy) still need resolution before full scoping. |
 | 2026-07-10 | ✅ Superseded 2026-06-28 GUI vision (Journal/Calendar/Timeline) with four-pillar model (RECORD/KNOW/ACT/GOVERN) | Framework formalized across a full planning session; GUI Screens 1-3 (nav shell, home, record) already shipped under new model. See `Semptify_Site_GUI_Framework.md` for the canonical pillar definitions. |
 | 2026-06-30 AM | ✅ Action Feedback helper retrofit complete | 13 pages retrofitted. All `alert()` fallbacks removed. `SemptifyFeedback` is globally loaded, so `if (window.SemptifyFeedback)` guards and `else { alert() }` branches were dead code. Also added success toast to journal save (was silently succeeding). |
 | 2026-06-29 PM | ✅ Repo cleanup — 108 obsolete docs archived | Reduce doc sprawl from 130+ to ~40 active docs. All obsolete docs moved to `archive/obsolete-2026-06-29/` with git history preserved. |

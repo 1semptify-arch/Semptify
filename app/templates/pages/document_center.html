@@ -45,6 +45,13 @@
                     <option value="correspondence">Correspondence</option>
                     <option value="other">Other</option>
                 </select>
+                <select id="dcStatusSelect" style="background:#1e293b; color:#e2e8f0; border:1px solid #334155; border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
+                    <option value="">— Status —</option>
+                    <option value="new">New</option>
+                    <option value="review">In Review</option>
+                    <option value="verified">Verified</option>
+                    <option value="mismatched">Mismatched</option>
+                </select>
                 <div id="dcTypeSuggest" style="display:none; align-items:center; gap:0.375rem; background:var(--zone-bg-tertiary); padding:0.1875rem 0.5rem; font-size:0.75rem;">
                     <span style="color:#f59e0b;">◆ Semptify suggests:</span>
                     <span id="dcSuggestedType" style="color:#e2e8f0; font-weight:600;"></span>
@@ -137,6 +144,15 @@
                 <button type="submit" class="frame-btn">Share</button>
             </div>
         </form>
+        <div id="dcShareResult" style="display:none; margin-top:1rem; padding:0.75rem; background:#052e16; border-radius:0.375rem;">
+            <div style="color:#22c55e; font-size:0.8125rem; font-weight:600; margin-bottom:0.25rem;">Share link created</div>
+            <input type="text" id="dcShareUrl" readonly style="width:100%; background:#0f172a; border:1px solid #334155; border-radius:0.25rem; padding:0.5rem; color:#e2e8f0; font-size:0.75rem; margin-bottom:0.5rem;">
+            <div style="color:#64748b; font-size:0.75rem;">Send this link to the recipient. They must be signed in to open it.</div>
+        </div>
+        <div id="dcShareList" style="display:none; margin-top:1rem;">
+            <div style="color:#94a3b8; font-size:0.8125rem; margin-bottom:0.5rem;">Existing shares</div>
+            <div id="dcShareListItems" style="font-size:0.75rem; color:#e2e8f0;"></div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -153,6 +169,7 @@
     const docEmpty = document.getElementById('dcDocEmpty');
     const docName = document.getElementById('dcDocName');
     const typeSelect = document.getElementById('dcTypeSelect');
+    const statusSelect = document.getElementById('dcStatusSelect');
     const downloadBtn = document.getElementById('dcDownloadBtn');
     const viewer = document.getElementById('dcViewer');
     const viewerEmpty = document.getElementById('dcViewerEmpty');
@@ -248,12 +265,49 @@
         const required = def.fields.filter(f => f.required);
         const corrected = required.filter(f => state[f.name] === 'corrected');
         const confirmed = required.filter(f => state[f.name] === 'confirmed');
-        return corrected.length > 0 && corrected.length >= confirmed.length && corrected.length > 0;
+        return corrected.length > 0 && corrected.length >= confirmed.length;
     }
 
     function effectiveStatus(doc) {
+        const state = fieldConfirmState[doc.id] || {};
+        if (state.manual_status) return state.manual_status;
         if (computeMismatched(doc)) return 'mismatched';
         return doc.verification_status || 'new';
+    }
+
+    async function loadReviewState(doc) {
+        if (!doc) return;
+        try {
+            const r = await fetch('/api/dc/document/' + encodeURIComponent(doc.id) + '/review-state', { credentials: 'include' });
+            if (!r.ok) return;
+            const data = await r.json();
+            fieldConfirmState[doc.id] = data.field_confirm_state || {};
+            fieldConfirmState[doc.id].manual_status = data.manual_status || '';
+            if (statusSelect) statusSelect.value = data.effective_status || 'new';
+        } catch (e) { /* silent */ }
+    }
+
+    async function saveReviewState(doc) {
+        if (!doc) return;
+        const state = Object.assign({}, fieldConfirmState[doc.id] || {});
+        const manual = state.manual_status;
+        delete state.manual_status;
+        const payload = { field_confirm_state: state };
+        if (manual) payload.manual_status = manual;
+        try {
+            const r = await fetch('/api/dc/document/' + encodeURIComponent(doc.id) + '/review-state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                credentials: 'include'
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            currentDoc.verification_status = data.effective_status;
+            await loadDocs();
+        } catch (err) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save review state: ' + err.message);
+        }
     }
 
     async function loadDocs() {
@@ -336,7 +390,10 @@
         docName.textContent = d.filename || 'Untitled';
         typeSelect.style.display = '';
         typeSelect.value = d.document_type || '';
+        statusSelect.style.display = '';
+        statusSelect.value = d.verification_status || 'new';
         downloadBtn.style.display = '';
+        await loadReviewState(d);
         document.getElementById('dcAnnotTools').style.display = 'flex';
         document.getElementById('dcProcessBtn').style.display = '';
         document.getElementById('dcShareBtn').style.display = '';
@@ -1188,14 +1245,16 @@
         fieldConfirmState[doc.id][field.name + '_value'] = input;
         renderChecklist(doc);
         renderDocs();
+        await saveReviewState(doc);
         if (window.SemptifyFeedback) SemptifyFeedback.success(field.label + ' corrected.');
     }
 
-    function setFieldState(doc, fieldName, state) {
+    async function setFieldState(doc, fieldName, state) {
         if (!fieldConfirmState[doc.id]) fieldConfirmState[doc.id] = {};
         fieldConfirmState[doc.id][fieldName] = state;
         renderChecklist(doc);
         renderDocs();
+        await saveReviewState(doc);
         if (state === 'confirmed' && window.SemptifyFeedback) {
             SemptifyFeedback.success('Field confirmed.');
         }
@@ -1235,6 +1294,19 @@
         } catch (e) {
             if (window.SemptifyFeedback) SemptifyFeedback.error('Could not update type: ' + e.message);
         }
+    });
+
+    // Status select
+    statusSelect.addEventListener('change', async () => {
+        if (!currentDoc) return;
+        const newStatus = statusSelect.value;
+        if (!newStatus) return;
+        if (!fieldConfirmState[currentDoc.id]) fieldConfirmState[currentDoc.id] = {};
+        fieldConfirmState[currentDoc.id].manual_status = newStatus;
+        currentDoc.verification_status = newStatus;
+        renderDocs();
+        await saveReviewState(currentDoc);
+        if (window.SemptifyFeedback) SemptifyFeedback.success('Status set to ' + newStatus + '.');
     });
 
     // Semptify-suggested document type — banner with Accept/Dismiss
@@ -1340,9 +1412,36 @@
     const shareModal = document.getElementById('dcShareModal');
     const shareCancel = document.getElementById('dcShareCancel');
     const shareForm = document.getElementById('dcShareForm');
+    async function loadShares(doc) {
+        if (!doc) return;
+        const listEl = document.getElementById('dcShareList');
+        const itemsEl = document.getElementById('dcShareListItems');
+        try {
+            const r = await fetch('/api/dc/document/' + encodeURIComponent(doc.id) + '/shares', { credentials: 'include' });
+            if (!r.ok) return;
+            const data = await r.json();
+            const shares = data.shares || [];
+            if (!shares.length) {
+                listEl.style.display = 'none';
+                return;
+            }
+            itemsEl.innerHTML = shares.map(s =>
+                '<div style="margin-bottom:0.375rem; padding:0.375rem; background:#0f172a; border-radius:0.25rem;">' +
+                '<div>' + escapeHtml(s.recipient) + ' · ' + escapeHtml(s.scope) + '</div>' +
+                '<a href="' + escapeHtml(s.share_url) + '" style="color:#3b82f6; font-size:0.6875rem; word-break:break-all;">' + escapeHtml(s.share_url) + '</a>' +
+                '</div>'
+            ).join('');
+            listEl.style.display = '';
+        } catch (e) { /* silent */ }
+    }
+
     shareBtn.addEventListener('click', () => {
         if (!currentDoc) return;
         document.getElementById('dcShareDocName').textContent = currentDoc.filename || 'Untitled';
+        document.getElementById('dcShareResult').style.display = 'none';
+        shareForm.style.display = '';
+        shareForm.reset();
+        loadShares(currentDoc);
         shareModal.style.display = 'flex';
     });
     shareCancel.addEventListener('click', () => { shareModal.style.display = 'none'; });
@@ -1363,28 +1462,22 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Sharing…';
         try {
-            const r = await fetch('/api/unified-overlays/create', {
+            const r = await fetch('/api/dc/document/' + encodeURIComponent(currentDoc.id) + '/share', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    overlay_type: 'communication',
-                    document_id: currentDoc.id,
-                    vault_path: currentDoc.vault_path || currentDoc.id,
-                    payload: {
-                        share_recipient: recipient,
-                        share_message: message,
-                        share_scope: scope,
-                        shared_at: new Date().toISOString()
-                    },
-                    metadata: { annotation_kind: 'share', created_by_tool: 'dc_gui' },
-                    ephemeral: false
+                    recipient: recipient,
+                    message: message,
+                    scope: scope
                 }),
                 credentials: 'include'
             });
             if (!r.ok) throw new Error('HTTP ' + r.status);
-            if (window.SemptifyFeedback) SemptifyFeedback.success('Share recorded for ' + recipient + '.');
-            shareModal.style.display = 'none';
-            shareForm.reset();
+            const data = await r.json();
+            document.getElementById('dcShareUrl').value = window.location.origin + data.share_url;
+            document.getElementById('dcShareResult').style.display = '';
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Share link created for ' + recipient + '.');
+            loadShares(currentDoc);
         } catch (err) {
             if (window.SemptifyFeedback) SemptifyFeedback.error('Share failed: ' + err.message);
         } finally {

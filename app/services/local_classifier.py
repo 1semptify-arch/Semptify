@@ -180,19 +180,10 @@ def _score_against(text: str, keywords: list[str]) -> int:
     return score
 
 
-def predict(content: bytes | None, filename: str) -> str:
-    """
-    Predict a filedored AI label for a document using filename and content.
-
-    Args:
-        content: Raw file bytes (may be None).
-        filename: Original filename.
-
-    Returns:
-        One of: lease, notice, evidence, photo, invoice, communication, unknown.
-    """
+def _score_document(content: bytes | None, filename: str) -> dict[str, int]:
+    """Return the raw keyword scores for a document."""
     if not filename:
-        return "unknown"
+        return dict.fromkeys(_LABEL_ORDER, 0)
 
     filename_lower = filename.lower()
     sample = _extract_text_sample(content or b"", filename).lower()
@@ -205,7 +196,44 @@ def predict(content: bytes | None, filename: str) -> str:
         # usually intentionally descriptive.
         scores[label] = filename_score * 2 + content_score
 
+    return scores
+
+
+def predict(content: bytes | None, filename: str) -> str:
+    """
+    Predict a filedored AI label for a document using filename and content.
+
+    Args:
+        content: Raw file bytes (may be None).
+        filename: Original filename.
+
+    Returns:
+        One of: lease, notice, evidence, photo, invoice, communication, unknown.
+    """
+    scores = _score_document(content, filename)
     best_label = max(_LABEL_ORDER, key=lambda label: scores[label])
     if scores[best_label] > 0:
         return best_label
     return "unknown"
+
+
+def predict_with_confidence(content: bytes | None, filename: str) -> tuple[str, float]:
+    """
+    Predict a label and return a confidence score.
+
+    Confidence is derived from the gap between the best and runner-up scores,
+    scaled so that a single weak match is not reported with unwarranted certainty.
+
+    Returns:
+        (label, confidence) where confidence is in [0.0, 0.99].
+    """
+    scores = _score_document(content, filename)
+    best_label = max(_LABEL_ORDER, key=lambda label: scores[label])
+    best_score = scores[best_label]
+
+    if best_score <= 0:
+        return "unknown", 0.0
+
+    runner_up = max(scores[label] for label in _LABEL_ORDER if label != best_label)
+    confidence = (best_score - runner_up) / (best_score + 1.0)
+    return best_label, round(max(0.0, min(0.99, confidence)), 2)

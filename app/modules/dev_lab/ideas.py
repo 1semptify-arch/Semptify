@@ -22,7 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.utc import utc_now
-from app.core.upl_guardrails import UPLRiskTier, get_default_upl_tier
+from app.core.upl_guardrails import UPLRiskTier
 
 logger = logging.getLogger(__name__)
 

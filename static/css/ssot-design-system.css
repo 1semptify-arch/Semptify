@@ -31,6 +31,16 @@
   --color-error: #ef4444;
   --color-info: #3b82f6;
 
+  /* Calm Baseline + Reserved Alarm (Task 1 — Master Handoff)
+     Alarm color is reserved for genuine urgency only: real deadlines,
+     eviction dates, response windows. Never use it for general emphasis. */
+  --color-calm: #5c7a99;
+  --color-calm-light: #8aa3bf;
+  --color-calm-dark: #3a4f66;
+  --color-alarm: #d97706;
+  --color-alarm-hover: #b45309;
+  --color-alarm-text: #ffffff;
+
   /* Neutral Colors */
   --color-white: #ffffff;
   --color-gray-50: #f9fafb;

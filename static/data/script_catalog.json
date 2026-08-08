@@ -1,0 +1,521 @@
+{
+  "Audit": [
+    {
+      "name": "tools/app_crawler.py",
+      "path": "tools/app_crawler.py",
+      "description": "Crawls through the application's GUI and systems to find problems including HTML issues, JavaScript problems, API endpoint validation, broken links, unformatted dates, missing dependencies, and Python code issues.",
+      "effects": "Writes reports to tools/crawl_report.json, tools/crawler_issues.json, tools/crawler_report.html. No database modifications.",
+      "command": "python tools/app_crawler.py [--fix] [--verbose]"
+    },
+    {
+      "name": "tools/gui_crawler.py",
+      "path": "tools/gui_crawler.py",
+      "description": "Crawls GUI for errors, broken links, and issues. Checks HTML files for [object Object] patterns, undefined functions, missing image sources, and fetch calls to relative URLs.",
+      "effects": "Generates crawl report with issues list. No file modifications.",
+      "command": "python tools/gui_crawler.py"
+    },
+    {
+      "name": "tools/generate_admin_audit_pdf.py",
+      "path": "tools/generate_admin_audit_pdf.py",
+      "description": "Introspects the running FastAPI application to enumerate all admin-protected routes and generates a comprehensive PDF report.",
+      "effects": "Writes PDF to docs/reports/Semptify_Admin_Audit.pdf. No database modifications.",
+      "command": "python tools/generate_admin_audit_pdf.py"
+    },
+    {
+      "name": "scripts/smoke_admin_routes.py",
+      "path": "scripts/smoke_admin_routes.py",
+      "description": "Smoke tests all admin console GET endpoints to check for 500 errors without admin auth.",
+      "effects": "No file modifications. Only HTTP requests.",
+      "command": "python scripts/smoke_admin_routes.py"
+    },
+    {
+      "name": "scripts/test_all_links.py",
+      "path": "scripts/test_all_links.py",
+      "description": "Comprehensive HTML link validator that tests every link from every HTML page end-to-end. Extracts href, src, action, onclick, and data-* links.",
+      "effects": "Generates broken_links_report.json and link_test_results.json. No file modifications.",
+      "command": "python scripts/test_all_links.py"
+    }
+  ],
+  "Inventory": [
+    {
+      "name": "tools/generate_module_routes_list.py",
+      "path": "tools/generate_module_routes_list.py",
+      "description": "Regenerates module_routes_list.txt from app/modules/*/router.py files by counting HTTP route decorators.",
+      "effects": "Writes module_routes_list.txt. No database modifications.",
+      "command": "python tools/generate_module_routes_list.py"
+    },
+    {
+      "name": "scripts/generate_compliance_inventory.py",
+      "path": "scripts/generate_compliance_inventory.py",
+      "description": "Generates a CSV inventory of module/router/service compliance entries using app.core.compliance discovery.",
+      "effects": "Writes MODULE_COMPLIANCE_INVENTORY.csv. No database modifications.",
+      "command": "python scripts/generate_compliance_inventory.py"
+    },
+    {
+      "name": "scripts/run_inventory.py",
+      "path": "scripts/run_inventory.py",
+      "description": "Wrapper script that runs generate_compliance_inventory.py.",
+      "effects": "Writes MODULE_COMPLIANCE_INVENTORY.csv. No database modifications.",
+      "command": "python scripts/run_inventory.py"
+    },
+    {
+      "name": "scripts/list_admin_routes.py",
+      "path": "scripts/list_admin_routes.py",
+      "description": "Lists all admin console routes for verification.",
+      "effects": "No file modifications. Only prints to console.",
+      "command": "python scripts/list_admin_routes.py"
+    }
+  ],
+  "Cleanup": [
+    {
+      "name": "tools/archive_resolved_duplicates.py",
+      "path": "tools/archive_resolved_duplicates.py",
+      "description": "Archives resolved/rejected duplicate-resolve tasks out of the workbook by removing matching rows from 'Duplicates' sheet and appending to 'Archive' sheet.",
+      "effects": "Modifies Semptify_Master_Inventory_LIVE_reviewed.xlsx and agent_orchestrator_tasks.json. Requires Excel to be closed.",
+      "command": "python tools/archive_resolved_duplicates.py [--dry-run]"
+    },
+    {
+      "name": "scripts/cleanup_duplicates.py",
+      "path": "scripts/cleanup_duplicates.py",
+      "description": "Removes duplicate documents from the index, keeping the earliest upload for each unique file_hash per user. Also cleans up orphaned files.",
+      "effects": "Modifies data/documents/index.json and deletes duplicate files from disk.",
+      "command": "python scripts/cleanup_duplicates.py"
+    },
+    {
+      "name": "scripts/clean_workspace.ps1",
+      "path": "scripts/clean_workspace.ps1",
+      "description": "Cleans workspace by removing the SemptifyBundle.zip file.",
+      "effects": "Deletes SemptifyBundle.zip file.",
+      "command": ".\\scripts\\clean_workspace.ps1"
+    }
+  ],
+  "Update/Migration": [
+    {
+      "name": "scripts/apply_timeline_migration.py",
+      "path": "scripts/apply_timeline_migration.py",
+      "description": "Applies timeline migration manually to handle SQLite schema. Creates unified_timeline view and marks migration as applied.",
+      "effects": "Modifies database schema (creates view, updates alembic_version table).",
+      "command": "python scripts/apply_timeline_migration.py"
+    },
+    {
+      "name": "scripts/drop_certification_tables.py",
+      "path": "scripts/drop_certification_tables.py",
+      "description": "Drops document_registry and certification_events tables as part of stateless mandate migration.",
+      "effects": "Drops database tables. Safe to re-run.",
+      "command": "python scripts/drop_certification_tables.py"
+    },
+    {
+      "name": "scripts/drop_extracted_data_column.py",
+      "path": "scripts/drop_extracted_data_column.py",
+      "description": "Drops extracted_data_json column from vault_index table as part of stateless mandate migration.",
+      "effects": "Alters database schema. Safe to re-run.",
+      "command": "python scripts/drop_extracted_data_column.py"
+    },
+    {
+      "name": "scripts/fix_datetime_consistency.py",
+      "path": "scripts/fix_datetime_consistency.py",
+      "description": "Replaces all instances of datetime.now(timezone.utc) with utc_now() to ensure consistent timezone handling throughout Semptify.",
+      "effects": "Modifies Python files in app/ directory. Adds import statements.",
+      "command": "python scripts/fix_datetime_consistency.py"
+    },
+    {
+      "name": "scripts/migrate_complaints.py",
+      "path": "scripts/migrate_complaints.py",
+      "description": "Migration script that adds new columns to complaints table for the Complaint Wizard.",
+      "effects": "Alters database schema (adds columns). Safe to re-run.",
+      "command": "python scripts/migrate_complaints.py"
+    },
+    {
+      "name": "scripts/sync_db.py",
+      "path": "scripts/sync_db.py",
+      "description": "Database sync between local SQLite and Neon PostgreSQL. Supports export and import operations.",
+      "effects": "Reads/writes database data. Exports to db_export.json.",
+      "command": "python scripts/sync_db.py [export|import]"
+    }
+  ],
+  "Report/Documentation": [
+    {
+      "name": "scripts/compile_ai_context.py",
+      "path": "scripts/compile_ai_context.py",
+      "description": "Bundles canonical project docs into one paste-ready handoff file for AI context switching.",
+      "effects": "Writes AI_HANDOFF_PACKET.md. No database modifications.",
+      "command": "python scripts/compile_ai_context.py"
+    },
+    {
+      "name": "scripts/generate_tech_overview_pdf.py",
+      "path": "scripts/generate_tech_overview_pdf.py",
+      "description": "Generates Semptify Technical Overview PDF for sharing with tech people, covering stack, architecture, and engineering discipline.",
+      "effects": "Writes Semptify_Technical_Overview.pdf. No database modifications.",
+      "command": "python scripts/generate_tech_overview_pdf.py"
+    },
+    {
+      "name": "scripts/md_to_pdf.py",
+      "path": "scripts/md_to_pdf.py",
+      "description": "Converts a markdown file to a styled PDF using Edge headless browser.",
+      "effects": "Creates PDF file and temporary HTML. No database modifications.",
+      "command": "python scripts/md_to_pdf.py <input.md> <output.pdf>"
+    },
+    {
+      "name": "scripts/render_page_recipe.py",
+      "path": "scripts/render_page_recipe.py",
+      "description": "Renders a PageRecipe as an interactive HTML visualization for documentation.",
+      "effects": "Writes HTML files to output directory. No database modifications.",
+      "command": "python scripts/render_page_recipe.py <page_id> [--all] [--incomplete]"
+    }
+  ],
+  "Test/Validation": [
+    {
+      "name": "tools/gui_test_bot.py",
+      "path": "tools/gui_test_bot.py",
+      "description": "Playwright-based GUI test bot that simulates real users navigating the entire Semptify application. Tests critical workflows: documents, timeline, intake, vault.",
+      "effects": "Takes screenshots on failure, generates HTML reports. No database modifications.",
+      "command": "python tools/gui_test_bot.py [--headed] [--slow] [--role all|tenant|advocate|manager|legal|admin]"
+    },
+    {
+      "name": "tools/run_gui_tests.sh",
+      "path": "tools/run_gui_tests.sh",
+      "description": "Shell script wrapper for running the Playwright GUI test bot on Unix/Mac.",
+      "effects": "Runs gui_test_bot.py. No file modifications.",
+      "command": "./tools/run_gui_tests.sh [--headed] [--slow] [--role all]"
+    },
+    {
+      "name": "tools/stub_detector.py",
+      "path": "tools/stub_detector.py",
+      "description": "Scans Python codebase for genuine stubs (functions with pass, ..., raise NotImplementedError, or empty return) using AST parsing.",
+      "effects": "Writes stub_tasks_new.json. No database modifications.",
+      "command": "python tools/stub_detector.py <root_dir> [--out stub_tasks.json] [--list-todos]"
+    },
+    {
+      "name": "tools/checks/stub_check.py",
+      "path": "tools/checks/stub_check.py",
+      "description": "Wrapper for stub_detector.py to run as a plugin inside the unified guardrail engine.",
+      "effects": "Calls stub_detector.py. No file modifications.",
+      "command": "Called by guardrail_engine.py"
+    },
+    {
+      "name": "tools/checks/manifest_sync_check.py",
+      "path": "tools/checks/manifest_sync_check.py",
+      "description": "Wrapper for sync_orchestrator.py to run as a plugin inside the unified guardrail engine.",
+      "effects": "Calls sync_orchestrator.py. No file modifications.",
+      "command": "Called by guardrail_engine.py"
+    },
+    {
+      "name": "tools/guardrail_engine.py",
+      "path": "tools/guardrail_engine.py",
+      "description": "Unified guardrail check engine that discovers and runs all checks in tools/checks/. Produces one pass/fail report.",
+      "effects": "Runs check plugins, may append to BUILD_STATE.md. No database modifications.",
+      "command": "python tools/guardrail_engine.py"
+    },
+    {
+      "name": "scripts/check_system.py",
+      "path": "scripts/check_system.py",
+      "description": "Quick system validation using stdlib only. Tests pages, eviction flows, APIs, storage, health endpoints.",
+      "effects": "No file modifications. Only HTTP requests.",
+      "command": "python scripts/check_system.py"
+    },
+    {
+      "name": "scripts/check_tiers.py",
+      "path": "scripts/check_tiers.py",
+      "description": "Checks which tiers and modules actually load cleanly by attempting to register all tiers and capturing skipped/error logs.",
+      "effects": "No file modifications. Only imports and logging.",
+      "command": "python scripts/check_tiers.py"
+    },
+    {
+      "name": "scripts/reset_test_user.py",
+      "path": "scripts/reset_test_user.py",
+      "description": "Resets test user state for a clean onboarding run by clearing oauth_states and resetting user gates.",
+      "effects": "Modifies database (deletes oauth_states, updates users.completed_groups).",
+      "command": "python scripts/reset_test_user.py"
+    },
+    {
+      "name": "scripts/run_all_tests.py",
+      "path": "scripts/run_all_tests.py",
+      "description": "Unified test runner for static analysis tests, E2E document pipeline, and pytest with fixtures.",
+      "effects": "No file modifications. Runs test modules.",
+      "command": "python scripts/run_all_tests.py"
+    },
+    {
+      "name": "scripts/run_render_tests.py",
+      "path": "scripts/run_render_tests.py",
+      "description": "Render test runner for after-deploy testing. Runs smoke tests and law library API tests against production server.",
+      "effects": "No file modifications. Only HTTP requests.",
+      "command": "python scripts/run_render_tests.py [--base-url https://semptify.org]"
+    },
+    {
+      "name": "scripts/test_timeline_api.py",
+      "path": "scripts/test_timeline_api.py",
+      "description": "Tests the unified timeline API endpoints including date-range and unified timeline.",
+      "effects": "No file modifications. Only HTTP requests.",
+      "command": "python scripts/test_timeline_api.py"
+    },
+    {
+      "name": "scripts/validate.py",
+      "path": "scripts/validate.py",
+      "description": "Startup validation script that checks environment configuration and dependencies before starting the app.",
+      "effects": "No file modifications. Only checks and prints status.",
+      "command": "python scripts/validate.py [--quick]"
+    },
+    {
+      "name": "scripts/validate_contracts.py",
+      "path": "scripts/validate_contracts.py",
+      "description": "CI gate script to validate all registered page contracts. Checks registry integrity and per-contract validation.",
+      "effects": "No file modifications. Only validation checks.",
+      "command": "python scripts/validate_contracts.py [--verbose] [--page <page_id>]"
+    },
+    {
+      "name": "scripts/validate_modular_system.py",
+      "path": "scripts/validate_modular_system.py",
+      "description": "Comprehensive validation of modular component system including file structure, CSS integration, HTML templates, API endpoints, event system, and role-specific functionality.",
+      "effects": "No file modifications. Only validation checks.",
+      "command": "python scripts/validate_modular_system.py"
+    },
+    {
+      "name": "scripts/validate_pipeline_persistence.py",
+      "path": "scripts/validate_pipeline_persistence.py",
+      "description": "Validates that document pipeline persists to PostgreSQL correctly by ingesting a doc and verifying DB row exists.",
+      "effects": "Modifies database (ingests test document). Temporarily moves local index file.",
+      "command": "python scripts/validate_pipeline_persistence.py"
+    },
+    {
+      "name": "scripts/validate_system.py",
+      "path": "scripts/validate_system.py",
+      "description": "Full system validation script that tests all endpoints, database, and functionality.",
+      "effects": "No file modifications. Only HTTP requests and file checks.",
+      "command": "python scripts/validate_system.py"
+    },
+    {
+      "name": "scripts/verify_ssot.py",
+      "path": "scripts/verify_ssot.py",
+      "description": "SSOT architecture verification script that runs pytest-based audit to catch hardcoded URL violations.",
+      "effects": "No file modifications. Runs pytest.",
+      "command": "python scripts/verify_ssot.py [--fix]"
+    }
+  ],
+  "Build/Deploy": [
+    {
+      "name": "scripts/build_backend.ps1",
+      "path": "scripts/build_backend.ps1",
+      "description": "Backend build script (currently a stub - only prints message).",
+      "effects": "No file modifications.",
+      "command": ".\\scripts\\build_backend.ps1"
+    },
+    {
+      "name": "scripts/build_frontend.ps1",
+      "path": "scripts/build_frontend.ps1",
+      "description": "Frontend build script (currently a stub - only prints message).",
+      "effects": "No file modifications.",
+      "command": ".\\scripts\\build_frontend.ps1"
+    },
+    {
+      "name": "scripts/deploy_local.ps1",
+      "path": "scripts/deploy_local.ps1",
+      "description": "Deploys Semptify locally by starting uvicorn backend and npm dev frontend.",
+      "effects": "Starts background processes.",
+      "command": ".\\scripts\\deploy_local.ps1"
+    },
+    {
+      "name": "scripts/cloudflare-dev-mode.sh",
+      "path": "scripts/cloudflare-dev-mode.sh",
+      "description": "Enables Cloudflare Development Mode and purges cache via API.",
+      "effects": "Makes API calls to Cloudflare. No file modifications.",
+      "command": "./scripts/cloudflare-dev-mode.sh (requires CLOUDFLARE_ZONE_ID and CLOUDFLARE_API_TOKEN env vars)"
+    }
+  ],
+  "Orchestration": [
+    {
+      "name": "tools/_seed_orchestrator_tasks.py",
+      "path": "tools/_seed_orchestrator_tasks.py",
+      "description": "Seeds tools/agent_orchestrator_tasks.json with a fresh consolidated todo list from BUILD_STATE.md, ACTIVE_CONTEXT.md, FNG_TODO.md, and STUB_AUDIT.md.",
+      "effects": "Writes docs_todos.json. Overwrites agent_orchestrator_tasks.json when merged.",
+      "command": "python tools/_seed_orchestrator_tasks.py"
+    },
+    {
+      "name": "tools/sync_orchestrator.py",
+      "path": "tools/sync_orchestrator.py",
+      "description": "One command that keeps stub detection, master workbook, and agent orchestrator UI in sync. Runs stub_detector, workbook_bridge, embeds tasks JSON into HTML.",
+      "effects": "Writes stub_tasks_new.json, agent_orchestrator_tasks.json, agent_orchestrator.html, orchestrator_dashboard.html. May re-stage files for git.",
+      "command": "python tools/sync_orchestrator.py [--check]"
+    },
+    {
+      "name": "tools/workbook_bridge.py",
+      "path": "tools/workbook_bridge.py",
+      "description": "Bridges from Semptify_Master_Inventory_LIVE_reviewed.xlsx to agent_orchestrator.json using live stub list from stub_detector.py.",
+      "effects": "Writes agent_orchestrator_tasks.json. Reads Excel workbook.",
+      "command": "python tools/workbook_bridge.py"
+    },
+    {
+      "name": "tools/mark_task_status.py",
+      "path": "tools/mark_task_status.py",
+      "description": "Marks a single task's status in agent_orchestrator_tasks.json for AI agents to call when picking up or finishing tasks.",
+      "effects": "Modifies agent_orchestrator_tasks.json. Uses file-based lock for concurrent safety.",
+      "command": "python tools/mark_task_status.py <task_id> <status> [--notes \"...\"] [--agent \"kimi-2.7\"]"
+    },
+    {
+      "name": "tools/workorder_runner.py",
+      "path": "tools/workorder_runner.py",
+      "description": "Claims, completes, and rejects tasks from agent_orchestrator_tasks.json safely for concurrent agents using file locks.",
+      "effects": "Modifies agent_orchestrator_tasks.json. Uses file locks.",
+      "command": "python tools/workorder_runner.py --agent swe-1.6 [claim|done|reject|status]"
+    },
+    {
+      "name": "tools/dispatch_batch.py",
+      "path": "tools/dispatch_batch.py",
+      "description": "Dispatches first 3 HIGH priority tasks from agent_orchestrator_tasks.json to a markdown file.",
+      "effects": "Writes c:/tmp/dispatch_batch_1.md. No database modifications.",
+      "command": "python tools/dispatch_batch.py"
+    }
+  ],
+  "Setup/Install": [
+    {
+      "name": "scripts/Reset-Local-Postgres.ps1",
+      "path": "scripts/Reset-Local-Postgres.ps1",
+      "description": "Resets local PostgreSQL configuration by temporarily allowing trusted localhost auth, resetting postgres password, creating/updating semptify role and database.",
+      "effects": "Modifies pg_hba.conf, restarts PostgreSQL service, creates database and user. Requires Administrator.",
+      "command": ".\\scripts\\Reset-Local-Postgres.ps1 (requires Administrator)"
+    },
+    {
+      "name": "scripts/Setup-PostgreSQL-Extensions.ps1",
+      "path": "scripts/Setup-PostgreSQL-Extensions.ps1",
+      "description": "Sets up PostgreSQL extensions (uuid-ossp, pg_trgm, pgcrypto, btree_gin, btree_gist) for Semptify.",
+      "effects": "Creates database, user, and installs extensions. No data modifications.",
+      "command": ".\\scripts\\Setup-PostgreSQL-Extensions.ps1"
+    },
+    {
+      "name": "scripts/init_postgres.py",
+      "path": "scripts/init_postgres.py",
+      "description": "Initializes PostgreSQL database with all tables by running Base.metadata.create_all.",
+      "effects": "Creates all tables in database. No data modifications.",
+      "command": "python scripts/init_postgres.py"
+    },
+    {
+      "name": "scripts/SemptifyLauncher.ps1",
+      "path": "scripts/SemptifyLauncher.ps1",
+      "description": "One-click startup with browser selection. Smart routing: Setup Wizard (first run) or Command Center (configured). Shows GUI for browser/profile selection.",
+      "effects": "Starts uvicorn server as background process, launches browser. No file modifications.",
+      "command": ".\\scripts\\SemptifyLauncher.ps1 [--Browser \"Microsoft Edge\"] [--Profile \"Default\"]"
+    }
+  ],
+  "Utility": [
+    {
+      "name": "scripts/backup.py",
+      "path": "scripts/backup.py",
+      "description": "Creates timestamped backups of the database and uploads directory. Supports SQLite and PostgreSQL with pg_dump.",
+      "effects": "Creates backup files in backups/ directory. No database modifications (only reads).",
+      "command": "python scripts/backup.py [--restore latest] [--list] [--uploads-only] [--db-only]"
+    },
+    {
+      "name": "scripts/add_sample_docs.py",
+      "path": "scripts/add_sample_docs.py",
+      "description": "Adds sample eviction case documents for timeline testing to the document index.",
+      "effects": "Modifies data/documents/index.json. No database modifications.",
+      "command": "python scripts/add_sample_docs.py"
+    },
+    {
+      "name": "scripts/build_case_timeline.py",
+      "path": "scripts/build_case_timeline.py",
+      "description": "Extracts dates from documents and builds chronological timeline for retaliation case against property management. Specific to case 19AV-CV-25-3477.",
+      "effects": "Writes timeline JSON and TXT files. No database modifications.",
+      "command": "python scripts/build_case_timeline.py"
+    },
+    {
+      "name": "scripts/download_forms.py",
+      "path": "scripts/download_forms.py",
+      "description": "Downloads Minnesota Court forms for offline use from mncourts.gov.",
+      "effects": "Downloads PDF files to semptify_dakota_eviction/app/assets/forms/. No database modifications.",
+      "command": "python scripts/download_forms.py"
+    },
+    {
+      "name": "scripts/eviction_crawler.py",
+      "path": "scripts/eviction_crawler.py",
+      "description": "Focused crawler for eviction defense documents, tenant counterclaims, habitability complaints, and security deposit disputes for training document processor.",
+      "effects": "Downloads documents to data/eviction_training/. No database modifications.",
+      "command": "python scripts/eviction_crawler.py"
+    },
+    {
+      "name": "scripts/filedored.py",
+      "path": "scripts/filedored.py",
+      "description": "Vault post-processor that sorts documents, deduplicates by hash, and AI-classifies files into organized folder structure.",
+      "effects": "Moves files within vault directory. No database modifications.",
+      "command": "python scripts/filedored.py <root_path> [--no-ai]"
+    },
+    {
+      "name": "scripts/manage_cartridges.py",
+      "path": "scripts/manage_cartridges.py",
+      "description": "Manages module compatibility, updates, and inventory through cartridge-based system with preset parameters and compatibility matrices.",
+      "effects": "Reads/writes compatibility_system.json and MODULE_COMPLIANCE_INVENTORY.csv. No database modifications.",
+      "command": "python scripts/manage_cartridges.py [list|validate|update|inventory]"
+    },
+    {
+      "name": "scripts/mn_court_crawler.py",
+      "path": "scripts/mn_court_crawler.py",
+      "description": "Crawls publicly available Minnesota court case documents focused on eviction defense, tenant counterclaims, habitability complaints, and rent escrow actions.",
+      "effects": "Downloads documents to data/court_cases/. No database modifications.",
+      "command": "python scripts/mn_court_crawler.py"
+    },
+    {
+      "name": "scripts/populate_court_case.py",
+      "path": "scripts/populate_court_case.py",
+      "description": "Populates a realistic eviction case for court presentation with documents, timeline, and defenses.",
+      "effects": "Modifies database (inserts documents, timeline events, calendar events).",
+      "command": "python scripts/populate_court_case.py"
+    },
+    {
+      "name": "scripts/require_read_project_bible.py",
+      "path": "scripts/require_read_project_bible.py",
+      "description": "Manual gate for humans and AI assistants requiring project Bible reading before working. Creates .semptify_read_ack marker file.",
+      "effects": "Writes .semptify_read_ack marker file. No database modifications.",
+      "command": "python scripts/require_read_project_bible.py [--show-only] [--force]"
+    }
+  ],
+  "Other": [
+    {
+      "name": "_check3.ps1",
+      "path": "_check3.ps1",
+      "description": "Quick health check for demo API endpoint after 15 second delay.",
+      "effects": "No file modifications. Only HTTP request.",
+      "command": ".\\_check3.ps1"
+    },
+    {
+      "name": "_make_shortcut.ps1",
+      "path": "_make_shortcut.ps1",
+      "description": "Creates a desktop shortcut to Agent_Orchestrator.bat.",
+      "effects": "Creates desktop shortcut. No database modifications.",
+      "command": ".\\_make_shortcut.ps1"
+    },
+    {
+      "name": "_probe.ps1",
+      "path": "_probe.ps1",
+      "description": "Probes multiple admin and demo URLs to check availability.",
+      "effects": "No file modifications. Only HTTP requests.",
+      "command": ".\\_probe.ps1"
+    },
+    {
+      "name": "_restart.ps1",
+      "path": "_restart.ps1",
+      "description": "Kills existing server on port 8000, restarts it with uvicorn, and checks demo API health.",
+      "effects": "Stops/starts processes. No file modifications.",
+      "command": ".\\_restart.ps1"
+    },
+    {
+      "name": "start_semptify.ps1",
+      "path": "start_semptify.ps1",
+      "description": "Auto-restarting Semptify server that keeps the app alive indefinitely by restarting on exit.",
+      "effects": "Starts/restarts uvicorn process. No file modifications.",
+      "command": ".\\start_semptify.ps1"
+    },
+    {
+      "name": "scripts/run_tests.ps1",
+      "path": "scripts/run_tests.ps1",
+      "description": "Test runner script (currently a stub - only prints message).",
+      "effects": "No file modifications.",
+      "command": ".\\scripts\\run_tests.ps1"
+    },
+    {
+      "name": "scripts/zip_bundle.ps1",
+      "path": "scripts/zip_bundle.ps1",
+      "description": "Not found in initial scan - may not exist or was not readable.",
+      "effects": "Unknown - file not accessible.",
+      "command": "Unknown"
+    }
+  ]
+}

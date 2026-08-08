@@ -136,6 +136,17 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 - **Fix:** Restored all files from the orphan copy back to `static/css/` (the correctly mounted location). Deleted the orphan `static/data/css/` directory.
 - **Rule: NEVER delete a static asset file (CSS, JS, image) that is referenced by a template until the replacement is verified live in the running app. If a migration is started and cannot be completed in the same session, revert the deletions before committing. A half-finished migration committed or left on disk overnight is worse than no migration at all.**
 
+### 18. Corrupt Git Commit-Graph Causing `git status` Misreport
+- **What happened:** `.git/objects/info/commit-graphs/` became corrupt, referencing 8 commits that no longer existed in the object database (`failed to parse commit ... from object database for commit-graph`). This caused `git status` to report committed files as modified/added and to show a dirty tree that was actually clean. The corruption likely came from automatic `git gc`/prune or worktree/cascade snapshot maintenance, not from the Devin safety rules.
+- **Fix:** Remove/rename the old split graph, regenerate with `git commit-graph write --reachable`, then verify with `git commit-graph verify` and `git fsck --full`.
+- **Rule:** If `git status` reports large numbers of staged/unstaged changes that don't match what you expect — especially after worktree operations, cascade snapshots, or `git gc`/`git prune` — run `git fsck --full` and `git commit-graph verify` before assuming the working tree is dirty. Do NOT run `git reset --hard` or `git clean -fd` blindly to "fix" the apparent dirtiness.
+
+### 19. OAuth Token Refresh Blocking the Async Event Loop
+- **What happened:** `app.core.auto_refresh.ensure_valid_token()` was calling `token_manager.refresh_token_if_needed()`, which is a synchronous method that uses `httpx.Client` (blocking) to call Google/Dropbox/OneDrive token refresh endpoints. Under `uvicorn`/async workers this blocks the event loop, causes timeouts / 504s, and produces the same reconnect-loop symptom the user sees when signing in with OAuth.
+- **Fix:** Rewrite `app/core/auto_refresh.py::_refresh_from_db()` to use the existing async `app.modules.storage.router.refresh_access_token()` (which uses `httpx.AsyncClient`) instead of the synchronous `token_manager` refresh path. Normalize naive `expires_at` datetimes to UTC before calling `token.is_expired()` to prevent aware/naive datetime comparison crashes.
+- **Rule:** Never call a synchronous HTTP client (`httpx.Client`, `requests`, etc.) from inside an `async def` code path in this repo. Token refresh, provider validation, and storage I/O must all be async. If you see `token_manager.refresh_token_if_needed()` or `get_valid_token_for_user()` being called from an async route/service, replace it with `auto_refresh.ensure_valid_token()` or make the caller `await` an async equivalent.
+- **Files:** `app/core/auto_refresh.py`, `app/core/oauth_token_manager.py`, `app/core/security.py` (`get_current_user`), `app/core/storage_middleware.py`.
+
 ---
 
 ## 📋 Module Contract Mandate
@@ -166,6 +177,19 @@ register_function_group(FunctionGroupContract(
 **Before writing code that calls another service's API, check the contract registry first.** If no contract exists, ask the user — do not invent the API.
 
 ---
+
+## 🎨 GUI Design — Chronological & Spatial Task Ordering
+
+Applies to all tenant-facing and admin GUI work, in addition to the existing design-system rules (no card borders, zone-based background separation, `ssot-design-system.css` only).
+
+- Layout must follow the strict chronological order of the user's task: first required action top/left, each subsequent step below or to the right, final/completion step at the bottom or end of the path.
+- Never place an early step below a later one. Never place a final action near the top.
+- High-priority, immediate-use controls: top of viewport.
+- Secondary/configuration controls: middle, grouped logically.
+- Low-frequency or destructive actions (Reset, Delete, etc.): bottom, visually separated.
+- Group related controls with zone-based background separation, not card borders.
+- Before marking any GUI task done, trace the eye path top-left → down/right. If an earlier step's control sits below a later step's control, rearrange.
+- For full wording see `.cursor/rules/01-gui-chronological-spatial.mdc`.
 
 ## 📋 Agent Session Checklist
 
@@ -209,6 +233,34 @@ It is for people who may not be able to afford a legal team, may be overwhelmed,
 - User-controlled documents and storage wherever possible.
 - Evidence preservation over feature novelty.
 - Calm, clear, trustworthy UX.
+
+## Fees Terminology Policy
+
+Semptify's public commitment is **no fees, ever, to tenants** — that is a
+policy about what Semptify charges users, not a ban on the word "fee" in
+housing-rights analysis.
+
+- In **tenant-facing modules** (`fees_policy = "tenant_no_fees"`), do not use
+  language that implies Semptify charges fees, subscriptions, or paid plans.
+  The word "fee" may appear when it clearly refers to a landlord charge
+  recorded by the tenant (e.g. a rent-ledger line item), but never in a way
+  that suggests Semptify is the one charging.
+
+- In **advanced/admin/research modules** (`fees_policy = "exempt_advanced"`),
+  "fee" is a domain term describing landlord conduct found in tenant evidence
+  (for example, `detect_repeated_fees()` in `housing_accountability`). These
+  modules are exempt from the "no fees" wording rule because they are analyzing
+  what a landlord charged, not what Semptify charges.
+
+- The exemption is **conditional on the module remaining unreachable by the
+  tenant role**. The manifest declares `fees_policy` on every module entry;
+  `tools/guardrail_engine.py` fails the build if an `exempt_advanced` module
+  becomes tenant-reachable.
+
+- **Do not "fix," remove, or reword fee-detection language in exempt modules**
+  on the assumption that it conflicts with the no-fees policy. If a module's
+  tenant-reachability status is changing, flag it for `fees_policy` review
+  rather than editing fee logic directly.
 
 ## Truth Standard
 
@@ -434,3 +486,27 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
    - Kill it (remove the code)
    - Formalize it (register as proper FlowStage)
    - Deprecate it (old path → new canonical)
+
+---
+
+## Data Sensitivity Tiers
+
+- **T0 — System / operational.** No PII. Version, uptime, module counts,
+  config flags, cost counters. Safe to log and display to admin.
+- **T1 — Account / capability metadata.** No direct PII. Hashed user IDs,
+  role, jurisdiction, module usage, invite codes. Admin-only, audit logged.
+- **T2 — Tenant PII / sensitive personal data.** Names, addresses, contact
+  info, documents, communications, concerns. Admin-only, audit logged,
+  minimal retention.
+- **T3 — Legal / court evidence.** Filings, exhibits, case materials.
+  Same handling as T2 plus evidence-preservation / chain-of-custody rules.
+
+### Tile-to-tier mapping (B1)
+
+| Tile | Tier | Notes |
+|---|---|---|
+| `system_health` | T0 | No PII. |
+| `run_modules` | T1 | Hashed IDs, role, jurisdiction only. |
+| `correspondence` | T2 | Tenant/landlord correspondence, metadata + content. |
+| `user_concerns` | T2 | Tenant-submitted content, PII-bearing. |
+| `advanced` | T1 (tools) / T0 (`detect_repeated_fees` cost-guard) | Cost-guard is counting only, no identity data. |

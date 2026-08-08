@@ -1,0 +1,1823 @@
+- id: run_modules
+  display_name: Run Modules
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  health_check: tools.module_health.check_run_modules
+  test_suite: tests/module_health/test_run_modules.py
+  module_path: app.modules.run_modules.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-08-07T07:35:28.354285+00:00'
+  last_result:
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 0.59s
+- id: testing
+  display_name: Testing
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  health_check: tools.module_health.check_testing
+  test_suite: tests/module_health/test_testing.py
+  last_verified: '2026-08-07T07:35:33.019462+00:00'
+  status: ok
+  module_path: app.modules.testing.router
+  last_result:
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: invite_codes
+  display_name: Invite Codes & Authorizations
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  health_check: tools.module_health.check_invite_codes
+  test_suite: tests/module_health/test_invite_codes.py
+  last_verified: '2026-08-07T07:35:37.746682+00:00'
+  status: ok
+  module_path: app.modules.invite_codes.router
+  last_result:
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 0.39s
+- id: correspondence
+  display_name: Correspondence
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  health_check: tools.module_health.check_correspondence
+  test_suite: tests/module_health/test_correspondence.py
+  module_path: app.modules.correspondence.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-08-07T07:35:42.403124+00:00'
+  last_result:
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.44s
+- id: user_concerns
+  display_name: User Concerns
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  health_check: tools.module_health.check_user_concerns
+  test_suite: tests/module_health/test_user_concerns.py
+  module_path: app.modules.user_concerns.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-08-07T07:35:46.988427+00:00'
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.39s
+- id: system_health
+  display_name: System Health & Updates
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  health_check: tools.module_health.check_system_health
+  test_suite: tests/module_health/test_system_health.py
+  module_path: app.modules.system_health.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-08-07T07:35:51.642047+00:00'
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: advanced
+  display_name: Advanced / Dev Tools
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  health_check: tools.module_health.check_advanced
+  test_suite: tests/module_health/test_advanced.py
+  module_path: app.modules.advanced.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-08-07T07:35:56.263587+00:00'
+  last_result:
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 0.39s
+- id: health
+  display_name: Health
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.health.router
+  health_check: tools.module_health.check_health
+  test_suite: tests/module_health/test_health.py
+  last_verified: '2026-08-07T07:36:00.900973+00:00'
+  status: ok
+  last_result:
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: versioning
+  display_name: System
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.core.versioning
+  health_check: tools.module_health.check_versioning
+  test_suite: tests/module_health/test_versioning.py
+  last_verified: '2026-08-07T07:36:05.571881+00:00'
+  status: ok
+  last_result:
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.39s
+- id: preamble
+  display_name: Preamble
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.preamble.router
+  health_check: tools.module_health.check_preamble
+  test_suite: tests/module_health/test_preamble.py
+  last_verified: '2026-08-07T07:36:10.284644+00:00'
+  status: ok
+  last_result:
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: risc
+  display_name: Risc
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.risc.router
+  health_check: tools.module_health.check_risc
+  test_suite: tests/module_health/test_risc.py
+  last_verified: '2026-08-07T07:36:14.885074+00:00'
+  status: ok
+  last_result:
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: role_ui
+  display_name: Role Ui
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.role_ui.router
+  health_check: tools.module_health.check_role_ui
+  test_suite: tests/module_health/test_role_ui.py
+  last_verified: '2026-08-07T07:36:19.505665+00:00'
+  status: ok
+  last_result:
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: storage
+  display_name: Storage Auth
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.storage.router
+  health_check: tools.module_health.check_storage
+  test_suite: tests/module_health/test_storage.py
+  last_verified: '2026-08-07T07:36:24.114934+00:00'
+  status: ok
+  last_result:
+    health_check: 29 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: user
+  display_name: User
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.user.router
+  health_check: tools.module_health.check_user
+  test_suite: tests/module_health/test_user.py
+  last_verified: '2026-08-07T07:36:28.773438+00:00'
+  status: ok
+  last_result:
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: rent
+  display_name: Rent Ledger
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.rent.router
+  health_check: tools.module_health.check_rent
+  test_suite: tests/module_health/test_rent.py
+  last_verified: '2026-08-07T07:36:33.407165+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: auth
+  display_name: Authentication
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.auth.router
+  health_check: tools.module_health.check_auth
+  test_suite: tests/module_health/test_auth.py
+  last_verified: '2026-08-07T07:36:38.068870+00:00'
+  status: ok
+  last_result:
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: reconnect
+  display_name: Onboarding / Reconnect
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.onboarding.reconnect
+  health_check: tools.module_health.check_reconnect
+  test_suite: tests/module_health/test_reconnect.py
+  last_verified: '2026-08-07T07:36:42.670792+00:00'
+  status: ok
+  last_result:
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: documents
+  display_name: Documents
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.documents.router
+  health_check: tools.module_health.check_documents
+  test_suite: tests/module_health/test_documents.py
+  last_verified: '2026-08-07T07:36:47.492296+00:00'
+  status: ok
+  last_result:
+    health_check: 26 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: vault
+  display_name: Document Vault
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.vault.router
+  health_check: tools.module_health.check_vault
+  test_suite: tests/module_health/test_vault.py
+  last_verified: '2026-08-07T07:36:52.164014+00:00'
+  status: ok
+  last_result:
+    health_check: 19 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: vault_engine
+  display_name: Vault Engine / Access Control
+  category: core
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.vault_engine.router
+  health_check: tools.module_health.check_vault_engine
+  test_suite: tests/module_health/test_vault_engine.py
+  last_verified: '2026-08-07T07:36:56.718629+00:00'
+  status: ok
+  last_result:
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: timeline
+  display_name: Unified Timeline
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.timeline.router
+  health_check: tools.module_health.check_timeline
+  test_suite: tests/module_health/test_timeline.py
+  last_verified: '2026-08-07T07:37:01.353224+00:00'
+  status: ok
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: briefcase
+  display_name: Briefcase
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.briefcase.router
+  health_check: tools.module_health.check_briefcase
+  test_suite: tests/module_health/test_briefcase.py
+  last_verified: '2026-08-07T07:37:06.073544+00:00'
+  status: ok
+  last_result:
+    health_check: 42 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: packet_builder
+  display_name: Packet Builder
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.packet_builder.router
+  health_check: tools.module_health.check_packet_builder
+  test_suite: tests/module_health/test_packet_builder.py
+  last_verified: '2026-08-07T07:37:10.669461+00:00'
+  status: ok
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.35s
+- id: workflow
+  display_name: Workflow
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.workflow.router
+  health_check: tools.module_health.check_workflow
+  test_suite: tests/module_health/test_workflow.py
+  last_verified: '2026-08-07T07:37:15.258070+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: workflow_validator
+  display_name: Admin
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.workflow_validator.router
+  health_check: tools.module_health.check_workflow_validator
+  test_suite: tests/module_health/test_workflow_validator.py
+  last_verified: '2026-08-07T07:37:19.842101+00:00'
+  status: ok
+  last_result:
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: state_laws
+  display_name: State Laws
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.state_laws.router
+  health_check: tools.module_health.check_state_laws
+  test_suite: tests/module_health/test_state_laws.py
+  last_verified: '2026-08-07T07:37:24.394776+00:00'
+  status: ok
+  last_result:
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: law_library
+  display_name: Law Library
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.law_library.router
+  health_check: tools.module_health.check_law_library
+  test_suite: tests/module_health/test_law_library.py
+  last_verified: '2026-08-07T07:37:28.986470+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: router
+  display_name: Law Library
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.law_library.router
+  health_check: tools.module_health.check_router
+  test_suite: tests/module_health/test_router.py
+  last_verified: '2026-07-29T00:36:38.797531+00:00'
+  status: orphaned
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: contacts
+  display_name: Contact Manager
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.contacts.router
+  health_check: tools.module_health.check_contacts
+  test_suite: tests/module_health/test_contacts.py
+  last_verified: '2026-08-07T07:37:33.603719+00:00'
+  status: ok
+  last_result:
+    health_check: 13 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: journal
+  display_name: Journal
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.journal.router
+  health_check: tools.module_health.check_journal
+  test_suite: tests/module_health/test_journal.py
+  last_verified: '2026-08-07T07:37:38.253429+00:00'
+  status: ok
+  last_result:
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: public_forms
+  display_name: Public Forms
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.public_forms.router
+  health_check: tools.module_health.check_public_forms
+  test_suite: tests/module_health/test_public_forms.py
+  last_verified: '2026-08-07T07:37:42.932262+00:00'
+  status: ok
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: voice
+  display_name: Voice
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.voice.router
+  health_check: tools.module_health.check_voice
+  test_suite: tests/module_health/test_voice.py
+  last_verified: '2026-08-07T07:37:47.567647+00:00'
+  status: ok
+  last_result:
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: resource_directory
+  display_name: Resource Directory
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.resource_directory.router
+  health_check: tools.module_health.check_resource_directory
+  test_suite: tests/module_health/test_resource_directory.py
+  last_verified: '2026-08-07T07:37:52.217467+00:00'
+  status: ok
+  last_result:
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 0.40s
+- id: search
+  display_name: Global Search
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.search.router
+  health_check: tools.module_health.check_search
+  test_suite: tests/module_health/test_search.py
+  last_verified: '2026-08-07T07:37:56.790347+00:00'
+  status: ok
+  last_result:
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: pdf_tools
+  display_name: Pdf Tools
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.pdf_tools.router
+  health_check: tools.module_health.check_pdf_tools
+  test_suite: tests/module_health/test_pdf_tools.py
+  last_verified: '2026-08-07T07:38:01.353352+00:00'
+  status: ok
+  last_result:
+    health_check: 14 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: preview
+  display_name: Document Preview
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.preview.router
+  health_check: tools.module_health.check_preview
+  test_suite: tests/module_health/test_preview.py
+  last_verified: '2026-08-07T07:38:05.980786+00:00'
+  status: ok
+  last_result:
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: document_converter
+  display_name: Document Converter
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.document_converter.router
+  health_check: tools.module_health.check_document_converter
+  test_suite: tests/module_health/test_document_converter.py
+  last_verified: '2026-08-07T07:38:10.650177+00:00'
+  status: ok
+  last_result:
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: legal_analysis
+  display_name: Legal Analysis
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.legal_analysis.router
+  health_check: tools.module_health.check_legal_analysis
+  test_suite: tests/module_health/test_legal_analysis.py
+  last_verified: '2026-08-07T07:38:15.235999+00:00'
+  status: ok
+  last_result:
+    health_check: 14 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: context_engine
+  display_name: Context Engine / Facts / Stories
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.context_engine.router
+  health_check: tools.module_health.check_context_engine
+  test_suite: tests/module_health/test_context_engine.py
+  last_verified: '2026-08-07T07:38:19.800529+00:00'
+  status: ok
+  last_result:
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: page_composer
+  display_name: Page Composer / Facts / Stories / Case
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.page_composer.router
+  health_check: tools.module_health.check_page_composer
+  test_suite: tests/module_health/test_page_composer.py
+  last_verified: '2026-08-07T07:38:24.392481+00:00'
+  status: ok
+  last_result:
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: portal
+  display_name: Portal / Public / Services
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.portal.router
+  health_check: tools.module_health.check_portal
+  test_suite: tests/module_health/test_portal.py
+  last_verified: '2026-08-07T07:38:29.032157+00:00'
+  status: ok
+  last_result:
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: ui_composer
+  display_name: Ui Composer / Gui
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.ui_composer.router
+  health_check: tools.module_health.check_ui_composer
+  test_suite: tests/module_health/test_ui_composer.py
+  last_verified: '2026-08-07T07:38:33.619105+00:00'
+  status: ok
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: tenant_feed
+  display_name: Tenant Feed / Record
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.tenant_feed.router
+  health_check: tools.module_health.check_tenant_feed
+  test_suite: tests/module_health/test_tenant_feed.py
+  last_verified: '2026-08-07T07:38:38.306422+00:00'
+  status: ok
+  last_result:
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: websocket
+  display_name: Websocket Events
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.websocket.router
+  health_check: tools.module_health.check_websocket
+  test_suite: tests/module_health/test_websocket.py
+  last_verified: '2026-08-07T07:38:42.956991+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: free_api
+  display_name: Free Apis
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.free_api.router
+  health_check: tools.module_health.check_free_api
+  test_suite: tests/module_health/test_free_api.py
+  last_verified: '2026-08-07T07:38:47.589847+00:00'
+  status: ok
+  last_result:
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: security
+  display_name: Advanced Security
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.security.router
+  health_check: tools.module_health.check_security
+  test_suite: tests/module_health/test_security.py
+  last_verified: '2026-08-07T07:38:52.247955+00:00'
+  status: ok
+  last_result:
+    health_check: 15 route(s), no exposure issues
+    test_suite: 1 passed in 0.39s
+- id: mndes
+  display_name: Mndes
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.mndes.router
+  health_check: tools.module_health.check_mndes
+  test_suite: tests/module_health/test_mndes.py
+  last_verified: '2026-08-07T07:38:56.896974+00:00'
+  status: ok
+  last_result:
+    health_check: 12 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: fems
+  display_name: Fems
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.fems.router
+  health_check: tools.module_health.check_fems
+  test_suite: tests/module_health/test_fems.py
+  last_verified: '2026-08-07T07:39:01.558032+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: eviction_defense
+  display_name: Eviction Defense Toolkit
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.eviction_defense.router
+  health_check: tools.module_health.check_eviction_defense
+  test_suite: tests/module_health/test_eviction_defense.py
+  last_verified: '2026-08-07T07:39:06.324955+00:00'
+  status: ok
+  last_result:
+    health_check: 18 route(s), no exposure issues
+    test_suite: 1 passed in 0.39s
+- id: zoom_court
+  display_name: Zoom Courtroom
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.zoom_court.router
+  health_check: tools.module_health.check_zoom_court
+  test_suite: tests/module_health/test_zoom_court.py
+  last_verified: '2026-08-07T07:39:11.038192+00:00'
+  status: ok
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: zoom_court_prep
+  display_name: Zoom Court Prep
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.zoom_court_prep.router
+  health_check: tools.module_health.check_zoom_court_prep
+  test_suite: tests/module_health/test_zoom_court_prep.py
+  last_verified: '2026-08-07T07:39:15.743277+00:00'
+  status: ok
+  last_result:
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: court_forms
+  display_name: Court Forms
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.court_forms.router
+  health_check: tools.module_health.check_court_forms
+  test_suite: tests/module_health/test_court_forms.py
+  last_verified: '2026-08-07T07:39:20.412230+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: court_packet
+  display_name: Court Packet
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.court_packet.router
+  health_check: tools.module_health.check_court_packet
+  test_suite: tests/module_health/test_court_packet.py
+  last_verified: '2026-08-07T07:39:25.115985+00:00'
+  status: ok
+  last_result:
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 0.39s
+- id: legal_trails
+  display_name: Legal Trails
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.legal_trails.router
+  health_check: tools.module_health.check_legal_trails
+  test_suite: tests/module_health/test_legal_trails.py
+  last_verified: '2026-08-07T07:39:29.860007+00:00'
+  status: ok
+  last_result:
+    health_check: 22 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: legal
+  display_name: Legal / Court Filing / Discovery / Exhibits / Workspace
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.legal.router
+  health_check: tools.module_health.check_legal
+  test_suite: tests/module_health/test_legal.py
+  last_verified: '2026-08-07T07:39:34.583018+00:00'
+  status: ok
+  last_result:
+    health_check: 13 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: intake
+  display_name: Document Intake
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.intake.router
+  health_check: tools.module_health.check_intake
+  test_suite: tests/module_health/test_intake.py
+  last_verified: '2026-08-07T07:39:39.346958+00:00'
+  status: ok
+  last_result:
+    health_check: 22 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: guided_intake
+  display_name: Guided Intake
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.guided_intake.router
+  health_check: tools.module_health.check_guided_intake
+  test_suite: tests/module_health/test_guided_intake.py
+  last_verified: '2026-08-07T07:39:44.079090+00:00'
+  status: ok
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: case_builder
+  display_name: Case Builder
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.case_builder.router
+  health_check: tools.module_health.check_case_builder
+  test_suite: tests/module_health/test_case_builder.py
+  last_verified: '2026-08-07T07:39:48.972210+00:00'
+  status: ok
+  last_result:
+    health_check: 41 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: progress
+  display_name: Progress Tracker
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.progress.router
+  health_check: tools.module_health.check_progress
+  test_suite: tests/module_health/test_progress.py
+  last_verified: '2026-08-07T07:39:53.677005+00:00'
+  status: ok
+  last_result:
+    health_check: 12 route(s), no exposure issues
+    test_suite: 1 passed in 0.40s
+- id: actions
+  display_name: Smart Actions
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.actions.router
+  health_check: tools.module_health.check_actions
+  test_suite: tests/module_health/test_actions.py
+  last_verified: '2026-08-07T07:39:58.356662+00:00'
+  status: ok
+  last_result:
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: plan_maker
+  display_name: Plan Maker
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.plan_maker.router
+  health_check: tools.module_health.check_plan_maker
+  test_suite: tests/module_health/test_plan_maker.py
+  last_verified: '2026-08-07T07:40:03.080180+00:00'
+  status: ok
+  last_result:
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: tools_api
+  display_name: Tools
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.tools_api.router
+  health_check: tools.module_health.check_tools_api
+  test_suite: tests/module_health/test_tools_api.py
+  last_verified: '2026-08-07T07:40:07.799809+00:00'
+  status: ok
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: complaints
+  display_name: Complaint Wizard
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.complaints.router
+  health_check: tools.module_health.check_complaints
+  test_suite: tests/module_health/test_complaints.py
+  last_verified: '2026-08-07T07:40:12.474546+00:00'
+  status: ok
+  last_result:
+    health_check: 18 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: pattern_history
+  display_name: Pattern History
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.housing_accountability.pattern_history
+  health_check: tools.module_health.check_pattern_history
+  test_suite: tests/module_health/test_pattern_history.py
+  last_verified: '2026-08-07T07:40:17.180446+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: role_upgrade
+  display_name: Role Management
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.role_upgrade.router
+  health_check: tools.module_health.check_role_upgrade
+  test_suite: tests/module_health/test_role_upgrade.py
+  last_verified: '2026-08-07T07:40:21.828955+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: document_delivery
+  display_name: Document Delivery
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.document_delivery.router
+  health_check: tools.module_health.check_document_delivery
+  test_suite: tests/module_health/test_document_delivery.py
+  last_verified: '2026-08-07T07:40:26.599543+00:00'
+  status: ok
+  last_result:
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: communication
+  display_name: Communications
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.communication.router
+  health_check: tools.module_health.check_communication
+  test_suite: tests/module_health/test_communication.py
+  last_verified: '2026-08-07T07:40:31.265816+00:00'
+  status: ok
+  last_result:
+    health_check: 12 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: advocate
+  display_name: Advocate / Clients / Case Management
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.advocate.router
+  health_check: tools.module_health.check_advocate
+  test_suite: tests/module_health/test_advocate.py
+  last_verified: '2026-08-07T07:40:35.931854+00:00'
+  status: ok
+  last_result:
+    health_check: 15 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: admin_console
+  display_name: Admin Console
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.admin_console.router
+  health_check: tools.module_health.check_admin_console
+  test_suite: tests/module_health/test_admin_console.py
+  last_verified: '2026-08-07T07:40:40.611491+00:00'
+  status: ok
+  last_result:
+    health_check: 41 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: module_flags
+  display_name: Module Flags
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.admin_console.module_flags
+  health_check: tools.module_health.check_module_flags
+  test_suite: tests/module_health/test_module_flags.py
+  last_verified: '2026-08-07T07:40:45.234083+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: analytics
+  display_name: Analytics
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.analytics.router
+  health_check: tools.module_health.check_analytics
+  test_suite: tests/module_health/test_analytics.py
+  last_verified: '2026-08-07T07:40:49.908093+00:00'
+  status: ok
+  last_result:
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: dashboard
+  display_name: Unified Dashboard
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.dashboard.router
+  health_check: tools.module_health.check_dashboard
+  test_suite: tests/module_health/test_dashboard.py
+  last_verified: '2026-08-07T07:40:54.512504+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: enterprise_dashboard
+  display_name: Enterprise Dashboard
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.enterprise_dashboard.router
+  health_check: tools.module_health.check_enterprise_dashboard
+  test_suite: tests/module_health/test_enterprise_dashboard.py
+  last_verified: '2026-08-07T07:40:59.052471+00:00'
+  status: ok
+  last_result:
+    health_check: 14 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: batch
+  display_name: Batch Operations
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.batch.router
+  health_check: tools.module_health.check_batch
+  test_suite: tests/module_health/test_batch.py
+  last_verified: '2026-08-07T07:41:03.712967+00:00'
+  status: ok
+  last_result:
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: registry
+  display_name: Document Registry
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.registry.router
+  health_check: tools.module_health.check_registry
+  test_suite: tests/module_health/test_registry.py
+  last_verified: '2026-08-07T07:41:08.344287+00:00'
+  status: ok
+  last_result:
+    health_check: 21 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: tenancy_hub
+  display_name: Tenancy Hub
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.tenancy_hub.router
+  health_check: tools.module_health.check_tenancy_hub
+  test_suite: tests/module_health/test_tenancy_hub.py
+  last_verified: '2026-08-07T07:41:13.047078+00:00'
+  status: ok
+  last_result:
+    health_check: 26 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: capabilities
+  display_name: Capabilities
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.capabilities.router
+  health_check: tools.module_health.check_capabilities
+  test_suite: tests/module_health/test_capabilities.py
+  last_verified: '2026-08-07T07:41:17.628539+00:00'
+  status: ok
+  last_result:
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: manager
+  display_name: Manager / Case Assignment / Reporting / Bulk Ops
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.manager.router
+  health_check: tools.module_health.check_manager
+  test_suite: tests/module_health/test_manager.py
+  last_verified: '2026-08-07T07:41:22.214298+00:00'
+  status: ok
+  last_result:
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: funding_mgmt
+  display_name: Funding Management
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.funding_mgmt.router
+  health_check: tools.module_health.check_funding_mgmt
+  test_suite: tests/module_health/test_funding_mgmt.py
+  last_verified: '2026-08-07T07:41:26.842830+00:00'
+  status: ok
+  last_result:
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: recognition
+  display_name: Document Recognition
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.recognition.router
+  health_check: tools.module_health.check_recognition
+  test_suite: tests/module_health/test_recognition.py
+  last_verified: '2026-08-07T07:41:31.497511+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: extraction
+  display_name: Form Field Extraction
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.extraction.router
+  health_check: tools.module_health.check_extraction
+  test_suite: tests/module_health/test_extraction.py
+  last_verified: '2026-08-07T07:41:36.143517+00:00'
+  status: ok
+  last_result:
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: crawler
+  display_name: Crawler
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.crawler.router
+  health_check: tools.module_health.check_crawler
+  test_suite: tests/module_health/test_crawler.py
+  last_verified: '2026-08-07T07:41:40.811209+00:00'
+  status: ok
+  last_result:
+    health_check: 12 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: research
+  display_name: Research Module
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.research.router
+  health_check: tools.module_health.check_research
+  test_suite: tests/module_health/test_research.py
+  last_verified: '2026-08-07T07:41:45.401266+00:00'
+  status: ok
+  last_result:
+    health_check: 18 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: form_data
+  display_name: Form Data Hub
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.form_data.router
+  health_check: tools.module_health.check_form_data
+  test_suite: tests/module_health/test_form_data.py
+  last_verified: '2026-08-07T07:41:50.005637+00:00'
+  status: ok
+  last_result:
+    health_check: 15 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: unified_overlays
+  display_name: Unified Overlays
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.unified_overlays.router
+  health_check: tools.module_health.check_unified_overlays
+  test_suite: tests/module_health/test_unified_overlays.py
+  last_verified: '2026-08-07T07:41:54.630000+00:00'
+  status: ok
+  last_result:
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: cloud_sync
+  display_name: Cloud Sync
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.cloud_sync.router
+  health_check: tools.module_health.check_cloud_sync
+  test_suite: tests/module_health/test_cloud_sync.py
+  last_verified: '2026-08-07T07:41:59.347413+00:00'
+  status: ok
+  last_result:
+    health_check: 19 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: emotion
+  display_name: Emotion Engine
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.emotion.router
+  health_check: tools.module_health.check_emotion
+  test_suite: tests/module_health/test_emotion.py
+  last_verified: '2026-08-07T07:42:04.036589+00:00'
+  status: ok
+  last_result:
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: module_hub
+  display_name: Module Hub
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.module_hub.router
+  health_check: tools.module_health.check_module_hub
+  test_suite: tests/module_health/test_module_hub.py
+  last_verified: '2026-08-07T07:42:08.747865+00:00'
+  status: ok
+  last_result:
+    health_check: 21 route(s), no exposure issues
+    test_suite: 1 passed in 0.39s
+- id: functionx
+  display_name: Functionx
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.functionx.router
+  health_check: tools.module_health.check_functionx
+  test_suite: tests/module_health/test_functionx.py
+  last_verified: '2026-08-07T07:42:13.355303+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: funding_search
+  display_name: Funding & Tax Credit Search
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.funding_search.router
+  health_check: tools.module_health.check_funding_search
+  test_suite: tests/module_health/test_funding_search.py
+  last_verified: '2026-08-07T07:42:17.946632+00:00'
+  status: ok
+  last_result:
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: hud_funding
+  display_name: Hud Funding Guide
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.hud_funding.router
+  health_check: tools.module_health.check_hud_funding
+  test_suite: tests/module_health/test_hud_funding.py
+  last_verified: '2026-08-07T07:42:22.541367+00:00'
+  status: ok
+  last_result:
+    health_check: 17 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: location
+  display_name: Location
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.location.router
+  health_check: tools.module_health.check_location
+  test_suite: tests/module_health/test_location.py
+  last_verified: '2026-08-07T07:42:27.240157+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: campaign
+  display_name: Campaign Orchestration
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.campaign.router
+  health_check: tools.module_health.check_campaign
+  test_suite: tests/module_health/test_campaign.py
+  last_verified: '2026-08-07T07:42:31.863439+00:00'
+  status: ok
+  last_result:
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: public_exposure
+  display_name: Public Exposure
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.public_exposure.router
+  health_check: tools.module_health.check_public_exposure
+  test_suite: tests/module_health/test_public_exposure.py
+  last_verified: '2026-08-07T07:42:36.540313+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: fraud_exposure
+  display_name: Fraud Exposure
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.fraud_exposure.router
+  health_check: tools.module_health.check_fraud_exposure
+  test_suite: tests/module_health/test_fraud_exposure.py
+  last_verified: '2026-08-07T07:42:41.207222+00:00'
+  status: ok
+  last_result:
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: setup
+  display_name: Setup Wizard
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.setup.router
+  health_check: tools.module_health.check_setup
+  test_suite: tests/module_health/test_setup.py
+  last_verified: '2026-08-07T07:42:45.864499+00:00'
+  status: ok
+  last_result:
+    health_check: 15 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: page_index
+  display_name: Page Index
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.page_index.router
+  health_check: tools.module_health.check_page_index
+  test_suite: tests/module_health/test_page_index.py
+  last_verified: '2026-08-07T07:42:50.550745+00:00'
+  status: ok
+  last_result:
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: page_editor
+  display_name: Page Editor
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.page_editor.router
+  health_check: tools.module_health.check_page_editor
+  test_suite: tests/module_health/test_page_editor.py
+  last_verified: '2026-08-07T07:42:55.146546+00:00'
+  status: ok
+  last_result:
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: development
+  display_name: Development Tools
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.development.router
+  health_check: tools.module_health.check_development
+  test_suite: tests/module_health/test_development.py
+  last_verified: '2026-08-07T07:42:59.742572+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: dev_lab
+  display_name: Dev Lab
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.dev_lab.router
+  health_check: tools.module_health.check_dev_lab
+  test_suite: tests/module_health/test_dev_lab.py
+  last_verified: '2026-08-07T07:43:04.479189+00:00'
+  status: ok
+  last_result:
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: agent_orchestrator
+  display_name: Agent Orchestrator
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.agent_orchestrator.router
+  health_check: tools.module_health.check_agent_orchestrator
+  test_suite: tests/module_health/test_agent_orchestrator.py
+  last_verified: '2026-08-07T07:43:09.170359+00:00'
+  status: ok
+  last_result:
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: ideas
+  display_name: Dev Ideas
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.dev_lab.ideas
+  health_check: tools.module_health.check_ideas
+  test_suite: tests/module_health/test_ideas.py
+  last_verified: '2026-08-07T07:43:13.867104+00:00'
+  status: ok
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: filedored
+  display_name: Filedored
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.filedored.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-08-07T07:43:13.867125+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+  flag_reason: pending Brad's decision on filedored_service classification
+- id: data_freshness
+  display_name: Data Freshness
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.data_freshness.router
+  health_check: tools.module_health.check_data_freshness
+  test_suite: tests/module_health/test_data_freshness.py
+  last_verified: '2026-08-07T07:43:18.557711+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: inventory
+  display_name: Inventory Management
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.inventory.router
+  health_check: tools.module_health.check_inventory
+  test_suite: tests/module_health/test_inventory.py
+  last_verified: '2026-08-07T07:43:23.140169+00:00'
+  status: ok
+  last_result:
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: judge
+  display_name: Judge / Deprecated / Merged Into Legal
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.judge.router
+  health_check: tools.module_health.check_judge
+  test_suite: tests/module_health/test_judge.py
+  last_verified: '2026-08-07T07:43:27.759165+00:00'
+  status: ok
+  last_result:
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: calendar
+  display_name: Calendar
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.calendar.router
+  health_check: tools.module_health.check_calendar
+  test_suite: tests/module_health/test_calendar.py
+  last_verified: '2026-08-07T07:43:32.364506+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: tactics
+  display_name: Tactics
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.tactics.router
+  health_check: tools.module_health.check_tactics
+  test_suite: tests/module_health/test_tactics.py
+  last_verified: '2026-08-07T07:43:37.033053+00:00'
+  status: ok
+  last_result:
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: page_shell
+  display_name: Page Shell / Pillar Mixer
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.page_shell.router
+  health_check: tools.module_health.check_page_shell
+  test_suite: tests/module_health/test_page_shell.py
+  last_verified: '2026-08-07T07:43:41.787432+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.44s
+- id: example_payment_tracking
+  display_name: Payment Tracking
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.example_payment_tracking
+  health_check: tools.module_health.check_example_payment_tracking
+  test_suite: tests/module_health/test_example_payment_tracking.py
+  last_verified: '2026-08-07T07:43:46.364028+00:00'
+  status: ok
+  last_result:
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: legal_filing_module
+  display_name: Legal Filing
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.legal_filing_module
+  health_check: tools.module_health.check_legal_filing_module
+  test_suite: tests/module_health/test_legal_filing_module.py
+  last_verified: '2026-08-07T07:43:50.966669+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: vault_sync
+  display_name: Vault Sync
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.vault_sync
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-08-07T07:43:50.966689+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+  flag_reason: ON HOLD per Brad's standing direction
+- id: eviction_notice_explainer
+  display_name: Eviction Notice Explainer
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.eviction_notice_explainer
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-08-07T07:43:50.966695+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+  flag_reason: module not available (optional router skipped)
+- id: response_letter_generator
+  display_name: Response Letter Generator
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.response_letter_generator
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-08-07T07:43:50.966700+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+  flag_reason: module not available (optional router skipped)
+- id: eviction_defense_content
+  display_name: Eviction Defense Content
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.eviction_defense_content
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-08-07T07:43:50.966744+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+  flag_reason: module not available (optional router skipped)
+- id: ai_copilot
+  display_name: Ai Copilot
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.ai_copilot
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-08-07T07:43:50.966748+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+  flag_reason: module not available (optional router skipped)
+- id: context_loop
+  display_name: Context Loop
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.context_loop.router
+  health_check: tools.module_health.check_context_loop
+  test_suite: tests/module_health/test_context_loop.py
+  last_verified: '2026-08-07T07:43:55.633057+00:00'
+  status: ok
+  last_result:
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: routes
+  display_name: Vault Installer
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.vault_installer.routes
+  health_check: tools.module_health.check_routes
+  test_suite: tests/module_health/test_routes.py
+  last_verified: '2026-08-07T07:44:00.199536+00:00'
+  status: ok
+  last_result:
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: export_import
+  display_name: Data Export/Import
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.export_import.router
+  health_check: tools.module_health.check_export_import
+  test_suite: tests/module_health/test_export_import.py
+  last_verified: '2026-08-07T07:44:04.916321+00:00'
+  status: ok
+  last_result:
+    health_check: 12 route(s), no exposure issues
+    test_suite: 1 passed in 0.40s
+- id: documentation
+  display_name: Api Documentation
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.documentation.router
+  health_check: tools.module_health.check_documentation
+  test_suite: tests/module_health/test_documentation.py
+  last_verified: '2026-08-07T07:44:09.593803+00:00'
+  status: ok
+  last_result:
+    health_check: 13 route(s), no exposure issues
+    test_suite: 1 passed in 0.40s
+- id: document_center
+  display_name: Document Center
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.document_center.router
+  health_check: tools.module_health.check_document_center
+  test_suite: tests/module_health/test_document_center.py
+  last_verified: '2026-08-07T07:44:14.222545+00:00'
+  status: ok
+  last_result:
+    health_check: 13 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: law_library_page_router
+  display_name: Law Library
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.law_library.router
+  health_check: tools.module_health.check_law_library_page_router
+  test_suite: tests/module_health/test_law_library_page_router.py
+  last_verified: '2026-08-07T07:44:18.936961+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: portal_seo_router
+  display_name: Portal / Seo
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.portal.router
+  health_check: tools.module_health.check_portal_seo_router
+  test_suite: tests/module_health/test_portal_seo_router.py
+  last_verified: '2026-08-07T07:44:23.594091+00:00'
+  status: ok
+  last_result:
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.36s
+- id: core_system_core_router
+  display_name: Core System
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.core_system.router
+  health_check: tools.module_health.check_core_system_core_router
+  test_suite: tests/module_health/test_core_system_core_router.py
+  last_verified: '2026-08-07T07:44:28.262266+00:00'
+  status: ok
+  last_result:
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s
+- id: housing_accountability_accountability_router
+  display_name: Housing Accountability
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.housing_accountability.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-08-07T07:44:28.262286+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+  flag_reason: pending Brad's decision on accountability_ledger / detect_repeated_fees
+- id: external_mappings_mappings_router
+  display_name: External Mappings / Court Cases / Properties / Agencies
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.external_mappings.router
+  health_check: tools.module_health.check_external_mappings_mappings_router
+  test_suite: tests/module_health/test_external_mappings_mappings_router.py
+  last_verified: '2026-08-07T07:44:32.937700+00:00'
+  status: ok
+  last_result:
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 0.39s
+- id: litigation_intelligence_lis_router
+  display_name: Litigation Intelligence
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.litigation_intelligence.router
+  health_check: tools.module_health.check_litigation_intelligence_lis_router
+  test_suite: tests/module_health/test_litigation_intelligence_lis_router.py
+  last_verified: '2026-08-07T07:44:37.746973+00:00'
+  status: ok
+  last_result:
+    health_check: 17 route(s), no exposure issues
+    test_suite: 1 passed in 0.39s
+- id: dispute_tracker
+  display_name: Dispute Tracker
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.dispute_tracker.router
+  health_check: tools.module_health.check_dispute_tracker
+  test_suite: tests/module_health/test_dispute_tracker.py
+  status: ok
+  last_verified: '2026-08-07T07:44:42.455662+00:00'
+  last_result:
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.38s
+- id: eviction_timeline
+  display_name: Eviction Timeline
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.eviction_timeline.router
+  health_check: tools.module_health.check_eviction_timeline
+  test_suite: tests/module_health/test_eviction_timeline.py
+  status: ok
+  last_verified: '2026-08-07T07:44:47.089826+00:00'
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.37s

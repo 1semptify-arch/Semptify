@@ -6,6 +6,8 @@ Comprehensive analytics and reporting system for housing rights cases.
 Generates insights, trends, and strategic reports.
 """
 
+import base64
+import io
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone, timedelta
@@ -47,17 +49,31 @@ class LitigationReport:
     recommendations: List[str]
     data: Dict[str, Any]
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Return a JSON-serializable representation of the report."""
+        return {
+            "report_id": self.report_id,
+            "report_type": self.report_type.value,
+            "generated_at": self.generated_at.isoformat(),
+            "time_period": self.time_period,
+            "metrics": [asdict(m) for m in self.metrics],
+            "insights": self.insights,
+            "recommendations": self.recommendations,
+            "data": self.data,
+        }
+
 class ReportingLayer:
     """Main reporting layer for litigation intelligence."""
-    
-    def __init__(self):
+
+    def __init__(self, storage_layer: Any = None):
         self.report_cache = {}
+        self.storage_layer = storage_layer
         self.metric_calculators = self._initialize_calculators()
-        
+
     def _initialize_calculators(self) -> Dict[str, Any]:
         """Initialize metric calculators."""
         return {
-            "case_metrics": CaseMetricsCalculator(),
+            "case_metrics": CaseMetricsCalculator(self.storage_layer),
             "entity_metrics": EntityMetricsCalculator(),
             "pattern_metrics": PatternMetricsCalculator(),
             "success_metrics": SuccessMetricsCalculator(),
@@ -71,7 +87,7 @@ class ReportingLayer:
         logger.info("Generating case summary report")
         
         # Calculate metrics
-        case_metrics = self.metric_calculators["case_metrics"].calculate(
+        case_metrics = await self.metric_calculators["case_metrics"].calculate(
             time_period, filters
         )
         
@@ -203,7 +219,7 @@ class ReportingLayer:
         active_cases = next((m for m in metrics if m.name == "active_cases"), None)
         success_rate = next((m for m in metrics if m.name == "success_rate"), None)
         
-        if total_cases and active_cases:
+        if total_cases and active_cases and total_cases.value > 0:
             active_percentage = (active_cases.value / total_cases.value) * 100
             insights.append(f"Currently {active_percentage:.1f}% of cases are active")
         
@@ -367,7 +383,7 @@ class ReportingLayer:
             return ""
         
         if format == "json":
-            return json.dumps(asdict(report), indent=2)
+            return json.dumps(report.to_dict(), indent=2)
         elif format == "csv":
             return self._export_to_csv(report)
         elif format == "pdf":
@@ -399,24 +415,119 @@ class ReportingLayer:
         return output.getvalue()
     
     def _export_to_pdf(self, report: LitigationReport) -> str:
-        """Export report to PDF format."""
-        # This would integrate with a PDF generation library
-        # For now, return a placeholder
-        return "PDF export not yet implemented"
+        """Export report to PDF format.
+
+        Returns a base64-encoded data URL containing the generated PDF bytes.
+        """
+        try:
+            from reportlab.lib import colors
+            from reportlab.lib.pagesizes import letter
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+            from reportlab.lib.styles import getSampleStyleSheet
+
+            buffer = io.BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=letter)
+            styles = getSampleStyleSheet()
+            story = []
+
+            title = f"Litigation Intelligence Report: {report.report_type.value.replace('_', ' ').title()}"
+            story.append(Paragraph(title, styles["Heading1"]))
+            story.append(Paragraph(f"Time period: {report.time_period}", styles["Normal"]))
+            story.append(Paragraph(f"Generated: {report.generated_at.isoformat()}", styles["Normal"]))
+            story.append(Spacer(1, 12))
+
+            # Metrics table
+            if report.metrics:
+                story.append(Paragraph("Metrics", styles["Heading2"]))
+                metric_data = [["Metric", "Value", "Unit", "Trend"]]
+                for metric in report.metrics:
+                    metric_data.append([metric.name, str(metric.value), metric.unit, metric.trend])
+                table = Table(metric_data, colWidths=[180, 80, 80, 80])
+                table.setStyle(
+                    TableStyle(
+                        [
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#334155")),
+                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+                        ]
+                    )
+                )
+                story.append(table)
+                story.append(Spacer(1, 12))
+
+            # Insights
+            if report.insights:
+                story.append(Paragraph("Insights", styles["Heading2"]))
+                for insight in report.insights:
+                    story.append(Paragraph(f"• {insight}", styles["Normal"]))
+                story.append(Spacer(1, 12))
+
+            # Recommendations
+            if report.recommendations:
+                story.append(Paragraph("Recommendations", styles["Heading2"]))
+                for recommendation in report.recommendations:
+                    story.append(Paragraph(f"• {recommendation}", styles["Normal"]))
+
+            doc.build(story)
+            pdf_bytes = buffer.getvalue()
+            encoded = base64.b64encode(pdf_bytes).decode("ascii")
+            return f"data:application/pdf;base64,{encoded}"
+
+        except Exception as exc:
+            logger.error("PDF export failed: %s", exc, exc_info=True)
+            return f"PDF export failed: {exc}"
 
 # Metric Calculator Classes
 class CaseMetricsCalculator:
-    """Calculate case-related metrics."""
-    
-    def calculate(self, time_period: str, filters: Dict[str, Any] = None) -> List[ReportMetric]:
-        """Calculate case metrics."""
-        # This would integrate with storage layer
-        # For now, return placeholder metrics
+    """Calculate case-related metrics from the litigation storage layer."""
+
+    def __init__(self, storage_layer: Any = None):
+        self.storage_layer = storage_layer
+
+    async def calculate(self, time_period: str, filters: Dict[str, Any] = None) -> List[ReportMetric]:
+        """Calculate case metrics from stored litigation cases.
+
+        Falls back to zero metrics when the storage layer is unavailable so the
+        report contains real (not hardcoded) data.
+        """
+        metrics: Dict[str, Any] = {}
+        if self.storage_layer and hasattr(self.storage_layer, "get_case_metrics"):
+            try:
+                metrics = await self.storage_layer.get_case_metrics(time_period)
+            except Exception as exc:
+                logger.warning("Case metrics query failed, using empty fallback: %s", exc)
+
+        if not metrics:
+            return [
+                ReportMetric("total_cases", 0.0, "count", "stable", time_period),
+                ReportMetric("active_cases", 0.0, "count", "stable", time_period),
+                ReportMetric("success_rate", 0.0, "percentage", "stable", time_period),
+                ReportMetric("avg_case_duration", 0.0, "days", "stable", time_period),
+            ]
+
+        total = metrics.get("total_cases", 0) or 0
+        active = metrics.get("active_cases", 0) or 0
+        success_rate = metrics.get("success_rate", 0.0) or 0.0
+        avg_duration = metrics.get("avg_case_duration_days", 0.0) or 0.0
+
+        # Derive trend heuristically from active vs resolved ratio.
+        resolved = metrics.get("resolved_cases", 0) or 0
+        trend = "stable"
+        if total > 0:
+            active_ratio = active / total
+            resolved_ratio = resolved / total
+            if resolved_ratio > active_ratio:
+                trend = "decreasing"
+            elif active_ratio > resolved_ratio:
+                trend = "increasing"
+
         return [
-            ReportMetric("total_cases", 150.0, "count", "stable", time_period),
-            ReportMetric("active_cases", 45.0, "count", "increasing", time_period),
-            ReportMetric("success_rate", 0.75, "percentage", "stable", time_period),
-            ReportMetric("avg_case_duration", 45.0, "days", "decreasing", time_period)
+            ReportMetric("total_cases", float(total), "count", trend, time_period),
+            ReportMetric("active_cases", float(active), "count", trend, time_period),
+            ReportMetric("success_rate", float(success_rate), "percentage", "stable", time_period),
+            ReportMetric("avg_case_duration", float(avg_duration), "days", trend, time_period),
         ]
 
 class EntityMetricsCalculator:
@@ -464,9 +575,9 @@ class TimelineMetricsCalculator:
         ]
 
 # Factory function
-def create_reporting_layer() -> ReportingLayer:
+def create_reporting_layer(storage_layer: Any = None) -> ReportingLayer:
     """Create reporting layer instance."""
-    return ReportingLayer()
+    return ReportingLayer(storage_layer)
 
 # Example usage
 async def example_usage():

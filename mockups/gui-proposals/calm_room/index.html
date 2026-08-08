@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title>Semptify — Calm help for tenants</title>
+  <meta name='description' content='Semptify is a public-service housing-rights tool that helps tenants protect their rights one step at a time.'>
+
+  <link rel='preconnect' href='https://fonts.googleapis.com'>
+  <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+  <link href='https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+  <style>
+    :root {
+      --sand: #EDE6D6;
+      --sand-light: #F8F5EF;
+      --sage: #5C6B5A;
+      --sage-dark: #3F4B3E;
+      --slate: #2B3340;
+      --amber: #C98A2B;
+      --amber-dark: #9B6A1E;
+      --text-on-amber: #000000;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      border-radius: 0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--slate);
+      background-color: var(--sand);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -2.75rem;
+      left: 1rem;
+      z-index: 1000;
+      padding: 0.5rem 1rem;
+      background: var(--sage);
+      color: #fff;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .skip-link:focus {
+      top: 1rem;
+      outline: 3px solid var(--slate);
+      outline-offset: 2px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 40rem;
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+
+    .top-bar {
+      background: var(--sage);
+      color: #fff;
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+
+    .top-bar__inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .tagline {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      opacity: 0.9;
+      text-align: right;
+    }
+
+    .hero {
+      background: linear-gradient(180deg, rgba(92, 107, 90, 0.10) 0%, var(--sand) 55%);
+      padding-top: 3.5rem;
+      padding-bottom: 2.5rem;
+    }
+
+    .hero h1 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: clamp(2rem, 7vw, 3rem);
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--slate);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero__subhead {
+      font-size: clamp(1.125rem, 3vw, 1.375rem);
+      line-height: 1.7;
+      opacity: 0.92;
+      max-width: 36rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .breathe-card {
+      background: var(--sand-light);
+      border: 1px solid rgba(92, 107, 90, 0.18);
+      border-left: 4px solid var(--sage);
+      padding: 2rem;
+      box-shadow: 0 4px 24px rgba(43, 51, 64, 0.06);
+    }
+
+    .breathe-card__lead {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: clamp(1.25rem, 4vw, 1.625rem);
+      font-weight: 400;
+      line-height: 1.35;
+      color: var(--slate);
+      margin-bottom: 1.5rem;
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: var(--amber);
+      color: var(--text-on-amber);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      padding: 1rem 2.75rem;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .cta-button:hover {
+      background: var(--amber-dark);
+      color: #000;
+    }
+
+    .cta-button:focus-visible {
+      outline: 3px solid var(--slate);
+      outline-offset: 3px;
+    }
+
+    .cta-button:active {
+      background: var(--amber-dark);
+      transform: translateY(1px);
+    }
+
+    .breathe-card__note {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--sage-dark);
+      margin-top: 1rem;
+      line-height: 1.6;
+    }
+
+    .section {
+      padding-top: 3.5rem;
+      padding-bottom: 3.5rem;
+    }
+
+    .section-heading {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-bottom: 1.5rem;
+    }
+
+    .step-line {
+      font-size: 1.125rem;
+      line-height: 1.7;
+      margin-bottom: 1.25rem;
+    }
+
+    .step-line:last-child {
+      margin-bottom: 0;
+    }
+
+    .law-box {
+      background: linear-gradient(180deg, var(--sand-light) 0%, var(--sand) 100%);
+      border-left: 4px solid var(--sage);
+      padding: 2rem;
+    }
+
+    .law-box h2 {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      line-height: 1.3;
+      margin-bottom: 1rem;
+      color: var(--slate);
+    }
+
+    .law-box p {
+      font-size: 1.125rem;
+      line-height: 1.7;
+    }
+
+    .plain-list {
+      list-style: none;
+    }
+
+    .plain-list li {
+      position: relative;
+      font-size: 1.0625rem;
+      line-height: 1.6;
+      padding: 0.75rem 0 0.75rem 1.75rem;
+      border-bottom: 1px solid rgba(92, 107, 90, 0.12);
+    }
+
+    .plain-list li::before {
+      content: '–';
+      position: absolute;
+      left: 0;
+      color: var(--sage);
+    }
+
+    .plain-list li:last-child {
+      border-bottom: none;
+    }
+
+    .privacy-box {
+      background: rgba(92, 107, 90, 0.06);
+      border: 1px solid rgba(92, 107, 90, 0.15);
+      padding: 2rem;
+    }
+
+    .privacy-box h2,
+    .crisis-box h2 {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.35;
+      margin-bottom: 0.75rem;
+      color: var(--slate);
+    }
+
+    .privacy-box p,
+    .crisis-box p {
+      font-size: 1.0625rem;
+      line-height: 1.7;
+    }
+
+    .crisis-box {
+      background: rgba(92, 107, 90, 0.04);
+      border: 1px solid rgba(92, 107, 90, 0.35);
+      padding: 1.75rem;
+    }
+
+    .footer {
+      background: var(--slate);
+      color: #fff;
+      padding-top: 2.5rem;
+      padding-bottom: 2.5rem;
+      text-align: center;
+    }
+
+    .footer__links {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .footer__links a {
+      color: #fff;
+      text-decoration: underline;
+      padding: 0.25rem;
+    }
+
+    .footer__links a:hover,
+    .footer__links a:focus-visible {
+      color: var(--amber);
+      text-decoration: none;
+    }
+
+    .footer__links a:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+
+    .footer__small {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      opacity: 0.85;
+      line-height: 1.6;
+    }
+
+    a:not(.cta-button):not(.footer__links a):not(.skip-link) {
+      color: var(--sage-dark);
+      text-decoration: underline;
+    }
+
+    a:not(.cta-button):not(.footer__links a):not(.skip-link):hover,
+    a:not(.cta-button):not(.footer__links a):not(.skip-link):focus-visible {
+      color: var(--slate);
+    }
+
+    a:not(.cta-button):not(.footer__links a):not(.skip-link):focus-visible {
+      outline: 3px solid var(--slate);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (min-width: 48rem) {
+      .container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+
+      .hero {
+        padding-top: 5rem;
+        padding-bottom: 3.5rem;
+      }
+
+      .section {
+        padding-top: 4.5rem;
+        padding-bottom: 4.5rem;
+      }
+
+      .breathe-card,
+      .law-box,
+      .privacy-box,
+      .crisis-box {
+        padding: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class='skip-link' href='#main-content'>Skip to main content</a>
+
+  <header class='top-bar'>
+    <div class='container top-bar__inner'>
+      <span class='brand'>Semptify</span>
+      <span class='tagline'>Public service · Housing rights</span>
+    </div>
+  </header>
+
+  <main id='main-content'>
+    <section class='hero'>
+      <div class='container'>
+        <h1>You don't have to figure this out alone.</h1>
+        <p class='hero__subhead'>Semptify is a public-service tool that helps tenants protect their housing rights — calmly, lawfully, one step at a time.</p>
+
+        <article class='breathe-card' aria-label='Begin your next step'>
+          <p class='breathe-card__lead'>Breathe. Here's your next step.</p>
+          <a class='cta-button' href='/onboarding'>Begin</a>
+          <span class='breathe-card__note'>No account needed. Your documents stay in your own cloud storage.</span>
+        </article>
+      </div>
+    </section>
+
+    <section class='section' aria-labelledby='steps-heading'>
+      <div class='container'>
+        <h2 id='steps-heading' class='section-heading'>One step at a time</h2>
+        <p class='step-line'>First, we connect your own cloud storage.</p>
+        <p class='step-line'>Then, we set up your private vault.</p>
+        <p class='step-line'>Then, you record what's happening.</p>
+        <p class='step-line'>Then, you know your rights and act on them.</p>
+      </div>
+    </section>
+
+    <section class='section' aria-labelledby='law-heading'>
+      <div class='container'>
+        <div class='law-box'>
+          <h2 id='law-heading'>The law is on your side.</h2>
+          <p>Tenant law gives you rights — to proper notice, to a fair process, and to keep a record. Semptify helps you understand and use those rights, one fact at a time.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class='section' aria-labelledby='for-heading'>
+      <div class='container'>
+        <h2 id='for-heading' class='section-heading'>Who this is for</h2>
+        <ul class='plain-list'>
+          <li>You just got a notice.</li>
+          <li>You're in an ongoing dispute.</li>
+          <li>You have a hearing date.</li>
+          <li>You want to be ready, just in case.</li>
+          <li>You're helping someone who is.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class='section' aria-labelledby='privacy-heading'>
+      <div class='container'>
+        <div class='privacy-box'>
+          <h2 id='privacy-heading'>Your documents stay yours.</h2>
+          <p>Your files live in your own Google Drive or Dropbox. We do not store them on Semptify servers. You keep control and access.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class='section' aria-labelledby='crisis-heading'>
+      <div class='container'>
+        <div class='crisis-box'>
+          <h2 id='crisis-heading'>If you're in a crisis right now</h2>
+          <p>If you have a deadline — an eviction notice, a hearing date — <strong>begin now</strong>. You have time, and we'll go one step at a time.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class='footer'>
+    <div class='container'>
+      <p class='footer__links'>
+        <a href='#'>About</a> ·
+        <a href='#'>Privacy</a> ·
+        <a href='#'>Contact</a>
+      </p>
+      <small class='footer__small'>Semptify is a public-service housing-rights tool. No ads, ever.</small>
+    </div>
+  </footer>
+</body>
+</html>

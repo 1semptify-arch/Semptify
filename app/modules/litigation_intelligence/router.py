@@ -19,12 +19,11 @@ from app.core.utc import utc_now
 
 from .court_scraper import create_court_scraper
 from .entity_normalizer import create_entity_normalizer
+from .graph_engine import create_graph_engine
 from .gui_butler import create_gui_butler
 from .intelligence_engine import create_intelligence_engine
 from .reporting_layer import create_reporting_layer
 from .scheduler import create_litigation_scheduler
-
-# from .graph_engine import create_graph_engine  # TODO: graph_engine not implemented
 from .storage_layer import create_storage_layer
 
 logger = logging.getLogger(__name__)
@@ -95,9 +94,9 @@ class ScheduledTaskRequest(BaseModel):
 court_scraper = create_court_scraper()
 entity_normalizer = create_entity_normalizer()
 intelligence_engine = create_intelligence_engine()
-# graph_engine = create_graph_engine()  # TODO: graph_engine not implemented
+graph_engine = create_graph_engine()
 storage_layer = create_storage_layer("postgresql://user:password@localhost/semptify_lis")
-reporting_layer = create_reporting_layer()
+reporting_layer = create_reporting_layer(storage_layer)
 gui_butler = create_gui_butler()
 scheduler = create_litigation_scheduler()
 
@@ -224,42 +223,85 @@ async def get_case_intelligence(case_id: str, current_user=Depends(get_current_u
 
 @lis_router.post("/graph/build")
 async def build_entity_graph(request: GraphVisualizationRequest, current_user=Depends(get_current_user)):
-    """Build entity relationship graph.
-
-    Graph engine is not yet implemented (see STUB_AUDIT.md Tier 2.1).
-    Returns 501 Not Implemented so callers can detect it cleanly instead
-    of receiving a 500 NameError.
-    """
-    raise HTTPException(
-        status_code=501,
-        detail="Graph engine not implemented. Entity graph build is unavailable.",
-    )
+    """Build an entity relationship graph from the supplied entities and relationships."""
+    try:
+        engine = create_graph_engine()
+        engine.build_from_entities(request.entities)
+        for rel in request.relationship_data or []:
+            if isinstance(rel, dict):
+                engine.add_relationship(
+                    rel.get("source", ""),
+                    rel.get("target", ""),
+                    rel.get("type", "related_to"),
+                    rel.get("weight", 1.0),
+                    rel.get("attributes", {}),
+                )
+        return JSONResponse(content={"success": True, "graph": engine.export_graph_data()})
+    except Exception as exc:
+        logger.error("Graph build failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Graph build failed") from exc
 
 
 @lis_router.post("/graph/visualize")
 async def generate_graph_visualization(request: GraphVisualizationRequest, current_user=Depends(get_current_user)):
-    """Generate graph visualization.
-
-    Graph engine is not yet implemented (see STUB_AUDIT.md Tier 2.1).
-    Returns 501 Not Implemented.
-    """
-    raise HTTPException(
-        status_code=501,
-        detail="Graph engine not implemented. Visualization is unavailable.",
-    )
+    """Generate a graph visualization from the supplied entities and relationships."""
+    try:
+        engine = create_graph_engine()
+        engine.build_from_entities(request.entities)
+        for rel in request.relationship_data or []:
+            if isinstance(rel, dict):
+                engine.add_relationship(
+                    rel.get("source", ""),
+                    rel.get("target", ""),
+                    rel.get("type", "related_to"),
+                    rel.get("weight", 1.0),
+                    rel.get("attributes", {}),
+                )
+        fmt = (request.visualization_options or {}).get("format", "png")
+        return JSONResponse(content={"success": True, "visualization": engine.generate_visualization(fmt)})
+    except Exception as exc:
+        logger.error("Graph visualization failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Graph visualization failed") from exc
 
 
 @lis_router.post("/graph/path/{source_entity}/{target_entity}")
-async def find_shortest_path(source_entity: str, target_entity: str, current_user=Depends(get_current_user)):
-    """Find shortest path between entities.
+async def find_shortest_path(
+    source_entity: str,
+    target_entity: str,
+    request: GraphVisualizationRequest | None = None,
+    current_user=Depends(get_current_user),
+):
+    """Find the shortest path between two entities in a graph.
 
-    Graph engine is not yet implemented (see STUB_AUDIT.md Tier 2.1).
-    Returns 501 Not Implemented.
+    Optionally supply `entities` and `relationship_data` in the request body
+    to build a fresh graph for the search. If no body is supplied, the
+    module-level graph engine is used.
     """
-    raise HTTPException(
-        status_code=501,
-        detail="Graph engine not implemented. Shortest-path search is unavailable.",
-    )
+    try:
+        engine = graph_engine
+        if request and request.entities:
+            engine = create_graph_engine()
+            engine.build_from_entities(request.entities)
+            for rel in request.relationship_data or []:
+                if isinstance(rel, dict):
+                    engine.add_relationship(
+                        rel.get("source", ""),
+                        rel.get("target", ""),
+                        rel.get("type", "related_to"),
+                        rel.get("weight", 1.0),
+                        rel.get("attributes", {}),
+                    )
+
+        path = engine.find_shortest_path(source_entity, target_entity)
+        if path is None:
+            return JSONResponse(
+                content={"success": True, "path": [], "message": "No path found"},
+                status_code=200,
+            )
+        return JSONResponse(content={"success": True, "path": path})
+    except Exception as exc:
+        logger.error("Shortest path search failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Shortest path search failed") from exc
 
 
 @lis_router.post("/report/generate")
@@ -279,7 +321,7 @@ async def generate_report(request: ReportGenerationRequest, current_user=Depends
         else:
             raise HTTPException(status_code=400, detail="Unsupported report type")
 
-        return JSONResponse(content={"success": True, "report": report.__dict__, "generated_at": utc_now().isoformat()})
+        return JSONResponse(content={"success": True, "report": report.to_dict(), "generated_at": utc_now().isoformat()})
 
     except Exception as e:
         logger.error(f"Report generation failed: {e}")
@@ -296,7 +338,7 @@ async def get_report(report_id: str, current_user=Depends(get_current_user)):
         if not report:
             return JSONResponse(content={"success": False, "message": "Report not found"}, status_code=404)
 
-        return JSONResponse(content={"success": True, "report": report.__dict__})
+        return JSONResponse(content={"success": True, "report": report.to_dict()})
 
     except Exception as e:
         logger.error(f"Report retrieval failed: {e}")
@@ -406,7 +448,7 @@ async def get_lis_statistics(current_user=Depends(get_current_user)):
         # Get statistics from all components
         storage_stats = await storage_layer.get_statistics()
         pattern_stats = intelligence_engine.get_pattern_statistics()
-        # graph_stats = graph_engine.analyze_graph()  # TODO: graph_engine not implemented
+        graph_stats = graph_engine.analyze_graph()
         report_stats = reporting_layer.get_available_reports()
 
         return JSONResponse(
@@ -415,7 +457,7 @@ async def get_lis_statistics(current_user=Depends(get_current_user)):
                 "statistics": {
                     "storage": storage_stats,
                     "patterns": pattern_stats,
-                    "graph": {"status": "not_implemented"},  # TODO: graph_engine not implemented
+                    "graph": graph_stats,
                     "reports": {"total_reports": len(report_stats), "available_reports": report_stats},
                     "generated_at": utc_now().isoformat(),
                 },

@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.capabilities import require_capability
 from app.core.database import get_db
 from app.core.event_bus import EventType, event_bus
-from app.core.security import StorageUser, yellow_access
+from app.core.security import StorageUser, green_access, yellow_access
 from app.core.utc import utc_now
 from app.services.document_pipeline import DocumentType, ProcessingStatus, get_document_pipeline
 from app.services.law_engine import get_law_engine
@@ -974,7 +974,7 @@ async def list_documents(
 
 
 @router.get("/{doc_id}", response_model=DocumentDetailResponse)
-async def get_document(doc_id: str, user: StorageUser = Depends(yellow_access)):
+async def get_document(doc_id: str, user: StorageUser = Depends(green_access)):
     """Get detailed information about a document."""
 
     pipeline = get_document_pipeline()
@@ -1017,7 +1017,7 @@ async def get_document(doc_id: str, user: StorageUser = Depends(yellow_access)):
 
 
 @router.post("/{doc_id}/reprocess")
-async def reprocess_document(doc_id: str, user: StorageUser = Depends(yellow_access)):
+async def reprocess_document(doc_id: str, user: StorageUser = Depends(green_access)):
     """Reprocess an existing document."""
 
     pipeline = get_document_pipeline()

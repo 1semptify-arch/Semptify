@@ -8,7 +8,18 @@ to auto-populate court forms.
 import pytest
 from httpx import AsyncClient
 
+# The /eviction/* routes tested here were part of the Dakota County module
+# which is intentionally disabled (DAKOTA_AVAILABLE = False in app/main.py).
+# The case_builder module now lives at /api/case-builder/* with a different
+# route shape. Skip the legacy /eviction/* endpoint tests until the Dakota
+# module is re-enabled; the TestMNCourtRules and TestCaseBuilder service
+# classes below still run.
+_DAKOTA_SKIP = pytest.mark.skip(
+    reason="Dakota County /eviction/* routes are intentionally disabled (DAKOTA_AVAILABLE = False)"
+)
 
+
+@_DAKOTA_SKIP
 @pytest.mark.anyio
 async def test_court_info_public(client: AsyncClient):
     """Court info endpoint requires no authentication."""
@@ -32,6 +43,7 @@ async def test_court_info_public(client: AsyncClient):
     assert "url" in data["efiling"]
 
 
+@_DAKOTA_SKIP
 @pytest.mark.anyio
 async def test_case_overview_unauthenticated(client: AsyncClient):
     """Case overview may return 200 for partial data or redirect."""
@@ -41,6 +53,7 @@ async def test_case_overview_unauthenticated(client: AsyncClient):
     assert response.status_code in [200, 307, 401, 403, 500]
 
 
+@_DAKOTA_SKIP
 @pytest.mark.anyio
 async def test_case_build_unauthenticated(client: AsyncClient):
     """Case build may return 200 for partial data or redirect."""
@@ -48,6 +61,7 @@ async def test_case_build_unauthenticated(client: AsyncClient):
     assert response.status_code in [200, 307, 401, 403, 500]
 
 
+@_DAKOTA_SKIP
 @pytest.mark.anyio
 async def test_case_compliance_unauthenticated(client: AsyncClient):
     """Compliance check may work without auth."""
@@ -55,6 +69,7 @@ async def test_case_compliance_unauthenticated(client: AsyncClient):
     assert response.status_code in [200, 307, 401, 403, 500]
 
 
+@_DAKOTA_SKIP
 @pytest.mark.anyio
 async def test_case_defenses_unauthenticated(client: AsyncClient):
     """Defense suggestions may work without auth."""
@@ -62,6 +77,7 @@ async def test_case_defenses_unauthenticated(client: AsyncClient):
     assert response.status_code in [200, 307, 401, 403, 500]
 
 
+@_DAKOTA_SKIP
 @pytest.mark.anyio
 async def test_case_evidence_unauthenticated(client: AsyncClient):
     """Evidence list may work without auth."""
@@ -69,6 +85,7 @@ async def test_case_evidence_unauthenticated(client: AsyncClient):
     assert response.status_code in [200, 307, 401, 403, 500]
 
 
+@_DAKOTA_SKIP
 @pytest.mark.anyio
 async def test_case_timeline_unauthenticated(client: AsyncClient):
     """Timeline may work without auth."""
@@ -76,6 +93,7 @@ async def test_case_timeline_unauthenticated(client: AsyncClient):
     assert response.status_code in [200, 307, 401, 403, 500]
 
 
+@_DAKOTA_SKIP
 @pytest.mark.anyio
 async def test_case_rent_ledger_unauthenticated(client: AsyncClient):
     """Rent ledger may work without auth."""
@@ -83,6 +101,7 @@ async def test_case_rent_ledger_unauthenticated(client: AsyncClient):
     assert response.status_code in [200, 307, 401, 403, 500]
 
 
+@_DAKOTA_SKIP
 @pytest.mark.anyio
 async def test_case_form_data_unauthenticated(client: AsyncClient):
     """Form data may work without auth."""

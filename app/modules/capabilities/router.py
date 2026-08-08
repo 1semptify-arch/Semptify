@@ -67,6 +67,11 @@ class CapabilityListResponse(BaseModel):
 
 def _require_admin_or_self(requesting_user: UserContext, target_user_id: str) -> None:
     """Raise 403 if the requesting user is not admin and is not inspecting themselves."""
+    if requesting_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required.",
+        )
     if getattr(requesting_user, 'role', None) == 'admin':
         return
     if requesting_user.user_id == target_user_id:
