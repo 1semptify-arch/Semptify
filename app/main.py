@@ -3289,8 +3289,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/gui/dashboard", response_class=HTMLResponse)
     async def gui_dashboard_page(
         request: Request,
-        subject: str = Query(default="tenant_rights"),
-        intent: str | None = Query(default=None),
+        subject: str = Query(default="timeline"),
+        intent: str | None = Query(default="record"),
     ):
         """Tenant dashboard rendered through the Page Composer assembly formula."""
         guard_redirect = await _guard_role_page(request, {"tenant", "user"})

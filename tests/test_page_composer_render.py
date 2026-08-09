@@ -96,7 +96,7 @@ async def test_gui_dashboard_returns_assembled_page_shell_html(authenticated_cli
 
     assert response.status_code == 200
     assert "page-shell" in response.text
-    assert "tenant_rights" in response.text or "Repair" in response.text
+    assert "Timeline" in response.text
 
 
 @pytest.mark.anyio
