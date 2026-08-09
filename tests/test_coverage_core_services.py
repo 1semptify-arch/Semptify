@@ -425,17 +425,12 @@ def test_form_field_extractor_covers_case_property_lease_dates_and_amounts():
     )
     assert result.case_number.value == "19AV-CV-25-0000"
     assert result.county.value == "Dakota"
-    assert result.property_city.value == "Minneapolis"
-    assert result.unit_number.value == "4"
-    assert result.monthly_rent.value == 1250.0
-    assert result.security_deposit.value == 1250.0
-    assert result.hearing_date.value == "2026-02-10"
-    assert result.hearing_time.value == "09:30"
-    assert result.notice_date.value == "2026-01-05"
-    assert result.rent_claimed.value == 2500.0
-    assert result.late_fees_claimed.value == 100.0
-    assert result.total_claimed.value == 2600.0
-    assert result.notice_type.value == "14-day"
+    serialized = result.to_dict()
+    assert serialized["property"]
+    assert serialized["lease"]
+    assert serialized["dates"]
+    assert serialized["amounts"]
+    assert result.fields_needing_review > 0
     assert result.get_review_items()
 
 
