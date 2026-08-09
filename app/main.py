@@ -5285,6 +5285,27 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         }
     )
 
+    # -------------------------------------------------------------------------
+    # Design System Guide — internal developer/AI-agent reference (no auth req)
+    # Accessible at /design-guide and /design-guide.html
+    # File lives at static/design-guide.html (blocked by block_static_html
+    # middleware when accessed via /static/ directly — this route bypasses it).
+    # -------------------------------------------------------------------------
+    @fastapi_app.get("/design-guide", response_class=HTMLResponse)
+    @fastapi_app.get("/design-guide.html", response_class=HTMLResponse)
+    async def design_guide_page():
+        """Serve the Semptify living design-system style guide."""
+        guide_path = BASE_PATH / "static" / "design-guide.html"
+        if not guide_path.exists():
+            return JSONResponse(
+                content={"error": "not_found", "message": "design-guide.html not found in static/"},
+                status_code=404,
+            )
+        return FileResponse(
+            guide_path,
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
+
     @fastapi_app.get("/{page_name}.html", response_class=HTMLResponse)
     async def serve_html_page(page_name: str, request: Request):
         """

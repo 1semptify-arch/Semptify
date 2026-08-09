@@ -1,14 +1,14 @@
 {
-  "SEM-2026-000155-CDB5": {
-    "document_id": "SEM-2026-000155-CDB5",
+  "SEM-2026-000154-FD45": {
+    "document_id": "SEM-2026-000154-FD45",
     "user_id": "user_123",
     "case_number": null,
     "original_filename": "\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442_\u0442\u0435\u0441\u0442.pdf",
     "file_size": 63,
     "mime_type": "application/pdf",
     "content_hash": "f3c0b81970e1f08029a73cfde1bbbe4fabe6801e070f26d8ee309029e42a8c8c",
-    "metadata_hash": "cb9646f088828dc63cdda87649fb9fbd1a28a5178b7f9fc1b114736da8efc5d9",
-    "combined_hash": "785e277651cd2fe67847f60babab617796361e069f87058fa943f7f5a3accd2e",
+    "metadata_hash": "b3a370a1b1ee54c65589e70bc031fd703d6b41fe2953788f1c4f498344bac2d2",
+    "combined_hash": "24cab3b4727b285c982421a3812195e911a00fdb278fbe946126083ae8cee03b",
     "status": "original",
     "integrity_status": "verified",
     "is_duplicate": false,
@@ -18,101 +18,27 @@
     "forgery_alerts": [],
     "forgery_score": 0.0,
     "requires_review": false,
-    "registered_at": "2026-08-09T10:11:23.996990+00:00",
-    "last_verified_at": null,
-    "last_accessed_at": null,
-    "custody_chain": [],
-    "versions": [],
-    "current_version": 1,
-    "storage_path": null,
-    "intake_document_id": null
-  },
-  "SEM-2026-000001-1C5E": {
-    "document_id": "SEM-2026-000001-1C5E",
-    "user_id": "upload_test_user",
-    "case_number": null,
-    "original_filename": "notice.txt",
-    "file_size": 50,
-    "mime_type": "text/plain",
-    "content_hash": "320225a5f81c3a01117d519509a95cd25b012fc3fcecfcc91d76c0439e7ee5a0",
-    "metadata_hash": "ca36c1eee0ab18fd30d9399c1e8fc1ed80bc59748d4428a7956ad1643974388a",
-    "combined_hash": "731fd540fe908cf0fe16b53ee8c6a2a654ce04dbdf1b9904038070022020eb5b",
-    "status": "original",
-    "integrity_status": "verified",
-    "is_duplicate": false,
-    "original_document_id": null,
-    "duplicate_ids": [],
-    "duplicate_count": 0,
-    "forgery_alerts": [],
-    "forgery_score": 0.0,
-    "requires_review": false,
-    "registered_at": "2026-08-09T10:40:06.805024+00:00",
+    "registered_at": "2026-08-09T10:57:16.192026+00:00",
     "last_verified_at": null,
     "last_accessed_at": null,
     "custody_chain": [
       {
-        "timestamp": "2026-08-09T10:40:06.805024+00:00",
+        "timestamp": "2026-08-09T10:57:16.192026+00:00",
         "action": "received",
-        "actor": "upload_test_user",
-        "details": "Document registered: notice.txt",
+        "actor": "user_123",
+        "details": "Document registered: \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442_\u0442\u0435\u0441\u0442.pdf",
         "ip_address": null,
         "device_info": null,
-        "integrity_hash": "731fd540fe908cf0fe16b53ee8c6a2a654ce04dbdf1b9904038070022020eb5b"
+        "integrity_hash": "24cab3b4727b285c982421a3812195e911a00fdb278fbe946126083ae8cee03b"
       }
     ],
     "versions": [
       {
         "version": 1,
-        "timestamp": "2026-08-09T10:40:06.805691+00:00",
-        "content_hash": "320225a5f81c3a01117d519509a95cd25b012fc3fcecfcc91d76c0439e7ee5a0",
+        "timestamp": "2026-08-09T10:57:16.192026+00:00",
+        "content_hash": "f3c0b81970e1f08029a73cfde1bbbe4fabe6801e070f26d8ee309029e42a8c8c",
         "changes": "Initial registration",
-        "changed_by": "upload_test_user"
-      }
-    ],
-    "current_version": 1,
-    "storage_path": null,
-    "intake_document_id": null
-  },
-  "SEM-2026-000002-23CA": {
-    "document_id": "SEM-2026-000002-23CA",
-    "user_id": "track_test_user",
-    "case_number": null,
-    "original_filename": "test.txt",
-    "file_size": 26,
-    "mime_type": "text/plain",
-    "content_hash": "cee055d7c570a8d7eaba68933e7fb2857a7374d9622e4252bb7efd6e2d059ce6",
-    "metadata_hash": "6e25c940d6c86d391ae0ac1185f91e8cb281437cb484d3bd1d734532c931d28a",
-    "combined_hash": "ce6447b7beba3cc93997688ee8769450d3d38ddda17070c2d9a84a4bcd2c61b3",
-    "status": "original",
-    "integrity_status": "verified",
-    "is_duplicate": false,
-    "original_document_id": null,
-    "duplicate_ids": [],
-    "duplicate_count": 0,
-    "forgery_alerts": [],
-    "forgery_score": 0.0,
-    "requires_review": false,
-    "registered_at": "2026-08-09T10:40:19.160007+00:00",
-    "last_verified_at": null,
-    "last_accessed_at": null,
-    "custody_chain": [
-      {
-        "timestamp": "2026-08-09T10:40:19.160007+00:00",
-        "action": "received",
-        "actor": "track_test_user",
-        "details": "Document registered: test.txt",
-        "ip_address": null,
-        "device_info": null,
-        "integrity_hash": "ce6447b7beba3cc93997688ee8769450d3d38ddda17070c2d9a84a4bcd2c61b3"
-      }
-    ],
-    "versions": [
-      {
-        "version": 1,
-        "timestamp": "2026-08-09T10:40:19.160007+00:00",
-        "content_hash": "cee055d7c570a8d7eaba68933e7fb2857a7374d9622e4252bb7efd6e2d059ce6",
-        "changes": "Initial registration",
-        "changed_by": "track_test_user"
+        "changed_by": "user_123"
       }
     ],
     "current_version": 1,

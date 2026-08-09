@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semptify Design System — Living Style Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/ssot-design-system.css">
+  <style>
+    /* ---- Guide Shell ---- */
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: #1f2937;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+
+    .guide-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ---- Left Sidebar TOC ---- */
+    .guide-toc {
+      width: 220px;
+      min-width: 220px;
+      background: #1e3a5f;
+      color: #e2e8f0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 0;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+
+    .guide-toc__header {
+      padding: 20px 16px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 8px;
+    }
+
+    .guide-toc__logo {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fbbf24;
+      letter-spacing: -0.01em;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .guide-toc__subtitle {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .guide-toc__section-label {
+      display: block;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      padding: 10px 16px 4px;
+      margin-top: 4px;
+    }
+
+    .guide-toc__link {
+      display: block;
+      padding: 5px 16px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      transition: all 0.15s;
+      border-left: 2px solid transparent;
+    }
+
+    .guide-toc__link:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.07);
+      border-left-color: #fbbf24;
+    }
+
+    /* ---- Main Content ---- */
+    .guide-main {
+      flex: 1;
+      max-width: 960px;
+      padding: 40px 48px;
+      overflow-x: hidden;
+    }
+
+    /* ---- Section headers ---- */
+    .guide-section {
+      margin-bottom: 64px;
+      padding-top: 16px;
+    }
+
+    .guide-section__header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #1e3a5f;
+    }
+
+    .guide-section__num {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #5c7a99;
+    }
+
+    .guide-section__title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1e3a5f;
+      margin: 0;
+    }
+
+    /* ---- Component Preview Box ---- */
+    .preview-box {
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      margin-bottom: 20px;
+    }
+
+    .preview-box__label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      padding: 8px 16px;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .preview-box__content {
+      padding: 24px;
+    }
+
+    .preview-box__content--dark {
+      background: #1e3a5f;
+      padding: 24px;
+    }
+
+    .preview-box__content--tight {
+      padding: 0;
+    }
+
+    /* ---- Code Blocks ---- */
+    .code-block {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      padding: 16px 20px;
+      overflow-x: auto;
+      margin: 0 0 20px 0;
+      white-space: pre;
+    }
+
+    .code-block--inline {
+      display: inline;
+      padding: 2px 6px;
+      border-radius: 2px;
+      font-size: 11px;
+      background: #f3f4f6;
+      color: #7c3d0f;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    /* ---- Constraint callout (guide-specific) ---- */
+    .constraint {
+      display: flex;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #fff8ee;
+      border-left: 3px solid #fbbf24;
+      font-size: 12px;
+      color: #78350f;
+      margin-bottom: 20px;
+    }
+
+    .constraint::before {
+      content: "⚠";
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    /* ---- Token swatches ---- */
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .swatch {
+      border: 1px solid #e5e7eb;
+    }
+
+    .swatch__color {
+      height: 52px;
+    }
+
+    .swatch__info {
+      padding: 8px;
+      background: #fff;
+    }
+
+    .swatch__name {
+      font-size: 11px;
+      font-weight: 600;
+      color: #1f2937;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .swatch__hex {
+      font-size: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: #6b7280;
+      display: block;
+    }
+
+    .swatch__token {
+      font-size: 9px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: #9ca3af;
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ---- Type specimens ---- */
+    .type-specimen {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .type-specimen__meta {
+      width: 180px;
+      flex-shrink: 0;
+      font-size: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: #6b7280;
+    }
+
+    /* ---- Spacing scale visual ---- */
+    .spacing-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .spacing-row__bar {
+      background: #1e3a5f;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .spacing-row__label {
+      font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: #6b7280;
+    }
+
+    /* ---- Button showcase ---- */
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    /* ---- Badge row ---- */
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* ---- Divider ---- */
+    .guide-divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 32px 0;
+    }
+
+    /* ---- Sub-heading within a section ---- */
+    .guide-subsection {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin: 28px 0 12px;
+      padding-left: 10px;
+      border-left: 3px solid #5c7a99;
+    }
+
+    /* ---- Pillar color swatch ---- */
+    .pillar-swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .pillar-swatch {
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+    }
+
+    .pillar-swatch__header {
+      padding: 12px;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .pillar-swatch__meta {
+      padding: 10px 12px;
+      background: #fff;
+    }
+
+    .pillar-swatch__detail {
+      font-size: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: #6b7280;
+      margin-bottom: 2px;
+    }
+
+    /* ---- App shell mockup ---- */
+    .app-shell-mockup {
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+      transform-origin: top left;
+    }
+
+    /* Guide page footer */
+    .guide-footer {
+      margin-top: 80px;
+      padding: 24px;
+      border-top: 2px solid #1e3a5f;
+      font-size: 11px;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    /* ---- Responsive: hide TOC on very small screens ---- */
+    @media (max-width: 767px) {
+      .guide-toc { display: none; }
+      .guide-main { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="guide-layout">
+
+  <!-- ================================================================
+       FIXED LEFT SIDEBAR — TABLE OF CONTENTS
+       ================================================================ -->
+  <nav class="guide-toc" aria-label="Design guide navigation">
+    <div class="guide-toc__header">
+      <span class="guide-toc__logo">Semptify</span>
+      <span class="guide-toc__subtitle">Design System Guide</span>
+    </div>
+
+    <span class="guide-toc__section-label">Foundations</span>
+    <a href="#tokens" class="guide-toc__link">1. Design Tokens</a>
+    <a href="#typography" class="guide-toc__link">2. Typography</a>
+
+    <span class="guide-toc__section-label">Core Components</span>
+    <a href="#buttons" class="guide-toc__link">3. Buttons</a>
+    <a href="#badges" class="guide-toc__link">4. Badges</a>
+    <a href="#notices" class="guide-toc__link">5. Notices / Alerts</a>
+    <a href="#cards" class="guide-toc__link">6. Cards</a>
+    <a href="#forms" class="guide-toc__link">7. Forms</a>
+
+    <span class="guide-toc__section-label">Data & Navigation</span>
+    <a href="#tables" class="guide-toc__link">8. Data Tables</a>
+    <a href="#pillars" class="guide-toc__link">9. Pillar System</a>
+    <a href="#timeline" class="guide-toc__link">10. Timeline</a>
+    <a href="#docs" class="guide-toc__link">11. Document Items</a>
+    <a href="#steps" class="guide-toc__link">12. Step Indicator</a>
+
+    <span class="guide-toc__section-label">Feedback & State</span>
+    <a href="#empty" class="guide-toc__link">13. Empty State</a>
+    <a href="#skeleton" class="guide-toc__link">14. Skeletons</a>
+    <a href="#breadcrumb" class="guide-toc__link">15. Breadcrumbs</a>
+    <a href="#tabs" class="guide-toc__link">16. Tabs</a>
+
+    <span class="guide-toc__section-label">Layout & Utilities</span>
+    <a href="#callouts" class="guide-toc__link">17. Callouts</a>
+    <a href="#upload" class="guide-toc__link">18. Upload Zone</a>
+    <a href="#search" class="guide-toc__link">19. Search</a>
+    <a href="#appshell" class="guide-toc__link">20. App Shell</a>
+    <a href="#mobilenav" class="guide-toc__link">21. Mobile Nav</a>
+  </nav>
+
+  <!-- ================================================================
+       MAIN CONTENT
+       ================================================================ -->
+  <main class="guide-main">
+
+    <div style="margin-bottom:40px;">
+      <h1 style="font-size:22px;font-weight:700;color:#1e3a5f;margin:0 0 6px;">Semptify Design System</h1>
+      <p style="font-size:13px;color:#6b7280;margin:0;">Living Style Guide · Single Source of Truth · Design Handoff 2026-07-01</p>
+      <p style="font-size:11px;color:#9ca3af;margin:8px 0 0;font-family:'IBM Plex Mono',monospace;">Source: /static/css/ssot-design-system.css</p>
+    </div>
+
+    <!-- ============================================================
+         1. DESIGN TOKENS
+         ============================================================ -->
+    <section id="tokens" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">01</span>
+        <h2 class="guide-section__title">Design Tokens</h2>
+      </div>
+
+      <h3 class="guide-subsection">Brand Colors</h3>
+      <div class="swatch-grid">
+        <div class="swatch">
+          <div class="swatch__color" style="background:#1e3a5f;"></div>
+          <div class="swatch__info">
+            <span class="swatch__name">Primary</span>
+            <span class="swatch__hex">#1e3a5f</span>
+            <span class="swatch__token">--color-primary</span>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch__color" style="background:#2c5aa0;"></div>
+          <div class="swatch__info">
+            <span class="swatch__name">Primary Light</span>
+            <span class="swatch__hex">#2c5aa0</span>
+            <span class="swatch__token">--color-primary-light</span>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch__color" style="background:#15294a;"></div>
+          <div class="swatch__info">
+            <span class="swatch__name">Primary Dark</span>
+            <span class="swatch__hex">#15294a</span>
+            <span class="swatch__token">--color-primary-dark</span>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch__color" style="background:#fbbf24;"></div>
+          <div class="swatch__info">
+            <span class="swatch__name">Accent</span>
+            <span class="swatch__hex">#fbbf24</span>
+            <span class="swatch__token">--color-accent</span>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch__color" style="background:#5c7a99;"></div>
+          <div class="swatch__info">
+            <span class="swatch__name">Calm</span>
+            <span class="swatch__hex">#5c7a99</span>
+            <span class="swatch__token">--color-calm</span>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch__color" style="background:#d97706;"></div>
+          <div class="swatch__info">
+            <span class="swatch__name">Alarm ⚠</span>
+            <span class="swatch__hex">#d97706</span>
+            <span class="swatch__token">--color-alarm</span>
+          </div>
+        </div>
+      </div>
+      <div class="constraint">
+        <strong>Alarm (#d97706)</strong> is RESERVED for real legal deadlines only — eviction dates, court dates, response windows. Never use for general emphasis or decorative purposes.
+      </div>
+
+      <h3 class="guide-subsection">Semantic Colors</h3>
+      <div class="swatch-grid">
+        <div class="swatch">
+          <div class="swatch__color" style="background:#10b981;"></div>
+          <div class="swatch__info">
+            <span class="swatch__name">Success</span>
+            <span class="swatch__hex">#10b981</span>
+            <span class="swatch__token">--color-success</span>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch__color" style="background:#f59e0b;"></div>
+          <div class="swatch__info">
+            <span class="swatch__name">Warning</span>
+            <span class="swatch__hex">#f59e0b</span>
+            <span class="swatch__token">--color-warning</span>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch__color" style="background:#ef4444;"></div>
+          <div class="swatch__info">
+            <span class="swatch__name">Error</span>
+            <span class="swatch__hex">#ef4444</span>
+            <span class="swatch__token">--color-error</span>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch__color" style="background:#3b82f6;"></div>
+          <div class="swatch__info">
+            <span class="swatch__name">Info</span>
+            <span class="swatch__hex">#3b82f6</span>
+            <span class="swatch__token">--color-info</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="guide-subsection">Spacing Scale (8px base)</h3>
+      <div style="background:#fff;border:1px solid #e5e7eb;padding:20px;">
+        <div class="spacing-row"><div class="spacing-row__bar" style="width:4px;"></div><span class="spacing-row__label">--space-1 · 4px (0.25rem)</span></div>
+        <div class="spacing-row"><div class="spacing-row__bar" style="width:8px;"></div><span class="spacing-row__label">--space-2 · 8px (0.5rem)</span></div>
+        <div class="spacing-row"><div class="spacing-row__bar" style="width:12px;"></div><span class="spacing-row__label">--space-3 · 12px (0.75rem)</span></div>
+        <div class="spacing-row"><div class="spacing-row__bar" style="width:16px;"></div><span class="spacing-row__label">--space-4 · 16px (1rem)</span></div>
+        <div class="spacing-row"><div class="spacing-row__bar" style="width:20px;"></div><span class="spacing-row__label">--space-5 · 20px (1.25rem)</span></div>
+        <div class="spacing-row"><div class="spacing-row__bar" style="width:24px;"></div><span class="spacing-row__label">--space-6 · 24px (1.5rem)</span></div>
+        <div class="spacing-row"><div class="spacing-row__bar" style="width:32px;"></div><span class="spacing-row__label">--space-8 · 32px (2rem)</span></div>
+        <div class="spacing-row"><div class="spacing-row__bar" style="width:40px;"></div><span class="spacing-row__label">--space-10 · 40px (2.5rem)</span></div>
+        <div class="spacing-row"><div class="spacing-row__bar" style="width:48px;"></div><span class="spacing-row__label">--space-12 · 48px (3rem)</span></div>
+        <div class="spacing-row"><div class="spacing-row__bar" style="width:64px;"></div><span class="spacing-row__label">--space-16 · 64px (4rem)</span></div>
+      </div>
+
+      <h3 class="guide-subsection">Border Radius</h3>
+      <div class="constraint">All border-radius tokens are <code class="code-block--inline">0</code>. This is non-negotiable per the design handoff. No rounded corners anywhere in the app.</div>
+      <pre class="code-block">--radius-sm: 0;
+--radius-md: 0;
+--radius-lg: 0;
+--radius-xl: 0;
+--radius-full: 0;</pre>
+    </section>
+
+    <!-- ============================================================
+         2. TYPOGRAPHY
+         ============================================================ -->
+    <section id="typography" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">02</span>
+        <h2 class="guide-section__title">Typography</h2>
+      </div>
+
+      <div class="constraint">Fonts: <strong>Inter</strong> (body/UI), <strong>IBM Plex Mono</strong> (code/mono), <strong>Fraunces</strong> (display headings only — optional). Never use system fonts for new UI.</div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Type Scale — Live Specimens</div>
+        <div class="preview-box__content">
+          <div class="type-specimen">
+            <div class="type-specimen__meta">--type-h1 · 22px / 600<br>letter-spacing: -0.01em</div>
+            <div style="font-size:22px;font-weight:600;color:#1f2937;letter-spacing:-0.01em;font-family:'Inter',sans-serif;">H1 Heading — Tenancy Record</div>
+          </div>
+          <div class="type-specimen">
+            <div class="type-specimen__meta">--type-h2 · 17px / 600</div>
+            <div style="font-size:17px;font-weight:600;color:#1f2937;font-family:'Inter',sans-serif;">H2 Heading — Document Details</div>
+          </div>
+          <div class="type-specimen">
+            <div class="type-specimen__meta">--type-h3 · 15px / 500</div>
+            <div style="font-size:15px;font-weight:500;color:#1f2937;font-family:'Inter',sans-serif;">H3 Heading — Section Label</div>
+          </div>
+          <div class="type-specimen">
+            <div class="type-specimen__meta">--type-body · 13px / 400<br>line-height: 1.45</div>
+            <div style="font-size:13px;font-weight:400;color:#1f2937;font-family:'Inter',sans-serif;line-height:1.45;">Body text — This is the primary reading size for all paragraph content, descriptions, and form helper text. Mobile-first; comfortable to read in a parking lot.</div>
+          </div>
+          <div class="type-specimen">
+            <div class="type-specimen__meta">--type-label · 11px / 500<br>uppercase / 0.06em tracking</div>
+            <div style="font-size:11px;font-weight:500;color:#6b7280;font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:0.06em;">LABEL — TABLE HEADER · BADGE · META INFO</div>
+          </div>
+          <div class="type-specimen">
+            <div class="type-specimen__meta">--font-mono · IBM Plex Mono<br>11px / 400</div>
+            <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:#374151;">const tenant_id = "t_01j8x9z...";</div>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">/* Type token usage */
+h1, .text-h1 { font-size: var(--type-h1); font-weight: 600; letter-spacing: -0.01em; }
+h2, .text-h2 { font-size: var(--type-h2); font-weight: 600; }
+h3, .text-h3 { font-size: var(--type-h3); font-weight: 500; }
+.text-body    { font-size: var(--type-body); font-weight: 400; line-height: 1.45; }
+.text-label   { font-size: var(--type-label); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }</pre>
+    </section>
+
+    <!-- ============================================================
+         3. BUTTONS
+         ============================================================ -->
+    <section id="buttons" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">03</span>
+        <h2 class="guide-section__title">Buttons</h2>
+      </div>
+
+      <div class="constraint">All buttons have <code class="code-block--inline">border-radius: 0</code>. No rounded corners. Accent (#fbbf24) is for primary CTAs only — used sparingly.</div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Variants — Default Size</div>
+        <div class="preview-box__content">
+          <div class="btn-row">
+            <button class="btn btn--primary">Primary</button>
+            <button class="btn btn--secondary">Secondary</button>
+            <button class="btn btn--accent">Accent CTA</button>
+            <button class="btn btn--ghost">Ghost</button>
+            <button class="btn btn--danger">Danger</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Sizes</div>
+        <div class="preview-box__content">
+          <div class="btn-row">
+            <button class="btn btn--primary btn--sm">Small</button>
+            <button class="btn btn--primary">Default</button>
+            <button class="btn btn--primary btn--lg">Large</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Disabled State</div>
+        <div class="preview-box__content">
+          <div class="btn-row">
+            <button class="btn btn--primary" disabled>Primary Disabled</button>
+            <button class="btn btn--secondary" disabled>Secondary Disabled</button>
+            <button class="btn btn--accent" disabled>Accent Disabled</button>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;!-- Variants --&gt;
+&lt;button class="btn btn--primary"&gt;Save Record&lt;/button&gt;
+&lt;button class="btn btn--secondary"&gt;Cancel&lt;/button&gt;
+&lt;button class="btn btn--accent"&gt;Start Wizard&lt;/button&gt;
+&lt;button class="btn btn--ghost"&gt;View Details&lt;/button&gt;
+&lt;button class="btn btn--danger"&gt;Delete&lt;/button&gt;
+
+&lt;!-- Sizes --&gt;
+&lt;button class="btn btn--primary btn--sm"&gt;Small&lt;/button&gt;
+&lt;button class="btn btn--primary"&gt;Default&lt;/button&gt;
+&lt;button class="btn btn--primary btn--lg"&gt;Large&lt;/button&gt;
+
+&lt;!-- Disabled --&gt;
+&lt;button class="btn btn--primary" disabled&gt;Save Record&lt;/button&gt;</pre>
+
+      <div class="constraint">Never use the words "free", "sign up", "log in", "subscribe", "upgrade", or "trial" in any button label.</div>
+    </section>
+
+    <!-- ============================================================
+         4. BADGES
+         ============================================================ -->
+    <section id="badges" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">04</span>
+        <h2 class="guide-section__title">Badges / Status</h2>
+      </div>
+
+      <div class="constraint">Badges are for status only — never decorative. The <code class="code-block--inline">badge--urgent</code> variant uses alarm color and is reserved exclusively for real legal deadlines (eviction dates, court dates, response windows).</div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">All Status Variants</div>
+        <div class="preview-box__content">
+          <div class="badge-row">
+            <span class="badge badge--pending">Pending</span>
+            <span class="badge badge--draft">Draft</span>
+            <span class="badge badge--active">Active</span>
+            <span class="badge badge--filed">Filed</span>
+            <span class="badge badge--resolved">Resolved</span>
+            <span class="badge badge--info">Info</span>
+            <span class="badge badge--overdue">Overdue</span>
+            <span class="badge badge--urgent">Deadline ⚠</span>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;span class="badge badge--pending"&gt;Pending&lt;/span&gt;
+&lt;span class="badge badge--draft"&gt;Draft&lt;/span&gt;
+&lt;span class="badge badge--active"&gt;Active&lt;/span&gt;
+&lt;span class="badge badge--filed"&gt;Filed&lt;/span&gt;
+&lt;span class="badge badge--resolved"&gt;Resolved&lt;/span&gt;
+&lt;span class="badge badge--info"&gt;Info&lt;/span&gt;
+&lt;span class="badge badge--overdue"&gt;Overdue&lt;/span&gt;
+&lt;span class="badge badge--urgent"&gt;Court Date: Aug 12&lt;/span&gt;  &lt;!-- REAL deadlines ONLY --&gt;</pre>
+
+      <h3 class="guide-subsection">Badge Specs</h3>
+      <ul style="font-size:12px;color:#374151;line-height:1.8;padding-left:20px;">
+        <li>font-size: <code class="code-block--inline">11px</code> (--type-label)</li>
+        <li>font-weight: <code class="code-block--inline">500</code></li>
+        <li>letter-spacing: <code class="code-block--inline">0.06em</code></li>
+        <li>text-transform: <code class="code-block--inline">uppercase</code></li>
+        <li>border: <code class="code-block--inline">1px solid</code></li>
+        <li>padding: <code class="code-block--inline">2px 8px</code></li>
+        <li>border-radius: <code class="code-block--inline">0</code></li>
+      </ul>
+    </section>
+
+    <!-- ============================================================
+         5. NOTICES / ALERTS
+         ============================================================ -->
+    <section id="notices" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">05</span>
+        <h2 class="guide-section__title">Notices / Alerts</h2>
+      </div>
+
+      <div class="constraint">The <code class="code-block--inline">notice--deadline</code> variant uses alarm color and must include <code class="code-block--inline">role="alert"</code> in HTML. Only for genuine legal deadlines — never use for general warnings.</div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">All Variants — Live</div>
+        <div class="preview-box__content">
+
+          <div class="notice notice--info">
+            <span class="notice__icon">ℹ</span>
+            <div class="notice__content">
+              <p class="notice__title">Your request has been received</p>
+              <p class="notice__body">We'll process this within 5 business days. You'll receive a confirmation by email.</p>
+            </div>
+          </div>
+
+          <div class="notice notice--success">
+            <span class="notice__icon">✓</span>
+            <div class="notice__content">
+              <p class="notice__title">Document saved to vault</p>
+              <p class="notice__body">Your lease agreement has been stored securely. You can access it any time from your document vault.</p>
+            </div>
+          </div>
+
+          <div class="notice notice--warning">
+            <span class="notice__icon">⚠</span>
+            <div class="notice__content">
+              <p class="notice__title">Missing required documents</p>
+              <p class="notice__body">Your complaint is missing 2 required attachments. Add them before submitting.</p>
+            </div>
+          </div>
+
+          <div class="notice notice--error">
+            <span class="notice__icon">✕</span>
+            <div class="notice__content">
+              <p class="notice__title">Unable to save changes</p>
+              <p class="notice__body">There was a problem connecting to your storage. Please check your connection and try again.</p>
+            </div>
+          </div>
+
+          <div class="notice notice--deadline" role="alert">
+            <span class="notice__icon">⏰</span>
+            <div class="notice__content">
+              <p class="notice__title">Response window closes in 3 days</p>
+              <p class="notice__body">Your eviction hearing is on August 12, 2025. You must file your response by August 9. Contact your local legal aid office immediately.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;!-- Info --&gt;
+&lt;div class="notice notice--info"&gt;
+  &lt;span class="notice__icon"&gt;ℹ&lt;/span&gt;
+  &lt;div class="notice__content"&gt;
+    &lt;p class="notice__title"&gt;Title here&lt;/p&gt;
+    &lt;p class="notice__body"&gt;Body text here.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Success / Warning / Error — same structure, different class --&gt;
+&lt;div class="notice notice--success"&gt; ... &lt;/div&gt;
+&lt;div class="notice notice--warning"&gt; ... &lt;/div&gt;
+&lt;div class="notice notice--error"&gt; ... &lt;/div&gt;
+
+&lt;!-- Deadline — REAL legal deadlines ONLY. Requires role="alert" --&gt;
+&lt;div class="notice notice--deadline" role="alert"&gt;
+  &lt;span class="notice__icon"&gt;⏰&lt;/span&gt;
+  &lt;div class="notice__content"&gt;
+    &lt;p class="notice__title"&gt;Response window closes in 3 days&lt;/p&gt;
+    &lt;p class="notice__body"&gt;Hearing: August 12. File by August 9.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+
+      <h3 class="guide-subsection">Flash Bar — Toast Notification</h3>
+      <div class="preview-box">
+        <div class="preview-box__label">Flash Bar (shown as static preview; normally fixed at bottom)</div>
+        <div class="preview-box__content">
+          <div style="position:relative;height:60px;">
+            <div class="flash-bar flash-bar--success flash-bar--visible" style="position:static;transform:none;left:auto;max-width:100%;">
+              <span>✓</span> Document saved to vault.
+            </div>
+          </div>
+          <div style="position:relative;height:60px;margin-top:12px;">
+            <div class="flash-bar flash-bar--error flash-bar--visible" style="position:static;transform:none;left:auto;max-width:100%;">
+              <span>✕</span> Something went wrong. Please retry.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;!-- Flash bar — add/remove .flash-bar--visible with JS to animate in/out --&gt;
+&lt;div class="flash-bar flash-bar--success flash-bar--visible" role="status"&gt;
+  ✓ Document saved to vault.
+&lt;/div&gt;
+
+&lt;!-- JS: auto-dismiss after 3s --&gt;
+&lt;script&gt;
+const flash = document.querySelector('.flash-bar');
+flash.classList.add('flash-bar--visible');
+setTimeout(() => flash.classList.remove('flash-bar--visible'), 3000);
+&lt;/script&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         6. CARDS
+         ============================================================ -->
+    <section id="cards" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">06</span>
+        <h2 class="guide-section__title">Cards</h2>
+      </div>
+
+      <div class="constraint">Cards use border + background-tint for separation only. <strong>No shadows on cards.</strong> border-radius is always 0.</div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Default Card with Header, Body, Footer</div>
+        <div class="preview-box__content">
+          <div class="card" style="max-width:400px;">
+            <div class="card__header">
+              <h3 style="margin:0;font-size:15px;font-weight:600;">Lease Agreement</h3>
+            </div>
+            <div class="card__body">
+              <p style="margin:0;font-size:13px;color:#6b7280;">123 Oak Street, Unit 4B · Uploaded March 2025</p>
+              <p style="margin:8px 0 0;font-size:13px;color:#1f2937;">Expires December 31, 2025. Renewal pending.</p>
+            </div>
+            <div class="card__footer" style="display:flex;gap:8px;">
+              <button class="btn btn--primary btn--sm">View</button>
+              <button class="btn btn--ghost btn--sm">Share</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;div class="card"&gt;
+  &lt;div class="card__header"&gt;
+    &lt;h3&gt;Lease Agreement&lt;/h3&gt;
+  &lt;/div&gt;
+  &lt;div class="card__body"&gt;
+    &lt;p&gt;123 Oak Street, Unit 4B&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card__footer"&gt;
+    &lt;button class="btn btn--primary btn--sm"&gt;View&lt;/button&gt;
+    &lt;button class="btn btn--ghost btn--sm"&gt;Share&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         7. FORMS
+         ============================================================ -->
+    <section id="forms" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">07</span>
+        <h2 class="guide-section__title">Forms</h2>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">All Form Controls</div>
+        <div class="preview-box__content">
+          <div style="max-width:440px;display:flex;flex-direction:column;gap:16px;">
+
+            <div class="form-group">
+              <label class="form-label" for="g-text">Full name</label>
+              <input class="form-input" type="text" id="g-text" placeholder="e.g. Jordan Rivera">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="g-select">Document type</label>
+              <select class="form-select" id="g-select">
+                <option value="">Select a type…</option>
+                <option>Lease agreement</option>
+                <option>Notice to vacate</option>
+                <option>Repair request</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="g-textarea">Description</label>
+              <textarea class="form-textarea" id="g-textarea" rows="3" placeholder="Describe the issue…"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="g-error">Move-in date</label>
+              <input class="form-input" type="text" id="g-error" value="not-a-date" style="border-color:#ef4444;">
+              <span style="font-size:11px;color:#ef4444;margin-top:4px;display:block;">Enter a valid date (MM/DD/YYYY)</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Notifications</label>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                  <input type="checkbox" checked> Deadline reminders
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                  <input type="checkbox"> Document updates
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Storage provider</label>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                  <input type="radio" name="storage" checked> Dropbox
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                  <input type="radio" name="storage"> Google Drive
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="g-disabled">Tenant ID (read-only)</label>
+              <input class="form-input" type="text" id="g-disabled" value="t_01j8x9zp4k..." disabled>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;!-- Text input --&gt;
+&lt;div class="form-group"&gt;
+  &lt;label class="form-label" for="name"&gt;Full name&lt;/label&gt;
+  &lt;input class="form-input" type="text" id="name" placeholder="Jordan Rivera"&gt;
+&lt;/div&gt;
+
+&lt;!-- Select --&gt;
+&lt;div class="form-group"&gt;
+  &lt;label class="form-label" for="type"&gt;Document type&lt;/label&gt;
+  &lt;select class="form-select" id="type"&gt;
+    &lt;option&gt;Lease agreement&lt;/option&gt;
+  &lt;/select&gt;
+&lt;/div&gt;
+
+&lt;!-- Textarea --&gt;
+&lt;div class="form-group"&gt;
+  &lt;label class="form-label" for="desc"&gt;Description&lt;/label&gt;
+  &lt;textarea class="form-textarea" id="desc" rows="3"&gt;&lt;/textarea&gt;
+&lt;/div&gt;
+
+&lt;!-- Error state --&gt;
+&lt;div class="form-group"&gt;
+  &lt;label class="form-label"&gt;Date&lt;/label&gt;
+  &lt;input class="form-input" style="border-color:var(--color-error);" ...&gt;
+  &lt;span style="font-size:11px;color:var(--color-error);"&gt;Enter a valid date&lt;/span&gt;
+&lt;/div&gt;
+
+&lt;!-- Disabled --&gt;
+&lt;input class="form-input" disabled value="read-only value"&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         8. DATA TABLES
+         ============================================================ -->
+    <section id="tables" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">08</span>
+        <h2 class="guide-section__title">Data Tables</h2>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Default Table with Hover</div>
+        <div class="preview-box__content preview-box__content--tight">
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Document</th>
+                  <th>Type</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Lease Agreement 2025</td>
+                  <td>Lease</td>
+                  <td>Jan 1, 2025</td>
+                  <td><span class="badge badge--active">Active</span></td>
+                </tr>
+                <tr>
+                  <td>Notice to Repair — Heater</td>
+                  <td>Notice</td>
+                  <td>Mar 15, 2025</td>
+                  <td><span class="badge badge--filed">Filed</span></td>
+                </tr>
+                <tr>
+                  <td>Eviction Notice</td>
+                  <td>Legal</td>
+                  <td>Jul 1, 2025</td>
+                  <td><span class="badge badge--urgent">Deadline</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Zebra Stripe (.data-table--zebra)</div>
+        <div class="preview-box__content preview-box__content--tight">
+          <div class="data-table-wrapper">
+            <table class="data-table data-table--zebra">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Amount</th>
+                  <th>Due</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Rent — August</td>
+                  <td class="col-num">$1,450.00</td>
+                  <td>Aug 1, 2025</td>
+                </tr>
+                <tr>
+                  <td>Late fee — July</td>
+                  <td class="col-num">$75.00</td>
+                  <td>Aug 5, 2025</td>
+                </tr>
+                <tr>
+                  <td>Security deposit</td>
+                  <td class="col-num">$2,900.00</td>
+                  <td>Move-in</td>
+                </tr>
+                <tr>
+                  <td>Utility — July</td>
+                  <td class="col-num">$48.22</td>
+                  <td>Aug 10, 2025</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;div class="data-table-wrapper"&gt;
+  &lt;table class="data-table data-table--zebra"&gt;
+    &lt;thead&gt;
+      &lt;tr&gt;
+        &lt;th&gt;Document&lt;/th&gt;
+        &lt;th&gt;Type&lt;/th&gt;
+        &lt;th class="col-num"&gt;Amount&lt;/th&gt;
+        &lt;th&gt;Status&lt;/th&gt;
+      &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+      &lt;tr&gt;
+        &lt;td&gt;Lease Agreement&lt;/td&gt;
+        &lt;td&gt;Lease&lt;/td&gt;
+        &lt;td class="col-num"&gt;$1,450.00&lt;/td&gt;
+        &lt;td&gt;&lt;span class="badge badge--active"&gt;Active&lt;/span&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+    &lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/div&gt;
+
+&lt;!-- Mobile card mode: add .data-table--cards, add data-label to each &lt;td&gt; --&gt;
+&lt;table class="data-table data-table--cards"&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td data-label="Document"&gt;Lease Agreement&lt;/td&gt;
+      &lt;td data-label="Status"&gt;&lt;span class="badge badge--active"&gt;Active&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         9. PILLAR SYSTEM
+         ============================================================ -->
+    <section id="pillars" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">09</span>
+        <h2 class="guide-section__title">Pillar Navigation System</h2>
+      </div>
+
+      <p style="font-size:13px;color:#374151;margin:0 0 16px;">The four pillars are the core navigation structure of the app. Every feature belongs to one pillar.</p>
+
+      <div class="pillar-swatch-grid" style="margin-bottom:24px;">
+        <div class="pillar-swatch">
+          <div class="pillar-swatch__header" style="background:#1e3a5f;">RECORD</div>
+          <div class="pillar-swatch__meta">
+            <div class="pillar-swatch__detail">--pillar-color: #1e3a5f</div>
+            <div class="pillar-swatch__detail">--pillar-bg: #eef2f7</div>
+            <div class="pillar-swatch__detail">Ground truth storage</div>
+          </div>
+        </div>
+        <div class="pillar-swatch">
+          <div class="pillar-swatch__header" style="background:#2e6b4f;">KNOW</div>
+          <div class="pillar-swatch__meta">
+            <div class="pillar-swatch__detail">--pillar-color: #2e6b4f</div>
+            <div class="pillar-swatch__detail">--pillar-bg: #eef6f1</div>
+            <div class="pillar-swatch__detail">Knowledge / Law library</div>
+          </div>
+        </div>
+        <div class="pillar-swatch">
+          <div class="pillar-swatch__header" style="background:#7c3d0f;">ACT</div>
+          <div class="pillar-swatch__meta">
+            <div class="pillar-swatch__detail">--pillar-color: #7c3d0f</div>
+            <div class="pillar-swatch__detail">--pillar-bg: #fdf3ec</div>
+            <div class="pillar-swatch__detail">Take action</div>
+          </div>
+        </div>
+        <div class="pillar-swatch">
+          <div class="pillar-swatch__header" style="background:#374151;">GOVERN</div>
+          <div class="pillar-swatch__meta">
+            <div class="pillar-swatch__detail">--pillar-color: #374151</div>
+            <div class="pillar-swatch__detail">--pillar-bg: #f3f4f6</div>
+            <div class="pillar-swatch__detail">Admin / Oversight</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Pillar Bar — KNOW active</div>
+        <div class="preview-box__content preview-box__content--tight" style="padding:0;">
+          <nav class="pillar-bar" aria-label="Pillar navigation">
+            <a href="#" class="pillar-bar__item" data-pillar="record">
+              <span class="pillar-icon">📋</span> RECORD
+            </a>
+            <a href="#" class="pillar-bar__item is-active" data-pillar="know">
+              <span class="pillar-icon">📚</span> KNOW
+            </a>
+            <a href="#" class="pillar-bar__item" data-pillar="act">
+              <span class="pillar-icon">⚡</span> ACT
+            </a>
+            <a href="#" class="pillar-bar__item" data-pillar="govern">
+              <span class="pillar-icon">🔒</span> GOVERN
+            </a>
+          </nav>
+        </div>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Pillar Chips — inline labeling</div>
+        <div class="preview-box__content">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="pillar-chip pillar-chip--record">Record</span>
+            <span class="pillar-chip pillar-chip--know">Know</span>
+            <span class="pillar-chip pillar-chip--act">Act</span>
+            <span class="pillar-chip pillar-chip--govern">Govern</span>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;!-- Pillar Bar --&gt;
+&lt;nav class="pillar-bar" aria-label="Pillar navigation"&gt;
+  &lt;a href="/record" class="pillar-bar__item" data-pillar="record"&gt;RECORD&lt;/a&gt;
+  &lt;a href="/know"   class="pillar-bar__item is-active" data-pillar="know"&gt;KNOW&lt;/a&gt;
+  &lt;a href="/act"    class="pillar-bar__item" data-pillar="act"&gt;ACT&lt;/a&gt;
+  &lt;a href="/govern" class="pillar-bar__item" data-pillar="govern"&gt;GOVERN&lt;/a&gt;
+&lt;/nav&gt;
+
+&lt;!-- Pillar Chips --&gt;
+&lt;span class="pillar-chip pillar-chip--record"&gt;Record&lt;/span&gt;
+&lt;span class="pillar-chip pillar-chip--know"&gt;Know&lt;/span&gt;
+&lt;span class="pillar-chip pillar-chip--act"&gt;Act&lt;/span&gt;
+&lt;span class="pillar-chip pillar-chip--govern"&gt;Govern&lt;/span&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         10. TIMELINE
+         ============================================================ -->
+    <section id="timeline" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">10</span>
+        <h2 class="guide-section__title">Timeline</h2>
+      </div>
+
+      <p style="font-size:13px;color:#374151;margin:0 0 16px;">Chronological record of tenancy events. Mobile-first. The urgent variant uses alarm color — real deadlines only.</p>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Timeline Entries (incl. 1 urgent)</div>
+        <div class="preview-box__content">
+          <ul class="timeline" style="max-width:560px;">
+
+            <li class="timeline-entry">
+              <div class="timeline-entry__marker"></div>
+              <time class="timeline-entry__date">August 2, 2025</time>
+              <h4 class="timeline-entry__title">Repair request submitted</h4>
+              <p class="timeline-entry__body">Reported broken heating unit to landlord via certified mail. Response required within 72 hours per local code.</p>
+              <div class="timeline-entry__tags">
+                <span class="badge badge--filed">Filed</span>
+                <span class="pillar-chip pillar-chip--record">Record</span>
+              </div>
+            </li>
+
+            <li class="timeline-entry">
+              <div class="timeline-entry__marker"></div>
+              <time class="timeline-entry__date">July 18, 2025</time>
+              <h4 class="timeline-entry__title">Notice to vacate received</h4>
+              <p class="timeline-entry__body">Received 30-day notice. Scanning and uploading to vault for record.</p>
+              <div class="timeline-entry__tags">
+                <span class="badge badge--pending">Pending review</span>
+              </div>
+            </li>
+
+            <li class="timeline-entry timeline-entry--urgent">
+              <div class="timeline-entry__marker"></div>
+              <time class="timeline-entry__date">August 12, 2025 — COURT DATE</time>
+              <h4 class="timeline-entry__title">Eviction hearing — Municipal Court Room 3</h4>
+              <p class="timeline-entry__body">You must appear at 9:00 AM. Bring all documentation. Contact legal aid if you need representation.</p>
+              <div class="timeline-entry__tags">
+                <span class="badge badge--urgent">Court Date</span>
+              </div>
+            </li>
+
+            <li class="timeline-entry">
+              <div class="timeline-entry__marker"></div>
+              <time class="timeline-entry__date">June 1, 2025</time>
+              <h4 class="timeline-entry__title">Lease renewed</h4>
+              <p class="timeline-entry__body">12-month renewal signed. New rent: $1,500/month. Valid through May 31, 2026.</p>
+              <div class="timeline-entry__tags">
+                <span class="badge badge--active">Active</span>
+              </div>
+            </li>
+
+          </ul>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;ul class="timeline"&gt;
+
+  &lt;!-- Standard entry --&gt;
+  &lt;li class="timeline-entry"&gt;
+    &lt;div class="timeline-entry__marker"&gt;&lt;/div&gt;
+    &lt;time class="timeline-entry__date"&gt;August 2, 2025&lt;/time&gt;
+    &lt;h4 class="timeline-entry__title"&gt;Repair request submitted&lt;/h4&gt;
+    &lt;p class="timeline-entry__body"&gt;Reported broken heating unit...&lt;/p&gt;
+    &lt;div class="timeline-entry__tags"&gt;
+      &lt;span class="badge badge--filed"&gt;Filed&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+
+  &lt;!-- Urgent entry — real deadline ONLY --&gt;
+  &lt;li class="timeline-entry timeline-entry--urgent"&gt;
+    &lt;div class="timeline-entry__marker"&gt;&lt;/div&gt;
+    &lt;time class="timeline-entry__date"&gt;August 12, 2025 — COURT DATE&lt;/time&gt;
+    &lt;h4 class="timeline-entry__title"&gt;Eviction hearing&lt;/h4&gt;
+    &lt;p class="timeline-entry__body"&gt;Appear at 9:00 AM.&lt;/p&gt;
+    &lt;div class="timeline-entry__tags"&gt;
+      &lt;span class="badge badge--urgent"&gt;Court Date&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+
+&lt;/ul&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         11. DOCUMENT / VAULT ITEMS
+         ============================================================ -->
+    <section id="docs" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">11</span>
+        <h2 class="guide-section__title">Document / Vault Items</h2>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Three document items incl. one urgent</div>
+        <div class="preview-box__content preview-box__content--tight">
+
+          <div class="doc-item">
+            <div class="doc-item__icon">📄</div>
+            <div class="doc-item__content">
+              <p class="doc-item__name">Lease Agreement — 123 Oak St Unit 4B</p>
+              <p class="doc-item__meta">PDF · 2.1 MB · Uploaded Jan 3, 2025</p>
+            </div>
+            <div class="doc-item__actions">
+              <button class="btn btn--ghost btn--sm">View</button>
+              <button class="btn btn--ghost btn--sm">Share</button>
+            </div>
+          </div>
+
+          <div class="doc-item doc-item--urgent">
+            <div class="doc-item__icon" style="background:#fdf3ec;color:#7c3d0f;">⚖️</div>
+            <div class="doc-item__content">
+              <p class="doc-item__name">Eviction Notice — Respond by Aug 9</p>
+              <p class="doc-item__meta">PDF · 890 KB · Received Jul 18, 2025 · <span style="color:#d97706;font-weight:600;">DEADLINE IN 3 DAYS</span></p>
+            </div>
+            <div class="doc-item__actions">
+              <button class="btn btn--primary btn--sm">Respond</button>
+            </div>
+          </div>
+
+          <div class="doc-item">
+            <div class="doc-item__icon">🔧</div>
+            <div class="doc-item__content">
+              <p class="doc-item__name">Repair Request — Heating Unit (Certified Mail)</p>
+              <p class="doc-item__meta">DOCX · 245 KB · Sent Aug 2, 2025</p>
+            </div>
+            <div class="doc-item__actions">
+              <button class="btn btn--ghost btn--sm">View</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;!-- Standard item --&gt;
+&lt;div class="doc-item"&gt;
+  &lt;div class="doc-item__icon"&gt;📄&lt;/div&gt;
+  &lt;div class="doc-item__content"&gt;
+    &lt;p class="doc-item__name"&gt;Lease Agreement&lt;/p&gt;
+    &lt;p class="doc-item__meta"&gt;PDF · 2.1 MB · Jan 3, 2025&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="doc-item__actions"&gt;
+    &lt;button class="btn btn--ghost btn--sm"&gt;View&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Urgent item — real deadline ONLY --&gt;
+&lt;div class="doc-item doc-item--urgent"&gt;
+  &lt;div class="doc-item__icon"&gt;⚖️&lt;/div&gt;
+  &lt;div class="doc-item__content"&gt;
+    &lt;p class="doc-item__name"&gt;Eviction Notice — Respond by Aug 9&lt;/p&gt;
+    &lt;p class="doc-item__meta"&gt;PDF · Received Jul 18&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="doc-item__actions"&gt;
+    &lt;button class="btn btn--primary btn--sm"&gt;Respond&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         12. STEP INDICATOR
+         ============================================================ -->
+    <section id="steps" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">12</span>
+        <h2 class="guide-section__title">Step Indicator / Wizard</h2>
+      </div>
+
+      <p style="font-size:13px;color:#374151;margin:0 0 16px;">Used in multi-step flows: Complaint Wizard, Eviction Defense, Court Prep. Step 2 active in this example.</p>
+
+      <div class="preview-box">
+        <div class="preview-box__label">4-Step Wizard — Step 2 Active</div>
+        <div class="preview-box__content">
+          <ol class="step-indicator">
+            <li class="step-indicator__step is-done">
+              <div class="step-indicator__number">✓</div>
+              <span class="step-indicator__label">Your Info</span>
+            </li>
+            <li class="step-indicator__step is-active">
+              <div class="step-indicator__number">2</div>
+              <span class="step-indicator__label">Describe Issue</span>
+            </li>
+            <li class="step-indicator__step is-locked">
+              <div class="step-indicator__number">3</div>
+              <span class="step-indicator__label">Upload Docs</span>
+            </li>
+            <li class="step-indicator__step is-locked">
+              <div class="step-indicator__number">4</div>
+              <span class="step-indicator__label">Review &amp; Send</span>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;ol class="step-indicator"&gt;
+  &lt;li class="step-indicator__step is-done"&gt;
+    &lt;div class="step-indicator__number"&gt;✓&lt;/div&gt;
+    &lt;span class="step-indicator__label"&gt;Your Info&lt;/span&gt;
+  &lt;/li&gt;
+  &lt;li class="step-indicator__step is-active"&gt;
+    &lt;div class="step-indicator__number"&gt;2&lt;/div&gt;
+    &lt;span class="step-indicator__label"&gt;Describe Issue&lt;/span&gt;
+  &lt;/li&gt;
+  &lt;li class="step-indicator__step is-locked"&gt;
+    &lt;div class="step-indicator__number"&gt;3&lt;/div&gt;
+    &lt;span class="step-indicator__label"&gt;Upload Docs&lt;/span&gt;
+  &lt;/li&gt;
+  &lt;li class="step-indicator__step is-locked"&gt;
+    &lt;div class="step-indicator__number"&gt;4&lt;/div&gt;
+    &lt;span class="step-indicator__label"&gt;Review &amp; Send&lt;/span&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;!-- States: .is-done (completed), .is-active (current), .is-locked (not yet) --&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         13. EMPTY STATE
+         ============================================================ -->
+    <section id="empty" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">13</span>
+        <h2 class="guide-section__title">Empty State</h2>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Empty Document Vault</div>
+        <div class="preview-box__content" style="background:#f8fafc;">
+          <div class="empty-state">
+            <div class="empty-state__icon">📂</div>
+            <h3 class="empty-state__title">No documents yet</h3>
+            <p class="empty-state__body">Your vault is empty. Start by adding your lease, notices, or any documents related to your tenancy.</p>
+            <div class="empty-state__action">
+              <button class="btn btn--primary">Add your first document</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;div class="empty-state"&gt;
+  &lt;div class="empty-state__icon"&gt;📂&lt;/div&gt;
+  &lt;h3 class="empty-state__title"&gt;No documents yet&lt;/h3&gt;
+  &lt;p class="empty-state__body"&gt;
+    Your vault is empty. Start by adding your lease, notices,
+    or any documents related to your tenancy.
+  &lt;/p&gt;
+  &lt;div class="empty-state__action"&gt;
+    &lt;button class="btn btn--primary"&gt;Add your first document&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         14. LOADING SKELETONS
+         ============================================================ -->
+    <section id="skeleton" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">14</span>
+        <h2 class="guide-section__title">Loading Skeletons</h2>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Text Line Skeletons</div>
+        <div class="preview-box__content" style="max-width:400px;">
+          <div class="skeleton skeleton--text"></div>
+          <div class="skeleton skeleton--text w-3\/4"></div>
+          <div class="skeleton skeleton--text w-1\/2"></div>
+        </div>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Block + Avatar Skeleton</div>
+        <div class="preview-box__content">
+          <div style="display:flex;gap:16px;align-items:flex-start;max-width:400px;">
+            <div class="skeleton skeleton--avatar"></div>
+            <div style="flex:1;">
+              <div class="skeleton skeleton--text"></div>
+              <div class="skeleton skeleton--text w-3\/4"></div>
+            </div>
+          </div>
+          <div style="margin-top:12px;max-width:400px;">
+            <div class="skeleton skeleton--block"></div>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;!-- Text line skeletons --&gt;
+&lt;div class="skeleton skeleton--text"&gt;&lt;/div&gt;
+&lt;div class="skeleton skeleton--text w-3/4"&gt;&lt;/div&gt;
+&lt;div class="skeleton skeleton--text w-1/2"&gt;&lt;/div&gt;
+
+&lt;!-- Block skeleton --&gt;
+&lt;div class="skeleton skeleton--block"&gt;&lt;/div&gt;
+
+&lt;!-- Avatar skeleton --&gt;
+&lt;div class="skeleton skeleton--avatar"&gt;&lt;/div&gt;
+
+&lt;!-- Label skeleton --&gt;
+&lt;div class="skeleton skeleton--label"&gt;&lt;/div&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         15. BREADCRUMBS
+         ============================================================ -->
+    <section id="breadcrumb" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">15</span>
+        <h2 class="guide-section__title">Breadcrumbs</h2>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">3-Level Breadcrumb</div>
+        <div class="preview-box__content">
+          <ol class="breadcrumb" aria-label="Page breadcrumb">
+            <li class="breadcrumb__item">
+              <a href="#" class="breadcrumb__link">Home</a>
+            </li>
+            <li class="breadcrumb__item">
+              <a href="#" class="breadcrumb__link">Document Vault</a>
+            </li>
+            <li class="breadcrumb__item">
+              <span class="breadcrumb__current">Lease Agreement 2025</span>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;ol class="breadcrumb" aria-label="Page breadcrumb"&gt;
+  &lt;li class="breadcrumb__item"&gt;
+    &lt;a href="/" class="breadcrumb__link"&gt;Home&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li class="breadcrumb__item"&gt;
+    &lt;a href="/vault" class="breadcrumb__link"&gt;Document Vault&lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li class="breadcrumb__item"&gt;
+    &lt;span class="breadcrumb__current"&gt;Lease Agreement 2025&lt;/span&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         16. TABS
+         ============================================================ -->
+    <section id="tabs" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">16</span>
+        <h2 class="guide-section__title">Tabs</h2>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Functional Tab Example (vanilla JS)</div>
+        <div class="preview-box__content preview-box__content--tight">
+          <div style="padding:0;">
+            <div class="tab-bar" role="tablist" id="demo-tabs">
+              <button class="tab-bar__tab is-active" role="tab" aria-selected="true" aria-controls="tab-panel-1" id="tab-1">Overview</button>
+              <button class="tab-bar__tab" role="tab" aria-selected="false" aria-controls="tab-panel-2" id="tab-2">Documents</button>
+              <button class="tab-bar__tab" role="tab" aria-selected="false" aria-controls="tab-panel-3" id="tab-3">Timeline</button>
+            </div>
+            <div style="padding:0 24px;">
+              <div class="tab-panel is-active" id="tab-panel-1" role="tabpanel" aria-labelledby="tab-1">
+                <p style="font-size:13px;color:#374151;margin:0;">This is the <strong>Overview</strong> tab panel. It shows a summary of the tenancy record.</p>
+              </div>
+              <div class="tab-panel" id="tab-panel-2" role="tabpanel" aria-labelledby="tab-2">
+                <p style="font-size:13px;color:#374151;margin:0;">This is the <strong>Documents</strong> tab panel. It lists all vault documents.</p>
+              </div>
+              <div class="tab-panel" id="tab-panel-3" role="tabpanel" aria-labelledby="tab-3">
+                <p style="font-size:13px;color:#374151;margin:0;">This is the <strong>Timeline</strong> tab panel. It shows chronological events.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;div class="tab-bar" role="tablist"&gt;
+  &lt;button class="tab-bar__tab is-active" role="tab"
+    aria-selected="true" aria-controls="panel-1" id="tab-1"&gt;Overview&lt;/button&gt;
+  &lt;button class="tab-bar__tab" role="tab"
+    aria-selected="false" aria-controls="panel-2" id="tab-2"&gt;Documents&lt;/button&gt;
+  &lt;button class="tab-bar__tab" role="tab"
+    aria-selected="false" aria-controls="panel-3" id="tab-3"&gt;Timeline&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;div class="tab-panel is-active" id="panel-1" role="tabpanel" aria-labelledby="tab-1"&gt;
+  Overview content here.
+&lt;/div&gt;
+&lt;div class="tab-panel" id="panel-2" role="tabpanel" aria-labelledby="tab-2"&gt;
+  Documents content here.
+&lt;/div&gt;
+&lt;div class="tab-panel" id="panel-3" role="tabpanel" aria-labelledby="tab-3"&gt;
+  Timeline content here.
+&lt;/div&gt;
+
+&lt;script&gt;
+document.querySelectorAll('.tab-bar__tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const bar = tab.closest('[role="tablist"]').parentElement;
+    bar.querySelectorAll('.tab-bar__tab').forEach(t => {
+      t.classList.remove('is-active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    bar.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('is-active'));
+    tab.classList.add('is-active');
+    tab.setAttribute('aria-selected', 'true');
+    document.getElementById(tab.getAttribute('aria-controls')).classList.add('is-active');
+  });
+});
+&lt;/script&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         17. CALLOUTS
+         ============================================================ -->
+    <section id="callouts" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">17</span>
+        <h2 class="guide-section__title">Callouts / Infoboxes</h2>
+      </div>
+
+      <p style="font-size:13px;color:#374151;margin:0 0 16px;">Used in Law Library, rights explanations, and AI Copilot responses. Not interchangeable with notices — callouts are educational, notices are transactional.</p>
+
+      <div class="preview-box">
+        <div class="preview-box__label">All 4 Callout Variants</div>
+        <div class="preview-box__content">
+
+          <div class="callout callout--tip">
+            <p class="callout__title">💡 Tip — Document everything</p>
+            <p class="callout__body">Every communication with your landlord should be in writing. Send emails instead of phone calls, and follow up verbal conversations with a written summary.</p>
+          </div>
+
+          <div class="callout callout--law">
+            <p class="callout__title">⚖ Law — Implied Warranty of Habitability</p>
+            <p class="callout__body">Under most state laws, landlords are legally required to maintain rental units in a habitable condition. This includes functional heating, plumbing, and structural safety. (See: <em>Implied Warranty of Habitability</em>)</p>
+          </div>
+
+          <div class="callout callout--warning">
+            <p class="callout__title">⚠ Caution — Do not withhold rent without counsel</p>
+            <p class="callout__body">Rent withholding is a legal remedy in some states, but only under specific conditions. Doing it incorrectly can give your landlord grounds for eviction. Consult a local tenant attorney first.</p>
+          </div>
+
+          <div class="callout callout--not-legal-advice">
+            <p class="callout__title">NOT LEGAL ADVICE</p>
+            <p class="callout__body">This information is for educational purposes only and does not constitute legal advice. Your situation may differ. Consult a licensed attorney in your jurisdiction for guidance specific to your case.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;div class="callout callout--tip"&gt;
+  &lt;p class="callout__title"&gt;💡 Tip — Title here&lt;/p&gt;
+  &lt;p class="callout__body"&gt;Body text here.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div class="callout callout--law"&gt;
+  &lt;p class="callout__title"&gt;⚖ Law — Implied Warranty of Habitability&lt;/p&gt;
+  &lt;p class="callout__body"&gt;Explanation here.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div class="callout callout--warning"&gt;
+  &lt;p class="callout__title"&gt;⚠ Caution — heading&lt;/p&gt;
+  &lt;p class="callout__body"&gt;Warning body here.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- Always include for AI-generated content --&gt;
+&lt;div class="callout callout--not-legal-advice"&gt;
+  &lt;p class="callout__title"&gt;NOT LEGAL ADVICE&lt;/p&gt;
+  &lt;p class="callout__body"&gt;Educational purposes only...&lt;/p&gt;
+&lt;/div&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         18. UPLOAD ZONE
+         ============================================================ -->
+    <section id="upload" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">18</span>
+        <h2 class="guide-section__title">File Upload Zone</h2>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Default Upload Zone</div>
+        <div class="preview-box__content" style="background:#f8fafc;">
+          <label class="upload-zone" for="demo-file-input" style="display:block;cursor:pointer;">
+            <input class="upload-zone__input" type="file" id="demo-file-input" accept=".pdf,.doc,.docx,.jpg,.png">
+            <span class="upload-zone__icon">📎</span>
+            <p class="upload-zone__title">Drop files here or click to browse</p>
+            <p class="upload-zone__hint">Accepts: PDF, Word, JPG, PNG · Max 25 MB per file</p>
+          </label>
+        </div>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Active / Drag-over State (.upload-zone--active)</div>
+        <div class="preview-box__content" style="background:#f8fafc;">
+          <div class="upload-zone upload-zone--active">
+            <span class="upload-zone__icon">📂</span>
+            <p class="upload-zone__title">Release to upload</p>
+            <p class="upload-zone__hint">Accepts: PDF, Word, JPG, PNG · Max 25 MB per file</p>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;label class="upload-zone" for="file-input"&gt;
+  &lt;input class="upload-zone__input" type="file" id="file-input"
+    accept=".pdf,.doc,.docx,.jpg,.png"&gt;
+  &lt;span class="upload-zone__icon"&gt;📎&lt;/span&gt;
+  &lt;p class="upload-zone__title"&gt;Drop files here or click to browse&lt;/p&gt;
+  &lt;p class="upload-zone__hint"&gt;PDF, Word, JPG, PNG · Max 25 MB&lt;/p&gt;
+&lt;/label&gt;
+
+&lt;!-- JS: toggle .upload-zone--active on dragenter/dragleave/drop --&gt;
+&lt;script&gt;
+const zone = document.querySelector('.upload-zone');
+zone.addEventListener('dragenter', e => { e.preventDefault(); zone.classList.add('upload-zone--active'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('upload-zone--active'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('upload-zone--active'); });
+&lt;/script&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         19. SEARCH
+         ============================================================ -->
+    <section id="search" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">19</span>
+        <h2 class="guide-section__title">Search Input</h2>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Default (empty) and with value</div>
+        <div class="preview-box__content">
+          <div style="max-width:360px;display:flex;flex-direction:column;gap:16px;">
+
+            <div class="search-field">
+              <span class="search-field__icon" aria-hidden="true">🔍</span>
+              <input class="search-field__input" type="search" placeholder="Search documents…" aria-label="Search documents">
+            </div>
+
+            <div class="search-field">
+              <span class="search-field__icon" aria-hidden="true">🔍</span>
+              <input class="search-field__input" type="search" value="eviction notice" aria-label="Search documents">
+              <button class="search-field__clear" aria-label="Clear search" style="display:block;">✕</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;div class="search-field"&gt;
+  &lt;span class="search-field__icon" aria-hidden="true"&gt;🔍&lt;/span&gt;
+  &lt;input class="search-field__input" type="search"
+    placeholder="Search documents…" aria-label="Search documents"&gt;
+  &lt;button class="search-field__clear" aria-label="Clear search"&gt;✕&lt;/button&gt;
+&lt;/div&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         20. APP SHELL
+         ============================================================ -->
+    <section id="appshell" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">20</span>
+        <h2 class="guide-section__title">Unified App Shell</h2>
+      </div>
+
+      <p style="font-size:13px;color:#374151;margin:0 0 16px;">The consistent wrapper for every authenticated app page. Replaces the old inconsistent mix of page structures.</p>
+
+      <div class="preview-box">
+        <div class="preview-box__label">App Shell Layout Mockup (scaled)</div>
+        <div class="preview-box__content preview-box__content--tight">
+          <div style="border:1px solid #e5e7eb;overflow:hidden;font-size:10px;">
+
+            <!-- Mini header -->
+            <div style="background:linear-gradient(135deg,#1e3a5f 0%,#2c5aa0 100%);height:36px;display:flex;align-items:center;padding:0 12px;gap:12px;color:#fff;">
+              <span style="font-weight:700;letter-spacing:-0.01em;font-size:11px;">Semptify</span>
+              <span style="font-size:9px;opacity:0.6;text-transform:uppercase;letter-spacing:0.08em;">KNOW</span>
+              <span style="flex:1;"></span>
+              <span style="font-size:9px;opacity:0.8;">Jordan R.</span>
+              <div style="width:20px;height:20px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:9px;">⚙</div>
+              <div style="width:20px;height:20px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:9px;">↪</div>
+            </div>
+
+            <!-- Body -->
+            <div style="display:flex;min-height:280px;">
+
+              <!-- Sidebar -->
+              <div style="width:140px;min-width:140px;background:#fff;border-right:1px solid #e5e7eb;padding:8px 0;">
+                <div style="padding:0 10px;margin-bottom:8px;">
+                  <span style="font-size:8px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#9ca3af;display:block;margin-bottom:4px;">KNOW</span>
+                  <a href="#" style="display:block;padding:4px 8px;font-size:10px;color:#6b7280;text-decoration:none;">Law Library</a>
+                  <a href="#" style="display:block;padding:4px 8px;font-size:10px;color:#6b7280;text-decoration:none;">Rights Checker</a>
+                  <a href="#" style="display:block;padding:4px 8px;font-size:10px;color:#1e3a5f;font-weight:500;border-left:2px solid #1e3a5f;background:rgba(30,58,95,0.06);text-decoration:none;">AI Copilot</a>
+                  <a href="#" style="display:block;padding:4px 8px;font-size:10px;color:#6b7280;text-decoration:none;">Glossary</a>
+                </div>
+                <div style="height:1px;background:#e5e7eb;margin:8px 0;"></div>
+                <div style="padding:0 10px;">
+                  <span style="font-size:8px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#9ca3af;display:block;margin-bottom:4px;">RECORD</span>
+                  <a href="#" style="display:block;padding:4px 8px;font-size:10px;color:#6b7280;text-decoration:none;">Vault</a>
+                  <a href="#" style="display:block;padding:4px 8px;font-size:10px;color:#6b7280;text-decoration:none;">Timeline</a>
+                </div>
+              </div>
+
+              <!-- Main content -->
+              <div style="flex:1;padding:16px;background:#f8fafc;">
+                <h1 style="font-size:14px;font-weight:600;color:#1f2937;margin:0 0 4px;">AI Copilot</h1>
+                <p style="font-size:10px;color:#6b7280;margin:0 0 12px;">Ask questions about your tenancy rights.</p>
+
+                <div style="background:#fff;border:1px solid #e5e7eb;padding:12px;margin-bottom:10px;">
+                  <p style="margin:0;font-size:10px;color:#374151;font-weight:500;">Q: Can my landlord enter without notice?</p>
+                </div>
+                <div style="background:#eef2f7;border-left:3px solid #1e3a5f;padding:10px 12px;">
+                  <p style="margin:0;font-size:9px;color:#1e3a5f;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">⚖ LAW</p>
+                  <p style="margin:0;font-size:10px;color:#374151;line-height:1.4;">In most states, landlords must give 24–48 hours written notice before entering, except in genuine emergencies.</p>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;!-- Minimal authenticated app page structure --&gt;
+&lt;div class="app-shell"&gt;
+
+  &lt;header class="app-header"&gt;
+    &lt;button class="app-header__hamburger" aria-label="Open navigation"&gt;☰&lt;/button&gt;
+    &lt;a href="/" class="app-header__brand"&gt;
+      &lt;span class="brand-wordmark"&gt;Semptify&lt;/span&gt;
+      &lt;span class="brand-pillar"&gt;KNOW&lt;/span&gt;
+    &lt;/a&gt;
+    &lt;div class="app-header__spacer"&gt;&lt;/div&gt;
+    &lt;nav class="app-header__nav"&gt;
+      &lt;span class="app-header__user"&gt;Jordan R.&lt;/span&gt;
+      &lt;a href="/settings" class="app-header__icon-btn" aria-label="Settings"&gt;⚙&lt;/a&gt;
+      &lt;a href="/signout" class="app-header__icon-btn" aria-label="Sign out"&gt;↪&lt;/a&gt;
+    &lt;/nav&gt;
+  &lt;/header&gt;
+
+  &lt;div class="app-body"&gt;
+
+    &lt;aside class="app-sidebar" id="app-sidebar"&gt;
+      &lt;div class="app-sidebar__section"&gt;
+        &lt;span class="app-sidebar__label"&gt;KNOW&lt;/span&gt;
+        &lt;a href="/law-library" class="app-sidebar__link"&gt;Law Library&lt;/a&gt;
+        &lt;a href="/copilot"     class="app-sidebar__link is-active"&gt;AI Copilot&lt;/a&gt;
+        &lt;a href="/glossary"    class="app-sidebar__link"&gt;Glossary&lt;/a&gt;
+      &lt;/div&gt;
+    &lt;/aside&gt;
+
+    &lt;main class="app-main"&gt;
+      &lt;h1 class="page-title"&gt;AI Copilot&lt;/h1&gt;
+      &lt;p class="page-subtitle"&gt;Ask questions about your tenancy rights.&lt;/p&gt;
+      &lt;!-- page content here --&gt;
+    &lt;/main&gt;
+
+  &lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;!-- Sidebar toggle JS --&gt;
+&lt;script&gt;
+const sidebar = document.getElementById('app-sidebar');
+const backdrop = document.getElementById('sidebar-backdrop');
+document.querySelector('.app-header__hamburger').addEventListener('click', () => {
+  sidebar.classList.toggle('app-sidebar--open');
+  backdrop.classList.toggle('is-visible');
+});
+backdrop.addEventListener('click', () => {
+  sidebar.classList.remove('app-sidebar--open');
+  backdrop.classList.remove('is-visible');
+});
+&lt;/script&gt;</pre>
+
+      <h3 class="guide-subsection">Page Title + Subtitle</h3>
+      <div class="preview-box">
+        <div class="preview-box__label">page-title + page-subtitle</div>
+        <div class="preview-box__content">
+          <h1 class="page-title">Document Vault</h1>
+          <p class="page-subtitle">All documents related to your tenancy, organized and searchable.</p>
+        </div>
+      </div>
+      <pre class="code-block">&lt;h1 class="page-title"&gt;Document Vault&lt;/h1&gt;
+&lt;p class="page-subtitle"&gt;All documents related to your tenancy.&lt;/p&gt;</pre>
+    </section>
+
+    <!-- ============================================================
+         21. MOBILE NAV
+         ============================================================ -->
+    <section id="mobilenav" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">21</span>
+        <h2 class="guide-section__title">Mobile Navigation</h2>
+      </div>
+
+      <p style="font-size:13px;color:#374151;margin:0 0 16px;">On mobile (&lt;768px), the 4-pillar nav moves to a fixed bottom bar. Hidden on desktop. ACT is active in this preview.</p>
+
+      <div class="preview-box">
+        <div class="preview-box__label">Mobile Nav Bar (static preview — normally fixed at bottom of screen)</div>
+        <div class="preview-box__content preview-box__content--tight">
+          <div style="display:flex;background:#fff;border-top:1px solid #e5e7eb;height:56px;max-width:390px;">
+            <a href="#" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#9ca3af;text-decoration:none;font-size:10px;letter-spacing:0.04em;font-family:'Inter',sans-serif;">
+              <span style="font-size:1.1rem;line-height:1;">📋</span>
+              <span>Record</span>
+            </a>
+            <a href="#" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#9ca3af;text-decoration:none;font-size:10px;letter-spacing:0.04em;font-family:'Inter',sans-serif;">
+              <span style="font-size:1.1rem;line-height:1;">📚</span>
+              <span>Know</span>
+            </a>
+            <a href="#" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#7c3d0f;text-decoration:none;font-size:10px;letter-spacing:0.04em;font-weight:600;font-family:'Inter',sans-serif;" aria-current="page">
+              <span style="font-size:1.1rem;line-height:1;">⚡</span>
+              <span>Act</span>
+            </a>
+            <a href="#" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#9ca3af;text-decoration:none;font-size:10px;letter-spacing:0.04em;font-family:'Inter',sans-serif;">
+              <span style="font-size:1.1rem;line-height:1;">🔒</span>
+              <span>Govern</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <pre class="code-block">&lt;!-- Place before &lt;/body&gt;. Automatically shown on mobile, hidden on desktop. --&gt;
+&lt;nav class="mobile-nav" aria-label="Pillar navigation"&gt;
+  &lt;a href="/record" class="mobile-nav__item"&gt;
+    &lt;span class="mobile-nav__icon"&gt;📋&lt;/span&gt;
+    &lt;span class="mobile-nav__label"&gt;Record&lt;/span&gt;
+  &lt;/a&gt;
+  &lt;a href="/know" class="mobile-nav__item"&gt;
+    &lt;span class="mobile-nav__icon"&gt;📚&lt;/span&gt;
+    &lt;span class="mobile-nav__label"&gt;Know&lt;/span&gt;
+  &lt;/a&gt;
+  &lt;a href="/act" class="mobile-nav__item is-active" aria-current="page"&gt;
+    &lt;span class="mobile-nav__icon"&gt;⚡&lt;/span&gt;
+    &lt;span class="mobile-nav__label"&gt;Act&lt;/span&gt;
+  &lt;/a&gt;
+  &lt;a href="/govern" class="mobile-nav__item"&gt;
+    &lt;span class="mobile-nav__icon"&gt;🔒&lt;/span&gt;
+    &lt;span class="mobile-nav__label"&gt;Govern&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/nav&gt;
+
+&lt;!-- NOTE: .app-main automatically gets 56px + space-4 bottom padding on mobile --&gt;</pre>
+
+      <div class="constraint">The mobile nav is display:none on desktop (≥768px). It only appears at &lt;768px. Do not try to force-show it on desktop. The .app-main already has padding-bottom built in when the mobile nav is visible.</div>
+    </section>
+
+    <!-- ============================================================
+         QUICK REFERENCE
+         ============================================================ -->
+    <section id="quickref" class="guide-section">
+      <div class="guide-section__header">
+        <span class="guide-section__num">REF</span>
+        <h2 class="guide-section__title">Quick Reference</h2>
+      </div>
+
+      <h3 class="guide-subsection">Forbidden UI Text</h3>
+      <div class="constraint">These words must NEVER appear in any UI text, button labels, headings, or help text: <strong>free · accounts · log in · sign up · subscription · upgrade · premium · paid plan · trial · pricing</strong></div>
+
+      <h3 class="guide-subsection">Color Usage Rules</h3>
+      <div class="preview-box">
+        <div class="preview-box__label">Color Intent Matrix</div>
+        <div class="preview-box__content preview-box__content--tight">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Color</th>
+                <th>Token</th>
+                <th>Use for</th>
+                <th>Never use for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span style="display:inline-block;width:12px;height:12px;background:#1e3a5f;vertical-align:middle;margin-right:6px;"></span>Primary Navy</td>
+                <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">--color-primary</td>
+                <td>Headings, active states, primary actions, link text</td>
+                <td>Decorative fills</td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-block;width:12px;height:12px;background:#fbbf24;vertical-align:middle;margin-right:6px;"></span>Accent Amber</td>
+                <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">--color-accent</td>
+                <td>Primary CTA buttons, important action affordances</td>
+                <td>General highlights, decorative elements</td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-block;width:12px;height:12px;background:#d97706;vertical-align:middle;margin-right:6px;"></span>Alarm Orange</td>
+                <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">--color-alarm</td>
+                <td>Real legal deadlines: eviction dates, court dates, response windows</td>
+                <td><strong>Everything else. Seriously.</strong></td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-block;width:12px;height:12px;background:#5c7a99;vertical-align:middle;margin-right:6px;"></span>Calm Blue-Gray</td>
+                <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">--color-calm</td>
+                <td>Secondary info, non-urgent callouts, draft states</td>
+                <td>Primary actions</td>
+              </tr>
+              <tr>
+                <td><span style="display:inline-block;width:12px;height:12px;background:#ef4444;vertical-align:middle;margin-right:6px;"></span>Error Red</td>
+                <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">--color-error</td>
+                <td>Form errors, destructive actions, overdue statuses</td>
+                <td>Non-error emphasis</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h3 class="guide-subsection">Accessibility Checklist</h3>
+      <ul style="font-size:12px;color:#374151;line-height:2;padding-left:20px;">
+        <li>All interactive elements are keyboard-accessible (Tab + Enter/Space)</li>
+        <li>Focus ring visible: <code class="code-block--inline">outline: 2px solid var(--color-primary); outline-offset: 2px;</code></li>
+        <li>Minimum contrast: 4.5:1 for body text (WCAG AA)</li>
+        <li>Icon-only buttons require <code class="code-block--inline">aria-label</code></li>
+        <li>Tab panels use <code class="code-block--inline">role="tablist"</code>, <code class="code-block--inline">role="tab"</code>, <code class="code-block--inline">role="tabpanel"</code></li>
+        <li>Flash bars and deadline notices use <code class="code-block--inline">role="alert"</code> or <code class="code-block--inline">role="status"</code></li>
+        <li>Reduced motion: skeletons and transitions respect <code class="code-block--inline">prefers-reduced-motion</code></li>
+        <li>Color is never the only indicator of meaning (always paired with text/icon)</li>
+      </ul>
+
+      <h3 class="guide-subsection">Print</h3>
+      <pre class="code-block">/* Section 26: Print Styles auto-applied via @media print */
+/* Elements hidden on print: .app-header, .app-sidebar, .mobile-nav,
+   .pillar-bar, .tab-bar, .flash-bar, .btn--ghost, [data-no-print] */
+
+/* Use data-no-print to hide any element from print output: */
+&lt;div data-no-print&gt;This won't appear in print&lt;/div&gt;</pre>
+    </section>
+
+    <footer class="guide-footer">
+      <p>Semptify Design System · Living Style Guide · Design Handoff 2026-07-01</p>
+      <p>Source of truth: <code style="font-family:'IBM Plex Mono',monospace;">/static/css/ssot-design-system.css</code></p>
+      <p style="margin-top:8px;font-size:10px;">This guide is for internal development use only. Do not share externally.</p>
+    </footer>
+
+  </main>
+</div>
+
+<!-- ================================================================
+     VANILLA JS — Tabs functionality
+     ================================================================ -->
+<script>
+  // Wire up all tab bars on the page
+  document.querySelectorAll('[role="tablist"]').forEach(function(tablist) {
+    tablist.querySelectorAll('[role="tab"]').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var container = tab.closest('[role="tablist"]').parentElement;
+
+        // Deactivate all tabs in this group
+        tablist.querySelectorAll('[role="tab"]').forEach(function(t) {
+          t.classList.remove('is-active');
+          t.setAttribute('aria-selected', 'false');
+        });
+
+        // Deactivate all panels in this container
+        container.querySelectorAll('[role="tabpanel"]').forEach(function(p) {
+          p.classList.remove('is-active');
+        });
+
+        // Activate clicked tab
+        tab.classList.add('is-active');
+        tab.setAttribute('aria-selected', 'true');
+
+        // Activate corresponding panel
+        var panelId = tab.getAttribute('aria-controls');
+        if (panelId) {
+          var panel = document.getElementById(panelId);
+          if (panel) panel.classList.add('is-active');
+        }
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

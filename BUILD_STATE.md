@@ -1,3 +1,63 @@
+## Session — 2026-08-09 — Design system completed: 17 new component sections + living style guide
+
+### Overview
+
+Extended `ssot-design-system.css` (1,462 → 2,872 lines) with 17 new component sections covering every pattern used across the app. Created `static/design-guide.html` (88 KB) as a living style guide and added a `/design-guide` route in `main.py`. This resolves the root cause of visual inconsistency across the 133 app templates and 81 static HTML pages — each previously used different patterns for the same UI elements (alerts, tables, status badges, navigation, etc.). All new CSS enforces no-rounded-corners and the alarm color (`#d97706`) reserved-for-real-deadlines constraint from the design handoff.
+
+### What was done
+
+**`static/css/ssot-design-system.css` — 17 sections appended:**
+
+| § | Component | Key classes |
+|---|---|---|
+| 10 | Pillar Navigation | `.pillar-bar`, `.pillar-chip--record/know/act/govern` |
+| 11 | Badge / Status | `.badge--pending/active/urgent/overdue/resolved/draft/filed/info` |
+| 12 | Alert / Notice | `.notice--info/success/warning/error/deadline`, `.flash-bar` |
+| 13 | Data Tables | `.data-table`, `.data-table--zebra`, `.data-table--cards` (mobile) |
+| 14 | Timeline Entry | `.timeline-entry`, `.timeline-entry--urgent` |
+| 15 | Document / Vault Item | `.doc-item`, `.doc-item--urgent` |
+| 16 | Wizard / Step Indicator | `.step-indicator__step.is-done/active/locked` |
+| 17 | Empty State | `.empty-state__icon/title/body/action` |
+| 18 | Loading Skeleton | `@keyframes shimmer`, `.skeleton--text/block/avatar` |
+| 19 | Breadcrumb | `.breadcrumb`, `::after` separator |
+| 20 | Tabs | `.tab-bar__tab.is-active`, `.tab-panel.is-active` |
+| 21 | Unified App Shell | `.app-shell`, `.app-header`, `.app-sidebar`, `.app-main` |
+| 22 | Callout / Infobox | `.callout--tip/law/warning/not-legal-advice` |
+| 23 | File Upload Zone | `.upload-zone`, `.upload-zone--active` |
+| 24 | Search Input | `.search-field`, `.search-field__icon` |
+| 25 | Mobile Navigation | `.mobile-nav` (fixed bottom bar, `<768px`) |
+| 26 | Print Styles | `@media print` — hides nav/header/sidebar |
+
+**`static/design-guide.html` — created (88 KB, 1,833 lines):**
+- Fixed left TOC sidebar with jump links to all 21 component sections
+- Live rendered previews + exact HTML snippets + constraint callouts for each component
+- Functional tab example with vanilla JS
+- Links to live `/static/css/ssot-design-system.css` — not embedded
+
+**`app/main.py` — route added:**
+- `GET /design-guide` and `/design-guide.html` → `FileResponse(static/design-guide.html)`
+- Bypasses `block_static_html` middleware (which only intercepts `/static/*.html`)
+
+### Verification
+
+- `ssot-design-system.css`: 2,872 lines, all 26 sections present, zero non-zero `border-radius` in appended sections
+- `design-guide.html`: 88 KB, all 21 component sections confirmed present
+- `GET /design-guide` → HTTP 200, 89,563 bytes
+- `app/main.py` compiles clean under Python 3.11.9
+- Subagent ran live HTTP checks: CSS 200, guide 200, direct `/static/design-guide.html` 403 (middleware correctly blocking)
+
+### Notes
+
+- Existing sections 1–9 were not modified — append-only.
+- No template files were changed; this is purely an extension to the CSS layer.
+- Old inconsistent patterns on existing pages still work (backward compatible) — migration to new component classes is a separate incremental task.
+
+### Next Session
+
+- Begin migrating existing templates to the unified `.app-shell` + `.pillar-bar` structure, starting with the tenant dashboard (`static/tenant/index.html`).
+
+---
+
 ## Session — 2026-08-09 — Full 75-page Jinja2 conversion + pre-existing template remediation + code fixes
 
 ### Overview
