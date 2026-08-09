@@ -2,7 +2,7 @@
 
 ### Deploy
 
-- **Merged**: `a4d78e66` on `main` (includes PR #11 CI fixes, PR #20 Page Composer POST assemble, PR #21 testing-semptify skill, PR #22 GOVERN fallback and assembly unit tests, PR #23 tenant dashboard wired to Page Shell)
+- **Merged**: `89e625f1` on `main` (includes PR #11 CI fixes, PR #20 Page Composer POST assemble, PR #21 testing-semptify skill, PR #22 GOVERN fallback and assembly unit tests, PR #23 tenant dashboard wired to Page Shell, PR #24 end-to-end assembly API tests)
 - **Render deploy**: started — https://dashboard.render.com
 
 ### Problem
