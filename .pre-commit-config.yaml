@@ -68,7 +68,7 @@ repos:
     hooks:
       - id: ssot-architecture-check
         name: SSOT Architecture Verification
-        entry: python3 scripts/verify_ssot.py
+        entry: python scripts/verify_ssot.py
         language: system
         pass_filenames: false
         always_run: true
@@ -78,7 +78,7 @@ repos:
     hooks:
       - id: guardrail-engine
         name: Run all guardrail checks
-        entry: python3 tools/guardrail_engine.py
+        entry: python tools/guardrail_engine.py
         language: system
         pass_filenames: false
         always_run: true
@@ -88,7 +88,7 @@ repos:
     hooks:
       - id: sync-orchestrator
         name: Sync stub/task state
-        entry: python3 tools/sync_orchestrator.py --git-add
+        entry: python tools/sync_orchestrator.py --git-add
         language: system
         pass_filenames: false
         always_run: true
