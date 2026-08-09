@@ -674,6 +674,21 @@ TASKS = [
         "assigned_agent": "",
         "source": "manual",
     },
+    {
+        "id": "todo-064",
+        "title": "Raise Semptify test coverage to the configured threshold",
+        "description": "The full CI suite passes functionally but measures 30.84% coverage against the configured pytest threshold of 40% (and the pyproject threshold of 50%). Add focused tests for the highest-impact untested app modules until the configured gate is met, without lowering thresholds, weakening security checks, or excluding production code solely to improve the metric.",
+        "category": "test_add",
+        "target_model": "swe-1.7",
+        "priority": "high",
+        "file_path": "tests/",
+        "status": "pending",
+        "notes": "Created from PR #19 follow-up on 2026-08-09 after CI reported 1,173 passed tests and 30.84% total coverage. Separate remediation scope from the cleanup/failure-fix PR.",
+        "created_at": "2026-08-09T04:00:00Z",
+        "updated_at": "2026-08-09T04:00:00Z",
+        "assigned_agent": "",
+        "source": "manual",
+    },
 ]
 
 
