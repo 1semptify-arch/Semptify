@@ -124,6 +124,7 @@ def create_error_response(error: SemptifyError, include_details: bool = False) -
 
     response_data = {
         "success": False,
+        "detail": error.user_message,
         "error": {
             "code": error.error_code,
             "message": error.user_message,
