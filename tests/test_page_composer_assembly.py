@@ -215,6 +215,7 @@ async def test_assemble_page_uses_context_recent_events():
             subject="repair",
             jurisdiction="MN",
             user_id="GUowner123",
+            intent="act",
             user_context=user_context,
         )
 
