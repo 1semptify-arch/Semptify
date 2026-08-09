@@ -46,6 +46,25 @@
     margin-top: 0.75rem;
 }
 
+.prompt-reaction {
+    margin-top: 0.75rem;
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary);
+    min-height: 1.5rem;
+}
+
+.prompt-reaction--working {
+    color: var(--color-accent);
+}
+
+.prompt-reaction--done {
+    color: var(--color-success);
+}
+
+.prompt-reaction--error {
+    color: var(--color-error);
+}
+
 @media (max-width: 768px) {
         .role-container, .quick-input {
             padding: var(--space-md, 1rem);
@@ -76,9 +95,11 @@
         <div class="chip-row">
             <button class="btn btn--secondary btn--sm" type="button" data-legal-suggest="Draft filing strategy for hearing next week.">Filing Strategy</button>
             <button class="btn btn--secondary btn--sm" type="button" data-legal-suggest="Run conflict check for new intake.">Conflict Check</button>
-            <a class="btn btn--primary btn--sm" href="/legal/filings">Open Filings</a>
+            <button class="btn btn--primary btn--sm" type="button" id="legal-submit">Submit Prompt</button>
+            <a class="btn btn--secondary btn--sm" href="/legal/filings">Open Filings</a>
             <a class="btn btn--secondary btn--sm" href="/law-library">Open Library</a>
         </div>
+        <div class="prompt-reaction" id="promptReaction"></div>
     </div>
 </div>
 <script>
@@ -88,6 +109,25 @@ document.querySelectorAll('[data-legal-suggest]').forEach((chip) => {
         target.value = chip.getAttribute('data-legal-suggest') || '';
         target.focus();
     });
+});
+
+document.getElementById('legal-submit').addEventListener('click', () => {
+    const prompt = document.getElementById('legal-prompt').value.trim();
+    const reaction = document.getElementById('promptReaction');
+    if (!prompt) {
+        reaction.className = 'prompt-reaction prompt-reaction--error';
+        reaction.textContent = 'Enter a prompt first.';
+        return;
+    }
+    reaction.className = 'prompt-reaction prompt-reaction--working';
+    reaction.textContent = 'Analyzing prompt...';
+    setTimeout(() => {
+        reaction.className = 'prompt-reaction prompt-reaction--done';
+        reaction.textContent = 'Prompt ready. Redirecting to workspace...';
+        setTimeout(() => {
+            window.location.href = '/legal/filings';
+        }, 800);
+    }, 1200);
 });
 </script>
 <script src="/static/js/workspace-stage-model.js"></script>

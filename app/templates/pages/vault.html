@@ -1,449 +1,499 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Vault - {{ app_name }}</title>
+{% extends "base.html" %}
+{% block body_class %}template-1{% endblock %}
 
-    <!-- Google Fonts: Inter + IBM Plex Mono (Design Handoff 2026-07-01) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+{% block title %}Document Vault - {{ app_name }}{% endblock %}
 
-    <!-- SSOT Design System -->
-    <link rel="stylesheet" href="/static/css/ssot-design-system.css">
+{% block styles %}
+<style>
+    .vault-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: var(--space-xl);
+    }
 
-    <link rel="stylesheet" href="/css/components/vault-portal.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding: 2rem;
+    .vault-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-xl);
+        padding-bottom: var(--space-md);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .vault-header h1 {
+        font-size: var(--font-size-2xl);
+        font-weight: 600;
+    }
+
+    .vault-header-controls {
+        display: flex;
+        gap: var(--space-md);
+        align-items: center;
+    }
+
+    .vault-status {
+        background: var(--color-success);
+        color: var(--color-text-inverse, white);
+        padding: var(--space-sm) var(--space-md);
+        border-radius: var(--radius-full);
+        font-size: var(--font-size-sm);
+    }
+
+    .vault-card {
+        background: var(--color-bg-card);
+        border-radius: var(--radius-xl);
+        padding: var(--space-lg);
+        margin-bottom: var(--space-lg);
+    }
+
+    .vault-card h2 {
+        font-size: var(--font-size-lg);
+        margin-bottom: var(--space-md);
+        color: var(--color-text-secondary);
+    }
+
+    .upload-zone {
+        border: 2px dashed var(--color-border-hover);
+        border-radius: var(--radius-lg);
+        padding: var(--space-2xl);
+        text-align: center;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+    }
+
+    .upload-zone:hover {
+        border-color: var(--color-accent);
+        background: var(--color-bg-hover);
+    }
+
+    .upload-zone input {
+        display: none;
+    }
+
+    .upload-icon {
+        font-size: var(--font-size-3xl);
+        margin-bottom: var(--space-md);
+    }
+
+    .documents {
+        display: grid;
+        gap: var(--space-md);
+    }
+
+    .doc-item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        padding: var(--space-md);
+        background: var(--color-bg-card);
+        border-radius: var(--radius-md);
+    }
+
+    .doc-icon {
+        font-size: var(--font-size-2xl);
+    }
+
+    .doc-info {
+        flex: 1;
+    }
+
+    .doc-name {
+        font-weight: 500;
+    }
+
+    .doc-meta {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-muted);
+    }
+
+    #vault-message {
+        padding: var(--space-md);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--space-md);
+        display: none;
+    }
+
+    #vault-message.success {
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-success);
+    }
+
+    #vault-message.error {
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-error);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: var(--space-2xl) var(--space-md);
+        color: var(--color-text-muted);
+    }
+
+    .empty-state-icon {
+        font-size: var(--font-size-3xl);
+        margin-bottom: var(--space-md);
+        opacity: 0.5;
+    }
+
+    .empty-state-hint {
+        font-size: var(--font-size-sm);
+        margin-top: var(--space-sm);
+    }
+
+    .text-secondary {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-error {
+        color: var(--color-error);
+    }
+
+    .mt-sm { margin-top: var(--space-sm); }
+    .mt-md { margin-top: var(--space-md); }
+    .p-lg { padding: var(--space-xl); }
+
+    @media (max-width: 768px) {
+        .vault-container {
+            padding: var(--space-md);
         }
-        .container { max-width: 900px; margin: 0 auto; }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+
+        .vault-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--space-md);
         }
-        h1 { font-size: 1.5rem; font-weight: 600; }
-        .status {
-            background: #10b981;
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            font-size: 0.875rem;
+
+        .vault-header-controls {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
         }
-        .card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
+
+        .vault-header-controls .btn {
+            width: 100%;
+            justify-content: center;
         }
-        .card h2 { font-size: 1.125rem; margin-bottom: 1rem; color: #94a3b8; }
+
         .upload-zone {
-            border: 2px dashed rgba(255,255,255,0.2);
-            border-radius: 0.75rem;
-            padding: 3rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
+            padding: var(--space-xl);
         }
-        .upload-zone:hover { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
-        .upload-zone input { display: none; }
-        .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
-        .btn {
-            background: #3b82f6;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s;
-        }
-        .btn:hover { background: #2563eb; }
-        .documents { display: grid; gap: 1rem; }
+
         .doc-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(255,255,255,0.03);
-            border-radius: 0.5rem;
-        }
-        .doc-icon { font-size: 2rem; }
-        .doc-info { flex: 1; }
-        .doc-name { font-weight: 500; }
-        .doc-meta { font-size: 0.875rem; color: #64748b; }
-        #message {
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            display: none;
-        }
-        .success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; }
-        .error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
-
-        /* Empty state styles */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #64748b;
-        }
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-        .empty-state-hint {
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-        }
-        .mt-sm {
-            margin-top: 0.5rem;
-        }
-        .mt-md {
-            margin-top: 1rem;
-        }
-        .p-lg {
-            padding: 2rem;
-        }
-        .text-secondary {
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .text-error {
-            color: #ef4444;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--space-sm);
         }
 
-        /* Button styles */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
+        .doc-item .btn {
+            align-self: stretch;
+            justify-content: center;
         }
-        .btn--primary {
-            background: #3b82f6;
-            color: white;
-        }
-        .btn--primary:hover {
-            background: #2563eb;
-        }
-    </style>
-</head>
-<body class="template-1">
-    <div class="container">
-        <header>
-            <h1>Document Vault</h1>
-            <div style="display:flex; gap:0.75rem; align-items:center;">
-                <button class="btn" id="export-btn" onclick="exportCase()" style="display:none;">
-                    ▸ Export My Case (ZIP)
-                </button>
-                <span class="status" id="provider-status">Loading...</span>
-            </div>
-        </header>
+    }
+</style>
+{% endblock %}
 
-        <div id="message"></div>
-
-        <div class="card">
-            <h2>Upload Documents</h2>
-            <div class="upload-zone" id="upload-zone">
-                <div class="upload-icon">Upload</div>
-                <p>Drag & drop files here or click to browse</p>
-                <p class="text-secondary mt-sm">
-                    Documents are stored securely in YOUR cloud storage
-                </p>
-                <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt">
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Your Documents</h2>
-            <div class="documents" id="documents-list">
-                <p class="text-secondary text-center p-lg">
-                    Loading documents...
-                </p>
-            </div>
+{% block content %}
+<div class="vault-container">
+    <!-- INFORMATION -->
+    <div class="vault-header">
+        <h1>Document Vault</h1>
+        <div class="vault-header-controls">
+            <button class="btn btn--secondary" id="export-btn" onclick="exportCase()" style="display:none;">
+                ▸ Export My Case (ZIP)
+            </button>
+            <span class="vault-status" id="provider-status">Loading...</span>
         </div>
     </div>
 
-    <script>
-        let functionToken = null;
-        let functionTokenReverifySeconds = 120;
-        let functionTokenIntervalId = null;
+    <!-- REACTION: message area for upload/download feedback -->
+    <div id="vault-message"></div>
 
-        function setFunctionTokenState(token, reverifySeconds = 120) {
-            functionToken = token || null;
-            functionTokenReverifySeconds = Number(reverifySeconds) || 120;
-            if (functionToken) {
-                try {
-                    localStorage.setItem('semptify_function_token', functionToken);
-                } catch (e) {}
-            }
+    <div class="vault-card">
+        <h2>Upload Documents</h2>
+        <div class="upload-zone" id="upload-zone">
+            <div class="upload-icon">Upload</div>
+            <p>Drag &amp; drop files here or click to browse</p>
+            <p class="text-secondary mt-sm">
+                Documents are stored securely in YOUR cloud storage
+            </p>
+            <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt">
+        </div>
+    </div>
+
+    <div class="vault-card">
+        <h2>Your Documents</h2>
+        <div class="documents" id="documents-list">
+            <p class="text-secondary text-center p-lg">
+                Loading documents...
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let functionToken = null;
+    let functionTokenReverifySeconds = 120;
+    let functionTokenIntervalId = null;
+
+    function setFunctionTokenState(token, reverifySeconds = 120) {
+        functionToken = token || null;
+        functionTokenReverifySeconds = Number(reverifySeconds) || 120;
+        if (functionToken) {
+            try {
+                localStorage.setItem('semptify_function_token', functionToken);
+            } catch (e) {}
         }
+    }
 
-        async function issueFunctionToken() {
-            const res = await fetch('/storage/function-token/issue', {
-                method: 'POST',
-                credentials: 'include',
+    async function issueFunctionToken() {
+        const res = await fetch('/storage/function-token/issue', {
+            method: 'POST',
+            credentials: 'include',
+        });
+        if (!res.ok) {
+            throw new Error('Function token issue failed');
+        }
+        const data = await res.json();
+        if (data?.token) {
+            setFunctionTokenState(data.token, data.reverify_in_seconds);
+        }
+        return data;
+    }
+
+    async function verifyFunctionToken() {
+        if (!functionToken) {
+            return false;
+        }
+        try {
+            const params = new URLSearchParams({
+                refresh: 'true',
             });
-            if (!res.ok) {
-                throw new Error('Function token issue failed');
-            }
+            const res = await fetch('/storage/function-token/verify?' + params.toString(), {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'X-Function-Token': functionToken,
+                },
+            });
             const data = await res.json();
-            if (data?.token) {
-                setFunctionTokenState(data.token, data.reverify_in_seconds);
-            }
-            return data;
-        }
-
-        async function verifyFunctionToken() {
-            if (!functionToken) {
+            if (!data.valid) {
+                functionToken = null;
                 return false;
             }
-            try {
-                const params = new URLSearchParams({
-                    refresh: 'true',
-                });
-                const res = await fetch('/storage/function-token/verify?' + params.toString(), {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'X-Function-Token': functionToken,
-                    },
-                });
-                const data = await res.json();
-                if (!data.valid) {
-                    functionToken = null;
-                    return false;
-                }
-                if (data.reverify_in_seconds) {
-                    functionTokenReverifySeconds = Number(data.reverify_in_seconds) || functionTokenReverifySeconds;
-                }
+            if (data.reverify_in_seconds) {
+                functionTokenReverifySeconds = Number(data.reverify_in_seconds) || functionTokenReverifySeconds;
+            }
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function ensureFunctionToken() {
+        if (functionToken) {
+            const valid = await verifyFunctionToken();
+            if (valid) {
                 return true;
-            } catch (e) {
-                return false;
             }
         }
+        await issueFunctionToken();
+        return !!functionToken;
+    }
 
-        async function ensureFunctionToken() {
-            if (functionToken) {
-                const valid = await verifyFunctionToken();
-                if (valid) {
-                    return true;
+    function startFunctionTokenReverifyLoop() {
+        if (functionTokenIntervalId) {
+            clearInterval(functionTokenIntervalId);
+        }
+        functionTokenIntervalId = setInterval(async () => {
+            const valid = await verifyFunctionToken();
+            if (!valid) {
+                try {
+                    await issueFunctionToken();
+                } catch (e) {
+                    // Keep UI usable; upload path will surface auth errors as needed.
                 }
             }
-            await issueFunctionToken();
-            return !!functionToken;
-        }
+        }, Math.max(30, functionTokenReverifySeconds) * 1000);
+    }
 
-        function startFunctionTokenReverifyLoop() {
-            if (functionTokenIntervalId) {
-                clearInterval(functionTokenIntervalId);
+    // Vault check — run before any document access.
+    // If not connected or token expired, route through reconnect cycle
+    // with return_to so user lands back on vault after reconnecting.
+    async function vaultCheck() {
+        try {
+            const status = await fetch('/storage/status', { credentials: 'include' });
+            const data = await status.json();
+            if (data.authenticated && data.access_token) {
+                return data;
             }
-            functionTokenIntervalId = setInterval(async () => {
-                const valid = await verifyFunctionToken();
-                if (!valid) {
-                    try {
-                        await issueFunctionToken();
-                    } catch (e) {
-                        // Keep UI usable; upload path will surface auth errors as needed.
-                    }
-                }
-            }, Math.max(30, functionTokenReverifySeconds) * 1000);
+            // Not connected — run reconnect cycle
+            const returnTo = encodeURIComponent(window.location.pathname);
+            window.location.href = '/storage/reconnect?return_to=' + returnTo;
+            return null;
+        } catch (e) {
+            // Network error — try reconnect cycle
+            const returnTo = encodeURIComponent(window.location.pathname);
+            window.location.href = '/storage/reconnect?return_to=' + returnTo;
+            return null;
         }
+    }
 
-        // Vault check — run before any document access.
-        // If not connected or token expired, route through reconnect cycle
-        // with return_to so user lands back on vault after reconnecting.
-        async function vaultCheck() {
-            try {
-                const status = await fetch('/storage/status', { credentials: 'include' });
-                const data = await status.json();
-                if (data.authenticated && data.access_token) {
-                    return data;
-                }
-                // Not connected — run reconnect cycle
-                const returnTo = encodeURIComponent(window.location.pathname);
-                window.location.href = '/storage/reconnect?return_to=' + returnTo;
-                return null;
-            } catch (e) {
-                // Network error — try reconnect cycle
-                const returnTo = encodeURIComponent(window.location.pathname);
-                window.location.href = '/storage/reconnect?return_to=' + returnTo;
-                return null;
-            }
+    async function init() {
+        const data = await vaultCheck();
+        if (!data) return; // redirecting to reconnect
+
+        document.getElementById('provider-status').textContent =
+            'Connected: ' + data.provider;
+        try {
+            await ensureFunctionToken();
+            startFunctionTokenReverifyLoop();
+        } catch (e) {
+            showMessage('Vault function security check pending. Upload to initialize access token.', 'error');
         }
+        loadDocuments(data.access_token);
+    }
 
-        async function init() {
-            const data = await vaultCheck();
-            if (!data) return; // redirecting to reconnect
+    async function loadDocuments(accessToken) {
+        try {
+            // Use /api/vault/all - reads from vault database (more reliable than certificates in cloud storage)
+            const res = await fetch('/api/vault/all', {
+                credentials: 'include'
+            });
+            const data = await res.json();
 
-            document.getElementById('provider-status').textContent =
-                'Connected: ' + data.provider;
-            try {
-                await ensureFunctionToken();
-                startFunctionTokenReverifyLoop();
-            } catch (e) {
-                showMessage('Vault function security check pending. Upload to initialize access token.', 'error');
-            }
-            loadDocuments(data.access_token);
-        }
-
-        async function loadDocuments(accessToken) {
-            try {
-                // Use /api/vault/all - reads from vault database (more reliable than certificates in cloud storage)
-                const res = await fetch('/api/vault/all', {
-                    credentials: 'include'
-                });
-                const data = await res.json();
-
-                const list = document.getElementById('documents-list');
-                if (data.documents && data.documents.length > 0) {
-                    document.getElementById('export-btn').style.display = 'inline-flex';
-                    list.innerHTML = data.documents.map(doc => `
-                        <div class="doc-item">
-                            <span class="doc-icon">${getIcon(doc.mime_type)}</span>
-                            <div class="doc-info">
-                                <div class="doc-name">${doc.filename}</div>
-                                <div class="doc-meta">
-                                    ${formatSize(doc.file_size)} ·
-                                    ${new Date(doc.uploaded_at).toLocaleDateString()}
-                                </div>
+            const list = document.getElementById('documents-list');
+            if (data.documents && data.documents.length > 0) {
+                document.getElementById('export-btn').style.display = 'inline-flex';
+                list.innerHTML = data.documents.map(doc => `
+                    <div class="doc-item">
+                        <span class="doc-icon">${getIcon(doc.mime_type)}</span>
+                        <div class="doc-info">
+                            <div class="doc-name">${doc.filename}</div>
+                            <div class="doc-meta">
+                                ${formatSize(doc.file_size)} ·
+                                ${new Date(doc.uploaded_at).toLocaleDateString()}
                             </div>
-                            <button class="btn" onclick="downloadDoc('${doc.vault_id}', '${accessToken}')">
-                                Download
-                            </button>
                         </div>
-                    `).join('');
-                } else {
-                    list.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-state-icon">●</div>
-                            <p>No documents yet.</p>
-                            <p class="empty-state-hint">Upload your first document to get started.</p>
-                            <button class="btn btn--primary mt-md" onclick="openVaultUpload()">● Upload Document</button>
-                        </div>
-                    `;
-                }
-            } catch (e) {
-                document.getElementById('documents-list').innerHTML =
-                    '<p class="text-error text-center">Failed to load documents</p>';
+                        <button class="btn btn--primary btn--sm" onclick="downloadDoc('${doc.vault_id}', '${accessToken}')">
+                            Download
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">●</div>
+                        <p>No documents yet.</p>
+                        <p class="empty-state-hint">Upload your first document to get started.</p>
+                        <button class="btn btn--primary mt-md" onclick="openVaultUpload()">● Upload Document</button>
+                    </div>
+                `;
             }
+        } catch (e) {
+            document.getElementById('documents-list').innerHTML =
+                '<p class="text-error text-center">Failed to load documents</p>';
         }
+    }
 
-        function getIcon(mime) {
-            if (mime.includes('pdf')) return 'PDF';
-            if (mime.includes('image')) return 'IMG';
-            if (mime.includes('word') || mime.includes('doc')) return 'DOC';
-            return 'FILE';
-        }
+    function getIcon(mime) {
+        if (mime.includes('pdf')) return 'PDF';
+        if (mime.includes('image')) return 'IMG';
+        if (mime.includes('word') || mime.includes('doc')) return 'DOC';
+        return 'FILE';
+    }
 
-        function formatSize(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-        }
+    function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
 
-        function showMessage(text, type) {
-            const el = document.getElementById('message');
-            el.textContent = text;
-            el.className = type;
-            el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 5000);
-        }
+    function showMessage(text, type) {
+        const el = document.getElementById('vault-message');
+        el.textContent = text;
+        el.className = type;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 5000);
+    }
 
-        async function downloadDoc(id, token) {
-            window.open('/api/vault/' + id + '/download?access_token=' + token, '_blank');
-        }
+    async function downloadDoc(id, token) {
+        window.open('/api/vault/' + id + '/download?access_token=' + token, '_blank');
+    }
 
-        async function exportCase() {
-            const btn = document.getElementById('export-btn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '◆ Preparing ZIP...';
-            btn.disabled = true;
-            try {
-                const res = await fetch('/api/vault/export', { credentials: 'include' });
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({ detail: 'Export failed' }));
-                    showMessage(err.detail || 'Export failed', 'error');
-                    return;
-                }
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                const disposition = res.headers.get('Content-Disposition') || '';
-                const match = disposition.match(/filename="([^"]+)"/);
-                a.download = match ? match[1] : 'semptify-my-case.zip';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showMessage('● Case exported as ZIP', 'success');
-            } catch (e) {
-                showMessage('Export failed: ' + e.message, 'error');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+    async function exportCase() {
+        const btn = document.getElementById('export-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '◆ Preparing ZIP...';
+        btn.disabled = true;
+        try {
+            const res = await fetch('/api/vault/export', { credentials: 'include' });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ detail: 'Export failed' }));
+                showMessage(err.detail || 'Export failed', 'error');
+                return;
             }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const disposition = res.headers.get('Content-Disposition') || '';
+            const match = disposition.match(/filename="([^"]+)"/);
+            a.download = match ? match[1] : 'semptify-my-case.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showMessage('● Case exported as ZIP', 'success');
+        } catch (e) {
+            showMessage('Export failed: ' + e.message, 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
+    }
 
-        // File upload handling — route through unified vault portal
-        const uploadZone = document.getElementById('upload-zone');
-        const fileInput = document.getElementById('file-input');
+    // File upload handling — route through unified vault portal
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
 
-        uploadZone.addEventListener('click', () => openVaultUpload());
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.style.borderColor = '#3b82f6';
-        });
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.style.borderColor = 'rgba(255,255,255,0.2)';
-        });
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.style.borderColor = 'rgba(255,255,255,0.2)';
-            if (e.dataTransfer.files.length) {
-                handleVaultFiles(e.dataTransfer.files);
-            }
-        });
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length) {
-                handleVaultFiles(fileInput.files);
-            }
-            fileInput.value = '';
-        });
+    uploadZone.addEventListener('click', () => openVaultUpload());
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = 'var(--color-accent)';
+    });
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.style.borderColor = 'var(--color-border-hover)';
+    });
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = 'var(--color-border-hover)';
+        if (e.dataTransfer.files.length) {
+            handleVaultFiles(e.dataTransfer.files);
+        }
+    });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+            handleVaultFiles(fileInput.files);
+        }
+        fileInput.value = '';
+    });
 
-        // Refresh document list after portal upload completes
-        window.addEventListener('vault:uploaded', () => {
-            fetch('/storage/status', { credentials: 'include' })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.access_token) loadDocuments(data.access_token);
-                })
-                .catch(() => {});
-        });
+    // Refresh document list after portal upload completes
+    window.addEventListener('vault:uploaded', () => {
+        fetch('/storage/status', { credentials: 'include' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.access_token) loadDocuments(data.access_token);
+            })
+            .catch(() => {});
+    });
 
-        // Init on load
-        init();
-    </script>
-    <script src="/js/core/vault-portal.js?v=20260626d"></script>
-</body>
-</html>
+    // Init on load
+    init();
+</script>
+{% endblock %}

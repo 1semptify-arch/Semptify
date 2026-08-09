@@ -179,7 +179,7 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
     PageManifestEntry(
         page_id="tenant_dashboard",
         route="/tenant",
-        source_file="app/templates/pages/tenant_dashboard.html",
+        source_file="app/templates/pages/timeline.html",
         page_type="template",
         page_contract=ObjectSetCoverage(CoverageStatus.COMPLETE, "CONTRACT_TENANT registered"),
         route_guards=ObjectSetCoverage(CoverageStatus.COMPLETE, "require_user, storage validation"),

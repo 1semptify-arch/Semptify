@@ -12,10 +12,10 @@
     }
 
     .header-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(135deg, var(--color-accent, #667eea) 0%, var(--color-accent-dark, #764ba2) 100%);
+        color: var(--color-text-inverse, white);
         padding: 2rem;
-        border-radius: 12px;
+        border-radius: var(--radius-lg, 12px);
         margin-bottom: 2rem;
         display: flex;
         justify-content: space-between;
@@ -44,21 +44,21 @@
     }
 
     .btn-primary {
-        background: #2C5F2D;
-        color: white;
+        background: var(--color-success, #2C5F2D);
+        color: var(--color-text-inverse, white);
     }
 
     .btn-primary:hover {
-        background: #3a7d3b;
+        background: var(--color-success-hover, #3a7d3b);
     }
 
     .btn-secondary {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
+        background: var(--color-surface-alt, rgba(255, 255, 255, 0.2));
+        color: var(--color-text-inverse, white);
     }
 
     .btn-secondary:hover {
-        background: rgba(255, 255, 255, 0.3);
+        background: var(--color-surface, rgba(255, 255, 255, 0.3));
     }
 
     .summary-grid {
@@ -69,43 +69,42 @@
     }
 
     .summary-card {
-        background: white;
-        border-radius: 8px;
+        background: var(--color-surface, white);
+        border-radius: var(--radius-md, 8px);
         padding: 1.5rem;
     }
 
     .summary-card h3 {
         margin: 0 0 0.5rem 0;
-        color: #1f2937;
-        font-size: 0.875rem;
+        color: var(--color-text-muted, #6b7280);
+        font-size: var(--font-size-sm, 0.875rem);
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #6b7280;
     }
 
     .summary-card .value {
         font-size: 2em;
         font-weight: 700;
-        color: #2C5F2D;
+        color: var(--color-success, #2C5F2D);
         margin: 0;
     }
 
     .summary-card .subtitle {
-        font-size: 0.875rem;
-        color: #9ca3af;
+        font-size: var(--font-size-sm, 0.875rem);
+        color: var(--color-text-muted, #9ca3af);
         margin-top: 0.5rem;
     }
 
     .analysis-results {
-        background: white;
-        border-radius: 8px;
+        background: var(--color-surface, white);
+        border-radius: var(--radius-md, 8px);
         padding: 2rem;
         margin-bottom: 2rem;
     }
 
     .analysis-results h2 {
         margin: 0 0 1.5rem 0;
-        color: #1f2937;
+        color: var(--color-text-primary, #1f2937);
     }
 
     .result-item {
@@ -129,37 +128,37 @@
 
     .result-content h3 {
         margin: 0 0 0.25rem 0;
-        color: #1f2937;
+        color: var(--color-text-primary, #1f2937);
         font-size: 1rem;
     }
 
     .result-content p {
         margin: 0;
-        color: #6b7280;
-        font-size: 0.875rem;
+        color: var(--color-text-muted, #6b7280);
+        font-size: var(--font-size-sm, 0.875rem);
     }
 
     .result-status {
         padding: 0.5rem 1rem;
-        border-radius: 6px;
-        font-size: 0.875rem;
+        border-radius: var(--radius-sm, 6px);
+        font-size: var(--font-size-sm, 0.875rem);
         font-weight: 600;
         text-align: center;
     }
 
     .status-success {
-        background: #d1fae5;
-        color: #065f46;
+        background: var(--color-success-bg, #d1fae5);
+        color: var(--color-success-text, #065f46);
     }
 
     .status-warning {
-        background: #fef3c7;
-        color: #92400e;
+        background: var(--color-warning-bg, #fef3c7);
+        color: var(--color-warning-text, #92400e);
     }
 
     .status-pending {
-        background: #dbeafe;
-        color: #0c4a6e;
+        background: var(--color-info-bg, #dbeafe);
+        color: var(--color-info-text, #0c4a6e);
     }
 
     .filters {
@@ -171,17 +170,17 @@
     .filter-btn {
         padding: 0.5rem 1rem;
         border: none;
-        background: white;
-        border-radius: 6px;
+        background: var(--color-surface, white);
+        border-radius: var(--radius-sm, 6px);
         cursor: pointer;
-        font-size: 0.875rem;
+        font-size: var(--font-size-sm, 0.875rem);
         transition: all 0.3s ease;
     }
 
     .filter-btn:hover,
     .filter-btn.active {
-        background: #2C5F2D;
-        color: white;
+        background: var(--color-success, #2C5F2D);
+        color: var(--color-text-inverse, white);
     }
 
     .empty-state {
@@ -190,7 +189,7 @@
     }
 
     .empty-state p {
-        color: #6b7280;
+        color: var(--color-text-muted, #6b7280);
         margin-bottom: 1rem;
     }
 
