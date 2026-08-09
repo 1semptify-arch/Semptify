@@ -1077,7 +1077,7 @@ import requests
 # Login to get token
 login_response = requests.post('https://api.semptify.org/api/v1/auth/login', json={
     'email': 'your-email@example.com',
-    'password': 'your-password'
+    'password': 'your-password'  # pragma: allowlist secret
 })
 
 if login_response.status_code == 200:
