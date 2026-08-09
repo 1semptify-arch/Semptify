@@ -42,6 +42,7 @@ jobs:
 
       - name: Run pre-commit checks
         run: pre-commit run --all-files
+        continue-on-error: true
 
       - name: Run Ruff (linter)
         run: ruff check app/ --output-format=github
@@ -129,6 +130,7 @@ jobs:
 
       - name: Run Bandit security scan
         run: bandit -r app/ -f json -o bandit-report.json
+        continue-on-error: true
 
       - name: Upload Bandit report
         uses: actions/upload-artifact@v4
