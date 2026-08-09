@@ -133,11 +133,11 @@
     "target_model": "swe-1.7",
     "priority": "medium",
     "file_path": "app/modules/*/service.py; app/services/*.py",
-    "status": "pending",
-    "notes": "Depends on todo-045 through todo-050. Determine canonical location per product_manifest.py convention, remove the duplicate, update imports. Do not touch product_manifest.py registration logic itself.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: At least 4 exact-duplicate pairs confirmed via MD5 hash comparison: fraud_exposure (app/modules/fraud_exposure/service.py == app/services/fraud_exposure.py), public_exposure (app/modules/public_exposure/service.py == app/services/public_exposure.py), plan_maker (app/modules/plan_maker/service.py == app/services/plan_maker_service.py), crawler (app/modules/crawler/service.py == app/services/crawler.py). Other pairs (communication, intake, functionx, location, legal_filing) differ \u2014 not duplicates. 28 service.py files in app/modules/, 72 .py files in app/services/.",
+    "status": "resolved",
+    "notes": "Depends on todo-045 through todo-050. Determine canonical location per product_manifest.py convention, remove the duplicate, update imports. Do not touch product_manifest.py registration logic itself.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: At least 4 exact-duplicate pairs confirmed via MD5 hash comparison: fraud_exposure (app/modules/fraud_exposure/service.py == app/services/fraud_exposure.py), public_exposure (app/modules/public_exposure/service.py == app/services/public_exposure.py), plan_maker (app/modules/plan_maker/service.py == app/services/plan_maker_service.py), crawler (app/modules/crawler/service.py == app/services/crawler.py). Other pairs (communication, intake, functionx, location, legal_filing) differ \u00e2\u20ac\u201d not duplicates. 28 service.py files in app/modules/, 72 .py files in app/services/.\n[2026-08-09 03:49 UTC - SWE-1.7] MD5 scan found 11 exact-duplicate service pairs (not 19); removed duplicate app/services files and repointed all imports to canonical app/modules/*/service.py. Updated imports in app/services/document_flow_orchestrator.py, app/services/context_loop.py, app/modules/auto_mode/service.py, app/modules/context_loop/service.py, app/modules/research/service.py, app/modules/progress/router.py, tests/test_plan_maker.py. Verified: python -m compileall app tests, guardrail_engine, and pytest tests/test_plan_maker.py all pass.\n[2026-08-09 17:30 UTC - SWE-1.7] Confirmed resolved: no duplicate app/services/*.py files remain; canonical app/modules/<module>/service.py files still exist. Re-ran python -m compileall app tests and tools/guardrail_engine.py \u2014 all pass.",
     "created_at": "2026-08-08T00:00:00Z",
-    "updated_at": "2026-08-09T01:29:02.157263+00:00",
-    "assigned_agent": ""
+    "updated_at": "2026-08-09T17:30:00+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-055",
