@@ -122,7 +122,7 @@
     "line_start": 490,
     "line_end": 494,
     "status": "resolved",
-    "notes": "FNG_TODO.md design system task\n[2026-07-28 18:13 UTC - SWE-1.7-Max] base.html nav uses line-icon characters (\u00e2\u0152\u201a, \u00e2\u2030\u00a1, \u00e2\u0160\u017e, \u00e2\u0153\u017d, ?), not emoji.",
+    "notes": "FNG_TODO.md design system task\n[2026-07-28 18:13 UTC - SWE-1.7-Max] base.html nav uses line-icon characters (⌂, ≡, ⊞, ✎, ?), not emoji.",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T18:13:04.550542+00:00",
     "assigned_agent": "SWE-1.7-Max"
@@ -495,7 +495,7 @@
     "priority": "high",
     "file_path": "app/modules/intake/router.py",
     "status": "resolved",
-    "notes": "Preflight: app/modules/intake/router.py and the existing OCR call; check existing job/queue infrastructure. Scope: keep Pass 1 (raw OCR + bounding boxes) inside Light Intake unchanged; create a separate queued job that picks up documents in `deep_ocr_status=pending`, sets status to `processing`, and runs Pass 2 (logic in Ticket 4; can be a stub for this ticket). Do not touch: Intake's existing rough OCR call \u00e2\u20ac\u201d reuse its output, don't duplicate it. Acceptance: upload flow sets `deep_ocr_status` to `processing` and the queue picks up the job; Pass 2 can be a no-op.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
+    "notes": "Preflight: app/modules/intake/router.py and the existing OCR call; check existing job/queue infrastructure. Scope: keep Pass 1 (raw OCR + bounding boxes) inside Light Intake unchanged; create a separate queued job that picks up documents in `deep_ocr_status=pending`, sets status to `processing`, and runs Pass 2 (logic in Ticket 4; can be a stub for this ticket). Do not touch: Intake's existing rough OCR call — reuse its output, don't duplicate it. Acceptance: upload flow sets `deep_ocr_status` to `processing` and the queue picks up the job; Pass 2 can be a no-op.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T18:02:39.377392+00:00",
     "assigned_agent": "SWE-1.7-Max"
@@ -593,7 +593,7 @@
     "priority": "medium",
     "file_path": "app/modules/journal/router.py",
     "status": "resolved",
-    "notes": "Preflight: ACTIVE_CONTEXT.md (Journal listed as not-yet-built) and current JournalEntry/JournalSummary in app/core/tenant_briefcase.py (auto-generated, do not conflate). Scope: new app/modules/journal/ with model, create/read endpoints, and basic UI; each entry has free text, timestamp, optional document link, and integrity treatment via the TSA path when available. Do not touch: existing auto-generated journal summary logic \u00e2\u20ac\u201d this is additive. Acceptance: a tenant can create a free-text journal entry unrelated to any document upload and retrieve it later.\n[2026-07-28 18:07 UTC - SWE-1.7-Max] Journal module with create/read/update/delete endpoints, model, register, and tests already exists.",
+    "notes": "Preflight: ACTIVE_CONTEXT.md (Journal listed as not-yet-built) and current JournalEntry/JournalSummary in app/core/tenant_briefcase.py (auto-generated, do not conflate). Scope: new app/modules/journal/ with model, create/read endpoints, and basic UI; each entry has free text, timestamp, optional document link, and integrity treatment via the TSA path when available. Do not touch: existing auto-generated journal summary logic — this is additive. Acceptance: a tenant can create a free-text journal entry unrelated to any document upload and retrieve it later.\n[2026-07-28 18:07 UTC - SWE-1.7-Max] Journal module with create/read/update/delete endpoints, model, register, and tests already exists.",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T18:07:34.589773+00:00",
     "assigned_agent": "SWE-1.7-Max"
@@ -635,7 +635,7 @@
     "priority": "medium",
     "file_path": "app/modules/case_builder/router.py",
     "status": "resolved",
-    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding \u00e2\u20ac\u201d merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.\n[2026-07-28 18:44 UTC - SWE-1.7-Max] User chose option 3 (both marked-up and clean copies + summary in same ZIP). Starting implementation.\n[2026-07-28 19:09 UTC - devin] Implemented curated packet export endpoint and UI",
+    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding — merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.\n[2026-07-28 18:44 UTC - SWE-1.7-Max] User chose option 3 (both marked-up and clean copies + summary in same ZIP). Starting implementation.\n[2026-07-28 19:09 UTC - devin] Implemented curated packet export endpoint and UI",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T19:09:27.790379+00:00",
     "assigned_agent": "devin"
