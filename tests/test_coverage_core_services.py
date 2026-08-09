@@ -514,6 +514,42 @@ def test_preview_service_categories_text_placeholders_and_cache(tmp_path):
     asyncio_run(exercise())
 
 
+def test_vault_access_engine_lifecycle_and_audit():
+    from app.services.vault_engine import (
+        AccessLevel,
+        AccessRequest,
+        ResourceScope,
+        ResourceType,
+        VaultAccessEngine,
+    )
+
+    engine = VaultAccessEngine()
+    owner = "GUowner123"
+    other = "GUother123"
+    denied = engine.check_access(
+        AccessRequest(owner, ResourceType.DOCUMENT, "missing", AccessLevel.READ)
+    )
+    assert denied.allowed is False
+    created, _, result = engine.write(owner, ResourceType.DOCUMENT, "doc-1", {"name": "lease"}, "upload")
+    assert created is True
+    assert result.scope == ResourceScope.OWN
+    read, data, _ = engine.read(owner, ResourceType.DOCUMENT, "doc-1", "review")
+    assert read is True
+    assert data["name"] == "lease"
+    assert engine.share(owner, "doc-1", other)[0] is True
+    shared, _, shared_result = engine.read(other, ResourceType.DOCUMENT, "doc-1")
+    assert shared is True
+    assert shared_result.scope == ResourceScope.SHARED
+    assert engine.unshare(owner, "doc-1", other)[0] is True
+    assert engine.read(other, ResourceType.DOCUMENT, "doc-1")[0] is False
+    assert engine.list_resources(owner, ResourceType.DOCUMENT)[0]["id"] == "doc-1"
+    assert engine.delete(owner, ResourceType.DOCUMENT, "doc-1")[0] is True
+    assert engine.list_resources(owner) == []
+    assert engine.list_resources(owner, include_deleted=True)
+    assert engine.get_audit_log(owner, resource_id="doc-1")
+    assert engine.get_stats()["audit_entries"] >= 5
+
+
 def asyncio_run(coro):
     import asyncio
 
