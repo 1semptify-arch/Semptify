@@ -3,6 +3,6 @@
 # Set as active with: git config core.hooksPath tools/hooks
 set -e
 
-./venv311/Scripts/python.exe tools/sync_orchestrator.py
+./venv311/Scripts/python.exe tools/sync_orchestrator.py --check
 # Re-stage the generated/synced files so the commit includes them.
 git add tools/stub_tasks_new.json tools/agent_orchestrator_tasks.json Semptify_Master_Inventory_LIVE_reviewed.xlsx
