@@ -136,7 +136,18 @@ async def assemble_page(
     page_config = _apply_capability_filter(page_config, user_id, context)
 
     # 8. Apply GOVERN rules
-    govern_report = apply_govern_rules(page_config, risk_tier)
+    try:
+        govern_report = apply_govern_rules(page_config, risk_tier)
+    except ValueError as exc:
+        if "very_high_do_not_build" in str(exc):
+            return _build_govern_fallback_page(
+                subject=subject,
+                jurisdiction=jurisdiction,
+                user_id=user_id,
+                context=context,
+                risk_tier=risk_tier,
+            )
+        raise
 
     # 9. Emit legacy UI Composer components
     components: list[dict] = []
@@ -162,6 +173,72 @@ async def assemble_page(
             "major_pillar": major_pillar,
             "blend": blend_name,
             "intensity": intensity,
+            "risk_tier": risk_tier,
+        },
+    )
+
+
+def _build_govern_fallback_page(
+    subject: str,
+    jurisdiction: str,
+    user_id: str | None,
+    context: dict[str, Any],
+    risk_tier: str,
+) -> PageAssemblyResult:
+    """Return a GOVERN-only safe page for very_high_do_not_build risk."""
+    legal_aid = context.get("legal_aid_url", "https://www.lawhelpmn.org")
+    govern_blocks: list[AnyBlock] = [
+        InfoBlock(
+            block_id="govern_disclaimer",
+            content_ref="Semptify is not a lawyer and cannot represent you.",
+            reading_level="plain",
+            collapsed_by_default=False,
+            summary="This situation has strict legal deadlines and risks.",
+        ),
+        OutputBlock(
+            block_id="contact_legal_aid",
+            action_type="link",
+            label="Contact a tenant advocate or legal aid office",
+            risk_tier="high",  # type: ignore[arg-type]
+            on_trigger=legal_aid,
+        ),
+    ]
+    zones: dict[str, Zone] = {
+        pillar: Zone(
+            zone_id=pillar,  # type: ignore[arg-type]
+            level=100 if pillar == "govern" else 0,
+            max_blocks=4,
+            blocks=govern_blocks if pillar == "govern" else [],
+            layout="stack",
+        )
+        for pillar in ("record", "know", "act", "govern")
+    }
+    page_config = PageConfig(
+        page_id=f"{subject}:{jurisdiction}:{user_id or 'anonymous'}:govern_fallback",
+        major_pillar="govern",  # type: ignore[arg-type]
+        blend="govern_fallback",
+        channels=ChannelLevels(record=0, know=0, act=0, govern=100),
+        zones=zones,
+        intensity_override=100,
+        intensity_source="govern_fallback",
+    )
+    govern_report = {
+        "risk_tier": risk_tier,
+        "fallback": True,
+        "reason": "risk_tier='very_high_do_not_build' — page rejected, GOVERN-only fallback returned",
+        "suppressed_act_blocks": [],
+        "govern_clamped": False,
+    }
+    return PageAssemblyResult(
+        page_config=page_config,
+        components=[],
+        govern_report=govern_report,
+        metadata={
+            "subject": subject,
+            "jurisdiction": jurisdiction,
+            "major_pillar": "govern",
+            "blend": "govern_fallback",
+            "intensity": 100,
             "risk_tier": risk_tier,
         },
     )
