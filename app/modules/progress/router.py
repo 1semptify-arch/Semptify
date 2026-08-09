@@ -13,8 +13,8 @@ from pydantic import BaseModel
 
 from app.core.security import get_optional_user_id
 from app.core.utc import utc_now
-from app.services.emotion_engine import emotion_engine
 from app.modules.dashboard.service import progress_tracker
+from app.services.emotion_engine import emotion_engine
 
 logger = logging.getLogger(__name__)
 

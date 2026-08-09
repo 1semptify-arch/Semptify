@@ -1,14 +1,14 @@
 {
-  "SEM-2026-000050-2723": {
-    "document_id": "SEM-2026-000050-2723",
+  "SEM-2026-000155-CDB5": {
+    "document_id": "SEM-2026-000155-CDB5",
     "user_id": "user_123",
     "case_number": null,
     "original_filename": "\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442_\u0442\u0435\u0441\u0442.pdf",
     "file_size": 63,
     "mime_type": "application/pdf",
     "content_hash": "f3c0b81970e1f08029a73cfde1bbbe4fabe6801e070f26d8ee309029e42a8c8c",
-    "metadata_hash": "068adc1acaec9930f13dde12edfb637f30e2fd9cf1f232be0a170f61dc487dfb",
-    "combined_hash": "4ef4dfeed179e8bf20d3ddfffaca1a745c5cf8c88d6df36579e7cb1c4e430cd2",
+    "metadata_hash": "cb9646f088828dc63cdda87649fb9fbd1a28a5178b7f9fc1b114736da8efc5d9",
+    "combined_hash": "785e277651cd2fe67847f60babab617796361e069f87058fa943f7f5a3accd2e",
     "status": "original",
     "integrity_status": "verified",
     "is_duplicate": false,
@@ -18,89 +18,25 @@
     "forgery_alerts": [],
     "forgery_score": 0.0,
     "requires_review": false,
-    "registered_at": "2026-08-03T03:01:58.248241+00:00",
+    "registered_at": "2026-08-09T10:11:23.996990+00:00",
     "last_verified_at": null,
     "last_accessed_at": null,
-    "custody_chain": [
-      {
-        "timestamp": "2026-08-03T03:01:58.248241+00:00",
-        "action": "received",
-        "actor": "user_123",
-        "details": "Document registered: \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442_\u0442\u0435\u0441\u0442.pdf",
-        "ip_address": null,
-        "device_info": null,
-        "integrity_hash": "4ef4dfeed179e8bf20d3ddfffaca1a745c5cf8c88d6df36579e7cb1c4e430cd2"
-      }
-    ],
-    "versions": [
-      {
-        "version": 1,
-        "timestamp": "2026-08-03T03:01:58.248241+00:00",
-        "content_hash": "f3c0b81970e1f08029a73cfde1bbbe4fabe6801e070f26d8ee309029e42a8c8c",
-        "changes": "Initial registration",
-        "changed_by": "user_123"
-      }
-    ],
+    "custody_chain": [],
+    "versions": [],
     "current_version": 1,
     "storage_path": null,
     "intake_document_id": null
   },
-  "SEM-2026-000051-583E": {
-    "document_id": "SEM-2026-000051-583E",
-    "user_id": "GUtest1234",
-    "case_number": null,
-    "original_filename": "lease.pdf",
-    "file_size": 9,
-    "mime_type": "application/pdf",
-    "content_hash": "29d1283686193dc1461a7deac4f53d9bc5402a28b95d854f69e94986756fd0a9",
-    "metadata_hash": "81af041fb49fd0311fafc8fa173c1ee9111f44b1f98382ef5f65efa2ebce47ce",
-    "combined_hash": "195775030fe26179400c453c8d306f4ba4e56f925f756fc297230b5f082f0f5c",
-    "status": "original",
-    "integrity_status": "verified",
-    "is_duplicate": false,
-    "original_document_id": null,
-    "duplicate_ids": [],
-    "duplicate_count": 0,
-    "forgery_alerts": [],
-    "forgery_score": 0.0,
-    "requires_review": false,
-    "registered_at": "2026-08-03T03:14:41.004803+00:00",
-    "last_verified_at": null,
-    "last_accessed_at": null,
-    "custody_chain": [
-      {
-        "timestamp": "2026-08-03T03:14:41.004803+00:00",
-        "action": "received",
-        "actor": "GUtest1234",
-        "details": "Document registered: lease.pdf",
-        "ip_address": null,
-        "device_info": null,
-        "integrity_hash": "195775030fe26179400c453c8d306f4ba4e56f925f756fc297230b5f082f0f5c"
-      }
-    ],
-    "versions": [
-      {
-        "version": 1,
-        "timestamp": "2026-08-03T03:14:41.004803+00:00",
-        "content_hash": "29d1283686193dc1461a7deac4f53d9bc5402a28b95d854f69e94986756fd0a9",
-        "changes": "Initial registration",
-        "changed_by": "GUtest1234"
-      }
-    ],
-    "current_version": 1,
-    "storage_path": null,
-    "intake_document_id": null
-  },
-  "SEM-2026-000052-5B83": {
-    "document_id": "SEM-2026-000052-5B83",
-    "user_id": "GUtest1234",
+  "SEM-2026-000001-1C5E": {
+    "document_id": "SEM-2026-000001-1C5E",
+    "user_id": "upload_test_user",
     "case_number": null,
     "original_filename": "notice.txt",
-    "file_size": 11,
+    "file_size": 50,
     "mime_type": "text/plain",
-    "content_hash": "73e1d0f7d0c939e930500b92d4ef378c71d3b25c68276b88ef432298652cdb5a",
-    "metadata_hash": "2d167755d37856d4507c026b131c2d502e7de59e79214cc5082e15e410c2804d",
-    "combined_hash": "0138048a62afcbe1bcb9126c065068d5370b3d00a96f13789795f866b2dbd87b",
+    "content_hash": "320225a5f81c3a01117d519509a95cd25b012fc3fcecfcc91d76c0439e7ee5a0",
+    "metadata_hash": "ca36c1eee0ab18fd30d9399c1e8fc1ed80bc59748d4428a7956ad1643974388a",
+    "combined_hash": "731fd540fe908cf0fe16b53ee8c6a2a654ce04dbdf1b9904038070022020eb5b",
     "status": "original",
     "integrity_status": "verified",
     "is_duplicate": false,
@@ -110,27 +46,73 @@
     "forgery_alerts": [],
     "forgery_score": 0.0,
     "requires_review": false,
-    "registered_at": "2026-08-03T03:14:43.231529+00:00",
+    "registered_at": "2026-08-09T10:40:06.805024+00:00",
     "last_verified_at": null,
     "last_accessed_at": null,
     "custody_chain": [
       {
-        "timestamp": "2026-08-03T03:14:43.231529+00:00",
+        "timestamp": "2026-08-09T10:40:06.805024+00:00",
         "action": "received",
-        "actor": "GUtest1234",
+        "actor": "upload_test_user",
         "details": "Document registered: notice.txt",
         "ip_address": null,
         "device_info": null,
-        "integrity_hash": "0138048a62afcbe1bcb9126c065068d5370b3d00a96f13789795f866b2dbd87b"
+        "integrity_hash": "731fd540fe908cf0fe16b53ee8c6a2a654ce04dbdf1b9904038070022020eb5b"
       }
     ],
     "versions": [
       {
         "version": 1,
-        "timestamp": "2026-08-03T03:14:43.231529+00:00",
-        "content_hash": "73e1d0f7d0c939e930500b92d4ef378c71d3b25c68276b88ef432298652cdb5a",
+        "timestamp": "2026-08-09T10:40:06.805691+00:00",
+        "content_hash": "320225a5f81c3a01117d519509a95cd25b012fc3fcecfcc91d76c0439e7ee5a0",
         "changes": "Initial registration",
-        "changed_by": "GUtest1234"
+        "changed_by": "upload_test_user"
+      }
+    ],
+    "current_version": 1,
+    "storage_path": null,
+    "intake_document_id": null
+  },
+  "SEM-2026-000002-23CA": {
+    "document_id": "SEM-2026-000002-23CA",
+    "user_id": "track_test_user",
+    "case_number": null,
+    "original_filename": "test.txt",
+    "file_size": 26,
+    "mime_type": "text/plain",
+    "content_hash": "cee055d7c570a8d7eaba68933e7fb2857a7374d9622e4252bb7efd6e2d059ce6",
+    "metadata_hash": "6e25c940d6c86d391ae0ac1185f91e8cb281437cb484d3bd1d734532c931d28a",
+    "combined_hash": "ce6447b7beba3cc93997688ee8769450d3d38ddda17070c2d9a84a4bcd2c61b3",
+    "status": "original",
+    "integrity_status": "verified",
+    "is_duplicate": false,
+    "original_document_id": null,
+    "duplicate_ids": [],
+    "duplicate_count": 0,
+    "forgery_alerts": [],
+    "forgery_score": 0.0,
+    "requires_review": false,
+    "registered_at": "2026-08-09T10:40:19.160007+00:00",
+    "last_verified_at": null,
+    "last_accessed_at": null,
+    "custody_chain": [
+      {
+        "timestamp": "2026-08-09T10:40:19.160007+00:00",
+        "action": "received",
+        "actor": "track_test_user",
+        "details": "Document registered: test.txt",
+        "ip_address": null,
+        "device_info": null,
+        "integrity_hash": "ce6447b7beba3cc93997688ee8769450d3d38ddda17070c2d9a84a4bcd2c61b3"
+      }
+    ],
+    "versions": [
+      {
+        "version": 1,
+        "timestamp": "2026-08-09T10:40:19.160007+00:00",
+        "content_hash": "cee055d7c570a8d7eaba68933e7fb2857a7374d9622e4252bb7efd6e2d059ce6",
+        "changes": "Initial registration",
+        "changed_by": "track_test_user"
       }
     ],
     "current_version": 1,

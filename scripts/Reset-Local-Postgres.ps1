@@ -5,14 +5,22 @@ param(
     [string]$PgBinPath = 'C:\Program Files\PostgreSQL\16\bin',
     [string]$PgDataPath = 'C:\Program Files\PostgreSQL\16\data',
     [string]$PostgresUser = 'postgres',
-    [string]$PostgresPassword = 'postgres',
+    [string]$PostgresPassword = $env:SEMP_POSTGRES_PASSWORD,
     [string]$SemptifyUser = 'semptify',
-    [string]$SemptifyPassword = 'semptify',
+    [string]$SemptifyPassword = $env:SEMP_SEMPTIFY_PASSWORD,
     [string]$SemptifyDatabase = 'semptify',
     [int]$Port = 5432
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ([string]::IsNullOrWhiteSpace($PostgresPassword)) {
+    throw "PostgresPassword is required. Set the SEMP_POSTGRES_PASSWORD environment variable or pass -PostgresPassword."
+}
+
+if ([string]::IsNullOrWhiteSpace($SemptifyPassword)) {
+    throw "SemptifyPassword is required. Set the SEMP_SEMPTIFY_PASSWORD environment variable or pass -SemptifyPassword."
+}
 
 function Write-Info($message) {
     Write-Host "[INFO] $message" -ForegroundColor Cyan

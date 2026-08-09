@@ -36,7 +36,7 @@ def anyio_backend():
 
 
 @pytest.fixture(scope="function", autouse=True)
-async def setup_test_database(tmp_path):
+async def setup_test_database():
     """Create database tables before each test and clean up after."""
     try:
         from app.core.database import Base, get_engine
@@ -48,10 +48,10 @@ async def setup_test_database(tmp_path):
     # Import models to register them on Base.metadata; do not remove.
     from app.models import models  # noqa: F401
 
-    # Each test gets its own isolated SQLite file to avoid table-exists
-    # conflicts and cross-test file locks.
-    db_file = tmp_path / "test.db"
-    os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{db_file.as_posix()}"
+    # Use an isolated in-memory SQLite database for each test. StaticPool is
+    # selected in get_engine for :memory: URLs so the same DB instance is reused
+    # across checkouts within the same engine.
+    os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 
     # Reset cached engine so the new DATABASE_URL is used.
     get_settings.cache_clear()

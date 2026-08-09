@@ -527,8 +527,8 @@ class ContextDataLoop:
 
             try:
                 # Get the document pipeline and event extractor
-                from app.services.document_pipeline import get_document_pipeline
                 from app.modules.documents.service import get_event_extractor
+                from app.services.document_pipeline import get_document_pipeline
 
                 pipeline = get_document_pipeline()
                 extractor = get_event_extractor()
