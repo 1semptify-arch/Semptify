@@ -162,7 +162,7 @@ _RUNTIME_CONFIG = {
 @router.get("/panel", response_class=HTMLResponse)
 async def admin_panel(user: UserContext = Depends(_stealth_admin)):
     """Redirect stub panel to real dashboard."""
-    return ssot_redirect("/admin/dashboard.html", context="admin_console.panel ▸ dashboard")
+    return ssot_redirect(navigation.get_stage("admin_dashboard_html").path, context="admin_console.panel ▸ dashboard")
 
 
 @router.get("/health")

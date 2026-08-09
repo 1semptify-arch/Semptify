@@ -16,6 +16,7 @@ from sqlalchemy import select
 from app.core.database import get_db
 from app.core.id_gen import make_id
 from app.core.security import UserContext, require_tier
+from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
 from app.core.utc import utc_now
 from app.models.models import ComparisonEntry, DisputeRecord
@@ -96,7 +97,7 @@ async def create_dispute(
     )
     db.add(record)
     await db.commit()
-    return ssot_redirect("/api/dispute-tracker/", context="create dispute")
+    return ssot_redirect(navigation.get_stage("dispute_tracker_home").path, context="create dispute")
 
 
 @router.post("/comparisons")
@@ -141,4 +142,4 @@ async def create_comparison(
     )
     db.add(entry)
     await db.commit()
-    return ssot_redirect("/api/dispute-tracker/", context="create comparison")
+    return ssot_redirect(navigation.get_stage("dispute_tracker_home").path, context="create comparison")
