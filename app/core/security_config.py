@@ -98,7 +98,7 @@ class SecuritySettings(BaseSettings):
             if self.DEBUG:
                 issues.append("DEBUG mode is enabled in production")
 
-            if self.SECRET_KEY == "change-me-in-production":
+            if self.SECRET_KEY == "change-me-in-production":  # pragma: allowlist secret
                 issues.append("SECRET_KEY not changed from default")
 
             if len(self.ALLOWED_ORIGINS) == 0:

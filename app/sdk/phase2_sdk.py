@@ -453,7 +453,7 @@ async def example_usage():
 
     # Initialize SDK
     sdk = create_sdk(
-        api_base_url="https://api.semptify.org", api_key="your-api-key", enable_websockets=True, enable_2fa=True
+        api_base_url="https://api.semptify.org", api_key="your-api-key", enable_websockets=True, enable_2fa=True  # pragma: allowlist secret
     )
 
     # Authenticate with 2FA
