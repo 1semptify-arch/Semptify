@@ -46,7 +46,7 @@ psutil>=5.9.0               # System metrics for performance_monitor.py (re-enab
 # =============================================================================
 # File Processing
 # =============================================================================
-python-magic>=0.4.27        # MIME type detection (cross-platform, libmagic installed via apt in Dockerfile)
+python-magic>=0.4.27; platform_system != "Windows"  # MIME type detection (libmagic installed via apt in Dockerfile; not safe on Windows)
 Pillow>=10.0.0              # Image processing (optional)
 
 # =============================================================================
