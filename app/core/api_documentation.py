@@ -553,7 +553,7 @@ class APIDocumentationGenerator:
                                 <div class="accordion-content">
                                     <pre><code>curl -X POST {self.base_url}/api/v1/auth/login \\
   -H "Content-Type: application/json" \\
-  -d '{{"email": "your@email.com", "password": "your-password"}}'</code></pre>
+  -d '{{"email": "your@email.com", "password": "your-password"}}'</code></pre>  # pragma: allowlist secret
                                     <p>Save the returned <code>token</code> for authenticated requests.</p>
                                 </div>
                             </div>
@@ -963,7 +963,7 @@ def _register_default_modules():
             ],
             request_body={
                 "content": {
-                    "application/json": {"example": {"email": "user@example.com", "password": "securepassword123"}}
+                    "application/json": {"example": {"email": "user@example.com", "password": "securepassword123"}}  # pragma: allowlist secret
                 }
             },
             responses={
