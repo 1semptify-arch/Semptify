@@ -52,7 +52,7 @@ Tests should assert against `response.text` or `response.json()["error"]["messag
 ```bash
 export DATABASE_URL="sqlite+aiosqlite:///./test.db"
 export SECURITY_MODE="open"
-export SECRET_KEY="test-secret-key-for-local-runs-only"
+export SECRET_KEY="replace-with-local-secret"  # pragma: allowlist secret
 ```
 
 Or on Windows PowerShell:
@@ -60,5 +60,5 @@ Or on Windows PowerShell:
 ```powershell
 $env:DATABASE_URL="sqlite+aiosqlite:///./test.db"
 $env:SECURITY_MODE="open"
-$env:SECRET_KEY="test-secret-key-for-local-runs-only"
+$env:SECRET_KEY="replace-with-local-secret"  # pragma: allowlist secret
 ```
