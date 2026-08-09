@@ -1,8 +1,20 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-08 (todo-049 resolved: F821 undefined names already have correct imports)
+**Last Updated**: 2026-08-08 (todo-046 resolved: broken root scratch files already deleted)
 
 ## ✅ Completed 2026-08-08 Session
+
+### Session — todo-046 resolved: broken root scratch files already deleted
+
+- **Task**: Delete or fix broken root scratch files (syntax errors)
+- **Status**: Resolved — target files do not exist
+- **Files confirmed absent**:
+  - `deploy_part1.py` — not found
+  - `OAUTH_STATE_FIX.py` — not found
+  - `_ll_part5.py` — not found
+- **Root cause**: These files were deleted during TIER 2 cleanup (commit `c4b84a60` removed 20 orphan/scratch files)
+- **Verification**: `python -m compileall .` runs clean (only warnings from `passlib` in venv, not actual syntax errors)
+- **Todo tracking updated**: `todo-046` marked resolved in `new_audit_tasks.json`, `docs_todos.json`, `agent_orchestrator_tasks.json`
 
 ### Session — todo-049 resolved: F821 undefined names already have correct imports
 
