@@ -1,209 +1,218 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Law Library - Semptify</title>
+{% extends "base.html" %}
+{% block body_class %}template-2{% endblock %}
 
-<!-- Google Fonts: Inter + IBM Plex Mono (Design Handoff 2026-07-01) -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+{% block title %}Law Library - Semptify{% endblock %}
 
-<!-- SSOT Design System -->
-<link rel="stylesheet" href="/static/css/ssot-design-system.css">
-
+{% block styles %}
 <style>
-:root{--primary:#3b82f6;--primary-dark:#2563eb;--accent:#60a5fa;--warning:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;--success:#10b981;--bg-dark:#0f172a;--bg-card:#1e293b;--bg-hover:#334155;--text:#f8fafc;--text-muted:#94a3b8;--border:#475569;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg-dark);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
 .app-shell{display:flex;flex:1;min-height:0;}
-.sidebar{width:260px;background:var(--bg-card);border-right:1px solid var(--border);overflow-y:auto;position:sticky;top:0;height:100vh;flex-shrink:0;}
+.sidebar{width:260px;background:var(--color-bg-card);border-right:1px solid var(--color-border);overflow-y:auto;position:sticky;top:0;height:100vh;flex-shrink:0;}
 .main{flex:1;overflow-y:auto;padding:2rem;}
 @media(max-width:900px){.sidebar{display:none;}.main{padding:1rem;}}
-.top-nav{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;background:var(--bg-card);border-bottom:1px solid var(--border);margin:-2rem -2rem 1.5rem;position:sticky;top:0;z-index:50;}
+.top-nav{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;background:var(--color-bg-card);border-bottom:1px solid var(--color-border);margin:-2rem -2rem 1.5rem;position:sticky;top:0;z-index:50;}
 @media(max-width:900px){.top-nav{margin:-1rem -1rem 1rem;}}
-.top-nav a{color:var(--text-muted);text-decoration:none;padding:.4rem .75rem;border-radius:6px;font-size:.85rem;font-weight:600;transition:all .15s;}
-.top-nav a:hover{background:var(--bg-hover);color:var(--text);}
-.top-nav a.active{color:var(--primary);background:rgba(59,130,246,.15);}
-.top-nav .back-btn{margin-left:auto;color:var(--accent);}
-.top-nav .back-btn:hover{color:var(--text);}
-.sidebar-logo{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);font-size:1.1rem;font-weight:700;}
-.sidebar-section{padding:.75rem 1rem .25rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:700;}
-.nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;cursor:pointer;transition:all .15s;color:var(--text-muted);font-size:.9rem;border-left:3px solid transparent;}
-.nav-item:hover{background:var(--bg-hover);color:var(--text);}
-.nav-item.active{background:rgba(59,130,246,.15);color:var(--primary);border-left-color:var(--primary);}
-.hero{background:linear-gradient(135deg,#1e3a5f,#0f172a);border-radius:1.25rem;padding:2rem;margin-bottom:1.5rem;border:1px solid var(--border);}
+.top-nav a{color:var(--color-text-secondary);text-decoration:none;padding:.4rem .75rem;border-radius:6px;font-size:.85rem;font-weight:600;transition:all .15s;}
+.top-nav a:hover{background:var(--color-bg-hover);color:var(--color-text-primary);}
+.top-nav a.active{color:var(--color-accent);background:rgba(59,130,246,.15);}
+.top-nav .back-btn{margin-left:auto;color:var(--color-accent);}
+.top-nav .back-btn:hover{color:var(--color-text-primary);}
+.sidebar-logo{padding:1.25rem 1.5rem;border-bottom:1px solid var(--color-border);font-size:1.1rem;font-weight:700;}
+.sidebar-section{padding:.75rem 1rem .25rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-secondary);font-weight:700;}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;cursor:pointer;transition:all .15s;color:var(--color-text-secondary);font-size:.9rem;border-left:3px solid transparent;}
+.nav-item:hover{background:var(--color-bg-hover);color:var(--color-text-primary);}
+.nav-item.active{background:rgba(59,130,246,.15);color:var(--color-accent);border-left-color:var(--color-accent);}
+.hero{background:linear-gradient(135deg,#1e3a5f,#0f172a);border-radius:1.25rem;padding:2rem;margin-bottom:1.5rem;}
 .hero h1{font-size:2rem;margin-bottom:.5rem;}
 .hero-meta{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:1.5rem;}
 .hero-stat .num{font-size:1.4rem;font-weight:900;}
 .hero-stat .lbl{font-size:.7rem;text-transform:uppercase;opacity:.7;}
 .search-row{display:flex;gap:.75rem;}
-.search-input{flex:1;padding:.9rem 1.25rem;font-size:1rem;background:var(--bg-dark);border:2px solid var(--border);border-radius:.75rem;color:var(--text);}
-.search-input:focus{outline:none;border-color:var(--primary);}
-.voice-btn{padding:.9rem;background:var(--bg-hover);color:var(--text);border:2px solid var(--border);border-radius:.75rem;font-size:1.1rem;cursor:pointer;}
-.voice-btn.listening{background:rgba(239,68,68,.2);border-color:var(--danger);animation:pulse 1s infinite;}
-.search-btn{padding:.9rem 1.5rem;background:var(--primary);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;}
-.search-btn:hover{background:var(--primary-dark);}
+.search-input{flex:1;padding:.9rem 1.25rem;font-size:1rem;background:var(--color-bg-primary);border:2px solid var(--color-border);border-radius:.75rem;color:var(--color-text-primary);}
+.search-input:focus{outline:none;border-color:var(--color-accent);}
+.voice-btn{padding:.9rem;background:var(--color-bg-hover);color:var(--color-text-primary);border:2px solid var(--color-border);border-radius:.75rem;font-size:1.1rem;cursor:pointer;}
+.voice-btn.listening{background:rgba(239,68,68,.2);border-color:var(--color-error);animation:pulse 1s infinite;}
+.search-btn{padding:.9rem 1.5rem;background:var(--color-accent);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;}
+.search-btn:hover{background:var(--color-accent-hover);}
 .quick-qs{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem;}
-.quick-q{padding:.4rem .9rem;background:rgba(59,130,246,.15);border:1px solid var(--primary);border-radius:99px;color:var(--primary);font-size:.82rem;cursor:pointer;}
-.quick-q:hover{background:var(--primary);color:#fff;}
-.ai-panel{background:linear-gradient(135deg,#1e3a5f,var(--bg-card));border:2px solid var(--primary);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;}
-.ai-panel.minimized .ai-body{display:none;}
+.quick-q{padding:.4rem .9rem;background:rgba(59,130,246,.15);border:1px solid var(--color-accent);border-radius:99px;color:var(--color-accent);font-size:.82rem;cursor:pointer;}
+.quick-q:hover{background:var(--color-accent);color:#fff;}
+.ai-panel{background:linear-gradient(135deg,#1e3a5f,var(--color-bg-card));border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;}
+.ai-panel.minimized .ai-
 .ai-header{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;cursor:pointer;}
-.ai-avatar{width:44px;height:44px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+.ai-avatar{width:44px;height:44px;background:var(--color-accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
 .ai-title h3{font-size:.95rem;}
-.ai-title p{font-size:.8rem;color:var(--text-muted);}
-.ai-toggle{margin-left:auto;background:var(--bg-dark);border:none;color:var(--text-muted);width:30px;height:30px;border-radius:.5rem;cursor:pointer;}
-.ai-response{background:var(--bg-dark);border-radius:.75rem;padding:1.1rem;line-height:1.7;margin-bottom:1rem;}
-.ai-response h4{color:var(--primary);margin-bottom:.5rem;}
+.ai-title p{font-size:.8rem;color:var(--color-text-secondary);}
+.ai-toggle{margin-left:auto;background:var(--color-bg-primary);border:none;color:var(--color-text-secondary);width:30px;height:30px;border-radius:.5rem;cursor:pointer;}
+.ai-response{background:var(--color-bg-primary);border-radius:.75rem;padding:1.1rem;line-height:1.7;margin-bottom:1rem;}
+.ai-response h4{color:var(--color-accent);margin-bottom:.5rem;}
 .ai-sources{display:flex;flex-wrap:wrap;gap:.5rem;}
-.ai-source{padding:.2rem .65rem;background:var(--bg-card);border-radius:.5rem;font-size:.78rem;color:var(--text-muted);cursor:pointer;}
-.ai-source:hover{background:var(--primary);color:#fff;}
-.tab-bar{display:flex;overflow-x:auto;gap:.25rem;background:var(--bg-card);padding:.5rem;border-radius:.75rem;margin-bottom:1.5rem;scrollbar-width:none;}
-.tab-btn{flex-shrink:0;padding:.55rem 1rem;background:transparent;border:none;color:var(--text-muted);font-size:.82rem;font-weight:600;border-radius:.5rem;cursor:pointer;white-space:nowrap;}
-.tab-btn:hover{color:var(--text);}
-.tab-btn.active{background:var(--primary);color:#fff;}
+.ai-source{padding:.2rem .65rem;background:var(--color-bg-card);border-radius:.5rem;font-size:.78rem;color:var(--color-text-secondary);cursor:pointer;}
+.ai-source:hover{background:var(--color-accent);color:#fff;}
+.tab-bar{display:flex;overflow-x:auto;gap:.25rem;background:var(--color-bg-card);padding:.5rem;border-radius:.75rem;margin-bottom:1.5rem;scrollbar-width:none;}
+.tab-btn{flex-shrink:0;padding:.55rem 1rem;background:transparent;border:none;color:var(--color-text-secondary);font-size:.82rem;font-weight:600;border-radius:.5rem;cursor:pointer;white-space:nowrap;}
+.tab-btn:hover{color:var(--color-text-primary);}
+.tab-btn.active{background:var(--color-accent);color:#fff;}
 .section{display:none;}.section.active{display:block;}
 .sh{margin-bottom:1.5rem;}
 .sh h2{font-size:1.4rem;font-weight:800;}
-.sh p{font-size:.9rem;color:var(--text-muted);margin-top:.4rem;line-height:1.6;}
+.sh p{font-size:.9rem;color:var(--color-text-secondary);margin-top:.4rem;line-height:1.6;}
 .div-label{display:flex;align-items:center;gap:.75rem;margin:1.75rem 0 1.25rem;}
-.div-label span{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);white-space:nowrap;}
-.div-label::before,.div-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.div-label span{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-accent);white-space:nowrap;}
+.div-label::before,.div-label::after{content:'';flex:1;height:1px;background:var(--color-border);}
 .g2{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.25rem;margin-bottom:1.5rem;}
 .g3{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-bottom:1.5rem;}
 .fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:1.5rem;}
 .ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;}
-.card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.5rem;}
-.card.ca{border-left:4px solid var(--primary);}
-.card.cg{border-left:4px solid var(--success);}
-.card.cr{border-left:4px solid var(--danger);}
-.card.co{border-left:4px solid var(--warning);}
+.card{background:var(--color-bg-card);border-radius:14px;padding:1.5rem;}
+.card.ca{border-left:4px solid var(--color-accent);}
+.card.cg{border-left:4px solid var(--color-success);}
+.card.cr{border-left:4px solid var(--color-error);}
+.card.co{border-left:4px solid var(--color-warning);}
 .card h3{font-size:.97rem;font-weight:800;margin-bottom:.5rem;}
-.card p,.card li{font-size:.87rem;color:var(--text-muted);line-height:1.7;}
+.card p,.card li{font-size:.87rem;color:var(--color-text-secondary);line-height:1.7;}
 .card ul{padding-left:1.2rem;}
 .card li{margin-bottom:.3rem;}
-.card .tag{display:inline-block;background:rgba(59,130,246,.15);color:var(--primary);border-radius:99px;padding:.15rem .6rem;font-size:.7rem;font-weight:700;margin-bottom:.5rem;}
-.cite{font-size:.72rem;color:var(--primary);font-weight:700;margin-top:.75rem;display:block;}
-.fc{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;}
+.card .tag{display:inline-block;background:rgba(59,130,246,.15);color:var(--color-accent);border-radius:99px;padding:.15rem .6rem;font-size:.7rem;font-weight:700;margin-bottom:.5rem;}
+.cite{font-size:.72rem;color:var(--color-accent);font-weight:700;margin-top:.75rem;display:block;}
+.fc{background:var(--color-bg-card);border-radius:14px;padding:1.25rem;}
 .fc .em{font-size:1.75rem;margin-bottom:.5rem;}
 .fc h4{font-size:.88rem;font-weight:800;margin-bottom:.35rem;}
-.fc p{font-size:.82rem;color:var(--text-muted);line-height:1.65;}
-.am{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;position:relative;overflow:hidden;}
-.am::before{content:attr(data-num);position:absolute;right:.75rem;top:.3rem;font-size:3rem;font-weight:900;color:var(--bg-hover);line-height:1;}
-.am .anum{font-size:.7rem;font-weight:800;text-transform:uppercase;color:var(--primary);letter-spacing:.06em;margin-bottom:.4rem;}
+.fc p{font-size:.82rem;color:var(--color-text-secondary);line-height:1.65;}
+.am{background:var(--color-bg-card);border-radius:12px;padding:1.25rem;position:relative;overflow:hidden;}
+.am::before{content:attr(data-num);position:absolute;right:.75rem;top:.3rem;font-size:3rem;font-weight:900;color:var(--color-bg-hover);line-height:1;}
+.am .anum{font-size:.7rem;font-weight:800;text-transform:uppercase;color:var(--color-accent);letter-spacing:.06em;margin-bottom:.4rem;}
 .am h4{font-size:.9rem;font-weight:800;margin-bottom:.4rem;}
-.am p{font-size:.82rem;color:var(--text-muted);line-height:1.6;}
-.am .tu{background:rgba(16,185,129,.1);border-radius:7px;padding:.45rem .7rem;font-size:.77rem;color:var(--success);font-weight:600;margin-top:.65rem;}
-.lb{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;margin-bottom:.85rem;overflow:hidden;}
+.am p{font-size:.82rem;color:var(--color-text-secondary);line-height:1.6;}
+.am .tu{background:rgba(16,185,129,.1);border-radius:7px;padding:.45rem .7rem;font-size:.77rem;color:var(--color-success);font-weight:600;margin-top:.65rem;}
+.lb{background:var(--color-bg-card);border-radius:12px;margin-bottom:.85rem;overflow:hidden;}
 .lh{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;cursor:pointer;transition:background .1s;}
-.lh:hover{background:var(--bg-hover);}
-.ln{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;border-radius:8px;padding:.3rem .65rem;font-size:.73rem;font-weight:800;white-space:nowrap;flex-shrink:0;}
+.lh:hover{background:var(--color-bg-hover);}
+.ln{background:linear-gradient(135deg,var(--color-accent-hover),var(--color-accent));color:#fff;border-radius:8px;padding:.3rem .65rem;font-size:.73rem;font-weight:800;white-space:nowrap;flex-shrink:0;}
 .lt{font-weight:700;font-size:.93rem;flex:1;}
-.la{color:var(--text-muted);font-size:.85rem;transition:transform .2s;}
+.la{color:var(--color-text-secondary);font-size:.85rem;transition:transform .2s;}
 .lb.open .la{transform:rotate(90deg);}
-.lbd{display:none;padding:0 1.25rem 1.25rem;border-top:1px solid var(--border);}
+.lbd{display:none;padding:0 1.25rem 1.25rem;border-top:1px solid var(--color-border);}
 .lb.open .lbd{display:block;}
-.lbd p{font-size:.87rem;color:var(--text-muted);line-height:1.75;margin-top:.85rem;}
-.plain{background:var(--bg-hover);border-radius:8px;padding:.75rem 1rem;margin-top:.75rem;font-size:.84rem;color:var(--text);font-weight:500;}
-.vt{display:inline-block;margin-top:.6rem;padding:.3rem .8rem;border-radius:99px;font-size:.73rem;font-weight:700;background:rgba(16,185,129,.1);color:var(--success);border:1px solid rgba(16,185,129,.3);}
+.lbd p{font-size:.87rem;color:var(--color-text-secondary);line-height:1.75;margin-top:.85rem;}
+.plain{background:var(--color-bg-hover);border-radius:8px;padding:.75rem 1rem;margin-top:.75rem;font-size:.84rem;color:var(--color-text-primary);font-weight:500;}
+.vt{display:inline-block;margin-top:.6rem;padding:.3rem .8rem;border-radius:99px;font-size:.73rem;font-weight:700;background:rgba(16,185,129,.1);color:var(--color-success);border:1px solid rgba(16,185,129,.3);}
 .law-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:2rem;}
-.law-card{background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1.25rem;cursor:pointer;transition:all .2s;position:relative;}
-.law-card:hover{border-color:var(--primary);transform:scale(1.02);}
+.law-card{background:var(--color-bg-card);border-radius:.75rem;padding:1.25rem;cursor:pointer;transition:all .2s;position:relative;}
+.law-card:hover{border-color:var(--color-accent);transform:scale(1.02);}
 .law-card:hover .law-popout{display:block;}
 .law-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;}
 .law-title{font-size:1rem;font-weight:600;}
-.law-citation{font-size:.8rem;color:var(--primary);margin-top:.2rem;}
+.law-citation{font-size:.8rem;color:var(--color-accent);margin-top:.2rem;}
 .law-badge{padding:.2rem .5rem;border-radius:.25rem;font-size:.7rem;font-weight:700;text-transform:uppercase;}
-.law-badge.mn{background:rgba(59,130,246,.15);color:var(--primary);}
-.law-badge.federal{background:rgba(239,68,68,.15);color:var(--danger);}
-.law-badge.case{background:rgba(139,92,246,.15);color:var(--purple);}
-.law-summary{font-size:.88rem;color:var(--text-muted);line-height:1.5;margin-bottom:.75rem;}
-.card-link-index{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);font-size:.75rem;}
-.card-official-link{color:var(--primary);text-decoration:none;font-weight:600;white-space:nowrap;}
-.card-official-link:hover{color:var(--accent);text-decoration:underline;}
+.law-badge.mn{background:rgba(59,130,246,.15);color:var(--color-accent);}
+.law-badge.federal{background:rgba(239,68,68,.15);color:var(--color-error);}
+.law-badge.case{background:rgba(139,92,246,.15);color:var(--color-accent);}
+.law-summary{font-size:.88rem;color:var(--color-text-secondary);line-height:1.5;margin-bottom:.75rem;}
+.card-link-index{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--color-border);font-size:.75rem;}
+.card-official-link{color:var(--color-accent);text-decoration:none;font-weight:600;white-space:nowrap;}
+.card-official-link:hover{color:var(--color-accent);text-decoration:underline;}
 .card-verified{color:#64748b;font-style:italic;font-size:.7rem;white-space:nowrap;}
 .modal-verified{margin-top:.5rem;font-size:.75rem;color:#64748b;font-style:italic;}
-.law-popout{display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:2px solid var(--primary);border-radius:0 0 .75rem .75rem;border-top:none;padding:1rem;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.5);max-height:300px;overflow-y:auto;}
-.popout-header{color:var(--primary);font-size:.9rem;font-weight:600;margin-bottom:.5rem;}
-.popout-list{margin-left:1rem;font-size:.85rem;color:var(--text-muted);}
+.law-popout{display:none;position:absolute;top:100%;left:0;right:0;background:var(--color-bg-card);border:2px solid var(--color-accent);border-radius:0 0 .75rem .75rem;border-top:none;padding:1rem;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.5);max-height:300px;overflow-y:auto;}
+.popout-header{color:var(--color-accent);font-size:.9rem;font-weight:600;margin-bottom:.5rem;}
+.popout-list{margin-left:1rem;font-size:.85rem;color:var(--color-text-secondary);}
 .popout-list li{margin-bottom:.4rem;}
-.popout-actions{display:flex;gap:.5rem;margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--border);}
+.popout-actions{display:flex;gap:.5rem;margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--color-border);}
 .popout-btn{flex:1;padding:.55rem;border-radius:.5rem;border:none;font-size:.82rem;font-weight:600;cursor:pointer;}
-.popout-btn.primary{background:var(--primary);color:#fff;}
-.popout-btn.secondary{background:var(--bg-hover);color:var(--text);}
-.timeline-quick{background:var(--bg-card);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;}
-.timeline-item{display:flex;gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--border);}
+.popout-btn.primary{background:var(--color-accent);color:#fff;}
+.popout-btn.secondary{background:var(--color-bg-hover);color:var(--color-text-primary);}
+.timeline-quick{background:var(--color-bg-card);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;}
+.timeline-item{display:flex;gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--color-border);}
 .timeline-item:last-child{border-bottom:none;}
-.tdays{min-width:70px;font-weight:700;color:var(--warning);font-size:1.05rem;}
+.tdays{min-width:70px;font-weight:700;color:var(--color-warning);font-size:1.05rem;}
 .tcontent h4{font-size:.9rem;margin-bottom:.2rem;}
-.tcontent p{font-size:.8rem;color:var(--text-muted);}
+.tcontent p{font-size:.8rem;color:var(--color-text-secondary);}
 .tl{position:relative;padding-left:2rem;}
-.tl::before{content:'';position:absolute;left:.55rem;top:0;bottom:0;width:2px;background:var(--border);}
+.tl::before{content:'';position:absolute;left:.55rem;top:0;bottom:0;width:2px;background:var(--color-border);}
 .tli{position:relative;margin-bottom:1.5rem;}
-.tld{position:absolute;left:-1.65rem;top:.3rem;width:14px;height:14px;border-radius:50%;background:var(--primary);border:2px solid var(--bg-dark);}
-.tly{font-size:.7rem;font-weight:800;color:var(--primary);text-transform:uppercase;}
+.tld{position:absolute;left:-1.65rem;top:.3rem;width:14px;height:14px;border-radius:50%;background:var(--color-accent);border:2px solid var(--color-bg-primary);}
+.tly{font-size:.7rem;font-weight:800;color:var(--color-accent);text-transform:uppercase;}
 .tlt{font-size:.9rem;font-weight:700;margin:.15rem 0;}
-.tlb{font-size:.83rem;color:var(--text-muted);line-height:1.65;}
-.comic{background:var(--bg-card);border:2px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1.25rem;}
+.tlb{font-size:.83rem;color:var(--color-text-secondary);line-height:1.65;}
+.comic{background:var(--color-bg-card);border-radius:14px;padding:1.5rem;margin-bottom:1.25rem;}
 .ct{font-weight:800;font-size:.92rem;margin-bottom:1rem;}
 .panels{display:flex;}
-.panel{flex:1;border:1px solid var(--border);padding:.9rem;font-size:.82rem;line-height:1.5;position:relative;}
+.panel{flex:1;border:1px solid var(--color-border);padding:.9rem;font-size:.82rem;line-height:1.5;position:relative;}
 .panel:not(:last-child){border-right:none;}
 .panel:first-child{border-radius:10px 0 0 10px;}
 .panel:last-child{border-radius:0 10px 10px 0;}
-.sp{font-weight:800;font-size:.72rem;color:var(--primary);margin-bottom:.3rem;text-transform:uppercase;}
-.pn{position:absolute;top:.3rem;right:.4rem;font-size:.65rem;color:var(--text-muted);font-weight:700;}
+.sp{font-weight:800;font-size:.72rem;color:var(--color-accent);margin-bottom:.3rem;text-transform:uppercase;}
+.pn{position:absolute;top:.3rem;right:.4rem;font-size:.65rem;color:var(--color-text-secondary);font-weight:700;}
 @media(max-width:700px){.panels{flex-direction:column;}.panel:first-child{border-radius:10px 10px 0 0;}.panel:last-child{border-radius:0 0 10px 10px;}}
-.tbl{width:100%;border-collapse:collapse;font-size:.84rem;background:var(--bg-card);border-radius:12px;overflow:hidden;border:1px solid var(--border);margin-bottom:1.5rem;}
-.tbl th{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;padding:.7rem 1rem;text-align:left;font-size:.76rem;font-weight:700;text-transform:uppercase;}
-.tbl td{padding:.65rem 1rem;border-bottom:1px solid var(--border);color:var(--text-muted);vertical-align:top;}
+.tbl{width:100%;border-collapse:collapse;font-size:.84rem;background:var(--color-bg-card);border-radius:12px;overflow:hidden;margin-bottom:1.5rem;}
+.tbl th{background:linear-gradient(135deg,var(--color-accent-hover),var(--color-accent));color:#fff;padding:.7rem 1rem;text-align:left;font-size:.76rem;font-weight:700;text-transform:uppercase;}
+.tbl td{padding:.65rem 1rem;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);vertical-align:top;}
 .tbl tr:last-child td{border-bottom:none;}
-.tbl tr:hover td{background:var(--bg-hover);}
-.tbl td strong{color:var(--text);}
-.qb{background:linear-gradient(135deg,var(--primary-dark),var(--bg-card));border-radius:14px;padding:1.75rem 2rem;margin-bottom:1.5rem;position:relative;}
+.tbl tr:hover td{background:var(--color-bg-hover);}
+.tbl td strong{color:var(--color-text-primary);}
+.qb{background:linear-gradient(135deg,var(--color-accent-hover),var(--color-bg-card));border-radius:14px;padding:1.75rem 2rem;margin-bottom:1.5rem;position:relative;}
 .qb p{font-size:1rem;font-style:italic;line-height:1.75;}
 .qb cite{display:block;font-size:.78rem;opacity:.7;margin-top:.6rem;font-style:normal;font-weight:700;}
 .topics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem;margin-bottom:1.5rem;}
-.topic-card{background:var(--bg-card);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;cursor:pointer;transition:all .2s;}
-.topic-card:hover{border-color:var(--primary);transform:translateY(-4px);}
-.topic-card.emergency{border-color:var(--danger);}
+.topic-card{background:var(--color-bg-card);border-radius:1rem;padding:1.5rem;cursor:pointer;transition:all .2s;}
+.topic-card:hover{border-color:var(--color-accent);transform:translateY(-4px);}
+.topic-card.emergency{border-color:var(--color-error);}
 .topic-icon{font-size:2.2rem;margin-bottom:.75rem;}
 .topic-card h3{font-size:1rem;margin-bottom:.4rem;}
-.topic-card p{font-size:.85rem;color:var(--text-muted);}
-.sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding:1.5rem 0 .5rem;border-top:1px solid var(--border);}
+.topic-card p{font-size:.85rem;color:var(--color-text-secondary);}
+.sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding:1.5rem 0 .5rem;border-top:1px solid var(--color-border);}
 .sec-header h2{font-size:1.1rem;}
-.see-all{color:var(--primary);font-size:.85rem;cursor:pointer;}
+.see-all{color:var(--color-accent);font-size:.85rem;cursor:pointer;}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;align-items:center;justify-content:center;padding:2rem;}
 .modal-overlay.active{display:flex;}
-.modal{background:var(--bg-card);border-radius:1rem;width:100%;max-width:820px;max-height:85vh;overflow-y:auto;border:1px solid var(--border);}
-.modal-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;position:sticky;top:0;background:var(--bg-card);}
+.modal{background:var(--color-bg-card);border-radius:1rem;width:100%;max-width:820px;max-height:85vh;overflow-y:auto;}
+.modal-header{padding:1.5rem;border-bottom:1px solid var(--color-border);display:flex;justify-content:space-between;align-items:flex-start;position:sticky;top:0;background:var(--color-bg-card);}
 .modal-header h2{font-size:1.2rem;margin-bottom:.2rem;}
-.modal-citation{color:var(--primary);font-size:.9rem;}
-.modal-close{width:34px;height:34px;background:var(--bg-dark);border:none;border-radius:.5rem;color:var(--text);font-size:1.2rem;cursor:pointer;}
-.modal-body{padding:1.5rem;}
+.modal-citation{color:var(--color-accent);font-size:.9rem;}
+.modal-close{width:34px;height:34px;background:var(--color-bg-primary);border:none;border-radius:.5rem;color:var(--color-text-primary);font-size:1.2rem;cursor:pointer;}
+.modal-
 .modal-section{margin-bottom:1.5rem;}
-.modal-section h3{color:var(--primary);font-size:.95rem;margin-bottom:.75rem;}
-.key-point{padding:.65rem 1rem;background:var(--bg-dark);border-radius:.5rem;border-left:3px solid var(--primary);margin-bottom:.5rem;font-size:.88rem;}
-.disclaimer{background:rgba(245,158,11,.08);border:1px solid var(--warning);border-radius:.5rem;padding:1rem;font-size:.85rem;color:var(--warning);margin-top:2rem;}
-.loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--text-muted);}
-.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin-right:.75rem;}
+.modal-section h3{color:var(--color-accent);font-size:.95rem;margin-bottom:.75rem;}
+.key-point{padding:.65rem 1rem;background:var(--color-bg-primary);border-radius:.5rem;border-left:3px solid var(--color-accent);margin-bottom:.5rem;font-size:.88rem;}
+.disclaimer{background:rgba(245,158,11,.08);border:1px solid var(--color-warning);border-radius:.5rem;padding:1rem;font-size:.85rem;color:var(--color-warning);margin-top:2rem;}
+.loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--color-text-secondary);}
+.spinner{width:28px;height:28px;border:3px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin 1s linear infinite;margin-right:.75rem;}
 @keyframes spin{to{transform:rotate(360deg);}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
 
 /* ── Eviction Answer Tool ── */
-.ea-step-dot{width:40px;height:40px;border-radius:50%;background:var(--bg-card);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;z-index:1;position:relative;}
-.ea-step-dot.active{background:var(--primary);border-color:var(--primary);color:#fff;}
-.ea-step-dot.done{background:var(--success);border-color:var(--success);color:#fff;}
-.ea-defense-opt{display:flex;align-items:flex-start;gap:.75rem;background:var(--bg-dark);border:2px solid var(--border);border-radius:.75rem;padding:1rem;cursor:pointer;transition:border-color .15s;}
-.ea-defense-opt:hover{border-color:var(--primary);}
-.ea-defense-opt input[type=checkbox]{width:18px;height:18px;margin-top:.15rem;flex-shrink:0;accent-color:var(--primary);}
+.ea-step-dot{width:40px;height:40px;border-radius:50%;background:var(--color-bg-card);border:2px solid var(--color-border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;z-index:1;position:relative;}
+.ea-step-dot.active{background:var(--color-accent);border-color:var(--color-accent);color:#fff;}
+.ea-step-dot.done{background:var(--color-success);border-color:var(--color-success);color:#fff;}
+.ea-defense-opt{display:flex;align-items:flex-start;gap:.75rem;background:var(--color-bg-primary);border:2px solid var(--color-border);border-radius:.75rem;padding:1rem;cursor:pointer;transition:border-color .15s;}
+.ea-defense-opt:hover{border-color:var(--color-accent);}
+.ea-defense-opt input[type=checkbox]{width:18px;height:18px;margin-top:.15rem;flex-shrink:0;accent-color:var(--color-accent);}
 .ea-def-title{font-weight:600;}
-.ea-def-desc{color:var(--text-muted);font-size:.83rem;}
+.ea-def-desc{color:var(--color-text-secondary);font-size:.83rem;}
+
+@media (max-width: 768px) {
+    .app-shell { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.5rem; overflow-x: auto; }
+    .sidebar-logo { width: 100%; padding: 0.75rem 1rem; }
+    .sidebar-section { display: none; }
+    .nav-item { padding: 0.4rem 0.6rem; font-size: 0.82rem; border-left: none; border-bottom: 2px solid transparent; }
+    .nav-item.active { border-bottom-color: var(--color-accent); border-left: none; }
+    .main { padding: 1rem; }
+    .hero { padding: 1.25rem; }
+    .hero h1 { font-size: 1.5rem; }
+    .hero-meta { gap: 1rem; }
+    .search-row { flex-direction: column; }
+    .g2, .g3, .fg, .ag { grid-template-columns: 1fr; }
+    .law-cards, .topics-grid { grid-template-columns: 1fr; }
+    .tbl { font-size: 0.78rem; }
+    .tbl th, .tbl td { padding: 0.5rem 0.65rem; }
+    .modal { max-width: 95vw; max-height: 90vh; }
+    .ea-step-dot { width: 32px; height: 32px; font-size: 0.75rem; }
+}
 </style>
-</head>
-<body class="template-2">
+{% endblock %}
+
+{% block content %}
 <div class="app-shell">
 <nav class="sidebar">
   <div class="sidebar-logo">○ Law Library</div>
@@ -235,20 +244,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg-dark);color
 </nav>
 <main class="main">
 
-<!-- TOP NAV -->
-<div class="top-nav">
-  <a href="/home">○ Home</a>
-  <a href="/office">○ Office</a>
-  <a href="/tools">▸ Tools</a>
-  <a href="/library" class="active">○ Library</a>
-  <a href="/help">🆘 Help</a>
-  <a href="javascript:history.back()" class="back-btn">▸ Back</a>
-</div>
-
 <!-- HERO -->
 <div class="hero">
   <h1>&#128218; Minnesota Law Library</h1>
-  <p style="color:var(--text-muted);margin-bottom:1rem;">Federal law &middot; Minnesota 504B &middot; Local ordinances &middot; Case law &middot; Constitution &middot; Plain English.</p>
+  <p style="color:var(--color-text-secondary);margin-bottom:1rem;">Federal law &middot; Minnesota 504B &middot; Local ordinances &middot; Case law &middot; Constitution &middot; Plain English.</p>
   <div class="hero-meta">
     <div class="hero-stat"><div class="num">18</div><div class="lbl">Sections</div></div>
     <div class="hero-stat"><div class="num">100+</div><div class="lbl">Laws &amp; Cases</div></div>
@@ -746,22 +745,271 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg-dark);color
 </div>
 
 </main>
-</div><!-- /app-shell -->
 
-<!-- ===== FOOTER ===== -->
-<footer style="background:var(--bg-card);border-top:1px solid var(--border);padding:2rem 1.5rem;margin-top:0;">
-  <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem;margin-bottom:1.5rem;">
-    <div><div style="font-weight:700;font-size:1rem;margin-bottom:.5rem;">&#9878;&#65039; Semptify</div><p style="font-size:.83rem;color:var(--text-muted);line-height:1.5;margin:0;">The Tenant's Journal. Helping renters document their tenancy, understand rights, and stay organized.</p></div>
-    <div><h4 style="font-size:.85rem;margin-bottom:.75rem;color:var(--text-muted);">Legal</h4><ul style="list-style:none;padding:0;margin:0;"><li style="margin-bottom:.4rem;"><a href="/public/privacy.html" style="color:var(--text-muted);text-decoration:none;font-size:.83rem;">Privacy</a></li><li style="margin-bottom:.4rem;"><a href="/public/terms.html" style="color:var(--text-muted);text-decoration:none;font-size:.83rem;">Terms</a></li><li><a href="/public/disclaimer.html" style="color:var(--text-muted);text-decoration:none;font-size:.83rem;">Disclaimer</a></li></ul></div>
-    <div><h4 style="font-size:.85rem;margin-bottom:.75rem;color:var(--text-muted);">Help</h4><ul style="list-style:none;padding:0;margin:0;"><li style="margin-bottom:.4rem;"><a href="/public/contact.html" style="color:var(--text-muted);text-decoration:none;font-size:.83rem;">Contact</a></li><li><a href="https://www.lawhelpmn.org" target="_blank" style="color:var(--text-muted);text-decoration:none;font-size:.83rem;">MN Legal Aid</a></li></ul></div>
+<!-- ===== SECTION: STATE LAW LOOKUP ===== -->
+<div class="section" id="sec-statelookup">
+  <div class="section-header">
+    <h2 class="section-title">○ State Law Quick Reference</h2>
+    <p class="section-subtitle">Select your state to see notice periods, deposit rules, rent control status, repair deadlines, and legal aid contacts. Data verified 2025.</p>
   </div>
-  <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);padding:.75rem 1rem;border-radius:.5rem;margin-bottom:1rem;font-size:.82rem;color:var(--warning);">
-    <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
-  </div>
-  <div style="text-align:center;color:var(--text-muted);font-size:.8rem;">&#169; 2024&ndash;2026 Semptify &bull; Free Forever &bull; No Ads</div>
-</footer>
 
-<!-- ===== JAVASCRIPT ===== -->
+  <div style="max-width:420px;margin-bottom:1.5rem;">
+    <select id="state-law-select" onchange="loadStateLaw()"
+      style="width:100%;padding:.75rem 1rem;background:var(--color-bg-card);border-radius:.75rem;color:var(--color-text-primary);font-size:1rem;cursor:pointer;">
+      <option value="">— Select a State —</option>
+      <option value="CA">California</option>
+      <option value="NY">New York</option>
+      <option value="TX">Texas</option>
+      <option value="FL">Florida</option>
+      <option value="IL">Illinois</option>
+      <option value="PA">Pennsylvania</option>
+      <option value="WA">Washington</option>
+      <option value="MA">Massachusetts</option>
+      <option value="OR">Oregon</option>
+      <option value="CO">Colorado</option>
+      <option value="MI">Michigan</option>
+      <option value="OH">Ohio</option>
+      <option value="NC">North Carolina</option>
+      <option value="GA">Georgia</option>
+      <option value="AZ">Arizona</option>
+      <option value="VA">Virginia</option>
+      <option value="NJ">New Jersey</option>
+      <option value="MN">Minnesota ◆</option>
+      <option value="WI">Wisconsin</option>
+      <option value="MO">Missouri</option>
+    </select>
+  </div>
+
+  <div id="state-law-display" style="display:none;background:var(--color-bg-card);border-radius:1rem;padding:1.5rem;max-width:900px;">
+    <h3 id="sl-title" style="font-size:1.15rem;font-weight:700;color:var(--color-accent);margin-bottom:1rem;"></h3>
+    <div id="sl-content" style="font-size:.9rem;line-height:1.75;color:var(--color-text-secondary);"></div>
+    <p style="font-size:.75rem;color:var(--color-text-muted);margin-top:1rem;font-style:italic;">Last verified 2025. Always check official state statutes for updates.</p>
+  </div>
+</div>
+
+<!-- ===== SECTION: FREE LEGAL HELP ===== -->
+<div class="section" id="sec-legalaid">
+  <div class="section-header">
+    <h2 class="section-title">▸ Get Free Legal Help</h2>
+    <p class="section-subtitle">Free legal representation and advice for qualifying tenants in Minnesota.</p>
+  </div>
+
+  <div style="background:linear-gradient(135deg,#1e3a5f,var(--color-bg-card));border-radius:1rem;padding:1.5rem;text-align:center;margin-bottom:1.5rem;max-width:600px;">
+    <div style="font-size:2rem;margin-bottom:.5rem;">●</div>
+    <h3 style="font-size:1.1rem;margin-bottom:.25rem;">Legal Aid Intake Line</h3>
+    <a href="tel:1-888-354-5522" style="color:var(--color-accent);font-size:1.5rem;font-weight:700;text-decoration:none;">1-888-354-5522</a>
+    <p style="margin-top:.5rem;font-size:.85rem;color:var(--color-text-secondary);">Mon–Fri, 8am–4:30pm · Or apply at <a href="https://www.lawhelpmn.org/" target="_blank" style="color:var(--color-accent);">LawHelpMN.org</a></p>
+  </div>
+
+  <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));max-width:900px;margin-bottom:1.5rem;">
+    <div style="background:var(--color-bg-card);border-radius:.75rem;padding:1.25rem;">
+      <h4 style="color:var(--color-accent);margin-bottom:.75rem;">● Income Guidelines (2024)</h4>
+      <table style="width:100%;border-collapse:collapse;font-size:.88rem;">
+        <tr style="border-bottom:1px solid var(--color-border);"><th style="text-align:left;padding:.4rem .25rem;color:var(--color-text-secondary);">Household Size</th><th style="text-align:right;padding:.4rem .25rem;color:var(--color-text-secondary);">Annual Limit</th></tr>
+        <tr><td style="padding:.35rem .25rem;">1 person</td><td style="text-align:right;">$29,160</td></tr>
+        <tr><td style="padding:.35rem .25rem;">2 people</td><td style="text-align:right;">$39,440</td></tr>
+        <tr><td style="padding:.35rem .25rem;">3 people</td><td style="text-align:right;">$49,720</td></tr>
+        <tr><td style="padding:.35rem .25rem;">4 people</td><td style="text-align:right;">$60,000</td></tr>
+        <tr><td style="padding:.35rem .25rem;">5 people</td><td style="text-align:right;">$70,280</td></tr>
+        <tr><td style="padding:.35rem .25rem;color:var(--color-text-secondary);">Each additional</td><td style="text-align:right;color:var(--color-text-secondary);">+$10,280</td></tr>
+      </table>
+      <p style="font-size:.75rem;color:var(--color-text-muted);margin-top:.5rem;">* Always apply — special circumstances may qualify you.</p>
+    </div>
+
+    <div style="background:var(--color-bg-card);border-radius:.75rem;padding:1.25rem;">
+      <h4 style="color:var(--color-accent);margin-bottom:.75rem;">● How to Apply</h4>
+      <ol style="padding-left:1.25rem;font-size:.88rem;line-height:2;">
+        <li>Call intake: <strong>1-888-354-5522</strong></li>
+        <li>Answer screening questions about income &amp; issue</li>
+        <li>Provide proof of income, lease, any court papers</li>
+        <li>If qualified, case assigned to an attorney</li>
+        <li>Attorney contacts you to discuss next steps</li>
+      </ol>
+      <div style="background:rgba(245,158,11,.1);border-radius:.5rem;padding:.75rem;margin-top:.75rem;font-size:.83rem;">
+        ◆ <strong>Apply early!</strong> Legal Aid has limited capacity — don't wait until your court date.
+      </div>
+    </div>
+
+    <div style="background:var(--color-bg-card);border-radius:.75rem;padding:1.25rem;">
+      <h4 style="color:var(--color-accent);margin-bottom:.75rem;">● What Legal Aid Covers</h4>
+      <ul style="padding-left:1.1rem;font-size:.88rem;line-height:1.9;">
+        <li>Eviction defense &amp; court representation</li>
+        <li>Negotiating with landlords</li>
+        <li>Security deposit recovery</li>
+        <li>Habitability &amp; repair issues</li>
+        <li>Discrimination complaints</li>
+        <li>Lease violations &amp; terminations</li>
+        <li>Lockouts &amp; illegal evictions</li>
+        <li>AG, HUD, and agency complaints</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="max-width:900px;margin-bottom:1.5rem;">
+    <h4 style="color:var(--color-accent);margin-bottom:1rem;">○ Regional Offices</h4>
+    <div style="display:grid;gap:.75rem;">
+      <div style="background:var(--color-bg-card);border-radius:.75rem;padding:1rem;">
+        <strong>Mid-Minnesota Legal Aid (Twin Cities)</strong><br>
+        <span style="font-size:.85rem;color:var(--color-text-secondary);">Hennepin, Ramsey &amp; surrounding counties</span><br>
+        <a href="tel:612-334-5970" style="color:var(--color-accent);">612-334-5970</a>
+      </div>
+      <div style="background:var(--color-bg-card);border-radius:.75rem;padding:1rem;">
+        <strong>Southern Minnesota Regional Legal Services</strong><br>
+        <span style="font-size:.85rem;color:var(--color-text-secondary);">Southern Minnesota counties</span><br>
+        <a href="tel:651-222-5863" style="color:var(--color-accent);">651-222-5863</a>
+      </div>
+      <div style="background:var(--color-bg-card);border-radius:.75rem;padding:1rem;">
+        <strong>Legal Aid Service of Northeastern Minnesota</strong><br>
+        <span style="font-size:.85rem;color:var(--color-text-secondary);">Duluth &amp; northeastern Minnesota</span><br>
+        <a href="tel:218-726-4800" style="color:var(--color-accent);">218-726-4800</a>
+      </div>
+      <div style="background:var(--color-bg-card);border-radius:.75rem;padding:1rem;">
+        <strong>HOME Line Tenant Hotline</strong><br>
+        <span style="font-size:.85rem;color:var(--color-text-secondary);">Free tenant advice — statewide</span><br>
+        <a href="tel:612-728-5767" style="color:var(--color-accent);">612-728-5767</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:900px;">
+    <h4 style="color:var(--color-accent);margin-bottom:1rem;">? FAQ</h4>
+    <div style="display:grid;gap:.5rem;">
+      <details style="background:var(--color-bg-card);border-radius:.75rem;padding:1rem;">
+        <summary style="cursor:pointer;font-weight:600;">What if I don't qualify for Legal Aid?</summary>
+        <p style="margin-top:.75rem;font-size:.88rem;color:var(--color-text-secondary);">Contact HOME Line (free tenant advice), represent yourself with Semptify's help, or reach the Volunteer Lawyers Network for limited assistance.</p>
+      </details>
+      <details style="background:var(--color-bg-card);border-radius:.75rem;padding:1rem;">
+        <summary style="cursor:pointer;font-weight:600;">How long does it take to get an attorney?</summary>
+        <p style="margin-top:.75rem;font-size:.88rem;color:var(--color-text-secondary);">Depends on urgency and resources. Emergency eviction cases are prioritized — you may get a callback within a few days.</p>
+      </details>
+      <details style="background:var(--color-bg-card);border-radius:.75rem;padding:1rem;">
+        <summary style="cursor:pointer;font-weight:600;">What if I have an emergency?</summary>
+        <p style="margin-top:.75rem;font-size:.88rem;color:var(--color-text-secondary);">Call immediately and explain the urgency. If you're being locked out or face imminent eviction, say so right away so the case is triaged as emergency.</p>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION: EVICTION ANSWER TOOL ===== -->
+<div class="section" id="sec-evictionanswer">
+  <div class="section-header">
+    <h2 class="section-title">● Eviction Answer Tool</h2>
+    <p class="section-subtitle">Generate a draft Minnesota court Answer document in 5 steps. Not legal advice — review before filing.</p>
+  </div>
+
+  <!-- Progress -->
+  <div style="display:flex;justify-content:space-between;max-width:700px;margin-bottom:1.5rem;position:relative;">
+    <div style="position:absolute;top:20px;left:10%;right:10%;height:4px;background:var(--color-border);border-radius:2px;z-index:0;">
+      <div id="ea-progress-fill" style="height:100%;width:0%;background:var(--color-accent);border-radius:2px;transition:width .3s;"></div>
+    </div>
+    <div class="ea-step-dot active" id="ea-dot-1">1</div>
+    <div class="ea-step-dot" id="ea-dot-2">2</div>
+    <div class="ea-step-dot" id="ea-dot-3">3</div>
+    <div class="ea-step-dot" id="ea-dot-4">4</div>
+    <div class="ea-step-dot" id="ea-dot-5">5</div>
+  </div>
+
+  <!-- Step 1: Basic Info -->
+  <div id="ea-step1" style="background:var(--color-bg-card);border-radius:1rem;padding:1.5rem;max-width:700px;margin-bottom:1.5rem;">
+    <h3 style="margin-bottom:.25rem;">● Basic Information</h3>
+    <p style="font-size:.85rem;color:var(--color-text-secondary);margin-bottom:1.25rem;">Enter the details from your eviction papers. <strong style="color:var(--color-warning);">Minnesota: you have 7 days to respond.</strong></p>
+    <div style="display:grid;gap:1rem;grid-template-columns:1fr 1fr;">
+      <div><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Your Full Name *</label>
+        <input id="ea-tenant" placeholder="Jane Doe" style="width:100%;padding:.7rem;background:var(--color-bg-primary);border:2px solid var(--color-border);border-radius:.5rem;color:var(--color-text-primary);font-size:.95rem;"></div>
+      <div><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Landlord / Plaintiff *</label>
+        <input id="ea-landlord" placeholder="ABC Properties LLC" style="width:100%;padding:.7rem;background:var(--color-bg-primary);border:2px solid var(--color-border);border-radius:.5rem;color:var(--color-text-primary);font-size:.95rem;"></div>
+      <div><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Case Number (if known)</label>
+        <input id="ea-case" placeholder="27-CV-XX-XXXX" style="width:100%;padding:.7rem;background:var(--color-bg-primary);border:2px solid var(--color-border);border-radius:.5rem;color:var(--color-text-primary);font-size:.95rem;"></div>
+      <div><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Date Served *</label>
+        <input id="ea-served" type="date" style="width:100%;padding:.7rem;background:var(--color-bg-primary);border:2px solid var(--color-border);border-radius:.5rem;color:var(--color-text-primary);font-size:.95rem;"></div>
+    </div>
+    <div style="margin-top:1rem;"><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Property Address *</label>
+      <input id="ea-address" placeholder="123 Main St, Apt 4B, Eagan, MN 55122" style="width:100%;padding:.7rem;background:var(--color-bg-primary);border:2px solid var(--color-border);border-radius:.5rem;color:var(--color-text-primary);font-size:.95rem;"></div>
+    <div style="margin-top:1.25rem;text-align:right;"><button onclick="eaNext(1)" style="padding:.7rem 1.5rem;background:var(--color-accent);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;">Next: Defenses ▸</button></div>
+  </div>
+
+  <!-- Step 2: Defenses -->
+  <div id="ea-step2" style="display:none;background:var(--color-bg-card);border-radius:1rem;padding:1.5rem;max-width:700px;margin-bottom:1.5rem;">
+    <h3 style="margin-bottom:.25rem;">◆ Select Your Defenses</h3>
+    <p style="font-size:.85rem;color:var(--color-text-secondary);margin-bottom:1.25rem;">Check all that apply — you can select multiple.</p>
+    <div id="ea-defenses-list" style="display:grid;gap:.75rem;">
+      <label class="ea-defense-opt"><input type="checkbox" value="rent_paid"> <span class="ea-def-title">● Rent Was Paid</span><span class="ea-def-desc"> — I paid but landlord claims otherwise. I have receipts / bank records.</span></label>
+      <label class="ea-defense-opt"><input type="checkbox" value="habitability"> <span class="ea-def-title">▸ Uninhabitable Conditions</span><span class="ea-def-desc"> — No heat, water leaks, mold, pests, broken systems the landlord refused to fix.</span></label>
+      <label class="ea-defense-opt"><input type="checkbox" value="retaliation"> <span class="ea-def-title">▸ Retaliation</span><span class="ea-def-desc"> — Evicting me for complaining about repairs, reporting code violations, or joining a tenant group.</span></label>
+      <label class="ea-defense-opt"><input type="checkbox" value="improper_notice"> <span class="ea-def-title">● Improper Notice</span><span class="ea-def-desc"> — Notice was not written, too short, or not served correctly.</span></label>
+      <label class="ea-defense-opt"><input type="checkbox" value="discrimination"> <span class="ea-def-title">◆ Discrimination</span><span class="ea-def-desc"> — Evicting because of race, religion, disability, family status, or other protected class.</span></label>
+      <label class="ea-defense-opt"><input type="checkbox" value="disputed_violation"> <span class="ea-def-title">● Disputed Lease Violation</span><span class="ea-def-desc"> — I dispute the claimed violation or it's not a valid eviction basis.</span></label>
+      <label class="ea-defense-opt"><input type="checkbox" value="deposit_issues"> <span class="ea-def-title">● Security Deposit Issues</span><span class="ea-def-desc"> — Landlord owes me deposit money or made illegal deductions.</span></label>
+      <label class="ea-defense-opt"><input type="checkbox" value="other"> <span class="ea-def-title">● Other Defense</span><span class="ea-def-desc"> — I have another defense I'll explain below.</span></label>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:1.25rem;">
+      <button onclick="eaPrev(2)" style="padding:.7rem 1.25rem;background:var(--color-bg-primary);color:var(--color-text-primary);border:2px solid var(--color-border);border-radius:.75rem;cursor:pointer;">▸ Back</button>
+      <button onclick="eaNext(2)" style="padding:.7rem 1.5rem;background:var(--color-accent);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;">Next: Your Story ▸</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Statement -->
+  <div id="ea-step3" style="display:none;background:var(--color-bg-card);border-radius:1rem;padding:1.5rem;max-width:700px;margin-bottom:1.5rem;">
+    <h3 style="margin-bottom:.25rem;">● Tell Your Story</h3>
+    <p style="font-size:.85rem;color:var(--color-text-secondary);margin-bottom:1rem;">Be specific: include dates, names, and what happened.</p>
+    <div style="background:rgba(59,130,246,.1);border-radius:.5rem;padding:.75rem;font-size:.83rem;margin-bottom:1rem;">
+      ○ Tip: mention specific dates, any written communications with the landlord, and evidence you have (photos, receipts, inspection reports).
+    </div>
+    <textarea id="ea-statement" rows="7" placeholder="On January 15, 2025 I paid rent of $1,200 via money order (receipt #4521). The landlord has refused to fix the broken heater since November 2024..." style="width:100%;padding:.85rem;background:var(--color-bg-primary);border:2px solid var(--color-border);border-radius:.5rem;color:var(--color-text-primary);font-size:.9rem;resize:vertical;"></textarea>
+    <div style="margin-top:.75rem;"><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Evidence you have (optional)</label>
+      <textarea id="ea-evidence" rows="3" placeholder="- Rent receipts&#10;- Bank statements&#10;- Photos of damage&#10;- Texts with landlord" style="width:100%;padding:.85rem;background:var(--color-bg-primary);border:2px solid var(--color-border);border-radius:.5rem;color:var(--color-text-primary);font-size:.9rem;resize:vertical;"></textarea></div>
+    <div style="display:flex;justify-content:space-between;margin-top:1.25rem;">
+      <button onclick="eaPrev(3)" style="padding:.7rem 1.25rem;background:var(--color-bg-primary);color:var(--color-text-primary);border:2px solid var(--color-border);border-radius:.75rem;cursor:pointer;">▸ Back</button>
+      <button onclick="eaNext(3)" style="padding:.7rem 1.5rem;background:var(--color-accent);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;">Next: Review ▸</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Review -->
+  <div id="ea-step4" style="display:none;background:var(--color-bg-card);border-radius:1rem;padding:1.5rem;max-width:700px;margin-bottom:1.5rem;">
+    <h3 style="margin-bottom:1rem;">● Review Your Answer</h3>
+    <div id="ea-review-content" style="font-size:.9rem;line-height:1.8;color:var(--color-text-secondary);"></div>
+    <div style="background:rgba(245,158,11,.1);border-radius:.5rem;padding:.75rem;font-size:.83rem;margin-top:1rem;">
+      ◆ <strong>Disclaimer:</strong> This generates a draft document only. It is NOT legal advice. Review carefully and consider Legal Aid before filing.
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:1.25rem;">
+      <button onclick="eaPrev(4)" style="padding:.7rem 1.25rem;background:var(--color-bg-primary);color:var(--color-text-primary);border:2px solid var(--color-border);border-radius:.75rem;cursor:pointer;">▸ Edit</button>
+      <button onclick="eaGenerate()" style="padding:.7rem 1.5rem;background:var(--color-success);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;">● Generate Document</button>
+    </div>
+  </div>
+
+  <!-- Step 5: Download -->
+  <div id="ea-step5" style="display:none;background:var(--color-bg-card);border-radius:1rem;padding:1.5rem;max-width:700px;margin-bottom:1.5rem;">
+    <h3 style="margin-bottom:.25rem;">○ Your Answer is Ready!</h3>
+    <p style="font-size:.85rem;color:var(--color-text-secondary);margin-bottom:1.25rem;">Here is what to do next:</p>
+    <div style="background:rgba(16,185,129,.1);border:1px solid var(--color-success);border-radius:.5rem;padding:.75rem;font-size:.88rem;margin-bottom:1rem;">
+      ● Document generated successfully!
+    </div>
+    <ol style="padding-left:1.5rem;font-size:.9rem;line-height:2.1;margin-bottom:1.25rem;">
+      <li><strong>Print</strong> two copies of your Answer</li>
+      <li><strong>Sign</strong> both copies where indicated</li>
+      <li><strong>File</strong> at Dakota County Courthouse (or electronically)</li>
+      <li><strong>Serve</strong> one copy on the landlord or their attorney</li>
+      <li><strong>Keep</strong> one copy for your records</li>
+    </ol>
+    <div style="background:var(--color-bg-primary);border-radius:.75rem;padding:1rem;font-size:.88rem;margin-bottom:1.25rem;">
+      <strong>○ Dakota County Court</strong><br>
+      1560 Highway 55, Hastings, MN 55033<br>
+      ● <a href="tel:651-438-8100" style="color:var(--color-accent);">651-438-8100</a> · Mon–Fri 8am–4:30pm
+    </div>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+      <button onclick="eaDownload()" style="padding:.7rem 1.25rem;background:var(--color-accent);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;">● Download HTML</button>
+      <button onclick="eaPrint()" style="padding:.7rem 1.25rem;background:var(--color-bg-primary);color:var(--color-text-primary);border:2px solid var(--color-border);border-radius:.75rem;cursor:pointer;">● Print</button>
+    </div>
+    <div style="margin-top:1.25rem;font-size:.85rem;color:var(--color-text-secondary);">
+      <strong>Need help?</strong>
+      HOME Line: <a href="tel:612-728-5767" style="color:var(--color-accent);">612-728-5767</a> ·
+      Legal Aid: <a href="tel:1-888-354-5522" style="color:var(--color-accent);">1-888-354-5522</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script>
 // ── Navigation ──
 function showSection(id) {
@@ -933,15 +1181,15 @@ async function showLaw(id) {
       citation.textContent = s.citation;
       body.innerHTML = '<div class="modal-section"><h3>Summary</h3><p>' + s.summary + '</p></div>'
         + (s.key_points ? '<div class="modal-section"><h3>Key Points</h3>' + s.key_points.map(p => '<div class="key-point">' + p + '</div>').join('') + '</div>' : '')
-        + (s.full_text ? '<div class="modal-section"><h3>Full Text</h3><p style="font-family:monospace;font-size:.85rem;white-space:pre-wrap;background:var(--bg-dark);padding:1rem;border-radius:.5rem;">' + s.full_text + '</p></div>' : '')
+        + (s.full_text ? '<div class="modal-section"><h3>Full Text</h3><p style="font-family:monospace;font-size:.85rem;white-space:pre-wrap;background:var(--color-bg-primary);padding:1rem;border-radius:.5rem;">' + s.full_text + '</p></div>' : '')
         + renderOfficialSourceSection(s);
     } else {
       title.textContent = id;
-      body.innerHTML = '<div class="modal-section"><p>View the official text at:</p><a href="https://www.revisor.mn.gov/statutes/cite/' + id + '" target="_blank" style="color:var(--primary);">revisor.mn.gov/statutes/cite/' + id + ' &rarr;</a></div>';
+      body.innerHTML = '<div class="modal-section"><p>View the official text at:</p><a href="https://www.revisor.mn.gov/statutes/cite/' + id + '" target="_blank" style="color:var(--color-accent);">revisor.mn.gov/statutes/cite/' + id + ' &rarr;</a></div>';
     }
   } catch(e) {
     title.textContent = id;
-    body.innerHTML = '<div class="modal-section"><a href="https://www.revisor.mn.gov/statutes/cite/' + id + '" target="_blank" style="color:var(--primary);">View on revisor.mn.gov &rarr;</a></div>';
+    body.innerHTML = '<div class="modal-section"><a href="https://www.revisor.mn.gov/statutes/cite/' + id + '" target="_blank" style="color:var(--color-accent);">View on revisor.mn.gov &rarr;</a></div>';
   }
 }
 
@@ -950,14 +1198,14 @@ function renderOfficialSourceSection(s) {
     const sourceName = s.source_name || 'Official Source';
     const verified = s.last_verified ? '<div class="modal-verified">Last verified: ' + s.last_verified + '</div>' : '';
     return '<div class="modal-section"><h3>Official Source</h3>'
-      + '<a href="' + s.official_url + '" target="_blank" rel="noopener noreferrer" style="color:var(--primary);font-weight:600;">View on ' + sourceName + ' &rarr;</a>'
+      + '<a href="' + s.official_url + '" target="_blank" rel="noopener noreferrer" style="color:var(--color-accent);font-weight:600;">View on ' + sourceName + ' &rarr;</a>'
       + verified + '</div>';
   }
   // Fallback: build URL from citation if it's a MN statute
   const citation = s.citation || '';
   const mnMatch = citation.match(/(\d+[A-Z]?\.\d+(?:\.\d+)?)/);
   if (mnMatch) {
-    return '<div class="modal-section"><h3>Official Source</h3><a href="https://www.revisor.mn.gov/statutes/cite/' + mnMatch[1] + '" target="_blank" rel="noopener noreferrer" style="color:var(--primary);">View on revisor.mn.gov &rarr;</a></div>';
+    return '<div class="modal-section"><h3>Official Source</h3><a href="https://www.revisor.mn.gov/statutes/cite/' + mnMatch[1] + '" target="_blank" rel="noopener noreferrer" style="color:var(--color-accent);">View on revisor.mn.gov &rarr;</a></div>';
   }
   return '<div class="modal-section"><h3>Official Source</h3><p>Direct link not available. Search the citation on the official government website.</p></div>';
 }
@@ -993,6 +1241,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof SemptifyHelp !== 'undefined') SemptifyHelp.init('law_library');
 });
 </script>
+
 <script src="/static/js/semptify-auth.js"></script>
 <script>
 // ── State Law Lookup ──
@@ -1002,7 +1251,7 @@ async function loadStateLaw() {
   if (!code) { disp.style.display = 'none'; return; }
   disp.style.display = 'block';
   document.getElementById('sl-title').textContent = 'Loading...';
-  document.getElementById('sl-content').innerHTML = '<p style="color:var(--text-muted)">Loading state data...</p>';
+  document.getElementById('sl-content').innerHTML = '<p style="color:var(--color-text-secondary)">Loading state data...</p>';
   try {
     const r = await fetch(`/api/states/${code}`);
     if (!r.ok) throw new Error('not ok');
@@ -1010,53 +1259,53 @@ async function loadStateLaw() {
     document.getElementById('sl-title').textContent = (d.name || code) + ' Housing Law Summary';
     if (d.status === 'stub') {
       document.getElementById('sl-content').innerHTML =
-        `<div style="background:rgba(245,158,11,.1);border:1px solid var(--warning);border-radius:.5rem;padding:.75rem;margin-bottom:.75rem;">
-          <strong>◆ Limited data available.</strong> Visit <a href="${d.stub_url||'https://www.lawhelp.org'}" target="_blank" style="color:var(--accent);">state legal aid resources</a> for accurate information.
+        `<div style="background:rgba(245,158,11,.1);border:1px solid var(--color-warning);border-radius:.5rem;padding:.75rem;margin-bottom:.75rem;">
+          <strong>◆ Limited data available.</strong> Visit <a href="${d.stub_url||'https://www.lawhelp.org'}" target="_blank" style="color:var(--color-accent);">state legal aid resources</a> for accurate information.
         </div><p>${d.notes||''}</p>`;
     } else {
       const h = d.housing_laws||{}, n = d.notice_requirements||{}, dep = d.security_deposit||{},
             rent = d.rent_control||{}, rep = d.repairs||{}, ev = d.eviction||{},
             dis = d.discrimination||{};
       let html = `
-        <div style="background:rgba(16,185,129,.1);border:1px solid var(--success);border-radius:.5rem;padding:.6rem .9rem;margin-bottom:1rem;font-size:.85rem;">
+        <div style="background:rgba(16,185,129,.1);border:1px solid var(--color-success);border-radius:.5rem;padding:.6rem .9rem;margin-bottom:1rem;font-size:.85rem;">
           ● <strong>Detailed coverage</strong> — verified by legal aid organizations.
         </div>
-        <h4 style="color:var(--accent);margin:.75rem 0 .4rem;">▸ Housing Laws</h4>
-        <p><strong>Statute:</strong> <a href="${h.statute_url||'#'}" target="_blank" style="color:var(--accent);">${h.landlord_tenant_act||''}</a></p>
+        <h4 style="color:var(--color-accent);margin:.75rem 0 .4rem;">▸ Housing Laws</h4>
+        <p><strong>Statute:</strong> <a href="${h.statute_url||'#'}" target="_blank" style="color:var(--color-accent);">${h.landlord_tenant_act||''}</a></p>
         <p>${h.summary||''}</p>
-        <h4 style="color:var(--accent);margin:.75rem 0 .4rem;">● Notice Requirements</h4>
+        <h4 style="color:var(--color-accent);margin:.75rem 0 .4rem;">● Notice Requirements</h4>
         <ul style="padding-left:1.25rem;line-height:1.9;">
           <li><strong>Termination:</strong> ${n.termination_month_to_month||'N/A'}</li>
           <li><strong>Nonpayment:</strong> ${n.nonpayment||'N/A'}</li>
           <li><strong>Lease Violation:</strong> ${n.lease_violation||'N/A'}</li>
         </ul>
-        <h4 style="color:var(--accent);margin:.75rem 0 .4rem;">● Security Deposit</h4>
+        <h4 style="color:var(--color-accent);margin:.75rem 0 .4rem;">● Security Deposit</h4>
         <ul style="padding-left:1.25rem;line-height:1.9;">
           <li><strong>Limit:</strong> ${dep.limit||'No statutory limit'}</li>
           <li><strong>Return Deadline:</strong> ${dep.return_deadline||'N/A'}</li>
           <li><strong>Interest Required:</strong> ${dep.interest_required?'Yes':'No'}</li>
         </ul>
-        <h4 style="color:var(--accent);margin:.75rem 0 .4rem;">○ Rent Control</h4>
+        <h4 style="color:var(--color-accent);margin:.75rem 0 .4rem;">○ Rent Control</h4>
         <p>${rent.statewide?'Statewide rent control in effect':(rent.local_programs||'No statewide rent control')}</p>
-        <h4 style="color:var(--accent);margin:.75rem 0 .4rem;">▸ Repairs &amp; Habitability</h4>
+        <h4 style="color:var(--color-accent);margin:.75rem 0 .4rem;">▸ Repairs &amp; Habitability</h4>
         <p><strong>Emergency timeline:</strong> ${rep.emergency_repairs||'Reasonable time'}</p>
         ${rep.cold_weather_rule?`<p style="background:rgba(59,130,246,.1);padding:.5rem .75rem;border-radius:.5rem;margin-top:.4rem;">○ <strong>Cold Weather Rule:</strong> ${rep.cold_weather_rule}</p>`:''}
-        <h4 style="color:var(--accent);margin:.75rem 0 .4rem;">▸ Eviction</h4>
+        <h4 style="color:var(--color-accent);margin:.75rem 0 .4rem;">▸ Eviction</h4>
         <ul style="padding-left:1.25rem;line-height:1.9;">
           <li><strong>Court:</strong> ${ev.court||'County Court'}</li>
           <li><strong>Timeline:</strong> ${ev.timeline||'Varies'}</li>
           <li><strong>Lockouts:</strong> ${ev.lockout_prohibited?'Illegal (self-help eviction prohibited)':'Check local law'}</li>
         </ul>
-        <h4 style="color:var(--accent);margin:.75rem 0 .4rem;">◆ Discrimination Protections</h4>
+        <h4 style="color:var(--color-accent);margin:.75rem 0 .4rem;">◆ Discrimination Protections</h4>
         <p><strong>Protected Classes:</strong> ${(dis.protected_classes||[]).join(', ')}</p>
-        <p><a href="${dis.complaint_url||'#'}" target="_blank" style="color:var(--accent);">File complaint with ${dis.complaint_agency||'state agency'} ▸</a></p>`;
+        <p><a href="${dis.complaint_url||'#'}" target="_blank" style="color:var(--color-accent);">File complaint with ${dis.complaint_agency||'state agency'} ▸</a></p>`;
       if (d.legal_aid && d.legal_aid.length) {
-        html += `<h4 style="color:var(--accent);margin:.75rem 0 .4rem;">🆘 Legal Aid in ${d.name}</h4><div style="display:grid;gap:.5rem;">`;
+        html += `<h4 style="color:var(--color-accent);margin:.75rem 0 .4rem;">🆘 Legal Aid in ${d.name}</h4><div style="display:grid;gap:.5rem;">`;
         d.legal_aid.slice(0,3).forEach(org => {
-          html += `<div style="background:var(--bg-dark);padding:.75rem;border-radius:.5rem;">
+          html += `<div style="background:var(--color-bg-primary);padding:.75rem;border-radius:.5rem;">
             <strong>${org.name}</strong><br>
-            <span style="font-size:.83rem;color:var(--text-muted);">${org.phone?'● '+org.phone:''} ${org.counties?'| '+org.counties:'Statewide'}</span><br>
-            <a href="${org.url}" target="_blank" style="font-size:.83rem;color:var(--accent);">Visit ▸</a>
+            <span style="font-size:.83rem;color:var(--color-text-secondary);">${org.phone?'● '+org.phone:''} ${org.counties?'| '+org.counties:'Statewide'}</span><br>
+            <a href="${org.url}" target="_blank" style="font-size:.83rem;color:var(--color-accent);">Visit ▸</a>
           </div>`;
         });
         html += '</div>';
@@ -1065,7 +1314,7 @@ async function loadStateLaw() {
     }
   } catch(e) {
     document.getElementById('sl-content').innerHTML =
-      `<p style="color:var(--danger);">Could not load state data. <a href="https://www.lawhelp.org" target="_blank" style="color:var(--accent);">Try lawhelp.org ▸</a></p>`;
+      `<p style="color:var(--color-error);">Could not load state data. <a href="https://www.lawhelp.org" target="_blank" style="color:var(--color-accent);">Try lawhelp.org ▸</a></p>`;
   }
   disp.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -1170,270 +1419,4 @@ function eaPrint() {
 }
 
 </script>
-
-
-<!-- ===== SECTION: STATE LAW LOOKUP ===== -->
-<div class="section" id="sec-statelookup">
-  <div class="section-header">
-    <h2 class="section-title">○ State Law Quick Reference</h2>
-    <p class="section-subtitle">Select your state to see notice periods, deposit rules, rent control status, repair deadlines, and legal aid contacts. Data verified 2025.</p>
-  </div>
-
-  <div style="max-width:420px;margin-bottom:1.5rem;">
-    <select id="state-law-select" onchange="loadStateLaw()"
-      style="width:100%;padding:.75rem 1rem;background:var(--bg-card);border:2px solid var(--border);border-radius:.75rem;color:var(--text);font-size:1rem;cursor:pointer;">
-      <option value="">— Select a State —</option>
-      <option value="CA">California</option>
-      <option value="NY">New York</option>
-      <option value="TX">Texas</option>
-      <option value="FL">Florida</option>
-      <option value="IL">Illinois</option>
-      <option value="PA">Pennsylvania</option>
-      <option value="WA">Washington</option>
-      <option value="MA">Massachusetts</option>
-      <option value="OR">Oregon</option>
-      <option value="CO">Colorado</option>
-      <option value="MI">Michigan</option>
-      <option value="OH">Ohio</option>
-      <option value="NC">North Carolina</option>
-      <option value="GA">Georgia</option>
-      <option value="AZ">Arizona</option>
-      <option value="VA">Virginia</option>
-      <option value="NJ">New Jersey</option>
-      <option value="MN">Minnesota ◆</option>
-      <option value="WI">Wisconsin</option>
-      <option value="MO">Missouri</option>
-    </select>
-  </div>
-
-  <div id="state-law-display" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;max-width:900px;">
-    <h3 id="sl-title" style="font-size:1.15rem;font-weight:700;color:var(--accent);margin-bottom:1rem;"></h3>
-    <div id="sl-content" style="font-size:.9rem;line-height:1.75;color:var(--text-muted);"></div>
-    <p style="font-size:.75rem;color:#64748b;margin-top:1rem;font-style:italic;">Last verified 2025. Always check official state statutes for updates.</p>
-  </div>
-</div>
-
-<!-- ===== SECTION: FREE LEGAL HELP ===== -->
-<div class="section" id="sec-legalaid">
-  <div class="section-header">
-    <h2 class="section-title">▸ Get Free Legal Help</h2>
-    <p class="section-subtitle">Free legal representation and advice for qualifying tenants in Minnesota.</p>
-  </div>
-
-  <div style="background:linear-gradient(135deg,#1e3a5f,var(--bg-card));border:2px solid var(--primary);border-radius:1rem;padding:1.5rem;text-align:center;margin-bottom:1.5rem;max-width:600px;">
-    <div style="font-size:2rem;margin-bottom:.5rem;">●</div>
-    <h3 style="font-size:1.1rem;margin-bottom:.25rem;">Legal Aid Intake Line</h3>
-    <a href="tel:1-888-354-5522" style="color:#60a5fa;font-size:1.5rem;font-weight:700;text-decoration:none;">1-888-354-5522</a>
-    <p style="margin-top:.5rem;font-size:.85rem;color:var(--text-muted);">Mon–Fri, 8am–4:30pm · Or apply at <a href="https://www.lawhelpmn.org/" target="_blank" style="color:var(--accent);">LawHelpMN.org</a></p>
-  </div>
-
-  <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));max-width:900px;margin-bottom:1.5rem;">
-    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1.25rem;">
-      <h4 style="color:var(--accent);margin-bottom:.75rem;">● Income Guidelines (2024)</h4>
-      <table style="width:100%;border-collapse:collapse;font-size:.88rem;">
-        <tr style="border-bottom:1px solid var(--border);"><th style="text-align:left;padding:.4rem .25rem;color:var(--text-muted);">Household Size</th><th style="text-align:right;padding:.4rem .25rem;color:var(--text-muted);">Annual Limit</th></tr>
-        <tr><td style="padding:.35rem .25rem;">1 person</td><td style="text-align:right;">$29,160</td></tr>
-        <tr><td style="padding:.35rem .25rem;">2 people</td><td style="text-align:right;">$39,440</td></tr>
-        <tr><td style="padding:.35rem .25rem;">3 people</td><td style="text-align:right;">$49,720</td></tr>
-        <tr><td style="padding:.35rem .25rem;">4 people</td><td style="text-align:right;">$60,000</td></tr>
-        <tr><td style="padding:.35rem .25rem;">5 people</td><td style="text-align:right;">$70,280</td></tr>
-        <tr><td style="padding:.35rem .25rem;color:var(--text-muted);">Each additional</td><td style="text-align:right;color:var(--text-muted);">+$10,280</td></tr>
-      </table>
-      <p style="font-size:.75rem;color:#64748b;margin-top:.5rem;">* Always apply — special circumstances may qualify you.</p>
-    </div>
-
-    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1.25rem;">
-      <h4 style="color:var(--accent);margin-bottom:.75rem;">● How to Apply</h4>
-      <ol style="padding-left:1.25rem;font-size:.88rem;line-height:2;">
-        <li>Call intake: <strong>1-888-354-5522</strong></li>
-        <li>Answer screening questions about income &amp; issue</li>
-        <li>Provide proof of income, lease, any court papers</li>
-        <li>If qualified, case assigned to an attorney</li>
-        <li>Attorney contacts you to discuss next steps</li>
-      </ol>
-      <div style="background:rgba(245,158,11,.1);border:1px solid var(--warning);border-radius:.5rem;padding:.75rem;margin-top:.75rem;font-size:.83rem;">
-        ◆ <strong>Apply early!</strong> Legal Aid has limited capacity — don't wait until your court date.
-      </div>
-    </div>
-
-    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1.25rem;">
-      <h4 style="color:var(--accent);margin-bottom:.75rem;">● What Legal Aid Covers</h4>
-      <ul style="padding-left:1.1rem;font-size:.88rem;line-height:1.9;">
-        <li>Eviction defense &amp; court representation</li>
-        <li>Negotiating with landlords</li>
-        <li>Security deposit recovery</li>
-        <li>Habitability &amp; repair issues</li>
-        <li>Discrimination complaints</li>
-        <li>Lease violations &amp; terminations</li>
-        <li>Lockouts &amp; illegal evictions</li>
-        <li>AG, HUD, and agency complaints</li>
-      </ul>
-    </div>
-  </div>
-
-  <div style="max-width:900px;margin-bottom:1.5rem;">
-    <h4 style="color:var(--accent);margin-bottom:1rem;">○ Regional Offices</h4>
-    <div style="display:grid;gap:.75rem;">
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1rem;">
-        <strong>Mid-Minnesota Legal Aid (Twin Cities)</strong><br>
-        <span style="font-size:.85rem;color:var(--text-muted);">Hennepin, Ramsey &amp; surrounding counties</span><br>
-        <a href="tel:612-334-5970" style="color:var(--accent);">612-334-5970</a>
-      </div>
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1rem;">
-        <strong>Southern Minnesota Regional Legal Services</strong><br>
-        <span style="font-size:.85rem;color:var(--text-muted);">Southern Minnesota counties</span><br>
-        <a href="tel:651-222-5863" style="color:var(--accent);">651-222-5863</a>
-      </div>
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1rem;">
-        <strong>Legal Aid Service of Northeastern Minnesota</strong><br>
-        <span style="font-size:.85rem;color:var(--text-muted);">Duluth &amp; northeastern Minnesota</span><br>
-        <a href="tel:218-726-4800" style="color:var(--accent);">218-726-4800</a>
-      </div>
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1rem;">
-        <strong>HOME Line Tenant Hotline</strong><br>
-        <span style="font-size:.85rem;color:var(--text-muted);">Free tenant advice — statewide</span><br>
-        <a href="tel:612-728-5767" style="color:var(--accent);">612-728-5767</a>
-      </div>
-    </div>
-  </div>
-
-  <div style="max-width:900px;">
-    <h4 style="color:var(--accent);margin-bottom:1rem;">? FAQ</h4>
-    <div style="display:grid;gap:.5rem;">
-      <details style="background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1rem;">
-        <summary style="cursor:pointer;font-weight:600;">What if I don't qualify for Legal Aid?</summary>
-        <p style="margin-top:.75rem;font-size:.88rem;color:var(--text-muted);">Contact HOME Line (free tenant advice), represent yourself with Semptify's help, or reach the Volunteer Lawyers Network for limited assistance.</p>
-      </details>
-      <details style="background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1rem;">
-        <summary style="cursor:pointer;font-weight:600;">How long does it take to get an attorney?</summary>
-        <p style="margin-top:.75rem;font-size:.88rem;color:var(--text-muted);">Depends on urgency and resources. Emergency eviction cases are prioritized — you may get a callback within a few days.</p>
-      </details>
-      <details style="background:var(--bg-card);border:1px solid var(--border);border-radius:.75rem;padding:1rem;">
-        <summary style="cursor:pointer;font-weight:600;">What if I have an emergency?</summary>
-        <p style="margin-top:.75rem;font-size:.88rem;color:var(--text-muted);">Call immediately and explain the urgency. If you're being locked out or face imminent eviction, say so right away so the case is triaged as emergency.</p>
-      </details>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SECTION: EVICTION ANSWER TOOL ===== -->
-<div class="section" id="sec-evictionanswer">
-  <div class="section-header">
-    <h2 class="section-title">● Eviction Answer Tool</h2>
-    <p class="section-subtitle">Generate a draft Minnesota court Answer document in 5 steps. Not legal advice — review before filing.</p>
-  </div>
-
-  <!-- Progress -->
-  <div style="display:flex;justify-content:space-between;max-width:700px;margin-bottom:1.5rem;position:relative;">
-    <div style="position:absolute;top:20px;left:10%;right:10%;height:4px;background:var(--border);border-radius:2px;z-index:0;">
-      <div id="ea-progress-fill" style="height:100%;width:0%;background:var(--primary);border-radius:2px;transition:width .3s;"></div>
-    </div>
-    <div class="ea-step-dot active" id="ea-dot-1">1</div>
-    <div class="ea-step-dot" id="ea-dot-2">2</div>
-    <div class="ea-step-dot" id="ea-dot-3">3</div>
-    <div class="ea-step-dot" id="ea-dot-4">4</div>
-    <div class="ea-step-dot" id="ea-dot-5">5</div>
-  </div>
-
-  <!-- Step 1: Basic Info -->
-  <div id="ea-step1" style="background:var(--bg-card);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;max-width:700px;margin-bottom:1.5rem;">
-    <h3 style="margin-bottom:.25rem;">● Basic Information</h3>
-    <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1.25rem;">Enter the details from your eviction papers. <strong style="color:var(--warning);">Minnesota: you have 7 days to respond.</strong></p>
-    <div style="display:grid;gap:1rem;grid-template-columns:1fr 1fr;">
-      <div><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Your Full Name *</label>
-        <input id="ea-tenant" placeholder="Jane Doe" style="width:100%;padding:.7rem;background:var(--bg-dark);border:2px solid var(--border);border-radius:.5rem;color:var(--text);font-size:.95rem;"></div>
-      <div><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Landlord / Plaintiff *</label>
-        <input id="ea-landlord" placeholder="ABC Properties LLC" style="width:100%;padding:.7rem;background:var(--bg-dark);border:2px solid var(--border);border-radius:.5rem;color:var(--text);font-size:.95rem;"></div>
-      <div><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Case Number (if known)</label>
-        <input id="ea-case" placeholder="27-CV-XX-XXXX" style="width:100%;padding:.7rem;background:var(--bg-dark);border:2px solid var(--border);border-radius:.5rem;color:var(--text);font-size:.95rem;"></div>
-      <div><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Date Served *</label>
-        <input id="ea-served" type="date" style="width:100%;padding:.7rem;background:var(--bg-dark);border:2px solid var(--border);border-radius:.5rem;color:var(--text);font-size:.95rem;"></div>
-    </div>
-    <div style="margin-top:1rem;"><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Property Address *</label>
-      <input id="ea-address" placeholder="123 Main St, Apt 4B, Eagan, MN 55122" style="width:100%;padding:.7rem;background:var(--bg-dark);border:2px solid var(--border);border-radius:.5rem;color:var(--text);font-size:.95rem;"></div>
-    <div style="margin-top:1.25rem;text-align:right;"><button onclick="eaNext(1)" style="padding:.7rem 1.5rem;background:var(--primary);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;">Next: Defenses ▸</button></div>
-  </div>
-
-  <!-- Step 2: Defenses -->
-  <div id="ea-step2" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;max-width:700px;margin-bottom:1.5rem;">
-    <h3 style="margin-bottom:.25rem;">◆ Select Your Defenses</h3>
-    <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1.25rem;">Check all that apply — you can select multiple.</p>
-    <div id="ea-defenses-list" style="display:grid;gap:.75rem;">
-      <label class="ea-defense-opt"><input type="checkbox" value="rent_paid"> <span class="ea-def-title">● Rent Was Paid</span><span class="ea-def-desc"> — I paid but landlord claims otherwise. I have receipts / bank records.</span></label>
-      <label class="ea-defense-opt"><input type="checkbox" value="habitability"> <span class="ea-def-title">▸ Uninhabitable Conditions</span><span class="ea-def-desc"> — No heat, water leaks, mold, pests, broken systems the landlord refused to fix.</span></label>
-      <label class="ea-defense-opt"><input type="checkbox" value="retaliation"> <span class="ea-def-title">▸ Retaliation</span><span class="ea-def-desc"> — Evicting me for complaining about repairs, reporting code violations, or joining a tenant group.</span></label>
-      <label class="ea-defense-opt"><input type="checkbox" value="improper_notice"> <span class="ea-def-title">● Improper Notice</span><span class="ea-def-desc"> — Notice was not written, too short, or not served correctly.</span></label>
-      <label class="ea-defense-opt"><input type="checkbox" value="discrimination"> <span class="ea-def-title">◆ Discrimination</span><span class="ea-def-desc"> — Evicting because of race, religion, disability, family status, or other protected class.</span></label>
-      <label class="ea-defense-opt"><input type="checkbox" value="disputed_violation"> <span class="ea-def-title">● Disputed Lease Violation</span><span class="ea-def-desc"> — I dispute the claimed violation or it's not a valid eviction basis.</span></label>
-      <label class="ea-defense-opt"><input type="checkbox" value="deposit_issues"> <span class="ea-def-title">● Security Deposit Issues</span><span class="ea-def-desc"> — Landlord owes me deposit money or made illegal deductions.</span></label>
-      <label class="ea-defense-opt"><input type="checkbox" value="other"> <span class="ea-def-title">● Other Defense</span><span class="ea-def-desc"> — I have another defense I'll explain below.</span></label>
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-top:1.25rem;">
-      <button onclick="eaPrev(2)" style="padding:.7rem 1.25rem;background:var(--bg-dark);color:var(--text);border:2px solid var(--border);border-radius:.75rem;cursor:pointer;">▸ Back</button>
-      <button onclick="eaNext(2)" style="padding:.7rem 1.5rem;background:var(--primary);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;">Next: Your Story ▸</button>
-    </div>
-  </div>
-
-  <!-- Step 3: Statement -->
-  <div id="ea-step3" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;max-width:700px;margin-bottom:1.5rem;">
-    <h3 style="margin-bottom:.25rem;">● Tell Your Story</h3>
-    <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">Be specific: include dates, names, and what happened.</p>
-    <div style="background:rgba(59,130,246,.1);border:1px solid var(--primary);border-radius:.5rem;padding:.75rem;font-size:.83rem;margin-bottom:1rem;">
-      ○ Tip: mention specific dates, any written communications with the landlord, and evidence you have (photos, receipts, inspection reports).
-    </div>
-    <textarea id="ea-statement" rows="7" placeholder="On January 15, 2025 I paid rent of $1,200 via money order (receipt #4521). The landlord has refused to fix the broken heater since November 2024..." style="width:100%;padding:.85rem;background:var(--bg-dark);border:2px solid var(--border);border-radius:.5rem;color:var(--text);font-size:.9rem;resize:vertical;"></textarea>
-    <div style="margin-top:.75rem;"><label style="font-size:.85rem;display:block;margin-bottom:.35rem;">Evidence you have (optional)</label>
-      <textarea id="ea-evidence" rows="3" placeholder="- Rent receipts&#10;- Bank statements&#10;- Photos of damage&#10;- Texts with landlord" style="width:100%;padding:.85rem;background:var(--bg-dark);border:2px solid var(--border);border-radius:.5rem;color:var(--text);font-size:.9rem;resize:vertical;"></textarea></div>
-    <div style="display:flex;justify-content:space-between;margin-top:1.25rem;">
-      <button onclick="eaPrev(3)" style="padding:.7rem 1.25rem;background:var(--bg-dark);color:var(--text);border:2px solid var(--border);border-radius:.75rem;cursor:pointer;">▸ Back</button>
-      <button onclick="eaNext(3)" style="padding:.7rem 1.5rem;background:var(--primary);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;">Next: Review ▸</button>
-    </div>
-  </div>
-
-  <!-- Step 4: Review -->
-  <div id="ea-step4" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;max-width:700px;margin-bottom:1.5rem;">
-    <h3 style="margin-bottom:1rem;">● Review Your Answer</h3>
-    <div id="ea-review-content" style="font-size:.9rem;line-height:1.8;color:var(--text-muted);"></div>
-    <div style="background:rgba(245,158,11,.1);border:1px solid var(--warning);border-radius:.5rem;padding:.75rem;font-size:.83rem;margin-top:1rem;">
-      ◆ <strong>Disclaimer:</strong> This generates a draft document only. It is NOT legal advice. Review carefully and consider Legal Aid before filing.
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-top:1.25rem;">
-      <button onclick="eaPrev(4)" style="padding:.7rem 1.25rem;background:var(--bg-dark);color:var(--text);border:2px solid var(--border);border-radius:.75rem;cursor:pointer;">▸ Edit</button>
-      <button onclick="eaGenerate()" style="padding:.7rem 1.5rem;background:var(--success);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;">● Generate Document</button>
-    </div>
-  </div>
-
-  <!-- Step 5: Download -->
-  <div id="ea-step5" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;max-width:700px;margin-bottom:1.5rem;">
-    <h3 style="margin-bottom:.25rem;">○ Your Answer is Ready!</h3>
-    <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1.25rem;">Here is what to do next:</p>
-    <div style="background:rgba(16,185,129,.1);border:1px solid var(--success);border-radius:.5rem;padding:.75rem;font-size:.88rem;margin-bottom:1rem;">
-      ● Document generated successfully!
-    </div>
-    <ol style="padding-left:1.5rem;font-size:.9rem;line-height:2.1;margin-bottom:1.25rem;">
-      <li><strong>Print</strong> two copies of your Answer</li>
-      <li><strong>Sign</strong> both copies where indicated</li>
-      <li><strong>File</strong> at Dakota County Courthouse (or electronically)</li>
-      <li><strong>Serve</strong> one copy on the landlord or their attorney</li>
-      <li><strong>Keep</strong> one copy for your records</li>
-    </ol>
-    <div style="background:var(--bg-dark);border-radius:.75rem;padding:1rem;font-size:.88rem;margin-bottom:1.25rem;">
-      <strong>○ Dakota County Court</strong><br>
-      1560 Highway 55, Hastings, MN 55033<br>
-      ● <a href="tel:651-438-8100" style="color:var(--accent);">651-438-8100</a> · Mon–Fri 8am–4:30pm
-    </div>
-    <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
-      <button onclick="eaDownload()" style="padding:.7rem 1.25rem;background:var(--primary);color:#fff;border:none;border-radius:.75rem;font-weight:600;cursor:pointer;">● Download HTML</button>
-      <button onclick="eaPrint()" style="padding:.7rem 1.25rem;background:var(--bg-dark);color:var(--text);border:2px solid var(--border);border-radius:.75rem;cursor:pointer;">● Print</button>
-    </div>
-    <div style="margin-top:1.25rem;font-size:.85rem;color:var(--text-muted);">
-      <strong>Need help?</strong>
-      HOME Line: <a href="tel:612-728-5767" style="color:var(--accent);">612-728-5767</a> ·
-      Legal Aid: <a href="tel:1-888-354-5522" style="color:var(--accent);">1-888-354-5522</a>
-    </div>
-  </div>
-</div>
-
-<script src="/static/js/law-linker.js"></script>
-</body>
-</html>
+{% endblock %}
