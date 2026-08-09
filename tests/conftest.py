@@ -79,7 +79,7 @@ async def authenticated_client() -> AsyncGenerator[AsyncClient, None]:
     """Create authenticated test client with mock session in both cache and database."""
     # Use properly formatted user ID: <provider><role><8-char-unique>
     # G=Google, U=User, followed by 8 alphanumeric chars = 10 chars total
-    test_uid = "GUtest1234"  # Google + User + 8-char unique
+    test_uid = "GUfix12345"  # Google + User + 8-char unique
 
     # Create session in database
     from sqlalchemy.ext.asyncio import async_sessionmaker
