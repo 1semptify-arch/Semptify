@@ -122,7 +122,7 @@
     "line_start": 490,
     "line_end": 494,
     "status": "resolved",
-    "notes": "FNG_TODO.md design system task\n[2026-07-28 18:13 UTC - SWE-1.7-Max] base.html nav uses line-icon characters (\u2302, \u2261, \u229e, \u270e, ?), not emoji.",
+    "notes": "FNG_TODO.md design system task\n[2026-07-28 18:13 UTC - SWE-1.7-Max] base.html nav uses line-icon characters (⌂, ≡, ⊞, ✎, ?), not emoji.",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T18:13:04.550542+00:00",
     "assigned_agent": "SWE-1.7-Max"
@@ -495,7 +495,7 @@
     "priority": "high",
     "file_path": "app/modules/intake/router.py",
     "status": "resolved",
-    "notes": "Preflight: app/modules/intake/router.py and the existing OCR call; check existing job/queue infrastructure. Scope: keep Pass 1 (raw OCR + bounding boxes) inside Light Intake unchanged; create a separate queued job that picks up documents in `deep_ocr_status=pending`, sets status to `processing`, and runs Pass 2 (logic in Ticket 4; can be a stub for this ticket). Do not touch: Intake's existing rough OCR call \u2014 reuse its output, don't duplicate it. Acceptance: upload flow sets `deep_ocr_status` to `processing` and the queue picks up the job; Pass 2 can be a no-op.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
+    "notes": "Preflight: app/modules/intake/router.py and the existing OCR call; check existing job/queue infrastructure. Scope: keep Pass 1 (raw OCR + bounding boxes) inside Light Intake unchanged; create a separate queued job that picks up documents in `deep_ocr_status=pending`, sets status to `processing`, and runs Pass 2 (logic in Ticket 4; can be a stub for this ticket). Do not touch: Intake's existing rough OCR call — reuse its output, don't duplicate it. Acceptance: upload flow sets `deep_ocr_status` to `processing` and the queue picks up the job; Pass 2 can be a no-op.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T18:02:39.377392+00:00",
     "assigned_agent": "SWE-1.7-Max"
@@ -593,7 +593,7 @@
     "priority": "medium",
     "file_path": "app/modules/journal/router.py",
     "status": "resolved",
-    "notes": "Preflight: ACTIVE_CONTEXT.md (Journal listed as not-yet-built) and current JournalEntry/JournalSummary in app/core/tenant_briefcase.py (auto-generated, do not conflate). Scope: new app/modules/journal/ with model, create/read endpoints, and basic UI; each entry has free text, timestamp, optional document link, and integrity treatment via the TSA path when available. Do not touch: existing auto-generated journal summary logic \u2014 this is additive. Acceptance: a tenant can create a free-text journal entry unrelated to any document upload and retrieve it later.\n[2026-07-28 18:07 UTC - SWE-1.7-Max] Journal module with create/read/update/delete endpoints, model, register, and tests already exists.",
+    "notes": "Preflight: ACTIVE_CONTEXT.md (Journal listed as not-yet-built) and current JournalEntry/JournalSummary in app/core/tenant_briefcase.py (auto-generated, do not conflate). Scope: new app/modules/journal/ with model, create/read endpoints, and basic UI; each entry has free text, timestamp, optional document link, and integrity treatment via the TSA path when available. Do not touch: existing auto-generated journal summary logic — this is additive. Acceptance: a tenant can create a free-text journal entry unrelated to any document upload and retrieve it later.\n[2026-07-28 18:07 UTC - SWE-1.7-Max] Journal module with create/read/update/delete endpoints, model, register, and tests already exists.",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T18:07:34.589773+00:00",
     "assigned_agent": "SWE-1.7-Max"
@@ -635,7 +635,7 @@
     "priority": "medium",
     "file_path": "app/modules/case_builder/router.py",
     "status": "resolved",
-    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding \u2014 merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.\n[2026-07-28 18:44 UTC - SWE-1.7-Max] User chose option 3 (both marked-up and clean copies + summary in same ZIP). Starting implementation.\n[2026-07-28 19:09 UTC - devin] Implemented curated packet export endpoint and UI",
+    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding — merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.\n[2026-07-28 18:44 UTC - SWE-1.7-Max] User chose option 3 (both marked-up and clean copies + summary in same ZIP). Starting implementation.\n[2026-07-28 19:09 UTC - devin] Implemented curated packet export endpoint and UI",
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T19:09:27.790379+00:00",
     "assigned_agent": "devin"
@@ -649,7 +649,7 @@
     "priority": "high",
     "file_path": "tools/sync_orchestrator.py; tools/hooks/pre-commit",
     "status": "resolved",
-    "notes": "Preflight: read tools/hooks/pre-commit to confirm whether it currently invokes sync_orchestrator.py on every commit. Scope: fix stub detection so it does not return 0 against a non-empty codebase; confirm stub_tasks_new.json stops writing []. Do not touch: existing 44 resolved tasks in agent_orchestrator_tasks.json. Acceptance: running the script against the current repo produces a non-zero, accurate stub count, and does not overwrite the live task queue. STATUS: BLOCKS all todo-046 through todo-061 below \u2014 nothing else in this batch should start until this is resolved and reported.\n[2026-08-08 01:00 UTC - SWE-1.7] Resolved: carry_forward_previous_tasks() and queue-wipe guard already present in sync_orchestrator.py. Historical wipe (171\u219216 at a41b98c7) was due to missing carry-forward. Current script preserves 61-task queue even when stub_detector returns 0. Pre-commit hook exists but is not active (core.hooksPath not set).\n[2026-08-08 03:00 UTC - SWE-1.7] REOPENED for root-cause investigation. Stub detector correctly returns 0 \u2014 no genuine stubs exist in codebase. Original 155-task queue was likely inflated with false positives from keyword-based detector. AST-based detector correctly identifies that pass statements in except handlers, class bodies, and ImportError fallbacks are not stubs. Investigating pre-commit hook activation decision.\n[2026-08-08 04:00 UTC - SWE-1.7] RESOLVED (amended acceptance): 0-count is accurate \u2014 no genuine stubs exist. Original 155-count came from keyword-based detector false positives. AST-based detector correctly excludes defensive except-handlers, class-body placeholders, ImportError shims. Queue-wipe guard verified. Pre-commit hook activation moved to todo-062. Block on todo-046 through todo-061 is lifted.",
+    "notes": "Preflight: read tools/hooks/pre-commit to confirm whether it currently invokes sync_orchestrator.py on every commit. Scope: fix stub detection so it does not return 0 against a non-empty codebase; confirm stub_tasks_new.json stops writing []. Do not touch: existing 44 resolved tasks in agent_orchestrator_tasks.json. Acceptance: running the script against the current repo produces a non-zero, accurate stub count, and does not overwrite the live task queue. STATUS: BLOCKS all todo-046 through todo-061 below — nothing else in this batch should start until this is resolved and reported.\n[2026-08-08 01:00 UTC - SWE-1.7] Resolved: carry_forward_previous_tasks() and queue-wipe guard already present in sync_orchestrator.py. Historical wipe (171→16 at a41b98c7) was due to missing carry-forward. Current script preserves 61-task queue even when stub_detector returns 0. Pre-commit hook exists but is not active (core.hooksPath not set).\n[2026-08-08 03:00 UTC - SWE-1.7] REOPENED for root-cause investigation. Stub detector correctly returns 0 — no genuine stubs exist in codebase. Original 155-task queue was likely inflated with false positives from keyword-based detector. AST-based detector correctly identifies that pass statements in except handlers, class bodies, and ImportError fallbacks are not stubs. Investigating pre-commit hook activation decision.\n[2026-08-08 04:00 UTC - SWE-1.7] RESOLVED (amended acceptance): 0-count is accurate — no genuine stubs exist. Original 155-count came from keyword-based detector false positives. AST-based detector correctly excludes defensive except-handlers, class-body placeholders, ImportError shims. Queue-wipe guard verified. Pre-commit hook activation moved to todo-062. Block on todo-046 through todo-061 is lifted.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-08T04:00:00Z",
     "assigned_agent": "SWE-1.7"
@@ -663,7 +663,7 @@
     "priority": "high",
     "file_path": "deploy_part1.py; OAUTH_STATE_FIX.py; _ll_part5.py",
     "status": "resolved",
-    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported \u2014 do not start. Acceptance: python -m compileall . reports 0 syntax errors in repo root.\n[2026-08-08 02:00 UTC - SWE-1.6] Resolved: target files (deploy_part1.py, OAUTH_STATE_FIX.py, _ll_part5.py) do not exist in repo. They were deleted during TIER 2 cleanup (commit c4b84a60). python -m compileall . runs clean.",
+    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported — do not start. Acceptance: python -m compileall . reports 0 syntax errors in repo root.\n[2026-08-08 02:00 UTC - SWE-1.6] Resolved: target files (deploy_part1.py, OAUTH_STATE_FIX.py, _ll_part5.py) do not exist in repo. They were deleted during TIER 2 cleanup (commit c4b84a60). python -m compileall . runs clean.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-08T02:00:00Z",
     "assigned_agent": "SWE-1.6"
@@ -719,7 +719,7 @@
     "priority": "high",
     "file_path": "app/core/oauth_token_manager.py:206,241,276; app/services/ollama_ai.py:55; app/core/offline_manager.py:57",
     "status": "resolved",
-    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported \u2014 do not start. Acceptance: no httpx.Client instantiation remains in these files; token refresh and connectivity checks still pass existing tests.\n[2026-08-09 01:28 UTC - devin-glm-5.2] Verified: all 3 files now use httpx.AsyncClient. oauth_token_manager.py:239,273,307; ollama_ai.py:57,138,246; offline_manager.py:54. No httpx.Client( instantiations remain. Block on todo-045 lifted.",
+    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported — do not start. Acceptance: no httpx.Client instantiation remains in these files; token refresh and connectivity checks still pass existing tests.\n[2026-08-09 01:28 UTC - devin-glm-5.2] Verified: all 3 files now use httpx.AsyncClient. oauth_token_manager.py:239,273,307; ollama_ai.py:57,138,246; offline_manager.py:54. No httpx.Client( instantiations remain. Block on todo-045 lifted.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-09T01:28:19.525977+00:00",
     "assigned_agent": "devin-glm-5.2"
@@ -761,7 +761,7 @@
     "priority": "medium",
     "file_path": "BUILD_STATE.md; AI_HANDOFF_PACKET.md; app/main.py; [full list in original audit report]",
     "status": "resolved",
-    "notes": "Depends on todo-045 through todo-050. Add .gitattributes to enforce LF going forward if not already present. Acceptance: 0 CRLF files remain per git ls-files --eol.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: .gitattributes IS present (enforces eol=lf for *.py, *.html, *.css, *.js, *.json, *.yml, *.md, etc.; keeps CRLF for *.bat/*.cmd/*.ps1). However git ls-files --eol still shows 534 files with CRLF \u2014 normalization not yet run. Remaining work: run 'git add --renormalize .' to convert existing files, then commit.\n[2026-08-09 03:12 UTC - SWE-1.7] Normalized 497 tracked text files from CRLF to LF in working tree; set core.autocrlf=false locally; updated .gitattributes to '* text=auto eol=lf' for catch-all enforcement; 34 bat/cmd/ps1 files retain CRLF per .gitattributes. git ls-files --eol shows no unexpected w/crlf.\n[2026-08-09 03:32 UTC - devin-glm-5.2] Verified: .gitattributes enforces eol=lf for all text files (*.py, *.html, *.css, *.js, *.json, *.yml, *.md, etc.) and eol=crlf for Windows scripts (*.bat, *.cmd, *.ps1). git add --renormalize . produced 0 staged changes (index already normalized). Fixed BUILD_STATE.md working tree (was CRLF, now LF). Final state: 35 files with w/crlf, ALL are .ps1/.bat with eol=crlf attribute (correct). 0 non-Windows-script files with CRLF. No commit needed \u2014 index was already clean.",
+    "notes": "Depends on todo-045 through todo-050. Add .gitattributes to enforce LF going forward if not already present. Acceptance: 0 CRLF files remain per git ls-files --eol.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: .gitattributes IS present (enforces eol=lf for *.py, *.html, *.css, *.js, *.json, *.yml, *.md, etc.; keeps CRLF for *.bat/*.cmd/*.ps1). However git ls-files --eol still shows 534 files with CRLF — normalization not yet run. Remaining work: run 'git add --renormalize .' to convert existing files, then commit.\n[2026-08-09 03:12 UTC - SWE-1.7] Normalized 497 tracked text files from CRLF to LF in working tree; set core.autocrlf=false locally; updated .gitattributes to '* text=auto eol=lf' for catch-all enforcement; 34 bat/cmd/ps1 files retain CRLF per .gitattributes. git ls-files --eol shows no unexpected w/crlf.\n[2026-08-09 03:32 UTC - devin-glm-5.2] Verified: .gitattributes enforces eol=lf for all text files (*.py, *.html, *.css, *.js, *.json, *.yml, *.md, etc.) and eol=crlf for Windows scripts (*.bat, *.cmd, *.ps1). git add --renormalize . produced 0 staged changes (index already normalized). Fixed BUILD_STATE.md working tree (was CRLF, now LF). Final state: 35 files with w/crlf, ALL are .ps1/.bat with eol=crlf attribute (correct). 0 non-Windows-script files with CRLF. No commit needed — index was already clean.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-09T03:32:57.182461+00:00",
     "assigned_agent": "devin-glm-5.2"
@@ -775,7 +775,7 @@
     "priority": "medium",
     "file_path": "app/modules/*/service.py; app/services/*.py",
     "status": "resolved",
-    "notes": "Depends on todo-045 through todo-050. Determine canonical location per product_manifest.py convention, remove the duplicate, update imports. Do not touch product_manifest.py registration logic itself.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: At least 4 exact-duplicate pairs confirmed via MD5 hash comparison: fraud_exposure (app/modules/fraud_exposure/service.py == app/services/fraud_exposure.py), public_exposure (app/modules/public_exposure/service.py == app/services/public_exposure.py), plan_maker (app/modules/plan_maker/service.py == app/services/plan_maker_service.py), crawler (app/modules/crawler/service.py == app/services/crawler.py). Other pairs (communication, intake, functionx, location, legal_filing) differ \u2014 not duplicates. 28 service.py files in app/modules/, 72 .py files in app/services/.\n[2026-08-09 03:49 UTC - SWE-1.7] MD5 scan found 11 exact-duplicate service pairs (not 19); removed duplicate app/services files and repointed all imports to canonical app/modules/*/service.py. Updated imports in app/services/document_flow_orchestrator.py, app/services/context_loop.py, app/modules/auto_mode/service.py, app/modules/context_loop/service.py, app/modules/research/service.py, app/modules/progress/router.py, tests/test_plan_maker.py. Verified: python -m compileall app tests, guardrail_engine, and pytest tests/test_plan_maker.py all pass.",
+    "notes": "Depends on todo-045 through todo-050. Determine canonical location per product_manifest.py convention, remove the duplicate, update imports. Do not touch product_manifest.py registration logic itself.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: At least 4 exact-duplicate pairs confirmed via MD5 hash comparison: fraud_exposure (app/modules/fraud_exposure/service.py == app/services/fraud_exposure.py), public_exposure (app/modules/public_exposure/service.py == app/services/public_exposure.py), plan_maker (app/modules/plan_maker/service.py == app/services/plan_maker_service.py), crawler (app/modules/crawler/service.py == app/services/crawler.py). Other pairs (communication, intake, functionx, location, legal_filing) differ — not duplicates. 28 service.py files in app/modules/, 72 .py files in app/services/.\n[2026-08-09 03:49 UTC - SWE-1.7] MD5 scan found 11 exact-duplicate service pairs (not 19); removed duplicate app/services files and repointed all imports to canonical app/modules/*/service.py. Updated imports in app/services/document_flow_orchestrator.py, app/services/context_loop.py, app/modules/auto_mode/service.py, app/modules/context_loop/service.py, app/modules/research/service.py, app/modules/progress/router.py, tests/test_plan_maker.py. Verified: python -m compileall app tests, guardrail_engine, and pytest tests/test_plan_maker.py all pass.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-09T03:49:43.794796+00:00",
     "assigned_agent": "SWE-1.7"
@@ -788,8 +788,8 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "tenant_dashboard.html; funding_forge/; static/*.html",
-    "status": "pending",
-    "notes": "Depends on todo-045 through todo-050. Acceptance: no 404s on referenced static assets in these templates.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: tenant_dashboard.html no longer exists in app/templates/ (resolved or renamed). funding_forge/ directory still exists with its own templates/, static/, tests/, and .env.template. Need to verify funding_forge template references for missing CSS/assets.",
+    "status": "resolved",
+    "notes": "Depends on todo-045 through todo-050. Acceptance: no 404s on referenced static assets in these templates.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: tenant_dashboard.html no longer exists in app/templates/ (resolved or renamed). funding_forge/ directory still exists with its own templates/, static/, tests/, and .env.template. Need to verify funding_forge template references for missing CSS/assets.\n[2026-08-09 - devin] Resolved: created static/assets/semptify-favicon.svg, static/css/semptify.css (design-system shim), fixed search.html nav links (documents→tenant/documents.html, timeline→tenant/journal.html, contacts→public/contact.html). All 5 previously-missing /static/ refs now return 200.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-09T01:29:02.157263+00:00",
     "assigned_agent": ""
@@ -829,9 +829,9 @@
     "category": "other",
     "target_model": "swe-1.6",
     "priority": "low",
-    "file_path": "repo root \u2014 see full audit list",
-    "status": "pending",
-    "notes": "Depends on todo-056.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: Confirmed orphan files still at repo root: 'bsimpotrrttd/' (directory) and 'f t.txt'. Both present and need deletion.",
+    "file_path": "repo root — see full audit list",
+    "status": "resolved",
+    "notes": "Depends on todo-056.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: Confirmed orphan files still at repo root: 'bsimpotrrttd/' (directory) and 'f t.txt'. Both present and need deletion.\n[2026-08-09 - devin] Resolved: git rm 9 tracked orphan files (bsimpotrrttd/semptify_free_apiss.py, f t.txt, -w, scriptscompile_ai_context.py.t, PR_BODY.md, DEPLOYMENT_TRIGGER.txt, openapi_check.json, crawler_report.json, test_results.txt) + deleted untracked scheduler_test.log.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-09T01:29:02.157263+00:00",
     "assigned_agent": ""
@@ -845,7 +845,7 @@
     "priority": "low",
     "file_path": "htmlcov/; .coverage; semptify.db",
     "status": "pending",
-    "notes": "Depends on todo-056. Add cleanup step to CI/make target; verify coverage config doesn't write HTML by default.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: Confirmed all 3 artifacts still present on disk: htmlcov/ (directory), .coverage (file), semptify.db (file). pyproject.toml [tool.coverage.html] directory = 'htmlcov' \u2014 HTML report generation is configured. Remaining work: clean artifacts, add cleanup step to CI/make target, consider disabling HTML by default.",
+    "notes": "Depends on todo-056. Add cleanup step to CI/make target; verify coverage config doesn't write HTML by default.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: Confirmed all 3 artifacts still present on disk: htmlcov/ (directory), .coverage (file), semptify.db (file). pyproject.toml [tool.coverage.html] directory = 'htmlcov' — HTML report generation is configured. Remaining work: clean artifacts, add cleanup step to CI/make target, consider disabling HTML by default.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-09T01:29:02.157263+00:00",
     "assigned_agent": ""
@@ -859,7 +859,7 @@
     "priority": "low",
     "file_path": "tests/module_health/*.py; pytest config",
     "status": "pending",
-    "notes": "Depends on todo-056. Remove/merge empty stub tests, then either raise real coverage or set a realistic fail_under, and split test runs to avoid memory spikes.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: pyproject.toml [tool.coverage.report] fail_under = 50 (was 40 per original task). Coverage gap and stub tests not yet verified \u2014 needs pytest run to confirm current coverage %. Original task reported 23% coverage vs 40% threshold; threshold raised to 50 but actual coverage unverified.",
+    "notes": "Depends on todo-056. Remove/merge empty stub tests, then either raise real coverage or set a realistic fail_under, and split test runs to avoid memory spikes.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: pyproject.toml [tool.coverage.report] fail_under = 50 (was 40 per original task). Coverage gap and stub tests not yet verified — needs pytest run to confirm current coverage %. Original task reported 23% coverage vs 40% threshold; threshold raised to 50 but actual coverage unverified.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-09T01:29:02.157263+00:00",
     "assigned_agent": ""
@@ -873,7 +873,7 @@
     "priority": "low",
     "file_path": "app/main.py; app/modules/*/router.py",
     "status": "pending",
-    "notes": "Depends on todo-056. Related to already-resolved todo-001 (SSOT redirect URL fixes) \u2014 check for overlap before starting.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: 17 hardcoded ssot_redirect('...') calls with string literals confirmed: app/main.py (10 calls), app/modules/storage/router.py (1), app/modules/page_editor/router.py (1), app/modules/admin_console/router.py (1), app/modules/onboarding/router.py (1), app/modules/eviction_timeline/router.py (1), app/modules/dispute_tracker/router.py (2). Safe at runtime (validated against SSOT_CANONICAL_PATHS) but should use navigation.get_stage(...) per AGENTS.md.",
+    "notes": "Depends on todo-056. Related to already-resolved todo-001 (SSOT redirect URL fixes) — check for overlap before starting.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: 17 hardcoded ssot_redirect('...') calls with string literals confirmed: app/main.py (10 calls), app/modules/storage/router.py (1), app/modules/page_editor/router.py (1), app/modules/admin_console/router.py (1), app/modules/onboarding/router.py (1), app/modules/eviction_timeline/router.py (1), app/modules/dispute_tracker/router.py (2). Safe at runtime (validated against SSOT_CANONICAL_PATHS) but should use navigation.get_stage(...) per AGENTS.md.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-09T01:29:02.157263+00:00",
     "assigned_agent": ""

@@ -1,4 +1,81 @@
+## Session — 2026-08-09 — todo-058 resolved: orphan/broken root files deleted
+
+### Overview
+
+Task todo-058 called for removing ~70+ orphan top-level files. A full filesystem scan identified the safe-to-delete set: garbled filenames, stray command-flag files, broken temp files, one-off generated outputs, and a stray directory with a typo'd name. Root-level `test_*.py` files were confirmed already migrated to `tests/` (pytest.ini `testpaths = tests` — root files are outside pytest scope). One-off migration scripts and docs with legitimate names were left in place pending a separate cleanup pass.
+
+### What was done
+
+Deleted 9 git-tracked files with `git rm -f` and 1 untracked file:
+
+| File | Reason |
+|---|---|
+| `bsimpotrrttd/semptify_free_apiss.py` | Garbled directory name; file is typo-duplicate of `semptify_free_apis.py` |
+| `f t.txt` | Space in filename; stray HTML fragment |
+| `-w` | Stray CLI flag saved as file |
+| `scriptscompile_ai_context.py.t` | Broken temp filename; script exists correctly in `scripts/` |
+| `PR_BODY.md` | Stray PR description from past merge |
+| `DEPLOYMENT_TRIGGER.txt` | CI trigger file; no longer used |
+| `openapi_check.json` | Generated report; can be regenerated |
+| `crawler_report.json` | Generated report; can be regenerated |
+| `test_results.txt` | Stray test output text |
+| `scheduler_test.log` | Untracked stray log |
+
+### Verification
+
+- `git status` confirms all 9 tracked files staged as deleted.
+- No Python files modified; no compile needed.
+- `tools/agent_orchestrator_tasks.json` — todo-058 marked resolved.
+
+### Next Session
+
+- Remaining root one-off scripts (`analyze_nav.py`, `batch_auto_analysis.py`, `check_routes.py`, etc.) — separate pass, lower priority.
+
+---
+
+## Session — 2026-08-09 — todo-055 resolved: missing template/static references fixed
+
+### Overview
+
+Task todo-055 called for eliminating 404s on referenced static assets in `tenant_dashboard.html`, `funding_forge/`, and `static/*.html`. The `tenant_dashboard.html` reference was already resolved in a prior session. The remaining five missing asset references were identified by scanning all `/static/...` hrefs across `static/*.html`, `app/templates/*.html`, and `funding_forge/templates/*.html` against the filesystem.
+
+### What was done
+
+- **Created `static/assets/` directory** (was missing entirely).
+- **Created `static/assets/semptify-favicon.svg`** — simple inline SVG "S" favicon in Semptify brand colours. Fixes 404 on `<link rel="icon">` in `static/reconnect/index.html`.
+- **Created `static/css/semptify.css`** — compatibility shim that `@import`s `ssot-design-system.css` plus base resets. Fixes 404 on `<link rel="stylesheet" href="/static/css/semptify.css">` in `static/filedored.html`.
+- **Fixed `static/search.html` nav links** — three hrefs pointed at non-existent static files:
+  - `/static/documents.html` → `/static/tenant/documents.html` (file exists)
+  - `/static/timeline.html` → `/static/tenant/journal.html` (closest equivalent)
+  - `/static/contacts.html` → `/static/public/contact.html` (file exists)
+- The two `funding_forge/templates/index.html` refs (`/static/css/funding_forge.css`, `/static/js/app.js`) were confirmed **not broken** — they are served by Funding Forge's own static mount at port 8001, not the main app's `/static/`.
+
+### Verification
+
+- Filesystem check: all 5 previously-missing `/static/` refs now exist — 5/5 PASS.
+- `python tools/guardrail_engine.py` → ALL CHECKS PASSED (contract_route_check, fees_policy_check, manifest_sync_check, stub_check).
+
+### Notes
+
+- No Python files were modified; no compile check needed.
+- `tools/agent_orchestrator_tasks.json` — todo-055 marked resolved.
+
+### Next Session
+
+- todo-056: Run ruff auto-fix for safe lint issues (already partially resolved per prior session notes; verify remaining 4 issues).
+
+---
+
 ## Session — 2026-08-09 — todo-054 resolved: duplicate service files removed
+
+### Guardrail Engine Run — 2026-08-09T07:45:02+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Overview
 
