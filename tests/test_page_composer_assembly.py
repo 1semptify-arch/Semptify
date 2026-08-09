@@ -162,3 +162,62 @@ async def test_govern_override_reports_suppressed_act_block():
         )
 
     assert result.govern_report["suppressed_act_blocks"] == ["act_file_complaint"]
+
+
+@pytest.mark.anyio
+async def test_assemble_page_prompts_upload_when_no_documents():
+    with _patch_assembly():
+        result = await assemble_page(
+            subject="repair",
+            jurisdiction="MN",
+            user_id="GUowner123",
+        )
+
+    record_block_ids = {b.block_id for b in result.page_config.zones["record"].blocks}
+    assert "upload_first_document" in record_block_ids
+
+
+@pytest.mark.anyio
+async def test_assemble_page_uses_context_document_count_and_deadline():
+    user_context = {
+        "document_count": 3,
+        "next_deadline": {
+            "title": "Court hearing",
+            "date": "2026-08-12",
+            "days_remaining": 2,
+        },
+    }
+    with _patch_assembly():
+        result = await assemble_page(
+            subject="repair",
+            jurisdiction="MN",
+            user_id="GUowner123",
+            user_context=user_context,
+        )
+
+    record_block_ids = {b.block_id for b in result.page_config.zones["record"].blocks}
+    act_block_ids = {b.block_id for b in result.page_config.zones["act"].blocks}
+    assert "document_count_badge" in record_block_ids
+    assert "next_deadline_action" in act_block_ids
+    assert result.metadata.intensity >= 70
+
+
+@pytest.mark.anyio
+async def test_assemble_page_uses_context_recent_events():
+    user_context = {
+        "recent_events": [
+            {"title": "Received 14-day notice"},
+            {"title": "Called landlord about repair"},
+        ],
+    }
+    with _patch_assembly():
+        result = await assemble_page(
+            subject="repair",
+            jurisdiction="MN",
+            user_id="GUowner123",
+            user_context=user_context,
+        )
+
+    act_block_ids = {b.block_id for b in result.page_config.zones["act"].blocks}
+    assert "recent_event_0" in act_block_ids
+    assert "recent_event_1" in act_block_ids
