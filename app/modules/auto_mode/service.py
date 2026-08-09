@@ -18,11 +18,11 @@ from typing import Any
 
 from app.core.event_bus import EventType, event_bus
 from app.core.utc import utc_now
+from app.modules.tactics.service import ProactiveTacticsEngine
 from app.services.auto_mode_summary_service import AutoModeSummaryService
 from app.services.calendar_service import CalendarService
 from app.services.complaint_wizard import ComplaintWizardService
 from app.services.legal_analysis_engine import LegalAnalysisEngine
-from app.modules.tactics.service import ProactiveTacticsEngine
 from app.services.timeline_builder import TimelineBuilder
 
 logger = logging.getLogger(__name__)

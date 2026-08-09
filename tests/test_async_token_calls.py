@@ -62,9 +62,7 @@ def _function_bodies(content: str) -> list[tuple[int, str]]:
         line_end = content.find("\n", start)
         if line_end == -1:
             line_end = len(content)
-        indent = len(content[line_start:match.start()]) - len(
-            content[line_start:match.start()].lstrip()
-        )
+        indent = len(content[line_start : match.start()]) - len(content[line_start : match.start()].lstrip())
         body_indent = indent + 4
 
         # Find the end of the function body
@@ -81,9 +79,7 @@ def _function_bodies(content: str) -> list[tuple[int, str]]:
             if stripped and not stripped.startswith("#"):
                 current_indent = len(line) - len(stripped)
                 if current_indent <= indent and (
-                    stripped.startswith("def ")
-                    or stripped.startswith("async def ")
-                    or stripped.startswith("class ")
+                    stripped.startswith("def ") or stripped.startswith("async def ") or stripped.startswith("class ")
                 ):
                     break
 
@@ -117,6 +113,7 @@ def test_no_sync_token_calls_in_async_routes():
                             f"{relative_path}:{line_num} - async def calls sync token helper: {forbidden}"
                         )
 
+
 def test_no_await_on_sync_token_helpers():
     """Catch `await get_valid_token_for_user(...)` (sync function) inside async def."""
     violations: list[str] = []
@@ -135,9 +132,7 @@ def test_no_await_on_sync_token_helpers():
                 pattern = re.compile(r"\bawait\s+" + re.escape(forbidden) + r"[^\)]*\)")
                 for match in pattern.finditer(body):
                     line_num = body[: match.start()].count("\n") + start_line
-                    violations.append(
-                        f"{relative_path}:{line_num} - await used on sync token helper: {forbidden}"
-                    )
+                    violations.append(f"{relative_path}:{line_num} - await used on sync token helper: {forbidden}")
 
     if violations:
         msg = "Sync token helpers incorrectly awaited in async def routes:\n" + "\n".join(violations)
@@ -159,9 +154,7 @@ def test_sync_token_helpers_not_called_with_db_argument():
 
         for start_line, body in _function_bodies(content):
             # Match get_valid_token_for_user(..., ...) with more than one argument
-            pattern = re.compile(
-                r"\bget_valid_token_for_user\s*\(\s*[^,\)]+\s*,\s*[^\)]+\)"
-            )
+            pattern = re.compile(r"\bget_valid_token_for_user\s*\(\s*[^,\)]+\s*,\s*[^\)]+\)")
             for match in pattern.finditer(body):
                 line_num = body[: match.start()].count("\n") + start_line
                 violations.append(
@@ -172,4 +165,3 @@ def test_sync_token_helpers_not_called_with_db_argument():
         msg = "get_valid_token_for_user() called with wrong signature:\n" + "\n".join(violations)
         msg += "\n\nget_valid_token_for_user(user_id) takes only one argument. Use ensure_valid_token(user_id, db) for async DB-backed refresh."
         pytest.fail(msg)
-
