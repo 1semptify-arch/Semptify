@@ -2117,7 +2117,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Role-Specific Dashboard Pages
     @fastapi_app.get("/tenant/dashboard", response_class=HTMLResponse)
     async def tenant_dashboard_page(request: Request):
-        """Tenant dashboard — redirect to RECORD pillar (timeline is the new home)."""
+        """Tenant dashboard — redirect to the assembled Page Composer dashboard."""
         from app.core.storage_middleware import is_valid_storage_user
         from app.core.user_id import COOKIE_USER_ID
 
@@ -2128,7 +2128,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
             return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
-        return ssot_redirect("/tenant/home", context="tenant dashboard → tenant home")
+        return ssot_redirect("/gui/dashboard", context="tenant dashboard → assembled dashboard")
 
     @fastapi_app.get("/advocate/dashboard", response_class=HTMLResponse)
     async def advocate_dashboard_page(request: Request):
@@ -3285,6 +3285,37 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def gui_packet_builder_page(request: Request):
         """GUI Packet Builder — build and download curated document packets."""
         return templates.TemplateResponse(request, "gui/packet_builder.html")
+
+    @fastapi_app.get("/gui/dashboard", response_class=HTMLResponse)
+    async def gui_dashboard_page(
+        request: Request,
+        subject: str = Query(default="timeline"),
+        intent: str | None = Query(default="record"),
+    ):
+        """Tenant dashboard rendered through the Page Composer assembly formula."""
+        guard_redirect = await _guard_role_page(request, {"tenant", "user"})
+        if guard_redirect:
+            return guard_redirect
+
+        from app.core.cookie_auth import verify_user_id
+        from app.modules.context_engine.taxonomy import ALL_SUBJECTS
+        from app.modules.page_composer.assembly import assemble_page
+        from app.modules.page_shell.renderer import render_page_shell
+
+        if subject not in ALL_SUBJECTS:
+            raise HTTPException(status_code=404, detail=f"Unknown subject: {subject}")
+
+        user_id = verify_user_id(request.cookies.get("semptify_uid", "")) or ""
+        result = await assemble_page(subject=subject, user_id=user_id, intent=intent)
+        return templates.TemplateResponse(
+            request,
+            "gui/assembled_page.html",
+            {
+                "subject": subject,
+                "shell_html": render_page_shell(result.page_config),
+                "assembly_metadata": result.metadata,
+            },
+        )
 
     @fastapi_app.get("/gui/page/{subject}", response_class=HTMLResponse)
     async def gui_assembled_page(request: Request, subject: str):
