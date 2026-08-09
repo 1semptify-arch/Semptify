@@ -271,7 +271,7 @@ async def _resolve_context(
 def _compute_intensity(subject: str, context: dict[str, Any]) -> int:
     """Return 0-100 urgency/intensity score.
 
-    Heuristic: urgency cues in context + subject base weight.
+    Heuristic: urgency cues in context + subject base weight + deadline proximity.
     """
     score = 0
 
@@ -299,6 +299,18 @@ def _compute_intensity(subject: str, context: dict[str, Any]) -> int:
     # Case count boost
     case_count = context.get("case_count", 0)
     score += min(case_count * 5, 20)
+
+    # Upcoming deadline proximity boost
+    next_deadline = context.get("next_deadline")
+    if isinstance(next_deadline, dict):
+        days_remaining = next_deadline.get("days_remaining")
+        if isinstance(days_remaining, (int, float)):
+            if days_remaining <= 1:
+                score += 25
+            elif days_remaining <= 7:
+                score += 15
+            elif days_remaining <= 14:
+                score += 5
 
     return min(100, max(0, score))
 
@@ -378,13 +390,40 @@ def _resolve_risk_tier(subject: str, context: dict[str, Any]) -> str:
 
 
 def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[str, list[AnyBlock]]:
-    """Transform composed page data into Page Shell blocks per pillar."""
+    """Transform composed page data and context signals into Page Shell blocks per pillar."""
     blocks: dict[str, list[AnyBlock]] = {"record": [], "know": [], "act": [], "govern": []}
 
     facts = page_data.get("facts", [])
     stories = page_data.get("stories", [])
     case = page_data.get("case")
 
+    document_count = context.get("document_count", 0)
+    next_deadline = context.get("next_deadline")
+    recent_events = context.get("recent_events", [])
+
+    # RECORD blocks — documents / evidence
+    if document_count:
+        blocks["record"].append(
+            InfoBlock(
+                block_id="document_count_badge",
+                content_ref=f"You have {document_count} document{'s' if document_count != 1 else ''} saved in your vault.",
+                reading_level="plain",
+                collapsed_by_default=False,
+                summary="Vault",
+            )
+        )
+    else:
+        blocks["record"].append(
+            OutputBlock(
+                block_id="upload_first_document",
+                action_type="button",
+                label="Upload your first document",
+                risk_tier="low",  # type: ignore[arg-type]
+                on_trigger="/vault/upload",
+            )
+        )
+
+    # KNOW blocks — verified facts and tenant stories
     for idx, fact in enumerate(facts):
         tags = fact.get("tags") or []
         source_name = fact.get("source_name", "verified source")
@@ -411,6 +450,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
             )
         )
 
+    # ACT blocks — case actions, deadlines, recent events
     if case:
         case_items = case.get("items") or []
         blocks["record"].append(
@@ -433,6 +473,33 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
                     on_trigger=f"/cases/{item.get('id', '')}",
                 )
             )
+
+    if isinstance(next_deadline, dict):
+        title = next_deadline.get("title", "Upcoming deadline")
+        date = next_deadline.get("date", "")
+        days = next_deadline.get("days_remaining")
+        risk = "high" if isinstance(days, (int, float)) and days <= 7 else "medium"  # type: ignore[arg-type]
+        blocks["act"].append(
+            OutputBlock(
+                block_id="next_deadline_action",
+                action_type="link",
+                label=f"Next: {title}" + (f" (due {date})" if date else ""),
+                risk_tier=risk,
+                on_trigger="/calendar",
+            )
+        )
+
+    for idx, event in enumerate(recent_events[:3]):
+        title = event.get("title", "Event") if isinstance(event, dict) else str(event)
+        blocks["act"].append(
+            OutputBlock(
+                block_id=f"recent_event_{idx}",
+                action_type="link",
+                label=f"Timeline: {title}",
+                risk_tier="low",  # type: ignore[arg-type]
+                on_trigger="/timeline",
+            )
+        )
 
     # Always add a primary action for act-focus pages if none exists
     if not blocks["act"] and context.get("can_act", True):
