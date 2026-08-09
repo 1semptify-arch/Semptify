@@ -9,6 +9,7 @@ It is kept as a skeleton for future integration when local AI is needed.
 """
 
 import logging
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 

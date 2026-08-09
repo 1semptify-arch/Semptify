@@ -1,5 +1,6 @@
 # SEMPTIFY SYSTEM MANIFEST
-**Version:** 5.0.0 | **Last Updated:** 2026-06-14 | **Location:** `C:\Semptify\Semptify-FastAPI\`
+
+**Version:** 5.0.0 | **Last Updated:** 2026-06-14 | **Location:** `E:\master-repo\sources\app-semptify-fastapi\`
 
 This is the FIRST file any AI or developer must read before touching Semptify. It defines what is active, what is disabled, the rules for adding modules, and the complete session context.
 
@@ -8,11 +9,11 @@ This is the FIRST file any AI or developer must read before touching Semptify. I
 ## PART 1 — PROJECT IDENTITY
 
 | Item | Value |
-|---|---|
+| --- | --- |
 | App Name | Semptify |
 | Version | 5.0.0 |
 | Mission | Tenant rights protection platform (non-profit) |
-| Root Path | `C:\Semptify\Semptify-FastAPI\` |
+| Root Path | `E:\master-repo\sources\app-semptify-fastapi\` |
 | Entry Point | `app/main.py` (DO NOT add routers here directly) |
 | Manifest | `app/core/product_manifest.py` (SINGLE SOURCE OF TRUTH) |
 | Python | **3.11.9 ONLY — hard enforced, kills server if wrong** |
@@ -31,14 +32,16 @@ This is the FIRST file any AI or developer must read before touching Semptify. I
 
 ## PART 2 — THE GOLDEN RULE
 
-**Never add `app.include_router()` directly to `main.py`.**
+### Never add `app.include_router()` directly to `main.py`
 
 All modules are declared in `app/core/product_manifest.py` and loaded via:
+
 ```python
 register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV)
-```
+```text
 
 To add a new module — only 3 steps:
+
 1. Create files in `app/modules/your_module/`
 2. Add one `_register(...)` line to `product_manifest.py`
 3. If needed, add the tier to the `register_tiers()` call in `main.py`
@@ -50,7 +53,7 @@ To add a new module — only 3 steps:
 ## PART 3 — PRODUCT TIERS
 
 | Tier | Status | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `CORE` | ✅ **ACTIVE** | Tenant rights essentials — always on |
 | `EXTENDED` | ❌ Disabled | Legal tools, eviction defense, court forms |
 | `ADVOCATE` | ❌ Disabled | Document delivery, collaboration |
@@ -65,7 +68,7 @@ To add a new module — only 3 steps:
 ### CORE — Currently Running
 
 | Module Path | Endpoint Prefix | Required | Purpose |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `app.modules.health.router` | `/health` | **YES** | Health checks |
 | `app.core.versioning` | `/version` | No | Version info |
 | `app.modules.preamble.router` | `/` | No | Landing page |
@@ -101,7 +104,7 @@ To add a new module — only 3 steps:
 ### DEV — Currently Running
 
 | Module Path | Endpoint Prefix | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `app.modules.setup.router` | `/api/setup` | Setup wizard |
 | `app.modules.page_index.router` | `/page-index` | Page index DB |
 | `app.modules.page_editor.router` | `/page-editor` | Template editor |
@@ -117,7 +120,7 @@ To add a new module — only 3 steps:
 ### Services Intentionally Disabled in `main.py` Stage 5
 
 | Service | Reason |
-|---|---|
+| --- | --- |
 | Positronic Brain | Memory hog |
 | Module Hub & Mesh | Memory hog |
 | Location Service | Not needed for MVP |
@@ -137,7 +140,8 @@ To add a new module — only 3 steps:
 ## PART 6 — HOW TO ADD A NEW MODULE (Exact Steps)
 
 ### Step 1 — Create module folder
-```
+
+```text
 app/modules/your_module/
 ├── __init__.py        # exports router + models
 ├── router.py          # FastAPI APIRouter
@@ -147,6 +151,7 @@ app/modules/your_module/
 ```
 
 ### Step 2 — Minimum required content for `router.py`
+
 ```python
 from fastapi import APIRouter
 router = APIRouter(prefix="/api/your_module", tags=["Your Module"])
@@ -154,13 +159,14 @@ router = APIRouter(prefix="/api/your_module", tags=["Your Module"])
 @router.get("/health")
 async def health():
     return {"status": "healthy", "module": "your_module"}
-```
+```text
 
 ### Step 3 — Minimum required content for `models.py`
+
 ```python
 from app.core.database import Base
 from sqlalchemy import Column, Integer, String
-# Use Base from Semptify — never create a new Base
+## Use Base from Semptify — never create a new Base
 
 class YourModel(Base):
     __tablename__ = "your_module_table"
@@ -168,8 +174,9 @@ class YourModel(Base):
 ```
 
 ### Step 4 — Register in `app/core/product_manifest.py`
+
 ```python
-# Add under the appropriate tier section:
+## Add under the appropriate tier section:
 _register(
     "app.modules.your_module.router",
     tags=("Your Module",),
@@ -177,19 +184,21 @@ _register(
     optional=True,               # ALWAYS True for new modules
     log_message="Your Module loaded"
 )
-```
+```text
 
 ### Step 5 — Enable the tier in `main.py` if not already active
+
 ```python
-# Find this line in main.py and add your tier:
+## Find this line in main.py and add your tier:
 register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV, ProductTier.EXTENDED)
 ```
 
 ### Step 6 — Register models with SQLAlchemy (in `app/core/database.py`)
+
 ```python
-# Add near other model imports:
+## Add near other model imports:
 import app.modules.your_module.models  # noqa: F401
-```
+```text
 
 ---
 
@@ -198,9 +207,9 @@ import app.modules.your_module.models  # noqa: F401
 FEMS (Forensic Evidence Management System) is the next module to be integrated.
 
 | Item | Value |
-|---|---|
+| --- | --- |
 | FEMS Source | `c:\REPOs\PPPP\` |
-| Target Path | `C:\Semptify\Semptify-FastAPI\app\modules\fems\` |
+| Target Path | `E:\master-repo\sources\app-semptify-fastapi\app\modules\fems\` |
 | Tier | `EXTENDED` |
 | Endpoints | `/api/fems/health`, `/api/fems/upload`, `/api/fems/search`, `/api/fems/documents`, `/api/fems/quarantine`, `/api/fems/stats` |
 | DB Adapter | Must use SQLAlchemy async (not psycopg2) |
@@ -228,20 +237,20 @@ FEMS provides: file deduplication, OCR text extraction, phone number extraction,
 ## PART 9 — START / STOP COMMANDS
 
 ```powershell
-# Activate environment
-cd "C:\Semptify\Semptify-FastAPI"
+## Activate environment
+cd "E:\master-repo\sources\app-semptify-fastapi"
 .\venv311\Scripts\Activate.ps1
 
-# Start server (dev)
+## Start server (dev)
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-# Or use batch script
+## Or use batch script
 .\start.bat
 
-# Verify health
+## Verify health
 Invoke-RestMethod http://localhost:8000/health
 
-# Check FEMS (after integration)
+## Check FEMS (after integration)
 Invoke-RestMethod http://localhost:8000/api/fems/health
 ```
 
@@ -250,13 +259,15 @@ Invoke-RestMethod http://localhost:8000/api/fems/health
 ## PART 10 — CONTEXT TRANSFER NOTES
 
 This document was created during a session that:
+
 - Audited the full Semptify system structure
 - Identified `product_manifest.py` as the real routing authority
 - Planned FEMS as a Semptify EXTENDED module
 - Created the Module Developer Kit plan
 - Established rules to prevent AIs from breaking `main.py`
 
-**Next steps when resuming:**
+### Next steps when resuming:
+
 1. Build `app/modules/fems/` files
 2. Register FEMS in `product_manifest.py`
 3. Enable `ProductTier.EXTENDED` in `main.py`

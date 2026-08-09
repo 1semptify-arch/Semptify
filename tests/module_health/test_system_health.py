@@ -1,4 +1,5 @@
 """Auto-generated regression test for system_health."""
+
 from tools.module_health import check_system_health
 
 

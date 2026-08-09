@@ -54,7 +54,7 @@ Built per the task brief:
 
 ## Files
 
-```
+```text
 app/modules/page_shell/
   __init__.py
   models.py          # Pydantic: PageConfig, Zone, InputBlock, InfoBlock, OutputBlock
@@ -77,12 +77,12 @@ static/admin/page_shell_demo.html       # working demo (two sample configs)
 ## API
 
 | Method | Path | Purpose |
-|---|---|---|
-| GET  | `/api/page-shell/health` | Health check |
-| GET  | `/api/page-shell/skeletons` | List the four skeletons (§10) |
-| GET  | `/api/page-shell/blends` | List named blend presets (§2) |
+| --- | --- | --- |
+| GET | `/api/page-shell/health` | Health check |
+| GET | `/api/page-shell/skeletons` | List the four skeletons (§10) |
+| GET | `/api/page-shell/blends` | List named blend presets (§2) |
 | POST | `/api/page-shell/render` | Render a posted page config to HTML |
-| GET  | `/api/page-shell/demo` | Render both sample configs |
+| GET | `/api/page-shell/demo` | Render both sample configs |
 
 **Demo UI:** `/admin/page_shell_demo.html` — toggle between `record_focus`
 and `govern_focus` sample configs, see the rendered shell + the GOVERN

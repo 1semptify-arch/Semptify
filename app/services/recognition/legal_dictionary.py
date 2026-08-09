@@ -9,43 +9,44 @@ This is the "training data" - exact patterns and phrases the system
 must recognize with 100% accuracy.
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Set, Tuple, Optional
-from enum import Enum
-import re
 import logging
+import re
+from dataclasses import dataclass, field
+from enum import StrEnum
+
 logger = logging.getLogger(__name__)
 
 
-class LegalPhraseCategory(str, Enum):
+class LegalPhraseCategory(StrEnum):
     """Categories of legal phrases"""
+
     # Document Headers/Titles
     DOCUMENT_HEADER = "document_header"
-    
+
     # Legal Demands
     DEMAND = "demand"
-    
+
     # Legal Notices
     NOTICE_TYPE = "notice_type"
-    
+
     # Timeframes
     DEADLINE = "deadline"
-    
+
     # Legal Consequences
     CONSEQUENCE = "consequence"
-    
+
     # Rights/Protections
     RIGHTS = "rights"
-    
+
     # Actions/Remedies
     ACTION = "action"
-    
+
     # Court Terms
     COURT = "court"
-    
+
     # Property Terms
     PROPERTY = "property"
-    
+
     # Financial Terms
     FINANCIAL = "financial"
 
@@ -53,42 +54,43 @@ class LegalPhraseCategory(str, Enum):
 @dataclass
 class LegalPhrase:
     """A recognized legal phrase with metadata"""
+
     canonical: str  # The standard form
-    variations: List[str]  # All accepted variations
+    variations: list[str]  # All accepted variations
     category: LegalPhraseCategory
     severity: str  # critical, high, medium, low
-    statute: Optional[str] = None  # Minnesota statute reference
+    statute: str | None = None  # Minnesota statute reference
     meaning: str = ""  # Plain English meaning
-    response_deadline: Optional[int] = None  # Days to respond
-    synonyms: List[str] = field(default_factory=list)
+    response_deadline: int | None = None  # Days to respond
+    synonyms: list[str] = field(default_factory=list)
 
 
 class MinnesotaLegalDictionary:
     """
     Comprehensive dictionary of Minnesota tenant law terms and phrases.
-    
+
     This provides word-for-word accuracy for legal document recognition.
     """
-    
+
     def __init__(self):
         self.phrases = self._build_phrase_dictionary()
         self.document_types = self._build_document_type_patterns()
         self.statutory_references = self._build_statute_patterns()
         self.ocr_corrections = self._build_ocr_corrections()
         self.critical_numbers = self._build_critical_numbers()
-        
+
         # Build lookup indices
         self._phrase_index = self._build_phrase_index()
         self._pattern_cache = {}
-    
-    def _build_phrase_dictionary(self) -> Dict[str, LegalPhrase]:
+
+    def _build_phrase_dictionary(self) -> dict[str, LegalPhrase]:
         """Build comprehensive phrase dictionary"""
         phrases = {}
-        
+
         # ============================================================
         # EVICTION NOTICE TYPES - Critical recognition
         # ============================================================
-        
+
         phrases["14_day_notice"] = LegalPhrase(
             canonical="14-DAY NOTICE TO PAY RENT OR QUIT",
             variations=[
@@ -106,7 +108,7 @@ class MinnesotaLegalDictionary:
             meaning="Tenant has 14 days to pay overdue rent or move out before eviction can be filed",
             response_deadline=14,
         )
-        
+
         phrases["notice_to_quit"] = LegalPhrase(
             canonical="NOTICE TO QUIT",
             variations=[
@@ -122,7 +124,7 @@ class MinnesotaLegalDictionary:
             meaning="Formal notice that tenancy is being terminated",
             response_deadline=14,
         )
-        
+
         phrases["emergency_eviction"] = LegalPhrase(
             canonical="EMERGENCY EVICTION NOTICE",
             variations=[
@@ -138,7 +140,7 @@ class MinnesotaLegalDictionary:
             meaning="Emergency eviction for serious lease violations - requires court approval",
             response_deadline=1,
         )
-        
+
         phrases["non_renewal"] = LegalPhrase(
             canonical="NOTICE OF NON-RENEWAL",
             variations=[
@@ -153,11 +155,11 @@ class MinnesotaLegalDictionary:
             meaning="Lease will not be renewed at end of term",
             response_deadline=30,
         )
-        
+
         # ============================================================
         # COURT DOCUMENTS - Summons, Complaints, etc.
         # ============================================================
-        
+
         phrases["summons"] = LegalPhrase(
             canonical="SUMMONS",
             variations=[
@@ -172,7 +174,7 @@ class MinnesotaLegalDictionary:
             meaning="Official court document requiring you to appear - MUST RESPOND",
             response_deadline=7,
         )
-        
+
         phrases["complaint"] = LegalPhrase(
             canonical="COMPLAINT FOR EVICTION",
             variations=[
@@ -187,7 +189,7 @@ class MinnesotaLegalDictionary:
             meaning="Legal filing to start eviction - landlord's formal complaint",
             response_deadline=7,
         )
-        
+
         phrases["writ_recovery"] = LegalPhrase(
             canonical="WRIT OF RECOVERY OF PREMISES",
             variations=[
@@ -202,7 +204,7 @@ class MinnesotaLegalDictionary:
             meaning="Court order authorizing sheriff to physically remove tenant",
             response_deadline=0,
         )
-        
+
         phrases["answer_form"] = LegalPhrase(
             canonical="ANSWER TO EVICTION COMPLAINT",
             variations=[
@@ -216,11 +218,11 @@ class MinnesotaLegalDictionary:
             meaning="Tenant's formal response to eviction complaint",
             response_deadline=7,
         )
-        
+
         # ============================================================
         # LEGAL DEMANDS - What landlord is asking
         # ============================================================
-        
+
         phrases["pay_or_quit"] = LegalPhrase(
             canonical="PAY RENT OR QUIT",
             variations=[
@@ -234,7 +236,7 @@ class MinnesotaLegalDictionary:
             severity="critical",
             meaning="Must pay owed rent OR move out by deadline",
         )
-        
+
         phrases["cure_violation"] = LegalPhrase(
             canonical="CURE THE VIOLATION",
             variations=[
@@ -247,7 +249,7 @@ class MinnesotaLegalDictionary:
             severity="high",
             meaning="Must fix the lease violation by deadline",
         )
-        
+
         phrases["vacate_premises"] = LegalPhrase(
             canonical="VACATE THE PREMISES",
             variations=[
@@ -261,11 +263,11 @@ class MinnesotaLegalDictionary:
             severity="critical",
             meaning="Must physically move out of the property",
         )
-        
+
         # ============================================================
         # CONSEQUENCES - What happens if you don't respond
         # ============================================================
-        
+
         phrases["legal_action"] = LegalPhrase(
             canonical="LEGAL ACTION WILL BE TAKEN",
             variations=[
@@ -279,7 +281,7 @@ class MinnesotaLegalDictionary:
             severity="high",
             meaning="Landlord will file in court if you don't comply",
         )
-        
+
         phrases["default_judgment"] = LegalPhrase(
             canonical="DEFAULT JUDGMENT",
             variations=[
@@ -292,11 +294,11 @@ class MinnesotaLegalDictionary:
             statute="Minn. Stat. § 504B.345",
             meaning="If you don't respond/appear, you automatically lose",
         )
-        
+
         # ============================================================
         # TENANT RIGHTS - What protects you
         # ============================================================
-        
+
         phrases["right_to_hearing"] = LegalPhrase(
             canonical="RIGHT TO A HEARING",
             variations=[
@@ -310,7 +312,7 @@ class MinnesotaLegalDictionary:
             statute="Minn. Stat. § 504B.335",
             meaning="You have the right to appear in court and tell your side",
         )
-        
+
         phrases["right_to_attorney"] = LegalPhrase(
             canonical="RIGHT TO AN ATTORNEY",
             variations=[
@@ -323,7 +325,7 @@ class MinnesotaLegalDictionary:
             severity="high",
             meaning="You can have a lawyer represent you",
         )
-        
+
         phrases["redemption_right"] = LegalPhrase(
             canonical="RIGHT OF REDEMPTION",
             variations=[
@@ -336,11 +338,11 @@ class MinnesotaLegalDictionary:
             statute="Minn. Stat. § 504B.291",
             meaning="Right to pay all owed amounts and stop eviction",
         )
-        
+
         # ============================================================
         # FINANCIAL TERMS - Amounts, fees, damages
         # ============================================================
-        
+
         phrases["rent_due"] = LegalPhrase(
             canonical="RENT DUE",
             variations=[
@@ -354,7 +356,7 @@ class MinnesotaLegalDictionary:
             severity="high",
             meaning="Monthly rent payment that hasn't been paid",
         )
-        
+
         phrases["late_fee"] = LegalPhrase(
             canonical="LATE FEE",
             variations=[
@@ -367,7 +369,7 @@ class MinnesotaLegalDictionary:
             statute="Minn. Stat. § 504B.177",
             meaning="Fee charged for paying rent late (must be in lease)",
         )
-        
+
         phrases["security_deposit"] = LegalPhrase(
             canonical="SECURITY DEPOSIT",
             variations=[
@@ -380,7 +382,7 @@ class MinnesotaLegalDictionary:
             statute="Minn. Stat. § 504B.178",
             meaning="Money held by landlord for damages/unpaid rent",
         )
-        
+
         phrases["court_costs"] = LegalPhrase(
             canonical="COURT COSTS",
             variations=[
@@ -392,7 +394,7 @@ class MinnesotaLegalDictionary:
             severity="medium",
             meaning="Fees to file and process court case",
         )
-        
+
         phrases["attorneys_fees"] = LegalPhrase(
             canonical="ATTORNEY'S FEES",
             variations=[
@@ -404,13 +406,13 @@ class MinnesotaLegalDictionary:
             severity="medium",
             meaning="Lawyer fees (only if lease allows)",
         )
-        
+
         return phrases
-    
-    def _build_document_type_patterns(self) -> Dict[str, List[Tuple[str, float]]]:
+
+    def _build_document_type_patterns(self) -> dict[str, list[tuple[str, float]]]:
         """
         Build document type identification patterns.
-        
+
         Returns dict mapping document type to list of (pattern, weight) tuples.
         Higher weight = stronger indicator.
         """
@@ -423,7 +425,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)NOTICE\s+TO\s+(?:QUIT|VACATE)", 5.0),
                 (r"(?i)MINN\.?\s*STAT\.?\s*§?\s*504B\.135", 10.0),
             ],
-            
             # Court Summons
             "SUMMONS": [
                 (r"(?i)^SUMMONS", 10.0),
@@ -434,7 +435,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)YOU\s+ARE\s+BEING\s+SUED", 10.0),
                 (r"(?i)YOU\s+MUST\s+(?:REPLY|RESPOND|ANSWER)", 8.0),
             ],
-            
             # Complaint
             "COMPLAINT": [
                 (r"(?i)COMPLAINT\s+FOR\s+(?:EVICTION|RECOVERY)", 10.0),
@@ -442,7 +442,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)PLAINTIFF\s+(?:v\.?|vs\.?|versus)", 8.0),
                 (r"(?i)DEFENDANT", 5.0),
             ],
-            
             # Lease Agreement
             "LEASE_AGREEMENT": [
                 (r"(?i)RESIDENTIAL\s+LEASE\s+AGREEMENT", 10.0),
@@ -453,7 +452,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)TERM\s+OF\s+(?:LEASE|TENANCY)", 5.0),
                 (r"(?i)SECURITY\s+DEPOSIT", 4.0),
             ],
-            
             # Rent Receipt
             "RENT_RECEIPT": [
                 (r"(?i)RENT\s+RECEIPT", 10.0),
@@ -461,7 +459,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)RECEIVED\s+FROM", 6.0),
                 (r"(?i)FOR\s+RENT\s+(?:FOR|OF)", 7.0),
             ],
-            
             # Security Deposit
             "SECURITY_DEPOSIT_STATEMENT": [
                 (r"(?i)SECURITY\s+DEPOSIT\s+(?:ITEMIZATION|STATEMENT|ACCOUNTING)", 10.0),
@@ -469,7 +466,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)ITEMIZED\s+DEDUCTIONS?", 8.0),
                 (r"(?i)MOVE[- ]?OUT\s+(?:INSPECTION|DATE)", 6.0),
             ],
-            
             # Repair Request
             "REPAIR_REQUEST": [
                 (r"(?i)NOTICE\s+OF\s+REPAIR\s+REQUEST", 10.0),
@@ -478,7 +474,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)MINN\.?\s*STAT\.?\s*§?\s*504B\.185", 10.0),
                 (r"(?i)COVENANT\s+OF\s+HABITABILITY", 8.0),
             ],
-            
             # Rent Increase Notice
             "RENT_INCREASE": [
                 (r"(?i)NOTICE\s+OF\s+RENT\s+INCREASE", 10.0),
@@ -486,7 +481,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)NEW\s+(?:RENT|RENTAL)\s+(?:AMOUNT|RATE)", 7.0),
                 (r"(?i)CURRENT\s+RENT.*NEW\s+RENT", 8.0),
             ],
-            
             # Writ of Recovery
             "WRIT_OF_RECOVERY": [
                 (r"(?i)WRIT\s+OF\s+(?:RECOVERY|RESTITUTION)", 10.0),
@@ -495,8 +489,8 @@ class MinnesotaLegalDictionary:
                 (r"(?i)REMOVE\s+(?:TENANT|DEFENDANT)", 7.0),
             ],
         }
-    
-    def _build_statute_patterns(self) -> Dict[str, Dict]:
+
+    def _build_statute_patterns(self) -> dict[str, dict]:
         """Build Minnesota statute recognition patterns"""
         return {
             "504B.135": {
@@ -560,11 +554,11 @@ class MinnesotaLegalDictionary:
                 "summary": "Tenant lawsuit for habitability violations",
             },
         }
-    
-    def _build_ocr_corrections(self) -> Dict[str, str]:
+
+    def _build_ocr_corrections(self) -> dict[str, str]:
         """
         Build OCR error correction dictionary.
-        
+
         Common OCR mistakes when reading legal documents.
         """
         return {
@@ -586,14 +580,12 @@ class MinnesotaLegalDictionary:
             "wliere": "where",
             "wliy": "why",
             "liow": "how",
-            
             # m/n/rn confusion
             "rn": "m",
             "tenn": "term",
             "arnount": "amount",
             "payrnent": "payment",
             "judgrnent": "judgment",
-            
             # l/1/I confusion
             "1ease": "lease",
             "1andlord": "landlord",
@@ -602,19 +594,17 @@ class MinnesotaLegalDictionary:
             "I0": "10",
             "I4": "14",
             "I5": "15",
-            
             # 0/O confusion
             "0rder": "Order",
             "0wner": "Owner",
-            
             # Common phrase corrections
             "PAY RENT 0R QUIT": "PAY RENT OR QUIT",
             "N0TICE": "NOTICE",
             "C0URT": "COURT",
             "C0UNTY": "COUNTY",
         }
-    
-    def _build_critical_numbers(self) -> Dict[str, Dict]:
+
+    def _build_critical_numbers(self) -> dict[str, dict]:
         """
         Build critical number patterns - these MUST be extracted accurately.
         """
@@ -644,8 +634,8 @@ class MinnesotaLegalDictionary:
                 "validate": lambda x: 55001 <= int(x) <= 56763,  # MN zip codes
             },
         }
-    
-    def _build_phrase_index(self) -> Dict[str, List[str]]:
+
+    def _build_phrase_index(self) -> dict[str, list[str]]:
         """Build reverse index from variations to canonical phrases"""
         index = {}
         for key, phrase in self.phrases.items():
@@ -656,7 +646,7 @@ class MinnesotaLegalDictionary:
                     if word not in index:
                         index[word] = []
                     index[word].append(key)
-            
+
             # Index variations
             for variation in phrase.variations:
                 variation_words = variation.lower().split()
@@ -666,135 +656,141 @@ class MinnesotaLegalDictionary:
                             index[word] = []
                         if key not in index[word]:
                             index[word].append(key)
-        
+
         return index
-    
+
     def correct_ocr_text(self, text: str) -> str:
         """
         Apply OCR corrections to text.
-        
+
         Args:
             text: Raw OCR text
-            
+
         Returns:
             Corrected text
         """
         corrected = text
-        
+
         for wrong, right in self.ocr_corrections.items():
             # Word boundary matching for safety
-            pattern = r'\b' + re.escape(wrong) + r'\b'
+            pattern = r"\b" + re.escape(wrong) + r"\b"
             corrected = re.sub(pattern, right, corrected)
-        
+
         return corrected
-    
-    def identify_phrases(self, text: str) -> List[Dict]:
+
+    def identify_phrases(self, text: str) -> list[dict]:
         """
         Identify all legal phrases in text.
-        
+
         Returns list of found phrases with positions and metadata.
         """
         found = []
-        text_lower = text.lower()
-        
+        text.lower()
+
         for key, phrase in self.phrases.items():
             # Check canonical form
             pattern = re.escape(phrase.canonical)
             matches = list(re.finditer(pattern, text, re.IGNORECASE))
             for match in matches:
-                found.append({
-                    "phrase_key": key,
-                    "matched_text": match.group(),
-                    "canonical": phrase.canonical,
-                    "category": phrase.category.value,
-                    "severity": phrase.severity,
-                    "statute": phrase.statute,
-                    "meaning": phrase.meaning,
-                    "position": (match.start(), match.end()),
-                    "confidence": 1.0,
-                })
-            
+                found.append(
+                    {
+                        "phrase_key": key,
+                        "matched_text": match.group(),
+                        "canonical": phrase.canonical,
+                        "category": phrase.category.value,
+                        "severity": phrase.severity,
+                        "statute": phrase.statute,
+                        "meaning": phrase.meaning,
+                        "position": (match.start(), match.end()),
+                        "confidence": 1.0,
+                    }
+                )
+
             # Check variations if canonical not found
             if not matches:
                 for variation in phrase.variations:
                     pattern = re.escape(variation)
                     matches = list(re.finditer(pattern, text, re.IGNORECASE))
                     for match in matches:
-                        found.append({
-                            "phrase_key": key,
-                            "matched_text": match.group(),
-                            "canonical": phrase.canonical,
-                            "category": phrase.category.value,
-                            "severity": phrase.severity,
-                            "statute": phrase.statute,
-                            "meaning": phrase.meaning,
-                            "position": (match.start(), match.end()),
-                            "confidence": 0.95,
-                        })
+                        found.append(
+                            {
+                                "phrase_key": key,
+                                "matched_text": match.group(),
+                                "canonical": phrase.canonical,
+                                "category": phrase.category.value,
+                                "severity": phrase.severity,
+                                "statute": phrase.statute,
+                                "meaning": phrase.meaning,
+                                "position": (match.start(), match.end()),
+                                "confidence": 0.95,
+                            }
+                        )
                     if matches:
                         break  # Found a match, don't need other variations
-        
+
         return found
-    
-    def identify_document_type(self, text: str) -> Tuple[str, float, List[str]]:
+
+    def identify_document_type(self, text: str) -> tuple[str, float, list[str]]:
         """
         Identify document type with confidence score.
-        
+
         Returns:
             Tuple of (document_type, confidence, matched_patterns)
         """
         scores = {}
         matches_by_type = {}
-        
+
         for doc_type, patterns in self.document_types.items():
             total_weight = 0.0
             max_possible = sum(weight for _, weight in patterns)
             matched = []
-            
+
             for pattern, weight in patterns:
                 if re.search(pattern, text):
                     total_weight += weight
                     matched.append(pattern)
-            
+
             if total_weight > 0:
                 # Normalize to 0-100
                 scores[doc_type] = (total_weight / max_possible) * 100
                 matches_by_type[doc_type] = matched
-        
+
         if not scores:
             return "UNKNOWN", 0.0, []
-        
+
         # Get best match
         best_type = max(scores.keys(), key=lambda k: scores[k])
         return best_type, scores[best_type], matches_by_type.get(best_type, [])
-    
-    def extract_statutes(self, text: str) -> List[Dict]:
+
+    def extract_statutes(self, text: str) -> list[dict]:
         """Extract Minnesota statute references from text"""
         found = []
-        
+
         for statute_num, info in self.statutory_references.items():
             matches = list(re.finditer(info["pattern"], text))
             for match in matches:
-                found.append({
-                    "statute": statute_num,
-                    "full_citation": f"Minn. Stat. § {statute_num}",
-                    "title": info["title"],
-                    "summary": info["summary"],
-                    "position": (match.start(), match.end()),
-                    "matched_text": match.group(),
-                })
-        
+                found.append(
+                    {
+                        "statute": statute_num,
+                        "full_citation": f"Minn. Stat. § {statute_num}",
+                        "title": info["title"],
+                        "summary": info["summary"],
+                        "position": (match.start(), match.end()),
+                        "matched_text": match.group(),
+                    }
+                )
+
         return found
-    
-    def extract_critical_numbers(self, text: str) -> Dict[str, List[Dict]]:
+
+    def extract_critical_numbers(self, text: str) -> dict[str, list[dict]]:
         """Extract all critical numbers (deadlines, amounts, dates, etc.)"""
         results = {}
-        
+
         for num_type, config in self.critical_numbers.items():
             matches = []
             for match in re.finditer(config["pattern"], text):
                 value = match.group(1) if match.lastindex else match.group()
-                
+
                 # Validate if validator provided
                 valid = True
                 if "validate" in config:
@@ -802,37 +798,40 @@ class MinnesotaLegalDictionary:
                         valid = config["validate"](value)
                     except Exception:
                         valid = False
-                
-                matches.append({
-                    "value": value,
-                    "position": (match.start(), match.end()),
-                    "full_match": match.group(),
-                    "valid": valid,
-                })
-            
+
+                matches.append(
+                    {
+                        "value": value,
+                        "position": (match.start(), match.end()),
+                        "full_match": match.group(),
+                        "valid": valid,
+                    }
+                )
+
             if matches:
                 results[num_type] = matches
-        
+
         return results
-    
-    def get_phrase_by_key(self, key: str) -> Optional[LegalPhrase]:
+
+    def get_phrase_by_key(self, key: str) -> LegalPhrase | None:
         """Get phrase definition by key"""
         return self.phrases.get(key)
-    
-    def search_phrases(self, query: str) -> List[str]:
+
+    def search_phrases(self, query: str) -> list[str]:
         """Search for phrases containing query words"""
         query_words = query.lower().split()
         results = set()
-        
+
         for word in query_words:
             if word in self._phrase_index:
                 results.update(self._phrase_index[word])
-        
+
         return list(results)
 
 
 # Singleton instance
 _dictionary = None
+
 
 def get_legal_dictionary() -> MinnesotaLegalDictionary:
     """Get or create singleton dictionary instance"""

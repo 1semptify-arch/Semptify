@@ -7,7 +7,7 @@ import json
 import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from app.core.event_bus import EventType, event_bus
@@ -15,7 +15,7 @@ from app.core.event_bus import EventType, event_bus
 logger = logging.getLogger(__name__)
 
 
-class LawCategory(str, Enum):
+class LawCategory(StrEnum):
     """Categories of tenant law."""
 
     LEASE_TERMS = "lease_terms"

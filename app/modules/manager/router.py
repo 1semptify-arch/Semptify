@@ -18,23 +18,22 @@ Routes:
 import csv
 import io
 import logging
-from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from app.core.capabilities import require_capability
 from app.core.database import get_db_session
 from app.core.request_utils import require_request_user_id
-from app.core.user_context import get_role_from_user_id, UserRole
+from app.core.user_context import UserRole, get_role_from_user_id
 from app.core.utc import utc_now
-from app.core.capabilities import require_capability
 from app.models.models import (
+    Document,
+    RelationshipType,
+    TimelineEvent,
     User,
     UserRelationship,
-    RelationshipType,
-    Document,
-    TimelineEvent,
 )
 
 logger = logging.getLogger(__name__)
@@ -49,6 +48,7 @@ router = APIRouter(
 # =============================================================================
 # Helpers
 # =============================================================================
+
 
 def _require_manager(user_id: str) -> None:
     """Verify the current user has manager role."""
@@ -65,7 +65,7 @@ def _org_id_from(user_id: str) -> str:
     return user_id[:12]
 
 
-def _org_user_ids(db, org_id: str) -> List[str]:
+def _org_user_ids(db, org_id: str) -> list[str]:
     """Return all user_ids in this organization."""
     users = db.query(User).filter(User.id.like(f"{org_id}%")).all()
     return [u.id for u in users]
@@ -74,6 +74,7 @@ def _org_user_ids(db, org_id: str) -> List[str]:
 # =============================================================================
 # Request Models
 # =============================================================================
+
 
 class AssignRequest(BaseModel):
     advocate_user_id: str = Field(..., min_length=8, max_length=128)
@@ -84,7 +85,7 @@ class CaseStatusRequest(BaseModel):
 
 
 class BulkExportRequest(BaseModel):
-    tenant_user_ids: List[str] = Field(..., min_length=1, max_length=100)
+    tenant_user_ids: list[str] = Field(..., min_length=1, max_length=100)
     format: str = Field(default="json", description="Export format: json or csv")
 
 
@@ -99,6 +100,7 @@ _VALID_STAFF_ROLES = {"advocate", "user"}
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.post("/cases/{tenant_id}/assign")
 async def assign_case(tenant_id: str, body: AssignRequest, request: Request):
@@ -217,26 +219,38 @@ async def bulk_export(body: BulkExportRequest, request: Request):
                 continue
             doc_count = db.query(Document).filter_by(user_id=tid).count()
             event_count = db.query(TimelineEvent).filter_by(user_id=tid).count()
-            rows.append({
-                "tenant_id": tid,
-                "primary_provider": tenant.primary_provider,
-                "default_role": tenant.default_role,
-                "intensity_level": tenant.intensity_level,
-                "doc_count": doc_count,
-                "event_count": event_count,
-                "created_at": tenant.created_at.isoformat() if tenant.created_at else None,
-                "last_login": tenant.last_login.isoformat() if tenant.last_login else None,
-            })
+            rows.append(
+                {
+                    "tenant_id": tid,
+                    "primary_provider": tenant.primary_provider,
+                    "default_role": tenant.default_role,
+                    "intensity_level": tenant.intensity_level,
+                    "doc_count": doc_count,
+                    "event_count": event_count,
+                    "created_at": tenant.created_at.isoformat() if tenant.created_at else None,
+                    "last_login": tenant.last_login.isoformat() if tenant.last_login else None,
+                }
+            )
 
         if fmt == "json":
             return {"format": "json", "exported_by": user_id, "exported_at": utc_now().isoformat(), "cases": rows}
 
         # CSV
         buf = io.StringIO()
-        writer = csv.DictWriter(buf, fieldnames=[
-            "tenant_id", "primary_provider", "default_role", "intensity_level",
-            "doc_count", "event_count", "created_at", "last_login", "error",
-        ])
+        writer = csv.DictWriter(
+            buf,
+            fieldnames=[
+                "tenant_id",
+                "primary_provider",
+                "default_role",
+                "intensity_level",
+                "doc_count",
+                "event_count",
+                "created_at",
+                "last_login",
+                "error",
+            ],
+        )
         writer.writeheader()
         for r in rows:
             writer.writerow({k: r.get(k, "") for k in writer.fieldnames})
@@ -343,12 +357,14 @@ async def staff_report(request: Request):
                 reviews = (rel.context or {}).get("document_reviews", {})
                 docs_reviewed += len(reviews)
 
-            staff_rows.append({
-                "user_id": sid,
-                "role": role.value,
-                "active_cases": cases,
-                "docs_reviewed": docs_reviewed,
-            })
+            staff_rows.append(
+                {
+                    "user_id": sid,
+                    "role": role.value,
+                    "active_cases": cases,
+                    "docs_reviewed": docs_reviewed,
+                }
+            )
 
         staff_rows.sort(key=lambda x: x["active_cases"], reverse=True)
         return {"report": {"organization_id": org_id, "staff": staff_rows, "generated_at": utc_now().isoformat()}}

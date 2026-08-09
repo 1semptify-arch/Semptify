@@ -1,6 +1,6 @@
 """FEMS FastAPI router — Forensic Evidence Management System."""
+
 import shutil
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy import func, select
@@ -100,9 +100,7 @@ async def list_documents(
 
 @router.get("/documents/{doc_id}")
 async def get_document(doc_id: int, db: AsyncSession = Depends(get_db)):
-    doc = (await db.execute(
-        select(FemsDocument).where(FemsDocument.id == doc_id)
-    )).scalar_one_or_none()
+    doc = (await db.execute(select(FemsDocument).where(FemsDocument.id == doc_id))).scalar_one_or_none()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
     return {
@@ -119,20 +117,17 @@ async def get_document(doc_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.get("/phones")
 async def list_phones(db: AsyncSession = Depends(get_db)):
-    phones = (await db.execute(
-        select(FemsPhoneNumber).order_by(FemsPhoneNumber.first_seen.desc())
-    )).scalars().all()
-    return [
-        {"id": p.id, "number": p.number, "label": p.label, "first_seen": str(p.first_seen)}
-        for p in phones
-    ]
+    phones = (await db.execute(select(FemsPhoneNumber).order_by(FemsPhoneNumber.first_seen.desc()))).scalars().all()
+    return [{"id": p.id, "number": p.number, "label": p.label, "first_seen": str(p.first_seen)} for p in phones]
 
 
 @router.get("/quarantine")
 async def list_quarantine(db: AsyncSession = Depends(get_db)):
-    files = (await db.execute(
-        select(FemsQuarantineFile).order_by(FemsQuarantineFile.quarantined_at.desc())
-    )).scalars().all()
+    files = (
+        (await db.execute(select(FemsQuarantineFile).order_by(FemsQuarantineFile.quarantined_at.desc())))
+        .scalars()
+        .all()
+    )
     return [
         {
             "id": f.id,
@@ -147,9 +142,7 @@ async def list_quarantine(db: AsyncSession = Depends(get_db)):
 
 @router.get("/cases")
 async def list_cases(db: AsyncSession = Depends(get_db)):
-    cases = (await db.execute(
-        select(FemsCase).order_by(FemsCase.opened_at.desc())
-    )).scalars().all()
+    cases = (await db.execute(select(FemsCase).order_by(FemsCase.opened_at.desc()))).scalars().all()
     return [
         {
             "id": c.id,
@@ -168,9 +161,7 @@ async def create_case(
     title: str = "",
     db: AsyncSession = Depends(get_db),
 ):
-    existing = (await db.execute(
-        select(FemsCase).where(FemsCase.case_number == case_number)
-    )).scalar_one_or_none()
+    existing = (await db.execute(select(FemsCase).where(FemsCase.case_number == case_number))).scalar_one_or_none()
     if existing:
         raise HTTPException(status_code=409, detail=f"Case {case_number} already exists")
     case = FemsCase(case_number=case_number, title=title)

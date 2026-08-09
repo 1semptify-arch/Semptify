@@ -1,11 +1,11 @@
 """Press and narrative output workflows for public-interest communication."""
 
-from typing import Any, Dict, List
+from typing import Any
 
 from app.core.utc import utc_now
 
 
-def build_fact_summary(facts: List[Dict[str, Any]]) -> str:
+def build_fact_summary(facts: list[dict[str, Any]]) -> str:
     """Build a plain-language summary of verified facts."""
     if not facts:
         return "No verified facts available."
@@ -17,7 +17,7 @@ def build_fact_summary(facts: List[Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def build_timeline_narrative(events: List[Dict[str, Any]]) -> str:
+def build_timeline_narrative(events: list[dict[str, Any]]) -> str:
     """Build a chronological narrative from a list of events."""
     if not events:
         return "No timeline events available."
@@ -30,12 +30,16 @@ def build_timeline_narrative(events: List[Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def build_public_money_analysis(records: List[Dict[str, Any]]) -> Dict[str, Any]:
+def build_public_money_analysis(records: list[dict[str, Any]]) -> dict[str, Any]:
     """Build a summary of public-money issues (subsidies, tax credits, etc.)."""
     total = len(records)
     relevant = [
-        r for r in records
-        if any(kw in str(r.get("description", "")).lower() for kw in ("subsidy", "tax credit", "public money", "housing voucher", "section 8"))
+        r
+        for r in records
+        if any(
+            kw in str(r.get("description", "")).lower()
+            for kw in ("subsidy", "tax credit", "public money", "housing voucher", "section 8")
+        )
     ]
     return {
         "total_records": total,
@@ -48,7 +52,7 @@ def build_public_money_analysis(records: List[Dict[str, Any]]) -> Dict[str, Any]
 def export_press_packet(
     fact_summary: str,
     timeline: str,
-    public_money: Dict[str, Any],
+    public_money: dict[str, Any],
     title: str = "Semptify Coalition Press Packet",
 ) -> str:
     """Export a complete press packet as markdown."""

@@ -2,7 +2,7 @@
 
 The Agent Orchestrator queues parallel AI-agent tasks for the Semptify codebase. It turns workbook rows (stubs and duplicates) AND doc-sourced TODOs into copy-paste prompts you can drop into separate Windsurf sessions.
 
-> **Canonical source of truth for orchestrator operation.** Last updated 2026-07-20. Supersedes older instructions in `.devin/workflows/orchestrator_preflight.md` and `BUILD_STATE.md`.
+> **Canonical source of truth for orchestrator operation.** Last updated 2026-07-20. Supersedes older instructions in `.devin/skills/orchestrator_preflight/SKILL.md` and `BUILD_STATE.md`.
 
 ## Two UIs, same queue data
 
@@ -32,9 +32,10 @@ The orchestrator queue is fed by **three sources**, merged by `tools/sync_orches
 ```powershell
 .\venv311\Scripts\Activate.ps1
 python tools/sync_orchestrator.py
-```
+```text
 
 This produces:
+
 - `tools/stub_tasks_new.json` (stub scan)
 - `tools/docs_todos.json` (doc-sourced TODOs)
 - `tools/agent_orchestrator_tasks.json` (merged queue)
@@ -54,6 +55,7 @@ This produces:
 ### 4. Dispatch work to agents
 
 For each task:
+
 - Pick the assigned model in a new Windsurf session.
 - Click **Copy** next to the task.
 - Paste the prompt into the new session.
@@ -121,26 +123,33 @@ The bridge guesses paths as `app/modules/<filename>`. Some files actually live i
 ## Troubleshooting
 
 ### Import JSON does nothing
+
 - Make sure the JSON is an array of task objects.
 - The sync output is a plain array; that is the expected format.
 
 ### Task counts look wrong after import
+
 - Refresh the page or re-import. The summary updates after import.
 
 ### Prompt looks outdated after editing a task
+
 - Edit tasks inside the UI; the prompt regenerates when you save. Currently the standalone page does not support in-place editing, so delete and re-create if the path or model needs changing.
 
 ### In-app version lost tasks
+
 - The in-app version stores tasks in the running Python process. Restarting the server clears them. Use **Import JSON** to reload from `tools/agent_orchestrator_tasks.json`, or switch to the standalone version for persistence across restarts.
 
 ### `sync_orchestrator.py` wiped my tasks
+
 - Old behavior: sync only merged workbook + stubs. As of 2026-07-16, sync also runs `_seed_orchestrator_tasks.py` and merges `docs_todos.json`. If you previously wrote tasks directly to `agent_orchestrator_tasks.json` (bypassing the seed), sync would overwrite them. Always write doc-sourced TODOs via `_seed_orchestrator_tasks.py` → `docs_todos.json`, not directly to the final file.
 
 ### Pre-commit hook uses wrong Python
+
 - Fixed 2026-07-16: `.pre-commit-config.yaml` now uses `venv311/Scripts/python.exe` for all local hooks (ssot-architecture-check, guardrail-engine, sync-orchestrator). Previously used bare `python`, which resolved to Python 3.13 on Windows.
 
 ### Workflow doc says port 8088
-- Fixed 2026-07-16: `.devin/workflows/orchestrator_preflight.md` now points to port 8000 (uvicorn default) and `file://` for the standalone UI. No server ever ran on 8088.
+
+- Fixed 2026-07-16: `.devin/skills/orchestrator_preflight/SKILL.md` now points to port 8000 (uvicorn default) and `file://` for the standalone UI. No server ever ran on 8088.
 
 ## Regenerating from the workbook or docs
 
@@ -170,21 +179,24 @@ These rules are baked into the prompt text so each agent sees them even when wor
 
 ### 2026-07-16 — Orchestrator overhaul
 
-**Files changed:**
+#### Files changed:
+
 - `tools/_seed_orchestrator_tasks.py` — now writes to `tools/docs_todos.json` instead of `tools/agent_orchestrator_tasks.json` (avoid sync wiping doc-sourced tasks).
 - `tools/sync_orchestrator.py` — added `step_docs_todos()` and `merge_tasks()` steps. Runs all three sources (stub_detector + workbook_bridge + _seed_orchestrator_tasks) and merges by task `id` into the final `agent_orchestrator_tasks.json`. Workbook wins on id conflict.
 - `.pre-commit-config.yaml` — all local hooks now use `venv311/Scripts/python.exe` instead of bare `python`. Fixes Python 3.13 vs 3.11.9 mismatch that caused hook failures.
-- `.devin/workflows/orchestrator_preflight.md` — Step 3 rewritten. Port 8088 → 8000. Added `file://` option. Documented both UIs and the Import JSON button on admin.
+- `.devin/skills/orchestrator_preflight/SKILL.md` — Step 3 rewritten. Port 8088 → 8000. Added `file://` option. Documented both UIs and the Import JSON button on admin.
 - `static/admin/agent_orchestrator.html` — added Data card with Import JSON, Export JSON, Clear all buttons. Added `importJson()`, `exportJson()`, `clearAll()` JS functions. Admin UI can now load `agent_orchestrator_tasks.json` via `/api/agent-orchestrator/batch`.
 - `docs/AGENT_ORCHESTRATOR_MANUAL.md` — this file. Full rewrite with 3-source pipeline, both UIs, troubleshooting, changelog.
 
-**Root causes fixed:**
+#### Root causes fixed:
+
 1. `sync_orchestrator.py` overwrote doc-sourced tasks because it only knew about workbook + stubs. Fix: added `docs_todos.json` as a third source with merge-by-id.
 2. Pre-commit hooks ran on Python 3.13 (Windows App Store default) instead of 3.11.9. Fix: explicit `venv311/Scripts/python.exe` in `.pre-commit-config.yaml`.
 3. Workflow doc pointed to port 8088 where no server runs. Fix: updated to 8000 + `file://`.
 4. Admin UI had no import button, so the merged JSON never reached the API store. Fix: added Import JSON button + `/batch` POST wiring.
 5. Two doc-sourced tasks (`todo-003`, `todo-007`) had empty `file_path`, failing sync verification. Fix: set anchor paths.
 
-**Verified:**
+#### Verified:
+
 - `python -m py_compile app/main.py tools/sync_orchestrator.py tools/_seed_orchestrator_tasks.py` → OK.
 - `python tools/sync_orchestrator.py` → 32 tasks merged, 0 missing paths, embedded JSON updated in both HTML files.

@@ -24,7 +24,7 @@
 ## 1. Requirements
 
 | Requirement | Version | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Python | 3.11+ | 3.13 confirmed working |
 | PostgreSQL | 16 | Already installed on your machine |
 | Playwright | 1.58+ | For scraping JS-heavy sites |
@@ -37,23 +37,27 @@
 Open PowerShell and run these steps **once**:
 
 ```powershell
-# Step 1: Navigate to the project
+## Step 1: Navigate to the project
 cd C:\Semptify\Semptify-FastAPI\legal_intel
 
-# Step 2: Install Python dependencies
+## Step 2: Install Python dependencies
 python -m pip install -r requirements.txt
 
-# Step 3: Install Playwright browsers
+## Step 3: Install Playwright browsers
 python -m playwright install chromium
 
-# Step 4: Create database tables (PostgreSQL must be running)
+## Step 4: Create database tables (PostgreSQL must be running)
 python init_db.py
-```
+```python
 
 If `init_db.py` prints:
+
 ```
+
 ✓ Database tables created successfully
-```
+
+```text
+
 You are ready to go.
 
 ---
@@ -67,21 +71,24 @@ cd C:\Semptify\Semptify-FastAPI\legal_intel
 uvicorn app.main:app --reload --port 8000
 ```
 
-**What you will see:**
-```
+### What you will see:
+
+```python
 INFO:     Uvicorn running on http://127.0.0.1:8000
 INFO:     Application startup complete.
 ```
 
-The server is now live at: **http://localhost:8000**
+The server is now live at: **<http://localhost:8000>**
 
-- Interactive API docs: http://localhost:8000/docs
-- Alternative API docs: http://localhost:8000/redoc
+- Interactive API docs: <http://localhost:8000/docs>
+- Alternative API docs: <http://localhost:8000/redoc>
 
 **Run on a different port** (if 8000 is busy):
+
 ```powershell
 uvicorn app.main:app --reload --port 8080
-```
+```text
+
 > If you change the port, also update `API_BASE` in `gui.py` to match.
 
 ---
@@ -91,8 +98,10 @@ uvicorn app.main:app --reload --port 8080
 In the terminal where the server is running, press:
 
 ```
+
 Ctrl + C
-```
+
+```text
 
 The server shuts down cleanly. Your database data is preserved.
 
@@ -111,7 +120,7 @@ python gui.py
 
 ### GUI Layout
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │           Legal Intelligence Engine          │
 ├─────────────────────────────────────────────┤
@@ -135,20 +144,23 @@ python gui.py
 
 ### How to Use the GUI
 
-**Crawl an Attorney:**
+#### Crawl an Attorney:
+
 1. Type the MN bar number (e.g., `12345`) in the "Bar Number" box
 2. Click **Crawl Attorney**
 3. Watch the log — it starts a background crawl pulling cases from MCRO
 4. After crawling, click **Show Patterns** to see default rates, settlement rates, and court distribution
 
-**Crawl an Entity:**
+#### Crawl an Entity:
+
 1. Type a business name (e.g., `Example Properties LLC`) in "Entity Name"
 2. Set state to `MN` or `ND`
 3. Click **Crawl Entity**
 4. Watch the log — it looks up the entity on Secretary of State and stores it
 5. Click **Show Patterns** to see what attorneys sued them and how often
 
-**Shell LLC Detection:**
+#### Shell LLC Detection:
+
 1. Click **Show Shell LLC Clusters**
 2. The log shows groups of entities sharing the same registered agent or address
 3. This identifies potential shell company networks
@@ -160,7 +172,7 @@ python gui.py
 ### Connection Details
 
 | Field | Value |
-|---|---|
+| --- | --- |
 | Host | localhost |
 | Port | 5432 |
 | Database | legal_intel |
@@ -172,7 +184,7 @@ python gui.py
 ```powershell
 $env:PGPASSWORD='semptify'
 & "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U semptify -d legal_intel
-```
+```text
 
 ### Useful psql Commands
 
@@ -210,18 +222,18 @@ ORDER BY count DESC;
 ### Start/Stop PostgreSQL Service
 
 ```powershell
-# Check status
+## Check status
 Get-Service -Name postgresql-x64-16
 
-# Start PostgreSQL
+## Start PostgreSQL
 Start-Service -Name postgresql-x64-16
 
-# Stop PostgreSQL
+## Stop PostgreSQL
 Stop-Service -Name postgresql-x64-16
 
-# Restart PostgreSQL
+## Restart PostgreSQL
 Restart-Service -Name postgresql-x64-16
-```
+```text
 
 ### Reset Database (Nuclear Option)
 
@@ -243,7 +255,7 @@ Located at: `c:\Semptify\Semptify-FastAPI\legal_intel\.env`
 
 ```env
 DATABASE_URL=postgresql+asyncpg://semptify:semptify@localhost:5432/legal_intel
-```
+```text
 
 Change this if you move to a different database host, user, or database name.
 
@@ -265,9 +277,10 @@ At the top of `gui.py`:
 
 ```python
 API_BASE = "http://localhost:8000"
-```
+```text
 
 **Change this if:**
+
 - You run the server on a different port: `"http://localhost:8080"`
 - You run the server on a different machine: `"http://192.168.1.x:8000"`
 
@@ -280,14 +293,16 @@ MCRO_BASE = "https://publicaccess.courts.state.mn.us/CaseSearch"
 ```
 
 **Timeouts:** If MCRO is slow, find this line and increase the wait:
+
 ```python
 await page.wait_for_selector(...)  # timeout in ms
-```
+```text
 
 **Headless mode:** To see the browser during crawl (for debugging), change:
+
 ```python
 browser = await p.chromium.launch(headless=True)
-# to:
+## to:
 browser = await p.chromium.launch(headless=False)
 ```
 
@@ -300,7 +315,7 @@ Supports MN and ND Secretary of State.
 ```python
 MN_SOS_BASE = "https://mblsportal.sos.state.mn.us/Business/Search"
 ND_SOS_BASE = "https://firststop.sos.nd.gov/search/business"
-```
+```text
 
 ---
 
@@ -331,19 +346,19 @@ Add any keywords that are relevant to your cases.
 
 ## 8. API Reference
 
-All endpoints available at http://localhost:8000/docs (interactive).
+All endpoints available at <http://localhost:8000/docs> (interactive).
 
 ### Crawl Endpoints
 
 | Method | Path | Description |
-|---|---|---|
+| --- | --- | --- |
 | POST | `/crawl/attorney/{bar_number}` | Background crawl of attorney cases from MCRO |
 | POST | `/crawl/entity/{entity_name}?state=MN` | Crawl entity from SOS |
 
 ### Intel Endpoints
 
 | Method | Path | Description |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/intel/attorney/by-bar/{bar_number}` | Look up attorney by bar number |
 | GET | `/intel/entity/by-name/{entity_name}` | Look up entity by name |
 | GET | `/intel/patterns/attorney/{attorney_id}` | Pattern analysis for attorney |
@@ -354,15 +369,15 @@ All endpoints available at http://localhost:8000/docs (interactive).
 
 ```bash
 curl -X POST http://localhost:8000/crawl/attorney/12345
-```
+```text
 
 ### Example: Get Patterns via curl
 
 ```bash
-# Step 1: Get attorney ID
+## Step 1: Get attorney ID
 curl http://localhost:8000/intel/attorney/by-bar/12345
 
-# Step 2: Get patterns using returned ID
+## Step 2: Get patterns using returned ID
 curl http://localhost:8000/intel/patterns/attorney/1
 ```
 
@@ -371,7 +386,7 @@ curl http://localhost:8000/intel/patterns/attorney/1
 ## 9. Data Sources
 
 | Source | What It Provides | Method |
-|---|---|---|
+| --- | --- | --- |
 | **MCRO** | MN state court cases, dockets | Playwright (browser automation) |
 | **MN SOS** | MN business entities, registered agents | Playwright |
 | **ND SOS** | ND business entities | Playwright |
@@ -385,21 +400,29 @@ curl http://localhost:8000/intel/patterns/attorney/1
 ## 10. Troubleshooting
 
 ### Server won't start
-```
+
+```text
 Error: address already in use
 ```
+
 Another process is using port 8000. Either kill it or use a different port:
+
 ```powershell
 uvicorn app.main:app --reload --port 8001
-```
+```text
 
 ---
 
 ### Database connection error
+
 ```
+
 asyncpg.exceptions.InvalidPasswordError
-```
+
+```text
+
 Verify the semptify user password:
+
 ```powershell
 $env:PGPASSWORD='postgres'
 & "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -c "ALTER USER semptify PASSWORD 'semptify';"
@@ -408,26 +431,33 @@ $env:PGPASSWORD='postgres'
 ---
 
 ### Tables don't exist
-```
+
+```text
 asyncpg.exceptions.UndefinedTableError
 ```
+
 Re-run the database initializer:
+
 ```powershell
 cd C:\Semptify\Semptify-FastAPI\legal_intel
 python init_db.py
-```
+```text
 
 ---
 
 ### MCRO/SOS returns no results
+
 These are public sites that may change their HTML. If crawlers stop returning results:
+
 1. Set `headless=False` in the crawler to watch what's happening
 2. Update selectors in `app/crawlers/mcro.py` or `app/crawlers/sos.py`
 
 ---
 
 ### GUI shows "Connection refused"
+
 The server is not running. Start it first:
+
 ```powershell
 cd C:\Semptify\Semptify-FastAPI\legal_intel
 uvicorn app.main:app --reload --port 8000
@@ -436,6 +466,7 @@ uvicorn app.main:app --reload --port 8000
 ---
 
 ### Wrong DATABASE_URL loading
+
 If the engine is picking up a cloud database URL instead of local, the `.env` file is being overridden by a parent directory's `.env`. The `app/config.py` explicitly loads from the `legal_intel/.env` path to prevent this.
 
 ---

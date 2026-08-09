@@ -186,9 +186,7 @@ def reject_task(
             if task.get("id") == task_id:
                 current_status = task.get("status", "pending")
                 if current_status in ("done", "rejected"):
-                    raise ValueError(
-                        f"Task {task_id} is already '{current_status}'. " f"Cannot reject a finished task."
-                    )
+                    raise ValueError(f"Task {task_id} is already '{current_status}'. Cannot reject a finished task.")
                 task["status"] = "rejected"
                 task["rejected_by"] = {
                     "agent": agent_name,

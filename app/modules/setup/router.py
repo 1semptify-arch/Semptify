@@ -4,18 +4,18 @@ Guides users through initial system configuration.
 Ensures all data is properly collected and integrated before use.
 """
 
-from typing import Optional, List
-from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, EmailStr
-
-from app.core.security import require_user, StorageUser, yellow_access
-from app.core.database import get_db_session
-from app.models.models import User, Document
-from sqlalchemy import select, update
-from app.core.utc import utc_now
 import logging
+from datetime import datetime, timedelta
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from pydantic import BaseModel, Field
+from sqlalchemy import select
+
+from app.core.database import get_db_session
+from app.core.security import StorageUser, yellow_access
+from app.core.utc import utc_now
+from app.models.models import Document
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,11 +26,13 @@ router = APIRouter()
 # Data Models
 # =============================================================================
 
+
 class UserProfile(BaseModel):
     """User's personal information"""
+
     full_name: str = Field(..., min_length=2, max_length=100)
-    email: Optional[str] = None
-    phone: Optional[str] = None
+    email: str | None = None
+    phone: str | None = None
     address: str = Field(..., min_length=5)
     city: str = Field(..., min_length=2)
     state: str = Field(default="MN", max_length=2)
@@ -39,66 +41,70 @@ class UserProfile(BaseModel):
 
 class PartyInfo(BaseModel):
     """Information about a party (landlord/property manager)"""
+
     name: str = Field(..., min_length=2)
-    address: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = "MN"
-    zip_code: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    attorney_name: Optional[str] = None
-    attorney_bar_number: Optional[str] = None
+    address: str | None = None
+    city: str | None = None
+    state: str | None = "MN"
+    zip_code: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    attorney_name: str | None = None
+    attorney_bar_number: str | None = None
 
 
 class CaseInfo(BaseModel):
     """Case information from summons/complaint"""
+
     case_number: str = Field(..., min_length=5, description="Court case number")
     court_name: str = Field(default="Dakota County District Court")
     court_county: str = Field(default="Dakota")
     judicial_district: str = Field(default="First Judicial District")
-    
+
     # Property info
     property_address: str = Field(..., min_length=5)
     property_city: str = Field(..., min_length=2)
     property_state: str = Field(default="MN")
     property_zip: str = Field(..., min_length=5)
-    unit_number: Optional[str] = None
-    
+    unit_number: str | None = None
+
     # Landlord/Plaintiff
     landlord: PartyInfo
-    
+
     # Key dates
-    notice_date: Optional[str] = None
-    notice_type: Optional[str] = None  # 14-day, 30-day, etc.
-    summons_date: Optional[str] = None
-    hearing_date: Optional[str] = None
-    hearing_time: Optional[str] = None
-    
+    notice_date: str | None = None
+    notice_type: str | None = None  # 14-day, 30-day, etc.
+    summons_date: str | None = None
+    hearing_date: str | None = None
+    hearing_time: str | None = None
+
     # Amounts
-    rent_claimed: Optional[float] = None
-    late_fees_claimed: Optional[float] = None
-    other_fees_claimed: Optional[float] = None
-    
+    rent_claimed: float | None = None
+    late_fees_claimed: float | None = None
+    other_fees_claimed: float | None = None
+
     # Lease info
-    monthly_rent: Optional[float] = None
-    security_deposit: Optional[float] = None
-    lease_start_date: Optional[str] = None
-    lease_end_date: Optional[str] = None
-    lease_type: Optional[str] = "month-to-month"
+    monthly_rent: float | None = None
+    security_deposit: float | None = None
+    lease_start_date: str | None = None
+    lease_end_date: str | None = None
+    lease_type: str | None = "month-to-month"
 
 
 class StorageConfig(BaseModel):
     """Cloud storage configuration"""
+
     provider: str = Field(..., description="google_drive, onedrive, dropbox, or local")
     connected: bool = False
-    folder_path: Optional[str] = None
+    folder_path: str | None = None
 
 
 class SetupProgress(BaseModel):
     """Track setup wizard progress"""
+
     current_step: int = 1
     total_steps: int = 7
-    steps_completed: List[int] = []
+    steps_completed: list[int] = []
     profile_complete: bool = False
     case_info_complete: bool = False
     storage_complete: bool = False
@@ -109,11 +115,12 @@ class SetupProgress(BaseModel):
 
 class SetupStatus(BaseModel):
     """Overall setup status"""
+
     is_complete: bool = False
     progress: SetupProgress
-    profile: Optional[dict] = None
-    case_info: Optional[dict] = None
-    storage: Optional[dict] = None
+    profile: dict | None = None
+    case_info: dict | None = None
+    storage: dict | None = None
     documents_count: int = 0
     timeline_events_count: int = 0
 
@@ -153,6 +160,7 @@ def get_user_setup(user_id: str) -> dict:
 # Endpoints
 # =============================================================================
 
+
 @router.get("/check")
 async def check_setup_needed():
     """
@@ -162,11 +170,12 @@ async def check_setup_needed():
     """
     # Check if any user has completed setup (simple file-based check)
     import os
+
     setup_marker = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
 
     return {
         "setup_complete": os.path.exists(setup_marker),
-        "redirect": "/static/command_center.html" if os.path.exists(setup_marker) else "/static/setup_wizard.html"
+        "redirect": "/static/command_center.html" if os.path.exists(setup_marker) else "/static/setup_wizard.html",
     }
 
 
@@ -177,18 +186,17 @@ async def skip_setup():
     Creates the setup_complete marker without going through the wizard.
     """
     import os
-    from datetime import datetime
-    
+
     marker_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
     os.makedirs(os.path.dirname(marker_path), exist_ok=True)
-    
+
     with open(marker_path, "w") as f:
         f.write(f"Setup skipped at {utc_now().isoformat()}")
-    
+
     return {
         "status": "skipped",
         "message": "Setup wizard skipped. You can configure later via settings.",
-        "redirect": "/static/command_center.html"
+        "redirect": "/static/command_center.html",
     }
 
 
@@ -202,40 +210,36 @@ async def reset_setup(
     Requires authentication.
     """
     import os
-    
+
     marker_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
-    
+
     if os.path.exists(marker_path):
         os.remove(marker_path)
         return {
             "status": "reset",
             "message": "Setup wizard will show again on next visit.",
-            "redirect": "/static/setup_wizard.html"
+            "redirect": "/static/setup_wizard.html",
         }
-    
-    return {
-        "status": "already_reset",
-        "message": "Setup was not completed.",
-        "redirect": "/static/setup_wizard.html"
-    }
+
+    return {"status": "already_reset", "message": "Setup was not completed.", "redirect": "/static/setup_wizard.html"}
+
+
 @router.get("/status")
 async def get_setup_status(
     user: StorageUser = Depends(yellow_access),
 ) -> SetupStatus:
     """
     Get current setup wizard status.
-    
+
     Returns progress through the wizard and what's been completed.
     """
     setup = get_user_setup(user.user_id)
-    
+
     # Count documents
     async with get_db_session() as session:
-        result = await session.execute(
-            select(Document).where(Document.user_id == user.user_id)
-        )
+        result = await session.execute(select(Document).where(Document.user_id == user.user_id))
         docs = result.scalars().all()
-    
+
     return SetupStatus(
         is_complete=setup["progress"]["review_complete"],
         progress=SetupProgress(**setup["progress"]),
@@ -254,32 +258,35 @@ async def save_profile(
 ):
     """
     Step 2: Save user profile information.
-    
+
     This is the tenant's personal information that will appear on court forms.
     """
     setup = get_user_setup(user.user_id)
     setup["profile"] = profile.model_dump()
     setup["progress"]["profile_complete"] = True
-    
+
     if 2 not in setup["progress"]["steps_completed"]:
         setup["progress"]["steps_completed"].append(2)
-    
+
     # Update Form Data Hub
     from app.services.form_data import get_form_data_service
+
     service = get_form_data_service(user.user_id)
     await service.load()
-    service.update_case_info({
-        "tenant": {
-            "name": profile.full_name,
-            "address": profile.address,
-            "city": profile.city,
-            "state": profile.state,
-            "zip_code": profile.zip_code,
-            "phone": profile.phone or "",
-            "email": profile.email or "",
+    service.update_case_info(
+        {
+            "tenant": {
+                "name": profile.full_name,
+                "address": profile.address,
+                "city": profile.city,
+                "state": profile.state,
+                "zip_code": profile.zip_code,
+                "phone": profile.phone or "",
+                "email": profile.email or "",
+            }
         }
-    })
-    
+    )
+
     return {
         "status": "saved",
         "message": "Profile saved successfully",
@@ -306,17 +313,17 @@ async def save_case_info(
 ):
     """
     Step 3: Save case information.
-    
+
     Information from the summons and complaint documents.
     This data populates all court forms.
     """
     setup = get_user_setup(user.user_id)
     setup["case_info"] = case_info.model_dump()
     setup["progress"]["case_info_complete"] = True
-    
+
     if 3 not in setup["progress"]["steps_completed"]:
         setup["progress"]["steps_completed"].append(3)
-    
+
     # Calculate answer deadline (7 days from summons for eviction)
     answer_deadline = None
     if case_info.summons_date:
@@ -325,12 +332,13 @@ async def save_case_info(
             answer_deadline = (summons + timedelta(days=7)).strftime("%Y-%m-%d")
         except ValueError as e:
             logger.warning(f"Calendar/deadline query failed: {e}")
-    
+
     # Update Form Data Hub
     from app.services.form_data import get_form_data_service
+
     service = get_form_data_service(user.user_id)
     await service.load()
-    
+
     update_data = {
         "case_number": case_info.case_number,
         "court_name": case_info.court_name,
@@ -358,10 +366,10 @@ async def save_case_info(
         "landlord": case_info.landlord.model_dump() if case_info.landlord else {},
     }
     service.update_case_info(update_data)
-    
+
     # Create calendar events for deadlines
     await _create_deadline_events(user.user_id, case_info, answer_deadline)
-    
+
     return {
         "status": "saved",
         "message": "Case information saved successfully",
@@ -389,7 +397,7 @@ async def configure_storage(
 ):
     """
     Step 4: Configure document storage.
-    
+
     Choose where to store your case documents:
     - local: Store on this server (default)
     - google_drive: Connect Google Drive
@@ -399,15 +407,15 @@ async def configure_storage(
     setup = get_user_setup(user.user_id)
     setup["storage"] = config.model_dump()
     setup["progress"]["storage_complete"] = True
-    
+
     if 4 not in setup["progress"]["steps_completed"]:
         setup["progress"]["steps_completed"].append(4)
-    
+
     # If cloud provider, return OAuth URL
     oauth_url = None
     if config.provider != "local":
         oauth_url = f"/storage/auth/{config.provider}"
-    
+
     return {
         "status": "configured",
         "provider": config.provider,
@@ -437,7 +445,7 @@ async def upload_document(
 ):
     """
     Step 5: Upload a case document.
-    
+
     Supported document types:
     - summons: Court summons
     - complaint: Eviction complaint
@@ -447,33 +455,32 @@ async def upload_document(
     - communication: Emails, letters, texts
     - photo: Property condition photos
     - other: Other evidence
-    
+
     Documents are automatically processed to extract:
     - Dates (for timeline)
     - Amounts (for forms)
     - Party names
     """
     import hashlib
-    import os
     from pathlib import Path
-    
+
     setup = get_user_setup(user.user_id)
-    
+
     # Read file content
     content = await file.read()
     file_hash = hashlib.sha256(content).hexdigest()
-    
+
     # Create vault directory
     vault_dir = Path(f"uploads/vault/{user.user_id}")
     vault_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Save file
     safe_filename = f"{file_hash[:8]}_{file.filename}"
     file_path = vault_dir / safe_filename
-    
+
     with open(file_path, "wb") as f:
         f.write(content)
-    
+
     # Save to database
     async with get_db_session() as session:
         doc = Document(
@@ -491,15 +498,15 @@ async def upload_document(
         await session.commit()
         await session.refresh(doc)
         doc_id = doc.id
-    
+
     # Update setup progress
     setup["progress"]["documents_uploaded"] = True
     if 5 not in setup["progress"]["steps_completed"]:
         setup["progress"]["steps_completed"].append(5)
-    
+
     # Process document to extract data
     extracted = await _process_document(user.user_id, doc_id, document_type, content, file.filename)
-    
+
     return {
         "status": "uploaded",
         "document_id": doc_id,
@@ -517,11 +524,9 @@ async def get_uploaded_documents(
 ):
     """Get list of uploaded documents."""
     async with get_db_session() as session:
-        result = await session.execute(
-            select(Document).where(Document.user_id == user.user_id)
-        )
+        result = await session.execute(select(Document).where(Document.user_id == user.user_id))
         docs = result.scalars().all()
-    
+
     return {
         "documents": [
             {
@@ -543,45 +548,45 @@ async def process_all_documents(
 ):
     """
     Step 6: Process all uploaded documents.
-    
+
     Extracts data from all documents and updates:
     - Form Data Hub
     - Timeline
     - Calendar
     """
     setup = get_user_setup(user.user_id)
-    
+
     async with get_db_session() as session:
-        result = await session.execute(
-            select(Document).where(Document.user_id == user.user_id)
-        )
+        result = await session.execute(select(Document).where(Document.user_id == user.user_id))
         docs = result.scalars().all()
-    
+
     processed = []
     for doc in docs:
         # Read file and process
         try:
             with open(doc.file_path, "rb") as f:
                 content = f.read()
-            extracted = await _process_document(
-                user.user_id, doc.id, doc.document_type, content, doc.original_filename
+            extracted = await _process_document(user.user_id, doc.id, doc.document_type, content, doc.original_filename)
+            processed.append(
+                {
+                    "document_id": doc.id,
+                    "filename": doc.original_filename,
+                    "extracted": extracted,
+                }
             )
-            processed.append({
-                "document_id": doc.id,
-                "filename": doc.original_filename,
-                "extracted": extracted,
-            })
         except Exception as e:
-            processed.append({
-                "document_id": doc.id,
-                "filename": doc.original_filename,
-                "error": str(e),
-            })
-    
+            processed.append(
+                {
+                    "document_id": doc.id,
+                    "filename": doc.original_filename,
+                    "error": str(e),
+                }
+            )
+
     setup["progress"]["documents_processed"] = True
     if 6 not in setup["progress"]["steps_completed"]:
         setup["progress"]["steps_completed"].append(6)
-    
+
     return {
         "status": "processed",
         "documents_processed": len(processed),
@@ -596,33 +601,32 @@ async def complete_setup(
 ):
     """
     Step 7: Complete setup wizard.
-    
+
     Marks setup as complete and redirects to command center.
     """
     setup = get_user_setup(user.user_id)
-    
+
     # Verify all required steps
     required = ["profile_complete", "case_info_complete"]
     missing = [step for step in required if not setup["progress"].get(step)]
-    
+
     if missing:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Cannot complete setup. Missing: {missing}"
-        )
-    
+        raise HTTPException(status_code=400, detail=f"Cannot complete setup. Missing: {missing}")
+
     setup["progress"]["review_complete"] = True
     if 7 not in setup["progress"]["steps_completed"]:
         setup["progress"]["steps_completed"].append(7)
-    
+
     # Get summary
     from app.services.form_data import get_form_data_service
+
     service = get_form_data_service(user.user_id)
     await service.load()
     summary = service.get_case_summary()
 
     # Create setup complete marker file
     import os
+
     marker_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
     os.makedirs(os.path.dirname(marker_path), exist_ok=True)
     with open(marker_path, "w") as f:
@@ -634,29 +638,30 @@ async def complete_setup(
         "redirect": "/static/command_center.html",
         "case_summary": summary,
     }
+
+
 @router.get("/summary")
 async def get_setup_summary(
     user: StorageUser = Depends(yellow_access),
 ):
     """
     Get complete summary of all setup data.
-    
+
     Used by Step 7 (Review) to show everything before completion.
     """
     setup = get_user_setup(user.user_id)
-    
+
     # Get documents
     async with get_db_session() as session:
-        result = await session.execute(
-            select(Document).where(Document.user_id == user.user_id)
-        )
+        result = await session.execute(select(Document).where(Document.user_id == user.user_id))
         docs = result.scalars().all()
-    
+
     # Get form data
     from app.services.form_data import get_form_data_service
+
     service = get_form_data_service(user.user_id)
     await service.load()
-    
+
     return {
         "profile": setup["profile"],
         "case_info": setup["case_info"],
@@ -678,6 +683,7 @@ async def get_setup_summary(
 # Helper Functions
 # =============================================================================
 
+
 async def _process_document(
     user_id: str,
     doc_id: int,
@@ -687,50 +693,50 @@ async def _process_document(
 ) -> dict:
     """
     Process a document to extract data.
-    
+
     Returns extracted dates, amounts, and other relevant information.
     """
     import re
-    
+
     extracted = {
         "dates": [],
         "amounts": [],
         "parties": [],
         "case_numbers": [],
     }
-    
+
     # Try to extract text (for PDFs, we'd need OCR)
     try:
         text = content.decode("utf-8", errors="ignore")
     except UnicodeDecodeError:
         text = ""
-    
+
     # Extract dates (various formats)
     date_patterns = [
-        r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\b',  # MM/DD/YYYY or MM-DD-YYYY
-        r'\b(\w+)\s+(\d{1,2}),?\s+(\d{4})\b',  # Month DD, YYYY
-        r'\b(\d{4})[/-](\d{1,2})[/-](\d{1,2})\b',  # YYYY-MM-DD
+        r"\b(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\b",  # MM/DD/YYYY or MM-DD-YYYY
+        r"\b(\w+)\s+(\d{1,2}),?\s+(\d{4})\b",  # Month DD, YYYY
+        r"\b(\d{4})[/-](\d{1,2})[/-](\d{1,2})\b",  # YYYY-MM-DD
     ]
-    
+
     for pattern in date_patterns:
         matches = re.findall(pattern, text, re.IGNORECASE)
         for match in matches:
             extracted["dates"].append("".join(match))
-    
+
     # Extract amounts (money)
-    amount_pattern = r'\$[\d,]+\.?\d*'
+    amount_pattern = r"\$[\d,]+\.?\d*"
     amounts = re.findall(amount_pattern, text)
     extracted["amounts"] = amounts[:10]  # Limit to 10
-    
+
     # Extract case numbers
-    case_pattern = r'\b\d{2}[A-Z]{2}-[A-Z]{2}-\d{2}-\d+\b'
+    case_pattern = r"\b\d{2}[A-Z]{2}-[A-Z]{2}-\d{2}-\d+\b"
     cases = re.findall(case_pattern, text)
     extracted["case_numbers"] = cases
-    
+
     # Create timeline event based on document type
-    from app.models.models import TimelineEvent
     from app.core.database import get_db_session
-    
+    from app.models.models import TimelineEvent
+
     event_title = {
         "summons": "Summons Received",
         "complaint": "Complaint Filed",
@@ -740,7 +746,7 @@ async def _process_document(
         "communication": "Communication",
         "photo": "Photo Evidence",
     }.get(doc_type, f"Document: {filename}")
-    
+
     async with get_db_session() as session:
         event = TimelineEvent(
             user_id=user_id,
@@ -752,63 +758,72 @@ async def _process_document(
         )
         session.add(event)
         await session.commit()
-    
+
     # Update Form Data Hub with extracted data
     from app.services.form_data import get_form_data_service
+
     service = get_form_data_service(user_id)
     await service.load()
-    
+
     # Add extracted dates
     for date in extracted["dates"][:5]:
-        service.form_data.extracted_dates.append({
-            "date": date,
-            "source": filename,
-            "type": doc_type,
-        })
-    
+        service.form_data.extracted_dates.append(
+            {
+                "date": date,
+                "source": filename,
+                "type": doc_type,
+            }
+        )
+
     # Add extracted amounts
     for amount in extracted["amounts"][:5]:
-        service.form_data.extracted_amounts.append({
-            "amount": amount,
-            "source": filename,
-            "type": doc_type,
-        })
-    
+        service.form_data.extracted_amounts.append(
+            {
+                "amount": amount,
+                "source": filename,
+                "type": doc_type,
+            }
+        )
+
     return extracted
 
 
 async def _create_deadline_events(
     user_id: str,
     case_info: CaseInfo,
-    answer_deadline: Optional[str],
+    answer_deadline: str | None,
 ):
     """Create calendar events for case deadlines."""
-    from app.models.models import CalendarEvent
     from app.core.database import get_db_session
-    
+    from app.models.models import CalendarEvent
+
     events_to_create = []
-    
+
     # Answer deadline
     if answer_deadline:
-        events_to_create.append({
-            "title": "⚠️ ANSWER DEADLINE",
-            "description": f"File your Answer to Eviction Complaint by end of day. Case: {case_info.case_number}",
-            "event_date": answer_deadline,
-            "event_type": "deadline",
-            "is_critical": True,
-        })
-    
+        events_to_create.append(
+            {
+                "title": "⚠️ ANSWER DEADLINE",
+                "description": f"File your Answer to Eviction Complaint by end of day. Case: {case_info.case_number}",
+                "event_date": answer_deadline,
+                "event_type": "deadline",
+                "is_critical": True,
+            }
+        )
+
     # Hearing date
     if case_info.hearing_date:
         time_str = case_info.hearing_time or "TBD"
-        events_to_create.append({
-            "title": "🏛️ COURT HEARING",
-            "description": f"Eviction hearing at {case_info.court_name}. Time: {time_str}. Case: {case_info.case_number}",
-            "event_date": case_info.hearing_date,
-            "event_type": "hearing",
-            "is_critical": True,
-        })
-    
+        events_to_create.append(
+            {
+                "title": "🏛️ COURT HEARING",
+                "description": f"Eviction hearing at {case_info.court_name}. Time: {time_str}. Case: {case_info.case_number}",
+                "event_date": case_info.hearing_date,
+                "event_type": "hearing",
+                "is_critical": True,
+            }
+        )
+
     # Create events in database
     async with get_db_session() as session:
         for event_data in events_to_create:
@@ -820,7 +835,7 @@ async def _create_deadline_events(
                 )
             )
             existing = result.scalar_one_or_none()
-            
+
             if not existing:
                 event = CalendarEvent(
                     user_id=user_id,
@@ -830,5 +845,5 @@ async def _create_deadline_events(
                     event_type=event_data["event_type"],
                 )
                 session.add(event)
-        
+
         await session.commit()

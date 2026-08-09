@@ -1,9 +1,9 @@
 """Public-records research workflows for landlord and property research."""
 
-from typing import Any, Dict, List
+from typing import Any
 
 
-def lookup_llc_structure(entity_name: str, state: str = "MN") -> Dict[str, Any]:
+def lookup_llc_structure(entity_name: str, state: str = "MN") -> dict[str, Any]:
     """Return a structured request for LLC ownership research.
 
     Real lookups require state Secretary of State APIs; this helper returns
@@ -19,7 +19,7 @@ def lookup_llc_structure(entity_name: str, state: str = "MN") -> Dict[str, Any]:
     }
 
 
-def lookup_property_records(parcel_id: str, county: str = "Hennepin") -> Dict[str, Any]:
+def lookup_property_records(parcel_id: str, county: str = "Hennepin") -> dict[str, Any]:
     """Return a structured request for county property records."""
     return {
         "parcel_id": parcel_id,
@@ -32,7 +32,7 @@ def lookup_property_records(parcel_id: str, county: str = "Hennepin") -> Dict[st
     }
 
 
-def lookup_eviction_history(party_name: str, case_number: str = "") -> Dict[str, Any]:
+def lookup_eviction_history(party_name: str, case_number: str = "") -> dict[str, Any]:
     """Return a structured request for eviction filing history."""
     return {
         "party_name": party_name,
@@ -43,7 +43,7 @@ def lookup_eviction_history(party_name: str, case_number: str = "") -> Dict[str,
     }
 
 
-def lookup_subsidy_participation(property_address: str) -> Dict[str, Any]:
+def lookup_subsidy_participation(property_address: str) -> dict[str, Any]:
     """Return a structured request for housing subsidy participation."""
     return {
         "property_address": property_address,
@@ -57,7 +57,7 @@ def generate_public_profile(
     entity_name: str,
     property_address: str = "",
     parcel_id: str = "",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Generate a consolidated public-profile request from the lookups above."""
     return {
         "entity_name": entity_name,

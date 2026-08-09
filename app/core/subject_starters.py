@@ -4,6 +4,7 @@ These are plain-language, tenant-crisis prompts that help someone who is
 stressed find the right starting point without having to know the right
 words first. They are facts about a tenant's situation, not legal advice.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

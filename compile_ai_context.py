@@ -22,7 +22,7 @@ OUTPUT_FILE = "AI_HANDOFF_PACKET.md"
 TARGET_DOCS = [
     "Semptify_AI_Orchestration_Blueprint.md",
     "Semptify_Site_GUI_Framework.md",
-    ".devin/workflows/preflight.md",
+    ".devin/skills/preflight/SKILL.md",
     "ACTIVE_CONTEXT.md",
     "BUILD_STATE.md",
 ]
@@ -40,9 +40,7 @@ WORKBOOK_NOTE = (
 def get_git_commit():
     """Get the current commit hash, or a clear placeholder if not in a repo."""
     try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
-        ).decode("utf-8").strip()
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL).decode("utf-8").strip()
     except Exception:
         return "NO_GIT_REPOSITORY_DETECTED"
 
@@ -52,7 +50,7 @@ def compile_handoff_packet():
     timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
-        out.write(f"# SEMPTIFY — AI HANDOFF PACKET\n")
+        out.write("# SEMPTIFY — AI HANDOFF PACKET\n")
         out.write(f"**Generated:** {timestamp} | **Git commit at generation:** `{commit_hash}`\n\n")
         out.write(
             "**Instructions for the AI reading this:** this packet bundles the "
@@ -65,11 +63,11 @@ def compile_handoff_packet():
         for doc_path in TARGET_DOCS:
             out.write(f"## SOURCE FILE: {doc_path}\n\n")
             if os.path.exists(doc_path):
-                with open(doc_path, "r", encoding="utf-8") as f:
+                with open(doc_path, encoding="utf-8") as f:
                     out.write(f.read())
                 print(f"  merged: {doc_path}")
             else:
-                out.write(f"*(File not found at this path — skipped. Check the path is current.)*\n")
+                out.write("*(File not found at this path — skipped. Check the path is current.)*\n")
                 print(f"  SKIPPED (not found): {doc_path}")
             out.write("\n\n---\n\n")
 

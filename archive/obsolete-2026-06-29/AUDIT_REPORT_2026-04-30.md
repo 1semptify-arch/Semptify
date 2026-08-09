@@ -1,4 +1,5 @@
 # Semptify 5.0 - Comprehensive Audit Report
+
 **Date:** April 30, 2026  
 **Auditor:** AI Agent  
 **Scope:** Inventory verification, test status, build guide compliance
@@ -8,7 +9,7 @@
 ## EXECUTIVE SUMMARY
 
 | Area | Status | Action Needed |
-|------|--------|---------------|
+| ------ | -------- | --------------- |
 | Build Guide Compliance | 20% Complete | 12 items still ⏳ Testing |
 | Test Suite | 49 test files | Need to run and verify |
 | Page Inventory | FRAGMENTED | 6 entry points, 60% redundant |
@@ -20,22 +21,25 @@
 ## BUILD GUIDE SSOT - STATUS CHECK
 
 ### ✅ COMPLETED
+
 | Item | Status | Notes |
-|------|--------|-------|
+| ------ | -------- | ------- |
 | Reconnect Flow | **VERIFIED** | Loop fixed, session validation working |
 | Modular Core | **DONE** | Core/Extended/Other division complete |
 
 ### ⏳ PENDING TESTING (Core Flow - 4 Steps)
+
 | Step | URL | Status | Risk |
-|------|-----|--------|------|
+| ------ | ----- | -------- | ------ |
 | 1. Welcome | `/static/welcome.html` | ⏳ Untested | Entry point |
 | 2. Role Select | `/onboarding/select-role.html` | ⏳ Untested | Tenant path only |
 | 3. Storage | `/onboarding/storage-select.html` | ⏳ Untested | **MANDATORY** |
 | 4. Tenant Home | `/tenant/home` | ⏳ Untested | Vault ready? |
 
 ### ❌ UNCHECKED CORE FEATURES
+
 | Feature | Router | Status |
-|---------|--------|--------|
+| --------- | -------- | -------- |
 | Law Library | `law_library.py` | [ ] |
 | State Laws | `state_laws.py` | [ ] |
 | Documents | `documents.py` | [ ] |
@@ -58,7 +62,8 @@
 
 **ACCURACY:** 85% - Most items exist but status is unclear
 
-**ISSUES FOUND:**
+#### ISSUES FOUND:
+
 1. **Duplicate Listings** - `legal_analysis.py` appears in both Tools AND Research
 2. **Missing Files** - Some listed services don't exist:
    - `app/services/ocr_service.py` - NOT FOUND
@@ -66,8 +71,9 @@
    - `app/services/preview_service.py` - NOT FOUND
 3. **Status Ambiguity** - Many items marked "Core" but not verified working
 
-**FILES TO VERIFY:**
-```
+#### FILES TO VERIFY:
+
+```text
 app/core/document_hub.py
 app/core/page_contracts.py
 app/core/page_manifest.py
@@ -77,10 +83,10 @@ app/services/location_service.py
 
 ### PAGE_INVENTORY.md - ASSESSMENT
 
-**CRITICAL FINDINGS:**
+#### CRITICAL FINDINGS:
 
 | Issue | Count | Impact |
-|-------|-------|--------|
+| ------- | ------- | -------- |
 | Entry Points | 6 | User confusion, brand conflict |
 | Dashboards | 4 | Maintenance burden |
 | Document Pages | 6 | Fragmented UX |
@@ -88,7 +94,8 @@ app/services/location_service.py
 | Dead End Pages | 5 | Orphaned user journeys |
 | Broken Links | 4 | 404 errors |
 
-**IMMEDIATE CLEANUP (Phase 1):**
+#### IMMEDIATE CLEANUP (Phase 1):
+
 - [ ] Delete `home.html` (orphaned)
 - [ ] Delete `index.html` (Elbow brand - conflicts with Semptify)
 - [ ] Delete `complete-journey.html` (duplicate)
@@ -96,7 +103,8 @@ app/services/location_service.py
 - [ ] Remove all `-v2` versions except `dashboard-v2.html`
 - [ ] Delete `_archive/` folder contents (22 files)
 
-**MERGE REQUIRED (Phase 2):**
+#### MERGE REQUIRED (Phase 2):
+
 - [ ] Merge document pages → `documents.html`
 - [ ] Merge timeline pages → `timeline.html` + `timeline-builder.html`
 - [ ] Merge research pages → `law_library.html`
@@ -108,9 +116,10 @@ app/services/location_service.py
 
 ### TEST FILES FOUND: 49
 
-**CORE FUNCTIONALITY TESTS:**
+#### CORE FUNCTIONALITY TESTS:
+
 | Test File | Lines | Priority | Status |
-|-----------|-------|----------|--------|
+| ----------- | ------- | ---------- | -------- |
 | `test_documents.py` | 16,665 | CRITICAL | UNCHECKED |
 | `test_storage.py` | 26,293 | CRITICAL | UNCHECKED |
 | `test_briefcase.py` | 25,556 | CRITICAL | UNCHECKED |
@@ -122,9 +131,10 @@ app/services/location_service.py
 | `test_all_endpoints.py` | 12,619 | HIGH | UNCHECKED |
 | `test_basic.py` | 7,357 | MEDIUM | UNCHECKED |
 
-**LEGAL/EXTENDED TESTS (Deferred):**
+#### LEGAL/EXTENDED TESTS (Deferred):
+
 | Test File | Lines | Status |
-|-----------|-------|--------|
+| ----------- | ------- | -------- |
 | `test_court_learning.py` | 9,297 | DEFERRED |
 | `test_court_procedures.py` | 16,355 | DEFERRED |
 | `test_case_builder.py` | 6,517 | DEFERRED |
@@ -132,21 +142,23 @@ app/services/location_service.py
 | `test_legal_filing.py` | 3,962 | DEFERRED |
 | `test_complaints.py` | 11,215 | DEFERRED |
 
-**AI/BRAIN TESTS (Optional):**
+#### AI/BRAIN TESTS (Optional):
+
 | Test File | Lines | Status |
-|-----------|-------|--------|
+| ----------- | ------- | -------- |
 | `test_brain_router.py` | 5,799 | OPTIONAL |
 | `test_copilot.py` | 8,638 | OPTIONAL |
 | `test_positronic_mesh.py` | 4,886 | OPTIONAL |
 
-**ACTION REQUIRED:**
+#### ACTION REQUIRED:
+
 ```bash
-# Run core tests
+## Run core tests
 python -m pytest tests/test_documents.py tests/test_storage.py tests/test_briefcase.py -v
 
-# Run all tests
+## Run all tests
 python -m pytest tests/ -v --tb=short
-```
+```text
 
 ---
 
@@ -196,84 +208,85 @@ python -m pytest tests/ -v --tb=short
    - Calendar deadlines show
 
 4. [ ] **Run Core Test Suite**
+
    ```bash
    python -m pytest tests/test_documents.py tests/test_storage.py \
        tests/test_briefcase.py tests/test_vault_engine.py -v
    ```
 
-5. [ ] **Verify All Non-Core Routers Disabled**
+1. [ ] **Verify All Non-Core Routers Disabled**
    - Check `app/main.py` imports
    - Ensure Extended routers commented out
 
 ### 🟡 HIGH (This Week)
 
-6. [ ] **Clean Up Entry Points**
+1. [ ] **Clean Up Entry Points**
    - Delete `home.html`
    - Delete `index.html` (Elbow)
    - Consolidate to `welcome.html`
 
-7. [ ] **Archive Redundant Files**
+2. [ ] **Archive Redundant Files**
    - Move all `-v2` versions (except dashboard-v2) to `_archive/`
    - Move duplicate document pages to `_archive/`
 
-8. [ ] **Update Inventory Lists**
+3. [ ] **Update Inventory Lists**
    - Mark non-existent services as MISSING
    - Update status to UNCHECKED/VERIFIED/BROKEN
    - Add last-tested dates
 
-9. [ ] **Test Legal Analysis (Direct Mode)**
+4. [ ] **Test Legal Analysis (Direct Mode)**
    - Verify brain-optional mode works
    - Test evidence classification
 
-10. [ ] **Verify Law Library Router**
+5. [ ] **Verify Law Library Router**
     - Check all endpoints respond
     - Verify MN statutes load
 
 ### 🟢 MEDIUM (Next Sprint)
 
-11. [ ] **Create Consolidated Dashboard**
+ 1. [ ] **Create Consolidated Dashboard**
     - Merge dashboard-v2.html into dashboard.html
     - Archive others
 
-12. [ ] **Fix Broken Links**
+ 2. [ ] **Fix Broken Links**
     - `tenant/index.html` → non-existent pages
     - Update navigation to use existing routes
 
-13. [ ] **Document Extended Journey**
+ 3. [ ] **Document Extended Journey**
     - Move detailed flow to `concepts/EXTENDED_USER_JOURNEY_CONCEPT.md`
     - Keep build guide focused on Core
 
-14. [ ] **Create Feature Flags**
+ 4. [ ] **Create Feature Flags**
     - Implement `SEMPFIFY_FEATURE_SET` env variable
     - Test core/extended/full modes
 
 ### 🔵 LOW (Maintenance)
 
-15. [ ] **Refresh ADDONS_INVENTORY.md**
-16. [ ] **Update MODULE_COMPLIANCE_INVENTORY.csv**
-17. [ ] **Clean venv directories** (old dependencies)
+ 1. [ ] **Refresh ADDONS_INVENTORY.md**
+ 2. [ ] **Update MODULE_COMPLIANCE_INVENTORY.csv**
+ 3. [ ] **Clean venv directories** (old dependencies)
 
 ---
 
 ## VERIFICATION COMMANDS
 
 ```bash
-# 1. Check imports work
+## 1. Check imports work
 python -c "from app.main import app; print('✓ Imports OK')"
 
-# 2. Check core routers loaded
+## 2. Check core routers loaded
 python -c "from app.main import app; print([r.path for r in app.routes if 'api' in str(r.path)])"
 
-# 3. Test database connection
+## 3. Test database connection
 python -c "from app.core.database import engine; print('✓ Database OK')"
 
-# 4. Run quick health check
+## 4. Run quick health check
 curl http://localhost:8000/api/health
 
-# 5. List all test files
+## 5. List all test files
 ls tests/test_*.py | wc -l
 
-# 6. Run all tests (takes time)
+## 6. Run all tests (takes time)
 python -m pytest tests/ -v --tb=short 2>&1 | tail -50
 ```
 
@@ -283,13 +296,15 @@ python -m pytest tests/ -v --tb=short 2>&1 | tail -50
 
 **Current State:** Core architecture is solid but **verification is only 20% complete**. The reconnect flow fix was major progress, but the critical 4-step user journey remains untested.
 
-**Biggest Risks:**
+### Biggest Risks:
+
 1. Storage mandatory flow may not work (untested)
 2. Document upload may be broken (untested)
 3. 60% of pages are redundant (confusing)
 4. Test suite may have failures (unrun)
 
-**Recommended Immediate Action:**
+### Recommended Immediate Action:
+
 Run the Core 4-Step Flow test today. If storage mandatory flow fails, nothing else matters.
 
 ---

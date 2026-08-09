@@ -18,11 +18,11 @@ The Play Store version of Termux is deprecated and broken. You must install from
 Easiest method: download from a gist, or transfer via USB / cloud drive.
 
 ```bash
-# From inside Termux:
+## From inside Termux:
 pkg install git -y
 git clone https://github.com/<your-user>/mobile_ai_host.git
 cd mobile_ai_host/01_no_root_prototype
-```
+```text
 
 (If you don't have a git remote yet, just copy `install_termux.sh` to the phone via USB
 or a cloud drive, then run it from Termux.)
@@ -34,6 +34,7 @@ bash install_termux.sh
 ```
 
 This will:
+
 - Update pkg repositories
 - Install a C++ toolchain, cmake, git, curl, wget
 - Clone and build `llama.cpp` for ARM64 (takes ~15 min on Stylo 4)
@@ -44,13 +45,13 @@ This will:
 
 ```bash
 bash start_ai_server.sh
-```
+```text
 
 This launches `llama-server` on port 8080 with the small model loaded.
 You'll see a URL printed. Test from another device on the same Wi-Fi:
 
 ```bash
-# From a laptop on the same network:
+## From a laptop on the same network:
 curl http://<phone-ip>:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"qwen2-0.5b","messages":[{"role":"user","content":"Hello"}]}'
@@ -62,7 +63,7 @@ Or just run `bash test_inference.sh` on the phone itself.
 
 ```bash
 bash stop_ai_server.sh
-```
+```text
 
 ## Autostart on Boot (No-Root)
 
@@ -88,6 +89,7 @@ Now the AI server starts automatically when the phone boots.
 
 Android will kill any process using too much RAM. Without root, you cannot change
 the OOM killer settings. Stick to models under 600 MB on disk:
+
 - Qwen2-0.5B-Instruct Q4_K_M (400 MB) ✅ recommended
 - TinyLlama-1.1B Q4_K_M (670 MB) — borderline, may get killed
 - Anything bigger — will not work without root
@@ -97,7 +99,7 @@ If the server keeps getting killed, switch to package 2 (rooted).
 ## Troubleshooting
 
 | Symptom | Fix |
-|---------|-----|
+| --------- | ----- |
 | `pkg update` fails | Run `termux-change-repo` and pick a different mirror |
 | Build fails on cmake step | Run `pkg install cmake clang make -y` manually, retry |
 | Server starts but no response | Check `http://127.0.0.1:8080/health` from Termux |

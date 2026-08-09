@@ -15,10 +15,9 @@ Uses the document registry for integrity verification.
 import hashlib
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass, asdict
-from pathlib import Path
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Any
 
 from app.core.id_gen import make_id
 from app.core.utc import utc_now
@@ -28,9 +27,8 @@ logger = logging.getLogger(__name__)
 try:
     from app.services.document_registry import (
         DocumentRegistry,
-        DocumentStatus,
-        IntegrityStatus,
     )
+
     HAS_REGISTRY = True
 except ImportError:
     HAS_REGISTRY = False
@@ -41,11 +39,12 @@ except ImportError:
 # Data Classes
 # =============================================================================
 
+
 @dataclass
 class NotarizationRecord:
     """
     Notarization of a document upload event.
-    
+
     Proves:
     - Document received at specific time
     - Content not tampered with (via hash)
@@ -53,55 +52,56 @@ class NotarizationRecord:
     - Who uploaded it (user_id)
     - Where it's stored
     """
+
     notarization_id: str  # Unique identifier (SEM-NOT-XXXXX)
     document_id: str  # Vault or system document ID
     user_id: str
     username: str
-    
+
     # Content verification
     file_hash: str  # SHA-256 of original file
     file_size: int  # Original file size in bytes
     mime_type: str  # Original MIME type
-    
+
     # Metadata
     original_filename: str  # Original uploaded filename
-    document_type: Optional[str]  # lease, notice, photo, etc.
-    description: Optional[str]
-    tags: List[str]
-    
+    document_type: str | None  # lease, notice, photo, etc.
+    description: str | None
+    tags: list[str]
+
     # Location
     storage_path: str  # Where stored in vault
     storage_provider: str  # google_drive, dropbox, onedrive, local
-    
+
     # Timestamp & Source
     notarized_at: str  # ISO 8601 timestamp
     notarized_by: str  # System that created notarization
-    ip_address: Optional[str]  # IP of uploader
-    user_agent: Optional[str]  # Browser/client info
-    
+    ip_address: str | None  # IP of uploader
+    user_agent: str | None  # Browser/client info
+
     # Status
     status: str  # notarized, verified, registered, processing
-    
+
     # Chain of custody
-    registry_id: Optional[str] = None  # Reference to document registry
-    certificate_hash: Optional[str] = None  # Hash of this notarization itself
-    
+    registry_id: str | None = None  # Reference to document registry
+    certificate_hash: str | None = None  # Hash of this notarization itself
+
     # Metadata tracking
     upload_method: str = "web"  # web, api, file_picker, etc.
-    upload_context: Optional[Dict[str, Any]] = None  # additional context
-    
+    upload_context: dict[str, Any] | None = None  # additional context
+
     def to_dict(self) -> dict:
         data = asdict(self)
         if self.upload_context:
             data["upload_context"] = json.dumps(self.upload_context)
         return data
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> "NotarizationRecord":
         if isinstance(data.get("upload_context"), str):
             data["upload_context"] = json.loads(data["upload_context"])
         return cls(**data)
-    
+
     def get_notarization_hash(self) -> str:
         """Generate hash of this notarization record for integrity verification."""
         hashable = {
@@ -118,25 +118,27 @@ class NotarizationRecord:
 @dataclass
 class DocumentNotarization:
     """Complete notarization event with verification results."""
+
     notarization: NotarizationRecord
     verification_status: str  # verified, tampered, pending
-    registry_status: Optional[str]  # Original, Copy, Superseded, etc.
+    registry_status: str | None  # Original, Copy, Superseded, etc.
     created_at: datetime
-    verified_at: Optional[datetime] = None
+    verified_at: datetime | None = None
 
 
 # =============================================================================
 # Notarization Service
 # =============================================================================
 
+
 class DocumentNotarizationService:
     """
     Service for creating and verifying document notarizations.
-    
+
     Usage:
     ```python
     service = DocumentNotarizationService()
-    
+
     # On upload
     notarization = await service.notarize_upload(
         file_content=file_bytes,
@@ -145,16 +147,16 @@ class DocumentNotarizationService:
         storage_path="/path/in/vault",
         document_type="lease"
     )
-    
+
     # Later verification
     status = await service.verify_notarization(notarization_id)
     ```
     """
-    
+
     def __init__(self):
         self.registry = DocumentRegistry() if HAS_REGISTRY else None
-        self._notarizations: Dict[str, NotarizationRecord] = {}  # Memory cache
-    
+        self._notarizations: dict[str, NotarizationRecord] = {}  # Memory cache
+
     async def notarize_upload(
         self,
         file_content: bytes,
@@ -163,23 +165,23 @@ class DocumentNotarizationService:
         username: str,
         storage_path: str,
         storage_provider: str,
-        document_type: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
+        document_type: str | None = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
         upload_method: str = "web",
-        upload_context: Optional[Dict[str, Any]] = None,
+        upload_context: dict[str, Any] | None = None,
     ) -> NotarizationRecord:
         """
         Create a notarization record for an uploaded document.
-        
+
         This proves:
         - Document received at specific time
         - Content integrity (via hash)
         - Original metadata
         - Storage location
-        
+
         Args:
             file_content: Raw file bytes
             filename: Original filename
@@ -194,21 +196,21 @@ class DocumentNotarizationService:
             user_agent: Browser/client information
             upload_method: How document was uploaded
             upload_context: Additional context about upload
-            
+
         Returns:
             NotarizationRecord with all metadata and hashes
         """
         # Generate unique identifiers
         notarization_id = self._generate_notarization_id()
         document_id = make_id("doc")
-        
+
         # Calculate file hash
         file_hash = hashlib.sha256(file_content).hexdigest()
         file_size = len(file_content)
-        
+
         # Determine MIME type
         mime_type = self._detect_mime_type(filename)
-        
+
         # Create notarization record
         notarization = NotarizationRecord(
             notarization_id=notarization_id,
@@ -232,10 +234,10 @@ class DocumentNotarizationService:
             upload_method=upload_method,
             upload_context=upload_context,
         )
-        
+
         # Calculate notarization hash
         notarization.certificate_hash = notarization.get_notarization_hash()
-        
+
         # Register in document registry if available
         if self.registry and HAS_REGISTRY:
             try:
@@ -247,36 +249,31 @@ class DocumentNotarizationService:
                 )
                 notarization.registry_id = registry_result.document_id
                 notarization.status = "registered"
-                logger.info(
-                    f"Document {document_id} registered in registry: {notarization.registry_id}"
-                )
+                logger.info(f"Document {document_id} registered in registry: {notarization.registry_id}")
             except Exception as e:
                 logger.warning(f"Failed to register document in registry: {e}")
-        
+
         # Cache in memory
         self._notarizations[notarization_id] = notarization
-        
-        logger.info(
-            f"✓ Document notarized: {notarization_id} "
-            f"({filename} from {username}, {file_size} bytes)"
-        )
-        
+
+        logger.info(f"✓ Document notarized: {notarization_id} ({filename} from {username}, {file_size} bytes)")
+
         return notarization
-    
+
     async def verify_notarization(
         self,
         notarization_id: str,
-        file_content: Optional[bytes] = None,
-    ) -> Dict[str, Any]:
+        file_content: bytes | None = None,
+    ) -> dict[str, Any]:
         """
         Verify a notarization record.
-        
+
         Checks:
         - Notarization record exists
         - Hash is valid (self-verification)
         - If file provided, verify content matches original hash
         - Registry status if registered
-        
+
         Returns:
             Verification result with status and details
         """
@@ -287,9 +284,9 @@ class DocumentNotarizationService:
                 "verified": False,
                 "error": f"Notarization {notarization_id} not found",
             }
-        
+
         notarization = self._notarizations[notarization_id]
-        
+
         # Verify notarization hash
         expected_hash = notarization.get_notarization_hash()
         if notarization.certificate_hash != expected_hash:
@@ -300,7 +297,7 @@ class DocumentNotarizationService:
                 "expected_hash": expected_hash,
                 "actual_hash": notarization.certificate_hash,
             }
-        
+
         result = {
             "status": "verified",
             "verified": True,
@@ -312,7 +309,7 @@ class DocumentNotarizationService:
             "original_filename": notarization.original_filename,
             "storage_location": f"{notarization.storage_provider}:{notarization.storage_path}",
         }
-        
+
         # If file content provided, verify it matches
         if file_content is not None:
             content_hash = hashlib.sha256(file_content).hexdigest()
@@ -323,26 +320,24 @@ class DocumentNotarizationService:
             else:
                 result["content_status"] = "verified"
                 result["content_verified"] = True
-        
+
         # Check registry status
         if notarization.registry_id and self.registry:
             try:
-                registry_status = await self.registry.get_document_status(
-                    notarization.registry_id
-                )
+                registry_status = await self.registry.get_document_status(notarization.registry_id)
                 result["registry_status"] = registry_status
             except Exception as e:
                 logger.warning(f"Failed to check registry status: {e}")
-        
+
         return result
-    
+
     async def create_chain_of_custody(
         self,
         notarization_id: str,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get complete chain of custody for a document from notarization and registry.
-        
+
         Returns list of events showing:
         - Document upload (notarization)
         - Registrations/copies
@@ -351,7 +346,7 @@ class DocumentNotarizationService:
         """
         if notarization_id not in self._notarizations:
             return []
-        
+
         notarization = self._notarizations[notarization_id]
         chain = [
             {
@@ -363,26 +358,25 @@ class DocumentNotarizationService:
                 "location": f"{notarization.storage_provider}:{notarization.storage_path}",
             }
         ]
-        
+
         # Get registry chain if available
         if notarization.registry_id and self.registry:
             try:
-                registry_chain = await self.registry.get_chain_of_custody(
-                    notarization.registry_id
-                )
+                registry_chain = await self.registry.get_chain_of_custody(notarization.registry_id)
                 chain.extend(registry_chain)
             except Exception as e:
                 logger.warning(f"Failed to get registry chain: {e}")
-        
+
         return chain
-    
+
     def _generate_notarization_id(self) -> str:
         """Generate unique notarization ID."""
         return make_id("not")
-    
+
     def _detect_mime_type(self, filename: str) -> str:
         """Detect MIME type from filename."""
         import mimetypes
+
         mime_type, _ = mimetypes.guess_type(filename)
         return mime_type or "application/octet-stream"
 
@@ -391,7 +385,7 @@ class DocumentNotarizationService:
 # Singleton Instance
 # =============================================================================
 
-_notarization_service: Optional[DocumentNotarizationService] = None
+_notarization_service: DocumentNotarizationService | None = None
 
 
 async def get_notarization_service() -> DocumentNotarizationService:
