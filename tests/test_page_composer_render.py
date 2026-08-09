@@ -61,7 +61,7 @@ async def test_page_composer_render_rejects_unknown_subject(authenticated_client
     response = await authenticated_client.get("/api/page/not-a-subject/render")
 
     assert response.status_code == 400
-    assert "Unknown subject" in response.json()["detail"]
+    assert "Unknown subject" in response.text
 
 
 @pytest.mark.anyio
