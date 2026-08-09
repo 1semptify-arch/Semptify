@@ -6,6 +6,7 @@ reporting, and the `very_high_do_not_build` safe fallback.
 
 from __future__ import annotations
 
+from contextlib import ExitStack
 from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -31,15 +32,15 @@ PAGE_DATA: dict[str, Any] = {
 
 
 def _patch_assembly(page_data: dict[str, Any] | None = None, gather_blocks=None):
-    """Return a patch context manager that stubs external dependencies."""
+    """Return a context manager that stubs external dependencies."""
     data = page_data if page_data is not None else PAGE_DATA
-    return patch.multiple(
-        "app.modules.page_composer.assembly",
-        compose_page=AsyncMock(return_value=data),
-        ui_compose_page=Mock(return_value={"components": [{"type": "mock"}]}),
-        context_loop=Mock(get_state=Mock(return_value={})),
-        _gather_blocks=gather_blocks,
-    )
+    stack = ExitStack()
+    stack.enter_context(patch("app.modules.page_composer.assembly.compose_page", new=AsyncMock(return_value=data)))
+    stack.enter_context(patch("app.modules.page_composer.assembly.ui_compose_page", new=Mock(return_value={"components": [{"type": "mock"}]})))
+    stack.enter_context(patch("app.services.context_loop.context_loop.get_state", new=Mock(return_value={})))
+    if gather_blocks is not None:
+        stack.enter_context(patch("app.modules.page_composer.assembly._gather_blocks", new=gather_blocks))
+    return stack
 
 
 @pytest.mark.anyio
