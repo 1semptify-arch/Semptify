@@ -63,7 +63,7 @@ class FakeRedis:
         self.get = AsyncMock(return_value='{"value": 1}')
         self.setex = AsyncMock()
         self.set = AsyncMock()
-        self.delete = AsyncMock(return_value=1)
+        self.delete = AsyncMock(side_effect=[2, 1])
         self.exists = AsyncMock(return_value=1)
         self.scan = AsyncMock(side_effect=[(1, ["a", "b"]), (0, ["c"])])
         self.flushdb = AsyncMock()
@@ -145,6 +145,10 @@ class TestCacheManagerAndDecorators:
 
     @pytest.mark.asyncio
     async def test_cached_decorator_hits_and_caches_non_null_results(self, monkeypatch):
+        monkeypatch.setattr(
+            "app.core.config.get_settings",
+            lambda: SimpleNamespace(redis_url=None),
+        )
         monkeypatch.setattr(cache_module, "cache", CacheManager())
         calls = 0
 
@@ -166,6 +170,10 @@ class TestCacheManagerAndDecorators:
     async def test_cached_decorator_does_not_cache_none_and_supports_custom_key(
         self, monkeypatch
     ):
+        monkeypatch.setattr(
+            "app.core.config.get_settings",
+            lambda: SimpleNamespace(redis_url=None),
+        )
         monkeypatch.setattr(cache_module, "cache", CacheManager())
         calls = 0
 
@@ -181,6 +189,10 @@ class TestCacheManagerAndDecorators:
 
     @pytest.mark.asyncio
     async def test_cache_invalidate_clears_prefix_after_success(self, monkeypatch):
+        monkeypatch.setattr(
+            "app.core.config.get_settings",
+            lambda: SimpleNamespace(redis_url=None),
+        )
         monkeypatch.setattr(cache_module, "cache", CacheManager())
         await cache_module.cache.set("user:1", "cached")
 
