@@ -18,6 +18,7 @@ from app.core.security import auth_gate
 from app.core.user_context import UserContext
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
 from app.modules.page_composer.assembly import assemble_page
+from app.modules.page_composer.models import PageAssemblyRequest
 from app.modules.page_composer.service import compose_page
 from app.modules.page_shell.renderer import render_page_shell
 from app.modules.page_shell.skeletons import skeleton_for
@@ -69,6 +70,7 @@ async def get_assembled_page(
     subject: str,
     request: Request,
     jurisdiction: str = Query(default="MN"),
+    intent: str | None = Query(default=None),
     fact_limit: int = Query(default=10, ge=1, le=50),
     story_limit: int = Query(default=5, ge=1, le=20),
     user: UserContext = Depends(auth_gate),
@@ -86,6 +88,7 @@ async def get_assembled_page(
             subject=subject,
             jurisdiction=jurisdiction,
             user_id=user_id,
+            intent=intent,
             fact_limit=fact_limit,
             story_limit=story_limit,
         )
@@ -93,6 +96,47 @@ async def get_assembled_page(
         raise HTTPException(status_code=400, detail=str(e))
     logger.info("Page assembled: %s/%s for user %s***", subject, jurisdiction, user_id[:6])
     return result
+
+
+@router.post("/assemble")
+async def post_assembled_page(
+    request: Request,
+    body: PageAssemblyRequest,
+    user: UserContext = Depends(auth_gate),
+):
+    """Generic assembly endpoint.
+
+    Accepts subject, jurisdiction, intent, and optional user context in the
+    body, then returns the assembled PageConfig, legacy UI Composer components,
+    and GOVERN audit report. Set `render: true` to also receive the rendered
+    Page Shell HTML.
+    """
+    user_id = user.user_id
+    if body.subject not in ALL_SUBJECTS:
+        raise HTTPException(status_code=400, detail=f"Unknown subject: {body.subject}")
+    try:
+        result = await assemble_page(
+            subject=body.subject,
+            jurisdiction=body.jurisdiction,
+            user_id=user_id,
+            intent=body.intent,
+            user_context=body.context,
+            fact_limit=body.fact_limit,
+            story_limit=body.story_limit,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    response_payload = {
+        "page_config": result.page_config,
+        "components": result.components,
+        "govern_report": result.govern_report,
+        "metadata": result.metadata,
+    }
+    if body.render:
+        response_payload["html"] = render_page_shell(result.page_config)
+    logger.info("Page assembled via POST: %s/%s for user %s***", body.subject, body.jurisdiction, user_id[:6])
+    return response_payload
 
 
 @router.get("/{subject}/config")

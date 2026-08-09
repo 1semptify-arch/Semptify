@@ -27,6 +27,21 @@ def _auth_cookie(user_id: str) -> str:
     return sign_user_id(user_id)
 
 
+def _seed_token(user_id: str) -> None:
+    """Seed an in-memory OAuth token so yellow_access lets the user through."""
+    from app.core.oauth_token_manager import OAuthToken, token_manager
+
+    token_manager.store_token(
+        user_id,
+        OAuthToken(
+            access_token=f"mock_access_token_{user_id}",
+            refresh_token=f"mock_refresh_token_{user_id}",
+            expires_at=None,
+            provider="google_drive",
+        ),
+    )
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -89,6 +104,7 @@ async def test_gate_documents_get_rejects_wrong_owner(client):
 
     try:
         pipeline._documents[doc_id] = doc
+        _seed_token(attacker_id)
 
         # Authenticate as a *different* user
         response = await client.get(
@@ -117,6 +133,7 @@ async def test_gate_documents_get_allows_owner(client):
 
     try:
         pipeline._documents[doc_id] = doc
+        _seed_token(owner_id)
 
         response = await client.get(
             f"/api/documents/{doc_id}",
@@ -172,6 +189,7 @@ async def test_gate_reprocess_rejects_wrong_owner(client):
 
     try:
         pipeline._documents[doc_id] = doc
+        _seed_token(attacker_id)
 
         response = await client.post(
             f"/api/documents/{doc_id}/reprocess",
