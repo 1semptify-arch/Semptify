@@ -650,8 +650,9 @@
     "file_path": ".devin/blueprint.yaml",
     "status": "pending",
     "notes": "Created from PR #19 return handoff on 2026-08-09 after local verification found Python 3.12.8 only, no venv311, no pip, and no pytest.",
-    "created_at": "2026-08-09T02:00:00Z",
-    "updated_at": "2026-08-09T02:00:00Z",
-    "assigned_agent": ""
+    "created_at": "2026-08-09T00:00:00Z",
+    "updated_at": "2026-08-09T00:00:00Z",
+    "assigned_agent": "",
+    "source": "manual"
   }
 ]
