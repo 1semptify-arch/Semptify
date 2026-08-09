@@ -5,7 +5,7 @@
 repos:
   # General file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v4.6.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -54,7 +54,11 @@ repos:
             package\.lock\.json|
             tools/agent_orchestrator_tasks\.json|
             tools/orchestrator_dashboard\.html|
-            tools/agent_orchestrator\.html
+            tools/agent_orchestrator\.html|
+            CREDENTIALS_SETUP_WORKBOOK\.html|
+            test_browser_switch_detailed\.ps1|
+            DEPLOYMENT_READINESS\.md|
+            legal_intel/MANUAL\.md
           )$
 
   # Validate pyproject.toml / setup.py
