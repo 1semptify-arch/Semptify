@@ -1,5 +1,14 @@
 ## Session -- 2026-08-01 — Task 6 i18n locale selector + set-locale endpoint
 
+### Guardrail Engine Run — 2026-08-09T03:35:47
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Guardrail Engine Run — 2026-08-02T06:44:24
 
 - **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
