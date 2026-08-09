@@ -425,8 +425,8 @@ def test_form_field_extractor_covers_case_property_lease_dates_and_amounts():
     )
     assert result.case_number.value == "19AV-CV-25-0000"
     assert result.county.value == "Dakota"
-    assert result.property_address.city == "Minneapolis"
-    assert result.property_address.unit == "4"
+    assert result.property_city.value == "Minneapolis"
+    assert result.unit_number.value == "4"
     assert result.monthly_rent.value == 1250.0
     assert result.security_deposit.value == 1250.0
     assert result.hearing_date.value == "2026-02-10"
