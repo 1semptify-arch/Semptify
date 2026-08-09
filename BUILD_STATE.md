@@ -1,3 +1,41 @@
+## Session — 2026-08-09 — Ship: removed design guide and unused pillar navigation CSS
+
+### Guardrail Engine Run — 2026-08-09T17:25:50+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Overview
+
+End-of-session `/ship` cleanup. Removed the living design guide and its dedicated route, plus the 1,410-line PILLAR NAVIGATION SYSTEM section from `ssot-design-system.css` that is not yet wired into templates.
+
+### What was shipped
+
+- `app/main.py`: removed `/design-guide` and `/design-guide.html` routes
+- `static/css/ssot-design-system.css`: removed 1,410 lines of unused pillar navigation styles
+- `static/design-guide.html`: deleted the standalone 2,063-line design guide
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS
+- Playwright smoke suite (SEMPTIFY_URL=http://localhost:8000): 52 passed, 4 skipped
+
+### Last deployed commit
+
+- `3db1cb0e` — `chore: remove design guide and unused pillar navigation CSS`
+- Render deploy: https://dashboard.render.com
+
+### Next session
+
+- Monitor Render deploy log for the CSS deletion
+- Continue with remaining audit tasks (todo-050 through todo-058 as needed)
+
+---
+
 ## Session — 2026-08-09 — todo-059, todo-061: artifacts cleaned, SSOT navigation violations fixed
 
 ### Overview
