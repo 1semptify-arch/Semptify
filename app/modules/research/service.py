@@ -396,7 +396,7 @@ class ResearchService:
             return {"source": "sos", "entity": {}}
         logger.info("MN SOS: no free API. Attempting ethical web crawl.")
         try:
-            from app.services.crawler import get_crawler
+            from app.modules.crawler.service import get_crawler
 
             crawler = get_crawler()
             search_url = f"{CFG['SOS_BASE']}?BusinessName={quote_plus(entity_name)}"
