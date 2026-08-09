@@ -1,3 +1,46 @@
+## Session — 2026-08-08 — todo-053 resolved: CRLF line endings normalized
+
+### Guardrail Engine Run — 2026-08-09T03:13:10+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Overview
+
+Task todo-053 called for normalizing CRLF line endings repo-wide. 497 tracked text files had CRLF in the working tree while the index was already LF. We set `core.autocrlf=false` locally, converted the working tree to LF, ran `git add --renormalize .` to refresh the index, and strengthened `.gitattributes` so `* text=auto eol=lf` enforces LF for all auto-detected text files going forward. 34 Windows batch/PowerShell files retain CRLF per existing `*.bat`, `*.cmd`, `*.ps1` rules.
+
+### What was done
+
+- Set `git config core.autocrlf false` in the local repo to stop Windows checkout conversion.
+- Converted 497 tracked files from CRLF to LF in the working tree (Python script, preserving files whose Git attributes specify `eol=crlf` or are binary).
+- Fixed `scripts/Reset-Local-Postgres.ps1` from mixed to consistent CRLF since it is marked `eol=crlf`.
+- Updated `.gitattributes` line 2 from `* text=auto` to `* text=auto eol=lf` for catch-all LF enforcement.
+- Ran `git add --renormalize .` to re-index all files with normalized line endings.
+- Updated `tools/agent_orchestrator_tasks.json` to mark `todo-053` resolved.
+- Updated `AUDIT_KnowYourRights_InformationIntegrity.md` with freshness re-check note.
+
+### Verification
+
+- `git ls-files --eol | Select-String "w/crlf"` shows only the 34 files explicitly marked `eol=crlf`.
+- `git ls-files --eol | Select-String "w/mixed"` shows 0 files.
+- `git diff --stat` shows only `.gitattributes` + `AUDIT` + `agent_orchestrator_tasks.json` changes (no line-ending-only diffs).
+- `python tools/guardrail_engine.py` → all checks passed.
+
+### Notes
+
+- Existing `.gitattributes` already kept `*.bat`, `*.cmd`, and `*.ps1` as CRLF; those are untouched.
+- Future checkouts on Windows should respect `eol=lf` now that `core.autocrlf=false` is set locally.
+
+### Next Session
+
+- todo-054: Resolve exact-duplicate `app/modules/*/service.py` vs `app/services/*.py` pairs.
+
+---
+
 ## Session — 2026-08-08 — todo-062 resolved: pre-commit hook activated and verified
 
 ### Overview

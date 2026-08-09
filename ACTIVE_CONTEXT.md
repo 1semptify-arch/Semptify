@@ -1,8 +1,24 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-08 (todo-062 resolved: pre-commit hook activated and verified)
+**Last Updated**: 2026-08-08 (todo-053 resolved: CRLF line endings normalized)
 
 ## ✅ Completed 2026-08-08 Session
+
+### Session — todo-053 resolved: CRLF line endings normalized
+
+- **Task**: Normalize CRLF line endings repo-wide
+- **Status**: Resolved — 497 tracked text files converted to LF, `.gitattributes` catch-all enforced, 34 bat/cmd/ps1 files retained as CRLF
+- **What was done**:
+  - Set `git config core.autocrlf false` locally to stop checkout conversion
+  - Converted 497 files from CRLF to LF in the working tree
+  - Updated `.gitattributes` to `* text=auto eol=lf` for catch-all LF enforcement
+  - Ran `git add --renormalize .` to refresh the index
+  - Updated `tools/agent_orchestrator_tasks.json` to mark `todo-053` resolved
+  - Added freshness re-check note to `AUDIT_KnowYourRights_InformationIntegrity.md`
+- **Verification**:
+  - `git ls-files --eol | Select-String "w/crlf"` returns only 34 files explicitly marked `eol=crlf`
+  - `git diff --stat` shows only targeted changes
+  - `python tools/guardrail_engine.py` → all checks passed
 
 ### Session — todo-062 resolved: pre-commit hook activated and verified
 

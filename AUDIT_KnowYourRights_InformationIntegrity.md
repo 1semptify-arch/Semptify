@@ -4,6 +4,8 @@
 
 **Mode:** Read-only audit. No content was rewritten, fixed, or deployed.
 
+**Audit date:** 2026-08-06 (initial pass). **Freshness re-check:** 2026-08-08 — 8 of 15 audited files were modified on 2026-08-07 by commits `ca711cb4` (codebase quality audit) and `c58cc4a9` (ruff/utc_now fixes). Verified via `git diff` that **all changes were code-style/lint-only** (type-annotation modernization `Optional[str]`→`str | None`, `List`→`list`, trailing whitespace/newline cleanup, CSS border removal per GUI rule, mobile media query addition). **No legal content, citations, disclaimers, case data, statute text, or UI copy was modified.** All 14 findings remain accurate as of 2026-08-08.
+
 **Standards applied (per Brad's Information Integrity Standards):**
 1. **Sourced** — every factual legal claim cites a primary source (statute, case, official agency).
 2. **Opinion labeled as opinion** — editorial/advocacy language is clearly marked as opinion, not presented as fact.
