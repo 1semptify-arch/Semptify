@@ -83,3 +83,24 @@ async def test_assembled_gui_page_rejects_unknown_subject(authenticated_client):
     response = await authenticated_client.get("/gui/page/not-a-subject")
 
     assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_gui_dashboard_returns_assembled_page_shell_html(authenticated_client):
+    result = _assembly_result()
+    with patch(
+        "app.modules.page_composer.assembly.assemble_page",
+        new=AsyncMock(return_value=result),
+    ):
+        response = await authenticated_client.get("/gui/dashboard")
+
+    assert response.status_code == 200
+    assert "page-shell" in response.text
+    assert "Timeline" in response.text
+
+
+@pytest.mark.anyio
+async def test_gui_dashboard_rejects_unknown_subject(authenticated_client):
+    response = await authenticated_client.get("/gui/dashboard?subject=not-a-subject")
+
+    assert response.status_code == 404
