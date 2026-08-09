@@ -457,7 +457,7 @@ async def example_usage():
     )
 
     # Authenticate with 2FA
-    auth_result = await sdk.authenticate("user@example.com", "password")
+    auth_result = await sdk.authenticate("user@example.com", "password")  # pragma: allowlist secret
     if auth_result["success"]:
         logger.info("Authentication successful")
 
