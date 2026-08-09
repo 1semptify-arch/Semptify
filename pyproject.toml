@@ -161,6 +161,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
+markers = [
+    "module_health: consolidated module health checks (import/routes/exposure)",
+    "integration: tests that require external services (OAuth, DB, storage)",
+]
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
@@ -195,7 +199,7 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
-fail_under = 50
+fail_under = 30
 show_missing = true
 
 [tool.coverage.html]

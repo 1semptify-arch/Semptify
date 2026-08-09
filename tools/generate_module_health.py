@@ -2,7 +2,7 @@
 Bulk generator for module health checks and test suites.
 
 Creates:
-  - tests/module_health/test_<id>.py  (one per module)
+  - tests/module_health/test_all_modules.py  (single consolidated parametrized test)
   - updates tools/module_registry.yaml health_check / test_suite fields
 
 Modules that are ON HOLD, optional-but-missing, or fail import for a required
@@ -31,14 +31,55 @@ OUT_OF_SCOPE = {
     "filedored": "pending Brad's decision on filedored_service classification",
 }
 
-TEST_TEMPLATE = '''\
-"""Auto-generated regression test for {module_id}."""
-from tools.module_health import check_{safe_id}
+CONSOLIDATED_TEST = '''\
+"""Consolidated module health regression tests.
+
+Replaces the 122 individual ``test_<id>.py`` stub files with a single
+parametrized test that iterates every module in ``tools/module_registry.yaml``
+and calls the corresponding ``check_<id>()`` function from
+``tools.module_health``.
+
+Each module gets its own test case ID so failures are easy to identify:
+
+    pytest tests/module_health/test_all_modules.py -k auth
+"""
+
+from __future__ import annotations
+
+import re
+
+import pytest
+
+from tools.module_health import _load_registry
+
+# Build the parametrized list once at import time.
+# Each entry yields (module_id, check_function) pairs.
+_REGISTRY = _load_registry()
+_PARAMS = []
+for _entry in _REGISTRY:
+    _id = _entry.get("id")
+    _path = _entry.get("module_path")
+    if not _id or not _path:
+        continue
+    # Skip entries that are flagged (ON HOLD, optional, pending decision, etc.)
+    # — these were never given individual test files by generate_module_health.py.
+    if _entry.get("flag_reason") or _entry.get("health_check") in ("TODO", "", None):
+        continue
+    _safe = re.sub(r"[^a-z0-9_]", "_", _id).lower()
+    _check_name = f"check_{_safe}"
+    # Import the dynamically-generated check function.
+    import tools.module_health as _mh
+
+    _check = getattr(_mh, _check_name, None)
+    if _check is not None:
+        _PARAMS.append(pytest.param(_check, id=_id))
 
 
-def test_{safe_id}():
-    """Verify {module_id} imports, has routes, and has no exposure issues."""
-    ok, msg = check_{safe_id}()
+@pytest.mark.module_health
+@pytest.mark.parametrize("check_fn", _PARAMS)
+def test_module_health(check_fn):
+    """Verify every registered module imports, has routes, and has no exposure issues."""
+    ok, msg = check_fn()
     assert ok, msg
 '''
 
@@ -132,20 +173,24 @@ def main() -> int:
             continue
 
         sid = safe_id(entry["id"])
-        test_path = TEST_DIR / f"test_{sid}.py"
+        consolidated_path = TEST_DIR / "test_all_modules.py"
 
         if not args.dry_run:
-            test_path.write_text(
-                TEST_TEMPLATE.format(module_id=entry["id"], safe_id=sid),
-                encoding="utf-8",
-            )
             entry["health_check"] = health_check
-            entry["test_suite"] = str(test_path.relative_to(REPO_ROOT).as_posix())
+            entry["test_suite"] = "tests/module_health/test_all_modules.py"
             # Clear any previous flag_reason if it was generated.
             entry.pop("flag_reason", None)
         created += 1
 
-    if not args.dry_run:
+    if not args.dry_run and created > 0:
+        # Write the consolidated test file (replaces all individual stubs).
+        TEST_DIR.mkdir(parents=True, exist_ok=True)
+        consolidated_path = TEST_DIR / "test_all_modules.py"
+        consolidated_path.write_text(CONSOLIDATED_TEST, encoding="utf-8")
+        # Remove any leftover individual test files from the old generator.
+        for old_file in TEST_DIR.glob("test_*.py"):
+            if old_file.name != "test_all_modules.py":
+                old_file.unlink()
         # Backup the original registry before overwriting.
         backup = REGISTRY_PATH.with_suffix(".yaml.bak")
         shutil.copy2(REGISTRY_PATH, backup)

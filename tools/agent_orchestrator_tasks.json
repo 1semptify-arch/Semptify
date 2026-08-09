@@ -858,11 +858,11 @@
     "target_model": "swe-1.7",
     "priority": "low",
     "file_path": "tests/module_health/*.py; pytest config",
-    "status": "pending",
-    "notes": "Depends on todo-056. Remove/merge empty stub tests, then either raise real coverage or set a realistic fail_under, and split test runs to avoid memory spikes.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: pyproject.toml [tool.coverage.report] fail_under = 50 (was 40 per original task). Coverage gap and stub tests not yet verified \u2014 needs pytest run to confirm current coverage %. Original task reported 23% coverage vs 40% threshold; threshold raised to 50 but actual coverage unverified.",
+    "status": "resolved",
+    "notes": "Depends on todo-056. Remove/merge empty stub tests, then either raise real coverage or set a realistic fail_under, and split test runs to avoid memory spikes.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: pyproject.toml [tool.coverage.report] fail_under = 50 (was 40 per original task). Coverage gap and stub tests not yet verified \u2014 needs pytest run to confirm current coverage %. Original task reported 23% coverage vs 40% threshold; threshold raised to 50 but actual coverage unverified.\n[2026-08-09 20:23 UTC - devin-glm-5.2] Consolidated 122 stub test files into 1 parametrized test; set fail_under=30 (actual 33%); added markers and memory-split docs",
     "created_at": "2026-08-08T00:00:00Z",
-    "updated_at": "2026-08-09T01:29:02.157263+00:00",
-    "assigned_agent": ""
+    "updated_at": "2026-08-09T20:23:47.616978+00:00",
+    "assigned_agent": "devin-glm-5.2"
   },
   {
     "id": "todo-061",
