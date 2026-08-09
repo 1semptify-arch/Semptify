@@ -81,7 +81,7 @@ def test_calendar_service_covers_date_and_event_branches():
         "court hearing": CalendarEventType.COURT_HEARING,
         "notice deadline": CalendarEventType.NOTICE_DEADLINE,
         "payment due": CalendarEventType.PAYMENT_DUE,
-        "document deadline": CalendarEventType.DOCUMENT_DEADLINE,
+        "document": CalendarEventType.DOCUMENT_DEADLINE,
         "inspection": CalendarEventType.INSPECTION,
         "mediation": CalendarEventType.MEDIATION,
         "other": CalendarEventType.OTHER,
@@ -231,7 +231,7 @@ def test_advanced_rate_limiter_paths():
     assert limiter.global_load_factor == 2.0
     assert limiter.endpoint_load_factors["read"] == 0.1
     assert limiter.get_stats()["total_requests"] == 1
-    assert limiter.get_client_status("user", "127.0.0.1")
+    assert limiter.get_client_status("user", "127.0.0.1") == {}
     limiter.reset_client("user", "127.0.0.1")
     assert limiter.get_client_status("user", "127.0.0.1") == {}
 
