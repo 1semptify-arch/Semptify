@@ -315,6 +315,130 @@ def test_page_recipe_registry_and_serialization():
     assert intake.validate()["total_components"] > 0
 
 
+def test_event_extractor_parses_context_and_deduplicates():
+    from app.services.event_extractor import EventExtractor, ExtractedEvent, get_event_extractor
+
+    extractor = EventExtractor()
+    text = (
+        "Notice served on January 5, 2026. "
+        "Hearing scheduled for 02/10/2026. "
+        "Date of birth 01/01/1980. "
+        "Rent due by 2026-03-01."
+    )
+    events = extractor.extract_events(text, doc_type="notice")
+    assert [event.date.day for event in events] == [5, 10, 1]
+    assert events[0].event_type == "notice"
+    assert events[0].is_deadline is False
+    assert events[-1].is_deadline is True
+    assert extractor._split_into_chunks("One. Two!\n\nThree") == ["One.", "Two!", "Three"]
+    assert extractor._should_exclude("date of birth: ") is True
+    assert extractor._parse_match(next(iter(extractor._date_patterns))[0].search("99/99/2026"), "MDY") is None
+    duplicate = ExtractedEvent(
+        date=events[0].date,
+        event_type=events[0].event_type,
+        title=events[0].title,
+        description="duplicate",
+        confidence=0.1,
+        source_text="duplicate",
+    )
+    assert len(extractor._deduplicate_events([events[0], duplicate])) == 1
+    assert get_event_extractor() is get_event_extractor()
+
+
+def test_document_training_records_and_updates_examples(tmp_path):
+    from app.services.document_training import DocumentTrainingService
+
+    service = DocumentTrainingService(str(tmp_path))
+    text = "Notice to quit: 14-day notice for unlawful detainer and security deposit."
+    example = service.record_correction(
+        text,
+        "notice.txt",
+        "lease",
+        0.2,
+        "notice",
+        user_notes="corrected",
+        user_id="user",
+    )
+    assert example.correct_type == "notice"
+    assert example.key_phrases_found
+    assert service.get_training_stats()["corrections_needed"] == 1
+    updated = service.record_correction(text, "notice.txt", "lease", 0.2, "court")
+    assert updated.id == example.id
+    service.record_confirmation(text, "notice.txt", "notice", 0.9)
+    adjustments = service.get_weight_adjustments()
+    assert adjustments
+    assert service.get_training_stats()["total_examples"] == 1
+
+
+def test_document_notarization_round_trip_and_tamper_paths():
+    from app.services.document_notarization import DocumentNotarizationService, NotarizationRecord
+
+    async def exercise():
+        service = DocumentNotarizationService()
+        content = b"lease contents"
+        record = await service.notarize_upload(
+            content,
+            "lease.pdf",
+            "user",
+            "Tenant",
+            "/vault/lease.pdf",
+            "local",
+            document_type="lease",
+            tags=["important"],
+            upload_context={"source": "test"},
+        )
+        assert record.file_size == len(content)
+        assert record.mime_type == "application/pdf"
+        assert record.to_dict()["upload_context"] == '{"source": "test"}'
+        restored = NotarizationRecord.from_dict(record.to_dict())
+        assert restored.upload_context == {"source": "test"}
+        verified = await service.verify_notarization(record.notarization_id, content)
+        assert verified["verified"] is True
+        assert verified["content_verified"] is True
+        assert (await service.verify_notarization(record.notarization_id, b"tampered"))["content_verified"] is False
+        record.certificate_hash = "bad"
+        assert (await service.verify_notarization(record.notarization_id))["status"] == "tampered"
+        assert await service.create_chain_of_custody(record.notarization_id)
+        assert await service.create_chain_of_custody("missing") == []
+
+    asyncio_run(exercise())
+
+
+def test_form_field_extractor_covers_case_property_lease_dates_and_amounts():
+    from app.services.form_field_extractor import FormFieldExtractor
+
+    extractor = FormFieldExtractor()
+    result = extractor.extract_from_documents(
+        [
+            {
+                "filename": "case.txt",
+                "text": (
+                    "19AV-CV-25-0000 Dakota County District Court. "
+                    "Tenant Jane Doe lives at 123 Main Street Apt 4, Minneapolis, MN 55401. "
+                    "Lease starts January 1, 2026. Monthly rent $1,250 and security deposit: $1,250. "
+                    "Hearing on 02/10/2026 at 9:30 am. Notice served 01/05/2026. "
+                    "Rent owed: $2,500. Late fees: $100. Total amount owed: $2,600. "
+                    "This is a 14-day notice."
+                ),
+            }
+        ]
+    )
+    assert result.case_number.value == "19AV-CV-25-0000"
+    assert result.county.value == "Dakota"
+    assert result.property_address.city == "Minneapolis"
+    assert result.property_address.unit == "4"
+    assert result.monthly_rent.value == 1250.0
+    assert result.security_deposit.value == 1250.0
+    assert result.hearing_date.value == "2026-02-10"
+    assert result.hearing_time.value == "09:30"
+    assert result.notice_date.value == "2026-01-05"
+    assert result.rent_claimed.value == 2500.0
+    assert result.late_fees_claimed.value == 100.0
+    assert result.total_claimed.value == 2600.0
+    assert result.notice_type.value == "14-day"
+    assert result.get_review_items()
+
+
 def asyncio_run(coro):
     import asyncio
 
