@@ -82,7 +82,7 @@ async def test_assemble_page_active_case_selects_act_pillar():
             subject="repair",
             jurisdiction="MN",
             user_id="GUowner123",
-            context=context,
+            user_context=context,
         )
 
     assert result.metadata.major_pillar == "act"
