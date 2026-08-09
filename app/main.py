@@ -84,6 +84,11 @@ def get_base_path() -> Path:
 
 BASE_PATH = get_base_path()
 
+# OAuth re-auth initiation URL (has query param — cannot be a FlowStage path).
+# Registered as escape hatch at startup below.  Used only when the providers
+# static page is missing and we need to force a fresh Google Drive auth.
+_GOOGLE_DRIVE_FORCE_AUTH = "/onboarding/auth/google_drive?force_fresh=true"
+
 # Jinja2 templates for frontend UI pages
 templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
 # Expose SSOT navigation to all Jinja2 templates so templates use navigation.get_stage(...).path
@@ -355,6 +360,14 @@ async def lifespan(_app: FastAPI):
         "xhtml2pdf": "Advanced PDF (xhtml2pdf)",
         "asyncpg": "PostgreSQL Driver",
     }
+
+    # Register OAuth re-auth URL as escape hatch (has query param; cannot be a FlowStage path).
+    # TTL 0 = permanent — this is a stable OAuth initiation endpoint, not experimental.
+    navigation.add_escape_hatch(
+        _GOOGLE_DRIVE_FORCE_AUTH,
+        reason="Google Drive OAuth initiation URL — has ?force_fresh=true query param, intentionally excluded from FlowStage registry",
+        ttl_days=365,
+    )
 
     lifespan_logger.info("=" * 60)
     lifespan_logger.info("ðŸš€ STARTING %s v%s", lifespan_settings.app_name, lifespan_settings.app_version)
@@ -2052,7 +2065,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if page_path.exists():
             return FileResponse(page_path)
         # Fallback to OAuth if providers page doesn't exist
-        return ssot_redirect("/onboarding/auth/google_drive?force_fresh=true", context="providers fallback")
+        return ssot_redirect(_GOOGLE_DRIVE_FORCE_AUTH, context="providers fallback")
 
     # Register page redirect - Semptify uses OAuth-based auth, no username/password registration
     @fastapi_app.get("/register", response_class=HTMLResponse)
@@ -2110,7 +2123,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         # State not found or expired — redirect to onboarding start
         logger.warning("auth_callback_compat: state not found or expired, redirecting to onboarding")
-        return ssot_redirect("/onboarding/start", context="auth_callback_compat state not found")
+        return ssot_redirect(navigation.get_stage("onboarding_start").path, context="auth_callback_compat state not found")
 
     # =========================================================================
     # Root endpoint - Serve SPA
@@ -2130,7 +2143,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
             return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
-        return ssot_redirect("/tenant/timeline", context="tenant dashboard ▸ timeline")
+        return ssot_redirect(navigation.get_stage("tenant_timeline").path, context="tenant dashboard ▸ timeline")
 
     @fastapi_app.get("/advocate/dashboard", response_class=HTMLResponse)
     async def advocate_dashboard_page(request: Request):
@@ -3020,7 +3033,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/dashboard")
     async def dashboard_page(request: Request):
         """Redirect /dashboard to role-specific dashboard."""
-        return ssot_redirect("/tenant/dashboard", context="dashboard_page role redirect")
+        return ssot_redirect(navigation.get_stage("tenant_dashboard").path, context="dashboard_page role redirect")
 
     @fastapi_app.get("/home", response_class=HTMLResponse)
     async def semptify_home(request: Request):
@@ -4038,7 +4051,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        return ssot_redirect("/tenant/home", context="tenant root ▸ tenant home")
+        return ssot_redirect(navigation.get_stage("tenant_home_page").path, context="tenant root ▸ tenant home")
 
     @fastapi_app.get("/timeline", response_class=HTMLResponse)
     async def timeline_page(request: Request):
@@ -4050,7 +4063,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Timeline template error, falling back to tenant timeline: %s", e)
 
-        return ssot_redirect("/tenant/timeline", context="timeline_page template fallback")
+        return ssot_redirect(navigation.get_stage("tenant_timeline").path, context="timeline_page template fallback")
 
     @fastapi_app.get("/comms-log", response_class=HTMLResponse)
     async def comms_log_page(request: Request):
@@ -4062,7 +4075,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Comms log template error, falling back to tenant timeline: %s", e)
 
-        return ssot_redirect("/tenant/timeline", context="comms_log_page fallback")
+        return ssot_redirect(navigation.get_stage("tenant_timeline").path, context="comms_log_page fallback")
 
     @fastapi_app.get("/dc", response_class=HTMLResponse)
     async def document_center_page(request: Request):
@@ -4074,7 +4087,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("DC template error, falling back to documents page: %s", e)
 
-        return ssot_redirect("/documents", context="document_center_page template fallback")
+        return ssot_redirect(navigation.get_stage("documents").path, context="document_center_page template fallback")
 
     async def _get_tenant_briefcase(user_id: str, user_name: str | None = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
@@ -4330,7 +4343,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        return ssot_redirect("/tenant/timeline", context="tenant journal ▸ timeline")
+        return ssot_redirect(navigation.get_stage("tenant_timeline").path, context="tenant journal ▸ timeline")
 
     @fastapi_app.get("/tenant/law-library", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/law-library/", response_class=HTMLResponse)
@@ -4339,7 +4352,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        return ssot_redirect("/tenant/library", context="tenant law-library ▸ KNOW pillar")
+        return ssot_redirect(navigation.get_stage("tenant_library").path, context="tenant law-library ▸ KNOW pillar")
 
     @fastapi_app.get("/tenant/inbox", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/inbox/", response_class=HTMLResponse)

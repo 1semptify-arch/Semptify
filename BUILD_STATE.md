@@ -1,4 +1,54 @@
+## Session — 2026-08-09 — todo-059, todo-061: artifacts cleaned, SSOT navigation violations fixed
+
+### Overview
+
+- **todo-059**: Removed `htmlcov/` (814 files), `.coverage` (1.8 MB), `semptify.db` (828 KB) from disk. All three were gitignored but present as untracked artifacts from previous test runs.
+- **todo-061**: Eliminated all hardcoded URL literals in `ssot_redirect()` calls throughout `app/main.py` and 6 module router files. Root cause: `ssot_redirect()` logs an "SSOT Advisory" warning on every call whose path is not in `SSOT_CANONICAL_PATHS`. 17 calls were producing these warnings on every request.
+
+### What was done
+
+**`app/core/navigation.py` — 9 new stages added to registries:**
+- `onboarding_start → /onboarding/start` (ONBOARDING_FLOW)
+- `tenant_timeline → /tenant/timeline` (ONBOARDING_FLOW)
+- `tenant_dashboard → /tenant/dashboard` (ONBOARDING_FLOW)
+- `tenant_home_page → /tenant/home` (ONBOARDING_FLOW)
+- `tenant_library → /tenant/library` (ONBOARDING_FLOW)
+- `documents → /documents` (ONBOARDING_FLOW)
+- `dispute_tracker_home → /api/dispute-tracker/` (ONBOARDING_FLOW)
+- `eviction_timeline_home → /api/eviction-timeline/` (ONBOARDING_FLOW)
+- `admin_page_editor → /admin/page-editor.html` (ADMIN_FLOW)
+
+**`app/main.py` — module constant + escape hatch:**
+- `_GOOGLE_DRIVE_FORCE_AUTH = "/onboarding/auth/google_drive?force_fresh=true"` — extracted as module constant (has query param; cannot be a FlowStage path)
+- `navigation.add_escape_hatch(_GOOGLE_DRIVE_FORCE_AUTH, ...)` called in `lifespan()` startup
+- 9 `ssot_redirect("/path", ...)` → `ssot_redirect(navigation.get_stage("id").path, ...)` replacements
+
+**Router files — 9 replacements across 6 files:**
+- `admin_console/router.py`: `/admin/dashboard.html` → `get_stage("admin_dashboard_html").path`
+- `onboarding/router.py`: `/admin/dashboard` → `get_stage("admin_dashboard").path`
+- `storage/router.py`: `/storage/reconnect` → `get_stage("reconnect").path`
+- `page_editor/router.py`: added `navigation` import + `/admin/page-editor.html` → `get_stage("admin_page_editor").path`
+- `dispute_tracker/router.py`: added `navigation` import + 2× `/api/dispute-tracker/` → `get_stage("dispute_tracker_home").path`
+- `eviction_timeline/router.py`: added `navigation` import + `/api/eviction-timeline/` → `get_stage("eviction_timeline_home").path`
+
+### Verification
+
+- All 8 changed Python files compile clean (`python -m py_compile`)
+- Zero remaining hardcoded `ssot_redirect("/...")` literals (excluding `_GOOGLE_DRIVE_FORCE_AUTH` constant)
+- `tools/guardrail_engine.py`: ALL CHECKS PASSED (42.5s)
+
+---
+
 ## Session — 2026-08-09 — Design system completed: 17 new component sections + living style guide
+
+### Guardrail Engine Run — 2026-08-09T12:18:26+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Overview
 

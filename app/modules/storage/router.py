@@ -855,7 +855,7 @@ async def storage_home(
         return ssot_redirect(oauth_url, context="storage_home silent reauth")
 
     # Fallback: if we can't determine provider, show reconnect page
-    return ssot_redirect("/storage/reconnect", context="storage_home reconnect fallback")
+    return ssot_redirect(navigation.get_stage("reconnect").path, context="storage_home reconnect fallback")
 
 
 # /storage/reconnect is handled by app/modules/onboarding/reconnect.py

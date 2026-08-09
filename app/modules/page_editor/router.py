@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from app.core.security import StorageUser, yellow_access
+from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
 
 logger = logging.getLogger(__name__)
@@ -301,4 +302,4 @@ async def search_files(
 @router.get("/page")
 def editor_page():
     """Redirect to the page editor UI"""
-    return ssot_redirect("/admin/page-editor.html", context="page_editor redirect")
+    return ssot_redirect(navigation.get_stage("admin_page_editor").path, context="page_editor redirect")
