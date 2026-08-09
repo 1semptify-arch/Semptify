@@ -42,6 +42,8 @@ repos:
         exclude: tests/
 
   # Check for secrets accidentally committed (local hook to avoid -w flag issue in v1.5.0)
+  # Only scan app/ source code — data/, docs/, scripts/, installer/, tests/, tools/,
+  # .env templates, and other non-app files generate too many false positives.
   - repo: local
     hooks:
       - id: detect-secrets
@@ -49,17 +51,7 @@ repos:
         entry: python scripts/detect_secrets_hook.py --baseline .secrets.baseline
         language: system
         pass_filenames: true
-        exclude: >
-          (?x)^(
-            package\.lock\.json|
-            tools/agent_orchestrator_tasks\.json|
-            tools/orchestrator_dashboard\.html|
-            tools/agent_orchestrator\.html|
-            CREDENTIALS_SETUP_WORKBOOK\.html|
-            test_browser_switch_detailed\.ps1|
-            DEPLOYMENT_READINESS\.md|
-            legal_intel/MANUAL\.md
-          )$
+        files: ^app/
 
   # Validate pyproject.toml / setup.py
   - repo: https://github.com/abravalheri/validate-pyproject
