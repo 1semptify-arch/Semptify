@@ -434,6 +434,37 @@ def test_form_field_extractor_covers_case_property_lease_dates_and_amounts():
     assert result.get_review_items()
 
 
+def test_adaptive_ui_engine_builds_and_filters_context_widgets():
+    from datetime import timedelta
+
+    from app.core.utc import utc_now
+    from app.services.adaptive_ui import AdaptiveUIEngine, TenancyPhase, UserContext
+
+    engine = AdaptiveUIEngine()
+    initial = engine.build_ui("new-user")
+    assert any(widget["id"] == "predict_start" for widget in initial)
+    ctx = engine.update_context_from_document(
+        "tenant",
+        "lease",
+        {"rent_amount": 1200, "deposit_amount": 1200, "start_date": utc_now()},
+    )
+    assert ctx.rent_amount == 1200
+    engine.update_context_from_document("tenant", "notice_to_quit", {})
+    engine.update_context_from_document("tenant", "repair_request", {})
+    ctx.lease_end = utc_now() + timedelta(days=10)
+    issues = engine.detect_issues(ctx)
+    assert "eviction_threat" in issues
+    assert "habitability_issue" in issues
+    assert "lease_ending_soon" in issues
+    ui = engine.build_ui("tenant")
+    assert ui[0]["priority"] == "critical"
+    engine.dismiss_widget("tenant", "eviction_alert")
+    assert all(widget["id"] != "eviction_alert" for widget in engine.build_ui("tenant"))
+    engine.record_action("tenant", "upload_document")
+    assert ctx.actions_taken[-1]["action"] == "upload_document"
+    assert UserContext("u", phase=TenancyPhase.POST_TENANCY).to_dict()["phase"] == "post_tenancy"
+
+
 def asyncio_run(coro):
     import asyncio
 
