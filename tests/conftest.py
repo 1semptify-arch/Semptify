@@ -20,7 +20,9 @@ os.environ["INVITE_CODES"] = "TEST-INVITE-CODE"
 os.environ["ADMIN_PIN"] = "TEST-PIN"
 
 from app.core.config import get_settings  # noqa: E402
+from app.core.cookie_auth import sign_user_id  # noqa: E402
 from app.core.database import close_db  # noqa: E402
+from app.core.oauth_token_manager import OAuthToken, token_manager  # noqa: E402
 from app.main import app  # noqa: E402
 
 # =============================================================================
@@ -78,7 +80,9 @@ async def authenticated_client() -> AsyncGenerator[AsyncClient, None]:
     """Create authenticated test client with mock session in both cache and database."""
     # Use properly formatted user ID: <provider><role><8-char-unique>
     # G=Google, U=User, followed by 8 alphanumeric chars = 10 chars total
-    test_uid = "GUtest1234"  # Google + User + 8-char unique
+    # Use a non-test value so is_valid_user_storage passes and the signed
+    # semptify_uid cookie is accepted by get_current_user.
+    test_uid = "GUowner123"  # Google + User + 8-char unique
 
     # Create session in database
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -122,8 +126,24 @@ async def authenticated_client() -> AsyncGenerator[AsyncClient, None]:
 
         await session.commit()
 
+    # Seed an in-memory OAuth token so auth_gate/yellow_access can resolve a
+    # valid access token without calling a real provider.
+    token_manager.store_token(
+        test_uid,
+        OAuthToken(
+            access_token="mock_access_token",
+            refresh_token="mock_refresh_token",
+            expires_at=None,
+            provider="google_drive",
+        ),
+    )
+
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test", cookies={"semptify_uid": test_uid}) as ac:
+    async with AsyncClient(
+        transport=transport,
+        base_url="http://test",
+        cookies={"semptify_uid": sign_user_id(test_uid)},
+    ) as ac:
         # Also inject into memory cache for faster lookups
         from app.modules.storage.router import SESSIONS
 
@@ -138,6 +158,7 @@ async def authenticated_client() -> AsyncGenerator[AsyncClient, None]:
         yield ac
         # Cleanup
         SESSIONS.pop(test_uid, None)
+        token_manager.tokens.pop(test_uid, None)
 
 
 @pytest.fixture
