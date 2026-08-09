@@ -67,6 +67,7 @@ def _tags_from_str(tags_str: str | None) -> list[str]:
 
 class JournalEntryCreate(BaseModel):
     """Create a journal entry."""
+
     entry_type: str = Field(..., description="note, conversation, incident, repair_request, or other")
     title: str = Field(..., min_length=1, max_length=255)
     content: str | None = None
@@ -79,6 +80,7 @@ class JournalEntryCreate(BaseModel):
 
 class JournalEntryUpdate(BaseModel):
     """Update a journal entry."""
+
     entry_type: str | None = None
     title: str | None = Field(None, min_length=1, max_length=255)
     content: str | None = None
@@ -91,6 +93,7 @@ class JournalEntryUpdate(BaseModel):
 
 class JournalEntryResponse(BaseModel):
     """Journal entry response."""
+
     id: str
     entry_type: str
     title: str
@@ -110,12 +113,14 @@ class JournalEntryResponse(BaseModel):
 
 class JournalListResponse(BaseModel):
     """List of journal entries."""
+
     entries: list[JournalEntryResponse]
     total: int
 
 
 class JournalSummaryResponse(BaseModel):
     """Dashboard summary of journal entries."""
+
     total_entries: int
     urgent_entries: int
     recent_entries: list[JournalEntryResponse]
@@ -190,9 +195,7 @@ async def list_entries(
     """List journal entries for the current user, newest first."""
     await _validate_access(user, user.get_effective_user_id())
     async with get_db_session() as db:
-        query = select(JournalEntryModel).where(
-            JournalEntryModel.user_id == user.get_effective_user_id()
-        )
+        query = select(JournalEntryModel).where(JournalEntryModel.user_id == user.get_effective_user_id())
         if entry_type:
             query = query.where(JournalEntryModel.entry_type == entry_type.lower().strip())
         if is_urgent is not None:

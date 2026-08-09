@@ -6,36 +6,36 @@ A comprehensive Python client library for the Semptify 5.0 API. Provides typed a
 
 ```bash
 pip install semptify-sdk
-# Or install from source:
+## Or install from source:
 pip install -e ./sdk
-```
+```text
 
 ## Quick Start
 
 ```python
 from sdk import SemptifyClient
 
-# Initialize the client
+## Initialize the client
 client = SemptifyClient(base_url="http://localhost:8000")
 
-# Authenticate via OAuth
+## Authenticate via OAuth
 auth_url = client.auth.get_auth_url("google")
-# User completes OAuth flow and returns with code
+## User completes OAuth flow and returns with code
 client.login("google", code="auth_code_from_callback")
 
-# Upload a document
+## Upload a document
 doc = client.documents.upload("lease_agreement.pdf")
 
-# Process through intake engine
+## Process through intake engine
 intake_doc = client.documents.intake_upload("eviction_notice.pdf")
 
-# Get AI-powered case analysis
+## Get AI-powered case analysis
 analysis = client.copilot.analyze_case()
 
-# Check upcoming deadlines
+## Check upcoming deadlines
 deadlines = client.timeline.get_deadlines(days_ahead=30)
 
-# File a complaint
+## File a complaint
 complaint = client.complaints.create(
     complaint_type="habitability",
     title="Mold and Water Damage",
@@ -49,48 +49,48 @@ complaint = client.complaints.create(
 ### Authentication (`client.auth`)
 
 ```python
-# Get available storage providers
+## Get available storage providers
 providers = client.auth.get_providers()
 
-# Get OAuth URL for a provider
+## Get OAuth URL for a provider
 url = client.auth.get_auth_url("google")
 
-# Complete OAuth flow
+## Complete OAuth flow
 user = client.auth.complete_oauth("google", code)
 
-# Get current user
+## Get current user
 user = client.auth.get_current_user()
 
-# Logout
+## Logout
 client.auth.logout()
-```
+```text
 
 ### Document Management (`client.documents`)
 
 ```python
-# Upload a document
+## Upload a document
 doc = client.documents.upload(
     file="path/to/document.pdf",
     document_type="lease",
     tags=["important", "contract"]
 )
 
-# Upload through intake engine for auto-processing
+## Upload through intake engine for auto-processing
 intake_doc = client.documents.intake_upload("document.pdf")
 
-# Get document
+## Get document
 doc = client.documents.get_document("doc_id")
 
-# List documents
+## List documents
 docs = client.documents.list_documents(document_type="lease")
 
-# Download document
+## Download document
 content = client.documents.download("doc_id", "output.pdf")
 
-# Get critical issues from processed documents
+## Get critical issues from processed documents
 issues = client.documents.get_critical_issues()
 
-# Get upcoming deadlines
+## Get upcoming deadlines
 deadlines = client.documents.get_upcoming_deadlines(days=14)
 ```
 
@@ -99,7 +99,7 @@ deadlines = client.documents.get_upcoming_deadlines(days=14)
 ```python
 from datetime import date
 
-# Add an event
+## Add an event
 event = client.timeline.add_event(
     event_type="notice_received",
     title="3-Day Notice Received",
@@ -107,48 +107,48 @@ event = client.timeline.add_event(
     importance="critical"
 )
 
-# Get events
+## Get events
 events = client.timeline.get_events(
     start_date=date(2024, 1, 1),
     event_type="notice_received"
 )
 
-# Get upcoming deadlines
+## Get upcoming deadlines
 deadlines = client.timeline.get_deadlines(days_ahead=30)
 
-# Calculate statute of limitations
+## Calculate statute of limitations
 statute = client.timeline.calculate_statute(
     violation_type="habitability",
     jurisdiction="california",
     incident_date=date(2024, 1, 15)
 )
 
-# Get timeline summary
+## Get timeline summary
 summary = client.timeline.get_timeline_summary()
-```
+```text
 
 ### AI Copilot (`client.copilot`)
 
 ```python
-# Chat with the copilot
+## Chat with the copilot
 response = client.copilot.chat(
     message="What are my options for responding to this eviction notice?",
     conversation_type="case_strategy"
 )
 
-# Get comprehensive case analysis
+## Get comprehensive case analysis
 analysis = client.copilot.analyze_case(
     include_documents=True,
     include_timeline=True
 )
 
-# Analyze a specific document
+## Analyze a specific document
 doc_analysis = client.copilot.analyze_document(
     document_id="doc_123",
     analysis_type="comprehensive"
 )
 
-# Draft a letter
+## Draft a letter
 letter = client.copilot.draft_letter(
     letter_type="demand",
     recipient="Landlord",
@@ -156,14 +156,14 @@ letter = client.copilot.draft_letter(
     tone="firm"
 )
 
-# Get recommendations
+## Get recommendations
 recommendations = client.copilot.get_recommendations(urgency="high")
 ```
 
 ### Complaint Management (`client.complaints`)
 
 ```python
-# Create a complaint
+## Create a complaint
 complaint = client.complaints.create(
     complaint_type="habitability",
     title="Mold and Water Damage",
@@ -171,58 +171,58 @@ complaint = client.complaints.create(
     violations=["failure_to_repair"]
 )
 
-# Get complaint
+## Get complaint
 complaint = client.complaints.get_complaint("complaint_id")
 
-# List complaints
+## List complaints
 complaints = client.complaints.list_complaints(status="submitted")
 
-# Submit to agency
+## Submit to agency
 result = client.complaints.submit("complaint_id", agency="hud")
 
-# Add document to complaint
+## Add document to complaint
 client.complaints.add_document("complaint_id", "doc_id")
 
-# Get available templates
+## Get available templates
 templates = client.complaints.get_templates(agency_type="hud")
 
-# Get regulatory agencies
+## Get regulatory agencies
 agencies = client.complaints.get_agencies(jurisdiction="california")
 
-# Generate PDF
+## Generate PDF
 pdf_content = client.complaints.generate_pdf("complaint_id")
-```
+```text
 
 ### Briefcase (`client.briefcase`)
 
 ```python
-# Create a briefcase
+## Create a briefcase
 briefcase = client.briefcase.create(
     name="Habitability Case",
     case_type="habitability"
 )
 
-# Add document
+## Add document
 item = client.briefcase.add_document(
     briefcase_id="bc_123",
     document_id="doc_456",
     tags=["evidence"]
 )
 
-# Add note
+## Add note
 note = client.briefcase.add_note(
     briefcase_id="bc_123",
     title="Inspection Notes",
     content="..."
 )
 
-# Get items
+## Get items
 items = client.briefcase.get_items("bc_123", item_type="document")
 
-# Export briefcase
+## Export briefcase
 export = client.briefcase.export("bc_123", format="pdf")
 
-# Share briefcase
+## Share briefcase
 client.briefcase.share("bc_123", email="lawyer@example.com")
 ```
 
@@ -231,14 +231,14 @@ client.briefcase.share("bc_123", email="lawyer@example.com")
 ```python
 from sdk.vault import VaultPermission
 
-# Add item to vault
+## Add item to vault
 item = client.vault.add_item(
     name="Sensitive Document",
     document_id="doc_123",
     encrypt=True
 )
 
-# Grant access
+## Grant access
 access = client.vault.grant_access(
     item_id="item_123",
     email="user@example.com",
@@ -246,16 +246,16 @@ access = client.vault.grant_access(
     expires_in_days=7
 )
 
-# Get audit log
+## Get audit log
 audit = client.vault.get_audit_log(item_id="item_123")
 
-# Get vault stats
+## Get vault stats
 stats = client.vault.get_stats()
 
-# Lock/unlock vault
+## Lock/unlock vault
 client.vault.lock()
 client.vault.unlock(password="optional")
-```
+```text
 
 ## Error Handling
 
@@ -304,16 +304,16 @@ async def main():
         response = await client.auth.async_client.get("/api/auth/providers")
 
 asyncio.run(main())
-```
+```text
 
 ## Context Manager
 
 ```python
-# Sync context manager
+## Sync context manager
 with SemptifyClient() as client:
     docs = client.documents.list_documents()
 
-# Async context manager
+## Async context manager
 async with SemptifyClient() as client:
     docs = await client.documents.alist_documents()
 ```

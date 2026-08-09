@@ -5,21 +5,22 @@ Fast, capable AI for document classification and extraction.
 """
 
 import json
+import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime
 
 import httpx
 
 from app.core.config import get_settings
 from app.core.utc import utc_now
-import logging
+
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class GeminiAnalysisResult:
     """Result from Gemini document analysis."""
+
     doc_type: str
     confidence: float
     title: str
@@ -39,19 +40,19 @@ class GeminiAIService:
     """
 
     API_URL = "https://generativelanguage.googleapis.com/v1beta/models"
-    
+
     # Model options
     MODELS = {
-        "flash": "gemini-1.5-flash",      # Fast, free tier friendly
-        "pro": "gemini-1.5-pro",          # More capable
-        "flash-8b": "gemini-1.5-flash-8b", # Fastest, lowest cost
+        "flash": "gemini-1.5-flash",  # Fast, free tier friendly
+        "pro": "gemini-1.5-pro",  # More capable
+        "flash-8b": "gemini-1.5-flash-8b",  # Fastest, lowest cost
     }
 
     def __init__(self):
         settings = get_settings()
-        self.api_key = getattr(settings, 'gemini_api_key', None) or getattr(settings, 'google_ai_api_key', None)
-        self.model = getattr(settings, 'gemini_model', self.MODELS["flash"])
-        
+        self.api_key = getattr(settings, "gemini_api_key", None) or getattr(settings, "google_ai_api_key", None)
+        self.model = getattr(settings, "gemini_model", self.MODELS["flash"])
+
     @property
     def is_available(self) -> bool:
         """Check if Gemini is configured."""
@@ -61,26 +62,26 @@ class GeminiAIService:
         self,
         text: str,
         filename: str,
-        doc_hint: Optional[str] = None,
+        doc_hint: str | None = None,
     ) -> GeminiAnalysisResult:
         """
         Analyze a document using Gemini.
-        
+
         Args:
             text: Document text content
             filename: Original filename
             doc_hint: Optional hint about document type
-            
+
         Returns:
             GeminiAnalysisResult with extracted information
         """
         if not self.is_available:
             raise ValueError("Gemini API key not configured. Set GEMINI_API_KEY in .env")
-        
+
         prompt = self._build_analysis_prompt(text, filename, doc_hint)
-        
+
         url = f"{self.API_URL}/{self.model}:generateContent?key={self.api_key}"
-        
+
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(
                 url,
@@ -90,53 +91,50 @@ class GeminiAIService:
                         "temperature": 0.1,
                         "topP": 0.95,
                         "maxOutputTokens": 4096,
-                    }
-                }
+                    },
+                },
             )
-            
+
             if response.status_code != 200:
                 raise ValueError(f"Gemini API error: {response.status_code} - {response.text}")
-            
+
             data = response.json()
-            
+
             # Extract text from response
             result_text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "{}")
-            
+
             return self._parse_response(result_text)
 
     async def chat(
         self,
         message: str,
         context: str = "tenant_rights",
-        history: Optional[list] = None,
+        history: list | None = None,
     ) -> str:
         """
         Chat with Gemini about tenant rights.
-        
+
         Args:
             message: User's question
             context: Context type (tenant_rights, eviction_defense, etc.)
             history: Previous conversation history
-            
+
         Returns:
             AI response text
         """
         if not self.is_available:
             raise ValueError("Gemini API key not configured")
-        
+
         system_prompt = self._get_system_prompt(context)
-        
+
         # Build conversation
         contents = []
-        
+
         # Add system context as first user message
-        contents.append({
-            "role": "user",
-            "parts": [{"text": f"Context: {system_prompt}\n\nQuestion: {message}"}]
-        })
-        
+        contents.append({"role": "user", "parts": [{"text": f"Context: {system_prompt}\n\nQuestion: {message}"}]})
+
         url = f"{self.API_URL}/{self.model}:generateContent?key={self.api_key}"
-        
+
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(
                 url,
@@ -146,15 +144,20 @@ class GeminiAIService:
                         "temperature": 0.7,
                         "topP": 0.95,
                         "maxOutputTokens": 2048,
-                    }
-                }
+                    },
+                },
             )
-            
+
             if response.status_code != 200:
                 raise ValueError(f"Gemini API error: {response.status_code}")
-            
+
             data = response.json()
-            return data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "I couldn't process that request.")
+            return (
+                data.get("candidates", [{}])[0]
+                .get("content", {})
+                .get("parts", [{}])[0]
+                .get("text", "I couldn't process that request.")
+            )
 
     async def generate_document(
         self,
@@ -164,7 +167,7 @@ class GeminiAIService:
         """Generate a legal document draft."""
         if not self.is_available:
             raise ValueError("Gemini API key not configured")
-        
+
         prompt = f"""Generate a {doc_type} document for a Minnesota eviction case.
 
 Case Information:
@@ -173,9 +176,9 @@ Case Information:
 Generate a professional, legally appropriate document following Minnesota court requirements.
 Include proper formatting, case caption, and all required sections.
 """
-        
+
         url = f"{self.API_URL}/{self.model}:generateContent?key={self.api_key}"
-        
+
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(
                 url,
@@ -184,17 +187,17 @@ Include proper formatting, case caption, and all required sections.
                     "generationConfig": {
                         "temperature": 0.3,
                         "maxOutputTokens": 4096,
-                    }
-                }
+                    },
+                },
             )
-            
+
             if response.status_code != 200:
                 raise ValueError(f"Gemini API error: {response.status_code}")
-            
+
             data = response.json()
             return data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
 
-    def _build_analysis_prompt(self, text: str, filename: str, doc_hint: Optional[str]) -> str:
+    def _build_analysis_prompt(self, text: str, filename: str, doc_hint: str | None) -> str:
         """Build the document analysis prompt."""
         return f"""Analyze this legal document and extract key information.
 
@@ -232,9 +235,9 @@ Respond ONLY with valid JSON."""
                 text = text[3:]
             if text.endswith("```"):
                 text = text[:-3]
-            
+
             data = json.loads(text)
-            
+
             return GeminiAnalysisResult(
                 doc_type=data.get("doc_type", "unknown"),
                 confidence=float(data.get("confidence", 0.5)),
@@ -276,7 +279,6 @@ You provide accurate, practical advice about:
 
 Always recommend consulting with a licensed attorney for specific legal advice.
 Provide citations to Minnesota statutes when relevant.""",
-            
             "eviction_defense": """You are an expert in Minnesota eviction defense.
 Help tenants understand:
 - Eviction process timeline and deadlines
@@ -292,7 +294,7 @@ Recommend HOME Line (612-728-5767) for free tenant assistance.""",
 
 
 # Singleton instance
-_gemini_service: Optional[GeminiAIService] = None
+_gemini_service: GeminiAIService | None = None
 
 
 def get_gemini_service() -> GeminiAIService:

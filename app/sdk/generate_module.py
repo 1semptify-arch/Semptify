@@ -7,16 +7,18 @@ Generates new module scaffolding for the Positronic Mesh.
 
 Usage:
     python -m app.sdk.generate_module my_module "My Module" "Description of my module"
-    
+
 Or with options:
     python -m app.sdk.generate_module my_module "My Module" "Description" --category legal --has-ui
 """
 
 import argparse
+import logging
 import os
-import sys
-from datetime import datetime
 
+from app.core.utc import utc_now
+
+logger = logging.getLogger(__name__)
 
 TEMPLATE = '''"""
 {display_name} Module
@@ -55,27 +57,27 @@ module_definition = ModuleDefinition(
     description="{description}",
     version="1.0.0",
     category=ModuleCategory.{category},
-    
+
     # Document types this module can process
     handles_documents=[
         {handles_documents}
     ],
-    
+
     # Info packs this module accepts from other modules
     accepts_packs=[
         {accepts_packs}
     ],
-    
+
     # Info packs this module produces for other modules
     produces_packs=[
         {produces_packs}
     ],
-    
+
     # Other modules this depends on
     depends_on=[
         {depends_on}
     ],
-    
+
     has_ui={has_ui},
     has_background_tasks={has_background_tasks},
     requires_auth=True,
@@ -106,17 +108,17 @@ async def process(
 ) -> Dict[str, Any]:
     """
     Main processing action.
-    
+
     Args:
         user_id: The user making the request
         params: Parameters including 'data'
         context: Workflow context
-    
+
     Returns:
         Dict with 'result' key
     """
     logger.info(f"{{module_definition.name}}: Processing for user {{user_id[:8]}}...")
-    
+
     data = params.get("data", {{}})
 
     # Basic processing logic:
@@ -269,13 +271,13 @@ def generate_module(
     output_dir: str = None,
 ) -> str:
     """Generate a new module file"""
-    
+
     # Format lists
     def format_list(items, prefix=""):
         if not items:
             return "# Add items here"
-        return "\n        ".join(f'{prefix}.{item},' for item in items)
-    
+        return "\n        ".join(f"{prefix}.{item}," for item in items)
+
     # Build template
     content = TEMPLATE.format(
         module_name=module_name,
@@ -285,13 +287,17 @@ def generate_module(
         category=category.upper(),
         has_ui=str(has_ui),
         has_background_tasks=str(has_background_tasks),
-        handles_documents=format_list(handles_documents, "DocumentType") if handles_documents else "# DocumentType.LEASE,",
+        handles_documents=format_list(handles_documents, "DocumentType")
+        if handles_documents
+        else "# DocumentType.LEASE,",
         accepts_packs=format_list(accepts_packs, "PackType") if accepts_packs else "# PackType.USER_DATA,",
         produces_packs=format_list(produces_packs, "PackType") if produces_packs else "# PackType.ANALYSIS_RESULT,",
-        depends_on=', '.join(f'"{d}"' for d in (depends_on or [])) or '# "documents",',
-        router_section=ROUTER_TEMPLATE if include_router else "# Uncomment to add API endpoints\n# from fastapi import APIRouter\n# router = APIRouter()",
+        depends_on=", ".join(f'"{d}"' for d in (depends_on or [])) or '# "documents",',
+        router_section=ROUTER_TEMPLATE
+        if include_router
+        else "# Uncomment to add API endpoints\n# from fastapi import APIRouter\n# router = APIRouter()",
     )
-    
+
     # Write file if output_dir provided
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
@@ -299,79 +305,58 @@ def generate_module(
         with open(filepath, "w") as f:
             f.write(content)
         logger.info(f"✅ Generated module: {filepath}")
-        
+
         # Print next steps
         print(f"""
 📋 Next Steps:
 1. Edit {filepath} to implement your logic
 2. Add to main.py startup:
-   
+
    from app.modules.{module_name} import initialize as init_{module_name}
    init_{module_name}()
-   
+
 3. If using router, add to main.py:
-   
+
    from app.modules.{module_name} import router as {module_name}_router
-   app.include_router({module_name}_router, prefix="/api/{module_name.replace('_', '-')}", tags=["{display_name}"])
+   app.include_router({module_name}_router, prefix="/api/{module_name.replace("_", "-")}", tags=["{display_name}"])
 """)
-    
+
     return content
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate a new Semptify module"
-    )
-    
-    parser.add_argument(
-        "module_name",
-        help="Module name in snake_case (e.g., payment_tracking)"
-    )
-    parser.add_argument(
-        "display_name",
-        help="Human-readable display name (e.g., 'Payment Tracking')"
-    )
-    parser.add_argument(
-        "description",
-        help="Description of what the module does"
-    )
+    parser = argparse.ArgumentParser(description="Generate a new Semptify module")
+
+    parser.add_argument("module_name", help="Module name in snake_case (e.g., payment_tracking)")
+    parser.add_argument("display_name", help="Human-readable display name (e.g., 'Payment Tracking')")
+    parser.add_argument("description", help="Description of what the module does")
     parser.add_argument(
         "--category",
-        choices=["document", "legal", "calendar", "communication", 
-                 "analysis", "storage", "ui", "utility", "ai", "integration"],
+        choices=[
+            "document",
+            "legal",
+            "calendar",
+            "communication",
+            "analysis",
+            "storage",
+            "ui",
+            "utility",
+            "ai",
+            "integration",
+        ],
         default="utility",
-        help="Module category (default: utility)"
+        help="Module category (default: utility)",
     )
-    parser.add_argument(
-        "--has-ui",
-        action="store_true",
-        help="Module has a UI component"
-    )
-    parser.add_argument(
-        "--has-background-tasks",
-        action="store_true",
-        help="Module runs background tasks"
-    )
-    parser.add_argument(
-        "--with-router",
-        action="store_true",
-        help="Include FastAPI router boilerplate"
-    )
-    parser.add_argument(
-        "--output-dir",
-        default="app/modules",
-        help="Output directory (default: app/modules)"
-    )
-    parser.add_argument(
-        "--print-only",
-        action="store_true",
-        help="Print template without writing file"
-    )
-    
+    parser.add_argument("--has-ui", action="store_true", help="Module has a UI component")
+    parser.add_argument("--has-background-tasks", action="store_true", help="Module runs background tasks")
+    parser.add_argument("--with-router", action="store_true", help="Include FastAPI router boilerplate")
+    parser.add_argument("--output-dir", default="app/modules", help="Output directory (default: app/modules)")
+    parser.add_argument("--print-only", action="store_true", help="Print template without writing file")
+
     args = parser.parse_args()
-    
+
     output_dir = None if args.print_only else args.output_dir
-    
+
     content = generate_module(
         module_name=args.module_name,
         display_name=args.display_name,
@@ -382,7 +367,7 @@ def main():
         include_router=args.with_router,
         output_dir=output_dir,
     )
-    
+
     if args.print_only:
         logger.info(content)
 

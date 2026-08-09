@@ -1,7 +1,8 @@
 # Flashing postmarketOS on Pixel 4a (sunfish)
 
 This guide walks you through replacing Android with postmarketOS on a used Pixel 4a.
-**This wipes everything on the phone. Back up first.**
+
+## This wipes everything on the phone. Back up first
 
 ## Prerequisites
 
@@ -10,10 +11,11 @@ This guide walks you through replacing Android with postmarketOS on a used Pixel
 - A USB cable capable of data transfer (not charge-only)
 - About 1 hour of time
 
-## What is postmarketOS?
+## What is postmarketOS
 
 postmarketOS (pmOS) is a touch-optimized, Alpine-based Linux distribution for phones.
 It uses the **mainline Linux kernel** (not Android's fork), which means:
+
 - Real Linux userland (apk package manager, OpenRC, musl libc)
 - Standard tools work (ssh, docker via postmarketOS, python, gcc)
 - No Android services, no Google, no Play Services — pure Linux
@@ -25,18 +27,18 @@ the **console** UI (no GUI at all — best for AI host, frees more RAM).
 ## Step 1 — Install pmOS Installer on PC
 
 ```bash
-# Linux:
+## Linux:
 sudo apt install postmarketos-installer  # or your distro's equivalent
 
-# Or use the Python installer:
+## Or use the Python installer:
 pip3 install --user pmbootstrap
 
-# macOS:
+## macOS:
 brew install postmarketos-installer
 
-# Windows:
-# Download from https://postmarketos.org/install/
-```
+## Windows:
+## Download from https://postmarketos.org/install/
+```text
 
 ## Step 2 — Initialize pmOS for Pixel 4a
 
@@ -45,6 +47,7 @@ pmbootstrap init
 ```
 
 Answer the prompts:
+
 - **Device:** `google-sunfish` (Pixel 4a)
 - **User:** your username (e.g., `ai`)
 - **UI:** `console` (no GUI — best for AI host, frees ~200MB)
@@ -56,7 +59,7 @@ Answer the prompts:
 
 ```bash
 pmbootstrap install
-```
+```text
 
 This downloads the kernel, builds the rootfs, and produces a flashable image.
 Takes ~20 minutes on a fast PC, longer on a slow one.
@@ -64,17 +67,18 @@ Takes ~20 minutes on a fast PC, longer on a slow one.
 ## Step 4 — Flash to the Phone
 
 ```bash
-# Put phone in fastboot mode
+## Put phone in fastboot mode
 adb reboot bootloader
 
-# Verify it's connected
+## Verify it's connected
 fastboot devices
 
-# Flash everything
+## Flash everything
 pmbootstrap flasher flash
 ```
 
 This flashes:
+
 - `boot` partition (kernel + initramfs)
 - `system` partition (rootfs)
 - `userdata` partition (empty)
@@ -88,33 +92,33 @@ If you picked `console` UI, the screen will be black after boot — that's norma
 The phone is reachable over USB networking by default.
 
 ```bash
-# From PC, over USB:
+## From PC, over USB:
 ssh ai@10.15.19.82
 
-# Default password is "147147" — change it immediately:
+## Default password is "147147" — change it immediately:
 passwd
-```
+```text
 
 ## Step 6 — Set Up Wi-Fi
 
 ```bash
-# Over SSH:
+## Over SSH:
 sudo nmcli device wifi connect "YOUR_WIFI_SSID" password "YOUR_WIFI_PASSWORD"
 
-# Find the phone's new IP on Wi-Fi:
+## Find the phone's new IP on Wi-Fi:
 ip addr show wlan0
 ```
 
 ## Step 7 — Install llama.cpp
 
 ```bash
-# Update the system
+## Update the system
 sudo apk update && sudo apk upgrade
 
-# Install build deps
+## Install build deps
 sudo apk add build-base cmake git python3 py3-pip wget curl
 
-# Clone and build llama.cpp
+## Clone and build llama.cpp
 cd ~
 git clone --depth 1 https://github.com/ggerganov/llama.cpp.git
 cd llama.cpp
@@ -129,9 +133,9 @@ cmake .. \
   -DLLAMA_BUILD_SERVER=ON
 cmake --build . --target llama-server -- -j$(nproc)
 
-# Verify
+## Verify
 ls bin/llama-server
-```
+```text
 
 ## Step 8 — Download a Model
 
@@ -139,10 +143,10 @@ ls bin/llama-server
 mkdir ~/models
 cd ~/models
 
-# Llama-3.2-3B (good fit for 6GB RAM)
+## Llama-3.2-3B (good fit for 6GB RAM)
 wget https://huggingface.co/lmstudio-community/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf
 
-# Or Qwen2-1.5B (faster, smaller)
+## Or Qwen2-1.5B (faster, smaller)
 wget https://huggingface.co/Qwen/Qwen2-1.5B-Instruct-GGUF/resolve/main/qwen2-1_5b-instruct-q4_k_m.gguf
 ```
 
@@ -156,9 +160,10 @@ wget https://huggingface.co/Qwen/Qwen2-1.5B-Instruct-GGUF/resolve/main/qwen2-1_5
   -t 8 \
   -c 4096 \
   -ngl 0
-```
+```text
 
 Test from your PC:
+
 ```bash
 curl http://<phone-ip>:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
@@ -193,27 +198,27 @@ EOF
 sudo chmod +x /etc/init.d/ai-host
 sudo rc-update add ai-host default
 sudo rc-service ai-host start
-```
+```text
 
 ## Step 11 — Performance Tuning
 
 ```bash
-# CPU governor: performance
+## CPU governor: performance
 for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
   echo performance | sudo tee "$cpu"
 done
 
-# Keep all cores online
+## Keep all cores online
 for cpu in /sys/devices/system/cpu/cpu*/online; do
   echo 1 | sudo tee "$cpu"
 done
 
-# Add zram swap (compresses RAM — effectively gives ~9GB from 6GB)
+## Add zram swap (compresses RAM — effectively gives ~9GB from 6GB)
 sudo apk add zram-init
 sudo rc-update add zram-init default
-# Configure /etc/conf.d/zram-init with size=2G
+## Configure /etc/conf.d/zram-init with size=2G
 
-# Disable Bluetooth, NFC (frees kernel memory)
+## Disable Bluetooth, NFC (frees kernel memory)
 sudo rc-update del bluetooth default
 sudo rc-update del nfc default
 ```
@@ -223,31 +228,33 @@ sudo rc-update del nfc default
 The Pixel 4a will throttle under sustained AI load. To monitor:
 
 ```bash
-# Watch CPU temp
+## Watch CPU temp
 watch -n 1 'cat /sys/class/thermal/thermal_zone*/temp'
 
-# If temp > 75°C, the phone is throttling. Improve cooling:
-# - Remove any case
-# - Place on a metal surface (heat sink)
-# - Add a small USB fan blowing across the back
-```
+## If temp > 75°C, the phone is throttling. Improve cooling:
+## - Remove any case
+## - Place on a metal surface (heat sink)
+## - Add a small USB fan blowing across the back
+```text
 
 ## Recovery
 
 If the phone won't boot:
-```bash
-# Reboot to fastboot:
-# Hold power + volume down for 10 seconds
 
-# Reflash stock Android:
-# Download factory image from https://developers.google.com/android/images#sunfish
-# Unzip and run:
+```bash
+## Reboot to fastboot:
+## Hold power + volume down for 10 seconds
+
+## Reflash stock Android:
+## Download factory image from https://developers.google.com/android/images#sunfish
+## Unzip and run:
 ./flash-all.sh
 ```
 
 ## What's Next
 
 Once you have one Pixel 4a running reliably:
+
 - Buy a second one.
 - Follow `cluster_architecture.md` to wire them into a single inference endpoint.
 - Add nodes as your budget allows.

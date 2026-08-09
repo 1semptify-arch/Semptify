@@ -14,19 +14,19 @@ Endpoints:
 - /metrics/json - JSON metrics
 """
 
-import time
 import asyncio
-from datetime import datetime, timezone
-from pathlib import Path
 import json
+import logging
+import time
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
+from fastapi import APIRouter, Depends
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 from app.core.config import Settings, get_settings
-from app.core.security import get_metrics, incr_metric, record_request_latency
+from app.core.security import get_metrics
 from app.core.utc import utc_now
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -82,7 +82,7 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
     for dir_name in ["uploads", "uploads/vault", "logs", "security", "data"]:
         dir_path = Path(dir_name)
         exists = dir_path.exists() and dir_path.is_dir()
-        
+
         # Test writability
         writable = False
         if exists:
@@ -93,7 +93,7 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
                 writable = True
             except Exception as e:
                 logger.warning(f"Optional operation failed: {e}")
-        
+
         key = f"dir_{dir_name.replace('/', '_')}"
         checks[key] = exists and writable
         details[key] = {"exists": exists, "writable": writable}
@@ -114,17 +114,16 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
 
     # Check database connectivity with timeout
     try:
-        from app.core.database import get_db_session
         from sqlalchemy import text
+
+        from app.core.database import get_db_session
+
         db_start = time.perf_counter()
         async with get_db_session() as session:
-            await asyncio.wait_for(
-                session.execute(text("SELECT 1")),
-                timeout=5.0
-            )
+            await asyncio.wait_for(session.execute(text("SELECT 1")), timeout=5.0)
         checks["database"] = True
         details["database_latency_ms"] = round((time.perf_counter() - db_start) * 1000, 2)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         checks["database"] = False
         details["database_error"] = "Connection timeout (5s)"
     except Exception as e:
@@ -136,13 +135,16 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
     if ai_provider and ai_provider != "none":
         checks["ai_provider"] = ai_provider
         # Check if API key is configured
-        if ai_provider == "anthropic" and settings.anthropic_api_key:
-            details["ai_configured"] = True
-        elif ai_provider == "openai" and settings.openai_api_key:
-            details["ai_configured"] = True
-        elif ai_provider == "azure" and settings.azure_openai_api_key:
-            details["ai_configured"] = True
-        elif ai_provider == "groq" and settings.groq_api_key:
+        if (
+            ai_provider == "anthropic"
+            and settings.anthropic_api_key
+            or ai_provider == "openai"
+            and settings.openai_api_key
+            or ai_provider == "azure"
+            and settings.azure_openai_api_key
+            or ai_provider == "groq"
+            and settings.groq_api_key
+        ):
             details["ai_configured"] = True
         elif ai_provider == "ollama":
             details["ai_configured"] = True  # Ollama doesn't need API key
@@ -151,14 +153,14 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
 
     # Calculate total check time
     details["check_duration_ms"] = round((time.perf_counter() - start) * 1000, 2)
-    
+
     # Overall status
     critical_checks = ["dir_uploads", "dir_uploads_vault", "dir_security", "database"]
     all_critical_ok = all(checks.get(k, False) is True for k in critical_checks)
 
     # Return 503 if not ready (for load balancer integration)
     status_code = 200 if all_critical_ok else 503
-    
+
     return JSONResponse(
         status_code=status_code,
         content={
@@ -167,7 +169,7 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
             "details": details,
             "uptime_seconds": round(time.time() - _start_time, 2),
             "timestamp": utc_now().isoformat(),
-        }
+        },
     )
 
 
@@ -197,39 +199,41 @@ async def metrics(settings: Settings = Depends(get_settings)):
         "",
         "# HELP semptify_requests_total Total requests",
         "# TYPE semptify_requests_total counter",
-        f'semptify_requests_total {all_metrics.get("requests_total", 0)}',
+        f"semptify_requests_total {all_metrics.get('requests_total', 0)}",
         "",
         "# HELP semptify_admin_requests_total Admin requests",
         "# TYPE semptify_admin_requests_total counter",
-        f'semptify_admin_requests_total {all_metrics.get("admin_requests_total", 0)}',
+        f"semptify_admin_requests_total {all_metrics.get('admin_requests_total', 0)}",
         "",
         "# HELP semptify_errors_total Total errors",
         "# TYPE semptify_errors_total counter",
-        f'semptify_errors_total {all_metrics.get("errors_total", 0)}',
+        f"semptify_errors_total {all_metrics.get('errors_total', 0)}",
         "",
         "# HELP semptify_rate_limited_total Rate limited requests",
         "# TYPE semptify_rate_limited_total counter",
-        f'semptify_rate_limited_total {all_metrics.get("rate_limited_total", 0)}',
+        f"semptify_rate_limited_total {all_metrics.get('rate_limited_total', 0)}",
         "",
         "# HELP semptify_breakglass_used_total Breakglass tokens used",
         "# TYPE semptify_breakglass_used_total counter",
-        f'semptify_breakglass_used_total {all_metrics.get("breakglass_used_total", 0)}',
+        f"semptify_breakglass_used_total {all_metrics.get('breakglass_used_total', 0)}",
         "",
         "# HELP semptify_user_registrations_total User registrations",
         "# TYPE semptify_user_registrations_total counter",
-        f'semptify_user_registrations_total {all_metrics.get("user_registrations_total", 0)}',
+        f"semptify_user_registrations_total {all_metrics.get('user_registrations_total', 0)}",
     ]
 
     # Add latency metrics if available
     if latency:
-        metrics_lines.extend([
-            "",
-            "# HELP semptify_request_latency_ms Request latency in milliseconds",
-            "# TYPE semptify_request_latency_ms summary",
-            f'semptify_request_latency_ms{{quantile="0.5"}} {latency.get("p50_ms", 0):.2f}',
-            f'semptify_request_latency_ms{{quantile="0.95"}} {latency.get("p95_ms", 0):.2f}',
-            f'semptify_request_latency_ms{{quantile="0.99"}} {latency.get("p99_ms", 0):.2f}',
-        ])
+        metrics_lines.extend(
+            [
+                "",
+                "# HELP semptify_request_latency_ms Request latency in milliseconds",
+                "# TYPE semptify_request_latency_ms summary",
+                f'semptify_request_latency_ms{{quantile="0.5"}} {latency.get("p50_ms", 0):.2f}',
+                f'semptify_request_latency_ms{{quantile="0.95"}} {latency.get("p95_ms", 0):.2f}',
+                f'semptify_request_latency_ms{{quantile="0.99"}} {latency.get("p99_ms", 0):.2f}',
+            ]
+        )
 
     return PlainTextResponse("\n".join(metrics_lines), media_type="text/plain")
 
@@ -384,7 +388,7 @@ async def system_dashboard():
 <body>
     <h1>⚖️ Semptify</h1>
     <p class="subtitle">Eviction Defense Intelligence Platform</p>
-    
+
     <div class="status-banner">
         <div class="big">✅</div>
         <div>System Status: <span id="live-status">All Systems Operational</span></div>
@@ -586,7 +590,7 @@ async def system_dashboard():
     <script>
         // Update timestamp
         document.getElementById('last-check').textContent = new Date().toLocaleTimeString();
-        
+
         // Live health check
         async function checkHealth() {
             try {
@@ -604,7 +608,7 @@ async def system_dashboard():
             }
             document.getElementById('last-check').textContent = new Date().toLocaleTimeString();
         }
-        
+
         // Check every 30 seconds
         setInterval(checkHealth, 30000);
         checkHealth();
@@ -630,16 +634,16 @@ async def api_summary():
                 "endpoints": [
                     {"method": "GET", "path": "/api/eviction/defenses", "description": "List applicable defenses"},
                     {"method": "GET", "path": "/api/eviction/defense-analysis", "description": "Full defense analysis"},
-                    {"method": "GET", "path": "/api/eviction/timeline", "description": "Case timeline events"}
-                ]
+                    {"method": "GET", "path": "/api/eviction/timeline", "description": "Case timeline events"},
+                ],
             },
             "document_pipeline": {
                 "status": "active",
                 "endpoints": [
                     {"method": "GET", "path": "/api/documents", "description": "List uploaded documents"},
                     {"method": "POST", "path": "/api/documents/upload", "description": "Upload document with OCR"},
-                    {"method": "GET", "path": "/api/documents/{id}/analysis", "description": "Document AI analysis"}
-                ]
+                    {"method": "GET", "path": "/api/documents/{id}/analysis", "description": "Document AI analysis"},
+                ],
             },
             "court_forms": {
                 "status": "active",
@@ -647,8 +651,8 @@ async def api_summary():
                     {"method": "GET", "path": "/api/forms/library", "description": "Available court forms"},
                     {"method": "GET", "path": "/api/autofill/answer", "description": "Auto-fill Answer form"},
                     {"method": "POST", "path": "/api/generate/answer", "description": "Generate Answer PDF"},
-                    {"method": "GET", "path": "/api/quick-generate/{type}", "description": "Quick form generation"}
-                ]
+                    {"method": "GET", "path": "/api/quick-generate/{type}", "description": "Quick form generation"},
+                ],
             },
             "zoom_court": {
                 "status": "active",
@@ -656,37 +660,37 @@ async def api_summary():
                     {"method": "GET", "path": "/api/zoom-court/quick-tips", "description": "Zoom hearing tips"},
                     {"method": "GET", "path": "/api/zoom-court/my-hearing-prep", "description": "Personalized prep"},
                     {"method": "GET", "path": "/api/zoom-court/countdown", "description": "Hearing countdown"},
-                    {"method": "GET", "path": "/api/zoom-court/day-of-checklist", "description": "Day-of checklist"}
-                ]
+                    {"method": "GET", "path": "/api/zoom-court/day-of-checklist", "description": "Day-of checklist"},
+                ],
             },
             "ai_copilot": {
                 "status": "active",
                 "endpoints": [
                     {"method": "POST", "path": "/api/copilot/analyze", "description": "AI document analysis"},
                     {"method": "POST", "path": "/api/copilot/chat", "description": "Interactive legal chat"},
-                    {"method": "GET", "path": "/api/copilot/suggestions", "description": "Smart suggestions"}
-                ]
+                    {"method": "GET", "path": "/api/copilot/suggestions", "description": "Smart suggestions"},
+                ],
             },
             "context_loop": {
                 "status": "active",
                 "endpoints": [
                     {"method": "GET", "path": "/api/context/status", "description": "Context state"},
-                    {"method": "POST", "path": "/api/context/refresh", "description": "Refresh context"}
-                ]
+                    {"method": "POST", "path": "/api/context/refresh", "description": "Refresh context"},
+                ],
             },
             "storage": {
                 "status": "active",
                 "endpoints": [
                     {"method": "GET", "path": "/api/storage/providers", "description": "Available providers"},
-                    {"method": "POST", "path": "/api/storage/connect", "description": "Connect storage"}
-                ]
-            }
+                    {"method": "POST", "path": "/api/storage/connect", "description": "Connect storage"},
+                ],
+            },
         },
         "documentation": {
             "swagger_ui": "/api/docs",
             "openapi": "/api/openapi.json",
             "tenant_dashboard": "/dashboard",
-            "system_dashboard": "/system-dashboard"
+            "system_dashboard": "/system-dashboard",
         },
-        "timestamp": utc_now().isoformat()
+        "timestamp": utc_now().isoformat(),
     }

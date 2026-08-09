@@ -8,16 +8,19 @@
 ## 1. Product Direction (from project owner)
 
 **PRIORITY #1**: User-friendly and simple. "Quick, Easy, and painless."
+
 - Semptify is a DOCUMENT ORGANIZER for renters/tenants.
 - Core function: Document everything between landlord and tenant throughout the tenancy.
 - Keep good records of all interactions.
 - The GUI must be simple enough for a stressed tenant to use immediately.
 
 **PRIORITY #2**: Give the user "armour" to protect themselves.
+
 - Information is straight-up FACTS. No opinions.
 - The library/context engine surfaces verified facts only.
 
 **TWO PILLARS**:
+
 1. **RECORD** — Document capture, vault, timeline, journal. Big "Add Record" button everywhere.
 2. **KNOW** — Library of verified facts, rights guides, context engine. Facts only, no opinions.
 
@@ -29,8 +32,9 @@ The tenant GUI = a timeline of everything that's happened + a library of facts.
 ## 2. Current State
 
 ### Pages (8 tenant-facing)
+
 | Page | Purpose | Status |
-|------|---------|--------|
+| ------ | --------- | -------- |
 | `tenant/index.html` | Dashboard with stat cards | Uses `main.css`, basic |
 | `tenant/dashboard.html` | Hero + case summary + tools | Inline CSS, purple gradient |
 | `tenant/journal.html` | Freeform journal entries | Inline CSS, blue theme |
@@ -41,6 +45,7 @@ The tenant GUI = a timeline of everything that's happened + a library of facts.
 | `tenant/tools/letters.html` | Letter generators + signer | Inline CSS |
 
 ### Problems
+
 - **8 pages, 8 different color schemes** — no visual consistency
 - **No timeline view** — the #1 pillar (RECORD) has no dedicated page
 - **Journal is freeform text only** — no structured event capture, no document linking
@@ -49,6 +54,7 @@ The tenant GUI = a timeline of everything that's happened + a library of facts.
 - **Design system exists** (`ssot-design-system.css`, 1225 lines) but only 5 pages use it
 
 ### Assets Available
+
 - `static/css/ssot-design-system.css` — full token system (colors, spacing, type, components)
 - `static/components/feedback.js` — toast helper on 59 pages
 - `static/components/loading-overlay.html` — spinner + button loading state
@@ -63,7 +69,7 @@ The tenant GUI = a timeline of everything that's happened + a library of facts.
 
 ### 3.1 Two-Pillar Navigation
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
 │  Semptify    [RECORD]  [KNOW]        [+ Add]  │
 ├─────────────────────────────────────────────────┤
@@ -82,7 +88,8 @@ The tenant GUI = a timeline of everything that's happened + a library of facts.
 The timeline is the home page. Everything the tenant has documented flows into one chronological stream.
 
 **Layout**:
-```
+
+```text
 ┌─────────────────────────────────────────────────┐
 │  Timeline                                       │
 │  ┌───────────────────────────────────────────┐  │
@@ -104,6 +111,7 @@ The timeline is the home page. Everything the tenant has documented flows into o
 ```
 
 **Data sources** (all existing):
+
 - Timeline events: `GET /api/timeline` (existing)
 - Documents: `GET /api/documents` (existing)
 - Journal entries: `GET /api/journal` (existing)
@@ -115,7 +123,8 @@ The timeline is the home page. Everything the tenant has documented flows into o
 ### 3.3 KNOW Pillar — Library of Facts
 
 **Layout**:
-```
+
+```text
 ┌─────────────────────────────────────────────────┐
 │  Library                                        │
 │  ┌───────────────────────────────────────────┐  │
@@ -142,7 +151,7 @@ eviction, repair, rent, lease, deposit, discrimination, safety, habitability, re
 
 ### 3.4 Add Record Modal — Always Available
 
-```
+```text
 ┌─────────────────────────────────┐
 │  + Add Record              [×]  │
 │                                 │
@@ -173,7 +182,7 @@ This is the big "Add Record" button from the product direction. It's a modal tha
 ### Current 8 pages → New 4 pages
 
 | Current | New | Action |
-|---------|-----|--------|
+| --------- | ----- | -------- |
 | `tenant/index.html` | **Remove** — replaced by timeline | Redirect to `/tenant/timeline.html` |
 | `tenant/dashboard.html` | **Remove** — stats fold into timeline header | Redirect to `/tenant/timeline.html` |
 | `tenant/journal.html` | **Merge into timeline** — journal entries are timeline events | Journal entry = timeline event with type 'journal' |
@@ -184,8 +193,9 @@ This is the big "Add Record" button from the product direction. It's a modal tha
 | `tenant/tools/letters.html` | **Keep** — letter generators | Add "Add Record" button |
 
 ### New pages to build
+
 | Page | Purpose |
-|------|---------|
+| ------ | --------- |
 | `tenant/timeline.html` | **RECORD pillar** — merged chronological feed (new home page) |
 | `tenant/library.html` | **KNOW pillar** — subject grid + facts + stories via Page Composer |
 | `tenant/add-record.html` | **Add Record modal** — quick capture (could be a modal component instead of a page) |
@@ -195,11 +205,13 @@ This is the big "Add Record" button from the product direction. It's a modal tha
 ## 5. Design System Adoption
 
 All new pages use `ssot-design-system.css` via:
+
 ```html
 <link rel="stylesheet" href="/static/css/ssot-design-system.css">
 ```
 
 No inline `<style>` blocks. No per-page color variables. The design system has:
+
 - Color tokens (`--color-primary`, `--color-success`, etc.)
 - Spacing scale (`--space-1` through `--space-16`)
 - Typography scale (`--text-xs` through `--text-4xl`)
@@ -207,6 +219,7 @@ No inline `<style>` blocks. No per-page color variables. The design system has:
 - Layout utilities (`.container`, `.grid`, `.flex`)
 
 ### Theme
+
 Use the existing `royal` theme (purple) as default — it's already on `tenant/index.html` via `data-theme="royal"`. The design system supports themes via `data-theme` attribute.
 
 ---
@@ -214,11 +227,13 @@ Use the existing `royal` theme (purple) as default — it's already on `tenant/i
 ## 6. Implementation Plan
 
 ### Step 1: Build the aggregator endpoint
+
 - `GET /api/tenant/feed` — merges timeline events, documents, journal entries, deadlines, letters into one chronological stream
 - Returns: `[{type, title, timestamp, metadata, link}]`
 - This is the backend for the RECORD pillar
 
 ### Step 2: Build `tenant/timeline.html`
+
 - Uses `ssot-design-system.css`
 - Fetches `/api/tenant/feed`
 - Filter chips: All / Documents / Events / Journal / Letters / Deadlines
@@ -227,6 +242,7 @@ Use the existing `royal` theme (purple) as default — it's already on `tenant/i
 - "Add Record" button in header
 
 ### Step 3: Build `tenant/library.html`
+
 - Uses `ssot-design-system.css`
 - Subject grid (13 subjects from `/api/context/subjects`)
 - Click a subject → fetch `/api/page/{subject}` → show facts + stories
@@ -234,18 +250,21 @@ Use the existing `royal` theme (purple) as default — it's already on `tenant/i
 - Stories section: published tenant stories (avoided_court hero frame)
 
 ### Step 4: Build the Add Record modal
+
 - Component included on every tenant page
 - Quick journal entry (text + save to timeline)
 - Links to: upload document, generate letter, add deadline
 - Uses `SemptifyFeedback` for success/error
 
 ### Step 5: Redirect old pages
+
 - `/tenant/` → `/tenant/timeline.html`
 - `/tenant/dashboard.html` → `/tenant/timeline.html`
 - `/tenant/journal.html` → `/tenant/timeline.html` (journal entries are in the feed)
 - `/tenant/law-library.html` → `/tenant/library.html`
 
 ### Step 6: Restyle remaining pages
+
 - `tenant/documents.html` — adopt design system
 - `tenant/help.html` — adopt design system
 - `tenant/tools/deadlines.html` — adopt design system
@@ -256,7 +275,7 @@ Use the existing `royal` theme (purple) as default — it's already on `tenant/i
 ## 7. Backend Endpoints Needed
 
 | Endpoint | Status | Notes |
-|----------|--------|-------|
+| ---------- | -------- | ------- |
 | `GET /api/tenant/feed` | **NEW** | Aggregator: timeline + documents + journal + deadlines + letters |
 | `GET /api/page/{subject}` | ✅ Exists | Page Composer — facts + stories + case data |
 | `GET /api/context/subjects` | ✅ Exists | 13 subjects with labels |
@@ -273,6 +292,7 @@ Only one new endpoint needed: `/api/tenant/feed`.
 ## 8. What This Unblocks
 
 Once this design doc is approved:
+
 1. **Build `/api/tenant/feed`** — one new backend endpoint
 2. **Build 3 new pages** — timeline, library, add-record modal
 3. **Redirect 4 old pages** — simple route changes

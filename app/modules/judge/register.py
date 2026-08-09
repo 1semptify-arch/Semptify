@@ -2,7 +2,6 @@
 
 from app.core.product_manifest import ModuleEntry, ProductTier
 
-
 MODULE = ModuleEntry(
     module_path="app.modules.judge.router",
     tier=ProductTier.DEV,

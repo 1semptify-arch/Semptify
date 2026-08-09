@@ -7,6 +7,7 @@ quick-start convenience endpoints, and module invocation error paths.
 
 import pytest
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 # The Positronic Mesh router is intentionally disabled in product_manifest.py
@@ -24,6 +25,7 @@ USER_COOKIE = {"semptify_uid": "GUa8Km3xPq"}
 # =============================================================================
 # Mesh Status
 # =============================================================================
+
 
 class TestMeshStatus:
     def test_get_status_ok(self):
@@ -53,20 +55,29 @@ class TestMeshStatus:
 # Workflow Start / Get
 # =============================================================================
 
+
 class TestWorkflowLifecycle:
     def test_start_invalid_workflow_type(self):
-        resp = client.post("/mesh/workflow/start", json={
-            "workflow_type": "not_a_real_type",
-        }, cookies=USER_COOKIE)
+        resp = client.post(
+            "/mesh/workflow/start",
+            json={
+                "workflow_type": "not_a_real_type",
+            },
+            cookies=USER_COOKIE,
+        )
         assert resp.status_code == 400
         assert "Invalid workflow type" in resp.json().get("detail", "")
 
     def test_start_eviction_workflow(self):
-        resp = client.post("/mesh/workflow/start", json={
-            "workflow_type": "eviction_defense",
-            "initial_context": {"test": True},
-            "trigger": "test_suite",
-        }, cookies=USER_COOKIE)
+        resp = client.post(
+            "/mesh/workflow/start",
+            json={
+                "workflow_type": "eviction_defense",
+                "initial_context": {"test": True},
+                "trigger": "test_suite",
+            },
+            cookies=USER_COOKIE,
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert data["success"] is True
@@ -85,10 +96,14 @@ class TestWorkflowLifecycle:
 
     def test_get_user_workflows_empty_then_populated(self):
         # Start a workflow so there's at least one
-        client.post("/mesh/workflow/start", json={
-            "workflow_type": "lease_analysis",
-            "trigger": "test_suite",
-        }, cookies=USER_COOKIE)
+        client.post(
+            "/mesh/workflow/start",
+            json={
+                "workflow_type": "lease_analysis",
+                "trigger": "test_suite",
+            },
+            cookies=USER_COOKIE,
+        )
 
         resp = client.get("/mesh/workflows", cookies=USER_COOKIE)
         assert resp.status_code == 200
@@ -101,6 +116,7 @@ class TestWorkflowLifecycle:
 # =============================================================================
 # Quick-Start Endpoints
 # =============================================================================
+
 
 class TestQuickStartEndpoints:
     def test_quick_eviction(self):
@@ -130,15 +146,20 @@ class TestQuickStartEndpoints:
 # Module Actions
 # =============================================================================
 
+
 class TestModuleActions:
     def test_get_actions_nonexistent_module(self):
         resp = client.get("/mesh/module/totally_fake_module_xyz/actions")
         assert resp.status_code == 404
 
     def test_invoke_nonexistent_module(self):
-        resp = client.post("/mesh/invoke", json={
-            "module": "nonexistent",
-            "action": "do_nothing",
-            "params": {},
-        }, cookies=USER_COOKIE)
+        resp = client.post(
+            "/mesh/invoke",
+            json={
+                "module": "nonexistent",
+                "action": "do_nothing",
+                "params": {},
+            },
+            cookies=USER_COOKIE,
+        )
         assert resp.status_code == 404

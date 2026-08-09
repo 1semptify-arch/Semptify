@@ -1,5 +1,6 @@
 # Semptify 5.0 Build Guide (SSOT)
-# Semptify 5.0 Build Guide (SSOT)
+
+## Semptify 5.0 Build Guide (SSOT)
 
 **Purpose:** Single source of truth for build status, testing results, and known issues.  
 **Last Updated:** May 20, 2026  
@@ -20,10 +21,12 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 ## 🎯 Active Features (Core)
 
 ### 📚 Library (Rights & Education)
+
 - [x] `law_library.py` - State laws, statutes ✅ `/api/law-library`
 - [x] `state_laws.py` - State-specific tenant rights ✅ `/api/states`
 
 ### 🏢 Office (Document Management)
+
 - [x] `documents.py` - Upload, processing ✅ `/api/documents/*`
 - [x] `vault.py` - Cloud storage vault ✅ `/api/vault/*`
 - [x] `briefcase.py` - Document viewer ✅ `/api/briefcase/*`
@@ -33,11 +36,13 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 - [x] `document_converter.py` - Format conversion ✅ `/api/convert/*`
 
 ### 🔧 Tools (Analysis & Utilities)
+
 - [x] `legal_analysis.py` - Evidence classification, merit assessment ✅ `/api/legal-analysis/*`
   - ✅ Direct document analysis (no dependencies)
   - ⏸️ Case-based analysis requires Extended (tenancy_hub)
 
 ### 🆘 Help (Onboarding)
+
 - [x] `onboarding.py` - Role selection, storage setup ✅ `/onboarding/*` (LEGACY — being replaced)
 - [x] `role_ui.py` - UI routing ✅ Role-based navigation
 - [x] `workflow.py` - Process orchestration ✅ Workflow engine + Page Contracts
@@ -48,22 +53,25 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 ## 🧪 Testing Checklist
 
 ### Welcome Flow (4 Steps - Storage Mandatory)
+
 | Step | URL | Status | Notes |
-|------|-----|--------|-------|
+| ------ | ----- | -------- | ------- |
 | 1. Welcome Page | `/static/welcome.html` | ✅ **VERIFIED** | Single CTA: "Get Started" |
 | 2. Role Selection | `/onboarding/select-role.html` | ✅ **VERIFIED** | Tenant only (Core) |
 | 3. Storage Connect | `/onboarding/storage-select.html` → OAuth | ✅ **VERIFIED** | **Mandatory** - no skip option |
 | 4. Tenant Home | `/tenant/home` | ✅ **VERIFIED** | Vault ready, upload enabled |
 
 ### Returning User Flow
+
 | Step | URL | Status | Notes |
-|------|-----|--------|-------|
+| ------ | ----- | -------- | ------- |
 | Reconnect | `/storage/reconnect` | ✅ **VERIFIED** | Session valid → home; Invalid → silent OAuth → home |
 | Return to Task | `/storage/reconnect?return_to=/timeline/view/123` | ✅ **VERIFIED** | Mid-task expiry → restore previous page after reauth |
 
 ### Document Flow
+
 | Step | Endpoint | Status | Notes |
-|------|----------|--------|-------|
+| ------ | ---------- | -------- | ------- |
 | Upload | `/api/documents/upload` | ✅ **VERIFIED** | To vault |
 | View Timeline | `/api/timeline-unified` | ✅ **VERIFIED** | Journal view |
 | View Briefcase | `/api/briefcase` | ✅ **VERIFIED** | Document viewer |
@@ -74,9 +82,11 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 ## 🐛 Known Issues
 
 ### Critical (Block Release)
+
 - [ ] None logged yet
 
 ### Resolved (May 6, 2026)
+
 - [x] **OAuth Callback → Role Selection Redirect Loop** — **FIXED** ✅
   - **Root cause:** JavaScript in OAuth callback HTML was overwriting the HMAC-signed `semptify_uid` cookie with the raw unsigned `user_id`. The storage middleware then rejected the cookie because `verify_user_id()` couldn't find the HMAC signature, redirecting to `/onboarding/start` → role selection.
   - **Fix (storage.py:2021-2023):** Removed `document.cookie = 'semptify_uid=...'` line from OAuth callback JavaScript. The server already sets the cookie with HMAC signature via `set_auth_cookie()`.
@@ -87,6 +97,7 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
     - `static/onboarding/storage-select.html`: Back link now fetches navigation from SSOT API
 
 ### Resolved (May 2, 2026)
+
 - [x] **Reconnect → Storage Selection Loop** — **FIXED & VERIFIED** ✅
   - **Root cause:** `return_to=/storage/reconnect` caused OAuth callback to loop back to reconnect page
   - **Fix 1 (storage.py:2369):** Removed `return_to` parameter from OAuth URL - now uses `route_user()` for landing
@@ -96,9 +107,11 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
     - Invalid session → silent OAuth → `route_user(uid)` → role home
 
 ### Major (Fix Before Release)
+
 - [ ] None logged yet
 
 ### Minor (Defer)
+
 - [x] **SSOT Architecture Compliance** — **COMPLETED** ✅ (May 2, 2026)
   - Eliminated all hardcoded URL strings across `role_ui.py`, `storage.py`, `auth.py`, `onboarding.py`, `document_delivery.py`
   - All redirects now use `ssot_redirect()` from `app.core.ssot_guard`
@@ -106,6 +119,7 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
   - Storage gate now uses HMAC-signed cookies only
 
 ### Minor (Defer)
+
 - [x] **Browser Preview Cross-Origin Issue** — Preview proxy at `127.0.0.1:58057` cannot load app URLs at `localhost:8000` due to frame security restrictions. Affects:
   - `/storage/reconnect` → `localhost:8000/storage/reconnect`
   - `/onboarding/select-role.html` → `localhost:8000/onboarding/select-role.html`
@@ -119,18 +133,22 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 These features are **disabled** in Core build but code is preserved:
 
 ### AI/Brain Features
+
 - `brain.py`, `copilot.py`, `emotion.py`, `auto_mode.py`
 - Requires: User consent, heavy compute
 
 ### Legal/Court Features
+
 - `court_forms.py`, `court_packet.py`, `eviction_defense.py`, `case_builder.py`
 - Requires: Legal validation, jurisdiction data
 
 ### Analytics/Research
+
 - `analytics.py`, `research.py`, `crawler.py`
 - Requires: User opt-in, privacy review
 
 ### Multi-User/Collaboration
+
 - `communication.py`, `document_delivery.py`, `invite_codes.py`
 - Requires: Advocate/legal role enablement
 
@@ -141,7 +159,7 @@ These features are **disabled** in Core build but code is preserved:
 These serve different purposes than Core tenant journaling:
 
 | Feature | Division | Purpose |
-|---------|----------|---------|
+| --------- | ---------- | --------- |
 | `campaign.py` | Marketing/Public | Public awareness campaigns |
 | `public_exposure.py` | Advocacy | Bad actor exposure |
 | `fraud_exposure.py` | Investigation | Fraud pattern detection |
@@ -155,6 +173,7 @@ These serve different purposes than Core tenant journaling:
 1. **Edit `app/main.py`**
 2. **Find the Extended section** (commented out)
 3. **Uncomment the router import:**
+
    ```python
    # Before (disabled)
    court_forms_router = None
@@ -162,15 +181,17 @@ These serve different purposes than Core tenant journaling:
    # After (enabled)
    court_forms_router = _safe_router_import("app.routers.court_forms")
    ```
+
 4. **Restart app**
 
 ### Add-On Loading (Future)
+
 ```python
-# Environment-based feature flags
+## Environment-based feature flags
 SEMPFIFY_FEATURE_SET=core        # Only Core
 SEMPFIFY_FEATURE_SET=extended    # Core + Extended
 SEMPFIFY_FEATURE_SET=full        # Everything
-```
+```text
 
 ---
 
@@ -179,14 +200,18 @@ SEMPFIFY_FEATURE_SET=full        # Everything
 When auth expires mid-task, user can return to their previous state after reauth.
 
 ### Usage
+
 ```
+
 User at /timeline/view/123 → Auth expires
 → Redirect: /storage/reconnect?return_to=/timeline/view/123
 → OAuth flow
 → Callback returns to: /timeline/view/123 (not home)
-```
+
+```text
 
 ### Implementation Details
+
 - **Entry:** `storage.py:763` - `return_to` query param on `/reconnect`
 - **Validation:** Only local paths allowed (`/...`, not `//...` or `https://`)
 - **Session valid:** Returns directly to `return_to` URL (skips OAuth)
@@ -194,6 +219,7 @@ User at /timeline/view/123 → Auth expires
 - **HTML picker:** JavaScript threads `RETURN_TO` through OAuth state
 
 ### Security
+
 - External URLs rejected (prevent open redirect)
 - Double slashes rejected (`//evil.com`)
 - Empty/null `return_to` falls back to `route_user()` → home
@@ -211,8 +237,9 @@ and `vault.py`.
 ### Architecture
 
 ```
+
 app/modules/onboarding/
-├── __init__.py      # register_onboarding() + OnboardingConfig exports
+├── **init**.py      # register_onboarding() + OnboardingConfig exports
 ├── config.py        # OnboardingConfig dataclass (product-customizable)
 ├── gates.py         # check_gate, mark_gate, get_first_incomplete_gate
 ├── oauth.py         # Token exchange, identity verification, user creation, session save
@@ -220,20 +247,23 @@ app/modules/onboarding/
 ├── router.py        # All routes: pages, OAuth, callback, vault APIs
 ├── middleware.py     # OnboardingGateMiddleware (gate enforcement)
 └── register.py      # register_onboarding(app, config) — single wiring call
-```
+
+```text
 
 ### Gate Chain (serial, each unlocks next)
 
 ```
+
 [nothing] → storage_connected → vault_initialized → [ONBOARDING COMPLETE]
                                                       ↓
                                                client_activated (set by documents.py on first upload)
                                                       ↓
                                                [FULL ACCESS]
-```
+
+```text
 
 | Gate | Set By | Checked By |
-|------|--------|------------|
+| ------ | -------- | ------------ |
 | `storage_connected` | `onboarding/oauth.py` → `gates.mark_gate()` | `storage_middleware.py` |
 | `vault_initialized` | `onboarding/vault.py` → `gates.mark_gate()` | `storage_middleware.py` |
 | `client_activated` | `documents.py` → `_mark_group_complete()` | `storage_middleware.py` |
@@ -241,7 +271,7 @@ app/modules/onboarding/
 ### Routes (when activated)
 
 | Route | Method | Purpose |
-|-------|--------|---------|
+| ------- | -------- | --------- |
 | `/onboarding/` | GET | Entry → role selection |
 | `/onboarding/start` | GET | Smart entry (new → role select, returning → reconnect) |
 | `/onboarding/providers` | GET | Storage provider selection page |
@@ -260,7 +290,7 @@ app/modules/onboarding/
 Module defaults import from `app/core/vault_paths.py` (canonical source):
 
 | Folder | Purpose | Used By |
-|--------|---------|---------|
+| -------- | --------- | --------- |
 | `Semptify5.0` | Root | All systems |
 | `Semptify5.0/Vault` | Vault root | `vault.py` router |
 | `Semptify5.0/Vault/documents` | Document storage | `vault.py`, `documents.py` |
@@ -270,7 +300,7 @@ Module defaults import from `app/core/vault_paths.py` (canonical source):
 ### Activation Steps
 
 ```python
-# 1. Add to app/main.py:
+## 1. Add to app/main.py:
 from app.modules.onboarding import register_onboarding, OnboardingConfig
 
 config = OnboardingConfig(
@@ -281,16 +311,16 @@ config = OnboardingConfig(
 )
 register_onboarding(app, config)
 
-# 2. Disable old onboarding router in main.py:
-#    Comment out: app.include_router(onboarding_router)
+## 2. Disable old onboarding router in main.py:
+##    Comment out: app.include_router(onboarding_router)
 
-# 3. Remove onboarding OAuth callback from storage.py:
-#    The module has its own callback at /onboarding/callback/{provider}
+## 3. Remove onboarding OAuth callback from storage.py:
+##    The module has its own callback at /onboarding/callback/{provider}
 
-# 4. Test on Render:
-#    - New user: welcome → role → providers → OAuth → vault-setup → home
-#    - Returning user (vault missing): OAuth → vault-setup → home
-#    - Returning user (vault exists): OAuth → home directly
+## 4. Test on Render:
+##    - New user: welcome → role → providers → OAuth → vault-setup → home
+##    - Returning user (vault missing): OAuth → vault-setup → home
+##    - Returning user (vault exists): OAuth → home directly
 ```
 
 ### SSOT Compliance
@@ -303,7 +333,7 @@ register_onboarding(app, config)
 ### Integration Verification
 
 | System | Connected? | How |
-|--------|-----------|-----|
+| -------- | ----------- | ----- |
 | Vault router (`/api/vault/*`) | ✅ | Same folder paths from `vault_paths.py` |
 | Document upload (`documents.py`) | ✅ | Fills folders created by module |
 | Storage middleware | ✅ | Reads same `User.completed_groups` column |
@@ -314,7 +344,7 @@ register_onboarding(app, config)
 ### What Changes When Activated
 
 | Before (scattered) | After (module) |
-|--------------------|----------------|
+| -------------------- | ---------------- |
 | OAuth callback in `storage.py` handles both new + returning | Module callback handles ONLY onboarding |
 | `is_new_user` flag decides vault routing (broken for returning users) | `vault_initialized` gate decides (always correct) |
 | Vault setup endpoints in `vault.py` router | Module has own vault API endpoints |
@@ -330,6 +360,7 @@ All files compile clean. Integration verified. Waiting for manual activation and
 ## Build Log
 
 ### May 10, 2026 - Onboarding Module Built
+
 - Created `app/modules/onboarding/` — self-contained, config-driven onboarding system
 - **7 files:** `__init__.py`, `config.py`, `gates.py`, `oauth.py`, `vault.py`, `router.py`, `middleware.py`, `register.py`
 - Config defaults import vault folder paths from canonical `app/core/vault_paths.py`
@@ -341,11 +372,13 @@ All files compile clean. Integration verified. Waiting for manual activation and
 - **Integration verified:** vault folders, gates, document upload, middleware, SSOT all aligned
 
 ### May 9, 2026 - Vault Creation Bug Fixed
+
 - **Root cause 1:** OAuth callback used `is_new_user` flag to decide vault-setup routing. Returning users whose vault was never created were sent to home, skipping vault-setup forever. Fixed: now checks `vault_initialized` gate in DB.
 - **Root cause 2:** Access token not cached in-memory during OAuth callback. When vault-setup called `/api/vault/init` seconds later, `get_current_user` couldn't find the token. Fixed: `token_manager.store_token()` called in callback.
 - **Root cause 3:** `get_current_user` used HMAC-signed cookie value for token/session lookups. Fixed: now calls `verify_user_id()` to strip HMAC before lookups.
 
 ### April 29, 2026 - Modular Core Restructure
+
 - Reorganized `main.py` into CORE / EXTENDED / OTHER DIVISION
 - Made `legal_analysis.py` brain-optional (works standalone)
 - Moved `briefcase.py`, `timeline_unified.py` to Core
@@ -362,13 +395,13 @@ All files compile clean. Integration verified. Waiting for manual activation and
 ## Debug Commands
 
 ```bash
-# Start server
+## Start server
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 
-# Check imports
+## Check imports
 python -c "from app.main import app; print('OK')"
 
-# Check active routes
+## Check active routes
 curl http://localhost:8000/api/health
 ```
 
@@ -398,4 +431,3 @@ curl http://localhost:8000/api/health
 - [x] All non-Core routers disabled — Court/AI/Extended all set to None ✅
 - [x] Extended journey archived to `concepts/EXTENDED_USER_JOURNEY_CONCEPT.md`
 - [x] SSOT Architecture Compliance - all redirects use navigation registry
-

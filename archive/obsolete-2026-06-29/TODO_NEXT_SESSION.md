@@ -8,11 +8,13 @@
 ## Priority 1 — Test Funding Module
 
 - [ ] Create database tables for funding module
+
   ```python
   from app.core.database import engine
   from app.modules.funding_mgmt.models import Base
   Base.metadata.create_all(bind=engine)
   ```
+
 - [ ] Live test `/admin/funding/` dashboard GUI
 - [ ] Verify `/admin/funding/prospectus` page loads correctly
 - [ ] Test admin access control (non-admins should be blocked)
@@ -49,13 +51,13 @@
 ## Quick Commands for Next Session
 
 ```bash
-# Activate environment
+## Activate environment
 .\venv311\Scripts\Activate.ps1
 
-# Start app
+## Start app
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-# Create funding tables
+## Create funding tables
 python -c "from app.core.database import engine; from app.modules.funding_mgmt.models import Base; Base.metadata.create_all(bind=engine)"
 ```
 

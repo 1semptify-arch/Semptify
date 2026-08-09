@@ -22,17 +22,17 @@ Forbidden for external modules:
 
 __version__ = "0.1.0"
 
-from app.sdk.external.permissions import (
-    Permission,
-    PermissionSet,
-    PermissionDeniedError,
-)
 from app.sdk.external.context import ExternalModuleContext
-from app.sdk.external.vault_client import VaultClient as ExternalVaultClient
-from app.sdk.external.timeline_client import TimelineClient
-from app.sdk.external.overlay_client import OverlayClient
 from app.sdk.external.document_client import DocumentClient
 from app.sdk.external.notification_client import NotificationClient
+from app.sdk.external.overlay_client import OverlayClient
+from app.sdk.external.permissions import (
+    Permission,
+    PermissionDeniedError,
+    PermissionSet,
+)
+from app.sdk.external.timeline_client import TimelineClient
+from app.sdk.external.vault_client import VaultClient as ExternalVaultClient
 
 __all__ = [
     "Permission",

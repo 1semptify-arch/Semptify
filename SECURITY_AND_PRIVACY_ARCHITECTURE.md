@@ -1,4 +1,5 @@
 # SEMPTIFY 5.0 - SECURITY & PRIVACY ARCHITECTURE
+
 ## A Comprehensive Guide to Our Design Philosophy
 
 ---
@@ -7,14 +8,14 @@
 
 Semptify is built on a single uncompromising principle:
 
-**Your data is yours. We never store it. We never see it. We never control it.**
+### Your data is yours. We never store it. We never see it. We never control it
 
 ---
 
 ## 📊 QUICK REFERENCE: OUR COMMITMENT
 
 | What | Status | Why |
-|------|--------|-----|
+| ------ | -------- | ----- |
 | **User Registration** | ❌ NONE | We don't ask for personal info |
 | **User Activity Tracking** | ❌ NONE | We can't see what you do |
 | **IP Address Logging** | ❌ NONE | We don't track your location |
@@ -31,7 +32,7 @@ Semptify is built on a single uncompromising principle:
 
 ### The Three-Layer Model
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │        YOU & YOUR CLOUD STORAGE         │
 │     (Google Drive, OneDrive, Dropbox)   │
@@ -57,11 +58,12 @@ Semptify is built on a single uncompromising principle:
 │  • No personal information              │
 │  • Encrypted OAuth tokens only          │
 └─────────────────────────────────────────┘
-```
+```text
 
 ### Layer 1: Your Cloud Storage (You Control)
 
 **Where Your Data ACTUALLY Lives:**
+
 - ✅ Your lease document
 - ✅ Move-in photos
 - ✅ Receipts and records
@@ -70,6 +72,7 @@ Semptify is built on a single uncompromising principle:
 - ✅ All evidence and documentation
 
 **Why This Design:**
+
 - You own it (not us)
 - It's persistent (survives server crashes)
 - It's backed up (by Google/Microsoft/Dropbox)
@@ -81,6 +84,7 @@ Semptify is built on a single uncompromising principle:
 ### Layer 2: Semptify Application (Temporary Processing)
 
 **What We CAN Do:**
+
 - Read documents from your cloud to help you organize them
 - Display information on your screen
 - Process data while you're using the app
@@ -88,6 +92,7 @@ Semptify is built on a single uncompromising principle:
 - Create template documents
 
 **What We CANNOT Do:**
+
 - Store your documents on our servers
 - Read documents after your session ends
 - See documents on your cloud outside the app
@@ -102,7 +107,7 @@ Semptify is built on a single uncompromising principle:
 
 **What We Store:**
 
-```
+```text
 Field                    | Purpose                | Kept How Long
 ─────────────────────────┼────────────────────────┼─────────────────
 Random User ID           | Session management     | Until you log out
@@ -112,9 +117,9 @@ User-created case data   | Your tenant records    | As long as you save
 ─────────────────────────┼────────────────────────┼─────────────────
 ```
 
-**What We DO NOT Store:**
+#### What We DO NOT Store:
 
-```
+```text
 ❌ Your name                (we never ask)
 ❌ Your email               (OAuth only, not stored)
 ❌ Your address             (only if YOU type it into documents)
@@ -123,7 +128,7 @@ User-created case data   | Your tenant records    | As long as you save
 ❌ Your activity log        (what you clicked, when)
 ❌ Your IP address          (not logged)
 ❌ Your device info         (not stored)
-```
+```text
 
 ---
 
@@ -132,7 +137,8 @@ User-created case data   | Your tenant records    | As long as you save
 ### 1. OAuth 2.0 Authentication (Not Username/Password)
 
 **How It Works:**
-```
+
+```text
 You → [Click "Connect to Google Drive"]
     ↓
     → Google's login page (NOT ours)
@@ -148,7 +154,8 @@ You → [Click "Connect to Google Drive"]
     → You're authenticated, documents accessible
 ```
 
-**Why This Is More Secure:**
+#### Why This Is More Secure:
+
 - You never give us your Google password
 - If our server is hacked, they don't get your Google password
 - You can revoke access anytime in your Google settings
@@ -156,7 +163,8 @@ You → [Click "Connect to Google Drive"]
 
 ### 2. Token Encryption: AES-256-GCM
 
-**Process:**
+#### Process:
+
 - OAuth token from cloud provider
 - ↓ (encryption key derived from your user ID)
 - → AES-256-GCM encrypted
@@ -164,7 +172,8 @@ You → [Click "Connect to Google Drive"]
 - → Never sent to servers in plaintext
 - → Deleted on logout
 
-**What This Means:**
+#### What This Means:
+
 - Military-grade encryption
 - Even if database is compromised, tokens are encrypted
 - Key derivation with 100,000 iterations (PBKDF2)
@@ -172,14 +181,16 @@ You → [Click "Connect to Google Drive"]
 
 ### 3. Session Management
 
-**Session Structure:**
+#### Session Structure:
+
 - Random session ID in browser cookie
 - Session expires on inactivity
 - Logout immediately destroys session
 - No "remember me" or persistent logins
 - Browser refresh doesn't save encrypted data
 
-**Session Data:**
+#### Session Data:
+
 ```javascript
 {
   user_id: "randomString_12x34",     // No PII
@@ -187,11 +198,12 @@ You → [Click "Connect to Google Drive"]
   created_at: "2026-03-23T12:00:00Z", // When session started
   expires_at: "2026-03-23T13:00:00Z"  // 1 hour default
 }
-```
+```text
 
 ### 4. HTTPS/TLS Encryption
 
 **All Communication Encrypted:**
+
 - ✅ Your browser to Semptify servers (encrypted)
 - ✅ Semptify servers to cloud providers (encrypted)
 - ✅ No data transmitted in plaintext
@@ -205,11 +217,13 @@ You → [Click "Connect to Google Drive"]
 ### Threat 1: Semptify Server Compromise
 
 **What attacker gets:**
+
 - User IDs (random strings, not names)
 - Encrypted OAuth tokens (useless without keys)
 - Session records (expired)
 
 **What they DON'T get:**
+
 - Your documents (they're in Google Drive)
 - Your passwords (we don't have them)
 - Your email (we didn't store it)
@@ -222,6 +236,7 @@ You → [Click "Connect to Google Drive"]
 ### Threat 2: Man-in-the-Middle Attack
 
 **Defenses:**
+
 - ✅ HTTPS/TLS on all connections
 - ✅ Certificate validation
 - ✅ HSTS headers (force HTTPS)
@@ -232,6 +247,7 @@ You → [Click "Connect to Google Drive"]
 ### Threat 3: Session Hijacking
 
 **Defenses:**
+
 - ✅ Random session IDs (cryptographically secure)
 - ✅ Session expires after 1 hour inactivity
 - ✅ Logout clears session immediately
@@ -242,12 +258,13 @@ You → [Click "Connect to Google Drive"]
 ### Threat 4: Cloud Storage Provider Compromise
 
 **What changes:**
+
 - You should revoke Semptify's access immediately
 - Go to your Google/OneDrive/Dropbox settings
 - Click "Disconnect Semptify"
 - Your data stays in your account, protected by the provider's security
 
-**This is YOUR responsibility as cloud admin for your data**
+### This is YOUR responsibility as cloud admin for your data
 
 ---
 
@@ -255,7 +272,7 @@ You → [Click "Connect to Google Drive"]
 
 ### Example 1: Uploading a Lease Document
 
-```
+```text
 You:           "Upload lease.pdf"
                 ↓
 Semptify:      [Reads file from Google Drive]
@@ -282,7 +299,7 @@ You:           Lease displays in timeline
 
 ### Example 2: Creating a Timeline of Events
 
-```
+```text
 You:           "Add event: Submitted maintenance request"
                 ↓
 Semptify:      Creates entry in YOUR case record
@@ -297,7 +314,7 @@ Semptify:      Saves to Google Drive folder
                (Encrypted if you set it up, plaintext if you didn't)
                 ↓
 You:           Timeline displays with all events
-```
+```text
 
 **What Semptify stores in database:** Nothing (your case is in your cloud)
 **What's in your cloud:** Your entire timeline (you control encryption)
@@ -306,7 +323,7 @@ You:           Timeline displays with all events
 
 ### Example 3: Logging Out
 
-```
+```text
 You:           [Click "Logout"]
                 ↓
 Browser:       Session cookie deleted
@@ -335,7 +352,7 @@ by user role. All modules, plugins, add-ons, and AI agents must respect this bou
 
 ### The Core Distinction
 
-**Semptify's no-PII-on-server guarantee is a TENANT-ROLE promise.**
+#### Semptify's no-PII-on-server guarantee is a TENANT-ROLE promise
 
 It is not a universal platform rule. It is a specific, legally-meaningful commitment
 made to the most vulnerable users — tenants facing housing insecurity — who have the
@@ -346,7 +363,7 @@ most to lose from their personal data being stored anywhere they don't fully con
 ### Rule by Role
 
 | Role | Data Storage Rule |
-|------|-------------------|
+| ------ | ------------------- |
 | **TENANT** | **Zero PII on Semptify servers. Hard rule. No exceptions without explicit informed consent.** All personal data (name, email, address, case details) lives only in the tenant's own cloud vault (Google Drive / Dropbox / OneDrive). Semptify stores only: provider name, anonymous user ID, completed onboarding gates. |
 | **MANAGER** | May store operational data needed for case management workflows. No tenant PII without tenant consent. |
 | **ADVOCATE** | May store case coordination data. Governed by future advocate data policy (not yet defined). |
@@ -386,7 +403,7 @@ Some future modules (e.g. shared advocacy workflows, AI case analysis, multi-dev
 sync indexes, legal filing tracking) may legitimately need to store user data on
 Semptify servers. This is not prohibited — but it requires a consent gate.
 
-**The consent gate requirement for any module storing tenant PII server-side:**
+#### The consent gate requirement for any module storing tenant PII server-side:
 
 1. **Explain clearly** what data will be stored, where, and why — in plain language, not legalese.
 2. **Name the specific fields** that will be written to Semptify's database.
@@ -407,6 +424,7 @@ When building a new module or endpoint that touches user data, ask:
 > "Is this user a tenant? If yes — does this write PII to the Semptify DB?"
 
 If yes → **stop**. Either:
+
 - Store it in the user's cloud vault via `UserCloudSync`, or
 - Implement a consent gate first, then store it
 
@@ -420,6 +438,7 @@ or "context" field). The rule is about the data, not the column name.
 ### 1. No User Registration
 
 **Commitment:** We will NEVER require or store:
+
 - Name
 - Email address
 - Password
@@ -435,6 +454,7 @@ or "context" field). The rule is about the data, not the column name.
 ### 2. No Activity Tracking
 
 **Commitment:** We will NEVER collect or log:
+
 - What pages you visit
 - What you click
 - How long you stay on a page
@@ -450,6 +470,7 @@ or "context" field). The rule is about the data, not the column name.
 ### 3. No Advertising Ever
 
 **Commitment:** Semptify will NEVER:
+
 - Display ads
 - Sell your data to advertisers
 - Use ad tracking pixels
@@ -465,6 +486,7 @@ or "context" field). The rule is about the data, not the column name.
 ### 4. No Third-Party Analytics
 
 **Commitment:** We DO NOT use:
+
 - Google Analytics
 - Facebook Pixel
 - Mixpanel, Amplitude (event tracking)
@@ -479,21 +501,25 @@ or "context" field). The rule is about the data, not the column name.
 ## 🔄 DATA RETENTION POLICIES
 
 ### Sessions
+
 - **Kept:** Only while you're logged in
 - **Deleted:** On logout or 1-hour inactivity timeout
 - **Never exported:** Session data is session-only
 
 ### OAuth Tokens
+
 - **Kept:** In encrypted browser storage during session
 - **Deleted:** Immediately on logout
 - **Never stored:** Not written to disk, not cached permanently
 
 ### Your Documents
+
 - **Kept:** In YOUR cloud storage account
 - **Control:** You decide how long
 - **Deletion:** You delete directly from Google Drive/OneDrive/Dropbox
 
 ### Minimal Database Records
+
 - **Kept:** As long as your case exists
 - **Accessible:** Only by you (encrypted)
 - **Deletion:** When you request account deletion
@@ -504,20 +530,23 @@ or "context" field). The rule is about the data, not the column name.
 
 ### 1. Check Your Cloud Provider Settings
 
-**Google Drive:**
+#### Google Drive:
+
 - Go to [Google Account → Security](https://myaccount.google.com/security)
 - Scroll to "Third-party apps with account access"
 - Look for "Semptify"
 - Click to see exactly what permissions are granted
 - Click "Remove access" to disconnect (keeps your files)
 
-**OneDrive:**
+#### OneDrive:
+
 - Go to [Microsoft Account → Permissions](https://account.live.com/consent/manage)
 - Look for "Semptify"
 - See exactly what app can access
 - Click "Remove" to disconnect
 
-**Dropbox:**
+#### Dropbox:
+
 - Go to [Dropbox → Connected apps](https://www.dropbox.com/account/connected_apps)
 - Find "Semptify"
 - Click to review permissions
@@ -537,6 +566,7 @@ or "context" field). The rule is about the data, not the column name.
 ### 3. Inspect Network Traffic (Advanced Users)
 
 Using browser Developer Tools → Network tab:
+
 - ✅ All requests go to `semptify.com` or Semptify servers
 - ✅ No requests to Google Analytics
 - ✅ No requests to ad networks
@@ -550,7 +580,7 @@ Using browser Developer Tools → Network tab:
 
 ### Why We Don't Store Your Data
 
-**Three Reasons:**
+#### Three Reasons:
 
 1. **Technical:** If we don't have your data, we can't lose it
    - Server gets hacked? Your files are still safe in Google
@@ -583,7 +613,7 @@ This is radical simplicity. No confusion about where your files are. No secret b
 
 ### Active Security Measures (Running Now)
 
-```
+```text
 ✅ RequestLoggingMiddleware:      Audit trail of requests
 ✅ RateLimitMiddleware:            100 requests/60 sec per IP
 ✅ SecurityHeadersMiddleware:      HSTS, CSP, XSS protection
@@ -591,12 +621,13 @@ This is radical simplicity. No confusion about where your files are. No secret b
 ✅ HTTPS:                          TLS encryption mandatory
 ✅ Session Validation:             Encrypted token verification
 ✅ CORS Protection:                Specific origins only
-```
+```text
 
 ### Startup Security Checks
 
 On server restart:
-```
+
+```text
 ✅ Debug mode OFF (or will warn)
 ✅ HTTPS certificates valid
 ✅ SECRET_KEY is set (not default)
@@ -610,17 +641,20 @@ On server restart:
 ## 📋 COMPLIANCE FRAMEWORKS
 
 ### GDPR Compliance
+
 - ✅ No personal data collection = minimal GDPR requirements
 - ✅ Data subject rights trivial (there's no data about you stored)
 - ✅ Privacy by design implemented
 - ✅ Data processing agreement with cloud providers
 
 ### CCPA Compliance
+
 - ✅ No collection of personal data
 - ✅ Right to deletion easy (nothing stored to delete)
 - ✅ Right to know what we have (nothing about individuals)
 
 ### HIPAA Compliance (if treating as health data)
+
 - ✅ Not HIPAA business associate (no PHI storage)
 - ✅ Documents encrypted end-to-end
 
@@ -657,28 +691,36 @@ On server restart:
 
 ## ❓ FAQ
 
-**Q: If Semptify gets hacked, will my tenant documents be exposed?**
+### Q: If Semptify gets hacked, will my tenant documents be exposed
+
 A: No. We don't store them. They're only in your Google Drive. Hackers would have to hack Google.
 
-**Q: Can Semptify read my documents once I upload them?**
+### Q: Can Semptify read my documents once I upload them
+
 A: The app can display them to YOU for organization. But we never store copies, and we can't read them after you log out.
 
-**Q: What if I want to download all my data?**
+### Q: What if I want to download all my data
+
 A: It's already downloaded. Check your Google Drive. All your Semptify documents are there.
 
-**Q: Can Semptify sell my data?**
+### Q: Can Semptify sell my data
+
 A: We don't have your data to sell. We don't have your name, email, or any personal info.
 
-**Q: Does Semptify track me across the internet?**
+### Q: Does Semptify track me across the internet
+
 A: No. We don't use cookies for tracking, no pixels, no analytics. We literally can't track you beyond our own app.
 
-**Q: What happens if Semptify shuts down?**
+### Q: What happens if Semptify shuts down
+
 A: Your files are still in your Google Drive forever. The service would just disappear, but your data remains.
 
-**Q: Is Semptify monitoring my email or messages?**
+### Q: Is Semptify monitoring my email or messages
+
 A: No. We only have access to the files you upload to a Semptify folder in your cloud storage. That's it.
 
-**Q: How do I verify these privacy claims?**
+### Q: How do I verify these privacy claims
+
 A: Check the code (open source), inspect network traffic (no analytics), check cloud provider settings (see what Semptify can access).
 
 ---
@@ -695,7 +737,7 @@ Semptify is designed so that:
 
 This is privacy by design in its purest form.
 
-**The security of Semptify = The security of your cloud provider + Your own password security**
+### The security of Semptify = The security of your cloud provider + Your own password security
 
 Is this simple enough? Yes. Is it actually secure? Yes. Do you have to trust us less? Absolutely.
 

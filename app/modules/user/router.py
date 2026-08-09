@@ -6,14 +6,12 @@ Endpoints:
 - DELETE /api/user/act-as — Stop impersonating
 """
 
-from typing import Optional
-
-from fastapi import APIRouter, Request, Cookie, HTTPException, Depends
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from app.core.user_context import UserContext, UserRole
-from app.core.security import get_current_user, can_access, update_session_impersonation
 from app.core.database import get_db_session
+from app.core.security import can_access, get_current_user, update_session_impersonation
+from app.core.user_context import UserContext, UserRole
 
 router = APIRouter()
 
@@ -27,8 +25,8 @@ class ActAsRequest(BaseModel):
 async def start_acting_as(
     request: Request,
     body: ActAsRequest,
-    semptify_session: Optional[str] = Cookie(None),
-    current_user: Optional[UserContext] = Depends(get_current_user),
+    semptify_session: str | None = Cookie(None),
+    current_user: UserContext | None = Depends(get_current_user),
 ):
     """
     Start impersonating another user.
@@ -78,8 +76,8 @@ async def start_acting_as(
 
 @router.delete("/api/user/act-as")
 async def stop_acting_as(
-    semptify_session: Optional[str] = Cookie(None),
-    current_user: Optional[UserContext] = Depends(get_current_user),
+    semptify_session: str | None = Cookie(None),
+    current_user: UserContext | None = Depends(get_current_user),
 ):
     """Clear impersonation and return to original user context."""
     if not current_user:
@@ -114,37 +112,41 @@ async def stop_acting_as(
 try:
     from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-    register_function_group(FunctionGroupContract(
-        module="user",
-        group_name="act_as_start",
-        title="Start Acting As Role (SSOT)",
-        description=(
-            "CANONICAL role impersonation via POST /api/user/act-as. "
-            "Allows admin/manager to act as another role for testing. "
-            "Sets acting_as and acting_as_role on stored session."
-        ),
-        inputs=("role", "reason", "septify_session", "user_id"),
-        outputs=("acting_as", "acting_as_role"),
-        dependencies=(
-            "app.modules.user.router",
-            "app.core.security.can_access",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="user",
+            group_name="act_as_start",
+            title="Start Acting As Role (SSOT)",
+            description=(
+                "CANONICAL role impersonation via POST /api/user/act-as. "
+                "Allows admin/manager to act as another role for testing. "
+                "Sets acting_as and acting_as_role on stored session."
+            ),
+            inputs=("role", "reason", "septify_session", "user_id"),
+            outputs=("acting_as", "acting_as_role"),
+            dependencies=(
+                "app.modules.user.router",
+                "app.core.security.can_access",
+            ),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="user",
-        group_name="act_as_stop",
-        title="Stop Acting As Role (SSOT)",
-        description=(
-            "CANONICAL stop impersonation via DELETE /api/user/act-as. "
-            "Clears acting_as and acting_as_role from stored session."
-        ),
-        inputs=("septify_session", "user_id"),
-        outputs=("status",),
-        dependencies=("app.modules.user.router",),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="user",
+            group_name="act_as_stop",
+            title="Stop Acting As Role (SSOT)",
+            description=(
+                "CANONICAL stop impersonation via DELETE /api/user/act-as. "
+                "Clears acting_as and acting_as_role from stored session."
+            ),
+            inputs=("septify_session", "user_id"),
+            outputs=("status",),
+            dependencies=("app.modules.user.router",),
+            deterministic=True,
+        )
+    )
 
 except Exception:
     pass

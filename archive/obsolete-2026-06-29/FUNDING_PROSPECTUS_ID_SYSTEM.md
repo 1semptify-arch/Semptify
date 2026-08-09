@@ -6,13 +6,15 @@ Semptify has designed a cryptographic identity and document verification system 
 
 ## Current State (Demonstration Prototype)
 
-**Implemented:**
+### Implemented:
+
 - Functional ID generation for users and documents
 - Privacy-preserving architecture (user-controlled vault storage)
 - Stateless design with no centralized data harvesting
 - Demonstration-grade identifiers suitable for beta testing
 
-**Identifiers establish:**
+### Identifiers establish:
+
 - User-session binding without exposing personal information
 - Document-to-vault linking with tenant-controlled access
 - Cross-platform compatibility (Google Drive, Dropbox, OneDrive)
@@ -21,17 +23,20 @@ Semptify has designed a cryptographic identity and document verification system 
 
 ### Technical Components
 
-**1. Cryptographically Signed Identifiers**
+#### 1. Cryptographically Signed Identifiers
+
 - HMAC-SHA256 signatures using server-side secret keys
 - Tamper-proof binding between document and timestamp
 - Clone-resistant server authentication
 
-**2. Document Integrity Verification ("Vault Witness")**
+#### 2. Document Integrity Verification ("Vault Witness")
+
 - SHA-256 content hashing at upload
 - RFC 3161 trusted timestamp integration (court-admissible)
 - Immutable provenance chain: "Document X existed at Time Y with Hash Z"
 
-**3. Privacy-Preserving Architecture**
+#### 3. Privacy-Preserving Architecture
+
 - Salt-based ID generation (secret prevents forgery without exposing identity)
 - No global lookup table—resolution only within tenant's own vault
 - User anonymity preserved even if document ID leaks
@@ -39,7 +44,7 @@ Semptify has designed a cryptographic identity and document verification system 
 ### Security Guarantees
 
 | Threat | Protection |
-|--------|------------|
+| -------- | ------------ |
 | Server impersonation | HMAC signatures verify authentic Semptify infrastructure |
 | Document tampering | Content hash detects any modification post-upload |
 | ID forgery | Secret salt prevents generation of valid IDs by attackers |
@@ -47,7 +52,8 @@ Semptify has designed a cryptographic identity and document verification system 
 
 ### Grant Impact
 
-**With $[X] funding, Semptify will:**
+#### With $[X] funding, Semptify will:
+
 - Implement production-grade cryptographic ID system
 - Integrate trusted timestamp authority for court admissibility
 - Establish formal security audit and penetration testing
@@ -57,6 +63,7 @@ Semptify has designed a cryptographic identity and document verification system 
 ## Differentiation
 
 Unlike commercial tenant screening tools (which centralize data and create privacy risks), Semptify Secured ID:
+
 - Keeps tenant data in tenant-controlled storage
 - Proves authenticity without exposing content
 - Respects tenant privacy as a first-class design constraint
@@ -65,7 +72,7 @@ Unlike commercial tenant screening tools (which centralize data and create priva
 ## Budget Estimate
 
 | Component | Estimated Cost | Timeline |
-|-----------|---------------|----------|
+| ----------- | --------------- | ---------- |
 | Cryptographic ID implementation | $[X] | 2-3 months |
 | RFC 3161 timestamp integration | $[X] | 1 month |
 | Security audit | $[X] | 1 month |

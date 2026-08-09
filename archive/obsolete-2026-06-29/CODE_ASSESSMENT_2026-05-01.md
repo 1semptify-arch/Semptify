@@ -1,4 +1,5 @@
 # Semptify 5.0 - Latest Code Assessment
+
 **Date:** May 1, 2026  
 **Purpose:** Streamlined finishing assessment for app completion  
 **Scope:** Critical issues, code health, completion roadmap
@@ -8,7 +9,7 @@
 ## EXECUTIVE SUMMARY
 
 | Metric | Status | Target |
-|--------|--------|--------|
+| -------- | -------- | -------- |
 | Core 4-Step Flow | ❌ BROKEN | Must fix |
 | Entry Point | ❌ 404 | `/static/welcome.html` missing |
 | Storage Mandatory | ✅ Working | No skip buttons found |
@@ -26,13 +27,15 @@
 
 **Problem:** The 4-step flow test failed because `welcome.html` doesn't exist at the expected path.
 
-**Current State:**
+#### Current State:
+
 - `static/public/welcome.html` EXISTS (19,522 bytes)
 - `static/welcome.html` DOES NOT EXIST (404 in test)
 
 **Root Cause:** Routing mismatch - test expects `/static/welcome.html` but file is in `/static/public/`
 
-**Fix Options:**
+#### Fix Options:
+
 1. **Quick Fix:** Copy `public/welcome.html` → `welcome.html`
 2. **Proper Fix:** Update routing config to serve from `/static/public/`
 3. **Redirect:** Create `welcome.html` that redirects to `public/welcome.html`
@@ -45,24 +48,26 @@
 
 **Problem:** CRITICAL VULNERABILITY - User can access tenant home without mandatory storage setup.
 
-**Test Result:**
-```
+#### Test Result:
+
+```text
 test_cannot_access_home_without_storage FAILED
 CRITICAL: Tenant home accessible WITHOUT storage! Flow bypass possible.
 ```
 
 **Root Cause:** `/tenant/home` route doesn't check for storage connection before serving page.
 
-**Fix Required:**
+#### Fix Required:
+
 ```python
-# Add to tenant route middleware
+## Add to tenant route middleware
 @router.get("/tenant/home")
 async def tenant_home(request: Request):
     # Check if user has storage connected
     if not has_storage_connected(request):
         return RedirectResponse(url="/onboarding/storage-select.html")
     return templates.TemplateResponse("tenant/index.html", {...})
-```
+```text
 
 **Impact:** Without this fix, users can bypass the mandatory storage requirement, breaking the core app promise.
 
@@ -73,11 +78,13 @@ async def tenant_home(request: Request):
 **Problem:** `/onboarding/select-role.html` failing tests.
 
 **Test Results:**
+
 - `test_role_select_page_loads` - FAILED
 - `test_tenant_role_available` - FAILED  
 - `test_role_selection_flow` - FAILED
 
 **Likely Causes:**
+
 1. Page exists but has errors
 2. Missing template variables
 3. Route not properly registered
@@ -91,8 +98,9 @@ async def tenant_home(request: Request):
 ### 4. Orphaned Entry Points - 6 Different Home Pages
 
 **Files to Consolidate:**
+
 | File | Size | Status | Action |
-|------|------|--------|--------|
+| ------ | ------ | -------- | -------- |
 | `static/home.html` | 19,522 bytes | ORPHANED | **DELETE** |
 | `static/index.html` | (Elbow brand) | CONFLICT | **DELETE** |
 | `static/complete-journey.html` | Unknown | DUPLICATE | **DELETE** |
@@ -106,12 +114,14 @@ async def tenant_home(request: Request):
 ### 5. Duplicate Page Versions
 
 **Dashboard (4 versions):**
+
 - `dashboard.html` - 2,675 lines - **BLOATED**
 - `dashboard-v2.html` - Simplified - **KEEP**
 - `command_center.html` - Dakota County - **SPECIALIZED**
 - `tenant/index.html` - Duplicate - **DELETE**
 
 **Documents (6 versions):**
+
 - `documents.html` - Main - **KEEP**
 - `documents-v2.html` - Duplicate - **ARCHIVE**
 - `documents_simple.html` - Duplicate - **ARCHIVE**
@@ -120,6 +130,7 @@ async def tenant_home(request: Request):
 - `admin/document_intake.html` - Specialized - **KEEP**
 
 **Timeline (5 versions):**
+
 - `timeline.html` - Main - **KEEP**
 - `timeline-v2.html` - Duplicate - **ARCHIVE**
 - `timeline-builder.html` - Auxiliary - **KEEP**
@@ -143,18 +154,20 @@ async def tenant_home(request: Request):
 **Status:** 49 test files, mostly unchecked
 
 **Test Results from `test_basic.py`:**
+
 - 8 PASSED ✅
 - 1 FAILED (copilot - expected, Extended feature)
 
 **Core Tests to Run:**
+
 ```bash
-# Critical
+## Critical
 pytest tests/test_documents.py -v
 pytest tests/test_storage.py -v
 pytest tests/test_briefcase.py -v
 pytest tests/test_vault_engine.py -v
 
-# 4-step flow (our new test)
+## 4-step flow (our new test)
 pytest tests/test_core_4step_flow.py -v
 ```
 
@@ -162,7 +175,8 @@ pytest tests/test_core_4step_flow.py -v
 
 ### 8. Broken Links in Tenant Portal
 
-**From PAGE_INVENTORY audit:**
+#### From PAGE_INVENTORY audit:
+
 - `tenant/index.html` → `/static/tenant/calendar.html` (DOESN'T EXIST)
 - `tenant/index.html` → `/static/tenant/copilot.html` (DOESN'T EXIST)
 - `tenant/index.html` → `/static/court_forms.html` (DOESN'T EXIST)
@@ -172,14 +186,16 @@ pytest tests/test_core_4step_flow.py -v
 ## 📊 CODE HEALTH METRICS
 
 ### File Counts
+
 | Category | Count | Target |
-|----------|-------|--------|
+| ---------- | ------- | -------- |
 | HTML Files | 105 | ~30 |
 | API Routers | 55+ | ~30 |
 | Test Files | 49 | All should pass |
 | Static Pages | 20+ in `static/` | ~10 |
 
 ### Redundancy Ratio
+
 - **Current:** 60% redundant/duplicate files
 - **Target:** 20% redundancy (some overlap acceptable)
 
@@ -188,6 +204,7 @@ pytest tests/test_core_4step_flow.py -v
 ## 🎯 COMPLETION ROADMAP
 
 ### Phase 1: Critical Fixes (Today)
+
 1. ✅ Fix git sync (DONE - now on `1semptify-arch`)
 2. ⏳ Copy `public/welcome.html` → `welcome.html`
 3. ⏳ Add storage check to `/tenant/home` route
@@ -195,22 +212,25 @@ pytest tests/test_core_4step_flow.py -v
 5. ⏳ Re-run 4-step flow test
 
 ### Phase 2: Cleanup (This Week)
-6. ⏳ Delete 4 orphaned entry points
-7. ⏳ Archive v2 duplicates to `_archive/`
-8. ⏳ Clean `_archive/` folder (22 files)
-9. ⏳ Run core test suite
+
+1. ⏳ Delete 4 orphaned entry points
+2. ⏳ Archive v2 duplicates to `_archive/`
+3. ⏳ Clean `_archive/` folder (22 files)
+4. ⏳ Run core test suite
 
 ### Phase 3: Consolidation (Next Week)
-10. ⏳ Merge dashboard versions
-11. ⏳ Merge document pages
-12. ⏳ Fix tenant portal broken links
-13. ⏳ Verify all tests pass
+
+ 1. ⏳ Merge dashboard versions
+ 2. ⏳ Merge document pages
+ 3. ⏳ Fix tenant portal broken links
+ 4. ⏳ Verify all tests pass
 
 ---
 
 ## ✅ VERIFICATION CHECKLIST
 
-**Before Calling "Done":**
+### Before Calling "Done":
+
 - [ ] 4-step flow test: 11/11 PASSED
 - [ ] No orphaned entry points
 - [ ] `/tenant/home` requires storage
@@ -223,13 +243,15 @@ pytest tests/test_core_4step_flow.py -v
 
 ## 🔧 IMMEDIATE ACTION ITEMS
 
-**For Me (Agent):**
+### For Me (Agent):
+
 1. Create `static/welcome.html` (copy from public/)
 2. Add storage middleware to tenant routes
 3. Debug role selection
 4. Re-run 4-step flow test
 
-**For You (User):**
+### For You (User):
+
 1. Decide: Delete orphaned files? (home.html, index.html, etc.)
 2. Confirm: Archive v2 duplicates?
 3. Review: What to keep vs delete

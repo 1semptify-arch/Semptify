@@ -17,7 +17,7 @@ Each AI reads this file FIRST before doing any work.
 ## 🎯 AGENT ASSIGNMENTS
 
 | Agent | Role | Current Task | Status |
-|-------|------|--------------|--------|
+| ------- | ------ | -------------- | -------- |
 | **Agent 1** | Frontend/UI | Accessibility cleanup | ✅ Done |
 | **Agent 2** | Backend/API | (Available) | 🟢 Ready |
 | **Agent 3** | Testing/Docs | (Available) | 🟢 Ready |
@@ -26,10 +26,10 @@ Each AI reads this file FIRST before doing any work.
 
 ## 📁 FILE LOCKS (Who's editing what)
 
-**RULE: Only ONE agent edits a file at a time!**
+### RULE: Only ONE agent edits a file at a time
 
 | File | Locked By | Since |
-|------|-----------|-------|
+| ------ | ----------- | ------- |
 | (none currently) | - | - |
 
 ---
@@ -54,16 +54,19 @@ Each AI reads this file FIRST before doing any work.
 ## 📝 TODO QUEUE (Pick one, mark your agent #)
 
 ### High Priority
+
 - [x] **TASK-001**: Add voice input for accessibility ✅ Agent 1 DONE
 - [x] **TASK-002**: Mobile responsive fixes ✅ Already implemented
 - [x] **TASK-003**: Offline mode / PWA enhancements ✅ Agent 1 DONE
 
 ### Medium Priority
+
 - [x] **TASK-004**: Export timeline to PDF ✅ Added /api/timeline/export/pdf endpoint
 - [x] **TASK-005**: Share timeline via link ✅ Added /api/timeline/share and /timeline/shared/{token} endpoints
 - [x] **TASK-006**: Email notifications for deadlines ✅ Added /api/calendar/notify-deadlines endpoint
 
 ### Low Priority
+
 - [x] **TASK-007**: Dark mode polish ✅ Added theme toggle button with persistence
 - [x] **TASK-008**: Keyboard shortcuts ✅ Added Ctrl+/, Ctrl+T, Ctrl+H, Ctrl+D, Ctrl+L shortcuts
 - [x] **TASK-009**: Tutorial/onboarding flow ✅ Added guided tour with overlay modals
@@ -73,6 +76,7 @@ Each AI reads this file FIRST before doing any work.
 ## 🔄 COORDINATION RULES
 
 ### Before Starting Work:
+
 1. Read this file
 2. Check FILE LOCKS - don't edit locked files
 3. Pick a task from TODO QUEUE
@@ -80,12 +84,14 @@ Each AI reads this file FIRST before doing any work.
 5. Add your file to FILE LOCKS
 
 ### After Finishing Work:
+
 1. Remove your file from FILE LOCKS
 2. Mark task as [x] complete
 3. Add to COMPLETED TASKS list
 4. Run tests if you changed backend code
 
 ### Communication:
+
 - Leave notes in AGENT NOTES section below
 - If you need another agent's help, write it there
 
@@ -93,7 +99,8 @@ Each AI reads this file FIRST before doing any work.
 
 ## 💬 AGENT NOTES (Leave messages here)
 
-**Agent 1 (2025-12-11 19:50):**
+### Agent 1 (2025-12-11 19:50):
+
 - Timeline is done with drag/drop
 - Voice input created: `static/js/voice-input.js`
 - Full accessibility cleanup completed on v2 pages:
@@ -104,10 +111,12 @@ Each AI reads this file FIRST before doing any work.
 - Server health: OK
 - Files updated: dashboard-v2, documents-v2, timeline-v2, calendar-v2
 
-**Agent 2:**
+### Agent 2:
+
 - (Write your notes here)
 
-**Agent 3 (2025-12-11):**
+### Agent 3 (2025-12-11):
+
 - Running full test suite to verify project health
 - Will add tests for new Briefcase features (batch selection, move/copy)
 - Checking for any test gaps
@@ -116,7 +125,7 @@ Each AI reads this file FIRST before doing any work.
 
 ## 🏗️ PROJECT STRUCTURE QUICK REFERENCE
 
-```
+```text
 Key Frontend Files:
 - static/interactive-timeline.html  ← Timeline UI
 - static/documents-v2.html          ← Documents page
@@ -142,6 +151,7 @@ Just tell your AI:
 > "I'm Agent 2. Update AI_ORCHESTRATION.md - I'm taking TASK-004"
 
 The AI will:
+
 1. Update the TODO with `[Agent 2]`
 2. Add file locks
 3. Start working

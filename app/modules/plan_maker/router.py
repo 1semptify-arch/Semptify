@@ -18,21 +18,21 @@ retained server-side beyond the lifetime of the request.
 """
 
 import logging
-from typing import Optional
-from fastapi import APIRouter, HTTPException, Query, Depends
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser, green_access
+from app.core.security import StorageUser, green_access
+
 from .service import (
-    AccountabilityPlan,
     EntityRecord,
     EvidenceItem,
     NextStep,
-    create_plan,
     add_entity,
     add_evidence,
     add_next_step,
+    create_plan,
     mark_step_complete,
     plan_from_dict,
 )
@@ -45,6 +45,7 @@ router = APIRouter(prefix="/api/plan-maker", tags=["Plan Maker"])
 # =============================================================================
 # Request / Response Schemas
 # =============================================================================
+
 
 class CreatePlanRequest(BaseModel):
     title: str = ""
@@ -64,6 +65,7 @@ class PlanStateRequest(BaseModel):
     The client submits the current plan state (from vault) when making
     mutations — stateless design, no server-side plan storage.
     """
+
     plan: dict
 
 
@@ -77,6 +79,7 @@ class AddEntityRequest(BaseModel):
 
 class AddEntityBody(PlanStateRequest):
     """Combined body: current plan state + entity fields."""
+
     name: str
     role: str = ""
     address: str = ""
@@ -86,22 +89,25 @@ class AddEntityBody(PlanStateRequest):
 
 class AddEvidenceBody(PlanStateRequest):
     """Combined body: current plan state + evidence fields."""
+
     description: str
-    vault_id: Optional[str] = None
-    date_obtained: Optional[str] = None
+    vault_id: str | None = None
+    date_obtained: str | None = None
     status: str = "pending"
 
 
 class AddStepBody(PlanStateRequest):
     """Combined body: current plan state + step fields."""
+
     action: str
-    due_date: Optional[str] = None
+    due_date: str | None = None
     notes: str = ""
 
 
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.post("/plans", summary="Create a new accountability plan")
 async def create_accountability_plan(
@@ -208,8 +214,13 @@ async def add_entity_to_plan(
     if plan.plan_id != plan_id or plan.user_id != user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    entity_data = {"name": body.name, "role": body.role, "address": body.address,
-                   "registered_agent": body.registered_agent, "notes": body.notes}
+    entity_data = {
+        "name": body.name,
+        "role": body.role,
+        "address": body.address,
+        "registered_agent": body.registered_agent,
+        "notes": body.notes,
+    }
     updated = add_entity(plan, EntityRecord(**entity_data))
     return {"plan": updated.to_dict()}
 
@@ -231,8 +242,12 @@ async def add_evidence_to_plan(
     if plan.plan_id != plan_id or plan.user_id != user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    item_data = {"description": body.description, "vault_id": body.vault_id,
-                 "date_obtained": body.date_obtained, "status": body.status}
+    item_data = {
+        "description": body.description,
+        "vault_id": body.vault_id,
+        "date_obtained": body.date_obtained,
+        "status": body.status,
+    }
     updated = add_evidence(plan, EvidenceItem(**item_data))
     return {"plan": updated.to_dict()}
 
@@ -290,7 +305,8 @@ async def get_default_steps() -> dict:
     Returns the default checklist items pre-populated when creating a new plan.
     Useful for UI autocomplete or template display.
     """
-    from .service import DEFAULT_NEXT_STEPS, DEFAULT_MODULES
+    from .service import DEFAULT_MODULES, DEFAULT_NEXT_STEPS
+
     return {
         "default_steps": DEFAULT_NEXT_STEPS,
         "default_modules": DEFAULT_MODULES,

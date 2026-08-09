@@ -5,11 +5,11 @@ Creates /modules/admin_console/ with router, UI panel, and SDK registration
 """
 
 import os
-import sys
 
 SEMPtIFY_PATH = r"C:\Semptify\Semptify-FastAPI"
 MODULES_PATH = os.path.join(SEMPtIFY_PATH, "modules")
 ADMIN_PATH = os.path.join(MODULES_PATH, "admin_console")
+
 
 def create_directory(path):
     """Create directory if it doesn't exist"""
@@ -19,30 +19,32 @@ def create_directory(path):
     else:
         print(f"✓ Exists: {path}")
 
+
 def write_file(path, content):
     """Write content to file"""
-    with open(path, 'w', encoding='utf-8') as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(content)
     print(f"✓ Created: {path}")
+
 
 def main():
     print("=" * 60)
     print("Semptify Admin Console Module Generator")
     print("=" * 60)
     print()
-    
+
     # Create directory structure
     create_directory(ADMIN_PATH)
     create_directory(os.path.join(ADMIN_PATH, "templates"))
     create_directory(os.path.join(ADMIN_PATH, "static"))
-    
+
     # 1. Create module manifest (__init__.py)
     manifest_content = '''"""
 Admin Console Module for Semptify
 Local AI bridge for tenant advocacy
 """
 from app.core.semptify_internal_sdk import (
-    register_module, ModuleManifest, ProductTier, 
+    register_module, ModuleManifest, ProductTier,
     ModuleCapability, MODULE_REGISTRY
 )
 from fastapi import APIRouter
@@ -131,20 +133,20 @@ def register():
 # Auto-register on import
 register()
 '''
-    
+
     write_file(os.path.join(ADMIN_PATH, "__init__.py"), manifest_content)
-    
+
     # 2. Create admin panel UI template
-    ui_content = '''<!DOCTYPE html>
+    ui_content = """<!DOCTYPE html>
 <html>
 <head>
     <title>Admin Console - Local AI Bridge</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #eee; 
+            color: #eee;
             min-height: 100vh;
         }
         .header {
@@ -156,15 +158,15 @@ register()
             align-items: center;
         }
         h1 { color: #e94560; font-size: 1.5rem; }
-        .status { 
-            padding: 8px 16px; 
-            border-radius: 20px; 
+        .status {
+            padding: 8px 16px;
+            border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
         }
         .status.online { background: #4ecca3; color: #1a1a2e; }
         .status.offline { background: #e94560; color: white; }
-        
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -173,7 +175,7 @@ register()
             grid-template-columns: 250px 1fr;
             gap: 20px;
         }
-        
+
         .sidebar {
             background: rgba(15, 52, 96, 0.6);
             border-radius: 12px;
@@ -185,7 +187,7 @@ register()
             font-size: 0.8rem;
             text-transform: uppercase;
         }
-        
+
         .tool-btn {
             display: block;
             width: 100%;
@@ -202,13 +204,13 @@ register()
         .tool-btn:hover {
             background: rgba(233, 69, 96, 0.4);
         }
-        
+
         .main-panel {
             background: rgba(22, 33, 62, 0.6);
             border-radius: 12px;
             padding: 20px;
         }
-        
+
         .panel-section {
             margin-bottom: 30px;
         }
@@ -217,7 +219,7 @@ register()
             margin-bottom: 15px;
             font-size: 1.1rem;
         }
-        
+
         .info-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -237,7 +239,7 @@ register()
             color: #fff;
             font-size: 1.1rem;
         }
-        
+
         .connect-btn {
             background: linear-gradient(135deg, #e94560 0%, #c73e54 100%);
             color: white;
@@ -260,7 +262,7 @@ register()
         <h1>🏛️ Admin Console - Local AI Bridge</h1>
         <div class="status offline" id="statusBadge">● Disconnected</div>
     </div>
-    
+
     <div class="container">
         <div class="sidebar">
             <h3>Quick Actions</h3>
@@ -268,11 +270,11 @@ register()
             <button class="tool-btn" onclick="listTools()">List Local Tools</button>
             <button class="tool-btn" onclick="viewLogs()">View Logs</button>
             <button class="tool-btn" onclick="runMaintenance()">Run Maintenance</button>
-            
+
             <h3 style="margin-top: 20px;">Local AI</h3>
             <button class="connect-btn" onclick="connectLocalAI()">Connect to Local AI</button>
         </div>
-        
+
         <div class="main-panel">
             <div class="panel-section">
                 <h2>System Status</h2>
@@ -291,12 +293,12 @@ register()
                     </div>
                 </div>
             </div>
-            
+
             <div class="panel-section">
                 <h2>Available Tools</h2>
                 <div id="toolsList">Click "List Local Tools" to see available tools</div>
             </div>
-            
+
             <div class="panel-section">
                 <h2>Documentation</h2>
                 <p>This admin console connects to your local AI backend running at <code>http://localhost:8001</code></p>
@@ -310,10 +312,10 @@ register()
             </div>
         </div>
     </div>
-    
+
     <script>
         const LOCAL_AI_URL = "http://localhost:8001";
-        
+
         async function checkConnection() {
             try {
                 const resp = await fetch(`${LOCAL_AI_URL}/`, { method: 'GET', mode: 'no-cors' });
@@ -327,40 +329,40 @@ register()
                 document.getElementById('aiStatus').textContent = 'Offline';
             }
         }
-        
+
         async function listTools() {
             try {
                 const resp = await fetch('/admin/tools');
                 const data = await resp.json();
                 document.getElementById('toolsCount').textContent = data.tools?.length || 0;
-                document.getElementById('toolsList').innerHTML = 
+                document.getElementById('toolsList').innerHTML =
                     '<ul>' + (data.tools || []).map(t => `<li>${t}</li>`).join('') + '</ul>';
             } catch (e) {
                 document.getElementById('toolsList').textContent = 'Error: ' + e.message;
             }
         }
-        
+
         function connectLocalAI() {
             window.open(LOCAL_AI_URL, '_blank');
         }
-        
+
         function viewLogs() {
             alert('View logs functionality coming soon');
         }
-        
+
         function runMaintenance() {
             alert('Maintenance functionality coming soon');
         }
-        
+
         // Check on load
         checkConnection();
     </script>
 </body>
 </html>
-'''
-    
+"""
+
     write_file(os.path.join(ADMIN_PATH, "templates", "admin_panel.html"), ui_content)
-    
+
     print()
     print("=" * 60)
     print("Admin Console Module Created Successfully!")
@@ -374,6 +376,7 @@ register()
     print("2. Access admin panel at:")
     print("   http://your-semptify-server/admin/")
     print()
+
 
 if __name__ == "__main__":
     main()

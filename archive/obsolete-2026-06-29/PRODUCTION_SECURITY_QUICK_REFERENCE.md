@@ -1,7 +1,9 @@
 # 🚀 PRODUCTION SECURITY - QUICK REFERENCE
 
 ## Status
+
 ✅ **Production Security Integrated**
+
 - Middleware layer added to app/main.py
 - Rate limiting middleware active
 - Security headers enforced
@@ -13,21 +15,25 @@
 ## What Just Happened
 
 ### 1. Middleware Integration ✅
+
 **File**: `app/main.py` (lines 1458-1490)
 
 Added production security middleware when `security_mode == "enforced"`:
+
 ```python
-# Production Security Middleware (if enforced mode)
+## Production Security Middleware (if enforced mode)
 if is_production:
     - RateLimitMiddleware (token bucket algorithm)
     - RequestLoggingMiddleware (security audit trail)
     - SecurityHeadersMiddleware (production headers)
-```
+```text
 
 ### 2. Startup Validation ✅  
+
 **File**: `app/main.py` (Stage 7 - added to lifespan)
 
 Added production mode validation that:
+
 - Checks DEBUG mode is disabled
 - Verifies HTTPS certificates exist
 - Validates SECRET_KEY is changed
@@ -35,9 +41,11 @@ Added production mode validation that:
 - Validates rate limiting is active
 
 ### 3. Enhanced CORS ✅
+
 **File**: `app/main.py` (CORS configuration)
 
 In production mode:
+
 - Only specific HTTP methods allowed: `GET, POST, PUT, DELETE, PATCH, OPTIONS`
 - Only specific headers: `Content-Type, Authorization, X-Request-Id, X-API-Key`
 - Credentials required
@@ -47,14 +55,15 @@ In production mode:
 ## 🔐 Security Features Now Active
 
 ### Middleware Chain (all running)
+
 1. **RateLimitMiddleware** - Token bucket rate limiting
    - Limit: 100 requests per 60 seconds per IP
    - Returns 429 when exceeded
-   
+
 2. **RequestLoggingMiddleware** - Audit trail
    - Logs all requests to security log
    - Includes timestamp, IP, endpoint, method, status
-   
+
 3. **SecurityHeadersMiddleware** - Response headers
    - X-Frame-Options: DENY
    - X-Content-Type-Options: nosniff
@@ -65,12 +74,13 @@ In production mode:
 
 4. **StorageRequirementMiddleware** - Enforces storage connection
    - In production: enforcement enabled
-   
+
 5. **TimeoutMiddleware** - Request timeouts
    - Prevents hung requests
    - Default: 30 second timeout
 
 ### Startup Validation
+
 - Checks ENVIRONMENT=production
 - Checks DEBUG=false
 - Validates SSL certificates
@@ -85,78 +95,82 @@ In production mode:
 ### Option 1: Run in Production Mode (RECOMMENDED)
 
 ```bash
-# Create .env.production from template
+## Create .env.production from template
 cp .env.production.example .env.production
 
-# Edit with your production values
+## Edit with your production values
 nano .env.production
 
-# Set critical values:
-# - ENVIRONMENT=production
-# - DEBUG=false  
-# - SECRET_KEY=<generate-new>
-# - DATABASE_URL=<your-db>
+## Set critical values:
+## - ENVIRONMENT=production
+## - DEBUG=false  
+## - SECRET_KEY=<generate-new>
+## - DATABASE_URL=<your-db>
 ```
 
 ### Option 2: Run in Development Mode (for testing)
 
 ```bash
-# Leave ENVIRONMENT=development or omit
-# Set DEBUG=true (optional)
+## Leave ENVIRONMENT=development or omit
+## Set DEBUG=true (optional)
 
-# This will skip production security validation
-# but middleware will still be available
-```
+## This will skip production security validation
+## but middleware will still be available
+```text
 
 ---
 
 ## 🧪 Testing Security Features
 
 ### Test Rate Limiting
+
 ```bash
-# Should work (1st request)
+## Should work (1st request)
 curl -X GET http://localhost:8000/health
 
-# Do this 100+ times rapidly
+## Do this 100+ times rapidly
 for i in {1..150}; do
   curl -s http://localhost:8000/health > /dev/null &
 done
 
-# Next requests will get 429 Too Many Requests
+## Next requests will get 429 Too Many Requests
 curl -X GET http://localhost:8000/health
 ```
 
 ### Test Security Headers
+
 ```bash
-# Check response headers
+## Check response headers
 curl -I http://localhost:8000/health
 
-# Should include:
-# X-Frame-Options: DENY
-# X-Content-Type-Options: nosniff
-# Strict-Transport-Security: max-age=31536000
-```
+## Should include:
+## X-Frame-Options: DENY
+## X-Content-Type-Options: nosniff
+## Strict-Transport-Security: max-age=31536000
+```text
 
 ### Test Authentication Requirement
+
 ```bash
-# Without auth - should fail
+## Without auth - should fail
 curl -X GET http://localhost:8000/api/auto-mode/config
 
-# With auth - should work  
+## With auth - should work  
 curl -X GET http://localhost:8000/api/auto-mode/config \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 ### Test CORS Protection
+
 ```bash
-# From browser at different origin
+## From browser at different origin
 fetch('http://localhost:8000/api/auto-mode/config', {
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY'
   }
 })
 // Will respect CORS settings
-```
+```text
 
 ---
 
@@ -167,16 +181,17 @@ fetch('http://localhost:8000/api/auto-mode/config', {
 **Error**: "Production validation failed"
 
 **Check**:
+
 ```bash
-# Verify .env.production exists
+## Verify .env.production exists
 ls -la .env.production
 
-# Verify environment variables
+## Verify environment variables
 env | grep ENVIRONMENT
 env | grep DEBUG
 env | grep SECRET_KEY
 
-# Check if DEBUG is false
+## Check if DEBUG is false
 grep "^DEBUG=" .env.production
 ```
 
@@ -185,16 +200,16 @@ grep "^DEBUG=" .env.production
 **Expected behavior** - Authentication is required:
 
 ```bash
-# Provide API key
+## Provide API key
 curl -H "Authorization: Bearer YOUR_API_KEY" http://localhost:8000/api/auto-mode/config
-```
+```text
 
 ### Getting 429 Too Many Requests
 
 **Expected behavior** - Rate limiting is active:
 
 ```bash
-# Wait 60 seconds and try again
+## Wait 60 seconds and try again
 sleep 60
 curl http://localhost:8000/health
 ```
@@ -212,7 +227,7 @@ curl http://localhost:8000/health
 ## 📊 Configuration Summary
 
 | Setting | Development | Production |
-|---------|-------------|-----------|
+| --------- | ------------- | ----------- |
 | DEBUG | true | false |
 | ENVIRONMENT | development | production |
 | Authentication | Optional | Required |
@@ -264,9 +279,10 @@ curl http://localhost:8000/health
 ## ✅ Next Steps
 
 1. **Create .env.production**
+
    ```bash
    cp .env.production.example .env.production
-   ```
+   ```text
 
 2. **Configure values**
    - Set ENVIRONMENT=production
@@ -275,11 +291,13 @@ curl http://localhost:8000/health
    - Configure CORS_ORIGINS
 
 3. **Install SSL certificates**
+
    ```bash
    # Either use Let's Encrypt or self-signed for testing
    ```
 
 4. **Start in production mode**
+
    ```bash
    python -m uvicorn app.main:app --ssl-keyfile... --ssl-certfile...
    ```
@@ -294,7 +312,7 @@ curl http://localhost:8000/health
 
 ## 🎯 Current Status
 
-```
+```text
 ✅ Middleware Integration: COMPLETE
 ✅ Startup Validation: ACTIVE  
 ✅ Rate Limiting: ENFORCED (production mode)

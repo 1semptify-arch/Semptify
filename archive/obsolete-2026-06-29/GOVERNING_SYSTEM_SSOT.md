@@ -10,7 +10,7 @@
 
 Semptify uses a **distributed conductor model** — no single orchestrator, but coordinated subsystems with clear contracts:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    THE CONDUCTOR LAYER                      │
 ├─────────────────────────────────────────────────────────────┤
@@ -34,13 +34,15 @@ Semptify uses a **distributed conductor model** — no single orchestrator, but 
 ## 🔐 Cookie & Authentication System
 
 ### Cookie Format (HMAC-Signed)
-```
+
+```html
 <user_id>.<hmac_signature>
 Example: GD7x9kM2pQ.a3f8c2d1e4b7...
 ```
 
 ### User ID Structure
-```
+
+```text
 Format: <provider_code><role_code><8-char-random>
 Example: GU7x9kM2pQ = Google Drive + User (Tenant) + 7x9kM2pQ
          │ │ │
@@ -49,12 +51,14 @@ Example: GU7x9kM2pQ = Google Drive + User (Tenant) + 7x9kM2pQ
          └────── Provider code (G=Google, D=Dropbox, O=OneDrive)
 ```
 
-**Provider Codes (1 char):**
+#### Provider Codes (1 char):
+
 - `G` = Google Drive
 - `D` = Dropbox  
 - `O` = OneDrive
 
-**Role Codes (1 char):**
+#### Role Codes (1 char):
+
 - `U` = User (displayed as Tenant in housing context)
 - `A` = Admin
 - `M` = Manager
@@ -65,7 +69,8 @@ Example: GU7x9kM2pQ = Google Drive + User (Tenant) + 7x9kM2pQ
 **Important:** The underscore-separated format (`google_drive_tenant_abc123`) is NOT valid for `parse_user_id()`. Use the compact 10-character format.
 
 ### Auth Flow Diagram
-```
+
+```text
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
 │   Browser    │────▶│   /reconnect │────▶│ Session Check│
 │  (Cookie)    │     │   Endpoint   │     │   (DB/API)   │
@@ -83,7 +88,7 @@ Example: GU7x9kM2pQ = Google Drive + User (Tenant) + 7x9kM2pQ
 ### Key Functions
 
 | Function | Location | Purpose |
-|----------|----------|---------|
+| ---------- | ---------- | --------- |
 | `sign_user_id()` | `cookie_auth.py:32` | Create HMAC-signed cookie at OAuth callback |
 | `verify_user_id()` | `cookie_auth.py:43` | Verify cookie on every request |
 | `extract_user_id()` | `cookie_auth.py:79` | Middleware helper |
@@ -95,11 +100,13 @@ Example: GU7x9kM2pQ = Google Drive + User (Tenant) + 7x9kM2pQ
 ## 🚦 Routing System (The Conductor)
 
 ### `route_user()` — Single Source of Truth
+
 **Location:** `app/core/workflow_engine.py:253`
 
 **Purpose:** Every redirect in the app goes through this function. No hardcoded paths.
 
-**Logic:**
+#### Logic:
+
 ```python
 def route_user(user_id, documents_present=None, has_active_case=False) -> str:
     1. Parse user_id → provider, role, unique
@@ -107,12 +114,12 @@ def route_user(user_id, documents_present=None, has_active_case=False) -> str:
     3. Check vault for documents (if documents_present not provided)
     4. Call evaluate_from_params(role, storage_state, documents_present)
     5. Return decision.next_route
-```
+```text
 
 **Routing Decision Matrix:**
 
 | Role | Storage | Documents | Route |
-|------|---------|-----------|-------|
+| ------ | --------- | ----------- | ------- |
 | Tenant | Need Connect | — | `/storage/providers` |
 | Tenant | Connected | 0 | `/tenant/home` (B1 - Upload) |
 | Tenant | Connected | 1+ | `/tenant/home` (B2 - Triage) |
@@ -123,7 +130,7 @@ def route_user(user_id, documents_present=None, has_active_case=False) -> str:
 ### Workflow Engine Processes
 
 | Code | Name | Description |
-|------|------|-------------|
+| ------ | ------ | ------------- |
 | A | Welcome | Role selection, first-time setup |
 | B1 | Upload Wizard | Document upload for new users |
 | B2 | Quick Triage | Tenant case assessment |
@@ -135,29 +142,35 @@ def route_user(user_id, documents_present=None, has_active_case=False) -> str:
 ## 🔄 Integration Points
 
 ### 1. Storage → Workflow Integration
+
 **File:** `storage.py` → `workflow_engine.route_user()`
 
 When OAuth completes:
+
 ```python
-# storage.py:1762 (callback)
+## storage.py:1762 (callback)
 landing = _route_user(user_id)  # Never hardcode paths
 ```
 
 ### 2. Page → Action Integration
+
 **File:** `action_maps.py`
 
 Quick actions route through action maps, not hardcoded URLs:
+
 ```python
 DASHBOARD_QUICK_ACTIONS["view_timeline"] → QuickAction(
     target="/timeline",
     required_roles=["user", "advocate", "legal"],
 )
-```
+```text
 
 ### 3. Module → Contract Integration
+
 **File:** `module_contracts.py`
 
 Services register their capabilities:
+
 ```python
 contract_registry.register(FunctionGroupContract(
     module="legal_analysis",
@@ -169,13 +182,15 @@ contract_registry.register(FunctionGroupContract(
 ```
 
 ### 4. Path → Vault Integration
+
 **File:** `vault_paths.py`
 
 All cloud storage paths use canonical constants:
+
 ```python
 VAULT_DOCUMENTS = "Semptify5.0/Vault/documents"
 VAULT_TIMELINE_EVENTS_FILE = "Semptify5.0/Vault/timeline/events.json"
-```
+```text
 
 ---
 
@@ -184,13 +199,14 @@ VAULT_TIMELINE_EVENTS_FILE = "Semptify5.0/Vault/timeline/events.json"
 ### Cookie Issues
 
 **Symptom:** User keeps redirecting to `/storage/providers`
+
 ```bash
-# Check cookie format
+## Check cookie format
 curl -I http://localhost:8000/tenant/home -H "Cookie: semptify_uid=<value>"
 
-# Verify in logs
-# Look for: "cookie_auth: signature mismatch" → SECRET_KEY changed
-# Look for: "cookie_auth: malformed cookie" → Wrong format
+## Verify in logs
+## Look for: "cookie_auth: signature mismatch" → SECRET_KEY changed
+## Look for: "cookie_auth: malformed cookie" → Wrong format
 ```
 
 **Fix:** If SECRET_KEY changed, users must re-authenticate (expected behavior).
@@ -198,21 +214,23 @@ curl -I http://localhost:8000/tenant/home -H "Cookie: semptify_uid=<value>"
 ### Routing Issues
 
 **Symptom:** User lands on wrong page after OAuth
+
 ```bash
-# Check route_user() logic
+## Check route_user() logic
 grep -n "landing = _route_user" app/routers/storage.py
 
-# Verify workflow decision
-# Add debug: logger.info(f"Routing decision: {decision}")
-```
+## Verify workflow decision
+## Add debug: logger.info(f"Routing decision: {decision}")
+```text
 
 ### Session Issues
 
 **Symptom:** `/reconnect` loops to storage selection
+
 ```bash
-# Check get_valid_session() in storage.py:738
-# Look for: Session auto-refresh failures
-# Check: OAuth state preservation
+## Check get_valid_session() in storage.py:738
+## Look for: Session auto-refresh failures
+## Check: OAuth state preservation
 ```
 
 **Recent Fix:** `storage.py:780-785` - Added session validation before OAuth
@@ -274,19 +292,19 @@ grep -n "landing = _route_user" app/routers/storage.py
 ## 🔧 System Health Check
 
 ```bash
-# 1. Verify imports
+## 1. Verify imports
 python -c "from app.core.workflow_engine import route_user; print('✓ workflow_engine')"
 python -c "from app.core.cookie_auth import verify_user_id; print('✓ cookie_auth')"
 python -c "from app.core.module_contracts import contract_registry; print('✓ module_contracts')"
 python -c "from app.core.vault_paths import VAULT_DOCUMENTS; print('✓ vault_paths')"
 
-# 2. Test route_user
+## 2. Test route_user
 python -c "from app.core.workflow_engine import route_user; print(route_user('google_drive_tenant_test123'))"
 
-# 3. Verify cookie signing
+## 3. Verify cookie signing
 python -c "from app.core.cookie_auth import sign_user_id, verify_user_id; uid='test'; signed=sign_user_id(uid); print(f'Signed: {signed}'); print(f'Verified: {verify_user_id(signed)}')"
 
-# 4. Check contracts
+## 4. Check contracts
 python -c "from app.core.module_contracts import contract_registry; print(f'Registered: {len(contract_registry.list_contracts())}')"
 ```
 

@@ -43,11 +43,11 @@ ID Types (canonical prefixes):
     zip  = Zip archive token
 """
 
-from enum import Enum
-from typing import Optional
+import logging
 import secrets
 import string
-import logging
+from enum import StrEnum
+
 logger = logging.getLogger(__name__)
 
 _ALPHABET = string.ascii_letters + string.digits
@@ -55,8 +55,9 @@ _DEFAULT_LENGTH = 16
 _MAX_PREFIX_LEN = 10  # Prevent absurdly long prefixes
 
 
-class IdType(str, Enum):
+class IdType(StrEnum):
     """Canonical ID type prefixes for type safety."""
+
     DOCUMENT = "doc"
     OVERLAY = "ovl"
     EVENT = "evt"
@@ -101,14 +102,14 @@ def make_id(prefix: str, length: int = _DEFAULT_LENGTH) -> str:
         raise ValueError(f"Prefix too long (max {_MAX_PREFIX_LEN}): {prefix}")
     if not prefix.isalnum():
         raise ValueError(f"Prefix must be alphanumeric: {prefix}")
-    
+
     suffix = "".join(secrets.choice(_ALPHABET) for _ in range(length))
     return f"{prefix}_{suffix}"
 
 
 def make_id_typed(id_type: IdType, length: int = _DEFAULT_LENGTH) -> str:
     """Type-safe ID generation using IdType enum.
-    
+
     Example:
         >>> make_id_typed(IdType.DOCUMENT)
         'doc_K8mXp2nR4jW7qF9a'
@@ -118,50 +119,47 @@ def make_id_typed(id_type: IdType, length: int = _DEFAULT_LENGTH) -> str:
 
 def parse_id(full_id: str) -> tuple[str, str]:
     """Parse a full ID into (prefix, suffix).
-    
+
     Args:
         full_id: ID like "doc_K8mXp2nR4jW7qF9a"
-        
+
     Returns:
         Tuple of (prefix, suffix)
-        
+
     Raises:
         ValueError: If ID format is invalid
     """
     if "_" not in full_id:
         raise ValueError(f"Invalid ID format (no underscore): {full_id}")
-    
+
     parts = full_id.split("_", 1)  # Split on first underscore only
     prefix, suffix = parts[0], parts[1]
-    
+
     if not prefix or not suffix:
         raise ValueError(f"Invalid ID format (empty prefix or suffix): {full_id}")
-    
+
     return prefix, suffix
 
 
-def validate_id(full_id: str, expected_prefix: Optional[str] = None) -> bool:
+def validate_id(full_id: str, expected_prefix: str | None = None) -> bool:
     """Validate an ID format and optionally check prefix.
-    
+
     Args:
         full_id: ID to validate
         expected_prefix: If provided, verify ID has this prefix
-        
+
     Returns:
         True if valid, False otherwise
     """
     try:
         prefix, suffix = parse_id(full_id)
-        
+
         # Check prefix if specified
         if expected_prefix and prefix != expected_prefix:
             return False
-            
+
         # Check suffix is valid alphanumeric
-        if not suffix or not all(c in _ALPHABET for c in suffix):
-            return False
-            
-        return True
+        return not (not suffix or not all(c in _ALPHABET for c in suffix))
     except ValueError:
         return False
 

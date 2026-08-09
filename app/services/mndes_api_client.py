@@ -41,6 +41,7 @@ MNDES_SUPPORT_EMAIL_FORM = "https://www.mncourts.gov/MNDES/Contact.aspx"
 # Data contracts (shared by all implementations)
 # ============================================================================
 
+
 @dataclass
 class MNDESSubmissionResult:
     success: bool
@@ -53,7 +54,7 @@ class MNDESSubmissionResult:
 @dataclass
 class MNDESTrackingStatus:
     tracking_number: str
-    status: str           # e.g. "pre_hearing", "offered", "admitted"
+    status: str  # e.g. "pre_hearing", "offered", "admitted"
     case_number: str
     exhibit_name: str | None = None
     last_updated: datetime | None = None
@@ -72,6 +73,7 @@ class MNDESCaseExhibit:
 # ============================================================================
 # Abstract interface
 # ============================================================================
+
 
 class MNDESApiClient(ABC):
     """
@@ -112,6 +114,7 @@ class MNDESApiClient(ABC):
 # Current implementation: Manual portal guidance
 # ============================================================================
 
+
 class ManualPortalClient(MNDESApiClient):
     """
     No-API implementation.
@@ -133,7 +136,8 @@ class ManualPortalClient(MNDESApiClient):
     ) -> MNDESSubmissionResult:
         logger.info(
             "MNDES manual submission required for case %s, file %s",
-            case_number, filename,
+            case_number,
+            filename,
         )
         return MNDESSubmissionResult(
             success=False,
@@ -158,10 +162,7 @@ class ManualPortalClient(MNDESApiClient):
             tracking_number=tracking_number,
             status="unknown",
             case_number="",
-            message=(
-                f"MNDES does not have a public API. "
-                f"Check status manually at: {MNDES_PORTAL_URL}"
-            ),
+            message=(f"MNDES does not have a public API. Check status manually at: {MNDES_PORTAL_URL}"),
         )
 
     def get_case_exhibits(
@@ -175,6 +176,7 @@ class ManualPortalClient(MNDESApiClient):
 # ============================================================================
 # Future REST implementation (skeleton — fill in when API is available)
 # ============================================================================
+
 
 class MNDESRestClient(MNDESApiClient):
     """
@@ -259,10 +261,7 @@ class MNDESRestClient(MNDESApiClient):
                 tracking_number=tracking_number,
                 status="unknown",
                 case_number="",
-                message=(
-                    f"MNDES API status lookup failed: {exc}\n"
-                    f"Check status manually at: {MNDES_PORTAL_URL}"
-                ),
+                message=(f"MNDES API status lookup failed: {exc}\nCheck status manually at: {MNDES_PORTAL_URL}"),
             )
 
     def get_case_exhibits(

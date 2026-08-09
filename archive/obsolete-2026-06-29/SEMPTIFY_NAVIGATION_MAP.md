@@ -1,4 +1,5 @@
 # Semptify Complete Navigation Map
+
 *Comprehensive mapping of all internal routes, external links, and user travel paths within Semptify*
 
 Generated: 2026-05-20  
@@ -9,12 +10,14 @@ Scope: All possible ways users can navigate through the application
 ## 🏛️ SSOT CORE NAVIGATION (Single Source of Truth)
 
 ### Primary Flow Stages (SSOT Registry)
-```
+
+```text
 /welcome (root) → /preamble → /onboarding/select-role.html → /onboarding/providers → /onboarding/vault-setup → /onboarding/complete → /home
 ```
 
 ### Main Navigation (5 Core Links - Present on Every Page)
-```
+
+```text
 🏠 Home     → /home
 📚 Library  → /library  
 🏢 Office   → /office
@@ -23,12 +26,14 @@ Scope: All possible ways users can navigate through the application
 ```
 
 ### Reconnect Flow (Returning Users)
-```
+
+```text
 /storage/reconnect → OAuth Validation → /home (or return_to parameter)
 ```
 
 ### Court Integration Flow
-```
+
+```text
 /mndes/guide → /mndes/validate → /mndes/package
 /mndes/compliance-guide (standalone)
 ```
@@ -38,15 +43,19 @@ Scope: All possible ways users can navigate through the application
 ## 📊 PRODUCT TIER NAVIGATION
 
 ### CORE TIER (Always Active - 45+ Modules)
-**Health & System**
+
+#### Health & System
+
 - `/health` - System health check
 - `/version` - Version information
 
-**Entry Points**
+#### Entry Points
+
 - `/preamble` - Smart routing decision point
 - `/role-select` - Role selection UI
 
-**Document & Vault System**
+#### Document & Vault System
+
 - `/documents` - Document management
 - `/api/vault/*` - Vault operations
 - `/vault-engine/*` - Advanced vault access
@@ -55,11 +64,13 @@ Scope: All possible ways users can navigate through the application
 - `/workflow/*` - Workflow management
 - `/workflow-validator/*` - Admin workflow validation
 
-**Rights & Education**
+#### Rights & Education
+
 - `/state-laws` - State-specific laws
 - `/law-library` - Legal library access
 
-**Core Tools**
+#### Core Tools
+
 - `/contacts` - Contact manager
 - `/public-forms` - Public forms
 - `/api/search` - Global search
@@ -68,11 +79,13 @@ Scope: All possible ways users can navigate through the application
 - `/document-converter` - Format conversion
 - `/legal-analysis` - Legal document analysis
 
-**Real-time & APIs**
+#### Real-time & APIs
+
 - `/ws/events` - WebSocket events
 - `/free-api/*` - Free public APIs
 
-**Infrastructure**
+#### Infrastructure
+
 - `/plugins` - Plugin system
 - `/components` - Modular components
 - `/core-system` - Core system admin
@@ -80,7 +93,9 @@ Scope: All possible ways users can navigate through the application
 - `/mndes` - Court Exhibit System (MN Supreme Court compliance)
 
 ### EXTENDED TIER (Legal Tools - Disabled by Default)
-**Legal Defense**
+
+#### Legal Defense
+
 - `/eviction-defense` - Eviction defense toolkit
 - `/zoom-court` - Virtual courtroom
 - `/zoom-court-prep` - Court preparation
@@ -90,7 +105,8 @@ Scope: All possible ways users can navigate through the application
 - `/legal-trails` - Legal process tracking
 - `/tenant-defense` - Tenant defense tools
 
-**Case Management**
+#### Case Management
+
 - `/intake` - Document intake
 - `/guided-intake` - Guided document intake
 - `/case-builder` - Case construction
@@ -99,19 +115,23 @@ Scope: All possible ways users can navigate through the application
 - `/plan-maker` - Plan generation
 - `/tools-api` - Tools API
 
-**Accountability**
+#### Accountability
+
 - `/complaints` - Complaint wizard
 - `/housing-accountability` - Housing accountability tools
 
-**Role Management**
+#### Role Management
+
 - `/role-upgrade` - Role upgrade system
 
 ### ADVOCATE TIER (Collaboration - Disabled by Default)
+
 - `/document-delivery` - Secure document delivery
 - `/communication` - Advocate communication
 - `/invite-codes` - Advocate invitation system
 
 ### ADMIN TIER (Administration - Disabled by Default)
+
 - `/api/analytics` - Usage analytics
 - `/dashboard` - Unified dashboard
 - `/enterprise-dashboard` - Enterprise admin
@@ -120,7 +140,9 @@ Scope: All possible ways users can navigate through the application
 - `/tenancy-hub` - Tenancy management
 
 ### RESEARCH TIER (AI Intelligence - Disabled by Default)
-**Document Intelligence**
+
+#### Document Intelligence
+
 - `/recognition` - Document recognition
 - `/extraction` - Form field extraction
 - `/crawler` - Web crawler
@@ -131,7 +153,8 @@ Scope: All possible ways users can navigate through the application
 - `/vault-all-in-one` - Unified evidence vault
 - `/cloud-sync` - Cloud synchronization
 
-**AI Infrastructure**
+#### AI Infrastructure
+
 - `/brain/*` - Positronic Brain (AI hub)
 - `/auto-mode` - Automated mode
 - `/emotion` - Emotion analysis
@@ -140,7 +163,8 @@ Scope: All possible ways users can navigate through the application
 - `/api/module-hub` - Module hub
 - `/functionx` - Function execution
 
-**Specialized Intelligence**
+#### Specialized Intelligence
+
 - `/funding-search` - Funding opportunities
 - `/hud-funding` - HUD funding guide
 - `/location` - Location services
@@ -150,6 +174,7 @@ Scope: All possible ways users can navigate through the application
 - `/litigation-intelligence` - Legal intelligence
 
 ### DEV TIER (Internal Tools - Enabled in Development)
+
 - `/api/setup` - Setup wizard
 - `/page-index` - Page indexing
 - `/page-editor` - Interactive page editor
@@ -163,25 +188,30 @@ Scope: All possible ways users can navigate through the application
 ## 🔗 EXTERNAL LINKS & OAUTH ENDPOINTS
 
 ### OAuth Provider Endpoints (LEADS OUT)
-**Google Drive**
+
+#### Google Drive
+
 - Auth: `https://accounts.google.com/o/oauth2/v2/auth`
 - Token: `https://oauth2.googleapis.com/token`
 - Userinfo: `https://www.googleapis.com/oauth2/v2/userinfo`
 - Tokeninfo: `https://www.googleapis.com/oauth2/v1/tokeninfo`
 - Scopes: `https://www.googleapis.com/auth/drive.file`, `https://www.googleapis.com/auth/userinfo.email`
 
-**Dropbox**
+#### Dropbox
+
 - Auth: `https://www.dropbox.com/oauth2/authorize`
 - Token: `https://api.dropboxapi.com/oauth2/token`
 - Userinfo: `https://api.dropboxapi.com/2/users/get_current_account`
 
-**OneDrive**
+#### OneDrive
+
 - Auth: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize`
 - Token: `https://login.microsoftonline.com/common/oauth2/v2.0/token`
 - Userinfo: `https://graph.microsoft.com/v1.0/me`
 - Scopes: `Files.ReadWrite.AppFolder`, `User.Read`, `offline_access`
 
 ### Internal OAuth Callbacks
+
 - `/storage/oauth/{provider}` - OAuth callback handler
 - `/storage/reconnect` - Token reconnection
 - `/storage/providers` - Provider selection
@@ -191,6 +221,7 @@ Scope: All possible ways users can navigate through the application
 ## 📱 STATIC FILE NAVIGATION
 
 ### Public Pages (Direct Access)
+
 - `/welcome.html` - Welcome page
 - `/about.html` - About Semptify
 - `/privacy.html` - Privacy policy
@@ -201,6 +232,7 @@ Scope: All possible ways users can navigate through the application
 - `/credits.html` - Credits and attributions
 
 ### Role-Based Dashboards
+
 - `/tenant/dashboard.html` - Tenant dashboard
 - `/advocate/dashboard.html` - Advocate dashboard
 - `/legal/dashboard.html` - Legal professional dashboard
@@ -208,6 +240,7 @@ Scope: All possible ways users can navigate through the application
 - `/manager/dashboard.html` - Housing manager dashboard
 
 ### Office & Document Management
+
 - `/office.html` - Main office interface
 - `/office/inbox.html` - Document inbox
 - `/office/vault.html` - Vault interface
@@ -215,21 +248,26 @@ Scope: All possible ways users can navigate through the application
 - `/office/signer.html` - Document signing
 
 ### Library & Resources
+
 - `/library.html` - Main library
 - `/search.html` - Search interface
 
 ### Help & Support
+
 - `/help.html` - Help center
 
 ### Onboarding Flow (Static)
+
 - `/onboarding/index.html` - Onboarding entry
 - `/onboarding/activate-vault.html` - Vault activation
 
 ### MNDES Court System
+
 - `/mndes/guide.html` - MNDES guide
 - `/mndes/compliance-guide.html` - Compliance guide
 
 ### Reconnect Interface
+
 - `/reconnect/index.html` - Reconnection flow
 
 ---
@@ -237,7 +275,9 @@ Scope: All possible ways users can navigate through the application
 ## 🔄 DYNAMIC NAVIGATION PORTALS
 
 ### JavaScript Navigation (Client-Side)
-**Header Navigation Components**
+
+#### Header Navigation Components
+
 ```javascript
 // Core 5-link navigation (present on every page)
 <a href="/home.html">Home</a>
@@ -245,9 +285,10 @@ Scope: All possible ways users can navigate through the application
 <a href="/office.html">Office</a>
 <a href="/tools.html">Tools</a>
 <a href="/help.html">Help</a>
-```
+```text
 
 **Footer Navigation**
+
 ```javascript
 // Product links
 <a href="/welcome.html">Welcome</a>
@@ -266,7 +307,8 @@ Scope: All possible ways users can navigate through the application
 <a href="/donate.html">Donate</a>
 ```
 
-**Role-Specific Navigation**
+#### Role-Specific Navigation
+
 - Tenant: `/tenant/dashboard.html` → tenant-specific flows
 - Advocate: `/advocate/dashboard.html` → client management
 - Legal: `/legal/dashboard.html` → case management
@@ -277,12 +319,14 @@ Scope: All possible ways users can navigate through the application
 ## 🚪 ENTRANCE & EXIT POINTS
 
 ### Primary Entrances
+
 1. **Root Domain** `/` → Welcome page → Preamble routing
 2. **Direct Role Access** `/tenant`, `/advocate`, `/legal`, `/admin`
 3. **Deep Links** Any valid internal path (SSOT-validated)
 4. **OAuth Return** From Google/Dropbox/OneDrive authentication
 
 ### Exit Points (External Links)
+
 1. **OAuth Providers** Google, Dropbox, OneDrive authentication
 2. **Documentation** External help resources
 3. **Legal Resources** External legal aid websites
@@ -293,16 +337,19 @@ Scope: All possible ways users can navigate through the application
 ## 🛡️ GATE-BASED NAVIGATION CONTROLS
 
 ### Storage Connection Gate
+
 - **Required**: Valid OAuth token from storage provider
 - **Controls**: Access to document operations, vault features
 - **Bypass**: Public pages, help content, role selection
 
 ### Vault Initialization Gate  
+
 - **Required**: Vault folders created in user storage
 - **Controls**: Full feature access, document upload
 - **Bypass**: Basic browsing, public content
 
 ### Role-Specific Gates
+
 - **Tenant**: Access to tenant-specific tools and resources
 - **Advocate**: Client management, collaboration features
 - **Legal**: Court filing, advanced legal tools
@@ -313,6 +360,7 @@ Scope: All possible ways users can navigate through the application
 ## 📊 NAVIGATION SUMMARY STATISTICS
 
 ### Total Navigation Points
+
 - **SSOT Core Paths**: 15 canonical flow stages
 - **Product Tier Routes**: 200+ module endpoints (across 6 tiers)
 - **Static HTML Pages**: 60+ static interfaces
@@ -321,12 +369,14 @@ Scope: All possible ways users can navigate through the application
 - **Dynamic Portals**: 30+ JavaScript navigation components
 
 ### Navigation Categories
+
 - **Internal Routes**: 85% of all navigation
 - **External Links**: 15% (OAuth + external resources)
 - **Static Pages**: 25% (direct HTML access)
 - **Dynamic Routes**: 75% (API-driven, authenticated)
 
 ### Access Control Distribution
+
 - **Public Access**: 20% (welcome, help, public content)
 - **Authentication Required**: 60% (storage connection)
 - **Role-Gated**: 15% (specific role features)
@@ -337,26 +387,30 @@ Scope: All possible ways users can navigate through the application
 ## 🔄 USER JOURNEY FLOWS
 
 ### New User Flow
-```
+
+```text
 / → /welcome.html → /preamble → /onboarding/select-role.html → 
 /onboarding/providers → OAuth → /onboarding/vault-setup → 
 /onboarding/complete → /home → [Role Dashboard]
 ```
 
 ### Returning User Flow
-```
+
+```text
 / → /preamble → /storage/reconnect → OAuth (if needed) → /home → 
 [Role Dashboard] → [Last Accessed Feature]
 ```
 
 ### Document Management Flow
-```
+
+```text
 [Role Dashboard] → /office.html → /office/vault.html → 
 /documents → /api/vault/* → Document Operations
 ```
 
 ### Legal Tools Flow (Extended Tier)
-```
+
+```text
 [Role Dashboard] → /eviction-defense → /court-forms → 
 /legal-filing → /mndes/validate → /mndes/package
 ```
@@ -366,17 +420,20 @@ Scope: All possible ways users can navigate through the application
 ## 🔧 NAVIGATION MAINTENANCE
 
 ### SSOT Compliance Rules
+
 - All redirects must use `navigation.get_stage()` and `ssot_redirect()`
 - No hardcoded URL strings in router files
 - Static files must consume navigation via `/api/navigation` endpoint
 - New paths must be registered in `NavigationRegistry`
 
 ### Evolution Mechanisms
+
 - **Escape Hatches**: Temporary experimental paths (7-day TTL)
 - **Deprecated Paths**: Automatic redirects to new SSOT paths  
 - **Dynamic Registration**: `register_stage()` for feature expansion
 
 ### Verification
+
 - Run `python tests/test_ssot_architecture.py` before committing
 - All navigation tests must pass
 - SSOT violations block deployment

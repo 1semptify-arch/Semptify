@@ -1,11 +1,11 @@
 """Oversight packet generation workflows for agency complaints."""
 
-from typing import Any, Dict, List
+from typing import Any
 
 from app.core.utc import utc_now
 
 
-def _build_packet_base(agency: str, tenant_data: Dict[str, Any], patterns: List[Dict[str, Any]]) -> Dict[str, Any]:
+def _build_packet_base(agency: str, tenant_data: dict[str, Any], patterns: list[dict[str, Any]]) -> dict[str, Any]:
     """Build a common packet structure for any oversight agency."""
     return {
         "agency": agency,
@@ -20,7 +20,7 @@ def _build_packet_base(agency: str, tenant_data: Dict[str, Any], patterns: List[
     }
 
 
-def build_ag_packet(tenant_data: Dict[str, Any], patterns: List[Dict[str, Any]]) -> Dict[str, Any]:
+def build_ag_packet(tenant_data: dict[str, Any], patterns: list[dict[str, Any]]) -> dict[str, Any]:
     """Build an Attorney General consumer protection complaint packet."""
     packet = _build_packet_base("Attorney General", tenant_data, patterns)
     packet["subject"] = "Tenant complaint regarding landlord practices"
@@ -28,7 +28,7 @@ def build_ag_packet(tenant_data: Dict[str, Any], patterns: List[Dict[str, Any]])
     return packet
 
 
-def build_hud_packet(tenant_data: Dict[str, Any], patterns: List[Dict[str, Any]]) -> Dict[str, Any]:
+def build_hud_packet(tenant_data: dict[str, Any], patterns: list[dict[str, Any]]) -> dict[str, Any]:
     """Build a HUD fair housing complaint packet."""
     packet = _build_packet_base("HUD", tenant_data, patterns)
     packet["subject"] = "Fair housing complaint"
@@ -37,7 +37,7 @@ def build_hud_packet(tenant_data: Dict[str, Any], patterns: List[Dict[str, Any]]
     return packet
 
 
-def build_mdhr_packet(tenant_data: Dict[str, Any], patterns: List[Dict[str, Any]]) -> Dict[str, Any]:
+def build_mdhr_packet(tenant_data: dict[str, Any], patterns: list[dict[str, Any]]) -> dict[str, Any]:
     """Build a Minnesota Department of Human Rights complaint packet."""
     packet = _build_packet_base("MDHR", tenant_data, patterns)
     packet["subject"] = "Minnesota human rights complaint"
@@ -45,7 +45,7 @@ def build_mdhr_packet(tenant_data: Dict[str, Any], patterns: List[Dict[str, Any]
     return packet
 
 
-def build_cfpb_packet(tenant_data: Dict[str, Any], patterns: List[Dict[str, Any]]) -> Dict[str, Any]:
+def build_cfpb_packet(tenant_data: dict[str, Any], patterns: list[dict[str, Any]]) -> dict[str, Any]:
     """Build a CFPB consumer complaint packet."""
     packet = _build_packet_base("CFPB", tenant_data, patterns)
     packet["subject"] = "Consumer complaint about financial products or services"
@@ -53,7 +53,7 @@ def build_cfpb_packet(tenant_data: Dict[str, Any], patterns: List[Dict[str, Any]
     return packet
 
 
-def export_packet(packet: Dict[str, Any], format: str = "markdown") -> str:
+def export_packet(packet: dict[str, Any], format: str = "markdown") -> str:
     """Export an oversight packet as plain text or markdown."""
     lines = [
         f"# {packet.get('agency', 'Oversight')} Packet",
@@ -71,6 +71,6 @@ def export_packet(packet: Dict[str, Any], format: str = "markdown") -> str:
     for issue in packet.get("issues", []):
         lines.append(f"- {issue}")
     lines.append("")
-    lines.append(f"## Requested Relief")
+    lines.append("## Requested Relief")
     lines.append(packet.get("requested_relief", ""))
     return "\n".join(lines)

@@ -8,16 +8,19 @@ Purpose: Build a deterministic, ordered chronology payload for timeline presenta
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
-from typing import Any
+import logging
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
-from app.models.models import DocumentPipelineIndex
 from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
-import logging
+from app.models.models import DocumentPipelineIndex
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
 logger = logging.getLogger(__name__)
 
 TIMELINE_FUNCTION_GROUP = "timeline_chronology"
@@ -32,9 +35,7 @@ register_function_group(
             "events",
             "db_session",
         ),
-        outputs=(
-            "chronology_items",
-        ),
+        outputs=("chronology_items",),
         dependencies=(
             VAULT_TIMELINE_EVENTS_FILE,
             "documents",
@@ -76,7 +77,7 @@ def _parse_any_datetime(value: Any) -> datetime | None:
         if dt is None:
             return None
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     return dt
 
 
@@ -84,7 +85,7 @@ def _display_datetime(value: Any) -> str:
     dt = _parse_any_datetime(value)
     if not dt:
         return "Unknown"
-    return dt.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    return dt.astimezone(UTC).strftime("%Y-%m-%d %H:%M UTC")
 
 
 async def build_timeline_chronology(
@@ -112,11 +113,11 @@ async def build_timeline_chronology(
         docs = (
             await db.execute(
                 text("""
-                    SELECT id, uploaded_at, original_filename 
-                    FROM documents 
+                    SELECT id, uploaded_at, original_filename
+                    FROM documents
                     WHERE id = ANY(:doc_ids)
                 """),
-                {"doc_ids": list(source_doc_ids)}
+                {"doc_ids": list(source_doc_ids)},
             )
         ).all()
         for doc_id, uploaded_at, original_filename in docs:
@@ -163,7 +164,7 @@ async def build_timeline_chronology(
 
         sort_dt = _parse_any_datetime(event_at_raw) or _parse_any_datetime(ingested_at_raw)
         if not sort_dt:
-            sort_dt = datetime.min.replace(tzinfo=timezone.utc)
+            sort_dt = datetime.min.replace(tzinfo=UTC)
 
         chronology_items.append(
             {

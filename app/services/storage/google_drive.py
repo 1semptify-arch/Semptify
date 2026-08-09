@@ -213,7 +213,7 @@ class GoogleDriveProvider(StorageProvider):
                     ).encode()
 
                     boundary = "semptify_boundary_" + secrets.token_hex(8)
-                    body = (f"--{boundary}\r\n" f"Content-Type: application/json; charset=UTF-8\r\n\r\n").encode()
+                    body = (f"--{boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n").encode()
                     body += metadata
                     body += f"\r\n--{boundary}\r\n".encode()
                     body += f"Content-Type: {mime_type}\r\n\r\n".encode()
@@ -238,7 +238,7 @@ class GoogleDriveProvider(StorageProvider):
                         # the vault manager's perspective: success means the file
                         # can immediately be resolved via download_file().
                         escaped_filename = self._escape_drive_query_value(filename)
-                        confirm_query = f"name='{escaped_filename}' and '{folder_id}' in parents" f" and trashed=false"
+                        confirm_query = f"name='{escaped_filename}' and '{folder_id}' in parents and trashed=false"
                         confirm_resp = await client.get(
                             f"{self.BASE_URL}/files",
                             headers=self._headers(),

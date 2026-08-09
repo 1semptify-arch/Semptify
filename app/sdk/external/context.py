@@ -11,8 +11,8 @@ The context object passed to every external SDK client. It carries:
 External modules receive this context from the external_loader and pass
 it to each SDK client call. The context is immutable.
 """
-from dataclasses import dataclass, field
-from typing import Optional
+
+from dataclasses import dataclass
 
 from app.sdk.external.permissions import PermissionSet
 
@@ -25,8 +25,8 @@ class ExternalModuleContext:
     vendor: str
     user_id: str
     permissions: PermissionSet
-    request_id: Optional[str] = None
-    jurisdiction: Optional[str] = None
+    request_id: str | None = None
+    jurisdiction: str | None = None
 
     def require_permission(self, permission: str, action: str = "") -> None:
         """Raise PermissionDeniedError if the module lacks the permission."""

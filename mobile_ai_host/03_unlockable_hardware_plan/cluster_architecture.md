@@ -5,7 +5,7 @@ inference endpoint that you can query as if it were one big model server.
 
 ## Architecture Overview
 
-```
+```text
                   ┌─────────────────┐
                   │   Load Balancer │  ← Single entry point
                   │   (Raspberry Pi │     for clients
@@ -62,7 +62,7 @@ request type. Best for **different workloads**.
 ### On the Load Balancer (any PC or Raspberry Pi on the same network)
 
 ```nginx
-# /etc/nginx/nginx.conf
+## /etc/nginx/nginx.conf
 events {}
 http {
     upstream ai_nodes {
@@ -94,18 +94,19 @@ http {
         }
     }
 }
-```
+```text
 
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
 Now clients point at the load balancer:
+
 ```bash
 curl http://<load-balancer-ip>:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"llama-3.2-3b","messages":[{"role":"user","content":"Hello"}]}'
-```
+```text
 
 ## Implementation: Mode 2 (Model Sharding with llama.cpp RPC)
 
@@ -115,10 +116,10 @@ an `llama-rpc` server, and one "master" node coordinates.
 ### On each phone (worker):
 
 ```bash
-# Phone 1 — runs layers 0-15
+## Phone 1 — runs layers 0-15
 ~/llama.cpp/build/bin/llama-rpc --host 0.0.0.0 --port 50052
 
-# Phone 2 — runs layers 16-31
+## Phone 2 — runs layers 16-31
 ~/llama.cpp/build/bin/llama-rpc --host 0.0.0.0 --port 50052
 ```
 
@@ -130,7 +131,7 @@ an `llama-rpc` server, and one "master" node coordinates.
   --host 0.0.0.0 --port 8080 \
   --rpc 192.168.1.101:50052,192.168.1.102:50052 \
   -t 8 -c 4096 -ngl 0
-```
+```text
 
 The master splits the model across the RPC workers. Clients talk only to the master.
 
@@ -140,7 +141,7 @@ Use it only when the model won't fit on one phone.
 ## Implementation: Mode 3 (Model Diversity with HAProxy)
 
 ```haproxy
-# /etc/haproxy/haproxy.cfg
+## /etc/haproxy/haproxy.cfg
 global
     log stdout format raw local0
 
@@ -171,16 +172,17 @@ backend long_model
 ```
 
 Clients route by path or header:
+
 ```bash
-# General chat → Llama-3.2-3B on Phone 1
+## General chat → Llama-3.2-3B on Phone 1
 curl http://<gateway>:8080/v1/chat/completions ...
 
-# Coding → Qwen2.5-Coder on Phone 2
+## Coding → Qwen2.5-Coder on Phone 2
 curl http://<gateway>:8080/v1/code/completions ...
 
-# Long context → Phi-3.5 on Phone 3
+## Long context → Phi-3.5 on Phone 3
 curl -H "X-Model: phi-3.5" http://<gateway>:8080/v1/chat/completions ...
-```
+```text
 
 ## Network Setup
 
@@ -190,9 +192,9 @@ For a permanent cluster, ditch Wi-Fi and use USB-Ethernet adapters on each phone
 Lower latency, no airtime contention.
 
 ```bash
-# On each phone (postmarketOS):
+## On each phone (postmarketOS):
 sudo apk add usbutils
-# Plug in USB-C → Ethernet adapter
+## Plug in USB-C → Ethernet adapter
 sudo nmcli device connect eth0
 ```
 
@@ -201,12 +203,12 @@ sudo nmcli device connect eth0
 Assign static IPs in your router's DHCP reservation table, or on each phone:
 
 ```bash
-# postmarketOS:
+## postmarketOS:
 sudo nmcli connection modify wlan0 ipv4.addresses 192.168.1.101/24
 sudo nmcli connection modify wlan0 ipv4.gateway 192.168.1.1
 sudo nmcli connection modify wlan0 ipv4.method manual
 sudo nmcli connection up wlan0
-```
+```text
 
 ### VLAN Isolation (Optional)
 
@@ -218,7 +220,7 @@ For security, put the AI cluster on its own VLAN with no internet access
 ### Per-Phone Health Check
 
 ```bash
-# Simple check — run from the load balancer as a cron job:
+## Simple check — run from the load balancer as a cron job:
 for ip in 192.168.1.{101,102,103}; do
   if curl -sf --max-time 5 "http://$ip:8080/health" >/dev/null; then
     echo "$ip: OK"
@@ -237,11 +239,12 @@ Install `node_exporter` on each phone:
 sudo apk add node_exporter
 sudo rc-update add node_exporter default
 sudo rc-service node_exporter start
-```
+```text
 
 Then scrape from your Prometheus server:
+
 ```yaml
-# prometheus.yml
+## prometheus.yml
 scrape_configs:
   - job_name: 'ai-phones'
     static_configs:
@@ -266,7 +269,7 @@ Monitor: CPU temp, RAM used, requests/sec, tokens/sec per phone.
 ## Cost Calculation
 
 | Component | Cost |
-|-----------|------|
+| ----------- | ------ |
 | 4× Pixel 4a used | $320 |
 | 1× Powered USB-C hub (60W) | $30 |
 | 1× Raspberry Pi 4 (load balancer) | $50 |
@@ -275,6 +278,7 @@ Monitor: CPU temp, RAM used, requests/sec, tokens/sec per phone.
 | **Total** | **~$425** |
 
 For $425 you get a 4-node AI cluster with 24GB total RAM, capable of:
+
 - 4× parallel Llama-3.2-3B inference (Mode 1)
 - 1× sharded Llama-3.2-7B across 4 phones (Mode 2)
 - 3× different models served simultaneously (Mode 3)

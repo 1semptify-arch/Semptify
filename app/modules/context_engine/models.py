@@ -1,18 +1,16 @@
 """Context Engine models — context_facts cache + tenant stories."""
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
     Boolean,
     DateTime,
-    ForeignKey,
+    Index,
     Integer,
     String,
     Text,
-    Index,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
 from app.core.utc import utc_now
@@ -37,15 +35,13 @@ class ContextFact(Base):
     claim: Mapped[str] = mapped_column(Text, nullable=False)
     source_url: Mapped[str] = mapped_column(Text, nullable=False)
     source_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    citation: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    citation: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     verified_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
-    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, index=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
 
-    __table_args__ = (
-        Index("ix_context_facts_subject_jur", "subject", "jurisdiction"),
-    )
+    __table_args__ = (Index("ix_context_facts_subject_jur", "subject", "jurisdiction"),)
 
 
 class TenantStory(Base):
@@ -65,12 +61,12 @@ class TenantStory(Base):
     is_anonymized: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_moderated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     is_published: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
-    submitted_by: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
-    moderated_by: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
-    moderated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    submitted_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    moderated_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    moderated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, onupdate=_naive_utc_now, nullable=False)
-
-    __table_args__ = (
-        Index("ix_tenant_stories_subject_pub", "subject", "is_published"),
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=_naive_utc_now, onupdate=_naive_utc_now, nullable=False
     )
+
+    __table_args__ = (Index("ix_tenant_stories_subject_pub", "subject", "is_published"),)

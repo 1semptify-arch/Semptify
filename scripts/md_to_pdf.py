@@ -4,10 +4,10 @@ Usage: python scripts/md_to_pdf.py <input.md> <output.pdf>
 
 Requires Microsoft Edge to be installed at the standard Windows path.
 """
+
 import re
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 EDGE_PATHS = [
@@ -41,16 +41,20 @@ def md_to_html(md: str) -> str:
             close_list()
             continue
         if line.startswith("# "):
-            flush_paragraph(); close_list()
+            flush_paragraph()
+            close_list()
             out.append(f"<h1>{inline(line[2:])}</h1>")
         elif line.startswith("## "):
-            flush_paragraph(); close_list()
+            flush_paragraph()
+            close_list()
             out.append(f"<h2>{inline(line[3:])}</h2>")
         elif line.startswith("### "):
-            flush_paragraph(); close_list()
+            flush_paragraph()
+            close_list()
             out.append(f"<h3>{inline(line[4:])}</h3>")
         elif line.startswith("---"):
-            flush_paragraph(); close_list()
+            flush_paragraph()
+            close_list()
             out.append("<hr>")
         elif line.startswith("- "):
             flush_paragraph()
@@ -59,7 +63,8 @@ def md_to_html(md: str) -> str:
                 in_list = True
             out.append(f"<li>{inline(line[2:])}</li>")
         elif line.startswith("*") and line.endswith("*") and len(line) > 2:
-            flush_paragraph(); close_list()
+            flush_paragraph()
+            close_list()
             out.append(f"<p><em>{inline(line.strip('*'))}</em></p>")
         else:
             close_list()

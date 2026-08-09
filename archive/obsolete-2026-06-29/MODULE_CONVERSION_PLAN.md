@@ -7,6 +7,7 @@ All routers converted. 89 SDK modules created. Zero `app.routers` references rem
 ## Current State
 
 The app is now a **modular FastAPI application** with:
+
 - **89 SDK modules** in `app/modules/` (each with `router.py`, `manifest.py`, `__init__.py`)
 - **65+ services** in `app/services/` (scattered, next phase: migrate into modules)
 - **6 product tiers** in `product_manifest.py` (CORE, EXTENDED, ADVOCATE, ADMIN, RESEARCH, DEV)
@@ -15,7 +16,8 @@ The app is now a **modular FastAPI application** with:
 ## Target State
 
 Every feature becomes a **self-contained SDK module** with:
-```
+
+```text
 app/modules/<module_name>/
 ├── __init__.py          # Public API exports
 ├── manifest.py          # ModuleManifest declaration
@@ -31,7 +33,7 @@ app/modules/<module_name>/
 ### CORE Tier — Always Active (14 modules)
 
 | Module | Router(s) | Services | Capabilities |
-|--------|-----------|----------|--------------|
+| -------- | ----------- | ---------- | -------------- |
 | **health** | `health` | — | ROUTER |
 | **system** | `versioning` | — | ROUTER |
 | **identity** | `storage`, `preamble`, `risc`, `role_ui` | `user_service` | ROUTER, CONTRACT |
@@ -51,7 +53,7 @@ app/modules/<module_name>/
 ### EXTENDED Tier — Legal Tools (10 modules)
 
 | Module | Router(s) | Services | Capabilities |
-|--------|-----------|----------|--------------|
+| -------- | ----------- | ---------- | -------------- |
 | **eviction_defense** | `eviction_defense` | `eviction/*` | ROUTER, CONTRACT |
 | **zoom_court** | `zoom_court`, `zoom_court_prep` | — | ROUTER |
 | **court_forms** | `court_forms`, `court_packet`, `legal_filing` | `court_form_generator`, `legal_filing_service` | ROUTER, CONTRACT |
@@ -65,14 +67,14 @@ app/modules/<module_name>/
 ### ADVOCATE Tier — Collaboration (2 modules)
 
 | Module | Router(s) | Services | Capabilities |
-|--------|-----------|----------|--------------|
+| -------- | ----------- | ---------- | -------------- |
 | **document_delivery** | `document_delivery`, `communication` | `document_delivery_service`, `communication_service`, `email_service` | ROUTER, CONTRACT |
 | **invite_codes** | `invite_codes` | — | ROUTER |
 
 ### ADMIN Tier — Dashboards (3 modules)
 
 | Module | Router(s) | Services | Capabilities |
-|--------|-----------|----------|--------------|
+| -------- | ----------- | ---------- | -------------- |
 | **analytics** | `analytics`, `dashboard`, `enterprise_dashboard` | — | ROUTER, WIDGET |
 | **batch_ops** | `batch`, `registry` | `document_distributor` | ROUTER |
 | **tenancy_hub** | `tenancy_hub` | — | ROUTER |
@@ -80,7 +82,7 @@ app/modules/<module_name>/
 ### RESEARCH Tier — AI Intelligence (8 modules)
 
 | Module | Router(s) | Services | Capabilities |
-|--------|-----------|----------|--------------|
+| -------- | ----------- | ---------- | -------------- |
 | **document_ai** | `recognition`, `extraction`, `crawler`, `overlays`, `unified_overlays` | `document_intelligence`, `event_extractor`, `crawler` | ROUTER, DOCUMENT, AI |
 | **research** | `research`, `form_data` | — | ROUTER, AI |
 | **vault_advanced** | `vault_all_in_one`, `cloud_sync` | `vault_engine`, `vault_ingestion`, `vault_search`, `vault_upload_service` | ROUTER, DOCUMENT |
@@ -95,7 +97,7 @@ app/modules/<module_name>/
 ### DEV Tier — Internal Tools (3 modules)
 
 | Module | Router(s) | Services | Capabilities |
-|--------|-----------|----------|--------------|
+| -------- | ----------- | ---------- | -------------- |
 | **setup** | `setup`, `page_index`, `page_editor` | — | ROUTER, WIDGET |
 | **development** | `development` | — | ROUTER |
 | **data_tools** | `export_import`, `testing`, `documentation` | — | ROUTER |
@@ -105,6 +107,7 @@ app/modules/<module_name>/
 For each module, perform these steps:
 
 1. **Create `app/modules/<module>/manifest.py`**
+
    ```python
    from app.sdk import ModuleManifest, ModuleCapability, ProductTier
    
@@ -118,9 +121,10 @@ For each module, perform these steps:
        router_module="app.modules.documents.router",
        tags=("Documents",),
    )
-   ```
+   ```text
 
 2. **Move router from `app/routers/<name>.py` → `app/modules/<module>/router.py`**
+
    - Update internal imports (e.g., `from app.services.document_intake` → `from .service`)
    - Keep route handlers identical at first — refactor later
 
@@ -129,6 +133,7 @@ For each module, perform these steps:
    - Shared services stay in `app/services/shared/` or become their own module
 
 4. **Create `app/modules/<module>/__init__.py`**
+
    ```python
    from .manifest import MANIFEST
    from .router import router
@@ -147,7 +152,7 @@ For each module, perform these steps:
 These are used by multiple modules and stay in `app/services/shared/`:
 
 | Service | Used By |
-|---------|---------|
+| --------- | --------- |
 | `azure_ai.py` | document_ai, positronic_brain |
 | `gemini_ai.py` | document_ai, positronic_brain |
 | `groq_ai.py` | document_ai, positronic_brain |
@@ -158,6 +163,7 @@ These are used by multiple modules and stay in `app/services/shared/`:
 ## Migration Order (Risk-Minimized)
 
 Phase 1 (Low Risk, Learn Pattern):
+
 1. `health` — simplest router, no services
 2. `free_api` — simple, no dependencies
 3. `contacts` — simple CRUD
@@ -178,6 +184,7 @@ Phase 4 (Remaining):
 ## Verification Checklist
 
 After each module conversion:
+
 - [ ] `python -m py_compile app/modules/<module>/*.py`
 - [ ] App imports successfully: `from app.main import app`
 - [ ] Module manifest valid: `ModuleRegistry().validate()["valid"] is True`

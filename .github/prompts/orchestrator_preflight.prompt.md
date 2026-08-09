@@ -3,7 +3,7 @@ mode: agent
 description: Run preflight before every Agent Orchestrator task dispatch
 ---
 
-<!-- Mirrors .devin/workflows/orchestrator_preflight.md — keep both in sync when editing. -->
+<!-- Mirrors .devin/skills/orchestrator_preflight/SKILL.md — keep both in sync when editing. -->
 
 # Agent Orchestrator — Pre-task Pre-Flight
 

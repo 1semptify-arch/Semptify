@@ -7,6 +7,7 @@ Public API:
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from .manifest import MANIFEST

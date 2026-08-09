@@ -31,9 +31,9 @@ def test_routes_exist():
     paths = [route.path for route in packet_router.routes]
     assert any(p.endswith("/build") for p in paths), f"Missing /build in {paths}"
     assert any(p.endswith("/packets/{packet_id}") for p in paths), f"Missing /packets/{{packet_id}} in {paths}"
-    assert any(
-        p.endswith("/packets/{packet_id}/download") for p in paths
-    ), f"Missing /packets/{{packet_id}}/download in {paths}"
+    assert any(p.endswith("/packets/{packet_id}/download") for p in paths), (
+        f"Missing /packets/{{packet_id}}/download in {paths}"
+    )
 
 
 def test_build_request_validates_empty_sources():

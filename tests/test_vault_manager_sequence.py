@@ -1,9 +1,9 @@
 import json
 
 import pytest
+from cryptography.exceptions import InvalidTag
 
 from app.services.storage.vault_manager import (
-    AUTH_FOLDER,
     PROVISIONING_FILE,
     TOKEN_BACKUP,
     TOKEN_FILE,
@@ -67,7 +67,7 @@ async def test_initialize_vault_marks_failed_when_token_verification_fails():
     storage = CorruptBackupStorageProvider()
     manager = VaultManager(storage, "GUabc12345", "http://localhost:8000")
 
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidTag):
         await manager.initialize_vault(
             provider_name="google_drive",
             access_token="access-token",

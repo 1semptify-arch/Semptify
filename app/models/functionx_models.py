@@ -1,8 +1,9 @@
+import logging
 from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
-import logging
+
 logger = logging.getLogger(__name__)
 
 

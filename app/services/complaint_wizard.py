@@ -7,21 +7,22 @@ Now with DATABASE PERSISTENCE for drafts.
 
 import json
 import logging
-from app.core.id_gen import make_id
 from datetime import datetime
-from app.core.utc import utc_now
-from typing import Optional
-from pydantic import BaseModel
-from enum import Enum
+from enum import StrEnum
 
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
 
-class AgencyType(str, Enum):
+class AgencyType(StrEnum):
     """Types of complaint agencies."""
+
     ATTORNEY_GENERAL = "attorney_general"
     HUD = "hud"
     BBB = "bbb"
@@ -30,8 +31,9 @@ class AgencyType(str, Enum):
     LEGAL_AID = "legal_aid"
 
 
-class ComplaintStatus(str, Enum):
+class ComplaintStatus(StrEnum):
     """Complaint filing status."""
+
     DRAFT = "draft"
     READY = "ready"
     FILED = "filed"
@@ -43,17 +45,18 @@ class ComplaintStatus(str, Enum):
 
 class Agency(BaseModel):
     """Regulatory agency information."""
+
     id: str
     name: str
     type: AgencyType
     description: str
     jurisdiction: str
     website: str
-    filing_url: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    address: Optional[str] = None
-    filing_fee: Optional[float] = None
+    filing_url: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    address: str | None = None
+    filing_fee: float | None = None
     typical_response_days: int = 30
     complaint_types: list[str] = []
     required_documents: list[str] = []
@@ -62,33 +65,34 @@ class Agency(BaseModel):
 
 class ComplaintDraft(BaseModel):
     """User's complaint draft."""
+
     id: str
     user_id: str
     agency_id: str
     status: ComplaintStatus = ComplaintStatus.DRAFT
     created_at: datetime
     updated_at: datetime
-    
+
     # Complaint details
     subject: str = ""
     description: str = ""
     incident_dates: list[str] = []
-    damages_claimed: Optional[float] = None
+    damages_claimed: float | None = None
     relief_sought: str = ""
-    
+
     # Evidence
     attached_document_ids: list[str] = []
     timeline_included: bool = False
-    
+
     # Respondent info
     respondent_name: str = ""
     respondent_company: str = ""
     respondent_address: str = ""
     respondent_phone: str = ""
-    
+
     # Filing info
-    filed_date: Optional[datetime] = None
-    confirmation_number: Optional[str] = None
+    filed_date: datetime | None = None
+    confirmation_number: str | None = None
     notes: str = ""
 
 
@@ -116,24 +120,23 @@ AGENCIES: dict[str, Agency] = {
             "Fraud",
             "Landlord violations",
             "Security deposit disputes",
-            "Consumer protection violations"
+            "Consumer protection violations",
         ],
         required_documents=[
             "Lease agreement",
             "All communications with landlord",
             "Receipts/payment records",
             "Photos of property conditions",
-            "Written notices received"
+            "Written notices received",
         ],
         tips=[
             "Include a clear timeline of events",
             "Attach all written communications",
             "Be specific about what laws you believe were violated",
             "State clearly what resolution you seek",
-            "MN AG has strong tenant protection enforcement"
-        ]
+            "MN AG has strong tenant protection enforcement",
+        ],
     ),
-
     "hud_fair_housing": Agency(
         id="hud_fair_housing",
         name="HUD - Fair Housing Complaint",
@@ -156,7 +159,7 @@ AGENCIES: dict[str, Agency] = {
             "Retaliation for exercising fair housing rights",
             "Sexual harassment by landlord/property manager",
             "Refusal to make reasonable accommodations for disability",
-            "Discriminatory advertising"
+            "Discriminatory advertising",
         ],
         required_documents=[
             "Description of discriminatory act",
@@ -165,7 +168,7 @@ AGENCIES: dict[str, Agency] = {
             "Witness information",
             "Any written evidence",
             "Copies of rental applications, leases",
-            "Screenshots of discriminatory ads"
+            "Screenshots of discriminatory ads",
         ],
         tips=[
             "File within 1 year of the discriminatory act",
@@ -173,10 +176,9 @@ AGENCIES: dict[str, Agency] = {
             "Include any witnesses who can corroborate your experience",
             "HUD can award damages and require policy changes",
             "Free to file - no cost to you",
-            "HUD investigates and can refer to DOJ for prosecution"
-        ]
+            "HUD investigates and can refer to DOJ for prosecution",
+        ],
     ),
-
     "hud_region_5": Agency(
         id="hud_region_5",
         name="HUD Region V - Minneapolis Field Office",
@@ -196,24 +198,23 @@ AGENCIES: dict[str, Agency] = {
             "HUD-assisted housing complaints",
             "Public housing authority issues",
             "FHA loan problems",
-            "Housing counseling agency issues"
+            "Housing counseling agency issues",
         ],
         required_documents=[
             "Description of complaint",
             "Dates and timeline",
             "Names of people/agencies involved",
             "Housing voucher or assistance documents",
-            "Written correspondence"
+            "Written correspondence",
         ],
         tips=[
             "Regional office may respond faster than national",
             "Handles Section 8 and subsidized housing issues",
             "Can assist with HUD-insured mortgage problems",
             "Good for complaints about local housing authorities",
-            "Walk-in hours available at Minneapolis office"
-        ]
+            "Walk-in hours available at Minneapolis office",
+        ],
     ),
-
     "mn_commerce_real_estate": Agency(
         id="mn_commerce_real_estate",
         name="Minnesota Department of Commerce - Real Estate",
@@ -233,22 +234,21 @@ AGENCIES: dict[str, Agency] = {
             "Misrepresentation",
             "Failure to account for funds",
             "Fraud by licensee",
-            "Property manager misconduct"
+            "Property manager misconduct",
         ],
         required_documents=[
             "Property manager's name and company",
             "Lease or management agreement",
             "Evidence of violation",
-            "Communications showing misconduct"
+            "Communications showing misconduct",
         ],
         tips=[
             "Verify the person is actually licensed first at mn.gov/commerce",
             "Focus on violations of licensing laws",
             "Commission can revoke or suspend licenses",
-            "This is separate from civil remedies - you can do both"
-        ]
+            "This is separate from civil remedies - you can do both",
+        ],
     ),
-
     "bbb_mn": Agency(
         id="bbb_mn",
         name="Better Business Bureau - Minnesota",
@@ -265,22 +265,21 @@ AGENCIES: dict[str, Agency] = {
             "Service complaints",
             "Billing issues",
             "Contract disputes",
-            "Property management complaints"
+            "Property management complaints",
         ],
         required_documents=[
             "Business name and address",
             "Description of transaction",
             "Copies of contracts/agreements",
-            "Communication records"
+            "Communication records",
         ],
         tips=[
             "BBB complaints become public record",
             "Businesses often respond to protect their rating",
             "Good for getting attention from management",
-            "Not a regulatory body but applies social pressure"
-        ]
+            "Not a regulatory body but applies social pressure",
+        ],
     ),
-
     "legal_aid_mn": Agency(
         id="legal_aid_mn",
         name="Legal Aid - Minnesota",
@@ -298,23 +297,17 @@ AGENCIES: dict[str, Agency] = {
             "Housing conditions",
             "Security deposit recovery",
             "Fair housing",
-            "Unlawful detainer defense"
+            "Unlawful detainer defense",
         ],
-        required_documents=[
-            "Income verification",
-            "All case documents",
-            "Court papers if any",
-            "Lease agreement"
-        ],
+        required_documents=["Income verification", "All case documents", "Court papers if any", "Lease agreement"],
         tips=[
             "Income limits apply for free services",
             "They can represent you in court",
             "Call early - before court dates",
             "They prioritize urgent housing matters",
-            "Mid-Minnesota Legal Aid serves the metro area"
-        ]
+            "Mid-Minnesota Legal Aid serves the metro area",
+        ],
     ),
-
     "mn_housing_court": Agency(
         id="mn_housing_court",
         name="Minnesota Housing Court",
@@ -325,26 +318,15 @@ AGENCIES: dict[str, Agency] = {
         phone="(612) 348-2040",
         filing_fee=None,
         typical_response_days=7,
-        complaint_types=[
-            "Eviction proceedings",
-            "Lease violations",
-            "Rent disputes",
-            "Security deposit claims"
-        ],
-        required_documents=[
-            "Court summons",
-            "Lease agreement",
-            "Payment records",
-            "Written notices"
-        ],
+        complaint_types=["Eviction proceedings", "Lease violations", "Rent disputes", "Security deposit claims"],
+        required_documents=["Court summons", "Lease agreement", "Payment records", "Written notices"],
         tips=[
             "Appear at all hearings - missing one can result in default judgment",
             "Bring all documentation",
             "Request a continuance if you need more time",
-            "Ask about the Eviction Expungement program"
-        ]
+            "Ask about the Eviction Expungement program",
+        ],
     ),
-
     "homeline_mn": Agency(
         id="homeline_mn",
         name="HOME Line - Minnesota Tenant Hotline",
@@ -363,21 +345,16 @@ AGENCIES: dict[str, Agency] = {
             "Security deposit disputes",
             "Repair issues",
             "Landlord harassment",
-            "Lease questions"
+            "Lease questions",
         ],
-        required_documents=[
-            "Lease agreement",
-            "Relevant correspondence",
-            "Court papers if applicable"
-        ],
+        required_documents=["Lease agreement", "Relevant correspondence", "Court papers if applicable"],
         tips=[
             "Call the hotline for immediate advice",
             "They can help you understand your rights",
             "Great first step before filing formal complaints",
-            "They offer tenant education workshops"
-        ]
+            "They offer tenant education workshops",
+        ],
     ),
-
     "dakota_county_housing": Agency(
         id="dakota_county_housing",
         name="Dakota County Housing Authority",
@@ -393,19 +370,15 @@ AGENCIES: dict[str, Agency] = {
             "Section 8 issues",
             "Housing assistance",
             "Landlord violations in subsidized housing",
-            "Fair housing in Dakota County"
+            "Fair housing in Dakota County",
         ],
-        required_documents=[
-            "Housing voucher documents",
-            "Lease agreement",
-            "Violation evidence"
-        ],
+        required_documents=["Housing voucher documents", "Lease agreement", "Violation evidence"],
         tips=[
             "Contact them if you have Section 8 voucher issues",
             "They can intervene with landlords in their program",
-            "Report violations of housing quality standards"
-        ]
-    )
+            "Report violations of housing quality standards",
+        ],
+    ),
 }
 
 
@@ -423,9 +396,7 @@ class ComplaintWizardService:
         state_agencies = []
         for agency in self.agencies.values():
             jurisdiction = agency.jurisdiction.lower()
-            if (state_code.lower() in jurisdiction or
-                "minnesota" in jurisdiction or
-                jurisdiction == "federal"):
+            if state_code.lower() in jurisdiction or "minnesota" in jurisdiction or jurisdiction == "federal":
                 state_agencies.append(agency)
         return state_agencies if state_agencies else list(self.agencies.values())
 
@@ -433,13 +404,14 @@ class ComplaintWizardService:
         """Get agencies based on user's location from location service."""
         try:
             from app.services.location_service import location_service
+
             location = location_service.get_user_location(user_id)
             return self.get_all_agencies(location.state_code)
         except (ImportError, AttributeError, KeyError):
             # Default to all MN agencies
             return self.get_all_agencies("MN")
 
-    def get_agency(self, agency_id: str) -> Optional[Agency]:
+    def get_agency(self, agency_id: str) -> Agency | None:
         """Get agency by ID."""
         return self.agencies.get(agency_id)
 
@@ -470,12 +442,7 @@ class ComplaintWizardService:
     # =========================================================================
 
     async def create_draft_db(
-        self,
-        db: AsyncSession,
-        user_id: str,
-        agency_id: str,
-        subject: str = "",
-        complaint_type: str = "general"
+        self, db: AsyncSession, user_id: str, agency_id: str, subject: str = "", complaint_type: str = "general"
     ) -> ComplaintDraft:
         """Create a new complaint draft and persist to database."""
         from app.models.models import Complaint as ComplaintModel
@@ -495,7 +462,7 @@ class ComplaintWizardService:
             detailed_description="",
             target_type="landlord",
             created_at=now,
-            updated_at=now
+            updated_at=now,
         )
         db.add(db_complaint)
         await db.commit()
@@ -503,24 +470,17 @@ class ComplaintWizardService:
 
         # Create pydantic model for response
         draft = ComplaintDraft(
-            id=draft_id,
-            user_id=user_id,
-            agency_id=agency_id,
-            subject=subject,
-            created_at=now,
-            updated_at=now
+            id=draft_id, user_id=user_id, agency_id=agency_id, subject=subject, created_at=now, updated_at=now
         )
         self._cache[draft_id] = draft
         logger.info("📝 Created complaint draft %s... for user %s...", draft_id[:8], user_id[:8])
         return draft
 
-    async def get_draft_db(self, db: AsyncSession, draft_id: str) -> Optional[ComplaintDraft]:
+    async def get_draft_db(self, db: AsyncSession, draft_id: str) -> ComplaintDraft | None:
         """Get a draft from database by ID."""
         from app.models.models import Complaint as ComplaintModel
 
-        result = await db.execute(
-            select(ComplaintModel).where(ComplaintModel.id == draft_id)
-        )
+        result = await db.execute(select(ComplaintModel).where(ComplaintModel.id == draft_id))
         db_complaint = result.scalar_one_or_none()
         if not db_complaint:
             return None
@@ -532,25 +492,16 @@ class ComplaintWizardService:
         from app.models.models import Complaint as ComplaintModel
 
         result = await db.execute(
-            select(ComplaintModel)
-            .where(ComplaintModel.user_id == user_id)
-            .order_by(ComplaintModel.updated_at.desc())
+            select(ComplaintModel).where(ComplaintModel.user_id == user_id).order_by(ComplaintModel.updated_at.desc())
         )
         db_complaints = result.scalars().all()
         return [self._db_to_draft(c) for c in db_complaints]
 
-    async def update_draft_db(
-        self,
-        db: AsyncSession,
-        draft_id: str,
-        **updates
-    ) -> Optional[ComplaintDraft]:
+    async def update_draft_db(self, db: AsyncSession, draft_id: str, **updates) -> ComplaintDraft | None:
         """Update a draft in database."""
         from app.models.models import Complaint as ComplaintModel
 
-        result = await db.execute(
-            select(ComplaintModel).where(ComplaintModel.id == draft_id)
-        )
+        result = await db.execute(select(ComplaintModel).where(ComplaintModel.id == draft_id))
         db_complaint = result.scalar_one_or_none()
         if not db_complaint:
             return None
@@ -568,9 +519,12 @@ class ComplaintWizardService:
             db_key = field_mapping.get(key, key)
 
             # Handle JSON array fields
-            if key == "incident_dates" and isinstance(value, list):
-                value = json.dumps(value)
-            elif key == "attached_document_ids" and isinstance(value, list):
+            if (
+                key == "incident_dates"
+                and isinstance(value, list)
+                or key == "attached_document_ids"
+                and isinstance(value, list)
+            ):
                 value = json.dumps(value)
 
             if hasattr(db_complaint, db_key):
@@ -583,17 +537,12 @@ class ComplaintWizardService:
         return self._db_to_draft(db_complaint)
 
     async def attach_documents_db(
-        self,
-        db: AsyncSession,
-        draft_id: str,
-        document_ids: list[str]
-    ) -> Optional[ComplaintDraft]:
+        self, db: AsyncSession, draft_id: str, document_ids: list[str]
+    ) -> ComplaintDraft | None:
         """Attach documents to a draft in database."""
         from app.models.models import Complaint as ComplaintModel
 
-        result = await db.execute(
-            select(ComplaintModel).where(ComplaintModel.id == draft_id)
-        )
+        result = await db.execute(select(ComplaintModel).where(ComplaintModel.id == draft_id))
         db_complaint = result.scalar_one_or_none()
         if not db_complaint:
             return None
@@ -617,17 +566,12 @@ class ComplaintWizardService:
         return self._db_to_draft(db_complaint)
 
     async def mark_as_filed_db(
-        self,
-        db: AsyncSession,
-        draft_id: str,
-        confirmation_number: Optional[str] = None
-    ) -> Optional[ComplaintDraft]:
+        self, db: AsyncSession, draft_id: str, confirmation_number: str | None = None
+    ) -> ComplaintDraft | None:
         """Mark a complaint as filed in database."""
         from app.models.models import Complaint as ComplaintModel
 
-        result = await db.execute(
-            select(ComplaintModel).where(ComplaintModel.id == draft_id)
-        )
+        result = await db.execute(select(ComplaintModel).where(ComplaintModel.id == draft_id))
         db_complaint = result.scalar_one_or_none()
         if not db_complaint:
             return None
@@ -642,16 +586,14 @@ class ComplaintWizardService:
         await db.commit()
         await db.refresh(db_complaint)
 
-        logger.info("✅ Complaint %s... marked as FILED with %s", draft_id[:8], agency.name if agency else 'agency')
+        logger.info("✅ Complaint %s... marked as FILED with %s", draft_id[:8], agency.name if agency else "agency")
         return self._db_to_draft(db_complaint)
 
     async def delete_draft_db(self, db: AsyncSession, draft_id: str) -> bool:
         """Delete a draft from database."""
         from app.models.models import Complaint as ComplaintModel
 
-        result = await db.execute(
-            select(ComplaintModel).where(ComplaintModel.id == draft_id)
-        )
+        result = await db.execute(select(ComplaintModel).where(ComplaintModel.id == draft_id))
         db_complaint = result.scalar_one_or_none()
         if not db_complaint:
             return False
@@ -698,35 +640,25 @@ class ComplaintWizardService:
             respondent_phone=db_complaint.target_phone or "",
             filed_date=db_complaint.filing_date,
             confirmation_number=db_complaint.confirmation_number or "",
-            notes=db_complaint.notes or ""
+            notes=db_complaint.notes or "",
         )
 
     # =========================================================================
     # LEGACY SYNC METHODS (In-Memory - for backward compatibility)
     # =========================================================================
 
-    def create_draft(
-        self,
-        user_id: str,
-        agency_id: str,
-        subject: str = ""
-    ) -> ComplaintDraft:
+    def create_draft(self, user_id: str, agency_id: str, subject: str = "") -> ComplaintDraft:
         """Create a new complaint draft (in-memory, use create_draft_db for persistence)."""
         draft_id = make_id("cmp")
         now = utc_now()
 
         draft = ComplaintDraft(
-            id=draft_id,
-            user_id=user_id,
-            agency_id=agency_id,
-            subject=subject,
-            created_at=now,
-            updated_at=now
+            id=draft_id, user_id=user_id, agency_id=agency_id, subject=subject, created_at=now, updated_at=now
         )
         self._cache[draft_id] = draft
         return draft
 
-    def get_draft(self, draft_id: str) -> Optional[ComplaintDraft]:
+    def get_draft(self, draft_id: str) -> ComplaintDraft | None:
         """Get a draft by ID (from cache)."""
         return self._cache.get(draft_id)
 
@@ -734,11 +666,7 @@ class ComplaintWizardService:
         """Get all drafts for a user (from cache)."""
         return [d for d in self._cache.values() if d.user_id == user_id]
 
-    def update_draft(
-        self,
-        draft_id: str,
-        **updates
-    ) -> Optional[ComplaintDraft]:
+    def update_draft(self, draft_id: str, **updates) -> ComplaintDraft | None:
         """Update a draft (in cache)."""
         draft = self._cache.get(draft_id)
         if not draft:
@@ -751,11 +679,7 @@ class ComplaintWizardService:
         draft.updated_at = utc_now()
         return draft
 
-    def attach_documents(
-        self,
-        draft_id: str,
-        document_ids: list[str]
-    ) -> Optional[ComplaintDraft]:
+    def attach_documents(self, draft_id: str, document_ids: list[str]) -> ComplaintDraft | None:
         """Attach documents to a draft (in cache)."""
         draft = self._cache.get(draft_id)
         if not draft:
@@ -769,7 +693,7 @@ class ComplaintWizardService:
         """Generate formatted complaint text from draft."""
         agency = self.get_agency(draft.agency_id)
         agency_name = agency.name if agency else "Agency"
-        
+
         lines = [
             f"FORMAL COMPLAINT TO {agency_name.upper()}",
             f"Date: {utc_now().strftime('%B %d, %Y')}",
@@ -801,66 +725,66 @@ class ComplaintWizardService:
             "RELEVANT DATES",
             "=" * 60,
         ]
-        
+
         for date in draft.incident_dates:
             lines.append(f"• {date}")
-        
-        lines.extend([
-            "",
-            "=" * 60,
-            "DAMAGES / HARM SUFFERED",
-            "=" * 60,
-        ])
-        
+
+        lines.extend(
+            [
+                "",
+                "=" * 60,
+                "DAMAGES / HARM SUFFERED",
+                "=" * 60,
+            ]
+        )
+
         if draft.damages_claimed:
             lines.append(f"Financial damages claimed: ${draft.damages_claimed:,.2f}")
-        
-        lines.extend([
-            "",
-            "=" * 60,
-            "RELIEF SOUGHT",
-            "=" * 60,
-            draft.relief_sought,
-            "",
-            "=" * 60,
-            "ATTACHED EVIDENCE",
-            "=" * 60,
-            f"• {len(draft.attached_document_ids)} documents attached",
-            f"• Timeline included: {'Yes' if draft.timeline_included else 'No'}",
-            "",
-            "I declare under penalty of perjury that the foregoing is true and correct.",
-            "",
-            "____________________________",
-            "Signature",
-            "",
-            "____________________________",
-            "Date"
-        ])
-        
+
+        lines.extend(
+            [
+                "",
+                "=" * 60,
+                "RELIEF SOUGHT",
+                "=" * 60,
+                draft.relief_sought,
+                "",
+                "=" * 60,
+                "ATTACHED EVIDENCE",
+                "=" * 60,
+                f"• {len(draft.attached_document_ids)} documents attached",
+                f"• Timeline included: {'Yes' if draft.timeline_included else 'No'}",
+                "",
+                "I declare under penalty of perjury that the foregoing is true and correct.",
+                "",
+                "____________________________",
+                "Signature",
+                "",
+                "____________________________",
+                "Date",
+            ]
+        )
+
         return "\n".join(lines)
-    
-    def mark_as_filed(
-        self,
-        draft_id: str,
-        confirmation_number: Optional[str] = None
-    ) -> Optional[ComplaintDraft]:
+
+    def mark_as_filed(self, draft_id: str, confirmation_number: str | None = None) -> ComplaintDraft | None:
         """Mark a complaint as filed (in cache)."""
         draft = self._cache.get(draft_id)
         if not draft:
             return None
-        
+
         draft.status = ComplaintStatus.FILED
         draft.filed_date = utc_now()
         draft.confirmation_number = confirmation_number
         draft.updated_at = utc_now()
         return draft
-    
+
     def get_filing_checklist(self, agency_id: str) -> dict:
         """Get filing checklist for an agency."""
         agency = self.get_agency(agency_id)
         if not agency:
             return {"error": "Agency not found"}
-        
+
         return {
             "agency": agency.name,
             "required_documents": agency.required_documents,
@@ -877,8 +801,8 @@ class ComplaintWizardService:
                 "☐ Make copies of everything",
                 "☐ Keep confirmation/tracking number",
                 "☐ Note the date you filed",
-                "☐ Set calendar reminder for follow-up"
-            ]
+                "☐ Set calendar reminder for follow-up",
+            ],
         }
 
 

@@ -6,10 +6,10 @@ Tests for health checks, readiness, and metrics.
 import pytest
 from httpx import AsyncClient
 
-
 # =============================================================================
 # Health Check Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_healthz(client: AsyncClient):
@@ -35,20 +35,22 @@ async def test_healthz_response_format(client: AsyncClient):
     """Test health check response has expected format."""
     response = await client.get("/healthz")
     data = response.json()
-    
+
     # Should have status and timestamp
     assert "status" in data
     assert "timestamp" in data
-    
+
     # Timestamp should be ISO format
     import re
-    iso_pattern = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'
+
+    iso_pattern = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
     assert re.match(iso_pattern, data["timestamp"])
 
 
 # =============================================================================
 # Readiness Check Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_readyz(client: AsyncClient):
@@ -71,15 +73,15 @@ async def test_readyz_checks_structure(client: AsyncClient):
     """Test readiness check returns expected checks."""
     response = await client.get("/readyz")
     data = response.json()
-    
+
     # Should have checks dict
     assert "checks" in data
     checks = data["checks"]
-    
+
     # Should check critical directories
     expected_dirs = ["dir_uploads", "dir_security", "dir_data"]
     for expected in expected_dirs:
-        assert expected in checks or any(expected in k for k in checks.keys())
+        assert expected in checks or any(expected in k for k in checks)
 
 
 @pytest.mark.anyio
@@ -87,7 +89,7 @@ async def test_readyz_includes_database(client: AsyncClient):
     """Test readiness check includes database check."""
     response = await client.get("/readyz")
     data = response.json()
-    
+
     # Should have database check
     assert "database" in data["checks"]
 
@@ -97,7 +99,7 @@ async def test_readyz_details(client: AsyncClient):
     """Test readiness check includes details."""
     response = await client.get("/readyz")
     data = response.json()
-    
+
     # May include details
     if "details" in data:
         assert isinstance(data["details"], dict)
@@ -107,13 +109,14 @@ async def test_readyz_details(client: AsyncClient):
 # Metrics Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_metrics_prometheus(client: AsyncClient):
     """Test Prometheus metrics endpoint."""
     response = await client.get("/metrics")
     # May return 404 if disabled, or text if enabled
     assert response.status_code in [200, 404]
-    
+
     if response.status_code == 200:
         content = response.text
         # Should be Prometheus format
@@ -137,7 +140,7 @@ async def test_metrics_json(client: AsyncClient):
 async def test_metrics_contains_expected_fields(client: AsyncClient):
     """Test metrics contains expected fields."""
     response = await client.get("/metrics")
-    
+
     if response.status_code == 200:
         content = response.text
         # Check for expected metric names if enabled
@@ -153,6 +156,7 @@ async def test_metrics_contains_expected_fields(client: AsyncClient):
 # =============================================================================
 # Error Response Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_404_error(client: AsyncClient):
@@ -173,15 +177,16 @@ async def test_method_not_allowed(client: AsyncClient):
 # Performance Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_health_check_fast(client: AsyncClient):
     """Test health check responds quickly."""
     import time
-    
+
     start = time.time()
     response = await client.get("/healthz")
     elapsed = time.time() - start
-    
+
     assert response.status_code == 200
     assert elapsed < 1.0, f"Health check too slow: {elapsed:.2f}s"
 

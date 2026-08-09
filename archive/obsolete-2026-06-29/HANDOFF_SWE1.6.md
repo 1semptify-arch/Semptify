@@ -1,8 +1,12 @@
 # Semptify — SWE 1.6 Task List
-# Updated: 2026-06-17 PM | For: SWE 1.6 (code-execution agent)
-# Stack: Python 3.11.9 / FastAPI / PostgreSQL / Redis / SQLAlchemy async
-# Repo: C:\Semptify\Semptify-FastAPI
-# HEAD: 0aee35d (clean, pushed to main)
+
+## Updated: 2026-06-17 PM | For: SWE 1.6 (code-execution agent)
+
+## Stack: Python 3.11.9 / FastAPI / PostgreSQL / Redis / SQLAlchemy async
+
+## Repo: C:\Semptify\Semptify-FastAPI
+
+## HEAD: 0aee35d (clean, pushed to main)
 
 ---
 
@@ -10,7 +14,8 @@
 
 **Last Session:** 2026-06-17 PM — Deployment Warnings & Status Indicator + Returning User Auto-Reconnect
 
-**What Was Shipped:**
+### What Was Shipped:
+
 - Fixed `app/modules/security/__init__.py` syntax error (import in docstring)
 - Fixed `.gitignore` to allow `app/modules/security` directory
 - Disabled litigation_intelligence router (missing graph_engine module)
@@ -19,16 +24,18 @@
 - Added returning user auto-reconnect in preamble router (auto-repairs storage_connected gate)
 - Updated BUILD_STATE.md with session summary
 
-**Known Working (Tested Live):**
+### Known Working (Tested Live):
+
 - ✅ Security module loads without import errors
 - ✅ Litigation intelligence router disabled (no warnings)
 - ✅ Status indicator displays and polls `/api/auth/me`
 - ✅ Double-click verify/reconnect functional
 - ✅ Preamble auto-repairs storage_connected gate for returning users
 - ✅ All core files compile clean
-- ✅ Deployed to Render successfully (https://semptify.org)
+- ✅ Deployed to Render successfully (<https://semptify.org>)
 
-**Known Pending (Priority Order):**
+### Known Pending (Priority Order):
+
 1. ⚠️ **DB SSL mode** — Requires Render dashboard action (`DB_SSL_MODE=require`)
 2. ⏳ **OAuth flow live test** — Verify completes without timeout on production
 3. ⏳ **Upload → timeline** — Verify `document_uploaded` event creates timeline row
@@ -62,7 +69,8 @@
 
 **Goal:** Confirm `admin_audit_logs` and `document_annotations` tables exist in production DB.
 
-**Steps:**
+#### Steps:
+
 1. Check Render deploy logs for: `Running upgrade 68e486c460de -> 20260616_add_missing_tables`
 2. If logs confirm migration ran, query the DB:
    - `SELECT COUNT(*) FROM admin_audit_logs;`  → must not error
@@ -78,8 +86,9 @@
 
 **Goal:** Confirm that uploading a document creates a `TimelineEvent` row automatically.
 
-**Steps:**
-1. Log in at https://semptify.org as a real tenant (need test account)
+#### Steps:
+
+1. Log in at <https://semptify.org> as a real tenant (need test account)
 2. Upload any document via the vault
 3. Call `GET /api/timeline/unified` (authenticated)
 4. Verify response includes an entry with:
@@ -87,17 +96,21 @@
    - `title` containing the filename
    - `event_date` within the last minute
 5. Also check PostgreSQL directly:
+
    ```sql
    SELECT id, event_type, title, event_date
    FROM timeline_events
    WHERE user_id = '<test_uid>'
    ORDER BY event_date DESC
    LIMIT 5;
-   ```
+   ```text
+
 6. If the row is NOT created: check server logs for `_on_document_added subscriber failed`
+
 7. Update `BUILD_STATE.md` with result
 
 **Files involved:**
+
 - `app/core/event_subscribers.py` — subscriber
 - `app/core/event_bus.py` — event dispatch
 - `app/modules/vault/router.py` lines 427-436 — where event is fired
@@ -109,6 +122,7 @@
 **Goal:** Confirm cases are stored in PostgreSQL and not wiped on Render restart.
 
 **Steps:**
+
 1. Create a case via `POST /api/case-builder/cases` (authenticated)
 2. Note the returned `case_id` (now a PostgreSQL integer, not a UUID)
 3. Trigger a Render restart (from dashboard → "Restart service")
@@ -118,6 +132,7 @@
 6. Update `BUILD_STATE.md` with result
 
 **Files involved:**
+
 - `app/modules/case_builder/router.py` — `load_case`, `save_case`, `create_case`
 - `app/models/models.py` — `Incident` model (`incident_metadata` JSONB column)
 
@@ -128,14 +143,17 @@
 **Goal:** Confirm `user_capabilities` rows are seeded when a user logs in.
 
 **Steps:**
+
 1. Log in with a fresh account (or clear capabilities for a test user)
 2. Check PostgreSQL:
+
    ```sql
    SELECT module_name, is_active, source
    FROM user_capabilities
    WHERE user_id = '<uid>'
    ORDER BY module_name;
    ```
+
 3. Expected: at minimum these modules seeded for a tenant:
    `case_builder`, `timeline`, `vault`, `rent_ledger`, `court_forms`
 4. If rows are missing: check `app/modules/storage/router.py` around line 1952 for
@@ -143,7 +161,8 @@
    in a condition that skips it
 5. Update `BUILD_STATE.md` with result
 
-**Files involved:**
+#### Files involved:
+
 - `app/core/capabilities.py` — `seed_capability_defaults()`
 - `app/modules/storage/router.py` — OAuth callback (around line 1952)
 
@@ -153,7 +172,8 @@
 
 **Goal:** Fix a bug where both branches of a try/except set `HAS_STORAGE = True`.
 
-**Steps:**
+#### Steps:
+
 1. Open `app/services/vault_upload_service.py`
 2. Search for `HAS_STORAGE`
 3. If both the `try:` and `except:` blocks set it to `True`, the guard is meaningless
@@ -172,12 +192,14 @@
 **Goal:** The `user_relationships` table exists and `can_access()` function exists but is
 not called anywhere. Wire it so Advocate can act on behalf of Tenant.
 
-**Context:**
+#### Context:
+
 - `user_relationships` table: `app/models/models.py` class `UserRelationship`
 - `can_access()`: `app/core/security.py` — async function, queries `user_relationships`
 - `UserContext`: `app/core/user_context.py` — has `acting_as` and `acting_as_role` fields
 
-**Steps:**
+#### Steps:
+
 1. Read `app/core/security.py` — find `can_access(requester_id, target_id)`
 2. Read `app/core/user_context.py` — find `acting_as` / `acting_as_role`
 3. Add endpoint: `POST /api/user/act-as` (advocate/admin only)
@@ -193,7 +215,8 @@ not called anywhere. Wire it so Advocate can act on behalf of Tenant.
    - Test 2: tenant trying to act-as another user → 403
    - Test 3: advocate acting as tenant → 200 (if relationship exists)
 
-**Files:**
+#### Files:
+
 - `app/core/security.py`
 - `app/core/user_context.py`
 - `app/modules/storage/router.py` or a new `app/modules/user/router.py`
@@ -204,17 +227,22 @@ not called anywhere. Wire it so Advocate can act on behalf of Tenant.
 
 **Goal:** Verify rent ledger CRUD works end-to-end.
 
-**Steps:**
+#### Steps:
+
 1. Find the rent ledger router: search for `RentPayment` in `app/`
 2. Find the `POST` endpoint for creating a payment
 3. Test: `POST /api/rent/payments` with:
+
    ```json
    {"amount": 950.00, "payment_date": "2026-06-01", "status": "paid", "notes": "June rent"}
-   ```
+   ```text
+
 4. Verify response includes `payment_id` and the row exists in PostgreSQL:
+
    ```sql
    SELECT * FROM rent_payments WHERE user_id = '<uid>' ORDER BY created_at DESC LIMIT 3;
    ```
+
 5. If endpoint does not exist: check `app/modules/rent/router.py` or create it
 6. Update `BUILD_STATE.md`
 
@@ -225,13 +253,15 @@ not called anywhere. Wire it so Advocate can act on behalf of Tenant.
 **Goal:** When the `filedored_ready` Redis flag is not set, folder creation should be
 triggered lazily on first document access, not skipped entirely.
 
-**Context:**
+#### Context:
+
 - `app/services/filedored_service.py` — `ensure_filedored_folders()`
 - Redis flag: `semptify:filedored_ready:<user_id>` — set after first folder creation
 - Current state: if flag is missing, creates folders. If flag is present, skips. CORRECT.
 - Problem: overlay/AI subdirectories are never created. They must be on-demand.
 
-**Steps:**
+#### Steps:
+
 1. Read `app/services/filedored_service.py` fully
 2. Identify which folders are "on-demand" (overlay, AI, etc.) vs "always needed"
 3. Add lazy trigger: when a module first tries to write to an on-demand folder and gets
@@ -245,13 +275,15 @@ triggered lazily on first document access, not skipped entirely.
 
 **Goal:** Find production code that still has stub/placeholder behavior.
 
-**Steps:**
+#### Steps:
+
 ```powershell
-# Run these in repo root
+## Run these in repo root
 grep -rn "TODO\|FIXME\|HACK\|not implemented\|placeholder\|stub\|pass  #" app/ --include="*.py" | grep -v "test_" | grep -v "#.*TODO"
-```
+```text
 
 **For each hit:**
+
 1. Decide: is this in a code path a user will hit? (core upload, auth, timeline, case builder = YES)
 2. If yes: fix it or file it in BUILD_STATE.md as a known gap
 3. If no (admin debug tool, background analytics): leave it, note in BUILD_STATE.md
@@ -264,6 +296,7 @@ grep -rn "TODO\|FIXME\|HACK\|not implemented\|placeholder\|stub\|pass  #" app/ -
 Update it to reflect the current state after this session's 6 milestones.
 
 **Steps:**
+
 1. Open `ACTIVE_CONTEXT.md`
 2. Update the "Next Priority" section to reflect the task list above (Tasks 1-4 are live tests)
 3. Mark Milestones 1-6 as completed
@@ -292,7 +325,7 @@ Update it to reflect the current state after this session's 6 milestones.
 
 ## GIT COMMIT FORMAT
 
-```
+```html
 <verb>(<scope>): <what changed>
 
 - app/path/file.py: what changed and why
@@ -300,7 +333,8 @@ Update it to reflect the current state after this session's 6 milestones.
 ```
 
 Examples:
-```
+
+```text
 fix(vault): remove meaningless HAS_STORAGE guard
 feat(role-hierarchy): wire can_access() into act-as endpoint
 test(rent): add rent ledger smoke test
