@@ -10,19 +10,16 @@ Endpoints:
 """
 
 import logging
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import Response, JSONResponse
+from fastapi.responses import Response
 
+from app.core.utc import utc_now
 from app.modules.portal.service import (
     get_portal_catalog,
     get_service,
     get_sitemap_entries,
-    get_footer_pages,
-    get_sitemap_pages,
 )
-from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +71,7 @@ async def list_portal_pages():
     and footer links.
     """
     from app.modules.portal.pages import portal_pages
+
     return portal_pages.to_dict()
 
 
@@ -140,4 +138,3 @@ async def get_robots_txt(request: Request):
     ]
     content = "\n".join(lines)
     return Response(content=content, media_type="text/plain")
-

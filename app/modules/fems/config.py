@@ -1,4 +1,5 @@
 """FEMS module configuration — reads from Semptify environment."""
+
 import os
 from pathlib import Path
 

@@ -3,7 +3,7 @@ mode: agent
 description: SSOT Architecture Analysis - Trace data flow through Semptify systems
 ---
 
-<!-- Mirrors .devin/workflows/ssot-analysis.md — keep both in sync when editing. -->
+<!-- Mirrors .devin/skills/ssot-analysis/SKILL.md — keep both in sync when editing. -->
 
 # SSOT Analysis Workflow
 
@@ -12,6 +12,7 @@ Use this when analyzing data flows, document paths, or system interactions in Se
 ## Purpose
 
 Trace how information moves through the system from entry to storage to retrieval, identifying:
+
 - Where data is stored (primary, backup, cache)
 - Transformation steps and their weights (CPU, I/O, network)
 - SSOT compliance (single source of truth violations)
@@ -22,7 +23,8 @@ Trace how information moves through the system from entry to storage to retrieva
 ### 1. Identify Entry Point
 
 Find where the data/action originates:
-```
+
+```text
 - HTTP endpoint? → routers/*.py
 - Internal service? → services/*.py
 - Background job? → core/jobs.py or worker files
@@ -32,7 +34,8 @@ Find where the data/action originates:
 ### 2. Trace the Path
 
 Follow the data through each system:
-```
+
+```text
 Step N: [System/Service Name]
 ├─ What happens here? (transform, store, validate)
 ├─ WEIGHT: [High/Medium/Low] + reason (I/O, CPU, network)
@@ -45,12 +48,13 @@ Step N: [System/Service Name]
 Create table of where data lives:
 
 | Data Type | Primary | Backup | Cache | Access Pattern |
-|-----------|---------|--------|-------|----------------|
+| ----------- | --------- | -------- | ------- | ---------------- |
 | Original | Path A | Path B | Path C | Read/Write freq |
 
 ### 4. Identify SSOT Issues
 
 Check for violations:
+
 - [ ] Multiple sources of same data?
 - [ ] Race conditions between writes?
 - [ ] Orphaned data in one system but not another?
@@ -58,7 +62,7 @@ Check for violations:
 
 ### 5. Document Flow Diagram
 
-```
+```text
 [Entry] → [Step 1] → [Step 2] → ... → [Final Storage]
             ↓           ↓
         [Side Effect] [Event Trigger]
@@ -69,7 +73,7 @@ Check for violations:
 Define valid states for tracked entities:
 
 | State | Field A | Field B | Status | Meaning |
-|-------|---------|---------|--------|---------|
+| ------- | --------- | --------- | -------- | --------- |
 | Valid | ✅ | ✅ | `True` | Ready for use |
 | Partial | ✅ | ❌ | `False` | Needs completion |
 | Invalid | ❌ | - | `False` | Failed/rejected |
@@ -78,15 +82,17 @@ Define valid states for tracked entities:
 
 If multiple steps call same service separately → UNIFY:
 
-**OLD (Distributed):**
-```
+#### OLD (Distributed):
+
+```text
 Service A → calls Registry
 Service B → calls Registry (redundant)
 Router   → calls Registry (redundant)
 ```
 
-**NEW (Unified):**
-```
+#### NEW (Unified):
+
+```text
 Service A → Auto-registers → returns certified object
 Service B → Uses certified object
 Router   → Enriches only (no separate call)
@@ -95,6 +101,7 @@ Router   → Enriches only (no separate call)
 ### 8. Update SSOT Documentation
 
 Add to `docs/SSOT_EXPORT.md`:
+
 - New unified flow diagram
 - Certification states table
 - SSOT rule (one-sentence principle)
@@ -106,32 +113,39 @@ Add to `docs/SSOT_EXPORT.md`:
 ## [Feature] Flow Analysis
 
 ### Path (N Steps)
-```
+```text
+
 Step 0: [Entry]
 ...
+
 ```
 
 ### Storage Locations
+
 | Type | Primary | Backup | Cache |
-|------|---------|--------|-------|
+| ------ | --------- | -------- | ------- |
 | ... | ... | ... | ... |
 
 ### SSOT Rule
+>
 > "[One-sentence principle]"
 
 ### Certification States
+
 | State | ... | is_valid | Meaning |
-|-------|-----|----------|---------|
+| ------- | ----- | ---------- | --------- |
 | ... | ... | ... | ... |
 
 ### Code Pattern
+
 ```python
-# OLD: [problem]
+## OLD: [problem]
 ...
 
-# NEW: [solution]
+## NEW: [solution]
 ...
-```
+```text
+
 ```
 
 ## Example: Document Upload Flow

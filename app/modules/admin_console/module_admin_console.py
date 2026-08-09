@@ -1,9 +1,10 @@
-﻿from app.core.semptify_internal_sdk import (
-    ModuleManifest,
+from app.core.semptify_internal_sdk import (
     ModuleCapability,
+    ModuleManifest,
     ProductTier,
     register_module,
 )
+
 
 def register_admin_console_module(app):
     manifest = ModuleManifest(

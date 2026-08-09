@@ -51,6 +51,7 @@ def main() -> int:
 
     print("\n=== Git config ===")
     import subprocess
+
     result = subprocess.run(
         ["git", "config", "core.hooksPath"],
         cwd=repo_root,

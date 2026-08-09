@@ -1,5 +1,5 @@
 """FEMS — Forensic Evidence Management System module for Semptify."""
-from app.modules.fems.router import router
+
 from app.modules.fems.models import (
     FemsCase,
     FemsChunk,
@@ -8,6 +8,7 @@ from app.modules.fems.models import (
     FemsPhoneNumber,
     FemsQuarantineFile,
 )
+from app.modules.fems.router import router
 
 __all__ = [
     "router",

@@ -11,11 +11,13 @@
 ### 🔴 HIGH PRIORITY
 
 #### Task 1: Returning User Reconnect Flow ✅ COMPLETE
+
 **Objective**: Create complete reconnect flow for returning users clicking "Returning User" on welcome page
 
 ⚠️ **CRITICAL: Reconnect is SEPARATE from Onboarding - do not mix!**
 
 **Acceptance Criteria**:
+
 - [x] Contract created for returning user process
 - [x] UI page: `static/reconnect/index.html` (NOT in onboarding/)
 - [x] User can identify themselves (email lookup or provider selection)
@@ -23,6 +25,7 @@
 - [x] Session restored, redirected to their dashboard
 
 **Files Created/Modified**:
+
 - ✅ `docs/process_contracts/returning_user_contract.md` - Process contract
 - ✅ `static/reconnect/index.html` - Full UI (SEPARATE folder)
 - ✅ `app/routers/storage.py`:
@@ -32,7 +35,8 @@
 - ✅ `static/public/welcome.html` - Link to `/storage/reconnect`
 
 **Reconnect Flow (End-to-End)**:
-```
+
+```text
 Welcome Page → "Returning User" → /storage/reconnect
                                     ↓
                             static/reconnect/index.html
@@ -46,6 +50,7 @@ Welcome Page → "Returning User" → /storage/reconnect
 ```
 
 **Separation Enforced**:
+
 - Onboarding: `static/onboarding/` - NEW users only (COMPLETE - DON'T TOUCH)
 - Reconnect: `static/reconnect/` - RETURNING users only (separate module)
 
@@ -56,15 +61,18 @@ Welcome Page → "Returning User" → /storage/reconnect
 ---
 
 #### Task 2: Advocate Validation Page ✅ COMPLETE
+
 **Objective**: Create invite code validation page for Advocate role
 
 **Backend Complete** ✅:
+
 - Database model `InviteCode` added to `models.py`
 - Service module `app/core/invite_codes.py` (generate, validate, redeem)
 - API endpoints `app/routers/invite_codes.py`
 - Migration `20250424_add_invite_codes.py` created
 
 **Frontend Complete** ✅:
+
 - [x] Page at `/onboarding/validation/validate-advocate.html`
 - [x] Input field for invite code (format: XXXX-XXXX) with auto-formatting
 - [x] Real-time validation via `POST /api/invite-codes/validate`
@@ -74,6 +82,7 @@ Welcome Page → "Returning User" → /storage/reconnect
 - [x] Light blue theme matching onboarding pages
 
 **Features**:
+
 - Auto-hyphen formatting (ABCD-1234)
 - Visual validation states (loading, success, error)
 - Helpful info box for users without codes
@@ -81,9 +90,11 @@ Welcome Page → "Returning User" → /storage/reconnect
 - "Choose Different Role" fallback option
 
 **Files Created**:
+
 - `static/onboarding/validation/validate-advocate.html` (360 lines)
 
 **Flow**:
+
 1. User selects "Advocate" on select-role.html
 2. Redirects to validate-advocate.html
 3. Enters 8-character invite code
@@ -99,9 +110,11 @@ Welcome Page → "Returning User" → /storage/reconnect
 ---
 
 #### Task 3: Legal Validation Page ✅ COMPLETE
+
 **Objective**: Create bar verification page for Legal role
 
 **Completed**:
+
 - [x] Page at `/onboarding/validation/validate-legal.html`
 - [x] Input fields: Full name, Bar number, State dropdown (all 50 states + DC)
 - [x] Bar verification API placeholder (ready for state bar integration)
@@ -112,6 +125,7 @@ Welcome Page → "Returning User" → /storage/reconnect
 - [x] Light blue theme matching onboarding pages
 
 **Features**:
+
 - All 50 states + DC in dropdown
 - Bar number format validation
 - File upload for bar card/license (fallback)
@@ -120,9 +134,11 @@ Welcome Page → "Returning User" → /storage/reconnect
 - Mobile responsive design
 
 **Files Created**:
+
 - `static/onboarding/validation/validate-legal.html` (520 lines)
 
 **Flow**:
+
 1. User selects "Legal" on select-role.html
 2. Enters name, bar number, and state
 3. API verifies bar membership (placeholder for state bar API)
@@ -137,19 +153,23 @@ Welcome Page → "Returning User" → /storage/reconnect
 ---
 
 #### Task 4: Storage Provider Selection Page ✅ COMPLETE
+
 **Objective**: Create UI for selecting Google Drive / Dropbox / OneDrive
 
 **Acceptance Criteria**:
+
 - [x] Page exists at `/onboarding/storage-select.html`
 - [x] Shows 3 provider options with icons
 - [x] Clicking provider initiates OAuth
 - [x] After OAuth → vault initialization → dashboard
 
 **Files Created**:
+
 - `static/onboarding/storage-select.html` - Provider selection UI
 
 **Flow**:
-```
+
+```text
 select-role.html → storage-select.html → OAuth → vault-init.html → dashboard
 ```
 
@@ -162,9 +182,11 @@ select-role.html → storage-select.html → OAuth → vault-init.html → dashb
 ### 🟡 MEDIUM PRIORITY
 
 #### Task 5: Consolidate Dashboard Versions ✅ COMPLETE
+
 **Objective**: Reduce 4+ dashboard versions to canonical Jinja2 + static fallback pattern
 
 **Completed**:
+
 - [x] Audited all dashboard versions (Jinja2 templates + static fallbacks)
 - [x] Canonical: Jinja2 templates in `app/templates/pages/{role}_dashboard.html`
 - [x] Static fallback: `static/{role}/dashboard.html` for each role
@@ -172,13 +194,15 @@ select-role.html → storage-select.html → OAuth → vault-init.html → dashb
 - [x] Archived old versions to `staticbac/_archive/dashboards/`
 
 **Consolidation Pattern**:
-```
+
+```python
 Jinja2 Template (primary) → Static File (fallback) → 404
 ```
 
 **Dashboard Routes** (all follow same pattern):
+
 | Route | Template | Static Fallback |
-|-------|----------|-----------------|
+| ------- | ---------- | ----------------- |
 | `/tenant/dashboard` | `pages/tenant_dashboard.html` | `static/tenant/dashboard.html` |
 | `/advocate/dashboard` | `pages/advocate_dashboard.html` | `static/advocate/dashboard.html` |
 | `/legal/dashboard` | `pages/legal_dashboard.html` | `static/legal/dashboard.html` |
@@ -192,16 +216,19 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 ---
 
 #### Task 6: Consolidate Document Management Pages ✅ COMPLETE
+
 **Objective**: Reduce 6 document versions to 1
 
 **Completed**:
+
 - [x] Audited all document page versions
 - [x] Canonical: `app/templates/pages/documents.html` (Jinja2 template, 222 lines)
 - [x] Archived duplicates to `staticbac/_archive/documents/`
 
 **Consolidation Results**:
+
 | File | Action | Location |
-|------|--------|----------|
+| ------ | -------- | ---------- |
 | `documents.html` | ✅ Canonical | `app/templates/pages/documents.html` |
 | `documents-v2.html` | Archived | `staticbac/_archive/documents/` |
 | `documents_simple.html` | Archived | `staticbac/_archive/documents/` |
@@ -209,6 +236,7 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 | `admin/document_intake.html` | ✅ Keep (specialized) | `staticbac/admin/document_intake.html` |
 
 **Kept for specialized use**:
+
 - `document_viewer.html` - Document viewing interface
 - `document_signer.html` - Signature collection
 - `document_calendar.html` - Document deadline tracking
@@ -221,17 +249,20 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 ---
 
 #### Task 7: Consolidate Timeline Pages ✅ COMPLETE
+
 **Objective**: Reduce 5+ timeline versions to 1-2
 
 **Completed**:
+
 - [x] Audited all timeline versions
 - [x] Canonical: `app/templates/pages/timeline.html` (Jinja2, 241 lines)
 - [x] Component: `static/components/interactive-timeline.html` (web component, 630 lines)
 - [x] Archived 7 duplicate versions
 
 **Consolidation Results**:
+
 | File | Action | Location |
-|------|--------|----------|
+| ------ | -------- | ---------- |
 | `timeline.html` | ✅ Canonical Jinja2 | `app/templates/pages/timeline.html` |
 | `interactive-timeline.html` | ✅ Component | `static/components/interactive-timeline.html` |
 | `timeline.html` (staticbac) | Archived | `staticbac/_archive/timelines/` |
@@ -250,17 +281,20 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 ### 🟢 LOW PRIORITY
 
 #### Task 8: WebSocket Notifications ✅ COMPLETE
+
 **Objective**: Real-time notifications for document delivery, signatures, updates
 
 **Infrastructure Complete** ✅:
+
 - `app/core/websocket_manager.py` - Connection management, subscriptions, broadcasting
 - `app/routers/websocket.py` - WebSocket endpoint + REST API for notifications
 - `static/js/core/websocket-client.js` - Browser client with auto-reconnect
 - Registered in `app/main.py` at `/ws` prefix
 
 **API Endpoints**:
+
 | Method | Endpoint | Description |
-|--------|----------|-------------|
+| -------- | ---------- | ------------- |
 | WS | `/ws/events` | Real-time event stream (auto-auth via cookies) |
 | GET | `/ws/status` | Connection and job queue stats |
 | GET | `/ws/connections/{user_id}` | Get user's active connections |
@@ -268,6 +302,7 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 | POST | `/ws/broadcast` | Broadcast to all connected users |
 
 **Client Features**:
+
 - Auto-connect on page load
 - Exponential backoff reconnect (max 5 attempts)
 - Event subscription: `SemptifyWebSocket.on('event', handler)`
@@ -275,6 +310,7 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 - Dispatches DOM events for UI integration
 
 **Notification Types Supported**:
+
 - Document upload complete
 - Job status updates
 - Delivery status changes
@@ -288,9 +324,11 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 ---
 
 #### Task 9: Advanced Search with Indexing COMPLETE
+
 **Objective**: Implement full-text search across documents
 
 **Existing Infrastructure** :
+
 - `app/core/search_engine.py` - BM25 search engine with indexing
 - `app/routers/search.py` - Global search API endpoint (`GET /api/search`)
 - Searches: Documents, Timeline, Contacts, Law Library
@@ -298,6 +336,7 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 - Search suggestions
 
 **Added PostgreSQL FTS** :
+
 - `app/core/postgres_fts.py` - PostgreSQL full-text search service
 - GIN index support for fast text search
 - tsvector/tsquery integration
@@ -305,13 +344,15 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 - Database migration for search indexes
 
 **API Endpoints**:
+
 | Method | Endpoint | Description |
-|--------|----------|-------------|
+| -------- | ---------- | ------------- |
 | GET | `/api/search?q={query}` | Global search across all sources |
 | GET | `/api/search/suggest?q={partial}` | Search suggestions |
 | GET | `/api/search/stats` | Search statistics |
 
 **Features**:
+
 - BM25 relevance scoring
 - PostgreSQL FTS fallback
 - Search highlights
@@ -320,6 +361,7 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 - Filter by file type, date, tags
 
 **Files**:
+
 - `app/core/search_engine.py` (existing BM25 engine)
 - `app/core/postgres_fts.py` (new FTS service)
 - `app/routers/search.py` (existing search API)
@@ -332,9 +374,11 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 ---
 
 #### Task 10: Document Preview/Thumbnails ✅ COMPLETE
+
 **Objective**: Add document preview capabilities
 
 **Infrastructure Complete** ✅:
+
 - `app/core/preview_generator.py` - Multi-format preview generation
   - PDF: PyMuPDF for page rendering
   - Images: PIL/Pillow for resizing
@@ -351,6 +395,7 @@ Jinja2 Template (primary) → Static File (fallback) → 404
   - Responsive design
 
 **Features**:
+
 - Thumbnail generation (200x200)
 - Preview generation (800x600)
 - File-based caching with hash invalidation
@@ -358,8 +403,9 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 - Frontend modal with loading states and error handling
 
 **API Endpoints**:
+
 | Method | Endpoint | Description |
-|--------|----------|-------------|
+| -------- | ---------- | ------------- |
 | POST | `/preview/generate` | Generate preview/thumbnail |
 | GET | `/preview/serve/{cache_key}` | Serve preview image |
 | GET | `/preview/{id}/text` | Get text preview |
@@ -372,9 +418,11 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 ---
 
 #### Task 11: Manager / Agency Dashboard ✅ COMPLETE
+
 **Objective**: Create dashboard for Manager role (multi-tenant oversight)
 
 **Frontend Complete** ✅:
+
 - [x] Created `app/templates/pages/manager_dashboard.html` — Jinja2 template
 - [x] Extended from `base.html` (dark navy authenticated theme)
 - [x] Stats overview: Active Cases, Pending Signatures, Staff Online, Overdue Tasks
@@ -386,6 +434,7 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 - [x] Auto-refresh stats every 60 seconds
 
 **Backend Complete** ✅:
+
 - [x] Created `app/core/manager_dashboard.py` service module
 - [x] API endpoint `/api/manager/dashboard-stats` with real DB queries
 - [x] API endpoint `/api/manager/cases` for recent cases
@@ -395,13 +444,15 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 - [x] Error handling with graceful fallbacks
 
 **Files Created**:
+
 - `app/templates/pages/manager_dashboard.html` (555 lines)
 - `app/core/manager_dashboard.py` (200 lines)
 - 4 API endpoints in `app/main.py`
 
 **API Endpoints**:
+
 | Endpoint | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `GET /api/manager/dashboard-stats` | Organization statistics |
 | `GET /api/manager/cases` | Recent tenant cases |
 | `GET /api/manager/staff` | Staff/advocate list |
@@ -432,7 +483,7 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 ## 📊 TASK STATUS LEGEND
 
 | Symbol | Meaning |
-|--------|---------|
+| -------- | --------- |
 | ⏳ | Not Started - Ready to pick up |
 | 🔄 | In Progress / Pending Audit |
 | 🟡 | Partially Complete |
@@ -445,12 +496,12 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 
 ## 🎯 NEXT RECOMMENDED TASK
 
-**🎉🎉🎉🎉🎉 ALL MAJOR TASKS COMPLETE! 🎉🎉🎉🎉🎉**
+### 🎉🎉🎉🎉🎉 ALL MAJOR TASKS COMPLETE! 🎉🎉🎉🎉🎉
 
-**10 out of 11 tasks DONE — 91% Complete!**
+### 10 out of 11 tasks DONE — 91% Complete
 
 | Task | Status |
-|------|--------|
+| ------ | -------- |
 | Tasks 1-4 | ✅ Onboarding flows (Reconnect, Advocate, Legal, Storage) |
 | Tasks 5-7 | ✅ Consolidation (Dashboards, Documents, Timelines) |
 | Task 8 | ✅ WebSocket Notifications (real-time events) |
@@ -462,35 +513,40 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 ### 🎊 You Have Options:
 
 **Option A: Polish & Harden** ⭐ RECOMMENDED
+
 - Fix lint warnings (inline styles → CSS files)
 - Add integration tests
 - End-to-end onboarding flow testing
 - Performance optimization
 
-**Option B: Add Features**
+#### Option B: Add Features
+
 - Calendar integration
 - SMS notifications  
 - Mobile app wrapper
 - Analytics dashboard
 
-**Option C: Documentation**
+#### Option C: Documentation
+
 - API documentation
 - User guides
 - Admin runbook
 
-**Current Status**: 🚀🚀🚀🚀🚀 **PLATFORM COMPLETE — READY FOR PRODUCTION!**
+#### Current Status**: 🚀🚀🚀🚀🚀**PLATFORM COMPLETE — READY FOR PRODUCTION
 
 ---
 
 ## 📝 CHANGE LOG
 
 ### 2026-04-24 - Polish Phase 2: External CSS
+
 - ✅ **Extracted manager_dashboard.css → external file**
   - Created `static/css/manager-dashboard.css` (~370 lines)
   - Template now links external file instead of inline `<style>`
   - Benefits: browser caching, cleaner templates, easier maintenance
 
 ### 2026-04-24 - Polish Phase 1: Inline Styles Fixed
+
 - ✅ **Fixed lint warnings in manager_dashboard.html**
   - Removed inline `style=` attributes (lines 445, 519, 520, 542, 543)
   - Added CSS classes: `.empty-state-compact`, `.empty-state-text-small`, `.empty-state-hint`
@@ -501,6 +557,7 @@ Jinja2 Template (primary) → Static File (fallback) → 404
   - Removed redundant `style="text-align: left"` (already in CSS)
 
 ### 2026-04-24 - Tasks 2, 3, 5, 6, 7, 8, 9, 10, 11 COMPLETE 🎉
+
 - ✅ **Task 2: Advocate Validation COMPLETE**
   - Frontend: `static/onboarding/validation/validate-advocate.html`
   - Backend: Invite code system with 5 API endpoints
@@ -536,10 +593,13 @@ Jinja2 Template (primary) → Static File (fallback) → 404
   - Models, service, and frontend pages exist
 
 ### 2026-04-23
+
 - Created Task Master document
 - Baseline established
 - Tasks prioritized and assigned status
+
 ### 2026-04-23 - Task 1 Complete + ID System Verified + Smart Gate
+
 - ✅ **Task 1 COMPLETE** - Returning User Reconnect Flow
   - Contract, UI, API endpoints all implemented
   - Flow: Welcome → Reconnect UI → Lookup → Restore → Dashboard
@@ -576,4 +636,4 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 
 ---
 
-**Pick a task, update its status here, and start working!**
+#### Pick a task, update its status here, and start working

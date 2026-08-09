@@ -7,16 +7,16 @@ This repository contains a housing-rights and tenant-support product. Any AI age
 **This file is read by every AI assistant in this repo** — Cascade/Devin, GitHub Copilot
 (via `.github/copilot-instructions.md`), Cursor (via `.cursor/rules/00-semptify-agents.mdc`),
 and Claude — not only one tool. Repeatable slash-command procedures (pre-flight, ship,
-forge, review, etc.) are defined once in `.devin/workflows/*.md` and mirrored as VS Code
+forge, review, etc.) are defined once in `.devin/skills/*/SKILL.md` and mirrored as VS Code
 prompt files in `.github/prompts/*.prompt.md` so they run as `/preflight`, `/ship`, `/forge`,
 `/review`, `/cloudflare-dev-mode`, `/help-page-review`, `/ssot-analysis` in Copilot Chat too.
-If you edit a workflow, update both copies.
+If you edit a skill, update both copies.
 
 ---
 
 ## 🐍 PYTHON VERSION MANDATE — NON-NEGOTIABLE
 
-**Semptify requires Python 3.11.9. This is a hard mandate, not a suggestion.**
+### Semptify requires Python 3.11.9. This is a hard mandate, not a suggestion
 
 - **ALL code, modules, add-ons, plugins, and extensions MUST target Python 3.11.9.**
 - **Do NOT introduce any dependency that requires Python 3.12, 3.13, 3.14, or any other version.**
@@ -31,7 +31,7 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 
 ## ⚠️ MANDATORY PRE-FLIGHT — Every AI Agent MUST Do This First
 
-**Before writing a single line of code, you MUST:**
+### Before writing a single line of code, you MUST:
 
 1. **Read `BUILD_STATE.md`** — What was last shipped, what is known broken, what is pending.
 2. **Read `ACTIVE_CONTEXT.md`** — What is being worked on RIGHT NOW. Do not start something else.
@@ -41,7 +41,7 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 6. **Verify Python 3.11.9** — Confirm the active interpreter is `venv311` before running anything.
 7. **Fix the root cause, not the symptom** — Trace every bug to its source. NEVER add downstream compensating checks to mask upstream failures. Band-aids compound. Fix the source.
 
-**If you skip pre-flight, you will repeat a past mistake. The history proves this.**
+### If you skip pre-flight, you will repeat a past mistake. The history proves this
 
 ---
 
@@ -50,59 +50,72 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 These failures have each cost multiple sessions to fix. Read them. Do not cause them again.
 
 ### 1. Vault Folder Creation Silent Failures
+
 - **What happened:** `create_vault_folders()` ignored boolean return values from `create_folder()`. Failures were silent.
 - **Fix:** Every `create_folder()` call must check its return value. Raise `RuntimeError` with the specific path on failure.
 - **File:** `app/modules/onboarding/vault.py`
 
 ### 2. Dropbox 409 Error Masking
+
 - **What happened:** All HTTP 409 responses from Dropbox were treated as success. `path_not_found` errors were swallowed.
 - **Fix:** Inspect the 409 response body. Only `folder_name_exists` is success. All other 409s must raise.
 - **File:** `app/services/storage/dropbox.py`
 
 ### 3. Missing Parent Vault Folder (.Semptify5.0)
+
 - **What happened:** Dropbox requires explicit parent folder creation before nested folders. The root `.Semptify5.0` folder was missing from `CANONICAL_VAULT_FOLDERS`.
 - **Fix:** `.Semptify5.0` must be the first entry in `CANONICAL_VAULT_FOLDERS`.
 - **File:** `app/modules/onboarding/config.py`
 
 ### 4. Vault Verification Treating Empty Folders as Missing
+
 - **What happened:** `verify_vault_folders()` treated `[]` (empty list) as folder not found. New vaults always failed verification.
 - **Fix:** Only fail if `list_files()` raises an exception. An empty list is a valid, accessible folder.
 - **File:** `app/modules/onboarding/vault.py`
 
 ### 5. Cloudflare 504 Timeout on Vault Setup
+
 - **What happened:** Step 1 of vault setup did too much work (folders + files), exceeding Cloudflare's 30s gateway limit.
 - **Fix:** Step 1 creates folders only. Step 2 creates files. Never put more than ~20s of work in a single API call behind Cloudflare.
 - **File:** `app/modules/onboarding/router.py`
 
 ### 6. Import Injection Breaking Syntax
+
 - **What happened:** An automated logging migration injected `import logging` lines inside import blocks, not at the top of files. Caused 37 syntax errors.
 - **Fix:** Imports always go at the top of the file. Never inject imports mid-file.
 
 ### 7. Bare `except:` Blocks
+
 - **What happened:** Bare `except:` swallowed real errors silently. Replaced 45 of them.
 - **Fix:** Always use specific exception types: `except ValueError`, `except RuntimeError`, etc. Never `except:` alone.
 
 ### 8. Naive `datetime.now()` Without UTC
+
 - **What happened:** 446 occurrences of `datetime.now()` without timezone caused token expiry bugs.
 - **Fix:** Always use `utc_now()` from `app.core.utc`. Never call `datetime.now()` directly.
 
 ### 9. SSOT Navigation Violations
+
 - **What happened:** Hardcoded URL strings in redirects caused redirect loops and broken flows.
 - **Fix:** Always use `navigation.get_stage(...)` for redirects. See SSOT section below.
 
 ### 10. `VaultResult` Missing from SDK Exports
+
 - **What happened:** `VaultResult` was not exported from `app/sdk/vault/__init__.py`, causing import errors across modules.
 - **Fix:** Any new model or class used outside its own module must be added to the relevant `__init__.py`.
 
 ### 11. Duplicate Exception Handler Registration
+
 - **What happened:** `setup_exception_handlers()` was called twice in `main.py`, overwriting detailed handlers with generic ones. Real errors showed as "An unexpected error occurred".
 - **Fix:** Register exception handlers exactly once. Search for duplicates before adding new ones.
 
 ### 12. Cloudflare Tunnel Not Running as Service
+
 - **What happened:** `cloudflared` was run manually. Every machine restart killed the tunnel, breaking `semptify.org`.
 - **Fix:** Run `sc config cloudflared start= auto` and `sc start cloudflared` as Administrator once. The service then survives reboots.
 
 ### 13. File Rewrite Creating New Filename (Cascading Reference Break)
+
 - **What happened:** When a file needed rewriting, the AI kept the broken original and created a new file with a different name (e.g. `vault_upload_service_v2.py`). Every import across the codebase still pointed at the old broken file. The AI then had to update all references, missed some, ran out of context, and left the system broken.
 - **Fix:** Use the swap protocol:
   1. **Ask the user** to rename the original to `<filename>_old.py` (one filesystem rename — takes 2 seconds)
@@ -113,18 +126,21 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 - **If in doubt:** Ask. One question prevents hours of cascading breakage.
 
 ### 14. Wrong Python Version
+
 - **What happened:** Code ran on Python 3.13/3.14 (Windows default `python` command) instead of 3.11.9. Silent incompatibilities and startup failures.
 - **Fix:** Always activate `venv311` before running. `main.py` will hard-exit if the wrong Python is detected.
 - **Mandate:** Python 3.11.9 is the ONLY permitted version for this repo. Any new module, add-on, or dependency MUST support 3.11.9. Do NOT upgrade Python without explicit written approval from the project owner.
 - **Local command:** `.\\venv311\\Scripts\\Activate.ps1` then `python -m uvicorn app.main:app ...`
 
 ### 15. Workaround Instead of Root Cause Fix
+
 - **What happened:** A bug in `google_drive.py`'s `_get_folder_id()` caused `create_folder()` to return `False` when a folder already existed. Instead of fixing the source, an additional `file_exists()` check was added in `VaultClient` as a band-aid. This masked the root cause, added an unnecessary API call per folder, and left the downstream code fragile.
 - **Fix:** Always trace the error to the source and fix it there. If a storage provider returns an incorrect value, fix the provider. If a function returns wrong results, fix that function. Do NOT add compensating checks downstream.
 - **Rule: NEVER add workarounds downstream when the root cause is upstream. Fix the root. Band-aids compound over time.**
 - **File:** `app/services/storage/google_drive.py` — fixed `_get_folder_id()` to search before create with retry logic.
 
 ### 16. Hallucinated Overlay API Signatures
+
 - **What happened:** Three services (`filedored_service.py`, `duplicate_detection_service.py`, `court_forms/router.py`) invented their own `CreateOverlayRequest` fields (`vault_id`, `user_id`, `overlay_path`, `overlay_data`) that do not exist on the Pydantic model. They also called non-existent methods `get_overlays_by_type()` and `get_overlays_by_path()` on `UnifiedOverlayManager`. And they imported from `app.core.storage_factory` — a module that never existed. All of this crashed at runtime.
 - **Fix:** Aligned all callers to the real signature (`overlay_type`, `document_id`, `vault_path`, `payload`, `metadata`, `ephemeral`) and real methods (`get_overlays()`, `create_overlay()`, `update_overlay()`, `delete_overlay()`). Replaced `storage_factory` with the real pattern: `oauth_token_manager.get_valid_token_for_user()` + `services.storage.get_provider()` + `user_id.get_provider_from_user_id()`.
 - **Rule: BEFORE writing any code that touches the overlay system, READ THE CONTRACTS in `app/services/unified_overlay_manager.py` (bottom of file).** The `FunctionGroupContract` registrations are the SSOT for method names, field names, and signatures. If a field or method is not in the contract, it does not exist. Do not invent it.
@@ -132,16 +148,19 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 - **Files:** `app/services/filedored_service.py`, `app/services/duplicate_detection_service.py`, `app/modules/filedored/router.py`, `app/modules/court_forms/router.py`.
 
 ### 17. Half-Finished Static Asset Migration Left Uncommitted
+
 - **What happened:** An earlier session deleted `static/css/` live files and created copies in `static/data/css/` as part of a CSS migration, but never updated template `<link>` tags, never added a static mount for the new path, and never committed any of it. The app's CSS was silently broken on disk (7 files missing) while git still showed them as present. A later session found the orphan copy directory, assumed it was an intentional migration target, and nearly deleted the originals permanently before catching the problem.
 - **Fix:** Restored all files from the orphan copy back to `static/css/` (the correctly mounted location). Deleted the orphan `static/data/css/` directory.
 - **Rule: NEVER delete a static asset file (CSS, JS, image) that is referenced by a template until the replacement is verified live in the running app. If a migration is started and cannot be completed in the same session, revert the deletions before committing. A half-finished migration committed or left on disk overnight is worse than no migration at all.**
 
 ### 18. Corrupt Git Commit-Graph Causing `git status` Misreport
+
 - **What happened:** `.git/objects/info/commit-graphs/` became corrupt, referencing 8 commits that no longer existed in the object database (`failed to parse commit ... from object database for commit-graph`). This caused `git status` to report committed files as modified/added and to show a dirty tree that was actually clean. The corruption likely came from automatic `git gc`/prune or worktree/cascade snapshot maintenance, not from the Devin safety rules.
 - **Fix:** Remove/rename the old split graph, regenerate with `git commit-graph write --reachable`, then verify with `git commit-graph verify` and `git fsck --full`.
 - **Rule:** If `git status` reports large numbers of staged/unstaged changes that don't match what you expect — especially after worktree operations, cascade snapshots, or `git gc`/`git prune` — run `git fsck --full` and `git commit-graph verify` before assuming the working tree is dirty. Do NOT run `git reset --hard` or `git clean -fd` blindly to "fix" the apparent dirtiness.
 
 ### 19. OAuth Token Refresh Blocking the Async Event Loop
+
 - **What happened:** `app.core.auto_refresh.ensure_valid_token()` was calling `token_manager.refresh_token_if_needed()`, which is a synchronous method that uses `httpx.Client` (blocking) to call Google/Dropbox/OneDrive token refresh endpoints. Under `uvicorn`/async workers this blocks the event loop, causes timeouts / 504s, and produces the same reconnect-loop symptom the user sees when signing in with OAuth.
 - **Fix:** Rewrite `app/core/auto_refresh.py::_refresh_from_db()` to use the existing async `app.modules.storage.router.refresh_access_token()` (which uses `httpx.AsyncClient`) instead of the synchronous `token_manager` refresh path. Normalize naive `expires_at` datetimes to UTC before calling `token.is_expired()` to prevent aware/naive datetime comparison crashes.
 - **Rule:** Never call a synchronous HTTP client (`httpx.Client`, `requests`, etc.) from inside an `async def` code path in this repo. Token refresh, provider validation, and storage I/O must all be async. If you see `token_manager.refresh_token_if_needed()` or `get_valid_token_for_user()` being called from an async route/service, replace it with `auto_refresh.ensure_valid_token()` or make the caller `await` an async equivalent.
@@ -151,14 +170,16 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 
 ## 📋 Module Contract Mandate
 
-**Every service that exposes a reusable API MUST register a `FunctionGroupContract` in `app/core/module_contracts.py`.**
+### Every service that exposes a reusable API MUST register a `FunctionGroupContract` in `app/core/module_contracts.py`
 
 This is non-negotiable. The contract is the SSOT for:
+
 - Method names (no hallucinated methods)
 - Input/output field names (no wrong signatures)
 - Dependencies (no phantom imports like `app.core.storage_factory`)
 
-**Pattern:**
+### Pattern:
+
 ```python
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
@@ -172,7 +193,7 @@ register_function_group(FunctionGroupContract(
     dependencies=("app.services.<module>",),
     deterministic=True,
 ))
-```
+```text
 
 **Before writing code that calls another service's API, check the contract registry first.** If no contract exists, ask the user — do not invent the API.
 
@@ -322,13 +343,14 @@ Reject or challenge changes that primarily optimize for:
 
 Code written before a blueprint is approved will be removed.
 
-### If asked to build a module without a blueprint, you MUST say:
+### If asked to build a module without a blueprint, you MUST say
 
 > "This module needs a blueprint before I can build it. I can write the blueprint for your review right now — shall I?"
 
 Then write the blueprint. Present it. Wait for explicit approval ("yes build it" counts). Only then open any source files.
 
-### Blueprint must cover (minimum):
+### Blueprint must cover (minimum)
+
 - Module name + dotted `module_path`
 - Type: Pipeline Module or Feature Module?
 - Problem it solves (which tenant right or workflow gap)
@@ -340,8 +362,9 @@ Then write the blueprint. Present it. Wait for explicit approval ("yes build it"
 - Capability tier: CORE / EXTENDED / ADVOCATE / ADMIN / RESEARCH / DEV
 - Risk: what could break
 
-### Where blueprints live:
-```
+### Where blueprints live
+
+```text
 docs/blueprints/your_module_name_blueprint.md
 ```
 
@@ -351,36 +374,40 @@ docs/blueprints/your_module_name_blueprint.md
 
 ## Capability System — MANDATORY for Every New Module
 
-**As of 2026-06-16, Semptify has a live Capability System. Every new Feature Module MUST comply.**
+### As of 2026-06-16, Semptify has a live Capability System. Every new Feature Module MUST comply
 
 ### The Two Module Types (never confuse them)
 
 | Type | What it is | Always on? | In user_capabilities? | Gated? |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **Pipeline Module** | Internal processor, no UI, passes output to other modules | YES | NO | NO |
 | **Feature Module** | User-facing capability with UI + routes | NO | YES | YES |
 
-**Examples:**
+#### Examples:
+
 - `context_loop`, `positronic_brain`, `vault_upload_service` → Pipeline. Never gate these.
 - `case_builder`, `eviction_defense`, `timeline`, `vault` UI → Feature. Gate these.
 
 ### When Building a NEW Feature Module
 
-**Step 1 — Add it to `CAPABILITY_DEFAULTS` in `app/core/product_manifest.py`**
+#### Step 1 — Add it to `CAPABILITY_DEFAULTS` in `app/core/product_manifest.py`
 
 Decide which roles get it by default and add the `module_path` to the appropriate list:
+
 ```python
 CAPABILITY_DEFAULTS = {
     "tenant":   [..., "app.modules.your_module.router"],
     "advocate": [..., "app.modules.your_module.router"],
     ...
 }
-```
+```python
+
 If it's admin-only, skip all role lists — admins get `__all__` automatically.
 
-**Step 2 — Add the gate to your router**
+#### Step 2 — Add the gate to your router
 
 One line at the top of your `router.py`:
+
 ```python
 from app.core.capabilities import require_capability
 
@@ -390,9 +417,10 @@ router = APIRouter(
     dependencies=[Depends(require_capability("app.modules.your_module.router"))],
 )
 ```
+
 That's it. The gate handles admin bypass, overlay grants, unseeded users, and 403 responses automatically.
 
-**Step 3 — Register in `product_manifest.py`**
+#### Step 3 — Register in `product_manifest.py`
 
 Add a `_register(...)` call in the correct tier block. The module_path MUST match exactly what you used in `CAPABILITY_DEFAULTS` and `require_capability()`.
 
@@ -405,19 +433,21 @@ Add a `_register(...)` call in the correct tier block. The module_path MUST matc
 
 ### The One Rule That Protects Everything
 
-```
+```text
 Feature modules  →  call DOWN to  →  Pipeline modules
 Pipeline modules →  NEVER call UP  →  Feature modules
 Feature modules  →  NEVER call     →  Other feature modules directly
-```
+```text
 
 ### Admin Overlay (Dev Node / Hot-Swap)
 
 Admins can temporarily grant any module to any user without touching the database:
-```
+
+```text
 POST /api/capabilities/{user_id}/overlay
 { "module_names": ["app.modules.your_module.router"] }
 ```
+
 Expires in 1 hour. Cannot be used to REMOVE real capabilities — add-only.
 
 ### Key Files
@@ -433,14 +463,16 @@ Expires in 1 hour. Cannot be used to REMOVE real capabilities — add-only.
 
 All navigation, routing, and URL construction MUST follow Single Source of Truth (SSOT) principles:
 
-### NEVER DO (will be rejected):
+### NEVER DO (will be rejected)
+
 - Hardcoded URL strings: `"/onboarding-assets/select-role.html"`, `"/storage/providers"`
 - Direct `RedirectResponse(url="/some/path")` without navigation registry
 - Inline JS navigation: `window.location.href = "/path/to/page"`
 - HTML href attributes with hardcoded paths: `<a href="/onboarding/...">`
 - Middleware or routers defining their own redirect targets
 
-### ALWAYS DO:
+### ALWAYS DO
+
 - Import: `from app.core.navigation import navigation`
 - Use: `navigation.get_stage("role_select").path`
 - Use: `navigation.get_onboarding_start()` for entry points
@@ -448,38 +480,46 @@ All navigation, routing, and URL construction MUST follow Single Source of Truth
 - Static files: Fetch `/onboarding/ssot-navigation` API, then navigate
 - Python redirects: Use paths from navigation registry only
 
-### Verification (MANDATORY):
+### Verification (MANDATORY)
+
 Before committing any navigation change, run:
+
 ```bash
 python tests/test_ssot_architecture.py
 ```
+
 All tests must pass. Violations block deployment.
 
-### Why This Matters:
+### Why This Matters
+
 SSOT violations are the #1 cause of redirect loops, broken flows, and "many chiefs" architecture. Navigation is a **process**, not a property of individual pages. Centralize or perish.
 
-### Files that must use SSOT:
+### Files that must use SSOT
+
 - All files in `app/routers/*.py` that return redirects
 - All files in `app/core/*_middleware.py`
 - All files in `static/onboarding/*.html`
 - Any new navigation/routing logic
 
-### SSOT Evolution (When to Break Rules):
+### SSOT Evolution (When to Break Rules)
 
 **Rules exist to enable flow, not prevent it.** The SSOT registry is alive and grows with the product.
 
-**Legitimate exceptions:**
+#### Legitimate exceptions:
+
 - **Experimental features**: Use `navigation.add_escape_hatch(path, reason="Beta feature", ttl_days=7)`
 - **New flows**: Use `navigation.register_stage(FlowStage(...))` to expand SSOT
 - **Deprecating old paths**: Use `navigation.deprecate_path("/old", "/new")` for graceful evolution
 
-**Philosophy:**
+#### Philosophy:
+
 - A rule that cannot evolve is a prison
 - A rule that is never enforced is a suggestion
 - Good rules have escape hatches with TTLs (time-to-live)
 - Break rules intentionally, document the exception, let it expire or integrate
 
-**When breaking SSOT:**
+#### When breaking SSOT:
+
 1. Document WHY in code
 2. Use escape_hatch with expiration
 3. After the experiment, either:
@@ -504,7 +544,7 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
 ### Tile-to-tier mapping (B1)
 
 | Tile | Tier | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `system_health` | T0 | No PII. |
 | `run_modules` | T1 | Hashed IDs, role, jurisdiction only. |
 | `correspondence` | T2 | Tenant/landlord correspondence, metadata + content. |

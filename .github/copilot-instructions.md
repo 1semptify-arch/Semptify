@@ -14,11 +14,11 @@ This applies to every AI assistant working in this repo (Copilot Chat, Cascade, 
 
 ## Repo-Wide Slash Workflows (available to every assistant)
 
-Canonical workflow definitions live in `.devin/workflows/*.md` (read by Cascade/Devin-style agents).
+Canonical workflow definitions live in `.devin/skills/*/SKILL.md` (read by Cascade/Devin-style agents).
 The same workflows are mirrored as VS Code prompt files in `.github/prompts/*.prompt.md` so they run as
 `/preflight`, `/ship`, `/forge`, `/review`, `/cloudflare-dev-mode`, `/help-page-review`, `/ssot-analysis`
 slash commands in GitHub Copilot Chat (and any other assistant that supports VS Code prompt files).
-If you update a workflow, update **both** the `.devin/workflows/` file and its `.github/prompts/` mirror.
+If you update a skill, update **both** the `.devin/skills/` file and its `.github/prompts/` mirror.
 
 Semptify exists to better protect the rights of humans facing housing problems.
 It is built for tenants, advocates, legal helpers, and people under stress who need clear organization, evidence preservation, and practical next steps.

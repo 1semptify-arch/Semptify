@@ -1,24 +1,27 @@
 # SEMPTIFY MODULE BLUEPRINT
+
 **Version:** 1.0 | **Last Updated:** 2026-06-14
-**Read this BEFORE building any module, plugin, or add-on for Semptify.**
+
+## Read this BEFORE building any module, plugin, or add-on for Semptify
 
 ---
 
 ## PART 0 — WHO WE ARE AND WHAT WE STAND FOR
 
-**Every module, plugin, and add-on built for Semptify must honor these mandates without exception. These are not preferences. They are the foundation the entire product is built on.**
+### Every module, plugin, and add-on built for Semptify must honor these mandates without exception. These are not preferences. They are the foundation the entire product is built on
 
 ### Our Mission
 
 Semptify exists to protect the rights of tenants facing housing insecurity, documentation challenges, and legal uncertainty. We build technology that gives tenants the same tools and information that well-funded landlords take for granted — for free, forever.
 
-**We are on the side of tenants. Always.**
+#### We are on the side of tenants. Always
+
 But only when tenants exercise their lawful rights. We do not support, enable, or excuse illegal behavior by any party.
 
 ### The Non-Negotiable Mandates
 
 | Mandate | Rule |
-|---|---|
+| --- | --- |
 | **Free Forever** | No paywalls, no subscriptions, no freemium gates. Every feature is free to every tenant. |
 | **No Advertising. Ever.** | No ad networks, no sponsored content, no affiliate links, no promoted results. Not now, not later. |
 | **No Tracking** | No analytics pixels, no third-party tracking scripts, no behavioral profiling, no fingerprinting. |
@@ -66,7 +69,7 @@ When choosing between two approaches, always prefer the one that better serves:
 
 ## PART 0A — BLUEPRINT-FIRST MANDATE (NON-NEGOTIABLE)
 
-**No module, plugin, or add-on may be built without a written blueprint approved by the project owner first.**
+### No module, plugin, or add-on may be built without a written blueprint approved by the project owner first
 
 This is not a suggestion. It is a hard gate. Code written before a blueprint is approved will be removed.
 
@@ -75,7 +78,7 @@ This is not a suggestion. It is a hard gate. Code written before a blueprint is 
 Before writing a single line of code, you must produce a written blueprint document containing:
 
 | Section | What to answer |
-|---|---|
+| --- | --- |
 | **Module name** | What is it called? What is the dotted module_path? |
 | **Type** | Pipeline Module or Feature Module? (see Part 1) |
 | **Problem it solves** | What tenant right or workflow gap does this address? |
@@ -93,7 +96,8 @@ Before writing a single line of code, you must produce a written blueprint docum
 ### Where to Put the Blueprint
 
 Blueprints live in the `docs/blueprints/` folder:
-```
+
+```text
 docs/blueprints/your_module_name_blueprint.md
 ```
 
@@ -114,6 +118,7 @@ Do NOT start implementation. Write the blueprint first. Present it. Wait.
 ### Why This Rule Exists
 
 Semptify has a complex, interconnected architecture. A module built without a blueprint has:
+
 - Undefined scope (grows beyond its original purpose)
 - Unknown dependencies (breaks things it was never meant to touch)
 - No record of what was intended (impossible to review or roll back)
@@ -126,7 +131,7 @@ A 10-minute blueprint prevents a 3-session cleanup.
 ## PART 1 — THE THREE TYPES OF EXTENSIONS
 
 | Type | What It Is | Example |
-|---|---|---|
+| --- | --- | --- |
 | **Module** | A self-contained feature with its own DB tables, routes, and UI | FEMS, MNDES, Documents |
 | **Plugin** | A drop-in enhancement that hooks into existing modules | AI classifier, PDF watermarker |
 | **Add-on** | A lightweight router with no DB tables | State laws, free API pack |
@@ -152,7 +157,7 @@ All three follow the **same registration process**. The only difference is scope
 
 ## PART 3 — REQUIRED FOLDER STRUCTURE
 
-```
+```text
 app/modules/{your_module}/
     __init__.py          ← exports router + models
     config.py            ← module-level env vars and constants
@@ -171,7 +176,7 @@ For any module with DB tables, also required: `models.py`
 
 ### Step 1 — Create the folder
 
-```
+```text
 app/modules/your_module/
 ```
 
@@ -184,7 +189,7 @@ from pathlib import Path
 
 YOUR_MODULE_ENABLED = os.getenv("YOUR_MODULE_ENABLED", "true").lower() == "true"
 YOUR_MODULE_PREFIX = "/api/your_module"
-```
+```text
 
 ### Step 3 — Write `models.py` (skip if no DB tables needed)
 
@@ -226,7 +231,7 @@ async def health():
 async def list_records(db: AsyncSession = Depends(get_db)):
     records = (await db.execute(select(YourRecord))).scalars().all()
     return [{"id": r.id, "title": r.title} for r in records]
-```
+```text
 
 ### Step 5 — Write `__init__.py`
 
@@ -243,19 +248,19 @@ __all__ = ["router", "YourRecord"]
 Open `app/core/database.py` and add your import in the model registration block at the bottom:
 
 ```python
-# Register your_module models with SQLAlchemy Base
+## Register your_module models with SQLAlchemy Base
 try:
     import app.modules.your_module.models  # noqa: F401
 except ImportError:
     pass
-```
+```text
 
 ### Step 7 — Register the module in the manifest
 
 Open `app/core/product_manifest.py` and add ONE `_register()` call in the correct tier:
 
 ```python
-# your_module — brief description
+## your_module — brief description
 _register(
     "app.modules.your_module.router",
     tags=("Your Module",),
@@ -302,9 +307,10 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table('your_module_records')
-```
+```text
 
 Then run:
+
 ```powershell
 .\venv311\Scripts\Activate.ps1
 python -m alembic upgrade head
@@ -313,16 +319,16 @@ python -m alembic upgrade head
 ### Step 9 — Verify it compiled and loaded
 
 ```powershell
-# Compile check
+## Compile check
 python -m py_compile app/modules/your_module/__init__.py app/modules/your_module/router.py
 
-# Start server and look for your log message
+## Start server and look for your log message
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
-# Look for: "your_module router loaded — active at /api/your_module"
+## Look for: "your_module router loaded — active at /api/your_module"
 
-# Hit the health endpoint
+## Hit the health endpoint
 Invoke-RestMethod http://localhost:8000/api/your_module/health
-```
+```text
 
 ### Step 10 — Ship it
 
@@ -337,7 +343,7 @@ git push origin main
 ## PART 5 — WHICH TIER TO USE
 
 | Tier | Use When | Default State |
-|---|---|---|
+| --- | --- | --- |
 | `ProductTier.CORE` | Essential — app breaks without it | **Always active** |
 | `ProductTier.EXTENDED` | Legal tools, case management, evidence | Active (all tiers enabled) |
 | `ProductTier.ADVOCATE` | Outreach, communications, delivery | Active (all tiers enabled) |
@@ -362,9 +368,9 @@ from fastapi.responses import FileResponse
 @router.get("/ui", response_class=FileResponse)
 async def ui_page():
     return FileResponse("static/your_module/index.html")
-```
+```text
 
-3. Link from the tenant nav if appropriate (update `static/components/nav.html`)
+1. Link from the tenant nav if appropriate (update `static/components/nav.html`)
 
 ---
 
@@ -374,7 +380,7 @@ If your module needs to know which tenant owns a record, add a `user_id` column:
 
 ```python
 from sqlalchemy import Column, String
-# In your model:
+## In your model:
 user_id = Column(String(100), nullable=True, index=True)
 ```
 
@@ -400,7 +406,7 @@ async def my_records(request: Request, db: AsyncSession = Depends(get_db)):
 ## PART 8 — COMMON MISTAKES (DO NOT REPEAT)
 
 | Mistake | Consequence | Fix |
-|---|---|---|
+| --- | --- | --- |
 | Adding `include_router()` to `main.py` | Breaks manifest system, AI agents repeat mistake | Use `_register()` in `product_manifest.py` |
 | Creating own `Base = declarative_base()` | Tables invisible to Alembic, migrations break | Always import `Base` from `app.core.database` |
 | Using `datetime.now()` without UTC | Token expiry bugs, timezone inconsistencies | Use `datetime.now(timezone.utc)` |
@@ -434,7 +440,7 @@ Before opening a PR or shipping, verify every item:
 ## PART 10 — KEY FILE LOCATIONS
 
 | File | Purpose |
-|---|---|
+| --- | --- |
 | `app/core/product_manifest.py` | **THE manifest — register all modules here** |
 | `app/core/database.py` | Base class + DB session — import `Base` and `get_db` from here |
 | `app/core/config.py` | All config — use `get_settings()` |

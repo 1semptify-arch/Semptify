@@ -5,17 +5,20 @@ Provides reusable validators and sanitizers for common input patterns.
 Helps prevent injection attacks and data corruption.
 """
 
-import re
 import html
-from typing import Optional, Annotated
-from pydantic import AfterValidator, BeforeValidator, Field
 import logging
+import re
+from typing import Annotated
+
+from pydantic import AfterValidator
+
 logger = logging.getLogger(__name__)
 
 
 # =============================================================================
 # String Sanitizers
 # =============================================================================
+
 
 def sanitize_html(value: str) -> str:
     """
@@ -35,7 +38,7 @@ def strip_control_chars(value: str) -> str:
     if not value:
         return value
     # Keep: \t (9), \n (10), \r (13), and printable chars (32+)
-    return ''.join(c for c in value if ord(c) >= 32 or c in '\t\n\r')
+    return "".join(c for c in value if ord(c) >= 32 or c in "\t\n\r")
 
 
 def normalize_whitespace(value: str) -> str:
@@ -44,7 +47,7 @@ def normalize_whitespace(value: str) -> str:
     """
     if not value:
         return value
-    return ' '.join(value.split())
+    return " ".join(value.split())
 
 
 def sanitize_filename(value: str) -> str:
@@ -54,9 +57,9 @@ def sanitize_filename(value: str) -> str:
     if not value:
         return value
     # Remove path separators and null bytes
-    value = value.replace('/', '').replace('\\', '').replace('\x00', '')
+    value = value.replace("/", "").replace("\\", "").replace("\x00", "")
     # Remove other potentially dangerous chars
-    value = re.sub(r'[<>:"|?*]', '', value)
+    value = re.sub(r'[<>:"|?*]', "", value)
     # Limit length
     return value[:255]
 
@@ -68,19 +71,20 @@ def sanitize_path(value: str) -> str:
     if not value:
         return value
     # Remove null bytes
-    value = value.replace('\x00', '')
+    value = value.replace("\x00", "")
     # Prevent path traversal
-    while '..' in value:
-        value = value.replace('..', '')
+    while ".." in value:
+        value = value.replace("..", "")
     # Normalize separators
-    value = value.replace('\\', '/')
+    value = value.replace("\\", "/")
     # Remove leading slashes (make relative)
-    return value.lstrip('/')
+    return value.lstrip("/")
 
 
 # =============================================================================
 # Pydantic Validators (use with Annotated)
 # =============================================================================
+
 
 def validate_no_html(value: str) -> str:
     """Validator that escapes HTML."""
@@ -115,38 +119,41 @@ SafePath = Annotated[str, AfterValidator(validate_safe_path)]
 # =============================================================================
 
 # Email pattern (basic validation, not comprehensive)
-EMAIL_PATTERN = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+
 
 def validate_email(value: str) -> str:
     """Validate email format."""
     value = value.strip().lower()
     if not EMAIL_PATTERN.match(value):
-        raise ValueError('Invalid email format')
+        raise ValueError("Invalid email format")
     return value
 
 
 # Phone pattern (US format, flexible)
-PHONE_PATTERN = re.compile(r'^[\d\s\-\(\)\+\.]+$')
+PHONE_PATTERN = re.compile(r"^[\d\s\-\(\)\+\.]+$")
+
 
 def validate_phone(value: str) -> str:
     """Validate and normalize phone number."""
     if not value:
         return value
     # Remove all non-digit chars for storage
-    digits = re.sub(r'\D', '', value)
+    digits = re.sub(r"\D", "", value)
     if len(digits) < 10 or len(digits) > 15:
-        raise ValueError('Phone number must be 10-15 digits')
+        raise ValueError("Phone number must be 10-15 digits")
     return digits
 
 
 # UUID pattern
-UUID_PATTERN = re.compile(r'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$')
+UUID_PATTERN = re.compile(r"^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")
+
 
 def validate_uuid(value: str) -> str:
     """Validate UUID format."""
     value = value.strip().lower()
     if not UUID_PATTERN.match(value):
-        raise ValueError('Invalid UUID format')
+        raise ValueError("Invalid UUID format")
     return value
 
 
@@ -157,11 +164,12 @@ def validate_uuid(value: str) -> str:
 # Characters that could be used for SQL injection
 SQL_DANGEROUS_CHARS = re.compile(r"[';\"\\]|--|\b(OR|AND|DROP|DELETE|INSERT|UPDATE|SELECT|UNION)\b", re.IGNORECASE)
 
+
 def check_sql_injection(value: str) -> bool:
     """
     Check if string contains potential SQL injection patterns.
     Returns True if potentially dangerous.
-    
+
     Note: This is a secondary defense - always use parameterized queries!
     """
     if not value:
@@ -177,9 +185,9 @@ def sanitize_for_search(value: str) -> str:
     if not value:
         return value
     # Remove quotes and semicolons
-    value = re.sub(r"[';\"\\]", '', value)
+    value = re.sub(r"[';\"\\]", "", value)
     # Remove SQL keywords when standalone
-    value = re.sub(r'\b(DROP|DELETE|INSERT|UPDATE|UNION)\b', '', value, flags=re.IGNORECASE)
+    value = re.sub(r"\b(DROP|DELETE|INSERT|UPDATE|UNION)\b", "", value, flags=re.IGNORECASE)
     return value.strip()
 
 
@@ -187,19 +195,22 @@ def sanitize_for_search(value: str) -> str:
 # Length Validators
 # =============================================================================
 
+
 def create_length_validator(min_len: int = 0, max_len: int = 10000):
     """
     Factory for length validators.
-    
+
     Usage:
         ShortText = Annotated[str, AfterValidator(create_length_validator(1, 100))]
     """
+
     def validator(value: str) -> str:
         if len(value) < min_len:
-            raise ValueError(f'Must be at least {min_len} characters')
+            raise ValueError(f"Must be at least {min_len} characters")
         if len(value) > max_len:
-            raise ValueError(f'Must be at most {max_len} characters')
+            raise ValueError(f"Must be at most {max_len} characters")
         return value
+
     return validator
 
 
@@ -223,31 +234,31 @@ MAX_FORM_BODY_SIZE = 50 * 1024 * 1024  # 50MB (for file uploads)
 
 __all__ = [
     # Sanitizers
-    'sanitize_html',
-    'strip_control_chars',
-    'normalize_whitespace',
-    'sanitize_filename',
-    'sanitize_path',
-    'sanitize_for_search',
+    "sanitize_html",
+    "strip_control_chars",
+    "normalize_whitespace",
+    "sanitize_filename",
+    "sanitize_path",
+    "sanitize_for_search",
     # Validators
-    'validate_no_html',
-    'validate_clean_string',
-    'validate_safe_filename',
-    'validate_safe_path',
-    'validate_email',
-    'validate_phone',
-    'validate_uuid',
-    'check_sql_injection',
-    'create_length_validator',
+    "validate_no_html",
+    "validate_clean_string",
+    "validate_safe_filename",
+    "validate_safe_path",
+    "validate_email",
+    "validate_phone",
+    "validate_uuid",
+    "check_sql_injection",
+    "create_length_validator",
     # Annotated types
-    'SafeString',
-    'SafeHtml',
-    'SafeFilename',
-    'SafePath',
-    'ShortText',
-    'MediumText',
-    'LongText',
+    "SafeString",
+    "SafeHtml",
+    "SafeFilename",
+    "SafePath",
+    "ShortText",
+    "MediumText",
+    "LongText",
     # Constants
-    'MAX_JSON_BODY_SIZE',
-    'MAX_FORM_BODY_SIZE',
+    "MAX_JSON_BODY_SIZE",
+    "MAX_FORM_BODY_SIZE",
 ]

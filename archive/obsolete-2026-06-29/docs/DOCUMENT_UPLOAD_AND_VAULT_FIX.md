@@ -11,6 +11,7 @@ This document describes the comprehensive fix for the document upload-to-vault s
 **User Requirement**: "Documents need to be registered into the system and saved to user storage and made available for processing keeping the original with notarization of its"
 
 **Before Fix Issues**:
+
 1. ❌ No notarization when documents uploaded
 2. ❌ Documents uploaded but registration/indexing incomplete
 3. ❌ No tamper-proof record of receipt
@@ -22,12 +23,14 @@ This document describes the comprehensive fix for the document upload-to-vault s
 
 ## The Solution (Complete Flow)
 
-### 1. **New Notarization Service** 
+### 1. **New Notarization Service**
+
 **File**: `app/services/document_notarization.py`
 
 Provides tamper-proof documentation of document receipt and storage.
 
 **What it does**:
+
 - Creates timestamped notarization record with SHA-256 file hash
 - Generates unique notarization IDs (`SEM-NOT-YYYYMMDD-XXXXXXXX`)
 - Calculates certificate hash for self-verification
@@ -36,13 +39,15 @@ Provides tamper-proof documentation of document receipt and storage.
 - Creates chain of custody events
 
 **Key Classes**:
+
 - `NotarizationRecord` - Immutable record of document receipt
 - `DocumentNotarization` - Verification results
 - `DocumentNotarizationService` - Main service
 
 **Key Methods**:
+
 ```python
-# Create notarization when document uploaded
+## Create notarization when document uploaded
 notarization = await service.notarize_upload(
     file_content=content,
     filename="lease.pdf",
@@ -58,14 +63,15 @@ notarization = await service.notarize_upload(
     upload_method="web",
 )
 
-# Verify notarization later
+## Verify notarization later
 result = await service.verify_notarization(notarization_id)
 
-# Get chain of custody
+## Get chain of custody
 chain = await service.create_chain_of_custody(notarization_id)
-```
+```text
 
 **Data Stored**:
+
 - Notarization ID (primary key)
 - Document ID (reference)
 - File hash (SHA-256)
@@ -82,7 +88,9 @@ chain = await service.create_chain_of_custody(notarization_id)
 ### 2. **Updated Upload Endpoint** (`POST /api/intake/upload`)
 
 **New Flow**:
+
 ```
+
 1. Receive file
 2. ↓
 3. NOTARIZE
@@ -104,19 +112,24 @@ chain = await service.create_chain_of_custody(notarization_id)
 9. TRIGGER PROCESSING (async)
    - Document queued for extraction
    - Auto-processing can be triggered
-```
+
+```text
 
 **Request Parameters**:
+
 ```
+
 file: UploadFile
 user_id: str (form)
 username: str (form, for notarization)
 storage_provider: str (local, google_drive, dropbox, onedrive)
 description: str (optional, for document context)
 tags: str (comma-separated, optional)
-```
+
+```text
 
 **Response**:
+
 ```json
 {
   "id": "doc_xyz123",
@@ -131,7 +144,8 @@ tags: str (comma-separated, optional)
 ### 3. **Updated Auto-Process Endpoint** (`POST /api/intake/upload/auto`)
 
 **Enhanced Flow**:
-```
+
+```text
 1. Receive file
 2. ↓
 3. NOTARIZE
@@ -167,7 +181,8 @@ tags: str (comma-separated, optional)
 ```
 
 **Request Parameters** (same as `/upload` plus auto-processing):
-```
+
+```text
 file: UploadFile
 user_id: str (form)
 username: str (form)
@@ -175,6 +190,7 @@ username: str (form)
 ```
 
 **Response**:
+
 ```json
 {
   "id": "doc_xyz123",
@@ -192,7 +208,7 @@ username: str (form)
   "timeline_events": 5,
   "issues_found": 2
 }
-```
+```text
 
 ---
 
@@ -201,6 +217,7 @@ username: str (form)
 Allows verification of document authenticity.
 
 **Returns**:
+
 ```json
 {
   "status": "verified",
@@ -225,6 +242,7 @@ Allows verification of document authenticity.
 Shows complete audit trail of document.
 
 **Returns**:
+
 ```json
 {
   "notarization_id": "SEM-NOT-20240115-ABC12345",
@@ -264,7 +282,7 @@ Shows complete audit trail of document.
     }
   ]
 }
-```
+```text
 
 ---
 
@@ -273,6 +291,7 @@ Shows complete audit trail of document.
 ### System Components
 
 ```
+
 ┌─────────────────────────────────────────────────────────────┐
 │                       UI Module                              │
 │                  (Any UI component)                          │
@@ -357,7 +376,8 @@ Shows complete audit trail of document.
 │  - /notarization/{id}                                        │
 │  - /notarization/{id}/chain-of-custody                      │
 └─────────────────────────────────────────────────────────────┘
-```
+
+```text
 
 ---
 
@@ -410,29 +430,34 @@ class NotarizationRecord:
 ## Key Features
 
 ### 1. **Tamper-Proof Receipt**
+
 - Notarization ID created at upload time
 - Document hash calculated immediately
 - Timestamp recorded
 - Certificate hash allows self-verification
 
 ### 2. **Metadata Preservation**
+
 - Original filename retained
 - Metadata stored with document
 - User information preserved
 - Upload context captured
 
 ### 3. **Chain of Custody**
+
 - Upload event recorded
 - Registry events tracked
 - Processing events logged
 - Complete audit trail available
 
 ### 4. **Deduplication**
+
 - SHA-256 hash checked against existing files
 - Prevents duplicate uploads
 - Returns existing vault_id if already stored
 
 ### 5. **Multi-Provider Support**
+
 - Google Drive
 - Dropbox
 - OneDrive
@@ -440,6 +465,7 @@ class NotarizationRecord:
 - Local (fallback)
 
 ### 6. **Integration Points**
+
 - Document Registry: Registers document with tamper-proofing
 - Vault Upload Service: Stores file and certificate
 - Document Flow Orchestrator: Processes document
@@ -459,9 +485,10 @@ curl -X POST http://localhost:8000/api/intake/upload \
   -F "storage_provider=google_drive" \
   -F "description=Residential lease agreement" \
   -F "tags=lease,important,2024"
-```
+```text
 
 **Response**:
+
 ```json
 {
   "id": "doc_abc123xyz",
@@ -481,9 +508,10 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
   -F "storage_provider=google_drive" \
   -F "description=Eviction notice received" \
   -F "tags=notice,eviction,urgent"
-```
+```text
 
 **Response**:
+
 ```json
 {
   "id": "doc_def456uvw",
@@ -507,9 +535,10 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 
 ```bash
 curl http://localhost:8000/api/intake/notarization/SEM-NOT-20240115-ABC12345
-```
+```text
 
 **Response**:
+
 ```json
 {
   "status": "verified",
@@ -531,7 +560,7 @@ curl http://localhost:8000/api/intake/notarization/SEM-NOT-20240115-ABC12345
 
 ```bash
 curl http://localhost:8000/api/intake/notarization/SEM-NOT-20240115-ABC12345/chain-of-custody
-```
+```text
 
 **Response** (see above in "Notarization Verification Endpoint" section)
 
@@ -540,6 +569,7 @@ curl http://localhost:8000/api/intake/notarization/SEM-NOT-20240115-ABC12345/cha
 ## Testing the Fix
 
 ### Prerequisites
+
 1. Notarization service running
 2. Vault upload service running
 3. Document Registry available
@@ -548,12 +578,14 @@ curl http://localhost:8000/api/intake/notarization/SEM-NOT-20240115-ABC12345/cha
 ### Test Steps
 
 **Test 1: Simple Upload with Notarization**
+
 1. Call `POST /api/intake/upload` with a test PDF
 2. Verify response contains notarization_id
 3. Call `GET /api/intake/notarization/{notarization_id}`
 4. Verify notarization is "verified" status
 
 **Test 2: Auto-Process Upload**
+
 1. Call `POST /api/intake/upload/auto` with test document
 2. Wait for processing to complete
 3. Verify response contains timeline_events and issues_found
@@ -561,18 +593,21 @@ curl http://localhost:8000/api/intake/notarization/SEM-NOT-20240115-ABC12345/cha
 5. Verify chain includes UPLOAD, EXTRACT, TIMELINE, ISSUE_ANALYSIS events
 
 **Test 3: Deduplication**
+
 1. Upload file A with hash H
 2. Upload same file A again
 3. Verify returns same vault_id (duplicate detected)
 4. Both have same notarization_id
 
 **Test 4: Vault Access**
+
 1. Upload file to vault
 2. Call `GET /vault/{vault_id}`
 3. Verify can retrieve document
 4. Verify metadata matches notarization record
 
 **Test 5: Multi-Provider**
+
 1. Test with storage_provider="google_drive"
 2. Test with storage_provider="local"
 3. Verify both work, certificate stored appropriately
@@ -584,7 +619,7 @@ curl http://localhost:8000/api/intake/notarization/SEM-NOT-20240115-ABC12345/cha
 ### Common Errors & Solutions
 
 | Error | Cause | Solution |
-|-------|-------|----------|
+| ------- | ------- | ---------- |
 | "Empty file" | File has 0 bytes | Ensure file has content |
 | "File too large" | > 25MB | Split into smaller files |
 | "Notarization service not available" | Service not imported | Ensure `document_notarization.py` exists |
@@ -600,6 +635,7 @@ For documents uploaded before this fix:
 
 1. **Check Status**: Not all existing documents will have notarization IDs
 2. **One-Time Retroactive Notarization** (optional):
+
    ```python
    # For each existing document in vault
    notarization = await notarization_service.notarize_upload(
@@ -613,7 +649,8 @@ For documents uploaded before this fix:
        upload_method="retroactive_migration",
    )
    ```
-3. **Link in Registry**: Update Document Registry with notarization_id
+
+1. **Link in Registry**: Update Document Registry with notarization_id
 
 ---
 
@@ -622,6 +659,7 @@ For documents uploaded before this fix:
 ### What This System Proves
 
 The notarization system can prove:
+
 - ✅ **Document Receipt**: Timestamped proof of upload
 - ✅ **Content Integrity**: SHA-256 hash proves file not tampered
 - ✅ **Chain of Custody**: Complete audit trail
@@ -632,6 +670,7 @@ The notarization system can prove:
 ### What This System Does NOT Prove
 
 The notarization system does NOT:
+
 - ❌ Legally bind the document (requires Electronic Signature service)
 - ❌ Prevent authorized modifications (only detects tampering)
 - ❌ Create cryptographic non-repudiation (uses hash, not digital signature)
@@ -640,6 +679,7 @@ The notarization system does NOT:
 ### Recommendations
 
 For legal applications:
+
 1. Combine with Electronic Signature service for legal binding
 2. Use digital certificates for stronger non-repudiation
 3. Store chain of custody in immutable log (blockchain, audit log)
@@ -670,15 +710,15 @@ For legal applications:
 ### Environment Variables
 
 ```bash
-# Notarization service
+## Notarization service
 NOTARIZATION_ENABLED=true
 NOTARIZATION_CACHE_SIZE=10000
 
-# Vault storage
+## Vault storage
 VAULT_FOLDER=.semptify/vault
 VAULT_CERT_FOLDER=.semptify/vault/certificates
 
-# Document flow
+## Document flow
 FLOW_AUTO_PROCESS_ON_UPLOAD=true
 ```
 
@@ -702,9 +742,10 @@ FLOW_AUTO_PROCESS_ON_UPLOAD=true
 
 ```bash
 GET http://localhost:8000/api/intake/notarization/SEM-NOT-20240115-TEST
-```
+```text
 
 Should return either:
+
 - ✅ Valid notarization record (service working)
 - 🔴 404 Not Found (service working, no record)
 - 🔴 503 Service Unavailable (service not running)
@@ -712,31 +753,31 @@ Should return either:
 ### View System Logs
 
 ```bash
-# Python logs
+## Python logs
 tail -f logs/semptify.log | grep "notarization"
 
-# Database logs (if using DB storage)
+## Database logs (if using DB storage)
 SELECT * FROM notarizations ORDER BY notarized_at DESC LIMIT 10;
 ```
 
 ### Test Full Flow
 
 ```bash
-# 1. Upload a test document
+## 1. Upload a test document
 curl -X POST http://localhost:8000/api/intake/upload/auto \
   -F "file=@test.pdf" \
   -F "user_id=test_user" \
   -F "username=test" \
   > response.json
 
-# 2. Extract IDs
+## 2. Extract IDs
 NOTARIZATION_ID=$(jq -r '.id' response.json)  # Example only, check actual response
 VAULT_ID=$(jq -r '.vault_id' response.json)
 
-# 3. Verify notarization
+## 3. Verify notarization
 curl http://localhost:8000/api/intake/notarization/$NOTARIZATION_ID
 
-# 4. Get chain of custody
+## 4. Get chain of custody
 curl http://localhost:8000/api/intake/notarization/$NOTARIZATION_ID/chain-of-custody
 ```
 

@@ -8,13 +8,15 @@
 ## 1. ID Generation Refactor (COMPLETED)
 
 ### Changes Logged
+
 - **Log file:** `docs/ID_GENERATION_REFACTOR_LOG.md`
 - **Zero `uuid4()` calls** remain in `app/` directory
 - **Zero dead imports** remain
 - **34 files modified** across models, routers, core, services, modules, SDK
 
 ### New SSOT
-```
+
+```text
 app/core/id_gen.py
 ├── make_id(prefix: str, length: int = 16) -> str
 ├── Format: {prefix}_{16-char alphanumeric}
@@ -23,7 +25,9 @@ app/core/id_gen.py
 ```
 
 ### Prefix Registry
+
 37 prefixes defined covering all entity types:
+
 - `doc`, `evt`, `cal`, `con`, `inv`, `job`, `anl`, `aud`, `req`, `msg`
 - `sigreq`, `sig`, `att`, `del`, `ext`, `hlt`, `ann`, `ovl`, `plan`, `camp`
 - `wiz`, `conv`, `frd`, `prs`, `chk`, `fx`, `not`, `pack`, `batch`, `item`
@@ -34,24 +38,28 @@ app/core/id_gen.py
 ## 2. Data Storage Assessment (COMPLETED)
 
 ### Assessment File
+
 - **Full report:** `docs/DATA_STORAGE_ASSESSMENT.md`
 
 ### Key Findings
 
-**✅ Working Well:**
+#### ✅ Working Well:
+
 - Timezone handling (all `DateTime(timezone=True)` with UTC)
 - Foreign key integrity with indexes
 - Cloud-first document storage (user cloud + PG metadata)
 - Three-timestamp model in `vault_items` (event_time, record_time, semptify_entry_time)
 - JSONB for flexible metadata
 
-**⚠️ Areas for Improvement:**
+#### ⚠️ Areas for Improvement:
+
 1. Missing GIN indexes on JSONB columns
 2. No unified view across documents/events/calendar/vault
 3. Calendar events not linked to timeline
 4. Document ID mismatch (documents vs vault_items)
 
 ### SQL Migration Created
+
 - **File:** `alembic/versions/20250422_unified_timeline_view.py`
 - Creates `unified_timeline` database view
 - Adds GIN indexes on `vault_items.item_metadata` and `tags`
@@ -62,6 +70,7 @@ app/core/id_gen.py
 ## 3. Interactive Timeline (COMPLETED)
 
 ### Backend API
+
 - **File:** `app/routers/timeline_unified.py`
 - **Endpoint:** `POST /api/timeline/unified`
 - **Features:**
@@ -74,6 +83,7 @@ app/core/id_gen.py
   - Facet counts (by type, urgency, month)
 
 ### Frontend Component
+
 - **File:** `static/components/interactive-timeline.html`
 - **Features:**
   - Date axis selector dropdown
@@ -88,13 +98,15 @@ app/core/id_gen.py
   - Responsive design
 
 ### Usage Example
+
 ```html
 <interactive-timeline 
   api-base="/api/timeline">
 </interactive-timeline>
-```
+```text
 
 ### API Example
+
 ```bash
 POST /api/timeline/unified
 {
@@ -111,29 +123,33 @@ POST /api/timeline/unified
 ## 4. Router Registration (COMPLETED)
 
 Modified `app/main.py`:
+
 ```python
-# Import
+## Import
 timeline_unified_router = _safe_router_import("app.routers.timeline_unified")
 
-# Registration
+## Registration
 include_if(timeline_unified_router, prefix="/api/timeline", tags=["Unified Timeline"])
-```
+```text
 
 ---
 
 ## 5. Quick Start (Next Steps)
 
 ### Run the Migration
+
 ```bash
-# Activate venv
+## Activate venv
 venv311\Scripts\activate
 
-# Run migration
+## Run migration
 alembic upgrade 20250422_unified_timeline
 ```
 
 ### Use the Component
+
 Add to any HTML page:
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -160,9 +176,10 @@ Add to any HTML page:
   </script>
 </body>
 </html>
-```
+```text
 
 ### API Test
+
 ```bash
 curl -X POST http://localhost:8000/api/timeline/unified \
   -H "Content-Type: application/json" \
@@ -179,7 +196,7 @@ curl -X POST http://localhost:8000/api/timeline/unified \
 ## 6. Files Created
 
 | File | Purpose |
-|------|---------|
+| ------ | --------- |
 | `docs/ID_GENERATION_REFACTOR_LOG.md` | Complete change log with 34 modified files |
 | `docs/DATA_STORAGE_ASSESSMENT.md` | Storage assessment + interactive timeline design |
 | `app/routers/timeline_unified.py` | Unified timeline API endpoint |
@@ -192,22 +209,23 @@ curl -X POST http://localhost:8000/api/timeline/unified \
 ## 7. Verification
 
 ```bash
-# Verify no uuid4 remains
+## Verify no uuid4 remains
 grep -r "uuid4()" app/ --include="*.py"
-# Result: No matches
+## Result: No matches
 
-# Verify router loaded
+## Verify router loaded
 curl http://localhost:8000/api/timeline/date-range
-# Should return date range info
+## Should return date range info
 
-# Verify migration applied
+## Verify migration applied
 psql -d semptify -c "\d unified_timeline"
-# Should show the view
+## Should show the view
 ```
 
 ---
 
 **All requested tasks completed.** The system now has:
+
 1. ✅ Centralized ID generation with SSOT
 2. ✅ Complete change log
 3. ✅ Data storage assessment

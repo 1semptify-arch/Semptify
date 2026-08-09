@@ -1,15 +1,16 @@
 """Filedored GUI Requirements - Following the GUI Contract specification."""
+
 from app.core.gui_contract import (
+    ActionType,
     GUIRequirements,
+    IndicatorType,
     InputType,
     OutputType,
-    ActionType,
-    IndicatorType,
     PopOutType,
-    create_input_field,
-    create_output_display,
     create_action_button,
     create_indicator,
+    create_input_field,
+    create_output_display,
     create_popout,
 )
 
@@ -20,11 +21,9 @@ from app.core.gui_contract import (
 FILEDORED_GUI_REQUIREMENTS = GUIRequirements(
     module_name="filedored",
     version="1.0",
-    
     # Page Layout
     layout="wide",
     sections=["header", "controls", "folder-grid", "document-list", "status-bar"],
-    
     # Input Fields
     inputs=[
         create_input_field(
@@ -53,7 +52,6 @@ FILEDORED_GUI_REQUIREMENTS = GUIRequirements(
             ],
         ),
     ],
-    
     # Output Displays
     outputs=[
         create_output_display(
@@ -98,7 +96,6 @@ FILEDORED_GUI_REQUIREMENTS = GUIRequirements(
             ],
         ),
     ],
-    
     # Action Buttons
     actions=[
         create_action_button(
@@ -141,7 +138,6 @@ FILEDORED_GUI_REQUIREMENTS = GUIRequirements(
             style="outline",
         ),
     ],
-    
     # Indicators
     indicators=[
         create_indicator(
@@ -163,7 +159,6 @@ FILEDORED_GUI_REQUIREMENTS = GUIRequirements(
             position="header",
         ),
     ],
-    
     # Pop-outs/Modals
     popouts=[
         create_popout(
@@ -197,7 +192,6 @@ FILEDORED_GUI_REQUIREMENTS = GUIRequirements(
             size="small",
         ),
     ],
-    
     # Special Requirements
     special_requirements=[
         {
@@ -225,7 +219,6 @@ FILEDORED_GUI_REQUIREMENTS = GUIRequirements(
             "implementation": "Responsive grid, touch-friendly buttons",
         },
     ],
-    
     # Navigation
     navigation={
         "Office": "/office",
@@ -233,10 +226,8 @@ FILEDORED_GUI_REQUIREMENTS = GUIRequirements(
         "Documents": "/documents",
         "Vault": "/vault",
     },
-    
     # Permissions
     required_permissions=["vault_access", "document_view"],
-    
     # Dependencies
     css_files=[
         "/static/css/semptify.css",
@@ -246,7 +237,6 @@ FILEDORED_GUI_REQUIREMENTS = GUIRequirements(
         "/static/js/core/filedored.js",
         "/static/js/core/websocket.js",
     ],
-    
     # API Endpoints
     api_endpoints=[
         "/api/filedored/process",

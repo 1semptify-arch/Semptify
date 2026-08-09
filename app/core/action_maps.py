@@ -8,28 +8,30 @@ Integrates with PageContracts and telemetry for consistent UX.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Callable, Any
-from enum import Enum, auto
 import logging
+from dataclasses import dataclass
+from enum import Enum, auto
+from typing import Any
+
 logger = logging.getLogger(__name__)
 
 
 class ActionType(Enum):
     """Types of actions available."""
-    NAVIGATE = auto()      # Go to another page
-    TRIGGER = auto()       # Trigger a workflow
-    OPEN = auto()          # Open modal/panel
-    DOWNLOAD = auto()      # Download file
-    SHARE = auto()         # Share content
-    EXTERNAL = auto()      # External link
+
+    NAVIGATE = auto()  # Go to another page
+    TRIGGER = auto()  # Trigger a workflow
+    OPEN = auto()  # Open modal/panel
+    DOWNLOAD = auto()  # Download file
+    SHARE = auto()  # Share content
+    EXTERNAL = auto()  # External link
 
 
 @dataclass
 class QuickAction:
     """
     Definition of a quick action button/link.
-    
+
     Usage:
         action = QuickAction(
             action_id="view_deadlines",
@@ -40,23 +42,24 @@ class QuickAction:
             telemetry_event="quick_action_clicked",
         )
     """
+
     action_id: str
     label: str
-    icon: Optional[str] = None
+    icon: str | None = None
     action_type: ActionType = ActionType.NAVIGATE
-    target: Optional[str] = None  # URL, route, or workflow ID
-    target_params: Optional[Dict[str, Any]] = None
-    telemetry_event: Optional[str] = None
-    required_roles: Optional[List[str]] = None
-    confirmation_prompt: Optional[str] = None  # If set, show confirmation
-    disabled_states: Optional[List[str]] = None  # Page states where disabled
+    target: str | None = None  # URL, route, or workflow ID
+    target_params: dict[str, Any] | None = None
+    telemetry_event: str | None = None
+    required_roles: list[str] | None = None
+    confirmation_prompt: str | None = None  # If set, show confirmation
+    disabled_states: list[str] | None = None  # Page states where disabled
 
 
 # =============================================================================
 # DASHBOARD QUICK ACTIONS
 # =============================================================================
 
-DASHBOARD_QUICK_ACTIONS: Dict[str, QuickAction] = {
+DASHBOARD_QUICK_ACTIONS: dict[str, QuickAction] = {
     "view_deadlines": QuickAction(
         action_id="view_deadlines",
         label="View Deadlines",
@@ -141,7 +144,7 @@ DASHBOARD_QUICK_ACTIONS: Dict[str, QuickAction] = {
 # VAULT DOCUMENT ACTIONS
 # =============================================================================
 
-VAULT_DOCUMENT_ACTIONS: Dict[str, QuickAction] = {
+VAULT_DOCUMENT_ACTIONS: dict[str, QuickAction] = {
     "upload_new": QuickAction(
         action_id="upload_new",
         label="Upload New Document",
@@ -189,7 +192,7 @@ VAULT_DOCUMENT_ACTIONS: Dict[str, QuickAction] = {
 # COURT PACKET ACTIONS
 # =============================================================================
 
-COURT_PACKET_ACTIONS: Dict[str, QuickAction] = {
+COURT_PACKET_ACTIONS: dict[str, QuickAction] = {
     "add_form": QuickAction(
         action_id="add_form",
         label="Add Form",
@@ -230,7 +233,7 @@ COURT_PACKET_ACTIONS: Dict[str, QuickAction] = {
 # EVICTION ANSWER ACTIONS
 # =============================================================================
 
-EVICTION_ANSWER_ACTIONS: Dict[str, QuickAction] = {
+EVICTION_ANSWER_ACTIONS: dict[str, QuickAction] = {
     "select_defense": QuickAction(
         action_id="select_defense",
         label="Select Defenses",
@@ -270,7 +273,7 @@ EVICTION_ANSWER_ACTIONS: Dict[str, QuickAction] = {
 # HEARING PREP ACTIONS
 # =============================================================================
 
-HEARING_PREP_ACTIONS: Dict[str, QuickAction] = {
+HEARING_PREP_ACTIONS: dict[str, QuickAction] = {
     "generate_talking_points": QuickAction(
         action_id="generate_talking_points",
         label="Generate Talking Points",
@@ -311,7 +314,7 @@ HEARING_PREP_ACTIONS: Dict[str, QuickAction] = {
 # STORAGE SETUP ACTIONS
 # =============================================================================
 
-STORAGE_SETUP_ACTIONS: Dict[str, QuickAction] = {
+STORAGE_SETUP_ACTIONS: dict[str, QuickAction] = {
     "connect_google": QuickAction(
         action_id="connect_google",
         label="Connect Google Drive",
@@ -343,7 +346,7 @@ STORAGE_SETUP_ACTIONS: Dict[str, QuickAction] = {
 # CRISIS INTAKE ACTIONS
 # =============================================================================
 
-CRISIS_INTAKE_ACTIONS: Dict[str, QuickAction] = {
+CRISIS_INTAKE_ACTIONS: dict[str, QuickAction] = {
     "emergency_hotline": QuickAction(
         action_id="emergency_hotline",
         label="Emergency Hotline",
@@ -375,7 +378,7 @@ CRISIS_INTAKE_ACTIONS: Dict[str, QuickAction] = {
 # GLOBAL ACTION REGISTRY
 # =============================================================================
 
-ALL_ACTION_MAPS: Dict[str, Dict[str, QuickAction]] = {
+ALL_ACTION_MAPS: dict[str, dict[str, QuickAction]] = {
     "dashboard": DASHBOARD_QUICK_ACTIONS,
     "vault": VAULT_DOCUMENT_ACTIONS,
     "documents": VAULT_DOCUMENT_ACTIONS,
@@ -387,32 +390,30 @@ ALL_ACTION_MAPS: Dict[str, Dict[str, QuickAction]] = {
 }
 
 
-def get_page_actions(page_id: str) -> Dict[str, QuickAction]:
+def get_page_actions(page_id: str) -> dict[str, QuickAction]:
     """Get all actions defined for a page."""
     return ALL_ACTION_MAPS.get(page_id, {})
 
 
-def get_action(page_id: str, action_id: str) -> Optional[QuickAction]:
+def get_action(page_id: str, action_id: str) -> QuickAction | None:
     """Get a specific action by ID."""
     page_actions = get_page_actions(page_id)
     return page_actions.get(action_id)
 
 
 def filter_actions_by_role(
-    actions: Dict[str, QuickAction],
-    user_roles: List[str],
-) -> Dict[str, QuickAction]:
+    actions: dict[str, QuickAction],
+    user_roles: list[str],
+) -> dict[str, QuickAction]:
     """Filter actions to only those allowed for the user's roles."""
     filtered = {}
     for action_id, action in actions.items():
-        if action.required_roles is None:
-            filtered[action_id] = action
-        elif any(r in action.required_roles for r in user_roles):
+        if action.required_roles is None or any(r in action.required_roles for r in user_roles):
             filtered[action_id] = action
     return filtered
 
 
-def render_action_button(action: QuickAction) -> Dict[str, Any]:
+def render_action_button(action: QuickAction) -> dict[str, Any]:
     """Render an action as a button configuration for frontend."""
     return {
         "id": action.action_id,
@@ -432,11 +433,11 @@ def render_action_button(action: QuickAction) -> Dict[str, Any]:
 if __name__ == "__main__":
     logger.info("=== Action Maps System ===")
     logger.info(f"Total pages with actions: {len(ALL_ACTION_MAPS)}")
-    
+
     for page_id, actions in ALL_ACTION_MAPS.items():
         logger.info(f"\n{page_id}:")
-        for action_id, action in actions.items():
+        for _action_id, action in actions.items():
             roles = action.required_roles or ["all"]
             logger.info(f"  - {action.label} ({action.action_type.name}, roles: {roles})")
-    
-    logger.info(f"\n✅ Action maps ready for integration.")
+
+    logger.info("\n✅ Action maps ready for integration.")

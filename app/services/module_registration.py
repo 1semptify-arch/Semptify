@@ -9,19 +9,17 @@ Each module gets registered with:
 - Callback handlers for receiving packs and updates
 """
 
-import asyncio
 import logging
-from typing import Optional
 
+from app.core.event_bus import EventType, event_bus
 from app.core.module_hub import (
-    module_hub,
-    ModuleType,
     DocumentCategory,
-    PackType,
     InfoPack,
+    ModuleType,
     ModuleUpdate,
+    PackType,
+    module_hub,
 )
-from app.core.event_bus import event_bus, EventType
 
 logger = logging.getLogger(__name__)
 
@@ -30,72 +28,77 @@ logger = logging.getLogger(__name__)
 # EVICTION DEFENSE MODULE HANDLERS
 # =============================================================================
 
+
 async def on_eviction_pack_received(pack: InfoPack):
     """
     Handle info pack received by Eviction Defense module.
-    
+
     When an eviction notice, court summons, or related document is uploaded,
     this function receives the extracted data and initializes the case.
     """
     logger.info(f"📦 Eviction Defense received pack: {pack.pack_type.value}")
-    
+
     # Get the case builder service
     try:
         from app.services.eviction.case_builder import get_case_builder
+
         case_builder = get_case_builder()
-        
+
         # Initialize or update the eviction case with the pack data
         case = case_builder.get_or_create_case(pack.user_id)
-        
+
         # Apply data from the pack
         if pack.data.get("landlord_name"):
             case.landlord_name = pack.data["landlord_name"]
-        
+
         if pack.data.get("tenant_name"):
             case.tenant_name = pack.data["tenant_name"]
-        
+
         if pack.data.get("property_address"):
             case.property_address = pack.data["property_address"]
-        
+
         if pack.data.get("case_number"):
             case.case_number = pack.data["case_number"]
-        
+
         if pack.data.get("hearing_date"):
             case.hearing_date = pack.data["hearing_date"]
-        
+
         if pack.data.get("hearing_time"):
             case.hearing_time = pack.data["hearing_time"]
-        
+
         if pack.data.get("court_location"):
             case.court_location = pack.data["court_location"]
-        
+
         if pack.data.get("amount_claimed"):
             case.amount_claimed = pack.data["amount_claimed"]
-        
+
         if pack.data.get("reason"):
             case.eviction_reason = pack.data["reason"]
-        
+
         # Link the source document
         if pack.source_document_id:
-            case.documents.append({
-                "id": pack.source_document_id,
-                "type": pack.data.get("document_type"),
-                "added_at": pack.created_at.isoformat(),
-            })
-        
+            case.documents.append(
+                {
+                    "id": pack.source_document_id,
+                    "type": pack.data.get("document_type"),
+                    "added_at": pack.created_at.isoformat(),
+                }
+            )
+
         # Calculate deadlines based on document type
         from datetime import datetime, timedelta
+
         if pack.pack_type == PackType.COURT_CASE and pack.data.get("hearing_date"):
             # Answer is typically due before hearing
             hearing = datetime.fromisoformat(pack.data["hearing_date"])
             case.answer_deadline = (hearing - timedelta(days=3)).isoformat()
-        
+
         # Notify user that case was initialized
         await event_bus.publish(
             EventType.NOTIFICATION,
             {
                 "title": "Eviction Case Detected",
-                "message": f"We've started building your defense based on the uploaded document.",
+                "message": "We've started building your defense based on the uploaded document.",
                 "level": "info",
                 "action": {
                     "label": "Review Case",
@@ -105,9 +108,9 @@ async def on_eviction_pack_received(pack: InfoPack):
             source="eviction_defense",
             user_id=pack.user_id,
         )
-        
+
         logger.info(f"✅ Eviction case initialized for user {pack.user_id}")
-        
+
     except Exception as e:
         logger.error(f"Failed to process eviction pack: {e}")
 
@@ -115,7 +118,7 @@ async def on_eviction_pack_received(pack: InfoPack):
 async def on_eviction_update_received(update: ModuleUpdate):
     """Handle updates from other modules relevant to eviction defense"""
     logger.info(f"📬 Eviction Defense received update: {update.update_type}")
-    
+
     # Handle timeline events that might be relevant
     if update.update_type == "timeline_event_added":
         # Check if it's an eviction-related event
@@ -124,6 +127,7 @@ async def on_eviction_update_received(update: ModuleUpdate):
             # Add to case timeline
             try:
                 from app.services.eviction.case_builder import get_case_builder
+
                 case_builder = get_case_builder()
                 case = case_builder.get_case(update.user_id)
                 if case:
@@ -136,18 +140,20 @@ async def on_eviction_update_received(update: ModuleUpdate):
 # TIMELINE MODULE HANDLERS
 # =============================================================================
 
+
 async def on_timeline_pack_received(pack: InfoPack):
     """Handle info pack received by Timeline module"""
     logger.info(f"📦 Timeline received pack: {pack.pack_type.value}")
-    
+
     # Add events to timeline
     try:
         from app.services.document_pipeline import get_document_pipeline
-        pipeline = get_document_pipeline()
-        
+
+        get_document_pipeline()
+
         # The timeline is built from document analysis
         # This pack might contain additional dates to add
-        
+
     except Exception as e:
         logger.error(f"Failed to process timeline pack: {e}")
 
@@ -161,10 +167,11 @@ async def on_timeline_update_received(update: ModuleUpdate):
 # CALENDAR MODULE HANDLERS
 # =============================================================================
 
+
 async def on_calendar_pack_received(pack: InfoPack):
     """Handle info pack received by Calendar module"""
     logger.info(f"📦 Calendar received pack: {pack.pack_type.value}")
-    
+
     # Add deadlines to calendar
     if pack.pack_type == PackType.CALENDAR_DEADLINES:
         # Process deadlines
@@ -174,7 +181,7 @@ async def on_calendar_pack_received(pack: InfoPack):
 async def on_calendar_update_received(update: ModuleUpdate):
     """Handle updates from other modules for calendar"""
     logger.info(f"📬 Calendar received update: {update.update_type}")
-    
+
     if update.update_type == "deadline_added":
         # Add to calendar
         try:
@@ -193,6 +200,7 @@ async def on_calendar_update_received(update: ModuleUpdate):
 # DOCUMENT/VAULT MODULE HANDLERS
 # =============================================================================
 
+
 async def on_documents_pack_received(pack: InfoPack):
     """Handle info pack received by Documents module"""
     logger.info(f"📦 Documents received pack: {pack.pack_type.value}")
@@ -207,13 +215,14 @@ async def on_documents_update_received(update: ModuleUpdate):
 # REGISTRATION FUNCTION
 # =============================================================================
 
+
 def register_all_modules():
     """
     Register all modules with the Module Hub.
     Called during application startup.
     """
     logger.info("🔌 Registering modules with Module Hub...")
-    
+
     # Eviction Defense Module
     module_hub.register_module(
         module_type=ModuleType.EVICTION_DEFENSE,
@@ -234,7 +243,7 @@ def register_all_modules():
         on_pack_received=on_eviction_pack_received,
         on_update_received=on_eviction_update_received,
     )
-    
+
     # Timeline Module
     module_hub.register_module(
         module_type=ModuleType.TIMELINE,
@@ -252,7 +261,7 @@ def register_all_modules():
         on_pack_received=on_timeline_pack_received,
         on_update_received=on_timeline_update_received,
     )
-    
+
     # Calendar Module
     module_hub.register_module(
         module_type=ModuleType.CALENDAR,
@@ -266,7 +275,7 @@ def register_all_modules():
         on_pack_received=on_calendar_pack_received,
         on_update_received=on_calendar_update_received,
     )
-    
+
     # Documents/Vault Module
     module_hub.register_module(
         module_type=ModuleType.DOCUMENTS,
@@ -285,7 +294,7 @@ def register_all_modules():
         on_pack_received=on_documents_pack_received,
         on_update_received=on_documents_update_received,
     )
-    
+
     # Vault Module (separate from documents for secure storage)
     module_hub.register_module(
         module_type=ModuleType.VAULT,
@@ -294,7 +303,7 @@ def register_all_modules():
         handles_documents=[],
         accepts_packs=[],
     )
-    
+
     # AI Copilot Module
     module_hub.register_module(
         module_type=ModuleType.COPILOT,
@@ -303,7 +312,7 @@ def register_all_modules():
         handles_documents=[],
         accepts_packs=[],
     )
-    
+
     # Forms Module
     module_hub.register_module(
         module_type=ModuleType.FORMS,
@@ -315,7 +324,7 @@ def register_all_modules():
             PackType.COURT_CASE,
         ],
     )
-    
+
     # Law Library Module
     module_hub.register_module(
         module_type=ModuleType.LAW_LIBRARY,
@@ -326,7 +335,7 @@ def register_all_modules():
         ],
         accepts_packs=[],
     )
-    
+
     # Zoom Court Module
     module_hub.register_module(
         module_type=ModuleType.ZOOM_COURT,
@@ -337,7 +346,7 @@ def register_all_modules():
             PackType.COURT_CASE,
         ],
     )
-    
+
     # Context Engine Module
     module_hub.register_module(
         module_type=ModuleType.CONTEXT_ENGINE,
@@ -346,7 +355,7 @@ def register_all_modules():
         handles_documents=[],
         accepts_packs=[],
     )
-    
+
     # Adaptive UI Module
     module_hub.register_module(
         module_type=ModuleType.ADAPTIVE_UI,
@@ -447,7 +456,7 @@ def register_all_modules():
 
     status = module_hub.get_hub_status()
     logger.info(f"✅ Module Hub ready: {status['modules_registered']} modules registered")
-    
+
     return status
 
 
@@ -455,16 +464,17 @@ def register_all_modules():
 # STARTUP HOOK
 # =============================================================================
 
+
 async def initialize_module_hub():
     """
     Initialize the module hub during application startup.
     """
     # Register all modules
     register_all_modules()
-    
+
     # Log the hub status
     status = module_hub.get_hub_status()
-    logger.info(f"🔄 Module Hub Status:")
+    logger.info("🔄 Module Hub Status:")
     logger.info(f"   Modules: {status['modules_registered']}")
-    for module in status['modules']:
+    for module in status["modules"]:
         logger.info(f"   - {module['name']} ({module['type']})")

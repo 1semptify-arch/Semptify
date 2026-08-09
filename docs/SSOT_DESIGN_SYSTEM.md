@@ -1,10 +1,11 @@
 # SSOT Design System
 
-**Single Source of Truth for all Semptify UI styling**
+## Single Source of Truth for all Semptify UI styling
 
 ## Philosophy
 
 This design system eliminates visual inconsistency by providing:
+
 - **One CSS file** with all design tokens (colors, spacing, typography)
 - **Utility classes** for rapid layout composition
 - **Component classes** for common UI patterns
@@ -34,11 +35,12 @@ This design system eliminates visual inconsistency by providing:
   </div>
 </body>
 </html>
-```
+```text
 
 ## File Structure
 
 ```
+
 static/
 ├── css/
 │   └── ssot-design-system.css    # Main design system (ONE FILE)
@@ -48,11 +50,13 @@ static/
 │   └── journal-refactored.html   # Real-world example
 └── tenant/
     └── dashboard.html            # Existing pages (refactor target)
-```
+
+```text
 
 ## Design Tokens (CSS Variables)
 
 ### Colors
+
 ```css
 --color-primary: #1e3a5f;        /* Brand primary */
 --color-primary-light: #2c5aa0;  /* Hover states */
@@ -69,6 +73,7 @@ static/
 ```
 
 ### Spacing (8px base)
+
 ```css
 --space-1: 0.25rem;   /* 4px */
 --space-2: 0.5rem;    /* 8px */
@@ -81,9 +86,10 @@ static/
   padding: var(--space-4);
   gap: var(--space-2);
 }
-```
+```text
 
 ### Typography
+
 ```css
 --text-xs: 0.75rem;   /* 12px */
 --text-sm: 0.875rem;  /* 14px */
@@ -97,6 +103,7 @@ static/
 ## Utility Classes
 
 ### Layout
+
 ```html
 <!-- Container -->
 <div class="container">         <!-- Max-width 1280px, centered -->
@@ -126,11 +133,12 @@ static/
 <p class="text-center">          <!-- text-align: center -->
 <p class="text-secondary">      <!-- color: var(--text-secondary) -->
 <p class="truncate">            <!-- overflow: ellipsis -->
-```
+```text
 
 ## Component Classes
 
 ### Buttons
+
 ```html
 <!-- Variants -->
 <button class="btn btn--primary">Primary</button>
@@ -155,6 +163,7 @@ static/
 ```
 
 ### Cards
+
 ```html
 <!-- Basic -->
 <div class="card">
@@ -188,9 +197,10 @@ static/
 <!-- Variants -->
 <div class="card card--compact">  <!-- Less padding -->
 <div class="card card--flat">     <!-- No shadow, border only -->
-```
+```text
 
 ### Forms
+
 ```html
 <!-- Form group with label and input -->
 <div class="form-group">
@@ -231,6 +241,7 @@ static/
 ```
 
 ### Badges
+
 ```html
 <span class="badge badge--primary">Primary</span>
 <span class="badge badge--secondary">Secondary</span>
@@ -238,9 +249,10 @@ static/
 <span class="badge badge--warning">Warning</span>
 <span class="badge badge--error">Error</span>
 <span class="badge badge--accent">Accent</span>
-```
+```text
 
 ### Alerts
+
 ```html
 <div class="alert alert--info">
   <span>ℹ️</span>
@@ -264,6 +276,7 @@ static/
 ```
 
 ### Navigation
+
 ```html
 <!-- Horizontal -->
 <nav class="nav nav--horizontal">
@@ -277,11 +290,12 @@ static/
   <a href="#" class="nav__link">Item 1</a>
   <a href="#" class="nav__link">Item 2</a>
 </nav>
-```
+```text
 
 ## Layout Patterns
 
 ### Page Layout (Sidebar + Content)
+
 ```html
 <div class="container py-6">
   <div class="page-layout">           <!-- Grid: 280px sidebar + 1fr content -->
@@ -296,6 +310,7 @@ static/
 ```
 
 ### Page Header
+
 ```html
 <header class="page-header">          <!-- Gradient background, white text -->
   <div class="container">
@@ -303,9 +318,10 @@ static/
     <p class="page-header__subtitle">Subtitle</p>
   </div>
 </header>
-```
+```text
 
 ### Responsive Behavior
+
 ```html
 <!-- Hide on mobile -->
 <div class="hide-mobile">Desktop only</div>
@@ -326,7 +342,8 @@ static/
 
 ### From Old Patterns to SSOT
 
-**Before (inconsistent):**
+#### Before (inconsistent):
+
 ```html
 <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 16px;">
   <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">Title</h3>
@@ -335,9 +352,10 @@ static/
     Action
   </button>
 </div>
-```
+```text
 
 **After (SSOT compliant):**
+
 ```html
 <div class="card">
   <div class="card__body">
@@ -349,6 +367,7 @@ static/
 ```
 
 ### Benefits
+
 1. **Consistency** - Same styles across all pages
 2. **Maintainability** - Change in one place, applies everywhere
 3. **Accessibility** - Built-in focus states, ARIA support
@@ -358,6 +377,7 @@ static/
 ## Best Practices
 
 ### DO:
+
 - ✅ Use the design system CSS file
 - ✅ Use utility classes for layout
 - ✅ Use component classes for UI elements
@@ -366,6 +386,7 @@ static/
 - ✅ Test responsive behavior
 
 ### DON'T:
+
 - ❌ Inline styles (`style="..."`)
 - ❌ Hardcoded colors (`color: #2c5aa0`)
 - ❌ Arbitrary spacing (`margin: 17px`)
@@ -375,6 +396,7 @@ static/
 ## Examples
 
 See these reference files:
+
 - `/static/templates/component-examples.html` - Visual catalog of all components
 - `/static/templates/journal-refactored.html` - Real page using the design system
 - `/static/templates/page-shell.html` - Starting template for new pages
@@ -382,6 +404,7 @@ See these reference files:
 ## Maintenance
 
 When adding new patterns:
+
 1. Check if existing component fits the need
 2. If not, add to `ssot-design-system.css`
 3. Document in this file
@@ -390,5 +413,6 @@ When adding new patterns:
 
 ---
 
-**Semptify Design System v1.0**
+### Semptify Design System v1.0
+
 One source. All pages. Consistent experience.

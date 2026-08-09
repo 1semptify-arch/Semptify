@@ -1,4 +1,5 @@
 # Semptify Context Systems Overview
+
 ## How Context is Handled Across the Platform
 
 **Date:** June 14, 2026  
@@ -26,13 +27,15 @@ Semptify has **multiple context engines** that work together to provide a compre
 **Purpose:** The BRAIN of Semptify - everything flows through here
 
 ### **Core Loop Process:**
-```
+
+```text
 INPUT → PROCESS → INTENSITY → OUTPUT → LEARN
 ```
 
 ### **Key Components:**
 
 #### **1. Event Types**
+
 ```python
 class EventType(str, Enum):
     DOCUMENT_UPLOADED = "document_uploaded"
@@ -46,9 +49,10 @@ class EventType(str, Enum):
     USER_DISMISSED = "user_dismissed"
     PREDICTION_MADE = "prediction_made"
     INTENSITY_SPIKE = "intensity_spike"
-```
+```text
 
 #### **2. Context Events**
+
 ```python
 @dataclass
 class ContextEvent:
@@ -64,6 +68,7 @@ class ContextEvent:
 ```
 
 #### **3. User Context**
+
 ```python
 @dataclass
 class UserContext:
@@ -88,9 +93,10 @@ class UserContext:
     actions_taken: list = field(default_factory=list)
     predicted_needs: list = field(default_factory=list)
     risk_factors: list = field(default_factory=list)
-```
+```text
 
 #### **4. Intensity Engine**
+
 - **0-20:** Low priority, informational
 - **21-40:** Medium priority, should address soon
 - **41-60:** High priority, needs attention
@@ -98,6 +104,7 @@ class UserContext:
 - **81-100:** Critical, emergency situation
 
 ### **Integration Points:**
+
 - **Document Upload** → Triggers analysis and law matching
 - **Deadline Detection** → Calculates urgency and triggers alerts
 - **Issue Detection** → Updates risk factors and suggested actions
@@ -114,6 +121,7 @@ class UserContext:
 ### **Core Components:**
 
 #### **1. User Roles**
+
 ```python
 class UserRole(str, Enum):
     ADMIN = "admin"            # System admin: full access
@@ -126,21 +134,24 @@ class UserRole(str, Enum):
 ```
 
 #### **2. Storage Providers**
+
 ```python
 class StorageProvider(str, Enum):
     GOOGLE_DRIVE = "google_drive"
     DROPBOX = "dropbox"
     ONEDRIVE = "onedrive"
     LOCAL = "local"  # For admin/system users
-```
+```text
 
 #### **3. Role-Based Permissions**
+
 - **TENANT:** Vault, timeline, calendar, copilot, complaints, ledger, eviction defense
 - **ADVOCATE:** Multi-client access, case management, legal research
 - **LEGAL:** Court forms, legal analysis, case management
 - **ADMIN:** Full system access, user management, configuration
 
 ### **Integration Points:**
+
 - **Authentication** → Sets user role and storage provider
 - **UI Rendering** → Determines what features to show
 - **API Access** → Controls what endpoints are available
@@ -155,6 +166,7 @@ class StorageProvider(str, Enum):
 **Purpose:** Unified, lightweight data object available on every tenant page
 
 ### **Design Principles:**
+
 - **Fast load** (~100ms)
 - **~10KB memory footprint**
 - **Lazy-load details on demand**
@@ -163,6 +175,7 @@ class StorageProvider(str, Enum):
 ### **Core Components:**
 
 #### **1. Data Summaries**
+
 ```python
 @dataclass
 class VaultSummary:
@@ -191,6 +204,7 @@ class DeadlineSummary:
 ```
 
 #### **2. Main Briefcase**
+
 ```python
 @dataclass
 class TenantBriefcase:
@@ -206,9 +220,10 @@ class TenantBriefcase:
     def has_urgent_items(self) -> bool
     @property
     def next_deadline(self) -> Optional[Dict[str, Any]]
-```
+```text
 
 ### **Integration Points:**
+
 - **Template Rendering** → Provides quick access to user data
 - **Dashboard Display** → Shows summary information
 - **Navigation** → Highlights urgent items
@@ -223,12 +238,14 @@ class TenantBriefcase:
 **Purpose:** Neural core that connects ALL Semptify modules together
 
 ### **Capabilities:**
+
 - **Real-time communication** between modules
 - **Automatic state sharing**
 - **Cross-module workflow triggers**
 - **Full system awareness**
 
 ### **Module Types:**
+
 ```python
 class ModuleType(str, Enum):
     DOCUMENTS = "documents"
@@ -255,6 +272,7 @@ class ModuleType(str, Enum):
 ```
 
 ### **Integration Points:**
+
 - **Module Registration** → Connects new modules to the mesh
 - **Event Broadcasting** → Shares events across modules
 - **State Synchronization** → Keeps modules in sync
@@ -267,8 +285,9 @@ class ModuleType(str, Enum):
 ### **How Context Systems Use Fresh Data:**
 
 #### **1. Context Loop + Freshness**
+
 ```python
-# Freshness-aware context events
+## Freshness-aware context events
 class FreshContextEvent(ContextEvent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -282,11 +301,12 @@ class FreshContextEvent(ContextEvent):
             "court_rules": data_freshness_manager.check_freshness(f"court_{self.data.get('court')}"),
             "form_requirements": data_freshness_manager.check_freshness(f"form_{self.data.get('form_type')}")
         }
-```
+```text
 
 #### **2. User Context + Freshness**
+
 ```python
-# Freshness-aware user context
+## Freshness-aware user context
 class FreshUserContext(UserContext):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -310,8 +330,9 @@ class FreshUserContext(UserContext):
 ```
 
 #### **3. Tenant Briefcase + Freshness**
+
 ```python
-# Freshness-aware briefcase
+## Freshness-aware briefcase
 class FreshTenantBriefcase(TenantBriefcase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -331,21 +352,25 @@ class FreshTenantBriefcase(TenantBriefcase):
 ## 🚀 Implementation Roadmap
 
 ### **Phase 1: Core Integration (Week 1)**
+
 1. **Fix data freshness manager** circular dependency
 2. **Integrate Context Loop** with freshness validation
 3. **Add freshness indicators** to user context
 
 ### **Phase 2: Briefcase Enhancement (Week 2)**
+
 1. **Add freshness scores** to tenant briefcase
 2. **Implement freshness warnings** in UI
 3. **Create freshness dashboard** for admins
 
 ### **Phase 3: Brain Integration (Week 3)**
+
 1. **Connect Positronic Brain** to freshness events
 2. **Implement cross-module** freshness notifications
 3. **Add freshness-based** workflow triggers
 
 ### **Phase 4: Advanced Features (Week 4)**
+
 1. **Predictive freshness** based on usage patterns
 2. **Automatic refresh** scheduling
 3. **Freshness analytics** and reporting
@@ -355,12 +380,14 @@ class FreshTenantBriefcase(TenantBriefcase):
 ## 📊 Success Metrics
 
 ### **Context Freshness Metrics:**
+
 - Context accuracy: > 95% based on fresh data
 - Freshness coverage: 100% of critical context elements
 - Update latency: < 5 minutes for critical data
 - User confidence: > 90% in context accuracy
 
 ### **System Performance Metrics:**
+
 - Briefcase load time: < 100ms
 - Context processing time: < 500ms
 - Brain mesh latency: < 50ms

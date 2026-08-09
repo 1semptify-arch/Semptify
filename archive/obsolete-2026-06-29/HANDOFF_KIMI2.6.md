@@ -1,5 +1,6 @@
 # Semptify — SWE 1.6 Handoff Instructions
-# Updated: 2026-06-18 PM | For: Next AI session (SWE 1.6)
+
+## Updated: 2026-06-18 PM | For: Next AI session (SWE 1.6)
 
 ---
 
@@ -21,17 +22,17 @@ could silently break data integrity. Never ship without a compile check.
 ## MANDATORY PRE-FLIGHT — DO THIS BEFORE ANY CODE CHANGE
 
 ```powershell
-# 1. Activate the correct Python environment (3.11.9 — non-negotiable)
+## 1. Activate the correct Python environment (3.11.9 — non-negotiable)
 .\venv311\Scripts\Activate.ps1
 
-# 2. Read the current state
-# - READ BUILD_STATE.md (top section = last session)
-# - READ ACTIVE_CONTEXT.md (what is in progress RIGHT NOW)
-# - READ AGENTS.md Known Failure Registry (do not repeat these bugs)
+## 2. Read the current state
+## - READ BUILD_STATE.md (top section = last session)
+## - READ ACTIVE_CONTEXT.md (what is in progress RIGHT NOW)
+## - READ AGENTS.md Known Failure Registry (do not repeat these bugs)
 
-# 3. Compile check core files BEFORE touching anything
+## 3. Compile check core files BEFORE touching anything
 python -m py_compile app/main.py app/core/navigation.py app/modules/vault/router.py app/modules/onboarding/router.py app/modules/documents/router.py app/services/vault_upload_service.py
-```
+```python
 
 If any file fails to compile at pre-flight, **stop and report it to the user** before
 doing anything else. Do not proceed on a broken baseline.
@@ -41,6 +42,7 @@ doing anything else. Do not proceed on a broken baseline.
 ## WHERE THINGS ARE
 
 ```
+
 c:\Semptify\Semptify-FastAPI\        ← repo root (cwd for all commands)
   app/
     main.py                          ← FastAPI app + lifespan + all router registration
@@ -86,7 +88,8 @@ c:\Semptify\Semptify-FastAPI\        ← repo root (cwd for all commands)
   BUILD_STATE.md                     ← Session log + what is known working/broken
   ACTIVE_CONTEXT.md                  ← What is in progress RIGHT NOW
   AGENTS.md                          ← Rules + Known Failure Registry (READ THIS)
-```
+
+```text
 
 ---
 
@@ -95,6 +98,7 @@ c:\Semptify\Semptify-FastAPI\        ← repo root (cwd for all commands)
 **HEAD: `8fd6333` — clean, pushed to origin/main**
 
 ### Overlay System Mechanics Alignment
+
 - Fixed `CreateOverlayRequest` signature in 3 files:
   - `app/services/filedored_service.py`
   - `app/services/duplicate_detection_service.py`
@@ -107,6 +111,7 @@ c:\Semptify\Semptify-FastAPI\        ← repo root (cwd for all commands)
 - `app/modules/unified_overlays/router.py` is now the sole SSOT overlay API
 
 ### FunctionGroupContract Registry — 34 contracts across 11 services
+
 - **vault** (3): `vault_upload`, `vault_folders`, `vault_init`
 - **overlays** (5): `overlay_create`, `overlay_query`, `overlay_update`, `overlay_delete`, `overlay_compose_view`
 - **communication** (4): `conversation_create`, `message_send`, `conversations_list`, `document_fill_sign`
@@ -122,22 +127,26 @@ c:\Semptify\Semptify-FastAPI\        ← repo root (cwd for all commands)
 All contracts registered at import time and visible in the admin contract browser.
 
 ### AGENTS.md Updated
+
 - Added **Failure #16: Hallucinated Overlay API Signatures** to Known Failure Registry
 - Added **Module Contract Mandate** section
 - Rule: "Before writing code that calls another service's API, check the contract registry first."
 
 ### /review Bugs Fixed
+
 - `filedored/router.py:198`: `overlay.overlay_path` → `overlay.vault_path` (AttributeError)
 - `filedored_service.py`: added `original_filename` to payload (router was showing "Unknown")
 - `duplicate_detection_service.py:79-88`: replaced stale `create_overlay` with `update_overlay()` per contract
 
 ### Previous Session (2026-06-18 AM)
+
 - Fixed registration bug (unhashable type 'dict')
 - Deleted PII-collecting register forms, redirected to OAuth onboarding
 - Updated Playwright tests to use OAuth flow
 - Deployed to Render
 
 ### Earlier Sessions (2026-06-16)
+
 - Milestones 1–9 completed: case builder DB, timeline end-to-end, capability system, datetime.now() purge, event bus fixes, missing migrations
 
 ---
@@ -158,6 +167,7 @@ All contracts registered at import time and visible in the admin contract browse
 Pick up in this order:
 
 ### Priority 1 — GUI Development for Overlay System
+
 The overlay **mechanics** are now solid. Next is the user-facing surface.
 
 1. **Minimal document viewer** — load a vault document and list its overlays
@@ -165,11 +175,13 @@ The overlay **mechanics** are now solid. Next is the user-facing surface.
 3. **Redaction / watermark compose view** — use `overlay_compose_view` contract
 
 Files to touch:
+
 - `static/` (new or existing page)
 - `app/modules/unified_overlays/router.py` (already has endpoints)
 - `app/services/unified_overlay_manager.py` (contracts at bottom are SSOT)
 
 ### Priority 2 — Live Verification (Manual)
+
 These require real OAuth login in a browser:
 
 1. **Filedored browse folder**: `GET /api/filedored/browse/{folder}` should list documents
@@ -178,6 +190,7 @@ These require real OAuth login in a browser:
 4. **Contract browser**: admin dashboard shows 34 contracts
 
 ### Priority 3 — Remaining Contracts (When Those Services Are Touched)
+
 - `case_builder`
 - `fems`
 - `timeline_events`
@@ -191,56 +204,61 @@ These require real OAuth login in a browser:
 ## ARCHITECTURE RULES — NEVER VIOLATE THESE
 
 ### 1. datetime — Always UTC
+
 ```python
-# WRONG — creates naive datetime (no timezone)
+## WRONG — creates naive datetime (no timezone)
 from datetime import datetime
 ts = datetime.now()
 
-# RIGHT — always timezone-aware UTC
+## RIGHT — always timezone-aware UTC
 from app.core.utc import utc_now
 ts = utc_now()
 ```
 
 ### 2. SSOT Redirects — Never Hardcode URLs
+
 ```python
-# WRONG
+## WRONG
 return RedirectResponse(url="/onboarding/providers")
 
-# RIGHT
+## RIGHT
 providers_stage = navigation.get_stage("providers")
 return ssot_redirect(providers_stage.path, context="my_function reason")
-```
+```text
 
 ### 3. Database Sessions — Use the Context Manager
+
 ```python
-# WRONG
+## WRONG
 session = AsyncSessionLocal()  # does not exist
 
-# RIGHT
+## RIGHT
 from app.core.database import get_db_session
 async with get_db_session() as session:
     result = await session.execute(...)
 ```
 
 ### 4. IDs — Use make_id()
+
 ```python
-# WRONG
+## WRONG
 import uuid; id = str(uuid.uuid4())
 
-# RIGHT
+## RIGHT
 from app.core.id_gen import make_id
 id = make_id("tevt")  # → "tevt_a1b2c3d4..."
-```
+```text
 
 ### 5. Exception Handling — Never Bare except
+
 ```python
-# WRONG
+## WRONG
 try:
     ...
 except:
     pass
 
-# RIGHT — specific, always log
+## RIGHT — specific, always log
 try:
     ...
 except ValueError as e:
@@ -249,27 +267,33 @@ except ValueError as e:
 ```
 
 ### 6. Imports — Always at Top of File
+
 Never inject imports mid-function if avoidable. If a lazy import is necessary (circular
 dependency), document why.
 
 ### 7. New Tables — Always Create Alembic Migration
+
 Never rely on `Base.metadata.create_all()` in production. Every new model needs a migration.
 Chain it correctly: set `down_revision` to the current head before writing.
 
 Get current head first:
+
 ```powershell
 python -m alembic heads
-```
+```text
 
 ### 8. File Rewrites — Never Create _v2 Files
+
 If a file needs a rewrite, ask the user to rename the original to `_old.py` first.
 Then write the new version into the original filename. Never create `_v2`, `_new`, `_fixed`.
 
 ### 9. Module Contracts — SSOT for API Signatures
+
 Every reusable service API must register a `FunctionGroupContract` in `app/core/module_contracts.py`.
 Before writing code that calls another service, read the contract.
 
 Pattern:
+
 ```python
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
@@ -316,12 +340,12 @@ Short summary:
 Run `/ship` workflow or manually:
 
 ```powershell
-# 1. Compile check
+## 1. Compile check
 python -m py_compile app/main.py app/core/navigation.py app/modules/vault/router.py \
   app/modules/onboarding/router.py app/modules/documents/router.py \
   app/services/vault_upload_service.py
 
-# 2. Stage + commit
+## 2. Stage + commit
 git add app/ static/ tests/ scripts/ alembic/ render.yaml Dockerfile requirements.txt \
   pyproject.toml AGENTS.md BUILD_STATE.md ACTIVE_CONTEXT.md
 git commit -m "one-line summary
@@ -329,17 +353,17 @@ git commit -m "one-line summary
 - file: what changed and why
 - file: what changed and why"
 
-# 3. Push
+## 3. Push
 git push origin main
 
-# 4. Verify
+## 4. Verify
 git log --oneline -3
 
-# 5. Update BUILD_STATE.md with what was done, then:
+## 5. Update BUILD_STATE.md with what was done, then:
 git add BUILD_STATE.md && git commit -m "docs: update BUILD_STATE" && git push origin main
-```
+```text
 
-Render auto-deploys from main. Check https://dashboard.render.com for deploy logs.
+Render auto-deploys from main. Check <https://dashboard.render.com> for deploy logs.
 The deploy runs `alembic upgrade head` automatically before starting the server.
 
 ---
@@ -347,27 +371,27 @@ The deploy runs `alembic upgrade head` automatically before starting the server.
 ## USEFUL DIAGNOSTIC COMMANDS
 
 ```powershell
-# Check for naive datetime calls (should always be 0)
+## Check for naive datetime calls (should always be 0)
 grep -r "datetime\.now()" app/ --include="*.py"
 
-# Check Alembic migration state
+## Check Alembic migration state
 python -m alembic heads
 python -m alembic current
 
-# Check all model tables vs migrations coverage
+## Check all model tables vs migrations coverage
 python -c "from app.models.models import Base; print('\n'.join(sorted(Base.metadata.tables.keys())))"
 
-# Compile check a specific file
+## Compile check a specific file
 python -m py_compile app/modules/vault/router.py && echo OK
 
-# Check for bare excepts
+## Check for bare excepts
 grep -rn "except:" app/ --include="*.py"
 
-# Check for mutable defaults
+## Check for mutable defaults
 grep -rn "def .*=\[\]" app/ --include="*.py"
 grep -rn "def .*={}" app/ --include="*.py"
 
-# Check contract registry count (from a running Python shell)
+## Check contract registry count (from a running Python shell)
 python -c "from app.core.module_contracts import registry; print(len(registry.groups))"
 ```
 
@@ -375,12 +399,11 @@ python -c "from app.core.module_contracts import registry; print(len(registry.gr
 
 ## PRODUCTION URLS
 
-- App: https://semptify.org
-- Render dashboard: https://dashboard.render.com
-- API health: https://semptify.org/health
+- App: <https://semptify.org>
+- Render dashboard: <https://dashboard.render.com>
+- API health: <https://semptify.org/health>
 
 ---
 
 *This file was written at end of session 2026-06-18 PM for handoff to the next AI agent.*
 *Ground truth is always BUILD_STATE.md + ACTIVE_CONTEXT.md. Read those first.*
-

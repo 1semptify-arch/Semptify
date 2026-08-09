@@ -26,15 +26,14 @@ Benefits:
 - User can backup/export anytime
 """
 
-import json
-from app.core.utc import utc_now
 import hashlib
+import json
 import logging
-from datetime import datetime, timezone
-from typing import Optional, Any, Dict, List
-from dataclasses import dataclass, asdict, field
-from enum import Enum
-import asyncio
+from dataclasses import asdict, dataclass, field
+from enum import StrEnum
+from typing import Any
+
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -43,8 +42,10 @@ logger = logging.getLogger(__name__)
 # Data Models
 # =============================================================================
 
-class SyncStatus(str, Enum):
+
+class SyncStatus(StrEnum):
     """Sync status states."""
+
     IDLE = "idle"
     SYNCING = "syncing"
     SYNCED = "synced"
@@ -55,26 +56,27 @@ class SyncStatus(str, Enum):
 @dataclass
 class UserProfile:
     """User profile stored in cloud."""
+
     user_id: str
     display_name: str = ""
     email: str = ""
     role: str = "tenant"  # tenant, advocate, legal, admin
     created_at: str = ""
     last_sync: str = ""
-    
+
     # Preferences
     theme: str = "dark"
     language: str = "en"
     notifications: bool = True
     auto_sync: bool = True
     sync_interval_minutes: int = 5
-    
+
     # Case context
-    current_case_id: Optional[str] = None
-    
+    current_case_id: str | None = None
+
     def to_dict(self) -> dict:
         return asdict(self)
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> "UserProfile":
         return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
@@ -83,6 +85,7 @@ class UserProfile:
 @dataclass
 class CaseData:
     """Case data stored in cloud."""
+
     case_id: str
     case_number: str = ""
     court: str = "Dakota County District Court"
@@ -90,49 +93,50 @@ class CaseData:
     status: str = "active"
     created_at: str = ""
     updated_at: str = ""
-    
+
     # Parties
     tenant_name: str = ""
     tenant_address: str = ""
     landlord_name: str = ""
     landlord_address: str = ""
     property_address: str = ""
-    
+
     # Key dates
-    notice_date: Optional[str] = None
-    summons_date: Optional[str] = None
-    hearing_date: Optional[str] = None
-    answer_deadline: Optional[str] = None
-    
+    notice_date: str | None = None
+    summons_date: str | None = None
+    hearing_date: str | None = None
+    answer_deadline: str | None = None
+
     # Case details
     rent_amount: float = 0.0
     amount_owed: float = 0.0
     eviction_reason: str = ""
-    
+
     # Defenses identified
-    defenses: List[str] = field(default_factory=list)
-    
+    defenses: list[str] = field(default_factory=list)
+
     # Notes
     notes: str = ""
-    
+
     def to_dict(self) -> dict:
         return asdict(self)
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> "CaseData":
         return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
 
 
-@dataclass 
+@dataclass
 class SyncState:
     """Sync state metadata."""
+
     last_sync: str = ""
     sync_count: int = 0
     version: str = "1.0"
     checksum: str = ""
     device_id: str = ""
-    conflicts: List[dict] = field(default_factory=list)
-    
+    conflicts: list[dict] = field(default_factory=list)
+
     def to_dict(self) -> dict:
         return asdict(self)
 
@@ -141,32 +145,33 @@ class SyncState:
 # Cloud Sync Service
 # =============================================================================
 
+
 class UserCloudSync:
     """
     Manages user data sync with their cloud storage.
-    
+
     Usage:
         sync = UserCloudSync(storage_client, user_id)
-        
+
         # Load user data from cloud
         profile = await sync.load_profile()
         case = await sync.load_case()
         timeline = await sync.load_timeline()
-        
+
         # Save changes to cloud
         await sync.save_profile(profile)
         await sync.save_case(case)
-        
+
         # Full sync
         await sync.sync_all()
     """
-    
+
     SEMPTIFY_FOLDER = ".semptify"
-    
+
     def __init__(self, storage_client, user_id: str):
         """
         Initialize sync service.
-        
+
         Args:
             storage_client: Storage provider client (GoogleDrive, Dropbox, OneDrive)
             user_id: User's unique ID
@@ -174,13 +179,13 @@ class UserCloudSync:
         self.storage = storage_client
         self.user_id = user_id
         self.status = SyncStatus.IDLE
-        self._cache: Dict[str, Any] = {}
+        self._cache: dict[str, Any] = {}
         self._dirty: set = set()  # Files that need syncing
-        
+
     # =========================================================================
     # Folder Management
     # =========================================================================
-    
+
     async def ensure_folder_structure(self) -> bool:
         """Create .semptify folder structure if it doesn't exist."""
         try:
@@ -190,22 +195,22 @@ class UserCloudSync:
                 f"{self.SEMPTIFY_FOLDER}/forms",
                 f"{self.SEMPTIFY_FOLDER}/exports",
             ]
-            
+
             for folder in folders:
                 await self.storage.create_folder_if_not_exists(folder)
-            
+
             logger.info(f"📁 Folder structure ensured for user {self.user_id[:8]}...")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to create folder structure: {e}")
             return False
-    
+
     # =========================================================================
     # Profile Management
     # =========================================================================
-    
-    async def load_profile(self) -> Optional[UserProfile]:
+
+    async def load_profile(self) -> UserProfile | None:
         """Load user profile from cloud."""
         try:
             data = await self._read_json("profile.json")
@@ -216,7 +221,7 @@ class UserCloudSync:
         except Exception as e:
             logger.error(f"Failed to load profile: {e}")
             return None
-    
+
     async def save_profile(self, profile: UserProfile) -> bool:
         """Save user profile to cloud."""
         try:
@@ -229,7 +234,7 @@ class UserCloudSync:
         except Exception as e:
             logger.error(f"Failed to save profile: {e}")
             return False
-    
+
     async def get_or_create_profile(self) -> UserProfile:
         """Get existing profile or create new one."""
         profile = await self.load_profile()
@@ -240,12 +245,12 @@ class UserCloudSync:
             )
             await self.save_profile(profile)
         return profile
-    
+
     # =========================================================================
     # Case Management
     # =========================================================================
-    
-    async def load_case(self) -> Optional[CaseData]:
+
+    async def load_case(self) -> CaseData | None:
         """Load current case from cloud."""
         try:
             data = await self._read_json("case.json")
@@ -256,7 +261,7 @@ class UserCloudSync:
         except Exception as e:
             logger.error(f"Failed to load case: {e}")
             return None
-    
+
     async def save_case(self, case: CaseData) -> bool:
         """Save case to cloud."""
         try:
@@ -269,24 +274,25 @@ class UserCloudSync:
         except Exception as e:
             logger.error(f"Failed to save case: {e}")
             return False
-    
+
     async def get_or_create_case(self) -> CaseData:
         """Get existing case or create new one."""
         case = await self.load_case()
         if not case:
             from app.core.id_gen import make_id
+
             case = CaseData(
                 case_id=make_id("case"),
                 created_at=utc_now().isoformat(),
             )
             await self.save_case(case)
         return case
-    
+
     # =========================================================================
     # Timeline Management
     # =========================================================================
-    
-    async def load_timeline(self) -> List[dict]:
+
+    async def load_timeline(self) -> list[dict]:
         """Load timeline events from cloud."""
         try:
             data = await self._read_json("timeline.json")
@@ -296,8 +302,8 @@ class UserCloudSync:
         except Exception as e:
             logger.error(f"Failed to load timeline: {e}")
             return []
-    
-    async def save_timeline(self, events: List[dict]) -> bool:
+
+    async def save_timeline(self, events: list[dict]) -> bool:
         """Save timeline events to cloud."""
         try:
             data = {
@@ -312,18 +318,18 @@ class UserCloudSync:
         except Exception as e:
             logger.error(f"Failed to save timeline: {e}")
             return False
-    
+
     async def add_timeline_event(self, event: dict) -> bool:
         """Add a single event to timeline."""
         events = await self.load_timeline()
         events.append(event)
         return await self.save_timeline(events)
-    
+
     # =========================================================================
     # Calendar Management
     # =========================================================================
-    
-    async def load_calendar(self) -> List[dict]:
+
+    async def load_calendar(self) -> list[dict]:
         """Load calendar events from cloud."""
         try:
             data = await self._read_json("calendar.json")
@@ -333,8 +339,8 @@ class UserCloudSync:
         except Exception as e:
             logger.error(f"Failed to load calendar: {e}")
             return []
-    
-    async def save_calendar(self, events: List[dict]) -> bool:
+
+    async def save_calendar(self, events: list[dict]) -> bool:
         """Save calendar events to cloud."""
         try:
             data = {
@@ -349,12 +355,12 @@ class UserCloudSync:
         except Exception as e:
             logger.error(f"Failed to save calendar: {e}")
             return False
-    
+
     # =========================================================================
     # Document Index Management
     # =========================================================================
-    
-    async def load_document_index(self) -> List[dict]:
+
+    async def load_document_index(self) -> list[dict]:
         """Load document metadata index from cloud."""
         try:
             data = await self._read_json("documents/index.json")
@@ -364,8 +370,8 @@ class UserCloudSync:
         except Exception as e:
             logger.error(f"Failed to load document index: {e}")
             return []
-    
-    async def save_document_index(self, documents: List[dict]) -> bool:
+
+    async def save_document_index(self, documents: list[dict]) -> bool:
         """Save document metadata index to cloud."""
         try:
             data = {
@@ -380,14 +386,14 @@ class UserCloudSync:
         except Exception as e:
             logger.error(f"Failed to save document index: {e}")
             return False
-    
-    async def upload_document(self, filename: str, content: bytes, metadata: dict) -> Optional[str]:
+
+    async def upload_document(self, filename: str, content: bytes, metadata: dict) -> str | None:
         """Upload document to user's cloud storage."""
         try:
             # Upload file
             path = f"{self.SEMPTIFY_FOLDER}/documents/{filename}"
             file_id = await self.storage.upload_file(path, content)
-            
+
             # Update index
             docs = await self.load_document_index()
             doc_entry = {
@@ -400,15 +406,15 @@ class UserCloudSync:
             }
             docs.append(doc_entry)
             await self.save_document_index(docs)
-            
+
             logger.info(f"📤 Document uploaded: {filename}")
             return file_id
-            
+
         except Exception as e:
             logger.error(f"Failed to upload document: {e}")
             return None
-    
-    async def download_document(self, file_id_or_path: str) -> Optional[bytes]:
+
+    async def download_document(self, file_id_or_path: str) -> bytes | None:
         """Download document from user's cloud storage."""
         try:
             # Try as path first
@@ -417,13 +423,15 @@ class UserCloudSync:
             else:
                 # Look up in index by id
                 docs = await self.load_document_index()
-                doc = next((d for d in docs if d.get("id") == file_id_or_path or d.get("cloud_id") == file_id_or_path), None)
+                doc = next(
+                    (d for d in docs if d.get("id") == file_id_or_path or d.get("cloud_id") == file_id_or_path), None
+                )
                 if doc and doc.get("path"):
                     path = doc["path"]
                 else:
                     # Assume it's a filename
                     path = f"{self.SEMPTIFY_FOLDER}/documents/{file_id_or_path}"
-            
+
             # Prefer provider file id if present in index entry
             provider_id = None
             try:
@@ -431,14 +439,15 @@ class UserCloudSync:
             except Exception:
                 provider_id = None
             from app.services.storage.utils import download_prefer_id
+
             content = await download_prefer_id(self.storage, path, provider_file_id=provider_id)
             logger.info(f"📥 Document downloaded: {path}")
             return content
-            
+
         except Exception as e:
             logger.error(f"Failed to download document: {e}")
             return None
-    
+
     async def delete_document(self, file_id_or_path: str) -> bool:
         """Delete document from user's cloud storage."""
         try:
@@ -448,47 +457,46 @@ class UserCloudSync:
             else:
                 # Look up in index by id
                 docs = await self.load_document_index()
-                doc = next((d for d in docs if d.get("id") == file_id_or_path or d.get("cloud_id") == file_id_or_path), None)
-                if doc and doc.get("path"):
-                    path = doc["path"]
-                else:
-                    path = f"{self.SEMPTIFY_FOLDER}/documents/{file_id_or_path}"
-            
+                doc = next(
+                    (d for d in docs if d.get("id") == file_id_or_path or d.get("cloud_id") == file_id_or_path), None
+                )
+                path = doc["path"] if doc and doc.get("path") else f"{self.SEMPTIFY_FOLDER}/documents/{file_id_or_path}"
+
             await self.storage.delete_file(path)
             logger.info(f"🗑️ Document deleted: {path}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to delete document: {e}")
             return False
-    
+
     # =========================================================================
     # Full Sync
     # =========================================================================
-    
+
     async def sync_all(self) -> dict:
         """
         Perform full sync - load all data from cloud.
         Returns summary of loaded data.
         """
         self.status = SyncStatus.SYNCING
-        
+
         try:
             # Ensure folder structure exists
             await self.ensure_folder_structure()
-            
+
             # Load all data
             profile = await self.get_or_create_profile()
             case = await self.get_or_create_case()
             timeline = await self.load_timeline()
             calendar = await self.load_calendar()
             documents = await self.load_document_index()
-            
+
             # Update sync state
             await self._update_sync_state()
-            
+
             self.status = SyncStatus.SYNCED
-            
+
             summary = {
                 "status": "synced",
                 "user_id": self.user_id,
@@ -499,10 +507,10 @@ class UserCloudSync:
                 "document_count": len(documents),
                 "synced_at": utc_now().isoformat(),
             }
-            
+
             logger.info(f"🔄 Full sync complete for user {self.user_id[:8]}...")
             return summary
-            
+
         except Exception as e:
             self.status = SyncStatus.ERROR
             logger.error(f"Sync failed: {e}")
@@ -510,7 +518,7 @@ class UserCloudSync:
                 "status": "error",
                 "error": str(e),
             }
-    
+
     async def export_all(self) -> dict:
         """Export all user data as a single JSON blob."""
         return {
@@ -523,7 +531,7 @@ class UserCloudSync:
             "calendar": self._cache.get("calendar", []),
             "documents": self._cache.get("documents", []),
         }
-    
+
     async def import_all(self, data: dict) -> bool:
         """Import data from export blob."""
         try:
@@ -537,37 +545,37 @@ class UserCloudSync:
                 await self.save_calendar(data["calendar"])
             if "documents" in data:
                 await self.save_document_index(data["documents"])
-            
+
             logger.info(f"📥 Data imported for user {self.user_id[:8]}...")
             return True
         except Exception as e:
             logger.error(f"Import failed: {e}")
             return False
-    
+
     # =========================================================================
     # Internal Helpers
     # =========================================================================
-    
-    async def _read_json(self, filename: str) -> Optional[dict]:
+
+    async def _read_json(self, filename: str) -> dict | None:
         """Read JSON file from cloud storage."""
         path = f"{self.SEMPTIFY_FOLDER}/{filename}"
         try:
             content = await self.storage.read_file(path)
             if content:
-                return json.loads(content.decode('utf-8'))
+                return json.loads(content.decode("utf-8"))
             return None
         except FileNotFoundError:
             return None
         except Exception as e:
             logger.debug(f"Read failed for {path}: {e}")
             return None
-    
+
     async def _write_json(self, filename: str, data: dict) -> None:
         """Write JSON file to cloud storage."""
         path = f"{self.SEMPTIFY_FOLDER}/{filename}"
-        content = json.dumps(data, indent=2, default=str).encode('utf-8')
+        content = json.dumps(data, indent=2, default=str).encode("utf-8")
         await self.storage.write_file(path, content)
-    
+
     async def _update_sync_state(self) -> None:
         """Update sync state metadata."""
         state = SyncState(
@@ -576,27 +584,28 @@ class UserCloudSync:
             checksum=self._calculate_checksum(),
         )
         await self._write_json("sync_state.json", state.to_dict())
-    
+
     def _calculate_checksum(self) -> str:
         """Calculate checksum of cached data for conflict detection."""
         data = json.dumps(self._cache, sort_keys=True, default=str)
-        return hashlib.md5(data.encode()).hexdigest()[:16]
+        return hashlib.md5(data.encode()).hexdigest()[:16]  # noqa: S324 - non-security checksum
 
 
 # =============================================================================
 # Factory Function
 # =============================================================================
 
+
 async def get_cloud_sync(storage_client, user_id: str) -> UserCloudSync:
     """
     Get a UserCloudSync instance for a user.
-    
+
     Usage:
         from app.services.storage.google_drive import GoogleDriveClient
-        
+
         client = GoogleDriveClient(access_token)
         sync = await get_cloud_sync(client, user_id)
-        
+
         # Now use sync to load/save user data
         profile = await sync.load_profile()
     """
@@ -608,12 +617,13 @@ async def get_cloud_sync(storage_client, user_id: str) -> UserCloudSync:
 # Quick Sync Endpoints Helper
 # =============================================================================
 
+
 class QuickSyncData:
     """
     Lightweight sync data structure for API responses.
     Contains just the essential data for quick loading.
     """
-    
+
     @staticmethod
     def from_sync(sync: UserCloudSync) -> dict:
         """Create quick sync response from sync service."""
@@ -625,7 +635,9 @@ class QuickSyncData:
                 "case_number": sync._cache.get("case", {}).get("case_number"),
                 "status": sync._cache.get("case", {}).get("status"),
                 "hearing_date": sync._cache.get("case", {}).get("hearing_date"),
-            } if sync._cache.get("case") else None,
+            }
+            if sync._cache.get("case")
+            else None,
             "counts": {
                 "timeline": len(sync._cache.get("timeline", [])),
                 "calendar": len(sync._cache.get("calendar", [])),

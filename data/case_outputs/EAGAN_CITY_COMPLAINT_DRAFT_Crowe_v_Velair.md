@@ -1,4 +1,5 @@
 # CITY OF EAGAN COMPLAINT
+
 ## Rental Property Violations & Landlord Misconduct
 
 **Eagan City Hall:** 3830 Pilot Knob Road, Eagan, MN 55122  
@@ -7,41 +8,42 @@
 
 ---
 
-## WHY FILE WITH THE CITY OF EAGAN?
+## WHY FILE WITH THE CITY OF EAGAN
 
 Cities often have:
+
 - ✅ Rental licensing programs with landlord requirements
 - ✅ Housing/code enforcement divisions
 - ✅ Local ordinances on landlord conduct
 - ✅ Ability to inspect properties and cite violations
 - ✅ Power to revoke or condition rental licenses
 
-**Eagan's Rental Licensing:** Verify at https://www.cityofeagan.com/ if Lexington Flats is required to have a rental license.
+**Eagan's Rental Licensing:** Verify at <https://www.cityofeagan.com/> if Lexington Flats is required to have a rental license.
 
 ---
 
 ## COMPLAINANT INFORMATION
 
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Name | Bradley A. Crowe |
 | Address | 2977 Lexington Ave S, Unit #104, Eagan, MN 55121 |
 | Phone | 651-417-3946 |
-| Email | bradcrowe45@gmail.com |
+| Email | <bradcrowe45@gmail.com> |
 
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Name | Dena Sazama |
 | Address | 2977 Lexington Ave S, Unit #104, Eagan, MN 55121 |
 | Phone | 612-441-6948 |
-| Email | denasazama1@gmail.com |
+| Email | <denasazama1@gmail.com> |
 
 ---
 
 ## PROPERTY INFORMATION
 
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Property Name | Lexington Flats Apartments |
 | Property Address | 2985 Lexington Avenue South, Eagan, MN 55121 |
 | Unit | #104 |
@@ -68,7 +70,7 @@ Cities often have:
 
 We are long-term tenants (4+ years) at Lexington Flats with a perfect rental history. After we complained about accounting errors and harassment, the property management company (Velair) fabricated lease violations and is attempting to evict us from our home.
 
-**Key Concerns for the City:**
+### Key Concerns for the City:
 
 1. **Landlord Harassment Pattern:** The property management is engaging in a pattern of harassment against tenants who exercise their legal rights.
 
@@ -85,7 +87,7 @@ We are long-term tenants (4+ years) at Lexington Flats with a perfect rental his
 ## TIMELINE OF EVENTS
 
 | Date | Event |
-|------|-------|
+| ------ | ------- |
 | Aug 13, 2025 | Velair offered lease renewal (tenants in good standing) |
 | Aug 17, 2025 | Unit listed for rent on RENTCafe.com (BEFORE violation) |
 | Aug 18, 2025 | Fabricated "Serious Lease Infraction" notice issued |
@@ -121,14 +123,17 @@ We are long-term tenants (4+ years) at Lexington Flats with a perfect rental his
 ## CONTACT INFORMATION FOR COMPLAINTS
 
 ### Eagan Code Enforcement
+
 - **Phone:** (651) 675-5675
 - **Address:** 3830 Pilot Knob Road, Eagan, MN 55122
 
 ### Eagan Community Development
+
 - **Phone:** (651) 675-5650
-- **Online:** https://www.cityofeagan.com/
+- **Online:** <https://www.cityofeagan.com/>
 
 ### Dakota County (If City Cannot Help)
+
 - **Dakota County Attorney:** (651) 438-4438
 - **Dakota County Housing:** (651) 554-5610
 
@@ -137,7 +142,7 @@ We are long-term tenants (4+ years) at Lexington Flats with a perfect rental his
 ## RELATED COMPLAINTS FILED
 
 | Agency | Date | Status |
-|--------|------|--------|
+| -------- | ------ | -------- |
 | Minnesota Attorney General | Sep 4, 2025 | Filed |
 | HUD Fair Housing | Pending | Draft ready |
 | MN Dept of Human Rights | Pending | Draft ready |
@@ -149,13 +154,15 @@ We are long-term tenants (4+ years) at Lexington Flats with a perfect rental his
 ## HOW TO FILE
 
 ### Option 1: Call Code Enforcement
+
 - **Phone:** (651) 675-5675
 - Explain you want to report landlord misconduct
 - Ask if rental licensing applies to Lexington Flats
 - Request an investigation
 
 ### Option 2: Visit City Hall
-```
+
+```text
 Eagan City Hall
 3830 Pilot Knob Road
 Eagan, MN 55122
@@ -163,7 +170,8 @@ Hours: 8am-4:30pm, Monday-Friday
 ```
 
 ### Option 3: Online
-- Visit: https://www.cityofeagan.com/
+
+- Visit: <https://www.cityofeagan.com/>
 - Look for "Report a Concern" or "Code Enforcement"
 - Submit complaint with details above
 
@@ -172,6 +180,7 @@ Hours: 8am-4:30pm, Monday-Friday
 ## EVIDENCE TO PROVIDE
 
 If requested by the city:
+
 - RENTCafe listing screenshot (Aug 17, 2025)
 - "Serious Lease Infraction" notice (Aug 18, 2025)
 - Rossi's defamatory email (Sep 19, 2025)
@@ -183,6 +192,7 @@ If requested by the city:
 ## NOTE ON CITY AUTHORITY
 
 Cities have varying authority over landlord conduct. Eagan may or may not have:
+
 - Rental licensing requirements for large apartments
 - Landlord conduct ordinances
 - Housing court or mediation programs

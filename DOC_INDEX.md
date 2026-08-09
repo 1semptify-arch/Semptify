@@ -3,7 +3,8 @@
 **Generated:** 2026-07-03
 **Purpose:** Index of the 13 root-level docs that claim or imply canonical status. Each entry has a one-line description and a flag so a human (not the AI) can decide what to merge, archive, or delete.
 
-**Flags:**
+## Flags:
+
 - **KEEP AS-IS** — actively maintained or canonical per `PROJECT_BIBLE.md` hierarchy
 - **STALE** — contradicts a newer file (named in the note)
 - **DUPLICATE** — near-identical to another file (named in the note)
@@ -15,7 +16,7 @@ This index does NOT modify, merge, or delete any of the 13 files. It only descri
 ## The 13 Files
 
 | # | File | Description | Flag |
-|---|------|-------------|------|
+| --- | ------ | ------------- | ------ |
 | 1 | `PROJECT_BIBLE.md` | Canonical governance: source-of-truth hierarchy (7 canonical docs), ethics, onboarding flow, doc-merge rules. Declares itself #1 in the hierarchy. | **KEEP AS-IS** — governance root, referenced by `AGENTS.md` and `ROADMAP_TO_PUBLIC_RELEASE.md` |
 | 2 | `BLUEPRINT.md` | "Court Defense System Master Blueprint" — bi-directional data flow architecture, router/service/static inventory with statuses. References a specific Dakota County case (19AV-CV-25-3477). | **STALE** — router/service statuses (many "Needs integration") contradict `ACTIVE_CONTEXT.md` which shows Phase 4 complete with full endpoint coverage for all 6 roles. **DUPLICATE** of `SEMPTIFY_SYSTEM_MANIFEST.md` (module inventory) |
 | 3 | `BUILD_GUIDE_SSOT.md` | Build guide, testing checklist, known issues. Last updated May 20, 2026. Declares "Clean Repository - All Issues Resolved." | **STALE** — last updated May 20, 2026; contradicts `BUILD_STATE.md` (updated every session). **DUPLICATE** of `README.md` (which `PROJECT_BIBLE.md` declares as the canonical build guide) |

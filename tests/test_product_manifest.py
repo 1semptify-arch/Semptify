@@ -13,11 +13,11 @@ Validates:
 import pytest
 
 from app.core.product_manifest import (
-    ProductTier,
-    ModuleEntry,
     MANIFEST,
-    register_tiers,
+    ModuleEntry,
+    ProductTier,
     _load_router,
+    register_tiers,
 )
 
 

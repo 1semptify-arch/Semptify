@@ -10,8 +10,8 @@ Minnesota-focused with support for neighboring states.
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from enum import StrEnum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -20,43 +20,47 @@ logger = logging.getLogger(__name__)
 # LOCATION DATA STRUCTURES
 # =============================================================================
 
-class SupportLevel(str, Enum):
+
+class SupportLevel(StrEnum):
     """Level of support available for a state"""
-    FULL = "full"           # Full tenant rights database, all features
-    PARTIAL = "partial"     # Some resources, may reference MN law
-    MINIMAL = "minimal"     # Basic info only, defaults to MN resources
+
+    FULL = "full"  # Full tenant rights database, all features
+    PARTIAL = "partial"  # Some resources, may reference MN law
+    MINIMAL = "minimal"  # Basic info only, defaults to MN resources
 
 
 @dataclass
 class StateInfo:
     """Information about a supported state"""
+
     code: str
     name: str
     support_level: SupportLevel
-    tenant_rights_url: Optional[str] = None
-    housing_court_info: Optional[str] = None
-    legal_aid_phone: Optional[str] = None
-    attorney_general_url: Optional[str] = None
+    tenant_rights_url: str | None = None
+    housing_court_info: str | None = None
+    legal_aid_phone: str | None = None
+    attorney_general_url: str | None = None
     eviction_timeline_days: int = 14  # Default answer period
-    late_fee_limit: Optional[str] = None
-    security_deposit_limit: Optional[str] = None
+    late_fee_limit: str | None = None
+    security_deposit_limit: str | None = None
 
 
 @dataclass
 class UserLocation:
     """User's location context"""
+
     state_code: str
     state_name: str
-    county: Optional[str] = None
-    city: Optional[str] = None
-    zip_code: Optional[str] = None
+    county: str | None = None
+    city: str | None = None
+    zip_code: str | None = None
     support_level: SupportLevel = SupportLevel.MINIMAL
     detected_at: datetime = field(default_factory=datetime.utcnow)
     detection_method: str = "default"  # "geolocation", "user_input", "default"
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    latitude: float | None = None
+    longitude: float | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "state_code": self.state_code,
             "state_name": self.state_name,
@@ -73,7 +77,7 @@ class UserLocation:
 # STATE DATABASE
 # =============================================================================
 
-STATES_INFO: Dict[str, StateInfo] = {
+STATES_INFO: dict[str, StateInfo] = {
     # FULL SUPPORT - Minnesota (Primary)
     "MN": StateInfo(
         code="MN",
@@ -87,7 +91,6 @@ STATES_INFO: Dict[str, StateInfo] = {
         late_fee_limit="8% of rent or $12, whichever is greater (Minn. Stat. § 504B.177)",
         security_deposit_limit="No statutory limit, but interest required after 12 months",
     ),
-    
     # PARTIAL SUPPORT - Neighboring states
     "WI": StateInfo(
         code="WI",
@@ -132,7 +135,7 @@ STATES_INFO: Dict[str, StateInfo] = {
 }
 
 # Minnesota counties with specific housing court info
-MN_COUNTIES: Dict[str, Dict[str, str]] = {
+MN_COUNTIES: dict[str, dict[str, str]] = {
     "Hennepin": {
         "court": "Hennepin County Housing Court",
         "address": "300 S 6th St, Minneapolis, MN 55487",
@@ -183,10 +186,11 @@ MN_COUNTIES: Dict[str, Dict[str, str]] = {
 # LOCATION SERVICE
 # =============================================================================
 
+
 class LocationService:
     """
     Location awareness service integrated with Positronic Brain.
-    
+
     Provides:
     - User location detection and storage
     - State-specific tenant rights info
@@ -207,13 +211,13 @@ class LocationService:
             return
 
         self._initialized = True
-        
+
         # User location cache: user_id -> UserLocation
-        self.user_locations: Dict[str, UserLocation] = {}
-        
+        self.user_locations: dict[str, UserLocation] = {}
+
         # Default location (Minnesota)
         self.default_state = "MN"
-        
+
         logger.info("📍 Location Service initialized - Minnesota-focused tenant rights")
 
     # =========================================================================
@@ -224,17 +228,17 @@ class LocationService:
         self,
         user_id: str,
         state_code: str,
-        county: Optional[str] = None,
-        city: Optional[str] = None,
-        zip_code: Optional[str] = None,
+        county: str | None = None,
+        city: str | None = None,
+        zip_code: str | None = None,
         detection_method: str = "user_input",
-        latitude: Optional[float] = None,
-        longitude: Optional[float] = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
     ) -> UserLocation:
         """Set/update user's location"""
-        
+
         state_info = self.get_state_info(state_code)
-        
+
         location = UserLocation(
             state_code=state_code.upper(),
             state_name=state_info.name if state_info else state_code,
@@ -246,19 +250,19 @@ class LocationService:
             latitude=latitude,
             longitude=longitude,
         )
-        
+
         self.user_locations[user_id] = location
 
-        logger.info("📍 Location set for user %s...: %s, %s", user_id[:8], state_code, county or 'no county')
+        logger.info("📍 Location set for user %s...: %s, %s", user_id[:8], state_code, county or "no county")
 
         return location
 
     def get_user_location(self, user_id: str) -> UserLocation:
         """Get user's location (defaults to Minnesota)"""
-        
+
         if user_id in self.user_locations:
             return self.user_locations[user_id]
-        
+
         # Return default Minnesota location
         return UserLocation(
             state_code=self.default_state,
@@ -277,11 +281,11 @@ class LocationService:
     # STATE INFORMATION
     # =========================================================================
 
-    def get_state_info(self, state_code: str) -> Optional[StateInfo]:
+    def get_state_info(self, state_code: str) -> StateInfo | None:
         """Get information about a state"""
         return STATES_INFO.get(state_code.upper())
 
-    def get_supported_states(self) -> List[Dict[str, Any]]:
+    def get_supported_states(self) -> list[dict[str, Any]]:
         """Get list of all supported states"""
         return [
             {
@@ -301,17 +305,17 @@ class LocationService:
     # COUNTY INFORMATION (Minnesota)
     # =========================================================================
 
-    def get_county_info(self, county: str, state_code: str = "MN") -> Optional[Dict[str, str]]:
+    def get_county_info(self, county: str, state_code: str = "MN") -> dict[str, str] | None:
         """Get county-specific information (Minnesota only for now)"""
         if state_code.upper() != "MN":
             return None
-        
+
         # Normalize county name
         county_normalized = county.replace(" County", "").strip().title()
-        
+
         return MN_COUNTIES.get(county_normalized)
 
-    def get_mn_counties(self) -> List[str]:
+    def get_mn_counties(self) -> list[str]:
         """Get list of Minnesota counties with court info"""
         return list(MN_COUNTIES.keys())
 
@@ -319,47 +323,53 @@ class LocationService:
     # LEGAL RESOURCES BY LOCATION
     # =========================================================================
 
-    def get_legal_resources(self, user_id: str) -> Dict[str, Any]:
+    def get_legal_resources(self, user_id: str) -> dict[str, Any]:
         """Get legal resources based on user's location"""
-        
+
         location = self.get_user_location(user_id)
         state_info = self.get_state_info(location.state_code)
-        
+
         resources = {
             "state": location.state_code,
             "state_name": location.state_name,
             "support_level": location.support_level.value,
             "resources": [],
         }
-        
+
         if state_info:
             if state_info.legal_aid_phone:
-                resources["resources"].append({
-                    "name": "Legal Aid Hotline",
-                    "phone": state_info.legal_aid_phone,
-                    "type": "phone",
-                })
-            
+                resources["resources"].append(
+                    {
+                        "name": "Legal Aid Hotline",
+                        "phone": state_info.legal_aid_phone,
+                        "type": "phone",
+                    }
+                )
+
             if state_info.tenant_rights_url:
-                resources["resources"].append({
-                    "name": "Tenant Rights Guide",
-                    "url": state_info.tenant_rights_url,
-                    "type": "website",
-                })
-            
+                resources["resources"].append(
+                    {
+                        "name": "Tenant Rights Guide",
+                        "url": state_info.tenant_rights_url,
+                        "type": "website",
+                    }
+                )
+
             if state_info.attorney_general_url:
-                resources["resources"].append({
-                    "name": "Attorney General Consumer Resources",
-                    "url": state_info.attorney_general_url,
-                    "type": "website",
-                })
-        
+                resources["resources"].append(
+                    {
+                        "name": "Attorney General Consumer Resources",
+                        "url": state_info.attorney_general_url,
+                        "type": "website",
+                    }
+                )
+
         # Add county-specific info if Minnesota
         if location.state_code == "MN" and location.county:
             county_info = self.get_county_info(location.county)
             if county_info:
                 resources["county_court"] = county_info
-        
+
         # Add Minnesota-specific resources (always helpful as reference)
         if location.state_code == "MN" or location.support_level != SupportLevel.FULL:
             resources["mn_resources"] = {
@@ -376,15 +386,15 @@ class LocationService:
                     "description": "Free legal services for low-income Minnesotans",
                 },
             }
-        
+
         return resources
 
-    def get_eviction_timeline(self, user_id: str) -> Dict[str, Any]:
+    def get_eviction_timeline(self, user_id: str) -> dict[str, Any]:
         """Get eviction timeline based on user's state"""
-        
+
         location = self.get_user_location(user_id)
         state_info = self.get_state_info(location.state_code) or STATES_INFO["MN"]
-        
+
         return {
             "state": location.state_code,
             "answer_period_days": state_info.eviction_timeline_days,
@@ -397,14 +407,14 @@ class LocationService:
     # BRAIN INTEGRATION
     # =========================================================================
 
-    def get_location_context(self, user_id: str) -> Dict[str, Any]:
+    def get_location_context(self, user_id: str) -> dict[str, Any]:
         """
         Get full location context for brain/mesh integration.
         This is what gets passed to other modules.
         """
         location = self.get_user_location(user_id)
         state_info = self.get_state_info(location.state_code)
-        
+
         return {
             "location": location.to_dict(),
             "state_info": {
@@ -413,7 +423,9 @@ class LocationService:
                 "support_level": state_info.support_level.value if state_info else "minimal",
                 "eviction_days": state_info.eviction_timeline_days if state_info else 14,
                 "late_fee_limit": state_info.late_fee_limit if state_info else None,
-            } if state_info else None,
+            }
+            if state_info
+            else None,
             "is_primary_state": location.state_code == "MN",
             "legal_resources": self.get_legal_resources(user_id),
         }
@@ -435,12 +447,13 @@ def get_location_service() -> LocationService:
 # BRAIN ACTION HANDLERS
 # =============================================================================
 
-async def handle_get_location(user_id: str, _params: Dict[str, Any], _context: Dict[str, Any]) -> Dict[str, Any]:
+
+async def handle_get_location(user_id: str, _params: dict[str, Any], _context: dict[str, Any]) -> dict[str, Any]:
     """Brain action handler: Get user location"""
     return location_service.get_location_context(user_id)
 
 
-async def handle_set_location(user_id: str, params: Dict[str, Any], _context: Dict[str, Any]) -> Dict[str, Any]:
+async def handle_set_location(user_id: str, params: dict[str, Any], _context: dict[str, Any]) -> dict[str, Any]:
     """Brain action handler: Set user location"""
     location = location_service.set_user_location(
         user_id=user_id,
@@ -453,12 +466,14 @@ async def handle_set_location(user_id: str, params: Dict[str, Any], _context: Di
     return {"location": location.to_dict(), "success": True}
 
 
-async def handle_get_legal_resources(user_id: str, _params: Dict[str, Any], _context: Dict[str, Any]) -> Dict[str, Any]:
+async def handle_get_legal_resources(user_id: str, _params: dict[str, Any], _context: dict[str, Any]) -> dict[str, Any]:
     """Brain action handler: Get legal resources for location"""
     return location_service.get_legal_resources(user_id)
 
 
-async def handle_get_eviction_timeline(user_id: str, _params: Dict[str, Any], _context: Dict[str, Any]) -> Dict[str, Any]:
+async def handle_get_eviction_timeline(
+    user_id: str, _params: dict[str, Any], _context: dict[str, Any]
+) -> dict[str, Any]:
     """Brain action handler: Get eviction timeline for state"""
     return location_service.get_eviction_timeline(user_id)
 
@@ -467,11 +482,12 @@ async def handle_get_eviction_timeline(user_id: str, _params: Dict[str, Any], _c
 # REGISTER WITH POSITRONIC MESH
 # =============================================================================
 
+
 def register_with_mesh():
     """Register location service actions with the Positronic Mesh"""
     try:
         from app.core.positronic_mesh import positronic_mesh
-        
+
         positronic_mesh.register_action(
             module="location",
             action="get_location",
@@ -479,7 +495,7 @@ def register_with_mesh():
             description="Get user's location context",
             produces=["location", "state_info", "legal_resources"],
         )
-        
+
         positronic_mesh.register_action(
             module="location",
             action="set_location",
@@ -489,7 +505,7 @@ def register_with_mesh():
             optional_params=["county", "city", "zip_code"],
             produces=["location"],
         )
-        
+
         positronic_mesh.register_action(
             module="location",
             action="get_legal_resources",
@@ -497,7 +513,7 @@ def register_with_mesh():
             description="Get legal resources for user's location",
             produces=["legal_resources"],
         )
-        
+
         positronic_mesh.register_action(
             module="location",
             action="get_eviction_timeline",
@@ -505,9 +521,9 @@ def register_with_mesh():
             description="Get eviction timeline rules for user's state",
             produces=["eviction_timeline"],
         )
-        
+
         logger.info("📍 Location service registered with Positronic Mesh")
-        
+
     except ImportError:
         logger.warning("Positronic Mesh not available, location service running standalone")
 

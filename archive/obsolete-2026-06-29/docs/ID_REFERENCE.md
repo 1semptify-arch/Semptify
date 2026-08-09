@@ -5,7 +5,7 @@ This reference defines the key identifiers used by Semptify document and vault p
 ## Document IDs
 
 | Name | Format | Example | Source | Purpose |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `document_id` | `SEM-YYYY-NNNNNN-XXXX` | `SEM-2026-000123-9A1B` | `app/services/document_registry.py` | Canonical registered document identity used by the registry, analysis, and case linkage |
 | `vault_id` | UUID | `3fa85f64-5717-4562-b3fc-2c963f66afa6` | `app/services/vault_upload_service.py` | Primary identifier for the stored vault file and vault metadata |
 | `certificate_id` | `cert_{YYYYMMDD_HHMMSS}_{vault_id_prefix}` | `cert_20260413_132501_ab12cd34` | `app/services/vault_upload_service.py` / `app/routers/vault.py` | Identifier for the upload certification record and audit artifact |
@@ -14,7 +14,7 @@ This reference defines the key identifiers used by Semptify document and vault p
 ## Hashes and integrity values
 
 | Name | Format | Source | Purpose |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `sha256_hash` | 64-character hex | `app/services/vault_upload_service.py` / `app/services/document_registry.py` | File content fingerprint used for deduplication and integrity |
 | `content_hash` | 64-character hex | `app/services/document_registry.py` | SHA-256 of raw document bytes, used in registry integrity checks |
 | `metadata_hash` | 64-character hex | `app/services/document_registry.py` | SHA-256 of sorted registration metadata, used in combined integrity check |
@@ -23,7 +23,7 @@ This reference defines the key identifiers used by Semptify document and vault p
 ## OAuth and session identifiers
 
 | Name | Format | Source | Purpose |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `access_token` | provider-specific token | OAuth provider / `app/routers/storage.py` | Cloud storage access token for vault upload and download |
 | `semptify_uid` | user ID string with provider/role prefix | Cookie/session | Identifies the authenticated user and their storage provider |
 | function token | short-lived access token | `app/core/security.py` | Enables secure overlay or function-scoped operations without reusing OAuth tokens |

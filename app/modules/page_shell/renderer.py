@@ -71,7 +71,7 @@ def render_page_shell(config: PageConfig) -> str:
     # CSS grid area strings use single quotes so the inline style remains a
     # valid double-quoted HTML attribute.
     safe_areas = areas.replace('"', "'")
-    style = f"grid-template-areas: {safe_areas}; " f"grid-template-rows: {rows};"
+    style = f"grid-template-areas: {safe_areas}; grid-template-rows: {rows};"
     return f'<div class="page-shell skeleton-{skeleton}" style="{style}">\n' + "\n".join(zones_html) + "\n</div>"
 
 
@@ -160,7 +160,7 @@ def _render_input_block(b: InputBlock, emphasis: str) -> str:
             f' class="signature-input" placeholder="{placeholder}"{required}>'
         )
     else:  # text
-        field = f'<input type="text" name="{html.escape(b.block_id)}"' f' placeholder="{placeholder}"{required}>'
+        field = f'<input type="text" name="{html.escape(b.block_id)}" placeholder="{placeholder}"{required}>'
 
     return (
         f'<div class="block block-input emphasis-{emphasis}" data-block-id="{html.escape(b.block_id)}">\n'

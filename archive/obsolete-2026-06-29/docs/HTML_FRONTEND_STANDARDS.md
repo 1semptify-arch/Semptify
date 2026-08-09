@@ -1,13 +1,14 @@
 # Semptify 5.0 - HTML & Frontend Standards
 
 ## Document Purpose
+
 Working log and standards for onboarding HTML pages and frontend design.
 
 ---
 
 ## Folder Structure (Current)
 
-```
+```text
 static/
 ├── public/                    # Public-facing pages (no auth required)
 │   ├── welcome.html          # Entry point - New/Returning User buttons
@@ -39,22 +40,27 @@ staticbac/                    # BACKUP - Old reference files
 ## Page Standards
 
 ### 1. Welcome Page (`static/public/welcome.html`)
+
 **Purpose**: Entry point for all users
-**Flow**: 
+**Flow**:
+
 - New User → `/onboarding/role-select`
 - Returning User → `/storage/reconnect`
 
 **Required Elements**:
+
 - Semptify branding/logo
 - Clear value proposition
 - Two CTA buttons side by side
 - Privacy/Terms links
 
 ### 2. Role Selection Page (`static/onboarding/role-select.html`)
+
 **Purpose**: First step of onboarding
 **Flow**: Select role → Continue → Storage OAuth
 
 **Required Elements**:
+
 - Header with back link to `/`
 - Step indicator (Step 1 of 3)
 - 3 role cards:
@@ -67,6 +73,7 @@ staticbac/                    # BACKUP - Old reference files
 ### 3. Design System
 
 **Colors**:
+
 - Primary Green: `#10b981` (emerald-500)
 - Dark Green: `#064e3b` (emerald-900)
 - Light Green: `#065f46` (emerald-800)
@@ -74,12 +81,14 @@ staticbac/                    # BACKUP - Old reference files
 - Background: Linear gradient `#064e3b` → `#065f46`
 
 **Typography**:
+
 - Font: System font stack (`-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`)
 - Headings: 1.5rem - 2rem
 - Body: 0.9rem - 1rem
 - Small: 0.85rem
 
 **Components**:
+
 - Cards: `border-radius: 16px`, semi-transparent white background
 - Buttons: Gradient or solid, `border-radius: 12px`
 - Selection indicators: Circular checkmarks
@@ -89,7 +98,7 @@ staticbac/                    # BACKUP - Old reference files
 ## Route Mapping
 
 | URL | File | Description |
-|-----|------|-------------|
+| ----- | ------ | ------------- |
 | `/` | `static/public/welcome.html` | Entry point |
 | `/onboarding/role-select` | `static/onboarding/role-select.html` | Role selection |
 | `/storage/reconnect` | API endpoint | Returning user OAuth |
@@ -100,6 +109,7 @@ staticbac/                    # BACKUP - Old reference files
 ## Working Log
 
 ### 2026-04-22 - Initial Setup
+
 - Created `static/onboarding/role-select.html` with 3 roles
 - Updated `static/public/welcome.html` with New/Returning User buttons
 - Updated `main.py` root route to serve from `static/public/welcome.html`
@@ -108,6 +118,7 @@ staticbac/                    # BACKUP - Old reference files
 - Removed `staticbac` references from main.py (kept as backup reference)
 
 ### Next Steps
+
 - [ ] Create storage provider selection page
 - [ ] Create validation pages for Advocate/Legal roles
 - [ ] Test OAuth flow end-to-end
@@ -118,6 +129,7 @@ staticbac/                    # BACKUP - Old reference files
 ## Code Standards
 
 ### HTML Template
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -151,12 +163,14 @@ staticbac/                    # BACKUP - Old reference files
 ```
 
 ### CSS Standards
+
 - Use CSS custom properties for colors (to be added)
 - Mobile-first responsive design
 - Flexbox/Grid for layouts
 - Transition effects for interactivity
 
 ### JavaScript Standards
+
 - Plain vanilla JS (no frameworks for static pages)
 - Event delegation for dynamic elements
 - URL parameter parsing for state management
@@ -164,6 +178,7 @@ staticbac/                    # BACKUP - Old reference files
 ---
 
 ## Notes
+
 - `staticbac` folder is READ-ONLY backup - do not edit
 - All new work goes in `static/` folder
 - Test at `http://localhost:8000/` after running `start-semptify.ps1`

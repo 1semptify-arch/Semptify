@@ -1,7 +1,8 @@
 # HUD FAIR HOUSING COMPLAINT DRAFT
+
 ## Crowe & Sazama v. Velair Property Management, LLC
 
-**File Online:** https://www.hud.gov/program_offices/fair_housing_equal_opp/online-complaint  
+**File Online:** <https://www.hud.gov/program_offices/fair_housing_equal_opp/online-complaint>  
 **Or Call:** 1-800-669-9777 (TTY: 1-800-927-9275)
 
 ---
@@ -9,35 +10,39 @@
 ## SECTION 1: YOUR INFORMATION
 
 ### Complainant 1:
+
 - **Name:** Bradley A. Crowe
 - **Address:** 2977 Lexington Ave S, Unit #104, Eagan, MN 55121
 - **Phone:** 651-417-3946
-- **Email:** bradcrowe45@gmail.com
+- **Email:** <bradcrowe45@gmail.com>
 
 ### Complainant 2:
+
 - **Name:** Dena Sazama
 - **Address:** 2977 Lexington Ave S, Unit #104, Eagan, MN 55121
 - **Phone:** 612-441-6948
-- **Email:** denasazama1@gmail.com
+- **Email:** <denasazama1@gmail.com>
 
 ---
 
 ## SECTION 2: RESPONDENT INFORMATION (Who you are filing against)
 
 ### Primary Respondent:
+
 - **Name:** Velair Property Management, LLC
 - **Address:** 7645 Lyndale Ave S, Suite 210, Minneapolis, MN 55423
 - **Phone:** (612) 243-3111
-- **Email:** info@velairmanagement.com
+- **Email:** <info@velairmanagement.com>
 
 ### Individual Respondents:
+
 1. **Jodelle Rossi** - Regional Property Manager
-   - Email: jodirossi@velairmanagement.com
+   - Email: <jodirossi@velairmanagement.com>
    - Phone: 612-324-9600
 
 2. **Lisa Burg** - Onsite Property Manager
    - Location: Lexington Flats, 2977 Lexington Ave S, Eagan, MN 55121
-   - Email: liaburg@velairmanagement.com
+   - Email: <liaburg@velairmanagement.com>
 
 3. **Ryan Schwickert** - Licensed Real Estate Broker
    - (Oversight responsibility for property management practices)
@@ -57,6 +62,7 @@
 ## SECTION 4: BASIS OF COMPLAINT
 
 ### Check all that apply:
+
 - [X] **RETALIATION** - 24 CFR § 100.400 (Retaliation for exercising fair housing rights)
 - [ ] Race
 - [ ] Color  
@@ -67,7 +73,9 @@
 - [ ] Disability
 
 ### Primary Basis: RETALIATION
+
 We are filing this complaint because Velair Property Management retaliated against us after we:
+
 1. Complained about accounting errors in our rent ledger
 2. Complained about harassment by the new property manager
 3. Filed a complaint with the Minnesota Attorney General (September 4, 2025)
@@ -82,10 +90,11 @@ We are filing this complaint because Velair Property Management retaliated again
 
 ---
 
-**SUMMARY:**
+#### SUMMARY:
+
 We are tenants of 5+ years at Lexington Flats with a PERFECT rental history - zero lease violations, rent paid on time every month, and management previously stated our unit was "kept very well." After we complained about accounting errors and harassment by a new property manager, Velair Property Management retaliated by fabricating lease violations and attempting to evict us.
 
-**TIMELINE OF RETALIATORY ACTS:**
+#### TIMELINE OF RETALIATORY ACTS:
 
 **August 13, 2025:** Velair OFFERED us a lease renewal, confirming we were tenants in good standing.
 
@@ -102,6 +111,7 @@ We are tenants of 5+ years at Lexington Flats with a PERFECT rental history - ze
 **September 4, 2025:** I filed a formal complaint with the Minnesota Attorney General's Office regarding Velair's conduct.
 
 **September 19, 2025:** Regional Property Manager Jodelle Rossi sent an email making FALSE and DEFAMATORY statements, claiming I had "interacted with Velair staff in a belligerent manner while appearing to be under the influence." These accusations are completely fabricated:
+
 - No incident reports exist
 - No police reports were filed
 - No lease violation notices were issued to me prior to this
@@ -109,11 +119,14 @@ We are tenants of 5+ years at Lexington Flats with a PERFECT rental history - ze
 
 **September 20, 2025:** I sent a Final Notice Before Legal Action citing Minnesota retaliation statutes (MN § 504B.285, § 504B.441).
 
-**EVIDENCE OF PREMEDITATION:**
+#### EVIDENCE OF PREMEDITATION:
+
 The most critical evidence is that our apartment was listed for rent on August 17, 2025 - ONE FULL DAY BEFORE the alleged lease violation on August 18, 2025. This proves Velair decided to remove us BEFORE any alleged misconduct occurred. The "lease violation" was fabricated as a pretext.
 
-**PATTERN OF RETALIATION:**
+#### PATTERN OF RETALIATION:
+
 Every negative action by Velair occurred AFTER we engaged in protected activities:
+
 1. After we complained about accounting errors → Fabricated violation issued
 2. After we sent Cease & Desist → Directed to attorney, eviction threatened
 3. After we filed AG complaint → Defamatory statements made
@@ -132,7 +145,7 @@ Every negative action by Velair occurred AFTER we engaged in protected activitie
 ## SECTION 7: OTHER AGENCIES CONTACTED
 
 | Agency | Date Filed | Reference # |
-|--------|------------|-------------|
+| -------- | ------------ | ------------- |
 | Minnesota Attorney General | September 4, 2025 | [Add if known] |
 | HOME Line (Legal Consultation) | September 23, 2025 | N/A |
 | Dakota County District Court | Pending | Case #19AV-CV-25-3477 |
@@ -186,21 +199,25 @@ Attach copies of these documents to your complaint:
 ## HOW TO FILE
 
 ### Option 1: Online (Recommended)
-1. Go to: https://www.hud.gov/program_offices/fair_housing_equal_opp/online-complaint
+
+1. Go to: <https://www.hud.gov/program_offices/fair_housing_equal_opp/online-complaint>
 2. Create account or continue as guest
 3. Copy/paste the narrative from Section 5 above
 4. Upload evidence documents
 5. Submit
 
 ### Option 2: By Phone
+
 - Call: **1-800-669-9777**
 - TTY: 1-800-927-9275
 - Hours: 8am-8pm ET, Monday-Friday
 - Have this document ready to read from
 
 ### Option 3: By Mail
+
 Send to HUD Minneapolis Field Office:
-```
+
+```text
 HUD Minneapolis Office of Fair Housing
 920 Second Avenue South, Suite 1300
 Minneapolis, MN 55402
@@ -224,7 +241,7 @@ However, file as soon as possible - delay can weaken your case.
 After filing with HUD, also file with:
 
 1. **Minnesota Department of Human Rights**
-   - Website: https://mn.gov/mdhr/intake/housing/
+   - Website: <https://mn.gov/mdhr/intake/housing/>
    - Phone: (651) 539-1100
    - (State-level investigation, may be faster than HUD)
 

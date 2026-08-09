@@ -1,4 +1,5 @@
 # CHRONOLOGICAL TIMELINE OF EVENTS
+
 ## CROWE v. VELAIR PROPERTY MANAGEMENT
 
 ---
@@ -6,13 +7,15 @@
 ## 📅 TIMELINE
 
 ### 2021 - TENANCY BEGINS
+
 | Date | Event | Evidence |
-|------|-------|----------|
+| ------ | ------- | ---------- |
 | **Nov 21, 2021** | Bradley Crowe moves into Lexington Flats, Unit #104 | Lease Agreement |
 
 ### 2024 - LEASE RENEWAL PERIOD
+
 | Date | Event | Evidence |
-|------|-------|----------|
+| ------ | ------- | ---------- |
 | **Apr 4, 2024** | "Serious Lease Infraction" form template last modified | Infraction Notice Footer |
 | **Nov 1, 2024** | New lease term begins (2024-2025) | Lease Agreement p.1 |
 
@@ -23,7 +26,7 @@
 #### AUGUST 2025 - THE SETUP
 
 | Date | Day | Event | Significance | Evidence |
-|------|-----|-------|--------------|----------|
+| ------ | ----- | ------- | -------------- | ---------- |
 | **Aug 13** | Wed | ✅ Velair offers lease renewal to Bradley & Dena | Normal renewal process initiated | Timeline in legal letters |
 | **Aug 17** | Sun | 🚨 **Unit #104 publicly listed for rent on RENTCafe** | **PROVES PRE-PLANNED REMOVAL** - Listed BEFORE any violation | RENTCafe screenshot |
 | **Aug 18** | Mon | ⚠️ Velair issues "Serious Lease Infraction" notice | Fabricated violation alleging Dena was "verbally abusive to maintenance" | IMG_1518.jpg / Infraction Notice |
@@ -37,7 +40,7 @@
 #### SEPTEMBER 2025 - ESCALATION & LEGAL RESPONSE
 
 | Date | Day | Event | Significance | Evidence |
-|------|-----|-------|--------------|----------|
+| ------ | ----- | ------- | -------------- | ---------- |
 | **Sep 3** | Wed | 📄 **Bradley sends Cease & Desist letter** | First formal legal pushback citing harassment & retaliation | Cease and Desist email |
 | **Sep 3** | Wed | Lisa Burg forwards to Jodi Rossi | Management escalation | Email thread |
 | **Sep 4** | Thu | ⚡ **Velair announces eviction for cause** | Immediate retaliation after C&D | Rossi email 9:45 AM |
@@ -60,7 +63,7 @@
 #### OCTOBER-DECEMBER 2025 - ONGOING DISPUTE
 
 | Date | Event | Status |
-|------|-------|--------|
+| ------ | ------- | -------- |
 | **Oct 5, 2025** | Case documentation compiled | Evidence gathering |
 | **Oct 9, 2025** | Additional correspondence captured | Gmail records |
 | **Oct 31, 2025** | Original lease end date | Lease term concludes |
@@ -71,7 +74,8 @@
 ## 🔴 CRITICAL TIMELINE ANALYSIS
 
 ### The Smoking Gun Sequence
-```
+
+```text
 Aug 13 ─────► Aug 17 ─────► Aug 18 ─────► Sep 3 ─────► Sep 4
    │             │             │             │             │
 Renewal     Unit Listed    Violation     Cease &      Eviction
@@ -82,6 +86,7 @@ Offered     for Rent       Notice       Desist       Announced
 ```
 
 ### Retaliation Evidence Timeline
+
 1. **Pre-Complaint Period (Before Sep 3)**
    - 5 years of tenancy with ZERO violations
    - Lease renewal offered Aug 13
@@ -96,6 +101,7 @@ Offered     for Rent       Notice       Desist       Announced
    - Documentation refused
 
 ### Timeline Proves Premeditation
+
 The fact that Unit #104 was **publicly listed for rent on August 17, 2025** - one day BEFORE the alleged "Serious Lease Infraction" on August 18, 2025 - proves that:
 
 1. ❌ The decision to remove tenants was made BEFORE any alleged violation
@@ -108,7 +114,7 @@ The fact that Unit #104 was **publicly listed for rent on August 17, 2025** - on
 ## 📊 RESPONSE TIME ANALYSIS
 
 | Tenant Action | Landlord Response | Time Gap |
-|---------------|-------------------|----------|
+| --------------- | ------------------- | ---------- |
 | Cease & Desist (Sep 3) | Eviction announced (Sep 4) | **< 24 hours** |
 | Request for rationale (Sep 19) | Accusatory response (Sep 19) | **Same day** |
 | Final Notice (Sep 20) | No response | **No compliance** |
@@ -120,7 +126,7 @@ The immediate, hostile responses to tenant legal actions demonstrate a clear pat
 ## 📋 KEY DATES FOR LEGAL PROCEEDINGS
 
 | Date | Significance |
-|------|--------------|
+| ------ | -------------- |
 | Sep 3, 2025 | Protected Activity (Cease & Desist) |
 | Sep 4, 2025 | Retaliatory Action (Eviction Announcement) |
 | Sep 4, 2025 | Government Report Filed (AG Complaint) |
