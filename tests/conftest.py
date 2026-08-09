@@ -20,6 +20,7 @@ os.environ["INVITE_CODES"] = "TEST-INVITE-CODE"
 os.environ["ADMIN_PIN"] = "TEST-PIN"
 
 from app.core.config import get_settings  # noqa: E402
+from app.core.cookie_auth import sign_user_id  # noqa: E402
 from app.core.database import close_db  # noqa: E402
 from app.main import app  # noqa: E402
 
@@ -123,7 +124,11 @@ async def authenticated_client() -> AsyncGenerator[AsyncClient, None]:
         await session.commit()
 
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test", cookies={"semptify_uid": test_uid}) as ac:
+    async with AsyncClient(
+        transport=transport,
+        base_url="http://test",
+        cookies={"semptify_uid": sign_user_id(test_uid)},
+    ) as ac:
         # Also inject into memory cache for faster lookups
         from app.modules.storage.router import SESSIONS
 
