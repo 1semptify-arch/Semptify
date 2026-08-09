@@ -465,6 +465,55 @@ def test_adaptive_ui_engine_builds_and_filters_context_widgets():
     assert UserContext("u", phase=TenancyPhase.POST_TENANCY).to_dict()["phase"] == "post_tenancy"
 
 
+def test_functionx_action_set_lifecycle(tmp_path, monkeypatch):
+    from app.services.functionx_service import FunctionXService
+    from app.models.functionx_models import FunctionXActionSetCreate
+
+    monkeypatch.chdir(tmp_path)
+    service = FunctionXService()
+    with pytest.raises(ValueError):
+        service.create_action_set(FunctionXActionSetCreate(name="empty", actions=[" ", ""]))
+    detail = service.create_action_set(
+        FunctionXActionSetCreate(name="  Plan  ", actions=[" first ", "", "second"], metadata={"source": "test"})
+    )
+    assert detail.name == "Plan"
+    assert detail.actions_count == 2
+    assert service.get_action_set(detail.set_id).actions == ["first", "second"]
+    assert service.execute_action_set("missing", dry_run=False) is None
+    dry_run = service.execute_action_set(detail.set_id, dry_run=True)
+    assert dry_run.dry_run is True
+    executed = service.execute_action_set(detail.set_id, dry_run=False)
+    assert executed.status == "executed"
+    assert service.list_action_sets()[0].status == "executed"
+
+
+def test_preview_service_categories_text_placeholders_and_cache(tmp_path):
+    from app.services.preview_service import FileCategory, PreviewService, PreviewType
+
+    async def exercise():
+        service = PreviewService()
+        service.CACHE_DIR = tmp_path
+        assert service._get_file_category("x.pdf") == FileCategory.PDF
+        assert service._get_file_category("x.bin", "image/png") == FileCategory.IMAGE
+        assert service._get_file_category("x.docx") == FileCategory.DOCX
+        assert service._get_file_category("x.txt") == FileCategory.TXT
+        assert service._get_file_category("x.bin") == FileCategory.UNKNOWN
+        assert len(service._compute_hash(b"data")) == 16
+        text = await service.generate_preview("doc", "note.txt", b"hello")
+        assert text.success is True
+        assert text.text_content == "hello"
+        placeholder = await service.generate_thumbnail("doc", "note.txt", b"hello")
+        assert placeholder.success is True
+        cached = await service.generate_thumbnail("doc", "note.txt", b"hello")
+        assert cached.cached is True
+        unsupported = await service.generate_preview("doc", "note.bin", b"data")
+        assert unsupported.success is False
+        assert await service.clear_cache("doc") is True
+        assert PreviewType.THUMBNAIL.value == "thumbnail"
+
+    asyncio_run(exercise())
+
+
 def asyncio_run(coro):
     import asyncio
 
