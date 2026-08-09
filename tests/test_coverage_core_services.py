@@ -150,7 +150,7 @@ def test_email_service_no_key_and_helpers(monkeypatch):
             return self
 
         async def __aexit__(self, *args):
-            return None
+            return self
 
         async def post(self, *args, **kwargs):
             return response
