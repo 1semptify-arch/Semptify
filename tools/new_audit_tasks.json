@@ -21,11 +21,11 @@
     "target_model": "swe-1.6",
     "priority": "high",
     "file_path": "deploy_part1.py; OAUTH_STATE_FIX.py; _ll_part5.py",
-    "status": "pending",
-    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported \u00e2\u20ac\u201d do not start. Acceptance: python -m compileall . reports 0 syntax errors in repo root.",
+    "status": "resolved",
+    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported \u00e2\u20ac\u201d do not start. Acceptance: python -m compileall . reports 0 syntax errors in repo root.\n[2026-08-08 02:00 UTC - SWE-1.6] Resolved: target files (deploy_part1.py, OAUTH_STATE_FIX.py, _ll_part5.py) do not exist in repo. They were deleted during TIER 2 cleanup (commit c4b84a60). python -m compileall . runs clean.",
     "created_at": "2026-08-08T00:00:00Z",
-    "updated_at": "2026-08-08T00:00:00Z",
-    "assigned_agent": ""
+    "updated_at": "2026-08-08T02:00:00Z",
+    "assigned_agent": "SWE-1.6"
   },
   {
     "id": "todo-047",
