@@ -78,7 +78,9 @@ async def list_resources(
             query = query.where(func.lower(ResourceModel.service_area) == service_area.lower())
         if stale_only:
             cutoff = utc_now() - timedelta(days=_STALE_DAYS)
-            query = query.where((ResourceModel.last_verified is None) | (ResourceModel.last_verified < cutoff))
+            query = query.where(
+                ResourceModel.last_verified.is_(None) | (ResourceModel.last_verified < cutoff)
+            )
 
         result = await session.execute(query)
         resources = result.scalars().all()
@@ -320,7 +322,7 @@ async def list_stale_resources(days: int = Query(_STALE_DAYS, ge=1, description=
         result = await session.execute(
             select(ResourceModel).where(
                 ResourceModel.is_active,
-                (ResourceModel.last_verified is None) | (ResourceModel.last_verified < cutoff),
+                ResourceModel.last_verified.is_(None) | (ResourceModel.last_verified < cutoff),
             )
         )
         resources = result.scalars().all()

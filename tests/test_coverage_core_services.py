@@ -1,0 +1,520 @@
+from datetime import UTC, date, datetime
+import importlib
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, Mock
+
+import pytest
+from starlette.requests import Request
+
+
+def make_request(path="/dashboard", headers=None, user=None):
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": path,
+        "headers": [(key.lower().encode(), value.encode()) for key, value in (headers or {}).items()],
+        "client": ("127.0.0.1", 8000),
+        "server": ("testserver", 80),
+        "scheme": "http",
+        "query_string": b"",
+    }
+    request = Request(scope)
+    request.state.user = user
+    return request
+
+
+def test_permission_set_and_external_context():
+    from app.sdk.external.context import ExternalModuleContext
+    from app.sdk.external.permissions import Permission, PermissionDeniedError, PermissionSet
+
+    permissions = PermissionSet([Permission.DOCUMENT_READ.value, Permission.DOCUMENT_READ.value])
+    assert permissions.has(Permission.DOCUMENT_READ.value)
+    assert Permission.DOCUMENT_READ.value in permissions
+    assert len(permissions) == 1
+    assert permissions.to_list() == [Permission.DOCUMENT_READ.value]
+    assert "PermissionSet" in repr(permissions)
+    permissions.require(Permission.DOCUMENT_READ.value, "read")
+    with pytest.raises(PermissionDeniedError):
+        permissions.require(Permission.DOCUMENT_WRITE.value, "write")
+    with pytest.raises(ValueError):
+        PermissionSet(["unknown.permission"])
+
+    context = ExternalModuleContext(
+        module_name="test-module",
+        vendor="test-vendor",
+        user_id="user-1",
+        permissions=permissions,
+        request_id="request-1",
+        jurisdiction="MN",
+    )
+    assert context.to_dict()["permissions"] == [Permission.DOCUMENT_READ.value]
+    assert context.to_dict()["jurisdiction"] == "MN"
+
+
+def test_generated_module_contract_registrations():
+    from pathlib import Path
+
+    from app.core.module_contracts import contract_registry
+
+    root = Path(__file__).parents[1] / "app" / "modules"
+    module_names = [
+        ".".join(path.relative_to(root.parents[1]).with_suffix("").parts)
+        for path in root.rglob("register.py")
+        if "_template" not in path.parts and "tests" not in path.parts
+    ]
+    assert module_names
+    for module_name in module_names:
+        importlib.reload(importlib.import_module(module_name))
+    assert contract_registry.validate()["status"] == "pass"
+
+
+def test_calendar_service_covers_date_and_event_branches():
+    from app.services.calendar_service import CalendarEventType, CalendarService
+
+    service = CalendarService()
+    assert service._extract_date({"date": date(2026, 1, 1)}) == date(2026, 1, 1)
+    assert service._extract_date({"event_date": datetime(2026, 1, 2, 3)}) == datetime(2026, 1, 2, 3)
+    assert service._extract_date({"deadline": "2026-01-03"}) == date(2026, 1, 3)
+    assert service._extract_date({"date": "invalid"}) is None
+
+    expected = {
+        "court hearing": CalendarEventType.COURT_HEARING,
+        "notice deadline": CalendarEventType.NOTICE_DEADLINE,
+        "payment due": CalendarEventType.PAYMENT_DUE,
+        "document": CalendarEventType.DOCUMENT_DEADLINE,
+        "inspection": CalendarEventType.INSPECTION,
+        "mediation": CalendarEventType.MEDIATION,
+        "other": CalendarEventType.OTHER,
+    }
+    for event_type, calendar_type in expected.items():
+        event = service._create_calendar_event(
+            {"title": event_type, "description": "description", "type": event_type},
+            date(2026, 1, 1),
+        )
+        assert event.event_type == calendar_type
+        assert event.reminders
+
+    events = asyncio_run(service.generate_events_from_timeline([
+        {"date": "2026-01-01", "type": "court", "title": "Hearing"},
+        SimpleNamespace(to_dict=lambda: {"date": "2026-01-02", "type": "payment"}),
+        {"description": "No date"},
+    ]))
+    assert len(events) == 2
+
+
+def test_duplicate_detection_original_and_duplicate_paths():
+    from app.services.duplicate_detection_service import detect_duplicates, get_all_duplicates
+
+    manager = SimpleNamespace(
+        get_overlays=AsyncMock(return_value=SimpleNamespace(success=True, overlays=[])),
+        create_overlay=AsyncMock(),
+        update_overlay=AsyncMock(),
+    )
+    original = asyncio_run(detect_duplicates("user", "vault-1", "hash", "lease.pdf", manager))
+    assert original["is_duplicate"] is False
+    manager.create_overlay.assert_awaited_once()
+
+    existing = SimpleNamespace(
+        overlay_id="overlay-1",
+        document_id="vault-1",
+        payload={"sha256_hash": "hash", "original_vault_id": "vault-1", "duplicate_count": 1, "filename": "lease.pdf"},
+    )
+    manager.get_overlays = AsyncMock(return_value=SimpleNamespace(success=True, overlays=[existing]))
+    duplicate = asyncio_run(detect_duplicates("user", "vault-2", "hash", "copy.pdf", manager))
+    assert duplicate == {"is_duplicate": True, "original_vault_id": "vault-1", "duplicate_count": 2}
+    manager.update_overlay.assert_awaited_once()
+
+    manager.get_overlays = AsyncMock(return_value=SimpleNamespace(success=True, overlays=[existing, SimpleNamespace(
+        document_id="vault-2",
+        payload={"sha256_hash": "hash", "is_duplicate": True, "filename": "copy.pdf", "created_at": "now"},
+    )]))
+    groups = asyncio_run(get_all_duplicates("user", manager))
+    assert groups[0]["duplicate_count"] == 2
+    assert groups[0]["duplicates"][0]["vault_id"] == "vault-2"
+
+
+def test_email_service_no_key_and_helpers(monkeypatch):
+    import app.services.email_service as email_service
+
+    monkeypatch.setattr(email_service, "_RESEND_API_KEY", "")
+    assert asyncio_run(email_service.send_email("a@example.com", "subject", "<p>x</p>")) is False
+    assert asyncio_run(email_service.send_support_notification("subject", "<p>x</p>")) is False
+    assert asyncio_run(email_service.send_feedback_email(None, "feedback")) is False
+    assert asyncio_run(email_service.send_contact_email("Name", "a@example.com", "message")) is False
+
+    monkeypatch.setattr(email_service, "_RESEND_API_KEY", "key")
+    response = SimpleNamespace(status_code=201, text="")
+
+    class Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return self
+
+        async def post(self, *args, **kwargs):
+            return response
+
+    monkeypatch.setattr(email_service.httpx, "AsyncClient", lambda timeout: Client())
+    assert asyncio_run(email_service.send_email(
+        ["a@example.com"], "subject", "<p>x</p>", reply_to="reply@example.com"
+    ))
+
+
+def test_audit_logger_event_helpers(tmp_path):
+    from app.core.audit_logger import (
+        AuditEvent,
+        AuditEventType,
+        AuditLogger,
+        AuditSeverity,
+        log_document_access,
+        log_security_event,
+    )
+
+    logger = AuditLogger(str(tmp_path / "audit.log"))
+    event = AuditEvent(
+        event_type=AuditEventType.SYSTEM_ERROR,
+        user_id="user",
+        timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+        severity=AuditSeverity.HIGH,
+        ip_address="127.0.0.1",
+        user_agent="test",
+        resource_id=None,
+        resource_type=None,
+        action="test",
+        details={"key": "value"},
+        success=False,
+    )
+    assert event.to_dict()["event_type"] == "system_error"
+    logger.log_event(event)
+    logger.document_uploaded("user", "doc", "file.pdf", 10, "pdf", "127.0.0.1", "test")
+    logger.document_downloaded("user", "doc", "file.pdf", "127.0.0.1", "test")
+    logger.document_viewed("user", "doc", "file.pdf", "127.0.0.1", "test")
+    logger.document_deleted("user", "doc", "file.pdf", "127.0.0.1", "test")
+    assert logger.get_user_events("user")
+    assert logger.get_audit_summary()["total_events"] >= 5
+
+    import app.core.audit_logger as audit_module
+
+    original = audit_module.audit_logger
+    audit_module.audit_logger = logger
+    try:
+        audit_module.log_document_upload("user", "doc", "file.pdf", 10, "pdf", "127.0.0.1", "test")
+        log_document_access("user", "doc", "file.pdf", "download", "127.0.0.1", "test")
+        log_document_access("user", "doc", "file.pdf", "view", "127.0.0.1", "test")
+        log_security_event("user", "security", {"reason": "test"}, "127.0.0.1", "test")
+    finally:
+        audit_module.audit_logger = original
+
+
+def test_advanced_rate_limiter_paths():
+    from app.core.advanced_rate_limiter import AdvancedRateLimiter, RateLimitConfig, RateLimitStrategy
+
+    limiter = AdvancedRateLimiter()
+    assert limiter.classify_endpoint("GET", "/items") == "read"
+    assert limiter.classify_endpoint("POST", "/upload/file") == "upload"
+    assert limiter.classify_endpoint("POST", "/auth/login") == "auth"
+    assert limiter.classify_endpoint("POST", "/copilot") == "ai"
+    assert limiter.classify_endpoint("DELETE", "/items") == "write"
+    assert limiter.get_user_tier("user").value == "basic"
+
+    allowed, details = limiter.is_allowed("user", "127.0.0.1", "GET", "/items")
+    assert allowed is True
+    assert details["remaining"] >= 0
+    key = limiter.get_client_key("other-user", "127.0.0.1", "read")
+    assert limiter._sliding_window_check(key, 1, 60, 100.0)[0] is True
+    assert limiter._sliding_window_check(key, 1, 60, 100.0)[0] is False
+    bucket_config = RateLimitConfig(1, 60, RateLimitStrategy.TOKEN_BUCKET)
+    bucket_key = limiter.get_client_key("user", "127.0.0.1", "upload")
+    assert limiter._apply_rate_limit(bucket_key, bucket_config, "upload")[0] is True
+    limiter.update_load_factors(global_load=3, endpoint_loads={"read": 0})
+    assert limiter.global_load_factor == 2.0
+    assert limiter.endpoint_load_factors["read"] == 0.1
+    assert limiter.get_stats()["total_requests"] == 1
+    assert limiter.get_client_status("user", "127.0.0.1") == {}
+    limiter.reset_client("user", "127.0.0.1")
+    assert limiter.get_client_status("user", "127.0.0.1") == {}
+
+
+def test_data_deletion_manager_lifecycle():
+    from app.core.data_deletion import DataDeletionManager, DeletionScope, DeletionStatus
+
+    manager = DataDeletionManager()
+    request_id = manager.create_deletion_request("user", DeletionScope.USER_DATA, reason="request")
+    request = manager.get_deletion_request(request_id)
+    assert request.status == DeletionStatus.PENDING
+    assert manager.get_user_deletion_requests("user") == [request]
+    assert manager.execute_deletion(request_id) is True
+    assert request.status == DeletionStatus.COMPLETED
+    assert manager.execute_deletion(request_id) is False
+    cancelled_id = manager.create_deletion_request("user", DeletionScope.ALL_DOCUMENTS)
+    assert manager.cancel_deletion_request(cancelled_id) is True
+    assert manager.cancel_deletion_request("missing") is False
+    summary = manager.get_deletion_summary("user")
+    assert summary["total_requests"] == 2
+    assert summary["completed"] == 1
+    assert summary["pending"] == 0
+    assert manager.execute_deletion("missing") is False
+
+
+def test_route_guard_contract_and_request_paths(monkeypatch):
+    from app.core.page_contracts import UserRole
+    from app.core.route_guards import GuardResult, RouteGuard
+
+    guard = RouteGuard()
+    guard.configure(login_url="/signin", unauthorized_url="/denied")
+    assert guard._get_session_user(make_request(user={"id": "u"}))["id"] == "u"
+    assert guard._get_session_user(make_request(headers={"authorization": "Bearer token"}))["id"] == "token_user"
+    assert guard._get_session_user(make_request()) is None
+    assert guard._infer_page_id(make_request("/some-page/detail")) == "some_page_detail"
+    assert guard._check_contract_access("missing", None).result == GuardResult.ALLOW
+    assert guard._check_contract_access("dashboard", None).result in {GuardResult.REDIRECT, GuardResult.ALLOW}
+
+    async def endpoint(request):
+        return {"ok": True}
+
+    wrapped = guard.require_auth(page_id="missing")(endpoint)
+    assert asyncio_run(wrapped(make_request(user=None))) == {"ok": True}
+    roles_wrapped = guard.require_roles([UserRole.ADMIN], page_id="missing")(endpoint)
+    assert roles_wrapped._is_guarded is True
+
+
+def test_page_recipe_registry_and_serialization():
+    from app.core.page_recipe import (
+        ComponentType,
+        PageComponent,
+        PageIntent,
+        PageRecipe,
+        PageStep,
+        RecipeRegistry,
+        create_document_intake_recipe,
+    )
+
+    recipe = PageRecipe(
+        page_id="test",
+        page_title="Test",
+        intent=PageIntent.COLLECT,
+        purpose="purpose",
+        user_intent="intent",
+        success_criteria=["done"],
+        components=[
+            PageComponent(ComponentType.UI_COMPONENT, "ready", "ready", implemented=True),
+            PageComponent(ComponentType.SERVICE_FUNCTION, "missing", "missing", required=True),
+        ],
+        steps=[PageStep(2, "second", "system"), PageStep(1, "first", "user")],
+    )
+    assert recipe.validate()["complete"] is False
+    assert recipe.get_dependency_graph()["ready"] == []
+    serialized = recipe.to_dict()
+    assert serialized["steps"][0]["order"] == 1
+    RecipeRegistry.register(recipe)
+    assert RecipeRegistry.get("test") is recipe
+    assert recipe in RecipeRegistry.by_intent(PageIntent.COLLECT)
+    assert RecipeRegistry.incomplete()
+    intake = create_document_intake_recipe()
+    assert intake.validate()["total_components"] > 0
+
+
+def test_event_extractor_parses_context_and_deduplicates():
+    from app.services.event_extractor import EventExtractor, ExtractedEvent, get_event_extractor
+
+    extractor = EventExtractor()
+    text = (
+        "Notice served on January 5, 2026. "
+        "Hearing scheduled for 02/10/2026. "
+        "Date of birth 01/01/1980. "
+        "Rent due by 2026-03-01."
+    )
+    events = extractor.extract_events(text, doc_type="notice")
+    assert [event.date.day for event in events] == [5, 10, 1]
+    assert events[0].event_type == "notice"
+    assert events[0].is_deadline is False
+    assert events[-1].is_deadline is True
+    assert extractor._split_into_chunks("One. Two!\n\nThree") == ["One.", "Two!", "Three"]
+    assert extractor._should_exclude("date of birth: ") is True
+    assert extractor._parse_match(next(iter(extractor._date_patterns))[0].search("99/99/2026"), "MDY") is None
+    duplicate = ExtractedEvent(
+        date=events[0].date,
+        event_type=events[0].event_type,
+        title=events[0].title,
+        description="duplicate",
+        confidence=0.1,
+        source_text="duplicate",
+    )
+    assert len(extractor._deduplicate_events([events[0], duplicate])) == 1
+    assert get_event_extractor() is get_event_extractor()
+
+
+def test_document_training_records_and_updates_examples(tmp_path):
+    from app.services.document_training import DocumentTrainingService
+
+    service = DocumentTrainingService(str(tmp_path))
+    text = "Notice to quit: 14-day notice for unlawful detainer and security deposit."
+    example = service.record_correction(
+        text,
+        "notice.txt",
+        "lease",
+        0.2,
+        "notice",
+        user_notes="corrected",
+        user_id="user",
+    )
+    assert example.correct_type == "notice"
+    assert example.key_phrases_found
+    assert service.get_training_stats()["corrections_needed"] == 1
+    updated = service.record_correction(text, "notice.txt", "lease", 0.2, "court")
+    assert updated.id == example.id
+    service.record_confirmation(text, "notice.txt", "notice", 0.9)
+    adjustments = service.get_weight_adjustments()
+    assert adjustments
+    assert service.get_training_stats()["total_examples"] == 1
+
+
+def test_document_notarization_round_trip_and_tamper_paths():
+    from app.services.document_notarization import DocumentNotarizationService, NotarizationRecord
+
+    async def exercise():
+        service = DocumentNotarizationService()
+        content = b"lease contents"
+        record = await service.notarize_upload(
+            content,
+            "lease.pdf",
+            "user",
+            "Tenant",
+            "/vault/lease.pdf",
+            "local",
+            document_type="lease",
+            tags=["important"],
+            upload_context={"source": "test"},
+        )
+        assert record.file_size == len(content)
+        assert record.mime_type == "application/pdf"
+        assert record.to_dict()["upload_context"] == '{"source": "test"}'
+        restored = NotarizationRecord.from_dict(record.to_dict())
+        assert restored.upload_context == {"source": "test"}
+        verified = await service.verify_notarization(record.notarization_id, content)
+        assert verified["verified"] is True
+        assert verified["content_verified"] is True
+        assert (await service.verify_notarization(record.notarization_id, b"tampered"))["content_verified"] is False
+        record.certificate_hash = "bad"
+        assert (await service.verify_notarization(record.notarization_id))["status"] == "tampered"
+        assert await service.create_chain_of_custody(record.notarization_id)
+        assert await service.create_chain_of_custody("missing") == []
+
+    asyncio_run(exercise())
+
+
+def test_form_field_extractor_covers_case_property_lease_dates_and_amounts():
+    from app.services.form_field_extractor import FormFieldExtractor
+
+    extractor = FormFieldExtractor()
+    result = extractor.extract_from_documents(
+        [
+            {
+                "filename": "case.txt",
+                "text": (
+                    "19AV-CV-25-0000 Dakota County District Court. "
+                    "Tenant Jane Doe lives at 123 Main Street Apt 4, Minneapolis, MN 55401. "
+                    "Lease starts January 1, 2026. Monthly rent $1,250 and security deposit: $1,250. "
+                    "Hearing on 02/10/2026 at 9:30 am. Notice served 01/05/2026. "
+                    "Rent owed: $2,500. Late fees: $100. Total amount owed: $2,600. "
+                    "This is a 14-day notice."
+                ),
+            }
+        ]
+    )
+    assert result.case_number.value == "19AV-CV-25-0000"
+    assert result.county.value == "Dakota"
+    serialized = result.to_dict()
+    assert serialized["property"]
+    assert serialized["lease"]
+    assert serialized["dates"]
+    assert serialized["amounts"]
+    assert result.fields_needing_review > 0
+    assert result.get_review_items()
+
+
+def test_adaptive_ui_engine_builds_and_filters_context_widgets():
+    from datetime import timedelta
+
+    from app.core.utc import utc_now
+    from app.services.adaptive_ui import AdaptiveUIEngine, TenancyPhase, UserContext
+
+    engine = AdaptiveUIEngine()
+    initial = engine.build_ui("new-user")
+    assert any(widget["id"] == "predict_start" for widget in initial)
+    ctx = engine.update_context_from_document(
+        "tenant",
+        "lease",
+        {"rent_amount": 1200, "deposit_amount": 1200, "start_date": utc_now()},
+    )
+    assert ctx.rent_amount == 1200
+    engine.update_context_from_document("tenant", "notice_to_quit", {})
+    engine.update_context_from_document("tenant", "repair_request", {})
+    ctx.lease_end = utc_now() + timedelta(days=10)
+    issues = engine.detect_issues(ctx)
+    assert "eviction_threat" in issues
+    assert "habitability_issue" in issues
+    assert "lease_ending_soon" in issues
+    ui = engine.build_ui("tenant")
+    assert ui[0]["priority"] == "critical"
+    engine.dismiss_widget("tenant", "eviction_alert")
+    assert all(widget["id"] != "eviction_alert" for widget in engine.build_ui("tenant"))
+    engine.record_action("tenant", "upload_document")
+    assert ctx.actions_taken[-1]["action"] == "upload_document"
+    assert UserContext("u", phase=TenancyPhase.POST_TENANCY).to_dict()["phase"] == "post_tenancy"
+
+
+def test_functionx_action_set_lifecycle(tmp_path, monkeypatch):
+    from app.services.functionx_service import FunctionXService
+    from app.models.functionx_models import FunctionXActionSetCreate
+
+    monkeypatch.chdir(tmp_path)
+    service = FunctionXService()
+    with pytest.raises(ValueError):
+        service.create_action_set(FunctionXActionSetCreate(name="empty", actions=[" ", ""]))
+    detail = service.create_action_set(
+        FunctionXActionSetCreate(name="  Plan  ", actions=[" first ", "", "second"], metadata={"source": "test"})
+    )
+    assert detail.name == "Plan"
+    assert detail.actions_count == 2
+    assert service.get_action_set(detail.set_id).actions == ["first", "second"]
+    assert service.execute_action_set("missing", dry_run=False) is None
+    dry_run = service.execute_action_set(detail.set_id, dry_run=True)
+    assert dry_run.dry_run is True
+    executed = service.execute_action_set(detail.set_id, dry_run=False)
+    assert executed.status == "executed"
+    assert service.list_action_sets()[0].status == "executed"
+
+
+def test_preview_service_categories_text_placeholders_and_cache(tmp_path):
+    from app.services.preview_service import FileCategory, PreviewService, PreviewType
+
+    async def exercise():
+        service = PreviewService()
+        service.CACHE_DIR = tmp_path
+        assert service._get_file_category("x.pdf") == FileCategory.PDF
+        assert service._get_file_category("x.bin", "image/png") == FileCategory.IMAGE
+        assert service._get_file_category("x.docx") == FileCategory.DOCX
+        assert service._get_file_category("x.txt") == FileCategory.TXT
+        assert service._get_file_category("x.bin") == FileCategory.UNKNOWN
+        assert len(service._compute_hash(b"data")) == 16
+        text = await service.generate_preview("doc", "note.txt", b"hello")
+        assert text.success is True
+        assert text.text_content == "hello"
+        placeholder = await service.generate_thumbnail("doc", "note.txt", b"hello")
+        assert placeholder.success is True
+        cached = await service.generate_thumbnail("doc", "note.txt", b"hello")
+        assert cached.cached is True
+        unsupported = await service.generate_preview("doc", "note.bin", b"data")
+        assert unsupported.success is False
+        assert await service.clear_cache("doc") is True
+        assert PreviewType.THUMBNAIL.value == "thumbnail"
+
+    asyncio_run(exercise())
+
+
+def asyncio_run(coro):
+    import asyncio
+
+    return asyncio.run(coro)
