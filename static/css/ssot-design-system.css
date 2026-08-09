@@ -1460,3 +1460,1413 @@ a:hover {
     display: flex;
   }
 }
+
+
+/* ============================================================================
+   10. PILLAR NAVIGATION SYSTEM
+   The four pillars: RECORD, KNOW, ACT, GOVERN.
+   ============================================================================ */
+
+/* Pillar color tokens — scoped, do not add to :root */
+.pillar--record { --pillar-color: #1e3a5f; --pillar-bg: #eef2f7; --pillar-text: #0f2238; }
+.pillar--know   { --pillar-color: #2e6b4f; --pillar-bg: #eef6f1; --pillar-text: #1a3d2d; }
+.pillar--act    { --pillar-color: #7c3d0f; --pillar-bg: #fdf3ec; --pillar-text: #4a2008; }
+.pillar--govern { --pillar-color: #374151; --pillar-bg: #f3f4f6; --pillar-text: #1f2937; }
+
+/* Pillar Bar — full-width horizontal nav below the app header */
+.pillar-bar {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+}
+
+.pillar-bar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.pillar-bar__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--type-body);
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.pillar-bar__item:hover {
+  color: var(--text-primary);
+}
+
+/* Active state */
+.pillar-bar__item.is-active {
+  font-weight: 600;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* Per-pillar active color overrides */
+.pillar-bar__item[data-pillar="record"].is-active {
+  color: #1e3a5f;
+  border-bottom-color: #1e3a5f;
+}
+.pillar-bar__item[data-pillar="know"].is-active {
+  color: #2e6b4f;
+  border-bottom-color: #2e6b4f;
+}
+.pillar-bar__item[data-pillar="act"].is-active {
+  color: #7c3d0f;
+  border-bottom-color: #7c3d0f;
+}
+.pillar-bar__item[data-pillar="govern"].is-active {
+  color: #374151;
+  border-bottom-color: #374151;
+}
+
+/* Pillar icon */
+.pillar-bar__item .pillar-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Pillar Chip — small inline label used in sidebars/feature labels */
+.pillar-chip {
+  display: inline-block;
+  font-size: var(--type-label);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 0;
+  border: 1px solid currentColor;
+  line-height: 1.4;
+}
+
+.pillar-chip--record {
+  color: #0f2238;
+  background: #eef2f7;
+  border-color: #1e3a5f;
+}
+.pillar-chip--know {
+  color: #1a3d2d;
+  background: #eef6f1;
+  border-color: #2e6b4f;
+}
+.pillar-chip--act {
+  color: #4a2008;
+  background: #fdf3ec;
+  border-color: #7c3d0f;
+}
+.pillar-chip--govern {
+  color: #1f2937;
+  background: #f3f4f6;
+  border-color: #374151;
+}
+
+/* ============================================================================
+   11. BADGE / STATUS SYSTEM
+   For status labeling only — never for decorative purpose.
+   ============================================================================ */
+
+.badge {
+  display: inline-block;
+  font-size: var(--type-label);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 0;
+  border: 1px solid transparent;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+.badge--pending {
+  color: #374151;
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.badge--active {
+  color: #065f46;
+  background: #d1fae5;
+  border-color: #10b981;
+}
+
+/* ALARM — real deadlines ONLY: eviction dates, court dates, response windows */
+.badge--urgent {
+  color: #ffffff;
+  background: var(--color-alarm);
+  border-color: var(--color-alarm-hover);
+}
+
+.badge--overdue {
+  color: #ffffff;
+  background: var(--color-error);
+  border-color: #dc2626;
+}
+
+.badge--resolved {
+  color: #064e3b;
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+}
+
+.badge--draft {
+  color: #1e3a5f;
+  background: #eef2f7;
+  border-color: var(--color-calm-light);
+}
+
+.badge--filed {
+  color: var(--text-inverse);
+  background: var(--color-primary);
+  border-color: var(--color-primary-dark);
+}
+
+.badge--info {
+  color: #1e40af;
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+/* ============================================================================
+   12. ALERT / NOTICE SYSTEM
+   Block-level notices. Left border accent. Use role="alert" for urgent.
+   ============================================================================ */
+
+.notice {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-left: 4px solid transparent;
+  border-radius: 0;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: var(--space-4);
+}
+
+.notice__icon {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  margin-top: 1px;
+}
+
+.notice__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notice__title {
+  font-size: var(--type-body);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.notice__body {
+  font-size: var(--type-body);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--type-body-leading);
+}
+
+.notice--info {
+  background: #eff6ff;
+  border-left-color: var(--color-calm);
+}
+.notice--info .notice__title { color: #1e3a5f; }
+
+.notice--success {
+  background: #f0fdf4;
+  border-left-color: var(--color-success);
+}
+.notice--success .notice__title { color: #065f46; }
+
+.notice--warning {
+  background: #fffbeb;
+  border-left-color: var(--color-warning);
+}
+.notice--warning .notice__title { color: #92400e; }
+
+.notice--error {
+  background: #fef2f2;
+  border-left-color: var(--color-error);
+}
+.notice--error .notice__title { color: #991b1b; }
+
+/* DEADLINE — real legal deadlines ONLY: eviction, court dates, response windows */
+.notice--deadline {
+  background: #fff8ee;
+  border-left-color: var(--color-alarm);
+}
+.notice--deadline .notice__title { color: #7c2d12; }
+.notice--deadline .notice__body { color: #92400e; }
+
+/* Flash Bar — fixed toast at bottom of screen */
+.flash-bar {
+  position: fixed;
+  bottom: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(100% + var(--space-8)));
+  z-index: var(--z-modal);
+  min-width: 280px;
+  max-width: calc(100vw - var(--space-8));
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--type-body);
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: 0;
+  transition: transform var(--transition-normal);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.flash-bar--visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.flash-bar--success {
+  background: #f0fdf4;
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.flash-bar--error {
+  background: #fef2f2;
+  border-color: var(--color-error);
+  color: #991b1b;
+}
+
+.flash-bar--info {
+  background: #eff6ff;
+  border-color: var(--color-calm);
+  color: #1e3a5f;
+}
+
+/* ============================================================================
+   13. DATA TABLES
+   ============================================================================ */
+
+.data-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--type-body);
+  color: var(--text-primary);
+  table-layout: auto;
+}
+
+.data-table th {
+  font-size: var(--type-label);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  background: var(--color-gray-50);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+  color: var(--text-primary);
+  line-height: var(--type-body-leading);
+}
+
+.data-table tbody tr:hover {
+  background: var(--color-gray-50);
+}
+
+.data-table--zebra tbody tr:nth-child(even) {
+  background: var(--color-gray-50);
+}
+
+.data-table--zebra tbody tr:nth-child(even):hover {
+  background: var(--color-gray-100);
+}
+
+/* Numeric column — right-align numbers */
+.data-table td.col-num,
+.data-table th.col-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+/* Mobile card mode — each row becomes a stacked card */
+@media (max-width: 639px) {
+  .data-table--cards thead {
+    display: none;
+  }
+  .data-table--cards tbody,
+  .data-table--cards tr {
+    display: block;
+  }
+  .data-table--cards tr {
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--space-3);
+    background: var(--bg-card);
+  }
+  .data-table--cards td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--color-gray-100);
+    text-align: right;
+  }
+  .data-table--cards td:last-child {
+    border-bottom: none;
+  }
+  .data-table--cards td[data-label]::before {
+    content: attr(data-label);
+    font-size: var(--type-label);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    text-align: left;
+  }
+}
+
+/* ============================================================================
+   14. TIMELINE ENTRY
+   Chronological record of tenancy events. Mobile-first.
+   ============================================================================ */
+
+.timeline {
+  position: relative;
+  padding-left: 0;
+  list-style: none;
+  margin: 0;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--border-color);
+}
+
+.timeline-entry {
+  position: relative;
+  padding-left: 2.75rem;
+  padding-bottom: var(--space-6);
+}
+
+.timeline-entry:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-entry__marker {
+  position: absolute;
+  left: 8px;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 0;
+  background: var(--bg-card);
+  border: 2px solid var(--color-calm);
+  z-index: 1;
+}
+
+.timeline-entry__date {
+  font-size: var(--type-label);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-1) 0;
+  display: block;
+}
+
+.timeline-entry__title {
+  font-size: var(--type-h3);
+  font-weight: 500;
+  color: var(--color-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.timeline-entry__body {
+  font-size: var(--type-body);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--type-body-leading);
+}
+
+.timeline-entry__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* Urgent entry — real deadlines only */
+.timeline-entry--urgent .timeline-entry__marker {
+  background: var(--color-alarm);
+  border-color: var(--color-alarm-hover);
+}
+
+.timeline-entry--urgent .timeline-entry__title {
+  color: var(--color-alarm);
+}
+
+/* ============================================================================
+   15. DOCUMENT / VAULT ITEM
+   Single document in the vault or document center. Used in lists.
+   ============================================================================ */
+
+.doc-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-card);
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+
+.doc-item:hover {
+  background: var(--color-gray-50);
+}
+
+.doc-item__icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-gray-100);
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.doc-item__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.doc-item__name {
+  font-size: var(--type-body);
+  font-weight: 500;
+  color: var(--color-primary);
+  margin: 0 0 var(--space-1) 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-item__meta {
+  font-size: var(--type-label);
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.doc-item__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Urgent doc — real deadline indicator */
+.doc-item--urgent {
+  border-left: 3px solid var(--color-alarm);
+}
+
+/* ============================================================================
+   16. WIZARD / STEP INDICATOR
+   Multi-step flows: Complaint Wizard, Eviction Defense, Court Prep.
+   Horizontal on desktop, vertical on mobile.
+   ============================================================================ */
+
+.step-indicator {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 0;
+  counter-reset: step-counter;
+}
+
+.step-indicator__step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: center;
+}
+
+/* Connecting line between steps */
+.step-indicator__step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: calc(50% + 16px);
+  right: calc(-50% + 16px);
+  height: 2px;
+  background: var(--border-color);
+  z-index: 0;
+}
+
+.step-indicator__step.is-done:not(:last-child)::after {
+  background: var(--color-primary);
+}
+
+.step-indicator__number {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  font-size: var(--type-body);
+  font-weight: 600;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  position: relative;
+  z-index: 1;
+  transition: all var(--transition-fast);
+}
+
+.step-indicator__step.is-done .step-indicator__number {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--text-inverse);
+}
+
+.step-indicator__step.is-active .step-indicator__number {
+  border-color: var(--color-accent);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.step-indicator__step.is-locked {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.step-indicator__label {
+  font-size: var(--type-label);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-top: var(--space-2);
+  text-align: center;
+  max-width: 80px;
+}
+
+.step-indicator__step.is-active .step-indicator__label {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.step-indicator__step.is-done .step-indicator__label {
+  color: var(--text-secondary);
+}
+
+/* Mobile vertical layout */
+@media (max-width: 479px) {
+  .step-indicator {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .step-indicator__step {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    gap: var(--space-3);
+  }
+  .step-indicator__step:not(:last-child)::after {
+    top: 32px;
+    left: 15px;
+    right: auto;
+    width: 2px;
+    height: calc(100% + var(--space-2));
+  }
+  .step-indicator__label {
+    margin-top: var(--space-1);
+    max-width: none;
+    text-align: left;
+  }
+}
+
+/* ============================================================================
+   17. EMPTY STATE
+   When a list or section has no content yet.
+   ============================================================================ */
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.empty-state__icon {
+  font-size: 2.5rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-4);
+  line-height: 1;
+}
+
+.empty-state__title {
+  font-size: var(--type-h2);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.empty-state__body {
+  font-size: var(--type-body);
+  color: var(--text-secondary);
+  max-width: 24rem;
+  margin: 0 auto;
+  line-height: var(--type-body-leading);
+}
+
+.empty-state__action {
+  margin-top: var(--space-6);
+}
+
+/* ============================================================================
+   18. LOADING SKELETON
+   Animated shimmer placeholder while content loads.
+   ============================================================================ */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0;
+  display: block;
+}
+
+.skeleton--text {
+  height: 1em;
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
+.skeleton--text.w-3\/4 {
+  width: 75%;
+}
+
+.skeleton--text.w-1\/2 {
+  width: 50%;
+}
+
+.skeleton--block {
+  height: 80px;
+  width: 100%;
+  margin-bottom: var(--space-3);
+}
+
+.skeleton--avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.skeleton--label {
+  height: var(--type-label);
+  width: 40%;
+  margin-bottom: var(--space-3);
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: #e8e8e8;
+  }
+}
+
+/* ============================================================================
+   19. BREADCRUMB
+   ============================================================================ */
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  font-size: var(--type-label);
+  color: var(--text-muted);
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-4) 0;
+}
+
+.breadcrumb__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.breadcrumb__item:not(:last-child)::after {
+  content: "/";
+  color: var(--text-muted);
+  margin-left: var(--space-2);
+  font-weight: 400;
+}
+
+.breadcrumb__link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.breadcrumb__link:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb__current {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ============================================================================
+   20. TABS
+   ============================================================================ */
+
+.tab-bar {
+  display: flex;
+  border-bottom: 2px solid var(--border-color);
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-bar--scroll {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.tab-bar__tab {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--type-body);
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  color: var(--text-secondary);
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  outline: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  font-family: var(--font-sans);
+}
+
+.tab-bar__tab:hover {
+  color: var(--text-primary);
+}
+
+.tab-bar__tab.is-active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.tab-bar__tab:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.tab-panel {
+  display: none;
+  padding: var(--space-6) 0;
+}
+
+.tab-panel.is-active {
+  display: block;
+}
+
+/* ============================================================================
+   21. UNIFIED APP SHELL
+   The consistent wrapper for EVERY authenticated app page.
+   ============================================================================ */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-page);
+}
+
+/* ---- App Header ---- */
+.app-header {
+  background: var(--bg-header);
+  color: var(--text-inverse);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  gap: var(--space-4);
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: var(--text-inverse);
+  font-weight: 600;
+  font-size: var(--type-body);
+  flex-shrink: 0;
+}
+
+.app-header__brand .brand-wordmark {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: 16px;
+}
+
+.app-header__brand .brand-pillar {
+  font-size: var(--type-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.app-header__spacer {
+  flex: 1;
+}
+
+.app-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.app-header__user {
+  font-size: var(--type-label);
+  font-weight: 500;
+  opacity: 0.85;
+  letter-spacing: 0.02em;
+}
+
+.app-header__icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.08);
+  color: var(--text-inverse);
+  cursor: pointer;
+  border-radius: 0;
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+
+.app-header__icon-btn:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+/* ---- App Body ---- */
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---- App Sidebar ---- */
+.app-sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border-color);
+  padding: var(--space-4) 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.app-sidebar__section {
+  margin-bottom: var(--space-6);
+}
+
+.app-sidebar__label {
+  display: block;
+  font-size: var(--type-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.app-sidebar__link {
+  display: block;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--type-body);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.app-sidebar__link:hover {
+  background: var(--color-gray-50);
+  color: var(--text-primary);
+}
+
+.app-sidebar__link.is-active {
+  background: rgba(30, 58, 95, 0.08);
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* ---- App Main ---- */
+.app-main {
+  flex: 1;
+  padding: var(--space-6);
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+/* Page title row inside .app-main */
+.page-title {
+  font-size: var(--type-h1);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-6) 0;
+  letter-spacing: var(--type-h1-tracking);
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: var(--type-body);
+  color: var(--text-secondary);
+  margin-top: calc(-1 * var(--space-4));
+  margin-bottom: var(--space-6);
+  line-height: var(--type-body-leading);
+}
+
+/* Mobile sidebar collapse */
+@media (max-width: 767px) {
+  .app-sidebar {
+    position: fixed;
+    left: -240px;
+    top: 56px;
+    height: calc(100vh - 56px);
+    z-index: var(--z-drawer);
+    transition: left var(--transition-normal);
+    box-shadow: none;
+  }
+  .app-sidebar--open {
+    left: 0;
+    box-shadow: 4px 0 16px rgba(0,0,0,0.12);
+  }
+  .app-main {
+    padding: var(--space-4);
+  }
+}
+
+/* Hamburger toggle (mobile header button) */
+.app-header__hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: var(--text-inverse);
+  cursor: pointer;
+  padding: 0;
+}
+
+@media (max-width: 767px) {
+  .app-header__hamburger {
+    display: flex;
+  }
+}
+
+/* Sidebar overlay backdrop */
+.app-sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  top: 56px;
+  background: rgba(0,0,0,0.4);
+  z-index: calc(var(--z-drawer) - 1);
+}
+
+.app-sidebar-backdrop.is-visible {
+  display: block;
+}
+
+/* ============================================================================
+   22. CALLOUT / INFOBOX
+   Used in Law Library, rights explanations, AI Copilot responses.
+   ============================================================================ */
+
+.callout {
+  border-left: 4px solid transparent;
+  padding: var(--space-4) var(--space-5);
+  margin: var(--space-6) 0;
+  border-radius: 0;
+}
+
+.callout__title {
+  font-size: var(--type-h3);
+  font-weight: 500;
+  margin: 0 0 var(--space-2) 0;
+}
+
+.callout__body {
+  font-size: var(--type-body);
+  margin: 0;
+  line-height: var(--type-body-leading);
+}
+
+/* Tip — general helpful guidance */
+.callout--tip {
+  border-left-color: #2e6b4f;
+  background: #f0f9f4;
+}
+.callout--tip .callout__title { color: #1a3d2d; }
+.callout--tip .callout__body { color: #2e4a38; }
+
+/* Law — legal context, statutes, rights */
+.callout--law {
+  border-left-color: var(--color-primary);
+  background: #eef2f7;
+}
+.callout--law .callout__title { color: #0f2238; }
+.callout--law .callout__body { color: #1e3a5f; }
+
+/* Warning — general caution */
+.callout--warning {
+  border-left-color: var(--color-warning);
+  background: #fffbeb;
+}
+.callout--warning .callout__title { color: #92400e; }
+.callout--warning .callout__body { color: #78350f; }
+
+/* Not legal advice — disclaimer */
+.callout--not-legal-advice {
+  border-left-color: var(--color-calm);
+  background: #f1f5f9;
+}
+.callout--not-legal-advice .callout__title {
+  font-size: var(--type-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-calm-dark);
+}
+.callout--not-legal-advice .callout__body {
+  font-size: var(--type-label);
+  color: var(--color-calm-dark);
+}
+
+/* ============================================================================
+   23. FILE UPLOAD ZONE
+   ============================================================================ */
+
+.upload-zone {
+  position: relative;
+  border: 2px dashed var(--border-color);
+  padding: var(--space-10);
+  text-align: center;
+  cursor: pointer;
+  border-radius: 0;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  background: var(--bg-card);
+}
+
+.upload-zone:hover,
+.upload-zone:focus-within,
+.upload-zone--active {
+  border-color: var(--color-primary-light);
+  background: rgba(30, 58, 95, 0.03);
+}
+
+.upload-zone__icon {
+  font-size: 2rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+  line-height: 1;
+  display: block;
+}
+
+.upload-zone__title {
+  font-size: var(--type-h3);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.upload-zone__hint {
+  font-size: var(--type-label);
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: var(--space-2) 0 0 0;
+}
+
+/* Visually hidden file input — placed on top for click capture */
+.upload-zone__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  clip: rect(0 0 0 0);
+}
+
+/* ============================================================================
+   24. SEARCH INPUT
+   ============================================================================ */
+
+.search-field {
+  position: relative;
+  display: block;
+}
+
+.search-field__input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  padding-left: 2.25rem;
+  font-size: var(--type-body);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search-field__input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-field__input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.15);
+}
+
+.search-field__icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  font-size: 0.875rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* Clear button inside search field */
+.search-field__clear {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  padding: 2px;
+  line-height: 1;
+  display: none;
+}
+
+.search-field__input:not(:placeholder-shown) ~ .search-field__clear {
+  display: block;
+}
+
+/* ============================================================================
+   25. MOBILE NAVIGATION (bottom bar)
+   On mobile, the 4-pillar nav moves to a fixed bottom bar.
+   ============================================================================ */
+
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-fixed);
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    height: 56px;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+  }
+
+  .mobile-nav__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: var(--type-label);
+    letter-spacing: 0.04em;
+    padding: var(--space-1) 0;
+    transition: color var(--transition-fast);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+
+  .mobile-nav__item:hover {
+    color: var(--text-secondary);
+  }
+
+  .mobile-nav__item.is-active {
+    color: var(--color-primary);
+  }
+
+  .mobile-nav__icon {
+    font-size: 1.1rem;
+    line-height: 1;
+    display: block;
+  }
+
+  .mobile-nav__label {
+    font-size: var(--type-label);
+    letter-spacing: 0.04em;
+    display: block;
+    white-space: nowrap;
+  }
+
+  /* Add bottom padding to app-main when mobile nav is visible */
+  .app-main {
+    padding-bottom: calc(56px + var(--space-4));
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-nav {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   26. PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  .app-header,
+  .app-sidebar,
+  .mobile-nav,
+  .pillar-bar,
+  .tab-bar,
+  .flash-bar,
+  .btn--ghost,
+  [data-no-print] {
+    display: none !important;
+  }
+
+  .app-shell,
+  .app-body,
+  .app-main {
+    display: block !important;
+  }
+
+  body {
+    font-family: Georgia, serif;
+    font-size: 11pt;
+    color: #000;
+    background: #fff;
+  }
+
+  h1 { font-size: 16pt; }
+  h2 { font-size: 13pt; }
+  h3 { font-size: 11pt; }
+
+  .timeline-entry { break-inside: avoid; }
+  .doc-item { break-inside: avoid; }
+  .callout { break-inside: avoid; border: 1px solid #ccc; }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #555;
+  }
+  a[href^="#"]::after,
+  a[href^="javascript"]::after {
+    content: "";
+  }
+
+  .notice--deadline {
+    border: 2px solid #000;
+    background: #fffbf0;
+  }
+}
