@@ -13,9 +13,9 @@ import logging
 from typing import Any
 
 from app.core.event_bus import EventType as BusEventType, event_bus
-from app.services.auto_mode_orchestrator import AutoModeOrchestrator
+from app.modules.auto_mode.service import AutoModeOrchestrator
 from app.services.document_intake import DocumentIntakeEngine, IntakeDocument
-from app.services.event_extractor import EventExtractor, ExtractedEvent
+from app.modules.documents.service import EventExtractor, ExtractedEvent
 from app.services.form_field_extractor import FormFieldExtractor
 
 logger = logging.getLogger(__name__)

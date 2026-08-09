@@ -1,3 +1,42 @@
+## Session — 2026-08-09 — todo-054 resolved: duplicate service files removed
+
+### Overview
+
+Task todo-054 called for resolving exact-duplicate file pairs between `app/modules/*/service.py` and `app/services/*.py`. An MD5 scan found 11 exact-duplicate pairs, not the originally reported 19. The canonical location per `product_manifest.py` convention is `app/modules/*/service.py`; the matching `app/services/*.py` copies were removed and all references repointed.
+
+### What was done
+
+- MD5-compared all 28 `app/modules/*/service.py` files against 103 `app/services/*.py` files.
+- Found and removed 11 duplicate `app/services/*.py` files:
+  - `auto_mode_orchestrator.py`, `court_form_generator.py`, `crawler.py`, `progress_tracker.py`, `event_extractor.py`, `fraud_exposure.py`, `hud_funding_guide.py`, `document_notarization.py`, `plan_maker_service.py`, `public_exposure.py`, `proactive_tactics.py`
+- Repointed imports in:
+  - `app/services/document_flow_orchestrator.py`
+  - `app/services/context_loop.py`
+  - `app/modules/auto_mode/service.py`
+  - `app/modules/context_loop/service.py`
+  - `app/modules/research/service.py`
+  - `app/modules/progress/router.py`
+  - `tests/test_plan_maker.py`
+- Updated `tools/agent_orchestrator_tasks.json` and `tools/docs_todos.json` to mark `todo-054` resolved.
+
+### Verification
+
+- `python -m compileall app` → no errors
+- `python -m compileall tests` → no errors
+- `python tools/guardrail_engine.py` → all checks passed
+- `pytest tests/test_plan_maker.py -q --no-cov` → 23 passed
+
+### Notes
+
+- No `product_manifest.py` registrations were changed.
+- Remaining `app/services/*.py` files are either non-duplicate orchestrators/shared services or have no exact match in `app/modules/`.
+
+### Next Session
+
+- todo-055: Fix missing template/static references
+
+---
+
 ## Session — 2026-08-08 — todo-053 resolved: CRLF line endings normalized
 
 ### Guardrail Engine Run — 2026-08-09T03:13:10+00:00

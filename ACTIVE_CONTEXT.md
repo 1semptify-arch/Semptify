@@ -1,8 +1,22 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-08 (todo-053 resolved: CRLF line endings normalized)
+**Last Updated**: 2026-08-09 (todo-054 resolved: duplicate service files removed)
 
-## ✅ Completed 2026-08-08 Session
+## ✅ Completed 2026-08-09 Session
+
+### Session — todo-054 resolved: duplicate service files removed
+
+- **Task**: Resolve exact-duplicate `app/modules/*/service.py` vs `app/services/*.py` pairs
+- **Status**: Resolved — 11 exact duplicates removed, imports repointed to canonical `app/modules/*/service.py`
+- **What was done**:
+  - MD5-scanned 28 module service files and 103 app service files
+  - Removed 11 duplicate `app/services/*.py` files
+  - Updated 7 import sites to use canonical module services
+  - Marked `todo-054` resolved in task tracking
+- **Verification**:
+  - `python -m compileall app` and `python -m compileall tests` → no errors
+  - `python tools/guardrail_engine.py` → all checks passed
+  - `pytest tests/test_plan_maker.py -q --no-cov` → 23 passed
 
 ### Session — todo-053 resolved: CRLF line endings normalized
 

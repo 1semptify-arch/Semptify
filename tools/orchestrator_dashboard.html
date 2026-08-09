@@ -924,10 +924,10 @@
     "priority": "medium",
     "file_path": "BUILD_STATE.md; AI_HANDOFF_PACKET.md; app/main.py; [full list in original audit report]",
     "status": "resolved",
-    "notes": "Depends on todo-045 through todo-050. Add .gitattributes to enforce LF going forward if not already present. Acceptance: 0 CRLF files remain per git ls-files --eol.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: .gitattributes IS present (enforces eol=lf for *.py, *.html, *.css, *.js, *.json, *.yml, *.md, etc.; keeps CRLF for *.bat/*.cmd/*.ps1). However git ls-files --eol still shows 534 files with CRLF \u2014 normalization not yet run. Remaining work: run 'git add --renormalize .' to convert existing files, then commit.\n[2026-08-09 03:12 UTC - SWE-1.7] Normalized 497 tracked text files from CRLF to LF in working tree; set core.autocrlf=false locally; updated .gitattributes to '* text=auto eol=lf' for catch-all enforcement; 34 bat/cmd/ps1 files retain CRLF per .gitattributes. git ls-files --eol shows no unexpected w/crlf.",
+    "notes": "Depends on todo-045 through todo-050. Add .gitattributes to enforce LF going forward if not already present. Acceptance: 0 CRLF files remain per git ls-files --eol.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: .gitattributes IS present (enforces eol=lf for *.py, *.html, *.css, *.js, *.json, *.yml, *.md, etc.; keeps CRLF for *.bat/*.cmd/*.ps1). However git ls-files --eol still shows 534 files with CRLF \u2014 normalization not yet run. Remaining work: run 'git add --renormalize .' to convert existing files, then commit.\n[2026-08-09 03:12 UTC - SWE-1.7] Normalized 497 tracked text files from CRLF to LF in working tree; set core.autocrlf=false locally; updated .gitattributes to '* text=auto eol=lf' for catch-all enforcement; 34 bat/cmd/ps1 files retain CRLF per .gitattributes. git ls-files --eol shows no unexpected w/crlf.\n[2026-08-09 03:32 UTC - devin-glm-5.2] Verified: .gitattributes enforces eol=lf for all text files (*.py, *.html, *.css, *.js, *.json, *.yml, *.md, etc.) and eol=crlf for Windows scripts (*.bat, *.cmd, *.ps1). git add --renormalize . produced 0 staged changes (index already normalized). Fixed BUILD_STATE.md working tree (was CRLF, now LF). Final state: 35 files with w/crlf, ALL are .ps1/.bat with eol=crlf attribute (correct). 0 non-Windows-script files with CRLF. No commit needed \u2014 index was already clean.",
     "created_at": "2026-08-08T00:00:00Z",
-    "updated_at": "2026-08-09T03:12:25.978019+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-08-09T03:32:57.182461+00:00",
+    "assigned_agent": "devin-glm-5.2"
   },
   {
     "id": "todo-054",
@@ -937,11 +937,11 @@
     "target_model": "swe-1.7",
     "priority": "medium",
     "file_path": "app/modules/*/service.py; app/services/*.py",
-    "status": "pending",
+    "status": "in_progress",
     "notes": "Depends on todo-045 through todo-050. Determine canonical location per product_manifest.py convention, remove the duplicate, update imports. Do not touch product_manifest.py registration logic itself.\n[2026-08-09 01:29 UTC - devin-glm-5.2] Refresh 2026-08-08: At least 4 exact-duplicate pairs confirmed via MD5 hash comparison: fraud_exposure (app/modules/fraud_exposure/service.py == app/services/fraud_exposure.py), public_exposure (app/modules/public_exposure/service.py == app/services/public_exposure.py), plan_maker (app/modules/plan_maker/service.py == app/services/plan_maker_service.py), crawler (app/modules/crawler/service.py == app/services/crawler.py). Other pairs (communication, intake, functionx, location, legal_filing) differ \u2014 not duplicates. 28 service.py files in app/modules/, 72 .py files in app/services/.",
     "created_at": "2026-08-08T00:00:00Z",
-    "updated_at": "2026-08-09T01:29:02.157263+00:00",
-    "assigned_agent": ""
+    "updated_at": "2026-08-09T03:44:40.431821+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-055",
