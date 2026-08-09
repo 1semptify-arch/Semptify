@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 
 from app.core.cookie_auth import sign_user_id
 from app.main import app
-from app.services.plan_maker_service import (
+from app.modules.plan_maker.service import (
     EntityRecord,
     EvidenceItem,
     NextStep,
