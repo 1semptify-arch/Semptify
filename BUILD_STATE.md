@@ -2,10 +2,8 @@
 
 ### Deploy
 
-- **PRs**: #20 `feat(page_composer): add POST /api/page/assemble endpoint and intent query support`, #21 `Add testing-semptify skill for local test auth and Windows pitfalls`
-- **Branches**: `devin/page-composer-post-assemble`, `devin/update-skills-1786246798`
-- **CI**: All checks green on both PRs.
-- **Render deploy**: pending merge to `main` — https://dashboard.render.com
+- **Merged**: `84e182db` on `main` (includes PR #11 CI fixes, PR #20 Page Composer POST assemble, PR #21 testing-semptify skill)
+- **Render deploy**: started — https://dashboard.render.com
 
 ### Problem
 
