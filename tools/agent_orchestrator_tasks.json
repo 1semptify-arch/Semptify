@@ -639,5 +639,19 @@
     "created_at": "2026-07-19T00:00:00Z",
     "updated_at": "2026-07-28T19:09:27.790379+00:00",
     "assigned_agent": "devin"
+  },
+  {
+    "id": "todo-063",
+    "title": "Provision Semptify Python 3.11.9 test environment",
+    "description": "The Devin sandbox lacks the mandated Python 3.11.9 runtime, venv311, pip, and pytest, blocking local coverage and pre-commit verification. Provision the repository's documented Python 3.11.9 environment and verify dependency installation, pre-commit installation, pytest, and coverage.",
+    "category": "environment",
+    "target_model": "swe-1.7",
+    "priority": "high",
+    "file_path": ".devin/blueprint.yaml",
+    "status": "pending",
+    "notes": "Created from PR #19 return handoff on 2026-08-09 after local verification found Python 3.12.8 only, no venv311, no pip, and no pytest.",
+    "created_at": "2026-08-09T02:00:00Z",
+    "updated_at": "2026-08-09T02:00:00Z",
+    "assigned_agent": ""
   }
 ]
