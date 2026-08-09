@@ -63,7 +63,7 @@ class FakeRedis:
         self.get = AsyncMock(return_value='{"value": 1}')
         self.setex = AsyncMock()
         self.set = AsyncMock()
-        self.delete = AsyncMock(side_effect=[2, 1])
+        self.delete = AsyncMock(side_effect=[2, 1, 1])
         self.exists = AsyncMock(return_value=1)
         self.scan = AsyncMock(side_effect=[(1, ["a", "b"]), (0, ["c"])])
         self.flushdb = AsyncMock()
