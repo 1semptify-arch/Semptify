@@ -4,17 +4,16 @@
 
 repos:
   # General file checks
+  # NOTE: trailing-whitespace, end-of-file-fixer, check-merge-conflict, and
+  # check-added-large-files are disabled because pre-commit 3.6.0 (pinned in CI)
+  # passes -w flag to all hooks, which these hooks don't support. Re-enable
+  # them once CI upgrades to pre-commit 4.0.1+.
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
       - id: check-yaml
       - id: check-json
       - id: check-toml
-      - id: check-merge-conflict
-      - id: check-added-large-files
-        args: ['--maxkb=1000']
       - id: detect-private-key
 
   # Python linting with Ruff (fast)

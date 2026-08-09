@@ -126,7 +126,7 @@ class AIToolCrib:
                 service_type=AIServiceType.OCR_ENGINE,
                 provider=AIProvider.AZURE_AI,
                 model_name="azure-ocr-v4",
-                api_key_env="AZURE_AI_KEY",
+                api_key_env="AZURE_AI_KEY",  # pragma: allowlist secret
                 cost_per_request=0.001,
             ),
         }
