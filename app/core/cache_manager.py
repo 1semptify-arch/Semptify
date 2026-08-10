@@ -307,7 +307,10 @@ class CacheManager:
     def _generate_cache_key(self, func_name: str, args: tuple, kwargs: dict, prefix: str = None) -> str:
         """Generate cache key for function call."""
         # Create hash of arguments
-        args_hash = hashlib.md5(json.dumps([args, kwargs], sort_keys=True, default=str).encode()).hexdigest()  # noqa: S324 - non-security cache key
+        args_hash = hashlib.md5(
+            json.dumps([args, kwargs], sort_keys=True, default=str).encode(),
+            usedforsecurity=False,
+        ).hexdigest()
 
         # Build key
         if prefix:
@@ -338,7 +341,7 @@ class CacheManager:
 
     async def cleanup_expired(self):
         """Clean up expired entries."""
-        for _backend_name, backend in self.backends.items():
+        for _, backend in self.backends.items():
             if hasattr(backend, "cleanup_expired"):
                 await backend.cleanup_expired()
 

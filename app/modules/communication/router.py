@@ -37,6 +37,7 @@ from app.models.document_delivery_models import SignDocumentRequest
 from .service import get_communication_service
 
 router = APIRouter(prefix="/api/communications", tags=["Communications"])
+logger = logging.getLogger(__name__)
 
 
 async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Settings):
@@ -372,6 +373,7 @@ async def upload_attachment(
             source_module="communication",
             document_type="attachment",
             access_token=access_token,
+            storage_provider=user.provider.value if user.provider else None,
         )
 
         if not result.success:
