@@ -14,9 +14,10 @@ from __future__ import annotations
 
 import json
 import logging
+from enum import IntEnum
 from pathlib import PurePosixPath
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auto_refresh import ensure_valid_token
@@ -26,8 +27,19 @@ from app.services.storage import get_provider
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_INTENSITY_LEVEL = 2
 DEFAULT_TOKEN_VERSION = 1
+
+
+class IntensityLevel(IntEnum):
+    """Tenant-controlled explanation/momentum intensity scalar from ADR-0008 §2.8."""
+
+    OFF = 0
+    SUBTLE = 1
+    STANDARD = 2
+    HIGH = 3
+
+
+DEFAULT_INTENSITY_LEVEL = IntensityLevel.STANDARD
 
 
 class ExperienceToken(BaseModel):
@@ -45,11 +57,9 @@ class ExperienceToken(BaseModel):
         default_factory=dict,
         description="Per object_type exposure counts.",
     )
-    intensity_level: int = Field(
+    intensity_level: IntensityLevel = Field(
         default=DEFAULT_INTENSITY_LEVEL,
-        ge=0,
-        le=3,
-        description="0=Off, 1=Subtle, 2=Standard, 3=High.",
+        description="Multiplier on momentum frequency and explanation warmth.",
     )
     token_version: int = Field(
         default=DEFAULT_TOKEN_VERSION,
@@ -57,7 +67,7 @@ class ExperienceToken(BaseModel):
         description="Schema version for forward compatibility.",
     )
 
-    model_config = {"extra": "forbid"}
+    model_config = ConfigDict(extra="forbid", use_enum_values=True)
 
     @field_validator("exposure_tallies")
     @classmethod
@@ -126,7 +136,7 @@ async def save_experience_token(
 
     # Fallback to session-local state only.
     if session_state is not None:
-        session_state["experience_token"] = token.model_dump()
+        session_state["experience_token"] = token.model_dump(mode="json")
         return True
 
     return False
@@ -181,8 +191,9 @@ async def _save_to_storage(
 
 
 __all__ = [
-    "DEFAULT_INTENSITY_LEVEL",
     "DEFAULT_TOKEN_VERSION",
+    "IntensityLevel",
+    "DEFAULT_INTENSITY_LEVEL",
     "ExperienceToken",
     "load_experience_token",
     "save_experience_token",
