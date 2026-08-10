@@ -87,3 +87,21 @@ register_function_group(
         deterministic=True,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="context_engine",
+        group_name="explanation_retrieval",
+        title="Explanation Retrieval (SSOT)",
+        description=(
+            "CANONICAL Layer 2 metadata-match retrieval. Ranks Layer 1 explanation "
+            "entries against an Object Envelope using subject_tags, jurisdiction, "
+            "pillar, and review_status. Returns only results above the configured "
+            "confidence threshold."
+        ),
+        inputs=("object_envelope", "jurisdiction?"),
+        outputs=("retrieval_results",),
+        dependencies=("app.modules.context_engine.retrieval",),
+        deterministic=True,
+    )
+)
