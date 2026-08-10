@@ -89,6 +89,26 @@ class EventType(str, Enum):
     OCR_COMPLETED = "ocr_completed"
     OCR_FAILED = "ocr_failed"
 
+    # ADR-0008 §2.3 Live Event-Driven Narration events
+    # These are intentionally fine-grained so each narration line fires only
+    # when its corresponding real backend step runs.
+    DOCUMENT_UPLOAD_RECEIVED = "document_upload_received"
+    OCR_PASS_STARTED = "ocr_pass_started"
+    OVERLAY_BUILD_STARTED = "overlay_build_started"
+    OVERLAY_BUILD_COMPLETED = "overlay_build_completed"
+
+
+# Narration strings for ADR-0008 §2.3 Live Event-Driven Narration.
+# These are injected at the WebSocket boundary only; they do not alter the
+# event history or other subscribers. Each line is tied to a specific event
+# so it fires only when the corresponding real backend step runs.
+NARRATION_MESSAGES: dict[EventType, str] = {
+    EventType.DOCUMENT_UPLOAD_RECEIVED: "Got your document — starting the scan now.",
+    EventType.OCR_PASS_STARTED: "Reading the text and finding key dates.",
+    EventType.OVERLAY_BUILD_STARTED: "Building your privacy overlay — this happens on your device. We never see the file itself.",
+    EventType.OVERLAY_BUILD_COMPLETED: "Done. Your document's organized and nothing left your device.",
+}
+
 
 @dataclass
 class Event:
@@ -254,8 +274,15 @@ class EventBus:
         await self._push_to_websockets(event, user_id)
 
     async def _push_to_websockets(self, event: Event, user_id: str | None):
-        """Push event to connected WebSocket clients"""
-        message = event.to_json()
+        """Push event to connected WebSocket clients."""
+        # Build the WebSocket payload. For ADR-0008 narration events, inject the
+        # matching narration line so the client can display it without needing to
+        # maintain its own mapping. The underlying Event object is unchanged.
+        payload = event.to_dict()
+        narration = NARRATION_MESSAGES.get(event.type)
+        if narration:
+            payload["narration"] = narration
+        message = json.dumps(payload)
 
         # Push to specific user if user_id provided
         if user_id and user_id in self._websocket_connections:
