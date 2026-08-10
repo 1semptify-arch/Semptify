@@ -900,11 +900,11 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/core/context_envelope.py (new)",
-    "status": "pending",
+    "status": "completed",
     "notes": "Preflight: read ADR-0008 sections 2.1 and 2.1.1 in full before starting. journey_stage must be computed per-tenant-per-encounter at read time, not hardcoded per object type. Scope: schema + a resolver function only, no UI wiring yet. Blocks: todo-067, todo-070, todo-071, todo-073, todo-074.",
     "created_at": "2026-08-10T00:00:00Z",
-    "updated_at": "2026-08-10T19:45:43.236962+00:00",
-    "assigned_agent": ""
+    "updated_at": "2026-08-10T19:46:40.536048+00:00",
+    "assigned_agent": "Devin"
   },
   {
     "id": "todo-064",
