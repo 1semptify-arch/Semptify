@@ -13,6 +13,7 @@ from app.core.request_utils import get_request_user_id
 from app.services.emotion_engine import (
     emotion_engine,
     get_adaptive_dashboard,
+    get_momentum_checkpoint,
     get_ui_adaptation,
     get_user_emotional_state,
     process_user_trigger,
@@ -255,4 +256,25 @@ async def get_emotional_history(request: Request, limit: int = Query(20, le=100)
         "user_id": user_id,
         "history": history[-limit:] if history else [],
         "total_events": len(history),
+    }
+
+
+@router.get("/momentum-checkpoint")
+async def get_momentum_checkpoint_message(
+    trigger: str = Query(..., description="phase_complete or phase_start"),
+    phase: str = Query(..., description="Name of the completed/current phase"),
+    next_phase: str = Query(..., description="Name of the upcoming phase"),
+    intensity_level: int = Query(default=2, ge=0, le=3),
+) -> dict[str, Any]:
+    """Return a warm, honest momentum checkpoint message for a phase transition.
+
+    Intensity 0 suppresses the message. The message is never urgent or
+    fear-based, per the banned-motivations rule.
+    """
+    message = get_momentum_checkpoint(trigger, phase, next_phase, intensity_level)
+    return {
+        "success": True,
+        "trigger": trigger,
+        "message": message,
+        "suppressed": message is None,
     }

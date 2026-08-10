@@ -755,3 +755,60 @@ def get_adaptive_dashboard(user_id: str) -> dict[str, Any]:
 def get_ui_adaptation(user_id: str) -> dict[str, Any]:
     """Get UI adaptation settings"""
     return emotion_engine.calculate_ui_adaptation(user_id).to_dict()
+
+
+# === Momentum / Emotional Checkpoints (ADR-0008 §2.5) ===
+
+# Intensity 0 (Off) suppresses checkpoints. Intensity 3 (High) returns the
+# warmest, most frequent message. These messages are intentionally warm and
+# honest — never urgent, never fear-based, per the banned-motivations rule.
+
+MOMENTUM_MESSAGES = {
+    "phase_complete": {
+        1: "{phase} is logged. {next} is still ahead, but you've already started.",
+        2: "Nice — that's {phase} logged. {next} is still ahead, but you've already made a start.",
+        3: "Great — {phase} is done. {next} is still ahead, and you've already shown you can handle this.",
+    },
+    "phase_start": {
+        1: "{next} is the next part. It looks like a lot, but it's a few steps and you've already done the harder ones.",
+        2: "This next part — {next} — looks like a lot. It's really a few steps, and you've already done the harder ones.",
+        3: "{next} is next. It may look like a lot, but it's really a few steps, and you've already done the harder ones. Keep going.",
+    },
+}
+
+
+def get_momentum_checkpoint(
+    trigger: str,
+    phase: str,
+    next_phase: str,
+    intensity_level: int,
+) -> str | None:
+    """Return a warm, honest milestone message for a phase transition.
+
+    Args:
+        trigger: 'phase_complete' or 'phase_start'.
+        phase: Name of the phase just completed (used for phase_start too).
+        next_phase: Name of the next phase.
+        intensity_level: 0-3 (Off/Subtle/Standard/High). 0 returns None.
+
+    Returns:
+        A message string, or None if the intensity level suppresses it.
+    """
+    if trigger not in ("phase_complete", "phase_start"):
+        return None
+    if intensity_level <= 0:
+        return None
+
+    # Cap and bucket intensity to 1-3 for message selection.
+    bucket = min(max(intensity_level, 1), 3)
+    template = MOMENTUM_MESSAGES[trigger][bucket]
+
+    # Friendly human-readable defaults for empty phase names.
+    phase_display = phase.strip() if phase and phase.strip() else "this step"
+    next_display = next_phase.strip() if next_phase and next_phase.strip() else "the next step"
+
+    # Sentence-case phase names for readability.
+    phase_display = phase_display[0].upper() + phase_display[1:] if phase_display else "this step"
+    next_display = next_display[0].upper() + next_display[1:] if next_display else "the next step"
+
+    return template.format(phase=phase_display, next=next_display)

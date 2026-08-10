@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 
@@ -19,6 +19,7 @@ from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
 from app.core.utc import utc_now
 from app.models.models import EvictionTimelineEvent
+from app.services.emotion_engine import get_momentum_checkpoint
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -101,3 +102,40 @@ async def create_eviction_event(
     db.add(event)
     await db.commit()
     return ssot_redirect(navigation.get_stage("eviction_timeline_home").path, context="create eviction timeline event")
+
+
+@router.get("/momentum-checkpoint")
+async def eviction_momentum_checkpoint(
+    request: Request,
+    event_type: str = Query(..., description="Phase name for the completed or current step"),
+    next_phase: str = Query(default="", description="Upcoming phase name"),
+    trigger: str = Query(default="phase_complete", description="phase_complete or phase_start"),
+    user: UserContext = Depends(require_tier("T2")),
+):
+    """Return a warm, honest momentum checkpoint for an eviction-timeline phase.
+
+    This is the ADR-0008 §2.5 pilot wiring on the Eviction Timeline surface.
+    Intensity is read from the tenant's Experience Token when available.
+    """
+    from app.core.experience_token import ExperienceToken, load_experience_token
+
+    if trigger not in {"phase_complete", "phase_start"}:
+        return {"success": False, "error": f"Unknown trigger: {trigger}"}
+
+    # Prefer the tenant's Experience Token; fall back to the default if no
+    # storage is connected yet (pre-OAuth).
+    token = await load_experience_token(user.user_id)
+    message = get_momentum_checkpoint(
+        trigger=trigger,
+        phase=event_type,
+        next_phase=next_phase,
+        intensity_level=token.intensity_level,
+    )
+    return {
+        "success": True,
+        "event_type": event_type,
+        "next_phase": next_phase,
+        "trigger": trigger,
+        "message": message,
+        "suppressed": message is None,
+    }

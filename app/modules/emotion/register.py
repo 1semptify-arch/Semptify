@@ -108,3 +108,20 @@ register_function_group(
         deterministic=True,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="emotion",
+        group_name="emotion_momentum_checkpoint",
+        title="Emotion Momentum Checkpoint (GET) (SSOT)",
+        description=(
+            "GET /momentum-checkpoint. Returns a warm, honest milestone message "
+            "for a phase transition, scaled by intensity level. Intensity 0 "
+            "suppresses the message."
+        ),
+        inputs=("trigger", "phase", "next_phase", "intensity_level"),
+        outputs=("message", "suppressed"),
+        dependencies=("app.modules.emotion.router",),
+        deterministic=True,
+    )
+)
