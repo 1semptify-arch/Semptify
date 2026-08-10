@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-08-10 (rev. 3 — accepted, scoped to pilot)
 **Author:** Brad (via planning session), drafted by Claude
-**Verify before merging:** ADR number — confirm 0008 is the next open slot against the existing 7 ADRs (storage split, navigation principle, attraction principle, banned motivations, language rules, open access, OCR/semantic privacy model = ADR-0002) before committing this file.
+**ADR number confirmed:** the OCR/semantic-reasoning privacy model ADR is **ADR-0007**, not ADR-0002 as originally guessed — confirmed via todo-068 preflight (2026-08-10). Still verify 0008 itself is the correct next open slot before final commit.
 **Implementation scope:** Pilot only — Eviction Timeline and Vault upload flow (decision #2, section 5). Full-platform rollout is a separate future decision, made after the pilot proves out.
 
 **Rev. 3 changes:** Status moved to Accepted. Decision #6 resolved: `token_version: 1` as the default field on the Experience Token schema. See `agent_orchestrator_tasks.json` todo-063 through todo-075 for the implementation task queue.
@@ -51,8 +51,8 @@ This is the mechanism that keeps content dynamic without either (a) writing ever
 **Layer 1 — Curated entries (human-written, versioned).**
 Short explanation blocks, each tagged with subject, jurisdiction, UPL risk tier, Pillar, and **`review_status: beta | vetted`**. Functionally an extension of the Know Your Rights Library, granular enough to attach to individual page objects rather than only top-level articles. Each entry has multiple **variant slots** (see 2.4) rather than one fixed text. `beta` entries are eligible for retrieval and display but should carry a lighter-weight disclosure than `vetted` Library-grade content until a formal review baseline exists (see section 5, #4).
 
-**Layer 2 — Semantic retrieval (already-built infrastructure, reused).**
-At render time, the orchestrator builds a query from the object's envelope (`why`, `subject_tags`, `who`, jurisdiction) plus the tenant's real situation, and retrieves the best-matching Layer 1 entries using the same embedding pipeline already running for OCR semantic matching (all-MiniLM-L6-v2, `HF_HUB_OFFLINE=1`). No generation happens here — pure matching. Nothing is said that wasn't already written and reviewed. **Starting confidence threshold: 0.75 cosine similarity** — conservative by design, calibrated against beta-tester feedback rather than fixed permanently (section 5, #3–#4).
+**Layer 2 — Semantic retrieval (PILOT REVISION 2026-08-10 — see below).**
+Original design: retrieve best-matching Layer 1 entries via embedding similarity (all-MiniLM-L6-v2, offline), reusing an existing OCR semantic pipeline. **That pipeline does not exist yet** — ADR-0007 specifies it but it was never implemented (confirmed via todo-068 preflight). For the pilot, Layer 2 is implemented as **metadata-only matching**: exact/scored match on `subject_tags`, jurisdiction, `pillar`, and `review_status`, with the confidence concept preserved as a named config constant (`LAYER2_CONFIDENCE_THRESHOLD = 0.75`) for later replacement with real semantic scoring. The retrieval *interface* (query in, ranked Layer 1 entries out) stays the same either way, so upgrading to real embeddings later is a drop-in swap, not a rewrite. Building the actual embedding pipeline is tracked separately as todo-077 (completes ADR-0007), decoupled from the pilot's critical path.
 
 **Layer 3 — Bounded local rephrasing (optional).**
 A small local model may adjust *tone or length only* — trimming for a mobile card vs. expanding for a full page. It is never permitted to introduce a new fact or claim not present in the Layer 1 source. The source entry remains the attributable origin for Information Integrity disclosure purposes.
@@ -164,7 +164,7 @@ This is a genuine multiplier on both the frequency of Momentum Checkpoints and t
 ## 4. Dependencies on existing systems
 
 - **WebSocket Events module** (`/ws`, CORE, active) — required for 2.3
-- **OCR semantic embedding pipeline** (all-MiniLM-L6-v2, offline) — required for 2.2 Layer 2, already built for Vault OCR matching (ADR-0002)
+- **OCR semantic embedding pipeline** (all-MiniLM-L6-v2, offline) — **CORRECTION (2026-08-10):** this does NOT exist as running code. ADR-0007 (OCR + Semantic Reasoning Privacy Model, status BETA) describes the intended design only. No `sentence-transformers`/`transformers`/embedding module found anywhere in the codebase (confirmed via todo-068 preflight). Section 2.2 Layer 2 has been revised accordingly — see below.
 - **Know Your Rights Library** — primary source pool for Layer 1 entries
 - **Emotion Engine module** (`app.modules.emotion.router`, RESEARCH, experimental) — likely home for 2.5; audit existing stub before building
 - **Journal module** — potential secondary source for "reflection" stage context
@@ -187,4 +187,4 @@ This is a genuine multiplier on both the frequency of Momentum Checkpoints and t
 
 ---
 
-*This ADR should be read alongside MOTIVATIONS.md (Wisdom Principle, Information Integrity Standards, banned motivations), the Navigation Principle ADR (vocabulary + design checks), and ADR-0002 (OCR/semantic-reasoning privacy model) — this document extends all three rather than replacing them.*
+*This ADR should be read alongside MOTIVATIONS.md (Wisdom Principle, Information Integrity Standards, banned motivations), the Navigation Principle ADR (vocabulary + design checks), and ADR-0007 (OCR/semantic-reasoning privacy model, currently BETA/unimplemented) — this document extends all three rather than replacing them.*
