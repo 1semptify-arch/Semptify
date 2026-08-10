@@ -20,7 +20,7 @@ class InputType(StrEnum):
     TEXT = "text"
     NUMBER = "number"
     EMAIL = "email"
-    PASSWORD = "password"
+    PASSWORD = "password"  # pragma: allowlist secret
     FILE = "file"
     DATE = "date"
     TIME = "time"

@@ -86,7 +86,7 @@ class AIToolCrib:
                 service_type=AIServiceType.DOCUMENT_CLASSIFIER,
                 provider=AIProvider.SWE_1_6,
                 model_name="claude-3-sonnet",
-                api_key_env="SWE16_API_KEY",
+                api_key_env="SWE16_API_KEY",  # pragma: allowlist secret
                 cost_per_request=0.003,
             ),
             AIServiceType.LEGAL_ANALYZER: AIServiceConfig(
@@ -99,14 +99,14 @@ class AIToolCrib:
                 service_type=AIServiceType.TIMELINE_EXTRACTOR,
                 provider=AIProvider.OPENAI,
                 model_name="gpt-4-turbo",
-                api_key_env="OPENAI_API_KEY",
+                api_key_env="OPENAI_API_KEY",  # pragma: allowlist secret
                 cost_per_request=0.01,
             ),
             AIServiceType.EMOTION_DETECTOR: AIServiceConfig(
                 service_type=AIServiceType.EMOTION_DETECTOR,
                 provider=AIProvider.ANTHROPIC,
                 model_name="claude-3-haiku",
-                api_key_env="ANTHROPIC_API_KEY",
+                api_key_env="ANTHROPIC_API_KEY",  # pragma: allowlist secret
                 cost_per_request=0.001,
             ),
             AIServiceType.DUPLICATE_DETECTOR: AIServiceConfig(
@@ -119,14 +119,14 @@ class AIToolCrib:
                 service_type=AIServiceType.SUMMARIZER,
                 provider=AIProvider.GEMINI,
                 model_name="gemini-pro",
-                api_key_env="GEMINI_API_KEY",
+                api_key_env="GEMINI_API_KEY",  # pragma: allowlist secret
                 cost_per_request=0.002,
             ),
             AIServiceType.OCR_ENGINE: AIServiceConfig(
                 service_type=AIServiceType.OCR_ENGINE,
                 provider=AIProvider.AZURE_AI,
                 model_name="azure-ocr-v4",
-                api_key_env="AZURE_AI_KEY",
+                api_key_env="AZURE_AI_KEY",  # pragma: allowlist secret
                 cost_per_request=0.001,
             ),
         }
