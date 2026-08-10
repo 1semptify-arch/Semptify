@@ -1012,11 +1012,11 @@
     "target_model": "swe-1.7",
     "priority": "medium",
     "file_path": "app/core/context_envelope.py or retrieval service",
-    "status": "pending",
+    "status": "completed",
     "notes": "Depends on todo-065 (Experience Token) and todo-068 (Layer 2 retrieval). Never a verbatim repeat between exposures 2 and 3 \u2014 each variant slot must be genuinely distinct content, not the same text reworded.",
     "created_at": "2026-08-10T00:00:00Z",
-    "updated_at": "2026-08-10T00:00:00Z",
-    "assigned_agent": ""
+    "updated_at": "2026-08-10T20:13:21.907409+00:00",
+    "assigned_agent": "Devin"
   },
   {
     "id": "todo-072",

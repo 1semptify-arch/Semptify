@@ -142,6 +142,17 @@ async def save_experience_token(
     return False
 
 
+def record_exposure(token: ExperienceToken, object_type: str) -> int:
+    """Return the new exposure count for an object type and a token with it incremented.
+
+    This is a pure function: the returned `ExperienceToken` is a copy with the
+    tally updated. Callers must save it themselves (no side effects on storage).
+    """
+    tallies = dict(token.exposure_tallies)
+    tallies[object_type] = tallies.get(object_type, 0) + 1
+    return tallies[object_type], token.model_copy(update={"exposure_tallies": tallies})
+
+
 async def _load_from_storage(provider_name: str, access_token: str) -> ExperienceToken:
     """Read the Experience Token JSON from the tenant's cloud storage."""
     storage = get_provider(provider_name, access_token=access_token)
