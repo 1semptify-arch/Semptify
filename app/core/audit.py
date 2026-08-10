@@ -46,7 +46,7 @@ class AuditAction(StrEnum):
     LOGIN_FAILURE = "auth.login.failure"
     LOGOUT = "auth.logout"
     TOKEN_REFRESH = "auth.token.refresh"
-    PASSWORD_CHANGE = "auth.password.change"
+    PASSWORD_CHANGE = "auth.password.change"  # pragma: allowlist secret
 
     # User Management
     USER_CREATE = "user.create"

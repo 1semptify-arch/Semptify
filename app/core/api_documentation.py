@@ -553,7 +553,7 @@ class APIDocumentationGenerator:
                                 <div class="accordion-content">
                                     <pre><code>curl -X POST {self.base_url}/api/v1/auth/login \\
   -H "Content-Type: application/json" \\
-  -d '{{"email": "your@email.com", "password": "your-password"}}'</code></pre>
+  -d '{{"email": "your@email.com", "password": "your-password"}}'</code></pre>  # pragma: allowlist secret
                                     <p>Save the returned <code>token</code> for authenticated requests.</p>
                                 </div>
                             </div>
@@ -963,7 +963,7 @@ def _register_default_modules():
             ],
             request_body={
                 "content": {
-                    "application/json": {"example": {"email": "user@example.com", "password": "securepassword123"}}
+                    "application/json": {"example": {"email": "user@example.com", "password": "securepassword123"}}  # pragma: allowlist secret
                 }
             },
             responses={
@@ -1077,7 +1077,7 @@ import requests
 # Login to get token
 login_response = requests.post('https://api.semptify.org/api/v1/auth/login', json={
     'email': 'your-email@example.com',
-    'password': 'your-password'
+    'password': 'your-password'  # pragma: allowlist secret
 })
 
 if login_response.status_code == 200:
@@ -1116,7 +1116,7 @@ async function loginAndGetDocuments() {{
             }},
             body: JSON.stringify({{
                 email: 'your-email@example.com',
-                password: 'your-password'
+                password: 'your-password'  # pragma: allowlist secret
             }})
         }});
 

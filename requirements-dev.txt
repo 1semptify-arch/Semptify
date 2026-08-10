@@ -30,6 +30,7 @@ pylint>=3.0.0                 # Additional linting
 # Security
 # =============================================================================
 bandit>=1.7.7                 # Security linter
+detect-secrets>=1.5.0         # Secret detection (pre-commit hook)
 pip-audit>=2.7.0              # Dependency vulnerability scanner
 safety>=2.3.5                 # Dependency safety checker
 
