@@ -37,7 +37,7 @@ def validate_production_mode() -> bool:
             logger.info("✅ Debug mode disabled")
 
             # 2. Secret key
-            if settings.SECRET_KEY == "change-me-in-production":
+            if settings.SECRET_KEY == "change-me-in-production":  # pragma: allowlist secret
                 logger.error("❌ SECRET_KEY not changed from default!")
                 return False
             logger.info("✅ Secret key configured")

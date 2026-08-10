@@ -90,8 +90,8 @@ ignore = [
     "PTH",    # use pathlib instead of os.path (style preference, too many to fix)
     "SIM",    # flake8-simplify (style preference, could change behavior)
     "C401",   # unnecessary generator set (style preference)
-    "TC002",  # typing-only third-party import
-    "TC003",  # typing-only standard library import
+    "TCH002", # typing-only third-party import
+    "TCH003", # typing-only standard library import
     "B905",   # zip without explicit strict (style preference)
     "B007",   # unused loop control variable
 ]
