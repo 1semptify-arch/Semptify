@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
+from app.core.id_gen import make_id
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ class DataDeletionManager:
         self, user_id: str, scope: DeletionScope, target_id: str | None = None, reason: str = ""
     ) -> str:
         """Create a new deletion request."""
-        request_id = f"del_{utc_now().timestamp()}_{user_id}"
+        request_id = make_id("del")
 
         request = DeletionRequest(
             request_id=request_id,
