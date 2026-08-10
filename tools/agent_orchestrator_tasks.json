@@ -973,7 +973,7 @@
     "status": "pending",
     "notes": "Preflight: locate and reuse the existing embedding pipeline from the Vault OCR work \u2014 do not stand up a second embedding model. Depends on todo-067. 0.75 threshold is a tuning parameter (ADR-0008 \u00a75 #3), not fixed \u2014 leave it as a named config constant, not a magic number, so it's easy to adjust from beta feedback.",
     "created_at": "2026-08-10T00:00:00Z",
-    "updated_at": "2026-08-10T00:00:00Z",
+    "updated_at": "2026-08-10T20:10:58.048559+00:00",
     "assigned_agent": ""
   },
   {
@@ -1087,5 +1087,33 @@
     "created_at": "2026-08-10T00:00:00Z",
     "updated_at": "2026-08-10T00:00:00Z",
     "assigned_agent": "Devin"
+  },
+  {
+    "id": "todo-077",
+    "title": "Build server-side semantic embedding pipeline (completes ADR-0007)",
+    "description": "ADR-0007 (OCR + Semantic Reasoning Privacy Model) specifies a client-side/offline embedding pipeline but it was never implemented. This task builds it: sentence-transformers + all-MiniLM-L6-v2, HF_HUB_OFFLINE=1, offline/local inference only per ADR-0007's privacy model.",
+    "category": "build",
+    "target_model": "swe-1.7",
+    "priority": "medium",
+    "file_path": "New module \u2014 location TBD, read ADR-0007 in full first",
+    "notes": "REQUIRES BRAD SIGN-OFF before adding new dependencies (sentence-transformers, torch) to requirements.txt \u2014 flag this explicitly in the task report, do not add silently. Preflight: read ADR-0007 in full \u2014 it specifies privacy constraints (offline-only, no data leaves device) that govern how this must be built, not just that it must be built. Not blocking the ADR-0008 pilot (todo-068 already has a working non-semantic fallback) \u2014 this can run in parallel on its own timeline. Once complete, unblocks todo-078.",
+    "status": "pending",
+    "created_at": "2026-08-10T00:00:00Z",
+    "updated_at": "2026-08-10T20:10:58.048559+00:00",
+    "assigned_agent": ""
+  },
+  {
+    "id": "todo-078",
+    "title": "(Deferred) Upgrade Layer 2 from metadata-match to real semantic scoring",
+    "description": "Swap todo-068's metadata-match implementation for real embedding-based semantic scoring once todo-077's pipeline exists. Interface should not need to change if todo-068 was built correctly.",
+    "category": "refactor",
+    "target_model": "swe-1.6",
+    "priority": "low",
+    "file_path": "Same file(s) as todo-068",
+    "notes": "Do not start until todo-077 is confirmed complete and reported. Not part of the pilot's critical path \u2014 full-platform rollout decision (post todo-075) is a more natural trigger point for this than an arbitrary date.",
+    "status": "pending",
+    "created_at": "2026-08-10T00:00:00Z",
+    "updated_at": "2026-08-10T20:10:58.048559+00:00",
+    "assigned_agent": ""
   }
 ]
