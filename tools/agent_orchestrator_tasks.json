@@ -928,11 +928,11 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/core/experience_token.py (new)",
-    "status": "pending",
+    "status": "completed",
     "notes": "HARD CONSTRAINT from ADR-0008 \u00a73: no server-side table keyed to tenant/user ID for this data, under any circumstance. token_version defaults to 1. Preflight: read how the existing storage-as-identity OAuth flow writes/reads tenant documents and reuse the same pattern, don't invent a new storage path. Depends on todo-063. Blocks: todo-066, todo-071, todo-072.",
     "created_at": "2026-08-10T00:00:00Z",
-    "updated_at": "2026-08-10T00:00:00Z",
-    "assigned_agent": ""
+    "updated_at": "2026-08-10T19:53:37.065299+00:00",
+    "assigned_agent": "Devin"
   },
   {
     "id": "todo-066",
