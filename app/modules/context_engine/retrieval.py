@@ -136,8 +136,30 @@ def _score_entry(
     return score
 
 
+def select_tapered_variant(result: RetrievalResult, exposure_count: int) -> str:
+    """Pick the right Layer 1 variant for this exposure count.
+
+    Tapering rules from ADR-0008 §2.4:
+      - 1st exposure: full (mechanics — what actually happens)
+      - 2nd exposure: different angle (trust — why it matters)
+      - 3rd exposure: different angle (reinforcement — short reminder)
+      - 4th+: minimal/status-only with tap-to-expand
+    """
+    if exposure_count <= 0:
+        exposure_count = 1
+
+    if exposure_count == 1:
+        return result.variant_mechanics
+    if exposure_count == 2:
+        return result.variant_trust
+    if exposure_count == 3:
+        return result.variant_reinforcement
+    return result.variant_minimal
+
+
 __all__ = [
     "LAYER2_CONFIDENCE_THRESHOLD",
     "RetrievalResult",
     "retrieve_explanations",
+    "select_tapered_variant",
 ]

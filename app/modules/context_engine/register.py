@@ -105,3 +105,20 @@ register_function_group(
         deterministic=True,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="context_engine",
+        group_name="familiarity_tapering",
+        title="Familiarity Tapering (SSOT)",
+        description=(
+            "CANONICAL explanation variant selection by exposure count. 1st exposure "
+            "returns the full mechanics variant, 2nd/3rd return trust and "
+            "reinforcement, 4th+ returns minimal."
+        ),
+        inputs=("retrieval_result", "exposure_count"),
+        outputs=("variant_text",),
+        dependencies=("app.modules.context_engine.retrieval", "app.core.experience_token"),
+        deterministic=True,
+    )
+)
