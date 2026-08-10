@@ -20,6 +20,16 @@ from pydantic import BaseModel, Field
 from app.core.request_utils import require_request_user_id
 from app.core.user_context import UserRole, get_role_from_user_id
 from app.modules.context_engine import cache as ctx_cache, stories as ctx_stories
+from app.modules.context_engine.explanation_entries import (
+    REVIEW_STATUSES,
+    UPL_RISK_TIERS,
+    ContextExplanationEntry,
+    create_explanation_entry,
+    delete_explanation_entry,
+    get_explanation_entries,
+    get_explanation_entry_by_id,
+    update_explanation_entry,
+)
 from app.modules.context_engine.gatherer import gather_for_subject
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
 from app.modules.context_engine.verifier import verify_subject
@@ -73,6 +83,30 @@ class ModerateStoryRequest(BaseModel):
 class VerifyRequest(BaseModel):
     subject: str
     jurisdiction: str = Field(default="MN")
+
+
+class ExplanationEntryRequest(BaseModel):
+    subject: str = Field(..., description="One of the 13 housing-rights subjects")
+    jurisdiction: str = Field(default="MN")
+    upl_risk_tier: str = Field(default="LOW")
+    pillar: str = Field(..., description="One of RECORD, KNOW, ACT, GOVERN")
+    review_status: str = Field(default="BETA")
+    variant_trust: str = Field(..., description="Why the tenant should trust this guidance.")
+    variant_mechanics: str = Field(..., description="What actually happens / what to do.")
+    variant_reinforcement: str = Field(..., description="Short reinforcement of the point.")
+    variant_minimal: str = Field(..., description="Minimal status-style text with tap-to-expand.")
+
+
+class ExplanationEntryUpdateRequest(BaseModel):
+    subject: str | None = None
+    jurisdiction: str | None = None
+    upl_risk_tier: str | None = None
+    pillar: str | None = None
+    review_status: str | None = None
+    variant_trust: str | None = None
+    variant_mechanics: str | None = None
+    variant_reinforcement: str | None = None
+    variant_minimal: str | None = None
 
 
 # =============================================================================
@@ -271,3 +305,116 @@ async def overview(request: Request):
         ],
         "total_subjects": len(ALL_SUBJECTS),
     }
+
+
+def _explanation_entry_to_dict(entry: ContextExplanationEntry) -> dict:
+    """Serialize a ContextExplanationEntry for JSON responses."""
+    return {
+        "entry_id": entry.entry_id,
+        "subject": entry.subject,
+        "jurisdiction": entry.jurisdiction,
+        "upl_risk_tier": entry.upl_risk_tier,
+        "pillar": entry.pillar,
+        "review_status": entry.review_status,
+        "variant_trust": entry.variant_trust,
+        "variant_mechanics": entry.variant_mechanics,
+        "variant_reinforcement": entry.variant_reinforcement,
+        "variant_minimal": entry.variant_minimal,
+        "created_at": entry.created_at.isoformat() if entry.created_at else None,
+        "updated_at": entry.updated_at.isoformat() if entry.updated_at else None,
+    }
+
+
+@router.get("/explanations")
+async def list_explanations(
+    request: Request,
+    subject: str | None = Query(default=None),
+    jurisdiction: str = Query(default="MN"),
+    pillar: str | None = Query(default=None),
+    review_status: str | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=100),
+):
+    """List curated explanation entries. Authenticated users may read."""
+    user_id = require_request_user_id(request)
+    _require_authenticated(user_id)
+    if subject and subject not in ALL_SUBJECTS:
+        raise HTTPException(status_code=400, detail=f"Unknown subject: {subject}")
+    if pillar and pillar not in {"RECORD", "KNOW", "ACT", "GOVERN"}:
+        raise HTTPException(status_code=400, detail=f"Unknown pillar: {pillar}")
+    if review_status and review_status not in REVIEW_STATUSES:
+        raise HTTPException(status_code=400, detail=f"Unknown review_status: {review_status}")
+
+    try:
+        entries = await get_explanation_entries(
+            subject=subject,
+            jurisdiction=jurisdiction,
+            pillar=pillar,
+            review_status=review_status,
+            limit=limit,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {"count": len(entries), "entries": [_explanation_entry_to_dict(e) for e in entries]}
+
+
+@router.post("/explanations")
+async def create_explanation(request: Request, body: ExplanationEntryRequest):
+    """Admin: create a new curated explanation entry."""
+    user_id = require_request_user_id(request)
+    _require_admin(user_id)
+    try:
+        entry = await create_explanation_entry(
+            subject=body.subject,
+            jurisdiction=body.jurisdiction,
+            upl_risk_tier=body.upl_risk_tier,
+            pillar=body.pillar,
+            review_status=body.review_status,
+            variant_trust=body.variant_trust,
+            variant_mechanics=body.variant_mechanics,
+            variant_reinforcement=body.variant_reinforcement,
+            variant_minimal=body.variant_minimal,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {"status": "created", "entry": _explanation_entry_to_dict(entry)}
+
+
+@router.get("/explanations/{entry_id}")
+async def read_explanation(request: Request, entry_id: str):
+    """Fetch a single curated explanation entry."""
+    user_id = require_request_user_id(request)
+    _require_authenticated(user_id)
+    entry = await get_explanation_entry_by_id(entry_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail=f"Explanation entry {entry_id} not found")
+    return _explanation_entry_to_dict(entry)
+
+
+@router.patch("/explanations/{entry_id}")
+async def patch_explanation(request: Request, entry_id: str, body: ExplanationEntryUpdateRequest):
+    """Admin: update an existing explanation entry."""
+    user_id = require_request_user_id(request)
+    _require_admin(user_id)
+    updates = body.model_dump(exclude_unset=True)
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    try:
+        entry = await update_explanation_entry(entry_id, **updates)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"status": "updated", "entry": _explanation_entry_to_dict(entry)}
+
+
+@router.delete("/explanations/{entry_id}")
+async def remove_explanation(request: Request, entry_id: str):
+    """Admin: delete an explanation entry."""
+    user_id = require_request_user_id(request)
+    _require_admin(user_id)
+    deleted = await delete_explanation_entry(entry_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail=f"Explanation entry {entry_id} not found")
+    return {"status": "deleted", "entry_id": entry_id}

@@ -69,3 +69,21 @@ register_function_group(
         deterministic=False,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="context_engine",
+        group_name="explanation_entry",
+        title="Explanation Entry (SSOT)",
+        description=(
+            "CANONICAL curated Layer 1 explanation store. Admin create/update/delete; "
+            "authenticated read. Each entry has subject, jurisdiction, UPL risk tier, "
+            "pillar, review_status, and four variant slots (trust, mechanics, "
+            "reinforcement, minimal)."
+        ),
+        inputs=("subject", "jurisdiction?", "upl_risk_tier", "pillar", "review_status", "admin_user_id?"),
+        outputs=("entry_id", "entry"),
+        dependencies=("app.modules.context_engine.explanation_entries",),
+        deterministic=True,
+    )
+)
