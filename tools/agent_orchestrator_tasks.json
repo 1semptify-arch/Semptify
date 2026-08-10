@@ -942,11 +942,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/core/experience_token.py",
-    "status": "pending",
+    "status": "completed",
     "notes": "Depends on todo-065. Small addition to the same file/schema \u2014 do not create a separate storage mechanism for this.",
     "created_at": "2026-08-10T00:00:00Z",
-    "updated_at": "2026-08-10T00:00:00Z",
-    "assigned_agent": ""
+    "updated_at": "2026-08-10T19:55:51.066155+00:00",
+    "assigned_agent": "Devin"
   },
   {
     "id": "todo-067",
