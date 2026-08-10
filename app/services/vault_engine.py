@@ -102,6 +102,13 @@ ACCESS_MATRIX: dict[str, dict[ResourceScope, set[AccessLevel]]] = {
         ResourceScope.ORG: set(),
         ResourceScope.SYSTEM: set(),
     },
+    "tenant": {  # Canonical housing role; 'U' code decodes to "tenant" (see app.core.user_id.CODE_TO_ROLE)
+        ResourceScope.OWN: {AccessLevel.READ, AccessLevel.WRITE, AccessLevel.DELETE},
+        ResourceScope.SHARED: {AccessLevel.READ},
+        ResourceScope.CASE: set(),
+        ResourceScope.ORG: set(),
+        ResourceScope.SYSTEM: set(),
+    },
     "advocate": {
         ResourceScope.OWN: {AccessLevel.READ, AccessLevel.WRITE, AccessLevel.DELETE},
         ResourceScope.SHARED: {AccessLevel.READ, AccessLevel.WRITE},
@@ -269,6 +276,13 @@ class VaultAccessEngine:
             request.resource_owner = resource.owner_id
             request.scope = self._determine_scope(request.user_id, resource)
         else:
+            # Non-existent resource: only WRITE (create) is allowed; READ/DELETE denied
+            if request.action != AccessLevel.WRITE:
+                return AccessResult(
+                    allowed=False,
+                    reason=f"{request.user_role} cannot {request.action.value} non-existent resource",
+                    scope=ResourceScope.OWN,
+                )
             # New resource - user is creating it
             request.scope = ResourceScope.OWN
             request.resource_owner = request.user_id
