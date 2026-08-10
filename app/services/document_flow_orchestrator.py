@@ -152,6 +152,14 @@ class DocumentFlowOrchestrator:
     async def _process_document(self, doc: IntakeDocument) -> dict[str, Any]:
         """Process document through intake engine."""
         try:
+            # Fire an event as the OCR/text-extraction pass actually starts.
+            await event_bus.publish(
+                BusEventType.OCR_PASS_STARTED,
+                {"doc_id": doc.id, "user_id": doc.user_id, "filename": doc.filename},
+                source="document_flow_orchestrator",
+                user_id=doc.user_id,
+            )
+
             # Process synchronously (intake engine handles async internally)
             processed = self.intake_engine.process_document(doc.id)
             return {
