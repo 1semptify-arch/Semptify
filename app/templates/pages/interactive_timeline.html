@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive Timeline - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .timeline-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md);
+  }
+
+  /* ── INFORMATION ── */
+  .timeline-header {
+    margin-bottom: var(--space-xl);
+  }
+  .timeline-header h1 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-sm) 0;
+  }
+  .timeline-header p {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ── INPUT: filter controls ── */
+  .timeline-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    align-items: flex-end;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+  .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    flex: 1 1 160px;
+  }
+  .filter-field label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+  .filter-field input,
+  .filter-field select {
+    background: var(--color-surface-alt);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    box-sizing: border-box;
+  }
+  .filter-field input:focus,
+  .filter-field select:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+  .filter-actions {
+    display: flex;
+    gap: var(--space-sm);
+  }
+  .btn {
+    padding: var(--space-sm) var(--space-lg);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-surface);
+  }
+  .btn-secondary {
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+  }
+
+  /* ── REACTION: loading ── */
+  .timeline-reaction {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-xl);
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+  }
+  .timeline-reaction.active {
+    display: flex;
+  }
+  .spinner {
+    width: 22px;
+    height: 22px;
+    border: 3px solid var(--color-text-muted);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── OUTPUT: timeline ── */
+  .timeline-container {
+    position: relative;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    min-height: 200px;
+  }
+
+  /* horizontal track (desktop) */
+  .timeline-track {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-xl);
+    overflow-x: auto;
+    padding: var(--space-md) 0 var(--space-lg);
+  }
+  .timeline-track::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm, 2px);
+  }
+
+  /* event node */
+  .timeline-event {
+    position: relative;
+    flex: 0 0 auto;
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    text-align: center;
+  }
+  .timeline-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    margin-bottom: var(--space-sm);
+    z-index: 1;
+    transition: transform 0.15s ease;
+  }
+  .timeline-event:hover .timeline-dot {
+    transform: scale(1.3);
+  }
+  .timeline-date {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-xs);
+  }
+  .timeline-title {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .timeline-type {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-xs);
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-full, 999px);
+    background: var(--color-surface-alt);
+  }
+
+  /* detail panel */
+  .timeline-detail {
+    display: none;
+    margin-top: var(--space-lg);
+    padding: var(--space-lg);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+  }
+  .timeline-detail.visible {
+    display: block;
+  }
+  .timeline-detail h3 {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+  .timeline-detail .detail-meta {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-md);
+  }
+  .timeline-detail p {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .detail-close {
+    margin-top: var(--space-md);
+    background: none;
+    border: none;
+    color: var(--color-accent);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  /* empty state */
+  .timeline-empty {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-xxl, var(--space-xl)) var(--space-md);
+    text-align: center;
+  }
+  .timeline-empty.active {
+    display: flex;
+  }
+  .timeline-empty .empty-icon {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text-muted);
+  }
+  .timeline-empty p {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* ── Mobile responsive ── */
+  @media (max-width: 768px) {
+    .timeline-page {
+      padding: var(--space-md) var(--space-sm);
+    }
+    .timeline-filters {
+      flex-direction: column;
+      align-items: stretch;
+      padding: var(--space-md);
+    }
+    .filter-field {
+      flex: 1 1 100%;
+    }
+    .filter-actions {
+      justify-content: stretch;
+    }
+    .filter-actions .btn {
+      flex: 1;
+    }
+
+    /* vertical timeline on mobile */
+    .timeline-track {
+      flex-direction: column;
+      gap: var(--space-md);
+      overflow-x: visible;
+      padding: var(--space-sm) 0;
+    }
+    .timeline-track::before {
+      top: 0;
+      bottom: 0;
+      left: 9px;
+      width: 3px;
+      height: auto;
+      right: auto;
+    }
+    .timeline-event {
+      flex-direction: row;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      gap: var(--space-md);
+      padding-left: var(--space-md);
+    }
+    .timeline-dot {
+      margin-bottom: 0;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .timeline-event-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .timeline-date {
+      margin-bottom: 2px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="timeline-page">
+
+  <!-- INFORMATION -->
+  <div class="timeline-header">
+    <h1>Interactive Timeline</h1>
+    <p>Explore your case events on an interactive timeline.</p>
+  </div>
+
+  <!-- INPUT: filter controls -->
+  <div class="timeline-filters">
+    <div class="filter-field">
+      <label for="filterFrom">From Date</label>
+      <input type="date" id="filterFrom">
+    </div>
+    <div class="filter-field">
+      <label for="filterTo">To Date</label>
+      <input type="date" id="filterTo">
+    </div>
+    <div class="filter-field">
+      <label for="filterType">Event Type</label>
+      <select id="filterType">
+        <option value="">All types</option>
+        <option value="filing">Filing</option>
+        <option value="hearing">Hearing</option>
+        <option value="document">Document</option>
+        <option value="communication">Communication</option>
+        <option value="deadline">Deadline</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary" id="applyFilters">Apply</button>
+      <button class="btn btn-secondary" id="clearFilters">Clear</button>
+    </div>
+  </div>
+
+  <!-- REACTION: loading -->
+  <div class="timeline-reaction" id="loadingReaction">
+    <span class="spinner"></span>
+    <span>Loading events…</span>
+  </div>
+
+  <!-- OUTPUT: timeline -->
+  <div class="timeline-container">
+    <div class="timeline-track" id="timelineTrack">
+      <!-- events injected by JS -->
+    </div>
+
+    <!-- empty state -->
+    <div class="timeline-empty" id="emptyState">
+      <span class="empty-icon">&#128197;</span>
+      <p>No events yet. Upload documents to populate your timeline.</p>
+    </div>
+
+    <!-- detail panel -->
+    <div class="timeline-detail" id="detailPanel">
+      <h3 id="detailTitle"></h3>
+      <div class="detail-meta" id="detailMeta"></div>
+      <p id="detailDescription"></p>
+      <button class="detail-close" id="detailClose">Close details</button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ── Sample event data (would come from API in production) ──
+  var allEvents = [
+    {
+      id: 1,
+      date: '2024-01-15',
+      title: 'Case Filed',
+      type: 'filing',
+      description: 'Initial case filing submitted to the court. Case number assigned.'
+    },
+    {
+      id: 2,
+      date: '2024-02-03',
+      title: 'Lease Agreement Uploaded',
+      type: 'document',
+      description: 'Lease agreement document uploaded and attached to the case file.'
+    },
+    {
+      id: 3,
+      date: '2024-02-20',
+      title: 'Landlord Correspondence',
+      type: 'communication',
+      description: 'Email correspondence with landlord regarding outstanding repairs.'
+    },
+    {
+      id: 4,
+      date: '2024-03-10',
+      title: 'Hearing Scheduled',
+      type: 'hearing',
+      description: 'Court hearing scheduled for April 5th, 2024 at 9:00 AM.'
+    },
+    {
+      id: 5,
+      date: '2024-04-05',
+      title: 'Response Deadline',
+      type: 'deadline',
+      description: 'Deadline to submit response documentation to the court.'
+    }
+  ];
+
+  var track = document.getElementById('timelineTrack');
+  var emptyState = document.getElementById('emptyState');
+  var loadingReaction = document.getElementById('loadingReaction');
+  var detailPanel = document.getElementById('detailPanel');
+
+  function formatDate(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function renderEvents(events) {
+    track.innerHTML = '';
+    if (!events.length) {
+      emptyState.classList.add('active');
+      track.style.display = 'none';
+      return;
+    }
+    emptyState.classList.remove('active');
+    track.style.display = '';
+
+    events.forEach(function (ev) {
+      var node = document.createElement('div');
+      node.className = 'timeline-event';
+      node.setAttribute('data-id', ev.id);
+      node.innerHTML =
+        '<span class="timeline-dot"></span>' +
+        '<div class="timeline-event-text">' +
+          '<span class="timeline-date">' + formatDate(ev.date) + '</span>' +
+          '<span class="timeline-title">' + ev.title + '</span>' +
+          '<span class="timeline-type">' + ev.type + '</span>' +
+        '</div>';
+      node.addEventListener('click', function () {
+        showDetail(ev);
+      });
+      track.appendChild(node);
+    });
+  }
+
+  function showDetail(ev) {
+    document.getElementById('detailTitle').textContent = ev.title;
+    document.getElementById('detailMeta').textContent = formatDate(ev.date) + ' · ' + ev.type;
+    document.getElementById('detailDescription').textContent = ev.description;
+    detailPanel.classList.add('visible');
+  }
+
+  document.getElementById('detailClose').addEventListener('click', function () {
+    detailPanel.classList.remove('visible');
+  });
+
+  // ── Filtering ──
+  function applyFilters() {
+    var from = document.getElementById('filterFrom').value;
+    var to = document.getElementById('filterTo').value;
+    var type = document.getElementById('filterType').value;
+
+    loadingReaction.classList.add('active');
+    track.style.display = 'none';
+    emptyState.classList.remove('active');
+
+    // simulate fetch
+    setTimeout(function () {
+      loadingReaction.classList.remove('active');
+      var filtered = allEvents.filter(function (ev) {
+        if (from && ev.date < from) return false;
+        if (to && ev.date > to) return false;
+        if (type && ev.type !== type) return false;
+        return true;
+      });
+      filtered.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+      renderEvents(filtered);
+    }, 800);
+  }
+
+  document.getElementById('applyFilters').addEventListener('click', applyFilters);
+
+  document.getElementById('clearFilters').addEventListener('click', function () {
+    document.getElementById('filterFrom').value = '';
+    document.getElementById('filterTo').value = '';
+    document.getElementById('filterType').value = '';
+    applyFilters();
+  });
+
+  // ── Initial load ──
+  applyFilters();
+</script>
+{% endblock %}
