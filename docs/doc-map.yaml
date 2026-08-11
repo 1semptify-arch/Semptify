@@ -1,0 +1,241 @@
+# doc-map.yaml — load-bearing mapping between documentation and the code it describes.
+#
+# Each entry links a doc file (path relative to docs/) to the code paths
+# (relative to repo root) whose behavior the doc documents. This is what
+# makes the scheduled staleness check possible: without a mapping there is
+# no way to know which docs a given code change should have touched.
+#
+# Categories (drive the commit-tagged changelog prefix):
+#   admin  — internal admin operations, module registry, contracts, deploy
+#   user   — tenant-facing how-to content
+#   help   — support / FAQ-style content
+#   adr    — Architecture Decision Records (permanent, dated, never edited)
+#
+# Adding a new doc: append an entry here. The staleness check only sees docs
+# that appear in this file.
+#
+# NOTE on layout: existing docs currently live flat in docs/ (e.g. docs/ADMIN_MANUAL.md).
+# They are mapped here at those flat paths. New docs should go in the appropriate
+# subdir (admin/, user-guides/, help/, adr/). Relocating the existing flat docs
+# into subdirs is a tracked follow-up — do NOT move them in the same pass that
+# adds the staleness mechanism (see Known Failure #17: half-finished migrations).
+
+# ---------------------------------------------------------------------------
+# admin docs
+# ---------------------------------------------------------------------------
+
+- doc: ADMIN_MANUAL.md
+  covers:
+    - app/core/module_contracts.py
+    - app/core/module_registry_loader.py
+    - app/modules/admin_console
+  category: admin
+
+- doc: AGENT_ORCHESTRATOR_MANUAL.md
+  covers:
+    - tools/workorder_runner.py
+    - tools/agent_orchestrator_tasks.json
+    - app/modules/agent_orchestrator
+  category: admin
+
+- doc: CONTRACTS.md
+  covers:
+    - app/core/module_contracts.py
+    - app/core/contract_loader.py
+    - app/core/contracts_framework.py
+  category: admin
+
+- doc: CORE_CONTRACTS_V1.md
+  covers:
+    - app/core/module_contracts.py
+  category: admin
+
+- doc: CREDENTIALS_SETUP_WORKBOOK.md
+  covers:
+    - app/core/oauth_token_manager.py
+    - app/modules/auth
+    - setup_credentials.py
+  category: admin
+
+- doc: DEPLOYMENT_GUIDE.md
+  covers:
+    - Dockerfile
+    - render.yaml
+    - docker-compose.yml
+    - build_windows.ps1
+    - Procfile
+  category: admin
+
+- doc: MODULE_DEVELOPMENT.md
+  covers:
+    - app/modules/_template
+    - app/core/module_sdk.py
+    - app/core/module_hub.py
+  category: admin
+
+- doc: OAUTH_SETUP.md
+  covers:
+    - app/core/oauth_token_manager.py
+    - app/modules/auth
+    - app/core/stateless_oauth.py
+  category: admin
+
+- doc: onboarding-contracts.md
+  covers:
+    - app/modules/onboarding
+    - app/core/onboarding_state.py
+  category: admin
+
+- doc: OVERLAY_SYSTEM_DESIGN.md
+  covers:
+    - app/services/unified_overlay_manager.py
+    - app/modules/unified_overlays
+    - app/core/overlay_types.py
+    - app/core/module_overlay.py
+  category: admin
+
+- doc: SEMPTIFY_DEVELOPER_ONBOARDING.md
+  covers:
+    - app/core
+    - app/modules
+    - AGENTS.md
+  category: admin
+
+- doc: Semptify_Site_GUI_Framework.md
+  covers:
+    - app/templates
+    - app/core/page_contracts.py
+    - app/core/page_manifest.py
+    - app/core/page_recipe.py
+    - app/core/gui_contract.py
+  category: admin
+
+- doc: SSOT_DESIGN_SYSTEM.md
+  covers:
+    - design-system
+    - app/static/css
+  category: admin
+
+- doc: SSOT_EXPORT.md
+  covers:
+    - app/core/navigation.py
+    - app/core/ssot_guard.py
+  category: admin
+
+- doc: STORAGE_CONFIG.md
+  covers:
+    - app/services/storage
+    - app/modules/storage
+    - app/core/storage_middleware.py
+    - app/core/vault_paths.py
+  category: admin
+
+# ---------------------------------------------------------------------------
+# user docs
+# ---------------------------------------------------------------------------
+
+- doc: USER_GUIDE.md
+  covers:
+    - app/modules/vault
+    - app/modules/onboarding
+    - app/modules/guided_intake
+    - app/modules/document_center
+  category: user
+
+# ---------------------------------------------------------------------------
+# help docs
+# ---------------------------------------------------------------------------
+# No help/FAQ docs exist yet. Add entries here as they are written under help/.
+
+# ---------------------------------------------------------------------------
+# adr — Architecture Decision Records
+# ---------------------------------------------------------------------------
+# Dated postmortems and foundational records currently live flat in docs/.
+# They are mapped here so the staleness check treats them as permanent records
+# (ADR category). True ADRs going forward live in docs/adr/NNNN-<slug>.md and
+# are NEVER edited once accepted — a superseding ADR references the old one.
+
+- doc: SEMPTIFY_FOUNDATIONAL_FRAMEWORK.md
+  covers:
+    - app/core
+    - PROJECT_BIBLE.md
+  category: adr
+
+- doc: PYTEST_HANG_ROOT_CAUSE_2026-07-27.md
+  covers:
+    - pytest.ini
+    - tests
+  category: adr
+
+- doc: SECURITY_AUDIT_EVAL_EXEC_2026-07-27.md
+  covers:
+    - app/core/security.py
+    - app/core/security_middleware.py
+    - app/core/security_headers.py
+    - app/core/security_config.py
+  category: adr
+
+- doc: MOTIVATIONS.md
+  covers:
+    - app/core/navigation.py
+    - app/core/ssot_guard.py
+    - app/templates/public
+    - app/modules/law_library
+  category: adr
+
+- doc: adr/0001-storage-architecture.md
+  covers:
+    - app/services/storage
+    - app/modules/storage
+    - app/core/vault_paths.py
+    - app/core/oauth_token_manager.py
+  category: adr
+
+- doc: adr/0002-navigation-principle.md
+  covers:
+    - app/core/navigation.py
+    - app/core/ssot_guard.py
+    - app/core/checkpoint_middleware.py
+    - app/core/storage_middleware.py
+  category: adr
+
+- doc: adr/0003-attraction-principle.md
+  covers:
+    - app/modules/portal
+    - app/modules/onboarding
+    - app/templates/public
+  category: adr
+
+- doc: adr/0004-banned-motivations.md
+  covers:
+    - app/templates
+    - app/templates/public
+    - app/templates/pages
+  category: adr
+
+- doc: adr/0005-language-rules.md
+  covers:
+    - app/templates/pages/law_library.html
+    - app/templates/public
+    - app/templates/pages/tenant_help.html
+  category: adr
+
+- doc: adr/0006-open-access.md
+  covers:
+    - app/core/storage_middleware.py
+    - app/core/checkpoint_middleware.py
+    - app/modules/law_library
+    - app/modules/state_laws
+  category: adr
+
+- doc: adr/0007-ocr-semantic-reasoning-privacy.md
+  covers:
+    - app/modules/document_center
+    - app/modules/extraction
+    - app/modules/document_converter
+    - app/services/recognition
+    - app/core/logging_config.py
+    - app/core/logging_middleware.py
+    - app/core/logging_service.py
+    - app/core/audit_logger.py
+  category: adr
