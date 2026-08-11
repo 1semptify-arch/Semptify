@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Crawler - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-container {
+    max-width: var(--space-content-max, 960px);
+    margin: 0 auto;
+    padding: var(--space-xl, 2rem) var(--space-md, 1rem);
+  }
+  .page-heading {
+    font-size: var(--font-size-xxl, 2rem);
+    color: var(--color-text-primary, #111);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .page-subheading {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .input-group { margin-bottom: var(--space-md, 1rem); }
+  .input-label {
+    display: block;
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .text-input, .select-field {
+    width: 100%;
+    font-size: var(--font-size-md, 1rem);
+    padding: var(--space-sm, 0.75rem);
+    background: var(--color-surface-raised, #f7f7f7);
+    color: var(--color-text-primary, #111);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+  }
+  .action-btn {
+    font-size: var(--font-size-md, 1rem);
+    background: var(--color-action, #1a73e8);
+    color: var(--color-text-inverted, #fff);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-sm, 0.75rem) var(--space-lg, 1.5rem);
+    cursor: pointer;
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .progress-bar {
+    height: var(--space-sm, 0.75rem);
+    background: var(--color-surface-raised, #f7f7f7);
+    border-radius: var(--radius-pill, 999px);
+    overflow: hidden;
+    margin-bottom: var(--space-md, 1rem);
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-action, #1a73e8);
+    transition: width 0.3s ease;
+  }
+  .results-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs, 0.5rem);
+  }
+  .result-item {
+    background: var(--color-surface-raised, #f7f7f7);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-sm, 0.75rem);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-primary, #111);
+  }
+  .reaction-area {
+    margin-bottom: var(--space-md, 1rem);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .reaction-working { color: var(--color-action, #1a73e8); }
+  .reaction-done { color: var(--color-success, #2e7d32); }
+  .reaction-error { color: var(--color-danger, #d32f2f); }
+  @media (max-width: 768px) {
+    .page-container { padding: var(--space-md, 1rem); }
+    .page-heading { font-size: var(--font-size-xl, 1.5rem); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <h1 class="page-heading">Data Crawler</h1>
+  <p class="page-subheading">Gather public housing data from official sources.</p>
+
+  <div class="input-group">
+    <label class="input-label" for="urlInput">URL</label>
+    <input class="text-input" id="urlInput" type="url" placeholder="https://example.gov/housing" />
+  </div>
+  <div class="input-group">
+    <label class="input-label" for="depthSelect">Crawl Depth</label>
+    <select class="select-field" id="depthSelect">
+      <option value="1">1 — Single page</option>
+      <option value="2">2 — Shallow</option>
+      <option value="3">3 — Deep</option>
+    </select>
+  </div>
+
+  <button class="action-btn" id="crawlBtn" onclick="startCrawl()">Start Crawl</button>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="reaction-area" id="reactionArea"></div>
+  <div class="results-list" id="resultsList"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function setReaction(state, msg) {
+    var area = document.getElementById('reactionArea');
+    area.className = 'reaction-area reaction-' + state;
+    area.textContent = msg;
+  }
+
+  function startCrawl() {
+    var btn = document.getElementById('crawlBtn');
+    var fill = document.getElementById('progressFill');
+    var list = document.getElementById('resultsList');
+    btn.disabled = true;
+    list.innerHTML = '';
+    setReaction('working', 'Crawling...');
+    var pct = 0;
+    var iv = setInterval(function () {
+      pct += 20;
+      fill.style.width = pct + '%';
+      if (pct >= 100) {
+        clearInterval(iv);
+        btn.disabled = false;
+        setReaction('done', 'Crawl complete.');
+        list.innerHTML = '<div class="result-item">housing-list.html — 42 records</div>'
+          + '<div class="result-item">eligibility.html — 18 records</div>';
+      }
+    }, 400);
+  }
+</script>
+{% endblock %}

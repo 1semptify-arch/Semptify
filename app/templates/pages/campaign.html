@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Campaign - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-container {
+    max-width: var(--space-content-max, 960px);
+    margin: 0 auto;
+    padding: var(--space-xl, 2rem) var(--space-md, 1rem);
+  }
+  .page-heading {
+    font-size: var(--font-size-xxl, 2rem);
+    color: var(--color-text-primary, #111);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .page-subheading {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .input-row {
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .action-btn {
+    font-size: var(--font-size-md, 1rem);
+    background: var(--color-action, #1a73e8);
+    color: var(--color-text-inverted, #fff);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-sm, 0.75rem) var(--space-lg, 1.5rem);
+    cursor: pointer;
+  }
+  .campaign-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm, 0.75rem);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .campaign-item {
+    background: var(--color-surface-raised, #f7f7f7);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-md, 1rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .campaign-name {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-primary, #111);
+  }
+  .campaign-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md, 1rem);
+  }
+  .campaign-status {
+    font-size: var(--font-size-xs, 0.75rem);
+    padding: var(--space-xxs, 0.25rem) var(--space-sm, 0.75rem);
+    border-radius: var(--radius-pill, 999px);
+    background: var(--color-action, #1a73e8);
+    color: var(--color-text-inverted, #fff);
+  }
+  .campaign-progress {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .reaction-area {
+    min-height: var(--space-xl, 2rem);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .reaction-working { color: var(--color-action, #1a73e8); }
+  .reaction-done { color: var(--color-success, #2e7d32); }
+  .reaction-error { color: var(--color-danger, #d32f2f); }
+  @media (max-width: 768px) {
+    .page-container { padding: var(--space-md, 1rem); }
+    .page-heading { font-size: var(--font-size-xl, 1.5rem); }
+    .campaign-item { flex-direction: column; align-items: flex-start; gap: var(--space-xs, 0.5rem); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <h1 class="page-heading">Campaign Manager</h1>
+  <p class="page-subheading">Organize and track advocacy campaigns.</p>
+
+  <div class="input-row">
+    <button class="action-btn" id="newCampaignBtn" onclick="newCampaign()">New Campaign</button>
+  </div>
+
+  <div class="campaign-list" id="campaignList">
+    <div class="campaign-item">
+      <span class="campaign-name">Tenant Rights Awareness</span>
+      <div class="campaign-meta">
+        <span class="campaign-status">Active</span>
+        <span class="campaign-progress">65%</span>
+      </div>
+    </div>
+    <div class="campaign-item">
+      <span class="campaign-name">Eviction Record Sealing</span>
+      <div class="campaign-meta">
+        <span class="campaign-status">Active</span>
+        <span class="campaign-progress">30%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="reaction-area" id="reactionArea"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function setReaction(state, msg) {
+    var area = document.getElementById('reactionArea');
+    area.className = 'reaction-area reaction-' + state;
+    area.textContent = msg;
+  }
+
+  function newCampaign() {
+    setReaction('working', 'Loading...');
+    setTimeout(function () {
+      setReaction('done', 'Ready to create a new campaign.');
+    }, 1200);
+  }
+</script>
+{% endblock %}
