@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Motions Builder - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  /* ===== Page layout ===== */
+  .motions-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md);
+  }
+
+  /* ===== INFORMATION ===== */
+  .motions-header {
+    margin-bottom: var(--space-xl);
+  }
+  .motions-header h1 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+  .motions-header p {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ===== Section spacing (no borders/shadows — background + spacing) ===== */
+  .motions-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+
+  .section-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: var(--space-sm);
+    display: block;
+  }
+
+  /* ===== Motion type selection ===== */
+  .motion-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-md);
+  }
+  .motion-type-card {
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .motion-type-card:hover {
+    background: var(--color-surface-hover);
+  }
+  .motion-type-card.selected {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .motion-type-card h3 {
+    font-size: var(--font-size-md);
+    margin: 0 0 var(--space-xs) 0;
+  }
+  .motion-type-card p {
+    font-size: var(--font-size-sm);
+    margin: 0;
+    opacity: 0.85;
+    line-height: 1.4;
+  }
+
+  /* ===== Motion detail form ===== */
+  .motion-form {
+    display: none;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  .motion-form.active {
+    display: flex;
+  }
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .form-field label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+  .form-field input,
+  .form-field textarea {
+    background: var(--color-input-bg);
+    color: var(--color-text-primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-md);
+    font-family: inherit;
+    line-height: 1.5;
+  }
+  .form-field input:focus,
+  .form-field textarea:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+  .form-field textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  /* ===== Buttons ===== */
+  .btn {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .btn:hover {
+    background: var(--color-primary-hover);
+  }
+  .btn:disabled {
+    background: var(--color-disabled);
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: var(--color-surface-alt);
+    color: var(--color-text-primary);
+  }
+  .btn-secondary:hover {
+    background: var(--color-surface-hover);
+  }
+
+  /* ===== REACTION states ===== */
+  .reaction {
+    display: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    font-size: var(--font-size-md);
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .reaction.active {
+    display: flex;
+  }
+  .reaction.idle {
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+  }
+  .reaction.working {
+    background: var(--color-info-bg);
+    color: var(--color-info-text);
+  }
+  .reaction.done {
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+  }
+  .reaction.error {
+    background: var(--color-error-bg);
+    color: var(--color-error-text);
+  }
+  .reaction-icon {
+    font-size: var(--font-size-lg);
+  }
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ===== Download action (bottom, after generation) ===== */
+  .download-action {
+    display: none;
+    margin-top: var(--space-lg);
+    text-align: center;
+  }
+  .download-action.active {
+    display: block;
+  }
+
+  /* ===== Mobile responsive ===== */
+  @media (max-width: 768px) {
+    .motions-page {
+      padding: var(--space-md) var(--space-sm);
+    }
+    .motions-section {
+      padding: var(--space-md);
+    }
+    .motion-type-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+    }
+    .motions-header h1 {
+      font-size: var(--font-size-xl);
+    }
+    .motions-header p {
+      font-size: var(--font-size-sm);
+    }
+    .form-field input,
+    .form-field textarea {
+      font-size: var(--font-size-sm);
+    }
+    .btn {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="motions-page">
+
+  <!-- ===== INFORMATION ===== -->
+  <div class="motions-header">
+    <h1>Motions Builder</h1>
+    <p>Draft and file court-ready motions from templates.</p>
+  </div>
+
+  <!-- ===== INPUT/ACTION: Motion type selection ===== -->
+  <div class="motions-section">
+    <span class="section-label">Step 1 — Select motion type</span>
+    <div class="motion-type-grid" id="motionTypeGrid">
+      <div class="motion-type-card" data-type="motion-to-dismiss">
+        <h3>Motion to Dismiss</h3>
+        <p>Ask the court to dismiss the case for legal insufficiency.</p>
+      </div>
+      <div class="motion-type-card" data-type="motion-to-compel">
+        <h3>Motion to Compel</h3>
+        <p>Force the opposing party to produce discovery materials.</p>
+      </div>
+      <div class="motion-type-card" data-type="motion-for-summary-judgment">
+        <h3>Motion for Summary Judgment</h3>
+        <p>Request judgment without a trial when no facts are in dispute.</p>
+      </div>
+      <div class="motion-type-card" data-type="motion-to-continue">
+        <h3>Motion to Continue</h3>
+        <p>Ask the court to postpone a hearing or trial date.</p>
+      </div>
+      <div class="motion-type-card" data-type="motion-to-vacate">
+        <h3>Motion to Vacate</h3>
+        <p>Request that the court set aside a previously entered judgment.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INPUT: Motion detail form ===== -->
+  <div class="motions-section">
+    <span class="section-label">Step 2 — Motion details</span>
+    <form class="motion-form" id="motionForm">
+      <div class="form-field">
+        <label for="caseCaption">Case Caption</label>
+        <input type="text" id="caseCaption" name="caseCaption" placeholder="e.g. John Doe v. Acme Properties, LLC — Case No. 123456">
+      </div>
+      <div class="form-field">
+        <label for="facts">Relevant Facts</label>
+        <textarea id="facts" name="facts" placeholder="Describe the factual background supporting this motion..."></textarea>
+      </div>
+      <div class="form-field">
+        <label for="legalBasis">Legal Basis</label>
+        <textarea id="legalBasis" name="legalBasis" placeholder="Cite statutes, case law, and procedural rules..."></textarea>
+      </div>
+      <div class="form-field">
+        <label for="requestedRelief">Requested Relief</label>
+        <textarea id="requestedRelief" name="requestedRelief" placeholder="State exactly what you are asking the court to do..."></textarea>
+      </div>
+      <button type="submit" class="btn" id="generateBtn">Generate Motion</button>
+    </form>
+
+    <!-- REACTION: idle / working / done / error -->
+    <div class="reaction idle" id="reactionIdle">
+      <span class="reaction-icon">○</span>
+      <span>Select a motion type and fill in details to begin.</span>
+    </div>
+    <div class="reaction working" id="reactionWorking">
+      <span class="spinner"></span>
+      <span>Generating motion...</span>
+    </div>
+    <div class="reaction done" id="reactionDone">
+      <span class="reaction-icon">✓</span>
+      <span>Motion ready. Review and download below.</span>
+    </div>
+    <div class="reaction error" id="reactionError">
+      <span class="reaction-icon">✕</span>
+      <span>Something went wrong while generating the motion. Please try again.</span>
+    </div>
+  </div>
+
+  <!-- ===== ACTION: Download (bottom, after generation complete) ===== -->
+  <div class="download-action" id="downloadAction">
+    <button class="btn btn-secondary" id="downloadBtn">Download Motion (PDF)</button>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const grid = document.getElementById('motionTypeGrid');
+    const form = document.getElementById('motionForm');
+    const generateBtn = document.getElementById('generateBtn');
+    const reactionIdle = document.getElementById('reactionIdle');
+    const reactionWorking = document.getElementById('reactionWorking');
+    const reactionDone = document.getElementById('reactionDone');
+    const reactionError = document.getElementById('reactionError');
+    const downloadAction = document.getElementById('downloadAction');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    let selectedType = null;
+
+    function showReaction(state) {
+      [reactionIdle, reactionWorking, reactionDone, reactionError].forEach(el => el.classList.remove('active'));
+      const map = {
+        idle: reactionIdle,
+        working: reactionWorking,
+        done: reactionDone,
+        error: reactionError
+      };
+      if (map[state]) map[state].classList.add('active');
+    }
+
+    // Motion type selection
+    grid.addEventListener('click', function (e) {
+      const card = e.target.closest('.motion-type-card');
+      if (!card) return;
+      grid.querySelectorAll('.motion-type-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedType = card.dataset.type;
+      form.classList.add('active');
+      showReaction('idle');
+      downloadAction.classList.remove('active');
+    });
+
+    // Generate motion
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!selectedType) return;
+      generateBtn.disabled = true;
+      showReaction('working');
+      downloadAction.classList.remove('active');
+
+      // Simulate generation
+      setTimeout(function () {
+        generateBtn.disabled = false;
+        showReaction('done');
+        downloadAction.classList.add('active');
+      }, 1800);
+    });
+
+    // Download
+    downloadBtn.addEventListener('click', function () {
+      // Placeholder — wire to backend download endpoint
+      window.alert('Download would begin here for: ' + (selectedType || 'motion'));
+    });
+  })();
+</script>
+{% endblock %}
