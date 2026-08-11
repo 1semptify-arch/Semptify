@@ -183,6 +183,14 @@
     - app/modules/law_library
   category: adr
 
+- doc: adr/0001-storage-architecture.md
+  covers:
+    - app/services/storage
+    - app/modules/storage
+    - app/core/vault_paths.py
+    - app/core/oauth_token_manager.py
+  category: adr
+
 - doc: adr/0002-navigation-principle.md
   covers:
     - app/core/navigation.py
