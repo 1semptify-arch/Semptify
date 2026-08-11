@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block title %}Timeline Builder - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-container {
+    max-width: var(--space-container, 960px);
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md);
+  }
+
+  .page-header {
+    margin-bottom: var(--space-xl);
+  }
+
+  .page-header h1 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .page-header p {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+
+  .section-label {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .form-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .form-field label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-md);
+    font-family: inherit;
+  }
+
+  .form-field textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  .action-bar {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-top: var(--space-lg);
+  }
+
+  .btn {
+    background: var(--color-accent);
+    color: var(--color-text-on-accent, #ffffff);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--font-size-md);
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  .btn:hover {
+    opacity: 0.88;
+  }
+
+  .btn-secondary {
+    background: var(--color-surface-alt, var(--color-surface));
+    color: var(--color-text-primary);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .reaction-state {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    margin-top: var(--space-md);
+  }
+
+  .reaction-state.working {
+    display: flex;
+    background: var(--color-info-bg, var(--color-surface-alt));
+    color: var(--color-info, var(--color-text-secondary));
+  }
+
+  .reaction-state.done {
+    display: flex;
+    background: var(--color-success-bg, var(--color-surface-alt));
+    color: var(--color-success, var(--color-text-secondary));
+  }
+
+  .reaction-state.error {
+    display: flex;
+    background: var(--color-error-bg, var(--color-surface-alt));
+    color: var(--color-error, var(--color-text-secondary));
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .events-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .event-item {
+    background: var(--color-background);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    display: grid;
+    grid-template-columns: 140px 1fr auto;
+    gap: var(--space-md);
+    align-items: start;
+  }
+
+  .event-date {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+
+  .event-body .event-title {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .event-body .event-desc {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .event-category {
+    display: inline-block;
+    font-size: var(--font-size-xs);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+  }
+
+  .event-remove {
+    background: transparent;
+    color: var(--color-error, var(--color-text-muted));
+    border: none;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    padding: var(--space-xs);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-md);
+  }
+
+  @media (max-width: 768px) {
+    .page-container {
+      padding: var(--space-md) var(--space-sm);
+    }
+
+    .section {
+      padding: var(--space-md);
+    }
+
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .event-item {
+      grid-template-columns: 1fr;
+      gap: var(--space-xs);
+    }
+
+    .action-bar {
+      flex-direction: column;
+    }
+
+    .action-bar .btn {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <!-- INFORMATION -->
+  <header class="page-header">
+    <h1>Timeline Builder</h1>
+    <p>Build your case timeline by adding events manually.</p>
+  </header>
+
+  <!-- INPUT -->
+  <section class="section">
+    <div class="section-label">Add Event</div>
+    <form id="event-form" class="form-grid" autocomplete="off">
+      <div class="form-field">
+        <label for="event-date">Date</label>
+        <input type="date" id="event-date" name="event_date" required>
+      </div>
+      <div class="form-field">
+        <label for="event-category">Category</label>
+        <select id="event-category" name="event_category" required>
+          <option value="Court">Court</option>
+          <option value="Communication">Communication</option>
+          <option value="Document">Document</option>
+          <option value="Action">Action</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-field full">
+        <label for="event-title">Event Title</label>
+        <input type="text" id="event-title" name="event_title" placeholder="Brief title for the event" required>
+      </div>
+      <div class="form-field full">
+        <label for="event-description">Description</label>
+        <textarea id="event-description" name="event_description" placeholder="Additional details about the event"></textarea>
+      </div>
+
+      <!-- REACTION -->
+      <div class="form-field full">
+        <div id="reaction" class="reaction-state" role="status" aria-live="polite">
+          <span class="spinner" id="reaction-spinner"></span>
+          <span id="reaction-text">Adding event...</span>
+        </div>
+      </div>
+
+      <!-- ACTION -->
+      <div class="form-field full">
+        <div class="action-bar">
+          <button type="submit" class="btn" id="add-event-btn">Add Event</button>
+          <button type="button" class="btn btn-secondary" id="export-btn">Export Timeline</button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- OUTPUT -->
+  <section class="section">
+    <div class="section-label">Timeline Events</div>
+    <ul class="events-list" id="events-list">
+      <li class="empty-state" id="empty-state">No events added yet. Use the form above to build your timeline.</li>
+    </ul>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const form = document.getElementById('event-form');
+    const list = document.getElementById('events-list');
+    const emptyState = document.getElementById('empty-state');
+    const reaction = document.getElementById('reaction');
+    const reactionText = document.getElementById('reaction-text');
+    const reactionSpinner = document.getElementById('reaction-spinner');
+    const addBtn = document.getElementById('add-event-btn');
+    const exportBtn = document.getElementById('export-btn');
+
+    let events = [];
+
+    function setReaction(state, message) {
+      reaction.className = 'reaction-state ' + state;
+      reactionText.textContent = message;
+      reactionSpinner.style.display = state === 'working' ? 'inline-block' : 'none';
+    }
+
+    function clearReaction() {
+      reaction.className = 'reaction-state';
+      reaction.style.display = 'none';
+    }
+
+    function renderEvents() {
+      if (events.length === 0) {
+        emptyState.style.display = '';
+        list.innerHTML = '';
+        list.appendChild(emptyState);
+        return;
+      }
+      emptyState.style.display = 'none';
+      events.sort(function (a, b) {
+        return new Date(a.date) - new Date(b.date);
+      });
+      list.innerHTML = '';
+      events.forEach(function (ev, idx) {
+        const li = document.createElement('li');
+        li.className = 'event-item';
+        li.innerHTML =
+          '<span class="event-date">' + ev.date + '</span>' +
+          '<div class="event-body">' +
+            '<p class="event-title">' + ev.title + '</p>' +
+            '<p class="event-desc">' + (ev.description || '') + '</p>' +
+            '<span class="event-category">' + ev.category + '</span>' +
+          '</div>' +
+          '<button class="event-remove" data-idx="' + idx + '" aria-label="Remove event">Remove</button>';
+        list.appendChild(li);
+      });
+    }
+
+    list.addEventListener('click', function (e) {
+      if (e.target.classList.contains('event-remove')) {
+        const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+        events.splice(idx, 1);
+        renderEvents();
+      }
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      addBtn.disabled = true;
+      setReaction('working', 'Adding event...');
+
+      setTimeout(function () {
+        const newEvent = {
+          date: document.getElementById('event-date').value,
+          title: document.getElementById('event-title').value,
+          description: document.getElementById('event-description').value,
+          category: document.getElementById('event-category').value
+        };
+
+        if (!newEvent.date || !newEvent.title) {
+          setReaction('error', 'Please fill in the required fields.');
+          addBtn.disabled = false;
+          return;
+        }
+
+        events.push(newEvent);
+        renderEvents();
+        form.reset();
+        setReaction('done', 'Event added to timeline.');
+        addBtn.disabled = false;
+
+        setTimeout(clearReaction, 2000);
+      }, 600);
+    });
+
+    exportBtn.addEventListener('click', function () {
+      if (events.length === 0) {
+        setReaction('error', 'No events to export.');
+        setTimeout(clearReaction, 2500);
+        return;
+      }
+      const rows = [['Date', 'Title', 'Description', 'Category']];
+      events.forEach(function (ev) {
+        rows.push([ev.date, ev.title, ev.description, ev.category]);
+      });
+      const csv = rows.map(function (r) {
+        return r.map(function (c) { return '"' + (c || '').replace(/"/g, '""') + '"'; }).join(',');
+      }).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'timeline.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      setReaction('done', 'Timeline exported.');
+      setTimeout(clearReaction, 2000);
+    });
+
+    clearReaction();
+  })();
+</script>
+{% endblock %}

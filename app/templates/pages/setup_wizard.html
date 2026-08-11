@@ -1,0 +1,602 @@
+{% extends "base.html" %}
+
+{% block title %}Setup Wizard - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .wizard-page {
+    max-width: var(--space-content-max, 880px);
+    margin: 0 auto;
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .wizard-header {
+    margin-bottom: var(--space-xl);
+  }
+
+  .wizard-header h1 {
+    font-size: var(--font-size-xxl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .wizard-header p {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  /* Progress indicator */
+  .wizard-progress {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+    gap: var(--space-xs);
+  }
+
+  .wizard-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    flex: 1;
+  }
+
+  .wizard-step__marker {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-surface-elevated);
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .wizard-step[data-state="active"] .wizard-step__marker {
+    background: var(--color-accent);
+    color: var(--color-text-on-accent);
+  }
+
+  .wizard-step[data-state="done"] .wizard-step__marker {
+    background: var(--color-success);
+    color: var(--color-text-on-accent);
+  }
+
+  .wizard-step__label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .wizard-step[data-state="active"] .wizard-step__label,
+  .wizard-step[data-state="done"] .wizard-step__label {
+    color: var(--color-text-primary);
+  }
+
+  .wizard-step__connector {
+    flex: 1;
+    height: 2px;
+    background: var(--color-surface-elevated);
+    margin: 0 var(--space-xs);
+  }
+
+  .wizard-step[data-state="done"] + .wizard-step__connector {
+    background: var(--color-success);
+  }
+
+  /* Step panels */
+  .wizard-panel {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+    display: none;
+  }
+
+  .wizard-panel[data-active="true"] {
+    display: block;
+  }
+
+  .wizard-panel__title {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-md) 0;
+  }
+
+  .wizard-panel__desc {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-md) 0;
+  }
+
+  /* Form fields */
+  .wizard-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--space-md);
+  }
+
+  .wizard-field:last-child {
+    margin-bottom: 0;
+  }
+
+  .wizard-field__label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+
+  .wizard-field__input,
+  .wizard-field__textarea,
+  .wizard-field__select {
+    background: var(--color-surface-elevated);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .wizard-field__textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .wizard-field__input:focus,
+  .wizard-field__textarea:focus,
+  .wizard-field__select:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+
+  /* Storage status */
+  .storage-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .storage-status__info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .storage-status__provider {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+  }
+
+  .storage-status__detail {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-xxs);
+  }
+
+  .storage-status__badge {
+    font-size: var(--font-size-sm);
+    padding: var(--space-xxs) var(--space-sm);
+    border-radius: var(--radius-pill);
+    background: var(--color-success);
+    color: var(--color-text-on-accent);
+  }
+
+  .storage-status__badge[data-connected="false"] {
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+  }
+
+  /* Role confirmation */
+  .role-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .role-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+  }
+
+  .role-option input {
+    accent-color: var(--color-accent);
+  }
+
+  .role-option__label {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+  }
+
+  /* Reaction state */
+  .wizard-reaction {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    min-height: 24px;
+    color: var(--color-text-secondary);
+  }
+
+  .wizard-reaction[data-state="idle"] {
+    opacity: 0;
+  }
+
+  .wizard-reaction[data-state="working"] {
+    opacity: 1;
+    color: var(--color-text-secondary);
+  }
+
+  .wizard-reaction[data-state="done"] {
+    opacity: 1;
+    color: var(--color-success);
+  }
+
+  .wizard-reaction[data-state="error"] {
+    opacity: 1;
+    color: var(--color-danger);
+  }
+
+  .wizard-reaction__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-surface-elevated);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  .wizard-reaction[data-state="working"] .wizard-reaction__spinner {
+    display: block;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Navigation */
+  .wizard-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+
+  .wizard-nav__right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .btn {
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--font-size-md);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn--primary {
+    background: var(--color-accent);
+    color: var(--color-text-on-accent);
+  }
+
+  .btn--secondary {
+    background: var(--color-surface-elevated);
+    color: var(--color-text-primary);
+  }
+
+  .btn--link {
+    background: transparent;
+    color: var(--color-accent);
+    text-decoration: none;
+    padding: var(--space-xs) 0;
+  }
+
+  @media (max-width: 768px) {
+    .wizard-page {
+      padding: var(--space-md) var(--space-sm);
+    }
+
+    .wizard-panel {
+      padding: var(--space-md);
+    }
+
+    .wizard-progress {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-sm);
+    }
+
+    .wizard-step {
+      width: 100%;
+    }
+
+    .wizard-step__connector {
+      display: none;
+    }
+
+    .wizard-step__label {
+      font-size: var(--font-size-xs);
+    }
+
+    .storage-status {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-sm);
+    }
+
+    .wizard-nav {
+      flex-direction: column-reverse;
+      gap: var(--space-sm);
+    }
+
+    .wizard-nav__right {
+      width: 100%;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+
+    .btn--link {
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-page">
+
+  <!-- INFORMATION -->
+  <header class="wizard-header">
+    <h1>Setup Wizard</h1>
+    <p>Complete these steps to get started with Semptify.</p>
+  </header>
+
+  <!-- Progress indicator -->
+  <div class="wizard-progress" id="wizard-progress">
+    <div class="wizard-step" data-step="1" data-state="active">
+      <div class="wizard-step__marker">1</div>
+      <div class="wizard-step__label">Connect Storage</div>
+    </div>
+    <div class="wizard-step__connector"></div>
+    <div class="wizard-step" data-step="2" data-state="pending">
+      <div class="wizard-step__marker">2</div>
+      <div class="wizard-step__label">Set Up Profile</div>
+    </div>
+    <div class="wizard-step__connector"></div>
+    <div class="wizard-step" data-step="3" data-state="pending">
+      <div class="wizard-step__marker">3</div>
+      <div class="wizard-step__label">Create Case</div>
+    </div>
+  </div>
+
+  <!-- Step 1: Storage connection -->
+  <section class="wizard-panel" data-panel="1" data-active="true">
+    <h2 class="wizard-panel__title">Connect Storage</h2>
+    <p class="wizard-panel__desc">Connect a storage provider so Semptify can save your case files and data securely.</p>
+    <div class="storage-status">
+      <div class="storage-status__info">
+        <span class="storage-status__provider">{{ storage.provider | default('No provider connected') }}</span>
+        <span class="storage-status__detail">{{ storage.detail | default('You need to connect a storage provider to continue.') }}</span>
+      </div>
+      <span class="storage-status__badge" data-connected="{{ 'true' if storage.connected else 'false' }}">
+        {{ 'Connected' if storage.connected else 'Not connected' }}
+      </span>
+    </div>
+    <a class="btn btn--secondary" href="/storage-setup">Go to storage setup</a>
+  </section>
+
+  <!-- Step 2: Profile form -->
+  <section class="wizard-panel" data-panel="2" data-active="false">
+    <h2 class="wizard-panel__title">Set Up Profile</h2>
+    <p class="wizard-panel__desc">Tell us a bit about yourself so we can personalize your experience.</p>
+    <div class="wizard-field">
+      <label class="wizard-field__label" for="wizard-name">Full name</label>
+      <input class="wizard-field__input" type="text" id="wizard-name" name="name" value="{{ profile.name | default('') }}" autocomplete="name">
+    </div>
+    <div class="wizard-field">
+      <label class="wizard-field__label" for="wizard-role">Role confirmation</label>
+      <div class="role-options">
+        <label class="role-option">
+          <input type="radio" name="role" value="case_worker" {{ 'checked' if profile.role == 'case_worker' else '' }}>
+          <span class="role-option__label">Case Worker</span>
+        </label>
+        <label class="role-option">
+          <input type="radio" name="role" value="supervisor" {{ 'checked' if profile.role == 'supervisor' else '' }}>
+          <span class="role-option__label">Supervisor</span>
+        </label>
+        <label class="role-option">
+          <input type="radio" name="role" value="admin" {{ 'checked' if profile.role == 'admin' else '' }}>
+          <span class="role-option__label">Administrator</span>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <!-- Step 3: Case setup -->
+  <section class="wizard-panel" data-panel="3" data-active="false">
+    <h2 class="wizard-panel__title">Create Case</h2>
+    <p class="wizard-panel__desc">Describe the initial situation for your first case. You can edit this later.</p>
+    <div class="wizard-field">
+      <label class="wizard-field__label" for="wizard-case-title">Case title</label>
+      <input class="wizard-field__input" type="text" id="wizard-case-title" name="case_title" placeholder="e.g. Initial assessment">
+    </div>
+    <div class="wizard-field">
+      <label class="wizard-field__label" for="wizard-situation">Initial situation description</label>
+      <textarea class="wizard-field__textarea" id="wizard-situation" name="situation" placeholder="Describe the current situation and context for this case..."></textarea>
+    </div>
+  </section>
+
+  <!-- REACTION -->
+  <div class="wizard-reaction" id="wizard-reaction" data-state="idle">
+    <span class="wizard-reaction__spinner"></span>
+    <span class="wizard-reaction__text"></span>
+  </div>
+
+  <!-- Navigation -->
+  <div class="wizard-nav">
+    <button class="btn btn--secondary" id="wizard-back-btn" disabled>Back</button>
+    <div class="wizard-nav__right">
+      <button class="btn btn--secondary" id="wizard-skip-btn">Skip for now</button>
+      <button class="btn btn--primary" id="wizard-next-btn">Next</button>
+      <button class="btn btn--primary" id="wizard-finish-btn" style="display:none;">Finish</button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var currentStep = 1;
+    var totalSteps = 3;
+
+    var panels = document.querySelectorAll('.wizard-panel');
+    var steps = document.querySelectorAll('.wizard-step');
+    var backBtn = document.getElementById('wizard-back-btn');
+    var nextBtn = document.getElementById('wizard-next-btn');
+    var finishBtn = document.getElementById('wizard-finish-btn');
+    var skipBtn = document.getElementById('wizard-skip-btn');
+    var reaction = document.getElementById('wizard-reaction');
+    var reactionText = reaction.querySelector('.wizard-reaction__text');
+
+    function setReaction(state, message) {
+      reaction.setAttribute('data-state', state);
+      reactionText.textContent = message || '';
+    }
+
+    function updateUI() {
+      panels.forEach(function (panel) {
+        var step = parseInt(panel.getAttribute('data-panel'), 10);
+        panel.setAttribute('data-active', (step === currentStep).toString());
+      });
+
+      steps.forEach(function (step) {
+        var num = parseInt(step.getAttribute('data-step'), 10);
+        if (num < currentStep) {
+          step.setAttribute('data-state', 'done');
+        } else if (num === currentStep) {
+          step.setAttribute('data-state', 'active');
+        } else {
+          step.setAttribute('data-state', 'pending');
+        }
+      });
+
+      backBtn.disabled = currentStep === 1;
+
+      if (currentStep === totalSteps) {
+        nextBtn.style.display = 'none';
+        finishBtn.style.display = 'inline-block';
+        skipBtn.style.display = 'none';
+      } else {
+        nextBtn.style.display = 'inline-block';
+        finishBtn.style.display = 'none';
+        skipBtn.style.display = 'inline-block';
+      }
+    }
+
+    function saveStep(step) {
+      setReaction('working', 'Saving step ' + step + '...');
+
+      var payload = { step: step };
+
+      if (step === 2) {
+        payload.name = document.getElementById('wizard-name').value;
+        var roleInput = document.querySelector('input[name="role"]:checked');
+        payload.role = roleInput ? roleInput.value : '';
+      } else if (step === 3) {
+        payload.case_title = document.getElementById('wizard-case-title').value;
+        payload.situation = document.getElementById('wizard-situation').value;
+      }
+
+      return fetch('/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Save failed');
+          return res.json();
+        })
+        .then(function () {
+          setReaction('done', 'Step ' + step + ' saved');
+          setTimeout(function () {
+            setReaction('idle', '');
+          }, 2000);
+        })
+        .catch(function () {
+          setReaction('error', 'Could not save step ' + step);
+          throw new Error('save failed');
+        });
+    }
+
+    nextBtn.addEventListener('click', function () {
+      saveStep(currentStep).then(function () {
+        if (currentStep < totalSteps) {
+          currentStep++;
+          updateUI();
+        }
+      }).catch(function () {
+        // stay on current step
+      });
+    });
+
+    backBtn.addEventListener('click', function () {
+      if (currentStep > 1) {
+        currentStep--;
+        setReaction('idle', '');
+        updateUI();
+      }
+    });
+
+    finishBtn.addEventListener('click', function () {
+      saveStep(currentStep).then(function () {
+        setReaction('done', 'Setup complete!');
+        setTimeout(function () {
+          window.location.href = '/dashboard';
+        }, 1500);
+      }).catch(function () {
+        // stay on current step
+      });
+    });
+
+    skipBtn.addEventListener('click', function () {
+      if (currentStep < totalSteps) {
+        currentStep++;
+        setReaction('idle', '');
+        updateUI();
+      }
+    });
+
+    updateUI();
+  })();
+</script>
+{% endblock %}

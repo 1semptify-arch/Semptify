@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Zoom Court - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .zoom-page {
+    max-width: var(--space-content-max, 900px);
+    margin: 0 auto;
+    padding: var(--space-lg, 2rem);
+  }
+  .zoom-header {
+    margin-bottom: var(--space-xl, 2.5rem);
+  }
+  .zoom-header h1 {
+    font-size: var(--font-size-xl, 2rem);
+    color: var(--color-text-primary, #1a1a1a);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .zoom-header p {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md, 1.5rem);
+    margin-bottom: var(--space-lg, 2rem);
+  }
+  .step-item {
+    display: flex;
+    gap: var(--space-md, 1.5rem);
+    background: var(--color-surface-alt, #f7f7f7);
+    padding: var(--space-md, 1.5rem);
+    border-radius: var(--radius-md, 8px);
+  }
+  .step-number {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--color-accent, #0066cc);
+    color: var(--color-surface, #fff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-md, 1rem);
+    font-weight: bold;
+  }
+  .step-content {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-primary, #1a1a1a);
+    line-height: 1.6;
+  }
+  .btn-test {
+    padding: var(--space-sm, 1rem) var(--space-lg, 2rem);
+    font-size: var(--font-size-md, 1rem);
+    border-radius: var(--radius-md, 8px);
+    border: none;
+    background: var(--color-accent, #0066cc);
+    color: var(--color-surface, #fff);
+    cursor: pointer;
+  }
+  .btn-test:hover { background: var(--color-accent-dark, #004fa3); }
+  .reaction-working {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm, 1rem);
+    padding: var(--space-md, 1.5rem);
+    color: var(--color-text-secondary, #555);
+    font-size: var(--font-size-md, 1rem);
+    margin-bottom: var(--space-md, 1.5rem);
+  }
+  .reaction-working.active { display: flex; }
+  .reaction-done {
+    display: none;
+    padding: var(--space-sm, 1rem);
+    background: var(--color-success-soft, #e6f9ec);
+    color: var(--color-success, #1a7a3a);
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--font-size-md, 1rem);
+    margin-bottom: var(--space-md, 1.5rem);
+  }
+  .reaction-done.active { display: block; }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 3px solid var(--color-border, #ccc);
+    border-top-color: var(--color-accent, #0066cc);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 768px) {
+    .zoom-page { padding: var(--space-md, 1.5rem); }
+    .step-item { flex-direction: column; gap: var(--space-sm, 1rem); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="zoom-page">
+  <div class="zoom-header">
+    <h1>Zoom Court Helper</h1>
+    <p>Everything you need for your remote hearing.</p>
+  </div>
+
+  <div class="steps-list">
+    <div class="step-item">
+      <div class="step-number">1</div>
+      <div class="step-content">Test your internet connection and audio setup before the hearing day.</div>
+    </div>
+    <div class="step-item">
+      <div class="step-number">2</div>
+      <div class="step-content">Install the Zoom application on your computer or phone.</div>
+    </div>
+    <div class="step-item">
+      <div class="step-number">3</div>
+      <div class="step-content">Find your meeting link in the court notice or email confirmation.</div>
+    </div>
+    <div class="step-item">
+      <div class="step-number">4</div>
+      <div class="step-content">Join the meeting at least 10 minutes early to resolve any issues.</div>
+    </div>
+    <div class="step-item">
+      <div class="step-number">5</div>
+      <div class="step-content">Mute your microphone when not speaking to reduce background noise.</div>
+    </div>
+  </div>
+
+  <div class="reaction-working" id="testWorking">
+    <div class="spinner"></div>
+    <span>Testing...</span>
+  </div>
+  <div class="reaction-done" id="testDone">Connection OK — you're ready for your hearing.</div>
+
+  <button class="btn-test" id="testBtn">Test Connection</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var testBtn = document.getElementById('testBtn');
+  var working = document.getElementById('testWorking');
+  var done = document.getElementById('testDone');
+  testBtn.addEventListener('click', function() {
+    working.classList.add('active');
+    done.classList.remove('active');
+    setTimeout(function() {
+      working.classList.remove('active');
+      done.classList.add('active');
+    }, 1500);
+  });
+</script>
+{% endblock %}
