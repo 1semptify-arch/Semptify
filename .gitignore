@@ -101,6 +101,7 @@ data/vault_storage/
 data/legal_filings/cases/
 data/inventory/
 data/.setup_complete
+data/registry/registry.json
 
 # Local config
 .env.local
