@@ -1,3 +1,53 @@
+## Session — 2026-08-10 — ADR-0008 Information Orchestrator pilot 067–075
+
+### Overview
+
+Implemented and validated the ADR-0008 Information Orchestrator across the two pilot surfaces: Eviction Timeline and Vault upload flow. All work is limited to the pilot scope; no expansion beyond these surfaces or new embedding dependencies were added.
+
+### What was shipped
+
+- `app/core/event_bus.py`: four ADR-0008 narration event types and WebSocket-only `narration` payload injection.
+- `app/services/vault_upload_service.py`: publishes `DOCUMENT_UPLOAD_RECEIVED`, `OVERLAY_BUILD_STARTED`, `OVERLAY_BUILD_COMPLETED` at real backend transitions.
+- `app/services/document_flow_orchestrator.py`: publishes `OCR_PASS_STARTED` at the start of the OCR pass.
+- `app/modules/eviction_timeline/envelopes.py`: Object and Page Envelopes for the Eviction Timeline page.
+- `app/modules/eviction_timeline/router.py`: `GET /api/eviction-timeline/envelope` endpoint, resolved per-tenant with Experience Token exposure.
+- `app/modules/vault/envelopes.py`: Page Envelope for the Vault upload page and `vault_document_to_object_envelope()`.
+- `app/modules/vault/router.py`: `GET /api/vault/envelope` endpoint; `DocumentResponse.object_envelope` field set on upload.
+- `tests/test_information_orchestrator_pilot.py`: end-to-end pilot test covering both surfaces, Layer 1/2, Familiarity Tapering, Momentum Checkpoints, live narration, and Experience Token privacy.
+- `tools/agent_orchestrator_tasks.json`: todo-070, todo-073, todo-074, todo-075 marked completed.
+
+### Commits shipped (in order)
+
+| Commit | Title |
+|---|---|
+| `26c51f61` | admin: complete todo-070 — Live Event-Driven Narration on Vault upload flow |
+| `a54d4ced` | admin: complete todo-073 — Instrument Eviction Timeline with Object + Page Envelopes |
+| `aebf178e` | admin: complete todo-074 — Instrument Vault upload flow with Object + Page Envelopes |
+| `ab1e5fdf` | admin: complete todo-075 — End-to-end ADR-0008 pilot test and report |
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/navigation.py app/modules/vault/router.py app/modules/onboarding/router.py app/modules/documents/router.py app/services/vault_upload_service.py`: PASS
+- `pytest tests/test_information_orchestrator_pilot.py -q --no-cov`: `12 passed in 3.11s`
+- Playwright smoke suite (`C:/tmp/playwright-test-semptify.js`): 6 passed, 0 failed
+
+### Guardrails / privacy
+
+- No `sentence-transformers`, `torch`, or other embedding dependencies added (todo-077/078 remain explicitly deferred).
+- No server-side familiarity or preference table keyed to tenant/user ID; Experience Token remains in tenant-owned storage with session fallback.
+- Narration is injected only at WebSocket delivery, not stored in event history.
+
+### Last deployed commit
+
+- `ab1e5fdf` — `admin: complete todo-075 — End-to-end ADR-0008 pilot test and report`
+
+### Next session
+
+- Wait for Brad's sign-off before expanding ADR-0008 beyond the two pilot surfaces (per todo-075 hard stop).
+- If approved, next candidates are `todo-076` (compile all ADRs), `todo-077` (real embedding pipeline, requires dependency sign-off), or `todo-078` (semantic scoring upgrade, blocked on todo-077).
+
+---
+
 ## Session — 2026-08-09 — Ship: removed design guide and unused pillar navigation CSS
 
 ### Guardrail Engine Run — 2026-08-09T17:25:50+00:00
