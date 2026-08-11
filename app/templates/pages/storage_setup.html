@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Storage Setup - Semptify{% endblock %}
+{% block description %}Connect or change your storage provider{% endblock %}
+
+{% block styles %}
+<style>
+    .storage-setup-page {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+    }
+
+    /* INFORMATION */
+    .setup-info {
+        margin-bottom: 2rem;
+    }
+    .setup-info h1 {
+        font-size: var(--font-size-2xl);
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+    }
+    .setup-info p {
+        color: var(--color-text-secondary);
+        margin: 0;
+    }
+
+    /* Current connection status */
+    .setup-current {
+        padding: 1rem 1.25rem;
+        background: rgba(16, 185, 129, 0.06);
+        border-radius: var(--radius-lg);
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .setup-current__dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        background: var(--color-success);
+        flex-shrink: 0;
+    }
+    .setup-current__text {
+        font-size: var(--font-size-sm);
+    }
+    .setup-current__text strong { font-weight: 600; }
+
+    /* INPUT/ACTION: provider choices */
+    .provider-list {
+        display: grid;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+
+    .provider-option {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--color-bg-card);
+        border-radius: var(--radius-lg);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        text-align: left;
+        width: 100%;
+        font-family: inherit;
+        font-size: inherit;
+        color: inherit;
+    }
+
+    .provider-option:hover {
+        background: var(--color-bg-hover);
+    }
+
+    .provider-option--active {
+        background: rgba(16, 185, 129, 0.06);
+    }
+
+    .provider-option__icon {
+        width: 40px; height: 40px;
+        display: grid; place-items: center;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .provider-option__body { flex: 1; }
+    .provider-option__name { font-size: var(--font-size-lg); font-weight: 600; margin: 0; }
+    .provider-option__desc { color: var(--color-text-secondary); font-size: var(--font-size-sm); margin: 0.25rem 0 0; }
+
+    /* REACTION */
+    .setup-reaction {
+        min-height: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
+    }
+
+    .setup-reaction[data-state="working"] .setup-reaction__spinner { display: inline-block; }
+    .setup-reaction[data-state="working"] .setup-reaction__text { display: inline; }
+    .setup-reaction[data-state="idle"] .setup-reaction__spinner,
+    .setup-reaction[data-state="idle"] .setup-reaction__text { display: none; }
+
+    .setup-reaction__spinner {
+        display: none;
+        width: 16px; height: 16px;
+        border: 2px solid var(--color-border);
+        border-top-color: var(--color-accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @media (max-width: 768px) {
+        .storage-setup-page { padding: 1rem 0.75rem 3rem; }
+        .provider-option { padding: 1rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="storage-setup-page">
+
+    <!-- INFORMATION -->
+    <section class="setup-info">
+        <h1>Storage Setup</h1>
+        <p>Connect a cloud storage provider to store your documents securely. You can change this anytime.</p>
+    </section>
+
+    <!-- Current status (shown if already connected) -->
+    <section class="setup-current" id="setup-current" style="display: none;">
+        <span class="setup-current__dot"></span>
+        <span class="setup-current__text">Currently connected to <strong id="current-provider">—</strong></span>
+    </section>
+
+    <!-- INPUT/ACTION -->
+    <section class="provider-list">
+        <button class="provider-option" onclick="connectProvider(this, 'google_drive')">
+            <span class="provider-option__icon">G</span>
+            <span class="provider-option__body">
+                <span class="provider-option__name">Google Drive</span>
+                <span class="provider-option__desc">Use your Google account.</span>
+            </span>
+        </button>
+        <button class="provider-option" onclick="connectProvider(this, 'onedrive')">
+            <span class="provider-option__icon">O</span>
+            <span class="provider-option__body">
+                <span class="provider-option__name">OneDrive</span>
+                <span class="provider-option__desc">Use your Microsoft account.</span>
+            </span>
+        </button>
+        <button class="provider-option" onclick="connectProvider(this, 'dropbox')">
+            <span class="provider-option__icon">D</span>
+            <span class="provider-option__body">
+                <span class="provider-option__name">Dropbox</span>
+                <span class="provider-option__desc">Use your Dropbox account.</span>
+            </span>
+        </button>
+    </section>
+
+    <!-- REACTION -->
+    <div class="setup-reaction" id="setup-reaction" data-state="idle">
+        <span class="setup-reaction__spinner"></span>
+        <span class="setup-reaction__text">Redirecting to provider...</span>
+    </div>
+
+</div>
+
+{% block scripts %}
+<script>
+    async function connectProvider(btn, provider) {
+        const reaction = document.getElementById('setup-reaction');
+        document.querySelectorAll('.provider-option').forEach(b => b.style.pointerEvents = 'none');
+        reaction.dataset.state = 'working';
+
+        try {
+            const resp = await fetch('/api/storage/connect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.CSRF_TOKEN },
+                body: JSON.stringify({ provider }),
+                credentials: 'include',
+            });
+
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+            }
+            throw new Error('Connection failed');
+        } catch (err) {
+            reaction.dataset.state = 'idle';
+            reaction.querySelector('.setup-reaction__text').textContent = 'Connection failed. Please try again.';
+            reaction.dataset.state = 'working';
+            reaction.querySelector('.setup-reaction__spinner').style.display = 'none';
+            document.querySelectorAll('.provider-option').forEach(b => b.style.pointerEvents = '');
+            setTimeout(() => { reaction.dataset.state = 'idle'; }, 3000);
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %}

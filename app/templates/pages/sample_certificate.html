@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Sample Certificate - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-wrap { max-width: var(--space-xxl); margin: 0 auto; padding: var(--space-lg); }
+
+  .page-info { margin-bottom: var(--space-lg); }
+  .page-info h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs); }
+  .page-info p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+
+  .form-group { margin-bottom: var(--space-md); }
+  .form-group label { display: block; font-size: var(--font-size-sm); color: var(--color-text-primary); margin-bottom: var(--space-xs); }
+  .form-group input {
+    width: 100%; padding: var(--space-sm); border-radius: var(--radius-md);
+    background: var(--color-surface-alt); color: var(--color-text-primary);
+    border: none; font-size: var(--font-size-sm); box-sizing: border-box;
+  }
+
+  .btn-primary {
+    padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md);
+    background: var(--color-primary); color: var(--color-on-primary);
+    border: none; font-size: var(--font-size-sm); cursor: pointer;
+  }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .reaction { margin-top: var(--space-md); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+  .reaction.working { color: var(--color-warning); }
+
+  .cert-preview {
+    background: var(--color-surface-alt); border-radius: var(--radius-lg);
+    padding: var(--space-xl); text-align: center; min-height: 200px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .cert-preview h2 { font-size: var(--font-size-lg); color: var(--color-text-primary); margin: 0 0 var(--space-sm); }
+  .cert-preview p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: var(--space-xs) 0; }
+  .cert-placeholder { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+
+  @media (max-width: 768px) {
+    .page-wrap { padding: var(--space-md); }
+    .panel { padding: var(--space-md); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <!-- INFORMATION -->
+  <div class="page-info">
+    <h1>Sample Certificate</h1>
+    <p>Preview and generate completion certificates.</p>
+  </div>
+
+  <!-- INPUT / ACTION -->
+  <div class="panel">
+    <div class="form-group">
+      <label for="recipient">Recipient Name</label>
+      <input type="text" id="recipient" placeholder="Jane Doe">
+    </div>
+    <div class="form-group">
+      <label for="course">Course Name</label>
+      <input type="text" id="course" placeholder="Tenant Rights 101">
+    </div>
+    <div class="form-group">
+      <label for="cert-date">Date</label>
+      <input type="date" id="cert-date">
+    </div>
+    <button class="btn-primary" id="generate-btn" onclick="generateCert()">Generate Certificate</button>
+    <div class="reaction working" id="reaction" style="display:none;">Generating...</div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="panel">
+    <div class="cert-preview" id="cert-output">
+      <p class="cert-placeholder">Fill in the form and click Generate Certificate to see a preview.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function generateCert() {
+    const btn = document.getElementById('generate-btn');
+    const rxn = document.getElementById('reaction');
+    const out = document.getElementById('cert-output');
+    const name = document.getElementById('recipient').value || '—';
+    const course = document.getElementById('course').value || '—';
+    const date = document.getElementById('cert-date').value || new Date().toISOString().slice(0,10);
+
+    btn.disabled = true;
+    rxn.style.display = 'block';
+    rxn.className = 'reaction working';
+    rxn.textContent = 'Generating...';
+
+    setTimeout(() => {
+      out.innerHTML = '<h2>Certificate of Completion</h2><p>This certifies that</p><h2>' + name + '</h2><p>has successfully completed</p><h2>' + course + '</h2><p>on ' + date + '</p>';
+      rxn.className = 'reaction';
+      rxn.textContent = 'Certificate generated.';
+      btn.disabled = false;
+    }, 1200);
+  }
+</script>
+{% endblock %}

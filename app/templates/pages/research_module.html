@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Research Module - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-wrap { max-width: var(--space-xxl); margin: 0 auto; padding: var(--space-lg); }
+
+  .page-info { margin-bottom: var(--space-lg); }
+  .page-info h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs); }
+  .page-info p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+
+  .form-group { margin-bottom: var(--space-md); }
+  .form-group label { display: block; font-size: var(--font-size-sm); color: var(--color-text-primary); margin-bottom: var(--space-xs); }
+  .form-group textarea, .form-group select {
+    width: 100%; padding: var(--space-sm); border-radius: var(--radius-md);
+    background: var(--color-surface-alt); color: var(--color-text-primary);
+    border: none; font-size: var(--font-size-sm); box-sizing: border-box;
+  }
+  .form-group textarea { min-height: 80px; resize: vertical; }
+
+  .btn-primary {
+    padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md);
+    background: var(--color-primary); color: var(--color-on-primary);
+    border: none; font-size: var(--font-size-sm); cursor: pointer;
+  }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .reaction { margin-top: var(--space-md); font-size: var(--font-size-sm); color: var(--color-warning); }
+  .progress { height: 4px; background: var(--color-surface-alt); border-radius: var(--radius-pill); margin-top: var(--space-sm); overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--color-primary); width: 0; transition: width 0.3s; }
+
+  .result-item { padding: var(--space-md) 0; }
+  .result-item + .result-item { margin-top: var(--space-sm); background: var(--color-surface-alt); border-radius: var(--radius-md); padding: var(--space-md); }
+  .result-title { font-size: var(--font-size-sm); color: var(--color-text-primary); font-weight: 600; margin: 0 0 var(--space-xs); }
+  .result-cite { font-size: var(--font-size-xs); color: var(--color-text-muted); margin: 0 0 var(--space-xs); }
+  .result-conf { font-size: var(--font-size-xs); color: var(--color-success); }
+
+  @media (max-width: 768px) {
+    .page-wrap { padding: var(--space-md); }
+    .panel { padding: var(--space-md); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <!-- INFORMATION -->
+  <div class="page-info">
+    <h1>Research Module</h1>
+    <p>AI-assisted legal research with source verification.</p>
+  </div>
+
+  <!-- INPUT / ACTION -->
+  <div class="panel">
+    <div class="form-group">
+      <label for="query">Research Query</label>
+      <textarea id="query" placeholder="Enter your legal research question..."></textarea>
+    </div>
+    <div class="form-group">
+      <label for="source-type">Source Type</label>
+      <select id="source-type">
+        <option>All Sources</option>
+        <option>Case Law</option>
+        <option>Statutes</option>
+        <option>Regulations</option>
+      </select>
+    </div>
+    <button class="btn-primary" id="research-btn" onclick="runResearch()">Research</button>
+    <div class="reaction" id="reaction" style="display:none;">
+      Researching...
+      <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="panel" id="results">
+    <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">Results will appear here after research.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function runResearch() {
+    const btn = document.getElementById('research-btn');
+    const rxn = document.getElementById('reaction');
+    const bar = document.getElementById('progress-bar');
+    const out = document.getElementById('results');
+    btn.disabled = true;
+    rxn.style.display = 'block';
+    let p = 0;
+    const iv = setInterval(() => { p += 10; bar.style.width = p + '%'; if (p >= 100) clearInterval(iv); }, 100);
+    setTimeout(() => {
+      out.innerHTML = [
+        { t: 'Smith v. Tenant Board (2021)', c: 'Case Law · Supreme Court', conf: '94% confidence' },
+        { t: 'Housing Act § 8.2', c: 'Statute · State Legislature', conf: '89% confidence' },
+        { t: 'Rent Stabilization Order 2023', c: 'Regulation · HUD', conf: '82% confidence' }
+      ].map(r => '<div class="result-item"><p class="result-title">' + r.t + '</p><p class="result-cite">' + r.c + '</p><p class="result-conf">' + r.conf + '</p></div>').join('');
+      rxn.style.display = 'none';
+      btn.disabled = false;
+    }, 1500);
+  }
+</script>
+{% endblock %}
