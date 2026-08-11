@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Research - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .research-page {
+    max-width: var(--space-content-max, 900px);
+    margin: 0 auto;
+    padding: var(--space-lg, 2rem);
+  }
+  .research-header {
+    margin-bottom: var(--space-xl, 2.5rem);
+  }
+  .research-header h1 {
+    font-size: var(--font-size-xl, 2rem);
+    color: var(--color-text-primary, #1a1a1a);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .research-header p {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .search-controls {
+    display: flex;
+    gap: var(--space-sm, 1rem);
+    margin-bottom: var(--space-lg, 2rem);
+    flex-wrap: wrap;
+  }
+  .search-input {
+    flex: 1 1 320px;
+    padding: var(--space-sm, 1rem);
+    font-size: var(--font-size-md, 1rem);
+    border-radius: var(--radius-md, 8px);
+    border: none;
+    background: var(--color-surface, #fff);
+    color: var(--color-text-primary, #1a1a1a);
+  }
+  .filter-select {
+    padding: var(--space-sm, 1rem);
+    font-size: var(--font-size-md, 1rem);
+    border-radius: var(--radius-md, 8px);
+    border: none;
+    background: var(--color-surface, #fff);
+    color: var(--color-text-primary, #1a1a1a);
+  }
+  .results-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md, 1.5rem);
+  }
+  .result-item {
+    background: var(--color-surface-alt, #f7f7f7);
+    padding: var(--space-md, 1.5rem);
+    border-radius: var(--radius-md, 8px);
+  }
+  .result-item h3 {
+    font-size: var(--font-size-lg, 1.25rem);
+    color: var(--color-text-primary, #1a1a1a);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .result-item .snippet {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .result-item .source {
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-accent, #0066cc);
+  }
+  .reaction-working {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm, 1rem);
+    padding: var(--space-md, 1.5rem);
+    color: var(--color-text-secondary, #555);
+    font-size: var(--font-size-md, 1rem);
+  }
+  .reaction-working.active { display: flex; }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 3px solid var(--color-border, #ccc);
+    border-top-color: var(--color-accent, #0066cc);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty-state {
+    text-align: center;
+    padding: var(--space-xl, 2.5rem);
+    color: var(--color-text-secondary, #555);
+    font-size: var(--font-size-md, 1rem);
+  }
+  @media (max-width: 768px) {
+    .research-page { padding: var(--space-md, 1.5rem); }
+    .search-controls { flex-direction: column; }
+    .search-input, .filter-select { flex: 1 1 auto; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="research-page">
+  <div class="research-header">
+    <h1>Legal Research</h1>
+    <p>Search tenant rights law, statutes, and case precedents.</p>
+  </div>
+
+  <div class="search-controls">
+    <input type="text" class="search-input" id="searchInput" placeholder="Search tenant rights topics..." />
+    <select class="filter-select" id="filterSelect">
+      <option value="all">All</option>
+      <option value="statutes">Statutes</option>
+      <option value="cases">Cases</option>
+      <option value="articles">Articles</option>
+    </select>
+  </div>
+
+  <div class="reaction-working" id="searchWorking">
+    <div class="spinner"></div>
+    <span>Searching...</span>
+  </div>
+
+  <div class="results-list" id="resultsList" style="display:none;">
+    <div class="result-item">
+      <h3>California Civil Code § 1942 - Tenant Repair Rights</h3>
+      <p class="snippet">Tenants may repair and deduct when landlord fails to maintain habitable conditions...</p>
+      <span class="source">Source: California Civil Code</span>
+    </div>
+    <div class="result-item">
+      <h3>Green v. Superior Court (1974)</h3>
+      <p class="snippet">Established implied warranty of habitability in residential leases...</p>
+      <span class="source">Source: Case Law</span>
+    </div>
+  </div>
+
+  <div class="empty-state" id="emptyState">
+    Search for tenant rights topics to get started.
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var searchInput = document.getElementById('searchInput');
+  var working = document.getElementById('searchWorking');
+  var results = document.getElementById('resultsList');
+  var empty = document.getElementById('emptyState');
+
+  searchInput.addEventListener('input', function() {
+    if (this.value.trim().length === 0) {
+      working.classList.remove('active');
+      results.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    working.classList.add('active');
+    results.style.display = 'none';
+    empty.style.display = 'none';
+    clearTimeout(window._searchTimer);
+    window._searchTimer = setTimeout(function() {
+      working.classList.remove('active');
+      results.style.display = 'flex';
+    }, 800);
+  });
+</script>
+{% endblock %}
