@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Correspondence - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header { margin-bottom: var(--space-lg); }
+  .page-header h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-header p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+  .section { background: var(--color-surface); border-radius: var(--radius-md); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+  .entry-list { list-style: none; padding: 0; margin: 0 0 var(--space-lg) 0; }
+  .entry-item { padding: var(--space-md) 0; border-bottom: 1px solid var(--color-border); }
+  .entry-item:last-child { border-bottom: none; }
+  .entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-xs); }
+  .entry-type { font-size: var(--font-size-xs); font-weight: 600; color: var(--color-on-primary); background: var(--color-primary); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-sm); }
+  .entry-date { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+  .entry-recipient { font-size: var(--font-size-base); color: var(--color-text-primary); font-weight: 600; margin-bottom: var(--space-xs); }
+  .entry-subject { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+  .form-group { margin-bottom: var(--space-md); }
+  .form-group label { display: block; font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-xs); }
+  .input, .select, .textarea { width: 100%; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); background: var(--color-surface-alt); color: var(--color-text-primary); font-size: var(--font-size-base); border: none; }
+  .textarea { min-height: 80px; resize: vertical; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+  .btn { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); font-size: var(--font-size-sm); border: none; cursor: pointer; font-weight: 600; }
+  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .reaction { margin-top: var(--space-md); font-size: var(--font-size-sm); padding: var(--space-md); border-radius: var(--radius-sm); text-align: center; }
+  .reaction.working { background: var(--color-surface-alt); color: var(--color-text-secondary); }
+  .reaction.hidden { display: none; }
+  .empty-state { text-align: center; padding: var(--space-xl) var(--space-md); color: var(--color-text-secondary); font-size: var(--font-size-base); }
+  @media (max-width: 768px) {
+    .section { padding: var(--space-md); }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Correspondence Log</h1>
+  <p>Track your letters, emails, and communications.</p>
+</div>
+
+<div class="section">
+  {% if entries %}
+  <ul class="entry-list">
+    {% for e in entries %}
+    <li class="entry-item">
+      <div class="entry-header">
+        <span class="entry-type">{{ e.type }}</span>
+        <span class="entry-date">{{ e.date }}</span>
+      </div>
+      <div class="entry-recipient">{{ e.recipient }}</div>
+      <div class="entry-subject">{{ e.subject }}</div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty-state">No correspondence logged yet.</div>
+  {% endif %}
+</div>
+
+<div class="section">
+  <h2 style="font-size: var(--font-size-lg); color: var(--color-text-primary); margin: 0 0 var(--space-md) 0;">Add Entry</h2>
+  <form onsubmit="return addEntry(event)">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="type">Type</label>
+        <select id="type" class="select">
+          <option value="Letter">Letter</option>
+          <option value="Email">Email</option>
+          <option value="Text">Text</option>
+          <option value="Phone">Phone</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="recipient">Recipient</label>
+        <input type="text" id="recipient" class="input" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" class="input" required>
+    </div>
+    <div class="form-group">
+      <label for="notes">Notes</label>
+      <textarea id="notes" class="textarea"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary" id="addBtn">Add Entry</button>
+  </form>
+  <div class="reaction working hidden" id="reactionWorking">Saving...</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function addEntry(event) {
+    event.preventDefault();
+    const btn = document.getElementById('addBtn');
+    const working = document.getElementById('reactionWorking');
+    btn.disabled = true;
+    working.classList.remove('hidden');
+    const data = {
+      type: document.getElementById('type').value,
+      recipient: document.getElementById('recipient').value,
+      subject: document.getElementById('subject').value,
+      notes: document.getElementById('notes').value
+    };
+    fetch('/correspondence/add', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+    }).then(() => {
+      working.classList.add('hidden');
+      btn.disabled = false;
+      location.reload();
+    }).catch(() => { working.classList.add('hidden'); btn.disabled = false; });
+    return false;
+  }
+</script>
+{% endblock %}
