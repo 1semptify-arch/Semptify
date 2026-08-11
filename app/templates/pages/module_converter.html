@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Module Converter - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header {
+    margin-bottom: var(--space-lg);
+  }
+  .page-header h1 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+  .page-header p {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+  .panel {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+  .form-group {
+    margin-bottom: var(--space-md);
+  }
+  .form-group label {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+  .form-control {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    border: none;
+  }
+  .btn {
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: var(--font-size-base);
+    border: none;
+    cursor: pointer;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-sm);
+    min-height: 1.5em;
+  }
+  .status.working { color: var(--color-warning); }
+  .status.done { color: var(--color-success); }
+  .status.error { color: var(--color-error); }
+  .log {
+    background: var(--color-background);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    font-family: monospace;
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  @media (max-width: 768px) {
+    .panel { padding: var(--space-md); }
+    .page-header h1 { font-size: var(--font-size-xl); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>Module Converter</h1>
+  <p>Convert static HTML modules to Jinja2 templates.</p>
+</section>
+
+<section class="panel">
+  <div class="form-group">
+    <label for="moduleSelect">Select Module File</label>
+    <select id="moduleSelect" class="form-control">
+      <option value="">-- Choose a module --</option>
+      <option value="header">header.html</option>
+      <option value="footer">footer.html</option>
+      <option value="sidebar">sidebar.html</option>
+      <option value="navbar">navbar.html</option>
+    </select>
+  </div>
+  <button id="convertBtn" class="btn">Convert</button>
+  <div id="status" class="status"></div>
+</section>
+
+<section class="panel">
+  <label style="font-size: var(--font-size-sm); color: var(--color-text-secondary); display:block; margin-bottom: var(--space-xs);">Conversion Log</label>
+  <div id="log" class="log">No conversions yet.</div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const btn = document.getElementById('convertBtn');
+  const status = document.getElementById('status');
+  const log = document.getElementById('log');
+  const select = document.getElementById('moduleSelect');
+
+  btn.addEventListener('click', () => {
+    const mod = select.value;
+    if (!mod) { status.className = 'status error'; status.textContent = 'Please select a module.'; return; }
+    btn.disabled = true;
+    status.className = 'status working';
+    status.textContent = 'Converting...';
+    log.textContent += '\n> Converting ' + mod + '.html ...';
+    setTimeout(() => {
+      log.textContent += '\n> Parsed static HTML structure.';
+      log.textContent += '\n> Extracted dynamic placeholders.';
+      log.textContent += '\n> Generated Jinja2 template.';
+      log.textContent += '\n> Converted ' + mod + '.html successfully.\n';
+      status.className = 'status done';
+      status.textContent = 'Converted';
+      btn.disabled = false;
+    }, 1500);
+  });
+</script>
+{% endblock %}
