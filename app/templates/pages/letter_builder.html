@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Letter Builder - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header { margin-bottom: var(--space-lg); }
+  .page-header h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-header p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+  .section { background: var(--color-surface); border-radius: var(--radius-md); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+  .letter-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-lg); }
+  .letter-option { background: var(--color-surface-alt); border-radius: var(--radius-sm); padding: var(--space-md); cursor: pointer; font-size: var(--font-size-sm); color: var(--color-text-primary); text-align: center; }
+  .letter-option:hover { background: var(--color-primary-bg); }
+  .letter-option.selected { background: var(--color-primary); color: var(--color-on-primary); }
+  .form-group { margin-bottom: var(--space-md); }
+  .form-group label { display: block; font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-xs); }
+  .input, .textarea { width: 100%; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); background: var(--color-surface-alt); color: var(--color-text-primary); font-size: var(--font-size-base); border: none; }
+  .textarea { min-height: 120px; resize: vertical; }
+  .btn { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); font-size: var(--font-size-sm); border: none; cursor: pointer; font-weight: 600; }
+  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .reaction { margin-top: var(--space-md); font-size: var(--font-size-sm); padding: var(--space-md); border-radius: var(--radius-sm); text-align: center; }
+  .reaction.working { background: var(--color-surface-alt); color: var(--color-text-secondary); }
+  .reaction.done { background: var(--color-success-bg); color: var(--color-success); }
+  .reaction.hidden { display: none; }
+  .download-btn { display: inline-block; margin-top: var(--space-md); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); background: var(--color-primary); color: var(--color-on-primary); font-size: var(--font-size-sm); font-weight: 600; text-decoration: none; }
+  @media (max-width: 768px) {
+    .section { padding: var(--space-md); }
+    .letter-types { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Letter Builder</h1>
+  <p>Create formal letters from templates.</p>
+</div>
+
+<div class="section">
+  <div class="letter-types">
+    <div class="letter-option" data-type="demand" onclick="selectLetter('demand')">Demand Letter</div>
+    <div class="letter-option" data-type="repair" onclick="selectLetter('repair')">Repair Request</div>
+    <div class="letter-option" data-type="termination" onclick="selectLetter('termination')">Lease Termination Notice</div>
+    <div class="letter-option" data-type="withholding" onclick="selectLetter('withholding')">Rent Withholding Notice</div>
+    <div class="letter-option" data-type="moveout" onclick="selectLetter('moveout')">Move-Out Notice</div>
+  </div>
+
+  <div id="letterForm" style="display:none">
+    <div class="form-group">
+      <label for="recipientName">Recipient Name</label>
+      <input type="text" id="recipientName" class="input">
+    </div>
+    <div class="form-group">
+      <label for="recipientAddress">Recipient Address</label>
+      <input type="text" id="recipientAddress" class="input">
+    </div>
+    <div class="form-group">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" class="input">
+    </div>
+    <div class="form-group">
+      <label for="bodyDetails">Body Details</label>
+      <textarea id="bodyDetails" class="textarea"></textarea>
+    </div>
+    <button class="btn btn-primary" id="generateBtn" onclick="generateLetter()">Generate Letter</button>
+  </div>
+
+  <div class="reaction working hidden" id="reactionWorking">Generating...</div>
+  <div class="reaction done hidden" id="reactionDone">Letter ready</div>
+  <a href="#" id="downloadBtn" class="download-btn" style="display:none">Download Letter</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let selectedType = null;
+  function selectLetter(type) {
+    selectedType = type;
+    document.querySelectorAll('.letter-option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.type === type);
+    });
+    document.getElementById('letterForm').style.display = 'block';
+    document.getElementById('reactionWorking').classList.add('hidden');
+    document.getElementById('reactionDone').classList.add('hidden');
+    document.getElementById('downloadBtn').style.display = 'none';
+  }
+  function generateLetter() {
+    if (!selectedType) return;
+    const btn = document.getElementById('generateBtn');
+    const working = document.getElementById('reactionWorking');
+    const done = document.getElementById('reactionDone');
+    const dl = document.getElementById('downloadBtn');
+    btn.disabled = true;
+    working.classList.remove('hidden');
+    done.classList.add('hidden');
+    dl.style.display = 'none';
+    const data = {
+      type: selectedType,
+      recipient_name: document.getElementById('recipientName').value,
+      recipient_address: document.getElementById('recipientAddress').value,
+      subject: document.getElementById('subject').value,
+      body_details: document.getElementById('bodyDetails').value
+    };
+    fetch('/letter-builder/generate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+    }).then(r => r.blob()).then(blob => {
+      working.classList.add('hidden');
+      done.classList.remove('hidden');
+      btn.disabled = false;
+      const url = URL.createObjectURL(blob);
+      dl.href = url; dl.download = 'letter.pdf'; dl.style.display = 'inline-block';
+    }).catch(() => { working.classList.add('hidden'); btn.disabled = false; });
+  }
+</script>
+{% endblock %}

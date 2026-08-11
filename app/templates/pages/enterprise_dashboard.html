@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Enterprise Dashboard - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-wrap { max-width: var(--space-xxl); margin: 0 auto; padding: var(--space-lg); }
+
+  .page-info { margin-bottom: var(--space-lg); }
+  .page-info h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs); }
+  .page-info p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-lg); }
+  .metric-card { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-md); }
+  .metric-label { font-size: var(--font-size-xs); color: var(--color-text-muted); margin: 0 0 var(--space-xs); }
+  .metric-value { font-size: var(--font-size-lg); color: var(--color-text-primary); margin: 0; }
+
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); }
+  .panel h2 { font-size: var(--font-size-md); color: var(--color-text-primary); margin: 0 0 var(--space-md); }
+  .activity-item { padding: var(--space-sm) 0; font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+  .activity-time { color: var(--color-text-muted); font-size: var(--font-size-xs); }
+
+  .reaction { font-size: var(--font-size-sm); color: var(--color-warning); text-align: center; padding: var(--space-md); }
+
+  @media (max-width: 768px) {
+    .page-wrap { padding: var(--space-md); }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .panel { padding: var(--space-md); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <!-- INFORMATION -->
+  <div class="page-info">
+    <h1>Enterprise Dashboard</h1>
+    <p>Organization-wide overview and metrics.</p>
+  </div>
+
+  <!-- OUTPUT: Metrics -->
+  <div class="metrics-grid" id="metrics">
+    <div class="reaction" id="reaction" style="grid-column: 1/-1;">Loading metrics...</div>
+  </div>
+
+  <!-- OUTPUT: Activity feed -->
+  <div class="panel">
+    <h2>Recent Activity</h2>
+    <div id="activity-feed"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const metrics = [
+    { label: 'Total Users', value: '1,248' },
+    { label: 'Active Cases', value: '342' },
+    { label: 'Success Rate', value: '87%' },
+    { label: 'Avg Resolution', value: '4.2d' }
+  ];
+  const activities = [
+    { text: 'Jane Doe signed "Lease Agreement"', time: '2 min ago' },
+    { text: 'Case #1042 status changed to Resolved', time: '15 min ago' },
+    { text: 'New user registered: John Smith', time: '1 hr ago' },
+    { text: 'Document sent to Acme Corp', time: '3 hr ago' }
+  ];
+  function loadDashboard() {
+    const m = document.getElementById('metrics');
+    const a = document.getElementById('activity-feed');
+    setTimeout(() => {
+      m.innerHTML = metrics.map(x =>
+        '<div class="metric-card"><p class="metric-label">' + x.label + '</p><p class="metric-value">' + x.value + '</p></div>'
+      ).join('');
+      a.innerHTML = activities.map(x =>
+        '<div class="activity-item">' + x.text + ' <span class="activity-time">' + x.time + '</span></div>'
+      ).join('');
+    }, 1200);
+  }
+  loadDashboard();
+</script>
+{% endblock %}

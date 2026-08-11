@@ -1,0 +1,633 @@
+{% extends "base.html" %}
+
+{% block title %}Mesh Network - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  /* ===== PAGE LAYOUT ===== */
+  .mesh-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    padding: var(--space-xl);
+    background: var(--color-bg-primary);
+    min-height: calc(100vh - var(--space-xxl));
+  }
+
+  /* ===== INFORMATION SECTION ===== */
+  .mesh-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .mesh-header__title {
+    margin: 0;
+    font-size: var(--font-size-xxl);
+    color: var(--color-text-primary);
+    font-weight: 700;
+  }
+
+  .mesh-header__subtitle {
+    margin: 0;
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+  }
+
+  /* ===== AUTO-REFRESH INDICATOR ===== */
+  .mesh-refresh-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+  }
+
+  .mesh-refresh-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .mesh-refresh-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-accent-primary);
+    animation: mesh-pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .mesh-refresh-dot--idle {
+    background: var(--color-text-tertiary);
+    animation: none;
+  }
+
+  @keyframes mesh-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .mesh-refresh-time {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ===== OUTPUT: NODE GRID ===== */
+  .mesh-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-md);
+  }
+
+  /* ===== NODE CARD (no border, no shadow — spacing/bg separation) ===== */
+  .mesh-node {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+  }
+
+  .mesh-node__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .mesh-node__name {
+    margin: 0;
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  .mesh-node__type {
+    display: block;
+    margin-top: var(--space-xxs);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== STATUS INDICATOR ===== */
+  .mesh-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xxs);
+    padding: var(--space-xxs) var(--space-sm);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .mesh-status__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .mesh-status--active {
+    background: var(--color-bg-success);
+    color: var(--color-text-success);
+  }
+
+  .mesh-status--active .mesh-status__dot {
+    background: var(--color-success);
+  }
+
+  .mesh-status--idle {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-tertiary);
+  }
+
+  .mesh-status--idle .mesh-status__dot {
+    background: var(--color-text-tertiary);
+  }
+
+  .mesh-status--error {
+    background: var(--color-bg-error);
+    color: var(--color-text-error);
+  }
+
+  .mesh-status--error .mesh-status__dot {
+    background: var(--color-error);
+  }
+
+  /* ===== NODE DETAILS ===== */
+  .mesh-node__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xxs);
+  }
+
+  .mesh-node__detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-sm);
+  }
+
+  .mesh-node__detail-label {
+    color: var(--color-text-tertiary);
+  }
+
+  .mesh-node__detail-value {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  /* ===== ACTION BUTTONS (bottom of card) ===== */
+  .mesh-node__actions {
+    display: flex;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
+    padding-top: var(--space-sm);
+    background: var(--color-bg-secondary);
+  }
+
+  .mesh-action-btn {
+    flex: 1;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.2s ease;
+  }
+
+  .mesh-action-btn:hover {
+    background: var(--color-bg-quaternary);
+  }
+
+  .mesh-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .mesh-action-btn--start {
+    color: var(--color-text-success);
+  }
+
+  .mesh-action-btn--stop {
+    color: var(--color-text-error);
+  }
+
+  .mesh-action-btn--restart {
+    color: var(--color-text-secondary);
+  }
+
+  /* ===== REACTION: WORKING STATE (per-node) ===== */
+  .mesh-node__reaction {
+    display: none;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .mesh-node__reaction--visible {
+    display: flex;
+  }
+
+  .mesh-node__reaction--done {
+    color: var(--color-text-success);
+    background: var(--color-bg-success);
+  }
+
+  .mesh-node__reaction--error {
+    color: var(--color-text-error);
+    background: var(--color-bg-error);
+  }
+
+  .mesh-reaction-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--color-border-secondary);
+    border-top-color: var(--color-accent-primary);
+    border-radius: 50%;
+    animation: mesh-spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes mesh-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ===== MOBILE RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .mesh-page {
+      padding: var(--space-md);
+      gap: var(--space-md);
+    }
+
+    .mesh-header__title {
+      font-size: var(--font-size-xl);
+    }
+
+    .mesh-header__subtitle {
+      font-size: var(--font-size-sm);
+    }
+
+    .mesh-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+    }
+
+    .mesh-refresh-bar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-xs);
+    }
+
+    .mesh-node {
+      padding: var(--space-sm);
+    }
+
+    .mesh-node__actions {
+      flex-wrap: wrap;
+    }
+
+    .mesh-action-btn {
+      font-size: var(--font-size-xs);
+      padding: var(--space-xxs) var(--space-xs);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mesh-page">
+
+  <!-- ===== INFORMATION ===== -->
+  <header class="mesh-header">
+    <h1 class="mesh-header__title">Mesh Network</h1>
+    <p class="mesh-header__subtitle">Monitor and control the positronic mesh infrastructure.</p>
+  </header>
+
+  <!-- ===== AUTO-REFRESH INDICATOR ===== -->
+  <div class="mesh-refresh-bar">
+    <div class="mesh-refresh-status">
+      <span class="mesh-refresh-dot" id="mesh-refresh-dot"></span>
+      <span id="mesh-refresh-label">Auto-refresh active</span>
+    </div>
+    <span class="mesh-refresh-time" id="mesh-refresh-time">Last updated: —</span>
+  </div>
+
+  <!-- ===== OUTPUT: NODE GRID ===== -->
+  <div class="mesh-grid" id="mesh-grid">
+
+    <!-- Node 1 -->
+    <div class="mesh-node" data-node-id="brain-core-01">
+      <div class="mesh-node__header">
+        <div>
+          <h3 class="mesh-node__name">Brain Core 01</h3>
+          <span class="mesh-node__type">Inference Node</span>
+        </div>
+        <span class="mesh-status mesh-status--active">
+          <span class="mesh-status__dot"></span>
+          Active
+        </span>
+      </div>
+      <div class="mesh-node__details">
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Last heartbeat</span>
+          <span class="mesh-node__detail-value mesh-heartbeat">12s ago</span>
+        </div>
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Uptime</span>
+          <span class="mesh-node__detail-value">4d 12h</span>
+        </div>
+      </div>
+      <div class="mesh-node__reaction" data-reaction-for="brain-core-01"></div>
+      <div class="mesh-node__actions">
+        <button class="mesh-action-btn mesh-action-btn--start" data-action="start" data-node-id="brain-core-01">Start</button>
+        <button class="mesh-action-btn mesh-action-btn--stop" data-action="stop" data-node-id="brain-core-01">Stop</button>
+        <button class="mesh-action-btn mesh-action-btn--restart" data-action="restart" data-node-id="brain-core-01">Restart</button>
+      </div>
+    </div>
+
+    <!-- Node 2 -->
+    <div class="mesh-node" data-node-id="router-mesh-02">
+      <div class="mesh-node__header">
+        <div>
+          <h3 class="mesh-node__name">Router Mesh 02</h3>
+          <span class="mesh-node__type">Routing Node</span>
+        </div>
+        <span class="mesh-status mesh-status--active">
+          <span class="mesh-status__dot"></span>
+          Active
+        </span>
+      </div>
+      <div class="mesh-node__details">
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Last heartbeat</span>
+          <span class="mesh-node__detail-value mesh-heartbeat">5s ago</span>
+        </div>
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Uptime</span>
+          <span class="mesh-node__detail-value">7d 3h</span>
+        </div>
+      </div>
+      <div class="mesh-node__reaction" data-reaction-for="router-mesh-02"></div>
+      <div class="mesh-node__actions">
+        <button class="mesh-action-btn mesh-action-btn--start" data-action="start" data-node-id="router-mesh-02">Start</button>
+        <button class="mesh-action-btn mesh-action-btn--stop" data-action="stop" data-node-id="router-mesh-02">Stop</button>
+        <button class="mesh-action-btn mesh-action-btn--restart" data-action="restart" data-node-id="router-mesh-02">Restart</button>
+      </div>
+    </div>
+
+    <!-- Node 3 -->
+    <div class="mesh-node" data-node-id="data-pipeline-03">
+      <div class="mesh-node__header">
+        <div>
+          <h3 class="mesh-node__name">Data Pipeline 03</h3>
+          <span class="mesh-node__type">Processing Node</span>
+        </div>
+        <span class="mesh-status mesh-status--idle">
+          <span class="mesh-status__dot"></span>
+          Idle
+        </span>
+      </div>
+      <div class="mesh-node__details">
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Last heartbeat</span>
+          <span class="mesh-node__detail-value mesh-heartbeat">2m ago</span>
+        </div>
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Uptime</span>
+          <span class="mesh-node__detail-value">1d 8h</span>
+        </div>
+      </div>
+      <div class="mesh-node__reaction" data-reaction-for="data-pipeline-03"></div>
+      <div class="mesh-node__actions">
+        <button class="mesh-action-btn mesh-action-btn--start" data-action="start" data-node-id="data-pipeline-03">Start</button>
+        <button class="mesh-action-btn mesh-action-btn--stop" data-action="stop" data-node-id="data-pipeline-03">Stop</button>
+        <button class="mesh-action-btn mesh-action-btn--restart" data-action="restart" data-node-id="data-pipeline-03">Restart</button>
+      </div>
+    </div>
+
+    <!-- Node 4 -->
+    <div class="mesh-node" data-node-id="scheduler-04">
+      <div class="mesh-node__header">
+        <div>
+          <h3 class="mesh-node__name">Scheduler 04</h3>
+          <span class="mesh-node__type">Orchestration Node</span>
+        </div>
+        <span class="mesh-status mesh-status--error">
+          <span class="mesh-status__dot"></span>
+          Error
+        </span>
+      </div>
+      <div class="mesh-node__details">
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Last heartbeat</span>
+          <span class="mesh-node__detail-value mesh-heartbeat">15m ago</span>
+        </div>
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Uptime</span>
+          <span class="mesh-node__detail-value">—</span>
+        </div>
+      </div>
+      <div class="mesh-node__reaction" data-reaction-for="scheduler-04"></div>
+      <div class="mesh-node__actions">
+        <button class="mesh-action-btn mesh-action-btn--start" data-action="start" data-node-id="scheduler-04">Start</button>
+        <button class="mesh-action-btn mesh-action-btn--stop" data-action="stop" data-node-id="scheduler-04">Stop</button>
+        <button class="mesh-action-btn mesh-action-btn--restart" data-action="restart" data-node-id="scheduler-04">Restart</button>
+      </div>
+    </div>
+
+    <!-- Node 5 -->
+    <div class="mesh-node" data-node-id="cache-layer-05">
+      <div class="mesh-node__header">
+        <div>
+          <h3 class="mesh-node__name">Cache Layer 05</h3>
+          <span class="mesh-node__type">Storage Node</span>
+        </div>
+        <span class="mesh-status mesh-status--active">
+          <span class="mesh-status__dot"></span>
+          Active
+        </span>
+      </div>
+      <div class="mesh-node__details">
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Last heartbeat</span>
+          <span class="mesh-node__detail-value mesh-heartbeat">8s ago</span>
+        </div>
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Uptime</span>
+          <span class="mesh-node__detail-value">12d 6h</span>
+        </div>
+      </div>
+      <div class="mesh-node__reaction" data-reaction-for="cache-layer-05"></div>
+      <div class="mesh-node__actions">
+        <button class="mesh-action-btn mesh-action-btn--start" data-action="start" data-node-id="cache-layer-05">Start</button>
+        <button class="mesh-action-btn mesh-action-btn--stop" data-action="stop" data-node-id="cache-layer-05">Stop</button>
+        <button class="mesh-action-btn mesh-action-btn--restart" data-action="restart" data-node-id="cache-layer-05">Restart</button>
+      </div>
+    </div>
+
+    <!-- Node 6 -->
+    <div class="mesh-node" data-node-id="gateway-06">
+      <div class="mesh-node__header">
+        <div>
+          <h3 class="mesh-node__name">Gateway 06</h3>
+          <span class="mesh-node__type">Edge Node</span>
+        </div>
+        <span class="mesh-status mesh-status--idle">
+          <span class="mesh-status__dot"></span>
+          Idle
+        </span>
+      </div>
+      <div class="mesh-node__details">
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Last heartbeat</span>
+          <span class="mesh-node__detail-value mesh-heartbeat">45s ago</span>
+        </div>
+        <div class="mesh-node__detail">
+          <span class="mesh-node__detail-label">Uptime</span>
+          <span class="mesh-node__detail-value">3h 22m</span>
+        </div>
+      </div>
+      <div class="mesh-node__reaction" data-reaction-for="gateway-06"></div>
+      <div class="mesh-node__actions">
+        <button class="mesh-action-btn mesh-action-btn--start" data-action="start" data-node-id="gateway-06">Start</button>
+        <button class="mesh-action-btn mesh-action-btn--stop" data-action="stop" data-node-id="gateway-06">Stop</button>
+        <button class="mesh-action-btn mesh-action-btn--restart" data-action="restart" data-node-id="gateway-06">Restart</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function() {
+    const refreshDot = document.getElementById('mesh-refresh-dot');
+    const refreshLabel = document.getElementById('mesh-refresh-label');
+    const refreshTime = document.getElementById('mesh-refresh-time');
+    const actionBtns = document.querySelectorAll('.mesh-action-btn');
+    const heartbeats = document.querySelectorAll('.mesh-heartbeat');
+
+    let heartbeatSeconds = [12, 5, 120, 900, 8, 45];
+    let autoRefreshInterval = null;
+
+    // ===== Helper: format seconds to human-readable =====
+    function formatHeartbeat(seconds) {
+      if (seconds < 60) return seconds + 's ago';
+      if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+      return Math.floor(seconds / 3600) + 'h ago';
+    }
+
+    // ===== Auto-refresh: update heartbeats =====
+    function updateHeartbeats() {
+      heartbeats.forEach(function(el, i) {
+        heartbeatSeconds[i] += 10;
+        el.textContent = formatHeartbeat(heartbeatSeconds[i]);
+      });
+
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      refreshTime.textContent = 'Last updated: ' + now;
+    }
+
+    // ===== Start auto-refresh =====
+    function startAutoRefresh() {
+      refreshDot.classList.remove('mesh-refresh-dot--idle');
+      refreshLabel.textContent = 'Auto-refresh active';
+      updateHeartbeats();
+      autoRefreshInterval = setInterval(updateHeartbeats, 10000);
+    }
+
+    // ===== Stop auto-refresh =====
+    function stopAutoRefresh() {
+      clearInterval(autoRefreshInterval);
+      autoRefreshInterval = null;
+      refreshDot.classList.add('mesh-refresh-dot--idle');
+      refreshLabel.textContent = 'Auto-refresh paused';
+    }
+
+    // ===== REACTION: show working state for a node =====
+    function showReaction(nodeId, state, message) {
+      const reactionEl = document.querySelector('[data-reaction-for="' + nodeId + '"]');
+      if (!reactionEl) return;
+
+      reactionEl.className = 'mesh-node__reaction mesh-node__reaction--visible';
+      reactionEl.innerHTML = '';
+
+      if (state === 'working') {
+        const spinner = document.createElement('span');
+        spinner.className = 'mesh-reaction-spinner';
+        const label = document.createElement('span');
+        label.textContent = message || 'Working...';
+        reactionEl.appendChild(spinner);
+        reactionEl.appendChild(label);
+      } else if (state === 'done') {
+        reactionEl.classList.add('mesh-node__reaction--done');
+        reactionEl.textContent = message || 'Done';
+        // Auto-hide after 3 seconds
+        setTimeout(function() {
+          reactionEl.classList.remove('mesh-node__reaction--visible');
+        }, 3000);
+      } else if (state === 'error') {
+        reactionEl.classList.add('mesh-node__reaction--error');
+        reactionEl.textContent = message || 'Error';
+        setTimeout(function() {
+          reactionEl.classList.remove('mesh-node__reaction--visible');
+        }, 5000);
+      }
+    }
+
+    // ===== ACTION: handle trigger button clicks =====
+    // State transitions: idle -> working -> done/error
+    actionBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const nodeId = btn.getAttribute('data-node-id');
+        const action = btn.getAttribute('data-action');
+        const nodeCard = btn.closest('.mesh-node');
+        const nodeBtns = nodeCard.querySelectorAll('.mesh-action-btn');
+
+        // Pause auto-refresh during action
+        stopAutoRefresh();
+
+        // Disable all buttons for this node
+        nodeBtns.forEach(function(b) { b.disabled = true; });
+
+        // REACTION: working state
+        showReaction(nodeId, 'working', action.charAt(0).toUpperCase() + action.slice(1) + 'ting node...');
+
+        // Simulate action (replace with real API call)
+        setTimeout(function() {
+          // Simulate success (done state)
+          showReaction(nodeId, 'done', action.charAt(0).toUpperCase() + action.slice(1) + ' complete');
+
+          // Re-enable buttons
+          nodeBtns.forEach(function(b) { b.disabled = false; });
+
+          // Resume auto-refresh
+          startAutoRefresh();
+        }, 2000);
+      });
+    });
+
+    // ===== Initialize =====
+    startAutoRefresh();
+  })();
+</script>
+{% endblock %}

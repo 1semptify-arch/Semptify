@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}Intake - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .intake-page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md);
+  }
+
+  /* ── INFORMATION ── */
+  .intake-header {
+    margin-bottom: var(--space-xl);
+  }
+  .intake-header h1 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-sm) 0;
+  }
+  .intake-header p {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ── INPUT: form sections ── */
+  .intake-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .form-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+  }
+  .form-section h2 {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-md) 0;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .form-field.full {
+    grid-column: 1 / -1;
+  }
+  .form-field label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+  .form-field input,
+  .form-field select {
+    background: var(--color-surface-alt);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .form-field input:focus,
+  .form-field select:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+  .form-field input::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  /* radio group */
+  .radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+  }
+  .radio-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    cursor: pointer;
+  }
+  .radio-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-accent);
+  }
+  .radio-option span {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+  }
+
+  /* yes/no/unsure pills */
+  .pill-group {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+  .pill-option {
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-full, 999px);
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .pill-option.selected {
+    background: var(--color-accent);
+    color: var(--color-surface);
+  }
+  .pill-option input {
+    display: none;
+  }
+
+  /* ── REACTION ── */
+  .reaction-banner {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    margin-bottom: var(--space-md);
+  }
+  .reaction-banner.working {
+    display: flex;
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+  }
+  .reaction-banner.done {
+    display: flex;
+    background: var(--color-success-bg, var(--color-surface-alt));
+    color: var(--color-success, var(--color-text-primary));
+  }
+  .reaction-banner.error {
+    display: flex;
+    background: var(--color-error-bg, var(--color-surface-alt));
+    color: var(--color-error, var(--color-text-primary));
+  }
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--color-text-muted);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── ACTION ── */
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-md);
+    padding-top: var(--space-md);
+  }
+  .btn {
+    padding: var(--space-sm) var(--space-xl);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-surface);
+  }
+  .btn-secondary {
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+  }
+
+  /* ── Mobile responsive ── */
+  @media (max-width: 768px) {
+    .intake-page {
+      padding: var(--space-md) var(--space-sm);
+    }
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    .form-section {
+      padding: var(--space-md);
+    }
+    .form-actions {
+      flex-direction: column-reverse;
+    }
+    .form-actions .btn {
+      width: 100%;
+      text-align: center;
+    }
+    .radio-group {
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="intake-page">
+
+  <!-- INFORMATION -->
+  <div class="intake-header">
+    <h1>Intake</h1>
+    <p>Tell us about your situation so we can help you effectively.</p>
+  </div>
+
+  <!-- REACTION (idle / working / done / error) -->
+  <div id="reactionBanner" class="reaction-banner" data-state="idle">
+    <span id="reactionIcon"></span>
+    <span id="reactionText"></span>
+  </div>
+
+  <!-- INPUT -->
+  <form class="intake-form" id="intakeForm" novalidate>
+
+    <!-- Personal Info -->
+    <section class="form-section">
+      <h2>Personal Info</h2>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" placeholder="Jane Doe" required>
+        </div>
+        <div class="form-field">
+          <label for="contact">Contact</label>
+          <input type="text" id="contact" name="contact" placeholder="Phone or email" required>
+        </div>
+      </div>
+    </section>
+
+    <!-- Housing Situation -->
+    <section class="form-section">
+      <h2>Housing Situation</h2>
+      <div class="form-grid">
+        <div class="form-field full">
+          <label for="address">Address</label>
+          <input type="text" id="address" name="address" placeholder="123 Main St, City, State">
+        </div>
+        <div class="form-field">
+          <label for="landlord">Landlord Name</label>
+          <input type="text" id="landlord" name="landlord" placeholder="Landlord or management company">
+        </div>
+        <div class="form-field">
+          <label for="lease">Lease Status</label>
+          <select id="lease" name="lease_status">
+            <option value="">Select…</option>
+            <option value="active">Active lease</option>
+            <option value="month-to-month">Month-to-month</option>
+            <option value="expired">Expired</option>
+            <option value="none">No written lease</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Issue Type -->
+    <section class="form-section">
+      <h2>Issue Type</h2>
+      <div class="form-grid">
+        <div class="form-field full">
+          <label for="issue_type">Type of Issue</label>
+          <select id="issue_type" name="issue_type">
+            <option value="">Select an issue…</option>
+            <option value="repairs">Needed repairs not addressed</option>
+            <option value="harassment">Landlord harassment</option>
+            <option value="eviction">Eviction notice received</option>
+            <option value="rent-dispute">Rent dispute</option>
+            <option value="deposit">Security deposit issue</option>
+            <option value="discrimination">Discrimination</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Urgency -->
+    <section class="form-section">
+      <h2>Urgency</h2>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="urgency" value="low">
+          <span>Low</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="urgency" value="medium" checked>
+          <span>Medium</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="urgency" value="high">
+          <span>High</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="urgency" value="critical">
+          <span>Critical</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Court Status -->
+    <section class="form-section">
+      <h2>Court Status</h2>
+      <div class="pill-group" id="courtStatusGroup">
+        <label class="pill-option" data-value="yes">
+          <input type="radio" name="court_status" value="yes">
+          Yes
+        </label>
+        <label class="pill-option" data-value="no">
+          <input type="radio" name="court_status" value="no">
+          No
+        </label>
+        <label class="pill-option" data-value="unsure">
+          <input type="radio" name="court_status" value="unsure">
+          Unsure
+        </label>
+      </div>
+    </section>
+
+    <!-- ACTION -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="submitBtn">Save and Continue</button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ── Court status pill selection ──
+  (function () {
+    var pills = document.querySelectorAll('#courtStatusGroup .pill-option');
+    pills.forEach(function (pill) {
+      pill.addEventListener('click', function () {
+        pills.forEach(function (p) { p.classList.remove('selected'); });
+        pill.classList.add('selected');
+        pill.querySelector('input').checked = true;
+      });
+    });
+  })();
+
+  // ── REACTION state helper ──
+  var banner = document.getElementById('reactionBanner');
+  var iconEl = document.getElementById('reactionIcon');
+  var textEl = document.getElementById('reactionText');
+
+  function setReaction(state, text) {
+    banner.classList.remove('working', 'done', 'error');
+    banner.setAttribute('data-state', state);
+    if (state === 'working') {
+      banner.classList.add('working');
+      iconEl.innerHTML = '<span class="spinner"></span>';
+    } else if (state === 'done') {
+      banner.classList.add('done');
+      iconEl.textContent = '\u2713';
+    } else if (state === 'error') {
+      banner.classList.add('error');
+      iconEl.textContent = '!';
+    } else {
+      iconEl.textContent = '';
+    }
+    textEl.textContent = text || '';
+  }
+
+  // ── Form submit ──
+  var form = document.getElementById('intakeForm');
+  var submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    // simple validation
+    var name = document.getElementById('name').value.trim();
+    var contact = document.getElementById('contact').value.trim();
+    if (!name || !contact) {
+      setReaction('error', 'Please fill in your name and contact.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    setReaction('working', 'Saving intake...');
+
+    // simulate async save
+    setTimeout(function () {
+      setReaction('done', 'Saved');
+      submitBtn.disabled = false;
+      // redirect could happen here
+    }, 1600);
+  });
+
+  // ── Cancel ──
+  document.getElementById('cancelBtn').addEventListener('click', function () {
+    form.reset();
+    document.querySelectorAll('.pill-option').forEach(function (p) {
+      p.classList.remove('selected');
+    });
+    setReaction('idle', '');
+  });
+</script>
+{% endblock %}

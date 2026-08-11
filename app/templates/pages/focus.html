@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Focus - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-container {
+    max-width: var(--space-content-max, 960px);
+    margin: 0 auto;
+    padding: var(--space-xl, 2rem) var(--space-md, 1rem);
+  }
+  .page-heading {
+    font-size: var(--font-size-xxl, 2rem);
+    color: var(--color-text-primary, #111);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .page-subheading {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .input-group {
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .input-label {
+    display: block;
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .select-field {
+    width: 100%;
+    font-size: var(--font-size-md, 1rem);
+    padding: var(--space-sm, 0.75rem);
+    background: var(--color-surface-raised, #f7f7f7);
+    color: var(--color-text-primary, #111);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+  }
+  .case-view {
+    background: var(--color-surface-raised, #f7f7f7);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-lg, 1.5rem);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .case-view-title {
+    font-size: var(--font-size-lg, 1.25rem);
+    color: var(--color-text-primary, #111);
+    margin-bottom: var(--space-sm, 0.75rem);
+  }
+  .case-section-label {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-xs, 0.5rem);
+    margin-top: var(--space-md, 1rem);
+  }
+  .case-list {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-primary, #111);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs, 0.5rem);
+  }
+  .reaction-area {
+    min-height: var(--space-xl, 2rem);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .reaction-working { color: var(--color-action, #1a73e8); }
+  .reaction-done { color: var(--color-success, #2e7d32); }
+  .reaction-error { color: var(--color-danger, #d32f2f); }
+  @media (max-width: 768px) {
+    .page-container { padding: var(--space-md, 1rem); }
+    .page-heading { font-size: var(--font-size-xl, 1.5rem); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <h1 class="page-heading">Focus Mode</h1>
+  <p class="page-subheading">Concentrate on one case at a time.</p>
+
+  <div class="input-group">
+    <label class="input-label" for="caseSelect">Select Case</label>
+    <select class="select-field" id="caseSelect" onchange="loadCase()">
+      <option value="">— Choose a case —</option>
+      <option value="case-101">Case #101 — Smith v. Oak Apartments</option>
+      <option value="case-204">Case #204 — Doe v. River Rentals</option>
+    </select>
+  </div>
+
+  <div class="case-view" id="caseView" style="display:none;">
+    <div class="case-view-title" id="caseTitle"></div>
+    <div class="case-section-label">Key Tasks</div>
+    <ul class="case-list" id="caseTasks"></ul>
+    <div class="case-section-label">Deadlines</div>
+    <ul class="case-list" id="caseDeadlines"></ul>
+    <div class="case-section-label">Documents</div>
+    <ul class="case-list" id="caseDocs"></ul>
+  </div>
+
+  <div class="reaction-area" id="reactionArea"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function setReaction(state, msg) {
+    var area = document.getElementById('reactionArea');
+    area.className = 'reaction-area reaction-' + state;
+    area.textContent = msg;
+  }
+
+  function loadCase() {
+    var sel = document.getElementById('caseSelect');
+    var view = document.getElementById('caseView');
+    if (!sel.value) { view.style.display = 'none'; setReaction('idle',''); return; }
+    setReaction('working', 'Loading case...');
+    setTimeout(function () {
+      document.getElementById('caseTitle').textContent = sel.options[sel.selectedIndex].text;
+      document.getElementById('caseTasks').innerHTML = '<li>File response</li><li>Gather evidence</li>';
+      document.getElementById('caseDeadlines').innerHTML = '<li>Hearing — Mar 12</li>';
+      document.getElementById('caseDocs').innerHTML = '<li>Lease.pdf</li><li>Notice.pdf</li>';
+      view.style.display = 'block';
+      setReaction('done', 'Case loaded.');
+    }, 1200);
+  }
+</script>
+{% endblock %}

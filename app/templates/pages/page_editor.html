@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Page Editor - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-container {
+    max-width: var(--space-content-max, 960px);
+    margin: 0 auto;
+    padding: var(--space-xl, 2rem) var(--space-md, 1rem);
+  }
+  .page-heading {
+    font-size: var(--font-size-xxl, 2rem);
+    color: var(--color-text-primary, #111);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .page-subheading {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .input-group { margin-bottom: var(--space-md, 1rem); }
+  .input-label {
+    display: block;
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .select-field {
+    width: 100%;
+    font-size: var(--font-size-md, 1rem);
+    padding: var(--space-sm, 0.75rem);
+    background: var(--color-surface-raised, #f7f7f7);
+    color: var(--color-text-primary, #111);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+  }
+  .code-editor {
+    width: 100%;
+    min-height: 240px;
+    font-family: var(--font-mono, monospace);
+    font-size: var(--font-size-sm, 0.875rem);
+    padding: var(--space-md, 1rem);
+    background: var(--color-surface-raised, #f7f7f7);
+    color: var(--color-text-primary, #111);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    resize: vertical;
+  }
+  .btn-row {
+    display: flex;
+    gap: var(--space-sm, 0.75rem);
+    margin-top: var(--space-md, 1rem);
+  }
+  .action-btn {
+    font-size: var(--font-size-md, 1rem);
+    background: var(--color-action, #1a73e8);
+    color: var(--color-text-inverted, #fff);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-sm, 0.75rem) var(--space-lg, 1.5rem);
+    cursor: pointer;
+  }
+  .action-btn.secondary { background: var(--color-surface-raised, #f7f7f7); color: var(--color-text-primary, #111); }
+  .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .reaction-area {
+    margin-top: var(--space-md, 1rem);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .reaction-working { color: var(--color-action, #1a73e8); }
+  .reaction-done { color: var(--color-success, #2e7d32); }
+  .reaction-error { color: var(--color-danger, #d32f2f); }
+  @media (max-width: 768px) {
+    .page-container { padding: var(--space-md, 1rem); }
+    .page-heading { font-size: var(--font-size-xl, 1.5rem); }
+    .btn-row { flex-direction: column; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <h1 class="page-heading">Page Editor</h1>
+  <p class="page-subheading">Edit page templates and content.</p>
+
+  <div class="input-group">
+    <label class="input-label" for="pageSelect">Page</label>
+    <select class="select-field" id="pageSelect" onchange="loadPage()">
+      <option value="home">home.html</option>
+      <option value="about">about.html</option>
+      <option value="contact">contact.html</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label class="input-label" for="codeEditor">Content</label>
+    <textarea class="code-editor" id="codeEditor">{% raw %}<h1>Welcome</h1>{% endraw %}</textarea>
+  </div>
+
+  <div class="btn-row">
+    <button class="action-btn" id="saveBtn" onclick="savePage()">Save</button>
+    <button class="action-btn secondary" onclick="previewPage()">Preview</button>
+  </div>
+
+  <div class="reaction-area" id="reactionArea"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function setReaction(state, msg) {
+    var area = document.getElementById('reactionArea');
+    area.className = 'reaction-area reaction-' + state;
+    area.textContent = msg;
+  }
+
+  function loadPage() {
+    setReaction('idle', 'Page loaded into editor.');
+  }
+
+  function savePage() {
+    var btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    setReaction('working', 'Saving...');
+    setTimeout(function () {
+      btn.disabled = false;
+      setReaction('done', 'Saved.');
+    }, 1200);
+  }
+
+  function previewPage() {
+    setReaction('idle', 'Preview opened in a new tab.');
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Evaluation Report - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header { margin-bottom: var(--space-lg); }
+  .page-header h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-header p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+  .btn { padding: var(--space-sm) var(--space-lg); border-radius: var(--radius-md); background: var(--color-primary); color: var(--color-on-primary); font-size: var(--font-size-base); border: none; cursor: pointer; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: var(--space-sm) 0; min-height: 1.5em; }
+  .status.working { color: var(--color-warning); }
+  .status.done { color: var(--color-success); }
+  .report-section { background: var(--color-background); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-sm); }
+  .report-section h3 { font-size: var(--font-size-base); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .report-section p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0 0 var(--space-xs) 0; }
+  .report-section ul { margin: var(--space-xs) 0 0 0; padding-left: var(--space-lg); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+  .report-section ul li { margin-bottom: var(--space-xs); }
+  .prediction { font-size: var(--font-size-lg); color: var(--color-success); }
+  .prediction.moderate { color: var(--color-warning); }
+  .summary-grid { display: flex; gap: var(--space-md); margin-bottom: var(--space-md); flex-wrap: wrap; }
+  .summary-card { background: var(--color-background); border-radius: var(--radius-md); padding: var(--space-md); flex: 1; min-width: 140px; }
+  .summary-card .label { font-size: var(--font-size-xs); color: var(--color-text-secondary); display: block; margin-bottom: var(--space-xs); }
+  .summary-card .value { font-size: var(--font-size-lg); color: var(--color-text-primary); }
+  @media (max-width: 768px) {
+    .panel { padding: var(--space-md); }
+    .page-header h1 { font-size: var(--font-size-xl); }
+    .summary-grid { flex-direction: column; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>Evaluation Report</h1>
+  <p>Review case evaluation and outcomes.</p>
+</section>
+
+<section class="panel">
+  <button id="generateBtn" class="btn">Generate Report</button>
+  <div id="status" class="status"></div>
+</section>
+
+<section class="panel" id="reportOutput" style="display:none;">
+  <div class="summary-grid">
+    <div class="summary-card"><span class="label">Case ID</span><span class="value">#TC-2025-0142</span></div>
+    <div class="summary-card"><span class="label">Filed Date</span><span class="value">Jan 15, 2025</span></div>
+    <div class="summary-card"><span class="label">Status</span><span class="value">Under Review</span></div>
+  </div>
+
+  <div class="report-section">
+    <h3>Case Summary</h3>
+    <p>Tenant filed a complaint regarding unresolved maintenance issues over a 6-month period. The landlord failed to address repeated requests for repairs to plumbing and electrical systems, impacting habitability.</p>
+  </div>
+
+  <div class="report-section">
+    <h3>Strengths</h3>
+    <ul>
+      <li>Documented communication with landlord (12 emails, 3 letters)</li>
+      <li>Photographic evidence of maintenance issues dated and timestamped</li>
+      <li>Timely rent payment records demonstrating good tenant standing</li>
+      <li>Witness statements from two neighboring tenants</li>
+    </ul>
+  </div>
+
+  <div class="report-section">
+    <h3>Weaknesses</h3>
+    <ul>
+      <li>No formal written repair notice sent via certified mail</li>
+      <li>Limited documentation of health impact from maintenance issues</li>
+      <li>Gap in communication records between months 3 and 4</li>
+    </ul>
+  </div>
+
+  <div class="report-section">
+    <h3>Recommendations</h3>
+    <ul>
+      <li>Send formal repair request letter via certified mail immediately</li>
+      <li>Contact local housing authority to request an inspection</li>
+      <li>Gather additional medical records if health was affected</li>
+      <li>Document all future communications in writing</li>
+    </ul>
+  </div>
+
+  <div class="report-section">
+    <h3>Outcome Prediction</h3>
+    <p class="prediction">Favorable — 75% likelihood of successful resolution</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const btn = document.getElementById('generateBtn');
+  const status = document.getElementById('status');
+  const output = document.getElementById('reportOutput');
+
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    output.style.display = 'none';
+    status.className = 'status working';
+    status.textContent = 'Generating...';
+    setTimeout(() => {
+      status.className = 'status done';
+      status.textContent = 'Report ready';
+      output.style.display = '';
+      btn.disabled = false;
+    }, 2000);
+  });
+</script>
+{% endblock %}

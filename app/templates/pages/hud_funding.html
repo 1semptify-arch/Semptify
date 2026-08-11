@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}HUD Funding - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header { margin-bottom: var(--space-lg); }
+  .page-header h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-header p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+  .filter-bar { display: flex; gap: var(--space-sm); margin-bottom: var(--space-md); flex-wrap: wrap; }
+  .filter-btn { padding: var(--space-xs) var(--space-md); border-radius: var(--radius-sm); background: var(--color-background); color: var(--color-text-primary); font-size: var(--font-size-sm); border: none; cursor: pointer; }
+  .filter-btn.active { background: var(--color-primary); color: var(--color-on-primary); }
+  .status { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-sm); min-height: 1.5em; }
+  .status.working { color: var(--color-warning); }
+  .program { background: var(--color-background); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-sm); }
+  .program h3 { font-size: var(--font-size-base); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .program p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0 0 var(--space-xs) 0; }
+  .program .meta { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+  .program a { color: var(--color-primary); font-size: var(--font-size-sm); text-decoration: none; }
+  .result-count { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-sm); }
+  @media (max-width: 768px) {
+    .panel { padding: var(--space-md); }
+    .filter-bar { flex-direction: column; }
+    .page-header h1 { font-size: var(--font-size-xl); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>HUD Funding Guide</h1>
+  <p>Learn about HUD housing assistance programs.</p>
+</section>
+
+<section class="panel">
+  <div class="filter-bar">
+    <button class="filter-btn active" data-cat="all">All</button>
+    <button class="filter-btn" data-cat="rental">Rental Assistance</button>
+    <button class="filter-btn" data-cat="homelessness">Homelessness</button>
+    <button class="filter-btn" data-cat="repair">Home Repair</button>
+    <button class="filter-btn" data-cat="fair">Fair Housing</button>
+  </div>
+  <div id="status" class="status"></div>
+  <div id="resultCount" class="result-count">7 programs available</div>
+  <div id="programList">
+    <div class="program" data-cat="rental">
+      <h3>Housing Choice Voucher (Section 8)</h3>
+      <p>Rental assistance for low-income families, elderly, and disabled individuals to afford safe housing in the private market.</p>
+      <div class="meta">Eligibility: Low income | <a href="#">How to apply</a></div>
+    </div>
+    <div class="program" data-cat="rental">
+      <h3>Public Housing</h3>
+      <p>Affordable rental housing for eligible low-income families, managed by local housing authorities.</p>
+      <div class="meta">Eligibility: Low income | <a href="#">How to apply</a></div>
+    </div>
+    <div class="program" data-cat="homelessness">
+      <h3>Continuum of Care (CoC)</h3>
+      <p>Community-based programs designed to end homelessness through housing and support services.</p>
+      <div class="meta">Eligibility: Homeless individuals | <a href="#">How to apply</a></div>
+    </div>
+    <div class="program" data-cat="homelessness">
+      <h3>Emergency Solutions Grant (ESG)</h3>
+      <p>Funds for emergency shelter, rapid re-housing, and homelessness prevention activities.</p>
+      <div class="meta">Eligibility: Homeless or at-risk | <a href="#">How to apply</a></div>
+    </div>
+    <div class="program" data-cat="repair">
+      <h3>Title I Property Improvement Loan</h3>
+      <p>Federally insured loans for home repairs, improvements, and accessibility modifications.</p>
+      <div class="meta">Eligibility: Homeowners | <a href="#">How to apply</a></div>
+    </div>
+    <div class="program" data-cat="repair">
+      <h3>Section 203(k) Rehabilitation Mortgage</h3>
+      <p>Financing for both purchase and rehabilitation of a home in a single mortgage.</p>
+      <div class="meta">Eligibility: Homebuyers | <a href="#">How to apply</a></div>
+    </div>
+    <div class="program" data-cat="fair">
+      <h3>Fair Housing Initiatives Program (FHIP)</h3>
+      <p>Programs to prevent and address housing discrimination through education and enforcement.</p>
+      <div class="meta">Eligibility: All | <a href="#">How to apply</a></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const status = document.getElementById('status');
+  const resultCount = document.getElementById('resultCount');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const programs = document.querySelectorAll('.program');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cat = btn.dataset.cat;
+      status.className = 'status working';
+      status.textContent = 'Loading programs...';
+      setTimeout(() => {
+        let visible = 0;
+        programs.forEach(p => {
+          const show = (cat === 'all' || p.dataset.cat === cat);
+          p.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+        resultCount.textContent = visible + ' program' + (visible !== 1 ? 's' : '') + ' available';
+        status.className = 'status';
+        status.textContent = '';
+      }, 500);
+    });
+  });
+</script>
+{% endblock %}

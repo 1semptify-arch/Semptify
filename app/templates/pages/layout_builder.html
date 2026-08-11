@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Layout Builder - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-container {
+    max-width: var(--space-content-max, 960px);
+    margin: 0 auto;
+    padding: var(--space-xl, 2rem) var(--space-md, 1rem);
+  }
+  .page-heading {
+    font-size: var(--font-size-xxl, 2rem);
+    color: var(--color-text-primary, #111);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .page-subheading {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .builder-layout {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: var(--space-md, 1rem);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .palette {
+    background: var(--color-surface-raised, #f7f7f7);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-md, 1rem);
+  }
+  .palette-title {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-sm, 0.75rem);
+  }
+  .palette-item {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-primary, #111);
+    padding: var(--space-xs, 0.5rem);
+    margin-bottom: var(--space-xs, 0.5rem);
+    background: var(--color-surface, #fff);
+    border-radius: var(--radius-sm, 4px);
+    cursor: grab;
+    text-align: center;
+  }
+  .canvas {
+    background: var(--color-surface-raised, #f7f7f7);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-md, 1rem);
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm, 0.75rem);
+  }
+  .drop-zone {
+    background: var(--color-surface, #fff);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-lg, 1.5rem);
+    text-align: center;
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .action-btn {
+    font-size: var(--font-size-md, 1rem);
+    background: var(--color-action, #1a73e8);
+    color: var(--color-text-inverted, #fff);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-sm, 0.75rem) var(--space-lg, 1.5rem);
+    cursor: pointer;
+  }
+  .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .reaction-area {
+    margin-top: var(--space-md, 1rem);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .reaction-working { color: var(--color-action, #1a73e8); }
+  .reaction-done { color: var(--color-success, #2e7d32); }
+  .reaction-error { color: var(--color-danger, #d32f2f); }
+  @media (max-width: 768px) {
+    .page-container { padding: var(--space-md, 1rem); }
+    .page-heading { font-size: var(--font-size-xl, 1.5rem); }
+    .builder-layout { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <h1 class="page-heading">Layout Builder</h1>
+  <p class="page-subheading">Design page layouts visually.</p>
+
+  <div class="builder-layout">
+    <div class="palette">
+      <div class="palette-title">Components</div>
+      <div class="palette-item">Heading</div>
+      <div class="palette-item">Text</div>
+      <div class="palette-item">Button</div>
+      <div class="palette-item">Form</div>
+      <div class="palette-item">List</div>
+    </div>
+    <div class="canvas" id="canvas">
+      <div class="drop-zone">Drag components here</div>
+    </div>
+  </div>
+
+  <button class="action-btn" id="saveBtn" onclick="saveLayout()">Save Layout</button>
+  <div class="reaction-area" id="reactionArea"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function setReaction(state, msg) {
+    var area = document.getElementById('reactionArea');
+    area.className = 'reaction-area reaction-' + state;
+    area.textContent = msg;
+  }
+
+  function saveLayout() {
+    var btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    setReaction('working', 'Saving...');
+    setTimeout(function () {
+      btn.disabled = false;
+      setReaction('done', 'Layout saved.');
+    }, 1200);
+  }
+</script>
+{% endblock %}
