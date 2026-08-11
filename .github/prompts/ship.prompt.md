@@ -15,7 +15,7 @@ Run this at the end of EVERY work session. Do not close the IDE until this compl
 
 ### Step 1 — Compile check all core files
 
-Run: `.\venv311\Scripts\Activate.ps1; python -m py_compile app/main.py app/core/navigation.py app/modules/vault/router.py app/modules/onboarding/router.py app/modules/documents/router.py app/services/vault_upload_service.py; echo "ALL OK"` in cwd repo root.
+Run: `.\venv311\Scripts\Activate.ps1; python -m py_compile app/main.py app/core/navigation.py app/modules/vault/router.py app/modules/onboarding/router.py app/modules/documents/router.py app/services/vault_upload_service.py; echo "ALL OK"` in cwd E:\master-repo\sources\app-semptify-fastapi.
 
 If any file fails to compile, STOP and fix it before proceeding.
 
@@ -29,7 +29,7 @@ Check if a dev server is running on port 8000. If yes, run the Playwright test s
 
 ### Step 3 — Check what is uncommitted
 
-Run: `git status --short` in cwd repo root.
+Run: `git status --short` in cwd E:\master-repo\sources\app-semptify-fastapi.
 
 Review the output with the user. Ask: "Are there any files in this list that should NOT be committed (temp files, test output, secrets)?"
 
@@ -46,7 +46,7 @@ Do NOT stage:
 
 Stage only: `app/`, `static/`, `tests/`, `scripts/`, `alembic/`, and root config files.
 
-Run: `git add app/ static/ tests/ scripts/ alembic/ render.yaml Dockerfile requirements.txt pyproject.toml AGENTS.md BUILD_STATE.md ACTIVE_CONTEXT.md` in cwd repo root.
+Run: `git add app/ static/ tests/ scripts/ alembic/ render.yaml Dockerfile requirements.txt pyproject.toml AGENTS.md BUILD_STATE.md ACTIVE_CONTEXT.md` in cwd E:\master-repo\sources\app-semptify-fastapi.
 
 ---
 
@@ -63,19 +63,19 @@ Write a commit message in this format:
 - <file>: <what changed and why>
 ```
 
-Run: `git commit -m "<message>"` in cwd repo root.
+Run: `git commit -m "<message>"` in cwd E:\master-repo\sources\app-semptify-fastapi.
 
 ---
 
 ### Step 6 — Push to main
 
-Run: `git push origin main` in cwd repo root.
+Run: `git push origin main` in cwd E:\master-repo\sources\app-semptify-fastapi.
 
 ---
 
 ### Step 7 — Confirm pushed
 
-Run: `git log --oneline -3` in cwd repo root.
+Run: `git log --oneline -3` in cwd E:\master-repo\sources\app-semptify-fastapi.
 
 Verify the latest commit hash appears at HEAD. Tell the user:
 "Render is now deploying commit [hash]. Check <https://dashboard.render.com> to watch the deploy log."
@@ -93,7 +93,7 @@ Update `BUILD_STATE.md` with:
 - What the next session should start with
 
 Commit BUILD_STATE.md update separately:
-Run: `git add BUILD_STATE.md && git commit -m "docs: update BUILD_STATE after session ship" && git push origin main` in cwd repo root.
+Run: `git add BUILD_STATE.md && git commit -m "docs: update BUILD_STATE after session ship" && git push origin main` in cwd E:\master-repo\sources\app-semptify-fastapi.
 
 ---
 
