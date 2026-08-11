@@ -15,13 +15,17 @@ interface can later accept real cosine scores without touching callers.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.core.context_envelope import ObjectEnvelope
 from app.modules.context_engine.explanation_entries import (
     ContextExplanationEntry,
     get_explanation_entries,
 )
+
+if TYPE_CHECKING:
+    from app.core.context_envelope import ObjectEnvelope
 
 # Tuning parameter: ADR-0008 §5 #3. With metadata-only scoring this acts as a
 # score floor rather than a cosine threshold. Will be reused by real semantic
@@ -58,7 +62,7 @@ async def retrieve_explanations(
     Returns only results with a metadata score >= LAYER2_CONFIDENCE_THRESHOLD,
     sorted highest-first.
     """
-    candidate_subjects = {tag for tag in obj.subject_tags}
+    candidate_subjects = set(obj.subject_tags)
     if not candidate_subjects:
         return []
 
@@ -125,7 +129,7 @@ def _score_entry(
       - review_status vetted: 0.2
     """
     score = 0.0
-    if entry.subject in {tag for tag in obj.subject_tags}:
+    if entry.subject in set(obj.subject_tags):
         score += 0.4
     if entry.jurisdiction == jurisdiction:
         score += 0.2
