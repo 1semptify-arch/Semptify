@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Court Learning - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .learning-page {
+    max-width: var(--space-content-max, 900px);
+    margin: 0 auto;
+    padding: var(--space-lg, 2rem);
+  }
+  .learning-header {
+    margin-bottom: var(--space-xl, 2.5rem);
+  }
+  .learning-header h1 {
+    font-size: var(--font-size-xl, 2rem);
+    color: var(--color-text-primary, #1a1a1a);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .learning-header p {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-md, 1.5rem);
+  }
+  .topic-card {
+    background: var(--color-surface-alt, #f7f7f7);
+    padding: var(--space-lg, 2rem);
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .topic-card:hover { background: var(--color-surface-hover, #efefef); }
+  .topic-card h3 {
+    font-size: var(--font-size-lg, 1.25rem);
+    color: var(--color-text-primary, #1a1a1a);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .topic-card p {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-sm, 1rem);
+  }
+  .topic-card .start-link {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-accent, #0066cc);
+  }
+  .reaction-working {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm, 1rem);
+    padding: var(--space-md, 1.5rem);
+    color: var(--color-text-secondary, #555);
+    font-size: var(--font-size-md, 1rem);
+  }
+  .reaction-working.active { display: flex; }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 3px solid var(--color-border, #ccc);
+    border-top-color: var(--color-accent, #0066cc);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 768px) {
+    .learning-page { padding: var(--space-md, 1.5rem); }
+    .topics-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="learning-page">
+  <div class="learning-header">
+    <h1>Court Learning</h1>
+    <p>Understand court processes and what to expect.</p>
+  </div>
+
+  <div class="reaction-working" id="lessonWorking">
+    <div class="spinner"></div>
+    <span>Loading lesson...</span>
+  </div>
+
+  <div class="topics-grid" id="topicsGrid">
+    <div class="topic-card" data-topic="eviction">
+      <h3>Eviction Process</h3>
+      <p>Learn each step of the eviction process and your rights at every stage.</p>
+      <span class="start-link">Start learning →</span>
+    </div>
+    <div class="topic-card" data-topic="motions">
+      <h3>Filing Motions</h3>
+      <p>Understand how to file motions and what types are available to you.</p>
+      <span class="start-link">Start learning →</span>
+    </div>
+    <div class="topic-card" data-topic="etiquette">
+      <h3>Court Etiquette</h3>
+      <p>How to behave, dress, and address the judge in a courtroom setting.</p>
+      <span class="start-link">Start learning →</span>
+    </div>
+    <div class="topic-card" data-topic="rights">
+      <h3>Your Rights</h3>
+      <p>Know your rights as a tenant when appearing before the court.</p>
+      <span class="start-link">Start learning →</span>
+    </div>
+    <div class="topic-card" data-topic="evidence">
+      <h3>Evidence Rules</h3>
+      <p>Learn what evidence is admissible and how to present it properly.</p>
+      <span class="start-link">Start learning →</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var cards = document.querySelectorAll('.topic-card');
+  var working = document.getElementById('lessonWorking');
+  cards.forEach(function(card) {
+    card.addEventListener('click', function() {
+      working.classList.add('active');
+      setTimeout(function() {
+        working.classList.remove('active');
+      }, 1000);
+    });
+  });
+</script>
+{% endblock %}
