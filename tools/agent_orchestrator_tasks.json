@@ -1054,11 +1054,11 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/modules/vault/router.py",
-    "status": "pending",
+    "status": "completed",
     "notes": "Depends on todo-063, todo-064.",
     "created_at": "2026-08-10T00:00:00Z",
-    "updated_at": "2026-08-10T00:00:00Z",
-    "assigned_agent": ""
+    "updated_at": "2026-08-11T00:21:37.577313+00:00",
+    "assigned_agent": "Devin"
   },
   {
     "id": "todo-075",

@@ -28,6 +28,7 @@ import hashlib
 import json
 import logging
 from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import JSONResponse
@@ -51,7 +52,12 @@ from app.core.vault_paths import (
     VAULT_CERTIFICATES,
     VAULT_DOCUMENTS,
 )
+from app.core.context_envelope import EncounterContext
 from app.models.models import Incident, VaultItem
+from app.modules.vault.envelopes import (
+    get_vault_upload_page,
+    vault_document_to_object_envelope,
+)
 from app.services.storage import get_provider
 
 # Import vault upload service - central document storage
@@ -109,6 +115,10 @@ class DocumentResponse(BaseModel):
     function_token: str | None = None
     function_token_expires_at: str | None = None
     function_token_reverify_in_seconds: int | None = None
+    object_envelope: dict[str, Any] | None = Field(
+        None,
+        description="ADR-0008 Object Envelope for the uploaded document.",
+    )
 
 
 class DocumentListResponse(BaseModel):
@@ -280,6 +290,7 @@ async def upload_document(
         function_token=function_token["token"],
         function_token_expires_at=function_token["expires_at"],
         function_token_reverify_in_seconds=function_token["reverify_in_seconds"],
+        object_envelope=vault_document_to_object_envelope(vault_doc).model_dump(mode="json"),
     )
 
 
@@ -1714,3 +1725,40 @@ async def export_vault_zip(
             "X-Export-Count": str(len(certificates)),
         },
     )
+
+
+@router.get("/envelope")
+async def vault_upload_envelope(
+    request: Request,
+    user: StorageUser = Depends(yellow_access),
+):
+    """Return the Vault upload Page Envelope resolved for this tenant.
+
+    This is the ADR-0008 §2.1/2.6 pilot wiring on the Vault upload surface.
+    Page actions are resolved using the tenant's Experience Token exposure tally.
+    """
+    from app.core.experience_token import (
+        ExperienceToken,
+        load_experience_token,
+        record_exposure,
+    )
+
+    token = await load_experience_token(user.user_id)
+    exposure_count = token.exposure_tallies.get("vault_upload_page", 0)
+    context = EncounterContext(exposure_count=exposure_count)
+
+    page = await get_vault_upload_page(context)
+
+    # Record this page exposure (pure function; storage write is the caller's
+    # responsibility, so this read endpoint stays side-effect-free).
+    _, updated_token = record_exposure(token, "vault_upload_page")
+
+    return {
+        "success": True,
+        "user_id": user.user_id,
+        "page": page.model_dump(mode="json"),
+        "experience_token": ExperienceToken(
+            exposure_tallies=updated_token.exposure_tallies,
+            intensity_level=updated_token.intensity_level,
+        ).model_dump(mode="json"),
+    }
