@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}Document Calendar - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-container {
+    max-width: var(--space-container, 960px);
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md);
+  }
+
+  .page-header {
+    margin-bottom: var(--space-xl);
+  }
+
+  .page-header h1 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .page-header p {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+
+  .section-label {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+  }
+
+  /* INPUT — navigation + filter */
+  .calendar-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+  }
+
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .nav-btn {
+    background: var(--color-surface-alt, var(--color-background));
+    color: var(--color-text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    width: 40px;
+    height: 40px;
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s ease;
+  }
+
+  .nav-btn:hover {
+    opacity: 0.8;
+  }
+
+  .month-label {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    min-width: 180px;
+    text-align: center;
+  }
+
+  .filter-select {
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-md);
+    font-family: inherit;
+  }
+
+  .filter-select:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  /* REACTION — loading */
+  .reaction-loading {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    background: var(--color-info-bg, var(--color-surface-alt));
+    color: var(--color-info, var(--color-text-secondary));
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  .reaction-loading.active {
+    display: flex;
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* OUTPUT — calendar grid */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--space-xs);
+  }
+
+  .day-header {
+    text-align: center;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    padding: var(--space-xs) 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .day-cell {
+    background: var(--color-background);
+    border-radius: var(--radius-md);
+    min-height: 90px;
+    padding: var(--space-xs) var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .day-cell:hover {
+    background: var(--color-surface-alt, var(--color-surface));
+  }
+
+  .day-cell.empty {
+    background: transparent;
+    cursor: default;
+  }
+
+  .day-cell.empty:hover {
+    background: transparent;
+  }
+
+  .day-cell.today {
+    background: var(--color-accent-bg, var(--color-surface-alt));
+  }
+
+  .day-number {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .day-cell.today .day-number {
+    color: var(--color-accent);
+  }
+
+  .day-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .day-badge {
+    font-size: var(--font-size-xs);
+    padding: 2px var(--space-xs);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .day-badge.deadline {
+    background: var(--color-error-bg, var(--color-surface-alt));
+    color: var(--color-error, var(--color-text-secondary));
+  }
+
+  .day-badge.document {
+    background: var(--color-info-bg, var(--color-surface-alt));
+    color: var(--color-info, var(--color-text-secondary));
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-md);
+  }
+
+  /* Day detail panel */
+  .day-detail {
+    display: none;
+    background: var(--color-background);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-top: var(--space-md);
+  }
+
+  .day-detail.active {
+    display: block;
+  }
+
+  .day-detail h3 {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-sm) 0;
+  }
+
+  .day-detail ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .day-detail li {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+  }
+
+  .day-detail .detail-empty {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  @media (max-width: 768px) {
+    .page-container {
+      padding: var(--space-md) var(--space-sm);
+    }
+
+    .section {
+      padding: var(--space-md);
+    }
+
+    .calendar-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .month-nav {
+      justify-content: space-between;
+    }
+
+    .month-label {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .filter-select {
+      width: 100%;
+    }
+
+    .calendar-grid {
+      gap: 2px;
+    }
+
+    .day-cell {
+      min-height: 60px;
+      padding: 2px;
+    }
+
+    .day-number {
+      font-size: var(--font-size-xs);
+    }
+
+    .day-badge {
+      font-size: 10px;
+      padding: 1px 3px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <!-- INFORMATION -->
+  <header class="page-header">
+    <h1>Document Calendar</h1>
+    <p>View your documents and deadlines on a calendar.</p>
+  </header>
+
+  <section class="section">
+    <!-- INPUT — month navigation + filter -->
+    <div class="calendar-controls">
+      <div class="month-nav">
+        <button type="button" class="nav-btn" id="prev-month" aria-label="Previous month">&lsaquo;</button>
+        <span class="month-label" id="month-label">January 2024</span>
+        <button type="button" class="nav-btn" id="next-month" aria-label="Next month">&rsaquo;</button>
+      </div>
+      <select class="filter-select" id="type-filter">
+        <option value="all">All Types</option>
+        <option value="document">Documents</option>
+        <option value="deadline">Deadlines</option>
+      </select>
+    </div>
+
+    <!-- REACTION — loading state -->
+    <div class="reaction-loading" id="reaction-loading" role="status" aria-live="polite">
+      <span class="spinner"></span>
+      <span>Loading calendar data...</span>
+    </div>
+
+    <!-- OUTPUT — calendar grid -->
+    <div class="calendar-grid" id="day-headers">
+      <div class="day-header">Sun</div>
+      <div class="day-header">Mon</div>
+      <div class="day-header">Tue</div>
+      <div class="day-header">Wed</div>
+      <div class="day-header">Thu</div>
+      <div class="day-header">Fri</div>
+      <div class="day-header">Sat</div>
+    </div>
+    <div class="calendar-grid" id="calendar-grid"></div>
+
+    <div class="empty-state" id="empty-state" style="display:none;">
+      No documents or deadlines for this month.
+    </div>
+
+    <!-- Day detail -->
+    <div class="day-detail" id="day-detail">
+      <h3 id="detail-date"></h3>
+      <ul id="detail-list"></ul>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const monthLabel = document.getElementById('month-label');
+    const prevBtn = document.getElementById('prev-month');
+    const nextBtn = document.getElementById('next-month');
+    const filterSelect = document.getElementById('type-filter');
+    const grid = document.getElementById('calendar-grid');
+    const emptyState = document.getElementById('empty-state');
+    const loading = document.getElementById('reaction-loading');
+    const dayDetail = document.getElementById('day-detail');
+    const detailDate = document.getElementById('detail-date');
+    const detailList = document.getElementById('detail-list');
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    let currentYear = 2024;
+    let currentMonth = 0;
+
+    // Sample data keyed by YYYY-MM-DD
+    const calendarData = {
+      '2024-01-08': [{ type: 'document', label: 'Complaint filed' }],
+      '2024-01-15': [{ type: 'deadline', label: 'Response due' }],
+      '2024-01-22': [{ type: 'document', label: 'Discovery docs' }],
+      '2024-01-29': [{ type: 'deadline', label: 'Hearing prep' }]
+    };
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function dateKey(y, m, d) { return y + '-' + pad(m + 1) + '-' + pad(d); }
+
+    function renderCalendar() {
+      loading.classList.add('active');
+      grid.innerHTML = '';
+      emptyState.style.display = 'none';
+      dayDetail.classList.remove('active');
+
+      setTimeout(function () {
+        loading.classList.remove('active');
+
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const filter = filterSelect.value;
+
+        let hasItems = false;
+
+        // Leading empty cells
+        for (let i = 0; i < firstDay; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'day-cell empty';
+          grid.appendChild(cell);
+        }
+
+        const today = new Date();
+        for (let d = 1; d <= daysInMonth; d++) {
+          const key = dateKey(currentYear, currentMonth, d);
+          const items = calendarData[key] || [];
+          const visible = items.filter(function (it) {
+            return filter === 'all' || it.type === filter;
+          });
+
+          const cell = document.createElement('div');
+          cell.className = 'day-cell';
+          if (today.getFullYear() === currentYear &&
+              today.getMonth() === currentMonth &&
+              today.getDate() === d) {
+            cell.className += ' today';
+          }
+          cell.setAttribute('data-date', key);
+
+          let html = '<span class="day-number">' + d + '</span>';
+          if (visible.length > 0) {
+            hasItems = true;
+            html += '<div class="day-icons">';
+            visible.forEach(function (it) {
+              html += '<span class="day-badge ' + it.type + '">' + it.label + '</span>';
+            });
+            html += '</div>';
+          }
+          cell.innerHTML = html;
+
+          cell.addEventListener('click', function () {
+            showDetail(key, visible);
+          });
+
+          grid.appendChild(cell);
+        }
+
+        if (!hasItems) {
+          emptyState.style.display = '';
+        }
+
+        monthLabel.textContent = monthNames[currentMonth] + ' ' + currentYear;
+      }, 500);
+    }
+
+    function showDetail(key, items) {
+      detailDate.textContent = key;
+      detailList.innerHTML = '';
+      if (items.length === 0) {
+        detailList.innerHTML = '<li class="detail-empty">No documents or deadlines for this day.</li>';
+      } else {
+        items.forEach(function (it) {
+          const li = document.createElement('li');
+          li.textContent = (it.type === 'deadline' ? 'Deadline: ' : 'Document: ') + it.label;
+          detailList.appendChild(li);
+        });
+      }
+      dayDetail.classList.add('active');
+    }
+
+    prevBtn.addEventListener('click', function () {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar();
+    });
+
+    nextBtn.addEventListener('click', function () {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      renderCalendar();
+    });
+
+    filterSelect.addEventListener('change', renderCalendar);
+
+    renderCalendar();
+  })();
+</script>
+{% endblock %}
