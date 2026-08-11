@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+{% block title %}Crisis Intake - Semptify{% endblock %}
+{% block description %}Quick assessment for urgent housing crisis situations{% endblock %}
+
+{% block styles %}
+<style>
+    .crisis-page {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+    }
+
+    /* INFORMATION — urgent context */
+    .crisis-info {
+        margin-bottom: 2rem;
+    }
+    .crisis-info h1 {
+        font-size: var(--font-size-2xl);
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+    }
+    .crisis-info p {
+        color: var(--color-text-secondary);
+        margin: 0;
+    }
+
+    /* Emergency resources — shown first (highest priority) */
+    .emergency-resources {
+        padding: 1.25rem;
+        background: rgba(239, 68, 68, 0.08);
+        border-radius: var(--radius-lg);
+        margin-bottom: 2rem;
+    }
+    .emergency-resources h2 {
+        font-size: var(--font-size-lg);
+        font-weight: 600;
+        margin: 0 0 0.75rem;
+    }
+    .emergency-resources ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 0.5rem;
+    }
+    .emergency-resources li {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-secondary);
+    }
+    .emergency-resources a {
+        color: var(--color-accent);
+        font-weight: 500;
+    }
+
+    /* Steps — chronological order, one visible at a time */
+    .crisis-steps {
+        margin-bottom: 2rem;
+    }
+
+    .crisis-step {
+        display: none;
+    }
+    .crisis-step--active { display: block; }
+
+    .crisis-step__number {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0 0 0.5rem;
+    }
+
+    .crisis-step__question {
+        font-size: var(--font-size-xl);
+        font-weight: 600;
+        margin: 0 0 1.25rem;
+    }
+
+    /* INPUT — choice buttons */
+    .crisis-choices {
+        display: grid;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .crisis-choice {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: var(--color-bg-card);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        text-align: left;
+        width: 100%;
+        font-family: inherit;
+        font-size: inherit;
+        color: inherit;
+    }
+
+    .crisis-choice:hover {
+        background: var(--color-bg-hover);
+    }
+
+    .crisis-choice--selected {
+        background: rgba(59, 130, 246, 0.08);
+    }
+
+    .crisis-choice__label { font-size: var(--font-size-base); }
+
+    /* Text input */
+    .crisis-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: var(--radius-md);
+        color: var(--color-text-primary);
+        font-size: var(--font-size-base);
+        font-family: inherit;
+        margin-bottom: 1.5rem;
+    }
+
+    .crisis-input:focus {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 1px;
+    }
+
+    /* ACTION — navigation */
+    .crisis-nav {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: space-between;
+    }
+
+    .crisis-nav__back {
+        visibility: hidden;
+    }
+    .crisis-nav__back--visible { visibility: visible; }
+
+    /* REACTION — working state */
+    .crisis-reaction {
+        min-height: 2rem;
+        font-size: var(--font-size-sm);
+        color: var(--color-text-secondary);
+        margin-top: 1rem;
+    }
+
+    .crisis-reaction[data-state="working"] .crisis-reaction__spinner { display: inline-block; }
+    .crisis-reaction[data-state="idle"] .crisis-reaction__spinner { display: none; }
+
+    .crisis-reaction__spinner {
+        display: none;
+        width: 16px; height: 16px;
+        border: 2px solid var(--color-border);
+        border-top-color: var(--color-accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+
+    /* OUTPUT — personalized plan */
+    .crisis-output {
+        display: none;
+    }
+    .crisis-output--visible { display: block; }
+
+    .crisis-output h2 {
+        font-size: var(--font-size-xl);
+        font-weight: 600;
+        margin: 0 0 1rem;
+    }
+
+    .crisis-output__plan {
+        display: grid;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .crisis-output__item {
+        padding: 1rem 1.25rem;
+        background: var(--color-bg-card);
+        border-radius: var(--radius-md);
+    }
+    .crisis-output__item strong { font-weight: 600; }
+    .crisis-output__item p { margin: 0.25rem 0 0; color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+
+    .crisis-output__actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    /* Progress indicator */
+    .crisis-progress {
+        display: flex;
+        gap: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .crisis-progress__dot {
+        width: 24px; height: 4px;
+        border-radius: 2px;
+        background: var(--color-border);
+        transition: background var(--transition-fast);
+    }
+    .crisis-progress__dot--done { background: var(--color-success); }
+    .crisis-progress__dot--active { background: var(--color-accent); }
+
+    @media (max-width: 768px) {
+        .crisis-page { padding: 1rem 0.75rem 3rem; }
+        .crisis-choice { padding: 0.875rem 1rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="crisis-page">
+
+    <!-- INFORMATION: what/why/expect -->
+    <section class="crisis-info">
+        <h1>Crisis Intake</h1>
+        <p>Quick 5-step assessment to direct you to the right help. No account needed — your answers stay on this device.</p>
+    </section>
+
+    <!-- Emergency resources — top priority, always visible -->
+    <section class="emergency-resources">
+        <h2>Immediate Help</h2>
+        <ul>
+            <li>211 Hotline: <a href="tel:211">Call 211</a> — free, 24/7 housing crisis help</li>
+            <li>HOME Line: <a href="tel:6127285767">612-728-5767</a> — Minnesota tenant rights hotline</li>
+            <li>Emergency: <a href="tel:911">Call 911</a> — if you're in immediate danger</li>
+        </ul>
+    </section>
+
+    <!-- Progress indicator -->
+    <div class="crisis-progress" id="progress">
+        <span class="crisis-progress__dot" data-step="1"></span>
+        <span class="crisis-progress__dot" data-step="2"></span>
+        <span class="crisis-progress__dot" data-step="3"></span>
+        <span class="crisis-progress__dot" data-step="4"></span>
+        <span class="crisis-progress__dot" data-step="5"></span>
+    </div>
+
+    <!-- Steps — chronological, one at a time -->
+    <div class="crisis-steps">
+
+        <!-- Step 1: What's happening -->
+        <div class="crisis-step crisis-step--active" id="step-1">
+            <p class="crisis-step__number">Step 1 of 5</p>
+            <h2 class="crisis-step__question">What's happening?</h2>
+            <div class="crisis-choices">
+                <button class="crisis-choice" onclick="selectChoice(this, 1, 'eviction')"><span class="crisis-choice__label">Eviction notice or threat</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 1, 'repairs')"><span class="crisis-choice__label">Landlord won't fix things</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 1, 'deposit')"><span class="crisis-choice__label">Security deposit dispute</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 1, 'lease')"><span class="crisis-choice__label">Lease termination or non-renewal</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 1, 'other')"><span class="crisis-choice__label">Something else</span></button>
+            </div>
+        </div>
+
+        <!-- Step 2: How urgent -->
+        <div class="crisis-step" id="step-2">
+            <p class="crisis-step__number">Step 2 of 5</p>
+            <h2 class="crisis-step__question">How urgent is this?</h2>
+            <div class="crisis-choices">
+                <button class="crisis-choice" onclick="selectChoice(this, 2, 'critical')"><span class="crisis-choice__label">Critical — court date within days</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 2, 'urgent')"><span class="crisis-choice__label">Urgent — need help this week</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 2, 'soon')"><span class="crisis-choice__label">Soon — within the next month</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 2, 'planning')"><span class="crisis-choice__label">Planning ahead — no immediate deadline</span></button>
+            </div>
+        </div>
+
+        <!-- Step 3: Court date -->
+        <div class="crisis-step" id="step-3">
+            <p class="crisis-step__number">Step 3 of 5</p>
+            <h2 class="crisis-step__question">Do you have a court date?</h2>
+            <div class="crisis-choices">
+                <button class="crisis-choice" onclick="selectChoice(this, 3, 'yes')"><span class="crisis-choice__label">Yes, I have a court date</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 3, 'no')"><span class="crisis-choice__label">No court date yet</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 3, 'unsure')"><span class="crisis-choice__label">I'm not sure</span></button>
+            </div>
+        </div>
+
+        <!-- Step 4: Documents -->
+        <div class="crisis-step" id="step-4">
+            <p class="crisis-step__number">Step 4 of 5</p>
+            <h2 class="crisis-step__question">What documents do you have?</h2>
+            <div class="crisis-choices">
+                <button class="crisis-choice" onclick="selectChoice(this, 4, 'lease')"><span class="crisis-choice__label">Lease agreement</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 4, 'notices')"><span class="crisis-choice__label">Eviction notice or court papers</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 4, 'communications')"><span class="crisis-choice__label">Texts/emails with landlord</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 4, 'none')"><span class="crisis-choice__label">No documents yet</span></button>
+            </div>
+        </div>
+
+        <!-- Step 5: Generating plan -->
+        <div class="crisis-step" id="step-5">
+            <p class="crisis-step__number">Step 5 of 5</p>
+            <h2 class="crisis-step__question">Building your plan...</h2>
+            <div class="crisis-reaction" id="reaction" data-state="working">
+                <span class="crisis-reaction__spinner"></span>
+                Analyzing your situation...
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="crisis-nav" id="nav">
+        <button class="btn btn--secondary crisis-nav__back" id="back-btn" onclick="goBack()">Back</button>
+        <button class="btn btn--primary" id="next-btn" onclick="goNext()" disabled>Next</button>
+    </div>
+
+    <!-- OUTPUT: personalized plan -->
+    <div class="crisis-output" id="output">
+        <h2>Your Action Plan</h2>
+        <div class="crisis-output__plan" id="plan-items"></div>
+        <div class="crisis-output__actions">
+            <a href="/journey" class="btn btn--primary">Start Your Journey</a>
+            <a href="/library" class="btn btn--secondary">Learn Your Rights</a>
+            <a href="/help" class="btn btn--secondary">Get More Help</a>
+        </div>
+    </div>
+
+</div>
+
+{% block scripts %}
+<script>
+    let currentStep = 1;
+    const answers = {};
+
+    function selectChoice(btn, step, value) {
+        // Mark selected
+        document.querySelectorAll(`#step-${step} .crisis-choice`).forEach(c => c.classList.remove('crisis-choice--selected'));
+        btn.classList.add('crisis-choice--selected');
+        answers[step] = value;
+        document.getElementById('next-btn').disabled = false;
+    }
+
+    function updateProgress() {
+        document.querySelectorAll('.crisis-progress__dot').forEach(dot => {
+            const step = parseInt(dot.dataset.step);
+            dot.classList.remove('crisis-progress__dot--done', 'crisis-progress__dot--active');
+            if (step < currentStep) dot.classList.add('crisis-progress__dot--done');
+            else if (step === currentStep) dot.classList.add('crisis-progress__dot--active');
+        });
+    }
+
+    function goNext() {
+        if (currentStep < 5) {
+            document.getElementById(`step-${currentStep}`).classList.remove('crisis-step--active');
+            currentStep++;
+            document.getElementById(`step-${currentStep}`).classList.add('crisis-step--active');
+            document.getElementById('next-btn').disabled = true;
+            document.getElementById('back-btn').classList.add('crisis-nav__back--visible');
+            updateProgress();
+
+            if (currentStep === 5) {
+                document.getElementById('nav').style.display = 'none';
+                setTimeout(() => generatePlan(), 1500);
+            }
+        }
+    }
+
+    function goBack() {
+        if (currentStep > 1) {
+            document.getElementById(`step-${currentStep}`).classList.remove('crisis-step--active');
+            currentStep--;
+            document.getElementById(`step-${currentStep}`).classList.add('crisis-step--active');
+            document.getElementById('next-btn').disabled = false;
+            if (currentStep === 1) document.getElementById('back-btn').classList.remove('crisis-nav__back--visible');
+            updateProgress();
+        }
+    }
+
+    function generatePlan() {
+        const situation = answers[1] || 'other';
+        const urgency = answers[2] || 'soon';
+        const court = answers[3] || 'no';
+        const docs = answers[4] || 'none';
+
+        const plans = [];
+
+        // Court-related
+        if (court === 'yes') {
+            plans.push({ title: 'Prepare for court', desc: 'Gather your documents and review eviction defense options. Check your court date and arrive early.' });
+        }
+
+        // Situation-specific
+        if (situation === 'eviction') {
+            plans.push({ title: 'Review eviction defense', desc: 'Use the Eviction Answer tool to draft your response. You have rights even if you received a notice.' });
+        } else if (situation === 'repairs') {
+            plans.push({ title: 'Document repair requests', desc: 'Take photos, write to your landlord, and keep records. Use the Timeline to track everything.' });
+        } else if (situation === 'deposit') {
+            plans.push({ title: 'Review deposit laws', desc: 'Check your state\'s security deposit laws in the Law Library. You may be entitled to damages.' });
+        }
+
+        // Urgency
+        if (urgency === 'critical') {
+            plans.push({ title: 'Call for immediate help', desc: 'Call HOME Line at 612-728-5767 right now. Free legal advice for Minnesota tenants.' });
+        }
+
+        // Documents
+        if (docs === 'none') {
+            plans.push({ title: 'Gather your documents', desc: 'Find your lease, any notices, and communications with your landlord. Upload them to your Vault.' });
+        } else {
+            plans.push({ title: 'Organize your documents', desc: 'Upload your documents to the Vault so they\'re ready when you need them.' });
+        }
+
+        // Always: learn rights
+        plans.push({ title: 'Know your rights', desc: 'Visit the Law Library to understand your tenant rights in your state.' });
+
+        // Render
+        const container = document.getElementById('plan-items');
+        container.innerHTML = plans.map(p => `
+            <div class="crisis-output__item">
+                <strong>${p.title}</strong>
+                <p>${p.desc}</p>
+            </div>
+        `).join('');
+
+        // Show output
+        document.getElementById('step-5').classList.remove('crisis-step--active');
+        document.getElementById('output').classList.add('crisis-output--visible');
+        updateProgress();
+        document.querySelectorAll('.crisis-progress__dot').forEach(d => d.classList.add('crisis-progress__dot--done'));
+    }
+</script>
+{% endblock %}
+{% endblock %}
