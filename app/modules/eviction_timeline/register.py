@@ -76,3 +76,25 @@ register_function_group(
         allowed_prefixes=("/api/eviction-timeline",),
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="eviction_timeline",
+        group_name="eviction_timeline_envelope",
+        title="Eviction Timeline Page + Object Envelopes (SSOT)",
+        description=(
+            "CANONICAL ADR-0008 §2.1/2.6 wiring for the Eviction Timeline page. "
+            "Returns the Page Envelope with resolved page actions for this tenant."
+        ),
+        inputs=("user_id", "request"),
+        outputs=("page_envelope", "experience_token_snapshot"),
+        dependencies=(
+            "app.modules.eviction_timeline.envelopes",
+            "app.modules.eviction_timeline.router",
+        ),
+        deterministic=True,
+        tier="T2",
+        allowed_routes=("/api/eviction-timeline/envelope",),
+        allowed_prefixes=("/api/eviction-timeline",),
+    )
+)

@@ -18,7 +18,9 @@ from app.core.security import UserContext, require_tier
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
 from app.core.utc import utc_now
+from app.core.context_envelope import EncounterContext
 from app.models.models import EvictionTimelineEvent
+from app.modules.eviction_timeline.envelopes import get_eviction_timeline_page
 from app.services.emotion_engine import get_momentum_checkpoint
 
 if TYPE_CHECKING:
@@ -138,4 +140,44 @@ async def eviction_momentum_checkpoint(
         "trigger": trigger,
         "message": message,
         "suppressed": message is None,
+    }
+
+
+@router.get("/envelope")
+async def eviction_timeline_envelope(
+    request: Request,
+    user: UserContext = Depends(require_tier("T2")),
+):
+    """Return the Eviction Timeline Page Envelope resolved for this tenant.
+
+    This is the ADR-0008 §2.1/2.6 pilot wiring on the Eviction Timeline surface.
+    The page actions are resolved per-tenant using the Experience Token exposure
+    tally when available.
+    """
+    from app.core.experience_token import (
+        ExperienceToken,
+        load_experience_token,
+        record_exposure,
+    )
+
+    # Build an encounter context from the tenant's Experience Token if one exists.
+    token = await load_experience_token(user.user_id)
+    exposure_count = token.exposure_tallies.get("eviction_timeline_page", 0)
+    context = EncounterContext(exposure_count=exposure_count)
+
+    page = await get_eviction_timeline_page(context)
+
+    # Record this page exposure so the next encounter can taper content.
+    # record_exposure is a pure function; we return the updated copy but do not
+    # write storage from a read endpoint, keeping the page load side-effect-free.
+    _, updated_token = record_exposure(token, "eviction_timeline_page")
+
+    return {
+        "success": True,
+        "user_id": user.user_id,
+        "page": page.model_dump(mode="json"),
+        "experience_token": ExperienceToken(
+            exposure_tallies=updated_token.exposure_tallies,
+            intensity_level=updated_token.intensity_level,
+        ).model_dump(mode="json"),
     }
