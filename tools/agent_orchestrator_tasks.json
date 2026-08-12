@@ -1115,5 +1115,19 @@
     "created_at": "2026-08-10T00:00:00Z",
     "updated_at": "2026-08-10T20:10:58.048559+00:00",
     "assigned_agent": ""
+  },
+  {
+    "id": "todo-079",
+    "title": "Clean up scripts/filedored.py and its script catalog entries",
+    "description": "Remove scripts/filedored.py from the repo and remove its entries from static/admin/script_catalog.html and static/data/script_catalog.json. The script is duplicated by .devin/workflows/filedored_semptify_folder_and_filer.py, but the catalog still lists scripts/filedored.py as an available command.",
+    "category": "refactor",
+    "target_model": "swe-1.7",
+    "priority": "low",
+    "file_path": "scripts/filedored.py; static/admin/script_catalog.html; static/data/script_catalog.json",
+    "status": "pending",
+    "notes": "Follow-up from Phase C Other-bucket quick win. Deleting the script without updating the catalog would leave a broken admin script catalog entry. Not urgent, but should be resolved before final platform cleanup.",
+    "created_at": "2026-08-12T05:40:00Z",
+    "updated_at": "2026-08-12T05:40:00Z",
+    "assigned_agent": ""
   }
 ]
