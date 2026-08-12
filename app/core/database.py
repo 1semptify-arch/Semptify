@@ -16,7 +16,7 @@ try:
         create_async_engine,
     )
     from sqlalchemy.orm import DeclarativeBase
-    from sqlalchemy.pool import AsyncAdaptedQueuePool, NullPool
+    from sqlalchemy.pool import AsyncAdaptedQueuePool, NullPool, StaticPool
 
     SQLALCHEMY_AVAILABLE = True
 except ImportError:
@@ -26,6 +26,7 @@ except ImportError:
     DeclarativeBase = object
     NullPool = None
     AsyncAdaptedQueuePool = None
+    StaticPool = None
     SQLALCHEMY_AVAILABLE = False
 
 from app.core.config import get_settings
@@ -60,11 +61,19 @@ def get_engine():
         # Connection pool configuration
         pool_config = {}
         if is_sqlite:
-            # SQLite: disable pooling, use check_same_thread=False
-            pool_config = {
-                "poolclass": NullPool,
-                "connect_args": {"check_same_thread": False},
-            }
+            # SQLite: disable pooling for file DBs (they cannot share connections
+            # across threads/processes) and use a single StaticPool for in-memory
+            # DBs so the same :memory: instance is reused across checkouts.
+            if ":memory:" in settings.database_url:
+                pool_config = {
+                    "poolclass": StaticPool,
+                    "connect_args": {"check_same_thread": False},
+                }
+            else:
+                pool_config = {
+                    "poolclass": NullPool,
+                    "connect_args": {"check_same_thread": False},
+                }
         else:
             # PostgreSQL: use async-compatible connection pooling
             # Auto-detect localhost (no SSL) vs production (SSL required)
@@ -77,7 +86,7 @@ def get_engine():
                 "pool_timeout": 30,  # Seconds to wait for connection
                 "pool_recycle": 1800,  # Recycle connections after 30 min
                 "pool_pre_ping": True,  # Verify connections before use
-                "connect_args": {"ssl": not is_localhost},
+                "connect_args": {"ssl": False if is_localhost else True},
             }
 
         _engine = create_async_engine(

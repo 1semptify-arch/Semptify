@@ -101,7 +101,7 @@ class NavigationRegistry:
             requires_checkpoint=True,
         ),
         # NOTE: /storage/providers is the RECONNECT entry point (returning users)
-        # Onboarding flow goes directly: providers → vault_setup → home
+        # Onboarding flow goes directly: providers ▸ vault_setup ▸ home
         "providers": FlowStage(
             id="providers",
             name="Storage Providers (Reconnect)",
@@ -153,6 +153,66 @@ class NavigationRegistry:
         ),
         "law_library": FlowStage(
             id="law_library", name="Law Library", path="/law-library", next_stage=None, requires_checkpoint=False
+        ),
+        # --- Tenant product pages (SSOT) ---
+        # These stages eliminate hardcoded URL strings from ssot_redirect() callers in main.py.
+        "onboarding_start": FlowStage(
+            id="onboarding_start",
+            name="Onboarding Start",
+            path="/onboarding/start",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "tenant_timeline": FlowStage(
+            id="tenant_timeline",
+            name="Timeline",
+            path="/tenant/timeline",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "tenant_dashboard": FlowStage(
+            id="tenant_dashboard",
+            name="Tenant Dashboard",
+            path="/tenant/dashboard",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "tenant_home_page": FlowStage(
+            id="tenant_home_page",
+            name="Tenant Home Page",
+            path="/tenant/home",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "tenant_library": FlowStage(
+            id="tenant_library",
+            name="Tenant Library (KNOW pillar)",
+            path="/tenant/library",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "documents": FlowStage(
+            id="documents",
+            name="Documents",
+            path="/documents",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        # --- Module root redirect targets (Post-Redirect-Get) ---
+        # Used by module routers after a POST operation to redirect back to the module's GET view.
+        "dispute_tracker_home": FlowStage(
+            id="dispute_tracker_home",
+            name="Dispute Tracker",
+            path="/api/dispute-tracker/",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "eviction_timeline_home": FlowStage(
+            id="eviction_timeline_home",
+            name="Eviction Timeline",
+            path="/api/eviction-timeline/",
+            next_stage=None,
+            requires_checkpoint=False,
         ),
     }
 
@@ -261,6 +321,13 @@ class NavigationRegistry:
             name="Advanced / Dev Tools",
             path="/admin/advanced",
             next_stage="admin_forge",
+            requires_checkpoint=False,
+        ),
+        "admin_page_editor": FlowStage(
+            id="admin_page_editor",
+            name="Page Editor",
+            path="/admin/page-editor.html",
+            next_stage=None,
             requires_checkpoint=False,
         ),
     }
