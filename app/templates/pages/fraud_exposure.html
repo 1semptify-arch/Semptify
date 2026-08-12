@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Fraud Exposure - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header { margin-bottom: var(--space-lg); }
+  .page-header h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-header p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+  .section { background: var(--color-surface); border-radius: var(--radius-md); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+  .question { padding: var(--space-md) 0; border-bottom: 1px solid var(--color-border); }
+  .question:last-child { border-bottom: none; }
+  .question-text { font-size: var(--font-size-base); color: var(--color-text-primary); margin-bottom: var(--space-sm); }
+  .yesno { display: flex; gap: var(--space-sm); }
+  .yesno label { display: flex; align-items: center; gap: var(--space-xs); font-size: var(--font-size-sm); color: var(--color-text-secondary); cursor: pointer; }
+  .btn { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); font-size: var(--font-size-sm); border: none; cursor: pointer; font-weight: 600; }
+  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .reaction { margin-top: var(--space-md); font-size: var(--font-size-sm); padding: var(--space-md); border-radius: var(--radius-sm); text-align: center; }
+  .reaction.working { background: var(--color-surface-alt); color: var(--color-text-secondary); }
+  .reaction.hidden { display: none; }
+  .result { margin-top: var(--space-lg); }
+  .risk-level { font-size: var(--font-size-lg); font-weight: 700; padding: var(--space-md); border-radius: var(--radius-sm); text-align: center; margin-bottom: var(--space-md); }
+  .risk-low { background: var(--color-success-bg); color: var(--color-success); }
+  .risk-medium { background: var(--color-warning-bg); color: var(--color-warning); }
+  .risk-high { background: var(--color-error-bg); color: var(--color-error); }
+  .recommendations { list-style: none; padding: 0; margin: 0; }
+  .recommendations li { padding: var(--space-sm) 0; font-size: var(--font-size-sm); color: var(--color-text-primary); border-bottom: 1px solid var(--color-border); }
+  .recommendations li:last-child { border-bottom: none; }
+  @media (max-width: 768px) {
+    .section { padding: var(--space-md); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Fraud Exposure Assessment</h1>
+  <p>Check if you've been exposed to common housing fraud schemes.</p>
+</div>
+
+<div class="section">
+  <div class="question">
+    <div class="question-text">1. Did you pay a deposit before seeing the property in person?</div>
+    <div class="yesno">
+      <label><input type="radio" name="q1" value="yes"> Yes</label>
+      <label><input type="radio" name="q1" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-text">2. Was the listing price significantly below market rate?</div>
+    <div class="yesno">
+      <label><input type="radio" name="q2" value="yes"> Yes</label>
+      <label><input type="radio" name="q2" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-text">3. Were you asked to wire money or use gift cards for payment?</div>
+    <div class="yesno">
+      <label><input type="radio" name="q3" value="yes"> Yes</label>
+      <label><input type="radio" name="q3" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-text">4. Did the landlord refuse to provide a written lease agreement?</div>
+    <div class="yesno">
+      <label><input type="radio" name="q4" value="yes"> Yes</label>
+      <label><input type="radio" name="q4" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-text">5. Were you asked to share your Social Security Number over email or text?</div>
+    <div class="yesno">
+      <label><input type="radio" name="q5" value="yes"> Yes</label>
+      <label><input type="radio" name="q5" value="no"> No</label>
+    </div>
+  </div>
+  <div class="question">
+    <div class="question-text">6. Did the property owner change or seem different from the listing contact?</div>
+    <div class="yesno">
+      <label><input type="radio" name="q6" value="yes"> Yes</label>
+      <label><input type="radio" name="q6" value="no"> No</label>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" id="assessBtn" onclick="assessRisk()">Assess Risk</button>
+  <div class="reaction working hidden" id="reactionWorking">Analyzing...</div>
+  <div class="result" id="resultArea" style="display:none">
+    <div class="risk-level" id="riskLevel"></div>
+    <ul class="recommendations" id="recommendations"></ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function assessRisk() {
+    const btn = document.getElementById('assessBtn');
+    const working = document.getElementById('reactionWorking');
+    const result = document.getElementById('resultArea');
+    btn.disabled = true;
+    working.classList.remove('hidden');
+    result.style.display = 'none';
+    const data = { answers: {} };
+    for (let i = 1; i <= 6; i++) {
+      const sel = document.querySelector('input[name="q' + i + '"]:checked');
+      data.answers['q' + i] = sel ? sel.value : 'no';
+    }
+    fetch('/fraud-exposure/assess', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+    }).then(r => r.json()).then(res => {
+      working.classList.add('hidden');
+      btn.disabled = false;
+      const level = document.getElementById('riskLevel');
+      level.textContent = 'Risk Level: ' + res.risk_level;
+      level.className = 'risk-level risk-' + res.risk_level.toLowerCase();
+      const recs = document.getElementById('recommendations');
+      recs.innerHTML = '';
+      res.recommendations.forEach(rec => {
+        const li = document.createElement('li');
+        li.textContent = rec;
+        recs.appendChild(li);
+      });
+      result.style.display = 'block';
+    }).catch(() => { working.classList.add('hidden'); btn.disabled = false; });
+  }
+</script>
+{% endblock %}

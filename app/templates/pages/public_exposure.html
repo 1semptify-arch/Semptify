@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Public Exposure - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-container {
+    max-width: var(--space-content-max, 960px);
+    margin: 0 auto;
+    padding: var(--space-xl, 2rem) var(--space-md, 1rem);
+  }
+  .page-heading {
+    font-size: var(--font-size-xxl, 2rem);
+    color: var(--color-text-primary, #111);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .page-subheading {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .exposure-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm, 0.75rem);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .exposure-item {
+    background: var(--color-surface-raised, #f7f7f7);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-md, 1rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .exposure-item-label {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-primary, #111);
+  }
+  .exposure-badge {
+    font-size: var(--font-size-xs, 0.75rem);
+    padding: var(--space-xxs, 0.25rem) var(--space-sm, 0.75rem);
+    border-radius: var(--radius-pill, 999px);
+    color: var(--color-text-inverted, #fff);
+  }
+  .badge-high { background: var(--color-danger, #d32f2f); }
+  .badge-medium { background: var(--color-warning, #f9a825); }
+  .badge-low { background: var(--color-success, #2e7d32); }
+  .action-btn {
+    font-size: var(--font-size-md, 1rem);
+    background: var(--color-action, #1a73e8);
+    color: var(--color-text-inverted, #fff);
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-sm, 0.75rem) var(--space-lg, 1.5rem);
+    cursor: pointer;
+  }
+  .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .reaction-area {
+    margin-top: var(--space-lg, 1.5rem);
+    min-height: var(--space-xl, 2rem);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .reaction-working { color: var(--color-action, #1a73e8); }
+  .reaction-done { color: var(--color-success, #2e7d32); }
+  .reaction-error { color: var(--color-danger, #d32f2f); }
+  @media (max-width: 768px) {
+    .page-container { padding: var(--space-md, 1rem); }
+    .page-heading { font-size: var(--font-size-xl, 1.5rem); }
+    .exposure-item { flex-direction: column; align-items: flex-start; gap: var(--space-xs, 0.5rem); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <h1 class="page-heading">Public Exposure Check</h1>
+  <p class="page-subheading">See what personal information is publicly visible.</p>
+
+  <div class="exposure-list" id="exposureList">
+    <div class="exposure-item">
+      <span class="exposure-item-label">Home Address</span>
+      <span class="exposure-badge badge-high">High</span>
+    </div>
+    <div class="exposure-item">
+      <span class="exposure-item-label">Phone Number</span>
+      <span class="exposure-badge badge-medium">Medium</span>
+    </div>
+    <div class="exposure-item">
+      <span class="exposure-item-label">Email Address</span>
+      <span class="exposure-badge badge-medium">Medium</span>
+    </div>
+    <div class="exposure-item">
+      <span class="exposure-item-label">Court Records</span>
+      <span class="exposure-badge badge-high">High</span>
+    </div>
+  </div>
+
+  <button class="action-btn" id="runCheckBtn" onclick="runCheck()">Run Check</button>
+
+  <div class="reaction-area" id="reactionArea"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function setReaction(state, msg) {
+    var area = document.getElementById('reactionArea');
+    area.className = 'reaction-area reaction-' + state;
+    area.textContent = msg;
+  }
+
+  function runCheck() {
+    var btn = document.getElementById('runCheckBtn');
+    btn.disabled = true;
+    setReaction('working', 'Checking...');
+    setTimeout(function () {
+      btn.disabled = false;
+      setReaction('done', 'Check complete. 4 items reviewed.');
+    }, 1800);
+  }
+</script>
+{% endblock %}
