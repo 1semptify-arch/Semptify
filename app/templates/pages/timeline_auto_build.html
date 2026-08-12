@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+
+{% block title %}Timeline Auto-Build - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-container {
+    max-width: var(--space-container, 960px);
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md);
+  }
+
+  .page-header {
+    margin-bottom: var(--space-xl);
+  }
+
+  .page-header h1 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .page-header p {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+
+  .section-label {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+  }
+
+  .doc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: var(--color-background);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+  }
+
+  .doc-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-accent);
+    cursor: pointer;
+  }
+
+  .doc-item span {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+  }
+
+  .doc-item .doc-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin-left: auto;
+  }
+
+  .btn {
+    background: var(--color-accent);
+    color: var(--color-text-on-accent, #ffffff);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--font-size-md);
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  .btn:hover {
+    opacity: 0.88;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    background: var(--color-surface-alt, var(--color-surface));
+    color: var(--color-text-primary);
+  }
+
+  /* REACTION — progress steps */
+  .progress-wrap {
+    margin-top: var(--space-lg);
+  }
+
+  .progress-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .progress-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    background: var(--color-background);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .progress-step.active {
+    background: var(--color-info-bg, var(--color-surface-alt));
+    color: var(--color-info, var(--color-text-primary));
+    font-weight: 600;
+  }
+
+  .progress-step.done {
+    color: var(--color-success, var(--color-text-primary));
+  }
+
+  .progress-step.error {
+    background: var(--color-error-bg, var(--color-surface-alt));
+    color: var(--color-error, var(--color-text-primary));
+  }
+
+  .step-icon {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .step-icon .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .step-check::after {
+    content: '\2713';
+    font-weight: 700;
+  }
+
+  .reaction-idle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  /* OUTPUT — extracted events */
+  .events-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .event-item {
+    background: var(--color-background);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    display: grid;
+    grid-template-columns: 140px 1fr auto;
+    gap: var(--space-md);
+    align-items: start;
+  }
+
+  .event-date {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+
+  .event-title {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .event-source {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .event-category {
+    display: inline-block;
+    font-size: var(--font-size-xs);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+  }
+
+  .review-link {
+    display: inline-block;
+    margin-top: var(--space-md);
+    font-size: var(--font-size-md);
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .review-link:hover {
+    text-decoration: underline;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-md);
+  }
+
+  @media (max-width: 768px) {
+    .page-container {
+      padding: var(--space-md) var(--space-sm);
+    }
+
+    .section {
+      padding: var(--space-md);
+    }
+
+    .event-item {
+      grid-template-columns: 1fr;
+      gap: var(--space-xs);
+    }
+
+    .doc-item {
+      flex-wrap: wrap;
+    }
+
+    .doc-item .doc-meta {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <!-- INFORMATION -->
+  <header class="page-header">
+    <h1>Timeline Auto-Build</h1>
+    <p>We'll scan your uploaded documents and extract dates automatically.</p>
+  </header>
+
+  <!-- INPUT -->
+  <section class="section">
+    <div class="section-label">Select Documents</div>
+    <ul class="doc-list" id="doc-list">
+      <li class="doc-item">
+        <input type="checkbox" id="doc-1" name="documents" value="complaint.pdf">
+        <span>complaint.pdf</span>
+        <span class="doc-meta">Uploaded 2024-06-12</span>
+      </li>
+      <li class="doc-item">
+        <input type="checkbox" id="doc-2" name="documents" value="discovery_bundle.zip">
+        <span>discovery_bundle.zip</span>
+        <span class="doc-meta">Uploaded 2024-06-15</span>
+      </li>
+      <li class="doc-item">
+        <input type="checkbox" id="doc-3" name="documents" value="correspondence.eml">
+        <span>correspondence.eml</span>
+        <span class="doc-meta">Uploaded 2024-06-20</span>
+      </li>
+      <li class="doc-item">
+        <input type="checkbox" id="doc-4" name="documents" value="contract_signed.pdf">
+        <span>contract_signed.pdf</span>
+        <span class="doc-meta">Uploaded 2024-07-01</span>
+      </li>
+    </ul>
+
+    <!-- ACTION -->
+    <div style="margin-top: var(--space-lg);">
+      <button type="button" class="btn" id="start-btn">Start Auto-Build</button>
+    </div>
+
+    <!-- REACTION -->
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="reaction-idle" id="reaction-idle">Select documents and click "Start Auto-Build" to begin.</div>
+      <ul class="progress-steps" id="progress-steps" style="display:none;">
+        <li class="progress-step" data-step="0">
+          <span class="step-icon"><span class="spinner"></span></span>
+          Scanning documents
+        </li>
+        <li class="progress-step" data-step="1">
+          <span class="step-icon"><span class="spinner"></span></span>
+          Extracting dates
+        </li>
+        <li class="progress-step" data-step="2">
+          <span class="step-icon"><span class="spinner"></span></span>
+          Building timeline
+        </li>
+        <li class="progress-step" data-step="3">
+          <span class="step-icon"><span class="spinner"></span></span>
+          Done
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- OUTPUT -->
+  <section class="section" id="output-section" style="display:none;">
+    <div class="section-label">Extracted Events</div>
+    <ul class="events-list" id="events-list"></ul>
+    <a href="/timeline-builder" class="review-link">Review and Edit &rarr;</a>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const startBtn = document.getElementById('start-btn');
+    const reactionIdle = document.getElementById('reaction-idle');
+    const progressSteps = document.getElementById('progress-steps');
+    const outputSection = document.getElementById('output-section');
+    const eventsList = document.getElementById('events-list');
+    const stepEls = progressSteps.querySelectorAll('.progress-step');
+
+    const stepLabels = ['Scanning documents', 'Extracting dates', 'Building timeline', 'Done'];
+
+    function resetSteps() {
+      stepEls.forEach(function (el) {
+        el.className = 'progress-step';
+        el.querySelector('.step-icon').innerHTML = '<span class="spinner"></span>';
+      });
+    }
+
+    function setStep(index, state) {
+      const el = stepEls[index];
+      el.className = 'progress-step ' + state;
+      const icon = el.querySelector('.step-icon');
+      if (state === 'done') {
+        icon.innerHTML = '<span class="step-check"></span>';
+      } else if (state === 'active') {
+        icon.innerHTML = '<span class="spinner"></span>';
+      } else if (state === 'error') {
+        icon.innerHTML = '!';
+      }
+    }
+
+    startBtn.addEventListener('click', function () {
+      const checked = document.querySelectorAll('input[name="documents"]:checked');
+      if (checked.length === 0) {
+        reactionIdle.textContent = 'Please select at least one document.';
+        reactionIdle.style.color = 'var(--color-error, var(--color-text-muted))';
+        return;
+      }
+
+      reactionIdle.style.display = 'none';
+      progressSteps.style.display = '';
+      outputSection.style.display = 'none';
+      resetSteps();
+      startBtn.disabled = true;
+
+      let current = 0;
+      setStep(0, 'active');
+
+      const interval = setInterval(function () {
+        setStep(current, 'done');
+        current++;
+        if (current < stepEls.length) {
+          setStep(current, 'active');
+        }
+        if (current >= stepEls.length) {
+          clearInterval(interval);
+          setStep(stepEls.length - 1, 'done');
+          renderExtractedEvents();
+          outputSection.style.display = '';
+          startBtn.disabled = false;
+          reactionIdle.style.display = '';
+          reactionIdle.style.color = '';
+          reactionIdle.textContent = 'Auto-build complete. Review the extracted events below.';
+        }
+      }, 1000);
+    });
+
+    function renderExtractedEvents() {
+      const sample = [
+        { date: '2023-11-05', title: 'Initial consultation held', source: 'correspondence.eml', category: 'Communication' },
+        { date: '2024-01-18', title: 'Complaint filed with court', source: 'complaint.pdf', category: 'Court' },
+        { date: '2024-03-02', title: 'Contract executed by parties', source: 'contract_signed.pdf', category: 'Document' },
+        { date: '2024-05-14', title: 'Discovery request served', source: 'discovery_bundle.zip', category: 'Action' }
+      ];
+
+      eventsList.innerHTML = '';
+      sample.forEach(function (ev) {
+        const li = document.createElement('li');
+        li.className = 'event-item';
+        li.innerHTML =
+          '<span class="event-date">' + ev.date + '</span>' +
+          '<div>' +
+            '<p class="event-title">' + ev.title + '</p>' +
+            '<span class="event-source">Source: ' + ev.source + '</span>' +
+          '</div>' +
+          '<span class="event-category">' + ev.category + '</span>';
+        eventsList.appendChild(li);
+      });
+    }
+  })();
+</script>
+{% endblock %}

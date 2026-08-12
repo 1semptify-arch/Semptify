@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Journey - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-wrap { max-width: var(--space-xxl); margin: 0 auto; padding: var(--space-lg); }
+
+  .page-info { margin-bottom: var(--space-lg); }
+  .page-info h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs); }
+  .page-info p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+
+  .step { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-md); margin-bottom: var(--space-md); }
+  .step-header { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-xs); }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--font-size-xs); flex-shrink: 0; }
+  .step-num.done { background: var(--color-success); color: var(--color-on-primary); }
+  .step-num.current { background: var(--color-primary); color: var(--color-on-primary); }
+  .step-num.locked { background: var(--color-surface-alt); color: var(--color-text-muted); }
+  .step-title { font-size: var(--font-size-md); color: var(--color-text-primary); font-weight: 600; margin: 0; }
+  .step-desc { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0 0 var(--space-sm); }
+  .step-status { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-sm); }
+
+  .btn-primary, .btn-secondary {
+    padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-md);
+    border: none; font-size: var(--font-size-sm); cursor: pointer;
+  }
+  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); }
+  .btn-secondary { background: var(--color-surface-alt); color: var(--color-text-primary); }
+  .btn-primary:disabled, .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .reaction { font-size: var(--font-size-sm); color: var(--color-warning); text-align: center; padding: var(--space-md); }
+
+  @media (max-width: 768px) {
+    .page-wrap { padding: var(--space-md); }
+    .step { padding: var(--space-sm); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <!-- INFORMATION -->
+  <div class="page-info">
+    <h1>Your Journey</h1>
+    <p>A guided path through your tenant rights case.</p>
+  </div>
+
+  <!-- OUTPUT -->
+  <div id="journey-list">
+    <div class="reaction" id="reaction">Loading journey...</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const steps = [
+    { n: 1, title: 'Understand Your Rights', desc: 'Learn about your legal protections as a tenant.', status: 'done' },
+    { n: 2, title: 'Document Everything', desc: 'Gather evidence, photos, and correspondence.', status: 'done' },
+    { n: 3, title: 'Assess Your Case', desc: 'Evaluate the strength of your claim.', status: 'current' },
+    { n: 4, title: 'Take Action', desc: 'File complaints or initiate legal proceedings.', status: 'locked' },
+    { n: 5, title: 'Follow Through', desc: 'Track progress and enforce outcomes.', status: 'locked' }
+  ];
+  function loadJourney() {
+    const list = document.getElementById('journey-list');
+    setTimeout(() => {
+      list.innerHTML = steps.map(s => {
+        const btnLabel = s.status === 'done' ? 'Review' : s.status === 'current' ? 'Continue' : 'Locked';
+        const btnClass = s.status === 'locked' ? 'btn-secondary' : 'btn-primary';
+        const disabled = s.status === 'locked' ? 'disabled' : '';
+        return '<div class="step"><div class="step-header"><div class="step-num ' + s.status + '">' + s.n + '</div><p class="step-title">' + s.title + '</p></div><p class="step-desc">' + s.desc + '</p><div class="step-status">Status: ' + s.status + '</div><button class="' + btnClass + '" ' + disabled + '>' + btnLabel + '</button></div>';
+      }).join('');
+    }, 1000);
+  }
+  loadJourney();
+</script>
+{% endblock %}

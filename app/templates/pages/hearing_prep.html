@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Hearing Prep - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .prep-page {
+    max-width: var(--space-content-max, 900px);
+    margin: 0 auto;
+    padding: var(--space-lg, 2rem);
+  }
+  .prep-header {
+    margin-bottom: var(--space-xl, 2.5rem);
+  }
+  .prep-header h1 {
+    font-size: var(--font-size-xl, 2rem);
+    color: var(--color-text-primary, #1a1a1a);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .prep-header p {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .progress-indicator {
+    background: var(--color-surface-alt, #f7f7f7);
+    padding: var(--space-md, 1.5rem);
+    border-radius: var(--radius-md, 8px);
+    margin-bottom: var(--space-lg, 2rem);
+  }
+  .progress-label {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .progress-bar {
+    height: 10px;
+    background: var(--color-border, #ddd);
+    border-radius: var(--radius-sm, 4px);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--color-accent, #0066cc);
+    border-radius: var(--radius-sm, 4px);
+    transition: width 0.3s;
+  }
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm, 1rem);
+    margin-bottom: var(--space-lg, 2rem);
+  }
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm, 1rem);
+    padding: var(--space-sm, 1rem);
+    background: var(--color-surface-alt, #f7f7f7);
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-primary, #1a1a1a);
+    cursor: pointer;
+  }
+  .checklist-item input { accent-color: var(--color-accent, #0066cc); }
+  .reaction-working {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm, 1rem);
+    padding: var(--space-sm, 1rem);
+    color: var(--color-text-secondary, #555);
+    font-size: var(--font-size-sm, 0.875rem);
+  }
+  .reaction-working.active { display: flex; }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 3px solid var(--color-border, #ccc);
+    border-top-color: var(--color-accent, #0066cc);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 768px) {
+    .prep-page { padding: var(--space-md, 1.5rem); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="prep-page">
+  <div class="prep-header">
+    <h1>Hearing Preparation</h1>
+    <p>Prepare for your court hearing step by step.</p>
+  </div>
+
+  <div class="progress-indicator">
+    <div class="progress-label" id="progressLabel">0% complete</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%;"></div></div>
+  </div>
+
+  <div class="checklist" id="checklist">
+    <label class="checklist-item"><input type="checkbox" class="task-cb"> Gather all relevant documents</label>
+    <label class="checklist-item"><input type="checkbox" class="task-cb"> Bring photo ID</label>
+    <label class="checklist-item"><input type="checkbox" class="task-cb"> Dress in business casual attire</label>
+    <label class="checklist-item"><input type="checkbox" class="task-cb"> Arrive 30 minutes early</label>
+    <label class="checklist-item"><input type="checkbox" class="task-cb"> Prepare a brief statement</label>
+    <label class="checklist-item"><input type="checkbox" class="task-cb"> Bring copies of evidence (3 sets)</label>
+    <label class="checklist-item"><input type="checkbox" class="task-cb"> Arrange childcare if needed</label>
+  </div>
+
+  <div class="reaction-working" id="saveWorking">
+    <div class="spinner"></div>
+    <span>Saving progress...</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var checkboxes = document.querySelectorAll('.task-cb');
+  var fill = document.getElementById('progressFill');
+  var label = document.getElementById('progressLabel');
+  var working = document.getElementById('saveWorking');
+
+  function updateProgress() {
+    var total = checkboxes.length;
+    var checked = 0;
+    checkboxes.forEach(function(cb) { if (cb.checked) checked++; });
+    var pct = Math.round((checked / total) * 100);
+    fill.style.width = pct + '%';
+    label.textContent = pct + '% complete';
+    working.classList.add('active');
+    clearTimeout(window._saveTimer);
+    window._saveTimer = setTimeout(function() {
+      working.classList.remove('active');
+    }, 600);
+  }
+  checkboxes.forEach(function(cb) { cb.addEventListener('change', updateProgress); });
+</script>
+{% endblock %}

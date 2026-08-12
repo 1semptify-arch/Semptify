@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}Positronic Brain - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  /* ===== PAGE LAYOUT ===== */
+  .brain-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: calc(100vh - var(--space-xxl));
+    background: var(--color-bg-primary);
+  }
+
+  /* ===== INFORMATION SECTION ===== */
+  .brain-header {
+    padding: var(--space-xl) var(--space-xl) var(--space-md);
+    background: var(--color-bg-secondary);
+  }
+
+  .brain-header__title {
+    margin: 0 0 var(--space-xs) 0;
+    font-size: var(--font-size-xxl);
+    color: var(--color-text-primary);
+    font-weight: 700;
+  }
+
+  .brain-header__subtitle {
+    margin: 0;
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+  }
+
+  /* ===== CHAT CONTAINER ===== */
+  .brain-chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: var(--space-md) var(--space-xl);
+  }
+
+  /* ===== CONVERSATION HISTORY (OUTPUT) ===== */
+  .brain-conversation {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-md) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    scroll-behavior: smooth;
+  }
+
+  .brain-conversation::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .brain-conversation::-webkit-scrollbar-thumb {
+    background: var(--color-border-secondary);
+    border-radius: var(--radius-sm);
+  }
+
+  .brain-conversation::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* ===== MESSAGE BUBBLES ===== */
+  .brain-message {
+    max-width: 75%;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    line-height: 1.5;
+    word-wrap: break-word;
+  }
+
+  .brain-message--user {
+    align-self: flex-end;
+    background: var(--color-accent-primary);
+    color: var(--color-text-inverse);
+    border-bottom-right-radius: var(--radius-xs);
+  }
+
+  .brain-message--ai {
+    align-self: flex-start;
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    border-bottom-left-radius: var(--radius-xs);
+  }
+
+  .brain-message__meta {
+    display: block;
+    margin-top: var(--space-xs);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+  }
+
+  /* ===== SUGGESTED QUESTIONS (empty state) ===== */
+  .brain-suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-lg) 0;
+  }
+
+  .brain-suggestions__label {
+    margin: 0 0 var(--space-xs) 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+
+  .brain-suggestion-btn {
+    text-align: left;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .brain-suggestion-btn:hover {
+    background: var(--color-bg-tertiary);
+  }
+
+  /* ===== REACTION: THINKING STATE ===== */
+  .brain-thinking {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    align-self: flex-start;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-md);
+  }
+
+  .brain-thinking__spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--color-border-secondary);
+    border-top-color: var(--color-accent-primary);
+    border-radius: 50%;
+    animation: brain-spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes brain-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ===== REACTION: ERROR STATE ===== */
+  .brain-error {
+    align-self: flex-start;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg-error);
+    color: var(--color-text-error);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+  }
+
+  /* ===== INPUT AREA (bottom) ===== */
+  .brain-input-area {
+    flex-shrink: 0;
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-md) 0 var(--space-lg);
+    background: var(--color-bg-primary);
+  }
+
+  .brain-input {
+    flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    font-family: inherit;
+    outline: none;
+    transition: background 0.2s ease;
+  }
+
+  .brain-input::placeholder {
+    color: var(--color-text-tertiary);
+  }
+
+  .brain-input:focus {
+    background: var(--color-bg-tertiary);
+  }
+
+  .brain-send-btn {
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--color-accent-primary);
+    color: var(--color-text-inverse);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .brain-send-btn:hover {
+    opacity: 0.85;
+  }
+
+  .brain-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ===== MOBILE RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .brain-header {
+      padding: var(--space-md) var(--space-md) var(--space-sm);
+    }
+
+    .brain-header__title {
+      font-size: var(--font-size-xl);
+    }
+
+    .brain-header__subtitle {
+      font-size: var(--font-size-sm);
+    }
+
+    .brain-chat {
+      padding: var(--space-sm) var(--space-md);
+    }
+
+    .brain-message {
+      max-width: 90%;
+    }
+
+    .brain-input-area {
+      flex-direction: row;
+      gap: var(--space-xs);
+    }
+
+    .brain-send-btn {
+      padding: var(--space-sm) var(--space-md);
+    }
+
+    .brain-suggestion-btn {
+      font-size: var(--font-size-sm);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="brain-page">
+
+  <!-- ===== INFORMATION ===== -->
+  <header class="brain-header">
+    <h1 class="brain-header__title">Positronic Brain</h1>
+    <p class="brain-header__subtitle">Ask questions about your case, tenant rights, or legal procedures.</p>
+  </header>
+
+  <!-- ===== CHAT CONTAINER ===== -->
+  <div class="brain-chat">
+
+    <!-- ===== OUTPUT: Conversation History ===== -->
+    <div class="brain-conversation" id="brain-conversation">
+
+      <!-- Empty state: Suggested questions -->
+      <div class="brain-suggestions" id="brain-suggestions">
+        <p class="brain-suggestions__label">Suggested questions to get started:</p>
+        <button class="brain-suggestion-btn" data-question="What are my rights as a tenant regarding eviction notices?">
+          What are my rights as a tenant regarding eviction notices?
+        </button>
+        <button class="brain-suggestion-btn" data-question="How do I respond to a housing court petition?">
+          How do I respond to a housing court petition?
+        </button>
+        <button class="brain-suggestion-btn" data-question="What documents do I need for my case?">
+          What documents do I need for my case?
+        </button>
+        <button class="brain-suggestion-btn" data-question="Can my landlord raise my rent without notice?">
+          Can my landlord raise my rent without notice?
+        </button>
+      </div>
+
+      <!-- Messages will be dynamically inserted here -->
+
+    </div>
+
+    <!-- ===== INPUT: Message input at bottom ===== -->
+    <form class="brain-input-area" id="brain-input-form">
+      <input
+        type="text"
+        class="brain-input"
+        id="brain-input"
+        placeholder="Ask the Positronic Brain a question..."
+        autocomplete="off"
+        aria-label="Ask a question"
+      />
+      <button type="submit" class="brain-send-btn" id="brain-send-btn">Send</button>
+    </form>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function() {
+    const conversation = document.getElementById('brain-conversation');
+    const suggestions = document.getElementById('brain-suggestions');
+    const inputForm = document.getElementById('brain-input-form');
+    const input = document.getElementById('brain-input');
+    const sendBtn = document.getElementById('brain-send-btn');
+
+    let isWorking = false;
+
+    // ===== Helper: scroll to bottom =====
+    function scrollToBottom() {
+      conversation.scrollTop = conversation.scrollHeight;
+    }
+
+    // ===== Helper: append a message =====
+    function appendMessage(text, role) {
+      const msg = document.createElement('div');
+      msg.className = 'brain-message brain-message--' + role;
+      msg.textContent = text;
+
+      const meta = document.createElement('span');
+      meta.className = 'brain-message__meta';
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      meta.textContent = role === 'user' ? 'You · ' + now : 'Brain · ' + now;
+      msg.appendChild(meta);
+
+      conversation.appendChild(msg);
+      scrollToBottom();
+    }
+
+    // ===== REACTION: Show thinking state =====
+    function showThinking() {
+      const thinking = document.createElement('div');
+      thinking.className = 'brain-thinking';
+      thinking.id = 'brain-thinking';
+
+      const spinner = document.createElement('span');
+      spinner.className = 'brain-thinking__spinner';
+
+      const label = document.createElement('span');
+      label.textContent = 'Thinking...';
+
+      thinking.appendChild(spinner);
+      thinking.appendChild(label);
+      conversation.appendChild(thinking);
+      scrollToBottom();
+    }
+
+    // ===== REACTION: Remove thinking state =====
+    function removeThinking() {
+      const thinking = document.getElementById('brain-thinking');
+      if (thinking) thinking.remove();
+    }
+
+    // ===== REACTION: Show error state =====
+    function showError(message) {
+      const error = document.createElement('div');
+      error.className = 'brain-error';
+      error.textContent = message || 'An error occurred. Please try again.';
+      conversation.appendChild(error);
+      scrollToBottom();
+
+      // Auto-remove error after 5 seconds
+      setTimeout(function() {
+        if (error.parentNode) error.remove();
+      }, 5000);
+    }
+
+    // ===== Hide suggestions on first message =====
+    function hideSuggestions() {
+      if (suggestions && suggestions.style.display !== 'none') {
+        suggestions.style.display = 'none';
+      }
+    }
+
+    // ===== Handle sending a message =====
+    function sendMessage(text) {
+      if (isWorking || !text.trim()) return;
+
+      hideSuggestions();
+      appendMessage(text, 'user');
+      input.value = '';
+
+      // REACTION: working state
+      isWorking = true;
+      sendBtn.disabled = true;
+      showThinking();
+
+      // Simulate AI processing (replace with real API call)
+      // State transitions: idle -> working -> done/error
+      setTimeout(function() {
+        removeThinking();
+
+        // Simulate a response (done state)
+        const responses = [
+          'Based on tenant rights law, you are entitled to proper notice before any eviction proceeding. The notice period depends on your jurisdiction and the reason for eviction.',
+          'To respond to a housing court petition, you typically need to file an answer with the court within the specified deadline. I recommend gathering all relevant documentation.',
+          'For your case, you should gather your lease agreement, any correspondence with your landlord, rent payment records, and photos of the property condition.',
+          'Generally, a landlord must provide proper written notice before raising rent. The notice period varies by location and whether you have a lease or are month-to-month.'
+        ];
+
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        appendMessage(response, 'ai');
+
+        // REACTION: done state — restore input
+        isWorking = false;
+        sendBtn.disabled = false;
+        input.focus();
+      }, 1800);
+    }
+
+    // ===== Form submit handler =====
+    inputForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      sendMessage(input.value);
+    });
+
+    // ===== Suggestion button handlers =====
+    if (suggestions) {
+      const suggestionBtns = suggestions.querySelectorAll('.brain-suggestion-btn');
+      suggestionBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const question = btn.getAttribute('data-question');
+          sendMessage(question);
+        });
+      });
+    }
+
+    // ===== Focus input on load =====
+    input.focus();
+  })();
+</script>
+{% endblock %}

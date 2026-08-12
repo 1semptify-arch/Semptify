@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Roles - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-wrap { max-width: var(--space-xxl); margin: 0 auto; padding: var(--space-lg); }
+
+  .page-info { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg); }
+  .page-info h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs); }
+  .page-info p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+
+  .btn-primary {
+    padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md);
+    background: var(--color-primary); color: var(--color-on-primary);
+    border: none; font-size: var(--font-size-sm); cursor: pointer;
+  }
+
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); }
+
+  .role-item { padding: var(--space-md) 0; }
+  .role-item + .role-item { margin-top: var(--space-sm); background: var(--color-surface-alt); border-radius: var(--radius-md); padding: var(--space-md); }
+  .role-name { font-size: var(--font-size-md); color: var(--color-text-primary); font-weight: 600; margin: 0 0 var(--space-xs); }
+  .role-desc { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0 0 var(--space-xs); }
+  .role-meta { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+
+  .reaction { font-size: var(--font-size-sm); color: var(--color-warning); padding: var(--space-md); text-align: center; }
+
+  @media (max-width: 768px) {
+    .page-wrap { padding: var(--space-md); }
+    .page-info { flex-direction: column; gap: var(--space-sm); }
+    .panel { padding: var(--space-md); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <!-- INFORMATION -->
+  <div class="page-info">
+    <div>
+      <h1>Roles</h1>
+      <p>View and manage system roles and permissions.</p>
+    </div>
+    <!-- INPUT / ACTION -->
+    <button class="btn-primary" onclick="alert('Add role form would open here.')">Add Role</button>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="panel" id="roles-list">
+    <div class="reaction" id="reaction">Loading...</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const roles = [
+    { name: 'Admin', desc: 'Full system access', users: 5, perms: 'All permissions' },
+    { name: 'Manager', desc: 'Manage cases and users', users: 12, perms: 'Read, Write, Assign' },
+    { name: 'Agent', desc: 'Handle assigned cases', users: 48, perms: 'Read, Write' },
+    { name: 'Viewer', desc: 'Read-only access', users: 120, perms: 'Read' }
+  ];
+  function loadRoles() {
+    const list = document.getElementById('roles-list');
+    const rxn = document.getElementById('reaction');
+    setTimeout(() => {
+      list.innerHTML = roles.map(r =>
+        '<div class="role-item"><div class="role-name">' + r.name + '</div><div class="role-desc">' + r.desc + '</div><div class="role-meta">' + r.users + ' users · ' + r.perms + '</div></div>'
+      ).join('');
+    }, 1000);
+  }
+  loadRoles();
+</script>
+{% endblock %}

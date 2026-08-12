@@ -1,0 +1,510 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .settings-page {
+    max-width: var(--space-content-max, 880px);
+    margin: 0 auto;
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .settings-header {
+    margin-bottom: var(--space-xl);
+  }
+
+  .settings-header h1 {
+    font-size: var(--font-size-xxl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+
+  .settings-header p {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .settings-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+
+  .settings-section + .settings-section {
+    margin-top: var(--space-md);
+  }
+
+  .settings-section__title {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-md) 0;
+  }
+
+  .settings-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--space-md);
+  }
+
+  .settings-field:last-child {
+    margin-bottom: 0;
+  }
+
+  .settings-field__label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+
+  .settings-field__input {
+    background: var(--color-surface-elevated);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .settings-field__input:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+
+  .settings-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) 0;
+  }
+
+  .settings-toggle__label {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+  }
+
+  .settings-toggle__hint {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-xxs);
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+  }
+
+  .toggle-switch[data-active="true"] {
+    background: var(--color-accent);
+  }
+
+  .toggle-switch::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    background: var(--color-surface);
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+  }
+
+  .toggle-switch[data-active="true"]::after {
+    transform: translateX(20px);
+  }
+
+  .storage-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .storage-row__info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .storage-row__provider {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+  }
+
+  .storage-row__status {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-xxs);
+  }
+
+  .btn {
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--font-size-md);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn--primary {
+    background: var(--color-accent);
+    color: var(--color-text-on-accent);
+  }
+
+  .btn--secondary {
+    background: var(--color-surface-elevated);
+    color: var(--color-text-primary);
+  }
+
+  .btn--danger {
+    background: var(--color-danger);
+    color: var(--color-text-on-accent);
+  }
+
+  .settings-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--space-lg);
+  }
+
+  .save-reaction {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    margin-left: var(--space-md);
+    min-height: 24px;
+  }
+
+  .save-reaction[data-state="idle"] .save-reaction__text {
+    color: var(--color-text-secondary);
+  }
+
+  .save-reaction[data-state="working"] .save-reaction__text {
+    color: var(--color-text-secondary);
+  }
+
+  .save-reaction[data-state="done"] .save-reaction__text {
+    color: var(--color-success);
+  }
+
+  .save-reaction[data-state="error"] .save-reaction__text {
+    color: var(--color-danger);
+  }
+
+  .save-reaction__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-surface-elevated);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  .save-reaction[data-state="working"] .save-reaction__spinner {
+    display: block;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .danger-zone {
+    margin-top: var(--space-xxl);
+    padding-top: var(--space-lg);
+    background: transparent;
+  }
+
+  .danger-zone__title {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 var(--space-md) 0;
+  }
+
+  .danger-zone__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-sm);
+  }
+
+  .danger-zone__label {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+  }
+
+  .danger-zone__hint {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-xxs);
+  }
+
+  @media (max-width: 768px) {
+    .settings-page {
+      padding: var(--space-md) var(--space-sm);
+    }
+
+    .settings-section {
+      padding: var(--space-md);
+    }
+
+    .settings-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .save-reaction {
+      margin-left: 0;
+      margin-top: var(--space-sm);
+      justify-content: center;
+    }
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+
+    .danger-zone__item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-sm);
+    }
+
+    .danger-zone__item .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+
+  <!-- INFORMATION -->
+  <header class="settings-header">
+    <h1>Settings</h1>
+    <p>Manage your account, privacy, and notification preferences.</p>
+  </header>
+
+  <!-- INPUT/ACTION: Account -->
+  <section class="settings-section">
+    <h2 class="settings-section__title">Account</h2>
+    <div class="settings-field">
+      <label class="settings-field__label" for="setting-name">Display name</label>
+      <input class="settings-field__input" type="text" id="setting-name" name="name" value="{{ user.name | default('') }}" autocomplete="name">
+    </div>
+    <div class="settings-field">
+      <label class="settings-field__label" for="setting-email">Email address</label>
+      <input class="settings-field__input" type="email" id="setting-email" name="email" value="{{ user.email | default('') }}" autocomplete="email">
+    </div>
+  </section>
+
+  <!-- INPUT/ACTION: Privacy -->
+  <section class="settings-section">
+    <h2 class="settings-section__title">Privacy</h2>
+    <div class="settings-toggle">
+      <div>
+        <div class="settings-toggle__label">Profile visibility</div>
+        <div class="settings-toggle__hint">Allow other users to see your profile</div>
+      </div>
+      <div class="toggle-switch" data-active="{{ 'true' if privacy.profile_visible else 'false' }}" data-field="profile_visible" role="switch" tabindex="0" aria-label="Profile visibility"></div>
+    </div>
+    <div class="settings-toggle">
+      <div>
+        <div class="settings-toggle__label">Case data visibility</div>
+        <div class="settings-toggle__hint">Share case data with collaborators</div>
+      </div>
+      <div class="toggle-switch" data-active="{{ 'true' if privacy.case_data_visible else 'false' }}" data-field="case_data_visible" role="switch" tabindex="0" aria-label="Case data visibility"></div>
+    </div>
+    <div class="settings-toggle">
+      <div>
+        <div class="settings-toggle__label">Analytics opt-in</div>
+        <div class="settings-toggle__hint">Help improve Semptify with anonymous usage data</div>
+      </div>
+      <div class="toggle-switch" data-active="{{ 'true' if privacy.analytics_opt_in else 'false' }}" data-field="analytics_opt_in" role="switch" tabindex="0" aria-label="Analytics opt-in"></div>
+    </div>
+  </section>
+
+  <!-- INPUT/ACTION: Notifications -->
+  <section class="settings-section">
+    <h2 class="settings-section__title">Notifications</h2>
+    <div class="settings-toggle">
+      <div>
+        <div class="settings-toggle__label">Email alerts</div>
+        <div class="settings-toggle__hint">Receive important alerts via email</div>
+      </div>
+      <div class="toggle-switch" data-active="{{ 'true' if notifications.email_alerts else 'false' }}" data-field="email_alerts" role="switch" tabindex="0" aria-label="Email alerts"></div>
+    </div>
+    <div class="settings-toggle">
+      <div>
+        <div class="settings-toggle__label">Deadline reminders</div>
+        <div class="settings-toggle__hint">Get notified before upcoming deadlines</div>
+      </div>
+      <div class="toggle-switch" data-active="{{ 'true' if notifications.deadline_reminders else 'false' }}" data-field="deadline_reminders" role="switch" tabindex="0" aria-label="Deadline reminders"></div>
+    </div>
+  </section>
+
+  <!-- INPUT/ACTION: Storage -->
+  <section class="settings-section">
+    <h2 class="settings-section__title">Storage</h2>
+    <div class="storage-row">
+      <div class="storage-row__info">
+        <span class="storage-row__provider">{{ storage.provider | default('No provider connected') }}</span>
+        <span class="storage-row__status">{{ storage.status | default('Not connected') }}</span>
+      </div>
+      <button class="btn btn--secondary" id="change-storage-btn">Change</button>
+    </div>
+  </section>
+
+  <!-- REACTION: Save -->
+  <div class="settings-actions">
+    <button class="btn btn--primary" id="save-settings-btn">Save changes</button>
+    <div class="save-reaction" id="save-reaction" data-state="idle">
+      <span class="save-reaction__spinner"></span>
+      <span class="save-reaction__text"></span>
+    </div>
+  </div>
+
+  <!-- Low-frequency actions at BOTTOM, visually separated -->
+  <section class="danger-zone">
+    <h3 class="danger-zone__title">Danger zone</h3>
+    <div class="danger-zone__item">
+      <div>
+        <div class="danger-zone__label">Reset settings</div>
+        <div class="danger-zone__hint">Restore all preferences to their defaults</div>
+      </div>
+      <button class="btn btn--secondary" id="reset-settings-btn">Reset</button>
+    </div>
+    <div class="danger-zone__item">
+      <div>
+        <div class="danger-zone__label">Delete account</div>
+        <div class="danger-zone__hint">Permanently remove your account and all data</div>
+      </div>
+      <button class="btn btn--danger" id="delete-account-btn">Delete</button>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    // Toggle switches
+    document.querySelectorAll('.toggle-switch').forEach(function (toggle) {
+      function flip() {
+        var current = toggle.getAttribute('data-active') === 'true';
+        toggle.setAttribute('data-active', (!current).toString());
+      }
+      toggle.addEventListener('click', flip);
+      toggle.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          flip();
+        }
+      });
+    });
+
+    // Save reaction states
+    var saveBtn = document.getElementById('save-settings-btn');
+    var reaction = document.getElementById('save-reaction');
+    var reactionText = reaction.querySelector('.save-reaction__text');
+
+    function setReaction(state, message) {
+      reaction.setAttribute('data-state', state);
+      reactionText.textContent = message || '';
+    }
+
+    saveBtn.addEventListener('click', function () {
+      setReaction('working', 'Saving...');
+      saveBtn.disabled = true;
+
+      // Collect form data
+      var data = {
+        name: document.getElementById('setting-name').value,
+        email: document.getElementById('setting-email').value,
+        privacy: {},
+        notifications: {}
+      };
+
+      document.querySelectorAll('.toggle-switch').forEach(function (toggle) {
+        var field = toggle.getAttribute('data-field');
+        var active = toggle.getAttribute('data-active') === 'true';
+        if (['profile_visible', 'case_data_visible', 'analytics_opt_in'].indexOf(field) !== -1) {
+          data.privacy[field] = active;
+        } else {
+          data.notifications[field] = active;
+        }
+      });
+
+      fetch('/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Save failed');
+          return res.json();
+        })
+        .then(function () {
+          setReaction('done', 'Settings saved');
+          setTimeout(function () {
+            setReaction('idle', '');
+          }, 3000);
+        })
+        .catch(function () {
+          setReaction('error', 'Could not save settings');
+        })
+        .finally(function () {
+          saveBtn.disabled = false;
+        });
+    });
+
+    // Change storage
+    document.getElementById('change-storage-btn').addEventListener('click', function () {
+      window.location.href = '/storage-setup';
+    });
+
+    // Reset settings
+    document.getElementById('reset-settings-btn').addEventListener('click', function () {
+      if (confirm('Reset all settings to defaults?')) {
+        fetch('/settings/reset', { method: 'POST' })
+          .then(function (res) {
+            if (res.ok) window.location.reload();
+          });
+      }
+    });
+
+    // Delete account
+    document.getElementById('delete-account-btn').addEventListener('click', function () {
+      if (confirm('Permanently delete your account? This cannot be undone.')) {
+        fetch('/settings/delete-account', { method: 'POST' })
+          .then(function (res) {
+            if (res.ok) window.location.href = '/';
+          });
+      }
+    });
+  })();
+</script>
+{% endblock %}

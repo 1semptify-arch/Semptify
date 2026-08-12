@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Briefcase - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header { margin-bottom: var(--space-lg); }
+  .page-header h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-header p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+  .section { background: var(--color-surface); border-radius: var(--radius-md); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+  .doc-list { list-style: none; padding: 0; margin: 0 0 var(--space-lg) 0; }
+  .doc-item { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md) 0; border-bottom: 1px solid var(--color-border); }
+  .doc-item:last-child { border-bottom: none; }
+  .doc-info { display: flex; flex-direction: column; gap: var(--space-xs); }
+  .doc-name { font-size: var(--font-size-base); color: var(--color-text-primary); font-weight: 600; }
+  .doc-meta { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+  .doc-actions { display: flex; gap: var(--space-sm); }
+  .btn { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); font-size: var(--font-size-sm); border: none; cursor: pointer; font-weight: 600; }
+  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); }
+  .btn-danger { background: var(--color-error); color: var(--color-on-primary); }
+  .btn-secondary { background: var(--color-surface-alt); color: var(--color-text-primary); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .empty-state { text-align: center; padding: var(--space-xl) var(--space-md); color: var(--color-text-secondary); font-size: var(--font-size-base); }
+  .reaction { margin-top: var(--space-md); font-size: var(--font-size-sm); padding: var(--space-md); border-radius: var(--radius-sm); text-align: center; }
+  .reaction.working { background: var(--color-surface-alt); color: var(--color-text-secondary); }
+  .reaction.done { background: var(--color-success-bg); color: var(--color-success); }
+  .reaction.hidden { display: none; }
+  .action-bar { display: flex; gap: var(--space-md); align-items: center; }
+  @media (max-width: 768px) {
+    .section { padding: var(--space-md); }
+    .doc-item { flex-direction: column; align-items: flex-start; gap: var(--space-sm); }
+    .action-bar { flex-direction: column; width: 100%; }
+    .action-bar .btn { width: 100%; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Briefcase</h1>
+  <p>Collect documents to share or bring to court.</p>
+</div>
+
+<div class="section">
+  {% if documents %}
+  <ul class="doc-list">
+    {% for doc in documents %}
+    <li class="doc-item">
+      <div class="doc-info">
+        <span class="doc-name">{{ doc.name }}</span>
+        <span class="doc-meta">{{ doc.type }} &middot; Added {{ doc.date_added }}</span>
+      </div>
+      <div class="doc-actions">
+        <button class="btn btn-danger" onclick="removeDoc({{ loop.index }})">Remove</button>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty-state">Your briefcase is empty. Add documents to get started.</div>
+  {% endif %}
+
+  <div class="action-bar">
+    <input type="file" id="filePicker" style="display:none" multiple>
+    <button class="btn btn-secondary" onclick="document.getElementById('filePicker').click()">Add Document</button>
+    <button class="btn btn-primary" id="exportBtn" onclick="exportBriefcase()" {% if not documents %}disabled{% endif %}>Export Briefcase</button>
+  </div>
+
+  <div class="reaction working hidden" id="reactionWorking">Exporting...</div>
+  <div class="reaction done hidden" id="reactionDone">Exported</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function removeDoc(index) {
+    if (confirm('Remove this document from your briefcase?')) {
+      fetch('/briefcase/remove/' + index, { method: 'POST' }).then(() => location.reload());
+    }
+  }
+  document.getElementById('filePicker').addEventListener('change', function(e) {
+    const files = e.target.files;
+    if (!files.length) return;
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) formData.append('files', files[i]);
+    fetch('/briefcase/add', { method: 'POST', body: formData }).then(() => location.reload());
+  });
+  function exportBriefcase() {
+    const btn = document.getElementById('exportBtn');
+    const working = document.getElementById('reactionWorking');
+    const done = document.getElementById('reactionDone');
+    btn.disabled = true;
+    working.classList.remove('hidden');
+    done.classList.add('hidden');
+    fetch('/briefcase/export', { method: 'POST' })
+      .then(r => r.blob()).then(blob => {
+        working.classList.add('hidden');
+        done.classList.remove('hidden');
+        btn.disabled = false;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'briefcase.zip'; a.click();
+        URL.revokeObjectURL(url);
+      }).catch(() => { working.classList.add('hidden'); btn.disabled = false; });
+  }
+</script>
+{% endblock %}

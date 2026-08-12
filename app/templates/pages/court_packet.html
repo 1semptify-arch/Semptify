@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Court Packet - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .packet-page {
+    max-width: var(--space-content-max, 900px);
+    margin: 0 auto;
+    padding: var(--space-lg, 2rem);
+  }
+  .packet-header {
+    margin-bottom: var(--space-xl, 2.5rem);
+  }
+  .packet-header h1 {
+    font-size: var(--font-size-xl, 2rem);
+    color: var(--color-text-primary, #1a1a1a);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .packet-header p {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .doc-selection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm, 1rem);
+    margin-bottom: var(--space-lg, 2rem);
+  }
+  .doc-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm, 1rem);
+    padding: var(--space-sm, 1rem);
+    background: var(--color-surface-alt, #f7f7f7);
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-primary, #1a1a1a);
+    cursor: pointer;
+  }
+  .doc-checkbox input { accent-color: var(--color-accent, #0066cc); }
+  .packet-preview {
+    background: var(--color-surface-alt, #f7f7f7);
+    padding: var(--space-md, 1.5rem);
+    border-radius: var(--radius-md, 8px);
+    margin-bottom: var(--space-lg, 2rem);
+  }
+  .packet-preview h3 {
+    font-size: var(--font-size-lg, 1.25rem);
+    color: var(--color-text-primary, #1a1a1a);
+    margin-bottom: var(--space-sm, 1rem);
+  }
+  .packet-preview ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .packet-preview li {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+    padding: var(--space-xs, 0.5rem) 0;
+  }
+  .btn-generate {
+    padding: var(--space-sm, 1rem) var(--space-lg, 2rem);
+    font-size: var(--font-size-md, 1rem);
+    border-radius: var(--radius-md, 8px);
+    border: none;
+    background: var(--color-accent, #0066cc);
+    color: var(--color-surface, #fff);
+    cursor: pointer;
+    width: 100%;
+  }
+  .btn-generate:hover { background: var(--color-accent-dark, #004fa3); }
+  .reaction-working {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm, 1rem);
+    padding: var(--space-md, 1.5rem);
+    color: var(--color-text-secondary, #555);
+    font-size: var(--font-size-md, 1rem);
+  }
+  .reaction-working.active { display: flex; }
+  .reaction-done {
+    display: none;
+    padding: var(--space-sm, 1rem);
+    background: var(--color-success-soft, #e6f9ec);
+    color: var(--color-success, #1a7a3a);
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--font-size-md, 1rem);
+    margin-bottom: var(--space-md, 1.5rem);
+  }
+  .reaction-done.active { display: block; }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 3px solid var(--color-border, #ccc);
+    border-top-color: var(--color-accent, #0066cc);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 768px) {
+    .packet-page { padding: var(--space-md, 1.5rem); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="packet-page">
+  <div class="packet-header">
+    <h1>Court Packet Builder</h1>
+    <p>Assemble your documents into a court-ready packet.</p>
+  </div>
+
+  <div class="doc-selection">
+    <label class="doc-checkbox"><input type="checkbox" checked> Lease Agreement</label>
+    <label class="doc-checkbox"><input type="checkbox" checked> Eviction Notice</label>
+    <label class="doc-checkbox"><input type="checkbox"> Repair Requests</label>
+    <label class="doc-checkbox"><input type="checkbox"> Rent Payment History</label>
+    <label class="doc-checkbox"><input type="checkbox"> Communication Log</label>
+  </div>
+
+  <div class="packet-preview">
+    <h3>Packet Contents Preview</h3>
+    <ul>
+      <li>1. Lease Agreement (PDF, 12 pages)</li>
+      <li>2. Eviction Notice (PDF, 2 pages)</li>
+    </ul>
+  </div>
+
+  <div class="reaction-working" id="genWorking">
+    <div class="spinner"></div>
+    <span>Assembling packet...</span>
+  </div>
+  <div class="reaction-done" id="genDone">Packet ready — download from your documents.</div>
+
+  <button class="btn-generate" id="genBtn">Generate Packet</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var genBtn = document.getElementById('genBtn');
+  var working = document.getElementById('genWorking');
+  var done = document.getElementById('genDone');
+  genBtn.addEventListener('click', function() {
+    working.classList.add('active');
+    done.classList.remove('active');
+    setTimeout(function() {
+      working.classList.remove('active');
+      done.classList.add('active');
+    }, 1500);
+  });
+</script>
+{% endblock %}

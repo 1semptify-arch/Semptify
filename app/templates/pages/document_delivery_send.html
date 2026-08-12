@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Send Document - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-wrap { max-width: var(--space-xxl); margin: 0 auto; padding: var(--space-lg); }
+
+  .page-info { margin-bottom: var(--space-lg); }
+  .page-info h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs); }
+  .page-info p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); }
+
+  .form-group { margin-bottom: var(--space-md); }
+  .form-group label { display: block; font-size: var(--font-size-sm); color: var(--color-text-primary); margin-bottom: var(--space-xs); }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: var(--space-sm); border-radius: var(--radius-md);
+    background: var(--color-surface-alt); color: var(--color-text-primary);
+    border: none; font-size: var(--font-size-sm); box-sizing: border-box;
+  }
+  .form-group textarea { min-height: 80px; resize: vertical; }
+
+  .btn-primary {
+    padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md);
+    background: var(--color-primary); color: var(--color-on-primary);
+    border: none; font-size: var(--font-size-sm); cursor: pointer;
+  }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .reaction { margin-top: var(--space-md); font-size: var(--font-size-sm); }
+  .reaction.working { color: var(--color-warning); }
+  .reaction.done { color: var(--color-success); }
+
+  @media (max-width: 768px) {
+    .page-wrap { padding: var(--space-md); }
+    .panel { padding: var(--space-md); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <!-- INFORMATION -->
+  <div class="page-info">
+    <h1>Send Document</h1>
+    <p>Send a document for signature or review.</p>
+  </div>
+
+  <!-- INPUT / ACTION -->
+  <div class="panel">
+    <div class="form-group">
+      <label for="recipient">Recipient Email</label>
+      <input type="email" id="recipient" placeholder="recipient@example.com">
+    </div>
+    <div class="form-group">
+      <label for="document">Select Document</label>
+      <select id="document">
+        <option>Lease Agreement.pdf</option>
+        <option>Settlement Form.pdf</option>
+        <option>Inspection Report.pdf</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="message">Message</label>
+      <textarea id="message" placeholder="Add a note for the recipient..."></textarea>
+    </div>
+    <div class="form-group">
+      <label for="expiry">Expiry Date</label>
+      <input type="date" id="expiry">
+    </div>
+    <button class="btn-primary" id="send-btn" onclick="sendDoc()">Send</button>
+    <div class="reaction working" id="reaction" style="display:none;">Sending...</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function sendDoc() {
+    const btn = document.getElementById('send-btn');
+    const rxn = document.getElementById('reaction');
+    btn.disabled = true;
+    rxn.style.display = 'block';
+    rxn.className = 'reaction working';
+    rxn.textContent = 'Sending...';
+    setTimeout(() => {
+      rxn.className = 'reaction done';
+      rxn.textContent = 'Sent';
+      btn.disabled = false;
+      setTimeout(() => { rxn.style.display = 'none'; }, 2500);
+    }, 1200);
+  }
+</script>
+{% endblock %}
