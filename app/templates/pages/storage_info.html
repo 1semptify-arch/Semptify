@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}Connect Your Storage - Semptify{% endblock %}
+{% block description %}Choose a storage provider to securely store your documents{% endblock %}
+
+{% block styles %}
+<style>
+    .storage-info-page {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+    }
+
+    /* INFORMATION */
+    .storage-info__intro {
+        margin-bottom: 2rem;
+    }
+    .storage-info__intro h1 {
+        font-size: var(--font-size-2xl);
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+    }
+    .storage-info__intro p {
+        color: var(--color-text-secondary);
+        margin: 0 0 0.75rem;
+    }
+    .storage-info__privacy {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-muted);
+        margin: 0;
+    }
+
+    /* INPUT/ACTION — provider choices */
+    .provider-list {
+        display: grid;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+
+    .provider-option {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--color-bg-card);
+        border-radius: var(--radius-lg);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        text-align: left;
+        width: 100%;
+        font-family: inherit;
+        font-size: inherit;
+        color: inherit;
+    }
+
+    .provider-option:hover {
+        background: var(--color-bg-hover);
+    }
+
+    .provider-option__icon {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .provider-option__body {
+        flex: 1;
+    }
+    .provider-option__name {
+        font-size: var(--font-size-lg);
+        font-weight: 600;
+        margin: 0;
+    }
+    .provider-option__desc {
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
+        margin: 0.25rem 0 0;
+    }
+
+    /* REACTION */
+    .storage-reaction {
+        min-height: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
+    }
+
+    .storage-reaction[data-state="idle"] .storage-reaction__detail { display: none; }
+    .storage-reaction[data-state="working"] .storage-reaction__spinner { display: inline-block; }
+    .storage-reaction[data-state="error"] .storage-reaction__error { display: block; }
+
+    .storage-reaction__spinner {
+        display: none;
+        width: 16px; height: 16px;
+        border: 2px solid var(--color-border);
+        border-top-color: var(--color-accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    .storage-reaction__error {
+        display: none;
+        color: var(--color-error);
+    }
+
+    /* Tech support fallback (after 5 attempts) */
+    .tech-support {
+        display: none;
+        padding: 1.5rem;
+        background: rgba(239, 68, 68, 0.08);
+        border-radius: var(--radius-lg);
+        margin-bottom: 2rem;
+    }
+    .tech-support--visible { display: block; }
+    .tech-support h2 { font-size: var(--font-size-lg); margin: 0 0 0.5rem; }
+    .tech-support p { color: var(--color-text-secondary); margin: 0 0 0.5rem; }
+    .tech-support a { color: var(--color-accent); font-weight: 500; }
+
+    @media (max-width: 768px) {
+        .storage-info-page { padding: 1rem 0.75rem 3rem; }
+        .provider-option { padding: 1rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="storage-info-page">
+
+    <!-- INFORMATION: what/why/expect -->
+    <section class="storage-info__intro">
+        <h1>Connect Your Storage</h1>
+        <p>
+            Semptify stores your documents in your own cloud account — not on our servers.
+            Choose a provider you already use. Your files stay private and under your control.
+        </p>
+        <p class="storage-info__privacy">
+            We only access the folder we create. We never touch your other files.
+        </p>
+    </section>
+
+    <!-- Tech support fallback (shown after 5 failed attempts) -->
+    <section class="tech-support" id="tech-support">
+        <h2>Having trouble connecting?</h2>
+        <p>If you've tried multiple times and can't connect, we're here to help.</p>
+        <p>Email <a href="mailto:support@semptify.org">support@semptify.org</a> or call <a href="tel:6127285767">612-728-5767</a></p>
+    </section>
+
+    <!-- INPUT/ACTION: provider choices -->
+    <section class="provider-list" id="provider-list">
+        <button class="provider-option" onclick="connectProvider(this, 'google_drive')">
+            <span class="provider-option__icon">G</span>
+            <span class="provider-option__body">
+                <span class="provider-option__name">Google Drive</span>
+                <span class="provider-option__desc">Use your Google account. Most common choice.</span>
+            </span>
+        </button>
+
+        <button class="provider-option" onclick="connectProvider(this, 'onedrive')">
+            <span class="provider-option__icon">O</span>
+            <span class="provider-option__body">
+                <span class="provider-option__name">OneDrive</span>
+                <span class="provider-option__desc">Use your Microsoft account.</span>
+            </span>
+        </button>
+
+        <button class="provider-option" onclick="connectProvider(this, 'dropbox')">
+            <span class="provider-option__icon">D</span>
+            <span class="provider-option__body">
+                <span class="provider-option__name">Dropbox</span>
+                <span class="provider-option__desc">Use your Dropbox account.</span>
+            </span>
+        </button>
+    </section>
+
+    <!-- REACTION -->
+    <div class="storage-reaction" id="storage-reaction" data-state="idle">
+        <span class="storage-reaction__spinner"></span>
+        <span class="storage-reaction__detail">Redirecting to provider...</span>
+        <span class="storage-reaction__error">Connection failed. Please try again or pick a different provider.</span>
+    </div>
+
+</div>
+
+{% block scripts %}
+<script>
+    async function connectProvider(btn, provider) {
+        const reaction = document.getElementById('storage-reaction');
+
+        // Disable buttons while working
+        document.querySelectorAll('.provider-option').forEach(b => b.style.pointerEvents = 'none');
+        reaction.dataset.state = 'working';
+
+        try {
+            const resp = await fetch('/api/storage/connect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': window.CSRF_TOKEN,
+                },
+                body: JSON.stringify({ provider }),
+                credentials: 'include',
+            });
+
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+            }
+
+            // If we get here, something went wrong
+            throw new Error('Connection failed');
+        } catch (err) {
+            reaction.dataset.state = 'error';
+            document.querySelectorAll('.provider-option').forEach(b => b.style.pointerEvents = '');
+
+            // Check attempt count — show tech support after 5
+            const attempts = parseInt(document.cookie.match(/storage_attempts=(\d+)/)?.[1] || '0') + 1;
+            document.cookie = `storage_attempts=${attempts}; path=/; max-age=3600`;
+
+            if (attempts >= 5) {
+                document.getElementById('tech-support').classList.add('tech-support--visible');
+                document.getElementById('provider-list').style.display = 'none';
+            }
+
+            setTimeout(() => { reaction.dataset.state = 'idle'; }, 3000);
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %}
