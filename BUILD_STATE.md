@@ -31,6 +31,37 @@ All checks passed.
 
 ---
 
+## Session -- 2026-08-13 — Tier 2 Batch 11: app/main.py safe fixes (token, utc, SSOT)
+
+### Guardrail Engine Run — not yet run for this branch
+
+### Problem
+
+- `app/main.py` is a Tier C file with mixed concerns, including some safe Tier B rulebook fixes that should be extracted before the `todo-065` / page-manifest migration work.
+
+### Fix
+
+- Added `_GOOGLE_DRIVE_FORCE_AUTH` constant and registered it as a navigation escape hatch.
+- Removed `_dt.utcnow()` and replaced root-page year with `utc_now().year`.
+- Replaced `datetime.datetime.now(datetime.UTC).year` with `utc_now().year`.
+- Fixed two `async with get_session_factory() as db:` mis-uses (Known Failure #19 / async token refresh): now `factory = get_session_factory(); async with factory() as db:`.
+- Converted 9 hardcoded `ssot_redirect("/...")` calls to `navigation.get_stage(...).path` or the `_GOOGLE_DRIVE_FORCE_AUTH` constant.
+
+### What was intentionally NOT merged
+
+- Journal page replacement with timeline redirect.
+- UI Composer / page-manifest / template assembly changes.
+- Icon/arrow/emoji cosmetic swaps.
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS
+- `python -m ruff check app/main.py`: PASS
+- `pytest tests/test_ssot_architecture.py tests/test_async_token_calls.py -q --no-cov`: 11 passed
+- `python -c "from app.main import app"`: PASS (312 routes registered)
+
+---
+
 ## Session -- 2026-08-09 — Page Composer POST assemble endpoint + CI/test fixes + testing skill
 
 ### Guardrail Engine Run — 2026-08-09T04:28:41
