@@ -10,13 +10,12 @@ import io
 import logging
 import secrets
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
 import pyotp
-import qrcode
 
 from app.core.utc import utc_now
 
@@ -50,7 +49,7 @@ class TwoFactorSetup:
     backup_codes: list[str]
     qr_code: str | None = None
     method: TwoFactorMethod = TwoFactorMethod.TOTP
-    created_at: datetime
+    created_at: datetime = field(default_factory=utc_now)
     verified_at: datetime | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -154,6 +153,11 @@ class TwoFactorAuthManager:
 
     def generate_qr_code(self, secret: str, user_email: str, issuer: str = "Semptify") -> str:
         """Generate QR code for TOTP setup."""
+        try:
+            import qrcode
+        except ImportError:
+            raise RuntimeError("qrcode package is required for QR generation")
+
         totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=user_email, issuer_name=issuer)
 
         qr = qrcode.QRCode(
@@ -424,8 +428,9 @@ class SessionManager:
         revoked_count = 0
 
         for session_id in session_ids:
-            if session_id != except_session_id and self.revoke_session(session_id, reason):
-                revoked_count += 1
+            if session_id != except_session_id:
+                if self.revoke_session(session_id, reason):
+                    revoked_count += 1
 
         logger.info(f"Revoked {revoked_count} sessions for user {user_id}")
         return revoked_count
