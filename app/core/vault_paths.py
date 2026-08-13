@@ -43,6 +43,7 @@ PROVISIONING_FILE = f"{AUTH_FOLDER}/provisioning.json"
 REHOME_FILE = f"{AUTH_FOLDER}/rehome.json"
 README_FILE = f"{VAULT_FOLDER}/README.md"
 VAULT_MANIFEST = f"{VAULT_FOLDER}/manifest.json"
+EXPERIENCE_TOKEN_FILE = f"{VAULT_FOLDER}/experience_token.json"
 
 # ── User document folders (under Vault/) ─────────────────────────────────────
 VAULT_DOCUMENTS = normalize_cloud_path(f"{VAULT_ROOT}/documents")
