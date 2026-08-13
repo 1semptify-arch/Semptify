@@ -5,10 +5,11 @@ Async Dropbox client using httpx and Dropbox OAuth2.
 
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import datetime
 
 import httpx
 
+from app.core.utc import utc_now
 from app.services.storage.base import StorageFile, StorageProvider
 
 logger = logging.getLogger(__name__)
@@ -98,7 +99,7 @@ class DropboxProvider(StorageProvider):
                     mime_type=mime_type or "application/octet-stream",
                     modified_at=datetime.fromisoformat(data.get("server_modified", "").replace("Z", "+00:00"))
                     if data.get("server_modified")
-                    else datetime.now(UTC),
+                    else utc_now(),
                 )
 
         raise Exception(f"Upload failed: {response.text if response else 'Unknown error'}")
@@ -170,7 +171,7 @@ class DropboxProvider(StorageProvider):
                             mime_type="folder" if is_folder else "application/octet-stream",
                             modified_at=datetime.fromisoformat(entry.get("server_modified", "").replace("Z", "+00:00"))
                             if entry.get("server_modified")
-                            else datetime.now(UTC),
+                            else utc_now(),
                             is_folder=is_folder,
                         )
                     )
@@ -199,7 +200,7 @@ class DropboxProvider(StorageProvider):
                                         entry.get("server_modified", "").replace("Z", "+00:00")
                                     )
                                     if entry.get("server_modified")
-                                    else datetime.now(UTC),
+                                    else utc_now(),
                                     is_folder=is_folder,
                                 )
                             )
