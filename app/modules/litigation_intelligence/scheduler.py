@@ -31,7 +31,7 @@ class ScheduledTask:
     enabled: bool
     last_run: datetime | None = None
     next_run: datetime | None = None
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=utc_now)
 
 
 @dataclass
@@ -44,7 +44,7 @@ class WatchdogAlert:
     message: str
     source: str
     data: dict[str, Any]
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=utc_now)
     acknowledged: bool = False
 
 
