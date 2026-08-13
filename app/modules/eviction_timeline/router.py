@@ -14,6 +14,7 @@ from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.id_gen import make_id
+from app.core.navigation import navigation
 from app.core.security import UserContext, require_tier
 from app.core.ssot_guard import ssot_redirect
 from app.core.utc import utc_now
@@ -99,4 +100,4 @@ async def create_eviction_event(
     )
     db.add(event)
     await db.commit()
-    return ssot_redirect("/api/eviction-timeline/", context="create eviction timeline event")
+    return ssot_redirect(navigation.get_stage("eviction_timeline_home").path, context="create eviction timeline event")
