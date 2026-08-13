@@ -10,7 +10,7 @@ import json
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -359,7 +359,7 @@ class WebSocketManager:
             try:
                 await asyncio.sleep(30)  # Run every 30 seconds
 
-                current_time = datetime.now(UTC())
+                current_time = utc_now()
                 dead_connections = []
 
                 # Check for dead connections (no ping for 5 minutes)
