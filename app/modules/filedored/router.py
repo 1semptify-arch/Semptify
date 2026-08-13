@@ -4,7 +4,9 @@ import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_db
 from app.core.security import StorageUser, require_user
 from app.services.filedored_service import ensure_filedored_folders, process_uploaded_document
 from app.services.storage import get_provider
@@ -55,6 +57,7 @@ async def process_documents(
     request: ProcessRequest,
     background_tasks: BackgroundTasks,
     user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Process documents through filedored system.
@@ -65,10 +68,11 @@ async def process_documents(
     errors = []
 
     # Build overlay manager for this user (required by process_uploaded_document)
-    from app.core.oauth_token_manager import get_valid_token_for_user
+    from app.core.auto_refresh import ensure_valid_token
     from app.core.user_id import get_provider_from_user_id
 
-    access_token = get_valid_token_for_user(user.user_id)
+    _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+    access_token = token_obj.access_token if token_obj else None
     if not access_token:
         raise HTTPException(status_code=400, detail="No storage token found")
     provider_code = get_provider_from_user_id(user.user_id) or "google_drive"
@@ -134,13 +138,17 @@ async def process_documents(
 
 
 @router.post("/folders/status", response_model=FolderStatusResponse)
-async def check_folders(user: StorageUser = Depends(require_user)):
+async def check_folders(
+    user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+):
     """Check and ensure filedored folders exist in vault."""
     try:
         # Get storage provider
-        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.auto_refresh import ensure_valid_token
 
-        token = get_valid_token_for_user(user.user_id)
+        _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+        token = token_obj.access_token if token_obj else None
         if not token:
             raise HTTPException(status_code=400, detail="No storage token found")
 
@@ -177,13 +185,15 @@ async def check_folders(user: StorageUser = Depends(require_user)):
 async def browse_folder(
     folder: str,
     user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """Browse documents in a filedored virtual folder."""
     try:
         # Get storage provider
-        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.auto_refresh import ensure_valid_token
 
-        token = get_valid_token_for_user(user.user_id)
+        _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+        token = token_obj.access_token if token_obj else None
         if not token:
             raise HTTPException(status_code=400, detail="No storage token found")
 
@@ -198,7 +208,10 @@ async def browse_folder(
         from app.core.vault_paths import VAULT_FILEDORED
 
         # Build folder path
-        folder_path = f"{VAULT_FILEDORED}/{folder}" if not folder.startswith(VAULT_FILEDORED) else folder
+        if not folder.startswith(VAULT_FILEDORED):
+            folder_path = f"{VAULT_FILEDORED}/{folder}"
+        else:
+            folder_path = folder
 
         # Get FILEDORED overlays and filter by path in payload (no get_overlays_by_path method exists)
         overlays_response = await overlay_manager.get_overlays(overlay_type=OverlayType.FILEDORED)
@@ -235,11 +248,14 @@ async def browse_folder(
 
 
 @router.get("/folders")
-async def list_folders(user: StorageUser = Depends(require_user)):
+async def list_folders(
+    user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+):
     """List all filedored virtual folders and their document counts."""
     try:
         # Get storage provider and overlay manager
-        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.auto_refresh import ensure_valid_token
         from app.core.overlay_types import OverlayType
         from app.core.vault_paths import (
             VAULT_FILEDORED_AI,
@@ -253,7 +269,8 @@ async def list_folders(user: StorageUser = Depends(require_user)):
             VAULT_FILEDORED_WORD,
         )
 
-        token = get_valid_token_for_user(user.user_id)
+        _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+        token = token_obj.access_token if token_obj else None
         if not token:
             raise HTTPException(status_code=400, detail="No storage token found")
 
