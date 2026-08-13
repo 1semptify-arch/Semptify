@@ -36,7 +36,7 @@ from enum import StrEnum
 from typing import Any, TypeVar
 from weakref import WeakSet
 
-from app.core.id_gen import make_id
+from app.core.id_gen import _MAX_PREFIX_LEN, make_id
 
 logger = logging.getLogger(__name__)
 
@@ -199,7 +199,7 @@ class MeshNode:
         node_id: str | None = None,
     ):
         self.identity = NodeIdentity(
-            node_id=node_id or make_id(node_type),
+            node_id=node_id or make_id(node_type.replace("_", "")[:_MAX_PREFIX_LEN]),
             node_type=node_type,
             capabilities=capabilities or set(),
         )
