@@ -825,7 +825,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
             _, role, _ = parse_user_id(raw_uid)
             if role == "admin":
-                return ssot_redirect("/admin/dashboard", context="status all gates done admin")
+                return ssot_redirect(navigation.get_stage("admin_dashboard").path, context="status all gates done admin")
             return ssot_redirect(config.on_complete_redirect, context="status all gates done")
 
         return HTMLResponse(content=_render_status_page(config, incomplete))

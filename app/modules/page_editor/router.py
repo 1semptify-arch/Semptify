@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from app.core.navigation import navigation
 from app.core.security import StorageUser, yellow_access
 from app.core.ssot_guard import ssot_redirect
 
@@ -223,7 +224,7 @@ async def preview_file(
             </head>
             <body>
                 <div class="preview-notice">
-                    <strong>⚠️ Template Preview</strong><br>
+                    <strong>◆ Template Preview</strong><br>
                     Jinja2 templates require server-side rendering. This preview shows the raw template syntax.
                 </div>
                 <div class="template-content">
@@ -301,4 +302,4 @@ async def search_files(
 @router.get("/page")
 def editor_page():
     """Redirect to the page editor UI"""
-    return ssot_redirect("/admin/page-editor.html", context="page_editor redirect")
+    return ssot_redirect(navigation.get_stage("admin_page_editor").path, context="page_editor redirect")
