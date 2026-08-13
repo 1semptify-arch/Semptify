@@ -21,6 +21,7 @@ from datetime import date, datetime
 from enum import StrEnum
 
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -282,7 +283,7 @@ class HandwritingAnalysisResult:
     """Complete handwriting analysis result."""
 
     analysis_id: str
-    analyzed_at: datetime = field(default_factory=datetime.now)
+    analyzed_at: datetime = field(default_factory=utc_now)
 
     # Extracted elements
     signatures: list[SignatureProfile] = field(default_factory=list)
