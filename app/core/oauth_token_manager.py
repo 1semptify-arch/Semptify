@@ -73,11 +73,6 @@ class OAuthTokenManager:
 
     def refresh_token_if_needed(self, user_id: str) -> OAuthToken | None:
         """Refresh token if it's expired or will expire soon."""
-        token = self.get_token(user_id)
-        if not token:
-            return None
-        if not token.is_expired():
-            return token
         return _sync_run(self.arefresh_token_if_needed(user_id))
 
     def _refresh_token(self, user_id: str, token: OAuthToken) -> OAuthToken | None:
@@ -137,11 +132,6 @@ class OAuthTokenManager:
 
     def get_valid_token(self, user_id: str) -> OAuthToken | None:
         """Get a valid token, refreshing if necessary."""
-        token = self.get_token(user_id)
-        if token is None:
-            return None
-        if not token.is_expired():
-            return token
         return _sync_run(self.aget_valid_token(user_id))
 
     def validate_token(self, user_id: str) -> bool:
@@ -209,21 +199,13 @@ class OAuthTokenManager:
 
 
 def _sync_run(coro):
-    """Run an async coroutine from a synchronous context when safe.
-
-    If an event loop is already running (e.g. inside a FastAPI async route),
-    this cannot safely use asyncio.run(). The sync helpers must not be called
-    from async contexts; use the a* methods or app.core.auto_refresh instead.
-    """
+    """Run an async coroutine from a synchronous context when safe."""
     try:
         asyncio.get_running_loop()
     except RuntimeError:
         return asyncio.run(coro)
-    raise RuntimeError(
-        "Cannot run OAuth token refresh synchronously inside a running async event loop. "
-        "Use token_manager.aget_valid_token() / arefresh_token_if_needed() or "
-        "app.core.auto_refresh.ensure_valid_token() instead."
-    )
+    logger.warning("Cannot run token refresh synchronously inside a running async event loop")
+    return None
 
 
 # Global token manager instance
