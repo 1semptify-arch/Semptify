@@ -1,5 +1,14 @@
 ## Session -- 2026-08-13 — Tier 2 Batch 12: eviction_timeline SSOT redirect fix
 
+### Guardrail Engine Run — 2026-08-13T17:42:02
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Guardrail Engine Run — not yet run for this branch
 
 ### Problem
