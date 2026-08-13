@@ -22,7 +22,7 @@ try:
     POSTGRESQL_AVAILABLE = True
 except ImportError:
     POSTGRESQL_AVAILABLE = False
-    logging.warning("asyncpg not available - PostgreSQL storage disabled")
+    logging.info("asyncpg not available - PostgreSQL storage disabled")
 
 logger = logging.getLogger(__name__)
 
@@ -70,9 +70,20 @@ class LitigationStorageLayer:
         self.connection = None
 
     async def initialize(self):
-        """Initialize database connection and create tables."""
+        """Initialize database connection and create tables.
+
+        Falls back to in-memory/no-op storage when PostgreSQL is unavailable,
+        so the app starts cleanly in dev/SQLite mode.
+        """
+        global POSTGRESQL_AVAILABLE
+
+        if not self.connection_string:
+            POSTGRESQL_AVAILABLE = False
+            logger.info("No PostgreSQL DSN configured - LIS storage disabled")
+            return
+
         if not POSTGRESQL_AVAILABLE:
-            logger.warning("PostgreSQL not available - using in-memory storage")
+            logger.info("PostgreSQL not available - using in-memory storage")
             return
 
         try:
@@ -84,8 +95,9 @@ class LitigationStorageLayer:
             logger.info("Litigation storage layer initialized")
 
         except Exception as e:
-            logger.error(f"Failed to initialize storage layer: {e}")
-            raise
+            self.pool = None
+            POSTGRESQL_AVAILABLE = False
+            logger.info("PostgreSQL not reachable - LIS storage disabled: %s", e)
 
     async def _create_tables(self):
         """Create database tables if they don't exist."""
