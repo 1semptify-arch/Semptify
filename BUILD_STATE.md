@@ -53,6 +53,7 @@ All checks passed.
 - Replaced `datetime.datetime.now(datetime.UTC).year` with `utc_now().year`.
 - Fixed two `async with get_session_factory() as db:` mis-uses (Known Failure #19 / async token refresh): now `factory = get_session_factory(); async with factory() as db:`.
 - Converted 9 hardcoded `ssot_redirect("/...")` calls to `navigation.get_stage(...).path` or the `_GOOGLE_DRIVE_FORCE_AUTH` constant.
+- `/tenant/dashboard` now redirects to `navigation.get_stage("tenant_timeline").path` instead of `/gui/dashboard` (avoids a broken/self-referential URL and a redirect-loop test failure).
 
 ### What was intentionally NOT merged
 
