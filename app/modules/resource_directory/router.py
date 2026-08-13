@@ -226,7 +226,7 @@ async def _find_existing(session, name: str, category: str, service_area: str | 
     if service_area:
         query = query.where(func.lower(ResourceModel.service_area) == service_area.lower())
     else:
-        query = query.where(ResourceModel.service_area is None)
+        query = query.where(ResourceModel.service_area.is_(None))
     result = await session.execute(query)
     return result.scalar_one_or_none()
 
