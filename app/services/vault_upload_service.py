@@ -41,6 +41,7 @@ from pathlib import Path
 
 from app.core.config import get_settings
 from app.core.database import get_db_session
+from app.core.event_bus import EventType, event_bus
 from app.core.id_gen import make_id
 from app.core.overlay_types import OverlayType
 from app.core.utc import utc_now
@@ -600,6 +601,19 @@ class VaultUploadService:
         file_size = len(content)
         now = utc_now().isoformat()
 
+        # Notify connected clients that the upload was received.
+        await event_bus.publish(
+            EventType.DOCUMENT_UPLOAD_RECEIVED,
+            {
+                "vault_id": vault_id,
+                "user_id": user_id,
+                "filename": filename,
+                "mime_type": mime_type,
+            },
+            source="vault_upload_service",
+            user_id=user_id,
+        )
+
         # Store document (returns storage path and provider file id)
         storage_path, provider_file_id = await self._store_document(
             user_id=user_id,
@@ -675,6 +689,17 @@ class VaultUploadService:
             # with registry_id and integrity_status. The overlay is the SSOT for
             # cert details (hashes, forgery score, duplicate tracking).
             try:
+                await event_bus.publish(
+                    EventType.OVERLAY_BUILD_STARTED,
+                    {
+                        "vault_id": vault_id,
+                        "user_id": user_id,
+                        "filename": filename,
+                        "overlay_type": OverlayType.VAULT_UPLOAD_MANIFEST.value,
+                    },
+                    source="vault_upload_service",
+                    user_id=user_id,
+                )
                 await self._create_unified_overlay(
                     doc,
                     overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
@@ -697,6 +722,17 @@ class VaultUploadService:
                     metadata={"stage": "certification"},
                     access_token=access_token,
                     storage_provider=storage_provider,
+                )
+                await event_bus.publish(
+                    EventType.OVERLAY_BUILD_COMPLETED,
+                    {
+                        "vault_id": vault_id,
+                        "user_id": user_id,
+                        "filename": filename,
+                        "overlay_type": OverlayType.VAULT_UPLOAD_MANIFEST.value,
+                    },
+                    source="vault_upload_service",
+                    user_id=user_id,
                 )
             except Exception as overlay_err:
                 logger.warning(
