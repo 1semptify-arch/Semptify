@@ -44,14 +44,14 @@ class OfflineManager:
             except Exception as e:
                 logger.error(f"Offline callback error: {e}")
 
-    def check_connectivity(self) -> bool:
+    async def check_connectivity(self) -> bool:
         """Check if we have network connectivity."""
         try:
             # Simple connectivity check - try to reach a reliable endpoint
             import httpx
 
-            with httpx.Client(timeout=5) as client:
-                response = client.get("https://httpbin.org/get", timeout=5)
+            async with httpx.AsyncClient(timeout=5) as client:
+                response = await client.get("https://httpbin.org/get", timeout=5)
                 return response.status_code == 200
         except Exception as e:
             logger.debug(f"Connectivity check failed: {e}")
