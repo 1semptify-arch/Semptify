@@ -101,7 +101,7 @@ register_function_group(
             "app.services.unified_overlay_manager.UnifiedOverlayManager",
             "app.models.unified_overlay_models.CreateOverlayRequest",
             "app.core.overlay_types.OverlayType",
-            "app.core.oauth_token_manager.get_valid_token_for_user",
+            "app.core.auto_refresh.ensure_valid_token",
             "app.services.storage.get_provider",
         ),
         deterministic=False,

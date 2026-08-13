@@ -36,9 +36,10 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auto_refresh import ensure_valid_token
 from app.core.capabilities import require_capability
 from app.core.config import Settings, get_settings
-from app.core.database import get_db
+from app.core.database import get_db, get_session_factory
 from app.core.id_gen import make_id
 from app.core.request_utils import raise_for_storage_error
 from app.core.security import (
@@ -213,12 +214,11 @@ async def upload_document(
         real_token = getattr(user, "access_token", None)
     if not real_token or real_token in ("auto", "no-token"):
         try:
-            from app.core.oauth_token_manager import get_valid_token_for_user
-
-            real_token = get_valid_token_for_user(user.user_id) or real_token
-        except ImportError:
-            # Token manager unavailable, will use provided token
-            pass
+            async with get_session_factory() as db:
+                _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+                real_token = token_obj.access_token if token_obj else real_token
+        except Exception as e:
+            logger.warning("Token resolution failed for user %s: %s", user.user_id, e)
     if not real_token or real_token in ("auto", "no-token"):
         raise HTTPException(
             status_code=401,
@@ -304,12 +304,11 @@ async def copy_from_sync_to_vault(
         real_token = getattr(user, "access_token", None)
     if not real_token or real_token in ("auto", "no-token"):
         try:
-            from app.core.oauth_token_manager import get_valid_token_for_user
-
-            real_token = get_valid_token_for_user(user.user_id) or real_token
-        except ImportError:
-            # Token manager unavailable, will use provided token
-            pass
+            async with get_session_factory() as db:
+                _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+                real_token = token_obj.access_token if token_obj else real_token
+        except Exception as e:
+            logger.warning("Token resolution failed for user %s: %s", user.user_id, e)
     if not real_token or real_token in ("auto", "no-token"):
         raise HTTPException(
             status_code=401,
@@ -1028,11 +1027,11 @@ async def sidebar_upload(
                     real_token = getattr(user, "access_token", None)
                 if not real_token or real_token in ("auto", "no-token"):
                     try:
-                        from app.core.oauth_token_manager import get_valid_token_for_user
-
-                        real_token = get_valid_token_for_user(user.user_id) or real_token
-                    except ImportError:
-                        pass
+                        async with get_session_factory() as db:
+                            _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+                            real_token = token_obj.access_token if token_obj else real_token
+                    except Exception as e:
+                        logger.warning("Token resolution failed for user %s: %s", user.user_id, e)
                 if not real_token or real_token in ("auto", "no-token"):
                     raise HTTPException(
                         status_code=401,
@@ -1556,12 +1555,11 @@ async def export_vault_zip(
     real_token = getattr(user, "access_token", None)
     if not real_token or real_token in ("auto", "no-token", None):
         try:
-            from app.core.oauth_token_manager import get_valid_token_for_user
-
-            real_token = get_valid_token_for_user(user.user_id) or real_token
-        except ImportError:
-            # Token manager unavailable, will use provided token
-            pass
+            async with get_session_factory() as db:
+                _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+                real_token = token_obj.access_token if token_obj else real_token
+        except Exception as e:
+            logger.warning("Token resolution failed for user %s: %s", user.user_id, e)
     if not real_token or real_token in ("auto", "no-token", None):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
