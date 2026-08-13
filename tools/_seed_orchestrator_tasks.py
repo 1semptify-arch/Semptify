@@ -689,6 +689,21 @@ TASKS = [
         "assigned_agent": "",
         "source": "manual",
     },
+    {
+        "id": "todo-065",
+        "title": "Static-to-template page manifest migration",
+        "description": "Reconcile app/core/page_manifest.py as part of the pilot branch's static-to-template migration. Pilot changes many PAGE_MANIFEST entries from static/*.html to app/templates/pages/*.html, moves public pages to static/public/, and renames tenant_dashboard source file. All referenced template files exist, but the migration must be coordinated with route rendering and the app/templates/ conflict set. Do not merge as part of routine Tier 1 reconciliation.",
+        "category": "reconciliation",
+        "target_model": "swe-1.7",
+        "priority": "medium",
+        "file_path": "app/core/page_manifest.py",
+        "status": "pending",
+        "notes": "Deferred from Tier 1 Batch 2. Needs dedicated review of static vs template page serving before applying.",
+        "created_at": "2026-08-12T00:00:00Z",
+        "updated_at": "2026-08-12T00:00:00Z",
+        "assigned_agent": "",
+        "source": "manual",
+    },
 ]
 
 
