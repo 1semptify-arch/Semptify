@@ -30,11 +30,11 @@ This file tracks files in the `adr-0008-pilot` branch that are still different f
 - **Pilot changes include:** new `/envelope` endpoint returning Object/Experience Envelope JSON; token-refresh calls were already merged via PR #56
 - **Recommendation:** review the `/envelope` endpoint and Experience Token wiring before merging.
 
-### 4. `app/modules/eviction_timeline/router.py` — partially handled in Batch 12
+### 4. `app/modules/eviction_timeline/router.py` — merged via PR #62
 - **Why it is Tier C:** API response shape + ADR-0008 wiring
-- **Applied (Batch 12):**
+- **Applied (Batch 12, merged to main at `871ab345`):**
   - Redirect fix `ssot_redirect("/api/eviction-timeline/", ...)` → `ssot_redirect(navigation.get_stage("eviction_timeline_home").path, ...)`
-- **Still to review / decide:**
+- **Still open / deferred for ADR-0008 review:**
   - New `/momentum-checkpoint` and `/envelope` endpoints
   - `EncounterContext`, `get_eviction_timeline_page`, and `get_momentum_checkpoint` wiring
 - **Recommendation:** Keep the new ADR-0008 endpoints for a dedicated review.
@@ -109,6 +109,7 @@ The Tier C candidate list is a first cut; many candidates are likely cosmetic fa
 ## Status
 
 - PR #60 (`phase-c-tier2-batch10`) **merged** — token manager async safety, ADR-0008 envelope files, async-token regression test.
-- PR #61 (`phase-c-tier2-batch11`) **open** — safe `app/main.py` Tier B fixes.
-- New `github-direct/main` HEAD: `a636a4384d32d1f6343c8cdec07743bf185c126f`.
+- PR #61 (`phase-c-tier2-batch11`) **open** — safe `app/main.py` Tier B fixes (token/utc/SSOT/escape-hatch).
+- PR #62 (`phase-c-tier2-batch12`) **merged** — `app/modules/eviction_timeline/router.py` SSOT redirect fix; ADR-0008 `/momentum-checkpoint` and `/envelope` endpoints still open.
+- New `github-direct/main` HEAD: `871ab345`.
 - Remaining `adr-0008-pilot` work: Tier A no-op counted, Tier C candidates listed above.
