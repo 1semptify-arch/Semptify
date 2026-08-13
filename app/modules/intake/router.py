@@ -37,11 +37,11 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Upload
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auto_refresh import ensure_valid_token
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.event_bus import EventType as BusEventType, event_bus
 from app.core.job_processor import JobPriority, submit_deep_ocr_job
-from app.core.oauth_token_manager import get_valid_token_for_user
 from app.core.security import StorageUser, get_user_id, yellow_access
 from app.core.user_id import get_provider_from_user_id
 from app.core.utc import utc_now
@@ -533,9 +533,8 @@ async def upload_and_process(
         real_token = getattr(user, "access_token", None) if user else None
     if not real_token or real_token in ("auto", "no-token"):
         try:
-            from app.core.oauth_token_manager import get_valid_token_for_user
-
-            real_token = await get_valid_token_for_user(user_id, db)
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            real_token = token_obj.access_token if token_obj else None
         except Exception as e:
             logger.warning("Token resolution failed for user %s: %s", user_id, e)
             real_token = None
@@ -767,6 +766,7 @@ async def upload_and_process(
 async def upload_documents_batch(
     files: list[UploadFile] = File(...),
     user_id: str = Form(...),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Upload multiple documents at once.
@@ -795,13 +795,15 @@ async def upload_documents_batch(
             vault_id = None
             if HAS_VAULT_SERVICE:
                 vault_service = get_vault_service()
+                _, token_obj, _ = await ensure_valid_token(user_id, db)
+                access_token = token_obj.access_token if token_obj else None
                 vault_doc = await vault_service.upload(
                     user_id=user_id,
                     filename=file.filename or "unknown",
                     content=content,
                     mime_type=file.content_type or "application/octet-stream",
                     source_module="intake_batch",
-                    access_token=get_valid_token_for_user(user_id),
+                    access_token=access_token,
                     storage_provider=get_provider_from_user_id(user_id),
                 )
                 vault_id = vault_doc.vault_id
