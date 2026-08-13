@@ -25,13 +25,17 @@ async def detect_duplicates(
         - duplicate_count: int (total duplicates for this hash)
     """
     if overlay_manager is None:
-        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.auto_refresh import ensure_valid_token
+        from app.core.database import get_session_factory
         from app.core.user_id import get_provider_from_user_id
         from app.services.storage import get_provider
         from app.services.unified_overlay_manager import get_unified_overlay_manager
 
         provider_code = get_provider_from_user_id(user_id) or "google_drive"
-        token = await get_valid_token_for_user(user_id)
+        factory = get_session_factory()
+        async with factory() as db:
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            token = token_obj.access_token if token_obj else None
         if not token:
             return {"is_duplicate": False, "error": "No storage token found"}
 
@@ -128,13 +132,17 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> list[dict]:
         - duplicates: list of duplicate vault_ids
     """
     if overlay_manager is None:
-        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.auto_refresh import ensure_valid_token
+        from app.core.database import get_session_factory
         from app.core.user_id import get_provider_from_user_id
         from app.services.storage import get_provider
         from app.services.unified_overlay_manager import get_unified_overlay_manager
 
         provider_code = get_provider_from_user_id(user_id) or "google_drive"
-        token = await get_valid_token_for_user(user_id)
+        factory = get_session_factory()
+        async with factory() as db:
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            token = token_obj.access_token if token_obj else None
         if not token:
             return []
 
