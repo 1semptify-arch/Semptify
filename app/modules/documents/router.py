@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Reques
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auto_refresh import ensure_valid_token
 from app.core.capabilities import require_capability
 from app.core.database import get_db
 from app.core.event_bus import EventType, event_bus
@@ -25,15 +26,6 @@ from app.core.security import StorageUser, green_access, yellow_access
 from app.core.utc import utc_now
 from app.services.document_pipeline import DocumentType, ProcessingStatus, get_document_pipeline
 from app.services.law_engine import get_law_engine
-
-try:
-    from app.core.oauth_token_manager import get_valid_token_for_user as _get_valid_token
-
-except ImportError:
-
-    def _get_valid_token(user_id: str):  # type: ignore[misc]
-        return None
-
 
 # Import vault upload service - ALL uploads go through here first
 
@@ -468,7 +460,10 @@ async def process_document(
         from app.services.storage import get_storage_provider
 
         storage = get_storage_provider(user.provider.value if hasattr(user.provider, "value") else str(user.provider))
-        session_token = getattr(user, "access_token", None) or _get_valid_token(user_id)
+        session_token = getattr(user, "access_token", None)
+        if not session_token or session_token in ("auto", "no-token"):
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            session_token = token_obj.access_token if token_obj else None
 
         content = await storage.download_file(vault_doc.storage_path, session_token)
         mime_type = vault_doc.mime_type or "application/octet-stream"
@@ -779,13 +774,13 @@ async def process_document(
 
     try:
         # Process through filedored system for virtual folder organization
-        from app.core.oauth_token_manager import get_valid_token_for_user
         from app.core.user_id import get_provider_from_user_id
         from app.services.filedored_service import process_uploaded_document
         from app.services.storage import get_provider as _get_provider
         from app.services.unified_overlay_manager import get_unified_overlay_manager
 
-        _token = get_valid_token_for_user(user_id)
+        _, token_obj, _ = await ensure_valid_token(user_id, db)
+        _token = token_obj.access_token if token_obj else None
         _provider_code = get_provider_from_user_id(user_id) or "google_drive"
         _storage = _get_provider(_provider_code, access_token=_token) if _token else None
         _overlay_manager = await get_unified_overlay_manager(_storage, user_id) if _storage else None
