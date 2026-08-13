@@ -37,11 +37,12 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 2. **Read `ACTIVE_CONTEXT.md`** — What is being worked on RIGHT NOW. Do not start something else.
 3. **Read `PROJECT_BIBLE.md`** — Canonical hierarchy, gate chain, and governance.
 4. **Read `docs/MOTIVATIONS.md`** — Foundational motivations, language rules, and design principles. Permanent decisions are also in `docs/adr/0001`–`0006`.
-5. **Read the Known Failure Registry below** — Do not repeat a past mistake.
-6. **State your plan before acting** — Tell the user what you intend to change and why before touching any file.
-7. **Do not ship without a verification step** — Every change needs a compile check or test run.
-8. **Verify Python 3.11.9** — Confirm the active interpreter is `venv311` before running anything.
-9. **Fix the root cause, not the symptom** — Trace every bug to its source. NEVER add downstream compensating checks to mask upstream failures. Band-aids compound. Fix the source.
+5. **Read `docs/AI_TEAM_OPERATING_PROTOCOL.md`** — Three-way collaboration protocol, decision authority matrix, and batching rules.
+6. **Read the Known Failure Registry below** — Do not repeat a past mistake.
+7. **State your plan before acting** — Tell the user what you intend to change and why before touching any file.
+8. **Do not ship without a verification step** — Every change needs a compile check or test run.
+9. **Verify Python 3.11.9** — Confirm the active interpreter is `venv311` before running anything.
+10. **Fix the root cause, not the symptom** — Trace every bug to its source. NEVER add downstream compensating checks to mask upstream failures. Band-aids compound. Fix the source.
 
 ### If you skip pre-flight, you will repeat a past mistake. The history proves this
 
