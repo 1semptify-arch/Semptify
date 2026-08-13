@@ -5,6 +5,7 @@ OAuth Token Manager - Secure Token Refresh and Management
 Handles OAuth token refresh, expiration, and secure storage.
 """
 
+import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -75,14 +76,27 @@ class OAuthTokenManager:
         token = self.get_token(user_id)
         if not token:
             return None
+        if not token.is_expired():
+            return token
+        return _sync_run(self.arefresh_token_if_needed(user_id))
+
+    def _refresh_token(self, user_id: str, token: OAuthToken) -> OAuthToken | None:
+        """Refresh an expired token (sync wrapper)."""
+        return _sync_run(self._arefresh_token(user_id, token))
+
+    async def arefresh_token_if_needed(self, user_id: str) -> OAuthToken | None:
+        """Async: refresh token if it's expired or will expire soon."""
+        token = self.get_token(user_id)
+        if not token:
+            return None
 
         if not token.is_expired():
             return token
 
-        return self._refresh_token(user_id, token)
+        return await self._arefresh_token(user_id, token)
 
-    def _refresh_token(self, user_id: str, token: OAuthToken) -> OAuthToken | None:
-        """Refresh an expired token."""
+    async def _arefresh_token(self, user_id: str, token: OAuthToken) -> OAuthToken | None:
+        """Async: refresh an expired token."""
         if not token.refresh_token:
             logger.warning(f"No refresh token available for user {user_id}")
             return None
@@ -93,9 +107,9 @@ class OAuthTokenManager:
             return None
 
         try:
-            # Call provider-specific refresh callback
+            # Call provider-specific async refresh callback
             refresh_callback = self.refresh_callbacks[provider]
-            new_token_data = refresh_callback(token.refresh_token)
+            new_token_data = await refresh_callback(token.refresh_token)
 
             if new_token_data:
                 # Create new token object
@@ -121,20 +135,34 @@ class OAuthTokenManager:
             logger.error(f"Error refreshing token for user {user_id}: {e}")
             return None
 
-    def _parse_expires_at(self, expires_in: int | None) -> datetime | None:
-        """Parse expires_in to datetime."""
-        if expires_in:
-            return utc_now() + timedelta(seconds=expires_in)
-        return None
-
     def get_valid_token(self, user_id: str) -> OAuthToken | None:
         """Get a valid token, refreshing if necessary."""
-        return self.refresh_token_if_needed(user_id)
+        token = self.get_token(user_id)
+        if token is None:
+            return None
+        if not token.is_expired():
+            return token
+        return _sync_run(self.aget_valid_token(user_id))
 
     def validate_token(self, user_id: str) -> bool:
         """Validate that user has a valid token."""
         token = self.get_valid_token(user_id)
         return token is not None and not token.is_expired()
+
+    async def aget_valid_token(self, user_id: str) -> OAuthToken | None:
+        """Async: get a valid token, refreshing if necessary."""
+        return await self.arefresh_token_if_needed(user_id)
+
+    async def avalidate_token(self, user_id: str) -> bool:
+        """Async: validate that user has a valid token."""
+        token = await self.aget_valid_token(user_id)
+        return token is not None and not token.is_expired()
+
+    def _parse_expires_at(self, expires_in: int | None) -> datetime | None:
+        """Parse expires_in to datetime."""
+        if expires_in:
+            return utc_now() + timedelta(seconds=expires_in)
+        return None
 
     def get_token_info(self, user_id: str) -> dict[str, Any] | None:
         """Get token information for debugging."""
@@ -180,6 +208,24 @@ class OAuthTokenManager:
         return export_data
 
 
+def _sync_run(coro):
+    """Run an async coroutine from a synchronous context when safe.
+
+    If an event loop is already running (e.g. inside a FastAPI async route),
+    this cannot safely use asyncio.run(). The sync helpers must not be called
+    from async contexts; use the a* methods or app.core.auto_refresh instead.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    raise RuntimeError(
+        "Cannot run OAuth token refresh synchronously inside a running async event loop. "
+        "Use token_manager.aget_valid_token() / arefresh_token_if_needed() or "
+        "app.core.auto_refresh.ensure_valid_token() instead."
+    )
+
+
 # Global token manager instance
 token_manager = OAuthTokenManager()
 
@@ -193,7 +239,7 @@ def get_token_manager() -> OAuthTokenManager:
 def register_google_refresh_callback():
     """Register Google Drive token refresh callback."""
 
-    def refresh_google_token(refresh_token: str) -> dict[str, Any] | None:
+    async def refresh_google_token(refresh_token: str) -> dict[str, Any] | None:
         try:
             import httpx
 
@@ -208,8 +254,8 @@ def register_google_refresh_callback():
                 "grant_type": "refresh_token",
             }
 
-            with httpx.Client(timeout=10) as client:
-                response = client.post("https://oauth2.googleapis.com/token", data=data)
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.post("https://oauth2.googleapis.com/token", data=data)
 
                 if response.status_code == 200:
                     return response.json()
@@ -227,7 +273,7 @@ def register_google_refresh_callback():
 def register_dropbox_refresh_callback():
     """Register Dropbox token refresh callback."""
 
-    def refresh_dropbox_token(refresh_token: str) -> dict[str, Any] | None:
+    async def refresh_dropbox_token(refresh_token: str) -> dict[str, Any] | None:
         try:
             import httpx
 
@@ -242,8 +288,8 @@ def register_dropbox_refresh_callback():
                 "client_secret": settings.dropbox_app_secret,
             }
 
-            with httpx.Client(timeout=10) as client:
-                response = client.post("https://api.dropboxapi.com/oauth2/token", data=data)
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.post("https://api.dropboxapi.com/oauth2/token", data=data)
 
                 if response.status_code == 200:
                     return response.json()
@@ -261,7 +307,7 @@ def register_dropbox_refresh_callback():
 def register_onedrive_refresh_callback():
     """Register OneDrive token refresh callback."""
 
-    def refresh_onedrive_token(refresh_token: str) -> dict[str, Any] | None:
+    async def refresh_onedrive_token(refresh_token: str) -> dict[str, Any] | None:
         try:
             import httpx
 
@@ -276,8 +322,8 @@ def register_onedrive_refresh_callback():
                 "grant_type": "refresh_token",
             }
 
-            with httpx.Client(timeout=10) as client:
-                response = client.post("https://login.microsoftonline.com/common/oauth2/v2.0/token", data=data)
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.post("https://login.microsoftonline.com/common/oauth2/v2.0/token", data=data)
 
                 if response.status_code == 200:
                     return response.json()
@@ -302,8 +348,14 @@ def init_oauth_token_manager():
 
 
 # Helper functions
+async def aget_valid_token_for_user(user_id: str) -> str | None:
+    """Async: get valid access token for user."""
+    token = await token_manager.aget_valid_token(user_id)
+    return token.access_token if token else None
+
+
 def get_valid_token_for_user(user_id: str) -> str | None:
-    """Get valid access token for user."""
+    """Get valid access token for user (sync wrapper)."""
     token = token_manager.get_valid_token(user_id)
     return token.access_token if token else None
 
