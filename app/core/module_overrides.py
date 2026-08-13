@@ -300,16 +300,26 @@ async def ensure_schema(db: AsyncSession) -> None:
     Call this at app startup.
     """
     try:
+        dialect = getattr(db.bind, "dialect", None)
+        dialect_name = getattr(dialect, "name", "") if dialect else ""
+        if dialect_name == "postgresql":
+            ts_type = "TIMESTAMPTZ"
+            ts_default = "NOW()"
+        else:
+            # SQLite (and most others) do not support TIMESTAMPTZ / NOW()
+            ts_type = "TIMESTAMP"
+            ts_default = "CURRENT_TIMESTAMP"
+
         await db.execute(
             text(
-                """
+                f"""
                 CREATE TABLE IF NOT EXISTS module_overrides (
                     module_path TEXT PRIMARY KEY,
                     lifecycle TEXT,
                     feature_flag TEXT,
                     disabled BOOLEAN NOT NULL DEFAULT FALSE,
                     notes TEXT NOT NULL DEFAULT '',
-                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    updated_at {ts_type} NOT NULL DEFAULT {ts_default}
                 )
                 """
             )
