@@ -27,7 +27,7 @@ import logging
 import re
 import secrets
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
 
@@ -426,7 +426,7 @@ class ForgeryDetector:
                     if year < 100:
                         year += 2000
                     if 1 <= month <= 12 and 1 <= day <= 31:
-                        dates_found.append(datetime(year, month, day))
+                        dates_found.append(datetime(year, month, day, tzinfo=UTC))
                 except ValueError:
                     continue
 
