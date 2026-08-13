@@ -9,8 +9,6 @@
 
 All checks passed.
 
-### Guardrail Engine Run — not yet run for this branch
-
 ### Problem
 
 - `app/modules/eviction_timeline/router.py` is a Tier C file because the pilot adds ADR-0008 `/momentum-checkpoint` and `/envelope` endpoints, but it also contains a simple rulebook Tier B SSOT redirect fix.
@@ -26,6 +24,10 @@ All checks passed.
 - `python -m py_compile app/modules/eviction_timeline/router.py` — PASS
 - `ruff check app/modules/eviction_timeline/router.py` — PASS
 - `pytest tests/module_health/test_eviction_timeline.py tests/test_ssot_architecture.py -q --no-cov` — 9 passed
+
+### Status
+
+- Merged to `main` via PR #62 at `871ab345`.
 
 ---
 
