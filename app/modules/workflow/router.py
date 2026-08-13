@@ -27,7 +27,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.database import get_db_session
 from app.core.module_contracts import contract_registry
-from app.core.oauth_token_manager import get_valid_token_for_user
 from app.core.page_contracts import PAGE_CONTRACTS, get_contract, validate_all_contracts
 from app.core.process_registry import PROCESS_GROUPS, get_groups_for_role
 from app.core.user_context import UserRole
@@ -112,7 +111,15 @@ async def _load_timeline_events_from_cloud(user_id: str) -> list[dict[str, Any]]
     if not provider_name:
         return None
 
-    access_token = get_valid_token_for_user(user_id)
+    access_token = None
+    try:
+        from app.core.auto_refresh import ensure_valid_token
+
+        async with get_db_session() as db:
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            access_token = token_obj.access_token if token_obj else None
+    except Exception:
+        return None
     if not access_token:
         return None
 

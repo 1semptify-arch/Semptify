@@ -462,12 +462,14 @@ async def review_document(
 # =============================================================================
 
 
-def _get_tenant_storage(tenant_user_id: str):
+async def _get_tenant_storage(tenant_user_id: str):
     """Get a storage provider instance for a tenant user.
 
     Uses the tenant's OAuth token (refreshed if needed) and their
     primary provider. Raises HTTPException if token or provider unavailable.
     """
+    from app.core.auto_refresh import ensure_valid_token
+    from app.core.database import get_session_factory
     from app.services.storage import get_provider
 
     provider_name = get_provider_from_user_id(tenant_user_id)
@@ -477,10 +479,12 @@ def _get_tenant_storage(tenant_user_id: str):
             detail="Could not determine storage provider from tenant user_id.",
         )
 
+    token = None
     try:
-        from app.core.oauth_token_manager import get_valid_token_for_user
-
-        token = get_valid_token_for_user(tenant_user_id)
+        factory = get_session_factory()
+        async with factory() as db:
+            _, token_obj, _ = await ensure_valid_token(tenant_user_id, db)
+            token = token_obj.access_token if token_obj else None
     except Exception as e:
         logger.warning("Advocate annotate: token lookup failed for %s: %s", tenant_user_id, e)
         token = None
@@ -551,7 +555,7 @@ async def annotate_document(
         vault_path = doc.file_path
         document_id = doc.id
 
-    storage = _get_tenant_storage(client_id)
+    storage = await _get_tenant_storage(client_id)
 
     try:
         from app.core.overlay_types import OverlayType
@@ -615,7 +619,7 @@ async def list_document_overlays(
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
 
-    storage = _get_tenant_storage(client_id)
+    storage = await _get_tenant_storage(client_id)
 
     try:
         from app.services.unified_overlay_manager import UnifiedOverlayManager
@@ -664,7 +668,7 @@ async def delete_annotation(
     with get_db_session() as db:
         _check_client_link(db, user_id, client_id)
 
-    storage = _get_tenant_storage(client_id)
+    storage = await _get_tenant_storage(client_id)
 
     try:
         from app.services.unified_overlay_manager import UnifiedOverlayManager

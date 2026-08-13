@@ -12,7 +12,9 @@ Endpoints:
 import logging
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_db
 from app.core.security import UserContext, green_access
 from app.core.utc import utc_now
 from app.services.voice_service import transcribe_audio
@@ -35,6 +37,7 @@ async def transcribe_voice(
     language: str | None = Form(None),
     keep_audio: bool = Form(False),
     user: UserContext = Depends(green_access),
+    db: AsyncSession = Depends(get_db),
 ):
     """Transcribe an uploaded audio clip. Raw audio is discarded unless keep_audio is true."""
     audio_bytes = await audio.read()
@@ -53,9 +56,10 @@ async def transcribe_voice(
         try:
             real_token = user.access_token if user else None
             if not real_token or real_token in ("auto", "no-token"):
-                from app.core.oauth_token_manager import get_valid_token_for_user
+                from app.core.auto_refresh import ensure_valid_token
 
-                real_token = get_valid_token_for_user(user.user_id)
+                _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+                real_token = token_obj.access_token if token_obj else None
 
             vault_service = get_vault_service()
             mime_type = audio.content_type or "audio/webm"
