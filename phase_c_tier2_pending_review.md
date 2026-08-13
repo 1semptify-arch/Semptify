@@ -111,5 +111,9 @@ The Tier C candidate list is a first cut; many candidates are likely cosmetic fa
 - PR #60 (`phase-c-tier2-batch10`) **merged** — token manager async safety, ADR-0008 envelope files, async-token regression test.
 - PR #61 (`phase-c-tier2-batch11`) **open** — safe `app/main.py` Tier B fixes (token/utc/SSOT/escape-hatch).
 - PR #62 (`phase-c-tier2-batch12`) **merged** — `app/modules/eviction_timeline/router.py` SSOT redirect fix; ADR-0008 `/momentum-checkpoint` and `/envelope` endpoints still open.
-- New `github-direct/main` HEAD: `871ab345`.
+- New `github-direct/main` HEAD: `750c2574`.
 - Remaining `adr-0008-pilot` work: Tier A no-op counted, Tier C candidates listed above.
+
+## Repo cleanup items
+
+- The `origin` remote in this worktree points to the local path `E:/master-repo/sources/app-semptify-fastapi` instead of GitHub. This causes a false "ahead by 66 commits" reading against `github-direct/main`. Remove or repoint the `origin` alias to `https://github.com/1semptify-arch/Semptify.git` when convenient.
