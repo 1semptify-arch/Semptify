@@ -2144,7 +2144,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
             return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
-        return ssot_redirect(navigation.get_stage("tenant_dashboard").path, context="tenant dashboard ▸ assembled dashboard")
+        return ssot_redirect(navigation.get_stage("tenant_timeline").path, context="tenant dashboard ▸ timeline")
 
     @fastapi_app.get("/advocate/dashboard", response_class=HTMLResponse)
     async def advocate_dashboard_page(request: Request):
