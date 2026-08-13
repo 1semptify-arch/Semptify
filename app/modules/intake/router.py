@@ -509,7 +509,7 @@ async def upload_and_process(
     Token resolution fallback chain (matches vault/router.py pattern):
     1. Form field access_token (if provided and not "auto")
     2. user.access_token from session (if user available)
-    3. get_valid_token_for_user(user_id, db) — refreshes expired tokens
+    3. ensure_valid_token(user_id, db) — refreshes expired tokens
     """
     engine = get_intake_engine()
 
