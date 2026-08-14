@@ -1,3 +1,36 @@
+## Session -- 2026-08-14 — Phase C Tier 2 next batch task list
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Phase C Tier 2 reconciliation needs a curated, tracker-compatible task list for the remaining `app/modules/` and `app/services/` diffs between `main` (`b55c989c063e8b981e35b96461970a7af8ecab64`) and `refs/heads/adr-0008-pilot`.
+
+### Fix
+
+- Generated 37 Tier C review tasks in `tools/phase_c_tier2_reconciliation_tasks.json`.
+- Appended the same 37 tasks to `tools/_seed_orchestrator_tasks.py` after `todo-066`.
+- Organized into 4 thematic batches:
+  - Batch 1/4: 8 deleted-in-pilot services that still exist on main (preserve main).
+  - Batch 2/4: 9 ADR-0008 envelope/momentum and page-context wiring files.
+  - Batch 3/4: 10 tenant services and intake/onboarding/brain/portal routers.
+  - Batch 4/4: 10 module wiring and action-routing reconciliations.
+- Skipped all Tier A cosmetic-only files and excluded the PR #59 blocked files.
+- No `app/core/` files were needed (37 candidates came from `app/modules/` and `app/services/`).
+
+### Verification
+
+- `py -3.11 -m py_compile tools/_seed_orchestrator_tasks.py` — PASS.
+- `py -3.11 tools/sync_orchestrator.py` — regenerated `tools/docs_todos.json` and `tools/agent_orchestrator_tasks.json`; total 85 tasks, 0 missing paths.
+- `py -3.11 tools/sync_orchestrator.py --check` — PASS.
+- `py -3.11 tools/mark_task_status.py --help` — PASS.
+
+### Status
+
+- Task list created and synced; ready for `admin:` commit on `devin/task-tracker-in-progress`.
+
+---
+
 ## Session -- 2026-08-14 — Task tracker in_progress enforcement
 
 ### Guardrail Engine Run — not run
