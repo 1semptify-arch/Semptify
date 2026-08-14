@@ -28,7 +28,7 @@ async def documents_extract_eviction_data(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Extract eviction-related data from uploaded document"""
-    logger.info("📄 Extracting eviction data for user %s...", user_id[:8])
+    logger.info("● Extracting eviction data for user %s...", user_id[:8])
 
     # Get document data from context
     document = context.get("document", {})
@@ -56,7 +56,7 @@ async def documents_extract_lease_terms(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Extract lease terms from a lease document"""
-    logger.info("📜 Extracting lease terms for user %s...", user_id[:8])
+    logger.info("● Extracting lease terms for user %s...", user_id[:8])
 
     document = context.get("document", {})
 
@@ -88,7 +88,7 @@ async def documents_gather_evidence(
     _context: dict[str, Any],
 ) -> dict[str, Any]:
     """Gather evidence documents for court"""
-    logger.info("📂 Gathering evidence for user %s...", user_id[:8])
+    logger.info("● Gathering evidence for user %s...", user_id[:8])
 
     # Get user's documents from Module Hub
     user_data = module_hub.get_user_data(user_id)
@@ -101,7 +101,7 @@ async def documents_gather_evidence(
     return {
         "evidence_documents": evidence_docs,
         "evidence_count": len(evidence_docs),
-        "evidence_types": list({d.get("category") for d in evidence_docs}),
+        "evidence_types": list(set(d.get("category") for d in evidence_docs)),
     }
 
 
@@ -131,7 +131,7 @@ async def calendar_calculate_deadlines(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Calculate important deadlines from eviction data"""
-    logger.info("📅 Calculating deadlines for user %s...", user_id[:8])
+    logger.info("◆ Calculating deadlines for user %s...", user_id[:8])
 
     eviction_date_str = context.get("eviction_date", "")
 
@@ -190,7 +190,7 @@ async def calendar_set_lease_reminders(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Set reminders based on lease terms"""
-    logger.info("🔔 Setting lease reminders for user %s...", user_id[:8])
+    logger.info("◆ Setting lease reminders for user %s...", user_id[:8])
 
     terms = context.get("terms", {})
     lease_dates = context.get("lease_dates", {})
@@ -252,7 +252,7 @@ async def process_detect_current_process(
     This action analyzes available data and returns the appropriate process
     for automatic routing via the mesh workflow system.
     """
-    logger.info("🔍 Detecting process for user %s...", user_id[:8])
+    logger.info("▸ Detecting process for user %s...", user_id[:8])
 
     # Get state from context
     documents_state = context.get("documents_state", {})
@@ -301,7 +301,7 @@ async def eviction_analyze_defenses(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Analyze available defenses for the eviction case"""
-    logger.info("⚖️ Analyzing defenses for user %s...", user_id[:8])
+    logger.info("▸ Analyzing defenses for user %s...", user_id[:8])
 
     reason = context.get("reason", "").lower()
 
@@ -382,7 +382,7 @@ async def eviction_compile_case_info(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Compile all case information"""
-    logger.info("📋 Compiling case info for user %s...", user_id[:8])
+    logger.info("● Compiling case info for user %s...", user_id[:8])
 
     return {
         "case_summary": {
@@ -426,7 +426,7 @@ async def forms_prepare_answer_form(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Prepare the Answer form with extracted data"""
-    logger.info("📝 Preparing Answer form for user %s...", user_id[:8])
+    logger.info("● Preparing Answer form for user %s...", user_id[:8])
 
     return {
         "answer_form_draft": {
@@ -449,7 +449,7 @@ async def forms_prepare_court_packet(
     _context: dict[str, Any],
 ) -> dict[str, Any]:
     """Prepare complete court packet"""
-    logger.info("📦 Preparing court packet for user %s...", user_id[:8])
+    logger.info("● Preparing court packet for user %s...", user_id[:8])
 
     return {
         "court_packet": {
@@ -475,7 +475,7 @@ async def copilot_generate_guidance(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Generate guidance and next steps"""
-    logger.info("🤖 Generating guidance for user %s...", user_id[:8])
+    logger.info("○ Generating guidance for user %s...", user_id[:8])
 
     days_until_answer = context.get("days_until_answer", 14)
     defenses = context.get("available_defenses", [])
@@ -532,7 +532,7 @@ async def copilot_explain_deadline(
     _context: dict[str, Any],
 ) -> dict[str, Any]:
     """Explain a deadline and required actions"""
-    logger.info("💡 Explaining deadline for user %s...", user_id[:8])
+    logger.info("○ Explaining deadline for user %s...", user_id[:8])
 
     return {
         "deadline_explanation": "This deadline is critical for your case.",
@@ -550,7 +550,7 @@ async def copilot_generate_talking_points(
     _context: dict[str, Any],
 ) -> dict[str, Any]:
     """Generate talking points for court"""
-    logger.info("🎤 Generating talking points for user %s...", user_id[:8])
+    logger.info("▸ Generating talking points for user %s...", user_id[:8])
 
     return {
         "talking_points": [
@@ -578,7 +578,7 @@ async def law_library_check_lease_violations(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Check lease for potential violations of tenant rights"""
-    logger.info("⚖️ Checking lease violations for user %s...", user_id[:8])
+    logger.info("▸ Checking lease violations for user %s...", user_id[:8])
 
     terms = context.get("terms", {})
     violations = []
@@ -619,7 +619,7 @@ async def timeline_create_lease_timeline(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Create a timeline of lease events"""
-    logger.info("📅 Creating lease timeline for user %s...", user_id[:8])
+    logger.info("◆ Creating lease timeline for user %s...", user_id[:8])
 
     return {
         "lease_events": [
@@ -635,7 +635,7 @@ async def timeline_build_case_timeline(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Build a complete case timeline"""
-    logger.info("📊 Building case timeline for user %s...", user_id[:8])
+    logger.info("◆ Building case timeline for user %s...", user_id[:8])
 
     return {
         "case_timeline": [
@@ -718,7 +718,7 @@ async def zoom_court_prepare_virtual_hearing(
     _context: dict[str, Any],
 ) -> dict[str, Any]:
     """Prepare for virtual court hearing"""
-    logger.info("💻 Preparing virtual hearing for user %s...", user_id[:8])
+    logger.info("○ Preparing virtual hearing for user %s...", user_id[:8])
 
     return {
         "hearing_prep": {
@@ -750,7 +750,7 @@ async def context_merge_states(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Merge all module states into unified context"""
-    logger.info("🔄 Merging states for user %s...", user_id[:8])
+    logger.info("▸ Merging states for user %s...", user_id[:8])
 
     return {
         "unified_context": {
@@ -774,7 +774,7 @@ async def ui_update_dashboard(
     _context: dict[str, Any],
 ) -> dict[str, Any]:
     """Update the UI dashboard"""
-    logger.info("🖥️ Updating dashboard for user %s...", user_id[:8])
+    logger.info("○ Updating dashboard for user %s...", user_id[:8])
 
     return {
         "ui_state": {
@@ -795,7 +795,7 @@ async def ui_show_alert(
     _context: dict[str, Any],
 ) -> dict[str, Any]:
     """Show an alert in the UI"""
-    logger.info("🔔 Showing alert for user %s...", user_id[:8])
+    logger.info("◆ Showing alert for user %s...", user_id[:8])
 
     return {
         "alert_shown": True,
@@ -819,7 +819,7 @@ async def ui_refresh(
 
 def register_all_actions():
     """Register all module actions with the Positronic Mesh"""
-    logger.info("🔌 Registering module actions with Positronic Mesh...")
+    logger.info("○ Registering module actions with Positronic Mesh...")
 
     # Documents module
     positronic_mesh.register_action(
@@ -989,6 +989,6 @@ def register_all_actions():
     positronic_mesh.register_action("ui", "refresh", ui_refresh, "Refresh the UI", produces=["ui_refreshed"])
 
     status = positronic_mesh.get_mesh_status()
-    logger.info("✅ Registered %s actions across %s modules", status["total_actions"], status["modules_connected"])
+    logger.info("● Registered %s actions across %s modules", status["total_actions"], status["modules_connected"])
 
     return status
