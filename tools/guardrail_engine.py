@@ -22,6 +22,7 @@ Exit code 0 = all checks passed. Exit code 1 = at least one check failed
 
 import importlib.util
 import logging
+import os
 import sys
 import time
 import traceback
@@ -189,7 +190,12 @@ def append_to_build_state(report: EngineReport):
     loop. Skip the write when the top entry's substantive content (everything
     except the timestamp line) already matches what we'd write. This makes
     retry a no-op so the commit can succeed.
+
+    Also skip in CI: the report is human-facing, and modifying a tracked file
+    makes `pre-commit run --all-files` see unexpected diffs.
     """
+    if os.environ.get("CI"):
+        return
     try:
         entry = format_build_state_entry(report)
         if BUILD_STATE_PATH.exists():
