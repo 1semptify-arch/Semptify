@@ -1,5 +1,5 @@
 """
-🔄 User Cloud Sync - API Router
+▸ User Cloud Sync - API Router
 ================================
 
 Endpoints for syncing user data with their cloud storage.
@@ -210,7 +210,7 @@ async def get_sync_status(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📊 Get current sync status.
+    ◆ Get current sync status.
 
     Returns the current sync state and summary of stored data.
     """
@@ -249,7 +249,7 @@ async def full_sync(
     settings: Settings = Depends(get_settings),
 ):
     """
-    🔄 Perform full sync with cloud storage.
+    ▸ Perform full sync with cloud storage.
 
     Loads all data from user's cloud storage:
     - Profile settings
@@ -290,7 +290,7 @@ async def get_profile(
     settings: Settings = Depends(get_settings),
 ):
     """
-    👤 Get user profile from cloud storage.
+    ● Get user profile from cloud storage.
     """
     sync = await get_sync_service(user, db, settings)
     profile = await sync.get_or_create_profile()
@@ -305,7 +305,7 @@ async def update_profile(
     settings: Settings = Depends(get_settings),
 ):
     """
-    ✏️ Update user profile in cloud storage.
+    ▸ Update user profile in cloud storage.
     """
     sync = await get_sync_service(user, db, settings)
     profile = await sync.get_or_create_profile()
@@ -331,7 +331,7 @@ async def get_case(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📋 Get case data from cloud storage.
+    ● Get case data from cloud storage.
     """
     sync = await get_sync_service(user, db, settings)
     case = await sync.get_or_create_case()
@@ -346,7 +346,7 @@ async def update_case(
     settings: Settings = Depends(get_settings),
 ):
     """
-    ✏️ Update case data in cloud storage.
+    ▸ Update case data in cloud storage.
     """
     sync = await get_sync_service(user, db, settings)
     case = await sync.get_or_create_case()
@@ -372,7 +372,7 @@ async def get_timeline(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📅 Get timeline events from cloud storage.
+    ◆ Get timeline events from cloud storage.
     """
     sync = await get_sync_service(user, db, settings)
     events = await sync.load_timeline()
@@ -387,7 +387,7 @@ async def add_timeline_event(
     settings: Settings = Depends(get_settings),
 ):
     """
-    ➕ Add timeline event to cloud storage.
+    ▸ Add timeline event to cloud storage.
     """
     from app.core.id_gen import make_id
 
@@ -419,7 +419,7 @@ async def get_calendar(
     settings: Settings = Depends(get_settings),
 ):
     """
-    🗓️ Get calendar events from cloud storage.
+    ◆ Get calendar events from cloud storage.
     """
     sync = await get_sync_service(user, db, settings)
     events = await sync.load_calendar()
@@ -434,7 +434,7 @@ async def add_calendar_event(
     settings: Settings = Depends(get_settings),
 ):
     """
-    ➕ Add calendar event to cloud storage.
+    ▸ Add calendar event to cloud storage.
     """
     from app.core.id_gen import make_id
 
@@ -469,7 +469,7 @@ async def export_all_data(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📤 Export all user data as JSON.
+    ● Export all user data as JSON.
 
     Returns a complete backup that can be imported later or on another device.
     """
@@ -486,7 +486,7 @@ async def import_all_data(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📥 Import user data from JSON backup.
+    ● Import user data from JSON backup.
 
     Restores data from an export backup.
     """
@@ -511,7 +511,7 @@ async def get_documents(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📄 Get document index from VAULT in cloud storage.
+    ● Get document index from VAULT in cloud storage.
     All documents are now stored in Semptify5.0/Vault/documents/
     """
     import json
@@ -540,7 +540,7 @@ async def get_vault_index(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📋 Get the complete vault document index.
+    ● Get the complete vault document index.
     Returns all documents stored in Semptify5.0/Vault/documents/ with their metadata.
     """
     import json
@@ -575,7 +575,7 @@ async def get_vault_document(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📄 Get a specific document from vault by document ID.
+    ● Get a specific document from vault by document ID.
     Returns the document metadata from the vault index.
     """
     import json
@@ -612,7 +612,7 @@ async def get_vault_document_content(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📥 Download document content from vault.
+    ● Download document content from vault.
     Returns the raw file content for processing.
     """
     import json
@@ -672,7 +672,7 @@ async def update_vault_document(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📝 Update document metadata in vault index.
+    ● Update document metadata in vault index.
     Used by processing modules to update document status.
     """
     import json
@@ -727,7 +727,7 @@ async def upload_document_to_cloud(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📤 Upload document directly to user's VAULT in cloud storage.
+    ● Upload document directly to user's VAULT in cloud storage.
 
     All uploads go to .semptify/vault/ with document ID and user ID.
     This is the single source of truth for all documents.
@@ -862,7 +862,7 @@ async def upload_document_to_cloud(
     except Exception as e:
         logger.warning(f"Failed to update vault index: {e}")
 
-    logger.info(f"📤 Document uploaded to vault: {filename} -> {document_id}")
+    logger.info(f"● Document uploaded to vault: {filename} -> {document_id}")
 
     return {
         "success": True,
@@ -892,7 +892,7 @@ async def check_storage_connection(
     settings: Settings = Depends(get_settings),
 ):
     """
-    🔌 Check if cloud storage is connected and accessible.
+    ○ Check if cloud storage is connected and accessible.
 
     Returns connection status without performing full sync.
     """
