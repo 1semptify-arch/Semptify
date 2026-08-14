@@ -8,9 +8,12 @@ This applies to every AI assistant working in this repo (Copilot Chat, Cascade, 
 2. Read `ACTIVE_CONTEXT.md` — what is being worked on right now. Do not start something else.
 3. Read the last 2 entries of `BUILD_STATE.md` — what shipped, what is known broken/pending.
 4. Read `PROJECT_BIBLE.md` for the canonical doc hierarchy: BIBLE > README > AGENTS > SECURITY > DEPLOYMENT > BUILD_GUIDE.
-5. State your plan (files to touch, why it won't repeat a Known Failure) before editing.
-6. Verify changed Python files compile (`python -m py_compile <file>`) before ending the session.
-7. Update `BUILD_STATE.md` with what changed.
+5. Claim your task in the tracker before editing:
+   - `python tools/mark_task_status.py <task_id> in_progress --agent <agent-id>`
+   - Confirm no other `in_progress` task exists for the same `file_path`.
+6. State your plan (files to touch, why it won't repeat a Known Failure) before editing.
+7. Verify changed Python files compile (`python -m py_compile <file>`) before ending the session.
+8. Update `BUILD_STATE.md` with what changed.
 
 ## Repo-Wide Slash Workflows (available to every assistant)
 

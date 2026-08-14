@@ -9,6 +9,12 @@ Usage:
 
 Valid statuses: pending, in_progress, review, resolved, rejected
 
+in_progress rule:
+    When claiming a task (status=in_progress) you MUST also pass --agent.
+    mark_task_status.py will refuse an in_progress update without an agent id
+    and will refuse to mark a task in_progress if another task for the same
+    file_path is already in_progress, preventing duplicate claims.
+
 Examples:
     # Agent picks up a task
     python tools/mark_task_status.py d0ddc6f7b028 in_progress --agent kimi-2.7
@@ -67,6 +73,14 @@ def main() -> int:
     parser.add_argument("--agent", default=None, help="Which agent/model made this change, e.g. 'kimi-2.7'")
     args = parser.parse_args()
 
+    if args.status == "in_progress" and not args.agent:
+        print(
+            "status 'in_progress' requires --agent. "
+            "Every agent must claim work with an assigned_agent id before writing code.",
+            file=sys.stderr,
+        )
+        return 2
+
     if not TASKS_PATH.exists():
         print(f"Not found: {TASKS_PATH}", file=sys.stderr)
         return 1
@@ -78,6 +92,21 @@ def main() -> int:
         if match is None:
             print(f"No task with id {args.task_id!r} found in {TASKS_PATH.name}", file=sys.stderr)
             return 1
+
+        if args.status == "in_progress":
+            target_path = match.get("file_path")
+            for other in tasks:
+                if other is match or other.get("id") == args.task_id:
+                    continue
+                if other.get("status") == "in_progress" and other.get("file_path") == target_path:
+                    other_agent = other.get("assigned_agent", "<unknown>")
+                    print(
+                        f"Cannot claim {args.task_id}: file_path {target_path!r} is already "
+                        f"in_progress by agent {other_agent} (task {other.get('id')}). "
+                        "Resolve or reassign that task before claiming this one.",
+                        file=sys.stderr,
+                    )
+                    return 1
 
         old_status = match.get("status")
         match["status"] = args.status
