@@ -109,10 +109,10 @@ The Tier C candidate list is a first cut; many candidates are likely cosmetic fa
 ## Status
 
 - PR #60 (`phase-c-tier2-batch10`) **merged** — token manager async safety, ADR-0008 envelope files, async-token regression test.
-- PR #61 (`phase-c-tier2-batch11`) **open** — safe `app/main.py` Tier B fixes (token/utc/SSOT/escape-hatch).
-- PR #62 (`phase-c-tier2-batch12`) **merged** — `app/modules/eviction_timeline/router.py` SSOT redirect fix; ADR-0008 `/momentum-checkpoint` and `/envelope` endpoints still open.
-- New `github-direct/main` HEAD: `750c2574`.
-- Remaining `adr-0008-pilot` work: Tier A no-op counted, Tier C candidates listed above.
+- PR #61 (`phase-c-tier2-batch11`) **merged** — safe `app/main.py` Tier B fixes (token/utc/SSOT/escape-hatch).
+- PR #62 (`phase-c-tier2-batch12`) **merged** — `app/modules/eviction_timeline/router.py` SSOT redirect fix.
+- PR #65 (`phase-c-tier2-batch13`) **merged** — ADR-0008 pilot wiring for Context Engine, Eviction Timeline `/envelope` + `/momentum-checkpoint`, Vault `/envelope`, Timeline, Role UI, Storage, Emotion Engine, and the end-to-end `test_information_orchestrator_pilot.py` suite. `github-direct/main` HEAD: `7c5b5733`.
+- Remaining `adr-0008-pilot` work: `app/main.py` page-manifest changes (`todo-065`), `app/modules/page_composer/assembly.py`, `app/core/page_manifest.py`, and `app/modules/fraud_exposure/service.py` still under review.
 
 ## Repo cleanup items
 
