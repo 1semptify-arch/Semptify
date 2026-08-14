@@ -13,6 +13,11 @@ Before starting any coding session, read these files in this order:
 5. `GOVERNING_SYSTEM_SSOT.md` — routing and cookie rules.
 6. `AGENTS.md` — AI behavior and Known Failure Registry.
 
+Then claim your task before editing:
+
+- Run `python tools/mark_task_status.py <task_id> in_progress --agent <agent-id>`
+- Confirm no other `in_progress` task exists for the same `file_path`
+
 Then verify:
 
 - Python 3.11.9 only; use `venv311`.

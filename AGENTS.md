@@ -44,6 +44,15 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 9. **Verify Python 3.11.9** — Confirm the active interpreter is `venv311` before running anything.
 10. **Fix the root cause, not the symptom** — Trace every bug to its source. NEVER add downstream compensating checks to mask upstream failures. Band-aids compound. Fix the source.
 
+#### Task claiming rule — must be followed before any file edit
+
+- Before writing a single line of code, set your task to `in_progress` and record your agent id as `assigned_agent` using the task tracker:
+  ```
+  python tools/mark_task_status.py <task_id> in_progress --agent <agent-id>
+  ```
+- Before claiming `in_progress`, check the tracker for any existing `in_progress` entry on the same `file_path`. If one exists, resolve or reassign the existing task first.
+- Do NOT start coding while the task is still `pending` or unassigned.
+
 ### If you skip pre-flight, you will repeat a past mistake. The history proves this
 
 ---

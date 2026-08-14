@@ -41,6 +41,9 @@ class TaskCategory(StrEnum):
     FEATURE = "feature"
     BUG_FIX = "bug_fix"
     SECURITY = "security"
+    RECONCILIATION = "reconciliation"
+    ENVIRONMENT = "environment"
+    TIER_C_REVIEW = "tier_c_review"
     OTHER = "other"
 
 

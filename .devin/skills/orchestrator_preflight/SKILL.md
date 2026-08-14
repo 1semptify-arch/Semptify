@@ -53,7 +53,11 @@ The bridge guessed paths. Before dispatching, confirm the file exists at the exa
 1. Click **Copy** next to the task.
 2. Open the assigned model session (SWE-1.7, Kimi 2.7, GLM-5.2, etc.).
 3. Paste the prompt and tell the agent to work on a feature branch.
-4. Update the task status to `in_progress` in the orchestrator.
+4. Update the task status to `in_progress` and set `assigned_agent` before the agent writes any code:
+   ```
+   python tools/mark_task_status.py <task_id> in_progress --agent <model-id>
+   ```
+   Verify no other `in_progress` task already exists for the same `file_path`.
 
 ## Step 7: After the agent reports back
 
