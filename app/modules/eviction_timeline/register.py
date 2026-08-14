@@ -56,3 +56,45 @@ register_function_group(
         allowed_prefixes=("/api/eviction-timeline",),
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="eviction_timeline",
+        group_name="eviction_timeline_momentum_checkpoint",
+        title="Eviction Timeline Momentum Checkpoint (SSOT)",
+        description=(
+            "CANONICAL warm, honest milestone message for eviction-timeline "
+            "phase transitions. Uses the tenant's Experience Token intensity level. "
+            "Never urgency- or fear-based."
+        ),
+        inputs=("event_type", "next_phase?", "trigger?", "user_id"),
+        outputs=("message", "suppressed"),
+        dependencies=("app.modules.eviction_timeline.router",),
+        deterministic=True,
+        tier="T2",
+        allowed_routes=("/api/eviction-timeline/momentum-checkpoint",),
+        allowed_prefixes=("/api/eviction-timeline",),
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="eviction_timeline",
+        group_name="eviction_timeline_envelope",
+        title="Eviction Timeline Page + Object Envelopes (SSOT)",
+        description=(
+            "CANONICAL ADR-0008 §2.1/2.6 wiring for the Eviction Timeline page. "
+            "Returns the Page Envelope with resolved page actions for this tenant."
+        ),
+        inputs=("user_id", "request"),
+        outputs=("page_envelope", "experience_token_snapshot"),
+        dependencies=(
+            "app.modules.eviction_timeline.envelopes",
+            "app.modules.eviction_timeline.router",
+        ),
+        deterministic=True,
+        tier="T2",
+        allowed_routes=("/api/eviction-timeline/envelope",),
+        allowed_prefixes=("/api/eviction-timeline",),
+    )
+)

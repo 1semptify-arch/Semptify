@@ -1,3 +1,129 @@
+## Session -- 2026-08-14 — Agent Orchestrator end-to-end diagnostic
+
+### Guardrail Engine Run — 2026-08-13T23:34:39
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-08-13T23:33:23
+
+- **contract_route_check**: FAIL — 2 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-08-13T22:31:51
+
+- **contract_route_check**: FAIL — Contract loader failed: 73 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+The Agent Orchestrator API and task tracker were not verified end-to-end. The generated Phase C Tier 2 tasks used `category: "tier_c_review"`, which was not in the API `TaskCategory` enum, so `POST /api/agent-orchestrator/batch` would reject the full queue with 422.
+
+### Fix
+
+- Added `RECONCILIATION`, `ENVIRONMENT`, and `TIER_C_REVIEW` values to `TaskCategory` in `app/modules/agent_orchestrator/schemas.py` so the file-based queue can be imported into the in-memory API.
+
+### Verification
+
+Started the FastAPI app with `venv311\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000` (`MASTER_KEY=devin-orchestrator-test-2026`).
+
+- `GET /api/agent-orchestrator/models` — PASS; returned 4 models.
+- `POST /api/agent-orchestrator/batch` with a single valid `other` task — PASS, created task, generated UUID.
+- `GET /api/agent-orchestrator/tasks` and `GET /api/agent-orchestrator/tasks?status=pending&priority=high` — PASS, filtering works.
+- `GET /api/agent-orchestrator/tasks/{id}/prompt` — PASS, prompt includes the hard-rule context and `mark_task_status.py --agent` instruction.
+- `PATCH /api/agent-orchestrator/tasks/{id}/status` to `in_progress` — PASS.
+- `POST /api/agent-orchestrator/batch` with all 37 `phase_c_tier2_reconciliation_tasks.json` tasks (category `tier_c_review`) — PASS; `GET /api/agent-orchestrator/summary` showed `total: 37`.
+- `POST /api/agent-orchestrator/batch` with a `tier_c_review` task before the enum fix — 422 `Validation failed: ... category: Input should be 'stub_fix', ... 'other'`, confirming the missing enum values.
+- `tools/mark_task_status.py todo-063 in_progress --agent swe-1.7` — PASS; file tracker updated independently.
+- `tests/module_health/test_agent_orchestrator.py` — test passed (coverage gate failed at 22% < 30%, which is a repo-wide coverage threshold, not a test failure).
+
+### Findings
+
+- The API is in-memory only; `POST /batch` assigns new UUIDs and does not preserve the file `id`, `status`, `notes`, or `assigned_agent` fields from the source JSON. This means the HTML/standalone view and the file tracker can drift if `mark_task_status.py` is not used.
+- Admin auth works via `X-Admin-Token: <MASTER_KEY>` but has a 5 attempts/minute IP rate limit that returns `404 Not Found` (stealth behavior).
+- The standalone `tools/agent_orchestrator.html` and `tools/orchestrator_dashboard.html` embed the task JSON and regenerate correctly via `sync_orchestrator.py`.
+
+### Status
+
+End-to-end API and tracker verified; schema fix committed to `devin/task-tracker-in-progress`.
+
+---
+
+## Session -- 2026-08-14 — Phase C Tier 2 next batch task list
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Phase C Tier 2 reconciliation needs a curated, tracker-compatible task list for the remaining `app/modules/` and `app/services/` diffs between `main` (`b55c989c063e8b981e35b96461970a7af8ecab64`) and `refs/heads/adr-0008-pilot`.
+
+### Fix
+
+- Generated 37 Tier C review tasks in `tools/phase_c_tier2_reconciliation_tasks.json`.
+- Appended the same 37 tasks to `tools/_seed_orchestrator_tasks.py` after `todo-066`.
+- Organized into 4 thematic batches:
+  - Batch 1/4: 8 deleted-in-pilot services that still exist on main (preserve main).
+  - Batch 2/4: 9 ADR-0008 envelope/momentum and page-context wiring files.
+  - Batch 3/4: 10 tenant services and intake/onboarding/brain/portal routers.
+  - Batch 4/4: 10 module wiring and action-routing reconciliations.
+- Skipped all Tier A cosmetic-only files and excluded the PR #59 blocked files.
+- No `app/core/` files were needed (37 candidates came from `app/modules/` and `app/services/`).
+
+### Verification
+
+- `py -3.11 -m py_compile tools/_seed_orchestrator_tasks.py` — PASS.
+- `py -3.11 tools/sync_orchestrator.py` — regenerated `tools/docs_todos.json` and `tools/agent_orchestrator_tasks.json`; total 85 tasks, 0 missing paths.
+- `py -3.11 tools/sync_orchestrator.py --check` — PASS.
+- `py -3.11 tools/mark_task_status.py --help` — PASS.
+
+### Status
+
+- Task list created and synced; ready for `admin:` commit on `devin/task-tracker-in-progress`.
+
+---
+
+## Session -- 2026-08-14 — Task tracker in_progress enforcement
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Task tracker supported `in_progress` and `assigned_agent`, but no preflight file or tool enforced the claim-before-write rule. Multiple preflight mirrors also had inconsistent required-reading lists.
+
+### Fix
+
+- `tools/mark_task_status.py`: require `--agent` when `status=in_progress`; add collision check for existing `in_progress` tasks on the same `file_path`.
+- `AGENTS.md`, `.cursor/rules/00-semptify-agents.mdc`, `.github/copilot-instructions.md`, `.devin/skills/preflight/SKILL.md`, `.github/prompts/preflight.prompt.md`, `.devin/skills/orchestrator_preflight/SKILL.md`, `.github/prompts/orchestrator_preflight.prompt.md`, `.devin/skills/13-mandated-readings.md`: add hard task-claiming rule.
+- Deleted `E:\master-repo\IN_PROGRESS_FILES.md`; the tracker now owns in-flight state.
+
+### Verification
+
+- `py -3.11 -m py_compile tools/mark_task_status.py` — PASS.
+- `py -3.11 tools/mark_task_status.py todo-001 resolved --notes "..."` — resolved tasks remain valid.
+- `py -3.11 tools/mark_task_status.py todo-063 in_progress` (no agent) — rejected.
+- `py -3.11 tools/mark_task_status.py todo-034 in_progress --agent swe-1.7` then `todo-035 in_progress --agent kimi-2.7` on same `file_path` — rejected.
+- `py -3.11 tools/sync_orchestrator.py --check` — PASS.
+
+### Status
+
+- Committed to feature branch; PR not yet opened.
+
+---
+
 ## Session -- 2026-08-13 — Tier 2 Batch 12: eviction_timeline SSOT redirect fix
 
 ### Guardrail Engine Run — 2026-08-13T17:42:02
