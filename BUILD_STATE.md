@@ -1,5 +1,14 @@
 ## Session -- 2026-08-14 — Agent Orchestrator end-to-end diagnostic
 
+### Guardrail Engine Run — 2026-08-13T22:31:51
+
+- **contract_route_check**: FAIL — Contract loader failed: 73 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
 ### Guardrail Engine Run — not run
 
 ### Problem
