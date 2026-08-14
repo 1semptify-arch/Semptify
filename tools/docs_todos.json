@@ -1254,5 +1254,35 @@
     "updated_at": "2026-08-14T00:00:00Z",
     "assigned_agent": "",
     "source": "phase_c_tier2"
+  },
+  {
+    "id": "todo-067",
+    "title": "sync-orchestrator pre-commit hook fails CI when it regenerates tracker files mid-run",
+    "description": "The sync-orchestrator pre-commit hook modifies tools/agent_orchestrator_tasks.json and related generated files during CI and exits 1 because pre-commit sees tracked files changed. The hook should either commit its own regenerated output as part of the same commit, or run before staging (e.g. as a dedicated pre-commit generator that always produces identical output, not as a post-stage modifier).",
+    "category": "refactor",
+    "target_model": "swe-1.7",
+    "priority": "low",
+    "file_path": "tools/sync_orchestrator.py",
+    "status": "pending",
+    "notes": "Tracking infra bug from PR #63 CI Lint failure on devin/task-tracker-in-progress.",
+    "created_at": "2026-08-14T00:00:00Z",
+    "updated_at": "2026-08-14T00:00:00Z",
+    "assigned_agent": "",
+    "source": "manual"
+  },
+  {
+    "id": "todo-068",
+    "title": "guardrail-engine dependency failures in CI pre-commit block Lint",
+    "description": "The guardrail-engine pre-commit hook fails in the CI environment because key dependencies are missing: sqlalchemy.orm.writeonly, aioboto3, jose, and wrapt. This causes 73 module contracts to fail to load in contract_route_check, the hook to exit 1, and the Lint job to fail before Ruff/Black run. The same failures occur locally when pre-commit runs outside the production environment. Fix the environment provisioning or the guardrail loader so it can run without importing every third-party dependency, or mark guardrail checks as environment-dependent and run them in a dedicated step rather than in the pre-commit/lint path.",
+    "category": "environment",
+    "target_model": "swe-1.7",
+    "priority": "high",
+    "file_path": "tools/guardrail_engine.py",
+    "status": "pending",
+    "notes": "Observed on PR #66 CI run 31785214094 and reproduced locally with `pre-commit run --all-files`. contract_route_check reports: Contract loader failed: 73 module(s) failed to load. Specific missing modules: sqlalchemy.orm.writeonly (most contracts), aioboto3 (R2 storage), jose (risc), wrapt (public_forms). The hook also reports 'files were modified by this hook'.",
+    "created_at": "2026-08-14T00:00:00Z",
+    "updated_at": "2026-08-14T00:00:00Z",
+    "assigned_agent": "",
+    "source": "manual"
   }
 ]
