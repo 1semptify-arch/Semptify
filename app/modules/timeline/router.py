@@ -44,6 +44,7 @@ from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
 from app.models.models import (
     CalendarEvent as CalendarEventModel,
     Document as DocumentModel,
+    EvictionTimelineEvent,
     TimelineEvent as TimelineEventModel,
     VaultItem,
 )
@@ -160,6 +161,7 @@ class TimelineItem(BaseModel):
 
     # Classification
     is_evidence: bool = False
+    is_deadline: bool = False
     urgency: Urgency = Urgency.NORMAL
     item_subtype: str | None = None  # document_type, event_type, etc.
 
@@ -367,6 +369,7 @@ def _cloud_event_to_item(cloud_event: dict[str, Any], date_axis: DateAxis) -> "T
         record_date=None,
         entry_date=_format_date(utc_now()) or "",
         is_evidence=cloud_event.get("is_evidence", False),
+        is_deadline=cloud_event.get("is_deadline", False),
         urgency=urgency,
         icon=icon,
         color=color,
@@ -470,7 +473,10 @@ async def _load_db_timeline_events(
         query = query.where(TimelineEventModel.is_evidence)
 
     # Date filtering
-    filter_col = TimelineEventModel.event_date if date_axis == DateAxis.EVENT_TIME else TimelineEventModel.created_at
+    if date_axis == DateAxis.EVENT_TIME:
+        filter_col = TimelineEventModel.event_date
+    else:
+        filter_col = TimelineEventModel.created_at
 
     if start_date:
         query = query.where(filter_col >= start_date)
@@ -488,7 +494,10 @@ async def _load_db_timeline_events(
         entry_dt = evt.created_at or utc_now()
 
         # Choose display date
-        display_dt = event_dt if date_axis == DateAxis.EVENT_TIME else entry_dt
+        if date_axis == DateAxis.EVENT_TIME:
+            display_dt = event_dt
+        else:
+            display_dt = entry_dt
 
         urgency = Urgency(evt.urgency) if evt.urgency else Urgency.NORMAL
         if evt.is_deadline and urgency == Urgency.NORMAL:
@@ -507,6 +516,7 @@ async def _load_db_timeline_events(
                 record_date=_format_date(event_dt),  # Same as event for manual events
                 entry_date=_format_date(entry_dt) or "",
                 is_evidence=evt.is_evidence or False,
+                is_deadline=evt.is_deadline or False,
                 urgency=urgency,
                 item_subtype=evt.event_type,
                 icon=icon,
@@ -517,6 +527,102 @@ async def _load_db_timeline_events(
                 metadata={
                     "footnote_number": evt.footnote_number,
                     "source_extraction_id": evt.source_extraction_id,
+                },
+            )
+        )
+
+    return items
+
+
+async def _load_db_eviction_timeline_events(
+    session: AsyncSession,
+    user_id: str,
+    start_date: datetime | None,
+    end_date: datetime | None,
+    date_axis: DateAxis,
+    evidence_only: bool,
+) -> list[TimelineItem]:
+    """Load eviction timeline events into the unified timeline."""
+    query = select(EvictionTimelineEvent).where(EvictionTimelineEvent.user_id == user_id)
+
+    if evidence_only:
+        # Evidence is determined by keyword classification; filter after fetch.
+        pass
+
+    if date_axis == DateAxis.EVENT_TIME:
+        filter_col = EvictionTimelineEvent.event_date
+    else:
+        filter_col = EvictionTimelineEvent.created_at
+
+    if start_date:
+        query = query.where(filter_col >= start_date)
+    if end_date:
+        query = query.where(filter_col <= end_date)
+
+    query = query.order_by(filter_col.desc())
+
+    result = await session.execute(query)
+    events = result.scalars().all()
+
+    items = []
+    for evt in events:
+        event_dt = evt.event_date
+        entry_dt = evt.created_at or utc_now()
+
+        if date_axis == DateAxis.EVENT_TIME:
+            display_dt = event_dt
+        else:
+            display_dt = entry_dt
+
+        # Derive title from event_type (title-case, underscores to spaces)
+        title = evt.event_type.replace("_", " ").title()
+
+        # Map source values to unified timeline source
+        source_value = (evt.source or "manual").lower()
+        if source_value in ("document", "court", "email"):
+            source = "upload"
+        else:
+            source = source_value
+
+        # Keyword-based classification
+        event_type_lower = evt.event_type.lower()
+        is_evidence = any(k in event_type_lower for k in ("court", "filing", "hearing", "judgment", "notice"))
+        is_deadline = any(k in event_type_lower for k in ("deadline", "due", "response", "appeal"))
+
+        if evidence_only and not is_evidence:
+            continue
+
+        urgency = Urgency.NORMAL
+        if is_deadline and urgency == Urgency.NORMAL:
+            urgency = Urgency.HIGH
+
+        icon, color = _get_icon_and_color(ItemType.TIMELINE_EVENT, evt.event_type, is_evidence, urgency)
+
+        items.append(
+            TimelineItem(
+                id=evt.id,
+                item_type=ItemType.TIMELINE_EVENT,
+                title=title,
+                description="",
+                date_display=_format_date(display_dt) or "",
+                event_date=_format_date(event_dt),
+                record_date=None,
+                entry_date=_format_date(entry_dt) or "",
+                is_evidence=is_evidence,
+                is_deadline=is_deadline,
+                urgency=urgency,
+                item_subtype=evt.event_type,
+                icon=icon,
+                color=color,
+                source=source,
+                document_id=evt.source_document_id,
+                overlay_id=evt.content_overlay_id,
+                metadata={
+                    "subject_id": evt.subject_id,
+                    "jurisdiction": evt.jurisdiction,
+                    "source_document_id": evt.source_document_id,
+                    "content_overlay_id": evt.content_overlay_id,
+                    "updated_at": _format_date(evt.updated_at),
                 },
             )
         )
@@ -556,7 +662,10 @@ async def _load_db_calendar_events(
         entry_dt = evt.created_at or utc_now()
 
         # Choose display date
-        display_dt = event_dt if date_axis == DateAxis.EVENT_TIME else entry_dt
+        if date_axis == DateAxis.EVENT_TIME:
+            display_dt = event_dt
+        else:
+            display_dt = entry_dt
 
         urgency = Urgency.CRITICAL if evt.is_critical else Urgency.HIGH
 
@@ -573,6 +682,7 @@ async def _load_db_calendar_events(
                 record_date=_format_date(event_dt),
                 entry_date=_format_date(entry_dt) or "",
                 is_evidence=True,  # Court dates are always evidence
+                is_deadline=evt.event_type == "deadline",
                 urgency=urgency,
                 item_subtype=evt.event_type,
                 icon=icon,
@@ -718,6 +828,11 @@ async def get_unified_timeline(
                 session, user.user_id, start_date, end_date, request.date_axis, request.evidence_only
             )
             all_items.extend(events)
+
+            eviction_events = await _load_db_eviction_timeline_events(
+                session, user.user_id, start_date, end_date, request.date_axis, request.evidence_only
+            )
+            all_items.extend(eviction_events)
 
         if ItemType.CALENDAR_EVENT in request.item_types:
             cal_events = await _load_db_calendar_events(session, user.user_id, start_date, end_date, request.date_axis)
