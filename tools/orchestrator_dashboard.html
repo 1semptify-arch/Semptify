@@ -1292,10 +1292,10 @@
     "priority": "medium",
     "file_path": "app/services/action_router.py",
     "status": "resolved",
-    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.",
+    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.\n[2026-08-14 22:18 UTC - swe-1.7-Max] Fresh diff against current main (d617e32f): no diff; already on main. Tier A/resolved.",
     "created_at": "2026-08-14T00:00:00Z",
-    "updated_at": "2026-08-14T04:32:25.133372+00:00",
-    "assigned_agent": "swe-1.7-a1",
+    "updated_at": "2026-08-14T22:18:38.765693+00:00",
+    "assigned_agent": "swe-1.7-Max",
     "source": "phase_c_tier2"
   },
   {
@@ -1307,10 +1307,10 @@
     "priority": "medium",
     "file_path": "app/modules/page_composer/router.py",
     "status": "review",
-    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier C held back. Pilot removes POST /assemble and intent query from page_composer/router.py. This would drop a recently-shipped and tested endpoint; needs review before applying.",
+    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier C held back. Pilot removes POST /assemble and intent query from page_composer/router.py. This would drop a recently-shipped and tested endpoint; needs review before applying.\n[2026-08-14 22:18 UTC - swe-1.7-Max] Fresh re-check against current main (d617e32f): pilot still removes POST /api/page/assemble and the intent query parameter from GET /api/page/{subject}/assemble. POST /api/page/assemble has passing tests in tests/test_page_composer_assembly_api.py and is documented in BUILD_STATE.md and blueprints as working end-to-end. intent is consumed by app/main.py tenant_dashboard via direct assemble_page. Tier C: keep main's broader API until a migration path and tests cover the replacement. No code change.",
     "created_at": "2026-08-14T00:00:00Z",
-    "updated_at": "2026-08-14T04:32:32.623620+00:00",
-    "assigned_agent": "swe-1.7-a1",
+    "updated_at": "2026-08-14T22:18:51.794991+00:00",
+    "assigned_agent": "swe-1.7-Max",
     "source": "phase_c_tier2"
   },
   {
@@ -1322,10 +1322,10 @@
     "priority": "medium",
     "file_path": "app/modules/workflow_validator/router.py",
     "status": "resolved",
-    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.",
+    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.\n[2026-08-14 22:18 UTC - swe-1.7-Max] Fresh diff against current main (d617e32f): no diff; already on main. Tier A/resolved.",
     "created_at": "2026-08-14T00:00:00Z",
-    "updated_at": "2026-08-14T04:32:25.421034+00:00",
-    "assigned_agent": "swe-1.7-a1",
+    "updated_at": "2026-08-14T22:18:39.256042+00:00",
+    "assigned_agent": "swe-1.7-Max",
     "source": "phase_c_tier2"
   },
   {
@@ -1337,10 +1337,10 @@
     "priority": "medium",
     "file_path": "app/modules/cloud_sync/router.py",
     "status": "resolved",
-    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.",
+    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.\n[2026-08-14 22:18 UTC - swe-1.7-Max] Fresh diff against current main (d617e32f): no diff; already on main. Tier A/resolved.",
     "created_at": "2026-08-14T00:00:00Z",
-    "updated_at": "2026-08-14T04:32:25.751657+00:00",
-    "assigned_agent": "swe-1.7-a1",
+    "updated_at": "2026-08-14T22:18:39.540870+00:00",
+    "assigned_agent": "swe-1.7-Max",
     "source": "phase_c_tier2"
   },
   {
@@ -1352,10 +1352,10 @@
     "priority": "medium",
     "file_path": "app/services/ui_composer.py",
     "status": "resolved",
-    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.",
+    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.\n[2026-08-14 22:18 UTC - swe-1.7-Max] Fresh diff against current main (d617e32f): no diff; already on main. Tier A/resolved.",
     "created_at": "2026-08-14T00:00:00Z",
-    "updated_at": "2026-08-14T04:32:26.023535+00:00",
-    "assigned_agent": "swe-1.7-a1",
+    "updated_at": "2026-08-14T22:18:39.837727+00:00",
+    "assigned_agent": "swe-1.7-Max",
     "source": "phase_c_tier2"
   },
   {
@@ -1366,11 +1366,11 @@
     "target_model": "swe-1.7",
     "priority": "medium",
     "file_path": "app/modules/eviction_timeline/register.py",
-    "status": "review",
-    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier C held back. Pilot adds ADR-0008 momentum-checkpoint and envelope FunctionGroupContracts in eviction_timeline/register.py; the routes/endpoints these reference are not yet merged. Needs review.",
+    "status": "resolved",
+    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier C held back. Pilot adds ADR-0008 momentum-checkpoint and envelope FunctionGroupContracts in eviction_timeline/register.py; the routes/endpoints these reference are not yet merged. Needs review.\n[2026-08-14 22:18 UTC - swe-1.7-Max] Fresh diff against current main (d617e32f): no diff; PR #65 already landed the pilot's momentum-checkpoint and envelope contracts. Tier A/resolved.",
     "created_at": "2026-08-14T00:00:00Z",
-    "updated_at": "2026-08-14T04:32:35.151335+00:00",
-    "assigned_agent": "swe-1.7-a1",
+    "updated_at": "2026-08-14T22:18:48.304974+00:00",
+    "assigned_agent": "swe-1.7-Max",
     "source": "phase_c_tier2"
   },
   {
@@ -1382,10 +1382,10 @@
     "priority": "medium",
     "file_path": "app/modules/brain/router.py",
     "status": "resolved",
-    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.",
+    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.\n[2026-08-14 22:18 UTC - swe-1.7-Max] Fresh diff against current main (d617e32f): no diff; already on main. Tier A/resolved.",
     "created_at": "2026-08-14T00:00:00Z",
-    "updated_at": "2026-08-14T04:32:26.297460+00:00",
-    "assigned_agent": "swe-1.7-a1",
+    "updated_at": "2026-08-14T22:18:40.111708+00:00",
+    "assigned_agent": "swe-1.7-Max",
     "source": "phase_c_tier2"
   },
   {
@@ -1397,10 +1397,10 @@
     "priority": "medium",
     "file_path": "app/modules/contacts/router.py",
     "status": "resolved",
-    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.",
+    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.\n[2026-08-14 22:18 UTC - swe-1.7-Max] Fresh diff against current main (d617e32f): pilot reverts two SQLAlchemy truth expressions (Contact.is_starred == True, Contact.is_active == True) to == True, which would re-introduce Ruff E712 and is less idiomatic than main's truth expressions. Main's version is behaviorally equivalent and lint-clean. Tier B: preserve main, no code change.",
     "created_at": "2026-08-14T00:00:00Z",
-    "updated_at": "2026-08-14T04:32:26.707462+00:00",
-    "assigned_agent": "swe-1.7-a1",
+    "updated_at": "2026-08-14T22:18:44.269297+00:00",
+    "assigned_agent": "swe-1.7-Max",
     "source": "phase_c_tier2"
   },
   {
@@ -1412,10 +1412,10 @@
     "priority": "medium",
     "file_path": "app/modules/hud_funding/router.py",
     "status": "resolved",
-    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.",
+    "notes": "Batch 4/4: module wiring and action-routing reconciliation\n[2026-08-14 04:32 UTC - swe-1.7-a1] Tier A/B applied from adr-0008-pilot (icon/unicode swaps, no functional change). PR #64.\n[2026-08-14 22:18 UTC - swe-1.7-Max] Fresh diff against current main (d617e32f): no diff; already on main. Tier A/resolved.",
     "created_at": "2026-08-14T00:00:00Z",
-    "updated_at": "2026-08-14T04:32:26.944981+00:00",
-    "assigned_agent": "swe-1.7-a1",
+    "updated_at": "2026-08-14T22:18:40.392761+00:00",
+    "assigned_agent": "swe-1.7-Max",
     "source": "phase_c_tier2"
   },
   {
