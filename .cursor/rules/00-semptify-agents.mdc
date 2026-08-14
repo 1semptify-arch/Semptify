@@ -14,5 +14,9 @@ as VS Code prompt files in `.github/prompts/*.prompt.md` (`/preflight`, `/ship`,
 `/review`, `/cloudflare-dev-mode`, `/help-page-review`, `/ssot-analysis`). Read the relevant
 one before doing that kind of task. If you update a skill, update both copies.
 
+Before editing, claim your task in the tracker:
+- `python tools/mark_task_status.py <task_id> in_progress --agent <agent-id>`
+- Check that no other `in_progress` task exists for the same `file_path`.
+
 State your plan (files to touch, why it won't repeat a Known Failure) before editing.
 Verify changed Python files compile (`python -m py_compile <file>`) before ending the session.

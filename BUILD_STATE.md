@@ -1,3 +1,31 @@
+## Session -- 2026-08-14 — Task tracker in_progress enforcement
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Task tracker supported `in_progress` and `assigned_agent`, but no preflight file or tool enforced the claim-before-write rule. Multiple preflight mirrors also had inconsistent required-reading lists.
+
+### Fix
+
+- `tools/mark_task_status.py`: require `--agent` when `status=in_progress`; add collision check for existing `in_progress` tasks on the same `file_path`.
+- `AGENTS.md`, `.cursor/rules/00-semptify-agents.mdc`, `.github/copilot-instructions.md`, `.devin/skills/preflight/SKILL.md`, `.github/prompts/preflight.prompt.md`, `.devin/skills/orchestrator_preflight/SKILL.md`, `.github/prompts/orchestrator_preflight.prompt.md`, `.devin/skills/13-mandated-readings.md`: add hard task-claiming rule.
+- Deleted `E:\master-repo\IN_PROGRESS_FILES.md`; the tracker now owns in-flight state.
+
+### Verification
+
+- `py -3.11 -m py_compile tools/mark_task_status.py` — PASS.
+- `py -3.11 tools/mark_task_status.py todo-001 resolved --notes "..."` — resolved tasks remain valid.
+- `py -3.11 tools/mark_task_status.py todo-063 in_progress` (no agent) — rejected.
+- `py -3.11 tools/mark_task_status.py todo-034 in_progress --agent swe-1.7` then `todo-035 in_progress --agent kimi-2.7` on same `file_path` — rejected.
+- `py -3.11 tools/sync_orchestrator.py --check` — PASS.
+
+### Status
+
+- Committed to feature branch; PR not yet opened.
+
+---
+
 ## Session -- 2026-08-13 — Tier 2 Batch 12: eviction_timeline SSOT redirect fix
 
 ### Guardrail Engine Run — 2026-08-13T17:42:02

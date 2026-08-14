@@ -69,6 +69,14 @@ Read these files before touching any code:
 2. Read `BUILD_STATE.md` — last 2 entries only (what shipped, what is broken, what is pending)
 3. Read the Known Failure Registry in `AGENTS.md` — do not repeat past mistakes
 
+### Step 2b: Claim the task
+
+Before writing code, claim the task in the orchestrator and avoid duplicate work:
+
+1. Run `python tools/mark_task_status.py <task_id> in_progress --agent <agent-id>`
+2. Verify no other task with the same `file_path` is already `in_progress`
+3. Do NOT edit files until the task is marked `in_progress` with `assigned_agent` set
+
 ### Step 3: Check pending Fix-It reports from admin dashboard
 
 The admin dashboard has "Fix It" buttons that queue errors to the `admin_error_queue` Postgres table AND log a distinctive `FIXIT_REPORT|id=N|section=...|endpoint=...|priority=...|error=...` line to Render logs.
