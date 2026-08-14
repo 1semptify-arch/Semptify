@@ -215,7 +215,7 @@ def _compose_landing(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
                 {
                     "label": "Documents",
                     "value": ctx.get("document_count", 0),
-                    "icon": "📄",
+                    "icon": "●",
                 },
             )
         )
@@ -225,7 +225,7 @@ def _compose_landing(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
                 {
                     "label": "Upcoming deadlines",
                     "value": ctx.get("upcoming_deadlines", 0),
-                    "icon": "⏰",
+                    "icon": "◆",
                 },
             )
         )
@@ -270,7 +270,7 @@ def _compose_timeline(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
             {
                 "label": "Documents",
                 "value": ctx.get("document_count", 0),
-                "icon": "📄",
+                "icon": "●",
             },
         )
     )
@@ -280,7 +280,7 @@ def _compose_timeline(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
             {
                 "label": "Upcoming deadlines",
                 "value": ctx.get("upcoming_deadlines", 0),
-                "icon": "⏰",
+                "icon": "◆",
             },
         )
     )
@@ -340,19 +340,19 @@ def _compose_library(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     # Icon map for the 13 canonical subjects — keeps the grid visual
     # without hardcoding labels (those come from SUBJECT_LABELS).
     _SUBJECT_ICONS = {
-        "eviction": "🚪",
-        "repair": "🔧",
-        "rent": "💵",
-        "lease": "📋",
-        "deposit": "💰",
-        "discrimination": "⚖️",
-        "safety": "🛡️",
-        "habitability": "🏠",
-        "retaliation": "🛡️",
-        "small_claims": "⚖️",
-        "court_prep": "🏛️",
-        "evidence": "📄",
-        "timeline": "📅",
+        "eviction": "▸",
+        "repair": "◆",
+        "rent": "●",
+        "lease": "○",
+        "deposit": "●",
+        "discrimination": "▸",
+        "safety": "◆",
+        "habitability": "●",
+        "retaliation": "◆",
+        "small_claims": "▸",
+        "court_prep": "▸",
+        "evidence": "●",
+        "timeline": "◆",
     }
 
     components: list[dict[str, Any]] = []
@@ -368,7 +368,7 @@ def _compose_library(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
                 _component(
                     "empty_state",
                     {
-                        "icon": "📚",
+                        "icon": "▸",
                         "title": f"No verified facts yet for {label}",
                         "body": "This topic has not been populated yet. Choose another topic or check back later.",
                     },
@@ -437,7 +437,7 @@ def _compose_documents(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
             {
                 "label": "Total documents",
                 "value": ctx.get("document_count", 0),
-                "icon": "📄",
+                "icon": "●",
             },
         )
     )
@@ -447,7 +447,7 @@ def _compose_documents(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
             _component(
                 "empty_state",
                 {
-                    "icon": "📄",
+                    "icon": "●",
                     "title": "No documents yet",
                     "body": "Add your first document — lease, photos, receipts, communications.",
                     "cta_label": "Add a document",

@@ -1,5 +1,5 @@
 """
-🧠 Positronic Brain - API Router
+○ Positronic Brain - API Router
 ================================
 REST API and WebSocket endpoints for the brain.
 
@@ -61,7 +61,7 @@ class ThinkRequest(BaseModel):
 @router.get("/status")
 async def get_brain_status(brain: PositronicBrain = Depends(get_brain)):
     """
-    🧠 Get full brain status.
+    ○ Get full brain status.
 
     Returns information about:
     - Connected modules
@@ -75,7 +75,7 @@ async def get_brain_status(brain: PositronicBrain = Depends(get_brain)):
 @router.get("/modules")
 async def list_modules(brain: PositronicBrain = Depends(get_brain)):
     """
-    🔌 List all connected modules.
+    ○ List all connected modules.
     """
     return {"modules": brain.list_modules(), "count": len(brain.modules)}
 
@@ -83,7 +83,7 @@ async def list_modules(brain: PositronicBrain = Depends(get_brain)):
 @router.get("/state")
 async def get_state(key: str | None = None, brain: PositronicBrain = Depends(get_brain)):
     """
-    📊 Get shared state.
+    ◆ Get shared state.
 
     Optionally filter by key.
     """
@@ -96,7 +96,7 @@ async def get_state(key: str | None = None, brain: PositronicBrain = Depends(get
 @router.put("/state")
 async def update_state(request: StateUpdateRequest, brain: PositronicBrain = Depends(get_brain)):
     """
-    ✏️ Update shared state.
+    ▸ Update shared state.
 
     This will notify all connected modules.
     """
@@ -107,7 +107,7 @@ async def update_state(request: StateUpdateRequest, brain: PositronicBrain = Dep
 @router.get("/events")
 async def get_recent_events(limit: int = 50, brain: PositronicBrain = Depends(get_brain)):
     """
-    📜 Get recent brain events.
+    ● Get recent brain events.
     """
     return {"events": brain.get_recent_events(limit), "total": len(brain.event_history)}
 
@@ -115,7 +115,7 @@ async def get_recent_events(limit: int = 50, brain: PositronicBrain = Depends(ge
 @router.post("/events")
 async def emit_event(request: EventRequest, brain: PositronicBrain = Depends(get_brain)):
     """
-    📤 Emit an event to the brain.
+    ● Emit an event to the brain.
     """
     try:
         event_type = EventType(request.event_type)
@@ -132,7 +132,7 @@ async def emit_event(request: EventRequest, brain: PositronicBrain = Depends(get
 @router.post("/workflow")
 async def trigger_workflow(request: WorkflowRequest, brain: PositronicBrain = Depends(get_brain)):
     """
-    ⚡ Trigger a cross-module workflow.
+    ◆ Trigger a cross-module workflow.
 
     Available workflows:
     - document_intake: Process uploaded document through all modules
@@ -148,7 +148,7 @@ async def trigger_workflow(request: WorkflowRequest, brain: PositronicBrain = De
 @router.get("/workflows")
 async def list_workflows(brain: PositronicBrain = Depends(get_brain)):
     """
-    📋 List active and recent workflows.
+    ● List active and recent workflows.
     """
     return {"active": brain.active_workflows, "count": len(brain.active_workflows)}
 
@@ -156,7 +156,7 @@ async def list_workflows(brain: PositronicBrain = Depends(get_brain)):
 @router.get("/workflows/{workflow_id}")
 async def get_workflow(workflow_id: str, brain: PositronicBrain = Depends(get_brain)):
     """
-    🔍 Get workflow status.
+    ▸ Get workflow status.
     """
     workflow = brain.active_workflows.get(workflow_id)
     if not workflow:
@@ -167,7 +167,7 @@ async def get_workflow(workflow_id: str, brain: PositronicBrain = Depends(get_br
 @router.post("/think")
 async def brain_think(request: ThinkRequest, brain: PositronicBrain = Depends(get_brain)):
     """
-    🤔 Ask the brain to think and suggest actions.
+    ◆ Ask the brain to think and suggest actions.
 
     The brain analyzes current context and provides:
     - Priority suggestions
@@ -181,7 +181,7 @@ async def brain_think(request: ThinkRequest, brain: PositronicBrain = Depends(ge
 @router.post("/sync")
 async def sync_all(brain: PositronicBrain = Depends(get_brain)):
     """
-    🔄 Force full synchronization of all modules.
+    ▸ Force full synchronization of all modules.
     """
     workflow_id = await brain.trigger_workflow("full_sync", {})
     return {"success": True, "workflow_id": workflow_id, "message": "Full sync initiated"}
@@ -195,7 +195,7 @@ async def sync_all(brain: PositronicBrain = Depends(get_brain)):
 @router.websocket("/ws")
 async def brain_websocket(websocket: WebSocket, brain: PositronicBrain = Depends(get_brain)):
     """
-    🔌 WebSocket connection to the brain.
+    ○ WebSocket connection to the brain.
 
     Clients receive:
     - All brain events in real-time
@@ -210,7 +210,7 @@ async def brain_websocket(websocket: WebSocket, brain: PositronicBrain = Depends
     await websocket.accept()
     brain.websocket_clients.add(websocket)
 
-    logger.info(f"🧠 Brain WebSocket connected (total: {len(brain.websocket_clients)})")
+    logger.info(f"○ Brain WebSocket connected (total: {len(brain.websocket_clients)})")
 
     # Send initial state
     await websocket.send_json({"type": "connected", "state": brain.get_state(), "modules": brain.list_modules()})
@@ -255,4 +255,4 @@ async def brain_websocket(websocket: WebSocket, brain: PositronicBrain = Depends
         pass
     finally:
         brain.websocket_clients.discard(websocket)
-        logger.info(f"🧠 Brain WebSocket disconnected (total: {len(brain.websocket_clients)})")
+        logger.info(f"○ Brain WebSocket disconnected (total: {len(brain.websocket_clients)})")
