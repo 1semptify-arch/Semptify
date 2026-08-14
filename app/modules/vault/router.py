@@ -25,10 +25,11 @@ Storage:
 # All imports remain absolute since vault is a CORE module.
 
 import hashlib
+import importlib.util
 import json
 import logging
 from datetime import datetime
-from importlib.util import find_spec
+from typing import Any
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import JSONResponse
@@ -36,10 +37,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auto_refresh import ensure_valid_token
-from app.core.capabilities import require_capability
 from app.core.config import Settings, get_settings
-from app.core.database import get_db, get_session_factory
+from app.core.context_envelope import EncounterContext
+from app.core.database import get_db
 from app.core.id_gen import make_id
 from app.core.request_utils import raise_for_storage_error
 from app.core.security import (
@@ -55,6 +55,10 @@ from app.core.vault_paths import (
     VAULT_DOCUMENTS,
 )
 from app.models.models import Incident, VaultItem
+from app.modules.vault.envelopes import (
+    get_vault_upload_page,
+    vault_document_to_object_envelope,
+)
 from app.services.storage import get_provider
 
 # Import vault upload service - central document storage
@@ -65,12 +69,15 @@ try:
 except ImportError:
     HAS_VAULT_SERVICE = False
 
-# Import preview generation
+# Preview generation availability check (no runtime imports until used).
 HAS_PREVIEW_GENERATOR = (
-    find_spec("app.core.job_processor") is not None and find_spec("app.core.preview_generator") is not None
+    importlib.util.find_spec("app.core.job_processor") is not None
+    and importlib.util.find_spec("app.core.preview_generator") is not None
 )
 
 logger = logging.getLogger(__name__)
+
+from app.core.capabilities import require_capability
 
 router = APIRouter(dependencies=[Depends(require_capability("app.modules.vault.router"))])
 
@@ -106,6 +113,10 @@ class DocumentResponse(BaseModel):
     function_token: str | None = None
     function_token_expires_at: str | None = None
     function_token_reverify_in_seconds: int | None = None
+    object_envelope: dict[str, Any] | None = Field(
+        None,
+        description="ADR-0008 Object Envelope for the uploaded document.",
+    )
 
 
 class DocumentListResponse(BaseModel):
@@ -174,6 +185,7 @@ async def upload_document(
     access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Upload a document to the user's cloud storage vault.
@@ -214,11 +226,14 @@ async def upload_document(
         real_token = getattr(user, "access_token", None)
     if not real_token or real_token in ("auto", "no-token"):
         try:
-            async with get_session_factory() as db:
-                _, token_obj, _ = await ensure_valid_token(user.user_id, db)
-                real_token = token_obj.access_token if token_obj else real_token
-        except Exception as e:
-            logger.warning("Token resolution failed for user %s: %s", user.user_id, e)
+            from app.core.auto_refresh import ensure_valid_token
+
+            _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+            if token_obj:
+                real_token = token_obj.access_token
+        except ImportError:
+            # Token manager unavailable, will use provided token
+            pass
     if not real_token or real_token in ("auto", "no-token"):
         raise HTTPException(
             status_code=401,
@@ -273,6 +288,7 @@ async def upload_document(
         function_token=function_token["token"],
         function_token_expires_at=function_token["expires_at"],
         function_token_reverify_in_seconds=function_token["reverify_in_seconds"],
+        object_envelope=vault_document_to_object_envelope(vault_doc).model_dump(mode="json"),
     )
 
 
@@ -291,6 +307,7 @@ async def copy_from_sync_to_vault(
     access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Copy a document from sync storage (Semptify5.0/Vault/documents/) to vault.
@@ -304,11 +321,14 @@ async def copy_from_sync_to_vault(
         real_token = getattr(user, "access_token", None)
     if not real_token or real_token in ("auto", "no-token"):
         try:
-            async with get_session_factory() as db:
-                _, token_obj, _ = await ensure_valid_token(user.user_id, db)
-                real_token = token_obj.access_token if token_obj else real_token
-        except Exception as e:
-            logger.warning("Token resolution failed for user %s: %s", user.user_id, e)
+            from app.core.auto_refresh import ensure_valid_token
+
+            _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+            if token_obj:
+                real_token = token_obj.access_token
+        except ImportError:
+            # Token manager unavailable, will use provided token
+            pass
     if not real_token or real_token in ("auto", "no-token"):
         raise HTTPException(
             status_code=401,
@@ -604,8 +624,7 @@ async def list_documents(
                     storage_path=cert.get("storage_path", ""),
                 )
             )
-        except Exception as exc:
-            logger.debug("Skipping invalid vault certificate: %s", exc)
+        except Exception:
             continue
 
     # Sort by upload date, newest first
@@ -966,6 +985,7 @@ async def sidebar_upload(
     files: list[UploadFile] = File(...),
     metadata: str = Form(...),
     user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle upload from vault sidebar"""
     if not HAS_VAULT_SERVICE:
@@ -980,7 +1000,7 @@ async def sidebar_upload(
         uploaded_files = []
         upload_errors = []
 
-        for _i, uploaded_file in enumerate(files):
+        for i, uploaded_file in enumerate(files):
             try:
                 # Read file content
                 file_content = await uploaded_file.read()
@@ -1027,11 +1047,13 @@ async def sidebar_upload(
                     real_token = getattr(user, "access_token", None)
                 if not real_token or real_token in ("auto", "no-token"):
                     try:
-                        async with get_session_factory() as db:
-                            _, token_obj, _ = await ensure_valid_token(user.user_id, db)
-                            real_token = token_obj.access_token if token_obj else real_token
-                    except Exception as e:
-                        logger.warning("Token resolution failed for user %s: %s", user.user_id, e)
+                        from app.core.auto_refresh import ensure_valid_token
+
+                        _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+                        if token_obj:
+                            real_token = token_obj.access_token
+                    except ImportError:
+                        pass
                 if not real_token or real_token in ("auto", "no-token"):
                     raise HTTPException(
                         status_code=401,
@@ -1538,6 +1560,7 @@ async def get_incident_items(
 async def export_vault_zip(
     user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Export all vault documents as a single ZIP archive.
@@ -1555,11 +1578,14 @@ async def export_vault_zip(
     real_token = getattr(user, "access_token", None)
     if not real_token or real_token in ("auto", "no-token", None):
         try:
-            async with get_session_factory() as db:
-                _, token_obj, _ = await ensure_valid_token(user.user_id, db)
-                real_token = token_obj.access_token if token_obj else real_token
-        except Exception as e:
-            logger.warning("Token resolution failed for user %s: %s", user.user_id, e)
+            from app.core.auto_refresh import ensure_valid_token
+
+            _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+            if token_obj:
+                real_token = token_obj.access_token
+        except ImportError:
+            # Token manager unavailable, will use provided token
+            pass
     if not real_token or real_token in ("auto", "no-token", None):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -1697,3 +1723,40 @@ async def export_vault_zip(
             "X-Export-Count": str(len(certificates)),
         },
     )
+
+
+@router.get("/envelope")
+async def vault_upload_envelope(
+    request: Request,
+    user: StorageUser = Depends(yellow_access),
+):
+    """Return the Vault upload Page Envelope resolved for this tenant.
+
+    This is the ADR-0008 §2.1/2.6 pilot wiring on the Vault upload surface.
+    Page actions are resolved using the tenant's Experience Token exposure tally.
+    """
+    from app.core.experience_token import (
+        ExperienceToken,
+        load_experience_token,
+        record_exposure,
+    )
+
+    token = await load_experience_token(user.user_id)
+    exposure_count = token.exposure_tallies.get("vault_upload_page", 0)
+    context = EncounterContext(exposure_count=exposure_count)
+
+    page = await get_vault_upload_page(context)
+
+    # Record this page exposure (pure function; storage write is the caller's
+    # responsibility, so this read endpoint stays side-effect-free).
+    _, updated_token = record_exposure(token, "vault_upload_page")
+
+    return {
+        "success": True,
+        "user_id": user.user_id,
+        "page": page.model_dump(mode="json"),
+        "experience_token": ExperienceToken(
+            exposure_tallies=updated_token.exposure_tallies,
+            intensity_level=updated_token.intensity_level,
+        ).model_dump(mode="json"),
+    }
