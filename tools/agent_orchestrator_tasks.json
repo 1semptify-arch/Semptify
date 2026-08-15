@@ -1390,5 +1390,24 @@
       "agent": "swe-1.7",
       "claimed_at": "2026-08-15T10:59:10.683150+00:00"
     }
+  },
+  {
+    "assigned_agent": "swe-1.7",
+    "category": "feature",
+    "created_at": "2026-08-15T11:30:00.000000+00:00",
+    "description": "Phase C and D of the fact-check/freshness build: wire Render cron to a public verify-landing-claims endpoint and a real MARKETING_CLAIMS refresh function, promote data_freshness to CORE, and build GET /api/landing/facts plus landing-page rendering that only shows verified, non-expired public claims (auto-hide on failure or unverified).",
+    "file_path": "app/modules/data_freshness/",
+    "id": "handoff-factcheck-phase-c-d-2026-08-15",
+    "notes": "Auto-hide, not last-known-good. No placeholder number for unverified claims.",
+    "priority": "high",
+    "source": "handoff",
+    "status": "in_progress",
+    "target_model": "swe-1.7",
+    "title": "Fact-check/freshness system: Phase C scheduling + Phase D landing wiring",
+    "updated_at": "2026-08-15T11:37:20.734317+00:00",
+    "claimed_by": {
+      "agent": "swe-1.7",
+      "claimed_at": "2026-08-15T11:37:20.734299+00:00"
+    }
   }
 ]

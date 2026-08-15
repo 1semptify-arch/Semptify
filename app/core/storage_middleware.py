@@ -116,6 +116,9 @@ PUBLIC_PATHS: set[str] = {
     "/contact",
     "/privacy",
     "/terms",
+    # Public landing facts and cron endpoints
+    "/api/landing/facts",
+    "/api/data-freshness/cron/verify-landing-claims",
     # Resource directory — public list endpoint (detail routes covered by prefix)
     "/api/resources",
     # SEO files

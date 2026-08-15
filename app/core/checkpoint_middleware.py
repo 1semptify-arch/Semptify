@@ -42,6 +42,8 @@ EXEMPT_PATHS = {
     "/api/session/restore",
     "/api/portal/",  # Portal services catalog — public, no auth
     "/api/i18n/",  # i18n — public locale read/set endpoints
+    "/api/landing/facts",  # Public verified landing facts
+    "/api/data-freshness/cron/verify-landing-claims",  # Render cron for landing-claim verification
     "/onboarding/ssot-navigation",  # SSOT API for static file navigation
     "/onboarding-assets/",  # Static onboarding pages (storage-select, etc)
     "/health",
