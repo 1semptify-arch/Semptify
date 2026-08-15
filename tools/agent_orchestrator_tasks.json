@@ -1352,5 +1352,24 @@
       "agent": "swe-1.7",
       "claimed_at": "2026-08-15T10:07:15.663882+00:00"
     }
+  },
+  {
+    "assigned_agent": "swe-1.7",
+    "category": "feature",
+    "created_at": "2026-08-15T11:00:00.000000+00:00",
+    "description": "Phase A of the fact-check/freshness build: add canonical_value to ContextFact, add landing subject support, seed the NCCRC representation-gap claim, and prepare for Phase B content-level verification.",
+    "file_path": "app/modules/context_engine/",
+    "id": "handoff-factcheck-phase-a-2026-08-15",
+    "notes": "Do not seed the rent-pricing figure until Phase B can verify the current number.",
+    "priority": "high",
+    "source": "handoff",
+    "status": "done",
+    "target_model": "swe-1.7",
+    "title": "Fact-check/freshness system: Phase A data model + landing claim",
+    "updated_at": "2026-08-15T10:19:31.979031+00:00",
+    "claimed_by": {
+      "agent": "swe-1.7",
+      "claimed_at": "2026-08-15T10:11:03.424389+00:00"
+    }
   }
 ]

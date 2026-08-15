@@ -55,6 +55,7 @@ async def upsert_fact(
     source_url: str,
     source_name: str,
     citation: str | None = None,
+    canonical_value: str | None = None,
     ttl_days: int = DEFAULT_TTL_DAYS,
 ) -> ContextFact:
     """Insert or update a fact in the cache. No hallucination — source required."""
@@ -75,6 +76,7 @@ async def upsert_fact(
         if existing:
             existing.claim = claim
             existing.citation = citation
+            existing.canonical_value = canonical_value
             existing.is_verified = True
             existing.verified_at = now
             existing.expires_at = expires_at
@@ -88,6 +90,7 @@ async def upsert_fact(
             source_url=source_url,
             source_name=source_name,
             citation=citation,
+            canonical_value=canonical_value,
             is_verified=True,
             verified_at=now,
             expires_at=expires_at,
