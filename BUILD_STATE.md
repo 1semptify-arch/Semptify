@@ -1,3 +1,38 @@
+## Session -- 2026-08-15 — Tier 2 dispatch P1–P3 + tracker/infra follow-up
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Post-PR #69 handoff required verifying the merge, opening an infra investigation for the recurring Test-job hang, then dispatching the 38 Tier 2 reconciliation tasks in priority order.
+
+### Fix
+
+- Admin-merged PR #69 after the `Test` job hung for >10 min with no logs; all other checks green.
+- Added `todo-081` to track the Test-job-hang investigation on tracker-only PRs.
+- Pulled `main` and ran `sync_orchestrator.py --check` (89 tasks, 0 missing paths).
+- Dispatched P1: resolved `phase2-8848d4-046` (`document_flow_orchestrator.py` security review) — main's parameterized SQL is the baseline.
+- Dispatched P2: deleted `app/services/hud_funding_guide.py` (PR #70) and `app/services/court_form_generator.py` (PR #71).
+- Dispatched P3: migrated `tests/test_coverage_core_services.py` imports for `document_notarization.py` (to `app.modules.intake.service`) and `vault_engine.py` (to `app.modules.vault_engine.service`), deleted both service files (PR #72), and fixed two `app/modules/vault_engine/service.py` bugs discovered during verification:
+  - Added `tenant` role to `ACCESS_MATRIX` (mirrors `user`; `U` user IDs decode to `tenant` per `app.core.user_id`).
+  - Deny `READ`/`DELETE` on non-existent resources (only `WRITE` for create is allowed).
+
+### Verification
+
+- `python tools/sync_orchestrator.py --check` — PASS (89 tasks, 0 missing paths).
+- `python -m pytest tests/test_hud_funding.py tests/module_health/test_hud_funding.py` — 21 passed (coverage threshold failed as expected, `todo-064`).
+- `python -m pytest tests/module_health/test_court_forms.py` — 1 passed (coverage threshold failed as expected).
+- `python -m pytest tests/test_coverage_core_services.py::test_document_notarization_round_trip_and_tamper_paths` — 1 passed (coverage threshold failed as expected).
+- `python -m pytest tests/test_vault_engine.py tests/module_health/test_vault_engine.py tests/test_coverage_core_services.py::test_vault_access_engine_lifecycle_and_audit` — 33 passed (coverage threshold failed as expected).
+- `python -m py_compile app/modules/vault_engine/service.py` — PASS.
+- `ruff check app/modules/vault_engine/service.py` — PASS.
+
+### Status
+
+PRs #70, #71, #72 open awaiting merge. P4–P6 remain pending. `todo-081` tracks the CI Test-job hang investigation.
+
+---
+
 ## Session -- 2026-08-14 — Agent Orchestrator end-to-end diagnostic
 
 ### Guardrail Engine Run — 2026-08-13T23:34:39
