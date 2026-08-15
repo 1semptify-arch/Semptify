@@ -63,7 +63,7 @@ class GUIButlerIntegration:
                     "date_range": {"type": "string", "required": False},
                 },
                 handler="court_scraper",
-                icon="🏛",
+                icon="▸",
                 category="court_scraping",
             ),
             "scrape_efilemn": ButlerCommand(
@@ -75,7 +75,7 @@ class GUIButlerIntegration:
                     "party_name": {"type": "string", "required": False},
                 },
                 handler="court_scraper",
-                icon="📁",
+                icon="●",
                 category="court_scraping",
             ),
             "get_efilemn_filings": ButlerCommand(
@@ -84,7 +84,7 @@ class GUIButlerIntegration:
                 description="Get specific case filings from eFileMN",
                 parameters={"case_number": {"type": "string", "required": True}},
                 handler="court_scraper",
-                icon="📋",
+                icon="●",
                 category="court_scraping",
             ),
             # Entity Normalizer Commands
@@ -97,7 +97,7 @@ class GUIButlerIntegration:
                     "context": {"type": "string", "required": False, "default": "general"},
                 },
                 handler="entity_normalizer",
-                icon="🔍",
+                icon="▸",
                 category="entity_resolution",
             ),
             "resolve_entities": ButlerCommand(
@@ -109,7 +109,7 @@ class GUIButlerIntegration:
                     "context": {"type": "string", "required": False, "default": "general"},
                 },
                 handler="entity_normalizer",
-                icon="👥",
+                icon="●",
                 category="entity_resolution",
             ),
             "get_entity_relationships": ButlerCommand(
@@ -118,7 +118,7 @@ class GUIButlerIntegration:
                 description="Get relationships between normalized entities",
                 parameters={"entities": {"type": "array", "required": True}},
                 handler="entity_normalizer",
-                icon="🔗",
+                icon="▸",
                 category="entity_resolution",
             ),
             # Intelligence Engine Commands
@@ -128,7 +128,7 @@ class GUIButlerIntegration:
                 description="Analyze case for patterns and intelligence",
                 parameters={"case_data": {"type": "object", "required": True}},
                 handler="intelligence_engine",
-                icon="🧠",
+                icon="○",
                 category="intelligence_analysis",
             ),
             "get_case_intelligence": ButlerCommand(
@@ -137,7 +137,7 @@ class GUIButlerIntegration:
                 description="Get stored intelligence report for a case",
                 parameters={"case_id": {"type": "string", "required": True}},
                 handler="intelligence_engine",
-                icon="📊",
+                icon="◆",
                 category="intelligence_analysis",
             ),
             "get_pattern_statistics": ButlerCommand(
@@ -146,7 +146,7 @@ class GUIButlerIntegration:
                 description="Get statistics on detected patterns",
                 parameters={},
                 handler="intelligence_engine",
-                icon="📈",
+                icon="◆",
                 category="intelligence_analysis",
             ),
             # Graph Engine Commands
@@ -159,7 +159,7 @@ class GUIButlerIntegration:
                     "relationships": {"type": "array", "required": False},
                 },
                 handler="graph_engine",
-                icon="🕸️",
+                icon="○",
                 category="graph_visualization",
             ),
             "find_shortest_path": ButlerCommand(
@@ -171,7 +171,7 @@ class GUIButlerIntegration:
                     "target_entity": {"type": "string", "required": True},
                 },
                 handler="graph_engine",
-                icon="🛤",
+                icon="○",
                 category="graph_visualization",
             ),
             "generate_graph_visualization": ButlerCommand(
@@ -180,7 +180,7 @@ class GUIButlerIntegration:
                 description="Generate graph visualization",
                 parameters={"format": {"type": "string", "required": False, "default": "png"}},
                 handler="graph_engine",
-                icon="🎨",
+                icon="○",
                 category="graph_visualization",
             ),
             # Storage Layer Commands
@@ -190,7 +190,7 @@ class GUIButlerIntegration:
                 description="Store litigation case data",
                 parameters={"case_data": {"type": "object", "required": True}},
                 handler="storage_layer",
-                icon="💾",
+                icon="●",
                 category="data_storage",
             ),
             "store_entity": ButlerCommand(
@@ -199,7 +199,7 @@ class GUIButlerIntegration:
                 description="Store entity data",
                 parameters={"entity_data": {"type": "object", "required": True}},
                 handler="storage_layer",
-                icon="🗃",
+                icon="●",
                 category="data_storage",
             ),
             "search_cases": ButlerCommand(
@@ -211,7 +211,7 @@ class GUIButlerIntegration:
                     "limit": {"type": "integer", "required": False, "default": 100},
                 },
                 handler="storage_layer",
-                icon="🔍",
+                icon="▸",
                 category="data_storage",
             ),
             "get_case_statistics": ButlerCommand(
@@ -220,7 +220,7 @@ class GUIButlerIntegration:
                 description="Get litigation case statistics",
                 parameters={},
                 handler="storage_layer",
-                icon="📊",
+                icon="◆",
                 category="data_storage",
             ),
             # Reporting Layer Commands
@@ -233,7 +233,7 @@ class GUIButlerIntegration:
                     "filters": {"type": "object", "required": False},
                 },
                 handler="reporting_layer",
-                icon="📋",
+                icon="●",
                 category="reporting",
             ),
             "generate_entity_analysis": ButlerCommand(
@@ -245,7 +245,7 @@ class GUIButlerIntegration:
                     "entity_type": {"type": "string", "required": False},
                 },
                 handler="reporting_layer",
-                icon="👥",
+                icon="●",
                 category="reporting",
             ),
             "generate_pattern_trends": ButlerCommand(
@@ -254,7 +254,7 @@ class GUIButlerIntegration:
                 description="Generate pattern trends report",
                 parameters={"time_period": {"type": "string", "required": False, "default": "90_days"}},
                 handler="reporting_layer",
-                icon="📈",
+                icon="◆",
                 category="reporting",
             ),
         }
