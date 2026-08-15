@@ -1256,19 +1256,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot modifies modules/vault_engine/service.py. Verify vault access-control logic and test imports.",
     "file_path": "app/modules/vault_engine/service.py",
     "id": "phase2-b276c1-072",
-    "notes": "Module cluster: modules/vault_engine. Files: 1. ",
+    "notes": "Module cluster: modules/vault_engine. Files: 1. \n[2026-08-15 06:25 UTC - swe-1.7] Pilot reverts P3 access-control fixes (removes tenant role and non-existent resource READ/DELETE deny). Regression. Preserve main.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/vault_engine/ service changes",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:50.886391+00:00"
   },
   {
     "assigned_agent": "",
