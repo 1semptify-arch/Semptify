@@ -378,7 +378,7 @@ class LitigationScheduler:
 
     def get_all_tasks(self) -> list[dict[str, Any]]:
         """Get all scheduled tasks."""
-        return [self.get_task_status(task_id) for task_id in self.scheduled_tasks]
+        return [self.get_task_status(task_id) for task_id in self.scheduled_tasks.keys()]
 
     def get_active_alerts(self) -> list[dict[str, Any]]:
         """Get all active watchdog alerts."""

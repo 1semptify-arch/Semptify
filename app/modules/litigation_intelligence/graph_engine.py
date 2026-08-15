@@ -287,7 +287,7 @@ class GraphEngine:
     def _render_png(self, positions: dict[str, tuple[float, float]]) -> str | None:
         """Render the graph as a PNG and return a base64 data URL."""
         try:
-            from PIL import Image, ImageDraw
+            from PIL import Image, ImageDraw, ImageFont
         except ImportError:
             return None
 
