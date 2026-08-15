@@ -111,4 +111,16 @@ No agent should hardcode a statistic into landing/marketing HTML going forward �
 
 ---
 
+## State-doc update discipline
+
+Every session that merges a PR, resolves a tracker task, or makes an architectural decision must update the relevant state doc(s) before the session is considered closed. Update the doc that matches the kind of change:
+
+- `BUILD_STATE.md` — what shipped and current build status. Update on every merge or verified fix.
+- `ACTIVE_CONTEXT.md` — what is actively being worked on right now and open threads. Update when the current priority or an open decision changes.
+- `BACKLOG.md` — any new idea, gap, or future item that came up, at whatever stage it is in.
+
+Do not let state docs drift. A tracker task is not "closed" if the state doc that explains it is still stale. Use `tools/check_state_docs_freshness.py` for a soft warning when a batch of tracker status changes has not been matched by a nearby state-doc update.
+
+---
+
 *Use this for Phase C and for anything similar going forward — any large batch-comparison or batch-decision task benefits from the same tiering.*
