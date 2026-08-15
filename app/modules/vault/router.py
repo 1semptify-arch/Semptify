@@ -25,7 +25,6 @@ Storage:
 # All imports remain absolute since vault is a CORE module.
 
 import hashlib
-import importlib.util
 import json
 import logging
 from datetime import datetime
@@ -38,7 +37,6 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
-from app.core.context_envelope import EncounterContext
 from app.core.database import get_db
 from app.core.id_gen import make_id
 from app.core.request_utils import raise_for_storage_error
@@ -54,6 +52,7 @@ from app.core.vault_paths import (
     VAULT_CERTIFICATES,
     VAULT_DOCUMENTS,
 )
+from app.core.context_envelope import EncounterContext
 from app.models.models import Incident, VaultItem
 from app.modules.vault.envelopes import (
     get_vault_upload_page,
@@ -63,17 +62,20 @@ from app.services.storage import get_provider
 
 # Import vault upload service - central document storage
 try:
-    from app.services.vault_upload_service import get_vault_service
+    from app.services.vault_upload_service import VaultDocument, get_vault_service
 
     HAS_VAULT_SERVICE = True
 except ImportError:
     HAS_VAULT_SERVICE = False
 
-# Preview generation availability check (no runtime imports until used).
-HAS_PREVIEW_GENERATOR = (
-    importlib.util.find_spec("app.core.job_processor") is not None
-    and importlib.util.find_spec("app.core.preview_generator") is not None
-)
+# Import preview generation
+try:
+    from app.core.job_processor import submit_document_analysis_job, submit_thumbnail_generation_job
+    from app.core.preview_generator import generate_document_preview, generate_document_thumbnail
+
+    HAS_PREVIEW_GENERATOR = True
+except ImportError:
+    HAS_PREVIEW_GENERATOR = False
 
 logger = logging.getLogger(__name__)
 
