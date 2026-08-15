@@ -214,3 +214,23 @@ register_function_group(
         deterministic=True,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="vault",
+        group_name="vault_upload_envelope",
+        title="Vault Upload Page + Object Envelopes (SSOT)",
+        description=(
+            "CANONICAL ADR-0008 §2.1/2.6 wiring for the Vault upload page. "
+            "Returns the Page Envelope with resolved page actions and, on upload, "
+            "an Object Envelope for the created document."
+        ),
+        inputs=("user_id", "request"),
+        outputs=("page_envelope", "experience_token_snapshot"),
+        dependencies=(
+            "app.modules.vault.envelopes",
+            "app.modules.vault.router",
+        ),
+        deterministic=True,
+    )
+)
