@@ -162,40 +162,47 @@
     <span class="header-logo">🤖</span>
     <h1>Agent Orchestrator <span class="offline-badge">Standalone</span></h1>
   </div>
-  <p class="subtitle">No server needed. Runs in your browser using localStorage. Open this file in Windsurf preview or any browser tab.</p>
+  <p class="subtitle">No server is required, but the page must be served over HTTP for live-file auto-load. Direct <code>file://</code> opens fall back to the embedded JSON. Open via Windsurf preview, VS Code Live Server, or <code>python -m http.server 8000</code>.</p>
 
   <div class="card instructions">
     <details open>
       <summary>How to use this Agent Orchestrator (full pipeline)</summary>
       <p class="hint" style="margin:0.5rem 0 0.75rem"><strong>Manually changing status in this UI is a fallback.</strong> Agents should update their own task's status directly via <code>tools/mark_task_status.py</code> the moment they pick up or finish work — that's what keeps this queue accurate without you tracking it by hand.</p>
       <ol>
-        <li><strong>Generate fresh tasks from the repo:</strong> Run <code>python tools/sync_orchestrator.py</code> (use <code>venv311</code> — Python 3.11.9 only). It runs <strong>three sources</strong> and merges them by task id:
+        <li><strong>Generate fresh tasks from the repo:</strong> Run <code>python tools/sync_orchestrator.py</code> from <code>venv311</code> (Python 3.11.9 only). It runs:
           <ul style="margin:0.4rem 0 0.4rem 1.25rem;font-size:0.82rem;color:var(--muted)">
             <li><code>stub_detector.py</code> → scans repo for real stubs (NotImplementedError, pass, TODO)</li>
-            <li><code>workbook_bridge.py</code> → reads <code>Semptify_Master_Inventory_LIVE_reviewed.xlsx</code> for stub + duplicate rows</li>
             <li><code>_seed_orchestrator_tasks.py</code> → compiles incomplete items from <code>BUILD_STATE.md</code>, <code>ACTIVE_CONTEXT.md</code>, <code>FNG_TODO.md</code>, <code>STUB_AUDIT.md</code> into <code>tools/docs_todos.json</code></li>
+            <li><code>workbook_bridge.py</code> → <strong>legacy/manual</strong> read of <code>Semptify_Master_Inventory_LIVE_reviewed.xlsx</code>; its <code>Stubs &amp; TODOs</code> sheet is intentionally empty and not the canonical source</li>
+            <li><code>sync_registry.py</code> → keeps <code>tools/module_registry.yaml</code> and related artifacts in sync</li>
           </ul>
-          Output: <code>tools/agent_orchestrator_tasks.json</code> (merged) + embedded JSON in this page and <code>tools/orchestrator_dashboard.html</code>.</li>
-        <li><strong>Open the page fresh:</strong> The page automatically loads the live <code>tools/agent_orchestrator_tasks.json</code> on startup (file &gt; embedded JSON &gt; localStorage). If it looks stale, click <strong>Refresh from file ↻</strong> to force a reload, or <strong>Start fresh ↺</strong> to clear localStorage first and then reload. You can also double-click the <strong>Agent Orchestrator</strong> desktop shortcut to launch this page directly.</li>
+          Output: <code>tools/agent_orchestrator_tasks.json</code> (merged canonical queue) + embedded JSON in this page and <code>tools/orchestrator_dashboard.html</code>.</li>
+        <li><strong>Serve and open the page:</strong> The page needs an HTTP origin to fetch the live <code>tools/agent_orchestrator_tasks.json</code>. Recommended options:
+          <ul style="margin:0.4rem 0 0.4rem 1.25rem;font-size:0.82rem;color:var(--muted)">
+            <li><code>python -m http.server 8000</code> from the repo root, then open <code>http://localhost:8000/tools/agent_orchestrator.html</code></li>
+            <li>Windsurf preview / VS Code Live Server on the <code>tools/agent_orchestrator.html</code> file</li>
+          </ul>
+          If you open the file directly with <code>file://</code>, the live fetch is blocked by browser CORS and the page falls back to <strong>embedded JSON &gt; localStorage</strong>. Use <strong>Refresh from file ↻</strong> to force a live reload, or <strong>Start fresh ↺</strong> to clear <code>localStorage</code> and reload.</li>
         <li><strong>Pick a task:</strong> Use the Task Queue table below, or open <code>tools/orchestrator_dashboard.html</code> for the overview (status/category/agent breakdowns, filterable table). Click <em>View prompt</em> to read the generated prompt, or <em>Copy</em> to paste it into an agent.</li>
         <li><strong>Agent picks up the task:</strong> Before starting work, the agent runs:<br>
           <code>python tools/mark_task_status.py &lt;task_id&gt; in_progress --agent &lt;model-name&gt;</code></li>
         <li><strong>Agent finishes the task:</strong> The agent runs:<br>
           <code>python tools/mark_task_status.py &lt;task_id&gt; resolved --notes "&lt;one-line summary&gt;" --agent &lt;model-name&gt;</code><br>
           (use <code>review</code> instead of <code>resolved</code> if blocked or unsure, and say why in <code>--notes</code>)</li>
-        <li><strong>Clear out finished duplicate-resolve tasks:</strong> Resolved/rejected tasks stay visible (correctly marked) until someone runs the archive step — they don't disappear on their own, because the underlying workbook row is still there until archived. Periodically run:<br>
-          <code>python tools/archive_resolved_duplicates.py --dry-run</code> to preview, then without <code>--dry-run</code> to actually move the rows into the workbook's <code>Archive</code> sheet and drop them from the active queue.</li>
+        <li><strong>Clear out finished duplicate-resolve tasks (optional):</strong> Only run this if you are actively using the legacy workbook's <code>Duplicates</code> sheet. For the canonical doc-sourced queue, resolved/rejected tasks are kept as historical records. If you use the Duplicates sheet, periodically run:<br>
+          <code>python tools/archive_resolved_duplicates.py --dry-run</code> to preview, then without <code>--dry-run</code> to move the rows into the workbook's <code>Archive</code> sheet and drop them from the active queue.</li>
         <li><strong>Export/import:</strong> Use the Data card below to back up your queue as JSON or move it between machines.</li>
         <li><strong>Admin UI (alternative):</strong> <code>http://localhost:8000/admin/agent_orchestrator.html</code> (requires stealth admin login). Uses in-memory API store — wipes on server restart. Click <strong>Import JSON</strong> there to load <code>tools/agent_orchestrator_tasks.json</code> via <code>/api/agent-orchestrator/batch</code>.</li>
         <li><strong>Full manual:</strong> <code>docs/AGENT_ORCHESTRATOR_MANUAL.md</code> — complete operation guide, troubleshooting, changelog.</li>
+        <li><strong>Diagnostics:</strong> Run <code>python tools/agent_orchestrator_sync_review/inspect_state.py</code> to see file sizes, task counts, missing paths, and git hook state.</li>
       </ol>
-      <p class="hint" style="margin-top:0.75rem"><strong>Full refresh, in order</strong> (run from the repo root with venv311 active):</p>
+      <p class="hint" style="margin-top:0.75rem"><strong>Full refresh, in order</strong> (run from the repo root with <code>venv311</code> active):</p>
       <ol>
-        <li><code>python tools/sync_orchestrator.py</code> — rebuild stubs + workbook + docs_todos, merge, embed into both HTML views</li>
-        <li><code>python tools/archive_resolved_duplicates.py --dry-run</code> — check if anything's ready to clear</li>
-        <li><code>python tools/archive_resolved_duplicates.py</code> — clear it if the preview looked right</li>
-        <li><code>python tools/sync_orchestrator.py</code> — re-run once more so the HTML views reflect the archive</li>
-        <li>Reload this page and <code>tools/orchestrator_dashboard.html</code></li>
+        <li><code>python tools/sync_orchestrator.py</code> — rebuild stubs + docs_todos + workbook, merge, embed into both HTML views</li>
+        <li><em>(Only if using the legacy Duplicates sheet)</em> <code>python tools/archive_resolved_duplicates.py --dry-run</code> — check if anything's ready to clear</li>
+        <li><em>(Only if step 2 showed work to clear)</em> <code>python tools/archive_resolved_duplicates.py</code> — clear it</li>
+        <li><code>python tools/sync_orchestrator.py</code> — re-run once more so the HTML views reflect any archive changes</li>
+        <li>Reload this page and <code>tools/orchestrator_dashboard.html</code> (serve over HTTP)</li>
       </ol>
       <div class="actions">
         <button type="button" class="btn btn-green" onclick="startFresh()">Start fresh ↺</button>
@@ -272,7 +279,7 @@
 
   <div class="card">
     <h2>Data</h2>
-    <p class="hint">The queue auto-loads from <code>tools/agent_orchestrator_tasks.json</code> on startup when possible (file &gt; embedded JSON &gt; localStorage). To force a reload, click <strong>Refresh from file ↻</strong> or <strong>Start fresh ↺</strong>. You can also export or import manually below.</p>
+    <p class="hint">The queue auto-loads from <code>tools/agent_orchestrator_tasks.json</code> on startup when served over HTTP (file &gt; embedded JSON &gt; localStorage). If you open this file directly with <code>file://</code>, the live fetch is blocked and it falls back to embedded JSON or localStorage. To force a reload, click <strong>Refresh from file ↻</strong> or <strong>Start fresh ↺</strong>. You can also export or import manually below.</p>
     <div class="actions">
       <button class="btn btn-green" onclick="exportJson()">Export JSON</button>
       <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Import JSON</button>
