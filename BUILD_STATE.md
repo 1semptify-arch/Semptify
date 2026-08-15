@@ -1,3 +1,41 @@
+## Session -- 2026-08-15 — Tier 2 dispatch P4 caller migrations
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+P4 required migrating all callers of four legacy `app/services/` files to their canonical `app/modules/` replacements and then deleting the old files, one task per file.
+
+### Fix
+
+- Merged PRs #72, #71, #73 (in that order) after user request.
+- Created `devin/p4-auto-mode-migration`:
+  - Migrated `app/services/document_flow_orchestrator.py` to `app.modules.auto_mode.service`.
+  - Deleted `app/services/auto_mode_orchestrator.py`.
+- Created `devin/p4-event-extractor-migration`:
+  - Migrated `app/services/event_extractor` callers in `document_flow_orchestrator.py`, `tests/test_coverage_core_services.py`, `app/services/context_loop.py`, and `app/modules/context_loop/service.py` to `app.modules.documents.service`.
+  - Deleted `app/services/event_extractor.py`.
+- Created `devin/p4-proactive-tactics-migration`:
+  - Migrated `app/services/proactive_tactics` callers in `app/modules/auto_mode/service.py` and legacy `app/services/auto_mode_orchestrator.py` to `app.modules.tactics.service`.
+  - Deleted `app/services/proactive_tactics.py`.
+- Created `devin/p4-progress-tracker-migration`:
+  - Migrated `app/modules/progress/router.py` import from `app.services.progress_tracker` to `app.modules.dashboard.service`.
+  - Deleted `app/services/progress_tracker.py`.
+
+### Verification
+
+- `python tools/sync_orchestrator.py --check` — PASS before each branch.
+- `python -m py_compile` on changed files — PASS for each.
+- `python -m pytest tests/test_coverage_core_services.py::test_event_extractor_parses_context_and_deduplicates` — PASS (coverage threshold failed as expected).
+- Direct import checks for `AutoModeOrchestrator`, `progress_tracker` / `app.modules.progress.router`, and `EventExtractor` — PASS.
+- `ruff check` — PASS where run.
+
+### Status
+
+PRs #74–#77 open for P4. P5–P6 still pending.
+
+---
+
 ## Session -- 2026-08-15 — Tier 2 dispatch P1–P3 + tracker/infra follow-up
 
 ### Guardrail Engine Run — not run
