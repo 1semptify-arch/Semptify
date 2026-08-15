@@ -924,19 +924,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "reconciliation",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Service is a duplicate or unreferenced on main. Delete app/services/hud_funding_guide.py and run compile/ruff/pytest to confirm no breakages.",
     "file_path": "app/services/hud_funding_guide.py",
     "id": "phase2-e9d8dd-039",
-    "notes": "Brad decision: delete now (after compile/test check).",
+    "notes": "Brad decision: delete now (after compile/test check).\n[2026-08-15 04:47 UTC - swe-1.7] Dispatching as Priority 2 quick-win deletion. No app imports found from app.services.hud_funding_guide.",
     "priority": "medium",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "in_progress",
     "target_model": "swe-1.7",
     "title": "Delete app/services/hud_funding_guide.py after compile/test check",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T04:47:58.706585+00:00"
   },
   {
     "assigned_agent": "",
@@ -1029,19 +1029,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "security",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot version contains f-string SQL injection in contact lookups and reverts safe text() parameterized queries. Main's version is permanently preserved. Do not land pilot's version unless the SQL is fixed in a separate security PR.",
     "file_path": "app/services/document_flow_orchestrator.py",
     "id": "phase2-8848d4-046",
-    "notes": "Module cluster: services/document_flow_orchestrator. Files: 1. ",
+    "notes": "Module cluster: services/document_flow_orchestrator. Files: 1. \n[2026-08-15 04:46 UTC - swe-1.7] Dispatched as Priority 1 from post-PR #69 handoff. Main's parameterized SQL is the baseline; fix the pilot's f-string SQL regression before any other pilot changes are considered.\n[2026-08-15 04:47 UTC - swe-1.7] Verified current main app/services/document_flow_orchestrator.py uses text() with parameter binding for both landlord and attorney contact lookups. Pilot's f-string SQL does not land. Other pilot changes (OCR_PASS_STARTED, import migration to modules) remain in P4 caller-migration tasks, to be applied only with the safe SQL preserved.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "review",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "SECURITY: services/document_flow_orchestrator.py \u2014 main preserved, pilot blocked",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T04:47:50.977414+00:00"
   },
   {
     "assigned_agent": "",
@@ -1477,6 +1477,21 @@
     "target_model": "swe-1.7",
     "title": "Preserve main for app/core/ cosmetic arrow/comment diffs",
     "updated_at": "2026-08-15T04:28:25Z"
+  },
+  {
+    "assigned_agent": "",
+    "category": "environment",
+    "created_at": "2026-08-15T04:46:48Z",
+    "description": "Seen on PR #59 and PR #69. Both non-app-code (tracker/JSON/HTML or utc_now) changes. Test job shows IN_PROGRESS with no logs, stuck on Loading, doesn't complete within 10+ min. Needs root-cause: runner availability, cache lock, workflow trigger misconfig for non-.py-touching diffs, or GH Actions incident. Do not treat as code-correctness signal until root cause is known.",
+    "file_path": ".github/workflows/ci.yml",
+    "id": "todo-081",
+    "notes": "Created after PR #69 Test job hung for 10+ min with no logs, same as PR #59. Admin-merged #69 around the hung required check.",
+    "priority": "medium",
+    "source": "manual",
+    "status": "pending",
+    "target_model": "swe-1.7",
+    "title": "Investigate recurring Test job hang on tracker-only PRs",
+    "updated_at": "2026-08-15T04:46:48Z"
   }
 ]
 
