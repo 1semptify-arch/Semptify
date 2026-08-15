@@ -9,7 +9,11 @@ Post-PR #69 tracker sync is merged. Dispatching the 38 Tier 2 module-cluster tas
 - ✅ P1 Security: `document_flow_orchestrator.py` — main's parameterized SQL preserved, pilot f-string SQL blocked.
 - ✅ P2 Quick-win deletions: `hud_funding_guide.py` and `court_form_generator.py` deleted.
 - ✅ P3 Test migrations: `document_notarization.py` and `vault_engine.py` deleted after migrating `tests/test_coverage_core_services.py` imports.
-- ⏳ P4 Caller migrations: `auto_mode_orchestrator`, `event_extractor`, `proactive_tactics`, `progress_tracker`.
+- ✅ P4 Caller migrations: `auto_mode_orchestrator`, `event_extractor`, `proactive_tactics`, `progress_tracker` migrated/deleted.
+- ⏳ P5 Tier C ADR-0008 wiring module clusters.
+- ⏳ P6 Legal/money/privacy/storage catch-alls.
+
+Open PRs: #74–#77 (P4 migrations).
 - ⏳ P5 Tier C ADR-0008 wiring module clusters.
 - ⏳ P6 Legal/money/privacy/storage catch-alls.
 - 🛑 Deferred: `app/core/page_manifest.py` remains under `todo-065`.
