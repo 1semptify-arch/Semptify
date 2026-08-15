@@ -1,27 +1,20 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-15 (Phase C Tier 2 ADR-0008 reconciliation dispatch)
+**Last Updated**: 2026-08-15 (fact-check/freshness system close-out)
 
-## 🎯 Current Priority: Phase C Tier 2 ADR-0008 reconciliation — CLOSE-OUT
+## 🎯 Current Priority: Next session chooses — Phase E admin freshness UI, or pick up deferred Tier 2 handoff archive
 
-PRs #69–#88 are merged. The 38 Tier 2 module-cluster tasks have been reviewed and resolved through PRs #69–#88, covering P1–P6:
-
-- ✅ P1 Security: `document_flow_orchestrator.py` — main's parameterized SQL preserved, pilot f-string SQL blocked.
-- ✅ P2 Quick-win deletions: `hud_funding_guide.py` and `court_form_generator.py` deleted.
-- ✅ P3 Test migrations: `document_notarization.py` and `vault_engine.py` deleted after migrating `tests/test_coverage_core_services.py` imports.
-- ✅ P4 Caller migrations: `auto_mode_orchestrator`, `event_extractor`, `proactive_tactics`, `progress_tracker` migrated/deleted.
-- ✅ P5 Tier C ADR-0008 wiring module clusters: resolved through PRs #85–#88 (todo-063/064 env coverage, todo-065 page manifest, phase2-50551b-067 security router, phase2-dc4e66-065 dashboard/progress).
-- ✅ P6 Legal/money/privacy/storage catch-alls: reviewed and assigned; `phase2-1a1341-055` remains parked per user direction.
-
-### Branch protection verification
-
-- Repository ruleset `protect-main` was active but `conditions.ref_name.include` was empty, so it matched **no branches**.
-- A throwaway `git push github-direct main` succeeded, confirming the misconfiguration.
-- The ruleset was updated via the GitHub API to set `conditions.ref_name.include = ["refs/heads/main"]`.
-- A second throwaway `git push github-direct main` was rejected with `GH013: Repository rule violations found for refs/heads/main` (`Changes must be made through a pull request`), confirming the fix.
-- `docs/AI_TEAM_OPERATING_PROTOCOL.md` now explicitly forbids any AI agent from committing directly to `main` under any circumstance.
+The fact-check/freshness build (Phases A–D) is merged and documented. ADR-0009 is Accepted, the auto-hide decision is recorded, and the landing page is wired to verified claims only. Phase E (admin freshness visibility for landing claims) and the remaining Tier 2 handoff archive work are the next available chunks.
 
 ---
+
+## ✅ Completed 2026-08-15 Session — Fact-check/freshness close-out
+
+- Merged PRs #91, #92, #93: Phases A–D of the fact-check/freshness build.
+- ADR-0009 flipped from `Proposed` to `Accepted`.
+- Auto-hide decision recorded: a stale or unverifiable public claim is hidden, not shown with a placeholder or "last verified" fallback.
+- `PROJECT_BIBLE.md` and `README.md` updated with references and a worked example.
+- `BUILD_STATE.md` close-out entry added.
 
 ## ✅ Completed 2026-08-15 Session
 
