@@ -1,3 +1,36 @@
+## Session -- 2026-08-15 — Establish state-doc update discipline and handoff archive
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Per `HANDOFF_establish_state_doc_system.md`, make the state-doc system a checked, structural part of the repo instead of a memory-based habit. Commit `BACKLOG.md`, add a state-doc update rule to `docs/AI_TEAM_OPERATING_PROTOCOL.md`, add a soft freshness check, and move in-repo handoff files into `docs/handoffs/`.
+
+### Fix
+
+- Added `BACKLOG.md` to the Semptify repo root and reconciled it against `BUILD_STATE.md` and `ACTIVE_CONTEXT.md`. Removed duplicated close-out entries; kept the running index of active, parked, considering, and new ideas.
+- Added a "State-doc update discipline" section to `docs/AI_TEAM_OPERATING_PROTOCOL.md` that names which doc to update for which kind of change.
+- Added `tools/check_state_docs_freshness.py` as a soft, report-only check. Default run exits 0; use `--strict` to exit 1.
+- Created `docs/handoffs/` and moved the four in-repo handoff files from the workspace root with `YYYY-MM-DD_slug.md` names:
+  - `2026-08-15_establish-state-doc-system.md`
+  - `2026-08-15_factcheck-docs-integration.md`
+  - `2026-08-15_factcheck-freshness-buildnow.md`
+  - `2026-08-10_branch-reconciliation-phase-b.md`
+- Confirmed `docs/adr/` is the canonical home for all committed ADRs (0001–0009 plus `TEMPLATE.md`).
+
+### Verification
+
+- `python -m py_compile tools/check_state_docs_freshness.py` — PASS.
+- `python tools/check_state_docs_freshness.py` — PASS (no warnings).
+- `ruff check tools/check_state_docs_freshness.py` — PASS.
+- `python tools/sync_orchestrator.py --check` — PASS (91 tasks, 0 missing paths).
+
+### Status
+
+State-doc update discipline established. `BACKLOG.md`, `BUILD_STATE.md`, and `ACTIVE_CONTEXT.md` now form the canonical state-doc trio. In-repo handoff archive created at `docs/handoffs/`. Open question: several handoff files listed in the original handoff are not present as files in the workspace and may only exist in session context.
+
+---
+
 ## Session -- 2026-08-15 — Tier 2 / ADR-0008 pilot reconciliation close-out
 
 ### Guardrail Engine Run — not run
