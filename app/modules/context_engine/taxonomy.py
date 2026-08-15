@@ -1,4 +1,4 @@
-"""Context Engine taxonomy — 13 housing-rights subjects."""
+"""Context Engine taxonomy — 13 housing-rights subjects plus landing-page public claims."""
 
 from enum import StrEnum
 
@@ -19,6 +19,7 @@ class Subject(StrEnum):
     COURT_PREP = "court_prep"
     EVIDENCE = "evidence"
     TIMELINE = "timeline"
+    LANDING = "landing"
 
 
 ALL_SUBJECTS = tuple(s.value for s in Subject)
@@ -36,6 +37,7 @@ SUBJECT_LABELS = {
     Subject.COURT_PREP.value: "Court Preparation",
     Subject.EVIDENCE.value: "Evidence Documentation",
     Subject.TIMELINE.value: "Timeline Building",
+    Subject.LANDING.value: "Landing Page",
 }
 
 # Map free_api_pack endpoints to subjects for gatherer integration
@@ -53,4 +55,5 @@ SUBJECT_TO_FREE_API = {
     Subject.COURT_PREP.value: "mncourts_search",
     Subject.EVIDENCE.value: None,  # No external API — guidance only
     Subject.TIMELINE.value: None,  # No external API — guidance only
+    Subject.LANDING.value: None,  # Public marketing/landing claims — verified by fact-check/freshness system
 }
