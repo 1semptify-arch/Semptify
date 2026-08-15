@@ -1469,7 +1469,20 @@ TASKS = [{'assigned_agent': 'SWE-1.7-Max',
   'status': 'pending',
   'target_model': 'swe-1.7',
   'title': 'Investigate recurring Test job hang on tracker-only PRs',
-  'updated_at': '2026-08-15T04:46:48Z'}]
+  'updated_at': '2026-08-15T04:46:48Z'},
+ {'assigned_agent': 'swe-1.7',
+  'category': 'documentation',
+  'created_at': '2026-08-15T12:00:00Z',
+  'description': 'Establish the state-doc update discipline per HANDOFF_establish_state_doc_system.md: commit BACKLOG.md, add the state-doc update rule to docs/AI_TEAM_OPERATING_PROTOCOL.md, add tools/check_state_docs_freshness.py, create docs/handoffs/, and archive the in-repo handoff files.',
+  'file_path': 'docs/AI_TEAM_OPERATING_PROTOCOL.md',
+  'id': 'handoff-establish-state-doc-2026-08-15',
+  'notes': 'Claimed by swe-1.7 on 2026-08-15 to establish state-doc discipline. Status: in_progress.',
+  'priority': 'high',
+  'source': 'handoff',
+  'status': 'in_progress',
+  'target_model': 'swe-1.7',
+  'title': 'Establish state-doc update discipline and handoff archive',
+  'updated_at': '2026-08-15T12:00:00Z'}]
 
 
 def _print_summary(tasks: list[dict]) -> None:
