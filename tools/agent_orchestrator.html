@@ -963,19 +963,19 @@
     "updated_at": "2026-08-15T07:51:20.917185+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "reconciliation",
     "created_at": "2026-08-12T00:00:00Z",
     "description": "Reconcile app/core/page_manifest.py as part of the pilot branch's static-to-template migration. Pilot changes many PAGE_MANIFEST entries from static/*.html to app/templates/pages/*.html, moves public pages to static/public/, and renames tenant_dashboard source file. All referenced template files exist, but the migration must be coordinated with route rendering and the app/templates/ conflict set. Do not merge as part of routine Tier 1 reconciliation.",
     "file_path": "app/core/page_manifest.py",
     "id": "todo-065",
-    "notes": "Deferred from Tier 1 Batch 2. Needs dedicated review of static vs template page serving before applying.",
+    "notes": "Deferred from Tier 1 Batch 2. Needs dedicated review of static vs template page serving before applying.\n[2026-08-15 07:54 UTC - swe-1.7] Reviewing pilot page_manifest.py static-to-template migration and coordinate with templates/routes.\n[2026-08-15 08:01 UTC - swe-1.7] Migrated PAGE_MANIFEST from static/ paths to app/templates/pages/ for 50+ pages; moved public pages to static/public/; added orphaned contract entries. Preserved StrEnum (Python 3.11.9). create_app and SSOT tests pass.",
     "priority": "medium",
     "source": "manual",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Static-to-template page manifest migration",
-    "updated_at": "2026-08-12T00:00:00Z"
+    "updated_at": "2026-08-15T08:01:45.592046+00:00"
   },
   {
     "assigned_agent": "swe-1.7",
