@@ -1076,19 +1076,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot changes litigation-intelligence graph engine, router, scheduler, and includes stray markdown files. Review for legal-output correctness and remove stray files.",
     "file_path": "app/modules/litigation_intelligence/router.py",
     "id": "phase2-d937c5-060",
-    "notes": "Module cluster: modules/litigation_intelligence. Files: 6. ",
+    "notes": "Module cluster: modules/litigation_intelligence. Files: 6. \n[2026-08-15 06:31 UTC - swe-1.7] P5 apply: replaced hardcoded PostgreSQL DSN with _resolve_lis_dsn() from settings, plus ImageFont import, scheduler .keys() tweak, and markdown cleanup. py_compile and targeted test (test_litigation_intelligence_lis_router.py) pass.",
     "priority": "medium",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/litigation_intelligence/ legal-output changes",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:31:08.142941+00:00"
   },
   {
     "assigned_agent": "",
