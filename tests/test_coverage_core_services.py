@@ -316,7 +316,7 @@ def test_page_recipe_registry_and_serialization():
 
 
 def test_event_extractor_parses_context_and_deduplicates():
-    from app.services.event_extractor import EventExtractor, ExtractedEvent, get_event_extractor
+    from app.modules.documents.service import EventExtractor, ExtractedEvent, get_event_extractor
 
     extractor = EventExtractor()
     text = (
