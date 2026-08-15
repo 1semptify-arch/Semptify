@@ -48,6 +48,29 @@ async def get_facts(
         return [r for r in rows if not _is_expired(r)]
 
 
+async def get_verified_landing_facts(limit: int = 10) -> list[ContextFact]:
+    """Return verified, non-expired landing/public facts.
+
+    This is the canonical source for hero claims on the landing page.
+    Unverified, expired, or drifted claims are auto-hidden.
+    """
+    async with get_db_session() as db:
+        stmt = (
+            select(ContextFact)
+            .where(
+                and_(
+                    ContextFact.subject == "landing",
+                    ContextFact.is_verified.is_(True),
+                )
+            )
+            .order_by(ContextFact.created_at.desc())
+            .limit(limit)
+        )
+        result = await db.execute(stmt)
+        rows = result.scalars().all()
+        return [r for r in rows if not _is_expired(r)]
+
+
 async def upsert_fact(
     subject: str,
     jurisdiction: str,

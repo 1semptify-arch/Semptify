@@ -251,6 +251,43 @@ async def hourly_deadlines_cron():
         raise HTTPException(status_code=500, detail="Hourly deadlines refresh failed")
 
 
+@router.post("/cron/verify-landing-claims")
+async def verify_landing_claims_cron():
+    """Dedicated cron job to verify landing/public factual claims."""
+    try:
+        logger.info("Starting landing-claims verification cron")
+
+        accountability_planner.log_audit_event(
+            user_id=None,
+            action=AuditAction.SYSTEM_CHANGE,
+            resource="data_freshness:cron_verify_landing_claims",
+            details={"cron_job": "verify_landing_claims"},
+            success=True,
+        )
+
+        result = await data_freshness_manager.refresh_data("marketing_claims_001")
+
+        logger.info("Landing-claims verification completed: %s", result)
+
+        return {
+            "message": "Landing claims verification completed",
+            "timestamp": utc_now().isoformat(),
+            "result": result,
+        }
+    except Exception as e:
+        logger.error("Error in landing-claims verification cron: %s", e)
+
+        accountability_planner.log_audit_event(
+            user_id=None,
+            action=AuditAction.SYSTEM_CHANGE,
+            resource="data_freshness:cron_verify_landing_claims",
+            details={"cron_job": "verify_landing_claims", "error": str(e)},
+            success=False,
+        )
+
+        raise HTTPException(status_code=500, detail="Landing claims verification failed")
+
+
 @router.get("/health")
 async def health_check():
     """Health check for data freshness system."""
