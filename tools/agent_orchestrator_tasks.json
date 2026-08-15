@@ -767,13 +767,13 @@
     "description": "Service is a duplicate or unreferenced on main. Delete app/services/hud_funding_guide.py and run compile/ruff/pytest to confirm no breakages.",
     "file_path": "app/services/hud_funding_guide.py",
     "id": "phase2-e9d8dd-039",
-    "notes": "Brad decision: delete now (after compile/test check).\n[2026-08-15 04:47 UTC - swe-1.7] Dispatching as Priority 2 quick-win deletion. No app imports found from app.services.hud_funding_guide.",
+    "notes": "Brad decision: delete now (after compile/test check).\n[2026-08-15 04:47 UTC - swe-1.7] Dispatching as Priority 2 quick-win deletion. No app imports found from app.services.hud_funding_guide.\n[2026-08-15 04:54 UTC - swe-1.7] Deleted app/services/hud_funding_guide.py. No app imports. py_compile, ruff, and targeted pytest (test_hud_funding + module_health/test_hud_funding) pass. Coverage failure is the existing project threshold issue (todo-064).",
     "priority": "medium",
     "source": "phase_c_tier2",
-    "status": "in_progress",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Delete app/services/hud_funding_guide.py after compile/test check",
-    "updated_at": "2026-08-15T04:47:58.706585+00:00"
+    "updated_at": "2026-08-15T04:54:05.023759+00:00"
   },
   {
     "assigned_agent": "",
