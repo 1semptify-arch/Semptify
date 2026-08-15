@@ -1,3 +1,25 @@
+## Session -- 2026-08-15 — Archive missing Tier 2 / ADR-0008 reconciliation handoff
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+The `Tier 2 / ADR-0008 pilot branch reconciliation` scan handoff existed as a file outside the repo (`E:\\Download\\2026-08-15_tier2-adr0008-reconciliation-scan.md`) and needed to be added to the in-repo `docs/handoffs/` archive.
+
+### Fix
+
+- Archived `2026-08-15_tier2-adr0008-reconciliation-scan.md` in `docs/handoffs/`.
+
+### Verification
+
+- `python tools/sync_orchestrator.py --check` — PASS (91 tasks, 0 missing paths).
+
+### Status
+
+Tier 2 / ADR-0008 reconciliation scan handoff archived. Remaining missing handoffs from the original state-doc handoff list still need to be re-pasted if they exist as files: Post-PR#69 dispatch, P4 merge / P5 kickoff, P5 close-out, root-cause main-divergence, Information Orchestrator (ADR-0008) recap, production-readiness audit.
+
+---
+
 ## Session -- 2026-08-15 — Establish state-doc update discipline and handoff archive
 
 ### Guardrail Engine Run — not run
