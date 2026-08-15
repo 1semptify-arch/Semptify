@@ -1371,5 +1371,24 @@
       "agent": "swe-1.7",
       "claimed_at": "2026-08-15T10:11:03.424389+00:00"
     }
+  },
+  {
+    "assigned_agent": "swe-1.7",
+    "category": "feature",
+    "created_at": "2026-08-15T10:16:47.246262+00:00",
+    "description": "Phase B of the fact-check/freshness build: extend Context Engine verifier from HTTP HEAD to GET, extract and compare content against canonical_value using per-claim extraction_pattern, and raise freshness alerts on mismatch or extraction failure.",
+    "file_path": "app/modules/context_engine/verifier.py",
+    "id": "handoff-factcheck-phase-b-2026-08-15",
+    "notes": "Use the per-claim extraction_pattern. Do not use a general-purpose NLP fact extractor.",
+    "priority": "high",
+    "source": "handoff",
+    "status": "in_progress",
+    "target_model": "swe-1.7",
+    "title": "Fact-check/freshness system: Phase B content-level verifier",
+    "updated_at": "2026-08-15T10:59:10.683223+00:00",
+    "claimed_by": {
+      "agent": "swe-1.7",
+      "claimed_at": "2026-08-15T10:59:10.683150+00:00"
+    }
   }
 ]

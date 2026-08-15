@@ -37,6 +37,7 @@ class ContextFact(Base):
     source_name: Mapped[str] = mapped_column(String(100), nullable=False)
     citation: Mapped[str | None] = mapped_column(Text, nullable=True)
     canonical_value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    extraction_pattern: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     verified_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)

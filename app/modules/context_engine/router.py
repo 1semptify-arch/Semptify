@@ -147,6 +147,7 @@ async def get_facts(
                 "source_name": f.source_name,
                 "citation": f.citation,
                 "canonical_value": f.canonical_value,
+                "extraction_pattern": f.extraction_pattern,
                 "is_verified": f.is_verified,
                 "verified_at": f.verified_at.isoformat() if f.verified_at else None,
             }
