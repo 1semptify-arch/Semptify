@@ -1106,19 +1106,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot removes GOVERN fallback, deadline proximity scoring, document-count blocks, and the POST /api/page/assemble endpoint. Review each change for caller impact and UPL/govern implications before applying.",
     "file_path": "app/modules/page_composer/router.py",
     "id": "phase2-01227e-062",
-    "notes": "Module cluster: modules/page_composer. Files: 3. ",
+    "notes": "Module cluster: modules/page_composer. Files: 3. \n[2026-08-15 06:25 UTC - swe-1.7] Pilot removes GOVERN fallback, deadline-proximity scoring, document-count blocks, and POST /api/page/assemble endpoint. These are feature removals/regressions. Preserve main.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/page_composer/ ADR-0008 wiring and page-assembly changes",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:42.435116+00:00"
   },
   {
     "assigned_agent": "",
