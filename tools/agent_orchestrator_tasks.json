@@ -1001,19 +1001,23 @@
     "updated_at": "2026-08-15T06:25:49.348923+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot modifies court learning, procedures, PDF, i18n, and seed data. Verify legal-output accuracy for Minnesota eviction defense.",
     "file_path": "app/services/eviction/court_procedures.py",
     "id": "phase2-1a1341-055",
-    "notes": "Module cluster: services/eviction. Files: 6. ",
+    "notes": "Module cluster: services/eviction. Files: 6. \n[2026-08-15 09:59 UTC - swe-1.7] Released: agent claimed in error during preflight; task remains parked per user direction.",
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "pending",
     "target_model": "swe-1.7",
     "title": "Review services/eviction/ legal-output data changes",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T09:59:31.417731+00:00",
+    "claimed_by": {
+      "agent": "swe-1.7",
+      "claimed_at": "2026-08-15T09:59:22.396629+00:00"
+    }
   },
   {
     "assigned_agent": "swe-1.7",
@@ -1329,6 +1333,25 @@
     "target_model": "swe-1.7",
     "title": "Investigate recurring Test job hang on tracker-only PRs",
     "updated_at": "2026-08-15T07:22:56.344631+00:00"
+  },
+  {
+    "assigned_agent": "swe-1.7",
+    "category": "docs",
+    "created_at": "2026-08-15T10:00:20.550931+00:00",
+    "description": "Create ADR-0009 as Proposed, add AI_TEAM_OPERATING_PROTOCOL.md rule, and update MOTIVATIONS.md Information Integrity Standards link per HANDOFF_factcheck_docs_integration.md Section 8 (now-items) before Phase A build.",
+    "file_path": "docs/",
+    "id": "handoff-factcheck-docs-2026-08-15",
+    "notes": "Documentation-only pass; do not bundle with Phase A-D code changes.",
+    "priority": "high",
+    "source": "handoff",
+    "status": "done",
+    "target_model": "swe-1.7",
+    "title": "Fact-check/freshness system: docs pass (ADR, protocol, MOTIVATIONS)",
+    "updated_at": "2026-08-15T10:07:55.253910+00:00",
+    "claimed_by": {
+      "agent": "swe-1.7",
+      "claimed_at": "2026-08-15T10:07:15.663882+00:00"
+    }
   },
   {
     "assigned_agent": "swe-1.7",
