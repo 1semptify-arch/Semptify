@@ -1001,19 +1001,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot modifies court learning, procedures, PDF, i18n, and seed data. Verify legal-output accuracy for Minnesota eviction defense.",
     "file_path": "app/services/eviction/court_procedures.py",
     "id": "phase2-1a1341-055",
-    "notes": "Module cluster: services/eviction. Files: 6. ",
+    "notes": "Module cluster: services/eviction. Files: 6. \n[2026-08-15 06:24 UTC - swe-1.7] Pulled from P5 preserve batch. case_builder.py contains a real legal-output refactor (moved tenant extraction, added Document query). Requires manual legal review before applying or resolving.",
     "priority": "medium",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "review",
     "target_model": "swe-1.7",
     "title": "Review services/eviction/ legal-output data changes",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:24:24.689196+00:00"
   },
   {
     "assigned_agent": "",
@@ -1181,19 +1181,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot modifies security router. Review for auth/permission regressions.",
     "file_path": "app/modules/security/router.py",
     "id": "phase2-50551b-067",
-    "notes": "Module cluster: modules/security. Files: 1. ",
+    "notes": "Module cluster: modules/security. Files: 1. \n[2026-08-15 06:24 UTC - swe-1.7] Pulled from P5 preserve batch. Confirmed secure=not is_localhost and secure=False if is_localhost else True are equivalent for the bool is_localhost (verified with direct Python check: both True when is_localhost=False, both False when is_localhost=True). Awaiting final sign-off.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "review",
     "target_model": "swe-1.7",
     "title": "Review modules/security/ router changes",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:24:28.663455+00:00"
   },
   {
     "assigned_agent": "",
