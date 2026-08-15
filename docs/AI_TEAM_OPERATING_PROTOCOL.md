@@ -99,4 +99,16 @@ The ruleset now enforces the intended protection; the no-direct-push rule remain
 
 ---
 
+## Public-facing factual claims must be sourced through the fact-check/freshness system
+
+**Public-facing factual claims (landing page, marketing copy, hero stats) must be sourced through the fact-check/freshness system (ADR-0009), never hardcoded.** Any new numeric or factual claim added to a public page requires:
+
+1. A `ContextFact` row with `subject="landing"`, a real `source_url`, and a `canonical_value`.
+2. Inclusion in the scheduled freshness check (`data_freshness_manager` / Render cron).
+3. A citation/footnote rendered from the same data (`source_name`, `source_url`, `citation`).
+
+No agent should hardcode a statistic into landing/marketing HTML going forward — this is how the Calder-Wang/Kim drift almost happened once and must not be allowed to happen silently again. If the freshness system cannot verify a claim, the UI must hide it or show an honest "checking..." state; it must not display the number as confirmed.
+
+---
+
 *Use this for Phase C and for anything similar going forward — any large batch-comparison or batch-decision task benefits from the same tiering.*
