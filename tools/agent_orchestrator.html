@@ -1293,19 +1293,19 @@
     "updated_at": "2026-08-15T06:25:49.348923+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot modifies court learning, procedures, PDF, i18n, and seed data. Verify legal-output accuracy for Minnesota eviction defense.",
     "file_path": "app/services/eviction/court_procedures.py",
     "id": "phase2-1a1341-055",
-    "notes": "Module cluster: services/eviction. Files: 6. ",
+    "notes": "Module cluster: services/eviction. Files: 6. \n[2026-08-15 09:59 UTC - swe-1.7] Released: agent claimed in error during preflight; task remains parked per user direction.",
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "pending",
     "target_model": "swe-1.7",
     "title": "Review services/eviction/ legal-output data changes",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T09:59:31.417731+00:00"
   },
   {
     "assigned_agent": "swe-1.7",
@@ -1621,6 +1621,21 @@
     "target_model": "swe-1.7",
     "title": "Investigate recurring Test job hang on tracker-only PRs",
     "updated_at": "2026-08-15T07:22:56.344631+00:00"
+  },
+  {
+    "assigned_agent": "swe-1.7",
+    "category": "documentation",
+    "created_at": "2026-08-15T12:00:00Z",
+    "description": "Establish the state-doc update discipline per HANDOFF_establish_state_doc_system.md: commit BACKLOG.md, add the state-doc update rule to docs/AI_TEAM_OPERATING_PROTOCOL.md, add tools/check_state_docs_freshness.py, create docs/handoffs/, and archive the in-repo handoff files.",
+    "file_path": "docs/AI_TEAM_OPERATING_PROTOCOL.md",
+    "id": "handoff-establish-state-doc-2026-08-15",
+    "notes": "Claimed by swe-1.7 on 2026-08-15 to establish state-doc discipline. Status: in_progress.",
+    "priority": "high",
+    "source": "handoff",
+    "status": "in_progress",
+    "target_model": "swe-1.7",
+    "title": "Establish state-doc update discipline and handoff archive",
+    "updated_at": "2026-08-15T12:00:00Z"
   }
 ]
 
