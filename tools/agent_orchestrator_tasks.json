@@ -1046,19 +1046,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot restructures notarization and intake service wiring. Verify that notarization proof/verification flows remain intact and that test imports are migrated.",
     "file_path": "app/modules/intake/router.py",
     "id": "phase2-1aa546-058",
-    "notes": "Module cluster: modules/intake. Files: 2. ",
+    "notes": "Module cluster: modules/intake. Files: 2. \n[2026-08-15 06:25 UTC - swe-1.7] Pilot removes db/token-refresh/storage-provider from upload_documents_batch and suppresses debug logging; DocumentStatus/IntegrityStatus imports are unused. Regressions. Preserve main.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/intake/ notarization and intake wiring",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:43.482571+00:00"
   },
   {
     "assigned_agent": "",
