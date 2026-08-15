@@ -1211,19 +1211,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot moves ProactiveTacticsEngine from services to modules/tactics/service.py. Verify the new module exports the same engine and update service-level call sites.",
     "file_path": "app/modules/tactics/service.py",
     "id": "phase2-682d1b-069",
-    "notes": "Module cluster: modules/tactics. Files: 2. ",
+    "notes": "Module cluster: modules/tactics. Files: 2. \n[2026-08-15 06:25 UTC - swe-1.7] StrEnum to (str, Enum) and arrow/emoji in docstrings/logs. Cosmetic. Preserve main.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/tactics/ proactive-tactics migration",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:48.421169+00:00"
   },
   {
     "assigned_agent": "",
