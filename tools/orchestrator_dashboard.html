@@ -1344,19 +1344,19 @@
     "updated_at": "2026-08-15T06:25:44.692023+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot modifies security router. Review for auth/permission regressions.",
     "file_path": "app/modules/security/router.py",
     "id": "phase2-50551b-067",
-    "notes": "Module cluster: modules/security. Files: 1. ",
+    "notes": "Module cluster: modules/security. Files: 1. \n[2026-08-15 08:04 UTC - swe-1.7] Reviewing security router secure cookie equivalence.\n[2026-08-15 08:04 UTC - swe-1.7] Confirmed secure=not is_localhost and secure=False if is_localhost else True are logically equivalent for all truthy/falsy values (truth-table tested). Pilot change is cosmetic; preserve main.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/security/ router changes",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T08:04:59.878475+00:00"
   },
   {
     "assigned_agent": "swe-1.7",
