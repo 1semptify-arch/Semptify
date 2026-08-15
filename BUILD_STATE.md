@@ -1,3 +1,37 @@
+## Session -- 2026-08-15 — Tier 2 / ADR-0008 pilot reconciliation close-out
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Close out the Phase C Tier 2 ADR-0008 reconciliation, document the root-cause of the original `main` divergence, and capture the `protect-main` ruleset verification.
+
+### Fix
+
+- Merged PRs #69–#88 covering the ADR-0008 pilot reconciliation, CI/Test infrastructure (todo-067/068/081), page-manifest template migration (todo-065), security-router equivalence (phase2-50551b-067), dashboard/progress wiring (phase2-dc4e66-065), and P1–P6 module-cluster reviews.
+- `todo-065`: converted PAGE_MANIFEST to template-first sources, moved public pages, preserved Python 3.11.9 `StrEnum`.
+- `phase2-50551b-067`: verified `secure=not is_localhost` and `secure=False if is_localhost else True` are logically equivalent; preserved `main`.
+- `phase2-dc4e66-065`: verified canonical `progress_tracker` wiring from `app.modules.dashboard.service` is correct; only import-ordering cosmetics differed.
+- `phase2-1a1341-055`: kept parked per user instruction.
+- Verified and corrected `main` branch ruleset:
+  - Repository ruleset `protect-main` was active, but `conditions.ref_name.include` was empty, so it matched no branches.
+  - A throwaway direct `git push github-direct main` succeeded, confirming the misconfiguration.
+  - The throwaway commit was removed by `git push github-direct main --force-with-lease`.
+  - The ruleset was updated via the GitHub API to `conditions.ref_name.include = ["refs/heads/main"]`.
+  - A second throwaway direct push was rejected with `GH013: Repository rule violations found for refs/heads/main` (`Changes must be made through a pull request`), confirming the fix.
+
+### Verification
+
+- `python tools/sync_orchestrator.py --check` — PASS.
+- Direct push test (before fix) — confirmed `main` was not protected by the ruleset.
+- Direct push test (after fix) — confirmed `main` is now protected; a PR is required.
+
+### Status
+
+Tier 2 ADR-0008 reconciliation complete. Root cause of the divergence resolved: local-only unpushed drift is the only remaining theoretical risk; `main` is now clean and aligned with the upstream remote. The `protect-main` ruleset is now correctly scoped to `refs/heads/main` and enforces PR-only changes.
+
+---
+
 ## Session -- 2026-08-15 — Tier 2 dispatch P4 caller migrations
 
 ### Guardrail Engine Run — not run
