@@ -975,13 +975,13 @@
     "description": "Find all app/ and tests/ imports of app/services/auto_mode_orchestrator.py, migrate them to the pilot's replacement module, verify with compile/tests, then delete the old file.",
     "file_path": "app/services/auto_mode_orchestrator.py",
     "id": "phase2-7f9ec4-042",
-    "notes": "Brad decision: do NOT delete until callers are migrated.\n[2026-08-15 05:20 UTC - swe-1.7] P4 dispatch: migrate callers of app/services/auto_mode_orchestrator.py to app/modules/auto_mode/service.py, then delete old file.",
+    "notes": "Brad decision: do NOT delete until callers are migrated.\n[2026-08-15 05:20 UTC - swe-1.7] P4 dispatch: migrate callers of app/services/auto_mode_orchestrator.py to app/modules/auto_mode/service.py, then delete old file.\n[2026-08-15 05:27 UTC - swe-1.7] Migrated app/services/document_flow_orchestrator.py import to app.modules.auto_mode.service; deleted app/services/auto_mode_orchestrator.py. py_compile, ruff, and direct import check pass.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "in_progress",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Migrate callers of app/services/auto_mode_orchestrator.py to new module path, then delete",
-    "updated_at": "2026-08-15T05:20:15.784691+00:00"
+    "updated_at": "2026-08-15T05:27:46.311610+00:00"
   },
   {
     "assigned_agent": "",
