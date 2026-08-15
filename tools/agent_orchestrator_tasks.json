@@ -1226,19 +1226,19 @@
     "updated_at": "2026-08-15T06:25:48.421169+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot changes timeline router. Verify ADR-0008 envelope/momentum wiring and contract registration.",
     "file_path": "app/modules/timeline/router.py",
     "id": "phase2-989e5b-070",
-    "notes": "Module cluster: modules/timeline. Files: 1. ",
+    "notes": "Module cluster: modules/timeline. Files: 1. \n[2026-08-15 06:25 UTC - swe-1.7] TimelineEventModel.is_evidence to == True is equivalent SQL; StrEnum to (str, Enum). Preserve main.",
     "priority": "medium",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/timeline/ ADR-0008 wiring",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:58.881499+00:00"
   },
   {
     "assigned_agent": "",
