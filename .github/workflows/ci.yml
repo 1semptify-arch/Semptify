@@ -44,6 +44,9 @@ jobs:
       - name: Run pre-commit checks
         run: pre-commit run --all-files
 
+      - name: Verify tracker sync
+        run: python tools/sync_orchestrator.py --check
+
       - name: Run Ruff (linter)
         run: ruff check app/ --output-format=github
         continue-on-error: true
