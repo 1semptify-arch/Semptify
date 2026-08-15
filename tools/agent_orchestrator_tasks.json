@@ -941,19 +941,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot changes files with page/context/experience/envelope/timeline/progress/tactics wiring. Verify ADR-0008 contracts and response shapes.",
     "file_path": "app/modules/context_loop/service.py",
     "id": "phase2-3a14d1-051",
-    "notes": "Module cluster: modules/context_loop, modules/page_editor, modules/page_index, services/auto_mode_summary_service, services/context_loop, services/timeline_builder, services/timeline_chronology. Files: 7. ",
+    "notes": "Module cluster: modules/context_loop, modules/page_editor, modules/page_index, services/auto_mode_summary_service, services/context_loop, services/timeline_builder, services/timeline_chronology. Files: 7. \n[2026-08-15 06:25 UTC - swe-1.7] StrEnum to (str, Enum), arrow/emoji in logs, documents.service import re-order. Cosmetic. Preserve main.",
     "priority": "medium",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review ADR-0008 wiring in module/service cluster",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:56.298588+00:00"
   },
   {
     "assigned_agent": "swe-1.7",
