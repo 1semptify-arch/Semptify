@@ -1091,19 +1091,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot changes onboarding gates, reconnect, vault, register_contracts, and router. Verify SSOT redirects, vault creation, and contract registrations.",
     "file_path": "app/modules/onboarding/router.py",
     "id": "phase2-38eac8-061",
-    "notes": "Module cluster: modules/onboarding. Files: 5. ",
+    "notes": "Module cluster: modules/onboarding. Files: 5. \n[2026-08-15 06:25 UTC - swe-1.7] Arrow/emoji in HTML strings and docstrings; set comprehension rewrite. Cosmetic. Preserve main.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/onboarding/ ADR-0008 wiring",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:45.491040+00:00"
   },
   {
     "assigned_agent": "swe-1.7",
