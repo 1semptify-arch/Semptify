@@ -142,3 +142,13 @@ If there is any ambiguity, update `PROJECT_BIBLE.md` and the referenced canonica
 3. Keep `SECURITY_AND_PRIVACY_ARCHITECTURE.md` updated for any security or privacy changes.
 4. Keep `DEPLOYMENT_READINESS.md` updated for deployment and release checks.
 5. Use this file as the first-level reference before consulting other docs.
+
+## 8. Worked Example — Build Bible "No Band-Aids" in Practice
+
+**Problem:** The landing page rebuild needed a sourced hero fact strip. The immediate ask could have been solved by hardcoding a statistic.
+
+**Root cause:** Semptify had no system to keep any public-facing factual claim current. The `ContextFact` model existed, but the verifier only checked whether a source URL responded to `HEAD`, not whether the claimed figure still appeared in the source. The Calder-Wang/Kim rent-pricing study showed exactly why this matters: the same authors' later version changed the estimated markup from `$25/month` to `$53/month`.
+
+**Fix:** Extend the existing `ContextFact` + `context_engine/verifier.py` + `data_freshness_manager.py` stack rather than build a third system. Added `canonical_value` and `extraction_pattern` to `ContextFact`, rewrote the verifier to fetch source content and compare the extracted figure, promoted `data_freshness` to `ProductTier.CORE`, and wired a Render cron job to re-verify landing claims daily.
+
+**Outcome:** Public-facing numeric claims are now mechanically verified on a schedule. A drift or extraction failure becomes a freshness alert, and the landing page auto-hides the claim until a human confirms it. See `docs/adr/0009-fact-check-freshness-system.md` and `HANDOFF_factcheck_freshness_buildnow.md` for the full design.

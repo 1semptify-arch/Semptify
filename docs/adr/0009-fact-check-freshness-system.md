@@ -1,6 +1,6 @@
 # ADR-0009 — Fact-Check / Freshness System for Public-Facing Claims
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-08-15
 **Author:** swe-1.7 (per `HANDOFF_factcheck_freshness_buildnow.md` and `HANDOFF_factcheck_docs_integration.md`)
 
@@ -77,7 +77,7 @@ The hero fact strip is rendered from `GET /api/landing/facts`, which returns onl
 
 ## 6. Open decisions
 
-1. **Auto-hide vs. last-known-good on unverifiable claims:** If the verifier cannot cleanly extract a figure (page restructure, paywall, PDF-only, etc.), should the hero stat auto-hide until a human confirms, or keep showing the last-known-good value with a "last verified [date]" note? Both are defensible; decide before Phase D ships. This is recorded in `HANDOFF_factcheck_freshness_buildnow.md` §6.
+1. **Auto-hide vs. last-known-good on unverifiable claims:** Decided **auto-hide**. A hero claim that fails verification or was never verified does not render on the landing page — no fallback display, no placeholder number. This preserves the "no fear, no manipulation" standard and prevents a stale or contested figure from being shown as confirmed.
 
 ## 7. Related documents
 

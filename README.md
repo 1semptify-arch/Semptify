@@ -12,7 +12,11 @@ Tenant rights protection platform - rebuilt with async-first FastAPI architectur
 
 ### Help tenants with tools and information to uphold tenant rights as a renter, in court if it goes that far - hopefully it won't
 
-## 🔐 Storage-Based Authentication
+## � Information Integrity
+
+Public-facing factual claims (landing page stats, hero figures, marketing copy) are kept current by the fact-check/freshness system described in `docs/adr/0009-fact-check-freshness-system.md`. Claims are stored as `ContextFact` rows with real sources, verified on a schedule, and only rendered when verification succeeds. See `docs/AI_TEAM_OPERATING_PROTOCOL.md` and `PROJECT_BIBLE.md` section 8 for the worked example.
+
+## �🔐 Storage-Based Authentication
 
 Semptify 5.0 introduces a unique authentication model: **your cloud storage IS your identity**.
 
