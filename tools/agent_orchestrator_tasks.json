@@ -1340,10 +1340,10 @@
     "notes": "Do not seed the rent-pricing figure until Phase B can verify the current number.",
     "priority": "high",
     "source": "handoff",
-    "status": "in_progress",
+    "status": "done",
     "target_model": "swe-1.7",
     "title": "Fact-check/freshness system: Phase A data model + landing claim",
-    "updated_at": "2026-08-15T10:11:03.424413+00:00",
+    "updated_at": "2026-08-15T10:19:31.979031+00:00",
     "claimed_by": {
       "agent": "swe-1.7",
       "claimed_at": "2026-08-15T10:11:03.424389+00:00"
