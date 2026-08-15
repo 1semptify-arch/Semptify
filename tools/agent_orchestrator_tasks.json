@@ -1061,19 +1061,19 @@
     "updated_at": "2026-08-15T06:25:43.482571+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot changes files touching legal output, money, PII, or privacy. Review each diff for functional impact and UPL/data-privacy implications.",
     "file_path": "app/modules/case_builder/router.py",
     "id": "phase2-fb311e-059",
-    "notes": "Module cluster: modules/case_builder, modules/court_forms, modules/court_packet, modules/document_converter, modules/extraction, modules/form_data, modules/fraud_exposure, modules/guided_intake, modules/law_library, modules/legal, modules/legal_analysis, modules/legal_trails, modules/pdf_tools, modules/risc, services/case_auto_creation, services/complaint_wizard, services/document_intake, services/document_intelligence, services/document_recognition, services/form_data, services/form_field_extractor, services/intake_service, services/law_engine, services/legal_analysis_engine, services/timeline_extraction. Files: 25. ",
+    "notes": "Module cluster: modules/case_builder, modules/court_forms, modules/court_packet, modules/document_converter, modules/extraction, modules/form_data, modules/fraud_exposure, modules/guided_intake, modules/law_library, modules/legal, modules/legal_analysis, modules/legal_trails, modules/pdf_tools, modules/risc, services/case_auto_creation, services/complaint_wizard, services/document_intake, services/document_intelligence, services/document_recognition, services/form_data, services/form_field_extractor, services/intake_service, services/law_engine, services/legal_analysis_engine, services/timeline_extraction. Files: 25. \n[2026-08-15 06:26 UTC - swe-1.7] Emoji to bullet in log message. Cosmetic. Preserve main.",
     "priority": "medium",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review legal/money/privacy-adjacent module/service diffs",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:26:02.116107+00:00"
   },
   {
     "assigned_agent": "",
