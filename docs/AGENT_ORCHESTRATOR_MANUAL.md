@@ -1,14 +1,14 @@
 # Agent Orchestrator Manual
 
-The Agent Orchestrator queues parallel AI-agent tasks for the Semptify codebase. It turns workbook rows (stubs and duplicates) AND doc-sourced TODOs into copy-paste prompts you can drop into separate Windsurf sessions.
+The Agent Orchestrator queues parallel AI-agent tasks for the Semptify codebase. It compiles doc-sourced TODOs and stub scans into a merged task queue. The `Semptify_Master_Inventory_LIVE_reviewed.xlsx` workbook is a legacy/manual reference only and is not the canonical task source.
 
-> **Canonical source of truth for orchestrator operation.** Last updated 2026-07-20. Supersedes older instructions in `.devin/skills/orchestrator_preflight/SKILL.md` and `BUILD_STATE.md`.
+> **Canonical source of truth for orchestrator operation.** Last updated 2026-08-15. Supersedes older instructions in `.devin/skills/orchestrator_preflight/SKILL.md` and `BUILD_STATE.md`.
 
 ## Two UIs, same queue data
 
 | UI | Location | Persistence | Best for |
 | --- | --- | --- | --- |
-| **Standalone** | `tools/agent_orchestrator.html` (open via `file://` or `http://localhost:8000/tools/agent_orchestrator.html`) | Live `agent_orchestrator_tasks.json` > embedded JSON > `localStorage` cache | Day-to-day dispatch, reloads from file on startup |
+| **Standalone** | `tools/agent_orchestrator.html` (open via `http://localhost:8000/tools/agent_orchestrator.html` or any local HTTP preview) | Live `agent_orchestrator_tasks.json` > embedded JSON > `localStorage` cache | Day-to-day dispatch, reloads from file on startup |
 | **In-app Admin** | `http://localhost:8000/admin/agent_orchestrator.html` (stealth admin login required) | In-memory API store (`/api/agent-orchestrator/*`) | Quick create + API automation, wipes on server restart |
 
 Use the **standalone** version for day-to-day agent dispatch. Use the **admin** version when you want to create tasks via API or import a JSON queue without touching localStorage.
@@ -20,10 +20,10 @@ The orchestrator queue is fed by **three sources**, merged by `tools/sync_orches
 | Source | Script | Output | Purpose |
 | --- | --- | --- | --- |
 | **1. Stub detector** | `tools/stub_detector.py` | `tools/stub_tasks_new.json` | Scans repo for real stubs (NotImplementedError, pass, TODO markers) |
-| **2. Workbook bridge** | `tools/workbook_bridge.py` | `tools/agent_orchestrator_tasks.json` (workbook rows) | Reads `Semptify_Master_Inventory_LIVE_reviewed.xlsx` for stub + duplicate rows |
+| **2. Workbook bridge** | `tools/workbook_bridge.py` | `tools/agent_orchestrator_tasks.json` (workbook rows) | Legacy/manual reference only. Reads `Semptify_Master_Inventory_LIVE_reviewed.xlsx` if it has stub or duplicate rows; its empty `Stubs & TODOs` sheet is expected and not the canonical source |
 | **3. Doc-sourced TODOs** | `tools/_seed_orchestrator_tasks.py` | `tools/docs_todos.json` | Compiles incomplete items from `BUILD_STATE.md`, `ACTIVE_CONTEXT.md`, `FNG_TODO.md`, `STUB_AUDIT.md` |
 
-`sync_orchestrator.py` runs all three, merges by task `id` (workbook wins on conflict), embeds the merged JSON into `tools/agent_orchestrator.html`, and writes the final `tools/agent_orchestrator_tasks.json`.
+`sync_orchestrator.py` runs all three, merges by task `id`, embeds the merged JSON into `tools/agent_orchestrator.html`, and writes the final `tools/agent_orchestrator_tasks.json`. The workbook contributes rows if present, but `agent_orchestrator_tasks.json` is the canonical merged queue.
 
 ## Quick start
 
@@ -43,13 +43,15 @@ This produces:
 
 ### 2. Open the standalone orchestrator
 
-- **Option A (no server):** open `file:///C:/Semptify/Semptify-FastAPI/tools/agent_orchestrator.html` in any browser.
-- **Option B (dev server running):** open `http://localhost:8000/tools/agent_orchestrator.html`.
+- **Option A (recommended):** serve the repo root with `python -m http.server 8000`, then open `http://localhost:8000/tools/agent_orchestrator.html`.
+- **Option B (local preview):** use Windsurf preview, VS Code Live Server, or any local HTTP preview on `tools/agent_orchestrator.html`.
 - **Option C (in-app admin):** open `http://localhost:8000/admin/agent_orchestrator.html` (requires stealth admin login).
+
+> **Note:** Opening the file directly with `file://` is allowed but not recommended. The live `agent_orchestrator_tasks.json` fetch is blocked by browser CORS, so the page falls back to the embedded JSON and then `localStorage`.
 
 ### 3. Load the queue
 
-- **Standalone UI:** the page automatically loads the live `tools/agent_orchestrator_tasks.json` on startup (file > embedded JSON > localStorage). Click **Refresh from file ↻** to force a reload, or **Start fresh ↺** to clear `localStorage` first and then reload.
+- **Standalone UI:** the page automatically loads the live `tools/agent_orchestrator_tasks.json` on startup when served over HTTP (file > embedded JSON > localStorage). If opened with `file://`, the live fetch is blocked and it falls back to embedded JSON and then `localStorage`. Click **Refresh from file ↻** to force a reload, or **Start fresh ↺** to clear `localStorage` first and then reload.
 - **Admin UI:** click **Import JSON**, select `tools/agent_orchestrator_tasks.json`. Tasks POST to `/api/agent-orchestrator/batch` and persist in-memory until server restart.
 
 ### 4. Dispatch work to agents
@@ -115,10 +117,11 @@ The bridge guesses paths as `app/modules/<filename>`. Some files actually live i
 
 ## Backup and sync
 
-- `localStorage` is tied to the browser and origin. If you open the file from `file://`, each browser has its own storage.
+- `localStorage` is tied to the browser and origin. If you open the file from `file://`, each browser has its own storage, and the live file cannot be fetched.
 - Use **Export JSON** before switching browsers or clearing data.
 - `tools/agent_orchestrator_tasks.json` is regenerated by `sync_orchestrator.py` and is the canonical merge output.
 - `tools/docs_todos.json` is regenerated by `_seed_orchestrator_tasks.py` and is the doc-sourced input.
+- `Semptify_Master_Inventory_LIVE_reviewed.xlsx` is a legacy/manual reference only; its empty `Stubs & TODOs` sheet is expected and not a broken sync.
 
 ## Troubleshooting
 
