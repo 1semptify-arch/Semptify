@@ -31,7 +31,7 @@ def run(repo_root: Path) -> CheckResult:
         )
 
     result = subprocess.run(
-        [sys.executable, str(orchestrator_path)],
+        [sys.executable, str(orchestrator_path), "--check"],
         cwd=str(repo_root),
         capture_output=True,
         text=True,
