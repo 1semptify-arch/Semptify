@@ -62,4 +62,41 @@ One task per commit, no self-approval, full-file preflight reads, stop-and-repor
 
 ---
 
+## Main branch protection and the no-direct-push rule
+
+**No AI agent commits directly to `main`. Ever.**
+
+`main` is intended to be protected by a repository ruleset named `protect-main`:
+
+- `target`: `branch`
+- `enforcement`: `active`
+- Rules:
+  - `deletion` — `main` may not be deleted.
+  - `non_fast_forward` — force-pushes and history rewrites on `main` are blocked.
+  - `pull_request` — changes must be introduced through a pull request; direct pushes are blocked.
+- `bypass_actors`: none.
+- `current_user_can_bypass`: `never`.
+
+The allowed merge methods are `merge`, `squash`, and `rebase`, but a pull request is required for all of them.
+
+**Operational rule for AI agents:**
+
+- All work ships through a feature branch and a pull request.
+- Use `gh pr create`, let CI run, then `gh pr merge`.
+- Never `git push <remote> main` from a local `main` checkout, even for one-line or "obvious" fixes.
+- If an emergency direct push appears possible, stop and escalate — that is a sign the ruleset is not working as intended.
+
+**Known misconfiguration and correction:**
+
+A 2026-08-15 verification showed that `protect-main` had `conditions.ref_name.include` set to an empty array, which caused the ruleset to match **no branches**. A direct `git push github-direct main` from a throwaway commit **succeeded**. The test commit was removed by a force-push, the ruleset was updated via `gh api .../rulesets/17660447` to set `conditions.ref_name.include` to `["refs/heads/main"]`, and a second throwaway direct push was then **rejected** with:
+
+```text
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: - Changes must be made through a pull request.
+```
+
+The ruleset now enforces the intended protection; the no-direct-push rule remains non-negotiable.
+
+---
+
 *Use this for Phase C and for anything similar going forward — any large batch-comparison or batch-decision task benefits from the same tiering.*
