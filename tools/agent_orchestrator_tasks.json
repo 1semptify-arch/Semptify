@@ -1016,19 +1016,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot adds eviction-timeline envelope and momentum-checkpoint endpoints. Verify they integrate with the module contracts and do not break existing timeline routes.",
     "file_path": "app/modules/eviction_timeline/router.py",
     "id": "phase2-5233a4-056",
-    "notes": "Module cluster: modules/eviction_timeline. Files: 2. ",
+    "notes": "Module cluster: modules/eviction_timeline. Files: 2. \n[2026-08-15 06:25 UTC - swe-1.7] resolve_envelope import added but unused; ExperienceToken added to a local import already covered by a later function. Import shuffling only. Preserve main.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/eviction_timeline/ ADR-0008 envelope and momentum wiring",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:47.477975+00:00"
   },
   {
     "assigned_agent": "",
