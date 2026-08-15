@@ -1401,10 +1401,10 @@
     "notes": "Auto-hide, not last-known-good. No placeholder number for unverified claims.",
     "priority": "high",
     "source": "handoff",
-    "status": "in_progress",
+    "status": "done",
     "target_model": "swe-1.7",
     "title": "Fact-check/freshness system: Phase C scheduling + Phase D landing wiring",
-    "updated_at": "2026-08-15T11:37:20.734317+00:00",
+    "updated_at": "2026-08-15T11:51:56.702623+00:00",
     "claimed_by": {
       "agent": "swe-1.7",
       "claimed_at": "2026-08-15T11:37:20.734299+00:00"
