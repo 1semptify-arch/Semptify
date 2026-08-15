@@ -86,14 +86,6 @@ repos:
         always_run: true
         description: "Unified guardrail engine: stub detection, manifest/sync check, and future checks"
 
-  - repo: local
-    hooks:
-      - id: sync-orchestrator
-        name: Sync stub/task state
-        entry: python tools/sync_orchestrator.py --git-add
-        language: system
-        pass_filenames: false
-        always_run: true
 
 # Configuration for specific hooks
 default_language_version:
