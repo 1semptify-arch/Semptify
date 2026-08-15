@@ -24,8 +24,12 @@ The workbook originally had 155 stale stubs while `stub_tasks_new.json` had 4. P
 
 - `stub_tasks_new.json`: 0 stubs (the 4 remaining are marked `# stub-detector: ignore`)
 - `agent_orchestrator_tasks.json`: 16 tasks, 0 missing paths
-- `Semptify_Master_Inventory_LIVE_reviewed.xlsx`: `Stubs & TODOs` cleared, `Duplicates` intact
+- `Semptify_Master_Inventory_LIVE_reviewed.xlsx`: `Stubs & TODOs` cleared, `Duplicates` intact — **legacy/manual reference only; the workbook is intentionally not auto-synced**
 - `stub_tasks.json` at repo root: removed
+
+## Canonical task source
+
+`tools/agent_orchestrator_tasks.json` (merged from workbook output and `tools/docs_todos.json`) is the canonical task queue. `Semptify_Master_Inventory_LIVE_reviewed.xlsx` remains available as a legacy/manual reference, but its empty `Stubs & TODOs` sheet is expected and does not indicate a broken sync.
 
 ## Known Cons
 
