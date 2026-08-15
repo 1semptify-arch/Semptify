@@ -1,3 +1,49 @@
+## Session -- 2026-08-15 — Bulk archive handoffs found in E:\\Download
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+`E:\\Download` contained the remaining handoff files referenced as missing in the state-doc system plus additional handoff/status artifacts. They needed to be moved into the canonical `docs/handoffs/` archive.
+
+### Fix
+
+- Archived 20 unique handoff/status files from `E:\\Download` into `docs/handoffs/` with `YYYY-MM-DD_slug.md` names.
+- Skipped 5 exact duplicates (including `(1).md` copies of the state-doc and fact-check handoffs already in the repo).
+
+### Files archived
+
+- `2026-07-26_clone-rescue-consolidation.md`
+- `2026-07-29_clone-rescue-status-update.md`
+- `2026-08-10_branch-reconciliation.md`
+- `2026-08-15_reconciliation-full.md` (`STATUS_reconciliation_full.md`)
+- `2026-08-15_eval-exec-audit.md`
+- `2026-08-15_exec-hardening-and-pytest-hang.md`
+- `2026-08-15_extended-session-pattern-rulebook.md`
+- `2026-08-15_information-orchestrator-recap.md`
+- `2026-08-15_p4-merge-p5-kickoff.md`
+- `2026-08-15_p5-closeout.md`
+- `2026-08-15_phase-b-additive-merge.md`
+- `2026-08-15_phase-c-conflict-resolution.md`
+- `2026-08-15_phase-c-tier2-continue.md`
+- `2026-08-15_phase-d-pilot-integration.md`
+- `2026-08-15_post-pr69-dispatch.md`
+- `2026-08-15_production-readiness-audit.md`
+- `2026-08-15_root-cause-main-divergence.md`
+- `2026-08-15_search-sync-token-pattern.md`
+- `2026-08-15_security-test-hardening.md`
+- `2026-08-15_tier2-adr0008-reconciliation.md`
+
+### Verification
+
+- `python tools/sync_orchestrator.py --check` — PASS (92 tasks, 0 missing paths).
+
+### Status
+
+All handoffs from the original state-doc missing list are now archived. The original list is fully closed.
+
+---
+
 ## Session -- 2026-08-15 — Archive missing Tier 2 / ADR-0008 reconciliation handoff
 
 ### Guardrail Engine Run — not run
