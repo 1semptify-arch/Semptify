@@ -986,19 +986,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot moves EventExtractor from services into modules/documents/service.py and updates document router call sites. Verify the migration does not break tests or document flows.",
     "file_path": "app/modules/documents/service.py",
     "id": "phase2-9a99ac-054",
-    "notes": "Module cluster: modules/documents. Files: 2. ",
+    "notes": "Module cluster: modules/documents. Files: 2. \n[2026-08-15 06:25 UTC - swe-1.7] StrEnum to (str, Enum), arrow/emoji in logs/messages, set literal expansions. Cosmetic. Preserve main.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/documents/ and document intake/event-extractor migration",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:49.348923+00:00"
   },
   {
     "assigned_agent": "",
