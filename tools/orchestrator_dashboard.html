@@ -984,49 +984,49 @@
     "updated_at": "2026-08-15T05:27:46.311610+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "refactor",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Find all app/ and tests/ imports of app/services/event_extractor.py, migrate them to the pilot's replacement module, verify with compile/tests, then delete the old file.",
     "file_path": "app/services/event_extractor.py",
     "id": "phase2-2ecaac-043",
-    "notes": "Brad decision: do NOT delete until callers are migrated.",
+    "notes": "Brad decision: do NOT delete until callers are migrated.\n[2026-08-15 05:28 UTC - swe-1.7] P4 dispatch: migrate callers of app/services/event_extractor.py to app/modules/documents/service.py, then delete old file.\n[2026-08-15 05:30 UTC - swe-1.7] Migrated app/services/event_extractor callers to app/modules/documents/service in document_flow_orchestrator.py, tests/test_coverage_core_services.py, app/services/context_loop.py, and app/modules/context_loop/service.py. Deleted app/services/event_extractor.py. Targeted test test_event_extractor_parses_context_and_deduplicates passes.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Migrate callers of app/services/event_extractor.py to new module path, then delete",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T05:30:30.203479+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "refactor",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Find all app/ and tests/ imports of app/services/proactive_tactics.py, migrate them to the pilot's replacement module, verify with compile/tests, then delete the old file.",
     "file_path": "app/services/proactive_tactics.py",
     "id": "phase2-a95d0d-044",
-    "notes": "Brad decision: do NOT delete until callers are migrated.",
+    "notes": "Brad decision: do NOT delete until callers are migrated.\n[2026-08-15 05:31 UTC - swe-1.7] P4 dispatch: migrate callers of app/services/proactive_tactics.py to app/modules/tactics/service.py, then delete old file.\n[2026-08-15 05:32 UTC - swe-1.7] Migrated app/services/proactive_tactics callers to app/modules/tactics/service in app/modules/auto_mode/service.py and app/services/auto_mode_orchestrator.py. Deleted app/services/proactive_tactics.py. py_compile and direct import check pass.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Migrate callers of app/services/proactive_tactics.py to new module path, then delete",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T05:32:19.000127+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "refactor",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Find all app/ and tests/ imports of app/services/progress_tracker.py, migrate them to the pilot's replacement module, verify with compile/tests, then delete the old file.",
     "file_path": "app/services/progress_tracker.py",
     "id": "phase2-dab34e-045",
-    "notes": "Brad decision: do NOT delete until callers are migrated.",
+    "notes": "Brad decision: do NOT delete until callers are migrated.\n[2026-08-15 05:33 UTC - swe-1.7] P4 dispatch: migrate callers of app/services/progress_tracker.py to app/modules/dashboard/service.py, then delete old file.\n[2026-08-15 05:34 UTC - swe-1.7] Migrated app/modules/progress/router.py import to app.modules.dashboard.service. Deleted app/services/progress_tracker.py. py_compile and direct import check pass.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Migrate callers of app/services/progress_tracker.py to new module path, then delete",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T05:34:13.958302+00:00"
   },
   {
     "assigned_agent": "swe-1.7",
