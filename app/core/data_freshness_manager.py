@@ -28,6 +28,7 @@ class FreshnessType(StrEnum):
     USER_DATA = "user_data"
     CACHE = "cache"
     INDEX = "index"
+    MARKETING_CLAIMS = "marketing_claims"
 
 
 class FreshnessStatus(StrEnum):
