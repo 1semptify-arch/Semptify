@@ -1286,19 +1286,19 @@
     "updated_at": "2026-08-15T04:28:25Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "security",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot modifies security-, auth-, guard-, vault-, and middleware-adjacent core files. Because these diffs may touch SQL/auth/permissions/security logic, manual review is required despite diff size. Do not apply blanket 'preserve main' rule.",
     "file_path": "app/core/security.py",
     "id": "phase2-4584c8-074",
-    "notes": "Files (20): app/core/admin_gating.py, app/core/advanced_rate_limiter.py, app/core/checkpoint_middleware.py, app/core/contracts_framework.py, app/core/gdpr_compliance.py, app/core/mndes_compliance.py, app/core/module_gate.py, app/core/module_hub.py, app/core/module_resolver.py, app/core/positronic_mesh.py, app/core/product_manifest.py, app/core/route_guards.py, app/core/security.py, app/core/security_config.py, app/core/ssot_guard.py, app/core/storage_middleware.py, app/core/upl_guardrails.py, app/core/user_context.py, app/core/user_id.py, app/core/vault_paths.py. Brad exception: any diff touching SQL/auth/permissions/security logic is excluded from the cosmetic blanket rule.",
+    "notes": "Files (20): app/core/admin_gating.py, app/core/advanced_rate_limiter.py, app/core/checkpoint_middleware.py, app/core/contracts_framework.py, app/core/gdpr_compliance.py, app/core/mndes_compliance.py, app/core/module_gate.py, app/core/module_hub.py, app/core/module_resolver.py, app/core/positronic_mesh.py, app/core/product_manifest.py, app/core/route_guards.py, app/core/security.py, app/core/security_config.py, app/core/ssot_guard.py, app/core/storage_middleware.py, app/core/upl_guardrails.py, app/core/user_context.py, app/core/user_id.py, app/core/vault_paths.py. Brad exception: any diff touching SQL/auth/permissions/security logic is excluded from the cosmetic blanket rule.\n[2026-08-15 06:25 UTC - swe-1.7] Arrow symbols in comments only. Cosmetic. Preserve main.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review app/core/ security/auth/guard/middleware diffs",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:46.491660+00:00"
   },
   {
     "assigned_agent": "",
