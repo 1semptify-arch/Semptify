@@ -1337,12 +1337,12 @@
     "description": "Establish the state-doc update discipline per HANDOFF_establish_state_doc_system.md: commit BACKLOG.md, add the state-doc update rule to docs/AI_TEAM_OPERATING_PROTOCOL.md, add tools/check_state_docs_freshness.py, create docs/handoffs/, and archive the in-repo handoff files.",
     "file_path": "docs/AI_TEAM_OPERATING_PROTOCOL.md",
     "id": "handoff-establish-state-doc-2026-08-15",
-    "notes": "Claimed by swe-1.7 on 2026-08-15 to establish state-doc discipline. Status: in_progress.\n[2026-08-15 13:04 UTC - swe-1.7] Merged to main via PR #94. State-doc discipline is now in place.",
+    "notes": "Claimed by swe-1.7 on 2026-08-15 to establish state-doc discipline. Status: in_progress.\n[2026-08-15 13:04 UTC - swe-1.7] Merged to main via PR #94. State-doc discipline is now in place.\n[2026-08-15 13:32 UTC - swe-1.7] Also archived 2026-08-15_tier2-adr0008-reconciliation-scan.md in docs/handoffs/.",
     "priority": "high",
     "source": "handoff",
     "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Establish state-doc update discipline and handoff archive",
-    "updated_at": "2026-08-15T13:04:21.820942+00:00"
+    "updated_at": "2026-08-15T13:32:46.422452+00:00"
   }
 ]
