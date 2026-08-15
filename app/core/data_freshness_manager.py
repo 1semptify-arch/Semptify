@@ -147,6 +147,15 @@ class DataFreshnessManager:
                 priority=3,
                 metadata={"engines": ["vault", "legal", "timeline"]},
             ),
+            "marketing_claims_001": FreshnessRule(
+                rule_id="marketing_claims_001",
+                data_type=FreshnessType.MARKETING_CLAIMS,
+                max_age_hours=24,  # 1 day
+                refresh_enabled=True,
+                refresh_function="verify_landing_claims",
+                priority=1,
+                metadata={"subject": "landing", "jurisdiction": "US"},
+            ),
         }
 
         self.rules = default_rules
@@ -422,6 +431,16 @@ async def refresh_search_index(metadata: dict[str, Any]):
     pass
 
 
+async def verify_landing_claims(metadata: dict[str, Any]):
+    """Run content-level verification for landing/public facts."""
+    from app.modules.context_engine.verifier import verify_subject
+
+    subject = metadata.get("subject", "landing")
+    jurisdiction = metadata.get("jurisdiction", "US")
+    logger.info("Verifying landing claims subject=%s jurisdiction=%s", subject, jurisdiction)
+    return await verify_subject(subject, jurisdiction)
+
+
 # Global instance - created after all functions are defined
 data_freshness_manager = DataFreshnessManager()
 
@@ -433,3 +452,4 @@ data_freshness_manager.register_refresh_function("refresh_state_laws", refresh_s
 data_freshness_manager.register_refresh_function("refresh_deadlines", refresh_deadlines)
 data_freshness_manager.register_refresh_function("refresh_cache", refresh_cache)
 data_freshness_manager.register_refresh_function("refresh_search_index", refresh_search_index)
+data_freshness_manager.register_refresh_function("verify_landing_claims", verify_landing_claims)
