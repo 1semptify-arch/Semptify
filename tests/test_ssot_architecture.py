@@ -12,6 +12,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.core_gate
+
 PROJECT_ROOT = Path(__file__).parent.parent
 APP_DIR = PROJECT_ROOT / "app"
 STATIC_DIR = PROJECT_ROOT / "static"

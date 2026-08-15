@@ -12,6 +12,8 @@ Contracts protected:
 
 import pytest
 
+pytestmark = pytest.mark.security_gate
+
 from app.services.document_pipeline import (
     DocumentType,
     ProcessingStatus,
