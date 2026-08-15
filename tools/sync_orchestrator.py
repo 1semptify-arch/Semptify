@@ -90,11 +90,27 @@ def step_docs_todos() -> None:
     ACTIVE_CONTEXT.md, FNG_TODO.md, and STUB_AUDIT.md. Writes to
     tools/docs_todos.json, which merge_tasks() combines with workbook
     output into the final agent_orchestrator_tasks.json.
+
+    The raw seed prints its own status summary, but that does not reflect
+    the final canonical queue after merge and manual-field preservation.
+    We suppress the seed's stdout here and print a canonical summary later.
     """
     if not DOCS_TODO_SEED.exists():
         print(f"-> skipping docs_todos (missing {DOCS_TODO_SEED.name})")
         return
-    run([sys.executable, str(DOCS_TODO_SEED)], "_seed_orchestrator_tasks.py")
+    print(f"-> _seed_orchestrator_tasks.py: {sys.executable} {DOCS_TODO_SEED}")
+    result = subprocess.run(
+        [sys.executable, str(DOCS_TODO_SEED)],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+    )  # noqa: S603 # nosec B603
+    if result.returncode != 0:
+        if result.stderr.strip():
+            print(result.stderr.strip(), file=sys.stderr)
+        raise SyncError("_seed_orchestrator_tasks.py failed")
+    if result.stderr.strip():
+        print(result.stderr.strip(), file=sys.stderr)
 
 
 def _load_previous_tasks() -> list[dict]:
@@ -269,6 +285,34 @@ def git_add(paths: list[Path]) -> None:
     run(["git", "add", *existing], "git add (re-stage synced files)")
 
 
+def print_task_summary(path: Path, label: str) -> None:
+    """Print a human-readable status summary for a task JSON list."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return
+    if not isinstance(data, list):
+        return
+    by_status: dict[str, int] = {}
+    by_priority: dict[str, int] = {}
+    for t in data:
+        by_status[t.get("status", "unknown")] = by_status.get(t.get("status", "unknown"), 0) + 1
+        by_priority[t.get("priority", "unknown")] = by_priority.get(t.get("priority", "unknown"), 0) + 1
+    print(f"\n{label}: {len(data)} tasks")
+    print(f"  by status: {by_status}")
+    print(f"  by priority: {by_priority}")
+    pending = [t for t in data if t.get("status") != "resolved"]
+    if pending:
+        print(f"  non-resolved ({len(pending)}):")
+        for t in pending[:10]:
+            title = t.get("title", "")
+            print(f"    {t['id']} [{t.get('priority', '?')}] {title[:80]}{'...' if len(title) > 80 else ''}")
+        if len(pending) > 10:
+            print(f"    ... and {len(pending) - 10} more")
+    else:
+        print("  no non-resolved tasks — queue is clear")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -291,6 +335,7 @@ def main() -> int:
             step_docs_todos()
             merge_tasks()
             preserve_manual_fields(previous_tasks)
+            print_task_summary(ORCHESTRATOR_TASKS, "Final canonical queue")
             step_sync_registry()
 
         stub_count = verify_stub_tasks()
