@@ -7,8 +7,6 @@ upload flow.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from app.core.context_envelope import (
     EncounterContext,
     ObjectEnvelope,
@@ -17,11 +15,11 @@ from app.core.context_envelope import (
     Provenance,
     TemporalValidity,
     Who,
+    resolve_envelope,
 )
 from app.core.page_envelope import PageEnvelope, PageRelation, resolve_page_actions
+from app.services.vault_upload_service import VaultDocument
 
-if TYPE_CHECKING:
-    from app.services.vault_upload_service import VaultDocument
 
 # Page Envelope for the Document Vault page.
 VAULT_UPLOAD_PAGE = PageEnvelope(
