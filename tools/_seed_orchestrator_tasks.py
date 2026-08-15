@@ -1452,7 +1452,24 @@ TASKS = [{'assigned_agent': 'SWE-1.7-Max',
   'status': 'pending',
   'target_model': 'swe-1.7',
   'title': 'Preserve main for app/core/ cosmetic arrow/comment diffs',
-  'updated_at': '2026-08-15T04:28:25Z'}]
+  'updated_at': '2026-08-15T04:28:25Z'},
+ {'assigned_agent': '',
+  'category': 'environment',
+  'created_at': '2026-08-15T04:46:48Z',
+  'description': 'Seen on PR #59 and PR #69. Both non-app-code (tracker/JSON/HTML or utc_now) changes. Test job shows '
+                 "IN_PROGRESS with no logs, stuck on Loading, doesn't complete within 10+ min. Needs root-cause: "
+                 'runner availability, cache lock, workflow trigger misconfig for non-.py-touching diffs, or GH '
+                 'Actions incident. Do not treat as code-correctness signal until root cause is known.',
+  'file_path': '.github/workflows/ci.yml',
+  'id': 'todo-081',
+  'notes': 'Created after PR #69 Test job hung for 10+ min with no logs, same as PR #59. Admin-merged #69 around the '
+           'hung required check.',
+  'priority': 'medium',
+  'source': 'manual',
+  'status': 'pending',
+  'target_model': 'swe-1.7',
+  'title': 'Investigate recurring Test job hang on tracker-only PRs',
+  'updated_at': '2026-08-15T04:46:48Z'}]
 
 
 def _print_summary(tasks: list[dict]) -> None:
