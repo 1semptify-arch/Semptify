@@ -909,19 +909,19 @@
     "updated_at": "2026-08-15T04:30:54.253908+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "reconciliation",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Service is a duplicate or unreferenced on main. Delete app/services/court_form_generator.py and run compile/ruff/pytest to confirm no breakages.",
     "file_path": "app/services/court_form_generator.py",
     "id": "phase2-2f6251-038",
-    "notes": "Brad decision: delete now (after compile/test check).",
+    "notes": "Brad decision: delete now (after compile/test check).\n[2026-08-15 04:55 UTC - swe-1.7] Dispatching as P2 quick-win deletion. app/modules/court_forms/service.py is the canonical module copy in use; no imports from app.services.court_form_generator found.\n[2026-08-15 04:57 UTC - swe-1.7] Deleted app/services/court_form_generator.py. No app imports. app/modules/court_forms/service.py is the active canonical copy. py_compile, ruff, and module_health/test_court_forms pass. Coverage failure is repo-wide threshold (todo-064).",
     "priority": "medium",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Delete app/services/court_form_generator.py after compile/test check",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T04:57:46.484227+00:00"
   },
   {
     "assigned_agent": "swe-1.7",
