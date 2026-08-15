@@ -1,5 +1,3 @@
-# ⭐ The Maximum Version — Litigation
-
 ⭐ THE MAXIMUM VERSION — Litigation Intelligence System (LIS)
 This is the full, justice‑grade, Semptify‑aligned, modular, GUI‑driven system.
 
