@@ -1370,10 +1370,10 @@
     "notes": "Do not bundle with code PR. Use adr: prefix for ADR commit.",
     "priority": "high",
     "source": "handoff",
-    "status": "in_progress",
+    "status": "done",
     "target_model": "swe-1.7",
     "title": "Fact-check/freshness system: close-out documentation pass",
-    "updated_at": "2026-08-15T13:38:26.588081+00:00",
+    "updated_at": "2026-08-15T13:42:35.359605+00:00",
     "claimed_by": {
       "agent": "swe-1.7",
       "claimed_at": "2026-08-15T13:38:26.588101+00:00"
