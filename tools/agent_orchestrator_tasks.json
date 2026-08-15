@@ -1121,19 +1121,19 @@
     "updated_at": "2026-08-15T06:25:42.435116+00:00"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "tier_c_review",
     "created_at": "2026-08-15T04:28:25Z",
     "description": "Pilot changes page-shell skeletons and zones. Verify these are cosmetic or part of the ADR-0008 page-context wiring and do not break existing page rendering.",
     "file_path": "app/modules/page_shell/skeletons.py",
     "id": "phase2-df7bb7-063",
-    "notes": "Module cluster: modules/page_shell. Files: 3. ",
+    "notes": "Module cluster: modules/page_shell. Files: 3. \n[2026-08-15 06:25 UTC - swe-1.7] Arrow symbols in README and comments. Cosmetic. Preserve main.",
     "priority": "high",
     "source": "phase_c_tier2",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Review modules/page_shell/ skeleton/zone changes",
-    "updated_at": "2026-08-15T04:28:25Z"
+    "updated_at": "2026-08-15T06:25:54.136463+00:00"
   },
   {
     "assigned_agent": "",
