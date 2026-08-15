@@ -686,19 +686,19 @@
     "updated_at": "2026-08-12T00:00:00Z"
   },
   {
-    "assigned_agent": "",
+    "assigned_agent": "swe-1.7",
     "category": "reconciliation",
     "created_at": "2026-08-13T00:00:00Z",
     "description": "Complete Phase C Tier 1 reconciliation of app/core/vault_paths.py against adr-0008-pilot. Only the EXPERIENCE_TOKEN_FILE constant was landed early to unblock experience_token.py; the remaining diffs (docstring arrow swaps and any other pilot changes) still need review and reconciliation.",
     "file_path": "app/core/vault_paths.py",
     "id": "todo-066",
-    "notes": "Added during Tier 1 experience_token landing. EXPERIENCE_TOKEN_FILE constant was landed early; full reconciliation deferred to vault_paths' normal batch turn.",
+    "notes": "Added during Tier 1 experience_token landing. EXPERIENCE_TOKEN_FILE constant was landed early; full reconciliation deferred to vault_paths' normal batch turn.\n[2026-08-15 07:28 UTC - swe-1.7] Confirming whether remaining vault_paths.py diffs are substantive or cosmetic after PR #80.\n[2026-08-15 07:28 UTC - swe-1.7] Superseded by current main. Two-dot diff vs adr-0008-pilot for app/core/vault_paths.py is only cosmetic arrow/comment changes; EXPERIENCE_TOKEN_FILE is already landed. No remaining vault module diffs. Preserve main.",
     "priority": "medium",
     "source": "manual",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Full Tier 1 reconciliation for app/core/vault_paths.py",
-    "updated_at": "2026-08-13T00:00:00Z"
+    "updated_at": "2026-08-15T07:28:33.699362+00:00"
   },
   {
     "assigned_agent": "swe-1.7",
