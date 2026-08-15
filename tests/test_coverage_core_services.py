@@ -371,7 +371,7 @@ def test_document_training_records_and_updates_examples(tmp_path):
 
 
 def test_document_notarization_round_trip_and_tamper_paths():
-    from app.services.document_notarization import DocumentNotarizationService, NotarizationRecord
+    from app.modules.intake.service import DocumentNotarizationService, NotarizationRecord
 
     async def exercise():
         service = DocumentNotarizationService()
@@ -515,7 +515,7 @@ def test_preview_service_categories_text_placeholders_and_cache(tmp_path):
 
 
 def test_vault_access_engine_lifecycle_and_audit():
-    from app.services.vault_engine import (
+    from app.modules.vault_engine.service import (
         AccessLevel,
         AccessRequest,
         ResourceScope,
