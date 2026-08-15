@@ -1,6 +1,20 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-01 (Task 6 i18n — locale selector UI + `/api/i18n/set-locale` endpoint)
+**Last Updated**: 2026-08-15 (Phase C Tier 2 ADR-0008 reconciliation dispatch)
+
+## 🎯 Current Priority: Phase C Tier 2 ADR-0008 reconciliation
+
+Post-PR #69 tracker sync is merged. Dispatching the 38 Tier 2 module-cluster tasks in priority order:
+
+- ✅ P1 Security: `document_flow_orchestrator.py` — main's parameterized SQL preserved, pilot f-string SQL blocked.
+- ✅ P2 Quick-win deletions: `hud_funding_guide.py` and `court_form_generator.py` deleted.
+- ✅ P3 Test migrations: `document_notarization.py` and `vault_engine.py` deleted after migrating `tests/test_coverage_core_services.py` imports.
+- ⏳ P4 Caller migrations: `auto_mode_orchestrator`, `event_extractor`, `proactive_tactics`, `progress_tracker`.
+- ⏳ P5 Tier C ADR-0008 wiring module clusters.
+- ⏳ P6 Legal/money/privacy/storage catch-alls.
+- 🛑 Deferred: `app/core/page_manifest.py` remains under `todo-065`.
+
+Open PRs: #70 (hud_funding deletion), #71 (court_form deletion), #72 (notarization + vault_engine migration).
 
 ## ✅ Completed 2026-08-01 Session
 
