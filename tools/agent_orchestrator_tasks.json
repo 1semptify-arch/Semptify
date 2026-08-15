@@ -1344,10 +1344,10 @@
     "notes": "Documentation-only pass; do not bundle with Phase A-D code changes.",
     "priority": "high",
     "source": "handoff",
-    "status": "in_progress",
+    "status": "done",
     "target_model": "swe-1.7",
     "title": "Fact-check/freshness system: docs pass (ADR, protocol, MOTIVATIONS)",
-    "updated_at": "2026-08-15T10:07:15.663904+00:00",
+    "updated_at": "2026-08-15T10:07:55.253910+00:00",
     "claimed_by": {
       "agent": "swe-1.7",
       "claimed_at": "2026-08-15T10:07:15.663882+00:00"
