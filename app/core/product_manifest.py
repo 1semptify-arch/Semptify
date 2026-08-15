@@ -1041,7 +1041,7 @@ _register(
 _register(
     "app.modules.data_freshness.router",
     tags=("Data Freshness",),
-    tier=ProductTier.DEV,
+    tier=ProductTier.CORE,
     log_message="Data Freshness router connected - Automated data staleness prevention active",
 )
 _register(

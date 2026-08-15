@@ -26,6 +26,23 @@
           <a href="#vault" class="chip">Vault</a>
           <a href="#timeline" class="chip">Timeline</a>
         </nav>
+
+        {% if landing_facts %}
+        <section class="hero-facts" aria-label="Verified facts">
+          <ul class="check-list">
+            {% for fact in landing_facts %}
+            <li>
+              {{ fact.claim }}
+              {% if fact.citation %}
+              <a href="{{ fact.source_url }}" class="citation" target="_blank" rel="noopener">
+                {{ fact.citation }}
+              </a>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        {% endif %}
       </header>
 
       <section class="composer-grid" aria-label="Composer panels">
