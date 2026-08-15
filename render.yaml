@@ -64,3 +64,13 @@ services:
   - www.semptify.org
   - semptify.org
   autoDeployTrigger: "off"
+- type: cron
+  name: semptify-landing-fact-check
+  schedule: "0 6 * * *"  # 6 AM UTC daily
+  buildCommand: "python -m pip install -r requirements.txt"
+  startCommand: "python tools/cron/verify_landing_claims.py"
+  envVars:
+  - key: APP_URL
+    sync: false
+  - key: DATABASE_URL
+    sync: false

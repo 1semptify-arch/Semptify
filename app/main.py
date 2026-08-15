@@ -133,8 +133,33 @@ def register_stateless_routes(app: FastAPI):
 
     @app.get("/", response_class=HTMLResponse)
     async def root(request: Request):
-        ctx = {"request": request, "year": utc_now().year}
+        from app.modules.context_engine.cache import get_verified_landing_facts
+
+        landing_facts = await get_verified_landing_facts()
+        ctx = {"request": request, "year": utc_now().year, "landing_facts": landing_facts}
         return templates.TemplateResponse("index.html", ctx)
+
+    @app.get("/api/landing/facts", include_in_schema=False)
+    async def landing_facts_api():
+        """Public endpoint returning verified, non-expired landing/public facts.
+
+        Unverified or expired claims are omitted; the landing page auto-hides them.
+        """
+        from app.modules.context_engine.cache import get_verified_landing_facts
+
+        facts = await get_verified_landing_facts()
+        return [
+            {
+                "claim": f.claim,
+                "citation": f.citation,
+                "source_url": f.source_url,
+                "source_name": f.source_name,
+                "canonical_value": f.canonical_value,
+                "verified_at": f.verified_at.isoformat() if f.verified_at else None,
+                "expires_at": f.expires_at.isoformat() if f.expires_at else None,
+            }
+            for f in facts
+        ]
 
     @app.get("/api/i18n/locale", include_in_schema=False)
     async def get_current_locale(request: Request):
