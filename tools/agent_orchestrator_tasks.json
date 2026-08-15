@@ -1382,10 +1382,10 @@
     "notes": "Use the per-claim extraction_pattern. Do not use a general-purpose NLP fact extractor.",
     "priority": "high",
     "source": "handoff",
-    "status": "in_progress",
+    "status": "done",
     "target_model": "swe-1.7",
     "title": "Fact-check/freshness system: Phase B content-level verifier",
-    "updated_at": "2026-08-15T10:59:10.683223+00:00",
+    "updated_at": "2026-08-15T11:21:31.363336+00:00",
     "claimed_by": {
       "agent": "swe-1.7",
       "claimed_at": "2026-08-15T10:59:10.683150+00:00"
