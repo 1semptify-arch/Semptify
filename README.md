@@ -8,6 +8,36 @@ Tenant rights protection platform - rebuilt with async-first FastAPI architectur
 >
 > Canonical project guide: see `PROJECT_BIBLE.md` for the single source-of-truth hierarchy, build reference rules, and governance.
 
+## About Semptify
+
+Semptify is a nonprofit tenant-rights platform. It helps tenants document
+what's happening to them, understand their rights, and organize that documentation
+into something a real attorney can use — without ever storing their private files
+on our servers.
+
+Semptify grew out of one person's experience navigating a difficult landlord
+situation, and it's built on a simple rule: never build from fear, resentment,
+dishonesty, or greed.
+
+## Looking for help
+
+This project is bigger than one person can carry alone. We're looking for:
+
+- Python / FastAPI contributors
+- Frontend/UI help (design-system, accessibility)
+- Tenant-rights researchers who can help keep our Know Your Rights content accurate
+- Anyone who wants to review, test, or just poke holes in what's here
+
+Open an issue, start a discussion, or reach out via [semptify.org](https://semptify.org).
+
+## Support this work
+
+Semptify's commitment is no fees to tenants, ever. Right now, sponsorships go
+toward the filing fees to register Semptify as a formal nonprofit — the next
+step in making this sustainable beyond one person.
+
+👉 [Sponsor on GitHub](https://github.com/sponsors/1semptify-arch)
+
 ## Core Promise
 
 ### Help tenants with tools and information to uphold tenant rights as a renter, in court if it goes that far - hopefully it won't
