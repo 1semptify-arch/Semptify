@@ -1397,7 +1397,7 @@
     "description": "Delete the 7 dead module _register() entries in app/core/product_manifest.py whose app/modules/ directories no longer exist.",
     "file_path": "app/core/product_manifest.py",
     "id": "todo-084",
-    "notes": "",
+    "notes": "Deleted the 5 truly dead conceptual/placeholder registrations (vault_sync, eviction_notice_explainer, response_letter_generator, eviction_defense_content, ai_copilot). example_payment_tracking.py and legal_filing_module.py still exist and have routers, so they were restored after test failures.",
     "priority": "medium",
     "source": "manual",
     "status": "resolved",
