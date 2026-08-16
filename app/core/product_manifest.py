@@ -1090,6 +1090,21 @@ _register(
     dev_notes="Shell + rendering engine for the pillar-mixer backbone. Renders four skeletons (RECORD/KNOW/ACT/GOVERN) from a validated page config. Does not pick blends or compute intensity. Spec: temp/semptify_pillar_mixer_backbone.md",
     log_message="Page Shell router active — /api/page-shell (admin-only)",
 )
+_register(
+    "app.modules.example_payment_tracking",
+    tags=("Payment Tracking",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    dev_notes="Standalone payment tracking module with /payments router. Mesh SDK pattern.",
+)
+_register(
+    "app.modules.legal_filing_module",
+    router_attr="legal_filing_router",
+    tags=("Legal Filing",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    dev_notes="Thin wrapper that mounts the legal_filing router from app.modules.legal_filing. 5 endpoints under /api/legal-filing.",
+)
 # =============================================================================
 # UPL Matrix — Conceptual module registrations
 # =============================================================================
