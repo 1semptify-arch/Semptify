@@ -1389,5 +1389,50 @@
     "target_model": "swe-1.7",
     "title": "Tier-filter contract_loader.py imports",
     "updated_at": "2026-08-16T06:02:31.151490+00:00"
+  },
+  {
+    "assigned_agent": "swe-1.7",
+    "category": "cleanup",
+    "created_at": "2026-08-16T06:15:00Z",
+    "description": "Delete the 7 dead module _register() entries in app/core/product_manifest.py whose app/modules/ directories no longer exist.",
+    "file_path": "app/core/product_manifest.py",
+    "id": "todo-084",
+    "notes": "",
+    "priority": "medium",
+    "source": "manual",
+    "status": "resolved",
+    "target_model": "swe-1.7",
+    "title": "Delete dead manifest module registrations",
+    "updated_at": "2026-08-16T06:14:04.211182+00:00"
+  },
+  {
+    "assigned_agent": "swe-1.7",
+    "category": "security",
+    "created_at": "2026-08-16T06:15:00Z",
+    "description": "Add an explicit environment guard to the Agent Orchestrator router so it cannot load in production even if the tier mapping is misconfigured.",
+    "file_path": "app/modules/agent_orchestrator/router.py",
+    "id": "todo-085",
+    "notes": "",
+    "priority": "high",
+    "source": "manual",
+    "status": "pending",
+    "target_model": "swe-1.7",
+    "title": "Double-gate Agent Orchestrator with env guard",
+    "updated_at": "2026-08-16T06:15:00Z"
+  },
+  {
+    "assigned_agent": "swe-1.7",
+    "category": "research",
+    "created_at": "2026-08-16T06:15:00Z",
+    "description": "Investigate always-on heavy services (Positronic Brain, mesh, module hub, event subscribers, litigation-intelligence): what they load, whether they should be gated by tier, and whether init can be made lazy. Measure per-service RSS footprint before proposing fixes.",
+    "file_path": "app/main.py",
+    "id": "todo-086",
+    "notes": "",
+    "priority": "high",
+    "source": "manual",
+    "status": "pending",
+    "target_model": "swe-1.7",
+    "title": "Investigate always-on heavy services memory footprint",
+    "updated_at": "2026-08-16T06:15:00Z"
   }
 ]
