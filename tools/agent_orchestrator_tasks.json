@@ -1427,12 +1427,12 @@
     "description": "Investigate always-on heavy services (Positronic Brain, mesh, module hub, event subscribers, litigation-intelligence): what they load, whether they should be gated by tier, and whether init can be made lazy. Measure per-service RSS footprint before proposing fixes.",
     "file_path": "app/main.py",
     "id": "todo-086",
-    "notes": "",
+    "notes": "Measured per-service isolated memory. Positronic Brain ~5.3 MB, Module Hub ~5.5 MB, Mesh ~5.5 MB, Event subscribers ~4.2 MB, Litigation Intelligence package ~62 MB (driven by court_scraper importing playwright at package load). Full-app worker with ENABLE_HEAVY_SERVICES=false is 208.0 MB vs true 211.6 MB (heavy services only ~3.6 MB in production context).",
     "priority": "high",
     "source": "manual",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Investigate always-on heavy services memory footprint",
-    "updated_at": "2026-08-16T06:15:00Z"
+    "updated_at": "2026-08-16T07:28:01.815103+00:00"
   }
 ]
