@@ -1415,10 +1415,10 @@
     "notes": "",
     "priority": "high",
     "source": "manual",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Double-gate Agent Orchestrator with env guard",
-    "updated_at": "2026-08-16T06:15:00Z"
+    "updated_at": "2026-08-16T06:15:34.217984+00:00"
   },
   {
     "assigned_agent": "swe-1.7",
