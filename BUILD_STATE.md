@@ -1,3 +1,41 @@
+## Session -- 2026-08-15 — Fact-check/freshness system close-out (Phases A–D)
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Close out the fact-check/freshness build after Phases A–D merged. Flip ADR-0009 to Accepted, record the auto-hide vs. last-known-good decision, add a Build Bible worked example, and update the canonical build docs so the system is discoverable.
+
+### Fix
+
+- Merged PRs #91, #92, #93 covering Phases A–D of the fact-check/freshness build:
+  - Phase A: `canonical_value` column, landing subject support, initial NCCRC seed.
+  - Phase B: content-level verifier with `GET` fetch, HTML/PDF text extraction, and mismatch/extraction-failure alerts.
+  - Phase C: `marketing_claims_001` freshness rule, real `verify_landing_claims` refresh, Render cron job, and `data_freshness` promoted to `ProductTier.CORE`.
+  - Phase D: public `GET /api/landing/facts`, landing page wired to verified facts only.
+- Changed `docs/adr/0009-fact-check-freshness-system.md` status from `Proposed` to `Accepted`.
+- Recorded the **auto-hide** decision in ADR-0009: an unverified or stale claim is hidden, not shown with a "last verified" fallback.
+- Added a Build Bible worked example to `PROJECT_BIBLE.md` (section 8) illustrating the "no band-aids" root-cause fix.
+- Added a fact-check/freshness close-out entry to `ACTIVE_CONTEXT.md`.
+- Added a reference to ADR-0009 in `README.md` under data-integrity standards.
+
+### Deferred
+
+- Phase E (admin freshness visibility panel) — out of scope for this close-out.
+- The five other stubbed `refresh_*` functions in `data_freshness_manager.py` remain separate future work, explicitly not silently forgotten.
+
+### Verification
+
+- `python -m py_compile` on changed Python files — PASS.
+- `ruff check` on changed files — PASS.
+- `python tools/sync_orchestrator.py --check` — PASS.
+
+### Status
+
+Fact-check/freshness system for public-facing claims is built, documented, and accepted. Landing page claims are now live-verified on a schedule and auto-hide on failure.
+
+---
+
 ## Session -- 2026-08-15 — Bulk archive handoffs found in E:\\Download
 
 ### Guardrail Engine Run — not run
