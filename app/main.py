@@ -537,11 +537,12 @@ async def lifespan(_app: FastAPI):
 
         # --- STAGE 3.5: Load Module Contracts ---
         async def load_contracts():
-            result = load_all_contracts()
+            result = load_all_contracts(enabled_tiers=_get_enabled_tiers())
             lifespan_logger.info(
-                "   Contracts: %s loaded, %s failed, %s total",
+                "   Contracts: %s loaded, %s failed, %s skipped, %s total",
                 result["loaded"],
                 result["failed"],
+                result["skipped"],
                 result["total_contracts"],
             )
 
