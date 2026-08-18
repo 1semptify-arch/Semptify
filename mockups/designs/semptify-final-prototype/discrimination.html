@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Log a housing discrimination incident safely and privately.">
+<title>Housing discrimination recorder — Semptify 5.0</title>
+<link rel="stylesheet" href="../../../static/css/ssot-design-system.css">
+<link rel="stylesheet" href="assets/prototype-only.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="page-header">
+  <div class="container">
+    
+    <nav class="flex justify-between items-center gap-4 mb-6" aria-label="Top">
+      <a href="index.html" class="nav-brand">Semptify</a>
+      <ul class="nav nav--horizontal hide-mobile" role="list">
+        <li><a href="home.html" class="nav__link">Home</a></li>
+        <li><a href="record.html" class="nav__link">Record</a></li>
+        <li><a href="know.html" class="nav__link">Know</a></li>
+        <li><a href="act.html" class="nav__link">Act</a></li>
+        <li><a href="help.html" class="nav__link">Help</a></li>
+      </ul>
+    </nav>
+    
+    <h1 class="page-header__title">Discrimination recorder</h1>
+    <p class="page-header__subtitle">Log an incident by protected class, type, and the facts you have.</p>
+  </div>
+</header>
+
+<main id="main" class="container py-6" tabindex="-1">
+<section class="zone zone--inverse mb-4">
+  <h2 class="zone__title">Consent note</h2>
+  <p>This recorder stores notes in your own cloud storage. Semptify does not review your entries. You control whether to share them with an attorney, agency, or housing authority.</p>
+</section>
+<section class="zone zone--calm mb-4">
+  <h2 class="zone__title">What happened?</h2>
+  <form action="#" class="l-grid-2 gap-4">
+    <div class="form-group">
+  <label class="form-label">Protected class</label>
+  <select name="protected_class" class="form-select">
+  <option value="race">Race / color</option>
+<option value="religion">Religion</option>
+<option value="national">National origin</option>
+<option value="sex">Sex / gender</option>
+<option value="disability">Disability</option>
+<option value="familial">Familial status</option>
+<option value="other">Other</option>
+</select>
+  
+</div>
+    <div class="form-group">
+  <label class="form-label">Type of incident</label>
+  <select name="type" class="form-select">
+  <option value="refusal">Refusal to rent</option>
+<option value="terms">Different terms</option>
+<option value="harassment">Harassment</option>
+<option value="eviction">Eviction / threat</option>
+<option value="other">Other</option>
+</select>
+  
+</div>
+    <div class="form-group">
+  <label class="form-label">Property or landlord</label>
+  <input type="text" name="landlord" class="form-input" placeholder="Name or address">
+  
+</div>
+    <div class="form-group">
+  <label class="form-label">Date</label>
+  <input type="date" name="date" class="form-input">
+  
+</div>
+    <div class="form-group">
+  <label class="form-label">Notes</label>
+  <textarea name="notes" class="form-textarea" rows="4" placeholder="What was said or done?"></textarea>
+  <p class="form-hint">Keep to facts you observed.</p>
+</div>
+    <div class="form-group">
+  <label class="form-label">Audio / screenshot / photo</label>
+  <input type="text" name="files" class="form-input" placeholder="Describe attachments or upload after saving">
+  <p class="form-hint">Add these to your vault after saving.</p>
+</div>
+  </form>
+  <div class="mt-4">
+    <a href="record.html" class="btn btn--accent">Save</a>
+    <a href="act.html" class="btn btn--secondary">File a complaint</a>
+  </div>
+</section>
+
+</main>
+<a href="help.html" class="help-now"><span aria-hidden="true">◆</span> Get help now</a>
+<footer class="page-footer">
+  <div class="container">
+    <div class="l-grid-2 gap-6">
+      <div>
+        <p class="font-semibold mb-2">Semptify</p>
+        <p class="text-sm">A calm, privacy-first workspace for tenant records. Not legal advice.</p>
+        <ul class="inline-list mt-4">
+          <li>No cost</li>
+          <li>No ads</li>
+          <li>No data sales</li>
+          <li>No tracking</li>
+          <li>Donation-funded</li>
+          <li>Open source</li>
+        </ul>
+      </div>
+      <div>
+        <p class="font-semibold mb-2">Links</p>
+        <p class="text-sm"><a href="know.html">Library</a> · <a href="portal.html">Portal</a> · <a href="transparency.html">Transparency</a> · <a href="help.html">Help</a></p>
+        <p class="text-sm mt-2"><a href="https://semptify.org/about" target="_blank" rel="noopener">About</a> · <a href="https://semptify.org/privacy" target="_blank" rel="noopener">Privacy</a> · <a href="https://semptify.org/terms" target="_blank" rel="noopener">Terms</a> · <a href="https://github.com/semptify" target="_blank" rel="noopener">GitHub</a></p>
+      </div>
+    </div>
+    <p class="disclaimer">Semptify does not provide legal advice. Consult a licensed attorney for your situation.</p>
+  </div>
+</footer>
+
+</body>
+</html>

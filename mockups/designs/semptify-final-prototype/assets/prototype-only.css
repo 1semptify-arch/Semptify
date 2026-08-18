@@ -1,0 +1,434 @@
+/* Semptify 5.0 Final Prototype — SSOT design system extensions
+   These rules fill gaps in ssot-design-system.css for the static mockup.
+   All colors, spacing, and type values are SSOT tokens.
+   No gradients. No card borders. No rounded corners. */
+
+/* --- Page chrome --- */
+
+/* Solid page header; replaces the gradient defined in the SSOT file. */
+.page-header {
+  background: var(--tpl-1-header);
+  color: var(--text-inverse);
+  padding: var(--space-6) 0;
+  margin-bottom: var(--space-6);
+}
+
+.page-header__title {
+  font-size: var(--type-h1);
+  font-weight: var(--type-h1-weight);
+  letter-spacing: var(--type-h1-tracking);
+  margin: 0;
+}
+
+.page-header__subtitle {
+  font-size: var(--type-h3);
+  opacity: 0.9;
+  margin-top: var(--space-2);
+}
+
+/* Keep short pages full-height and the footer at the bottom */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1 0 auto;
+  padding-bottom: 5rem;
+}
+
+.page-header a,
+.page-header .nav-brand {
+  color: var(--text-inverse);
+}
+
+.page-header a:hover,
+.page-header .nav-brand:hover {
+  color: var(--color-calm-light);
+  text-decoration: none;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -2.5rem;
+  left: 0;
+  background: var(--color-alarm);
+  color: var(--color-alarm-text);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  z-index: 9999;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Persistent "Get help now" */
+.help-now {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: var(--z-sticky);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-alarm);
+  color: var(--color-alarm-text);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+}
+
+.help-now:hover,
+.help-now:focus {
+  background: var(--color-alarm-hover);
+  color: var(--color-alarm-text);
+  text-decoration: none;
+}
+
+/* Alarm button variant (reserved for genuine deadlines and Get help now) */
+.btn--alarm {
+  background: var(--color-alarm);
+  color: var(--color-alarm-text);
+}
+
+.btn--alarm:hover,
+.btn--alarm:focus {
+  background: var(--color-alarm-hover);
+  color: var(--color-alarm-text);
+  text-decoration: none;
+}
+
+/* Nav brand */
+.nav-brand {
+  font-weight: var(--font-bold);
+  font-size: var(--type-h2);
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav-brand:hover {
+  text-decoration: none;
+}
+
+/* --- Zones (background-only separation, no borders) --- */
+
+.zone {
+  padding: var(--space-6);
+}
+
+.zone--light {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.zone--calm {
+  background: var(--color-calm);
+  color: var(--text-inverse);
+}
+
+.zone--calm-light {
+  background: var(--color-calm-light);
+  color: var(--text-primary);
+}
+
+.zone--secondary {
+  background: var(--zone-bg-secondary);
+  color: var(--text-inverse);
+}
+
+.zone--tertiary {
+  background: var(--zone-bg-tertiary);
+  color: var(--text-inverse);
+}
+
+.zone--inverse {
+  background: var(--zone-bg-inverse);
+  color: var(--text-inverse);
+}
+
+.zone a {
+  color: var(--color-calm-light);
+}
+
+.zone a:hover {
+  color: var(--color-white);
+  text-decoration: underline;
+}
+
+.zone--light a,
+.zone--calm-light a {
+  color: var(--color-primary-light);
+}
+
+.zone--light a:hover,
+.zone--calm-light a:hover {
+  color: var(--color-primary);
+}
+
+/* Ghost buttons need light text on dark zones; SSOT default is gray. */
+.zone .btn--ghost {
+  color: var(--text-inverse);
+}
+
+.zone .btn--ghost:hover {
+  color: var(--text-primary);
+}
+
+.zone__title {
+  font-size: var(--type-h2);
+  font-weight: var(--type-h2-weight);
+  margin-bottom: var(--space-3);
+}
+
+.zone__lede {
+  font-size: var(--type-body);
+  opacity: 0.85;
+  margin-bottom: var(--space-4);
+}
+
+/* --- Cards built from zones --- */
+
+.pillar-card,
+.record-card,
+.service-card {
+  background: var(--zone-bg-secondary);
+  padding: var(--space-6);
+}
+
+.record-card,
+.service-card {
+  padding: var(--space-4);
+}
+
+.pillar-card__icon,
+.record-card__icon,
+.service-card__icon {
+  font-size: var(--type-h1);
+  margin-bottom: var(--space-2);
+}
+
+.pillar-card__title,
+.record-card__title,
+.service-card__title {
+  font-size: var(--type-h3);
+  font-weight: var(--type-h3-weight);
+  margin-bottom: var(--space-2);
+}
+
+.pillar-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* Record type option on add-record.html */
+
+.record-type {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: var(--space-4);
+}
+
+.record-type__icon {
+  font-size: var(--type-h1);
+}
+
+.record-type__title {
+  font-size: var(--type-h3);
+  font-weight: var(--type-h3-weight);
+}
+
+/* --- Sourced facts --- */
+
+.fact {
+  margin-bottom: var(--space-4);
+}
+
+.fact__claim {
+  font-size: var(--type-body);
+  margin-bottom: var(--space-1);
+}
+
+.fact__source {
+  font-family: var(--font-mono);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--type-label-tracking);
+  color: var(--color-calm-light);
+  opacity: 0.9;
+}
+
+/* --- Result / output boxes --- */
+
+.result-box {
+  background: var(--zone-bg-tertiary);
+  padding: var(--space-6);
+  color: var(--text-inverse);
+}
+
+.result-box__empty {
+  color: var(--text-muted);
+}
+
+.output-line {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.output-line:last-child {
+  border-bottom: none;
+}
+
+/* --- Layout grids --- */
+
+.l-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.l-grid-2,
+.l-grid-3,
+.l-grid-4 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .l-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .l-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .l-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .l-grid-4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* --- Footer --- */
+
+.page-footer {
+  background: var(--zone-bg-inverse);
+  color: rgba(255, 255, 255, 0.75);
+  padding: var(--space-8) var(--space-4);
+  margin-top: auto;
+}
+
+.page-footer a {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.page-footer a:hover {
+  color: var(--text-inverse);
+}
+
+.page-footer .disclaimer {
+  font-family: var(--font-mono);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--type-label-tracking);
+  color: var(--color-calm-light);
+  margin-top: var(--space-6);
+  text-align: center;
+}
+
+/* --- Inline lists --- */
+
+.inline-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.inline-list li::before {
+  content: "◆ ";
+  color: var(--color-calm-light);
+  margin-right: var(--space-1);
+}
+
+/* --- Timeline rail --- */
+
+.timeline-rail {
+  border-left: 2px solid var(--color-calm-light);
+  padding-left: var(--space-4);
+}
+
+.timeline-rail__item {
+  position: relative;
+  padding-bottom: var(--space-4);
+}
+
+.timeline-rail__item::before {
+  content: "●";
+  position: absolute;
+  left: calc(-1 * var(--space-4) - 0.65rem);
+  color: var(--color-calm-light);
+}
+
+/* --- Status stamps (Field Notebook cue) --- */
+
+.stamp {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--type-label-tracking);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-calm-light);
+  color: var(--text-primary);
+}
+
+.stamp--alarm {
+  background: var(--color-alarm);
+  color: var(--color-alarm-text);
+}
+
+/* --- Citation blocks --- */
+
+.citation {
+  font-family: var(--font-mono);
+  font-size: var(--type-label);
+  color: var(--color-calm-light);
+}
+
+.citation:hover {
+  color: var(--color-white);
+}
+
+/* --- Source table --- */
+
+.source-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.source-table th,
+.source-table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.source-table th {
+  font-family: var(--font-mono);
+  font-size: var(--type-label);
+  text-transform: uppercase;
+  letter-spacing: var(--type-label-tracking);
+  color: var(--color-calm-light);
+}
