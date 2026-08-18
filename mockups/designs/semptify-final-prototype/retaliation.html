@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Track actions taken after you asserted a lawful right.">
+<title>Retaliation log — Semptify 5.0</title>
+<link rel="stylesheet" href="../../../static/css/ssot-design-system.css">
+<link rel="stylesheet" href="assets/prototype-only.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="page-header">
+  <div class="container">
+    
+    <nav class="flex justify-between items-center gap-4 mb-6" aria-label="Top">
+      <a href="index.html" class="nav-brand">Semptify</a>
+      <ul class="nav nav--horizontal hide-mobile" role="list">
+        <li><a href="home.html" class="nav__link">Home</a></li>
+        <li><a href="record.html" class="nav__link">Record</a></li>
+        <li><a href="know.html" class="nav__link">Know</a></li>
+        <li><a href="act.html" class="nav__link">Act</a></li>
+        <li><a href="help.html" class="nav__link">Help</a></li>
+      </ul>
+    </nav>
+    
+    <h1 class="page-header__title">Retaliation log</h1>
+    <p class="page-header__subtitle">Journal-like form with timeline preview.</p>
+  </div>
+</header>
+
+<main id="main" class="container py-6" tabindex="-1">
+<section class="zone zone--calm mb-4">
+  <h2 class="zone__title">Log the action</h2>
+  <form action="#" class="l-grid-2 gap-4">
+    <div class="form-group">
+  <label class="form-label">Action taken</label>
+  <select name="action" class="form-select">
+  <option value="rent_raise">Rent increase</option>
+<option value="eviction">Eviction notice</option>
+<option value="harassment">Harassment</option>
+<option value="services">Reduced services</option>
+<option value="other">Other</option>
+</select>
+  
+</div>
+    <div class="form-group">
+  <label class="form-label">Date</label>
+  <input type="date" name="date" class="form-input">
+  
+</div>
+    <div class="form-group">
+  <label class="form-label">Protected activity</label>
+  <select name="activity" class="form-select">
+  <option value="repair">Requested repairs</option>
+<option value="complaint">Filed a complaint</option>
+<option value="fair_housing">Asserted fair-housing right</option>
+<option value="organizing">Tenant organizing</option>
+<option value="other">Other</option>
+</select>
+  
+</div>
+    <div class="form-group">
+  <label class="form-label">Supporting records</label>
+  <input type="text" name="records" class="form-input" placeholder="Photo, message, or document">
+  <p class="form-hint">Add these to your vault after saving.</p>
+</div>
+    <div class="form-group">
+  <label class="form-label">Notes</label>
+  <textarea name="notes" class="form-textarea" rows="4" placeholder="What happened and who was involved?"></textarea>
+  <p class="form-hint">Keep to facts.</p>
+</div>
+  </form>
+  <div class="mt-4">
+    <a href="record.html" class="btn btn--accent">Save</a>
+    <a href="record.html" class="btn btn--secondary">Add supporting document</a>
+  </div>
+</section>
+<section class="zone zone--secondary mb-4">
+  <h2 class="zone__title">Timeline preview</h2>
+  <div class="timeline-rail">
+    <div class="timeline-rail__item">
+      <p class="font-semibold">Requested repair</p>
+      <p class="citation">2026-07-01</p>
+    </div>
+    <div class="timeline-rail__item">
+      <p class="font-semibold">Retaliatory rent increase</p>
+      <p class="citation">2026-07-15</p>
+    </div>
+  </div>
+</section>
+
+</main>
+<a href="help.html" class="help-now"><span aria-hidden="true">◆</span> Get help now</a>
+<footer class="page-footer">
+  <div class="container">
+    <div class="l-grid-2 gap-6">
+      <div>
+        <p class="font-semibold mb-2">Semptify</p>
+        <p class="text-sm">A calm, privacy-first workspace for tenant records. Not legal advice.</p>
+        <ul class="inline-list mt-4">
+          <li>No cost</li>
+          <li>No ads</li>
+          <li>No data sales</li>
+          <li>No tracking</li>
+          <li>Donation-funded</li>
+          <li>Open source</li>
+        </ul>
+      </div>
+      <div>
+        <p class="font-semibold mb-2">Links</p>
+        <p class="text-sm"><a href="know.html">Library</a> · <a href="portal.html">Portal</a> · <a href="transparency.html">Transparency</a> · <a href="help.html">Help</a></p>
+        <p class="text-sm mt-2"><a href="https://semptify.org/about" target="_blank" rel="noopener">About</a> · <a href="https://semptify.org/privacy" target="_blank" rel="noopener">Privacy</a> · <a href="https://semptify.org/terms" target="_blank" rel="noopener">Terms</a> · <a href="https://github.com/semptify" target="_blank" rel="noopener">GitHub</a></p>
+      </div>
+    </div>
+    <p class="disclaimer">Semptify does not provide legal advice. Consult a licensed attorney for your situation.</p>
+  </div>
+</footer>
+
+</body>
+</html>
