@@ -16,6 +16,7 @@ from enum import Enum
 from typing import Any
 
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -306,7 +307,7 @@ class ReasoningChain:
     """
 
     chain_id: str = field(default_factory=lambda: make_id("chain"))
-    started_at: datetime = field(default_factory=datetime.now)
+    started_at: datetime = field(default_factory=utc_now)
     completed_at: datetime | None = None
 
     steps: list[ReasoningStep] = field(default_factory=list)
@@ -826,7 +827,7 @@ class RecognitionResult:
 
     # Identification
     analysis_id: str = field(default_factory=lambda: make_id("anl"))
-    analyzed_at: datetime = field(default_factory=datetime.now)
+    analyzed_at: datetime = field(default_factory=utc_now)
     engine_version: str = "1.0.0"
 
     # Raw content
