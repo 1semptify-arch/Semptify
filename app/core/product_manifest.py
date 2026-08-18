@@ -1105,72 +1105,12 @@ _register(
     lifecycle="dev_only",
     dev_notes="Thin wrapper that mounts the legal_filing router from app.modules.legal_filing. 5 endpoints under /api/legal-filing.",
 )
-_register(
-    "app.modules.vault_sync",
-    tags=("Vault Sync",),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
-    optional=True,
-    dev_notes=(
-        "ON HOLD — user approved plan 2026-07-01, deferred until GUI Phase 1 ships. "
-        "Live encrypted replica of Semptify metadata (journal, timeline, letters, deadlines, document pointers) "
-        "streamed to user's own OAuth-connected cloud drive (Dropbox prototype first — true append API). "
-        "AES-256-GCM chunk encryption with user-passphrase-derived key (server never stores plaintext). "
-        "Background drain loop: batch flush every 3-5s OR 50 rows. Output: encrypted .jsonl on user's cloud. "
-        "Open questions on revive: (1) Dropbox-only prototype — pending final OK, "
-        "(2) passphrase model A per-session vs B persistent — user has not picked, "
-        "(3) greenlight to scaffold — not yet. "
-        "Files planned: __init__.py, register.py, router.py, sync_engine.py, providers/dropbox.py, "
-        "crypto.py, sync_log.py + alembic migration for sync_log table. "
-        "Does NOT touch documents (those already live in user's cloud). No PII, no OAuth tokens synced."
-    ),
-)
-
 # =============================================================================
 # UPL Matrix — Conceptual module registrations
 # =============================================================================
 # These modules are declared in the UPL risk matrix but do not yet have code.
-# Registered here so their UPL tier is declared and ready for when they are
-# built. All are dev_only, optional, no router — safe to import-fail.
 # When a module is built, update its entry with the real module_path and
 # move it to the appropriate tier block above.
-
-_register(
-    "app.modules.eviction_notice_explainer",
-    tags=("Eviction Notice Explainer",),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
-    optional=True,
-    upl_risk_tier=UPLRiskTier.HIGH,
-    dev_notes="Conceptual from UPL matrix. Explains eviction notices in plain language. HIGH tier — generates tailored legal analysis of a user's specific notice, requires attorney-review gate before output. No router yet.",
-)
-_register(
-    "app.modules.response_letter_generator",
-    tags=("Response Letter Generator",),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
-    optional=True,
-    upl_risk_tier=UPLRiskTier.HIGH,
-    dev_notes="Conceptual from UPL matrix. Generates response letters (e.g. answer to complaint). HIGH tier — drafts documents intended to be filed, requires attorney-review gate. No router yet.",
-)
-_register(
-    "app.modules.eviction_defense_content",
-    tags=("Eviction Defense Content",),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
-    optional=True,
-    upl_risk_tier=UPLRiskTier.LOW,
-    dev_notes="Conceptual from UPL matrix. Informational-only eviction defense content — plain-language facts and statutes, no filtering/selection flow, no tailored advice. LOW tier: pure facts and neutral listings. No router yet. DO NOT build a filtering or selection flow — that would move this to MEDIUM_HIGH+.",
-)
-_register(
-    "app.modules.ai_copilot",
-    tags=("AI Copilot",),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
-    optional=True,
-    upl_risk_tier=UPLRiskTier.LOW,
-    dev_notes="Conceptual from UPL matrix. AI assistant for tenant questions. LOW tier per matrix — provides facts and organization, not legal advice. Banned-phrase checker in upl_guardrails.py is the safety net. No router yet.",
-)
 
 # Modules wired via main.py direct import (tracked here for manifest visibility)
 _register(

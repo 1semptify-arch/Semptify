@@ -18,6 +18,9 @@ os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_semptify.db"
 os.environ["TESTING"] = "true"
 os.environ["INVITE_CODES"] = "TEST-INVITE-CODE"
 os.environ["ADMIN_PIN"] = "TEST-PIN"
+# Tests exercise every tier (research, dev, admin, etc.); set development so all
+# product tiers are registered by app/main.py.
+os.environ["SEMPTIFY_ENV"] = "development"
 
 from app.core.config import get_settings  # noqa: E402
 from app.core.cookie_auth import sign_user_id  # noqa: E402

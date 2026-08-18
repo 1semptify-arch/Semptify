@@ -1,3 +1,58 @@
+## Session -- 2026-08-16 — Prune dead product manifest registrations and restore active modules
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+`todo-084` required deleting 7 dead module `_register()` entries in `app/core/product_manifest.py` whose `app/modules/` directories no longer exist. Removing all 7 also dropped `app.modules.example_payment_tracking` and `app.modules.legal_filing_module`, which still have real code and routers, so they had to be restored.
+
+### Fix
+
+- Restored `_register()` entries for `app.modules.example_payment_tracking` and `app.modules.legal_filing_module` in `app/core/product_manifest.py` (`ProductTier.DEV`, `dev_only` lifecycle, with their existing router tags and `dev_notes`).
+- Deleted only the 5 truly dead conceptual/placeholder registrations: `vault_sync`, `eviction_notice_explainer`, `response_letter_generator`, `eviction_defense_content`, and `ai_copilot`.
+- Updated `tools/agent_orchestrator_tasks.json` `todo-084` notes to record which 5 were removed and which 2 were restored, and set `status` to `resolved`.
+
+### Verification
+
+- `python -m py_compile app/core/product_manifest.py` — PASS.
+- `python tools/sync_orchestrator.py --check` — PASS (97 tasks, 0 missing paths).
+
+### Status
+
+`todo-084` resolved. The product manifest now contains only real router-backed modules plus the intentionally conceptual UPL Matrix placeholders; the 5 dead conceptual registrations are gone.
+
+---
+
+## Session -- 2026-08-16 — Measure always-on heavy services RSS footprint
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+`todo-086` asked for an investigation of the always-on heavy services (Positronic Brain, mesh, module hub, event subscribers, litigation-intelligence) to determine what they load, whether they should be tier-gated or lazy-loaded, and whether any init can be deferred. Actual per-service RSS measurements were required before proposing fixes.
+
+### Fix
+
+- Measured per-service isolated RSS using temporary measurement scripts:
+  - Positronic Brain ~5.3 MB
+  - Module Hub ~5.5 MB
+  - Mesh ~5.5 MB
+  - Event subscribers ~4.2 MB
+  - Litigation Intelligence package ~62 MB (driven by `court_scraper` importing `playwright` at package load).
+- Compared full-app worker memory with `ENABLE_HEAVY_SERVICES=false` (208.0 MB) vs. `true` (211.6 MB); the heavy services add only ~3.6 MB in the full production context.
+- Recorded the measurements and findings in `tools/agent_orchestrator_tasks.json` `todo-086` notes and set `status` to `resolved`.
+
+### Verification
+
+- `python tools/sync_orchestrator.py --check` — PASS (97 tasks, 0 missing paths).
+- No code change required; only task tracker notes were updated with the measured data.
+
+### Status
+
+Heavy services memory footprint is quantified. The individual packages are lightweight except for the Litigation Intelligence package, which loads `playwright` eagerly. The full-app delta is small, so gating/lazy-loading is now a data-informed decision rather than an assumption.
+
+---
+
 ## Session -- 2026-08-15 — Fact-check/freshness system close-out (Phases A–D)
 
 ### Guardrail Engine Run — not run
@@ -10159,6 +10214,38 @@ Set these in Render Dashboard > Service > Environment:
 
 **Next session should start with:**
 - Continue next orchestrator duplicate-resolve task or resume GUI Phase 1 work per ACTIVE_CONTEXT.
+
+---
+
+## Session Ship — 2026-08-17 PR queue clean-up
+
+**Deployed commit:** `761f669d`
+
+**What was shipped:**
+- Merged `github-direct/main` into local `main` to land already-merged upstream PRs:
+  - #41 `ed6f6314` — admin: reconcile Phase C Tier 1 batch 7
+  - #42 `bd911a22` — admin: reconcile Phase C Tier 1 batch 8
+  - #59 `b1becad8` — fix: replace naive datetime.now() with utc_now() in 4 app files
+  - #103 `b78d45f0` — docs: Repo presentation cleanup (FUNDING, README, CONTRIBUTING)
+- PR #98 (`1da0d408`) was already present in both local and `github-direct/main`; no rebase needed.
+- PR #33 (`adr-0008-pilot`) is already closed on GitHub with an explanatory comment from 2026-08-16; its ADR-0008 pilot pieces already landed through the Phase B/C PRs, so no replacement PR was cut.
+- Six files changed in the merge: `app/core/error_handling.py`, `app/core/manager_dashboard.py`, `app/modules/litigation_intelligence/scheduler.py`, `app/modules/litigation_intelligence/storage_layer.py`, `app/services/recognition/handwriting_analyzer.py`, `app/services/recognition/models.py`.
+
+**Verified:**
+- `python -m py_compile` on `app/main.py` and all six touched files: PASS.
+- `python tools/sync_orchestrator.py --check`: PASS (0 stubs, 98 tasks, 0 missing paths).
+- `pytest tests/test_information_orchestrator_pilot.py -q --no-cov`: 12 passed.
+
+**Known working:**
+- Local `main` is now fully current with `github-direct/main`.
+- Core compile and sync check pass.
+
+**Known broken / pending:**
+- Local `main` is 13 commits ahead of `github-direct/main` (the merge commit `761f669d` plus 12 pre-existing local commits). These need to land on `github-direct/main` via a PR because the `protect-main` ruleset rejects direct pushes.
+- Uncommitted local changes remain in `data/vault_index/vault_index.json`, `docs/USER_GUIDE.md`, `static/ai-helper-bundle.txt`, plus untracked `data/registry/` and `mockups/designs/`.
+
+**Next session should start with:**
+- Open a PR from local `main` to `github-direct/main` to land the 13 local commits, or get owner approval for a direct push if the ruleset allows.
 
 ---
 

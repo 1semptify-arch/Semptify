@@ -217,6 +217,18 @@ from app.core.contract_loader import load_all_contracts
 from app.core.product_manifest import ProductTier, register_tiers
 from app.core.utc import utc_now
 
+# Tier configuration: production = CORE/EXTENDED/ADVOCATE/ADMIN; development = all
+_LIVE_TIERS: dict[str, list[ProductTier]] = {
+    "production": [ProductTier.CORE, ProductTier.EXTENDED, ProductTier.ADVOCATE, ProductTier.ADMIN],
+    "development": list(ProductTier.all()),
+}
+
+
+def _get_enabled_tiers() -> list[ProductTier]:
+    """Return the product tiers that should be enabled for this process."""
+    env = os.getenv("SEMPTIFY_ENV", "production").lower()
+    return _LIVE_TIERS.get(env, _LIVE_TIERS["production"])
+
 # =============================================================================
 # Logging Setup
 # =============================================================================
@@ -525,11 +537,12 @@ async def lifespan(_app: FastAPI):
 
         # --- STAGE 3.5: Load Module Contracts ---
         async def load_contracts():
-            result = load_all_contracts()
+            result = load_all_contracts(enabled_tiers=_get_enabled_tiers())
             lifespan_logger.info(
-                "   Contracts: %s loaded, %s failed, %s total",
+                "   Contracts: %s loaded, %s failed, %s skipped, %s total",
                 result["loaded"],
                 result["failed"],
+                result["skipped"],
                 result["total_contracts"],
             )
 
@@ -1857,17 +1870,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Register Routers via Product Manifest
     # =========================================================================
 
-    # ALL TIERS ENABLED - Full live deployment
-    # CORE + EXTENDED + ADVOCATE + ADMIN + RESEARCH + DEV
-    register_tiers(
-        fastapi_app,
-        ProductTier.CORE,
-        ProductTier.EXTENDED,
-        ProductTier.ADVOCATE,
-        ProductTier.ADMIN,
-        ProductTier.RESEARCH,
-        ProductTier.DEV,
-    )
+    enabled_tiers = _get_enabled_tiers()
+    register_tiers(fastapi_app, *enabled_tiers)
 
     # Stateless composer landing prototype for the public utility experience.
     app_static_path = BASE_PATH / "app" / "static"
