@@ -52,7 +52,9 @@ def get_dashboard_stats(organization_id: str, db_session) -> dict[str, Any]:
     pending_docs = (
         db_session.query(Document)
         .filter(
-            Document.user_id.in_(user_ids), Document.requires_signature, not Document.signature_received
+            Document.user_id.in_(user_ids),
+            Document.requires_signature,
+            ~Document.signature_received,
         )
         .count()
         if hasattr(Document, "requires_signature")
@@ -62,7 +64,11 @@ def get_dashboard_stats(organization_id: str, db_session) -> dict[str, Any]:
     # Urgent (overdue) items
     urgent_items = (
         db_session.query(Document)
-        .filter(Document.user_id.in_(user_ids), Document.due_date < utc_now(), not Document.completed)
+        .filter(
+            Document.user_id.in_(user_ids),
+            Document.due_date < utc_now(),
+            ~Document.completed,
+        )
         .count()
         if hasattr(Document, "due_date")
         else 0
@@ -202,7 +208,7 @@ def get_pending_signatures(organization_id: str, db_session) -> list[dict[str, A
             .filter(
                 Document.user_id.in_(user_ids),
                 Document.requires_signature,
-                not Document.signature_received,
+                ~Document.signature_received,
             )
             .order_by(Document.created_at.desc())
             .limit(10)
