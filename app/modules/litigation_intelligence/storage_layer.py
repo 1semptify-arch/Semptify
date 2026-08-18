@@ -41,8 +41,8 @@ class LitigationCase:
     parties: dict[str, Any]
     documents: list[dict[str, Any]]
     intelligence_report: dict[str, Any] | None = None
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=utc_now)
+    updated_at: datetime = field(default_factory=utc_now)
 
 
 @dataclass
@@ -57,8 +57,8 @@ class EntityRecord:
     attributes: dict[str, Any]
     relationships: list[str]
     confidence: float
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=utc_now)
+    updated_at: datetime = field(default_factory=utc_now)
 
 
 class LitigationStorageLayer:
