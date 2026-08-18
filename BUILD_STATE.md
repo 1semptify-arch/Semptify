@@ -10217,6 +10217,38 @@ Set these in Render Dashboard > Service > Environment:
 
 ---
 
+## Session Ship — 2026-08-17 PR queue clean-up
+
+**Deployed commit:** `761f669d`
+
+**What was shipped:**
+- Merged `github-direct/main` into local `main` to land already-merged upstream PRs:
+  - #41 `ed6f6314` — admin: reconcile Phase C Tier 1 batch 7
+  - #42 `bd911a22` — admin: reconcile Phase C Tier 1 batch 8
+  - #59 `b1becad8` — fix: replace naive datetime.now() with utc_now() in 4 app files
+  - #103 `b78d45f0` — docs: Repo presentation cleanup (FUNDING, README, CONTRIBUTING)
+- PR #98 (`1da0d408`) was already present in both local and `github-direct/main`; no rebase needed.
+- PR #33 (`adr-0008-pilot`) is already closed on GitHub with an explanatory comment from 2026-08-16; its ADR-0008 pilot pieces already landed through the Phase B/C PRs, so no replacement PR was cut.
+- Six files changed in the merge: `app/core/error_handling.py`, `app/core/manager_dashboard.py`, `app/modules/litigation_intelligence/scheduler.py`, `app/modules/litigation_intelligence/storage_layer.py`, `app/services/recognition/handwriting_analyzer.py`, `app/services/recognition/models.py`.
+
+**Verified:**
+- `python -m py_compile` on `app/main.py` and all six touched files: PASS.
+- `python tools/sync_orchestrator.py --check`: PASS (0 stubs, 98 tasks, 0 missing paths).
+- `pytest tests/test_information_orchestrator_pilot.py -q --no-cov`: 12 passed.
+
+**Known working:**
+- Local `main` is now fully current with `github-direct/main`.
+- Core compile and sync check pass.
+
+**Known broken / pending:**
+- Local `main` is 13 commits ahead of `github-direct/main` (the merge commit `761f669d` plus 12 pre-existing local commits). These need to land on `github-direct/main` via a PR because the `protect-main` ruleset rejects direct pushes.
+- Uncommitted local changes remain in `data/vault_index/vault_index.json`, `docs/USER_GUIDE.md`, `static/ai-helper-bundle.txt`, plus untracked `data/registry/` and `mockups/designs/`.
+
+**Next session should start with:**
+- Open a PR from local `main` to `github-direct/main` to land the 13 local commits, or get owner approval for a direct push if the ruleset allows.
+
+---
+
 ## How to Use /ship
 At the end of every session, type `/ship` in Windsurf chat.
 It will: verify → stage → commit → push → update this file.
