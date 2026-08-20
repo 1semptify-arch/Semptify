@@ -1,3 +1,688 @@
+## Session -- 2026-08-20 — ADR-0008 Layer 2 Problem A: semantic retrieval
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Implement dialect-aware embeddings for Semptify's own curated content (`context_explanation_entries` and `context_facts`), replacing the metadata-only placeholder retrieval in `app/modules/context_engine/retrieval.py` with a hybrid metadata pre-filter + embedding similarity pipeline. Must load `all-MiniLM-L6-v2` once, generate query embeddings at request time, keep the SQLite dev path pure-Python, support pgvector on PostgreSQL, add migration/backfill, and recalibrate the confidence threshold empirically.
+
+### Fix
+
+- Added `app/core/database_types.py` with `AsymmetricVector` (pgvector `VECTOR(384)` on PostgreSQL, `JSON` on SQLite).
+- Added `embedding` columns to `ContextExplanationEntry` (`app/modules/context_engine/explanation_entries.py`) and `ContextFact` (`app/modules/context_engine/models.py`).
+- Added `app/modules/context_engine/embedding_model.py` singleton `all-MiniLM-L6-v2` loader and `app/modules/context_engine/vector_math.py` pure-Python cosine.
+- Rewrote `app/modules/context_engine/retrieval.py` to pre-filter by `jurisdiction` and `pillar`, then score by embedding cosine. PostgreSQL uses the pgvector `<=>` distance operator; SQLite uses `vector_math.cosine_similarity`.
+- Recalibrated `LAYER2_CONFIDENCE_THRESHOLD` from `0.75` (metadata-only) to `0.45` based on realistic Object Envelope spot-checks.
+- Wired embedding generation into `create_explanation_entry` and `update_explanation_entry` in `explanation_entries.py` and into `upsert_fact` in `cache.py`.
+- Added `scripts/backfill_context_embeddings.py` to backfill existing `context_explanation_entries` and `context_facts` rows.
+- Added Alembic migration `alembic/versions/20260820_add_embedding_columns.py` with `CREATE EXTENSION IF NOT EXISTS vector;` for PostgreSQL.
+- Added `sentence-transformers` and `pgvector` to `requirements.txt`.
+- Wired a startup background task in `app/main.py` to eagerly warm the singleton; guarded by `ENABLE_HEAVY_SERVICES` and `EMBEDDING_MODEL_LOCAL_FILES_ONLY`.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files — PASS.
+- `python -m pytest tests/test_information_orchestrator_pilot.py -q --no-cov` — 12/12 pass.
+- `python -m pytest tests/module_health/test_context_engine.py tests/test_context_engine_verifier.py -q --no-cov` — 7/7 pass.
+- `python -m pytest tests/module_health -q --no-cov` — 244/244 pass.
+- `alembic upgrade head` on SQLite — PASS; `context_explanation_entries.embedding` and `context_facts.embedding` columns created as `JSON`.
+- `python scripts/backfill_context_embeddings.py` — 0 explanation entries, 2 facts embedded, 0 failures.
+- Spot-check (dev script): "late fee" → returns late-fee entry (0.679) and penalty-charge entry (0.473); "penalty charge" → penalty-charge entry (0.589); "security deposit return" → deposit entry (0.510); "eviction notice deadline" → eviction entry (0.647); unrelated "traffic ticket" → [] (silence beats fabrication).
+- Local Uvicorn server on `127.0.0.1:8003` started and logs show `Embedding model all-MiniLM-L6-v2 loaded`.
+
+### Status
+
+Semantic retrieval for curated Layer 1 content is implemented, tested, and migration-ready. PostgreSQL parity was not locally exercised because no live PostgreSQL test environment is available; the code path and Alembic migration are in place. Local VM memory is 92–95% before model load, so the donation-funded deployment tier must be sized to accommodate the additional ~25–100 MB the model and torch add.
+
+---
+
+## Session -- 2026-08-20 — Page Composer architecture inventory (read-only, no facade work)
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+User asked to continue the Page Composer reform by producing a complete inventory of its current implementation, dependencies, callers, scope, contracts, templates, safety rules, routing, and consumers — as the last architectural block before considering a PageEngine facade. Facade work was explicitly not started.
+
+### What was done
+
+Read-only audit of `app/modules/page_composer`, `app/modules/page_shell`, `app/services/ui_composer`, calling routes in `app/main.py`, the contract registry, `product_manifest.py`, templates, tests, and the assembly formula blueprint. Live HTTP verification on `http://127.0.0.1:8001`:
+- `GET /api/page/` — 200, returns 14 Context Engine subjects.
+- `GET /api/page/repair/render` — 200, returns Page Shell HTML (`skeleton-act_focus`, blend `post_filing_calm`, 4 zones).
+- `GET /gui/page/repair` — 200.
+- `GET /api/page/eviction/preview` — 200, public preview returns empty facts/stories/case.
+
+### Inventory summary
+
+#### 1. Source files
+
+**Page Composer (`app/modules/page_composer/`)**
+- `__init__.py` — exports `router`.
+- `router.py` — FastAPI routes under `/api/page`.
+- `service.py` — `compose_page(subject, jurisdiction, user_id, fact_limit, story_limit)`; pulls Context Engine facts, stories, and optional Case Builder data.
+- `assembly.py` — `assemble_page(...)`; the assembly formula. Produces `PageConfig`, legacy UI Composer components, and a GOVERN report.
+- `models.py` — `PageAssemblyRequest`, `PageAssemblyMetadata`, `PageAssemblyResult`.
+- `register.py` — two `FunctionGroupContract` registrations (`page_compose`, `page_assemble`).
+
+**Page Shell (`app/modules/page_shell/`)**
+- `__init__.py` — docstring only.
+- `router.py` — `/api/page-shell/health`, `/skeletons`, `/blends`, `/render`, `/demo`.
+- `models.py` — Pydantic models: `PageConfig`, `Zone`, `InputBlock`, `InfoBlock`, `OutputBlock`, `ChannelLevels`, `AuditHook`, `Escalation`.
+- `blends.py` — 6 named blend presets (`first_contact`, `orientation`, `quiet_capture`, `urgent_action`, `post_filing_calm`, `high_stakes_review`).
+- `skeletons.py` — 4 skeleton grid layouts (`record_focus`, `know_focus`, `act_focus`, `govern_focus`).
+- `govern.py` — GOVERN floor by `risk_tier` and GOVERN `suppresses_act_block` override.
+- `zones.py` — `level_to_prominence()` and `level_to_visual_weight()`.
+- `renderer.py` — `render_page_shell(config)` → HTML string.
+- `loader.py` — `load_page_config()` validates a raw dict and applies GOVERN rules.
+- `register.py` — comments noting registration is in `product_manifest.py`; no `register_function_group` call.
+- `README.md` — implementation notes.
+- `sample_configs/record_focus_demo.json` and `govern_focus_demo.json`.
+
+**UI Composer (separate, for comparison)**
+- `app/services/ui_composer.py` — `compose_page(user_id, page_intent, context)` returns component list.
+- `app/modules/ui_composer/router.py` — `/api/ui/page/{intent}`, `/api/ui/fragment/{component_type}`, `/api/ui/process/{workflow_id}`.
+- `app/modules/ui_composer/register.py` — three `FunctionGroupContract` registrations.
+- `app/templates/components/ui_composer.html` — macro library.
+- `app/templates/generic_page.html` — UI Composer consumer.
+
+**Templates / CSS directly tied to Page Shell**
+- `app/templates/gui/assembled_page.html` — wraps `render_page_shell` output.
+- `static/page_shell/page_shell.css` — 100vh desktop grid + mobile stacked scroll, 4 skeletons, level-driven visual weight.
+- `static/admin/page_shell_demo.html` — admin demo toggling record/govern focus.
+
+**Design docs**
+- `docs/blueprints/page_composer_assembly_formula_blueprint.md` — DRAFT blueprint for the assembly formula.
+- `temp/semptify_pillar_mixer_backbone.md` (referenced) — spec for the Page Shell.
+
+#### 2. Routing
+
+**Page Composer API (`app/modules/page_composer/router.py`) — mounted in `app/core/product_manifest.py` as CORE tier**
+- `GET /api/page/` — list 14 subjects.
+- `GET /api/page/{subject}/preview` — public, no auth, no case data.
+- `GET /api/page/{subject}` — legacy JSON view, requires `auth_gate`.
+- `GET /api/page/{subject}/assemble` — requires auth.
+- `POST /api/page/assemble` — requires auth.
+- `GET /api/page/{subject}/config` — requires auth.
+- `GET /api/page/{subject}/components` — requires auth.
+- `GET /api/page/{subject}/render` — requires auth; returns shell HTML.
+
+**Page Shell API (`app/modules/page_shell/router.py`) — mounted in `product_manifest.py` as DEV tier, `dev_only`, `requires_role=("admin",)`, prefix `/api/page-shell`**
+- `GET /api/page-shell/health`
+- `GET /api/page-shell/skeletons`
+- `GET /api/page-shell/blends`
+- `POST /api/page-shell/render`
+- `GET /api/page-shell/demo`
+
+**Main app HTML routes using Page Composer / Page Shell (`app/main.py`)**
+- `GET /gui/dashboard?subject=&intent=` (line ~3490) — tenant dashboard.
+- `GET /gui/page/{subject}` (line ~3521) — assembled subject page.
+- `GET /tenant/library/{subject}` (line ~5047) — KNOW library subject; uses `page_composer.service.compose_page` + `ui_composer.compose_page` + `generic_page.html`.
+- `GET /api/ui/fragment/library/{subject}` (line ~5189) — HTMX fragment; uses `page_composer.service.compose_page` for facts.
+
+**In-task guide pages (UI Composer extended, NOT Page Composer)**
+- `GET /gui/record/journal/create` (`app/main.py` ~3348) — `record_body.html` / `pages/journal_create_guide.html`.
+- `GET /gui/know/law-library/get-statute` (`app/main.py`).
+- `GET /gui/act/eviction-defense/calculate-deadlines` (`app/main.py`).
+These are strict single-pillar, single-function pages; they borrow Page Shell CSS tokens but do not use `PageConfig`/skeletons/blends.
+
+#### 3. Dependencies and callers
+
+**Page Composer `service.py` calls**
+- `app.modules.context_engine.cache.get_facts`
+- `app.modules.context_engine.stories.get_published_stories`
+- `app.modules.case_builder.case_builder.get_cases_for_user` (best-effort, optional; currently may return nothing because the function does not exist — noted).
+
+**Page Composer `assembly.py` calls**
+- `app.modules.page_composer.service.compose_page`
+- `app.modules.page_shell.blends.get_blend`
+- `app.modules.page_shell.govern.apply_govern_rules`
+- `app.modules.page_shell.zones.level_to_prominence`
+- `app.modules.page_shell.models` (PageConfig, Zone, blocks)
+- `app.services.ui_composer.compose_page` (legacy component fallback)
+- `app.services.context_loop.context_loop.get_state` (local import, best-effort)
+
+**Page Shell `renderer.py` calls**
+- `app.modules.page_shell.govern.collect_suppressed_act_blocks`
+- `app.modules.page_shell.models`
+- `app.modules.page_shell.skeletons`
+- `app.modules.page_shell.zones`
+
+#### 4. Contracts and safety rules
+
+- `app/modules/page_composer/register.py` registers two `FunctionGroupContract`s: `page_compose` and `page_assemble`.
+- `app/modules/page_shell/register.py` does not register any contract; its registration lives only in `product_manifest.py`.
+- **Neither `app.modules.page_composer.register` nor `app.modules.page_shell.register` is listed in `app/core/contract_loader.py:_MODULES_WITH_CONTRACTS`.** The Page Composer/Page Shell contracts are therefore not loaded at startup, even though Page Composer is a CORE module. This contradicts the AGENTS.md module-contract mandate for reusable service APIs.
+- UI Composer contracts (`app/modules/ui_composer/register.py`) are listed in `contract_loader.py` and are active.
+- Page Composer routes use `app.core.security.auth_gate` (valid user only).
+- Page Shell loader rejects: missing `major_pillar`, unknown `blend`, `risk_tier="very_high_do_not_build"`.
+- Page Shell GOVERN rules clamp GOVERN to a floor based on risk tier and can suppress named ACT blocks via `OutputBlock.suppresses_act_block`.
+
+#### 5. Templates / styling
+
+- `app/templates/gui/assembled_page.html` — wraps `shell_html|safe`, loads `/static/page_shell/page_shell.css`.
+- `static/page_shell/page_shell.css` — 100vh desktop grid, mobile breakpoint at 1024px, 4 zone base hues, `visual-weight-{low,moderate,deep}` gradients, no cards/borders/shadows.
+- `app/templates/generic_page.html` — UI Composer consumer; loads `ssot-design-system.css`, not Page Shell CSS.
+- `app/templates/components/ui_composer.html` — Jinja macros for UI Composer component types.
+
+#### 6. Scope boundaries
+
+- **Page Composer** — multi-pillar page orchestration. Decides `major_pillar`, blend, channel levels, block content, GOVERN rules. Emits `PageConfig` + legacy component list. Intended for concierge/dashboard/landing/library-browse pages.
+- **Page Shell** — pure data-driven renderer. Input is a validated `PageConfig`; output is HTML. Knows nothing about user context, facts, or case data.
+- **UI Composer** — legacy/extended single-pillar in-task page composer. Returns ordered component lists for `generic_page.html` and the three in-task guide pages. Owns `record_body.html`, `know_body.html`, `act_body.html`.
+- The two page families share Context Loop, `module_contracts.py`/`contract_registry`, and `module_gate` resolution, but they do not render the same page types.
+
+#### 7. Consumers
+
+- Public / marketing: `/api/page/{subject}/preview`.
+- Tenant dashboard: `/gui/dashboard`.
+- Tenant subject pages: `/gui/page/{subject}`.
+- KNOW library: `/tenant/library/{subject}` and `/api/ui/fragment/library/{subject}`.
+- Admin tooling: `/admin/page_shell_demo.html` and `/api/page-shell/*`.
+
+#### 8. Gaps and observations (not fixed)
+
+- **Page Composer / Page Shell contracts not loaded** because `register.py` paths are missing from `app/core/contract_loader.py`.
+- **Page Shell is DEV/admin-only in the manifest but is production-exposed via Page Composer** (`/api/page/{subject}/render` and `/gui/page/{subject}` call `render_page_shell`). This is a lifecycle/permission mismatch.
+- **Capability filter in `assembly.py` is currently a no-op** — `_apply_capability_filter` only filters if `context["capabilities"]` is present, and `_block_allowed` always returns True because `AnyBlock` does not carry a module name.
+- **`page_composer.service._gather_user_case` calls `cb_module.get_cases_for_user`**, which does not exist in `app/modules/case_builder` (the `get_cases_for_user` attribute check fails silently; case data is always `None`).
+- **Page Shell skeleton uses `height: 100vh; overflow: hidden`**, but only on the `.page-shell` class. The three proven UI Composer in-task guide pages do not use the `.page-shell` wrapper, so the rule does not apply to them. Verified at 375x667: all three pages have `body { overflow: visible }`, `scrollHeight > innerHeight`, and scroll correctly. This gap remains a concern for Page Composer's own blended dashboard pages (`/gui/page/{subject}`, `/gui/dashboard`), not for the in-task guides.
+- **The blueprint (`page_composer_assembly_formula_blueprint.md`) is still DRAFT** and not fully canonical.
+
+### Quick check — `page_shell.css` `100vh`/`overflow: hidden` scope
+
+- Rule in `static/page_shell/page_shell.css` is `.page-shell { height: 100vh; overflow: hidden; }`.
+- The three proven in-task guide pages (`record_body.html`, `know_body.html`, `act_body.html`) render inside `.record-guide`/`.know-guide`/`.act-guide` wrappers, not `.page-shell`, and override `.zone { overflow: visible; }`.
+- Verified at 375x667 via browser resize/evaluate against the running app:
+  - `/gui/record/journal/create` — `scrollHeight: 2373`, `innerHeight: 667`, `body { overflow: visible }`, no `.page-shell` element, scrolls.
+  - `/gui/know/law-library/get-statute` — `scrollHeight: 1666`, `innerHeight: 667`, `body { overflow: visible }`, no `.page-shell` element, scrolls.
+  - `/gui/act/eviction-defense/calculate-deadlines` — `scrollHeight: 2185`, `innerHeight: 667`, `body { overflow: visible }`, no `.page-shell` element, scrolls.
+- Conclusion: the rule is **narrowly scoped** to `.page-shell` and does not clip the three proven pages. No immediate fix needed; gap remains in backlog for Page Composer/Page Shell blended pages.
+
+### Status
+
+Inventory complete. No code changes made. Facade work not started. The next decision point is whether to address the contract-loading and capability-filter gaps before any PageEngine facade is discussed.
+
+---
+
+## Session -- 2026-08-20 — Page Composer / Page Shell prioritized cleanup
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+The Page Composer inventory identified six gaps. This session addressed all six in the user-provided priority order, with real-request verification for the live Page Composer routes.
+
+### What was done
+
+1. **Capability filter no-op → fixed**
+   - Added `module_name` to `InputBlock`, `InfoBlock`, `OutputBlock` in `app/modules/page_shell/models.py`.
+   - Set `module_name` on every Page Composer block in `app/modules/page_composer/assembly.py` (vault, case_builder, calendar, timeline).
+   - Rewrote `_apply_capability_filter` / `_block_allowed` to use `context["capabilities"]` (resolved module paths) and warn visibly when capabilities are missing.
+   - Wired `resolved_module_paths` from `app.core.module_gate.get_module_access(request)` into `assemble_page` calls in `app/modules/page_composer/router.py`, `/gui/dashboard`, and `/gui/page/{subject}`.
+
+2. **Case Builder phantom function → fixed**
+   - Created `app/modules/case_builder/case_builder.py` with `get_cases_for_user(user_id, subject=None)`.
+   - Updated `app/modules/page_composer/service.py::_gather_user_case` to use the new function and log visible warnings when the module or function is missing.
+
+3. **CSS mobile check → no fix needed**
+   - Confirmed `static/page_shell/page_shell.css` already switches `.page-shell` to `height: auto; overflow: visible` at `max-width: 1024px`.
+   - At 375px on `/gui/page/repair` and `/gui/dashboard` the document scrolls normally (`scrollHeight > innerHeight`, `overflow: visible`).
+
+4. **Manifest mismatch → fixed**
+   - Promoted `app.modules.page_shell.router` from `ProductTier.DEV / lifecycle="dev_only"` to `ProductTier.CORE / lifecycle="stable"` in `app/core/product_manifest.py`.
+   - Kept `requires_role=("admin",)` on the `/api/page-shell` introspection router; the renderer is used through Page Composer's tenant routes.
+
+5. **Contracts not loaded → fixed**
+   - Added `app.modules.page_composer.register` and `app.modules.page_shell.register` to `app/core/contract_loader.py`.
+   - Gave `app/modules/page_shell/register.py` real `FunctionGroupContract` registrations for `render_page` and `load_page_config`.
+
+6. **Assembly formula blueprint still DRAFT → promoted**
+   - Updated `docs/blueprints/page_composer_assembly_formula_blueprint.md` status from `DRAFT` to `APPROVED — implemented`.
+   - Added implementation notes covering capability filter, Case Builder, manifest, contracts, and mobile CSS.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed, 1 warning.
+- `pytest tests/test_page_composer_assembly.py tests/test_page_composer_assembly_api.py tests/test_page_composer_render.py -q --no-cov`: 23 passed.
+- Real request `GET /api/page/repair/render` with seeded user: HTTP 200, blocks present in record/act zones.
+- Mobile (375×667) browser check on `/gui/page/repair` and `/gui/dashboard`: `overflow: visible`, document scrollable.
+
+### Remaining
+
+- No remaining Page Composer/Page Shell cleanup gaps from this inventory.
+- PageEngine facade remains explicitly deferred.
+
+---
+
+## Session -- 2026-08-20 — Add single-function guide page: timeline create event
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+User selected option 1 from the master handoff: add more single-function guide pages using the proven pattern. Chose `timeline::timeline_create_event` as the next RECORD-pillar function.
+
+### What was done
+
+- Created `app/templates/pages/timeline_create_event.html` extending `body/record_body.html`.
+- Reused Page Shell CSS tokens, zone/block classes, `record-guide` layout, form-first ordering, `details`-wrapped optional fields, primary `output-trigger` save button, and "View your timeline" next-step CTA.
+- Added route `GET /gui/record/timeline/create-event` in `app/main.py` with tapering context, resolver notice, and a 3-step backstage narration.
+- The page form calls the existing `POST /api/timeline/events` endpoint.
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `pytest tests/test_page_composer_assembly.py tests/test_page_composer_assembly_api.py tests/test_page_composer_render.py -q --no-cov`: 23 passed.
+- Real request `GET /gui/record/timeline/create-event`: HTTP 200.
+- Browser real-use pass: filled title, date, description, clicked Save; returned `Saved. Event ID: evt_xiG3qMKoRiHjEIGL`.
+- Mobile check at 375px: document scrolls (`scrollHeight: 2470`, `innerHeight: 667`, `overflow: visible`), zero console errors.
+
+### Notes
+
+- The contract title still reads `Timeline Create Event (SSOT)`, which is backlog item "contract copy too technical." Not fixed per-function; tracked centrally.
+
+---
+
+## Session -- 2026-08-20 — Real-use verification of the three in-task guide pages
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+User instructed: "Real use is genuinely unblocked: seed a test user and go work through journal_create, the statute lookup, and the deadline calculator yourself." The goal was to exercise the three proven in-task guide pages end-to-end as a real user, not just inspect code or run another handoff.
+
+### What was done
+
+Seeded the test tenant by setting the signed `semptify_uid` cookie in the browser and exercised all three flows:
+
+- **Journal create** — filled `Other` / "Test journal entry" / "The landlord refused to fix the leaking sink.", clicked Save. Result: `Saved. Entry ID: jrn_TI7uKblqSJhqW3wn`.
+- **Law library get statute** — selected `Security Deposits`, clicked Look up. Result: 404. The page was calling `/api/law-library/statute?statute_id=...`, which does not exist. The canonical endpoint is `/api/law-library/statutes/{statute_id}` and returns `{statute: {...}}`.
+- **Deadline calculator** — entered `2026-09-01` / `Nonpayment of rent`, clicked Calculate. Result: deadlines starting September 1, 2026 (`Answer due September 8, 2026`, etc.).
+
+### Fix
+
+- `app/templates/pages/law_library_get_statute.html`
+  - Changed the fetch URL from `/api/law-library/statute?statute_id=` to `/api/law-library/statutes/` + `statuteId`.
+  - Changed response parsing to use `s = data.statute || data` before reading `title`, `citation`, `summary`, `full_text`, `key_points`, and `source_name`.
+
+### Verification
+
+- Re-ran the statute lookup after the fix: selected `Security Deposits` → rendered `Minn. Stat. § 504B.375` with summary, key points, and source link.
+- Console errors on all three pages: 0.
+- All three flows now complete their real function with the seeded test user.
+
+---
+
+## Session -- 2026-08-20 — Local dev tenant auth bypass for in-task guide testing
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+The three verified UI Composer in-task guide pages render without auth in dev, but their save/action APIs (`POST /api/journal/`, `POST /api/eviction-defense/calculate-deadlines`, etc.) require a real user and return 401. Real OAuth onboarding is not configured locally (no client ID/secret), and the existing `/debug/seed-test-user` bypass was broken on SQLite (`NOW()` not supported) and did not set the signed `semptify_uid` cookie. This blocks "real use" testing of the proven pages.
+
+### Fix
+
+- Created a local `E:\master-repo\modules\app-semptify-fastapi\.env` with:
+  - `SECRET_KEY` — stable HMAC key for the signed `semptify_uid` cookie.
+  - `PORT=8001` — matches the running local dev port.
+  - `SECURITY_MODE=open` and `DATABASE_URL=sqlite+aiosqlite:///./semptify.db`.
+  - No OAuth credentials; the `.env` file is gitignored.
+- Fixed `POST /debug/seed-test-user` in `app/main.py`:
+  - Replaced SQL `NOW()` with `utc_now()` bind parameters so it works with SQLite.
+  - After seeding/upserting the `GUbGQUTpK6` tenant row, signs and sets the `semptify_uid` cookie via `set_auth_cookie()`.
+  - Returns a 302 redirect to `/gui/record/journal/create` so a browser following the POST is immediately logged in.
+- The bypass creates a user with `primary_provider='google_drive'`, `default_role='tenant'`, and `completed_groups='storage_connected,vault_initialized'`, which satisfies `require_user` and the local (non-enforced) storage middleware.
+
+### Verification
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- End-to-end dev bypass verification (curl with cookie jar):
+  - `POST /debug/seed-test-user` → 302, sets `semptify_uid` cookie.
+  - `GET /gui/record/journal/create` → 200.
+  - `GET /gui/know/law-library/get-statute` → 200.
+  - `GET /gui/act/eviction-defense/calculate-deadlines` → 200.
+  - `POST /api/journal/` with seeded cookie → 200, returns created journal entry.
+  - `POST /api/eviction-defense/calculate-deadlines` with seeded cookie → 200, returns deadlines.
+  - `GET /api/law-library/statutes` with seeded cookie → 200, returns statute list.
+
+### Status
+
+A stable local dev bypass is now available. Go to `http://127.0.0.1:8001/debug/seed-test-user` (POST) to log in as a fake tenant and use all three in-task guide pages for real. Real cloud OAuth still requires provider credentials and a registered redirect URI.
+
+### How to use the bypass
+
+1. Start server: `cd E:\master-repo\modules\app-semptify-fastapi && venv311\Scripts\python.exe -m uvicorn app.main:fastapi_app --host 127.0.0.1 --port 8001 --reload`
+2. POST `http://127.0.0.1:8001/debug/seed-test-user` (e.g., with curl or a browser form). It sets the `semptify_uid` cookie and redirects to the RECORD guide.
+3. Use the three guide pages normally: save journal entries, look up statutes, calculate eviction deadlines.
+
+---
+
+## Session -- 2026-08-19 — UI Composer form-factor variants and Page Shell CSS alignment
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Add desktop-poster / mobile-stacked-scroll form-factor variants to the three proven UI Composer in-task guide pages and align their visual vocabulary with Page Shell tokens (zone/block/block-input/output-trigger) without adopting Page Shell's four-pillar grid, skeletons, PageConfig, channels, blends, or GOVERN floor logic. Must preserve form-first order, next-step lead-in, calm `Get help now` CTA, progressive-disclosure `<details>`, Familiarity Tapering, and Module Resolver non-blocking notice behavior.
+
+### Fix
+
+- Reused the existing 900px media-query breakpoint and desktop-poster / mobile-stacked-scroll naming convention from `app/templates/pages/dispute_tracker.html` and `app/templates/pages/eviction_timeline.html`.
+- Loaded `/static/page_shell/page_shell.css` in `app/templates/body/{record,know,act}_body.html`.
+- Updated all three body templates to use Page Shell zone/block/block-input/output-trigger class vocabulary and level-driven shade depth, with zone-based background separation and no card borders/shadows.
+- Implemented a custom CSS grid for desktop (form/controls on the left, narration/inputs/outputs/next on the right; sticky controls) and a single-column natural scroll for mobile.
+- Added a `grid-area: auto` reset on each guide section so Page Shell's own `.zone[data-zone]` `grid-area` rules do not collapse the mobile single-column layout or override the custom desktop grid.
+- Preserved all must-not-regress behavior:
+  - Action/form is first visible (RECORD, KNOW) and the consequence-notice-then-action flow (ACT).
+  - Internal contract fields like `user_id` remain filtered from the templates.
+  - Calm, secondary-weight `Get help now` CTA remains reachable in both variants.
+  - `<details>` "Add more detail" progressive disclosure is intact.
+  - Familiarity Tapering `intensity_level` narration behavior is unchanged.
+  - Module Resolver non-blocking notice behavior is unchanged.
+  - One next-step lead-in remains on each page.
+- Did not start PageEngine facade work; deferred per `ACTIVE_CONTEXT.md`.
+
+### Verification
+
+- `python -m py_compile app\core\module_gate.py app\main.py app\modules\ui_composer\router.py app\services\ui_composer.py app\modules\ui_composer\tapering.py` — PASS.
+- `python -m pytest tests\module_health -q --no-cov` — 244 passed.
+- IronBee DevTools verification for all three pages (`/gui/record/journal/create`, `/gui/know/law-library/get-statute`, `/gui/act/eviction-defense/calculate-deadlines`) at 375px mobile and 1280px desktop:
+  - `main`, heading, and form present in both viewport classes for all three pages.
+  - Console returned no messages.
+  - ACT functional path (fill service date, click Calculate) completed successfully with no console errors.
+- Screenshots saved at `C:\Users\bradc\AppData\Local\Temp\uic-verify`:
+  - `record_desktop_1.png`, `record_mobile_4.png`
+  - `know_desktop_2.png`, `know_mobile_5.png`
+  - `act_desktop_3.png`, `act_mobile_6.png`
+
+### Status
+
+The three UI Composer in-task guide body templates now share the established desktop-poster / mobile-stacked-scroll form-factor pattern and Page Shell CSS token vocabulary while remaining strict single-function compositions. Visual consistency with the existing Page Composer-rendered pages is achieved through shared tokens, not shared composition logic. PageEngine facade remains deferred.
+
+---
+
+## Session -- 2026-08-19 — UI Composer Module Resolver wiring
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Wire the existing Module Resolver (Phase 2.2) into the UI Composer so single-function in-task guide pages and the `compose_page` service no longer ignore `request.state.module_access.resolved_module_paths`. `_get_resolved_modules()` in `app/services/ui_composer.py` was a hardcoded `[]` stub.
+
+### Fix
+
+- Added helpers to `app/core/module_gate.py`:
+  - `get_function_module_path(contract_module)` maps a contract module name to its product-manifest `module_path`.
+  - `is_function_resolved(request, contract_module)` checks `request.state.module_access.resolved_module_paths`.
+- Updated `app/services/ui_composer.py`:
+  - `_get_resolved_modules(user_id, context)` now returns `context["resolved_module_paths"]` when supplied, and fails open to all manifest module paths when not.
+  - `compose_page` injects `resolved_modules` into the context for downstream composers.
+- Updated the three UI Composer in-task guide routes in `app/main.py` to compute `situational_available = is_function_resolved(request, contract.module)` and pass it to the templates.
+- Updated `app/templates/body/{record,know,act}_body.html` to show a non-blocking "This function is not currently available for your role or location" notice when `situational_available` is false, while still showing the title, description, and narration (function is visible, just not actionable).
+- Updated `app/main.py` UI Composer `compose_page` call sites (`/tenant/timeline`, `/tenant/library/{subject}`, `/tenant/library`) and `app/modules/ui_composer/router.py` (`/api/ui/page/{intent}`) to pass `resolved_module_paths` from `get_module_access(request)`.
+
+### Verification
+
+- `python -m py_compile app/main.py app/services/ui_composer.py app/core/module_gate.py app/modules/ui_composer/router.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- IronBee DevTools navigation/ARIA/console verification:
+  - `/gui/record/journal/create`, `/gui/know/law-library/get-statute`, `/gui/act/eviction-defense/calculate-deadlines` all render the form and show no unavailable notice (modules are resolved for the default user role/jurisdiction).
+  - `/tenant/library` renders successfully with `Page Title: Semptify Composer`.
+  - Console returned no messages.
+
+### Status
+
+Module Resolver is now wired into both the UI Composer `compose_page` service and the three in-task guide pages. Function availability is now resolved from role/jurisdiction/gates/lifecycle while familiarity tapering still controls narration verbosity. When a function is not situationally available, the page stays visible but explains why it cannot be used.
+
+---
+
+## Session -- 2026-08-19 — UI Composer real Familiarity Tapering dial
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Replace the hardcoded `tapering_tier="new"` in all three verified single-function in-task guide pages with a real `intensity_level`/`exposure_count` dial backed by ADR-0008's Experience Token. Must preserve the no-server-side-tracking constraint, fall back for pre-OAuth/unauthenticated users, and keep `process_indicator` backwards-compatible.
+
+### Fix
+
+- Added `app/modules/ui_composer/tapering.py` — helpers to load/record/save Experience Token per function:
+  - Loads from tenant cloud storage when a user is connected.
+  - Falls back to a signed `semptify_exp_token` cookie for pre-OAuth / unauthenticated users.
+  - New users with no token start at `intensity_level=High` (per the Progressive Disclosure rule) and exposure 0.
+  - Records one exposure per page load for the function and persists the token.
+- Updated `app/templates/components/ui_composer.html` `process_indicator` macro:
+  - Uses `intensity_level` and `exposure_count` from template context.
+  - Maps `High` → full list until exposure 5, first item until exposure 7, none after.
+  - Maps `Standard` → full until 4, first until 6.
+  - Maps `Subtle` → full until 3, first until 5.
+  - Maps `Off` → no narration.
+  - Imported with `with context` in the three pillar body templates so the macro can read the page context.
+- Updated the three UI Composer routes in `app/main.py` (`/gui/record/journal/create`, `/gui/know/law-library/get-statute`, `/gui/act/eviction-defense/calculate-deadlines`):
+  - Added `db: AsyncSession = Depends(get_db)`.
+  - Compute `intensity_level` and `exposure_count` via `get_tapering_context`.
+  - Removed `tapering_tier="new"`; pass real values to templates.
+  - Set the signed cookie when the token is not saved to cloud storage.
+
+### Verification
+
+- `python -m py_compile app/main.py app/modules/ui_composer/tapering.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- IronBee DevTools + direct HTTP/cookie verification:
+  - Fresh session, 8 reloads of `/gui/record/journal/create`:
+    - Visits 1–4: full narration list (4 listitems) — `intensity=High`, exposure < 5.
+    - Visits 5–6: first item only (0 listitems, paragraph shown) — exposure 5–6.
+    - Visits 7–8: no narration (0 listitems, 0 paragraph) — exposure >= 7.
+  - `/gui/know/law-library/get-statute` and `/gui/act/eviction-defense/calculate-deadlines` render full narration on first visit (3 and 4 listitems respectively).
+  - `o11y_get-console-messages` returned no messages.
+
+### Status
+
+The real Familiarity Tapering dial is live. The three verified previews now expose the real `intensity_level` and `exposure_count` from the Experience Token instead of a hardcoded tier. Recording happens on page load for now; a task-completion event can be added later without changing the macro/routes.
+
+---
+
+## Session -- 2026-08-19 — UI Composer third in-task guide preview in ACT pillar
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Stress-test the single-function in-task guide pattern in the ACT pillar. ACT is the hardest case because it touches GOVERN/UPL risk tiers (the selected module is `eviction_defense`, which is `UPLRiskTier.HIGH` in the product manifest). The goal is to confirm the pattern holds for a guided lawful-action page without degrading into a multi-function dashboard or creating a competing page architecture.
+
+### Fix
+
+- Added `app/templates/body/act_body.html` — pillar body template for ACT. Mirrors `record_body.html` and `know_body.html` with ACT-specific eyebrow, `nav_act` active, "What this does" narration heading, internal `user_id` filter, calm `.gui-help-now` override, progressive-disclosure `<details>` styling, and a new `record_controls_legal_notice` block for the UPL disclaimer that must sit on the same screen as the output.
+- Added `app/templates/pages/eviction_defense_calculate_deadlines.html` — single-function in-task guide for `eviction_defense::eviction_defense_calculate_deadlines`.
+  - Form first: service-date input; optional `case_type` select is hidden behind a native `<details>` "Add more detail".
+  - A plain-language consequence notice appears **before** the action button: "This calculates dates only. It does not file anything for you or send anything to the court."
+  - JavaScript POSTs to `/api/eviction-defense/calculate-deadlines`.
+  - Renders deadlines as a labeled list, with the API's warning shown in a high-visibility callout.
+  - Parses returned ISO dates as UTC to avoid local-timezone off-by-one display errors.
+  - Includes a UPL-appropriate legal notice below the output ("Semptify is not a law firm. These deadlines are estimates…") and a visible `find legal help` link.
+  - Next-step lead-in to the KNOW law-library page: "Look up the law behind these deadlines."
+- Added route `GET /gui/act/eviction-defense/calculate-deadlines` in `app/main.py`. Uses `contract_registry.get("eviction_defense", "eviction_defense_calculate_deadlines")`, hardcoded `tapering_tier="new"`, and honest sync narration about what the calculation does.
+
+### Verification
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- IronBee DevTools browser verification at `http://127.0.0.1:8001/gui/act/eviction-defense/calculate-deadlines`:
+  - `a11y_take-aria-snapshot` shows the `Calculate deadlines` form first, `Act` nav active, contract inputs `start_date` and `case_type (optional)`, output `deadlines`, consequence notice before the action button, optional `case_type` hidden behind "Add more detail", legal notice on the same screen, one next-step link.
+  - `interaction_fill` + `interaction_click` exercised the functional path with a future service date and with a past service date.
+  - Past-date test surfaced the API's `⚠️ ANSWER DEADLINE HAS PASSED - File immediately!` warning; it rendered in the warning callout.
+  - Dates displayed correctly after a UTC fix (e.g., `2026-08-20` → "August 20, 2026").
+  - `o11y_get-console-messages` returned no messages (no JS errors).
+  - Screenshots confirm form-first layout, visible result, warning styling, legal notice, calm help CTA, and chronological/spatial eye path.
+
+### Status
+
+Third in-task guide preview is live and verified. The pattern now generalizes across all three non-GOVERN pillars:
+
+- RECORD: `journal_create` — write/save
+- KNOW: `law_library_get_statute` — read/lookup
+- ACT: `eviction_defense_calculate_deadlines` — guided calculation, UPL-risk output
+
+No Page Composer, Page Shell, contract-schema, or Module Resolver work was done. The `record_controls_legal_notice` block in `act_body.html` is a lightweight way to surface GOVERN-required disclaimers on ACT-pillar outputs without breaking the one-function/one-page model.
+
+---
+
+## Session -- 2026-08-19 — UI Composer second in-task guide preview in KNOW pillar
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Prove the one-function/one-page/tapering-density pattern proven by `journal_create` generalizes to a structurally different function — a read/lookup, not a write/save. Build a second in-task guide in the KNOW pillar without Page Composer, Page Shell, contract-schema changes, or Module Resolver work.
+
+### Fix
+
+- Added `app/templates/body/know_body.html` — pillar body template for KNOW, same structure as `record_body.html` with KNOW eyebrow, `nav_know` active, "What this looks up" narration heading, internal `user_id` filter, calm `.gui-help-now` override, and progressive-disclosure `<details>` styling.
+- Added `app/templates/pages/law_library_get_statute.html` — single-function in-task guide for `law_library::law_library_get_statute`.
+  - Form is the first section (`Look it up`)
+  - Single `statute_id` input rendered as a select of common Minnesota statutes
+  - JavaScript fetches `/api/law-library/statutes/{statute_id}` and renders the result
+  - Result shows title, citation, summary, key points, and a source link by default
+  - Full text and related forms stay inside a native `<details>` summary ("Show full text and related forms") until requested
+  - Includes the API's legal disclaimer and `last_verified` metadata
+  - Next step links to the existing `/law-library` hub ("Browse related cases and court rules")
+- Added route `GET /gui/know/law-library/get-statute` in `app/main.py` that pulls the `law_library_get_statute` contract and passes `tapering_tier="new"` with minimal sync narration.
+
+### Verification
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- IronBee DevTools browser verification at `http://127.0.0.1:8001/gui/know/law-library/get-statute`:
+  - `a11y_take-aria-snapshot` shows the lookup form first, `Know` nav active, `user_id` absent, contract I/O listed, "What's next" lead-in present.
+  - `interaction_select` chose "Security Deposits" and `interaction_click` on "Look up statute" retrieved the statute.
+  - `a11y_take-aria-snapshot` after lookup shows the title, citation, summary, key points, source link, collapsed `<details>`, disclaimer, and last verified.
+  - Clicked "Show full text and related forms" summary; ARIA snapshot confirmed the full text and related forms are exposed.
+  - `o11y_get-console-messages` returned no messages (no JS errors).
+  - Screenshots confirm form-first layout, calm help CTA, and progressive disclosure of the statute output.
+
+### Status
+
+Second in-task guide preview is live and verified. The pattern (one function, one page, one pillar, contract-driven I/O, form-first, progressive disclosure, calm help CTA) now holds for both a write/save action (journal) and a read/lookup action (statute). No second polish round was needed; the pattern generalized on the first try.
+
+---
+
+## Session -- 2026-08-19 — UI Composer journal_create preview polish pass
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Polish the `journal_create` in-task preview before generalizing to a second function. The first pass worked but felt like a form buried under documentation, exposed an internal `user_id` input, showed every optional field by default, and made the persistent "Get help now" CTA louder than the primary Save action.
+
+### Fix
+
+- `app/templates/body/record_body.html`:
+  - Reordered sections so the entry form (the action) appears immediately after the header.
+  - Filtered `user_id` from the rendered "What this needs" contract input list.
+  - Added a calm, secondary-weight override for the fixed `.gui-help-now` CTA so the Save button stays visually primary while help remains reachable.
+  - Added reusable `.record-guide__extra` styles for a native `<details>` progressive-disclosure block.
+- `app/templates/pages/journal_create_guide.html`:
+  - Show only Type, Title, and "What happened" by default.
+  - Wrapped all other optional fields (`occurred_at`, `involved_party`, `tags`, `document_link`, `is_urgent`) in a `<details>` summary with the summary text "Add more detail". The fields are always available and submitted with the form, just not visible by default.
+
+### Verification
+
+- `python -m py_compile app/main.py` — PASS (no Python changed, but compile checked as required).
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- IronBee DevTools browser verification at `http://127.0.0.1:8001/gui/record/journal/create`:
+  - `a11y_take-aria-snapshot` shows form first, no `user_id` in "What this needs", all other sections below.
+  - `interaction_click` on the "Add more detail" summary expands the optional fields.
+  - `interaction_fill` Title → `interaction_click` Save submits the form.
+  - `o11y_get-console-messages` shows only the expected 401 from `/api/journal/`, no JS errors.
+  - Screenshot confirms: form and Save are visually primary, "Get help now" is a calm present button, extra fields are collapsed by default and open on request, unauthenticated save shows the friendly "You need to be signed in to save. Start here" message with a `/preamble` link.
+
+### Status
+
+Polish pass complete. The page now presents one action immediately reachable, hides internal contract inputs, discloses optional fields progressively, and keeps the help path visually secondary. Ready to repeat the pattern for a second function in a different pillar.
+
+---
+
+## Session -- 2026-08-18 — Handoff: Context Loop vs. Information Orchestrator and Page Composer vs. UI Composer
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Answer two architecture questions blocking the UI Composer / in-task guide work:
+
+1. Is the older Context Loop a predecessor system replaced by ADR-0008 Information Orchestrator, or do they coexist?
+2. Does Page Composer bypass UI Composer and build whole multi-pillar pages by itself, or does it feed UI Composer content and let it produce components?
+
+### Fix
+
+- Read-only investigation of `app/modules/context_loop/`, `app/modules/context_engine/`, `app/services/ui_composer.py`, `app/modules/page_composer/`, `app/modules/page_shell/`, and the ADR-0008 document.
+- Wrote `docs/handoffs/handoff-context-loop-vs-info-orchestrator.md` with:
+  - Plain-language bottom line.
+  - Side-by-side comparison of Context Loop and Information Orchestrator.
+  - Evidence that Page Composer calls `app.services.ui_composer.compose_page()` as a legacy component-emit step after building its own `PageConfig`.
+  - Clarification that the in-task guide preview uses the `components/ui_composer.html` Jinja macro library, not the `ui_composer` service or Page Composer.
+  - Recommendations for integration and ADR-0008 expansion.
+
+### Verification
+
+- No code changed; no compile required.
+- Handoff document contains direct file citations and line-level evidence.
+- Cross-checked against `docs/adr/0008-information-orchestrator.md`, `BACKLOG.md`, and `tests/test_information_orchestrator_pilot.py`.
+
+### Status
+
+Handoff complete. Context Loop and Information Orchestrator are coexisting systems. Page Composer is the higher-level page orchestrator; it builds `PageConfig` for Page Shell and also feeds UI Composer a pre-built context to emit legacy components.
+
+---
+
+## Session -- 2026-08-18 — UI Composer in-task guide preview for journal_create
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Build the smallest real deliverable for the in-task guide / UI Composer architecture: one function, one page, one pillar body template, hardcoded `new` tapering, function description + I/O from `FunctionGroupContract`, sync backstage narration, and one next-step lead-in.
+
+### Fix
+
+- Extended `process_indicator` macro in `app/templates/components/ui_composer.html` to support `mode: "sync"` and a `narration` list, with verbosity driven by `tapering_tier`.
+- Created `app/templates/body/record_body.html` — the first pillar body template (RECORD).
+- Created `app/templates/pages/journal_create_guide.html` extending the record body template.
+- Added route `/gui/record/journal/create` in `app/main.py` that pulls `journal::journal_create` from `module_contracts`, hardcodes `tapering_tier = "new"`, and renders the guide.
+- The page form POSTs to the existing `/api/journal/` endpoint via JavaScript; unauthenticated users get a friendly "You need to be signed in to save" message with a link to `/preamble`.
+
+### Verification
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- Live server on `http://127.0.0.1:8001`; page renders at `/gui/record/journal/create`.
+- Playwright ARIA snapshot confirms: Record nav active, title, description, contract inputs/outputs, sync narration, form fields, next-step link.
+- Form functional test: filled title, clicked Save, received expected 401 (no session), and the page displayed the friendly sign-in prompt with no dead end.
+
+### IronBee DevTools setup and rerun
+
+- Installed `@ironbee-ai/devtools` via `npx` and prefetched Chromium.
+- Added three IronBee MCP servers to `.devin/mcp_config.local.json`:
+  - `ironbee-dt-browser`
+  - `ironbee-dt-backend`
+  - `ironbee-dt-node`
+- Because this Devin session started before the new MCP config, the `mcp_list_servers` tool did not pick them up; a session reload is needed for the `mcp_*` tools to see them.
+- To verify immediately, started the IronBee daemon on port 8787 and drove the browser platform through its HTTP `/call` endpoint:
+  - `navigation_go-to` to `http://127.0.0.1:8001/gui/record/journal/create`
+  - `content_take-screenshot` → page rendered correctly (title, description, inputs, form, footer visible).
+  - `a11y_take-aria-snapshot` → ARIA tree shows Record nav active, all contract inputs/outputs, sync narration, form, and next-step link.
+  - `interaction_fill` on Title, `interaction_click` Save, `o11y_get-console-messages` → one expected 401 from `/api/journal/`, `a11y_take-aria-snapshot` confirms the "You need to be signed in to save. Start here" status with no dead end.
+
+### Status
+
+Preview complete. Known gap: `user_id` appears in the contract input list but is auto-supplied from the session; future iteration can annotate or filter it. Out of scope per handoff: real Familiarity Tapering counters, all 4 pillar body templates, Page Composer/Context Loop changes.
+
+---
+
 ## Session -- 2026-08-16 — Prune dead product manifest registrations and restore active modules
 
 ### Guardrail Engine Run — not run

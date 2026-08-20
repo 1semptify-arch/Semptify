@@ -1,12 +1,108 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-15 (fact-check/freshness system close-out)
+**Last Updated**: 2026-08-20 (ADR-0008 Layer 2 Problem A semantic retrieval complete; model load verified; PG parity not locally exercised)
 
-## 🎯 Current Priority: Next session chooses — Phase E admin freshness UI, or pick up deferred Tier 2 handoff archive
+> Standing rule: see `.devin/rules/10-progressive-disclosure.md` for the **Progressive Disclosure / Capability Revelation** rule (companion to the GUI Design Rule and Navigation Principle).
 
-The fact-check/freshness build (Phases A–D) is merged and documented. ADR-0009 is Accepted, the auto-hide decision is recorded, and the landing page is wired to verified claims only. Phase E (admin freshness visibility for landing claims) and the remaining Tier 2 handoff archive work are the next available chunks.
+## Philosophy
+
+- **Motive:** get the user the answer to their problem as fast as possible — whether that answer comes from Semptify or from pointing them to another entity entirely. No cost to the user, ever.
+- **Backstage narration exists for one reason:** to keep a user's attention and reduce anxiety during real waiting. Once something is instant and reliable, narrate less or not at all.
+- **Users shouldn't have to think about how Semptify works.** Simple, easy, quick, painless. Complexity is justified only by a real wait or a real decision point.
+
+## Sequencing — simplify first, add later (the actual current priority)
+
+1. ~~Finish the single preview in progress (`journal_create`, RECORD pillar).~~ DONE — verified, polished, passed eye-judgment.
+2. ~~Judge it by eye.~~ DONE — failed first pass, polished, passed second pass.
+3. ~~Repeat the pattern for one more function, different pillar, to confirm generalization.~~ DONE — `law_library_get_statute` (KNOW pillar) passed clean on first try, no polish round needed. Pattern confirmed to generalize across write/save vs. read/lookup shapes.
+4. ~~One more generalization test — ACT pillar.~~ DONE — `eviction_defense_calculate_deadlines` proved the pattern holds even with GOVERN/UPL risk-tier involvement (consequence notice + legal disclaimer on the same screen, no runtime suppression needed).
+5. ~~Build the real tapering dial, wire Module Resolver, add form-factor layout variants.~~ DONE — Familiarity Tapering (`intensity_level`/`exposure_count`) live, Module Resolver wired (non-blocking notice pattern), desktop-poster/mobile-stacked-scroll variants applied to all three templates, Page Shell CSS/token vocabulary applied for visual consistency with Concierge pages. Verified at 375px and 1280px, all checks clean.
+6. **Current step: pause point.** All three tenant-facing pillars (RECORD, KNOW, ACT) have a proven, verified, responsive, visually-consistent single-function guide page. This is a real, demoable slice of the app. The next item on the list is the PageEngine facade — but that's new infrastructure, not a repeat of a proven pattern, and it's invisible to users. Recommend pausing architecture work here rather than continuing straight into it. Decide next based on what's actually needed: more functions using this pattern, real use/demo of what exists, or the facade — in that order of likely value.
+
+## Backlog (not urgent, tracked centrally — do not fix per-function)
+
+- **Contract copy is too technical for user-facing display** (e.g., "Law Library Get Statute (SSOT)", "CANONICAL detailed view..."). Templates already expose title/description override blocks, so this is a copy pass, not a contract change — but it should happen once, centrally, across all functions, not patched ad hoc per page as it's noticed.
+
+## Core Rules (current, corrected)
+
+- **One function, one page — as the default, not an absolute mandate.** Applies whenever a user could reasonably arrive at that function on its own (menu, search, next-step link) — journal entry, statute lookup, deadline calculator, all correctly single-function pages, all proven.
+- **Function GROUPS get their own page-flow when steps are strictly sequential and meaningless in isolation** — nobody looks up step 2 of onboarding without step 1. Test: would a user ever return to this step alone, out of sequence? If yes, separate function page. If no, it belongs in a group, still one decision per screen, just chained as one recognized task instead of scattered destinations. Onboarding (welcome → role select → storage OAuth → tenant home) is the clear first candidate for this pattern — not yet built, noted for when it's needed.
+- **Header and footer are fixed, universal templates.** Never vary by page.
+- **Four body layout types, one per pillar:** Record / Know / Act / Govern. Every single-function page uses exactly one.
+- **Access is never gated by mastery.** If a user's situation requires a function, it's available — full stop.
+- **Familiarity Tapering governs density only** — narration and UI chrome, not availability. Uses ADR-0008's `intensity_level`: Off / Subtle / Standard / High.
+- **Two independent page models, not competing:**
+  - Page Composer + Page Shell (existing, unchanged) — blended multi-pillar pages, owns Concierge/dashboard/landing/library-browse. Confirmed sound — matches existing code (`assembly.py`, `/gui/dashboard`, `/gui/page/{subject}`, `/tenant/library` subject pages).
+  - UI Composer, extended — strict single-function pages, one pillar, no blend. Owns in-task guide pages. Confirmed sound — matches `/gui/record/journal/create` using `record_body.html`.
+  - They share Context Loop, `module_contracts.py`, and will eventually share the Information Orchestrator, but never render the same kind of page.
+- **Page Shell CSS token decision (applied):** the three UI Composer body templates (`record_body.html`, `know_body.html`, `act_body.html`) reuse Page Shell's CSS tokens/class vocabulary (zone/block/output-trigger patterns) for visual consistency across both page families — but not its 4-pillar grid, skeletons, channels, blends, or GOVERN logic.
+
+## Current Build Status
+
+- **Verified and complete:** three in-task guide previews:
+  - `journal_create` (RECORD) — write/save
+  - `law_library_get_statute` (KNOW) — read/lookup
+  - `eviction_defense_calculate_deadlines` (ACT) — guided calculation, UPL-risk output
+- All use `body/{pillar}_body.html`, contract-driven I/O, real `intensity_level`/`exposure_count` from the Experience Token (no longer hardcoded `tapering_tier="new"`), form-first layout, one next-step lead-in, calm `Get help now` CTA, optional density behind `<details>`, desktop-poster / mobile-stacked-scroll form-factor variants, and Page Shell CSS/token vocabulary.
+- **Local dev auth bypass added:** `POST /debug/seed-test-user` now creates a fake tenant, sets the signed `semptify_uid` cookie, and redirects to `/gui/record/journal/create`. Verified end-to-end: save journal, look up statutes, calculate eviction deadlines — all return 200 in local dev without real OAuth.
+- **Page Composer inventory completed (read-only):** full survey of `app/modules/page_composer`, `app/modules/page_shell`, `app/services/ui_composer`, callers, contracts, templates, and consumers. Key findings: Page Composer and Page Shell `register.py` contracts are not in `app/core/contract_loader.py`; Page Shell is production-exposed through Page Composer despite its `dev_only` manifest lifecycle; the assembly capability filter is currently a no-op.
+- **Page Composer / Page Shell prioritized cleanup completed:** all six inventory gaps addressed — capability filter wired to resolved module paths with `block.module_name`; `case_builder.get_cases_for_user` implemented and used; Page Shell manifest promoted to CORE (renderer is production, /api/page-shell routes stay admin); Page Composer + Page Shell contracts loaded by `contract_loader.py`; mobile CSS confirmed non-clipping; assembly formula blueprint promoted from DRAFT to APPROVED.
+- **Fourth single-function guide page built:** `/gui/record/timeline/create-event` for `timeline::timeline_create_event`. Reuses the proven pattern (record_body.html, Page Shell tokens, tapering, resolver notice, form-first layout, next-step CTA). Verified real use with a live `POST /api/timeline/events` save and 375px scroll.
+- **Confirmed/resolved, no action needed:**
+  - Page Composer does not bypass UI Composer — orchestrates above it.
+  - Context Loop ≠ Information Orchestrator — complementary, not duplicate.
+  - Two-page-model resolution — confirmed sound.
+- **Logged, not urgent, do not fix yet:**
+  - Case Builder phantom function (`get_cases_for_user` doesn't exist).
+  - Page Shell manifest mismatch — registered dev/admin-only but used in production tenant routes.
+  - ~25 modules missing `FunctionGroupContract`; no contract has GUI fields yet.
+
+## Later: Page Engine Facade (reference only, not active work)
+
+Once 2-3 functions are proven, the growing list of systems (Context Loop, Context Engine, Page Composer, Page Shell, UI Composer, Positronic Mesh, Module Resolver, Information Orchestrator) should sit behind one entry point — `PageEngine.render(user_id, request) → HTML` — so routes and future agents only ever call one thing. Don't build this now.
 
 ---
+
+## ✅ Completed 2026-08-20 Session — Page Composer architecture inventory
+
+- Read-only inventory of `app/modules/page_composer`, `app/modules/page_shell`, `app/services/ui_composer`, calling routes, templates, contracts, and tests.
+- Verified live endpoints on `http://127.0.0.1:8001`: `GET /api/page/` (200, 14 subjects), `GET /api/page/repair/render` (200, Page Shell HTML), `GET /gui/page/repair` (200), `GET /api/page/eviction/preview` (200).
+- Documented scope boundary: Page Composer = multi-pillar pages (dashboard, library, landing); UI Composer = single-pillar in-task guides; Page Shell = data-driven renderer.
+- Noted gaps: Page Composer and Page Shell `register.py` contracts are not loaded by `app/core/contract_loader.py`; Page Shell is production-exposed through Page Composer despite its `dev_only` manifest lifecycle; capability filter is a no-op; `_gather_user_case` depends on a non-existent `get_cases_for_user`.
+
+## ✅ Completed 2026-08-20 Session — Local dev tenant auth bypass
+
+- Created a local `.env` (gitignored) with `SECRET_KEY`, `PORT=8001`, `SECURITY_MODE=open`, and `DATABASE_URL=sqlite+aiosqlite:///./semptify.db`.
+- Fixed `POST /debug/seed-test-user` in `app/main.py`: replaced SQL `NOW()` with `utc_now()` bind parameters for SQLite compatibility, then signs and sets the `semptify_uid` cookie and redirects to the RECORD guide.
+- Verified the dev tenant can use all three in-task guide pages and their save/action endpoints:
+  - `POST /api/journal/` creates a journal entry.
+  - `GET /api/law-library/statutes` returns statutes.
+  - `POST /api/eviction-defense/calculate-deadlines` returns deadlines.
+- `python -m py_compile app/main.py` PASS; `pytest tests/module_health -q --no-cov` 244 passed.
+
+## ✅ Completed 2026-08-20 Session — ADR-0008 Layer 2 Problem A: semantic retrieval
+
+- Implemented dialect-aware `AsymmetricVector` (`app/core/database_types.py`) using pgvector `VECTOR(384)` on PostgreSQL and JSON blobs on SQLite.
+- Added `embedding` columns to `ContextExplanationEntry` and `ContextFact`; wired embedding generation into explanation entry create/update and fact upsert.
+- Added `app/modules/context_engine/embedding_model.py` singleton (`all-MiniLM-L6-v2`, 384 dimensions) and `app/modules/context_engine/vector_math.py` pure-Python cosine for SQLite.
+- Rewrote `app/modules/context_engine/retrieval.py` as hybrid metadata pre-filter + embedding cosine similarity; recalibrated `LAYER2_CONFIDENCE_THRESHOLD` from `0.75` to `0.45` based on realistic spot-checks.
+- Added `scripts/backfill_context_embeddings.py` to backfill existing curated rows.
+- Added Alembic migration `20260820_add_embedding_columns.py` with `CREATE EXTENSION IF NOT EXISTS vector;` for PostgreSQL.
+- Added `sentence-transformers` and `pgvector` to `requirements.txt`.
+- Verification: `python -m py_compile` on all changed Python files PASS; `pytest tests/test_information_orchestrator_pilot.py -q --no-cov` 12/12 pass; `pytest tests/module_health/test_context_engine.py tests/test_context_engine_verifier.py -q --no-cov` 7/7 pass; full `pytest tests/module_health -q --no-cov` 244/244 pass.
+- Spot-checks: "late fee lease clause" returns both the late-fee entry and the semantically related penalty-charge entry; "security deposit return", "eviction notice deadline" return correct entries; unrelated "traffic ticket" returns nothing (silence beats fabrication).
+- Runtime: the local Uvicorn server starts and loads the embedding model (background task) with `EMBEDDING_MODEL_LOCAL_FILES_ONLY=true`; the 2 existing `context_facts` rows have embeddings after `scripts/backfill_context_embeddings.py`.
+- Open / limitation: PostgreSQL pgvector parity was not exercised locally because no live PostgreSQL environment is available; the code path is implemented and the Alembic migration creates the extension and columns. Memory on the local VM is already 92–95% before model load; the model itself adds ~25–100 MB and loads in ~3–5 s once torch/numpy are warm, but the deployment tier must have enough headroom.
+
+---
+
+## ✅ Completed 2026-08-19 Session — UI Composer form-factor and Page Shell alignment
+
+- Applied the established desktop-poster / mobile-stacked-scroll pattern (900px breakpoint, CSS grid) from `dispute_tracker.html` / `eviction_timeline.html` to the three in-task guide body templates (`record_body.html`, `know_body.html`, `act_body.html`).
+- Aligned the three body templates with Page Shell CSS token vocabulary (zone/block/block-input/output-trigger, level-driven shades, no card borders) while keeping them strict single-function compositions; did not adopt Page Shell's four-pillar grid, skeletons, PageConfig, channels, blends, or GOVERN logic.
+- Preserved all must-not-regress behavior: form-first ordering, `user_id`/internal contract field filtering, calm `Get help now`, `<details>` progressive disclosure, Familiarity Tapering, Module Resolver non-blocking notice, and one next-step lead-in.
+- Verification: `python -m py_compile` on changed Python files PASS; `pytest tests/module_health -q --no-cov` 244 passed; IronBee DevTools desktop + mobile verification for all three pages PASS (console clean, ARIA presence checks pass, ACT functional path completes); screenshots retained at `C:\Users\bradc\AppData\Local\Temp\uic-verify`.
+- Task `ui-composer-formfactor-001` marked resolved. PageEngine facade remains deferred.
 
 ## ✅ Completed 2026-08-15 Session — Fact-check/freshness close-out
 

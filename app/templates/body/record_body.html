@@ -1,0 +1,346 @@
+{% extends "gui/base.html" %}
+{% from "components/ui_composer.html" import process_indicator with context %}
+
+{% block nav_record %}active{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="/static/page_shell/page_shell.css">
+<style>
+  .record-guide {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(0.5rem, 1.5vh, 1rem);
+    background: #f7f7f5;
+    color: #1a1a1a;
+    padding: clamp(0.5rem, 2vw, 1.5rem);
+    border-radius: clamp(4px, 0.8vh, 8px);
+    box-sizing: border-box;
+  }
+  /* Default/mobile: keep Page Shell zone look but let the single-column
+     layout use normal auto-placement so all sections remain visible. */
+  .record-guide .record-guide__header,
+  .record-guide .record-guide__controls,
+  .record-guide .record-guide__narration,
+  .record-guide .record-guide__inputs,
+  .record-guide .record-guide__outputs,
+  .record-guide .record-guide__next { grid-area: auto; }
+
+  @media (min-width: 900px) {
+    .record-guide {
+      grid-template-columns: minmax(300px, 380px) 1fr;
+      grid-template-areas:
+        "header header"
+        "controls narration"
+        "controls inputs"
+        "controls outputs"
+        "controls next";
+      align-items: start;
+    }
+    .record-guide .record-guide__header { grid-area: header; }
+    .record-guide .record-guide__controls { grid-area: controls; }
+    .record-guide .record-guide__narration { grid-area: narration; }
+    .record-guide .record-guide__inputs { grid-area: inputs; }
+    .record-guide .record-guide__outputs { grid-area: outputs; }
+    .record-guide .record-guide__next { grid-area: next; }
+    .record-guide__controls {
+      position: sticky;
+      top: 0;
+      align-self: start;
+    }
+  }
+
+  .record-guide .zone {
+    min-height: auto;
+    overflow: visible;
+    padding: clamp(0.5rem, 1vh, 1rem);
+  }
+  .record-guide .block {
+    background: rgba(255, 255, 255, 0.55);
+    padding: clamp(0.6rem, 1.2vh, 1rem);
+  }
+
+  .record-guide__eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b5b4a;
+    margin-bottom: 0.25rem;
+  }
+  .record-guide__title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+  }
+  .record-guide__description {
+    color: #4a4a4a;
+    margin-top: 0.5rem;
+    line-height: 1.6;
+  }
+  .record-guide__section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Page Shell input vocabulary */
+  .record-guide .block-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+  }
+  .record-guide .block-input label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1a1a1a;
+  }
+  .record-guide .block-input .required { color: #c62828; }
+  .record-guide .block-input .optional {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    font-weight: 400;
+  }
+  .record-guide .block-input input,
+  .record-guide .block-input select,
+  .record-guide .block-input textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    color: #1a1a1a;
+    background: #fff;
+    border: 1px solid #d0d0c8;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  .record-guide .block-input input:focus,
+  .record-guide .block-input select:focus,
+  .record-guide .block-input textarea:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  /* Page Shell output trigger vocabulary */
+  .record-guide .output-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    background: #f0f0ec;
+    color: #1a1a1a;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  .record-guide .output-trigger:hover,
+  .record-guide .output-trigger:focus-visible {
+    background: #e8e8e2;
+  }
+  .record-guide .output-trigger:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+  .record-guide .output-trigger--primary {
+    background: #1e3a5f;
+    color: #fff;
+  }
+  .record-guide .output-trigger--primary:hover,
+  .record-guide .output-trigger--primary:focus-visible {
+    background: #2c5aa0;
+  }
+
+  .record-guide__hint {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+  }
+  .record-guide__checkbox {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #1e3a5f;
+  }
+
+  /* Contract input/output lists */
+  .record-guide__contract-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .record-guide__contract-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    color: #4a4a4a;
+    font-size: 0.9375rem;
+  }
+  .record-guide__contract-list li:last-child { border-bottom: none; }
+
+  /* Process indicator */
+  .uic-process-indicator {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+  }
+  .uic-process-indicator__icon {
+    font-size: 1.25rem;
+    color: #6b7280;
+  }
+  .uic-process-indicator__body { flex: 1; }
+  .uic-process-indicator__step {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1a1a1a;
+  }
+  .uic-process-indicator__narration {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: #4a4a4a;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+  .uic-process-indicator__narration li { margin-bottom: 0.5rem; }
+
+  /* Calm down the global help-now CTA so the task action stays primary. */
+  .gui-help-now {
+    background: #3a4f66;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-weight: 500;
+  }
+  .gui-help-now:hover,
+  .gui-help-now:focus-visible {
+    background: #334155;
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Progressive disclosure container for optional fields */
+  .record-guide__extra {
+    margin-top: 1.25rem;
+    border: 1px solid #d0d0c8;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.5);
+  }
+  .record-guide__extra summary {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    color: #4a4a4a;
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+  .record-guide__extra summary:hover,
+  .record-guide__extra summary:focus-visible {
+    color: #1a1a1a;
+  }
+  .record-guide__extra-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 0 1rem 1rem;
+  }
+
+  .record-guide__next {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .record-guide__situational-notice {
+    padding: 1rem 1.25rem;
+    background: #faf7f0;
+    color: #5c4b3a;
+    border-radius: 4px;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<article class="record-guide" aria-label="{% block record_aria_label %}Record function{% endblock %}">
+  <header class="record-guide__header zone" data-zone="record">
+    <div class="block">
+      <p class="record-guide__eyebrow">Record</p>
+      <h1 class="record-guide__title">{% block record_title %}{{ contract.title }}{% endblock %}</h1>
+      <p class="record-guide__description">{% block record_description %}{{ contract.description }}{% endblock %}</p>
+    </div>
+  </header>
+
+  <section class="record-guide__controls zone" data-zone="record" aria-labelledby="controls-title">
+    <div class="block">
+      <h2 id="controls-title" class="record-guide__section-title">{% block record_controls_title %}Do it{% endblock %}</h2>
+      {% if situational_available | default(true) %}
+        {% block record_controls %}{% endblock %}
+      {% else %}
+        <p class="record-guide__situational-notice" role="note">
+          This function is not currently available for your role or location. You can still read what it does below, but you cannot use it here.
+        </p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="record-guide__narration zone" data-zone="record" aria-labelledby="narration-title">
+    <div class="block">
+      <h2 id="narration-title" class="record-guide__section-title">What happens when you save</h2>
+      {% block record_narration %}
+        {% if narration %}
+        {{ process_indicator(narration) }}
+        {% else %}
+        <p class="record-guide__description">No backstage narration provided.</p>
+        {% endif %}
+      {% endblock %}
+    </div>
+  </section>
+
+  <section class="record-guide__inputs zone" data-zone="record" aria-labelledby="inputs-title">
+    <div class="block">
+      <h2 id="inputs-title" class="record-guide__section-title">What this needs</h2>
+      {% block record_inputs %}
+      <ul class="record-guide__contract-list">
+        {% for input in contract.inputs %}
+        {% set input_name = input[:-1] if input.endswith("?") else input %}
+        {% if input_name != "user_id" %}
+        <li>
+          {% if input.endswith("?") %}
+          {{ input[:-1] }} <span class="record-guide__optional">(optional)</span>
+          {% else %}
+          {{ input }}
+          {% endif %}
+        </li>
+        {% endif %}
+        {% endfor %}
+      </ul>
+      {% endblock %}
+    </div>
+  </section>
+
+  <section class="record-guide__outputs zone" data-zone="record" aria-labelledby="outputs-title">
+    <div class="block">
+      <h2 id="outputs-title" class="record-guide__section-title">What this gives back</h2>
+      {% block record_outputs %}
+      <ul class="record-guide__contract-list">
+        {% for output in contract.outputs %}
+        <li>{{ output }}</li>
+        {% endfor %}
+      </ul>
+      {% endblock %}
+    </div>
+  </section>
+
+  <section class="record-guide__next zone" data-zone="record" aria-labelledby="next-title">
+    <div class="block">
+      <h2 id="next-title" class="record-guide__section-title">What’s next</h2>
+      {% block record_next %}{% endblock %}
+    </div>
+  </section>
+</article>
+{% endblock %}
