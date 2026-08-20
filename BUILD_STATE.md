@@ -1,4 +1,67 @@
+## Session -- 2026-08-20 — Rule 60.02 / CIV / HOU court forms library
+
+### Guardrail Engine Run — 2026-08-20T18:03:23
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-08-20T18:02:06
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Adapt the generic court-form generation blueprint into the existing canonical `app/modules/court_forms` module so Brad's Rule 60.02 Motion to Vacate case can be filled through the Semptify UI, with civil and housing form metadata, dynamic field rendering, validation, PDF generation, packet assembly, and vault save.
+
+### Fix
+
+- Added `app/modules/court_forms/data/forms_library.json` — JSON catalog of Minnesota civil/housing forms, including CIV601–CIV604, CIV901–CIV905, HOU101–HOU125, HOU202, HOU802, HOU803, HOU602, HOU702, and Rule 60.02 variants (`CIV602_R60_02`, `CIV603_R60_02`).
+- Added `app/modules/court_forms/library.py` — Pydantic `CourtForm`/`CourtFormField` models, JSON loader, field validation, HTML/PDF renderer with Minnesota caption, numbered paragraphs, bold headers, signature block, and `PyPDF2` packet merge.
+- Extended `app/modules/court_forms/service.py` — `CourtFormGenerator` now falls back to the JSON library for unknown `form_type`s, supports `_generate_library_form`, `_generate_pdf_bytes`, and `assemble_packet`.
+- Extended `app/modules/court_forms/router.py` — new `/api/forms/library` routes: `GET /library`, `GET /library/{form_id}`, `POST /library/{form_id}/render`, `POST /library/{form_id}/save`, `POST /library/packet`.
+- Extended `app/modules/court_forms/register.py` — `FunctionGroupContract` registrations for the library list/get/render/save/packet APIs.
+- Enabled `xhtml2pdf>=0.2.17` and pinned `reportlab>=4.0.0,<5` in `requirements.txt` for working HTML-to-PDF rendering in local dev and production.
+- Ran `tools/sync_registry.py --write` and `pytest tests/module_health -q --no-cov` (244 passed).
+
+### Verification
+
+- `python -m py_compile app/modules/court_forms/library.py app/modules/court_forms/service.py app/modules/court_forms/router.py app/modules/court_forms/register.py app/main.py`: PASS.
+- `python -m ruff check app/modules/court_forms/library.py app/modules/court_forms/service.py app/modules/court_forms/router.py app/modules/court_forms/register.py`: PASS.
+- `pytest tests/module_health/test_court_forms.py -q --no-cov`: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed, 1 warning.
+- Synthetic Rule 60.02 render via `CourtFormGenerator` produced valid `%PDF-1.4` motion and affidavit PDFs and merged them into a packet.
+- PDFs include centered footer page numbers via `xhtml2pdf` static frames.
+- FastAPI `TestClient` smoke test: `GET /api/forms/library` and `GET /api/forms/library/CIV602_R60_02` returned 200; `POST /api/forms/library/packet` returned a base64 merged PDF with both forms.
+- Save endpoint is wired but requires a live connected cloud vault; local-only dev storage is not configured in this environment.
+
+### Notes
+
+- Existing hardcoded forms (`answer_to_complaint`, `motion_to_dismiss`, etc.) are untouched and take precedence in `CourtFormGenerator`.
+- Rule 60.02 PII/case data must only be entered through the running app with a connected tenant vault; no real case data was placed in test fixtures, commits, or temporary files.
+
+---
+
 ## Session -- 2026-08-20 — ADR-0008 Layer 2 Problem A: semantic retrieval
+
+### Guardrail Engine Run — 2026-08-20T11:55:05
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Guardrail Engine Run — not run
 
@@ -358,6 +421,51 @@ A stable local dev bypass is now available. Go to `http://127.0.0.1:8001/debug/s
 1. Start server: `cd E:\master-repo\modules\app-semptify-fastapi && venv311\Scripts\python.exe -m uvicorn app.main:fastapi_app --host 127.0.0.1 --port 8001 --reload`
 2. POST `http://127.0.0.1:8001/debug/seed-test-user` (e.g., with curl or a browser form). It sets the `semptify_uid` cookie and redirects to the RECORD guide.
 3. Use the three guide pages normally: save journal entries, look up statutes, calculate eviction deadlines.
+
+---
+
+## Session — 2026-08-20 — Context Explanation Workbook + Loader
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+The `context_explanation_entries` table was empty; the embedding/retrieval pipeline is fully wired but had no content. The user confirmed the blocker is content, not model training, and asked for a workbook to be filled in plus a way to add the information.
+
+### What was done
+
+- Wrote `docs/context_explanation_workbook.md` — a complete content-author spec:
+  - Schema and allowed values.
+  - The four variant slots and the exact exposure-count mapping (exposure 1 → mechanics, 2 → trust, 3 → reinforcement, 4+ → minimal).
+  - Writing rules: 5th-grade reading level, no HTML, length targets, embedding signal.
+  - Canonical subject list (14 subjects) with labels.
+  - Starter set of 20 suggested entry priorities.
+  - Loading options: CLI loader, admin API, future admin form.
+- Wrote `docs/context_explanation_needs.md` — a human-readable checklist of all 56 subject/pillar combinations, sorted with the 10 high-priority starter rows first, including context-of-use and the four variant prompts for each.
+- Created `data/explanation_workbook_template.csv` — empty template with headers.
+- Created `data/explanation_workbook_example.csv` — three complete, ready-to-load example rows.
+- Created `data/context_explanation_workbook.csv` — **full 56-row workbook** with one row for every subject/jurisdiction/pillar combination. Each row has placeholder prompts for the four variant slots, pre-filled `upl_risk_tier`, and `review_status=BETA`.
+- Created `tools/load_explanation_workbook.py` — a CLI loader that:
+  - Validates each row against subject / pillar / risk tier / review status enums.
+  - Generates embeddings via `create_explanation_entry`.
+  - Reports skipped rows and errors.
+  - Supports `--dry-run`, `--jurisdiction` defaults, and `--show-placeholders`.
+  - **Skips rows that still contain `[FILL...`, `TODO`, or `[WRITE` markers**, so a partially completed workbook can be loaded safely.
+- Loaded the three example rows into `context_explanation_entries` (IDs `exp_HYUuOV4t2OyNVBmp`, `exp_QslAX2EaSVRztQoK`, `exp_cbYYtux6FzuUyYgV`).
+
+### Verification
+
+- `python -m py_compile tools/load_explanation_workbook.py`: PASS.
+- `pytest tests/module_health/test_context_engine.py tests/test_context_engine_verifier.py -q --no-cov`: 7 passed.
+- Loader dry-run on example CSV: 3 rows, 0 skipped.
+- Loader dry-run on full workbook CSV: 56 placeholder rows skipped, summarized cleanly.
+- Loader real run on example CSV: 3 rows created, zero errors.
+- Real HTTP request `GET /api/context/explanations?limit=10`: returned the 3 new entries.
+
+### Notes
+
+- The 0.45 `LAYER2_CONFIDENCE_THRESHOLD` should be re-checked once 20-30 real entries exist. The workbook documents this.
+- The actual remaining work is editorial: content authors need to fill the CSV and run the loader.
 
 ---
 

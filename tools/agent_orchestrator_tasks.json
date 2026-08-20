@@ -1628,5 +1628,73 @@
     "created_at": "2026-08-20T12:30:00Z",
     "updated_at": "2026-08-20T14:05:23.683590+00:00",
     "notes": "User selected option 1 (add more functions using proven pattern). Chose timeline::timeline_create_event as a simple RECORD-pillar form with a real POST /api/timeline/events endpoint. No PageEngine facade.\n[2026-08-20 14:05 UTC - SWE-1.7-Max] Built /gui/record/timeline/create-event, verified real use and mobile."
+  },
+  {
+    "id": "explanation-workbook-001",
+    "title": "Create context explanation workbook and loader",
+    "description": "Build a human-friendly workbook (spec + template + examples) for curated context explanation entries, plus a tool to load workbook rows into the context_explanation_entries table. Document the four variant slots and the exposure->variant mapping.",
+    "file_path": "docs/context_explanation_workbook.md",
+    "category": "documentation",
+    "priority": "high",
+    "status": "resolved",
+    "assigned_agent": "SWE-1.7-Max",
+    "target_model": "swe-1.7",
+    "created_at": "2026-08-20T14:30:00Z",
+    "updated_at": "2026-08-20T14:37:22.765093+00:00",
+    "notes": "User confirmed: make a workbook to be filled in and design a way to add information. Will create Markdown workbook spec, CSV template, example rows, and a CLI loader.\n[2026-08-20 14:37 UTC - SWE-1.7-Max] Created workbook spec, CSV template/example, CLI loader. Loaded 3 example entries into DB."
+  },
+  {
+    "id": "explanation-workbook-002",
+    "title": "Create full context explanation workbook with all subject/pillar rows",
+    "description": "Generate a complete workbook CSV with one row for every subject/jurisdiction/pillar combination, using placeholder prompts for the four variant slots. Update the loader to skip placeholder rows and report them cleanly.",
+    "file_path": "data/context_explanation_workbook.csv",
+    "category": "documentation",
+    "priority": "high",
+    "status": "resolved",
+    "assigned_agent": "SWE-1.7-Max",
+    "target_model": "swe-1.7",
+    "created_at": "2026-08-20T14:45:00Z",
+    "updated_at": "2026-08-20T14:50:13.862031+00:00",
+    "notes": "User clarified: the workbook should cover all subject/jurisdiction/pillar combinations that need explanation, not just an example.\n[2026-08-20 14:50 UTC - SWE-1.7-Max] Generated full 56-row workbook and updated loader to summarize placeholder rows."
+  },
+  {
+    "id": "explanation-needs-list-001",
+    "title": "Create Markdown list of all needed explanations with context of use",
+    "description": "Generate a human-readable .md file listing every subject/jurisdiction/pillar explanation needed, with the context-of-use trigger for each and the four variant prompts. This is the editorial checklist for content authors.",
+    "file_path": "docs/context_explanation_needs.md",
+    "category": "documentation",
+    "priority": "high",
+    "status": "resolved",
+    "assigned_agent": "SWE-1.7-Max",
+    "target_model": "swe-1.7",
+    "created_at": "2026-08-20T14:55:00Z",
+    "updated_at": "2026-08-20T14:54:27.248083+00:00",
+    "notes": "User asked for a .md list of all needed explanations in context of use.\n[2026-08-20 14:54 UTC - SWE-1.7-Max] Generated docs/context_explanation_needs.md with all 56 subject/pillar combinations, context of use, and variant prompts, sorted with 10 high-priority starters first."
+  },
+  {
+    "id": "ad-hoc-court-forms-library",
+    "title": "Adapt Court Forms library and Rule 60.02 fill into court_forms module",
+    "description": "Add JSON form library (CIV/HOU/Rule 60.02 variants), integrate dynamic form rendering into existing CourtFormGenerator, add API endpoints for library list/get/render/save/packet, register contracts, run sync and health checks.",
+    "file_path": "app/modules/court_forms/service.py",
+    "status": "resolved",
+    "assigned_agent": "devin",
+    "priority": "high",
+    "source": "ad-hoc",
+    "created_at": "2026-08-20T00:00:00Z",
+    "updated_at": "2026-08-20T22:20:03.695925+00:00",
+    "notes": "Ad-hoc task from user request to adapt form-generation blueprint and run Rule 60.02 fill through the app."
+  },
+  {
+    "id": "ad-hoc-prereq-case-data-overlay",
+    "title": "Prerequisites before CASE_DATA overlay migration",
+    "description": "Fix SSOT redirect violation, gate /debug/* routes, and add targeted tests for unified_overlay_manager.py before CASE_DATA overlay work.",
+    "file_path": "app/main.py",
+    "status": "resolved",
+    "assigned_agent": "devin",
+    "priority": "high",
+    "source": "ad-hoc",
+    "created_at": "2026-08-20T21:50:00Z",
+    "updated_at": "2026-08-20T23:07:37.308007+00:00",
+    "notes": "Handoff from Brad. Do not start case_builder/CASE_DATA work until these three items are verified.\n[2026-08-20 23:07 UTC - devin] Fixed SSOT redirect, gated /debug/* endpoints, added unified_overlay_manager tests (81% coverage); SSOT, guardrail, ruff, and targeted tests pass."
   }
 ]
