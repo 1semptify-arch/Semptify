@@ -53,9 +53,9 @@ Pillow>=10.0.0              # Image processing (optional)
 # =============================================================================
 # PDF Generation (Court Packets)
 # =============================================================================
-reportlab>=4.0.0
+reportlab>=4.0.0,<5
 PyPDF2>=3.0.0
-# xhtml2pdf>=0.2.17         # Advanced PDF generation - disabled (requires Cairo/GDK system libs not in slim)
+xhtml2pdf>=0.2.17           # HTML-to-PDF fallback (reportlab-based, no Cairo/GDK required)
 
 # =============================================================================
 # Document Conversion (Markdown to DOCX/HTML)
