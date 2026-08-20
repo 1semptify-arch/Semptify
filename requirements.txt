@@ -106,3 +106,9 @@ pymupdf>=1.23.0
 psycopg2-binary>=2.9.9
 
 alembic>=1.17.0
+
+# =============================================================================
+# Semantic retrieval (Problem A — Semptify's own curated content)
+# =============================================================================
+sentence-transformers>=2.2.0  # all-MiniLM-L6-v2 embeddings, offline, no per-query cost
+pgvector>=0.2.4               # pgvector SQLAlchemy integration for PostgreSQL
