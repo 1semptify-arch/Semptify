@@ -41,7 +41,7 @@
 {% elif component.type == "add_record_modal" %}
     {{ _add_record_modal(component.data) }}
 {% elif component.type == "process_indicator" %}
-    {{ _process_indicator(component.data) }}
+    {{ process_indicator(component.data) }}
 {% elif component.type == "prompt_card" %}
     {{ _prompt_card(component.data) }}
 {% elif component.type == "stat_badge" %}
@@ -307,11 +307,31 @@
 
 {# ----------------------------------------------------------------- #}
 {# PROCESS INDICATOR — human-readable step status (no spinners)       #}
+{#                                                                     #}
+# Supports two modes:                                                  #}
+#   - "async" (default): multi-step workflow with optional HX polling. #}
+#   - "sync": one-click or single-action function with honest          #}
+#     backstage narration. No polling.                                 #}
 {# ----------------------------------------------------------------- #}
-{% macro _process_indicator(data) %}
+{% macro process_indicator(data) %}
+{% set mode = data.get("mode", "async") %}
+{% set intensity = (intensity_level | default("High")) | string %}
+{% set exposure = (exposure_count | default(0)) | int %}
+{# Full-list thresholds: High 5, Standard 4, Subtle 3, Off 0 #}
+{% set show_full =
+  (intensity in ('High', 'HIGH', '3') and exposure < 5) or
+  (intensity in ('Standard', 'STANDARD', '2') and exposure < 4) or
+  (intensity in ('Subtle', 'SUBTLE', '1') and exposure < 3)
+%}
+{# First-item thresholds: High 7, Standard 6, Subtle 5, Off never #}
+{% set show_first = (not show_full) and
+  ((intensity in ('High', 'HIGH', '3') and exposure < 7) or
+   (intensity in ('Standard', 'STANDARD', '2') and exposure < 6) or
+   (intensity in ('Subtle', 'SUBTLE', '1') and exposure < 5))
+%}
 <div
     class="uic-process-indicator uic-process-indicator--{{ data.state }}"
-    {% if data.workflow_id and data.state == "running" %}
+    {% if mode == "async" and data.workflow_id and data.state == "running" %}
     hx-get="/api/ui/process/{{ data.workflow_id }}"
     hx-trigger="every 2s"
     hx-swap="outerHTML"
@@ -325,6 +345,15 @@
     </div>
     <div class="uic-process-indicator__body">
         <p class="uic-process-indicator__step">{{ data.step_label }}</p>
+        {% if data.narration and show_full %}
+        <ul class="uic-process-indicator__narration" role="list">
+            {% for item in data.narration %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+        {% elif data.narration and show_first %}
+        <p class="uic-process-indicator__narration">{{ data.narration[0] }}</p>
+        {% endif %}
         {% if data.progress_pct and data.state == "running" %}
         <progress class="uic-process-indicator__progress" value="{{ data.progress_pct }}" max="100"></progress>
         {% endif %}

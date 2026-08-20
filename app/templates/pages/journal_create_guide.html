@@ -1,0 +1,147 @@
+{% extends "body/record_body.html" %}
+
+{% block title %}{{ contract.title }} — Semptify{% endblock %}
+{% block record_aria_label %}Create a journal entry{% endblock %}
+{% block record_controls_title %}Add the entry{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .record-guide__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .record-guide__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .record-guide__field--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.625rem;
+  }
+  .record-guide__result {
+    margin-top: 1rem;
+    color: #4a4a4a;
+    line-height: 1.6;
+  }
+  .record-guide__result code {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #1e3a5f;
+  }
+  .record-guide__result a {
+    color: #1e3a5f;
+    text-decoration: underline;
+  }
+</style>
+{% endblock %}
+
+{% block record_controls %}
+<form id="journalForm" class="record-guide__form" onsubmit="event.preventDefault(); submitJournal();" novalidate>
+  <div class="record-guide__field block-input">
+    <label for="entry_type">Type <span class="required">*</span></label>
+    <select id="entry_type" name="entry_type" required>
+      <option value="note" selected>Note</option>
+      <option value="conversation">Conversation</option>
+      <option value="incident">Incident</option>
+      <option value="repair_request">Repair request</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
+
+  <div class="record-guide__field block-input">
+    <label for="title">Title <span class="required">*</span></label>
+    <input id="title" name="title" type="text" maxlength="255" placeholder="Short name for this entry" required>
+  </div>
+
+  <div class="record-guide__field block-input">
+    <label for="content">What happened</label>
+    <textarea id="content" name="content" rows="4" placeholder="What did the landlord say or do?"></textarea>
+  </div>
+
+  <details class="record-guide__extra">
+    <summary>Add more detail</summary>
+    <div class="record-guide__extra-fields">
+      <div class="record-guide__field block-input">
+        <label for="occurred_at">When it happened</label>
+        <input id="occurred_at" name="occurred_at" type="datetime-local">
+      </div>
+
+      <div class="record-guide__field block-input">
+        <label for="involved_party">Who was involved</label>
+        <input id="involved_party" name="involved_party" type="text" maxlength="255" placeholder="Landlord, manager, neighbor…">
+      </div>
+
+      <div class="record-guide__field block-input">
+        <label for="tags">Tags</label>
+        <input id="tags" name="tags" type="text" placeholder="repair, notice, conversation (comma-separated)">
+      </div>
+
+      <div class="record-guide__field block-input">
+        <label for="document_link">Linked document ID</label>
+        <input id="document_link" name="document_link" type="text" maxlength="36" placeholder="Optional vault document ID">
+        <p class="record-guide__hint">From your vault, if you already uploaded a document.</p>
+      </div>
+
+      <div class="record-guide__field record-guide__field--inline">
+        <input id="is_urgent" name="is_urgent" class="record-guide__checkbox" type="checkbox" value="true">
+        <label for="is_urgent">Mark as urgent</label>
+      </div>
+    </div>
+  </details>
+
+  <button type="submit" class="output-trigger output-trigger--primary">Save journal entry</button>
+  <div id="journalResult" class="record-guide__result" role="status" aria-live="polite"></div>
+</form>
+{% endblock %}
+
+{% block record_next %}
+<a href="/tenant/journal" class="output-trigger">View your journal</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  function submitJournal() {
+    const form = document.getElementById('journalForm');
+    const formData = new FormData(form);
+    const payload = {
+      entry_type: formData.get('entry_type'),
+      title: (formData.get('title') || '').trim(),
+      content: (formData.get('content') || '').trim() || null,
+      occurred_at: formData.get('occurred_at') ? new Date(formData.get('occurred_at')).toISOString() : null,
+      is_urgent: form.is_urgent.checked,
+      involved_party: (formData.get('involved_party') || '').trim() || null,
+      tags: formData.get('tags') ? (formData.get('tags') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean) : null,
+      document_link: (formData.get('document_link') || '').trim() || null,
+    };
+    fetch('/api/journal/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload),
+    })
+    .then(function (res) {
+      const resultDiv = document.getElementById('journalResult');
+      if (res.ok) {
+        return res.json().then(function (data) {
+          resultDiv.innerHTML = '<p>Saved. Entry ID: <code>' + (data.id || data.entry_id || '—') + '</code></p>';
+          form.reset();
+        });
+      }
+      if (res.status === 401 || res.status === 403) {
+        resultDiv.innerHTML = '<p>You need to be signed in to save. <a href="/preamble">Start here</a>.</p>';
+        return;
+      }
+      return res.text().then(function (text) {
+        resultDiv.innerHTML = '<p>Save failed: ' + text + '</p>';
+      });
+    })
+    .catch(function (err) {
+      document.getElementById('journalResult').innerHTML = '<p>Could not save: ' + err.message + '</p>';
+    });
+  }
+</script>
+{% endblock %}

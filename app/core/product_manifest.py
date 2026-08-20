@@ -1079,16 +1079,18 @@ _register(
     dev_notes="Legal tactics recommendations, evidence checklist, pre-hearing timeline, retaliation/habitability checks.",
 )
 
-# Standalone module files (dev_only — not yet wired into main app flow)
+# Page Shell is a CORE rendering dependency of Page Composer. The /api/page-shell
+# introspection/demo routes remain admin-gated, but the renderer itself is used by
+# production tenant routes (/gui/page/{subject}, /gui/dashboard, /api/page/{subject}/render).
 _register(
     "app.modules.page_shell.router",
     prefix="/api/page-shell",
     tags=("Page Shell", "Pillar Mixer"),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
+    tier=ProductTier.CORE,
+    lifecycle="stable",
     requires_role=("admin",),
-    dev_notes="Shell + rendering engine for the pillar-mixer backbone. Renders four skeletons (RECORD/KNOW/ACT/GOVERN) from a validated page config. Does not pick blends or compute intensity. Spec: temp/semptify_pillar_mixer_backbone.md",
-    log_message="Page Shell router active — /api/page-shell (admin-only)",
+    dev_notes="Core shell + rendering engine for the pillar-mixer backbone. Renders four skeletons (RECORD/KNOW/ACT/GOVERN) from a validated page config. Used directly by Page Composer's tenant-facing routes; the /api/page-shell debug endpoints stay admin-only. Does not pick blends or compute intensity. Spec: temp/semptify_pillar_mixer_backbone.md",
+    log_message="Page Shell router active — /api/page-shell (admin introspection)",
 )
 _register(
     "app.modules.example_payment_tracking",

@@ -82,27 +82,52 @@ async def _gather_user_case(subject: str, user_id: str) -> dict[str, Any] | None
     """Pull the user's case data for this subject, if any.
 
     Best-effort: returns None if case_builder is unavailable or no case exists.
+    Logs a visible warning when the Case Builder module is missing or broken so
+    that a page silently missing real case data does not go unnoticed.
     """
     try:
         from app.modules.case_builder import case_builder as cb_module
 
-        if hasattr(cb_module, "get_cases_for_user"):
-            cases = await cb_module.get_cases_for_user(user_id, subject=subject)
-            if cases:
-                return {
-                    "count": len(cases),
-                    "items": [
-                        {
-                            "id": getattr(c, "id", None),
-                            "title": getattr(c, "title", None),
-                            "status": getattr(c, "status", None),
-                            "updated_at": getattr(c, "updated_at", None),
-                        }
-                        for c in cases
-                    ],
+        if not hasattr(cb_module, "get_cases_for_user"):
+            logger.warning(
+                "Case Builder module loaded for %s*** but get_cases_for_user is missing; "
+                "case data will not appear on Page Composer pages.",
+                user_id[:6],
+            )
+            return None
+
+        cases = await cb_module.get_cases_for_user(user_id, subject=subject)
+        if not cases:
+            logger.debug(
+                "No cases found for %s*** / %s; Page Composer will not show case blocks.",
+                user_id[:6],
+                subject,
+            )
+            return None
+
+        return {
+            "count": len(cases),
+            "items": [
+                {
+                    "id": getattr(c, "id", None),
+                    "title": getattr(c, "title", None),
+                    "status": getattr(c, "status", None),
+                    "updated_at": (
+                        c.updated_at.isoformat()
+                        if getattr(c, "updated_at", None)
+                        else None
+                    ),
                 }
+                for c in cases
+            ],
+        }
     except Exception as e:
-        logger.debug("Case builder not available for page composer: %s", e)
+        logger.warning(
+            "Case Builder failed for %s*** / %s; case data will not appear on Page Composer pages: %s",
+            user_id[:6],
+            subject,
+            e,
+        )
     return None
 
 

@@ -14,6 +14,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
+from app.core.module_gate import get_module_access
 from app.core.security import auth_gate
 from app.core.user_context import UserContext
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
@@ -84,11 +85,13 @@ async def get_assembled_page(
     if subject not in ALL_SUBJECTS:
         raise HTTPException(status_code=400, detail=f"Unknown subject: {subject}")
     try:
+        resolved = get_module_access(request).resolved_module_paths
         result = await assemble_page(
             subject=subject,
             jurisdiction=jurisdiction,
             user_id=user_id,
             intent=intent,
+            user_context={"capabilities": resolved},
             fact_limit=fact_limit,
             story_limit=story_limit,
         )
@@ -115,12 +118,15 @@ async def post_assembled_page(
     if body.subject not in ALL_SUBJECTS:
         raise HTTPException(status_code=400, detail=f"Unknown subject: {body.subject}")
     try:
+        resolved = get_module_access(request).resolved_module_paths
+        user_context = dict(body.context or {})
+        user_context["capabilities"] = resolved
         result = await assemble_page(
             subject=body.subject,
             jurisdiction=body.jurisdiction,
             user_id=user_id,
             intent=body.intent,
-            user_context=body.context,
+            user_context=user_context,
             fact_limit=body.fact_limit,
             story_limit=body.story_limit,
         )
@@ -153,10 +159,12 @@ async def get_assembled_page_config(
     if subject not in ALL_SUBJECTS:
         raise HTTPException(status_code=400, detail=f"Unknown subject: {subject}")
     try:
+        resolved = get_module_access(request).resolved_module_paths
         result = await assemble_page(
             subject=subject,
             jurisdiction=jurisdiction,
             user_id=user_id,
+            user_context={"capabilities": resolved},
             fact_limit=fact_limit,
             story_limit=story_limit,
         )
@@ -179,10 +187,12 @@ async def get_assembled_page_components(
     if subject not in ALL_SUBJECTS:
         raise HTTPException(status_code=400, detail=f"Unknown subject: {subject}")
     try:
+        resolved = get_module_access(request).resolved_module_paths
         result = await assemble_page(
             subject=subject,
             jurisdiction=jurisdiction,
             user_id=user_id,
+            user_context={"capabilities": resolved},
             fact_limit=fact_limit,
             story_limit=story_limit,
         )
@@ -208,10 +218,12 @@ async def render_assembled_page(
     if subject not in ALL_SUBJECTS:
         raise HTTPException(status_code=400, detail=f"Unknown subject: {subject}")
     try:
+        resolved = get_module_access(request).resolved_module_paths
         result = await assemble_page(
             subject=subject,
             jurisdiction=jurisdiction,
             user_id=user_id,
+            user_context={"capabilities": resolved},
             fact_limit=fact_limit,
             story_limit=story_limit,
         )
