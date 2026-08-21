@@ -1696,5 +1696,31 @@
     "created_at": "2026-08-20T21:50:00Z",
     "updated_at": "2026-08-20T23:07:37.308007+00:00",
     "notes": "Handoff from Brad. Do not start case_builder/CASE_DATA work until these three items are verified.\n[2026-08-20 23:07 UTC - devin] Fixed SSOT redirect, gated /debug/* endpoints, added unified_overlay_manager tests (81% coverage); SSOT, guardrail, ruff, and targeted tests pass."
+  },
+  {
+    "id": "ad-hoc-case-data-overlay-migration",
+    "title": "CASE_DATA overlay migration + case_builder scope narrowing",
+    "description": "Add CASE_DATA overlay type, migrate case_builder save/load to UnifiedOverlayManager, and keep DB row free of case-identifying data.",
+    "file_path": "app/modules/case_builder/router.py",
+    "status": "resolved",
+    "assigned_agent": "devin",
+    "priority": "high",
+    "source": "ad-hoc",
+    "created_at": "2026-08-20T23:15:00Z",
+    "updated_at": "2026-08-20T23:36:51.419480+00:00",
+    "notes": "Handoff from Brad. CASE_DATA overlay and case_builder Postgres JSONB migration.\n[2026-08-20 23:36 UTC - devin] Added CASE_DATA overlay, migrated case_builder to UnifiedOverlayManager, DB no longer stores case content; tests, guardrail, SSOT, ruff, py_compile, module_health all pass."
+  },
+  {
+    "id": "ad-hoc-context-explanation-workbook-cleanup",
+    "title": "Clean up context explanation workbook spec",
+    "description": "Fix Section 6 starter set count/remove duplicate list, and reconcile filename references for the workbook CSV, example CSV, template CSV, and loader command.",
+    "file_path": "docs/context_explanation_workbook.md",
+    "status": "resolved",
+    "assigned_agent": "devin",
+    "priority": "medium",
+    "source": "ad-hoc",
+    "created_at": "2026-08-20T23:50:00Z",
+    "updated_at": "2026-08-21T16:54:42.913181+00:00",
+    "notes": "Quick doc-only cleanup before content author starts filling entries."
   }
 ]
