@@ -1,0 +1,216 @@
+{% extends "body/act_body.html" %}
+
+{% block title %}Calculate your eviction deadlines — Semptify{% endblock %}
+{% block record_aria_label %}Calculate eviction deadlines{% endblock %}
+{% block record_controls_title %}Calculate deadlines{% endblock %}
+
+{% block record_title %}Calculate your eviction deadlines{% endblock %}
+{% block record_description %}Enter the date you were served with an eviction notice and Semptify will estimate the key deadlines for your response. This is a planning tool, not a court filing.{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .record-guide__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .record-guide__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .record-guide__result {
+    margin-top: 1rem;
+    color: #4a4a4a;
+    line-height: 1.6;
+  }
+  .record-guide__result h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+  }
+  .record-guide__result p {
+    color: #4a4a4a;
+    line-height: 1.6;
+  }
+  .record-guide__result ul {
+    list-style: none;
+    margin: 0.5rem 0 0.75rem 0;
+    padding: 0;
+    color: #4a4a4a;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+  .record-guide__result li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .record-guide__result li:last-child { border-bottom: none; }
+  .record-guide__result li strong {
+    color: #1a1a1a;
+    font-weight: 500;
+  }
+  .record-guide__result .record-guide__warning {
+    display: block;
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    background: #fbf5dc;
+    border: 1px solid #e6d7a3;
+    color: #7a5c00;
+    font-weight: 500;
+  }
+  .record-guide__result .record-guide__past {
+    background: #fee2e2;
+    border-color: #f5b0b0;
+    color: #991b1b;
+  }
+</style>
+{% endblock %}
+
+{% block record_controls %}
+<form id="deadlineForm" class="record-guide__form" onsubmit="event.preventDefault(); calculateDeadlines();" novalidate>
+  <div class="record-guide__field block-input">
+    <label for="start_date">When were you served? <span class="required">*</span></label>
+    <input id="start_date" name="start_date" type="date" required>
+    <p class="record-guide__hint">Use the date on the eviction notice or the date you were served.</p>
+  </div>
+
+  <details class="record-guide__extra">
+    <summary>Add more detail</summary>
+    <div class="record-guide__extra-fields">
+      <div class="record-guide__field block-input">
+        <label for="case_type">Case type <span class="optional">(optional)</span></label>
+        <select id="case_type" name="case_type">
+          <option value="nonpayment" selected>Nonpayment of rent</option>
+          <option value="lease_violation">Lease violation</option>
+          <option value="holdover">Holdover</option>
+          <option value="other">Other</option>
+        </select>
+        <p class="record-guide__hint">This does not change the deadlines, but helps Semptify label your plan.</p>
+      </div>
+    </div>
+  </details>
+
+  <div class="record-guide__consequence">
+    <p><strong>This calculates dates only.</strong> It does not file anything for you or send anything to the court. If a deadline is soon or already passed, <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" target="_blank" rel="noopener noreferrer">find legal help</a> now.</p>
+  </div>
+
+  <button type="submit" class="output-trigger output-trigger--primary">Calculate deadlines</button>
+  <div id="deadlineResult" class="record-guide__result" role="status" aria-live="polite"></div>
+</form>
+{% endblock %}
+
+{% block record_narration %}
+{{ process_indicator(narration) }}
+{% endblock %}
+
+{% block record_controls_legal_notice %}
+<div class="record-guide__legal-notice">
+  <p><strong>Semptify is not a law firm.</strong> These deadlines are estimates for planning only. Court rules, holidays, and service method can change your real deadline. Always verify with the court or a qualified attorney. If a deadline is soon or already passed, <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" target="_blank" rel="noopener noreferrer">find legal help</a> now.</p>
+</div>
+{% endblock %}
+
+{% block record_next %}
+<a href="/gui/know/law-library/get-statute" class="output-trigger">Look up the law behind these deadlines</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function deadlineLabel(key) {
+    switch (key) {
+      case 'answer_due': return 'Answer due';
+      case 'jury_demand_due': return 'Jury demand due';
+      case 'estimated_hearing': return 'Estimated hearing';
+      case 'estimated_jury_trial': return 'Estimated jury trial';
+      default: return key.replace(/_/g, ' ');
+    }
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    var parts = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!parts) return iso;
+    var d = new Date(Date.UTC(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3])));
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+    });
+  }
+
+  function calculateDeadlines() {
+    var form = document.getElementById('deadlineForm');
+    var resultDiv = document.getElementById('deadlineResult');
+    var startDate = form.start_date.value;
+    var caseType = form.case_type.value;
+
+    if (!startDate) {
+      resultDiv.innerHTML = '<p>Please enter the date you were served.</p>';
+      return;
+    }
+
+    resultDiv.innerHTML = '<p>Calculating deadlines…</p>';
+
+    fetch('/api/eviction-defense/calculate-deadlines', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        service_date: startDate,
+        case_type: caseType || undefined
+      })
+    })
+    .then(function (res) {
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          resultDiv.innerHTML = '<p>You need to be signed in to use this tool. <a href="/help">Get help</a> if you need it now.</p>';
+          return;
+        }
+        throw new Error('HTTP ' + res.status);
+      }
+      return res.json();
+    })
+    .then(function (data) {
+      if (!data) return;
+
+      var items = '';
+      var order = ['answer_due', 'jury_demand_due', 'estimated_hearing', 'estimated_jury_trial'];
+      order.forEach(function (key) {
+        if (data[key]) {
+          items += '<li><strong>' + escapeHtml(deadlineLabel(key)) + '</strong> <span>' + escapeHtml(formatDate(data[key])) + '</span></li>';
+        }
+      });
+
+      var warnings = '';
+      if (data.warnings && data.warnings.length) {
+        warnings = data.warnings.map(function (w) {
+          var cls = w.toLowerCase().indexOf('has passed') !== -1 ? 'record-guide__warning record-guide__past' : 'record-guide__warning';
+          return '<p class="' + cls + '">' + escapeHtml(w) + '</p>';
+        }).join('');
+      }
+
+      resultDiv.innerHTML =
+        '<h3>Deadlines starting from ' + escapeHtml(formatDate(data.service_date)) + '</h3>' +
+        '<ul>' + items + '</ul>' +
+        warnings;
+    })
+    .catch(function (err) {
+      resultDiv.innerHTML = '<p>Could not calculate deadlines: ' + escapeHtml(err.message) + '. <a href="/help">Get help</a> if you need it now.</p>';
+    });
+  }
+</script>
+{% endblock %}

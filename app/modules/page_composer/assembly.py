@@ -409,6 +409,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
                 content_ref=f"You have {document_count} document{'s' if document_count != 1 else ''} saved in your vault.",
                 reading_level="plain",
                 collapsed_by_default=False,
+                module_name="vault",
                 summary="Vault",
             )
         )
@@ -420,6 +421,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
                 label="Upload your first document",
                 risk_tier="low",  # type: ignore[arg-type]
                 on_trigger="/vault/upload",
+                module_name="vault",
             )
         )
 
@@ -460,6 +462,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
                 label=f"Case status: {case.get('count', 0)} active",
                 required=False,
                 writes_to="case_builder",
+                module_name="case_builder",
                 placeholder="Review or update your case",
             )
         )
@@ -471,6 +474,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
                     label=f"Open case: {item.get('title', 'case')}",
                     risk_tier="low",  # type: ignore[arg-type]
                     on_trigger=f"/cases/{item.get('id', '')}",
+                    module_name="case_builder",
                 )
             )
 
@@ -486,6 +490,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
                 label=f"Next: {title}" + (f" (due {date})" if date else ""),
                 risk_tier=risk,
                 on_trigger="/calendar",
+                module_name="calendar",
             )
         )
 
@@ -498,6 +503,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
                 label=f"Timeline: {title}",
                 risk_tier="low",  # type: ignore[arg-type]
                 on_trigger="/timeline",
+                module_name="timeline",
             )
         )
 
@@ -553,31 +559,52 @@ def _apply_capability_filter(
 ) -> PageConfig:
     """Remove blocks for modules the current user cannot load.
 
-    Best-effort: if we cannot determine capabilities, pass through unchanged.
+    Capabilities should be supplied as a list/set of module names or module
+    paths in `context["capabilities"]`. If they are missing, we log a visible
+    warning and pass through unchanged rather than gating against empty data.
     """
     if not user_id:
         return page_config
 
-    try:
-        # Synchronous DB access not available here; skip unless we already
-        # have cached capabilities in context.
-        cached_caps = context.get("capabilities")
-        if cached_caps:
-            allowed = set(cached_caps)
-            zones = page_config.zones or {}
-            for pillar, zone in zones.items():
-                zone.blocks = [b for b in zone.blocks if _block_allowed(b, allowed, pillar)]
-            page_config.zones = zones
-    except Exception as exc:
-        logger.debug("Capability filter skipped: %s", exc)
+    allowed = context.get("capabilities")
+    if allowed is None:
+        logger.warning(
+            "Capability filter skipped: no capabilities in context for user %s***; "
+            "passing all blocks through. Supply resolved_module_paths to assemble_page "
+            "via user_context['capabilities'] to enable gating.",
+            user_id[:6],
+        )
+        return page_config
 
+    allowed_set = set(allowed)
+    zones = page_config.zones or {}
+    for pillar, zone in zones.items():
+        before = len(zone.blocks)
+        zone.blocks = [b for b in zone.blocks if _block_allowed(b, allowed_set)]
+        dropped = before - len(zone.blocks)
+        if dropped:
+            logger.info(
+                "Capability filter dropped %d block(s) in %s zone for user %s***",
+                dropped,
+                pillar,
+                user_id[:6],
+            )
+    page_config.zones = zones
     return page_config
 
 
-def _block_allowed(block: AnyBlock, allowed: set[str], pillar: str) -> bool:
+def _block_allowed(block: AnyBlock, allowed: set[str]) -> bool:
     """Return True if block's module dependency is allowed for the user."""
-    # Block kinds do not currently carry module_name; treat all as allowed.
-    return True
+    module_name = getattr(block, "module_name", None)
+    if not module_name:
+        return True
+    if module_name in allowed:
+        return True
+    # Allow raw module names like "vault" to match manifest paths
+    # "app.modules.vault.router".
+    from app.core.module_gate import get_function_module_path
+
+    return get_function_module_path(module_name) in allowed
 
 
 def _ui_intent_for(major_pillar: str) -> str:

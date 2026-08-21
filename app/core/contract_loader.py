@@ -143,6 +143,9 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     # Phase 1A/1B: UI Composer + Tenant Feed (Hybrid Contextual GUI)
     "app.modules.ui_composer.register",
     "app.modules.tenant_feed.register",
+    # Page Composer + Page Shell (page assembly and rendering)
+    "app.modules.page_composer.register",
+    "app.modules.page_shell.register",
     # NOTE: litigation_intelligence.register excluded — module is INACTIVE in manifest
     # and has a pre-existing SyntaxError in router.py (non-default arg after default arg).
     # Services with contracts

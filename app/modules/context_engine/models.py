@@ -13,6 +13,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.core.database_types import AsymmetricVector
+from app.modules.context_engine.embedding_model import EMBEDDING_DIMENSIONS
 from app.core.utc import utc_now
 
 
@@ -38,12 +40,24 @@ class ContextFact(Base):
     citation: Mapped[str | None] = mapped_column(Text, nullable=True)
     canonical_value: Mapped[str | None] = mapped_column(Text, nullable=True)
     extraction_pattern: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Pre-computed all-MiniLM-L6-v2 embedding of the fact claim.
+    # Stored as pgvector in PostgreSQL and JSON in SQLite.
+    embedding: Mapped[list[float] | None] = mapped_column(
+        AsymmetricVector(EMBEDDING_DIMENSIONS),
+        nullable=True,
+    )
+
     is_verified: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     verified_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
 
     __table_args__ = (Index("ix_context_facts_subject_jur", "subject", "jurisdiction"),)
+
+    def embedding_text(self) -> str:
+        """Return the text that should be embedded for this fact."""
+        return f"{self.subject} {self.claim}"
 
 
 class TenantStory(Base):

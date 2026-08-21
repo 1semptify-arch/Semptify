@@ -22,6 +22,14 @@ from typing import Any
 
 from app.core.utc import utc_now
 
+from .library import (
+    get_form as get_library_form,
+    list_forms as list_library_forms,
+    merge_pdfs,
+    render_dynamic_form_html,
+    validate_field_values,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -178,20 +186,44 @@ class CourtFormGenerator:
         Generate a court form with case data.
 
         Args:
-            form_type: Type of form (answer_to_complaint, motion_to_dismiss, etc.)
+            form_type: Type of form (answer_to_complaint, motion_to_dismiss, CIV602, etc.)
             case_data: Dictionary of case information from FormDataHub
-            defenses: List of defense types to include
-            output_format: pdf, html, or docx
+            defenses: List of defense types to include (legacy hardcoded forms)
+            output_format: pdf, html, or text
 
         Returns:
             Dictionary with form content and metadata
         """
-        if form_type not in FORM_MAPPINGS:
-            return {
-                "error": f"Unknown form type: {form_type}",
-                "available_forms": list(FORM_MAPPINGS.keys()),
-            }
+        # Legacy hardcoded forms first, then the JSON library.
+        if form_type in FORM_MAPPINGS:
+            return await self._generate_legacy_form(
+                form_type=form_type,
+                case_data=case_data,
+                defenses=defenses,
+                output_format=output_format,
+            )
 
+        library_form = get_library_form(form_type)
+        if library_form:
+            return await self._generate_library_form(
+                form=library_form,
+                case_data=case_data,
+                output_format=output_format,
+            )
+
+        return {
+            "error": f"Unknown form type: {form_type}",
+            "available_forms": list(FORM_MAPPINGS.keys()) + [f["form_id"] for f in list_library_forms()],
+        }
+
+    async def _generate_legacy_form(
+        self,
+        form_type: str,
+        case_data: dict[str, Any],
+        defenses: list[str] | None,
+        output_format: str,
+    ) -> dict[str, Any]:
+        """Generate one of the original hardcoded forms."""
         mapping = FORM_MAPPINGS[form_type]
 
         # Map case data to form fields
@@ -217,6 +249,44 @@ class CourtFormGenerator:
             "content": content,
             "fields_used": list(form_data.keys()),
             "generated_at": utc_now().isoformat(),
+        }
+
+    async def _generate_library_form(
+        self,
+        form: Any,
+        case_data: dict[str, Any],
+        output_format: str,
+    ) -> dict[str, Any]:
+        """Generate a form from the JSON library definition."""
+        field_values = dict(case_data)
+
+        # Apply placeholders for missing fields
+        for f in form.required_fields:
+            if f.field_id not in field_values or not field_values[f.field_id]:
+                field_values[f.field_id] = f"[{f.label.upper() if f.label else f.field_id.upper()}]"
+
+        missing = validate_field_values(form.form_id, case_data)
+
+        html = render_dynamic_form_html(form.form_id, field_values)
+
+        if output_format == "html":
+            content = html
+        elif output_format == "pdf":
+            content = await self._generate_pdf_bytes(html)
+        else:
+            content = self._generate_text_from_library_form(form, field_values)
+
+        return {
+            "form_type": form.form_id,
+            "title": form.title,
+            "description": f"{form.category} — {form.case_type}",
+            "format": output_format,
+            "content": content,
+            "fields_used": [f.field_id for f in form.required_fields],
+            "generated_at": utc_now().isoformat(),
+            "missing_required": missing,
+            "court_rules": form.court_rules,
+            "signature_required": form.signature_required,
         }
 
     def _map_fields(
@@ -577,6 +647,27 @@ class CourtFormGenerator:
         logger.warning("PDF generation libraries not available, returning HTML")
         return html.encode("utf-8")
 
+    async def _generate_pdf_bytes(self, html: str) -> bytes:
+        """Convert a pre-built HTML string to PDF."""
+        try:
+            from weasyprint import HTML
+
+            return HTML(string=html).write_pdf()
+        except ImportError:
+            pass
+
+        try:
+            from xhtml2pdf import pisa
+
+            result = io.BytesIO()
+            pisa.CreatePDF(io.StringIO(html), dest=result)
+            return result.getvalue()
+        except ImportError:
+            pass
+
+        logger.warning("PDF generation libraries not available, returning HTML")
+        return html.encode("utf-8")
+
     def _generate_text(
         self,
         form_type: str,
@@ -597,6 +688,25 @@ class CourtFormGenerator:
 
         return "\n".join(lines)
 
+    def _generate_text_from_library_form(
+        self,
+        form: Any,
+        field_values: dict[str, Any],
+    ) -> str:
+        """Generate a plain-text preview from a library form."""
+        lines = [
+            f"{'=' * 60}",
+            form.title.upper(),
+            f"{'=' * 60}",
+            "",
+        ]
+        for field in form.required_fields:
+            value = field_values.get(field.field_id, "")
+            if isinstance(value, (datetime, date)):
+                value = value.strftime("%B %d, %Y")
+            lines.append(f"{field.label or field.field_id}: {value}")
+        return "\n".join(lines)
+
     def get_available_forms(self) -> list[dict[str, str]]:
         """Get list of available form types."""
         return [
@@ -607,6 +717,40 @@ class CourtFormGenerator:
             }
             for form_type, mapping in FORM_MAPPINGS.items()
         ]
+
+    def get_library_forms(self) -> list[dict[str, Any]]:
+        """Get list of forms from the JSON library."""
+        return list_library_forms()
+
+    def get_library_form(self, form_id: str) -> dict[str, Any] | None:
+        """Get a single form definition from the JSON library."""
+        form = get_library_form(form_id)
+        if not form:
+            return None
+        return form.model_dump()
+
+    async def assemble_packet(self, items: list[dict[str, Any]]) -> bytes:
+        """Generate multiple forms and merge into one PDF packet."""
+        pdfs: list[bytes] = []
+        for item in items:
+            form_id = item.get("form_id")
+            field_values = item.get("field_values", {})
+            if not form_id:
+                continue
+            result = await self.generate_form(
+                form_type=form_id,
+                case_data=field_values,
+                output_format="pdf",
+            )
+            if "error" in result:
+                logger.warning("Packet merge skipped %s: %s", form_id, result["error"])
+                continue
+            content = result.get("content")
+            if isinstance(content, bytes):
+                pdfs.append(content)
+        if not pdfs:
+            return b""
+        return merge_pdfs(pdfs)
 
     def get_available_defenses(self) -> list[dict[str, str]]:
         """Get list of available defense types."""
