@@ -145,7 +145,7 @@ PUBLIC_PREFIXES = (
     "/api/resources/",  # Resource directory — public read endpoints
     "/api/i18n/",  # i18n — public locale read/set endpoints
     "/admin/api/",  # Admin API endpoints — auth checked by route (elevation/capability)
-    "/debug/",  # TEMPORARY: diagnostic endpoints
+    "/debug/",  # TEMPORARY: diagnostic endpoints (gated to SECURITY_MODE=open in routes)
     "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)
 )
 
