@@ -1,6 +1,6 @@
 # Page Composer Assembly Formula — Blueprint
 
-**Status:** DRAFT — pending approval
+**Status:** APPROVED — implemented
 **Module path:** `app.modules.page_composer` (formula lives in `app/modules/page_composer/assembly.py`)
 **Type:** Feature Module enhancement (CORE tier)
 **Capability tier:** CORE
@@ -231,7 +231,17 @@ The formula returns a `PageAssemblyResult`:
 | Facts without `source_url` | `page_composer.service` already rejects/handles this; the formula only passes through verified facts. |
 | Overly complex scoring | Intensity is a simple bounded max() of signals; no ML, no hidden state. |
 
-## 10. Build order
+## 10. Implementation notes
+
+- The assembly formula is implemented in `app/modules/page_composer/assembly.py`.
+- `PageAssemblyResult` is in `app/modules/page_composer/models.py`.
+- The capability filter uses `block.module_name` (now present on `InputBlock`, `InfoBlock`, and `OutputBlock`) and compares it against `context["capabilities"]` (resolved module paths from `app.core.module_gate`).
+- The capability-filter endpoints in `app/modules/page_composer/router.py`, `/gui/dashboard`, and `/gui/page/{subject}` pass resolved module paths into `assemble_page`.
+- Case Builder integration is provided by `app/modules/case_builder/case_builder.py::get_cases_for_user`.
+- Page Shell is a CORE dependency in `app/core/product_manifest.py`; its contracts are loaded by `app/core/contract_loader.py`.
+- Mobile rendering is handled by the `max-width: 1024px` media query in `static/page_shell/page_shell.css`, which switches `.page-shell` to normal document flow (`height: auto; overflow: visible`).
+
+## 11. Build order
 
 1. Add `app/modules/page_composer/assembly.py` with the classification, blend selection, and block-gather functions.
 2. Add `PageAssemblyResult` model to `app/modules/page_composer/models.py` (or a new `schemas.py`).

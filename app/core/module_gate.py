@@ -411,6 +411,24 @@ def get_module_access(request: Request) -> ModuleAccess:
     )
 
 
+def get_function_module_path(contract_module: str) -> str:
+    """Map a contract module name to its product-manifest module_path."""
+    # Strip any app.modules. / .router noise and re-assemble the canonical path
+    module = contract_module.strip().lower().replace("app.modules.", "").replace(".router", "")
+    return f"app.modules.{module}.router"
+
+
+def is_function_resolved(request: Request, contract_module: str) -> bool:
+    """Check whether a function's module is in the resolved set for the request.
+
+    This is the Phase 2.2 situational-availability check. The Module Resolver
+    considers role, jurisdiction, gates, lifecycle, and feature flags.
+    """
+    module_path = get_function_module_path(contract_module)
+    access = get_module_access(request)
+    return access.can_use_module_path(module_path)
+
+
 def get_jurisdiction(request: Request) -> Jurisdiction:
     """Get jurisdiction from request state."""
     if hasattr(request.state, "jurisdiction"):
