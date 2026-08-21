@@ -34,6 +34,13 @@
 - `[considering]` `phase2-1a1341-055` — `services/eviction/case_builder` legal-output changes — **needs Brad's manual legal review**, not agent-actionable.
 - `[considering]` `local/markdown-lint-pass` — 278-file lint pass, still unpushed, undecided (push+PR vs. merge vs. discard).
 
+## Guardrail / build-hygiene backlog
+
+- `[accepted]` **Add post-`create_app()` route scan for ad-hoc public routes.**
+  Context: `/debug/*` routes were registered directly on `fastapi_app` in `app/main.py` and were invisible to `contract_route_check.py`, which only inspects module routers with `FunctionGroupContract`. `PUBLIC_PREFIXES` in `storage_middleware.py` is a runtime allowlist, not a build-time guardrail.
+  Scope: after `create_app()` is called in the guardrail engine, walk `fastapi_app.routes` and flag any route whose path starts with an entry in `PUBLIC_PREFIXES` but is not in a registered module contract. This closes the gap that let `/debug/seed-test-user` become reachable without storage auth.
+  Not urgent for the current handoff; do not build before CASE_DATA migration is complete.
+
 ## New ideas / considering
 
 - `[considering]` **Expand Information Orchestrator (ADR-0008) beyond pilot surfaces.**
