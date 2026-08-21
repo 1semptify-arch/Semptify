@@ -1248,6 +1248,11 @@ class Incident(Base):
     # Metadata
     incident_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
+    # Overlay pointer — actual case content lives in the user's cloud storage
+    case_overlay_id: Mapped[str | None] = mapped_column(
+        String(36), nullable=True, comment="CASE_DATA overlay id in user cloud storage"
+    )
+
     # Relationships
     user: Mapped["User"] = relationship(back_populates="incidents")
     vault_items: Mapped[list["VaultItem"]] = relationship(back_populates="incident")

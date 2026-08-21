@@ -198,6 +198,13 @@ class NavigationRegistry:
             next_stage=None,
             requires_checkpoint=False,
         ),
+        "record_journal_create": FlowStage(
+            id="record_journal_create",
+            name="Record Journal Create",
+            path="/gui/record/journal/create",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
         # --- Module root redirect targets (Post-Redirect-Get) ---
         # Used by module routers after a POST operation to redirect back to the module's GET view.
         "dispute_tracker_home": FlowStage(

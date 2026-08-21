@@ -1,0 +1,937 @@
+{
+  "version": "1.0.0",
+  "jurisdiction": "Minnesota",
+  "last_updated": "2026-08-20",
+  "forms": [
+    {
+      "form_id": "CIV601",
+      "title": "Instructions - Generic Civil Motion and Affidavit",
+      "category": "Civil",
+      "case_type": "General Civil",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [],
+      "court_rules": ["Minn. R. Civ. P. 7", "Minn. R. Civ. P. 60.02"],
+      "signature_required": false,
+      "related_forms": ["CIV602", "CIV603"]
+    },
+    {
+      "form_id": "CIV602",
+      "title": "Notice of Motion and Motion",
+      "category": "Civil",
+      "case_type": "General Civil",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_judicial_district",
+          "label": "Judicial District",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "hearing_date",
+          "label": "Hearing Date",
+          "type": "date",
+          "required": false
+        },
+        {
+          "field_id": "hearing_time",
+          "label": "Hearing Time",
+          "type": "text",
+          "required": false
+        },
+        {
+          "field_id": "motion_body",
+          "label": "Motion Text",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "relief_sought",
+          "label": "Relief Sought",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "legal_authority",
+          "label": "Legal Authority",
+          "type": "long_text",
+          "required": false
+        },
+        {
+          "field_id": "signature_name",
+          "label": "Printed Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "signature_date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "field_id": "signature_address",
+          "label": "Address",
+          "type": "text",
+          "required": false
+        },
+        {
+          "field_id": "signature_phone",
+          "label": "Phone",
+          "type": "text",
+          "required": false
+        },
+        {
+          "field_id": "signature_email",
+          "label": "Email",
+          "type": "text",
+          "required": false
+        }
+      ],
+      "court_rules": ["Minn. R. Civ. P. 7", "Minn. R. Civ. P. 60.02"],
+      "signature_required": true,
+      "related_forms": ["CIV603", "CIV604"]
+    },
+    {
+      "form_id": "CIV602_R60_02",
+      "title": "Notice of Motion and Motion to Vacate Judgment",
+      "category": "Civil",
+      "case_type": "Rule 60.02 Motion to Vacate",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_judicial_district",
+          "label": "Judicial District",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "hearing_date",
+          "label": "Hearing Date",
+          "type": "date",
+          "required": false
+        },
+        {
+          "field_id": "hearing_time",
+          "label": "Hearing Time",
+          "type": "text",
+          "required": false
+        },
+        {
+          "field_id": "motion_title",
+          "label": "Motion Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "relief_sought",
+          "label": "Relief Sought",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "duress_grounds",
+          "label": "Duress Grounds",
+          "type": "long_text",
+          "required": false
+        },
+        {
+          "field_id": "misrepresentation_grounds",
+          "label": "Misrepresentation Grounds",
+          "type": "long_text",
+          "required": false
+        },
+        {
+          "field_id": "violation_grounds",
+          "label": "Violation Grounds",
+          "type": "long_text",
+          "required": false
+        },
+        {
+          "field_id": "supporting_facts",
+          "label": "Supporting Facts",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "legal_authority",
+          "label": "Legal Authority",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "signature_name",
+          "label": "Printed Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "signature_date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "field_id": "signature_address",
+          "label": "Address",
+          "type": "text",
+          "required": false
+        },
+        {
+          "field_id": "signature_phone",
+          "label": "Phone",
+          "type": "text",
+          "required": false
+        },
+        {
+          "field_id": "signature_email",
+          "label": "Email",
+          "type": "text",
+          "required": false
+        }
+      ],
+      "court_rules": ["Minn. R. Civ. P. 60.02"],
+      "signature_required": true,
+      "related_forms": ["CIV603_R60_02", "CIV604", "CIV901"]
+    },
+    {
+      "form_id": "CIV603",
+      "title": "Affidavit in Support of Motion",
+      "category": "Civil",
+      "case_type": "General Civil",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_judicial_district",
+          "label": "Judicial District",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "affiant_name",
+          "label": "Affiant Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "affiant_address",
+          "label": "Affiant Address",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "affidavit_body",
+          "label": "Affidavit Facts",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "exhibits",
+          "label": "Exhibits",
+          "type": "long_text",
+          "required": false
+        },
+        {
+          "field_id": "signature_name",
+          "label": "Printed Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "signature_date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "field_id": "signature_address",
+          "label": "Address",
+          "type": "text",
+          "required": false
+        },
+        {
+          "field_id": "signature_phone",
+          "label": "Phone",
+          "type": "text",
+          "required": false
+        },
+        {
+          "field_id": "signature_email",
+          "label": "Email",
+          "type": "text",
+          "required": false
+        }
+      ],
+      "court_rules": ["Minn. R. Civ. P. 60.02"],
+      "signature_required": true,
+      "related_forms": ["CIV602"]
+    },
+    {
+      "form_id": "CIV603_R60_02",
+      "title": "Affidavit in Support of Rule 60.02 Motion to Vacate Judgment",
+      "category": "Civil",
+      "case_type": "Rule 60.02 Motion to Vacate",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_judicial_district",
+          "label": "Judicial District",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "affiant_name",
+          "label": "Affiant Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "affiant_address",
+          "label": "Affiant Address",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "affidavit_body",
+          "label": "Affidavit Facts",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "exhibits",
+          "label": "Exhibits",
+          "type": "long_text",
+          "required": false
+        },
+        {
+          "field_id": "signature_name",
+          "label": "Printed Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "signature_date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "field_id": "signature_address",
+          "label": "Address",
+          "type": "text",
+          "required": false
+        },
+        {
+          "field_id": "signature_phone",
+          "label": "Phone",
+          "type": "text",
+          "required": false
+        },
+        {
+          "field_id": "signature_email",
+          "label": "Email",
+          "type": "text",
+          "required": false
+        }
+      ],
+      "court_rules": ["Minn. R. Civ. P. 60.02"],
+      "signature_required": true,
+      "related_forms": ["CIV602_R60_02"]
+    },
+    {
+      "form_id": "CIV604",
+      "title": "Notice of Hearing",
+      "category": "Civil",
+      "case_type": "General Civil",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_judicial_district",
+          "label": "Judicial District",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "hearing_date",
+          "label": "Hearing Date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "field_id": "hearing_time",
+          "label": "Hearing Time",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "hearing_location",
+          "label": "Hearing Location",
+          "type": "text",
+          "required": false
+        }
+      ],
+      "court_rules": [],
+      "signature_required": false,
+      "related_forms": ["CIV602", "CIV603"]
+    },
+    {
+      "form_id": "CIV901",
+      "title": "Affidavit of Personal Service",
+      "category": "Civil",
+      "case_type": "General Civil",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_judicial_district",
+          "label": "Judicial District",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "server_name",
+          "label": "Server Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "documents_served",
+          "label": "Documents Served",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "service_date",
+          "label": "Service Date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "field_id": "service_address",
+          "label": "Service Address",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "signature_name",
+          "label": "Printed Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "signature_date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        }
+      ],
+      "court_rules": [],
+      "signature_required": true,
+      "related_forms": []
+    },
+    {
+      "form_id": "HOU802",
+      "title": "Settlement Agreement",
+      "category": "Housing",
+      "case_type": "Eviction",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "terms",
+          "label": "Terms",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "signature_landlord",
+          "label": "Landlord Signature",
+          "type": "signature",
+          "required": true
+        },
+        {
+          "field_id": "signature_tenant",
+          "label": "Tenant Signature",
+          "type": "signature",
+          "required": true
+        }
+      ],
+      "court_rules": ["Minn. Stat. §504B"],
+      "signature_required": true,
+      "related_forms": ["HOU803"]
+    },
+    {
+      "form_id": "HOU803",
+      "title": "Affidavit of Violation of Settlement Agreement",
+      "category": "Housing",
+      "case_type": "Eviction",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "violation_facts",
+          "label": "Violation Facts",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "signature_name",
+          "label": "Printed Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "signature_date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        }
+      ],
+      "court_rules": ["Minn. Stat. §504B"],
+      "signature_required": true,
+      "related_forms": ["HOU802"]
+    },
+    {
+      "form_id": "HOU202",
+      "title": "Eviction Answer",
+      "category": "Housing",
+      "case_type": "Eviction",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "defenses",
+          "label": "Defenses",
+          "type": "checkbox_group",
+          "required": true,
+          "options": ["improper_notice", "retaliation", "habitability", "improper_service", "rent_escrow", "discrimination", "waiver", "cure_within_time"]
+        },
+        {
+          "field_id": "facts",
+          "label": "Statement of Facts",
+          "type": "long_text",
+          "required": false
+        }
+      ],
+      "court_rules": ["Minn. Stat. §504B"],
+      "signature_required": true,
+      "related_forms": []
+    },
+    {
+      "form_id": "HOU602",
+      "title": "Petition for Emergency Relief (TRA)",
+      "category": "Housing",
+      "case_type": "Tenant Remedies Act",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "conditions",
+          "label": "Conditions",
+          "type": "long_text",
+          "required": true
+        },
+        {
+          "field_id": "requested_relief",
+          "label": "Requested Relief",
+          "type": "long_text",
+          "required": true
+        }
+      ],
+      "court_rules": ["Minn. Stat. §504B.381"],
+      "signature_required": true,
+      "related_forms": []
+    },
+    {
+      "form_id": "HOU702",
+      "title": "Petition for Possession of Rental Property (Lockout)",
+      "category": "Housing",
+      "case_type": "Lockout",
+      "jurisdiction": "Minnesota District Court",
+      "division": "Statewide",
+      "official_url": "https://www.mncourts.gov/GetForms.aspx?c=11&f=352",
+      "format": "PDF",
+      "is_packet": false,
+      "required_fields": [
+        {
+          "field_id": "caption_court_name",
+          "label": "Court Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_county",
+          "label": "County",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "case_number",
+          "label": "Case Number",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_plaintiff",
+          "label": "Plaintiff",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "caption_defendant",
+          "label": "Defendant",
+          "type": "text",
+          "required": true
+        },
+        {
+          "field_id": "lockout_facts",
+          "label": "Lockout Facts",
+          "type": "long_text",
+          "required": true
+        }
+      ],
+      "court_rules": ["Minn. Stat. §504B.375"],
+      "signature_required": true,
+      "related_forms": []
+    }
+  ]
+}
