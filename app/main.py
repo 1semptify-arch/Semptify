@@ -3632,6 +3632,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/debug/status")
     async def debug_status(request: Request):
         """Temporary: show user/gate/middleware state for debugging."""
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3688,6 +3690,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/debug/alembic")
     async def debug_alembic(request: Request):
         """Temporary: check alembic state and force migration if drifted."""
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3730,6 +3734,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.post("/debug/force-migrate")
     async def debug_force_migrate(request: Request):
         """Temporary: force alembic to stamp pre-legal_sub_role then upgrade head."""
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3772,6 +3778,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         This bypasses alembic entirely to fix the schema drift where
         alembic_version says head but columns are missing.
         """
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3840,6 +3848,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         Used after manually fixing schema drift so future alembic upgrade head
         calls don't try to re-run already-applied migrations.
         """
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3881,6 +3891,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         Only works when SECURITY_MODE=open (the local dev default).
         """
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3949,7 +3961,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             info["step"] = "done"
 
             # Log the browser in as the seeded user.
-            redirect = RedirectResponse("/gui/record/journal/create", status_code=302)
+            redirect = ssot_redirect("/gui/record/journal/create", context="debug seed-test-user")
             set_auth_cookie(redirect, "GUbGQUTpK6")
             return redirect
 
@@ -3961,6 +3973,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/debug/create-vault")
     async def debug_create_vault(request: Request):
         """Temporary: force vault folder creation for debugging."""
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}

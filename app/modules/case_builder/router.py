@@ -28,15 +28,22 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import delete, select
 
+from app.core.auto_refresh import ensure_valid_token
 from app.core.database import get_db_session
 from app.core.document_hub import get_document_hub
+from app.core.overlay_types import OverlayType
 from app.core.security import StorageUser, yellow_access
+from app.core.user_id import get_provider_from_user_id
 from app.core.utc import utc_now
+from app.core.vault_paths import VAULT_OVERLAY_DOCUMENTS
 from app.models.models import Incident
+from app.models.unified_overlay_models import CaseDataPayload, CreateOverlayRequest
 from app.modules.case_builder.packet_export import (
     PacketExportRequest,
     build_curated_packet_zip,
 )
+from app.services.storage import get_provider
+from app.services.unified_overlay_manager import UnifiedOverlayManager, get_unified_overlay_manager
 
 logger = logging.getLogger(__name__)
 
@@ -459,14 +466,75 @@ class DefenseCreate(BaseModel):
 
 
 # =============================================================================
-# DATA STORAGE — PostgreSQL via Incident model
-# Full case JSON stored in incident_metadata JSONB column.
-# Replaces ephemeral local file storage (wiped on Render restart).
+# DATA STORAGE — user's cloud storage via CASE_DATA overlay
+# Case content (narrative, timeline, exhibit refs, flag notes) lives in the
+# user's connected storage. The Incident row keeps only the overlay pointer,
+# status, and non-identifying category tags — no case number, names, address,
+# or other identifying data lands in Postgres.
 # =============================================================================
 
 
+async def _get_case_overlay_manager(user_id: str, db: Any = None) -> UnifiedOverlayManager:
+    """Build a UnifiedOverlayManager for the user's connected cloud storage."""
+    provider_code = get_provider_from_user_id(user_id) or "google_drive"
+    _, token_obj, _ = await ensure_valid_token(user_id, db)
+    token = token_obj.access_token if token_obj else None
+    if not token:
+        raise HTTPException(status_code=401, detail="No valid storage session")
+    storage = get_provider(provider_code, access_token=token)
+    return await get_unified_overlay_manager(storage, user_id)
+
+
+def _build_case_data_payload(case_data: dict[str, Any]) -> CaseDataPayload:
+    """Build the narrowed CASE_DATA payload from a full case dict.
+
+    Case-management fields that imply an active legal proceeding (case_number,
+    motions, deadlines, party identity, property address, etc.) are intentionally
+    dropped. If they are present, a warning is logged for downstream review.
+    """
+    dropped = {
+        k for k in ("case_number", "case_name", "motions", "deadlines", "plaintiff", "defendant")
+        if k in case_data and case_data[k]
+    }
+    if dropped:
+        logger.warning(
+            "CASE_DATA overlay dropped case-management fields: %s. These should be supplied at form-fill time, not stored in the case record.",
+            sorted(dropped),
+        )
+
+    flag_category = case_data.get("case_type") or case_data.get("flag_category")
+    narrative = case_data.get("narrative")
+    notes = case_data.get("notes")
+    if not narrative and notes:
+        if isinstance(notes, list):
+            narrative = " ".join(str(n) for n in notes if n)
+        else:
+            narrative = str(notes)
+
+    exhibit_refs: list[str] = []
+    for ev in case_data.get("evidence", []):
+        ref = ev.get("document_id") or ev.get("evidence_id") or ev.get("id") or ev.get("file_path")
+        if ref:
+            exhibit_refs.append(str(ref))
+
+    flag_notes: dict[str, str] = dict(case_data.get("flag_notes", {}))
+    for key in ("duress_note", "misrepresentation_note", "violation_note"):
+        value = case_data.get(key)
+        if value:
+            flag_notes[key.replace("_note", "")] = str(value)
+
+    return CaseDataPayload(
+        flag_category=flag_category,
+        narrative=narrative,
+        harm_description=case_data.get("harm_description"),
+        timeline=list(case_data.get("timeline", [])),
+        exhibit_refs=exhibit_refs,
+        flag_notes=flag_notes,
+    )
+
+
 async def load_case(case_id: str, user_id: str) -> dict | None:
-    """Load case from DB, enforcing user ownership."""
+    """Load case from user's cloud storage, enforcing DB ownership."""
     async with get_db_session() as session:
         row = await session.execute(
             select(Incident).where(
@@ -477,6 +545,26 @@ async def load_case(case_id: str, user_id: str) -> dict | None:
         incident = row.scalar_one_or_none()
         if not incident:
             return None
+
+        # Primary path: read CASE_DATA overlay from user's cloud storage
+        if incident.case_overlay_id:
+            manager = await _get_case_overlay_manager(user_id, session)
+            overlay = await manager.get_overlay(incident.case_overlay_id)
+            if overlay and overlay.created_by == user_id:
+                data = dict(overlay.payload or {})
+                data["case_id"] = str(incident.incident_id)
+                data["user_id"] = incident.user_id
+                data["status"] = incident.status
+                data["created_at"] = overlay.created_at.isoformat()
+                data["updated_at"] = overlay.updated_at.isoformat()
+                return data
+            logger.warning(
+                "CASE_DATA overlay %s for incident %s could not be loaded; falling back to legacy metadata.",
+                incident.case_overlay_id,
+                incident.incident_id,
+            )
+
+        # Fallback for legacy rows that still have incident_metadata
         data = dict(incident.incident_metadata or {})
         data["case_id"] = str(incident.incident_id)
         data["user_id"] = incident.user_id
@@ -487,8 +575,12 @@ async def load_case(case_id: str, user_id: str) -> dict | None:
 
 
 async def save_case(case_id: str, case_data: dict, user_id: str) -> None:
-    """Persist full case JSON into incident_metadata."""
-    case_data["user_id"] = user_id
+    """Persist case content to a CASE_DATA overlay in the user's cloud storage.
+
+    The Incident row is updated with the overlay pointer and non-PII structure
+    only. No narrative, names, addresses, or case numbers land in Postgres.
+    """
+    payload = _build_case_data_payload(case_data)
     async with get_db_session() as session:
         row = await session.execute(
             select(Incident).where(
@@ -499,10 +591,40 @@ async def save_case(case_id: str, case_data: dict, user_id: str) -> None:
         incident = row.scalar_one_or_none()
         if not incident:
             raise ValueError(f"Case {case_id} not found for user")
-        incident.incident_metadata = case_data
+
+        manager = await _get_case_overlay_manager(user_id, session)
+
+        if incident.case_overlay_id:
+            overlay = await manager.get_overlay(incident.case_overlay_id)
+            if overlay and overlay.created_by == user_id:
+                await manager.update_overlay(
+                    incident.case_overlay_id,
+                    payload=payload.model_dump(),
+                )
+            else:
+                # Overlay missing or ownership mismatch — create a new one
+                incident.case_overlay_id = None
+
+        if not incident.case_overlay_id:
+            response = await manager.create_overlay(
+                CreateOverlayRequest(
+                    overlay_type=OverlayType.CASE_DATA,
+                    document_id=case_id,
+                    vault_path=VAULT_OVERLAY_DOCUMENTS,
+                    payload=payload.model_dump(),
+                    metadata={"source": "case_builder", "version": "1.0"},
+                )
+            )
+            if not response.success or not response.overlay_id:
+                raise RuntimeError(f"Failed to create CASE_DATA overlay: {response.message}")
+            incident.case_overlay_id = response.overlay_id
+
+        # DB row: pointer + status + non-PII tags only
         incident.status = case_data.get("status", incident.status)
-        incident.title = case_data.get("case_name") or case_data.get("title") or incident.title
-        incident.incident_type = case_data.get("case_type") or incident.incident_type
+        incident.incident_type = payload.flag_category or incident.incident_type
+        incident.title = f"Case: {payload.flag_category or 'uncategorized'}"
+        incident.incident_metadata = {}
+
         await session.commit()
 
 
@@ -1075,19 +1197,24 @@ async def create_case(case: CaseCreate, user: StorageUser = Depends(yellow_acces
     async with get_db_session() as session:
         incident = Incident(
             user_id=user_id,
-            title=case.case_number or "New Case",
+            title="New case",
             status="draft",
             incident_type=case.case_type,
-            incident_metadata=complete_case_data,
+            incident_metadata={},
         )
         session.add(incident)
         await session.commit()
         await session.refresh(incident)
-    complete_case_data["case_id"] = str(incident.incident_id)
+    case_id = str(incident.incident_id)
+    complete_case_data["case_id"] = case_id
+
+    # Persist the case content as a CASE_DATA overlay in the user's cloud storage.
+    # The DB Incident row keeps only the overlay pointer and non-PII tags.
+    await save_case(case_id, complete_case_data, user_id)
 
     return {
         "success": True,
-        "case_id": str(incident.incident_id),
+        "case_id": case_id,
         "case_number": case.case_number,
         "case": complete_case_data,
         "freshness_validation": freshness_validation,

@@ -95,6 +95,13 @@ class OverlayType(StrEnum):
     COMMUNICATION = "communication"
     """Messages, conversations, and collaboration threads."""
 
+    CASE_DATA = "case_data"
+    """Tenant pattern-recognition signals, narrative, exhibit refs, and flag notes.
+
+    Content is what the tenant said, wrote, or what was found in their documents.
+    It never stores case-management fields (case number, motions, deadlines).
+    """
+
     FILEDORED = "filedored"
     """Virtual folder organization for post-processing (sort, dedup, AI classification)."""
 
@@ -146,6 +153,10 @@ IDENTITY_OVERLAYS: set[OverlayType] = {
     OverlayType.IDENTITY_ADAPTER,
 }
 
+CASE_OVERLAYS: set[OverlayType] = {
+    OverlayType.CASE_DATA,
+}
+
 # All overlay types (for validation)
 ALL_OVERLAY_TYPES: set[OverlayType] = set(OverlayType)
 
@@ -166,4 +177,6 @@ def get_overlay_category(overlay_type: OverlayType) -> str:
         return "redaction"
     if overlay_type in IDENTITY_OVERLAYS:
         return "identity"
+    if overlay_type in CASE_OVERLAYS:
+        return "case"
     return "unknown"
