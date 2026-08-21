@@ -1,3 +1,72 @@
+## Session -- 2026-08-20 — Context Explanation Workbook doc cleanup
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+`docs/context_explanation_workbook.md` had two small defects: Section 6 said "20 suggested entries" but listed the same 10 twice, and the file references in Sections 6, 7, and 9 used inconsistent workbook/example/template CSV names.
+
+### Fix
+
+- Corrected the starter set heading to "10 suggested entries" and removed the duplicated 10-item list.
+- Replaced `data\explanation_workbook.csv` with `data\context_explanation_workbook.csv` in the CLI loader command.
+- Updated the Section 9 file list to include `data/context_explanation_workbook.csv` and `docs/context_explanation_needs.md` alongside the template/example CSVs and loader.
+
+### Verification
+
+- Confirmed the files on disk: `data/context_explanation_workbook.csv`, `data/explanation_workbook_template.csv`, `data/explanation_workbook_example.csv`, `docs/context_explanation_needs.md`, and `tools/load_explanation_workbook.py`.
+- Re-read the edited doc to confirm the starter list appears once and all CSV references are consistent.
+
+---
+
+## Session -- 2026-08-20 — CASE_DATA overlay migration + case_builder scope narrowing
+
+### Guardrail Engine Run — 2026-08-20
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+All checks passed.
+
+### Problem
+
+case_builder was persisting full case JSON (case_number, plaintiff, defendant, property_address, motions, deadlines, etc.) directly into `Incident.incident_metadata` in Postgres, violating the DB boundary rule and the corrected case_builder scope.
+
+### Fix
+
+- Added `OverlayType.CASE_DATA` and a new `case` overlay category in `app/core/overlay_types.py`.
+- Added `CaseDataPayload` in `app/models/unified_overlay_models.py` for the narrowed schema (flag_category, narrative, harm_description, timeline, exhibit_refs, flag_notes).
+- Added `case_overlay_id` to the `Incident` model and Alembic migration `20260820_add_case_overlay_id`.
+- Refactored `app/modules/case_builder/router.py`:
+  - `load_case()` reads the `CASE_DATA` overlay from the user's cloud storage via `UnifiedOverlayManager`.
+  - `save_case()` creates/updates a `CASE_DATA` overlay and stores only the overlay pointer, status, and non-PII category tags in the `Incident` row.
+  - `create_case()` now creates the `Incident` row with no case content and immediately calls `save_case()` to persist the overlay.
+  - Dropped case-management fields (case_number, case_name, motions, deadlines, plaintiff/defendant) from the overlay payload; logs a warning if they are present.
+- Registered `/gui/record/journal/create` in `app/core/navigation.py` to resolve the SSOT advisory from the debug redirect.
+- Added the post-`create_app()` route-scan guardrail gap to `BACKLOG.md`.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m ruff check` on all changed files: PASS.
+- `pytest tests/test_case_builder_overlay.py -q --no-cov`: 3 passed.
+- `pytest tests/test_unified_overlay_manager.py -q --no-cov`: 12 passed.
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
+- `pytest tests/test_eviction_case_builder.py -q --no-cov`: 32 passed.
+- `pytest tests/test_case_builder.py -q --no-cov`: 6 passed, 9 skipped.
+- `pytest tests/module_health -q --no-cov`: 244 passed, 1 warning.
+- `pytest -o addopts="--cov=app.services.unified_overlay_manager --cov-report=term-missing" tests/test_unified_overlay_manager.py tests/test_case_builder_overlay.py -q`: 15 passed, unified_overlay_manager.py coverage 80.69% (81%).
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Notes
+
+- Existing routes that append to `case["motions"]`, `case["deadlines"]`, `case["counterclaims"]`, and similar case-management fields still call `save_case()`; those fields are intentionally dropped from the `CASE_DATA` overlay and should be reviewed/removed in the form-fill scope, not case_builder.
+- Legacy `Incident` rows that still have `incident_metadata` are handled by a fallback in `load_case()`; new rows set `incident_metadata = {}`.
+
+---
+
 ## Session -- 2026-08-20 — Rule 60.02 / CIV / HOU court forms library
 
 ### Guardrail Engine Run — 2026-08-20T18:03:23
