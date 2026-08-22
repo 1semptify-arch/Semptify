@@ -1,6 +1,8 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-20 (ADR-0008 Layer 2 Problem A semantic retrieval complete; model load verified; PG parity not locally exercised)
+**Last Updated**: 2026-08-21 (Render MVP gating implemented — `DEPLOY_TARGET=render_mvp` now force-loads the MVP core module set and skips OCR Pass 2+ / DocumentFlowOrchestrator; next: Dockerfile, then Notice Date → Received Date rename, then three-date sort verification, then invite-code stub)
+
+> Standing rule: see `.devin/rules/10-progressive-disclosure.md` for the **Progressive Disclosure / Capability Revelation** rule (companion to the GUI Design Rule and Navigation Principle).
 
 > Standing rule: see `.devin/rules/10-progressive-disclosure.md` for the **Progressive Disclosure / Capability Revelation** rule (companion to the GUI Design Rule and Navigation Principle).
 
