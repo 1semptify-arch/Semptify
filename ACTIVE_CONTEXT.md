@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-21 (Render MVP gating implemented — `DEPLOY_TARGET=render_mvp` now force-loads the MVP core module set and skips OCR Pass 2+ / DocumentFlowOrchestrator; next: Dockerfile, then Notice Date → Received Date rename, then three-date sort verification, then invite-code stub)
+**Last Updated**: 2026-08-21 (Render MVP Dockerfile and render.yaml added; `DEPLOY_TARGET=render_mvp` now set end-to-end; next: Notice Date → Received Date rename, three-date sort verification, invite-code stub)
 
 > Standing rule: see `.devin/rules/10-progressive-disclosure.md` for the **Progressive Disclosure / Capability Revelation** rule (companion to the GUI Design Rule and Navigation Principle).
 
