@@ -1,3 +1,29 @@
+## Session -- 2026-08-21 — Render MVP Dockerfile
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Need a Render-specific Dockerfile that pins the MVP deployment mode and is easy to override for a future full-featured Render deploy.
+
+### Fix
+
+- Added `Dockerfile.render` based on the existing production multi-stage image, but pins `python:3.11.9-slim` and sets `DEPLOY_TARGET=render_mvp` by default via `ARG`/`ENV`.
+- Updated `render.yaml` to use `dockerfilePath: ./Dockerfile.render` and added a `DEPLOY_TARGET=render_mvp` env var override.
+- The same `Dockerfile.render` supports a future `render_full` deployment by overriding the `DEPLOY_TARGET` build arg or the runtime env var, without rebuilding the image from a different Dockerfile.
+
+### Verification
+
+- `python -m py_compile app/main.py` still passes (Dockerfile does not affect Python code).
+- Dockerfile syntax visually verified; no `docker build` run because Docker is not available in this environment.
+
+### Notes
+
+- The image still installs the full `requirements.txt`; a future optimization can trim a `requirements-render-mvp.txt` if Render free-tier install time becomes an issue.
+- The original `Dockerfile` is left intact for full / local production builds.
+
+---
+
 ## Session -- 2026-08-21 — DEPLOY_TARGET env var + Render MVP force-gating
 
 ### Guardrail Engine Run — not run
