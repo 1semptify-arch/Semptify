@@ -19,7 +19,7 @@ from __future__ import annotations
 import importlib
 import logging
 
-from app.core.product_manifest import MANIFEST, ProductTier
+from app.core.product_manifest import MANIFEST, ProductTier, get_mvp_allowed_modules, is_mvp_deploy
 
 logger = logging.getLogger(__name__)
 
@@ -211,8 +211,17 @@ def load_all_contracts(enabled_tiers: list[ProductTier] | None = None) -> dict[s
 
     enabled_set = set(enabled_tiers)
     load_all = _all_tiers_enabled(enabled_tiers)
+    mvp_allowed = set(get_mvp_allowed_modules()) if is_mvp_deploy() else None
 
     for module_path in _MODULES_WITH_CONTRACTS:
+        if mvp_allowed is not None:
+            parts = module_path.split(".")
+            package = ".".join(parts[:3])
+            if not any(m.startswith(f"{package}.") for m in mvp_allowed):
+                logger.debug("Skipping contract module outside MVP allow-list: %s", module_path)
+                skipped += 1
+                continue
+
         tier = _get_contract_module_tier(module_path)
 
         if tier is None and not load_all:

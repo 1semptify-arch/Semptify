@@ -1,3 +1,34 @@
+## Session -- 2026-08-21 — DEPLOY_TARGET env var + Render MVP force-gating
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Need a single switch (`DEPLOY_TARGET=render_mvp`) that force-gates all non-MVP Semptify modules off for Render free-tier deployment while leaving local dev unchanged.
+
+### Fix
+
+- Added `DEPLOY_TARGET` helpers to `app/core/product_manifest.py`:
+  - `get_deploy_target()`, `is_mvp_deploy()`, `get_mvp_allowed_modules()`.
+  - MVP allow-list currently includes all `ProductTier.CORE` modules plus `app.modules.intake.router` (Pass 1 intake is required for MVP despite being `EXTENDED`).
+- Updated `register_tiers()` to ignore the requested tier list and only load the MVP allow-list when `DEPLOY_TARGET=render_mvp`.
+- Updated `app/core/contract_loader.py` to skip contract loading for modules outside the MVP allow-list under `render_mvp`.
+- Updated `app/modules/intake/router.py` to skip Deep OCR Pass 2 (`submit_deep_ocr_job`) and `DocumentFlowOrchestrator` Pass 2+ processing under `render_mvp`.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/product_manifest.py app/core/contract_loader.py app/modules/intake/router.py`: PASS.
+- `create_app()` without `DEPLOY_TARGET` loads 86 modules / 280 routes: PASS.
+- `create_app()` with `DEPLOY_TARGET=render_mvp` loads 46 modules / 240 routes: PASS.
+
+### Notes
+
+- The MVP allow-list is intentionally conservative (all CORE + intake). It should be reviewed and tightened to the exact MVP feature set as the deployment stabilizes.
+- `app.modules.calendar.router` is MVP-needed but not yet in the allow-list because it is currently `ProductTier.DEV`; promote it or add it to the allow-list when the Calendar task starts.
+- Main still wires `context_loop.service` and `filedored` subscribers independent of `product_manifest.py`; those are outside the router-gating scope.
+
+---
+
 ## Session -- 2026-08-20 — Context Explanation Workbook doc cleanup
 
 ### Guardrail Engine Run — not run

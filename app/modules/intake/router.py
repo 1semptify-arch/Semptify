@@ -42,6 +42,7 @@ from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.event_bus import EventType as BusEventType, event_bus
 from app.core.job_processor import JobPriority, submit_deep_ocr_job
+from app.core.product_manifest import is_mvp_deploy
 from app.core.security import StorageUser, get_user_id, yellow_access
 from app.core.user_id import get_provider_from_user_id
 from app.core.utc import utc_now
@@ -638,41 +639,44 @@ async def upload_and_process(
             vault_id=vault_id,
         )
 
-    # Step 2b: Create the master pipeline index record and queue Deep OCR Pass 2.
-    # Pass 1 (OCR + rough extraction) stays synchronous in Light Intake.
-    # Pass 2 (Semantic Context Engine) runs asynchronously in the job queue.
-    try:
-        pipeline_index = DocumentPipelineIndex(
-            doc_id=doc.id,
-            user_id=user_id,
-            payload_json=json.dumps(
-                {
-                    "vault_id": vault_id,
-                    "filename": file.filename,
-                    "mime_type": file.content_type,
-                    "urgency": urgency or "normal",
-                    "queued_at": utc_now().isoformat(),
-                }
-            ),
-            deep_ocr_status=DeepOCRStatus.PENDING.value,
-        )
-        db.add(pipeline_index)
-        await db.commit()
+    if not is_mvp_deploy():
+        # Step 2b: Create the master pipeline index record and queue Deep OCR Pass 2.
+        # Pass 1 (OCR + rough extraction) stays synchronous in Light Intake.
+        # Pass 2 (Semantic Context Engine) runs asynchronously in the job queue.
+        try:
+            pipeline_index = DocumentPipelineIndex(
+                doc_id=doc.id,
+                user_id=user_id,
+                payload_json=json.dumps(
+                    {
+                        "vault_id": vault_id,
+                        "filename": file.filename,
+                        "mime_type": file.content_type,
+                        "urgency": urgency or "normal",
+                        "queued_at": utc_now().isoformat(),
+                    }
+                ),
+                deep_ocr_status=DeepOCRStatus.PENDING.value,
+            )
+            db.add(pipeline_index)
+            await db.commit()
 
-        job_priority = _priority_for_urgency(urgency)
-        deep_ocr_job_id = submit_deep_ocr_job(
-            doc_id=doc.id,
-            user_id=user_id,
-            vault_id=vault_id,
-            priority=job_priority,
-        )
-        logger.info("Deep OCR job %s queued for doc %s", deep_ocr_job_id, doc.id)
-    except Exception as e:
-        logger.warning("Failed to queue Deep OCR job for doc %s: %s", doc.id, e)
+            job_priority = _priority_for_urgency(urgency)
+            deep_ocr_job_id = submit_deep_ocr_job(
+                doc_id=doc.id,
+                user_id=user_id,
+                vault_id=vault_id,
+                priority=job_priority,
+            )
+            logger.info("Deep OCR job %s queued for doc %s", deep_ocr_job_id, doc.id)
+        except Exception as e:
+            logger.warning("Failed to queue Deep OCR job for doc %s: %s", doc.id, e)
+    else:
+        logger.info("Deep OCR Pass 2 skipped for doc %s under DEPLOY_TARGET=render_mvp", doc.id)
 
     # Step 3: Run full flow orchestration for complete pipeline
     flow_result = {}
-    if FLOW_AVAILABLE:
+    if FLOW_AVAILABLE and not is_mvp_deploy():
         try:
             orchestrator = DocumentFlowOrchestrator()
             flow_result = await orchestrator.process_document_complete(
@@ -752,7 +756,11 @@ async def upload_and_process(
         message=(
             f"✓ Document stored, notarized ({notarization_id}), "
             f"and Light Intake complete in vault ({vault_id or 'local'}). "
-            f"Deep OCR Pass 2 is queued and processing."
+            + (
+                "Deep OCR Pass 2 is queued and processing."
+                if not is_mvp_deploy()
+                else "Document processing complete."
+            )
         ),
         vault_id=vault_id,
         overlay_record_ids=overlay_record_ids,
@@ -927,7 +935,7 @@ async def process_document_from_vault(
         intake_doc = await engine.process_document(intake_doc.id)
 
         # Run flow orchestration if available
-        if FLOW_AVAILABLE:
+        if FLOW_AVAILABLE and not is_mvp_deploy():
             try:
                 orchestrator = DocumentFlowOrchestrator()
                 await orchestrator.process_document_complete(
@@ -1023,7 +1031,7 @@ async def process_document(doc_id: str, user_id: str = Depends(get_user_id)):
         doc = await engine.process_document(doc_id)
 
         # Run full flow orchestration if available
-        if FLOW_AVAILABLE:
+        if FLOW_AVAILABLE and not is_mvp_deploy():
             try:
                 orchestrator = DocumentFlowOrchestrator()
                 flow_result = await orchestrator.process_document_complete(
