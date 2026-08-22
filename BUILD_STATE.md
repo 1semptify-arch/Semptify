@@ -1,3 +1,43 @@
+## Session -- 2026-08-22 — Jurisdiction-aware Law Linker + Page Composer county plumbing
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+The Law Linker was using a hardcoded, incorrect Hennepin County URL (`hennepin.us/property-tax`), the Page Composer was not carrying user county/jurisdiction into composed pages, and composed GUI pages did not expose jurisdiction data or load the Law Linker.
+
+### Fix
+
+- `app/core/law_source_registry.py`: Added `CountyCodeRegistry`, `_MN_MULTIWORD_COUNTIES`, and a jurisdiction-aware `_COUNTY_CITATION_RE`. County-code URLs are now built from a Municode slug with optional per-state/county overrides. Replaced the old Hennepin-specific source. Added `link_citations()` to wrap recognized citations in `<a class="law-linker-cite">` using the backend source-of-truth.
+- `app/modules/law_library/router.py`: Added `/county-code` endpoint that resolves county-code source URLs.
+- `app/core/module_gate.py`: `get_jurisdiction()` now surfaces the user’s stored county through `request.state.jurisdiction`, with explicit headers/query params as overrides.
+- `app/modules/page_composer/models.py`, `assembly.py`, `router.py`: `PageAssemblyRequest`/`PageAssemblyMetadata` now carry `county`; `assemble_page()` accepts and propagates county; Page Composer API routes now pass `county` from `get_jurisdiction(request)` or request body.
+- `app/modules/page_shell/models.py`, `renderer.py`: `PageConfig` carries `jurisdiction` and `county`; `_render_info_block()` runs `link_citations()` on block content so composed Page Shell output contains citation links.
+- `app/main.py`: `/gui/dashboard` and `/gui/page/{subject}` pass request jurisdiction/county into `assemble_page()` and the template.
+- `app/templates/gui/base.html`, `app/templates/gui/assembled_page.html`: Base template loads `/static/js/law-linker.js`; assembled page emits `window.SEMPTIFY_JURISDICTION` and marks content with `data-law-linker`.
+- `static/js/law-linker.js`: Now loads user jurisdiction, uses the `/county-code` endpoint to resolve county-code URLs, cleans county names to avoid false positives, and works on `data-law-linker` scopes.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m ruff check` on the changed Python files: PASS.
+- Runtime backend:
+  - `/api/law-library/county-code?county=Hennepin&state=MN` returns the correct Municode URL.
+  - `/api/page/eviction/render?county=Hennepin&state=MN` returns `metadata.county: "Hennepin"` and `county` in the rendered `PageConfig`.
+  - `/gui/page/eviction?county=Hennepin&state=MN` returned `window.SEMPTIFY_JURISDICTION = {"state":"MN","county":"Hennepin"}` and loads `law-linker.js`.
+- `app.core.law_source_registry.link_citations()` manual test: correctly links `Hennepin County Code § 1.02` to `library.municode.com/mn/hennepin_county/...` and `Minn. Stat. § 504B.321` to `revisor.mn.gov`, without false-positive linking leading words like "See".
+- `tests/module_health/test_page_composer.py -q --no-cov`: 1 passed.
+- `tests/module_health/test_law_library.py` and `test_page_shell.py` error at DB setup with `sqlite3.OperationalError: database or disk is full`; the environment is out of disk space.
+- Browser DOM/JS execution was not verified live because the `ironbee-dt-browser` MCP server is not present in this environment; static HTML fetch confirmed the script and jurisdiction data are present.
+
+### Notes
+
+- The runtime server (`uvicorn app.main:fastapi_app --host 127.0.0.1 --port 8001`) was started and the backend verification above was performed against it.
+- The environment disk-full issue should be cleaned up before running the full module health suite.
+- No PR or merge was requested; this is a local feature branch.
+
+---
+
 ## Session -- 2026-08-21 — Render MVP Dockerfile
 
 ### Guardrail Engine Run — not run
@@ -15,7 +55,12 @@ Need a Render-specific Dockerfile that pins the MVP deployment mode and is easy 
 ### Verification
 
 - `python -m py_compile app/main.py` still passes (Dockerfile does not affect Python code).
-- Dockerfile syntax visually verified; no `docker build` run because Docker is not available in this environment.
+- `docker build -f Dockerfile.render -t semptify:render-mvp .` **succeeded** after adding `requirements-render-mvp.txt` and `.dockerignore`. The original build with the full `requirements.txt` failed because torch/nvidia wheels exceeded the available Docker storage, caused I/O errors, and crashed the Docker Desktop WSL backend.
+- `docker run` with `DEPLOY_TARGET=render_mvp` **succeeded** and the container booted cleanly. Logs show:
+  - `DEPLOY_TARGET=render_mvp`: loading 46 MVP core modules
+  - `Modules: 46 registered, 0 skipped, 0 errors`
+  - `Uvicorn running on http://0.0.0.0:8000`
+- Container failed on the first boot with `unable to open database file` because the `semptify` user did not own `/app`. Fixed `Dockerfile.render` by changing the `chown` step to `chown -R semptify:semptify /app`.
 
 ### Notes
 
