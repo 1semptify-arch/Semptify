@@ -2548,7 +2548,7 @@ async def get_suggested_defenses(user: StorageUser = Depends(yellow_access)):
         suggested.append(
             {
                 "defense_type": "improper_notice",
-                "reason": "Notice date found - verify proper notice period",
+                "reason": "Received date found - verify proper notice period",
                 "template": MN_DEFENSES.get("improper_notice", {}),
                 "confidence": "medium",
             }

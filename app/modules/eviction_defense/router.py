@@ -1190,7 +1190,7 @@ async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)
             {
                 "defense": DefenseType.IMPROPER_NOTICE,
                 "confidence": "medium",
-                "reason": "Notice date found - verify proper service and timing requirements",
+                "reason": "Received date found - verify proper service and timing requirements",
                 "evidence_needed": ["Copy of notice", "Proof of service date", "Calendar showing days count"],
                 "statute": "Minn. Stat. § 504B.135",
             }
