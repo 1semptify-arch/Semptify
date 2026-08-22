@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-21 (Render MVP Dockerfile and render.yaml added; `DEPLOY_TARGET=render_mvp` now set end-to-end; next: Notice Date → Received Date rename, three-date sort verification, invite-code stub)
+**Last Updated**: 2026-08-22 (Render MVP Dockerfile verified end-to-end: builds, boots with `DEPLOY_TARGET=render_mvp`, loads 46 MVP modules; `.dockerignore` and `requirements-render-mvp.txt` added to fit Render free-tier limits; next: Notice Date → Received Date rename, three-date sort verification, invite-code stub)
 
 > Standing rule: see `.devin/rules/10-progressive-disclosure.md` for the **Progressive Disclosure / Capability Revelation** rule (companion to the GUI Design Rule and Navigation Principle).
 

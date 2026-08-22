@@ -1,70 +1,58 @@
-# =============================================================================
-# Docker Ignore - Exclude from Docker build context
-# =============================================================================
-
 # Git
 .git
 .gitignore
+.gitattributes
+.gitmodules
 
-# Python
+# Python artifacts
 __pycache__
 *.py[cod]
 *$py.class
 *.so
 .Python
+.pytest_cache
+.mypy_cache
+.ruff_cache
+htmlcov
+
+# Virtual environments
 .venv
 venv
-ENV
+venv311
 env
-.eggs
-*.egg-info
-.mypy_cache
-.pytest_cache
-.ruff_cache
-.coverage
-htmlcov
-coverage.xml
+ENV
 
-# IDE
-.vscode
-.idea
-*.swp
-*.swo
-*~
-
-# Local development
+# Local env / secrets
 .env
-.env.local
+.env.*
+!.env.example
 *.db
 *.sqlite
 *.sqlite3
+sec.txt
+*GOCSPX-*.txt
 
-# Backups
-backups/
+# Runtime artifacts created at container start
+uploads
+uploads/vault
+logs
+security
+data
 
-# Logs
-logs/
+# Build / editor artifacts
+node_modules
 *.log
-
-# Uploads (mount as volume instead)
-uploads/
-
-# Documentation
-docs/
-*.md
-!README.md
-
-# Tests
-tests/
-pytest.ini
-
-# Build artifacts
-dist/
-build/
-*.spec
-
-# Misc
+*.swp
+*.swo
+.vscode
+.idea
 .DS_Store
-Thumbs.db
-*.bak
-*.tmp
+
+# Docker itself
+Dockerfile
+Dockerfile.*
+.dockerignore
+
+# Documentation / archive (not needed in image)
+docs/archive
+archive

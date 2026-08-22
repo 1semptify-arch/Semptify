@@ -31,11 +31,11 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy requirements first for better caching
-COPY requirements.txt .
+COPY requirements-render-mvp.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements-render-mvp.txt
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime - Minimal production image
@@ -72,9 +72,9 @@ RUN groupadd --gid 1000 semptify && \
 # Copy application code
 COPY --chown=semptify:semptify . .
 
-# Create runtime directories
+# Create runtime directories and ensure the semptify user can write to /app
 RUN mkdir -p uploads uploads/vault logs security data data/inventory && \
-    chown -R semptify:semptify uploads logs security data data
+    chown -R semptify:semptify /app
 
 # Switch to non-root user
 USER semptify
