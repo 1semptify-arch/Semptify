@@ -1,3 +1,34 @@
+## Session -- 2026-08-22 — Notice Date → Received Date rename
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Tenant-facing copy still uses the old "Notice Date" label for the date a document was received. Per the MVP scope, the three canonical document dates are Event Date, Received Date, and immutable Upload Date.
+
+### Fix
+
+- Updated tenant-facing labels and descriptions across the app to use "Received Date" while keeping internal code names (`notice_date` field/variable) unchanged.
+- `app/core/document_types.py`: changed `notice_date` field label from `Notice date` to `Received Date`.
+- `app/services/form_field_extractor.py`, `app/modules/extraction/service.py`: changed `display_name` from `Notice Date` to `Received Date`.
+- `app/services/document_recognition.py`: changed date classification label from `Notice Date` to `Received Date`.
+- `app/modules/documents/service.py`: changed default event title from `Notice Date` to `Received Date`.
+- `app/modules/case_builder/router.py`, `app/modules/eviction_defense/router.py`: changed defense reasons from `Notice date found` to `Received date found`.
+- `app/services/recognition/handwriting_analyzer.py`: changed forgery indicator text from `Notice date`/`Notice dated` to `Received date`/`Received on`.
+- `static/tools/generators.html`: changed form label to `Received Date` and fixed generated letter text from `dated` to `on`.
+- `static/tenant/tools/letters.html`: changed non-renewal label to `Non-Renewal Received Date` and generated letter text to `received your notice on`.
+
+### Verification
+
+- `grep -R "Notice Date"` on `app/`, `static/`, and `templates/` now returns only internal developer-facing references (variable names, docstrings, comments) and non-tenant artifacts (tests, scripts, docs).
+- `python -m py_compile` on all changed Python files: PASS.
+
+### Notes
+
+- Internal names such as `notice_date`, `noticeDate`, `nr-notice-date`, and `notice`/`notified` extraction keywords were intentionally left unchanged.
+
+---
+
 ## Session -- 2026-08-22 — Jurisdiction-aware Law Linker + Page Composer county plumbing
 
 ### Guardrail Engine Run — not run
