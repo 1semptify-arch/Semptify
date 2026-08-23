@@ -1722,5 +1722,32 @@
     "created_at": "2026-08-20T23:50:00Z",
     "updated_at": "2026-08-21T16:54:42.913181+00:00",
     "notes": "Quick doc-only cleanup before content author starts filling entries."
+  },
+  {
+    "id": "ad-hoc-jurisdiction-law-linker-001",
+    "title": "Make Page Composer jurisdiction-aware and integrate Law Linker",
+    "description": "Plumb user county into request.state.jurisdiction from LocationService; build CountyCodeRegistry in law_source_registry.py; extend Page Composer/Shell models to carry county; add server-side citation link injection in Page Shell renderer so composed pages get jurisdiction-aware county-code links; update gui/base.html and law-linker.js to load/ enhance composed pages.",
+    "file_path": "app/modules/page_composer/assembly.py",
+    "status": "resolved",
+    "assigned_agent": "SWE-1.7-Max",
+    "priority": "high",
+    "source": "ad-hoc",
+    "created_at": "2026-08-21T17:00:00Z",
+    "updated_at": "2026-08-22T06:12:26.983265+00:00",
+    "notes": "User asked to make Page Composer jurisdiction-aware and tie Law Linker into composed pages.\n[2026-08-22 06:09 UTC - SWE-1.7-Max] County code registry, Page Composer/Shell county plumbing, Law Linker jurisdiction-aware JS, backend /county-code endpoint, and server-side citation link injection all implemented. Runtime backend verification passed (county-code API, Page Composer county propagation, GUI jurisdiction script). Module health suite could not run due to environment disk-full/OSError; JS verified via static HTML fetch.\n[2026-08-22 06:12 UTC - SWE-1.7-Max] Follow-up: fixed ruff F821 in page_composer/assembly.py (govern fallback county param); full ruff check on changed Python files now passes."
+  },
+  {
+    "id": "ad-hoc-vault-upload-fixes-2026-08-22",
+    "title": "Task 8 Vault Fixes: local_dir, size/validation, contract duplicates",
+    "description": "Fix VaultUploadService _local_dir initialization so local dev uploads work; reconcile 25MB/50MB size limit and add extension validation to /api/intake/upload/auto; consolidate duplicate vault_upload/vault_init contract registrations.",
+    "file_path": "app/services/vault_upload_service.py",
+    "status": "resolved",
+    "assigned_agent": "swe-1.7",
+    "priority": "high",
+    "source": "ad-hoc",
+    "created_at": "2026-08-23T02:36:30.696474+00:00",
+    "updated_at": "2026-08-23T02:46:27.388348+00:00",
+    "notes": "Handoff from Brad: three approved fixes, one commit each.\n[2026-08-23 02:46 UTC - swe-1.7] _local_dir init, size/extension validation, contract consolidation all committed; guardrail and direct VaultUploadService test pass",
+    "target_model": "swe-1.7"
   }
 ]
