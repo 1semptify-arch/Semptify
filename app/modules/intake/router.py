@@ -46,6 +46,7 @@ from app.core.product_manifest import is_mvp_deploy
 from app.core.security import StorageUser, get_user_id, yellow_access
 from app.core.user_id import get_provider_from_user_id
 from app.core.utc import utc_now
+from app.core.validation import is_allowed_file_extension, is_upload_size_within_limit
 from app.models.models import DeepOCRStatus, DocumentPipelineIndex
 from app.services.document_intake import (
     DocumentType,
@@ -341,12 +342,19 @@ async def upload_document(
     """
     # Read file content
     content = await file.read()
+    settings = get_settings()
 
     if len(content) == 0:
         raise HTTPException(status_code=400, detail="Empty file")
 
-    if len(content) > 25 * 1024 * 1024:  # 25MB limit
-        raise HTTPException(status_code=400, detail="File too large (max 25MB)")
+    if not is_upload_size_within_limit(content, settings.max_upload_size_mb):
+        raise HTTPException(status_code=400, detail=f"File too large (max {settings.max_upload_size_mb}MB)")
+
+    if not is_allowed_file_extension(file.filename or "", settings.allowed_extensions):
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type not allowed. Allowed: {settings.allowed_extensions}",
+        )
 
     # STEP 0: Notarize the upload
     notarization = None
@@ -549,12 +557,19 @@ async def upload_and_process(
 
     # Read file content
     content = await file.read()
+    settings = get_settings()
 
     if len(content) == 0:
         raise HTTPException(status_code=400, detail="Empty file")
 
-    if len(content) > 25 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File too large (max 25MB)")
+    if not is_upload_size_within_limit(content, settings.max_upload_size_mb):
+        raise HTTPException(status_code=400, detail=f"File too large (max {settings.max_upload_size_mb}MB)")
+
+    if not is_allowed_file_extension(file.filename or "", settings.allowed_extensions):
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type not allowed. Allowed: {settings.allowed_extensions}",
+        )
 
     # STEP 0a: Notarize the upload first
     notarization = None
@@ -782,6 +797,7 @@ async def upload_documents_batch(
     Returns status for each file.
     """
     engine = get_intake_engine()
+    settings = get_settings()
 
     uploaded = []
     failed = []
@@ -794,8 +810,12 @@ async def upload_documents_batch(
                 failed.append({"filename": file.filename, "error": "Empty file"})
                 continue
 
-            if len(content) > 25 * 1024 * 1024:
-                failed.append({"filename": file.filename, "error": "File too large"})
+            if not is_upload_size_within_limit(content, settings.max_upload_size_mb):
+                failed.append({"filename": file.filename, "error": f"File too large (max {settings.max_upload_size_mb}MB)"})
+                continue
+
+            if not is_allowed_file_extension(file.filename or "", settings.allowed_extensions):
+                failed.append({"filename": file.filename, "error": f"File type not allowed. Allowed: {settings.allowed_extensions}"})
                 continue
 
             # SSOT: Every document — including batch — must go through vault first.
