@@ -3,111 +3,177 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="{{ page_description }}">
-    <title>{{ page_title }}</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <meta name="description" content="{{ page_description or 'Semptify — a calm, no-cost workspace for organizing tenant evidence, understanding rights, and taking the next lawful step.' }}">
+    <title>{{ page_title or 'Semptify — Every Renter Deserves Peace at Home' }}</title>
+    <link rel="stylesheet" href="/static/css/ssot-design-system.css">
+    <style>
+      /* Landing-only layout. Uses ssot-design-system.css tokens for color/type/space;
+         no card borders, zone separation via background tone only. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: var(--zone-bg-primary);
+        color: #f0f4f8;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        background: var(--color-accent);
+        color: var(--color-gray-900);
+        padding: var(--space-2) var(--space-4);
+        z-index: 1000;
+      }
+      .skip-link:focus { left: var(--space-2); top: var(--space-2); }
+
+      .landing {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      /* -------- Top bar: brand only, minimal, not a decision point -------- */
+      .landing-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--space-6) var(--space-8);
+      }
+      .landing-brand {
+        font-size: var(--type-h2);
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: -0.01em;
+      }
+      .landing-brand .mark { color: #b794f6; }
+
+      /* -------- Hero: the one decision the page asks the user to make -------- */
+      .landing-hero {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: var(--space-8) var(--space-6);
+        gap: var(--space-6);
+      }
+      .landing-eyebrow {
+        font-size: var(--type-label);
+        font-weight: var(--type-label-weight);
+        text-transform: uppercase;
+        letter-spacing: var(--type-label-tracking);
+        color: #b794f6;
+      }
+      .landing-title {
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        font-weight: 800;
+        line-height: 1.05;
+        margin: 0;
+        color: #ffffff;
+        max-width: 18ch;
+      }
+      .landing-sub {
+        font-size: clamp(1rem, 1.6vw, 1.2rem);
+        color: #b9c2d0;
+        max-width: 46ch;
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      /* Primary action: largest, highest-contrast control on the page. */
+      .landing-cta-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        background: var(--color-accent);
+        color: #1a1330;
+        font-size: 1.1rem;
+        font-weight: 700;
+        padding: var(--space-4) var(--space-8);
+        text-decoration: none;
+        transition: background var(--transition-fast), transform var(--transition-fast);
+      }
+      .landing-cta-primary:hover {
+        background: var(--color-accent-hover);
+        color: #1a1330;
+        text-decoration: none;
+        transform: translateY(-1px);
+      }
+      .landing-cta-note {
+        font-size: var(--type-body);
+        color: #8b96a8;
+      }
+
+      /* Secondary, lower-priority path — smaller, muted, below the primary action. */
+      .landing-cta-secondary {
+        font-size: var(--type-body);
+        color: #b9c2d0;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .landing-cta-secondary:hover { color: #ffffff; }
+
+      /* -------- Footer zone: visually separated by background tone, no border -------- */
+      .landing-footer {
+        background: var(--zone-bg-inverse);
+        padding: var(--space-4) var(--space-8);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        font-size: var(--type-label);
+        color: #8b96a8;
+      }
+      .landing-footer a { color: #b9c2d0; margin-right: var(--space-4); }
+      .landing-footer a:last-child { margin-right: 0; }
+      .landing-footer a:hover { color: #ffffff; }
+      .landing-footer-links { display: flex; flex-wrap: wrap; }
+
+      /* Desktop-poster: the whole hero fits one viewport, no scrolling required
+         to reach the primary action. */
+      @media (min-width: 900px) {
+        .landing { height: 100vh; overflow: hidden; }
+      }
+
+      /* Mobile-stacked-scroll: natural scroll is fine on small viewports. */
+      @media (max-width: 899px) {
+        .landing-topbar { padding: var(--space-4); }
+        .landing-hero { padding: var(--space-6) var(--space-4); }
+        .landing-footer { flex-direction: column; align-items: flex-start; padding: var(--space-4); }
+      }
+    </style>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
 
-    <main id="main-content" class="page-shell" tabindex="-1">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">Privacy-first tenant protection</p>
-          <h1>Semptify</h1>
-          <p class="hero-copy">
-            A calm, stateless workspace for organizing facts, protecting evidence, and keeping next steps clear.
-          </p>
+    <div class="landing">
+      <div class="landing-topbar">
+        <span class="landing-brand"><span class="mark">Semp</span>tify</span>
+      </div>
+
+      <main id="main-content" class="landing-hero" tabindex="-1">
+        <p class="landing-eyebrow">A no-cost tenant support workspace</p>
+        <h1 class="landing-title">Document. Know your rights. Act with confidence.</h1>
+        <p class="landing-sub">
+          Organize your documents, understand your rights, and see your next step clearly —
+          in your own storage, on your own terms.
+        </p>
+        <a href="/preamble" class="landing-cta-primary">Get help now</a>
+        <p class="landing-cta-note">Takes about a minute. Nothing is shared without you choosing to share it.</p>
+        <a href="/portal" class="landing-cta-secondary">Browse tools &amp; services first</a>
+      </main>
+
+      <footer class="landing-footer">
+        <div class="landing-footer-links">
+          <a href="/portal">Services</a>
+          <a href="/about">About</a>
+          <a href="/help">Help</a>
         </div>
-        <nav class="hero-nav" aria-label="Primary">
-          <a href="/preamble" class="chip chip--primary">Get Started</a>
-          <a href="/portal" class="chip">Browse Tools & Services</a>
-          <a href="#triage" class="chip">Triage</a>
-          <a href="#vault" class="chip">Vault</a>
-          <a href="#timeline" class="chip">Timeline</a>
-        </nav>
-
-        {% if landing_facts %}
-        <section class="hero-facts" aria-label="Verified facts">
-          <ul class="check-list">
-            {% for fact in landing_facts %}
-            <li>
-              {{ fact.claim }}
-              {% if fact.citation %}
-              <a href="{{ fact.source_url }}" class="citation" target="_blank" rel="noopener">
-                {{ fact.citation }}
-              </a>
-              {% endif %}
-            </li>
-            {% endfor %}
-          </ul>
-        </section>
-        {% endif %}
-      </header>
-
-      <section class="composer-grid" aria-label="Composer panels">
-        <article id="triage" class="panel panel--active" tabindex="-1">
-          <div class="panel__header">
-            <p class="panel__eyebrow">Step 1</p>
-            <h2>Rapid triage</h2>
-          </div>
-          <p>
-            Capture the immediate concern, the housing issue, and the most relevant dates without pressure.
-          </p>
-          <ul class="check-list">
-            <li>State the concern plainly</li>
-            <li>Note the date and location</li>
-            <li>Preserve the facts you can prove</li>
-          </ul>
-        </article>
-
-        <article id="vault" class="panel" tabindex="-1">
-          <div class="panel__header">
-            <p class="panel__eyebrow">Step 2</p>
-            <h2>Evidence vault</h2>
-          </div>
-          <p>
-            Store documentation in a simple folder structure that stays readable for a tenant, advocate, or attorney.
-          </p>
-          <div class="mini-card">
-            <strong>Suggested folders</strong>
-            <span>Lease · Notices · Photos · Messages · Receipts</span>
-          </div>
-        </article>
-
-        <article id="timeline" class="panel" tabindex="-1">
-          <div class="panel__header">
-            <p class="panel__eyebrow">Step 3</p>
-            <h2>Timeline builder</h2>
-          </div>
-          <p>
-            Organize the sequence of events so the story can be reviewed clearly and calmly when it matters most.
-          </p>
-          <div class="timeline-row">
-            <span class="dot"></span>
-            <span>Notice received</span>
-          </div>
-          <div class="timeline-row">
-            <span class="dot"></span>
-            <span>Photos and messages preserved</span>
-          </div>
-          <div class="timeline-row">
-            <span class="dot"></span>
-            <span>Follow-up request prepared</span>
-          </div>
-        </article>
-      </section>
-    </main>
-
-    <footer class="footer">
-      <p>
-        <a href="/portal">Services</a> ·
-        <a href="/about">About</a> ·
-        <a href="/help">Help</a> ·
-        <a href="/preamble">Get Started</a>
-      </p>
-      {% include "components/locale_selector.html" %}
-      <p>Semptify.org · Built for privacy, clarity, and evidence preservation · © {{ year }}</p>
-    </footer>
+        <span>Semptify.org · No cost, always · No ads · © {{ year }}</span>
+      </footer>
+    </div>
   </body>
 </html>

@@ -312,10 +312,28 @@ class ModuleGateMiddleware(BaseHTTPMiddleware):
         return UserRole.USER
 
     def _extract_jurisdiction(self, request: Request) -> Jurisdiction:
-        """Extract jurisdiction from request (headers, params, or IP geolocation)."""
+        """Extract jurisdiction from request (headers, params, or LocationService)."""
         # Try explicit jurisdiction header
         state = request.headers.get("x-jurisdiction-state") or request.query_params.get("state")
         county = request.headers.get("x-jurisdiction-county") or request.query_params.get("county")
+
+        # Prefer user location from LocationService for state/county, but let
+        # explicit headers/params override it.
+        try:
+            from app.core.cookie_auth import extract_user_id
+            from app.services.location_service import location_service
+
+            user_id = extract_user_id(request)
+            if user_id:
+                location = location_service.get_user_location(user_id)
+                if location and location.state_code:
+                    if not state:
+                        state = location.state_code
+                    if not county and location.county:
+                        county = location.county
+        except Exception:
+            # Never let jurisdiction lookup break the request.
+            pass
 
         # Fallback to default
         if not state:

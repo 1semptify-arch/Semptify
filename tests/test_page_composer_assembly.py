@@ -222,3 +222,79 @@ async def test_assemble_page_uses_context_recent_events():
     act_block_ids = {b.block_id for b in result.page_config.zones["act"].blocks}
     assert "recent_event_0" in act_block_ids
     assert "recent_event_1" in act_block_ids
+
+
+@pytest.mark.anyio
+async def test_assemble_page_normalizes_real_context_loop_state():
+    """Regression test for the _resolve_context key-mismatch bug.
+
+    `context_loop.get_state()` returns real user state under `documents_count`
+    / `deadlines` (list) / `active_issues`, not the `document_count` /
+    `next_deadline` / `case_count` keys the assembly formula reads. Without
+    normalization, every page silently looked like a brand-new user
+    regardless of real state. This asserts the real shape is translated
+    correctly and actually surfaces in the assembled page.
+    """
+    real_state = {
+        "context": {
+            "documents_count": 4,
+            "deadlines": [{"date": "2099-01-01T00:00:00", "title": "Answer deadline"}],
+            "active_issues": ["mold", "no heat"],
+            "rights_at_risk": ["habitability"],
+        },
+        "summary": {"documents": 4, "active_issues": 2, "deadlines": 1},
+    }
+    with _patch_assembly():
+        with patch("app.services.context_loop.context_loop.get_state", new=Mock(return_value=real_state)):
+            result = await assemble_page(
+                subject="repair",
+                jurisdiction="MN",
+                user_id="GUowner123",
+            )
+
+    record_block_ids = {b.block_id for b in result.page_config.zones["record"].blocks}
+    act_block_ids = {b.block_id for b in result.page_config.zones["act"].blocks}
+    assert "document_count_badge" in record_block_ids
+    assert "upload_first_document" not in record_block_ids
+    assert "next_deadline_action" in act_block_ids
+
+
+@pytest.mark.anyio
+async def test_govern_floor_applied_before_block_distribution():
+    """Regression test: GOVERN floor clamping must not truncate safety blocks.
+
+    The floor is meaningless if it's applied to `channels.govern` after the
+    GOVERN zone's blocks were already trimmed at the old (lower) level. This
+    forces a low-level blend into a high-risk subject and asserts the
+    GOVERN zone actually carries the escalation block, not just a higher
+    reported channel number.
+    """
+
+    def fake_gather(page_data, context):
+        return {
+            "record": [],
+            "know": [],
+            "act": [],
+            "govern": [
+                OutputBlock(
+                    block_id="govern_warning",
+                    action_type="banner",
+                    label="This issue may have legal deadlines.",
+                    risk_tier="high",
+                    on_trigger="/legal-aid",
+                )
+            ],
+        }
+
+    with _patch_assembly(gather_blocks=fake_gather):
+        result = await assemble_page(
+            subject="eviction",
+            jurisdiction="MN",
+            user_id="GUowner123",
+            intent="record",  # forces a low-GOVERN blend ("quiet_capture") for a high-risk subject
+        )
+
+    assert result.govern_report["govern_clamped"] is True
+    assert result.page_config.channels.govern == 80
+    govern_block_ids = {b.block_id for b in result.page_config.zones["govern"].blocks}
+    assert "govern_warning" in govern_block_ids
