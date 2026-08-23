@@ -1749,5 +1749,19 @@
     "updated_at": "2026-08-23T02:46:27.388348+00:00",
     "notes": "Handoff from Brad: three approved fixes, one commit each.\n[2026-08-23 02:46 UTC - swe-1.7] _local_dir init, size/extension validation, contract consolidation all committed; guardrail and direct VaultUploadService test pass",
     "target_model": "swe-1.7"
+  },
+  {
+    "id": "ad-hoc-loose-ends-2026-08-22",
+    "title": "Fix audit-identified loose ends across app",
+    "description": "Resolve the mechanical loose ends from the full system audit: crisis hotline placeholder, contract_loader/manifest drift, litigation_intelligence contract loading, page manifest validation errors, Jinja template hardcoded hrefs, placeholder runtime logic, and feature flag/tracker hygiene. Stop at items requiring human design decisions.",
+    "file_path": "various",
+    "status": "in_progress",
+    "priority": "high",
+    "source": "ad-hoc",
+    "created_at": "2026-08-22T00:00:00Z",
+    "updated_at": "2026-08-23T10:09:02.597152+00:00",
+    "target_model": "swe-1.7",
+    "assigned_agent": "swe-1.7",
+    "notes": "[2026-08-23 06:32 UTC - swe-1.7] Batch 1 complete: fixed crisis hotline placeholder, tool encoding, pytest module_health marker, enabled litigation_intelligence contract loading. 244 module health, 8 SSOT, guardrail pass.\n[2026-08-23 10:09 UTC - swe-1.7] Batch 1.1: reverted litigation_intelligence re-enable after handoff review; original exclusion note restored. Proceeding with Batch 2 page manifest validation."
   }
 ]
