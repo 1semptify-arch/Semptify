@@ -12,6 +12,7 @@ class PageAssemblyRequest(BaseModel):
 
     subject: str
     jurisdiction: str = "MN"
+    county: str | None = None
     intent: str | None = None
     context: dict[str, Any] = Field(default_factory=dict)
     fact_limit: int = Field(default=10, ge=1, le=50)
@@ -24,6 +25,7 @@ class PageAssemblyMetadata(BaseModel):
 
     subject: str | None
     jurisdiction: str
+    county: str | None = None
     major_pillar: str
     blend: str
     intensity: int = Field(ge=0, le=100)

@@ -180,7 +180,20 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 
 ---
 
-## 📋 Module Contract Mandate
+## � Gap Report — run this before hunting for bugs by hand
+
+`python tools/gap_report.py` wires together the gap-detection tooling that already exists in
+this repo (`tools/stub_detector.py` AST-verified stub scan, `tools/guardrail_engine.py`,
+`tools/module_registry.yaml` flags, and `FunctionGroupContract` coverage from
+`app/core/contract_loader.py`) into one prioritized `GAPS.md` snapshot, plus a short list of
+architectural gaps no automated check can find (documented directly in the script). Regenerate
+it at the start of a gap-hunting session instead of re-discovering the same issues by hand.
+`GAPS.md` is gitignored — it's a snapshot, not authored documentation; the script is the
+source of truth.
+
+---
+
+## �📋 Module Contract Mandate
 
 ### Every service that exposes a reusable API MUST register a `FunctionGroupContract` in `app/core/module_contracts.py`
 
