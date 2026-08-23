@@ -418,6 +418,8 @@ class VaultUploadService:
 
     def __init__(self):
         self.index = VaultDocumentIndex()
+        # Local-dev / test storage root. Cloud uploads ignore this.
+        self._local_dir = Path(get_settings().vault_dir)
 
     def _compute_sha256(self, content: bytes) -> str:
         """Compute SHA-256 hash of file content."""
