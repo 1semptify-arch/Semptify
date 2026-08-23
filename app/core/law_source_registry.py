@@ -26,6 +26,7 @@ is amended. For now, last_verified dates are manually maintained and displayed
 on every card so users know the freshness of each link.
 """
 
+import html
 import logging
 import re
 from collections.abc import Callable
@@ -141,6 +142,96 @@ def _ada_url(citation: str) -> str:
 
 
 # =============================================================================
+# County Code Registry — jurisdiction-aware county/ordinance URLs
+# =============================================================================
+
+# States where Municode hosts county codes of ordinances.
+_MUNICODE_STATES: set[str] = {"MN"}
+
+# Explicit overrides for slugs that do not follow the default normalization.
+# Key: (state.upper(), county_name.title())
+_COUNTY_CODE_OVERRIDES: dict[tuple[str, str], str] = {}
+
+# Minnesota counties that are two or more words. Single-word counties are
+# matched generically by _COUNTY_NAME_PATTERN. The list is used to avoid
+# false positives from ordinary capitalized phrases like "See Hennepin County".
+_MN_MULTIWORD_COUNTIES: tuple[str, ...] = (
+    "Big Stone",
+    "Blue Earth",
+    "Crow Wing",
+    "Lac qui Parle",
+    "Lake of the Woods",
+    "Le Sueur",
+    "Mille Lacs",
+    "Otter Tail",
+    "Red Lake",
+    "St. Louis",
+    "Yellow Medicine",
+)
+
+# County-name alternation: single capitalized word OR one of the known
+# multi-word Minnesota county names. This is used in the citation regex to
+# keep county-code matching precise while still supporting all 87 counties.
+_COUNTY_NAME_PATTERN = (
+    r"(?:[A-Z][a-zA-Z]+|"
+    + "|".join(re.escape(c) for c in _MN_MULTIWORD_COUNTIES)
+    + r")"
+)
+
+_COUNTY_CITATION_RE = re.compile(
+    r"(" + _COUNTY_NAME_PATTERN + r")\s*County(?:\s+(?:Code|Ordinance|Ord\.?))?(?:\s+(?:§|No\.|#)\s*[\w.\-]+)?",
+    re.IGNORECASE,
+)
+
+
+def _municode_county_slug(county: str) -> str:
+    """Convert a county name to a Municode URL slug.
+
+    Examples: "Hennepin" -> "hennepin_county", "St. Louis" -> "st_louis_county",
+    "Lake of the Woods" -> "lake_of_the_woods_county".
+    """
+    name = county.strip()
+    # Strip a trailing "County" if present so callers can be flexible.
+    name = re.sub(r"\s+county\s*$", "", name, flags=re.IGNORECASE)
+    name = name.lower()
+    # For Minnesota, Municode slugs remove periods (e.g. st_louis_county).
+    name = name.replace(".", "")
+    name = name.replace("'", "")
+    name = re.sub(r"[^a-z0-9\s]", "", name)
+    name = name.strip().replace(" ", "_")
+    return name + "_county"
+
+
+def build_county_code_url(county: str, state: str = "MN") -> str | None:
+    """Return the canonical county code URL, or None if unknown."""
+    state = state.upper() if state else "MN"
+    if state not in _MUNICODE_STATES:
+        return None
+
+    county_key = county.title() if county else ""
+    override = _COUNTY_CODE_OVERRIDES.get((state, county_key))
+    if override:
+        return override
+
+    slug = _municode_county_slug(county)
+    return f"https://library.municode.com/{state.lower()}/{slug}/codes/code_of_ordinances"
+
+
+def _county_url(citation: str) -> str:
+    """Build a Municode county-code URL from a citation like 'Hennepin County Code § 1.02'."""
+    m = _COUNTY_CITATION_RE.search(citation)
+    if m:
+        county = m.group(1).strip()
+        return build_county_code_url(county) or "https://library.municode.com/mn"
+    return "https://library.municode.com/mn"
+
+
+def _hennepin_url(citation: str) -> str:
+    """Build Hennepin County URL via the county code registry."""
+    return build_county_code_url("Hennepin", "MN") or "https://library.municode.com/mn/hennepin_county/codes/code_of_ordinances"
+
+
+# =============================================================================
 # Registry — maps citation patterns to LawSource objects
 # =============================================================================
 
@@ -180,10 +271,12 @@ REGISTRY: list[tuple[re.Pattern, LawSource]] = [
         re.compile(r"St\.?\s*Paul\s*(?:Code|Ordinance|Legislative)", re.IGNORECASE),
         LawSource("St. Paul Municode", _stpaul_code_url, "2026-01-15", "local"),
     ),
-    # Hennepin County
+    # County / municipal code of ordinances (e.g. "Hennepin County Code § 1.02",
+    # "St. Louis County Ordinance 123", "Ramsey County Code"). This is
+    # jurisdiction-aware through build_county_code_url().
     (
-        re.compile(r"Hennepin\s*County", re.IGNORECASE),
-        LawSource("Hennepin County", _hennepin_url, "2026-01-15", "local"),
+        _COUNTY_CITATION_RE,
+        LawSource("Municode County Code of Ordinances", _county_url, "2026-08-21", "local"),
     ),
     # US Supreme Court
     (
@@ -254,3 +347,65 @@ def enrich_law_entry(entry: dict) -> dict:
     if "jurisdiction" not in entry or not entry.get("jurisdiction"):
         entry["jurisdiction"] = source.jurisdiction
     return entry
+
+
+def link_citations(text: str, state: str | None = None, county: str | None = None) -> str:
+    """Convert plain text containing citations into HTML with clickable links.
+
+    Uses the canonical REGISTRY patterns. County citations are resolved
+    through build_county_code_url(), optionally constrained by the supplied
+    state (defaults to MN).
+    """
+    if not text:
+        return ""
+
+    # Find all matches with positions in the original plain text.
+    matches: list[tuple[int, int, str, LawSource]] = []
+    for pattern, source in REGISTRY:
+        for m in pattern.finditer(text):
+            matches.append((m.start(), m.end(), m.group(0), source))
+
+    # Sort by start and remove overlaps, preferring earliest and longest.
+    matches.sort(key=lambda x: (x[0], x[1]))
+    non_overlapping: list[tuple[int, int, str, LawSource]] = []
+    last_end = -1
+    for start, end, citation, source in matches:
+        if start >= last_end:
+            non_overlapping.append((start, end, citation, source))
+            last_end = end
+
+    # Build HTML: escape the text, then inject <a> tags at match positions.
+    escaped = html.escape(text)
+    parts: list[str] = []
+    pos = 0
+    for start, end, citation, source in non_overlapping:
+        parts.append(escaped[pos:start])
+
+        # For county citations, allow the caller's state/county to override.
+        url: str | None = None
+        if source.source_name == "Municode County Code of Ordinances":
+            county_match = re.search(r"([A-Z][a-zA-Z\s.']+?)\s*County", citation, re.IGNORECASE)
+            if county_match:
+                resolved_county = county_match.group(1).strip()
+                resolved_state = state or "MN"
+                url = build_county_code_url(resolved_county, resolved_state)
+        if url is None:
+            try:
+                url = source.url_builder(citation)
+            except Exception as exc:
+                logger.warning("link_citations: URL builder failed for %r: %s", citation, exc)
+
+        if url:
+            safe_url = html.escape(url, quote=True)
+            safe_citation = html.escape(citation)
+            parts.append(
+                f'<a class="law-linker-cite" href="{safe_url}" '
+                f'target="_blank" rel="noopener noreferrer" '
+                f'data-citation="{safe_citation}">{safe_citation}</a>'
+            )
+        else:
+            parts.append(escaped[start:end])
+        pos = end
+
+    parts.append(escaped[pos:])
+    return "".join(parts)

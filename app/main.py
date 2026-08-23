@@ -3544,7 +3544,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
 
         from app.core.cookie_auth import verify_user_id
-        from app.core.module_gate import get_module_access
+        from app.core.module_gate import get_jurisdiction, get_module_access
         from app.modules.context_engine.taxonomy import ALL_SUBJECTS
         from app.modules.page_composer.assembly import assemble_page
         from app.modules.page_shell.renderer import render_page_shell
@@ -3554,9 +3554,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         user_id = verify_user_id(request.cookies.get("semptify_uid", "")) or ""
         resolved = get_module_access(request).resolved_module_paths
+        jurisdiction = get_jurisdiction(request)
+        jurisdiction_data = {"state": jurisdiction.state or "MN", "county": jurisdiction.county}
         result = await assemble_page(
             subject=subject,
             user_id=user_id,
+            jurisdiction=jurisdiction.state or "MN",
+            county=jurisdiction.county,
             intent=intent,
             user_context={"capabilities": resolved},
         )
@@ -3567,6 +3571,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "subject": subject,
                 "shell_html": render_page_shell(result.page_config),
                 "assembly_metadata": result.metadata,
+                "jurisdiction": jurisdiction_data,
+                "jurisdiction_json": json.dumps(jurisdiction_data),
             },
         )
 
@@ -3578,7 +3584,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
 
         from app.core.cookie_auth import verify_user_id
-        from app.core.module_gate import get_module_access
+        from app.core.module_gate import get_jurisdiction, get_module_access
         from app.modules.context_engine.taxonomy import ALL_SUBJECTS
         from app.modules.page_composer.assembly import assemble_page
         from app.modules.page_shell.renderer import render_page_shell
@@ -3588,9 +3594,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         user_id = verify_user_id(request.cookies.get("semptify_uid", "")) or ""
         resolved = get_module_access(request).resolved_module_paths
+        jurisdiction = get_jurisdiction(request)
+        jurisdiction_data = {"state": jurisdiction.state or "MN", "county": jurisdiction.county}
         result = await assemble_page(
             subject=subject,
             user_id=user_id,
+            jurisdiction=jurisdiction.state or "MN",
+            county=jurisdiction.county,
             user_context={"capabilities": resolved},
         )
         return templates.TemplateResponse(
@@ -3600,6 +3610,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "subject": subject,
                 "shell_html": render_page_shell(result.page_config),
                 "assembly_metadata": result.metadata,
+                "jurisdiction": jurisdiction_data,
+                "jurisdiction_json": json.dumps(jurisdiction_data),
             },
         )
 

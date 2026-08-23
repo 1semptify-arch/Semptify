@@ -1,3 +1,49 @@
+## Session -- 2026-08-23 — Page Composer assembly formula bug fixes
+
+### Guardrail Engine Run — 2026-08-23T00:44:20
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Audit of Page Composer / Page Shell / Context Engine ("information system") found two real, silent-failure bugs in `app/modules/page_composer/assembly.py`:
+
+1. `_resolve_context()` merged `context_loop.get_state()`'s real user state directly into the formula's context dict, but Context Loop exposes fields as `documents_count` / `deadlines` (list) / `active_issues`, while the rest of the formula reads `document_count` / `next_deadline` (dict with `days_remaining`) / `case_count` / `recent_events` / `urgency_cues`. None of those keys ever existed, so every assembled page silently rendered as if the user had zero documents, no deadlines, and no case activity — regardless of their real state. `_build_ui_context()` had the same mismatch (`documents`/`deadlines` vs `document_count`/`deadline_count`).
+2. The GOVERN floor (`apply_govern_rules`) clamped `channels.govern` up to the required minimum for the page's risk tier, but only *after* `_distribute_blocks()` had already trimmed the GOVERN zone's blocks to the count allowed by the pre-clamp (lower) level (`zones.level_to_prominence` fixes block count from level at build time). The report correctly said "clamped", but the extra GOVERN safety content the floor exists to guarantee was never actually rendered.
+3. Minor: `_fact_label(fact)` was computed and discarded (dead code) instead of being used in the fact block's summary.
+
+### Fix
+
+- `app/modules/page_composer/assembly.py`:
+  - `_resolve_context()` now normalizes Context Loop's real field names into the keys the formula consumes, with a new `_earliest_deadline()` helper that defensively parses the loosely-shaped `deadlines` list (skips unparseable entries — silence beats fabrication). Caller-supplied `user_context` values still take precedence (`setdefault`).
+  - `_build_ui_context()` now reads `document_count` / `deadline_count` (the formula's own normalized keys) instead of the never-populated `documents` / `deadlines`.
+  - Reordered `assemble_page()`: risk tier is resolved and the GOVERN floor is applied to `channels` **before** blocks are gathered/distributed into zones, so zones are built at the level they're actually reported at. `apply_govern_rules()` now runs afterward only for override/suppression collection and audit reporting (pre-floor level is restored into the report so the "was this clamped" audit trail is preserved).
+  - `_fact_label()`'s return value is now used in the fact block's `summary`.
+  - Updated the module docstring's phase-order comment and `docs/blueprints/page_composer_assembly_formula_blueprint.md` §7.6 to describe the corrected ordering and why it matters.
+- `tests/test_page_composer_assembly.py`: added `test_assemble_page_normalizes_real_context_loop_state` and `test_govern_floor_applied_before_block_distribution` — both fail against the old code and pass against the fix.
+
+### Verification
+
+- `python -m py_compile` on all changed files: PASS.
+- `pytest tests/test_page_composer_assembly.py tests/test_page_composer_render.py -q --no-cov`: 18 passed (16 existing + 2 new regression tests).
+- `pytest tests/ -k "page_shell or page_composer" -q --no-cov`: 29 passed.
+- `pytest tests/module_health -q --no-cov`: 244 passed (full suite, no regressions).
+- Context Engine (`app/modules/context_engine/{retrieval,cache,stories,embedding_model,explanation_entries}.py`) audited — no bugs found; no-hallucination/source-required invariants intact. No standalone "Information Orchestrator" module exists yet (referenced conceptually in ADR-0008, not built — confirmed via file search).
+
+### Notes
+
+- Did not touch the separate, older `app/modules/context_loop/service.py` (a second, differently-shaped `UserContext` implementation) — it's a known duplicate system, out of scope for this fix, which only normalizes against the one actually wired into Page Composer (`app.services.context_loop`).
+- `page_shell/loader.py`'s GOVERN floor application (used for static/Forge-demo JSON configs, not the dynamic assembly path) was not affected by this bug — its zones are either caller-supplied as-is or auto-derived empty, so it doesn't hit the same block-trimming-before-clamp issue.
+
+---
+
 ## Session -- 2026-08-23 — Task 8 Vault Fixes (local_dir, validation, contract consolidation)
 
 ### Guardrail Engine Run — 2026-08-23

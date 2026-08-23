@@ -64,6 +64,7 @@ venv311_clean/
 # needs to be tracked. The other files are truly generated artifacts.)
 stub_tasks.json
 todo_comments.json
+GAPS.md
 temp/
 ENV/
 env.bak/
