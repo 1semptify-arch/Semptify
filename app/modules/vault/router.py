@@ -37,6 +37,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
+from app.core.context_envelope import EncounterContext
 from app.core.database import get_db
 from app.core.id_gen import make_id
 from app.core.request_utils import raise_for_storage_error
@@ -47,12 +48,12 @@ from app.core.security import (
     yellow_access,
 )
 from app.core.utc import utc_now
+from app.core.validation import is_allowed_file_extension
 from app.core.vault_paths import (
     CANONICAL_VAULT_FOLDERS,
     VAULT_CERTIFICATES,
     VAULT_DOCUMENTS,
 )
-from app.core.context_envelope import EncounterContext
 from app.models.models import Incident, VaultItem
 from app.modules.vault.envelopes import (
     get_vault_upload_page,
@@ -62,20 +63,11 @@ from app.services.storage import get_provider
 
 # Import vault upload service - central document storage
 try:
-    from app.services.vault_upload_service import VaultDocument, get_vault_service
+    from app.services.vault_upload_service import get_vault_service
 
     HAS_VAULT_SERVICE = True
 except ImportError:
     HAS_VAULT_SERVICE = False
-
-# Import preview generation
-try:
-    from app.core.job_processor import submit_document_analysis_job, submit_thumbnail_generation_job
-    from app.core.preview_generator import generate_document_preview, generate_document_thumbnail
-
-    HAS_PREVIEW_GENERATOR = True
-except ImportError:
-    HAS_PREVIEW_GENERATOR = False
 
 logger = logging.getLogger(__name__)
 
@@ -158,8 +150,7 @@ def compute_sha256(file_content: bytes) -> str:
 
 def is_allowed_extension(filename: str, settings: Settings) -> bool:
     """Check if file extension is allowed."""
-    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-    return ext in {e.strip().lower() for e in settings.allowed_extensions.split(",")}
+    return is_allowed_file_extension(filename, settings.allowed_extensions)
 
 
 async def ensure_vault_folders(storage, provider_name: str) -> None:
