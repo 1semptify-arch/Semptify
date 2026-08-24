@@ -1,3 +1,100 @@
+## Session -- 2026-08-24 — Real OAuth / Google Drive end-to-end verification
+
+### Guardrail Engine Run — 2026-08-24T13:44:29
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What changed
+- Added `/onboarding/api/vault/verify` to `TimeoutMiddleware` extended timeouts
+  (`app/core/timeout.py`) so the onboarding upload pipeline gets 180s instead
+  of the default 30s.
+- Raised internal `asyncio.wait_for` timeouts in `app/modules/onboarding/router.py`
+  for vault probe (60s), `VaultUploadService.upload` (110s), and the
+  read-back verification (90s).
+- Fixed `app/modules/vault/router.py` `download_document`, `get_certificate`,
+  and `delete_document` to look up documents via the `vault_index` DB table
+  and use the stored `certificate_id` / `storage_path` / `provider_file_id`
+  instead of scanning certificate filenames for `document_id[:8]`, which
+  failed because certificates are named by `certificate_id`.
+
+### CI fix
+- Refactored `app/core/features.py::set_enabled()` to bind `updated_at` as a
+  parameter instead of interpolating `NOW()`/`CURRENT_TIMESTAMP` into the SQL
+  string, eliminating the Bandit B608 SQL-injection warning.
+
+### Database
+- Applied missing schema columns to Neon production branch manually
+  (`event_date`, `received_date` on `documents` and `vault_index`;
+  `canonical_value`, `extraction_pattern`, `embedding` on `context_facts`;
+  `case_overlay_id` on `incidents`) and stamped `alembic_version` to
+  `20260824_add_document_dates` after the migration failed because
+  `context_explanation_entries.embedding` already existed.
+
+### Verification
+- Real Google OAuth sign-in succeeded for user `GUyQ2ld1CC`.
+- `POST /onboarding/api/vault/verify` with `lease_01.pdf` succeeded:
+  `ok=true`, `document_saved=true`, `vault_id=doc_c5zeQ1BEz6Xqkm4Q`,
+  `document_id=SEM-2026-000001-22A0`, `certified=true`.
+- `GET /api/vault/{vault_id}/download` returns 200 with `application/pdf`
+  and 1780 bytes for both `view=true` and default download.
+- `GET /api/vault/{vault_id}/certificate` returns 200 with correct
+  `sha256_hash`, `certified_at`, `original_filename`, `storage_provider`.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `python -m py_compile` on changed files: PASS.
+
+## Session -- 2026-08-24 — Live verification gap fixes
+
+### What changed
+- Fixed Pass 2 OCR crash (`app/core/job_processor.py`) by reading document type
+  from `doc.extraction.doc_type` instead of the non-existent `doc.doc_type`.
+- Fixed vault View/Download 400 by using the authenticated `user.access_token`
+  as the default in `app/modules/vault/router.py` endpoints.
+- Added `L` (LOCAL) provider code to `security.py::is_valid_user_storage` so
+  local users are accepted at the access-control layer.
+- Mounted Document Center router at `/api/dc` in `app/main.py` for non-MVP
+  builds so `/api/dc/document-types` now returns the `house_rules` registry.
+
+### Verification
+- Live upload of `bundle_test2.pdf`: Light Intake 3 segments, Deep OCR job runs
+  without `AttributeError`; overlay writes still fail under the fake Google
+  token test setup.
+- API: `GET /api/dc/document-types` returns 200 with `house_rules` present.
+- `is_valid_user_storage('LUtest1234')` now True; live local upload with
+  encrypted session returns 200 and writes a `vault_index` row.
+- `pytest tests/test_document_intake.py -q --no-cov`: 52 passed.
+- `pytest tests/test_documents.py -q --no-cov`: 41 passed.
+- `pytest tests/test_user_id.py -q --no-cov`: 4 passed.
+- `pytest tests/test_document_types.py -q --no-cov`: 10 passed.
+- `python -m py_compile` on changed files: PASS.
+
+### Investigation: cookie/user_id mismatch on upload (no code changes)
+- **Root cause:** `app/templates/gui/record.html` line 94 appends
+  `cookie('semptify_uid')` as the `user_id` form field. The `semptify_uid`
+  cookie is the **signed** value (`user_id.<HMAC-signature>`), not the bare
+  user id, so the `user_id` field arrives as ~75 characters instead of the
+  expected 10-character id.
+- **Server behavior:** `app/modules/intake/router.py::upload_and_process`
+  already treats the form `user_id` as client-supplied and unreliable. It
+  depends on `yellow_access`, which verifies the cookie HMAC, and then
+  overrides the form value with `user.user_id` when they mismatch, logging:
+  `user_id mismatch: form=... vs session=... — using session identity`.
+- **Is the fallback safe?** Yes, under the current dependency chain. If the
+  cookie is invalid, `yellow_access` returns 401 before the endpoint runs. If
+  the cookie is valid, the session identity is authoritative. The fallback
+  cannot silently resolve to a different user.
+- **Is it a bug worth fixing?** Yes, but as a cleanup task, not a hotfix.
+  The form field should not be needed because the server already derives the
+  user from the authenticated session. The cleanest fix is either to remove
+  the `user_id` field from the form (and keep the backend `Form` default) or
+  stop reading the signed cookie for this purpose on the client. This is a
+  low-priority hygiene item that would eliminate the warning and remove the
+  reliance on defensive server-side override.
+
 ## Session -- 2026-08-24 — Reconcile parallel sessions and ship follow-ups
 
 ### What changed

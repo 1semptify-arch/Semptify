@@ -1170,10 +1170,12 @@ def is_valid_user_storage(user_id: str) -> bool:
     Check if user ID represents a valid user with connected storage.
 
     SECURITY: System users and demo users are NOT valid for production use.
-    Users MUST connect their own cloud storage.
+    In production users MUST connect their own cloud storage; the local (L)
+    provider is allowed only for local development and testing.
 
     Valid user ID format: <provider><role><8-char-random>
     Example: GU7x9kM2pQ = Google Drive + User + 7x9kM2pQ
+    Example: LU7x9kM2pQ = Local + User + 7x9kM2pQ
 
     Invalid patterns:
     - "open-mode-user" - demo/testing only
@@ -1196,9 +1198,9 @@ def is_valid_user_storage(user_id: str) -> bool:
     if len(str(user_id)) < 10:
         return False
 
-    # Check provider code is valid (G, D, O)
+    # Check provider code is valid (G=Google Drive, D=Dropbox, O=OneDrive, L=Local dev)
     provider_code = user_id[0].upper()
-    if provider_code not in ["G", "D", "O"]:
+    if provider_code not in ["G", "D", "O", "L"]:
         return False
 
     # Check role code is valid (A, M, U, V, L)

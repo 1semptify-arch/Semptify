@@ -733,4 +733,259 @@ Process contracts define deterministic user workflows with defined entry criteri
 
 ---
 
+## 1.3 First Document Upload — Contract & Pipeline Verification
+
+**Scope:** trace a single file from the tenant's browser into the user's vault and back out again, and list the `FunctionGroupContract`s that govern that path.
+
+### Entry Points (canonical routes)
+
+| Route | Purpose | When to use |
+| ------- | --------- | ------------- |
+| `POST /api/intake/upload` | Queue upload for later processing | Generic intake |
+| `POST /api/intake/upload/auto` | Upload + run Light Intake (Pass 1) in one call | Tenant "Add Record" / auto-processing |
+| `POST /api/intake/upload/batch` | Multiple files at once | Folder/batch drop |
+| `POST /api/vault/upload` | Internal/service vault upload (not UI) | Service-to-service only |
+| `POST /api/vault/sidebar/upload` | Sidebar quick upload | Persistent sidebar "Add Record" |
+
+Tenant-facing uploads **must** target `POST /api/intake/upload/auto`. `POST /api/vault/upload` is documented as internal-only.
+
+### Pipeline Flow (first document)
+
+```text
+[Browser UploadForm]
+    │
+    ▼
+Step 0: POST /api/intake/upload/auto
+        app/modules/intake/router.py:482
+    │
+    ├─ Step 0a: Resolve authenticated user (yellow_access / form user_id)
+    ├─ Step 0b: Resolve access token (form → session → ensure_valid_token)
+    │              app/modules/intake/router.py:532-542
+    │              app/core/auto_refresh.py:38
+    │
+    ▼
+Step 1: File validation
+        app/modules/intake/router.py:551-557
+        - empty file rejected
+        - hard 25 MB limit (intake router)
+        ⚠️ extension check is NOT done here
+    │
+    ▼
+Step 2: Optional notarization
+        app/modules/intake/router.py:559-586
+        app/services/notarization (best-effort)
+    │
+    ▼
+Step 3: VaultUploadService.upload()
+        app/services/vault_upload_service.py:536
+    │   ├─ validate input / size / extension / mime
+    │   ├─ compute SHA-256 and deduplicate by hash
+    │   ├─ generate vault_id and safe_filename
+    │   ├─ _store_document() → Semptify5.0/Vault/documents/{safe_filename}
+    │   │              app/services/vault_upload_service.py:803
+    │   ├─ _create_certificate() → Semptify5.0/Vault/certificates/{cert_id}.json
+    │   │              app/services/vault_upload_service.py:837
+    │   ├─ DocumentRegistry.register_document()
+    │   │              app/services/document_registry.py:652
+    │   │              → registry_id (SEM-YYYY-NNNNNN-XXXX)
+    │   │              → content_hash, metadata_hash, combined HMAC
+    │   │              → integrity_status = "verified"
+    │   ├─ write VAULT_UPLOAD_MANIFEST overlay (best-effort)
+    │   ├─ VaultDocumentIndex.add() → DB vault_index / vault_user_index / vault_hash_index
+    │   └─ emit DOCUMENT_UPLOAD_RECEIVED + DOCUMENT_ADDED events
+    │
+    ▼
+Step 4: SSOT certification gate
+        app/modules/intake/router.py:409-427
+        - if vault_doc.is_certified is False, downstream is blocked
+    │
+    ▼
+Step 5: IntakeEngine.intake_document()
+        app/services/document_intake.py:1056
+        - creates IntakeDocument, local working copy in data/intake/{user_id}/
+    │
+    ▼
+Step 6: IntakeEngine.process_document()
+        app/services/document_intake.py:1119
+        - text extraction (pdf / image / txt)
+        - document classification
+        - date / amount / party / issue extraction (Pass 1)
+        - summary + key_points
+    │
+    ▼
+Step 7: Deep OCR / Flow Orchestration
+        app/modules/intake/router.py:642-689
+        - skipped under DEPLOY_TARGET=render_mvp
+        - queued as background job otherwise
+    │
+    ▼
+Step 8: vault_service.mark_processed()
+        app/services/vault_upload_service.py:994
+        - writes extracted data as cloud overlays
+    │
+    ▼
+Step 9: event_bus.publish(DOCUMENT_PROCESSED)
+        app/modules/intake/router.py:721-732
+    │
+    ▼
+[Response] AutoProcessResponse { id, filename, status, vault_id,
+          extracted_data, timeline_events, issues_found }
+```
+
+### From Vault Back Out
+
+```text
+[vault_id]
+    │
+    ├─ GET /api/vault/document/{vault_id}/content
+    │   → VaultUploadService.get_document_content()
+    │   → storage.download_file() by provider_file_id, then storage_path
+    │
+    ├─ GET /api/vault/{vault_id}/certificate
+    │   → certificate JSON from Semptify5.0/Vault/certificates/
+    │
+    ├─ GET /api/vault/
+    │   → VaultUploadService.get_user_documents()
+    │   → SELECT from vault_index
+    │
+    └─ GET /api/intake/{doc_id}
+        → IntakeEngine._documents or data/intake/documents.json
+```
+
+### Contract List — First-Upload Pipeline
+
+| Module | Group | Title | Inputs | Outputs | Deterministic | Dependencies |
+| -------- | ------- | ------- | -------- | --------- | --------------- | -------------- |
+| `intake` | `intake_upload` | Intake Upload (SSOT) | `file`, `user_id` | `doc_id`, `filename`, `status` | No | `app.modules.intake.router` |
+| `intake` | `intake_upload_auto` | Intake Upload and Auto-Process (SSOT) | `file`, `user_id` | `doc_id`, `document_type`, `issues_found`, `dates`, `amounts`, `parties`, `status` | No | `app.modules.intake.router`, `app.modules.documents.router` |
+| `intake` | `intake_upload_batch` | Intake Batch Upload (SSOT) | `files`, `user_id` | `results`, `total`, `succeeded`, `failed` | No | `app.modules.intake.router` |
+| `intake` | `intake_process` | Intake Process Document (SSOT) | `doc_id`, `user_id` | `doc_id`, `status`, `document_type` | No | `app.modules.intake.router` |
+| `intake` | `intake_status` | Intake Processing Status (SSOT) | `doc_id` | `doc_id`, `status`, `progress` | Yes | `app.modules.intake.router` |
+| `intake` | `intake_get_document` | Intake Get Document (SSOT) | `doc_id` | `document` | Yes | `app.modules.intake.router` |
+| `vault` | `vault_upload` | Vault Upload (SSOT) | `file`, `user_id`, `document_type?`, `description?`, `tags?` | `document_id`, `certificate_id`, `sha256_hash`, `storage_path` | Yes | `app.modules.vault.router`, `app.services.vault_upload_service` |
+| `vault` | `vault_list_documents` | Vault List Documents (SSOT) | `user_id`, `document_type?` | `documents`, `total` | Yes | `app.modules.vault.router` |
+| `vault` | `vault_download_document` | Vault Download Document (SSOT) | `document_id`, `user_id` | `file_stream`, `filename`, `mime_type` | Yes | `app.modules.vault.router` |
+| `vault` | `vault_get_certificate` | Vault Get Certificate (SSOT) | `document_id`, `user_id` | `certificate_id`, `sha256`, `certified_at`, `storage_path` | Yes | `app.modules.vault.router` |
+| `vault` | `vault_init` | Vault Initialize (SSOT) | `user_id`, `provider` | `ok`, `message` | No | `app.modules.vault.router`, `app.sdk.vault` |
+| `vault` | `vault_verify` | Vault Verify (SSOT) | `user_id`, `provider` | `ok`, `folders` | Yes | `app.modules.vault.router`, `app.sdk.vault` |
+| `documents` | `documents_process` | Documents Process (SSOT) | `file`, `user_id` | `document_id`, `document_type`, `extracted_text`, `dates`, `amounts`, `parties`, `issues` | No | `app.modules.documents.router`, `app.modules.intake.router` |
+| `documents` | `documents_list` | Documents List (SSOT) | `user_id` | `documents` | Yes | `app.modules.documents.router` |
+| `documents` | `documents_get` | Documents Get Detail (SSOT) | `doc_id`, `user_id` | `document`, `intelligence`, `issues` | Yes | `app.modules.documents.router` |
+| `storage` | `storage_oauth_initiate` | Storage OAuth Initiate (SSOT) | `provider`, `semptify_uid?` | `redirect` | No | `app.modules.storage.router` |
+| `storage` | `storage_oauth_callback` | Storage OAuth Callback (SSOT) | `provider`, `code`, `state` | `redirect`, `user_id` | No | `app.modules.storage.router` |
+| `storage` | `storage_session_restore` | Storage Session Restore (SSOT) | `user_id` | `success`, `user_id` | No | `app.modules.storage.router` |
+| `unified_overlays` | `unified_overlays_create_overlay` | Unified_Overlays Create Overlay (POST) (SSOT) | (none in contract) | `result` | No | `app.modules.unified_overlays.router` |
+
+*Contracts verified from the live `contract_registry` after `load_all_contracts()` (Python 3.11.9, venv311).*
+
+### Storage Locations
+
+| Data Type | Primary | Backup / Cache | Access Pattern |
+| ----------- | --------- | ---------------- | ---------------- |
+| Original file bytes | User's cloud storage `Semptify5.0/Vault/documents/{safe_filename}` (`VAULT_DOCUMENTS`) | `VaultUploadService._local_dir` if `storage_provider=local` | Write-once, read-many |
+| Certificate | `Semptify5.0/Vault/certificates/{certificate_id}.json` (`VAULT_CERTIFICATES`) | None | Write-once, read-many |
+| Upload manifest overlay | `Semptify5.0/Vault/overlays/documents/` (`VAULT_OVERLAY_DOCUMENTS`) | None | Write-once, read-many |
+| Vault metadata | PostgreSQL/SQLite `vault_index`, `vault_user_index`, `vault_hash_index` | In-memory dict + `data/vault_index/vault_index.json` | Read/Write frequently |
+| Processing working copy | `data/intake/{user_id}/{doc_id}_{filename}` | None | Ephemeral |
+| Intake document records | `data/intake/documents.json` | In-memory dict | Read/Write |
+| Document registry | `data/document_registry/registry.json` | In-memory dict | Read/Write |
+
+### SSOT Rule
+
+> **A document only enters Semptify through the intake router, is stored in the user's vault first, is automatically registered for chain of custody, and only then is passed to extraction, overlays, and downstream modules.**
+
+### Certification States
+
+| State | vault_id | registry_id | `is_certified` | Meaning |
+| ------- | ---------- | ------------- | ---------------- | --------- |
+| **Certified** | ✅ | ✅ | `True` | In vault + registered + `integrity_status="verified"` — safe to process |
+| **Uncertified** | ✅ | ❌ / unverified | `False` | Stored but registration or integrity check failed; processing is blocked by the SSOT gate |
+| **Invalid** | ❌ | - | `False` | Upload failed before reaching the vault |
+
+### Code Pattern
+
+```python
+## OLD (violation): separate, potentially inconsistent steps
+vault_doc = await some_storage.upload(...)
+registry_doc = registry.register_document(...)  # separate, can fail independently
+extracted = await extraction.process(...)
+
+## NEW (SSOT): one canonical path, automatic registration
+vault_doc = await VaultUploadService.upload(...)
+# vault_doc already has vault_id, registry_id, certificate_id, is_certified
+if vault_doc.is_certified:
+    doc = await IntakeEngine.intake_document(vault_id=vault_doc.vault_id, ...)
+    doc = await IntakeEngine.process_document(doc.id)
+    await vault_service.mark_processed(vault_doc.vault_id, extracted_data=...)
+```
+
+### MVP / Render Gating
+
+- `app/core/product_manifest.py:1319` → `get_mvp_allowed_modules()` includes `app.modules.intake.router`, `app.modules.vault.router`, `app.modules.documents.router`, and `app.modules.storage.router`.
+- `app/modules/intake/router.py:642` skips Deep OCR Pass 2 under `DEPLOY_TARGET=render_mvp`.
+- `app/modules/intake/router.py:679` skips `DocumentFlowOrchestrator` under `render_mvp`.
+- `requirements-render-mvp.txt` removes `sentence-transformers`, `playwright`, and test/dev packages; `numpy` is retained for vector / extraction code.
+
+### Configuration & Verification Checklist
+
+For the first document to reach the vault correctly, confirm:
+
+- [ ] Python 3.11.9 active (`venv311` on Windows).
+- [ ] `SECRET_KEY` configured; `SECURITY_MODE` matches environment (`open` for dev, `enforced` for production).
+- [ ] `DATABASE_URL` set and tables initialized (run migrations or `sqlite` file exists).
+- [ ] `DEPLOY_TARGET` set as intended (`render_mvp` for Render, unset or `render_full` for full).
+- [ ] `app/core/contract_loader.py` loads all contracts without errors for `intake`, `vault`, `documents`, `storage`.
+- [ ] Storage OAuth token present in DB (or `local` fallback only in `open` dev mode).
+- [ ] Vault folder structure created (onboarding `vault_init` / `vault_verify`).
+- [ ] `app/core/vault_paths.py` is the only source of `Semptify5.0/...` paths.
+- [ ] Run `python -m py_compile` on changed pipeline files.
+- [ ] Run `pytest tests/module_health -q --no-cov` (after resolving disk-space issue if present).
+- [ ] Run a live upload test via `POST /api/intake/upload/auto` and verify response has `vault_id`, `notarization_id`, `status` not `uncertified`.
+- [ ] Verify `vault_index` row, `data/document_registry/registry.json` entry, and cloud/local file all exist for the test `vault_id`.
+
+### Issues / Gaps Found During This Verification
+
+1. **Local dev storage directory is not configured.**
+   - `VaultUploadService` never sets `_local_dir`; tests manually assign it, but the app does not.
+   - Result: any `storage_provider="local"` upload in dev raises `RuntimeError: local storage directory not configured`.
+   - File: `app/services/vault_upload_service.py:433`.
+   - **Fix:** initialize `_local_dir` from `settings.vault_dir` (e.g., `uploads/vault`) in `__init__` or in `get_vault_service()`.
+
+2. **Upload size limits are inconsistent.**
+   - `app/modules/intake/router.py:556` hardcodes `25 * 1024 * 1024`.
+   - `app/services/vault_upload_service.py:473` uses `settings.max_upload_size_mb` (default `50`).
+   - **Fix:** use `settings.max_upload_size_mb` in both places.
+
+3. **File-extension validation is missing from the auto-intake route.**
+   - `POST /api/vault/upload` checks `is_allowed_extension()`; `POST /api/intake/upload/auto` does not.
+   - **Fix:** add extension validation to `upload_and_process()`.
+
+4. **`vault::vault_upload` / `vault::vault_init` are registered twice.**
+   - `app/modules/vault/register.py` and `app/services/vault_upload_service.py` both register the same `module::group_name` keys.
+   - The contract loader overwrites one with the other depending on import order.
+   - **Fix:** keep the contract in one place (recommended: `app/modules/vault/register.py`) and remove the duplicate registrations from the service file.
+
+5. **Document Registry is local-JSON only.**
+   - `DocumentRegistry` stores `data/document_registry/registry.json` and an in-memory dict; it is not mirrored to the database.
+   - The DB (`vault_index.registry_id`) is the only persistent link between `vault_id` and `registry_id`.
+   - **Implication:** DB backups are critical; a lost/corrupted `registry.json` can be partially rebuilt from DB + certificates.
+
+6. **Overlay creation is best-effort with silent failures.**
+   - `VAULT_UPLOAD_MANIFEST` and `mark_processed` overlays are wrapped in `try/except` and only logged.
+   - **Implication:** the system continues to work, but long-term audit trails may be incomplete if cloud write fails.
+
+### Next-Stage Recommendations
+
+1. **Fix the local `_local_dir` initialization** before any dev upload smoke test; this is a hard blocker for first-document verification in `storage_provider=local` mode.
+2. **Reconcile the duplicate size-limit and extension checks** across `intake/router.py` and `vault_upload_service.py`.
+3. **Consolidate the duplicate `vault_upload` / `vault_init` contracts** to a single registration source.
+4. **Run the full first-document E2E test** against the running server (`/debug/seed-test-user` then `POST /api/intake/upload/auto`) and inspect:
+   - HTTP 200 response with `vault_id`
+   - `vault_index` DB row with `registry_id` and `integrity_status='verified'`
+   - Local/cloud file at `Semptify5.0/Vault/documents/{safe_filename}`
+   - Certificate at `Semptify5.0/Vault/certificates/{certificate_id}.json`
+5. **Once the E2E passes, proceed to the three-date sort/view verification and attorney invite-code stub** from the current backlog.
+
+---
+
 *This document serves as the authoritative reference for Single Source of Truth patterns in Semptify 5.0.*
