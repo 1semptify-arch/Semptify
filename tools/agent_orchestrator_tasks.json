@@ -1880,13 +1880,13 @@
     "title": "Graceful reconnect on token decrypt failure",
     "description": "Catch cryptography.exceptions.InvalidTag and other decrypt failures specifically in app/core/auto_refresh.py::_refresh_from_db(), return a token_corrupt status, and route the user through /storage/reconnect instead of a dead-end 401. Update callers to show accurate, calm reconnect messaging.",
     "file_path": "app/core/auto_refresh.py",
-    "status": "in_progress",
+    "status": "resolved",
     "priority": "high",
     "source": "ad-hoc",
     "target_model": "swe-1.7",
     "created_at": "2026-08-24T00:00:00Z",
-    "updated_at": "2026-08-24T05:41:27.088695+00:00",
-    "notes": "Handoff from OAuth token decryption investigation. Task B.",
+    "updated_at": "2026-08-24T06:18:33.462057+00:00",
+    "notes": "Handoff from OAuth token decryption investigation. Task B.\n[2026-08-24 06:18 UTC - SWE-1.7-Max] _refresh_from_db() catches InvalidTag and returns TOKEN_CORRUPT; get_valid_token_or_redirect returns status; storage_middleware, yellow/red_access return calm reconnect_required responses.",
     "assigned_agent": "SWE-1.7-Max"
   }
 ]

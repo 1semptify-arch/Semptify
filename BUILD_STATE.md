@@ -1,3 +1,42 @@
+## Session -- 2026-08-24 — OAuth token decryption fixes (SECRET_KEY hard-fail + graceful reconnect)
+
+### Goal
+Implement the two fixes identified during the OAuth token-decryption investigation:
+1. Task A: stop silently generating a random per-process `SECRET_KEY` that corrupts stored sessions.
+2. Task B: route users through `/storage/reconnect` when a stored token cannot be decrypted, instead of a dead-end 401.
+
+### What changed
+- `app/core/config.py`:
+  - `_resolve_secret_key()` now raises at startup if `SECRET_KEY` is missing, empty, or the weak default.
+  - `TESTING=true` or in-memory `DATABASE_URL` gets a deterministic test key so the pytest suite still works.
+  - Removed the `secrets` fallback that was silently creating a new key every process.
+- `app/core/auto_refresh.py`:
+  - Added `RefreshResult.TOKEN_CORRUPT` and a `_try_decrypt()` helper that catches `cryptography.exceptions.InvalidTag` and other decrypt failures.
+  - `_refresh_from_db()` returns `TOKEN_CORRUPT` when the stored refresh token is unreadable; if only the access token is corrupt, it forces an immediate provider refresh.
+  - `get_valid_token_or_redirect()` now returns the refresh status so callers can explain the failure.
+- `app/core/storage_middleware.py`: uses the status to return a calm `reconnect_required` JSON with `redirect_url` for API calls.
+- `app/core/security.py`:
+  - `get_current_user()` captures the token status and passes it to `UserContext` as `reconnect_reason`.
+  - `yellow_access` and `red_access` return a `reconnect_required` response with plain-language storage-reconnect messaging.
+  - `auth_required` now also includes a `redirect_url` and message so there is no dead-end 401.
+- `app/core/user_context.py`: added optional `reconnect_reason` field.
+- `tools/agent_orchestrator_tasks.json`: task tracker updated for the two new ad-hoc tasks.
+
+### Verification
+- `python -m py_compile app/core/config.py app/core/auto_refresh.py app/core/storage_middleware.py app/core/security.py app/core/user_context.py app/main.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: PASS (244 passed).
+- `python -m pytest tests/test_async_token_calls.py -q --no-cov`: PASS.
+- `python -m pytest tests/test_documents.py -q --no-cov`: PASS (41 passed).
+- `python -m pytest tests/test_copilot.py -q --no-cov`: PASS (19 passed).
+- Live reproduction: `GUbGQUTpK6` (corrupt session in local DB) now returns `status=token_corrupt` and a `/storage/reconnect` redirect instead of an empty-token success.
+
+### Notes
+- No encryption/decryption math was changed — only the failure handling.
+- No stored token data was deleted or modified.
+- Key rotation tooling remains out of scope, as requested.
+
+---
+
 ## Session -- 2026-08-24 — OAuth token decryption investigation + Known Failure Registry entry
 
 ### Goal
