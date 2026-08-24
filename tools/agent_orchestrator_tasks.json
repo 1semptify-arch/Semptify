@@ -1819,5 +1819,45 @@
     "target_model": "swe-1.7",
     "assigned_agent": "SWE-1.7-Max",
     "notes": "Last of three blockers. Check existing OCR services, dependencies (reportlab, xhtml2pdf), and the local extraction path. Implement fallback and tests only if a supported local engine is available.\n[2026-08-24 04:35 UTC] Wired extract_with_ocr fallback in document_intake for all PDFs (was Azure-only). Added pytesseract to requirements and tesseract-ocr to Dockerfile. Added 2 regression tests using a synthetic image-only PDF and mocked Tesseract. test_document_intake 49 passed, test_documents 41 passed."
+  },
+  {
+    "id": "ad-hoc-real-lease-poc-2026-08-24",
+    "title": "Real lease first-document E2E PoC",
+    "description": "Run docs/classification-test-fixtures/lease_02.pdf through the local first-document pipeline, report Pass 1 classification, extraction quality, bundled-packet behavior, and three-date sorting.",
+    "file_path": "app/services/document_intake.py",
+    "status": "resolved",
+    "priority": "high",
+    "source": "ad-hoc",
+    "assigned_agent": "swe-1.7",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T05:24:16.700820+00:00",
+    "notes": "Claimed to run real-document E2E after classifier/OCR improvements.\n[2026-08-24 05:24 UTC - swe-1.7] Ran docs/classification-test-fixtures/lease_02.pdf through local intake. Classified as lease (1.0). Extracted 4907 words, parties, rent, late fee, dates. Confirmed bundled-packet remains one doc type. Three-date (uploaded_at/event/received) set and sort verified."
+  },
+  {
+    "id": "ad-hoc-oauth-lutest-2026-08-24",
+    "title": "Investigate OAuth refresh-token decryption failure for LUtest***",
+    "description": "Investigate only; do not change token code. Determine whether the LUtest*** decrypt failure is isolated or systemic, find the real exception and call site, check Render/local key divergence, and identify blast radius of storage-as-identity flows that depend on refresh-token decryption.",
+    "file_path": "app/core/oauth_token_manager.py",
+    "status": "in_progress",
+    "priority": "high",
+    "source": "ad-hoc",
+    "target_model": "swe-1.7",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T05:22:24.554894+00:00",
+    "notes": "Handoff from Load Profile System / memory assessment. Investigation-only; report findings before any token code changes.",
+    "assigned_agent": "SWE-1.7-Max"
+  },
+  {
+    "id": "ad-hoc-kfr-arrays-2026-08-24",
+    "title": "Add feature_flags/SQLite-ARRAY entry to Known Failure Registry",
+    "description": "Update AGENTS.md Known Failure Registry to record the second sa.ARRAY-on-SQLite occurrence (feature_flags migration), the dialect-aware ensure_schema() fix pattern, and the rule that any new Alembic migration using sa.ARRAY must have a SQLite-compatible fallback path from the start.",
+    "file_path": "AGENTS.md",
+    "status": "pending",
+    "priority": "medium",
+    "source": "ad-hoc",
+    "target_model": "swe-1.7",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T00:00:00Z",
+    "notes": "Documentation-only change; one commit. List any other sa.ARRAY-using migrations found during search."
   }
 ]
