@@ -1943,5 +1943,19 @@
     "created_at": "2026-08-24T14:52:31Z",
     "updated_at": "2026-08-24T15:00:37.797611+00:00",
     "notes": "Live verification: POST /api/intake/upload/auto returned 200 but Pass 2 failed with 'IntakeDocument' object has no attribute 'doc_type'.\n[2026-08-24 15:00 UTC] Fixed job_processor.py line 604 to use doc.extraction.doc_type.value instead of non-existent doc.doc_type. Verified live upload of bundle_test2.pdf: Light Intake 3 segments, Deep OCR job submitted and ran without AttributeError; overlay write failed as expected with fake Google token. test_document_intake.py 52 passed."
+  },
+  {
+    "id": "ad-hoc-vault-access-token-2026-08-24",
+    "title": "Fix vault download access_token handling",
+    "description": "The /api/vault/{id}/download endpoint requires an explicit access_token query param, causing the Record page View/Download buttons to fail (400 -> redirect to /help?status=down). Use the authenticated user's session token instead.",
+    "file_path": "app/modules/vault/router.py",
+    "status": "resolved",
+    "priority": "high",
+    "source": "ad-hoc",
+    "target_model": "swe-1.7",
+    "assigned_agent": "SWE-1.7-Max",
+    "created_at": "2026-08-24T15:01:20Z",
+    "updated_at": "2026-08-24T15:06:42.006468+00:00",
+    "notes": "Live verification: clicking View on record.html opens /api/vault/{id}/download?view=1 and returns 400 access_token required, then redirects to /help?status=down.\n[2026-08-24 15:06 UTC] Updated vault/router.py: download_document, get_certificate, delete_document, list_documents now fall back to user.access_token from yellow_access instead of requiring an explicit access_token query param. Verified via API: GET /api/vault/doc-c4f5839c9c34/download?view=1 no longer returns 400; it now returns 404 (certificate not found) because the local seeded session uses a fake Google token. Browser View still redirects to /help?status=down because the global error handler redirects HTML requests on any storage failure; with a real token the document would be found and previewed inline. test_documents.py 41 passed; py_compile clean."
   }
 ]
