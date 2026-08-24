@@ -1,3 +1,39 @@
+## Session -- 2026-08-24 — OAuth token decryption investigation + Known Failure Registry entry
+
+### Goal
+Two small, separate follow-ups from the Load Profile System handoff:
+1. Investigate the `Failed to decrypt refresh token for LUtest***` log line seen in the memory-assessment log.
+2. Record the `feature_flags` SQLite-ARRAY failure as a single, consolidated entry in the Known Failure Registry.
+
+### What changed
+- `AGENTS.md`: added Known Failure Registry entry #20 for the `sa.ARRAY`-on-SQLite bug class (module_registry and feature_flags migrations).
+- `tools/agent_orchestrator_tasks.json`: updated task tracker for the two ad-hoc tasks.
+
+### Findings (OAuth)
+- Decryption happens in `app/core/auto_refresh.py::_refresh_from_db()` at `_decrypt_string(refresh_token_encrypted, user_id)`.
+- The actual exception when a stored token cannot be decrypted is `cryptography.exceptions.InvalidTag` from the AES-GCM tag check.
+- In the local `semptify.db`, the `LUtest1234` session row currently decrypts with the local `.env` `SECRET_KEY`, but a second session row for `GUbGQUTpK6` fails to decrypt with that same key.
+- A freshly-created test user (`GUtest1234`) with a session encrypted using the current `SECRET_KEY` passes `ensure_valid_token()` cleanly.
+- Root cause is a **key mismatch**: tokens are encrypted with `SHA256(SECRET_KEY + user_id)`. If `SECRET_KEY` changes between when a session is written and when it is read, decryption fails.
+- Local `SECRET_KEY` resolution (`app/core/config.py::_resolve_secret_key()`) falls back to a **random, per-process key** when `SECRET_KEY` is unset or the weak default, which can leave sessions unreadable after a restart.
+- The `LUtest1234` user itself also has an invalid Semptify user-id prefix (`L` is not a provider code in `app/core/user_id.py`), so even with a decryptable token `ensure_valid_token()` returns `provider_error` and the user cannot proceed through `yellow_access`.
+- Blast radius if this is systemic: every storage-dependent flow (vault upload, document intake, timeline, case builder, document center, etc.) relies on `auto_refresh.ensure_valid_token()` or `storage_middleware` loading the session. A systemic decrypt failure would break all returning users until they re-authorize.
+- Isolated vs systemic: the observed failure is isolated to local test rows with stale/incorrect encryption, but the underlying `SECRET_KEY` fragility is a real, environment-agnostic operational risk.
+- Render impact: Render's `SECRET_KEY` is a static environment variable; if it is stable and never rotated, this exact failure should not appear. The risk on Render is a future key rotation without a token migration strategy.
+
+### Other sa.ARRAY-using migrations found
+Only two Alembic migrations in `alembic/versions/` use `sa.ARRAY`:
+- `20260615_add_module_registry.py`
+- `20260609_add_feature_flags_table.py`
+Both are covered by the new Known Failure Registry entry.
+
+### Verification
+- `python -m py_compile app/main.py`: PASS.
+- Pre-commit hook: PASS (0 stubs, 127 tasks, doc-map category matched).
+- No token-handling code was changed; only the investigation and documentation were recorded.
+
+---
+
 ## Session -- 2026-08-24 — Real lease first-document E2E PoC
 
 ### Problem
