@@ -1322,13 +1322,12 @@ class DocumentIntakeEngine:
                 extractor = get_pdf_extractor()
                 settings = get_settings()
 
-                # Try extraction with OCR fallback if Azure is configured
-                if settings.azure_ai_key1:
-                    result = extractor.extract_with_ocr(
-                        content, azure_endpoint=settings.azure_ai_endpoint, azure_key=settings.azure_ai_key1
-                    )
-                else:
-                    result = extractor.extract(content)
+                # Try extraction with OCR fallback (Azure if configured, otherwise local Tesseract).
+                result = extractor.extract_with_ocr(
+                    content,
+                    azure_endpoint=settings.azure_ai_endpoint if settings.azure_ai_key1 else None,
+                    azure_key=settings.azure_ai_key1 if settings.azure_ai_key1 else None,
+                )
 
                 if result.text.strip():
                     return result.text

@@ -5287,6 +5287,32 @@ Resumed browser switch + storage validation work from 10 hours prior. Identified
 ---
 # BUILD_STATE
 
+## Session -- 2026-08-24 — OCR fallback for image-only PDFs
+
+### What changed
+- `app/services/document_intake.py`: `_extract_text` now always calls `extractor.extract_with_ocr()` for PDFs, instead of only when Azure Document Intelligence is configured. The existing `extract_with_ocr()` first tries normal text extraction, then Azure if credentials are present, then the local Tesseract fallback.
+- `requirements.txt`: added `pytesseract>=0.3.10` (Python wrapper for Tesseract OCR).
+- `Dockerfile`: added `tesseract-ocr` and `tesseract-ocr-eng` to the runtime image so local OCR is available on Render.
+- `tests/test_document_intake.py`: added `TestOCRFallback` with two regression tests:
+  - `test_image_only_pdf_triggers_local_ocr`: builds an image-only PDF (pages rendered to bitmaps and embedded), confirms `extract()` returns almost no text, then confirms `extract_with_ocr()` falls through to `local_ocr` and returns the mocked Tesseract output.
+  - `test_intake_extract_uses_ocr_for_image_pdf`: confirms the intake engine’s `_extract_text()` path uses the OCR fallback for image-only PDFs.
+
+### Why
+- Image-only / scanned PDFs (such as the 11-page lease packet) previously came through the intake pipeline with empty text because the local Tesseract fallback was only reachable when Azure OCR was configured. The existing `PDFExtractor` already had the local OCR method; the only missing piece was the call from the intake engine.
+
+### Verification
+- `python -m py_compile` on changed Python files: PASS.
+- `pytest tests/test_document_intake.py -q --no-cov`: 49 passed.
+- `pytest tests/test_documents.py -q --no-cov`: 41 passed.
+- Synthetic image-PDF test: confirmed the OCR fallback path is triggered and the mocked output is used.
+
+### Caveats / follow-up
+- Local OCR quality depends on the system Tesseract binary. It is now installed in the production Docker image but is **not installed in this Windows dev shell**, so the real 11-page packet cannot be OCR’d here until Tesseract is added to the local PATH or the file is tested inside the Docker/Render environment.
+- The existing `_local_ocr()` renders each PDF page to an image using PyMuPDF and runs Tesseract on it. It is single-threaded and may be slow for large packets; this is acceptable for an offline fallback, but a future performance pass could page the work or add a timeout.
+- No document-boundary / packet segmentation logic was added; each PDF page is processed independently.
+
+---
+
 ## Session -- 2026-08-24 — Document date fields and sorting
 
 ### What changed
