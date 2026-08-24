@@ -54,7 +54,7 @@ from app.core.vault_paths import (
     VAULT_CERTIFICATES,
     VAULT_DOCUMENTS,
 )
-from app.models.models import Incident, VaultItem
+from app.models.models import Incident, VaultIndexDB, VaultItem
 from app.modules.vault.envelopes import (
     get_vault_upload_page,
     vault_document_to_object_envelope,
@@ -593,11 +593,12 @@ async def list_documents(
 
     Reads certificates from .semptify/vault/certificates/ in user's storage.
     """
-    if not access_token:
+    real_token = access_token or user.access_token
+    if not real_token:
         raise HTTPException(status_code=400, detail="access_token required")
 
     try:
-        storage = get_provider(user.provider, access_token=access_token)
+        storage = get_provider(user.provider, access_token=real_token)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -658,6 +659,7 @@ async def download_document(
     access_token: str = None,
     view: bool = False,
     user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -665,54 +667,51 @@ async def download_document(
 
     Set `view=true` to display the file in the browser (inline disposition)
     instead of forcing a download.
+
+    The authenticated session already supplies a valid access token via
+    `yellow_access`; callers do not need to pass it in the URL. The
+    query parameter remains available as an override for advanced or
+    module-to-module use.
     """
-    if not access_token:
+    real_token = access_token or user.access_token
+    if not real_token:
         raise HTTPException(status_code=400, detail="access_token required")
 
+    # Look up the document in the vault index.
+    result = await db.execute(select(VaultIndexDB).where(VaultIndexDB.vault_id == document_id))
+    db_doc = result.scalar_one_or_none()
+    if not db_doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
     try:
-        storage = get_provider(user.provider, access_token=access_token)
+        storage = get_provider(provider_name, access_token=real_token)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Find certificate to get file info
-    cert_files = await storage.list_files(VAULT_CERTIFICATES)
-    target_cert = None
-
-    for cert_file in cert_files:
-        if document_id[:8] in cert_file.name:
-            cert_content = await storage.download_file(f"{VAULT_CERTIFICATES}/{cert_file.name}")
-            cert = json.loads(cert_content.decode("utf-8"))
-            if cert.get("document_id") == document_id:
-                target_cert = cert
-                break
-
-    if not target_cert:
-        raise HTTPException(status_code=404, detail="Document not found")
-
-    # Download file from storage
-    storage_path = target_cert.get("storage_path", "")
-    if not storage_path:
-        raise HTTPException(status_code=404, detail="Document path not found")
-
-    # Prefer provider-specific file id if present in certificate
-    provider_file_id = target_cert.get("provider_file_id")
     file_content = None
-    if provider_file_id:
+    if db_doc.provider_file_id:
         try:
-            file_content = await storage.download_file(f"id:{provider_file_id}")
+            file_content = await storage.download_file(f"id:{db_doc.provider_file_id}")
         except Exception:
             file_content = None
 
     if not file_content:
-        file_content = await storage.download_file(storage_path)
+        if not db_doc.storage_path:
+            raise HTTPException(status_code=404, detail="Document path not found")
+        file_content = await storage.download_file(db_doc.storage_path)
+
+    if not file_content:
+        raise HTTPException(status_code=404, detail="Document content not found")
 
     from fastapi.responses import Response
 
     disposition = "inline" if view else "attachment"
+    filename = db_doc.filename or "document"
     return Response(
         content=file_content,
-        media_type=target_cert.get("mime_type", "application/octet-stream"),
-        headers={"Content-Disposition": f'{disposition}; filename="{target_cert.get("original_filename", "document")}"'},
+        media_type=db_doc.mime_type or "application/octet-stream",
+        headers={"Content-Disposition": f'{disposition}; filename="{filename}"'},
     )
 
 
@@ -721,38 +720,44 @@ async def get_certificate(
     document_id: str,
     access_token: str = None,
     user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
     """
     Get the certification details for a document.
     """
-    if not access_token:
+    result = await db.execute(select(VaultIndexDB).where(VaultIndexDB.vault_id == document_id))
+    db_doc = result.scalar_one_or_none()
+    if not db_doc:
+        raise HTTPException(status_code=404, detail="Certificate not found")
+
+    real_token = access_token or user.access_token
+    if not real_token:
         raise HTTPException(status_code=400, detail="access_token required")
 
+    provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
     try:
-        storage = get_provider(user.provider, access_token=access_token)
+        storage = get_provider(provider_name, access_token=real_token)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Find certificate
-    cert_files = await storage.list_files(VAULT_CERTIFICATES)
-
-    for cert_file in cert_files:
-        if document_id[:8] in cert_file.name:
-            cert_content = await storage.download_file(f"{VAULT_CERTIFICATES}/{cert_file.name}")
+    cert = {}
+    if db_doc.certificate_id:
+        try:
+            cert_content = await storage.download_file(f"{VAULT_CERTIFICATES}/{db_doc.certificate_id}.json")
             cert = json.loads(cert_content.decode("utf-8"))
-            if cert.get("document_id") == document_id:
-                return CertificateResponse(
-                    document_id=cert.get("document_id", document_id),
-                    sha256_hash=cert.get("sha256", ""),
-                    certified_at=cert.get("certified_at", ""),
-                    original_filename=cert.get("original_filename", ""),
-                    file_size=cert.get("file_size", 0),
-                    request_id=cert.get("request_id", ""),
-                    storage_provider=cert.get("storage_provider", user.provider),
-                )
+        except Exception:
+            cert = {}
 
-    raise HTTPException(status_code=404, detail="Certificate not found")
+    return CertificateResponse(
+        document_id=document_id,
+        sha256_hash=cert.get("sha256", db_doc.sha256_hash),
+        certified_at=cert.get("certified_at", ""),
+        original_filename=cert.get("original_filename", db_doc.filename),
+        file_size=cert.get("file_size", db_doc.file_size),
+        request_id=cert.get("request_id", ""),
+        storage_provider=cert.get("storage_provider", db_doc.storage_provider),
+    )
 
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -760,34 +765,31 @@ async def delete_document(
     document_id: str,
     access_token: str = None,
     user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
     """
     Delete a document from the user's cloud storage vault.
     Note: Certificates are kept for audit trail.
     """
-    if not access_token:
+    result = await db.execute(select(VaultIndexDB).where(VaultIndexDB.vault_id == document_id))
+    db_doc = result.scalar_one_or_none()
+    if not db_doc or not db_doc.storage_path:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    real_token = access_token or user.access_token
+    if not real_token:
         raise HTTPException(status_code=400, detail="access_token required")
 
+    provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
     try:
-        storage = get_provider(user.provider, access_token=access_token)
+        storage = get_provider(provider_name, access_token=real_token)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Find certificate to get file path
-    cert_files = await storage.list_files(VAULT_CERTIFICATES)
-
-    for cert_file in cert_files:
-        if document_id[:8] in cert_file.name:
-            cert_content = await storage.download_file(f"{VAULT_CERTIFICATES}/{cert_file.name}")
-            cert = json.loads(cert_content.decode("utf-8"))
-            if cert.get("document_id") == document_id:
-                storage_path = cert.get("storage_path", "")
-                if storage_path:
-                    await storage.delete_file(storage_path)
-                    return
-
-    raise HTTPException(status_code=404, detail="Document not found")
+    await storage.delete_file(db_doc.storage_path)
+    await db.delete(db_doc)
+    await db.commit()
 
 
 # =============================================================================

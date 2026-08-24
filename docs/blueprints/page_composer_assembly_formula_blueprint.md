@@ -177,12 +177,12 @@ Drop any block whose `writes_to` or `on_trigger` target requires a module the us
 
 ### 7.6 Phase 5 — Apply GOVERN rules
 
-Pass the draft `PageConfig` through `app.modules.page_shell.govern.apply_govern_rules`:
+**Correction (2026-08-22 bug fix):** the GOVERN floor must be resolved and applied to the `channels.govern` level **before** blocks are gathered/distributed into zones, not on the finished draft `PageConfig`. A zone's rendered block count is fixed at build time by its channel level (`page_shell.zones.level_to_prominence`); clamping the level afterward changes the reported number but does not restore any safety-net content that was already trimmed at the lower, pre-clamp level. `assemble_page()` now:
 
-1. Clamp GOVERN to the floor for the inferred risk tier.
-2. Collect `suppresses_act_block` IDs from GOVERN blocks.
-3. Remove suppressed ACT blocks from the ACT zone.
-4. If the inferred risk tier is `very_high_do_not_build`, reject the page and return a safe fallback (GOVERN-only page with a legal-aid prompt).
+1. Resolves the risk tier and rejects immediately (safe fallback) if it is `very_high_do_not_build`.
+2. Computes the GOVERN floor for that risk tier and raises `channels.govern` to the floor *before* gathering/distributing blocks.
+3. Gathers blocks and builds the `PageConfig` at the already-floor-adjusted level.
+4. Runs `app.modules.page_shell.govern.apply_govern_rules` afterward only to collect `suppresses_act_block` IDs from GOVERN blocks and remove suppressed ACT blocks from the ACT zone, and to produce the audit report (restoring the true pre-floor level so the report still shows whether a clamp occurred).
 
 ### 7.7 Phase 6 — Output
 

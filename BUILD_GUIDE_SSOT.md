@@ -1,11 +1,29 @@
 # Semptify 5.0 Build Guide (SSOT)
 
+> ⚠️ **SUPERSEDED — this document is stale (last updated May 20, 2026).**
+>
+> Everything below describes the pre-Page-Composer architecture: a static
+> `welcome.html` → role-select → storage-OAuth → `/tenant/home` flow, and an
+> `app/modules/onboarding/` module marked "BUILT — NOT YET ACTIVATED". Since
+> then, `/preamble` became the single onboarding entry point (see
+> `app/modules/preamble/router.py`), Page Composer / Page Shell / UI Composer
+> were built for in-task guide pages (RECORD/KNOW/ACT/GOVERN), and the
+> three-date (Event/Received/Upload) chronological model shipped.
+>
+> **For current build status, read `ACTIVE_CONTEXT.md` and the top entries of
+> `BUILD_STATE.md` instead.** Per `PROJECT_BIBLE.md`'s doc hierarchy this file
+> ranks below `AGENTS.md` — do not treat anything below this notice as current
+> without cross-checking `ACTIVE_CONTEXT.md` first. This file is kept for
+> historical reference (Known Issues log, debug commands, the `Rehome.html`
+> warning) rather than rewritten, since large parts of it can no longer be
+> verified against the live codebase in one pass.
+
 ## Semptify 5.0 Build Guide (SSOT)
 
 **Purpose:** Single source of truth for build status, testing results, and known issues.  
 **Last Updated:** May 20, 2026  
 **Build Type:** Core (Tenant Role Only)  
-**Status:** Clean Repository - All Issues Resolved ✅
+**Status:** Clean Repository - All Issues Resolved ✅ (historical — see notice above)
 
 ---
 

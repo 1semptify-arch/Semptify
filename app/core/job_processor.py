@@ -601,7 +601,12 @@ def register_default_handlers(processor: JobProcessor):
                 pass2_status = DeepOCRStatus.NEEDS_REPROCESS.value  # type: ignore[union-attr]
                 pass2_error = "Pass 1 raw OCR text not available"
             else:
-                doc_type = doc.doc_type.value if doc.doc_type else None
+                # Pass 1 extraction is the source of truth for document type.
+                doc_type = (
+                    doc.extraction.doc_type.value
+                    if doc.extraction and doc.extraction.doc_type
+                    else None
+                )
                 # Run CPU-bound regex work off the event loop thread.
                 results = await asyncio.to_thread(SemanticContextEngine().extract, raw_text, doc_type)
                 pass2_results = [r.to_dict() for r in results]
