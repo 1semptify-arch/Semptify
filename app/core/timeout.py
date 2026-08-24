@@ -31,6 +31,7 @@ class TimeoutMiddleware(BaseHTTPMiddleware):
         "/api/research": 90.0,  # Research aggregation
         "/api/extraction": 60.0,  # Document extraction
         "/api/intake/upload": 120.0,  # Full upload pipeline (notarize+vault+OCR+classify)
+        "/onboarding/api/vault/verify": 180.0,  # Onboarding vault setup does the same upload pipeline
         "/storage/callback": 60.0,  # OAuth token exchange with external providers
         "/storage/auth": 60.0,  # OAuth redirect initiation
     }
