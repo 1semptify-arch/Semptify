@@ -717,6 +717,7 @@ class TestOCRFallback:
     def test_image_only_pdf_triggers_local_ocr(self, monkeypatch, tmp_path):
         """An image-only PDF (no embedded text) falls back to Tesseract OCR."""
         import pytesseract
+
         from app.services.pdf_extractor import get_pdf_extractor
 
         def mock_image_to_string(img, *args, **kwargs):
@@ -828,3 +829,72 @@ class TestEdgeCases:
         # Should extract dollar amount
         assert len(amounts) >= 1
         assert any(a.amount == 1234.56 for a in amounts)
+
+
+# =============================================================================
+# BUNDLE SEGMENTATION TESTS
+# =============================================================================
+
+
+class TestBundleSegmentation:
+    """Test Pass 1 bundled-packet segmentation."""
+
+    @pytest.fixture
+    def fixture_path(self):
+        return Path("docs/classification-test-fixtures")
+
+    @pytest.mark.asyncio
+    async def test_single_document_no_segmentation(self, engine, fixture_path):
+        """A plain single-document PDF produces exactly one record."""
+        content = (fixture_path / "lease_01.pdf").read_bytes()
+        doc = await engine.intake_document(
+            user_id="seg_user_1",
+            file_content=content,
+            filename="lease_01.pdf",
+            mime_type="application/pdf",
+        )
+        docs = await engine.process_bundle(doc.id)
+
+        assert len(docs) == 1
+        assert docs[0].extraction.doc_type == DocumentType.LEASE
+        assert docs[0].child_doc_ids == []
+
+    @pytest.mark.asyncio
+    async def test_mixed_page_splits_internally(self, engine, fixture_path):
+        """A single page containing a lease + notice splits into two records."""
+        content = (fixture_path / "mixed_01.pdf").read_bytes()
+        doc = await engine.intake_document(
+            user_id="seg_user_2",
+            file_content=content,
+            filename="mixed_01.pdf",
+            mime_type="application/pdf",
+        )
+        docs = await engine.process_bundle(doc.id)
+
+        types = [d.extraction.doc_type for d in docs]
+        assert len(types) == 2
+        assert DocumentType.LEASE in types
+        assert DocumentType.NOTICE_TO_QUIT in types
+
+    @pytest.mark.asyncio
+    async def test_real_lease_packet_segments(self, engine, fixture_path):
+        """The bundled lease fixture is split into distinct typed records."""
+        content = (fixture_path / "lease_02.pdf").read_bytes()
+        doc = await engine.intake_document(
+            user_id="seg_user_3",
+            file_content=content,
+            filename="lease_02.pdf",
+            mime_type="application/pdf",
+        )
+        docs = await engine.process_bundle(doc.id)
+
+        types = {d.extraction.doc_type for d in docs}
+        assert len(docs) >= 4
+        assert DocumentType.LEASE in types
+        assert DocumentType.HOUSE_RULES in types
+        assert DocumentType.LEASE_AMENDMENT in types
+        assert DocumentType.AFFIDAVIT in types
+
+        # Confidence should be reported per segment, not just pass/fail.
+        for d in docs:
+            assert 0.0 <= d.extraction.doc_type_confidence <= 1.0
