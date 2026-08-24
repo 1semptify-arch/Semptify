@@ -100,7 +100,13 @@ class DocumentResponse(BaseModel):
     mime_type: str
     sha256_hash: str
     certificate_id: str
+    # Three canonical document dates:
+    #   uploaded_at = immutable system timestamp
+    #   event_date = when the real-world event happened (tenant-editable)
+    #   received_date = when the document was formally received/served (tenant-editable)
     uploaded_at: str
+    event_date: str | None = None
+    received_date: str | None = None
     document_type: str | None = None
     storage_provider: str
     storage_path: str
@@ -275,6 +281,18 @@ async def upload_document(
         )
         if vault_doc.uploaded_at
         else utc_now().isoformat(),
+        event_date=(
+            vault_doc.event_date.isoformat() if hasattr(vault_doc.event_date, "isoformat") else vault_doc.event_date
+        )
+        if vault_doc.event_date
+        else None,
+        received_date=(
+            vault_doc.received_date.isoformat()
+            if hasattr(vault_doc.received_date, "isoformat")
+            else vault_doc.received_date
+        )
+        if vault_doc.received_date
+        else None,
         document_type=vault_doc.document_type,
         storage_provider=provider_name,
         storage_path=vault_doc.storage_path or "",
@@ -552,6 +570,8 @@ async def copy_from_sync_to_vault(
         sha256_hash=sha256_hash,
         certificate_id=certificate_id,
         uploaded_at=utc_now().isoformat(),
+        event_date=None,
+        received_date=None,
         document_type=document_type,
         storage_provider=user.provider,
         storage_path=storage_path,
@@ -612,6 +632,8 @@ async def list_documents(
                     sha256_hash=cert.get("sha256", ""),
                     certificate_id=cert.get("certificate_id", ""),
                     uploaded_at=cert.get("certified_at", ""),
+                    event_date=cert.get("event_date"),
+                    received_date=cert.get("received_date"),
                     document_type=cert.get("document_type"),
                     storage_provider=cert.get("storage_provider", user.provider),
                     storage_path=cert.get("storage_path", ""),
@@ -782,6 +804,8 @@ class VaultDocumentSummary(BaseModel):
     file_size: int
     mime_type: str
     uploaded_at: str
+    event_date: str | None = None
+    received_date: str | None = None
     processed: bool = False
     source_module: str = "direct"
     in_vault: bool = True
@@ -797,10 +821,15 @@ class VaultListResponse(BaseModel):
 @router.get("/all", response_model=VaultListResponse)
 async def list_all_vault_documents(
     document_type: str | None = Query(None, description="Filter by document type"),
+    sort_by: str | None = Query(
+        "uploaded_at",
+        description="Sort documents by 'uploaded_at', 'event_date', or 'received_date'",
+    ),
+    sort_order: str = Query("desc", description="Sort order: 'asc' or 'desc'"),
     user: StorageUser = Depends(yellow_access),
 ):
     """
-    List ALL documents in user's vault.
+    List ALL documents in user's vault, optionally sorted by upload, event, or received date.
 
     This endpoint is for modules to discover available documents.
     Documents can be accessed by their vault_id.
@@ -811,6 +840,20 @@ async def list_all_vault_documents(
     vault_service = get_vault_service()
     docs = await vault_service.get_user_documents(user.user_id, document_type)
 
+    # Normalize the sort key. If an unknown sort key is supplied, fall back to the
+    # immutable upload date so the UI never gets an unexpected exception.
+    allowed_sort_keys = {"uploaded_at", "event_date", "received_date"}
+    sort_by = sort_by if sort_by in allowed_sort_keys else "uploaded_at"
+    reverse = sort_order.lower() != "asc"
+
+    def _sort_key(doc) -> str:
+        # Uploaded is always present; event/received may be null for older docs.
+        value = getattr(doc, sort_by, None) or doc.uploaded_at
+        # Strings may be ISO datetimes; use the literal value for lexicographic sort.
+        return str(value or "")
+
+    docs = sorted(docs, key=_sort_key, reverse=reverse)
+
     summaries = [
         VaultDocumentSummary(
             vault_id=doc.vault_id,
@@ -819,6 +862,8 @@ async def list_all_vault_documents(
             file_size=doc.file_size,
             mime_type=doc.mime_type,
             uploaded_at=doc.uploaded_at,
+            event_date=doc.event_date,
+            received_date=doc.received_date,
             processed=doc.processed,
             source_module=doc.source_module,
             in_vault=True,
@@ -848,6 +893,60 @@ async def get_vault_document_metadata(
     if not doc or doc.user_id != user.user_id:
         raise HTTPException(status_code=404, detail="Document not found")
 
+    return doc.to_dict()
+
+
+class VaultDocumentDatesUpdate(BaseModel):
+    """Tenant-editable document dates."""
+
+    event_date: str | None = Field(None, description="Date of the real-world event (ISO 8601)")
+    received_date: str | None = Field(None, description="Date the document was formally received (ISO 8601)")
+
+
+@router.put("/document/{vault_id}/dates")
+async def update_vault_document_dates(
+    vault_id: str,
+    update: VaultDocumentDatesUpdate,
+    user: StorageUser = Depends(yellow_access),
+):
+    """
+    Update the event and received dates for a vault document.
+
+    The upload date (uploaded_at) is immutable and cannot be changed.
+    """
+    if not HAS_VAULT_SERVICE:
+        raise HTTPException(status_code=404, detail="Vault service not available")
+
+    vault_service = get_vault_service()
+    doc = await vault_service.get_document(vault_id)
+
+    if not doc or doc.user_id != user.user_id:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    updates: dict[str, Any] = {}
+    for field in ("event_date", "received_date"):
+        value = getattr(update, field)
+        if value is not None:
+            try:
+                updates[field] = datetime.fromisoformat(value)
+            except ValueError:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"{field} must be a valid ISO 8601 datetime (e.g., 2026-08-24)",
+                )
+        else:
+            updates[field] = None
+
+    if not updates:
+        return doc.to_dict()
+
+    try:
+        await vault_service.index.update(vault_id, **updates)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
+
+    # Reload so the response reflects the persisted values.
+    doc = await vault_service.get_document(vault_id)
     return doc.to_dict()
 
 
