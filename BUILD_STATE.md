@@ -5287,6 +5287,37 @@ Resumed browser switch + storage validation work from 10 hours prior. Identified
 ---
 # BUILD_STATE
 
+## Session -- 2026-08-24 — Document date fields and sorting
+
+### What changed
+- `app/models/models.py`: added nullable `event_date` and `received_date` columns to both `Document` and `VaultIndexDB`. `uploaded_at` remains immutable.
+- `app/services/vault_upload_service.py`: `VaultDocument` dataclass now carries `event_date` and `received_date`; `VaultDocumentIndex.update` converts ISO date strings to `datetime` for the DB and refreshes the in-memory object from the DB.
+- `app/modules/vault/router.py`:
+  - `DocumentResponse` and `VaultDocumentSummary` schemas include the three date fields.
+  - `GET /api/vault/all` accepts `sort_by` (uploaded_at, event_date, received_date) and `sort_order` (asc/desc) and applies server-side sorting.
+  - New `PUT /api/vault/document/{vault_id}/dates` endpoint for tenant-owned event/received dates, with user-ownership guard and ISO 8601 validation.
+  - Existing `DocumentResponse` constructors updated to carry the new fields.
+- `app/templates/gui/record.html`:
+  - Added a "Sort by" dropdown (Upload / Event / Received date) that fetches `/api/vault/all` with the selected key.
+  - Each document row now displays inline `type=date` inputs for Event and Received dates; changing a date sends `PUT /api/vault/document/{vault_id}/dates` and updates the local cache.
+- `alembic/versions/20260824_add_document_dates.py`: SQLite-safe migration adding the two date columns to `documents` and `vault_index` for production/Renew deploys.
+
+### Why
+- The tenant needs to distinguish the date the document was created/uploaded (system), the date of the real-world event, and the date the document was formally received, and be able to sort by any of them.
+
+### Verification
+- `python -m py_compile` on changed Python files: PASS.
+- `pytest tests/test_documents.py -q --no-cov`: 41 passed.
+- `pytest tests/test_document_intake.py -q --no-cov`: 47 passed.
+- Live API check: uploaded a notice PDF, listed it, set `event_date` and `received_date` via `PUT /api/vault/document/{id}/dates`, re-listed sorted by `event_date`, and confirmed the persisted ISO values.
+- Browser check (unauthenticated): `/gui/record` renders the new Sort by dropdown with Event date and Received date options; page structure unchanged.
+
+### Caveats / follow-up
+- The Alembic chain on SQLite has a pre-existing `module_registry` migration that uses `ARRAY` and will not run on SQLite. This new migration is for PostgreSQL/Render targets or for a fresh SQLite DB created by `init_db`. The local `data/app.db` was renamed to let `init_db` recreate with the new columns.
+- `Document` table consumers outside the vault path (e.g., `setup/router.py`) still insert `Document` rows and will need to be updated if they need to expose or accept the new dates.
+
+---
+
 ## Session -- 2026-08-24 — View button dead-end fix
 
 ### What changed
