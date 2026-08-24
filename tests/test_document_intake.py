@@ -12,6 +12,7 @@ Covers:
 """
 
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -26,6 +27,7 @@ from app.services.document_intake import (
     IssueDetector,
     get_intake_engine,
 )
+from app.services.pdf_extractor import extract_pdf_text
 
 # =============================================================================
 # FIXTURES
@@ -208,6 +210,29 @@ class TestDocumentClassifier:
         assert doc_type == DocumentType.OTHER
         # Confidence should be low
         assert confidence < 0.5
+
+    @pytest.mark.parametrize(
+        "filename,expected_type",
+        [
+            ("lease_01.pdf", DocumentType.LEASE),
+            ("notice_01.pdf", DocumentType.EVICTION_NOTICE),
+            ("mixed_01.pdf", DocumentType.MIXED_DOCUMENT),
+            ("lease_02.pdf", DocumentType.LEASE),
+        ],
+    )
+    def test_classifier_fixtures(self, filename, expected_type):
+        """Regression test against docs/classification-test-fixtures/."""
+        fixture_path = Path("docs/classification-test-fixtures") / filename
+        if not fixture_path.exists():
+            pytest.skip(f"fixture not found: {fixture_path}")
+
+        text = extract_pdf_text(fixture_path.read_bytes())
+        doc_type, confidence = DocumentClassifier.classify(text, filename)
+
+        assert doc_type == expected_type, (
+            f"{filename}: expected {expected_type.value}, got {doc_type.value}"
+        )
+        assert confidence >= 0.4, f"{filename}: confidence {confidence} below threshold"
 
 
 # =============================================================================
