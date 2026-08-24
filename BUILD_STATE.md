@@ -1,5 +1,14 @@
 ## Session -- 2026-08-24 — Real OAuth / Google Drive end-to-end verification
 
+### Guardrail Engine Run — 2026-08-24T13:44:29
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### What changed
 - Added `/onboarding/api/vault/verify` to `TimeoutMiddleware` extended timeouts
   (`app/core/timeout.py`) so the onboarding upload pipeline gets 180s instead
