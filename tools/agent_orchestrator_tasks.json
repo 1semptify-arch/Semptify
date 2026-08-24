@@ -1901,5 +1901,33 @@
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T07:16:09.705807+00:00",
     "notes": "Claimed to implement regex/pattern segmentation.\n[2026-08-24 - SWE-1.7-Max] Implemented DocumentSegmenter and process_bundle; lease_02 now splits into lease/house_rules/lease_amendment/affidavit; tests pass."
+  },
+  {
+    "id": "ad-hoc-local-provider-2026-08-24",
+    "title": "Add L (LOCAL) provider code to user_id.py",
+    "description": "Add LOCAL to ProviderCode in app/core/user_id.py and update provider code mappings so local users (e.g. LU7x9kM2pQ) parse correctly and are accepted by storage_middleware.is_valid_storage_user.",
+    "file_path": "app/core/user_id.py",
+    "status": "resolved",
+    "priority": "low",
+    "source": "ad-hoc",
+    "target_model": "swe-1.7",
+    "assigned_agent": "SWE-1.7-Max",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T13:16:15.768914+00:00",
+    "notes": "Handoff follow-up: security.py already maps L -> StorageProvider.LOCAL; user_id.py and storage_middleware need to agree.\n[2026-08-24 13:16 UTC] Added LOCAL to ProviderCode, mappings, and docstring in app/core/user_id.py; added tests/test_user_id.py."
+  },
+  {
+    "id": "ad-hoc-house-rules-registry-2026-08-24",
+    "title": "Register house_rules in app/core/document_types.py",
+    "description": "Add house_rules document type to the DOCUMENT_TYPES registry in app/core/document_types.py so Document Center can render a type-specific checklist and route for house-rules segments.",
+    "file_path": "app/core/document_types.py",
+    "status": "resolved",
+    "priority": "low",
+    "source": "ad-hoc",
+    "target_model": "swe-1.7",
+    "assigned_agent": "SWE-1.7-Max",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T13:17:00.944991+00:00",
+    "notes": "Handoff follow-up from Pass 1 bundle segmentation: DocumentType.HOUSE_RULES exists in document_intake.py but is not in the document center registry.\n[2026-08-24 13:17 UTC] Registered house_rules in app/core/document_types.py with fields and added tests/test_document_types.py coverage."
   }
 ]

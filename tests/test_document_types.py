@@ -16,6 +16,7 @@ def test_document_types_keys():
     assert "lease" in DOCUMENT_TYPES
     assert "notice_to_vacate" in DOCUMENT_TYPES
     assert "repair_request" in DOCUMENT_TYPES
+    assert "house_rules" in DOCUMENT_TYPES
 
 
 def test_get_document_type_returns_definition():
@@ -25,6 +26,15 @@ def test_get_document_type_returns_definition():
     assert lease["key"] == "lease"
     assert lease["label"] == "Lease Agreement"
     assert isinstance(lease["fields"], list)
+
+
+def test_house_rules_document_type():
+    """house_rules is a registered document type with fields."""
+    house_rules = get_document_type("house_rules")
+    assert house_rules is not None
+    assert house_rules["key"] == "house_rules"
+    assert house_rules["label"] == "House Rules"
+    assert isinstance(house_rules["fields"], list)
 
 
 def test_get_document_type_missing_returns_none():
