@@ -180,7 +180,20 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 
 ---
 
-## 📋 Module Contract Mandate
+## � Gap Report — run this before hunting for bugs by hand
+
+`python tools/gap_report.py` wires together the gap-detection tooling that already exists in
+this repo (`tools/stub_detector.py` AST-verified stub scan, `tools/guardrail_engine.py`,
+`tools/module_registry.yaml` flags, and `FunctionGroupContract` coverage from
+`app/core/contract_loader.py`) into one prioritized `GAPS.md` snapshot, plus a short list of
+architectural gaps no automated check can find (documented directly in the script). Regenerate
+it at the start of a gap-hunting session instead of re-discovering the same issues by hand.
+`GAPS.md` is gitignored — it's a snapshot, not authored documentation; the script is the
+source of truth.
+
+---
+
+## �📋 Module Contract Mandate
 
 ### Every service that exposes a reusable API MUST register a `FunctionGroupContract` in `app/core/module_contracts.py`
 
@@ -255,6 +268,7 @@ It is for people who may not be able to afford a legal team, may be overwhelmed,
 
 - **Semptify is NOT a business model.** It is a public-service housing-rights tool.
 - **NEVER use the word "free"** on any page, button, label, or description — *when describing Semptify itself*. Saying "free" insinuates we charge for other things. We don't. We never have. We never will. **Exception:** factual descriptions of external resources (e.g., "Free legal help for low-income tenants" describing Legal Aid) are permitted — these are facts about *their* services, not Semptify self-promotion.
+- **NEVER expose AI/LLM output in the tenant/advocate/attorney-facing system.** AI may be used for development tooling and future backend/admin-only modules (system health, staleness checks), but it is never surfaced to tenants, attorneys, or advocates. Form-fill and signatures are browser-native only — never stored server-side or treated as Semptify-managed profile data.
 - **NEVER use business-model terminology** — no "accounts", "log in", "sign up", "subscription", "upgrade", "premium", "paid plan", "trial", "pricing", or similar. These words imply a commercial product. Semptify is not one.
 - No advertising — ever. No banner ads, no sponsored content, no affiliate links, no tracking pixels for ad networks.
 - **Listing vs advertising — there is a difference.** A *listing* is a neutral directory entry of a resource (e.g., "HOME Line MN — 612-728-5767"). An *advertisement* is promotional content paid for or placed to generate revenue/clicks. Listings are permitted only when:
@@ -562,3 +576,17 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
 | `correspondence` | T2 | Tenant/landlord correspondence, metadata + content. |
 | `user_concerns` | T2 | Tenant-submitted content, PII-bearing. |
 | `advanced` | T1 (tools) / T0 (`detect_repeated_fees` cost-guard) | Cost-guard is counting only, no identity data. |
+
+### 20. Alembic `sa.ARRAY` migrations fail on SQLite (module_registry and feature_flags)
+
+- **What happened:** SQLite has no native `ARRAY` type. Two Alembic migrations used `sa.ARRAY(sa.String())` and silently failed to run on local SQLite:
+  - First occurrence: `alembic/versions/20260615_add_module_registry.py` (`module_registry.depends_on` column) — caused 24 test failures until `app/models/models.py` changed `depends_on` from `ARRAY(String)` to `JSON`.
+  - Second occurrence: `alembic/versions/20260609_add_feature_flags_table.py` (`feature_flags.allowed_roles` and `allowed_states`) — the table silently did not exist in local dev, masking real feature-flag behavior.
+- **Fix pattern:** Keep the PostgreSQL/Render Alembic migrations unchanged (they are correct for Postgres), but add a dialect-aware `ensure_schema()` startup path for SQLite:
+  - `app/core/module_overrides.py::ensure_schema()` already uses this pattern for the `module_overrides` table.
+  - `app/core/features.py::ensure_schema()` now mirrors it for `feature_flags`, creating the table with `TEXT` columns instead of `TEXT[]`, `INTEGER PRIMARY KEY AUTOINCREMENT` instead of `SERIAL`, and `CURRENT_TIMESTAMP` instead of `NOW()`.
+  - `app/main.py` calls both `ensure_schema()` functions during the lifespan "Module Overrides Init" stage.
+  - Readers (e.g. `FeatureFlagManager._refresh_from_db()`) must tolerate `allowed_roles` as a JSON string on SQLite.
+- **Rule: ANY new Alembic migration that uses `sa.ARRAY` needs a SQLite-compatible fallback path from the start.** Either avoid `sa.ARRAY` in the model, or add a matching dialect-aware `ensure_schema()` and make the reader code tolerate the SQLite representation.
+- **Files:** `alembic/versions/20260615_add_module_registry.py`, `alembic/versions/20260609_add_feature_flags_table.py`, `app/models/models.py`, `app/core/module_overrides.py`, `app/core/features.py`, `app/main.py`.
+- **Other `sa.ARRAY` migrations found during this search:** Only the two above (`module_registry` and `feature_flags`). No other Alembic migration in `alembic/versions/` currently uses `sa.ARRAY`.

@@ -14,7 +14,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.core.module_gate import get_module_access
+from app.core.module_gate import get_jurisdiction, get_module_access
 from app.core.security import auth_gate
 from app.core.user_context import UserContext
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
@@ -89,6 +89,7 @@ async def get_assembled_page(
         result = await assemble_page(
             subject=subject,
             jurisdiction=jurisdiction,
+            county=get_jurisdiction(request).county,
             user_id=user_id,
             intent=intent,
             user_context={"capabilities": resolved},
@@ -124,6 +125,7 @@ async def post_assembled_page(
         result = await assemble_page(
             subject=body.subject,
             jurisdiction=body.jurisdiction,
+            county=body.county or get_jurisdiction(request).county,
             user_id=user_id,
             intent=body.intent,
             user_context=user_context,
@@ -163,6 +165,7 @@ async def get_assembled_page_config(
         result = await assemble_page(
             subject=subject,
             jurisdiction=jurisdiction,
+            county=get_jurisdiction(request).county,
             user_id=user_id,
             user_context={"capabilities": resolved},
             fact_limit=fact_limit,
@@ -191,6 +194,7 @@ async def get_assembled_page_components(
         result = await assemble_page(
             subject=subject,
             jurisdiction=jurisdiction,
+            county=get_jurisdiction(request).county,
             user_id=user_id,
             user_context={"capabilities": resolved},
             fact_limit=fact_limit,
@@ -222,6 +226,7 @@ async def render_assembled_page(
         result = await assemble_page(
             subject=subject,
             jurisdiction=jurisdiction,
+            county=get_jurisdiction(request).county,
             user_id=user_id,
             user_context={"capabilities": resolved},
             fact_limit=fact_limit,

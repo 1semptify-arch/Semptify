@@ -19,7 +19,7 @@ from __future__ import annotations
 import importlib
 import logging
 
-from app.core.product_manifest import MANIFEST, ProductTier
+from app.core.product_manifest import MANIFEST, ProductTier, get_mvp_allowed_modules, is_mvp_deploy
 
 logger = logging.getLogger(__name__)
 
@@ -146,6 +146,11 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     # Page Composer + Page Shell (page assembly and rendering)
     "app.modules.page_composer.register",
     "app.modules.page_shell.register",
+    # Found via tools/gap_report.py: real register.py contracts that existed
+    # but were never imported here, so they never reached the live registry.
+    "app.modules.agent_orchestrator.register",
+    "app.modules.document_center.register",
+    "app.modules.portal.register",
     # NOTE: litigation_intelligence.register excluded — module is INACTIVE in manifest
     # and has a pre-existing SyntaxError in router.py (non-default arg after default arg).
     # Services with contracts
@@ -211,8 +216,17 @@ def load_all_contracts(enabled_tiers: list[ProductTier] | None = None) -> dict[s
 
     enabled_set = set(enabled_tiers)
     load_all = _all_tiers_enabled(enabled_tiers)
+    mvp_allowed = set(get_mvp_allowed_modules()) if is_mvp_deploy() else None
 
     for module_path in _MODULES_WITH_CONTRACTS:
+        if mvp_allowed is not None:
+            parts = module_path.split(".")
+            package = ".".join(parts[:3])
+            if not any(m.startswith(f"{package}.") for m in mvp_allowed):
+                logger.debug("Skipping contract module outside MVP allow-list: %s", module_path)
+                skipped += 1
+                continue
+
         tier = _get_contract_module_tier(module_path)
 
         if tier is None and not load_all:

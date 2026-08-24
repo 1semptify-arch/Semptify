@@ -258,6 +258,63 @@ class PDFExtractor:
 
         return 0
 
+    def extract_pages(self, content: bytes) -> list[str]:
+        """
+        Extract text page-by-page from a PDF.
+
+        Returns a list of page texts in page order. Tries pdfplumber, then
+        PyMuPDF, then PyPDF2. Each page is returned individually so callers can
+        detect document boundaries inside a bundled upload.
+        """
+        pages: list[str] = []
+
+        if self.has_pdfplumber:
+            try:
+                import pdfplumber
+
+                with pdfplumber.open(io.BytesIO(content)) as pdf:
+                    for page in pdf.pages:
+                        text = page.extract_text() or ""
+                        tables = page.extract_tables() or []
+                        for table in tables:
+                            for row in table:
+                                if row:
+                                    text += "\n" + " | ".join(str(cell or "") for cell in row)
+                        pages.append(text)
+                if pages:
+                    return pages
+            except Exception as e:
+                logger.warning(f"pdfplumber page extraction failed: {e}")
+
+        if self.has_pymupdf:
+            try:
+                import fitz
+
+                doc = fitz.open(stream=content, filetype="pdf")
+                for page in doc:
+                    text = page.get_text("text")
+                    pages.append(text)
+                doc.close()
+                if pages:
+                    return pages
+            except Exception as e:
+                logger.warning(f"PyMuPDF page extraction failed: {e}")
+
+        if self.has_pypdf2:
+            try:
+                import PyPDF2
+
+                reader = PyPDF2.PdfReader(io.BytesIO(content))
+                for page in reader.pages:
+                    text = page.extract_text() or ""
+                    pages.append(text)
+                if pages:
+                    return pages
+            except Exception as e:
+                logger.warning(f"PyPDF2 page extraction failed: {e}")
+
+        return pages
+
     def extract_with_ocr(
         self, content: bytes, azure_endpoint: str | None = None, azure_key: str | None = None
     ) -> ExtractionResult:

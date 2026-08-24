@@ -8,11 +8,20 @@ Phase order (immutable):
   2. Compute intensity
   3. Classify major_pillar
   4. Select blend
-  5. Gather blocks
-  6. Build PageConfig
+  5. Resolve risk tier + apply GOVERN floor to channels (must precede block
+     gathering — see note below)
+  6. Gather blocks + build PageConfig
   7. Apply capability filter
-  8. Apply GOVERN floor/override rules
+  8. Apply GOVERN override/suppression rules + audit report
   9. Emit PageConfig + legacy UI Composer components
+
+Why the GOVERN floor is applied before blocks are gathered (step 5, not 8):
+a zone's rendered block count is fixed at build time from its channel level
+(see page_shell.zones.level_to_prominence). Clamping the channel level
+*after* zones already exist does not restore any GOVERN safety content that
+was trimmed at the old, lower level — the floor guarantee would be reported
+correctly but not actually rendered. Resolving the floor first ensures zones
+are built at the level they will actually be reported at.
 """
 
 from __future__ import annotations
@@ -23,7 +32,7 @@ from typing import Any
 from app.modules.page_composer.models import PageAssemblyResult
 from app.modules.page_composer.service import compose_page
 from app.modules.page_shell.blends import get_blend
-from app.modules.page_shell.govern import apply_govern_rules
+from app.modules.page_shell.govern import apply_govern_rules, govern_floor_for
 from app.modules.page_shell.models import (
     AnyBlock,
     ChannelLevels,
@@ -85,6 +94,7 @@ _FACT_TO_READING_LEVEL: dict[str, str] = {
 async def assemble_page(
     subject: str,
     jurisdiction: str = DEFAULT_JURISDICTION,
+    county: str | None = None,
     user_id: str | None = None,
     intent: str | None = None,
     user_context: dict[str, Any] | None = None,
@@ -109,7 +119,34 @@ async def assemble_page(
     blend_name = _select_blend(subject, intent, intensity)
     channels = get_blend(blend_name)
 
-    # 5. Gather blocks
+    # 5b. Resolve risk tier and GOVERN floor BEFORE gathering blocks.
+    #
+    # BUG FIX: a zone's block count is fixed at build time by its channel
+    # level (see zones.level_to_prominence) — `_distribute_blocks` trims the
+    # gathered blocks down to that count. The floor rule only meant anything
+    # if the level it clamps to is the level zones are actually built with.
+    # The previous implementation built zones from the raw blend level and
+    # only clamped `channels.govern` afterward (in step 8, on the already
+    # -built PageConfig), so a page correctly reported a higher GOVERN level
+    # but never actually surfaced the extra safety-net content the floor is
+    # supposed to guarantee. Resolving the floor first fixes that.
+    risk_tier = _resolve_risk_tier(subject, context)
+    if risk_tier == "very_high_do_not_build":
+        return _build_govern_fallback_page(
+            subject=subject,
+            jurisdiction=jurisdiction,
+            county=county,
+            user_id=user_id,
+            context=context,
+            risk_tier=risk_tier,
+        )
+    pre_floor_govern = channels.govern
+    floor = govern_floor_for(risk_tier)
+    if channels.govern < floor:
+        channels = channels.model_copy(update={"govern": floor})
+
+    # 6. Gather blocks + build PageConfig (zones now built at the correct,
+    #    floor-adjusted GOVERN level).
     page_data = await compose_page(
         subject=subject,
         jurisdiction=jurisdiction,
@@ -118,9 +155,6 @@ async def assemble_page(
         story_limit=story_limit,
     )
     blocks = _gather_blocks(page_data, context)
-
-    # 6. Build PageConfig
-    risk_tier = _resolve_risk_tier(subject, context)
     zones = _distribute_blocks(channels, blocks)
     page_config = PageConfig(
         page_id=f"{subject}:{jurisdiction}:{user_id or 'anonymous'}",
@@ -130,24 +164,20 @@ async def assemble_page(
         zones=zones,
         intensity_override=intensity,
         intensity_source="formula",
+        jurisdiction=jurisdiction,
+        county=county,
     )
 
     # 7. Apply capability filter (best-effort, no DB required)
     page_config = _apply_capability_filter(page_config, user_id, context)
 
-    # 8. Apply GOVERN rules
-    try:
-        govern_report = apply_govern_rules(page_config, risk_tier)
-    except ValueError as exc:
-        if "very_high_do_not_build" in str(exc):
-            return _build_govern_fallback_page(
-                subject=subject,
-                jurisdiction=jurisdiction,
-                user_id=user_id,
-                context=context,
-                risk_tier=risk_tier,
-            )
-        raise
+    # 8. Apply GOVERN rules — floor is already satisfied above, so this call
+    # now only performs the override/suppression collection (§3 rule 2) and
+    # produces the audit report. We restore the true pre-floor level into
+    # the report so the audit trail still shows whether a clamp happened.
+    govern_report = apply_govern_rules(page_config, risk_tier)
+    govern_report["govern_original"] = pre_floor_govern
+    govern_report["govern_clamped"] = pre_floor_govern < govern_report["govern_effective"]
 
     # 9. Emit legacy UI Composer components
     components: list[dict] = []
@@ -170,6 +200,7 @@ async def assemble_page(
         metadata={
             "subject": subject,
             "jurisdiction": jurisdiction,
+            "county": county,
             "major_pillar": major_pillar,
             "blend": blend_name,
             "intensity": intensity,
@@ -181,6 +212,7 @@ async def assemble_page(
 def _build_govern_fallback_page(
     subject: str,
     jurisdiction: str,
+    county: str | None,
     user_id: str | None,
     context: dict[str, Any],
     risk_tier: str,
@@ -221,6 +253,8 @@ def _build_govern_fallback_page(
         zones=zones,
         intensity_override=100,
         intensity_source="govern_fallback",
+        jurisdiction=jurisdiction,
+        county=county,
     )
     govern_report = {
         "risk_tier": risk_tier,
@@ -236,6 +270,7 @@ def _build_govern_fallback_page(
         metadata={
             "subject": subject,
             "jurisdiction": jurisdiction,
+            "county": county,
             "major_pillar": "govern",
             "blend": "govern_fallback",
             "intensity": 100,
@@ -253,7 +288,18 @@ async def _resolve_context(
     user_id: str | None,
     user_context: dict[str, Any],
 ) -> dict[str, Any]:
-    """Merge user_context with any available Context Engine state."""
+    """Merge user_context with any available Context Engine state.
+
+    BUG FIX: `context_loop.get_state()` (app.services.context_loop) exposes real
+    user state under `documents_count`, `deadlines` (a list of loosely-shaped
+    dicts), and `active_issues` — not the `document_count` / `next_deadline` /
+    `recent_events` / `urgency_cues` / `case_count` keys the rest of this module
+    reads. The previous implementation blindly merged the two dicts, so those
+    keys never existed and every page silently rendered as if the user had no
+    documents, no deadlines, and no activity, regardless of their real state.
+    This normalizes Context Loop's actual shape into the keys the formula uses.
+    Caller-supplied `user_context` values always win (set via `setdefault`).
+    """
     merged = dict(user_context)
     if user_id:
         try:
@@ -261,11 +307,74 @@ async def _resolve_context(
 
             state = context_loop.get_state(user_id)
             if state and isinstance(state, dict):
-                merged.update(state.get("context", {}))
-                merged.update(state.get("summary", {}))
+                ctx = state.get("context", {}) or {}
+                summary = state.get("summary", {}) or {}
+
+                merged.setdefault(
+                    "document_count", ctx.get("documents_count", summary.get("documents", 0))
+                )
+
+                deadlines = ctx.get("deadlines") or []
+                merged.setdefault("deadline_count", len(deadlines))
+                next_deadline = _earliest_deadline(deadlines)
+                if next_deadline:
+                    merged.setdefault("next_deadline", next_deadline)
+
+                active_issues = ctx.get("active_issues") or []
+                merged.setdefault("case_count", len(active_issues))
+                merged.setdefault("recent_events", active_issues[:3])
+
+                urgency_cues: list[str] = []
+                if ctx.get("rights_at_risk"):
+                    urgency_cues.append("landlord_threat")
+                days_remaining = (next_deadline or {}).get("days_remaining")
+                if isinstance(days_remaining, (int, float)):
+                    if days_remaining <= 1:
+                        urgency_cues.append("deadline_today")
+                    elif days_remaining <= 7:
+                        urgency_cues.append("deadline_soon")
+                merged.setdefault("urgency_cues", urgency_cues)
         except Exception as exc:
             logger.debug("No context loop state for %s: %s", user_id, exc)
     return merged
+
+
+def _earliest_deadline(deadlines: list[Any]) -> dict[str, Any] | None:
+    """Return the nearest upcoming deadline as {title, date, days_remaining}.
+
+    Deadlines come from document-analysis output and are loosely shaped
+    (dict with an unreliable "date" key). Unparseable entries are skipped
+    rather than guessed at — silence beats fabrication.
+    """
+    from datetime import datetime
+
+    from app.core.utc import utc_now
+
+    best: dict[str, Any] | None = None
+    best_days: float | None = None
+    now = utc_now()
+
+    for entry in deadlines:
+        if not isinstance(entry, dict):
+            continue
+        raw_date = entry.get("date") or entry.get("due_date") or entry.get("hearing_date")
+        if not raw_date:
+            continue
+        try:
+            parsed = raw_date if isinstance(raw_date, datetime) else datetime.fromisoformat(str(raw_date))
+        except (ValueError, TypeError):
+            continue
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=now.tzinfo)
+        days_remaining = (parsed - now).total_seconds() / 86400
+        if best_days is None or days_remaining < best_days:
+            best_days = days_remaining
+            best = {
+                "title": entry.get("title") or entry.get("name") or entry.get("type") or "Upcoming deadline",
+                "date": raw_date if isinstance(raw_date, str) else parsed.isoformat(),
+                "days_remaining": round(days_remaining),
+            }
+    return best
 
 
 def _compute_intensity(subject: str, context: dict[str, Any]) -> int:
@@ -429,7 +538,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
     for idx, fact in enumerate(facts):
         tags = fact.get("tags") or []
         source_name = fact.get("source_name", "verified source")
-        _fact_label(fact)
+        label = _fact_label(fact)
         reading = _fact_reading_level(tags)
         blocks["know"].append(
             InfoBlock(
@@ -437,7 +546,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
                 content_ref=fact.get("claim", ""),
                 reading_level=reading,  # type: ignore[arg-type]
                 collapsed_by_default=True,
-                summary=f"Source: {source_name}",
+                summary=f"{label} — Source: {source_name}" if label else f"Source: {source_name}",
             )
         )
 
@@ -626,8 +735,8 @@ def _build_ui_context(
     """Build a UI Composer-compatible context dict."""
     return {
         **context,
-        "document_count": context.get("documents", 0),
-        "upcoming_deadlines": context.get("deadlines", 0),
+        "document_count": context.get("document_count", 0),
+        "upcoming_deadlines": context.get("deadline_count", 0),
         "subject": page_data.get("subject"),
         "label": page_data.get("label"),
         "facts": page_data.get("facts", []),

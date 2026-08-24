@@ -58,6 +58,7 @@ from __future__ import annotations
 
 import importlib
 import logging
+import os
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
@@ -1299,6 +1300,40 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
 
 
 # =============================================================================
+# Deploy Target Gating (MVP / Render)
+# =============================================================================
+
+_MVP_ALLOWED_MODULES: frozenset[str] | None = None
+
+
+def get_deploy_target() -> str | None:
+    """Return the active DEPLOY_TARGET env value, if any."""
+    return os.getenv("DEPLOY_TARGET") or None
+
+
+def is_mvp_deploy() -> bool:
+    """True when DEPLOY_TARGET=render_mvp (minimal Render free-tier build)."""
+    return get_deploy_target() == "render_mvp"
+
+
+def get_mvp_allowed_modules() -> frozenset[str]:
+    """Return the explicit allow-list of module paths for the MVP Render build.
+
+    Current policy:
+    - All ProductTier.CORE router modules are included (tenant-rights essentials).
+    - app.modules.intake.router is included even though it is EXTENDED, because
+      Pass 1 document intake (OCR + pattern extraction) is part of MVP.
+    - This set is a starting point; the exact MVP feature set should be
+      reviewed and tightened as the Render MVP stabilizes.
+    """
+    global _MVP_ALLOWED_MODULES
+    if _MVP_ALLOWED_MODULES is None:
+        core_paths = {e.module_path for e in MANIFEST.all() if e.tier == ProductTier.CORE}
+        _MVP_ALLOWED_MODULES = frozenset(core_paths | {"app.modules.intake.router"})
+    return _MVP_ALLOWED_MODULES
+
+
+# =============================================================================
 # Registration API
 # =============================================================================
 
@@ -1337,7 +1372,12 @@ def register_tiers(app: FastAPI, *tiers: ProductTier) -> dict:
     if not tiers:
         raise ValueError("At least one ProductTier must be specified")
 
-    entries = MANIFEST.by_tier(*tiers)
+    if is_mvp_deploy():
+        allowed_modules = get_mvp_allowed_modules()
+        entries = [e for e in MANIFEST.all() if e.module_path in allowed_modules]
+        logger.info("DEPLOY_TARGET=render_mvp: loading %d MVP core modules", len(entries))
+    else:
+        entries = MANIFEST.by_tier(*tiers)
     registered = 0
     skipped = 0
     errors = 0

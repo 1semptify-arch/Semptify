@@ -16,6 +16,7 @@ from __future__ import annotations
 import html
 import logging
 
+from app.core.law_source_registry import link_citations
 from app.modules.page_shell.govern import collect_suppressed_act_blocks
 from app.modules.page_shell.models import (
     InfoBlock,
@@ -66,7 +67,7 @@ def render_page_shell(config: PageConfig) -> str:
                 f'<div class="zone-empty-placeholder"></div></section>'
             )
             continue
-        zones_html.append(_render_zone(zone, pillar, suppressed))
+        zones_html.append(_render_zone(zone, pillar, suppressed, config.jurisdiction, config.county))
 
     # CSS grid area strings use single quotes so the inline style remains a
     # valid double-quoted HTML attribute.
@@ -75,7 +76,13 @@ def render_page_shell(config: PageConfig) -> str:
     return f'<div class="page-shell skeleton-{skeleton}" style="{style}">\n' + "\n".join(zones_html) + "\n</div>"
 
 
-def _render_zone(zone: Zone, pillar: str, suppressed: set[str]) -> str:
+def _render_zone(
+    zone: Zone,
+    pillar: str,
+    suppressed: set[str],
+    state: str | None = None,
+    county: str | None = None,
+) -> str:
     """Render one zone + its blocks, filtered by level.
 
     Two level-driven helpers apply:
@@ -95,7 +102,7 @@ def _render_zone(zone: Zone, pillar: str, suppressed: set[str]) -> str:
     # the spec says block order is meaningful (zone is an ordered list).
     visible = blocks[: prominence.block_count]
 
-    blocks_html = "".join(_render_block(b, prominence.emphasis) for b in visible)
+    blocks_html = "".join(_render_block(b, prominence.emphasis, state, county) for b in visible)
     emphasis_class = f"emphasis-{prominence.emphasis}"
     vw_class = f"visual-weight-{visual_weight.weight}"
     collapsed_attr = ' data-collapsed="true"' if prominence.collapsed else ""
@@ -117,7 +124,12 @@ def _render_zone(zone: Zone, pillar: str, suppressed: set[str]) -> str:
     )
 
 
-def _render_block(block: object, emphasis: str) -> str:
+def _render_block(
+    block: object,
+    emphasis: str,
+    state: str | None = None,
+    county: str | None = None,
+) -> str:
     """Dispatch to the right renderer by block kind.
 
     One renderer per KIND — not per page. Adding a new block of an
@@ -126,7 +138,7 @@ def _render_block(block: object, emphasis: str) -> str:
     if isinstance(block, InputBlock):
         return _render_input_block(block, emphasis)
     if isinstance(block, InfoBlock):
-        return _render_info_block(block, emphasis)
+        return _render_info_block(block, emphasis, state, county)
     if isinstance(block, OutputBlock):
         return _render_output_block(block, emphasis)
     # Unknown block kind — render nothing rather than crashing the whole
@@ -170,21 +182,29 @@ def _render_input_block(b: InputBlock, emphasis: str) -> str:
     )
 
 
-def _render_info_block(b: InfoBlock, emphasis: str) -> str:
-    """InfoBlock renderer — KNOW zone primarily, also GOVERN disclaimers."""
+def _render_info_block(
+    b: InfoBlock,
+    emphasis: str,
+    state: str | None = None,
+    county: str | None = None,
+) -> str:
+    """InfoBlock renderer — KNOW zone primarily, also GOVERN disclaimers.
+
+    Renders the content_ref text as HTML with citations linked to their
+    official sources. Jurisdiction (state + county) is used so county
+    citations resolve to the user's location.
+    """
     summary = html.escape(b.summary) if b.summary else ""
     collapsed_attr = ' data-collapsed="true"' if b.collapsed_by_default else ""
     reading = html.escape(b.reading_level)
-    # Content is loaded from content_ref at render time by the composer
-    # (out of scope for the shell). The shell renders a container with
-    # the ref as a data attribute — no hardcoded content text.
+    content_html = link_citations(b.content_ref, state=state, county=county)
     return (
         f'<div class="block block-info emphasis-{emphasis}" '
         f'data-block-id="{html.escape(b.block_id)}" '
         f'data-content-ref="{html.escape(b.content_ref)}" '
         f'data-reading-level="{reading}"{collapsed_attr}>\n'
         f'  <div class="block-info-summary">{summary}</div>\n'
-        f'  <div class="block-info-content" role="region" hidden="{b.collapsed_by_default}"></div>\n'
+        f'  <div class="block-info-content" role="region">{content_html}</div>\n'
         f"</div>\n"
     )
 

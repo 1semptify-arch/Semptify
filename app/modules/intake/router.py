@@ -42,9 +42,11 @@ from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.event_bus import EventType as BusEventType, event_bus
 from app.core.job_processor import JobPriority, submit_deep_ocr_job
+from app.core.product_manifest import is_mvp_deploy
 from app.core.security import StorageUser, get_user_id, yellow_access
 from app.core.user_id import get_provider_from_user_id
 from app.core.utc import utc_now
+from app.core.validation import is_allowed_file_extension, is_upload_size_within_limit
 from app.models.models import DeepOCRStatus, DocumentPipelineIndex
 from app.services.document_intake import (
     DocumentType,
@@ -340,12 +342,19 @@ async def upload_document(
     """
     # Read file content
     content = await file.read()
+    settings = get_settings()
 
     if len(content) == 0:
         raise HTTPException(status_code=400, detail="Empty file")
 
-    if len(content) > 25 * 1024 * 1024:  # 25MB limit
-        raise HTTPException(status_code=400, detail="File too large (max 25MB)")
+    if not is_upload_size_within_limit(content, settings.max_upload_size_mb):
+        raise HTTPException(status_code=400, detail=f"File too large (max {settings.max_upload_size_mb}MB)")
+
+    if not is_allowed_file_extension(file.filename or "", settings.allowed_extensions):
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type not allowed. Allowed: {settings.allowed_extensions}",
+        )
 
     # STEP 0: Notarize the upload
     notarization = None
@@ -473,6 +482,7 @@ class AutoProcessResponse(BaseModel):
     vault_id: str | None = None
     overlay_record_ids: list[str] = []
     extracted_data: dict = {}
+    segments: list[dict] = []
     timeline_events: int = 0
     issues_found: int = 0
 
@@ -548,12 +558,19 @@ async def upload_and_process(
 
     # Read file content
     content = await file.read()
+    settings = get_settings()
 
     if len(content) == 0:
         raise HTTPException(status_code=400, detail="Empty file")
 
-    if len(content) > 25 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File too large (max 25MB)")
+    if not is_upload_size_within_limit(content, settings.max_upload_size_mb):
+        raise HTTPException(status_code=400, detail=f"File too large (max {settings.max_upload_size_mb}MB)")
+
+    if not is_allowed_file_extension(file.filename or "", settings.allowed_extensions):
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type not allowed. Allowed: {settings.allowed_extensions}",
+        )
 
     # STEP 0a: Notarize the upload first
     notarization = None
@@ -623,10 +640,11 @@ async def upload_and_process(
     )
     logger.info(f"📋 Document intake complete: {doc.id}")
 
-    # Step 2: Process (extract text, classify, analyze) — Light Intake / Pass 1
+    # Step 2: Process (extract text, classify, analyze, segment bundles) — Light Intake / Pass 1
     try:
-        doc = await engine.process_document(doc.id)
-        logger.info(f"✓ Light Intake (Pass 1) complete: {doc.id}")
+        docs = await engine.process_bundle(doc.id)
+        doc = docs[0] if docs else doc
+        logger.info(f"✓ Light Intake (Pass 1) complete: {doc.id} ({len(docs)} segment(s))")
     except Exception as e:
         logger.error("Processing failed: %s", e)
         return AutoProcessResponse(
@@ -638,41 +656,44 @@ async def upload_and_process(
             vault_id=vault_id,
         )
 
-    # Step 2b: Create the master pipeline index record and queue Deep OCR Pass 2.
-    # Pass 1 (OCR + rough extraction) stays synchronous in Light Intake.
-    # Pass 2 (Semantic Context Engine) runs asynchronously in the job queue.
-    try:
-        pipeline_index = DocumentPipelineIndex(
-            doc_id=doc.id,
-            user_id=user_id,
-            payload_json=json.dumps(
-                {
-                    "vault_id": vault_id,
-                    "filename": file.filename,
-                    "mime_type": file.content_type,
-                    "urgency": urgency or "normal",
-                    "queued_at": utc_now().isoformat(),
-                }
-            ),
-            deep_ocr_status=DeepOCRStatus.PENDING.value,
-        )
-        db.add(pipeline_index)
-        await db.commit()
+    if not is_mvp_deploy():
+        # Step 2b: Create the master pipeline index record and queue Deep OCR Pass 2.
+        # Pass 1 (OCR + rough extraction) stays synchronous in Light Intake.
+        # Pass 2 (Semantic Context Engine) runs asynchronously in the job queue.
+        try:
+            pipeline_index = DocumentPipelineIndex(
+                doc_id=doc.id,
+                user_id=user_id,
+                payload_json=json.dumps(
+                    {
+                        "vault_id": vault_id,
+                        "filename": file.filename,
+                        "mime_type": file.content_type,
+                        "urgency": urgency or "normal",
+                        "queued_at": utc_now().isoformat(),
+                    }
+                ),
+                deep_ocr_status=DeepOCRStatus.PENDING.value,
+            )
+            db.add(pipeline_index)
+            await db.commit()
 
-        job_priority = _priority_for_urgency(urgency)
-        deep_ocr_job_id = submit_deep_ocr_job(
-            doc_id=doc.id,
-            user_id=user_id,
-            vault_id=vault_id,
-            priority=job_priority,
-        )
-        logger.info("Deep OCR job %s queued for doc %s", deep_ocr_job_id, doc.id)
-    except Exception as e:
-        logger.warning("Failed to queue Deep OCR job for doc %s: %s", doc.id, e)
+            job_priority = _priority_for_urgency(urgency)
+            deep_ocr_job_id = submit_deep_ocr_job(
+                doc_id=doc.id,
+                user_id=user_id,
+                vault_id=vault_id,
+                priority=job_priority,
+            )
+            logger.info("Deep OCR job %s queued for doc %s", deep_ocr_job_id, doc.id)
+        except Exception as e:
+            logger.warning("Failed to queue Deep OCR job for doc %s: %s", doc.id, e)
+    else:
+        logger.info("Deep OCR Pass 2 skipped for doc %s under DEPLOY_TARGET=render_mvp", doc.id)
 
     # Step 3: Run full flow orchestration for complete pipeline
     flow_result = {}
-    if FLOW_AVAILABLE:
+    if FLOW_AVAILABLE and not is_mvp_deploy():
         try:
             orchestrator = DocumentFlowOrchestrator()
             flow_result = await orchestrator.process_document_complete(
@@ -737,6 +758,20 @@ async def upload_and_process(
             "summary": doc.extraction.summary[:200] if doc.extraction.summary else "",
         }
 
+    # If this was a bundled packet, list the child segment records.
+    segments: list[dict] = []
+    for child_id in getattr(doc, "child_doc_ids", []):
+        child = engine.get_document(child_id)
+        if child and child.extraction:
+            segments.append(
+                {
+                    "id": child.id,
+                    "doc_type": child.extraction.doc_type.value,
+                    "confidence": round(child.extraction.doc_type_confidence, 2),
+                    "word_count": child.extraction.word_count,
+                }
+            )
+
     overlay_record_ids = await _get_overlay_record_ids(
         vault_id,
         user_id=user_id,
@@ -752,11 +787,16 @@ async def upload_and_process(
         message=(
             f"✓ Document stored, notarized ({notarization_id}), "
             f"and Light Intake complete in vault ({vault_id or 'local'}). "
-            f"Deep OCR Pass 2 is queued and processing."
+            + (
+                "Deep OCR Pass 2 is queued and processing."
+                if not is_mvp_deploy()
+                else "Document processing complete."
+            )
         ),
         vault_id=vault_id,
         overlay_record_ids=overlay_record_ids,
         extracted_data=extracted_data,
+        segments=segments,
         timeline_events=flow_result.get("stages", {}).get("events", {}).get("count", 0),
         issues_found=len(doc.extraction.issues) if doc.extraction and doc.extraction.issues else 0,
     )
@@ -774,6 +814,7 @@ async def upload_documents_batch(
     Returns status for each file.
     """
     engine = get_intake_engine()
+    settings = get_settings()
 
     uploaded = []
     failed = []
@@ -786,8 +827,12 @@ async def upload_documents_batch(
                 failed.append({"filename": file.filename, "error": "Empty file"})
                 continue
 
-            if len(content) > 25 * 1024 * 1024:
-                failed.append({"filename": file.filename, "error": "File too large"})
+            if not is_upload_size_within_limit(content, settings.max_upload_size_mb):
+                failed.append({"filename": file.filename, "error": f"File too large (max {settings.max_upload_size_mb}MB)"})
+                continue
+
+            if not is_allowed_file_extension(file.filename or "", settings.allowed_extensions):
+                failed.append({"filename": file.filename, "error": f"File type not allowed. Allowed: {settings.allowed_extensions}"})
                 continue
 
             # SSOT: Every document — including batch — must go through vault first.
@@ -927,7 +972,7 @@ async def process_document_from_vault(
         intake_doc = await engine.process_document(intake_doc.id)
 
         # Run flow orchestration if available
-        if FLOW_AVAILABLE:
+        if FLOW_AVAILABLE and not is_mvp_deploy():
             try:
                 orchestrator = DocumentFlowOrchestrator()
                 await orchestrator.process_document_complete(
@@ -1023,7 +1068,7 @@ async def process_document(doc_id: str, user_id: str = Depends(get_user_id)):
         doc = await engine.process_document(doc_id)
 
         # Run full flow orchestration if available
-        if FLOW_AVAILABLE:
+        if FLOW_AVAILABLE and not is_mvp_deploy():
             try:
                 orchestrator = DocumentFlowOrchestrator()
                 flow_result = await orchestrator.process_document_complete(

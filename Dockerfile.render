@@ -1,16 +1,19 @@
 # =============================================================================
-# Semptify FastAPI - Production Dockerfile
+# Semptify FastAPI - Render MVP Dockerfile
 # =============================================================================
-# Multi-stage build for optimal image size and security
-# 
-# Build: docker build -t semptify:latest .
-# Run:   docker run -p 8000:8000 --env-file .env semptify:latest
+# Render free-tier deployment image.
+# Sets DEPLOY_TARGET=render_mvp by default so the app starts in minimal mode.
+# To switch to the full feature set later, override DEPLOY_TARGET at the
+# service level (e.g. render.yaml env var) without changing this file.
+#
+# Build: docker build -t semptify:render-mvp -f Dockerfile.render .
+# Run:   docker run -p 8000:8000 --env-file .env semptify:render-mvp
 # =============================================================================
 
 # -----------------------------------------------------------------------------
 # Stage 1: Builder - Install dependencies
 # -----------------------------------------------------------------------------
-FROM python:3.11-slim AS builder
+FROM python:3.11.9-slim AS builder
 
 WORKDIR /app
 
@@ -28,23 +31,23 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy requirements first for better caching
-COPY requirements.txt .
+COPY requirements-render-mvp.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements-render-mvp.txt
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime - Minimal production image
 # -----------------------------------------------------------------------------
-FROM python:3.11-slim AS runtime
+FROM python:3.11.9-slim
 
-# Set environment variables
+ARG DEPLOY_TARGET=render_mvp
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=8000
+    PORT=8000 \
+    DEPLOY_TARGET=${DEPLOY_TARGET}
 
-# Set work directory
 WORKDIR /app
 
 # Install runtime dependencies only
@@ -55,8 +58,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcairo2 \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
-    tesseract-ocr \
-    tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -68,14 +69,12 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN groupadd --gid 1000 semptify && \
     useradd --uid 1000 --gid semptify --shell /bin/bash --create-home semptify
 
-# Cache-bust: forces fresh COPY on every deploy
-ARG CACHEBUST=2024-06-09-v2
 # Copy application code
 COPY --chown=semptify:semptify . .
 
-# Create runtime directories
+# Create runtime directories and ensure the semptify user can write to /app
 RUN mkdir -p uploads uploads/vault logs security data data/inventory && \
-    chown -R semptify:semptify uploads logs security data data
+    chown -R semptify:semptify /app
 
 # Switch to non-root user
 USER semptify
@@ -88,7 +87,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:${PORT}/health || exit 1
 
 # Start command - uses $PORT env var for Render compatibility
-# Note: migrations are handled by the app's lifespan startup (Stage 3b) which
-# catches errors gracefully. Running alembic in CMD would fail the deploy on
-# partial migrations (schema drift). The app itself runs alembic on startup.
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
