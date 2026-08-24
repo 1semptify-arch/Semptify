@@ -1,3 +1,47 @@
+## Session -- 2026-08-24 — Real lease first-document E2E PoC
+
+### Problem
+
+After the Pass 1 classifier and OCR fallback work landed, the first-document pipeline
+needed a real end-to-end check against the 11-page `lease_02.pdf` fixture.
+
+### Verification
+
+- `docs/classification-test-fixtures/lease_02.pdf` (2.75 MB) uploaded via
+  `VaultUploadService.upload(storage_provider="local")`.
+- Vault returned `doc_DCzaqgdHnr7AFA7V`, `registry_id SEM-2026-000001-540A`,
+  `is_certified: True`.
+- `DocumentIntakeEngine.intake_document()` → `process_document()` completed with
+  status `complete` and 100% progress.
+
+### Findings
+
+- **Document type:** `lease` (confidence 1.0) — correctly classified, no longer
+  mislabeled as `eviction_notice`.
+- **Extraction quality:** 4907 words extracted; text includes lease parties
+  (`Dena Sazama`, `Bradley Crowe`), property address (`2977 Lexington Ave South,
+  Apt 104, Eagan, MN 55121`), monthly rent (`$1218.00`), late fee (`$97.44`,
+  8% of rent), lease start/end (`11/01/2024` → `10/31/2025`), move-in date
+  (`11/21/2024`), garage/storage rent, and court filing stamp (`19AV-CV-25-3477
+  Filed 11/17/2025`).
+- **Bundled-packet behavior:** Pass 1 still assigns one `doc_type` to the entire
+  upload (`lease`), so the bundled riders, addenda, and exhibits are not
+  segmented into separate documents.
+- **Three canonical dates:** `uploaded_at` is immutable; `event_date` and
+  `received_date` were set via the vault service and verified sortable by all
+  three keys.
+
+### Notes
+
+- No `Semptify_Lease_DocType_Template.md` was found in the workspace, so a
+  field-by-field template comparison could not be completed.
+- Local Tesseract OCR is not installed in this Windows dev shell; the test
+  fixture already contains enough embedded/extracted text for the current
+  classifier to succeed. A fully image-only packet should be tested inside the
+  Docker/Render image where `tesseract-ocr` is installed.
+
+---
+
 ## Session -- 2026-08-24 — Load profile system + memory monitoring fixes
 
 ### Goal
