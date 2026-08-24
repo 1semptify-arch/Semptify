@@ -1971,5 +1971,19 @@
     "created_at": "2026-08-24T15:07:02Z",
     "updated_at": "2026-08-24T15:10:30.462950+00:00",
     "notes": "Live verification: is_valid_user_storage(LU raw/signed) returned False while is_valid_storage_user(LU signed) returned True.\n[2026-08-24 15:10 UTC] Added 'L' to the provider code allowlist in security.py::is_valid_user_storage and updated docstring. Verified: is_valid_user_storage('LUtest1234') is True; live upload with signed LUtest1234 cookie and encrypted local session returns 200 and writes to vault_index (storage_provider='local'). The downstream get_provider() does not yet support 'local' for download, so local View/Download is a separate remaining gap."
+  },
+  {
+    "id": "ad-hoc-dc-document-types-2026-08-24",
+    "title": "Mount document-types API route for house_rules",
+    "description": "app/core/document_types.py has the house_rules registry and get_all_document_types() works, but app/modules/document_center/router.py is not mounted in main.py, so /api/dc/document-types returns 404.",
+    "file_path": "app/main.py",
+    "status": "resolved",
+    "priority": "low",
+    "source": "ad-hoc",
+    "target_model": "swe-1.7",
+    "assigned_agent": "SWE-1.7-Max",
+    "created_at": "2026-08-24T15:10:47Z",
+    "updated_at": "2026-08-24T15:15:33.689111+00:00",
+    "notes": "Live verification: GET /api/dc/document-types and /api/document-types both return 404.\n[2026-08-24 15:15 UTC] Mounted app.modules.document_center.router at /api/dc in app/main.py for non-MVP builds, guarded against duplicate product-manifest mounts. Verified: GET /api/dc/document-types returns 200 and lists house_rules. test_document_types.py 10 passed; py_compile clean."
   }
 ]
