@@ -1,3 +1,38 @@
+## Session -- 2026-08-24 — Real OAuth / Google Drive end-to-end verification
+
+### What changed
+- Added `/onboarding/api/vault/verify` to `TimeoutMiddleware` extended timeouts
+  (`app/core/timeout.py`) so the onboarding upload pipeline gets 180s instead
+  of the default 30s.
+- Raised internal `asyncio.wait_for` timeouts in `app/modules/onboarding/router.py`
+  for vault probe (60s), `VaultUploadService.upload` (110s), and the
+  read-back verification (90s).
+- Fixed `app/modules/vault/router.py` `download_document`, `get_certificate`,
+  and `delete_document` to look up documents via the `vault_index` DB table
+  and use the stored `certificate_id` / `storage_path` / `provider_file_id`
+  instead of scanning certificate filenames for `document_id[:8]`, which
+  failed because certificates are named by `certificate_id`.
+
+### Database
+- Applied missing schema columns to Neon production branch manually
+  (`event_date`, `received_date` on `documents` and `vault_index`;
+  `canonical_value`, `extraction_pattern`, `embedding` on `context_facts`;
+  `case_overlay_id` on `incidents`) and stamped `alembic_version` to
+  `20260824_add_document_dates` after the migration failed because
+  `context_explanation_entries.embedding` already existed.
+
+### Verification
+- Real Google OAuth sign-in succeeded for user `GUyQ2ld1CC`.
+- `POST /onboarding/api/vault/verify` with `lease_01.pdf` succeeded:
+  `ok=true`, `document_saved=true`, `vault_id=doc_c5zeQ1BEz6Xqkm4Q`,
+  `document_id=SEM-2026-000001-22A0`, `certified=true`.
+- `GET /api/vault/{vault_id}/download` returns 200 with `application/pdf`
+  and 1780 bytes for both `view=true` and default download.
+- `GET /api/vault/{vault_id}/certificate` returns 200 with correct
+  `sha256_hash`, `certified_at`, `original_filename`, `storage_provider`.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `python -m py_compile` on changed files: PASS.
+
 ## Session -- 2026-08-24 — Live verification gap fixes
 
 ### What changed
