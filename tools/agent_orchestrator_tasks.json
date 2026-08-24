@@ -1985,5 +1985,19 @@
     "created_at": "2026-08-24T15:10:47Z",
     "updated_at": "2026-08-24T15:15:33.689111+00:00",
     "notes": "Live verification: GET /api/dc/document-types and /api/document-types both return 404.\n[2026-08-24 15:15 UTC] Mounted app.modules.document_center.router at /api/dc in app/main.py for non-MVP builds, guarded against duplicate product-manifest mounts. Verified: GET /api/dc/document-types returns 200 and lists house_rules. test_document_types.py 10 passed; py_compile clean."
+  },
+  {
+    "id": "ad-hoc-cookie-userid-mismatch-2026-08-24",
+    "title": "Investigate cookie/user_id mismatch on upload",
+    "description": "The record.html upload form sends the full signed cookie value as the user_id form field. The server detects the mismatch and falls back to session identity. Investigate whether this is a safe fallback or a frontend bug worth fixing.",
+    "file_path": "app/templates/gui/record.html",
+    "status": "resolved",
+    "priority": "low",
+    "source": "ad-hoc",
+    "target_model": "swe-1.7",
+    "assigned_agent": "SWE-1.7-Max",
+    "created_at": "2026-08-24T15:16:19Z",
+    "updated_at": "2026-08-24T15:16:43.791185+00:00",
+    "notes": "[2026-08-24 15:16 UTC] Investigation complete. Root cause: record.html line 94 sends cookie('semptify_uid') as user_id form field; the cookie is the signed value (75 chars), not the bare user id. Server's upload_and_process already overrides the form value with the verified session identity from yellow_access and logs a warning. Fallback is safe because yellow_access rejects invalid cookies before the endpoint runs. Recommended fix: stop sending user_id from the form (or stop reading the signed cookie for it) as a cleanup task. No code changes made; findings recorded in BUILD_STATE.md."
   }
 ]
