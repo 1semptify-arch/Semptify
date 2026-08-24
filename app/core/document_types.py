@@ -456,6 +456,37 @@ DOCUMENT_TYPES: dict[str, DocumentTypeDef] = {
             },
         ],
     },
+    "house_rules": {
+        "key": "house_rules",
+        "label": "House Rules",
+        "description": "Community rules, resident handbook, or building policies provided with the lease.",
+        "fields": [
+            {
+                "name": "property_address",
+                "label": "Property address",
+                "field_type": "text",
+                "required": False,
+                "overlay_type": "document_extraction",
+                "ocr_target": "property, address",
+            },
+            {
+                "name": "effective_date",
+                "label": "Effective date",
+                "field_type": "date",
+                "required": False,
+                "overlay_type": "key_date_extraction",
+                "ocr_target": "effective, date",
+            },
+            {
+                "name": "description",
+                "label": "Description",
+                "field_type": "text",
+                "required": True,
+                "overlay_type": "document_extraction",
+                "ocr_target": "house rules, community rules, resident rules",
+            },
+        ],
+    },
     "other": {
         "key": "other",
         "label": "Other",
