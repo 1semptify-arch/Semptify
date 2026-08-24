@@ -532,6 +532,15 @@ async def lifespan(_app: FastAPI):
                 await load_overrides(db)
             lifespan_logger.info("   Module overrides schema ensured and cache warmed")
 
+            # feature_flags table: same problem as module_overrides above -
+            # Alembic auto-migration doesn't run locally, and the Postgres
+            # migration uses sa.ARRAY, which SQLite can't create anyway.
+            from app.core.features import ensure_schema as ensure_feature_flags_schema
+
+            async with factory() as db:
+                await ensure_feature_flags_schema(db)
+            lifespan_logger.info("   Feature flags schema ensured")
+
         def verify_module_overrides():
             return True
 
