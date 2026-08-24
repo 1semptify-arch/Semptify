@@ -593,11 +593,12 @@ async def list_documents(
 
     Reads certificates from .semptify/vault/certificates/ in user's storage.
     """
-    if not access_token:
+    real_token = access_token or user.access_token
+    if not real_token:
         raise HTTPException(status_code=400, detail="access_token required")
 
     try:
-        storage = get_provider(user.provider, access_token=access_token)
+        storage = get_provider(user.provider, access_token=real_token)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -665,12 +666,18 @@ async def download_document(
 
     Set `view=true` to display the file in the browser (inline disposition)
     instead of forcing a download.
+
+    The authenticated session already supplies a valid access token via
+    `yellow_access`; callers do not need to pass it in the URL. The
+    query parameter remains available as an override for advanced or
+    module-to-module use.
     """
-    if not access_token:
+    real_token = access_token or user.access_token
+    if not real_token:
         raise HTTPException(status_code=400, detail="access_token required")
 
     try:
-        storage = get_provider(user.provider, access_token=access_token)
+        storage = get_provider(user.provider, access_token=real_token)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -726,11 +733,12 @@ async def get_certificate(
     """
     Get the certification details for a document.
     """
-    if not access_token:
+    real_token = access_token or user.access_token
+    if not real_token:
         raise HTTPException(status_code=400, detail="access_token required")
 
     try:
-        storage = get_provider(user.provider, access_token=access_token)
+        storage = get_provider(user.provider, access_token=real_token)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -766,11 +774,12 @@ async def delete_document(
     Delete a document from the user's cloud storage vault.
     Note: Certificates are kept for audit trail.
     """
-    if not access_token:
+    real_token = access_token or user.access_token
+    if not real_token:
         raise HTTPException(status_code=400, detail="access_token required")
 
     try:
-        storage = get_provider(user.provider, access_token=access_token)
+        storage = get_provider(user.provider, access_token=real_token)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
