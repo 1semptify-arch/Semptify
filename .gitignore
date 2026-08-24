@@ -285,3 +285,7 @@ playwright-report/
 genminy.txt
 setup_claude_code_free.ps1
 REPOs/
+
+# Local MCP / IDE configs (machine-specific)
+.devin/mcp_config.local.json
+funding_forge/.cursor/
