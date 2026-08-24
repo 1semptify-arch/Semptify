@@ -1,4 +1,45 @@
+## Session -- 2026-08-24 — Reconcile parallel sessions and ship follow-ups
+
+### What changed
+- Reconciled the three parallel sessions (Record view + dates + OCR, Pass 1
+  bundle segmentation, OAuth SECRET_KEY/reconnect) on a single `main`.
+- Opened PR #108, merged with a merge commit (not rebase).
+- Fast-forwarded the local source worktree and the module `main` to
+  `f35503d9` so `origin/main`, `github-direct/main`, and local `main` are
+  aligned.
+- Added `L` (LOCAL) as a first-class provider code in
+  `app/core/user_id.py` and `tests/test_user_id.py`.
+- Registered `house_rules` in `app/core/document_types.py` and added
+  `tests/test_document_types.py` coverage.
+
+### Verification
+- `pytest tests/test_documents.py -q --no-cov`: 41 passed.
+- `pytest tests/test_document_intake.py -q --no-cov`: 52 passed.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `pytest tests/test_user_id.py -q --no-cov`: 4 passed.
+- `pytest tests/test_document_types.py -q --no-cov`: 11 passed.
+- `python -m py_compile` on changed files: PASS.
+
+### Status
+- PR #108 merged to `github-direct/main`.
+- `main` aligned across `origin/main` and `github-direct/main`.
+- Unrelated working-tree files (`.cursor/`, `BUILD_GUIDE_SSOT.md`,
+  `docs/SSOT_EXPORT.md`, `docs/blueprints/page_composer_assembly_formula_blueprint.md`,
+  `tools/module_registry.yaml`, `.devin/mcp_config.local.json`,
+  `funding_forge/.cursor/`, `tools/gap_report.py`) were **not** committed.
+
+---
+
 ## Session -- 2026-08-24 — Bundled-packet PDF segmentation (Pass 1)
+
+### Guardrail Engine Run — 2026-08-24T08:11:14
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Goal
 Detect document boundaries inside a single PDF upload so a bundled court-admitted lease packet is split into separate IntakeDocument records, one per logical document, without introducing AI/ML classification.
