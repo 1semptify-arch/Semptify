@@ -390,12 +390,12 @@
     "id": "todo-027",
     "line_end": 489,
     "line_start": 470,
-    "notes": "STUB_AUDIT.md Tier 3.2 - DEFER\n[2026-07-20 10:54 UTC - SWE-1.7] Distributed mesh network remains disabled intentionally (STUB_AUDIT Tier 3.2 DEFER). Re-enabling cross-instance comms would require a memory-safe redesign and is not appropriate without explicit approval.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: mesh network still DISABLED in app/main.py:579-600 (memory optimization). Status remains review pending owner decision.\n[2026-07-28 21:29 UTC - SWE-1.7-Max] Re-enabled Mesh Network in main.py under ENABLE_HEAVY_SERVICES guard; capped MeshNetwork._request_history and _collaborations to prevent unbounded memory growth; fixed ruff issues in mesh_network.py and mesh_handlers.py.",
+    "notes": "STUB_AUDIT.md Tier 3.2 - DEFER\n[2026-07-20 10:54 UTC - SWE-1.7] Distributed mesh network remains disabled intentionally (STUB_AUDIT Tier 3.2 DEFER). Re-enabling cross-instance comms would require a memory-safe redesign and is not appropriate without explicit approval.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: mesh network still DISABLED in app/main.py:579-600 (memory optimization). Status remains review pending owner decision.\n[2026-07-28 21:29 UTC - SWE-1.7-Max] Re-enabled Mesh Network in main.py under ENABLE_HEAVY_SERVICES guard; capped MeshNetwork._request_history and _collaborations to prevent unbounded memory growth; fixed ruff issues in mesh_network.py and mesh_handlers.py.\n[2026-08-24 18:37 UTC] Reverted in-progress status claimed by mistake for Bandit fix",
     "priority": "low",
     "status": "resolved",
     "target_model": "swe-1.7",
     "title": "main.py:470,489 - Distributed mesh network DISABLED",
-    "updated_at": "2026-07-28T21:29:26.658350+00:00"
+    "updated_at": "2026-08-24T18:37:42.194597+00:00"
   },
   {
     "assigned_agent": "SWE-1.7-Max",
@@ -1999,5 +1999,19 @@
     "created_at": "2026-08-24T15:16:19Z",
     "updated_at": "2026-08-24T15:16:43.791185+00:00",
     "notes": "[2026-08-24 15:16 UTC] Investigation complete. Root cause: record.html line 94 sends cookie('semptify_uid') as user_id form field; the cookie is the signed value (75 chars), not the bare user id. Server's upload_and_process already overrides the form value with the verified session identity from yellow_access and logs a warning. Fallback is safe because yellow_access rejects invalid cookies before the endpoint runs. Recommended fix: stop sending user_id from the form (or stop reading the signed cookie for it) as a cleanup task. No code changes made; findings recorded in BUILD_STATE.md."
+  },
+  {
+    "assigned_agent": "SWE-1.7-Max",
+    "category": "build",
+    "created_at": "2026-08-24T18:40:00Z",
+    "description": "Bandit B608 flagged app/core/features.py set_enabled() for possible SQL injection through string-based query construction. Refactor to use parameterized timestamp instead of f-string.",
+    "file_path": "app/core/features.py",
+    "id": "todo-100",
+    "notes": "CI Security Scan on PR #110 reported B608 in app/core/features.py:238. now_sql is a hardcoded dialect constant, but Bandit flags the f-string.\n[2026-08-24 18:38 UTC] Refactored set_enabled to bind a Python UTC timestamp as :updated_at, removing f-string SQL",
+    "priority": "high",
+    "status": "resolved",
+    "target_model": "swe-1.7",
+    "title": "Fix Bandit B608 SQL injection false positive in features.py",
+    "updated_at": "2026-08-24T18:38:45.437965+00:00"
   }
 ]

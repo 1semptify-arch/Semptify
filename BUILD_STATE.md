@@ -13,6 +13,11 @@
   instead of scanning certificate filenames for `document_id[:8]`, which
   failed because certificates are named by `certificate_id`.
 
+### CI fix
+- Refactored `app/core/features.py::set_enabled()` to bind `updated_at` as a
+  parameter instead of interpolating `NOW()`/`CURRENT_TIMESTAMP` into the SQL
+  string, eliminating the Bandit B608 SQL-injection warning.
+
 ### Database
 - Applied missing schema columns to Neon production branch manually
   (`event_date`, `received_date` on `documents` and `vault_index`;
