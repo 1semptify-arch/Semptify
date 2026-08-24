@@ -1838,13 +1838,13 @@
     "title": "Investigate OAuth refresh-token decryption failure for LUtest***",
     "description": "Investigate only; do not change token code. Determine whether the LUtest*** decrypt failure is isolated or systemic, find the real exception and call site, check Render/local key divergence, and identify blast radius of storage-as-identity flows that depend on refresh-token decryption.",
     "file_path": "app/core/oauth_token_manager.py",
-    "status": "in_progress",
+    "status": "review",
     "priority": "high",
     "source": "ad-hoc",
     "target_model": "swe-1.7",
     "created_at": "2026-08-24T00:00:00Z",
-    "updated_at": "2026-08-24T05:22:24.554894+00:00",
-    "notes": "Handoff from Load Profile System / memory assessment. Investigation-only; report findings before any token code changes.",
+    "updated_at": "2026-08-24T05:28:55.124401+00:00",
+    "notes": "Handoff from Load Profile System / memory assessment. Investigation-only; report findings before any token code changes.\n[2026-08-24 05:28 UTC - SWE-1.7-Max] Investigation complete. Root cause: key mismatch (SECRET_KEY used for encryption differs from decryption). LUtest1234 session currently decrypts with local .env secret, but GUbGQUTpK6 session fails with InvalidTag. Fresh GUtest1234 token with consistent key works. Failure is data/config-dependent, not all tokens. Recommend: stable SECRET_KEY enforcement and key-rotation migration path before production. Do not change token code without sign-off.",
     "assigned_agent": "SWE-1.7-Max"
   },
   {
@@ -1852,12 +1852,13 @@
     "title": "Add feature_flags/SQLite-ARRAY entry to Known Failure Registry",
     "description": "Update AGENTS.md Known Failure Registry to record the second sa.ARRAY-on-SQLite occurrence (feature_flags migration), the dialect-aware ensure_schema() fix pattern, and the rule that any new Alembic migration using sa.ARRAY must have a SQLite-compatible fallback path from the start.",
     "file_path": "AGENTS.md",
-    "status": "pending",
+    "status": "in_progress",
     "priority": "medium",
     "source": "ad-hoc",
     "target_model": "swe-1.7",
     "created_at": "2026-08-24T00:00:00Z",
-    "updated_at": "2026-08-24T00:00:00Z",
-    "notes": "Documentation-only change; one commit. List any other sa.ARRAY-using migrations found during search."
+    "updated_at": "2026-08-24T05:29:01.088659+00:00",
+    "notes": "Documentation-only change; one commit. List any other sa.ARRAY-using migrations found during search.",
+    "assigned_agent": "SWE-1.7-Max"
   }
 ]
