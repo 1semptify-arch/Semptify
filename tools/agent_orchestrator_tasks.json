@@ -1769,13 +1769,41 @@
     "title": "Pass 1 classifier: lease vs notice disambiguation",
     "description": "Rebalance Pass 1 keyword scoring so court-admitted leases with enforcement clauses are not mislabeled as eviction_notice. Add mixed_document result type for strong dual-signal documents. Create docs/classification-test-fixtures/ with labeled sample PDFs and a regression test.",
     "file_path": "app/services/document_intake.py",
-    "status": "in_progress",
+    "status": "resolved",
     "priority": "high",
     "source": "ad-hoc",
     "created_at": "2026-08-23T00:00:00Z",
-    "updated_at": "2026-08-24T03:12:10.086406+00:00",
+    "updated_at": "2026-08-24T03:16:49.771772+00:00",
     "target_model": "swe-1.7",
     "assigned_agent": "SWE-1.7-Max",
-    "notes": "Handoff from Brad. Constraint: regex/pattern only, no ML/AI, no UI changes. Include lese.pdf as a labeled fixture. D:\\@@@@@@@safe is off-limits."
+    "notes": "Handoff from Brad. Constraint: regex/pattern only, no ML/AI, no UI changes. Include lese.pdf as a labeled fixture. D:\\@@@@@@@safe is off-limits.\n[2026-08-24 03:16 UTC] Pass 1 classifier rebalanced; lease_02 (real lese.pdf) now classifies as LEASE; mixed_01 as MIXED_DOCUMENT; notice_01 as EVICTION_NOTICE. 47 tests pass; guardrail passes; 13 files committed."
+  },
+  {
+    "id": "ad-hoc-document-dates-2026-08-24",
+    "title": "MVP document date fields: event_date, received_date, upload_date",
+    "description": "Add event_date and received_date to the Document and VaultDocument data models, API responses, and update endpoints. Ensure upload_date remains immutable. Enable independent sorting on all three dates.",
+    "file_path": "app/services/vault_upload_service.py",
+    "status": "pending",
+    "priority": "high",
+    "source": "ad-hoc",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T03:44:37.220692+00:00",
+    "target_model": "swe-1.7",
+    "assigned_agent": "SWE-1.7-Max",
+    "notes": "User authorized all three remaining blockers after classifier fix. View button fix will be done first."
+  },
+  {
+    "id": "ad-hoc-view-button-2026-08-24",
+    "title": "Fix Record page View button 404",
+    "description": "The View button on /gui/record calls /api/unified-overlays/compose-view, which is not mounted in the live tier. Add a ?view=1 query parameter to the existing /api/vault/{id}/download endpoint and change the View button to open it in a new tab for preview.",
+    "file_path": "app/modules/vault/router.py",
+    "status": "in_progress",
+    "priority": "high",
+    "source": "ad-hoc",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T03:44:33.994658+00:00",
+    "target_model": "swe-1.7",
+    "assigned_agent": "SWE-1.7-Max",
+    "notes": "Dead-end fix. The unified_overlays module is RESEARCH tier and not mounted in production; use the core vault download endpoint for preview."
   }
 ]

@@ -5285,7 +5285,25 @@ Resumed browser switch + storage validation work from 10 hours prior. Identified
 - Tests: .\test_browser_switch_full.ps1 passes ✅
 
 ---
-# BUILD_STATE.md -- Semptify Live Deployment State
+# BUILD_STATE
+
+## Session -- 2026-08-24 — View button dead-end fix
+
+### What changed
+- `app/modules/vault/router.py`: added `view` query parameter to `/api/vault/{document_id}/download`. When `view=true` (or `view=1`), the endpoint returns `Content-Disposition: inline` so the browser can display the PDF in a tab.
+- `app/templates/gui/record.html`: `viewDoc()` now opens `/api/vault/{vault_id}/download?view=1` in a new tab instead of calling the missing `POST /api/unified-overlays/compose-view` route.
+
+### Why
+- `/api/unified-overlays/compose-view` lives in `app.modules.unified_overlays` which is a `ProductTier.RESEARCH` module and is not mounted in the live product (`_LIVE_TIERS` enables only CORE/EXTENDED/ADVOCATE/ADMIN). The Record page UI was hitting a 404 and silently falling back to a download.
+- The existing vault download endpoint is already authenticated and serves the file from cloud storage, so it is the canonical path for both download and preview.
+
+### Verification
+- `python -m py_compile app/modules/vault/router.py`: PASS.
+- `python -m pytest tests/test_documents.py -q --no-cov`: 41 passed.
+- UI static review: the View button now calls a mounted core endpoint.
+
+---
+.md -- Semptify Live Deployment State
 
 ### Guardrail Engine Run — 2026-07-16T12:25:25
 

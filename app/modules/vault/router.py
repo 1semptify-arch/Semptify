@@ -634,13 +634,15 @@ async def list_documents(
 async def download_document(
     document_id: str,
     access_token: str = None,
+    view: bool = False,
     user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
 ):
     """
-    Download a document from the user's cloud storage vault.
+    Download or preview a document from the user's cloud storage vault.
 
-    Returns the file content and original filename.
+    Set `view=true` to display the file in the browser (inline disposition)
+    instead of forcing a download.
     """
     if not access_token:
         raise HTTPException(status_code=400, detail="access_token required")
@@ -684,10 +686,11 @@ async def download_document(
 
     from fastapi.responses import Response
 
+    disposition = "inline" if view else "attachment"
     return Response(
         content=file_content,
         media_type=target_cert.get("mime_type", "application/octet-stream"),
-        headers={"Content-Disposition": f'attachment; filename="{target_cert.get("original_filename", "document")}"'},
+        headers={"Content-Disposition": f'{disposition}; filename="{target_cert.get("original_filename", "document")}"'},
     )
 
 

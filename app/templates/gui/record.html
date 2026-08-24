@@ -174,17 +174,11 @@
     }
 
     function viewDoc(d) {
-        const url = '/api/unified-overlays/compose-view?document_id=' + encodeURIComponent(d.vault_id) + '&overlay_ids=[]&apply_redactions=true';
-        fetch(url, { method: 'POST', credentials: 'include' })
-            .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
-            .then(data => {
-                if (data.view_url) {
-                    window.open(data.view_url, '_blank');
-                } else {
-                    downloadDoc(d);
-                }
-            })
-            .catch(() => downloadDoc(d));
+        // The unified_overlays/compose-view route lives in the RESEARCH tier and
+        // is not mounted in the live product. Use the canonical vault download
+        // endpoint with ?view=1 to preview the file in a new tab.
+        const url = '/api/vault/' + encodeURIComponent(d.vault_id) + '/download?view=1';
+        window.open(url, '_blank');
     }
 
     function downloadDoc(d) {
