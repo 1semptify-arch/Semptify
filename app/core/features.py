@@ -25,6 +25,8 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from fastapi import HTTPException, status
 
+from app.core.utc import utc_now
+
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -224,26 +226,27 @@ class FeatureFlagManager:
     async def set_enabled(self, flag_name: str, enabled: bool, updated_by: str = "system") -> None:
         """Persist flag change to the DB and update in-memory cache immediately.
 
-        Dialect-aware: NOW() is PostgreSQL-only, SQLite needs CURRENT_TIMESTAMP.
-        The upsert syntax itself (ON CONFLICT ... DO UPDATE ... EXCLUDED) is
-        supported by both.
+        Uses a Python-generated UTC timestamp passed as a bound parameter so the
+        same code is safe against SQL injection and works on both PostgreSQL and
+        SQLite (the ON CONFLICT ... DO UPDATE ... EXCLUDED syntax is supported
+        by both).
         """
         from sqlalchemy import text
 
         from app.core.database import get_session_factory
 
         async with get_session_factory()() as session:
-            now_sql = "NOW()" if _dialect_name(session) == "postgresql" else "CURRENT_TIMESTAMP"
+            updated_at = utc_now()
             await session.execute(
-                text(f"""
+                text("""
                 INSERT INTO feature_flags (flag_name, enabled, updated_by, updated_at)
-                VALUES (:name, :enabled, :by, {now_sql})
+                VALUES (:name, :enabled, :by, :updated_at)
                 ON CONFLICT (flag_name) DO UPDATE
                     SET enabled    = EXCLUDED.enabled,
                         updated_by = EXCLUDED.updated_by,
-                        updated_at = {now_sql}
+                        updated_at = EXCLUDED.updated_at
             """),
-                {"name": flag_name, "enabled": enabled, "by": updated_by},
+                {"name": flag_name, "enabled": enabled, "by": updated_by, "updated_at": updated_at},
             )
             await session.commit()
         self._cache[flag_name] = enabled

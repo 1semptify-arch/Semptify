@@ -216,7 +216,7 @@ templates.env.filters["format_date"] = format_date_filter
 
 # Product Manifest — replaces the 200+ line router-import block
 from app.core.contract_loader import load_all_contracts
-from app.core.product_manifest import ProductTier, register_tiers
+from app.core.product_manifest import ProductTier, is_mvp_deploy, register_tiers
 from app.core.utc import utc_now
 
 # Tier configuration: production = CORE/EXTENDED/ADVOCATE/ADMIN; development = all
@@ -1910,6 +1910,24 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     enabled_tiers = _get_enabled_tiers()
     register_tiers(fastapi_app, *enabled_tiers)
+
+    # Document Center is a DEV-tier module that may not have been loaded above.
+    # For non-MVP builds, explicitly mount /api/dc so the document-type registry
+    # (including house_rules) is reachable without requiring a full development env.
+    if not is_mvp_deploy():
+        from app.modules.document_center import router as document_center_router
+
+        already_mounted = any(
+            getattr(r, "path", "").startswith("/api/dc")
+            for r in fastapi_app.routes
+            if hasattr(r, "path")
+        )
+        if not already_mounted:
+            fastapi_app.include_router(
+                document_center_router,
+                prefix="/api/dc",
+                tags=["Document Center"],
+            )
 
     # Stateless composer landing prototype for the public utility experience.
     app_static_path = BASE_PATH / "app" / "static"

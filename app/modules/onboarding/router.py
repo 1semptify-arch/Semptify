@@ -490,11 +490,11 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             probe_bytes = (f"Semptify vault probe | user={user.user_id} | ts={utc_now().isoformat()}").encode()
             await asyncio.wait_for(
                 client.upload(subfolder=subfolder, filename=probe_name, content=probe_bytes, mime_type="text/plain"),
-                timeout=25.0,
+                timeout=60.0,
             )
             read_back = await asyncio.wait_for(
                 client.download(subfolder=subfolder, filename=probe_name),
-                timeout=25.0,
+                timeout=60.0,
             )
             if read_back != probe_bytes:
                 raise ValueError("Read-back mismatch — vault storage is unreliable")
@@ -528,14 +528,14 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     access_token=user.access_token,
                     storage_provider=provider_name,
                 ),
-                timeout=55.0,
+                timeout=110.0,
             )
 
             # Verify the uploaded document can be retrieved from the vault storage.
             # This ensures stage 3 only passes when the uploaded file is actually present.
             stored_bytes = await asyncio.wait_for(
                 vault_service.get_document_content(vault_doc.vault_id, access_token=user.access_token),
-                timeout=40.0,
+                timeout=90.0,
             )
             if stored_bytes is None:
                 raise ValueError("Uploaded document could not be retrieved from vault storage")
