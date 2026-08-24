@@ -1860,5 +1860,33 @@
     "updated_at": "2026-08-24T05:30:59.887136+00:00",
     "notes": "Documentation-only change; one commit. List any other sa.ARRAY-using migrations found during search.\n[2026-08-24 05:30 UTC - SWE-1.7-Max] Added Known Failure Registry entry #20 for sa.ARRAY-on-SQLite (module_registry and feature_flags).",
     "assigned_agent": "SWE-1.7-Max"
+  },
+  {
+    "id": "ad-hoc-secret-key-fail-loud-2026-08-24",
+    "title": "Fail loud on missing/weak SECRET_KEY",
+    "description": "Change _resolve_secret_key() in app/core/config.py to raise at startup when SECRET_KEY is missing or uses the weak default, instead of silently generating a random per-process key that corrupts stored sessions. Allow a stable test key when TESTING=true.",
+    "file_path": "app/core/config.py",
+    "status": "resolved",
+    "priority": "high",
+    "source": "ad-hoc",
+    "target_model": "swe-1.7",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T06:18:20.187039+00:00",
+    "notes": "Handoff from OAuth token decryption investigation. Task A.\n[2026-08-24 06:18 UTC - SWE-1.7-Max] _resolve_secret_key() now raises on missing/weak SECRET_KEY; tests get a deterministic TESTING key.",
+    "assigned_agent": "SWE-1.7-Max"
+  },
+  {
+    "id": "ad-hoc-decrypt-reconnect-2026-08-24",
+    "title": "Graceful reconnect on token decrypt failure",
+    "description": "Catch cryptography.exceptions.InvalidTag and other decrypt failures specifically in app/core/auto_refresh.py::_refresh_from_db(), return a token_corrupt status, and route the user through /storage/reconnect instead of a dead-end 401. Update callers to show accurate, calm reconnect messaging.",
+    "file_path": "app/core/auto_refresh.py",
+    "status": "in_progress",
+    "priority": "high",
+    "source": "ad-hoc",
+    "target_model": "swe-1.7",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T05:41:27.088695+00:00",
+    "notes": "Handoff from OAuth token decryption investigation. Task B.",
+    "assigned_agent": "SWE-1.7-Max"
   }
 ]
