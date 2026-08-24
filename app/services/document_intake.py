@@ -64,6 +64,7 @@ class DocumentType(StrEnum):
     MOVE_OUT_CHECKLIST = "move_out_checklist"
     SECURITY_DEPOSIT_RECEIPT = "security_deposit_receipt"
     SECURITY_DEPOSIT_ITEMIZATION = "security_deposit_itemization"
+    MIXED_DOCUMENT = "mixed_document"
     OTHER = "other"
 
 
@@ -312,6 +313,47 @@ class IntakeDocument:
 class DocumentClassifier:
     """Classify documents by type based on content analysis."""
 
+    # Lease-structural patterns are scored separately from ordinary vocabulary.
+    # A strong lease structure should not be overridden by generic
+    # eviction/notice vocabulary (e.g., "evict" or "vacate" in a lease clause).
+    # Mixed documents are flagged only when both strong lease structure AND
+    # strong notice/quit signals are present, matching real-world bundled packets.
+    LEASE_STRUCTURE = {
+        "patterns": {
+            # Term/duration language (real doc: lese.pdf has 16 "this lease" hits)
+            r"\bthis lease\b": 5,
+            r"\bterm of (?:this|the) lease\b": 5,
+            r"\b(?:commencing|beginning|expiring|ending) on\b": 4,
+            # Rent schedule language
+            r"\bmonthly rent\b": 4,
+            r"\brent is due\b": 4,
+            r"\bdue on the\b": 3,
+            # Party and signature-block markers
+            r"\blandlord and tenant\b": 4,
+            r"\blessor and lessee\b": 4,
+            r"\bin witness whereof\b": 5,
+            r"\bwitnesseth\b": 5,
+            # Financial/scope markers
+            r"\bsecurity deposit\b": 3,
+            r"\bdamage deposit\b": 3,
+            r"\bpet deposit\b": 3,
+            r"\bpremises\b": 2,
+            # Agreement type (often at the top; real doc: lese.pdf has 1 agreement mention)
+            r"\b(?:lease|rental|tenancy) agreement\b": 3,
+        },
+        # Per-pattern threshold to count as a structural hit
+        "min_hits": 1,
+    }
+
+    # Thresholds for mixed-document detection and lease override.
+    # These were calibrated against docs/classification-test-fixtures/:
+    #   lease_02.pdf (real court-admitted lease with enforcement clauses) must be LEASE.
+    #   mixed_01.pdf (synthetic lease + notice bundle) must be MIXED_DOCUMENT.
+    #   notice_01.pdf (synthetic notice) must be EVICTION_NOTICE or NOTICE_TO_QUIT.
+    MIXED_LEASE_STRUCTURAL_THRESHOLD = 20.0
+    MIXED_NOTICE_THRESHOLD = 5.0
+    LEASE_OVERRIDE_RATIO = 2.0
+
     # Keywords and patterns for document classification
     CLASSIFICATION_PATTERNS = {
         DocumentType.EVICTION_NOTICE: {
@@ -430,7 +472,53 @@ class DocumentClassifier:
 
             scores[doc_type] = score
 
-        # Find best match
+        # Compute lease-structural score separately from type vocabulary.
+        # Patterns are regex, counted by total matches, so repeated formal
+        # markers (e.g., "this lease" appearing 16 times in lese.pdf) count.
+        lease_structural_score = 0.0
+        for pattern, weight in cls.LEASE_STRUCTURE["patterns"].items():
+            matches = len(re.findall(pattern, text_lower))
+            if matches >= cls.LEASE_STRUCTURE["min_hits"]:
+                lease_structural_score += matches * weight
+
+        # Add filename bonus for lease-related names.
+        if "lease" in filename_lower:
+            lease_structural_score += 5.0
+
+        # Aggregate notice/eviction signal. NOTICE_TO_QUIT acts as the strong
+        # notice signal; EVICTION_NOTICE covers general eviction vocabulary.
+        eviction_score = scores.get(DocumentType.EVICTION_NOTICE, 0.0) + scores.get(
+            DocumentType.NOTICE_TO_QUIT, 0.0
+        )
+        notice_score = scores.get(DocumentType.NOTICE_TO_QUIT, 0.0)
+
+        lease_total = scores.get(DocumentType.LEASE, 0.0) + lease_structural_score
+
+        # Decision order:
+        # 1. Mixed packet: both strong lease structure AND strong notice signal.
+        # 2. Lease override: strong lease structure and either weak/no notice
+        #    signal or lease structure dominates eviction vocabulary.
+        # 3. Eviction override: strong eviction signal and weak/no lease structure.
+        # 4. Otherwise, fall through to the previous best-match behavior.
+        is_lease_structure_strong = (
+            lease_structural_score >= cls.MIXED_LEASE_STRUCTURAL_THRESHOLD
+        )
+        is_notice_strong = notice_score >= cls.MIXED_NOTICE_THRESHOLD
+
+        if is_lease_structure_strong and is_notice_strong:
+            # Both a lease and a notice present; likely a bundled packet.
+            mixed_score = lease_total + eviction_score
+            confidence = min(mixed_score / 80.0, 1.0)
+            return DocumentType.MIXED_DOCUMENT, max(confidence, 0.4)
+
+        if is_lease_structure_strong and (
+            notice_score == 0
+            or lease_structural_score >= eviction_score * cls.LEASE_OVERRIDE_RATIO
+        ):
+            confidence = min(lease_total / 50.0, 1.0)
+            return DocumentType.LEASE, max(confidence, 0.4)
+
+        # Find best match from category scores when no lease override applies.
         if scores:
             best_type = max(scores, key=scores.get)
             best_score = scores[best_type]
@@ -952,6 +1040,7 @@ class DocumentAnalyzer:
             DocumentType.REPAIR_REQUEST: "This is a repair/maintenance request.",
             DocumentType.RECEIPT: "This is a payment receipt.",
             DocumentType.SECURITY_DEPOSIT_ITEMIZATION: "This is a security deposit itemization showing deductions.",
+            DocumentType.MIXED_DOCUMENT: "This document appears to contain multiple document types bundled together.",
         }
 
         base_summary = summaries.get(doc_type, "This document has been analyzed.")

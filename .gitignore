@@ -196,6 +196,13 @@ CREDENTIALS_SETUP_WORKBOOK_REVEALED.html
 
 # PDFs / binary attachments
 *.pdf
+
+# Allow synthetic classification test fixtures; keep the real case PDF out.
+!docs/classification-test-fixtures/lease_01.pdf
+!docs/classification-test-fixtures/notice_01.pdf
+!docs/classification-test-fixtures/mixed_01.pdf
+docs/classification-test-fixtures/lease_02.pdf
+
 semptify logo.png
 5.jpg
 
