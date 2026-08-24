@@ -576,3 +576,17 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
 | `correspondence` | T2 | Tenant/landlord correspondence, metadata + content. |
 | `user_concerns` | T2 | Tenant-submitted content, PII-bearing. |
 | `advanced` | T1 (tools) / T0 (`detect_repeated_fees` cost-guard) | Cost-guard is counting only, no identity data. |
+
+### 20. Alembic `sa.ARRAY` migrations fail on SQLite (module_registry and feature_flags)
+
+- **What happened:** SQLite has no native `ARRAY` type. Two Alembic migrations used `sa.ARRAY(sa.String())` and silently failed to run on local SQLite:
+  - First occurrence: `alembic/versions/20260615_add_module_registry.py` (`module_registry.depends_on` column) — caused 24 test failures until `app/models/models.py` changed `depends_on` from `ARRAY(String)` to `JSON`.
+  - Second occurrence: `alembic/versions/20260609_add_feature_flags_table.py` (`feature_flags.allowed_roles` and `allowed_states`) — the table silently did not exist in local dev, masking real feature-flag behavior.
+- **Fix pattern:** Keep the PostgreSQL/Render Alembic migrations unchanged (they are correct for Postgres), but add a dialect-aware `ensure_schema()` startup path for SQLite:
+  - `app/core/module_overrides.py::ensure_schema()` already uses this pattern for the `module_overrides` table.
+  - `app/core/features.py::ensure_schema()` now mirrors it for `feature_flags`, creating the table with `TEXT` columns instead of `TEXT[]`, `INTEGER PRIMARY KEY AUTOINCREMENT` instead of `SERIAL`, and `CURRENT_TIMESTAMP` instead of `NOW()`.
+  - `app/main.py` calls both `ensure_schema()` functions during the lifespan "Module Overrides Init" stage.
+  - Readers (e.g. `FeatureFlagManager._refresh_from_db()`) must tolerate `allowed_roles` as a JSON string on SQLite.
+- **Rule: ANY new Alembic migration that uses `sa.ARRAY` needs a SQLite-compatible fallback path from the start.** Either avoid `sa.ARRAY` in the model, or add a matching dialect-aware `ensure_schema()` and make the reader code tolerate the SQLite representation.
+- **Files:** `alembic/versions/20260615_add_module_registry.py`, `alembic/versions/20260609_add_feature_flags_table.py`, `app/models/models.py`, `app/core/module_overrides.py`, `app/core/features.py`, `app/main.py`.
+- **Other `sa.ARRAY` migrations found during this search:** Only the two above (`module_registry` and `feature_flags`). No other Alembic migration in `alembic/versions/` currently uses `sa.ARRAY`.

@@ -1852,13 +1852,13 @@
     "title": "Add feature_flags/SQLite-ARRAY entry to Known Failure Registry",
     "description": "Update AGENTS.md Known Failure Registry to record the second sa.ARRAY-on-SQLite occurrence (feature_flags migration), the dialect-aware ensure_schema() fix pattern, and the rule that any new Alembic migration using sa.ARRAY must have a SQLite-compatible fallback path from the start.",
     "file_path": "AGENTS.md",
-    "status": "in_progress",
+    "status": "resolved",
     "priority": "medium",
     "source": "ad-hoc",
     "target_model": "swe-1.7",
     "created_at": "2026-08-24T00:00:00Z",
-    "updated_at": "2026-08-24T05:29:01.088659+00:00",
-    "notes": "Documentation-only change; one commit. List any other sa.ARRAY-using migrations found during search.",
+    "updated_at": "2026-08-24T05:30:59.887136+00:00",
+    "notes": "Documentation-only change; one commit. List any other sa.ARRAY-using migrations found during search.\n[2026-08-24 05:30 UTC - SWE-1.7-Max] Added Known Failure Registry entry #20 for sa.ARRAY-on-SQLite (module_registry and feature_flags).",
     "assigned_agent": "SWE-1.7-Max"
   }
 ]
