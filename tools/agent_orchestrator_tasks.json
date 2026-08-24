@@ -1921,13 +1921,13 @@
     "title": "Register house_rules in app/core/document_types.py",
     "description": "Add house_rules document type to the DOCUMENT_TYPES registry in app/core/document_types.py so Document Center can render a type-specific checklist and route for house-rules segments.",
     "file_path": "app/core/document_types.py",
-    "status": "in_progress",
+    "status": "resolved",
     "priority": "low",
     "source": "ad-hoc",
     "target_model": "swe-1.7",
     "assigned_agent": "SWE-1.7-Max",
     "created_at": "2026-08-24T00:00:00Z",
-    "updated_at": "2026-08-24T08:00:00.000000+00:00",
-    "notes": "Handoff follow-up from Pass 1 bundle segmentation: DocumentType.HOUSE_RULES exists in document_intake.py but is not in the document center registry."
+    "updated_at": "2026-08-24T13:17:00.944991+00:00",
+    "notes": "Handoff follow-up from Pass 1 bundle segmentation: DocumentType.HOUSE_RULES exists in document_intake.py but is not in the document center registry.\n[2026-08-24 13:17 UTC] Registered house_rules in app/core/document_types.py with fields and added tests/test_document_types.py coverage."
   }
 ]
