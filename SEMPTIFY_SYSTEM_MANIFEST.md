@@ -1,6 +1,20 @@
 # SEMPTIFY SYSTEM MANIFEST
 
-**Version:** 5.0.0 | **Last Updated:** 2026-06-14 | **Location:** `E:\master-repo\sources\app-semptify-fastapi\`
+> ⚠️ **STALE SYSTEM MANIFEST — last updated 2026-06-14, prior to Page Composer / Page Shell,
+> the three-date document model, the load-profile system, and the live 123-module product manifest.**
+>
+> The canonical, live source of truth for module registration is `app/core/product_manifest.py`
+> (`MANIFEST.summary()` reports the current state at runtime). The canonical current work state
+> is `ACTIVE_CONTEXT.md`. The canonical build/verification log is the top of `BUILD_STATE.md`.
+>
+> This file is kept for historical project-identity reference; cross-check the live files above
+> before treating any module table, tier status, or root-path statement below as current.
+>
+> **Corrected header:**
+> - Active worktree: `E:\master-repo\modules\app-semptify-fastapi\`
+> - Canonical source mirror: `E:\master-repo\sources\app-semptify-fastapi\`
+
+**Version:** 5.0.0 | **Last Updated:** 2026-06-14 (historical; see warning above)
 
 This is the FIRST file any AI or developer must read before touching Semptify. It defines what is active, what is disabled, the rules for adding modules, and the complete session context.
 
