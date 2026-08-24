@@ -1106,7 +1106,6 @@ async def get_current_user(
             "G": StorageProvider.GOOGLE_DRIVE,
             "D": StorageProvider.DROPBOX,
             "O": StorageProvider.ONEDRIVE,
-            "L": StorageProvider.LOCAL,  # Local/admin users
         }
         role_map = {
             "A": UserRole.ADMIN,
@@ -1170,12 +1169,11 @@ def is_valid_user_storage(user_id: str) -> bool:
     Check if user ID represents a valid user with connected storage.
 
     SECURITY: System users and demo users are NOT valid for production use.
-    In production users MUST connect their own cloud storage; the local (L)
-    provider is allowed only for local development and testing.
+    Every user MUST connect one of the supported OAuth cloud storage providers
+    (Google Drive, Dropbox, or OneDrive). Local-only identities are not supported.
 
     Valid user ID format: <provider><role><8-char-random>
     Example: GU7x9kM2pQ = Google Drive + User + 7x9kM2pQ
-    Example: LU7x9kM2pQ = Local + User + 7x9kM2pQ
 
     Invalid patterns:
     - "open-mode-user" - demo/testing only
@@ -1198,9 +1196,9 @@ def is_valid_user_storage(user_id: str) -> bool:
     if len(str(user_id)) < 10:
         return False
 
-    # Check provider code is valid (G=Google Drive, D=Dropbox, O=OneDrive, L=Local dev)
+    # Check provider code is valid (G=Google Drive, D=Dropbox, O=OneDrive)
     provider_code = user_id[0].upper()
-    if provider_code not in ["G", "D", "O", "L"]:
+    if provider_code not in ["G", "D", "O"]:
         return False
 
     # Check role code is valid (A, M, U, V, L)
