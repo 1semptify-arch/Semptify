@@ -1140,12 +1140,15 @@ async def get_current_user(
             # See: app.core.auto_refresh.ensure_valid_token()
             # Tracking: RECONNECT-LOOP-001
             real_token = None
+            reconnect_reason = None
             try:
                 from app.core.auto_refresh import ensure_valid_token
 
                 _is_valid, _token_obj, _status = await ensure_valid_token(raw_uid)
                 if _is_valid and _token_obj:
                     real_token = _token_obj.access_token
+                else:
+                    reconnect_reason = _status
             except Exception as _e:
                 logger.warning("Token refresh failed for %s***: %s", raw_uid[:6], _e)
 
@@ -1155,6 +1158,7 @@ async def get_current_user(
                 storage_user_id=raw_uid,
                 access_token=real_token or "no-token",
                 role=role,
+                reconnect_reason=reconnect_reason,
             )
 
     # No valid cookie - user needs to connect storage
@@ -1332,15 +1336,28 @@ async def yellow_access(
     if not user or not is_valid_user_storage(user.user_id):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"error": "auth_required", "level": "yellow"},
+            detail={
+                "error": "auth_required",
+                "level": "yellow",
+                "message": "Connect your storage to continue. Your documents stay in your cloud.",
+                "action": "redirect",
+                "redirect_url": "/storage/reconnect",
+            },
         )
     if not user.access_token or user.access_token == "no-token":
+        if user.reconnect_reason == "token_corrupt":
+            message = (
+                "Your stored storage connection can't be read. "
+                "Reconnecting will restore access. Your documents are safe."
+            )
+        else:
+            message = "We're reconnecting you to your storage. Your documents are safe."
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={
-                "error": "token_required",
+                "error": "reconnect_required",
                 "level": "yellow",
-                "message": "We're reconnecting you to your storage. Your documents are safe.",
+                "message": message,
                 "action": "redirect",
                 "redirect_url": "/storage/reconnect",
             },
@@ -1360,15 +1377,28 @@ async def red_access(
     if not user or not is_valid_user_storage(user.user_id):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"error": "auth_required", "level": "red"},
+            detail={
+                "error": "auth_required",
+                "level": "red",
+                "message": "Connect your storage to continue. Your documents stay in your cloud.",
+                "action": "redirect",
+                "redirect_url": "/storage/reconnect",
+            },
         )
     if not user.access_token or user.access_token == "no-token":
+        if user.reconnect_reason == "token_corrupt":
+            message = (
+                "Your stored storage connection can't be read. "
+                "Reconnecting will restore access. Your documents are safe."
+            )
+        else:
+            message = "We're refreshing your storage connection. You'll be ready to continue in just a moment."
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={
-                "error": "token_required",
+                "error": "reconnect_required",
                 "level": "red",
-                "message": "We're refreshing your storage connection. You'll be ready to continue in just a moment.",
+                "message": message,
                 "action": "redirect",
                 "redirect_url": "/storage/reconnect",
             },

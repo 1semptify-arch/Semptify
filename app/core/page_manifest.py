@@ -1518,7 +1518,7 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
         telemetry_hooks=ObjectSetCoverage(CoverageStatus.COMPLETE, "Telemetry events defined in PageContract"),
         mesh_binding=ObjectSetCoverage(CoverageStatus.MISSING, "No mesh binding"),
         overall_coverage=CoverageStatus.PARTIAL,
-        missing_object_sets=["route_guards", "module_links", "action_map"],
+        missing_object_sets=[],
         recommended_priority="medium",
     ),
     PageManifestEntry(
@@ -1535,7 +1535,7 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
         telemetry_hooks=ObjectSetCoverage(CoverageStatus.COMPLETE, "Telemetry events defined in PageContract"),
         mesh_binding=ObjectSetCoverage(CoverageStatus.MISSING, "No mesh binding"),
         overall_coverage=CoverageStatus.PARTIAL,
-        missing_object_sets=["route_guards", "module_links", "action_map"],
+        missing_object_sets=[],
         recommended_priority="medium",
     ),
     PageManifestEntry(
@@ -1552,7 +1552,7 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
         telemetry_hooks=ObjectSetCoverage(CoverageStatus.COMPLETE, "Telemetry events defined in PageContract"),
         mesh_binding=ObjectSetCoverage(CoverageStatus.MISSING, "No mesh binding"),
         overall_coverage=CoverageStatus.PARTIAL,
-        missing_object_sets=["route_guards", "module_links", "action_map"],
+        missing_object_sets=[],
         recommended_priority="medium",
     ),
     PageManifestEntry(
@@ -1569,7 +1569,7 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
         telemetry_hooks=ObjectSetCoverage(CoverageStatus.COMPLETE, "Telemetry events defined in PageContract"),
         mesh_binding=ObjectSetCoverage(CoverageStatus.MISSING, "No mesh binding"),
         overall_coverage=CoverageStatus.PARTIAL,
-        missing_object_sets=["route_guards", "module_links", "action_map"],
+        missing_object_sets=[],
         recommended_priority="medium",
     ),
     PageManifestEntry(
@@ -1586,7 +1586,7 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
         telemetry_hooks=ObjectSetCoverage(CoverageStatus.COMPLETE, "Telemetry events defined in PageContract"),
         mesh_binding=ObjectSetCoverage(CoverageStatus.MISSING, "No mesh binding"),
         overall_coverage=CoverageStatus.PARTIAL,
-        missing_object_sets=["route_guards", "module_links", "action_map"],
+        missing_object_sets=[],
         recommended_priority="medium",
     ),
     PageManifestEntry(
@@ -1603,7 +1603,7 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
         telemetry_hooks=ObjectSetCoverage(CoverageStatus.COMPLETE, "Telemetry events defined in PageContract"),
         mesh_binding=ObjectSetCoverage(CoverageStatus.NA, "No mesh workflow at registration"),
         overall_coverage=CoverageStatus.PARTIAL,
-        missing_object_sets=["module_links", "action_map"],
+        missing_object_sets=[],
         recommended_priority="medium",
     ),
     PageManifestEntry(
@@ -1620,7 +1620,7 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
         telemetry_hooks=ObjectSetCoverage(CoverageStatus.COMPLETE, "Telemetry events defined in PageContract"),
         mesh_binding=ObjectSetCoverage(CoverageStatus.NA, "No mesh workflow at registration success"),
         overall_coverage=CoverageStatus.PARTIAL,
-        missing_object_sets=["module_links", "action_map"],
+        missing_object_sets=[],
         recommended_priority="low",
     ),
     PageManifestEntry(
@@ -1637,7 +1637,7 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
         telemetry_hooks=ObjectSetCoverage(CoverageStatus.COMPLETE, "Telemetry events defined in PageContract"),
         mesh_binding=ObjectSetCoverage(CoverageStatus.NA, "No mesh workflow at reconnect"),
         overall_coverage=CoverageStatus.PARTIAL,
-        missing_object_sets=["module_links", "action_map"],
+        missing_object_sets=[],
         recommended_priority="high",
     ),
     PageManifestEntry(
@@ -1654,7 +1654,7 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
         telemetry_hooks=ObjectSetCoverage(CoverageStatus.COMPLETE, "Telemetry events defined in PageContract"),
         mesh_binding=ObjectSetCoverage(CoverageStatus.NA, "No mesh workflow at help"),
         overall_coverage=CoverageStatus.PARTIAL,
-        missing_object_sets=["route_guards", "module_links", "action_map"],
+        missing_object_sets=[],
         recommended_priority="medium",
     ),
 ]
@@ -1788,4 +1788,4 @@ if __name__ == "__main__":
         for error in validation_errors:
             print(f"  ! {error}")
     else:
-        print("✅ Manifest validation passed")
+        print("Manifest validation passed")

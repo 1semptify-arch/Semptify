@@ -101,6 +101,7 @@ lxml>=5.0.0                 # Fast XML/HTML parser
 gunicorn>=21.0.0            # WSGI (use with uvicorn workers)
 pdfplumber>=0.10.0
 pymupdf>=1.23.0
+pytesseract>=0.3.10      # Local Tesseract OCR wrapper (requires tesseract-ocr binary)
 
 # PostgreSQL driver for production
 psycopg2-binary>=2.9.9

@@ -70,13 +70,24 @@ class RequestMetrics:
 
 @dataclass
 class SystemMetrics:
-    """System resource metrics."""
+    """System resource metrics.
+
+    `memory_percent` is WHOLE-MACHINE RAM usage (psutil.virtual_memory().percent) -
+    it includes every other process on the box, not just this one. On a
+    memory-constrained dev machine this can read 85-95% from browser/IDE/etc.
+    alone, which is why `process_memory_rss_mb` / `process_memory_percent`
+    (this process's own footprint) are tracked alongside it - see the
+    2026-08 local dev memory assessment that flagged the whole-machine number
+    as misleading on its own.
+    """
 
     cpu_percent: float
     memory_percent: float
     disk_usage_percent: float
     active_connections: int
     timestamp: datetime
+    process_memory_rss_mb: float = -1.0  # this process's resident set size, in MB
+    process_memory_percent: float = -1.0  # this process's share of total system RAM
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -85,6 +96,8 @@ class SystemMetrics:
             "disk_usage_percent": self.disk_usage_percent,
             "active_connections": self.active_connections,
             "timestamp": self.timestamp.isoformat(),
+            "process_memory_rss_mb": self.process_memory_rss_mb,
+            "process_memory_percent": self.process_memory_percent,
         }
 
 
@@ -109,6 +122,10 @@ class PerformanceMonitor:
         self.monitoring_active = False
         self.monitoring_thread = None
         self.sample_interval = 60  # seconds (was 30 — halve frequency to cut overhead)
+
+        # Cached handle to this process, for process-level memory tracking
+        # (distinct from psutil.virtual_memory(), which is whole-machine).
+        self._process = psutil.Process() if psutil is not None else None
 
     def start_monitoring(self):
         """Start background performance monitoring."""
@@ -158,7 +175,7 @@ class PerformanceMonitor:
             # CPU usage
             cpu_percent = psutil.cpu_percent(interval=1)
 
-            # Memory usage
+            # Memory usage - WHOLE MACHINE, includes every other process on the box.
             memory = psutil.virtual_memory()
             memory_percent = memory.percent
 
@@ -171,12 +188,26 @@ class PerformanceMonitor:
             # primary cause of the 85%+ memory usage that forced this monitor off.
             connections = -1  # sentinel: not collected
 
+            # This process's own memory footprint, separate from the
+            # whole-machine number above. Falls back to sentinel values if
+            # unavailable (e.g. process handle gone, permissions).
+            process_memory_rss_mb = -1.0
+            process_memory_percent = -1.0
+            if self._process is not None:
+                try:
+                    process_memory_rss_mb = self._process.memory_info().rss / (1024 * 1024)
+                    process_memory_percent = self._process.memory_percent()
+                except Exception as proc_err:
+                    logger.warning(f"Error collecting process-level memory: {proc_err}")
+
             metrics = SystemMetrics(
                 cpu_percent=cpu_percent,
                 memory_percent=memory_percent,
                 disk_usage_percent=disk_usage_percent,
                 active_connections=connections,
                 timestamp=utc_now(),
+                process_memory_rss_mb=process_memory_rss_mb,
+                process_memory_percent=process_memory_percent,
             )
 
             self.system_metrics.append(metrics)
@@ -186,6 +217,8 @@ class PerformanceMonitor:
             self._store_metric("system.memory_percent", memory_percent, "percent")
             self._store_metric("system.disk_usage_percent", disk_usage_percent, "percent")
             self._store_metric("system.active_connections", connections, "count")
+            self._store_metric("system.process_memory_rss_mb", process_memory_rss_mb, "mb")
+            self._store_metric("system.process_memory_percent", process_memory_percent, "percent")
 
         except Exception as e:
             logger.error(f"Error collecting system metrics: {e}")
@@ -205,12 +238,24 @@ class PerformanceMonitor:
                 {"cpu_percent": latest.cpu_percent, "threshold": self.high_cpu_threshold},
             )
 
-        # Check memory usage
+        # Check memory usage.
+        # NOTE: this alert still fires on WHOLE-MACHINE memory_percent, unchanged
+        # from before - the threshold/trigger logic is intentionally not touched
+        # here. Process-level numbers are logged alongside it purely as context,
+        # since whole-machine usage alone can't tell you whether *this app* is
+        # the cause (e.g. browser/IDE on a constrained dev box).
         if latest.memory_percent > self.high_memory_threshold:
             self._alert_performance_issue(
                 "high_memory_usage",
-                f"Memory usage at {latest.memory_percent:.1f}%",
-                {"memory_percent": latest.memory_percent, "threshold": self.high_memory_threshold},
+                f"Memory usage at {latest.memory_percent:.1f}% (machine-wide); "
+                f"this process is using {latest.process_memory_rss_mb:.1f}MB "
+                f"({latest.process_memory_percent:.1f}% of total RAM)",
+                {
+                    "memory_percent": latest.memory_percent,
+                    "threshold": self.high_memory_threshold,
+                    "process_memory_rss_mb": latest.process_memory_rss_mb,
+                    "process_memory_percent": latest.process_memory_percent,
+                },
             )
 
         # Check error rates
@@ -357,6 +402,8 @@ class PerformanceMonitor:
                 "memory_percent": latest_system.memory_percent,
                 "disk_usage_percent": latest_system.disk_usage_percent,
                 "active_connections": latest_system.active_connections,
+                "process_memory_rss_mb": latest_system.process_memory_rss_mb,
+                "process_memory_percent": latest_system.process_memory_percent,
             }
         else:
             system_stats = {}
