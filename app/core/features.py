@@ -21,9 +21,12 @@ import logging
 from collections.abc import Callable
 from enum import StrEnum
 from functools import wraps
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from fastapi import HTTPException, status
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -154,11 +157,22 @@ class FeatureFlagManager:
                 rows = result.fetchall()
             for row in rows:
                 self._cache[row.flag_name] = row.enabled
+                allowed_roles = row.allowed_roles
+                if isinstance(allowed_roles, str):
+                    # SQLite has no ARRAY type - allowed_roles is stored as
+                    # JSON text there (nothing writes it yet, but be
+                    # tolerant if something does in the future).
+                    import json
+
+                    try:
+                        allowed_roles = json.loads(allowed_roles) if allowed_roles else []
+                    except (ValueError, TypeError):
+                        allowed_roles = []
                 self._cache_detail[row.flag_name] = {
                     "flag_name": row.flag_name,
                     "enabled": row.enabled,
                     "rollout_percent": row.rollout_percent or 100,
-                    "allowed_roles": row.allowed_roles or [],
+                    "allowed_roles": allowed_roles or [],
                     "description": row.description or "",
                     "source": "database",
                 }
@@ -208,20 +222,26 @@ class FeatureFlagManager:
         return not (allowed_roles and role not in allowed_roles)
 
     async def set_enabled(self, flag_name: str, enabled: bool, updated_by: str = "system") -> None:
-        """Persist flag change to PostgreSQL and update in-memory cache immediately."""
+        """Persist flag change to the DB and update in-memory cache immediately.
+
+        Dialect-aware: NOW() is PostgreSQL-only, SQLite needs CURRENT_TIMESTAMP.
+        The upsert syntax itself (ON CONFLICT ... DO UPDATE ... EXCLUDED) is
+        supported by both.
+        """
         from sqlalchemy import text
 
         from app.core.database import get_session_factory
 
         async with get_session_factory()() as session:
+            now_sql = "NOW()" if _dialect_name(session) == "postgresql" else "CURRENT_TIMESTAMP"
             await session.execute(
-                text("""
+                text(f"""
                 INSERT INTO feature_flags (flag_name, enabled, updated_by, updated_at)
-                VALUES (:name, :enabled, :by, NOW())
+                VALUES (:name, :enabled, :by, {now_sql})
                 ON CONFLICT (flag_name) DO UPDATE
                     SET enabled    = EXCLUDED.enabled,
                         updated_by = EXCLUDED.updated_by,
-                        updated_at = NOW()
+                        updated_at = {now_sql}
             """),
                 {"name": flag_name, "enabled": enabled, "by": updated_by},
             )
@@ -263,6 +283,98 @@ class FeatureFlagManager:
     def invalidate_cache(self) -> None:
         """Force next read to re-query DB. Call after admin flag changes."""
         self._cache_loaded_at = 0.0
+
+
+# =============================================================================
+# DB Schema Initialization
+# =============================================================================
+# alembic/versions/20260609_add_feature_flags_table.py creates this table for
+# real deploys, but two things leave local dev without it:
+#   1. Alembic auto-migration only runs when RENDER=true (see app/main.py) -
+#      local dev never runs migrations at all, by design.
+#   2. Even if it did, that migration uses sa.ARRAY for allowed_roles /
+#      allowed_states, which SQLite does not support (same class of issue as
+#      the pre-existing module_registry migration).
+# ensure_schema() below mirrors the app/core/module_overrides.py pattern:
+# a dialect-aware CREATE TABLE IF NOT EXISTS run at startup, so local SQLite
+# dev gets a real table with the same default rows as the Postgres
+# migration, without touching or replacing that migration.
+_DEFAULT_FLAG_ROWS: list[tuple[str, bool, str]] = [
+    ("eviction_defense_nd", True, "Enable eviction defense in North Dakota"),
+    ("counterclaim_builder", False, "Enable counterclaim builder (legal only)"),
+    ("advanced_analytics", False, "Enable advanced analytics dashboard"),
+    ("new_ui_theme", False, "Enable new UI theme (gradual rollout)"),
+    ("batch_operations", False, "Enable admin batch operations"),
+]
+
+
+def _dialect_name(db: "AsyncSession") -> str:
+    dialect = getattr(db.bind, "dialect", None)
+    return getattr(dialect, "name", "") if dialect else ""
+
+
+async def ensure_schema(db: "AsyncSession") -> None:
+    """Create the feature_flags table (and seed default rows) if missing.
+
+    Safe to call on every startup - CREATE TABLE IF NOT EXISTS is a no-op on
+    an already-migrated Postgres deploy; the seed insert only runs when the
+    table is empty, so it never overwrites admin-set flags.
+    """
+    from sqlalchemy import text
+
+    try:
+        is_postgres = _dialect_name(db) == "postgresql"
+        if is_postgres:
+            id_col = "id SERIAL PRIMARY KEY"
+            ts_type = "TIMESTAMPTZ"
+            ts_default = "NOW()"
+            roles_type = "TEXT[]"
+        else:
+            # SQLite (and most others): no SERIAL, no ARRAY, no NOW().
+            id_col = "id INTEGER PRIMARY KEY AUTOINCREMENT"
+            ts_type = "TIMESTAMP"
+            ts_default = "CURRENT_TIMESTAMP"
+            roles_type = "TEXT"  # unused today (nothing writes allowed_roles yet)
+
+        await db.execute(
+            text(
+                f"""
+                CREATE TABLE IF NOT EXISTS feature_flags (
+                    {id_col},
+                    flag_name TEXT NOT NULL UNIQUE,
+                    flag_type TEXT NOT NULL DEFAULT 'boolean',
+                    enabled BOOLEAN NOT NULL DEFAULT FALSE,
+                    rollout_percent INTEGER NOT NULL DEFAULT 0,
+                    allowed_roles {roles_type},
+                    allowed_states {roles_type},
+                    description TEXT,
+                    created_by TEXT,
+                    updated_by TEXT,
+                    created_at {ts_type} NOT NULL DEFAULT {ts_default},
+                    updated_at {ts_type} NOT NULL DEFAULT {ts_default}
+                )
+                """
+            )
+        )
+
+        result = await db.execute(text("SELECT COUNT(*) FROM feature_flags"))
+        existing_count = result.scalar() or 0
+        if existing_count == 0:
+            for flag_name, enabled, description in _DEFAULT_FLAG_ROWS:
+                await db.execute(
+                    text(
+                        "INSERT INTO feature_flags (flag_name, flag_type, enabled, description, created_by) "
+                        "VALUES (:name, 'boolean', :enabled, :desc, 'system')"
+                    ),
+                    {"name": flag_name, "enabled": enabled, "desc": description},
+                )
+            logger.info("FeatureFlags: seeded %d default rows", len(_DEFAULT_FLAG_ROWS))
+
+        await db.commit()
+        logger.info("FeatureFlags: schema ensured (feature_flags table)")
+    except Exception as e:
+        await db.rollback()
+        logger.warning("FeatureFlags: schema init failed: %s", e)
 
 
 # Global feature flag manager — single instance for the process

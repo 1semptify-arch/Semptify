@@ -1,6 +1,8 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-20 (ADR-0008 Layer 2 Problem A semantic retrieval complete; model load verified; PG parity not locally exercised)
+**Last Updated**: 2026-08-22 (Notice Date → Received Date tenant-facing rename complete; Render MVP Dockerfile already verified; next: three-date sort/view verification, attorney invite-code stub)
+
+> Standing rule: see `.devin/rules/10-progressive-disclosure.md` for the **Progressive Disclosure / Capability Revelation** rule (companion to the GUI Design Rule and Navigation Principle).
 
 > Standing rule: see `.devin/rules/10-progressive-disclosure.md` for the **Progressive Disclosure / Capability Revelation** rule (companion to the GUI Design Rule and Navigation Principle).
 

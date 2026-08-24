@@ -6,7 +6,6 @@ Set SECURITY_MODE=enforced in production. See .env.example for all options.
 
 import logging
 import os
-import secrets
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -21,23 +20,41 @@ _WEAK_KEY = "change-me-in-production-use-secrets"
 logger = logging.getLogger(__name__)
 
 
+_TEST_KEY_SALT = "se mptify-deterministic-test-key-salt"
+
+
 def _resolve_secret_key() -> str:
-    """Return SECRET_KEY from env, or generate a secure random key with a warning."""
+    """Return SECRET_KEY from env. Fail loud if missing/weak; never silently generate a random key.
+
+    A random, per-process key silently corrupts every stored session the next time the
+    process restarts with a different key, because tokens are encrypted with
+    SHA256(SECRET_KEY + user_id). The only safe default is a stable, explicit key.
+
+    Test harnesses are the one exception: when TESTING=true, the key is derived
+    deterministically from a fixed salt and the DATABASE_URL so the test suite can
+    create and read sessions without a committed secret.
+    """
     key = os.getenv("SECRET_KEY", "")
-    security_mode = os.getenv("SECURITY_MODE", "open").lower()
+    testing = os.getenv("TESTING", "").lower() in ("true", "1", "yes", "on")
+    in_memory_db = ":memory:" in os.getenv("DATABASE_URL", "")
+
+    if testing or in_memory_db:
+        # Stable, deterministic key for tests. Not secret — test DBs are temporary.
+        from hashlib import sha256
+
+        db_url = os.getenv("DATABASE_URL", "in-memory")
+        return sha256(f"{_TEST_KEY_SALT}:{db_url}".encode("utf-8")).hexdigest()
+
     if not key or key == _WEAK_KEY:
-        if security_mode == "enforced":
-            raise ValueError(
-                "SECRET_KEY must be configured for document registry integrity when SECURITY_MODE=enforced."
-            )
-        generated = secrets.token_urlsafe(64)
-        logger.warning(
-            "SECRET_KEY not set or uses the insecure default. "
-            "A temporary key has been generated for this session. "
-            "Set SECRET_KEY in your .env file for production: SECRET_KEY=%s",
-            generated,
+        raise ValueError(
+            "Semptify cannot start: SECRET_KEY is missing, empty, or uses the insecure default.\n"
+            "Session tokens are encrypted with SHA256(SECRET_KEY + user_id). "
+            "If SECRET_KEY changes between restarts, every stored session becomes unreadable "
+            "and tenants will be forced to reconnect.\n"
+            "Set a stable SECRET_KEY in your environment or .env file "
+            "and keep it the same across all deployments."
         )
-        return generated
+
     return key
 
 

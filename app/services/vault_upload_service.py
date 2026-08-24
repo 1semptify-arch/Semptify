@@ -87,7 +87,11 @@ class VaultDocument:
     storage_provider: str  # google_drive, dropbox, onedrive, local
     provider_file_id: str | None = None
     certificate_id: str | None = None
+    # Date fields. uploaded_at is immutable; event_date and received_date are
+    # tenant-editable and may be null until the tenant sets them.
     uploaded_at: str | None = None
+    event_date: str | None = None
+    received_date: str | None = None
     # Registration - every vault doc auto-registers for chain of custody
     registry_id: str | None = None  # SEM-YYYY-NNNNNN-XXXX format
     integrity_status: str = "unverified"  # verified, tampered, unverified
@@ -172,6 +176,8 @@ class VaultDocumentIndex:
             review_state_json=doc.review_state_json,
             source_module=doc.source_module,
             uploaded_at=datetime.fromisoformat(doc.uploaded_at) if doc.uploaded_at else utc_now(),
+            event_date=datetime.fromisoformat(doc.event_date) if doc.event_date else None,
+            received_date=datetime.fromisoformat(doc.received_date) if doc.received_date else None,
             updated_at=utc_now(),
         )
 
@@ -193,6 +199,8 @@ class VaultDocumentIndex:
             storage_provider=db_doc.storage_provider,
             certificate_id=db_doc.certificate_id,
             uploaded_at=db_doc.uploaded_at.isoformat() if db_doc.uploaded_at else None,
+            event_date=db_doc.event_date.isoformat() if db_doc.event_date else None,
+            received_date=db_doc.received_date.isoformat() if db_doc.received_date else None,
             registry_id=db_doc.registry_id,
             integrity_status=db_doc.integrity_status,
             processed=db_doc.processed,
@@ -379,15 +387,24 @@ class VaultDocumentIndex:
             fields = ", ".join(sorted(attempted_immutable))
             raise ValueError(f"Immutable vault fields cannot be modified: {fields}")
 
-        # Update in DB
-        await self._update_in_db(vault_id, **kwargs)
+        # Convert date strings to datetime objects for the DB; the VaultDocument
+        # dataclass still stores dates as ISO strings, so we re-read from the DB
+        # to keep the in-memory object type-consistent.
+        db_kwargs = {}
+        for key, value in kwargs.items():
+            if key in ("event_date", "received_date") and value is not None:
+                db_kwargs[key] = datetime.fromisoformat(value) if isinstance(value, str) else value
+            else:
+                db_kwargs[key] = value
 
-        # Update cache
-        doc = self._documents.get(vault_id)
+        # Update in DB
+        await self._update_in_db(vault_id, **db_kwargs)
+
+        # Refresh from DB so the cache always holds the canonical object.
+        doc = await self._get_from_db(vault_id)
         if doc:
-            for key, value in kwargs.items():
-                if hasattr(doc, key):
-                    setattr(doc, key, value)
+            self._documents[doc.vault_id] = doc
+            self._loaded_from_db.add(doc.vault_id)
             self._legacy_save()
         return doc
 
@@ -418,6 +435,8 @@ class VaultUploadService:
 
     def __init__(self):
         self.index = VaultDocumentIndex()
+        # Local-dev / test storage root. Cloud uploads ignore this.
+        self._local_dir = Path(get_settings().vault_dir)
 
     def _compute_sha256(self, content: bytes) -> str:
         """Compute SHA-256 hash of file content."""
@@ -1074,73 +1093,3 @@ def get_vault_service() -> VaultUploadService:
     return _vault_service
 
 
-# =============================================================================
-# Module Contracts — registered at import time, visible in contract browser
-# =============================================================================
-try:
-    from app.core.module_contracts import FunctionGroupContract, register_function_group
-
-    register_function_group(
-        FunctionGroupContract(
-            module="vault",
-            group_name="vault_upload",
-            title="Document Vault Upload (SSOT)",
-            description=(
-                "CANONICAL upload handler. All document ingestion goes through VaultUploadService.upload(). "
-                "Pipeline: validate → deduplicate (SHA256) → store to cloud → certificate → registry (get registry_id) → emit event. "
-                "VAULT DOES NOT: create overlays, trigger intake, run analysis, or start workflows. "
-                "Overlays are created on-demand by the requesting process. "
-                "Intake/analysis is triggered by the caller after upload returns. "
-                "No other service may implement upload logic."
-            ),
-            inputs=("user_id", "filename", "content", "mime_type", "access_token", "storage_provider"),
-            outputs=("vault_id", "registry_id", "certificate_id", "provider_file_id", "storage_path"),
-            dependencies=(
-                "app.services.vault_upload_service",
-                "app.core.vault_paths.VAULT_DOCUMENTS",
-                "app.core.vault_paths.VAULT_CERTIFICATES",
-            ),
-            deterministic=True,
-        )
-    )
-
-    register_function_group(
-        FunctionGroupContract(
-            module="vault",
-            group_name="vault_folders",
-            title="Vault Folder Structure (SSOT)",
-            description=(
-                "All vault folder paths come from app/core/vault_paths.py. "
-                "NEVER hardcode Semptify5.0/ paths. NEVER duplicate these constants."
-            ),
-            inputs=("user_id", "access_token", "provider"),
-            outputs=("CANONICAL_VAULT_FOLDERS",),
-            dependencies=("app.core.vault_paths",),
-            deterministic=True,
-        )
-    )
-
-    register_function_group(
-        FunctionGroupContract(
-            module="vault",
-            group_name="vault_init",
-            title="Vault Initialization (Folder Creation)",
-            description=(
-                "Creates canonical vault folder structure in user cloud storage. "
-                "Used by onboarding (Step 1). vault_initialized gate MUST only be "
-                "marked by vault_verify() after ALL three onboarding steps pass — "
-                "never by install_vault_for_user() or any intermediate step."
-            ),
-            inputs=("user_id", "access_token", "provider"),
-            outputs=("folders_created", "activation_code"),
-            dependencies=(
-                "app.sdk.vault.client.VaultClient",
-                "app.core.vault_paths.CANONICAL_VAULT_FOLDERS",
-                "app.modules.onboarding.gates.mark_gate",
-            ),
-            deterministic=True,
-        )
-    )
-except Exception as e:
-    # Contract registration is best-effort — never break the module if registry is unavailable
-    logger.debug("Contract registration skipped: %s", e)

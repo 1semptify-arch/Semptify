@@ -144,6 +144,10 @@ class PageConfig(BaseModel):
     escalation: Escalation = Field(default_factory=Escalation)
     intensity_override: int | None = None
     intensity_source: str | None = None
+    # Jurisdiction metadata — lets renderers (e.g. Law Linker) resolve
+    # county-specific citations to the user's actual location.
+    jurisdiction: str | None = None
+    county: str | None = None
 
     @field_validator("major_pillar")
     @classmethod

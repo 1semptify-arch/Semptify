@@ -12,7 +12,9 @@ Covers:
 """
 
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
+import fitz  # PyMuPDF, available in test environment
 import pytest
 from fastapi.testclient import TestClient
 
@@ -26,6 +28,7 @@ from app.services.document_intake import (
     IssueDetector,
     get_intake_engine,
 )
+from app.services.pdf_extractor import extract_pdf_text
 
 # =============================================================================
 # FIXTURES
@@ -208,6 +211,29 @@ class TestDocumentClassifier:
         assert doc_type == DocumentType.OTHER
         # Confidence should be low
         assert confidence < 0.5
+
+    @pytest.mark.parametrize(
+        "filename,expected_type",
+        [
+            ("lease_01.pdf", DocumentType.LEASE),
+            ("notice_01.pdf", DocumentType.EVICTION_NOTICE),
+            ("mixed_01.pdf", DocumentType.MIXED_DOCUMENT),
+            ("lease_02.pdf", DocumentType.LEASE),
+        ],
+    )
+    def test_classifier_fixtures(self, filename, expected_type):
+        """Regression test against docs/classification-test-fixtures/."""
+        fixture_path = Path("docs/classification-test-fixtures") / filename
+        if not fixture_path.exists():
+            pytest.skip(f"fixture not found: {fixture_path}")
+
+        text = extract_pdf_text(fixture_path.read_bytes())
+        doc_type, confidence = DocumentClassifier.classify(text, filename)
+
+        assert doc_type == expected_type, (
+            f"{filename}: expected {expected_type.value}, got {doc_type.value}"
+        )
+        assert confidence >= 0.4, f"{filename}: confidence {confidence} below threshold"
 
 
 # =============================================================================
@@ -681,6 +707,77 @@ class TestIntakeIntegration:
 
 
 # =============================================================================
+# OCR FALLBACK TESTS
+# =============================================================================
+
+
+class TestOCRFallback:
+    """Tests for image-only PDF OCR fallback."""
+
+    def test_image_only_pdf_triggers_local_ocr(self, monkeypatch, tmp_path):
+        """An image-only PDF (no embedded text) falls back to Tesseract OCR."""
+        import pytesseract
+
+        from app.services.pdf_extractor import get_pdf_extractor
+
+        def mock_image_to_string(img, *args, **kwargs):
+            return "This is a LEASE agreement for 123 Main Street."
+
+        monkeypatch.setattr(pytesseract, "image_to_string", mock_image_to_string)
+
+        src = Path("docs/classification-test-fixtures/notice_01.pdf")
+        doc = fitz.open(src)
+        new_doc = fitz.open()
+
+        for page in doc:
+            pix = page.get_pixmap(dpi=200)
+            rect = fitz.Rect(0, 0, pix.width, pix.height)
+            new_page = new_doc.new_page(width=pix.width, height=pix.height)
+            new_page.insert_image(rect, stream=pix.tobytes("png"))
+
+        pdf_bytes = new_doc.tobytes()
+        new_doc.close()
+        doc.close()
+
+        # Verify the fixture has no extractable text
+        extractor = get_pdf_extractor()
+        plain = extractor.extract(pdf_bytes)
+        assert len(plain.text.strip()) < 50
+
+        # extract_with_ocr should fall through to local OCR and use our mock
+        result = extractor.extract_with_ocr(pdf_bytes)
+        assert result.method_used == "local_ocr"
+        assert "LEASE" in result.text.upper()
+
+    @pytest.mark.asyncio
+    async def test_intake_extract_uses_ocr_for_image_pdf(self, monkeypatch, engine, tmp_path):
+        """The intake engine calls the OCR fallback for image-only PDFs."""
+        import pytesseract
+
+        def mock_image_to_string(img, *args, **kwargs):
+            return "NOTICE TO VACATE within fourteen (14) days."
+
+        monkeypatch.setattr(pytesseract, "image_to_string", mock_image_to_string)
+
+        src = Path("docs/classification-test-fixtures/notice_01.pdf")
+        doc = fitz.open(src)
+        new_doc = fitz.open()
+
+        for page in doc:
+            pix = page.get_pixmap(dpi=200)
+            rect = fitz.Rect(0, 0, pix.width, pix.height)
+            new_page = new_doc.new_page(width=pix.width, height=pix.height)
+            new_page.insert_image(rect, stream=pix.tobytes("png"))
+
+        pdf_bytes = new_doc.tobytes()
+        new_doc.close()
+        doc.close()
+
+        text = await engine._extract_text(pdf_bytes, "application/pdf", "scanned_notice.pdf")
+        assert "NOTICE" in text.upper()
+
+
+# =============================================================================
 # EDGE CASE TESTS
 # =============================================================================
 
@@ -732,3 +829,72 @@ class TestEdgeCases:
         # Should extract dollar amount
         assert len(amounts) >= 1
         assert any(a.amount == 1234.56 for a in amounts)
+
+
+# =============================================================================
+# BUNDLE SEGMENTATION TESTS
+# =============================================================================
+
+
+class TestBundleSegmentation:
+    """Test Pass 1 bundled-packet segmentation."""
+
+    @pytest.fixture
+    def fixture_path(self):
+        return Path("docs/classification-test-fixtures")
+
+    @pytest.mark.asyncio
+    async def test_single_document_no_segmentation(self, engine, fixture_path):
+        """A plain single-document PDF produces exactly one record."""
+        content = (fixture_path / "lease_01.pdf").read_bytes()
+        doc = await engine.intake_document(
+            user_id="seg_user_1",
+            file_content=content,
+            filename="lease_01.pdf",
+            mime_type="application/pdf",
+        )
+        docs = await engine.process_bundle(doc.id)
+
+        assert len(docs) == 1
+        assert docs[0].extraction.doc_type == DocumentType.LEASE
+        assert docs[0].child_doc_ids == []
+
+    @pytest.mark.asyncio
+    async def test_mixed_page_splits_internally(self, engine, fixture_path):
+        """A single page containing a lease + notice splits into two records."""
+        content = (fixture_path / "mixed_01.pdf").read_bytes()
+        doc = await engine.intake_document(
+            user_id="seg_user_2",
+            file_content=content,
+            filename="mixed_01.pdf",
+            mime_type="application/pdf",
+        )
+        docs = await engine.process_bundle(doc.id)
+
+        types = [d.extraction.doc_type for d in docs]
+        assert len(types) == 2
+        assert DocumentType.LEASE in types
+        assert DocumentType.NOTICE_TO_QUIT in types
+
+    @pytest.mark.asyncio
+    async def test_real_lease_packet_segments(self, engine, fixture_path):
+        """The bundled lease fixture is split into distinct typed records."""
+        content = (fixture_path / "lease_02.pdf").read_bytes()
+        doc = await engine.intake_document(
+            user_id="seg_user_3",
+            file_content=content,
+            filename="lease_02.pdf",
+            mime_type="application/pdf",
+        )
+        docs = await engine.process_bundle(doc.id)
+
+        types = {d.extraction.doc_type for d in docs}
+        assert len(docs) >= 4
+        assert DocumentType.LEASE in types
+        assert DocumentType.HOUSE_RULES in types
+        assert DocumentType.LEASE_AMENDMENT in types
+        assert DocumentType.AFFIDAVIT in types
+
+        # Confidence should be reported per segment, not just pass/fail.
+        for d in docs:
+            assert 0.0 <= d.extraction.doc_type_confidence <= 1.0

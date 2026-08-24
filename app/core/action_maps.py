@@ -352,7 +352,7 @@ CRISIS_INTAKE_ACTIONS: dict[str, QuickAction] = {
         label="Emergency Hotline",
         icon="phone",
         action_type=ActionType.EXTERNAL,
-        target="tel:+1-800-xxx-xxxx",  # Placeholder
+        target="tel:211",
         telemetry_event="hotline_connected",
     ),
     "legal_aid": QuickAction(

@@ -422,6 +422,9 @@ class UserContext:
     session_id: str | None = None
     authenticated_at: datetime | None = None
 
+    # Reconnect reason (e.g. token_corrupt) for access-level responses
+    reconnect_reason: str | None = None
+
     def __post_init__(self):
         """Set permissions based on role if not provided."""
         if not self.permissions:

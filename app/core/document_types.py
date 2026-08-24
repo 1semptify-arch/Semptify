@@ -141,7 +141,7 @@ DOCUMENT_TYPES: dict[str, DocumentTypeDef] = {
             },
             {
                 "name": "notice_date",
-                "label": "Notice date",
+                "label": "Received Date",
                 "field_type": "date",
                 "required": True,
                 "overlay_type": "key_date_extraction",
