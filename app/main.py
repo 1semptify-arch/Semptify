@@ -69,6 +69,7 @@ from app.core.config import get_settings
 from app.core.cookie_auth import extract_user_id
 from app.core.database import close_db, get_db, init_db
 from app.core.navigation import navigation
+from app.core.runtime_profile import log_active_profile
 from app.core.security import UserContext, green_access
 from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
@@ -567,14 +568,15 @@ async def lifespan(_app: FastAPI):
 
         # --- STAGE 5: Initialize Services ---
         async def init_services():
-            # Heavy services re-enabled with memory fixes (deque bounds, no net_connections).
-            # Guard with ENABLE_HEAVY_SERVICES=false for emergency rollback.
-            enable_heavy = os.getenv("ENABLE_HEAVY_SERVICES", "true").lower() != "false"
-            if not enable_heavy:
-                logger.info("   Heavy services skipped (ENABLE_HEAVY_SERVICES=false)")
+            # Gated by the runtime load profile (app/core/runtime_profile.py),
+            # resolved once in create_app() and stashed on app.state so both
+            # this lifespan and create_app()'s own gates (performance
+            # monitor) agree on the same profile for one process.
+            load_profile = _app.state.load_profile
+            logger.info("   Runtime load profile: %s", load_profile.name)
 
             # Positronic Brain - re-enabled (event_history was already capped at 1000)
-            if enable_heavy:
+            if load_profile.positronic_brain:
                 try:
                     from app.services.brain_integrations import initialize_brain_connections
 
@@ -584,7 +586,7 @@ async def lifespan(_app: FastAPI):
                     logger.warning(f"   Positronic Brain init failed (non-fatal): {e}")
 
             # Module Hub - re-enabled (unbounded lists replaced with deque(maxlen=N))
-            if enable_heavy:
+            if load_profile.module_hub:
                 try:
                     from app.services.module_actions import register_all_actions
                     from app.services.module_registration import register_all_modules
@@ -595,8 +597,9 @@ async def lifespan(_app: FastAPI):
                 except Exception as e:
                     logger.warning(f"   Module Hub init failed (non-fatal): {e}")
 
-            # Location Service - re-enabled
-            if enable_heavy:
+            # Location Service - registers into positronic_mesh (Brain-adjacent
+            # action registry), so it follows the positronic_brain flag.
+            if load_profile.positronic_brain:
                 try:
                     from app.services.location_service import register_with_mesh
 
@@ -609,7 +612,7 @@ async def lifespan(_app: FastAPI):
             # Canonical complaint wizard lives at app.modules.complaints.router (EXTENDED tier).
 
             # Mesh Network - re-enabled with bounded request/collaboration history
-            if enable_heavy:
+            if load_profile.mesh_network:
                 try:
                     from app.services.mesh_handlers import register_all_mesh_handlers
 
@@ -623,17 +626,17 @@ async def lifespan(_app: FastAPI):
             # discovered_plugins = plugin_manager.discover_plugins()
             # plugin_stats = plugin_manager.load_all()
 
-            if enable_heavy:
-                logger.info("   Core + heavy services active (plugins disabled for memory optimization)")
+            if any(load_profile.flags().values()):
+                logger.info("   Services active per profile '%s' (plugins disabled for memory optimization)", load_profile.name)
             else:
-                logger.info("   Core services only - heavy/mesh/plugins disabled for memory optimization")
+                logger.info("   Core services only - all infra flags off per profile '%s'", load_profile.name)
 
             # Embedding model for Layer 2 semantic retrieval.
-            # Loaded once as a singleton; guarded by ENABLE_HEAVY_SERVICES for
+            # Loaded once as a singleton; gated by the load profile for
             # memory-constrained rollbacks and for environments without the model.
             # We start it as a background task so slow loads (network cache
             # refresh, CPU-bound torch init) do not block other services.
-            if enable_heavy:
+            if load_profile.embedding_model:
                 from app.modules.context_engine.embedding_model import load_embedding_model
 
                 async def _warm_embedding_model():
@@ -1380,6 +1383,10 @@ def create_app() -> FastAPI:
     setup_logging()
     validate_app_compliance(app_settings)
 
+    # Resolve the runtime load profile once and log it, so a startup log is
+    # self-explanatory about what's running (see app/core/runtime_profile.py).
+    load_profile = log_active_profile()
+
     # OpenAPI tags for documentation organization
     tags_metadata = [
         {
@@ -1528,6 +1535,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 
     fastapi_app.state.limiter = limiter
+    fastapi_app.state.load_profile = load_profile
     fastapi_app.add_middleware(SlowAPIMiddleware)
     fastapi_app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
@@ -1644,7 +1652,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # Performance monitoring - re-enabled with memory fixes
     # (removed psutil.net_connections(), shrank deques, 60s sampling)
-    if os.getenv("ENABLE_HEAVY_SERVICES", "true").lower() != "false":
+    # Gated by the runtime load profile (app/core/runtime_profile.py), not a
+    # scattered env check - see load_profile resolved above.
+    if load_profile.performance_monitoring:
         try:
             from app.core.performance_monitor import get_performance_monitor
 
@@ -1654,7 +1664,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         except Exception as e:
             logger.warning(f"Performance monitoring init failed (non-fatal): {e}")
     else:
-        logger.info("Performance monitoring skipped (ENABLE_HEAVY_SERVICES=false)")
+        logger.info("Performance monitoring skipped (profile=%s)", load_profile.name)
 
     logger.info("Semptify 5.0 FastAPI application created successfully")
 
@@ -1701,7 +1711,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # bounded request_metrics deque (maxlen=500). The original memory issue was
     # caused by psutil.net_connections(), which has already been removed.
 
-    enable_perf_middleware = os.getenv("ENABLE_HEAVY_SERVICES", "true").lower() != "false"
+    enable_perf_middleware = load_profile.performance_monitoring
     if enable_perf_middleware:
 
         @fastapi_app.middleware("http")
@@ -1735,7 +1745,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         logger.info("Performance monitoring middleware enabled (slim mode)")
     else:
-        logger.info("Performance monitoring middleware skipped (ENABLE_HEAVY_SERVICES=false)")
+        logger.info("Performance monitoring middleware skipped (profile=%s)", load_profile.name)
 
     # =========================================================================
     # Middleware (order matters - first added = last to run)
