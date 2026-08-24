@@ -1,3 +1,89 @@
+## Session -- 2026-08-24 — Load profile system + memory monitoring fixes
+
+### Goal
+Handoff from a local dev memory assessment: replace `ENABLE_HEAVY_SERVICES`
+with a proper runtime load profile system, fix `performance_monitor.py`
+conflating whole-machine and process memory, and fix the missing
+`feature_flags` table in local dev.
+
+### What changed
+- `app/core/runtime_profile.py` (new): named `LoadProfile`s
+  (`local_dev`, `local_dev_semantic`, `render_mvp`, `full`) governing
+  Positronic Brain, Mesh Network, Module Hub, embedding model, and
+  performance monitoring - a separate axis from `product_manifest.py`'s
+  feature tiers. Default derives from the existing `DEPLOY_TARGET`
+  (unset -> `local_dev`, `render_mvp` -> `render_mvp`); `LOAD_PROFILE`
+  overrides; `ENABLE_HEAVY_SERVICES=false` preserved as the legacy
+  emergency-rollback hard override.
+- `app/main.py`: replaced all four scattered `ENABLE_HEAVY_SERVICES` checks
+  with `load_profile.<flag>` reads; profile resolved once in `create_app()`
+  and stashed on `fastapi_app.state.load_profile` for `lifespan()` to reuse;
+  Location Service now follows the `positronic_brain` flag (it registers
+  into `positronic_mesh`, the Brain-adjacent registry) rather than being
+  unconditionally tied to the old single flag.
+- `scripts/start_local_dev.ps1` (new): "Brad start" - sets
+  `DEPLOY_TARGET=local` and launches uvicorn on the `local_dev` profile
+  with zero typing.
+- `app/core/performance_monitor.py`: added process-level memory tracking
+  (`psutil.Process().memory_info().rss` / `.memory_percent()`) alongside
+  the existing whole-machine `psutil.virtual_memory().percent`. Both are
+  stored on `SystemMetrics`, exposed via `to_dict()`/`get_performance_summary()`,
+  and included in the `high_memory_usage` alert message. The alert's
+  trigger/threshold itself is unchanged, per task scope.
+- `app/core/features.py`: added dialect-aware `ensure_schema()` (mirrors
+  `app/core/module_overrides.py`'s pattern) to create `feature_flags` on
+  SQLite, since Alembic auto-migration never runs locally and the
+  Postgres migration uses `sa.ARRAY` anyway. Also made `set_enabled()`
+  dialect-aware (`NOW()` -> `CURRENT_TIMESTAMP` on SQLite) and
+  `_refresh_from_db()` tolerant of `allowed_roles` as text. Wired into
+  the existing `module_overrides` startup stage in `app/main.py`.
+
+### Why
+Local dev on a 7.5GB machine was hitting constant "high memory" warnings.
+Root cause: `psutil.virtual_memory().percent` measures the whole machine
+(browser, IDE, everything), not just Semptify, so the warning was never a
+reliable signal either way. Separately, local dev always loaded the full
+production infra stack (mesh, brain, module hub, embedding model)
+regardless of need, and the `feature_flags` table silently didn't exist
+locally, masking a real feature.
+
+### Verification
+- `python -m py_compile` on all changed files: PASS.
+- `local_dev` profile: measured uvicorn worker at ~202MB working set /
+  ~416MB private memory vs. ~604MB / ~1140MB for the `full` profile on the
+  same machine - the embedding model load is the dominant driver, not the
+  mesh/brain/hub services (which a prior 2026-08-16 measurement already
+  found add only ~3.6MB in the full app context).
+- `full` profile reproduces the pre-change all-on startup log output
+  exactly (Positronic Brain, Module Hub, Mesh Network all initialize with
+  the same module counts as before).
+- `render_mvp` profile (derived from `DEPLOY_TARGET=render_mvp`) preserves
+  the existing MVP module tier gating (`46 MVP core modules`) unchanged.
+- `performance_monitor.py`: manual smoke test showed a bare python process
+  using 19MB/0.3% of RAM while the machine read 93.4% - confirms the two
+  numbers were previously conflated in the alert.
+- `features.py`: fresh SQLite DB gets `feature_flags` with 5 seeded rows on
+  startup; `is_enabled()`/`set_enabled()`/`get_all_flags()` round-trip
+  correctly against SQLite (verified via direct DB read after `set_enabled`).
+- `pytest tests/test_features.py -q --no-cov`: 19 passed.
+- `pytest tests/module_health -q --no-cov`: 244 passed (run twice, once
+  after Task 1+2, once after all three tasks).
+
+### Caveats / follow-up
+- Location Service's flag mapping (tied to `positronic_brain` rather than
+  its own flag) is a judgment call, not an explicit spec item - it
+  registers into `positronic_mesh` so this was the closest existing
+  category; flagged here in case it should be split out later.
+- The Alembic migration for `feature_flags` still uses `sa.ARRAY` and is
+  unchanged - it's correct for the real Postgres/Render deploy path.
+  `ensure_schema()` is a local-dev/SQLite-only safety net, not a
+  replacement.
+- OAuth refresh-token decryption failure for test user `LUtest***` (seen
+  in the original memory-assessment log) was explicitly flagged out of
+  scope for this handoff and still needs its own investigation.
+
+---
+
 ## Session -- 2026-08-23 — Pass 1 classifier disambiguation (handoff)
 
 ### Goal
