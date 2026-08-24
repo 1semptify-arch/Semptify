@@ -1,5 +1,16 @@
 # Semptify Status Audit — 2026-06-21
 
+> ⚠️ **STALE SNAPSHOT — last updated 2026-06-21.**
+>
+> The counts, tier assignments, and contract coverage in this file are no longer current.
+> As of 2026-08-24, the live product manifest has 123 module entries and the contract
+> registry loads 1,095 function-group contracts across 114 modules. For current state,
+> run `python tools/gap_report.py` and inspect the live `MANIFEST.summary()` in
+> `app/core/product_manifest.py` rather than relying on the numbers below.
+>
+> This file is kept as a historical snapshot of the June 2026 baseline, not as a live
+> source of truth.
+
 > Snapshot of module/function/contract engagement across the codebase.
 > Classification: **WORKING** / **PARTIAL** / **STUB** / **CONCEPT** / **HOLE**
 
