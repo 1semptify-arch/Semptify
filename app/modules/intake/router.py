@@ -482,6 +482,7 @@ class AutoProcessResponse(BaseModel):
     vault_id: str | None = None
     overlay_record_ids: list[str] = []
     extracted_data: dict = {}
+    segments: list[dict] = []
     timeline_events: int = 0
     issues_found: int = 0
 
@@ -639,10 +640,11 @@ async def upload_and_process(
     )
     logger.info(f"📋 Document intake complete: {doc.id}")
 
-    # Step 2: Process (extract text, classify, analyze) — Light Intake / Pass 1
+    # Step 2: Process (extract text, classify, analyze, segment bundles) — Light Intake / Pass 1
     try:
-        doc = await engine.process_document(doc.id)
-        logger.info(f"✓ Light Intake (Pass 1) complete: {doc.id}")
+        docs = await engine.process_bundle(doc.id)
+        doc = docs[0] if docs else doc
+        logger.info(f"✓ Light Intake (Pass 1) complete: {doc.id} ({len(docs)} segment(s))")
     except Exception as e:
         logger.error("Processing failed: %s", e)
         return AutoProcessResponse(
@@ -756,6 +758,20 @@ async def upload_and_process(
             "summary": doc.extraction.summary[:200] if doc.extraction.summary else "",
         }
 
+    # If this was a bundled packet, list the child segment records.
+    segments: list[dict] = []
+    for child_id in getattr(doc, "child_doc_ids", []):
+        child = engine.get_document(child_id)
+        if child and child.extraction:
+            segments.append(
+                {
+                    "id": child.id,
+                    "doc_type": child.extraction.doc_type.value,
+                    "confidence": round(child.extraction.doc_type_confidence, 2),
+                    "word_count": child.extraction.word_count,
+                }
+            )
+
     overlay_record_ids = await _get_overlay_record_ids(
         vault_id,
         user_id=user_id,
@@ -780,6 +796,7 @@ async def upload_and_process(
         vault_id=vault_id,
         overlay_record_ids=overlay_record_ids,
         extracted_data=extracted_data,
+        segments=segments,
         timeline_events=flow_result.get("stages", {}).get("events", {}).get("count", 0),
         issues_found=len(doc.extraction.issues) if doc.extraction and doc.extraction.issues else 0,
     )

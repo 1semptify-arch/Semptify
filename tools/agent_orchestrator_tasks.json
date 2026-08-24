@@ -1888,5 +1888,18 @@
     "updated_at": "2026-08-24T06:18:33.462057+00:00",
     "notes": "Handoff from OAuth token decryption investigation. Task B.\n[2026-08-24 06:18 UTC - SWE-1.7-Max] _refresh_from_db() catches InvalidTag and returns TOKEN_CORRUPT; get_valid_token_or_redirect returns status; storage_middleware, yellow/red_access return calm reconnect_required responses.",
     "assigned_agent": "SWE-1.7-Max"
+  },
+  {
+    "id": "ad-hoc-bundle-segmentation-2026-08-24",
+    "title": "Bundled-packet document segmentation for Pass 1",
+    "description": "Detect document boundaries within a single PDF upload and create multiple IntakeDocument records per segment, using regex/pattern signals only. Test against lease_02.pdf and notice_01.pdf fixtures.",
+    "file_path": "app/services/document_intake.py",
+    "status": "resolved",
+    "priority": "high",
+    "source": "ad-hoc",
+    "assigned_agent": "SWE-1.7-Max",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T07:16:09.705807+00:00",
+    "notes": "Claimed to implement regex/pattern segmentation.\n[2026-08-24 - SWE-1.7-Max] Implemented DocumentSegmenter and process_bundle; lease_02 now splits into lease/house_rules/lease_amendment/affidavit; tests pass."
   }
 ]

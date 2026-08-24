@@ -1,4 +1,58 @@
+## Session -- 2026-08-24 — Bundled-packet PDF segmentation (Pass 1)
+
+### Goal
+Detect document boundaries inside a single PDF upload so a bundled court-admitted lease packet is split into separate IntakeDocument records, one per logical document, without introducing AI/ML classification.
+
+### What changed
+- `app/services/document_intake.py`:
+  - Added `DocumentType.HOUSE_RULES` and a `HOUSE_RULES` classification pattern.
+  - Added `DocumentSegmenter`: regex/pattern boundary detection using explicit section titles, page-level type smoothing, and checklist-phrase filtering.
+  - Added `parent_id`, `child_doc_ids`, and `segment_index` to `IntakeDocument`.
+  - Added `DocumentIntakeEngine.process_bundle()`; `process_document()` now returns the first segment for backward compatibility.
+  - Added `DocumentIntakeEngine._extract_pages()` so Pass 1 can work with per-page text.
+  - `_process_text()` accepts a segmenter-provided `expected_doc_type` so title/page-boundary signals are not overwritten by keyword noise on short chunks.
+- `app/services/pdf_extractor.py`:
+  - Added `PDFExtractor.extract_pages()` for page-by-page text extraction.
+- `app/modules/intake/router.py`:
+  - `upload_and_process` now calls `process_bundle()` and returns `segments` in `AutoProcessResponse`.
+- `tests/test_document_intake.py`:
+  - Added `TestBundleSegmentation` covering single-document, intra-page mixed, and real bundled lease packet fixtures.
+
+### Verification
+- `python -m py_compile app/services/document_intake.py app/services/pdf_extractor.py app/modules/intake/router.py`: PASS.
+- `python -m pytest tests/test_document_intake.py -q --no-cov`: PASS (52 passed).
+- `python -m pytest tests/test_document_intake.py::TestBundleSegmentation -q --no-cov`: PASS (3 passed).
+- `python -m pytest tests/module_health -q --no-cov`: PASS (244 passed).
+- `python tools/guardrail_engine.py`: PASS.
+- `python -m ruff check app/services/document_intake.py app/services/pdf_extractor.py app/modules/intake/router.py tests/test_document_intake.py`: PASS.
+- Real fixture `lease_02.pdf` (23 pages) now produces 4 records: `lease` (pages 1-11), `house_rules` (page 12), `lease_amendment` (pages 13-20), `affidavit` (pages 21-23).
+- Single-document fixtures `lease_01.pdf` and `notice_01.pdf` each produce exactly 1 record.
+- Synthetic `mixed_01.pdf` (1 page, lease + notice) now produces 2 records: `lease` and `notice_to_quit`.
+
+### Signals used and why
+- **Explicit title/heading lines** (regex, `re.MULTILINE`): `House Rules`, `SMOKE-FREE LEASE ADDENDUM`, `LOW INCOME HOUSING TAX CREDIT LEASE RIDER`, `Garage/Parking and Storage Locker Lease Rider`, `MUTUAL LEASE TERMINATION AGREEMENT`, `LEASE ADDENDUM`, `CERTIFICATION OF DOMESTIC VIOLENCE`, `Form HUD-5382`. These are the most reliable boundary signal for addenda and riders.
+- **Checklist-phrase filter**: phrases like "received a copy of the following documents" prevent a lease-end addendum checklist from being mis-split.
+- **Page-level type smoothing**: title-less pages inside a lease inherit the running `LEASE` type unless the classifier is very confident of a change; this prevents eviction/notice vocabulary inside a lease clause from creating false `eviction_notice` segments.
+- **Court-header stripping**: the repeated "Filed in District Court" header on every page is removed before title detection.
+
+### Structural cases it still cannot handle
+- Addenda/riders that share the same `LEASE_AMENDMENT` document type (LIHTC, VAWA, Smoke-Free, Garage, Mutual Termination) are merged into one `lease_amendment` record. They are correctly separated from the lease and house rules, but not yet split from each other; the title patterns all map to `LEASE_AMENDMENT`.
+- Image-only or heavily corrupted pages that produce no extractable text will be skipped or merged because boundaries cannot be detected from text.
+- Addenda whose titles are not in the explicit `TITLE_PATTERNS` list will be typed by the per-page classifier, which can over-classify eviction vocabulary inside a lease.
+- Pages with titles that are concatenated by the extraction layer (e.g. `LowIncomeHousingTaxCreditLeaseRider`) are recognized, but only when the specific phrase is in the pattern list.
+
+---
+
 ## Session -- 2026-08-24 — OAuth token decryption fixes (SECRET_KEY hard-fail + graceful reconnect)
+
+### Guardrail Engine Run — 2026-08-24T02:11:08
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Goal
 Implement the two fixes identified during the OAuth token-decryption investigation:
