@@ -1759,10 +1759,10 @@
     "priority": "high",
     "source": "ad-hoc",
     "created_at": "2026-08-22T00:00:00Z",
-    "updated_at": "2026-08-23T19:37:35.398035+00:00",
+    "updated_at": "2026-08-24T22:06:09.062508+00:00",
     "target_model": "swe-1.7",
-    "assigned_agent": "swe-1.7",
-    "notes": "[2026-08-23 06:32 UTC - swe-1.7] Batch 1 complete: fixed crisis hotline placeholder, tool encoding, pytest module_health marker, enabled litigation_intelligence contract loading. 244 module health, 8 SSOT, guardrail pass.\n[2026-08-23 10:09 UTC - swe-1.7] Batch 1.1: reverted litigation_intelligence re-enable after handoff review; original exclusion note restored. Proceeding with Batch 2 page manifest validation.\n[2026-08-23 19:37 UTC - swe-1.7] Shipped contract_loader.py reconciliation: agent_orchestrator, document_center, portal contracts wired; litigation_intelligence left excluded per original note and gap_report KNOWN_INTENTIONAL_CONTRACT_EXCLUSIONS."
+    "assigned_agent": "swe-1.7-max",
+    "notes": "[2026-08-23 06:32 UTC - swe-1.7] Batch 1 complete: fixed crisis hotline placeholder, tool encoding, pytest module_health marker, enabled litigation_intelligence contract loading. 244 module health, 8 SSOT, guardrail pass.\n[2026-08-23 10:09 UTC - swe-1.7] Batch 1.1: reverted litigation_intelligence re-enable after handoff review; original exclusion note restored. Proceeding with Batch 2 page manifest validation.\n[2026-08-23 19:37 UTC - swe-1.7] Shipped contract_loader.py reconciliation: agent_orchestrator, document_center, portal contracts wired; litigation_intelligence left excluded per original note and gap_report KNOWN_INTENTIONAL_CONTRACT_EXCLUSIONS.\n[2026-08-24 22:06 UTC - swe-1.7-max] Doc cleanup branch: BUILD_GUIDE_SSOT, STATUS_AUDIT, STUB_AUDIT, SEMPTIFY_SYSTEM_MANIFEST; will update tools/gap_report.py to remove resolved doc gap and re-run."
   },
   {
     "id": "ad-hoc-pass1-classifier-2026-08-23",

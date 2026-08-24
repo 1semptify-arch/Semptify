@@ -1,5 +1,14 @@
 ## Session — 2026-08-24 — Remove L (LOCAL) as a valid user identity
 
+### Guardrail Engine Run — 2026-08-24T17:07:06
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Goal
 Enforce the rule that every Semptify user must connect an OAuth cloud storage provider. Remove the partial `L` / `local` user identity support so `LU...` IDs are rejected at authentication and access gates.
 

@@ -67,21 +67,6 @@ KNOWN_ARCHITECTURAL_GAPS: list[dict[str, str]] = [
         "files": "app/services/context_loop.py, app/modules/context_loop/service.py",
         "owner_decision_needed": "yes",
     },
-    {
-        "severity": "MEDIUM",
-        "title": "BUILD_GUIDE_SSOT.md is stale and contradicts current architecture",
-        "detail": (
-            "Last updated May 2026; describes a 4-step onboarding flow and an "
-            "onboarding module marked 'BUILT — NOT YET ACTIVATED' that predates the "
-            "Page Composer / Page Shell / Timeline three-date work documented in "
-            "ACTIVE_CONTEXT.md and BUILD_STATE.md (Aug 2026). Per PROJECT_BIBLE.md's "
-            "doc hierarchy, BUILD_GUIDE.md ranks below AGENTS.md, but a stale doc left "
-            "in place can still mislead an agent that reads it first. Needs a rewrite "
-            "or an explicit 'superseded — see ACTIVE_CONTEXT.md' banner."
-        ),
-        "files": "BUILD_GUIDE_SSOT.md",
-        "owner_decision_needed": "no — safe to fix, just needs someone to do it",
-    },
 ]
 
 
