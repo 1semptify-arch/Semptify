@@ -1,3 +1,30 @@
+## Session — 2026-08-24 — Remove L (LOCAL) as a valid user identity
+
+### Goal
+Enforce the rule that every Semptify user must connect an OAuth cloud storage provider. Remove the partial `L` / `local` user identity support so `LU...` IDs are rejected at authentication and access gates.
+
+### What changed
+- `app/core/user_id.py`:
+  - Removed `ProviderCode.LOCAL` and all `local` / `"L"` mappings from `PROVIDER_TO_CODE` and `CODE_TO_PROVIDER`.
+  - Updated module docstring and `generate_user_id()` docstring to list only Google Drive, Dropbox, and OneDrive.
+- `app/core/security.py`:
+  - Removed `"L": StorageProvider.LOCAL` from the `get_current_user()` provider map.
+  - Updated `is_valid_user_storage()` docstring and allowed provider codes to only `G`, `D`, `O`.
+- `tests/test_user_id.py`: Rewrote to assert that `LU...` IDs are rejected and `is_valid_storage_user()` returns `False` for a signed local user ID.
+- `tools/agent_orchestrator_tasks.json`: Marked `ad-hoc-remove-local-provider-2026-08-24` resolved.
+
+### Verification
+- `python -m py_compile app/core/user_id.py app/core/security.py app/core/storage_middleware.py`: PASS.
+- `python -m pytest tests/test_user_id.py -q --no-cov`: PASS (7 passed).
+- `python -m pytest tests/module_health -q --no-cov`: PASS (244 passed).
+- Confirmed `is_valid_storage_user(sign(LU7x9kM2pQ))` is now `False`.
+
+### Notes
+- `StorageProvider.LOCAL` enum and `storage_provider == "local"` dev-only document fallback remain for open-mode test uploads and admin contexts, but no user can authenticate with an `LU...` identity.
+- Admin console still builds `UserContext(provider=StorageProvider.LOCAL, ...)` directly for 2FA admin sessions; this is a system context, not a user identity, and is unaffected.
+
+---
+
 ## Session -- 2026-08-24 — Real OAuth / Google Drive end-to-end verification
 
 ### Guardrail Engine Run — 2026-08-24T13:44:29

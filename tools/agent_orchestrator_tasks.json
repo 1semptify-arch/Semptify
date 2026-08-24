@@ -2001,6 +2001,20 @@
     "notes": "[2026-08-24 15:16 UTC] Investigation complete. Root cause: record.html line 94 sends cookie('semptify_uid') as user_id form field; the cookie is the signed value (75 chars), not the bare user id. Server's upload_and_process already overrides the form value with the verified session identity from yellow_access and logs a warning. Fallback is safe because yellow_access rejects invalid cookies before the endpoint runs. Recommended fix: stop sending user_id from the form (or stop reading the signed cookie for it) as a cleanup task. No code changes made; findings recorded in BUILD_STATE.md."
   },
   {
+    "id": "ad-hoc-remove-local-provider-2026-08-24",
+    "title": "Remove L (LOCAL) provider support",
+    "description": "Remove the L=Local provider code from user_id.py, security.py, and storage_middleware so every user must connect real OAuth cloud storage (Google Drive, Dropbox, or OneDrive).",
+    "file_path": "app/core/user_id.py",
+    "status": "resolved",
+    "priority": "high",
+    "source": "ad-hoc",
+    "target_model": "swe-1.7",
+    "assigned_agent": "SWE-1.7-Max",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T21:42:15.180968+00:00",
+    "notes": "User confirmed: every user must have OAuth storage, no local-only users.\n[2026-08-24 21:42 UTC - SWE-1.7-Max] Removed L=Local from ProviderCode, user_id mappings, security provider_map and is_valid_user_storage allowlist; updated tests/test_user_id.py to assert local IDs are rejected."
+  },
+  {
     "assigned_agent": "SWE-1.7-Max",
     "category": "build",
     "created_at": "2026-08-24T18:40:00Z",

@@ -10,7 +10,9 @@ Provider Codes (1 char):
 - G = Google Drive
 - D = Dropbox
 - O = OneDrive
-- L = Local (admin/system users without cloud storage)
+
+Tenant users MUST connect one of the three OAuth cloud storage providers.
+Local-only users are not supported.
 
 Role Codes (1 char):
 - U = User (displayed as Tenant in housing context)
@@ -47,7 +49,6 @@ class ProviderCode(StrEnum):
     GOOGLE_DRIVE = "G"
     DROPBOX = "D"
     ONEDRIVE = "O"
-    LOCAL = "L"
 
 
 class RoleCode(StrEnum):
@@ -66,18 +67,15 @@ PROVIDER_TO_CODE = {
     "google_drive": ProviderCode.GOOGLE_DRIVE,
     "dropbox": ProviderCode.DROPBOX,
     "onedrive": ProviderCode.ONEDRIVE,
-    "local": ProviderCode.LOCAL,
 }
 
 CODE_TO_PROVIDER = {
     ProviderCode.GOOGLE_DRIVE: "google_drive",
     ProviderCode.DROPBOX: "dropbox",
     ProviderCode.ONEDRIVE: "onedrive",
-    ProviderCode.LOCAL: "local",
     "G": "google_drive",
     "D": "dropbox",
     "O": "onedrive",
-    "L": "local",
 }
 
 ROLE_TO_CODE = {
@@ -116,7 +114,7 @@ def generate_user_id(provider: str, role: str = "user") -> str:
     Generate a new user ID encoding provider and role.
 
     Args:
-        provider: Storage provider (google_drive, dropbox, onedrive, local)
+        provider: Storage provider (google_drive, dropbox, onedrive)
         role: User role (user, manager, advocate, legal, admin)
 
     Returns:
