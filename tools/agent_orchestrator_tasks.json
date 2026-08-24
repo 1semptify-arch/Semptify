@@ -1783,14 +1783,14 @@
     "title": "MVP document date fields: event_date, received_date, upload_date",
     "description": "Add event_date and received_date to the Document and VaultDocument data models, API responses, and update endpoints. Ensure upload_date remains immutable. Enable independent sorting on all three dates.",
     "file_path": "app/services/vault_upload_service.py",
-    "status": "in_progress",
+    "status": "resolved",
     "priority": "high",
     "source": "ad-hoc",
     "created_at": "2026-08-24T00:00:00Z",
-    "updated_at": "2026-08-24T03:50:21.065511+00:00",
+    "updated_at": "2026-08-24T04:20:38.664839+00:00",
     "target_model": "swe-1.7",
     "assigned_agent": "SWE-1.7-Max",
-    "notes": "User authorized all three remaining blockers after classifier fix. View button fix will be done first."
+    "notes": "User authorized all three remaining blockers after classifier fix. View button fix will be done first.\n[2026-08-24 04:20 UTC] Implemented event_date/received_date in models, vault service, vault router, and Record page UI. Added migration. Verified via py_compile, tests/test_documents.py (41), tests/test_document_intake.py (47), live API round-trip, and browser render of /gui/record."
   },
   {
     "id": "ad-hoc-view-button-2026-08-24",
@@ -1805,5 +1805,19 @@
     "target_model": "swe-1.7",
     "assigned_agent": "SWE-1.7-Max",
     "notes": "Dead-end fix. The unified_overlays module is RESEARCH tier and not mounted in production; use the core vault download endpoint for preview.\n[2026-08-24 03:50 UTC] View button now opens /api/vault/{id}/download?view=1 for preview. tests/test_documents.py 41 passed."
+  },
+  {
+    "id": "ad-hoc-ocr-fallback-2026-08-24",
+    "title": "OCR fallback for image-only 11-page lease packet",
+    "description": "Investigate why the 11-page image-only lease packet fails text extraction and implement a bounded, deterministic OCR fallback. Preserve the classifier logic. Do not build document-boundary segmentation.",
+    "file_path": "app/services/pdf_extractor.py",
+    "status": "resolved",
+    "priority": "high",
+    "source": "ad-hoc",
+    "created_at": "2026-08-24T00:00:00Z",
+    "updated_at": "2026-08-24T04:35:31.786235+00:00",
+    "target_model": "swe-1.7",
+    "assigned_agent": "SWE-1.7-Max",
+    "notes": "Last of three blockers. Check existing OCR services, dependencies (reportlab, xhtml2pdf), and the local extraction path. Implement fallback and tests only if a supported local engine is available.\n[2026-08-24 04:35 UTC] Wired extract_with_ocr fallback in document_intake for all PDFs (was Azure-only). Added pytesseract to requirements and tesseract-ocr to Dockerfile. Added 2 regression tests using a synthetic image-only PDF and mocked Tesseract. test_document_intake 49 passed, test_documents 41 passed."
   }
 ]

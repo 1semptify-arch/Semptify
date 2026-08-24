@@ -14,6 +14,7 @@ Covers:
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import fitz  # PyMuPDF, available in test environment
 import pytest
 from fastapi.testclient import TestClient
 
@@ -703,6 +704,76 @@ class TestIntakeIntegration:
         user_docs = engine.get_user_documents("api_workflow_user")
         assert len(user_docs) >= 1
         assert any(d.id == doc.id for d in user_docs)
+
+
+# =============================================================================
+# OCR FALLBACK TESTS
+# =============================================================================
+
+
+class TestOCRFallback:
+    """Tests for image-only PDF OCR fallback."""
+
+    def test_image_only_pdf_triggers_local_ocr(self, monkeypatch, tmp_path):
+        """An image-only PDF (no embedded text) falls back to Tesseract OCR."""
+        import pytesseract
+        from app.services.pdf_extractor import get_pdf_extractor
+
+        def mock_image_to_string(img, *args, **kwargs):
+            return "This is a LEASE agreement for 123 Main Street."
+
+        monkeypatch.setattr(pytesseract, "image_to_string", mock_image_to_string)
+
+        src = Path("docs/classification-test-fixtures/notice_01.pdf")
+        doc = fitz.open(src)
+        new_doc = fitz.open()
+
+        for page in doc:
+            pix = page.get_pixmap(dpi=200)
+            rect = fitz.Rect(0, 0, pix.width, pix.height)
+            new_page = new_doc.new_page(width=pix.width, height=pix.height)
+            new_page.insert_image(rect, stream=pix.tobytes("png"))
+
+        pdf_bytes = new_doc.tobytes()
+        new_doc.close()
+        doc.close()
+
+        # Verify the fixture has no extractable text
+        extractor = get_pdf_extractor()
+        plain = extractor.extract(pdf_bytes)
+        assert len(plain.text.strip()) < 50
+
+        # extract_with_ocr should fall through to local OCR and use our mock
+        result = extractor.extract_with_ocr(pdf_bytes)
+        assert result.method_used == "local_ocr"
+        assert "LEASE" in result.text.upper()
+
+    @pytest.mark.asyncio
+    async def test_intake_extract_uses_ocr_for_image_pdf(self, monkeypatch, engine, tmp_path):
+        """The intake engine calls the OCR fallback for image-only PDFs."""
+        import pytesseract
+
+        def mock_image_to_string(img, *args, **kwargs):
+            return "NOTICE TO VACATE within fourteen (14) days."
+
+        monkeypatch.setattr(pytesseract, "image_to_string", mock_image_to_string)
+
+        src = Path("docs/classification-test-fixtures/notice_01.pdf")
+        doc = fitz.open(src)
+        new_doc = fitz.open()
+
+        for page in doc:
+            pix = page.get_pixmap(dpi=200)
+            rect = fitz.Rect(0, 0, pix.width, pix.height)
+            new_page = new_doc.new_page(width=pix.width, height=pix.height)
+            new_page.insert_image(rect, stream=pix.tobytes("png"))
+
+        pdf_bytes = new_doc.tobytes()
+        new_doc.close()
+        doc.close()
+
+        text = await engine._extract_text(pdf_bytes, "application/pdf", "scanned_notice.pdf")
+        assert "NOTICE" in text.upper()
 
 
 # =============================================================================
