@@ -2056,5 +2056,18 @@
     "target_model": "swe-1.7",
     "title": "Fix missing vault_index.review_state_json column",
     "updated_at": "2026-08-25T01:03:43.530889+00:00"
+  },
+  {
+    "id": "ad-hoc-semiptify-db-drift-2026-08-25",
+    "title": "Fix semptifty_db migration drift and missing vault_index.review_state_json",
+    "description": "The Render-connected Neon database semptifty_db is at alembic_version 20260624 but already contains tables from later revisions (e.g. journal_entries, document_shares). Make the affected migrations idempotent so alembic upgrade head can complete and add missing columns such as review_state_json, event_date, received_date, embedding, and case_overlay_id.",
+    "file_path": "alembic/versions/aaebf71fa17a_add_journal_entries_table.py",
+    "status": "resolved",
+    "priority": "high",
+    "source": "ad-hoc",
+    "assigned_agent": "SWE-1.7-Max",
+    "created_at": "2026-08-25T02:30:53.250118+00:00",
+    "updated_at": "2026-08-25T02:35:27.172848+00:00",
+    "notes": "Created after journal_entries already existed caused alembic upgrade head to fail with DuplicateTable.\n[2026-08-25 02:35 UTC - SWE-1.7-Max] Made aaebf71fa17a, 9f96d6ec5a65, 7f002a47b44a, and 20260820_add_embedding_columns idempotent. Created vector extension and manually added canonical_value/extraction_pattern/embedding to context_facts (owned by authenticator) so neondb_owner could run the rest. Alembic upgrade head completed on semptifty_db; alembic_version at 20260825_vault_review_catchup and vault_index now has review_state_json, event_date, received_date."
   }
 ]

@@ -1,3 +1,40 @@
+## Session — 2026-08-25 — Fix production `vault_index.review_state_json` missing on `semptifty_db`
+
+### Goal
+User's live Google Drive E2E was blocked by `UndefinedColumnError: column vault_index.review_state_json does not exist`. The Render app is using the Neon database `semptifty_db`, which was at `alembic_version` `20260624_add_context_engine` while its schema was partially patched with later tables. `alembic upgrade head` failed with `DuplicateTable` and `must be owner of table context_facts`.
+
+### Root cause
+- `semptifty_db` was the database `DATABASE_URL` pointed to, not the previously fixed `neondb`.
+- Its `alembic_version` was far behind its actual schema (`journal_entries`, `document_shares`, etc. already existed).
+- Some table objects (notably `context_facts`) were owned by the `authenticator` role instead of `neondb_owner`, so `ALTER TABLE` on those tables failed.
+
+### What changed
+- `alembic/versions/aaebf71fa17a_add_journal_entries_table.py`: made idempotent — creates `journal_entries` and its indexes only if missing.
+- `alembic/versions/9f96d6ec5a65_add_canonical_value_to_context_facts.py`: made idempotent — adds `canonical_value` only if missing.
+- `alembic/versions/7f002a47b44a_add_extraction_pattern_to_context_facts.py`: made idempotent — adds `extraction_pattern` only if missing.
+- `alembic/versions/20260820_add_embedding_columns.py`: made idempotent — creates the `vector` extension and adds `embedding` columns only where missing.
+
+### Verification
+- Created the `vector` extension in `semptifty_db`.
+- Manually added `canonical_value`, `extraction_pattern`, and `embedding` to `context_facts` (owner `authenticator`) via the `authenticator` role.
+- Ran `alembic upgrade head` against `semptifty_db` from the current code; completed cleanly.
+- `alembic_version` now `20260825_vault_review_catchup`.
+- `vault_index` now contains `review_state_json`, `event_date`, and `received_date`.
+- The originally failing `SELECT ... FROM vault_index WHERE vault_id = ...` query shape no longer raises `UndefinedColumnError`.
+- `python -m py_compile` on all changed migration files: PASS.
+- Real Google Drive E2E against the deployed `https://semptify-jsam.onrender.com` using the supplied `semptify_uid` cookie:
+  - `GET /api/vault/` → `200`
+  - `POST /api/intake/upload/auto` (a small `e2e_test.txt`) → `200`, `vault_id=doc_Px3dDWcGcc8BPHKZ`, `storage_provider=google_drive`
+  - `GET /api/vault/{vault_id}/download` → `200`, `len=54`
+  - `GET /api/vault/{vault_id}/download?view=true` → `200`, `Content-Type: text/plain; charset=utf-8`
+  - `GET /api/vault/{vault_id}/certificate` → `200`, certificate JSON with matching `sha256_hash`
+
+### Notes
+- The `neondb` database is still at the same `20260825_vault_review_catchup` head; no changes were made to it.
+- `context_facts` still has the three manually-added columns owned by `authenticator`; the app already had DML access through role membership.
+
+---
+
 ## Session — 2026-08-25 — Fix /ship skill's stale hardcoded checkout path
 
 ### Goal

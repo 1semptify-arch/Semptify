@@ -9,6 +9,7 @@ from collections.abc import Sequence
 from typing import Union
 
 import sqlalchemy as sa
+from sqlalchemy import inspect
 
 from alembic import op
 
@@ -21,12 +22,20 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Add extraction_pattern column to context_facts for content-level verification."""
-    op.add_column(
-        'context_facts',
-        sa.Column('extraction_pattern', sa.Text(), nullable=True),
-    )
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    existing_columns = {col["name"] for col in inspector.get_columns("context_facts")}
+    if "extraction_pattern" not in existing_columns:
+        op.add_column(
+            'context_facts',
+            sa.Column('extraction_pattern', sa.Text(), nullable=True),
+        )
 
 
 def downgrade() -> None:
     """Drop extraction_pattern column."""
-    op.drop_column('context_facts', 'extraction_pattern')
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    existing_columns = {col["name"] for col in inspector.get_columns("context_facts")}
+    if "extraction_pattern" in existing_columns:
+        op.drop_column('context_facts', 'extraction_pattern')
