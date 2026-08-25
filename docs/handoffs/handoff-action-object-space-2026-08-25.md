@@ -14,295 +14,295 @@
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Briefcase Add Tag (POST).
+- **Blurb:** Add a tag to a document or folder so you can group related items and find them later.
 
 #### Briefcase Get All Tags (GET) (`briefcase::briefcase_all_tags`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get all available tags.
+- **Blurb:** See all the tags you have set up in your briefcase.
 
 #### Briefcase List Annotations (GET) (`briefcase::briefcase_annotations`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** List annotations with optional filters.
+- **Blurb:** See all the notes and marks you have added to your documents.
 
 #### Briefcase Get Annotations By Document (GET) (`briefcase::briefcase_annotations_by_document`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get all annotations for a document, grouped by extraction code.
+- **Blurb:** See all the notes and marks for one document, grouped by topic.
 
 #### Briefcase Get Briefcase (GET) (`briefcase::briefcase_briefcase`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get entire briefcase structure.
+- **Blurb:** See your whole briefcase structure: folders, documents, and how they are organized.
 
 #### Briefcase Get Briefcase Stats (GET) (`briefcase::briefcase_briefcase_stats`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get detailed briefcase statistics.
+- **Blurb:** See a quick summary of your briefcase, such as how many documents, folders, and notes it holds.
 
 #### Briefcase Copy Document (POST) (`briefcase::briefcase_copy_document`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** POST /document/{doc_id}/copy.
+- **Blurb:** Make a copy of a document inside your briefcase.
 
 #### Briefcase Create Annotation (POST) (`briefcase::briefcase_create_annotation`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Create a new document annotation with auto-numbered footnotes.
+- **Blurb:** Add a note or mark to a document, with numbered footnotes if you want them.
 
 #### Briefcase Create Folder (POST) (`briefcase::briefcase_create_folder`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Create a new folder.
+- **Blurb:** Make a new folder in your briefcase to keep documents organized.
 
 #### Briefcase Create Timeline Event (POST) (`briefcase::briefcase_create_timeline_event`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Create a timeline event that can be linked to annotations.
+- **Blurb:** Add a dated event to your timeline and link it to related notes.
 
 #### Briefcase Delete Annotation (DELETE) (`briefcase::briefcase_delete_annotation`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Delete an annotation.
+- **Blurb:** Remove a note or mark from a document.
 
 #### Briefcase Delete Document (DELETE) (`briefcase::briefcase_delete_document`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Briefcase Delete Document (DELETE).
+- **Blurb:** Remove a document from your briefcase.
 
 #### Briefcase Delete Extraction (DELETE) (`briefcase::briefcase_delete_extraction`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Delete an extraction.
+- **Blurb:** Remove a saved excerpt from your briefcase.
 
 #### Briefcase Delete Folder (DELETE) (`briefcase::briefcase_delete_folder`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Briefcase Delete Folder (DELETE).
+- **Blurb:** Remove a folder from your briefcase.
 
 #### Briefcase Delete Highlight (DELETE) (`briefcase::briefcase_delete_highlight`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Briefcase Delete Highlight (DELETE).
+- **Blurb:** Remove a highlighted passage from your briefcase.
 
 #### Briefcase Delete Timeline Event (DELETE) (`briefcase::briefcase_delete_timeline_event`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Delete a timeline event and unlink associated annotations.
+- **Blurb:** Remove a dated event from your timeline and break its links to any notes.
 
 #### Briefcase Download Document (GET) (`briefcase::briefcase_download_document`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Download a document.
+- **Blurb:** Save a copy of one of your documents to your device.
 
 #### Briefcase Download Extraction (GET) (`briefcase::briefcase_download_extraction`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Download extracted PDF file.
+- **Blurb:** Save a saved excerpt as a PDF file to your device.
 
 #### Briefcase Get Event Chain (GET) (`briefcase::briefcase_event_chain`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get an event chain (linked events: start→continued→finish).
+- **Blurb:** See a chain of linked events from start to finish, with the notes attached to each step.
 
 #### Briefcase Create Event From Annotation (POST) (`briefcase::briefcase_event_from_annotation`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Create a timeline event from an annotation's highlight.
+- **Blurb:** Create a dated timeline event based on a note or mark you already made.
 
 #### Briefcase Get Event Statuses (GET) (`briefcase::briefcase_event_statuses`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get the complete list of event statuses with descriptions.
+- **Blurb:** See the list of timeline event statuses and what each one means.
 
 #### Briefcase Export Folder (POST) (`briefcase::briefcase_export_folder`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Briefcase Export Folder (POST).
+- **Blurb:** Save all documents in a folder as a single file you can keep outside Semptify.
 
 #### Briefcase Get Extraction Codes (GET) (`briefcase::briefcase_extraction_codes`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get the complete list of extraction codes with colors and icons.
+- **Blurb:** See the list of excerpt codes and their colors, so you can pick the right one.
 
 #### Briefcase List Extractions (GET) (`briefcase::briefcase_extractions`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** List all saved extractions.
+- **Blurb:** See all the saved excerpts you have collected from your documents.
 
 #### Briefcase Get Folder Contents (GET) (`briefcase::briefcase_folder_contents`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get contents of a specific folder.
+- **Blurb:** See the documents and folders inside one specific folder.
 
 #### Briefcase Get Annotation (GET) (`briefcase::briefcase_get_annotation`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get a specific annotation.
+- **Blurb:** Look up one specific note or mark on a document.
 
 #### Briefcase Get Document (GET) (`briefcase::briefcase_get_document`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get document metadata.
+- **Blurb:** Look up one document and see its details.
 
 #### Briefcase Get Extraction (GET) (`briefcase::briefcase_get_extraction`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get a specific extraction.
+- **Blurb:** Look up one saved excerpt.
 
 #### Briefcase Get Highlight (GET) (`briefcase::briefcase_get_highlight`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get a specific highlight.
+- **Blurb:** Look up one highlighted passage.
 
 #### Briefcase Get Timeline Event (GET) (`briefcase::briefcase_get_timeline_event`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get a timeline event with its linked annotations.
+- **Blurb:** Look up one dated event on your timeline, including any linked notes.
 
 #### Briefcase List Highlights (GET) (`briefcase::briefcase_highlights`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** List all saved highlights, optionally filtered.
+- **Blurb:** See all the passages you have highlighted across your documents.
 
 #### Briefcase Get Highlights Grouped By Color (GET) (`briefcase::briefcase_highlights_grouped_by_color`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get highlights grouped by color category.
+- **Blurb:** See your highlighted passages grouped by their color or category.
 
 #### Briefcase Link Annotation To Event (POST) (`briefcase::briefcase_link_annotation_to_event`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** POST /annotation/{annotation_id}/link-event.
+- **Blurb:** Connect a note or mark on a document to a timeline event.
 
 #### Briefcase Move Document (POST) (`briefcase::briefcase_move_document`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** POST /document/{doc_id}/move.
+- **Blurb:** Move a document from one folder to another.
 
 #### Briefcase Preview Document (GET) (`briefcase::briefcase_preview_document`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get document content for preview (base64).
+- **Blurb:** Read a document inside Semptify without downloading it first.
 
 #### Briefcase Get Recent Documents (GET) (`briefcase::briefcase_recent_documents`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get recently added/updated documents.
+- **Blurb:** See the documents you added or changed most recently.
 
 #### Briefcase Reset Annotation Counters (POST) (`briefcase::briefcase_reset_annotation_counters`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** POST /annotations/reset-counters.
+- **Blurb:** Reset the numbering on your document notes and footnotes.
 
 #### Briefcase Save Converted Document (POST) (`briefcase::briefcase_save_converted_document`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Save a converted document to the briefcase.
+- **Blurb:** Save a converted version of a document into your briefcase.
 
 #### Briefcase Save Extraction (POST) (`briefcase::briefcase_save_extraction`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Briefcase Save Extraction (POST).
+- **Blurb:** Save a short excerpt from a document into your briefcase.
 
 #### Briefcase Save Highlight (POST) (`briefcase::briefcase_save_highlight`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Briefcase Save Highlight (POST).
+- **Blurb:** Save a highlighted passage from a document.
 
 #### Briefcase Save Highlights Batch (POST) (`briefcase::briefcase_save_highlights_batch`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Save multiple highlights at once.
+- **Blurb:** Save several highlighted passages from a document at once.
 
 #### Briefcase Search Documents (GET) (`briefcase::briefcase_search_documents`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Briefcase Search Documents (GET).
+- **Blurb:** Search through the documents in your briefcase.
 
 #### Briefcase Get Starred Documents (GET) (`briefcase::briefcase_starred_documents`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Get all starred documents.
+- **Blurb:** See the documents you have marked as starred or important.
 
 #### Briefcase List Timeline Events (GET) (`briefcase::briefcase_timeline_events`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** List timeline events with optional filters.
+- **Blurb:** See the dated events in your briefcase timeline.
 
 #### Briefcase Update Annotation (PUT) (`briefcase::briefcase_update_annotation`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Update an annotation's note or linked event.
+- **Blurb:** Change the note or linked event on a document mark.
 
 #### Briefcase Update Document (PUT) (`briefcase::briefcase_update_document`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Update document properties.
+- **Blurb:** Change the details of one of your documents.
 
 #### Briefcase Update Folder (PUT) (`briefcase::briefcase_update_folder`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Update folder properties.
+- **Blurb:** Change the name or details of a folder.
 
 #### Briefcase Update Timeline Event (PUT) (`briefcase::briefcase_update_timeline_event`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Update a timeline event.
+- **Blurb:** Change the date or details of a timeline event.
 
 #### Briefcase Upload Document (POST) (`briefcase::briefcase_upload_document`)
 
 - **Inputs** (small): none
 - **Outputs** (small): result (short text)
-- **Blurb:** Briefcase Upload Document (POST).
+- **Blurb:** Add a new file from your device to your briefcase and connected storage.
 
 ### Module: calendar
 
@@ -1484,85 +1484,85 @@
 
 - **Inputs** (small): case_data (short text)
 - **Outputs** (medium): merit_score (number), strengths (short text), weaknesses (short text)
-- **Blurb:** Comprehensive assessment of legal merit. Shows merit score, strengths, and weaknesses.
+- **Blurb:** Get a plain-language sense of how strong your case looks, based on the records you have shared. Shows possible strengths and things worth a closer look. This is information, not a legal opinion.
 
 #### Legal Analysis Assess Merit From Case (`legal_analysis::legal_analysis_assess_merit_from_case`)
 
 - **Inputs** (small): case_id (reference / lookup), perspective (short text, optional)
 - **Outputs** (small): merit_score (number), assessment (short text)
-- **Blurb:** Assess legal merit from an existing case. Shows merit score from the case's documentation of events and timeline.
+- **Blurb:** Look at the legal strength of an existing case you have already started. Shows possible strengths and risks from the case records and timeline.
 
 #### Legal Analysis Binding Status (`legal_analysis::legal_analysis_binding_status`)
 
 - **Inputs** (medium): documents (list / table)
 - **Outputs** (small): binding_statuses (dropdown / select)
-- **Blurb:** Analyze which documents are legally binding. Shows binding status for each document.
+- **Blurb:** Check which of your documents are likely to be treated as binding. Shows the binding status for each document you select.
 
 #### Legal Analysis Check Consistency (`legal_analysis::legal_analysis_check_consistency`)
 
 - **Inputs** (large): documents (list / table), events (list / table, optional)
 - **Outputs** (small): inconsistencies (short text), conflicts (short text)
-- **Blurb:** Check consistency across multiple documents and events. Shows inconsistencies and conflicts.
+- **Blurb:** Find places where the details in your documents and timeline do not line up. Shows possible inconsistencies so you can decide what still needs explaining.
 
 #### Legal Analysis Classify Evidence (`legal_analysis::legal_analysis_classify_evidence`)
 
 - **Inputs** (small): document (short text)
 - **Outputs** (medium): evidence_type (dropdown / select), legal_status (dropdown / select), confidence (short text)
-- **Blurb:** Classify a document for legal purposes. Shows documentation of events type and legal status.
+- **Blurb:** See what kind of record a single document is and how a court might treat it. Shows the document type and legal status.
 
 #### Legal Analysis Classify Evidence Batch (`legal_analysis::legal_analysis_classify_evidence_batch`)
 
 - **Inputs** (medium): documents (list / table)
 - **Outputs** (small): classifications (short text)
-- **Blurb:** Classify multiple documents at once. Shows documentation of events types and legal statuses for each.
+- **Blurb:** See what kind of records your documents are and how a court might treat them, all at once. Shows the type and legal status for each document.
 
 #### Legal Analysis Corroboration (`legal_analysis::legal_analysis_corroboration`)
 
 - **Inputs** (medium): claim (short text), evidence_items (list / table)
 - **Outputs** (small): corroboration_score (number), supporting_evidence (short text)
-- **Blurb:** Analyze how well documentation of events supports a specific claim. Shows corroboration score and supporting documentation of events.
+- **Blurb:** Check how well one of your records supports a specific claim. Shows a score and which records back it up.
 
 #### Legal Analysis Corroboration Multi (`legal_analysis::legal_analysis_corroboration_multi`)
 
 - **Inputs** (medium): claims (short text), evidence_items (list / table)
 - **Outputs** (small): scores (number)
-- **Blurb:** Analyze how well documentation of events supports multiple claims. Shows corroboration scores for each claim.
+- **Blurb:** Check how well your records support several claims at once. Shows a score for each claim and which records back them up.
 
 #### Legal Analysis Evidence Types (`legal_analysis::legal_analysis_evidence_types`)
 
 - **Inputs** (small): none
 - **Outputs** (small): evidence_types (dropdown / select)
-- **Blurb:** List of all documentation of events type classifications. Shows documentation of events types and descriptions.
+- **Blurb:** See the list of record types Semptify uses to classify documents. Shows each type and a short description.
 
 #### Legal Analysis Hearsay (`legal_analysis::legal_analysis_hearsay`)
 
 - **Inputs** (medium): documents (list / table)
 - **Outputs** (small): hearsay_flags (short text)
-- **Blurb:** Analyze documents for hearsay content. Shows hearsay flags and explanations.
+- **Blurb:** Check whether a document may be treated as hearsay in court. Shows any flags and a short explanation.
 
 #### Legal Analysis Legal Statuses (`legal_analysis::legal_analysis_legal_statuses`)
 
 - **Inputs** (small): none
 - **Outputs** (small): legal_statuses (dropdown / select)
-- **Blurb:** List of all document legal status classifications. Shows statuses and descriptions.
+- **Blurb:** See the list of legal status labels Semptify uses for documents. Shows each status and what it means.
 
 #### Legal Analysis MN Eviction Requirements (`legal_analysis::legal_analysis_mn_eviction_requirements`)
 
 - **Inputs** (small): none
 - **Outputs** (small): requirements (short text)
-- **Blurb:** Minnesota eviction notice requirements. Shows notice periods and statutory requirements.
+- **Blurb:** Look up what Minnesota law says about eviction notice requirements. Shows the notice periods and rules that apply.
 
 #### Legal Analysis Quick Case Check (`legal_analysis::legal_analysis_quick_check`)
 
 - **Inputs** (small): case_id (reference / lookup)
 - **Outputs** (small): health_score (number), risks (short text)
-- **Blurb:** Quick legal health check for a case. Shows a summary of legal strengths and risks.
+- **Blurb:** Get a quick summary of legal strengths and possible risks for a case. Shows a score and the main points to know about.
 
 #### Legal Analysis Timeline (`legal_analysis::legal_analysis_timeline`)
 
 - **Inputs** (medium): events (list / table), jurisdiction (dropdown / select, optional)
 - **Outputs** (medium): gaps (short text), conflicts (short text), compliance_issues (short text)
-- **Blurb:** Analyze timeline for legal compliance. Shows timeline gaps, conflicts, and compliance issues.
+- **Blurb:** Check your timeline for gaps, overlaps, or compliance issues. Shows where the dates and events may need more review.
 
 ### Module: location
 
