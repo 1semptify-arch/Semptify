@@ -1,3 +1,48 @@
+## Session — 2026-08-25 — Fix production UndefinedColumnError on vault_index.review_state_json
+
+### Goal
+User hit a live error: `UndefinedColumnError: column vault_index.review_state_json does not exist`
+on production (Neon). Root cause and permanent fix, not a manual patch.
+
+### Root cause
+Migration `8b393a99538e` (2026-07-25) added `review_state_json` to `vault_index` and created
+`document_shares` in one non-idempotent script. A prior session (2026-07-28, see below) hit a
+failure when `document_shares` already existed and worked around it by hand-adding the column
+directly on one Neon instance instead of fixing the migration (Known Failure Registry #15
+pattern). That manual patch did not stick everywhere — production was stamped at
+`20260824_add_document_dates` (past this migration) but the column was still missing.
+
+### What changed
+- `alembic/versions/8b393a99538e_add_vault_review_state_and_document_.py`: made idempotent —
+  checks `inspector.get_columns()` / `inspector.has_table()` before adding the column or creating
+  `document_shares`, so re-running this migration (or running it against a DB that already has
+  one of the two objects) is a no-op instead of a hard failure.
+- `alembic/versions/20260825_vault_review_catchup.py` (new head): one-time catch-up migration for
+  databases already stamped past `8b393a99538e` but missing the column. SQLite-safe via
+  `batch_alter_table`.
+
+### Verification
+- Simulated the exact original failure (both `review_state_json` and `document_shares` already
+  present) against a throwaway SQLite DB running `alembic upgrade 8b393a99538e` — now completes
+  without error (previously failed).
+- Simulated production's actual broken state (column missing, `document_shares` present, stamped
+  at `20260824_add_document_dates`) and ran `alembic upgrade head` — catch-up migration adds the
+  column cleanly.
+- Ran `alembic upgrade head` against the real production Neon DB: column added
+  (`review_state_json exists: True`), `alembic_version` now at `20260825_vault_review_catchup`.
+  (First attempt failed on `UPDATE alembic_version` because the new revision id was too long for
+  `VARCHAR(32)` — shortened the id and re-ran cleanly.)
+- Reproduced the exact failing query (`SELECT ... FROM vault_index WHERE vault_id = ...`) against
+  production — executes without error post-fix.
+- `python -m py_compile app/main.py` + both changed migration files: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+
+### Notes
+- No data was deleted or modified; this only added a nullable column and, if missing, a table.
+- Task `ad-hoc-vault-review-state-2026-08-24` marked resolved in the orchestrator tracker.
+
+---
+
 ## Session — 2026-08-24 — Remove L (LOCAL) as a valid user identity
 
 ### Guardrail Engine Run — 2026-08-24T17:07:06
