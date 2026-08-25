@@ -12,6 +12,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import inspect
 
 from app.core.database_types import AsymmetricVector
 from app.modules.context_engine.embedding_model import EMBEDDING_DIMENSIONS
@@ -25,48 +26,56 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Add embedding columns."""
     bind = op.get_bind()
+    inspector = inspect(bind)
 
     if bind.dialect.name == "postgresql":
         # pgvector must be enabled before a VECTOR column can be created.
         op.execute(sa.text("CREATE EXTENSION IF NOT EXISTS vector;"))
 
+    explanation_cols = {col["name"] for col in inspector.get_columns("context_explanation_entries")}
+    facts_cols = {col["name"] for col in inspector.get_columns("context_facts")}
+
     # SQLite does not support plain ALTER TABLE ADD COLUMN with some constructs,
     # but SQLAlchemy's JSON type maps to a TEXT affinity and works with
     # batch_alter_table to avoid reflection issues.
     if bind.dialect.name == "sqlite":
-        with op.batch_alter_table("context_explanation_entries") as batch_op:
-            batch_op.add_column(
-                sa.Column(
-                    "embedding",
-                    AsymmetricVector(EMBEDDING_DIMENSIONS),
-                    nullable=True,
+        if "embedding" not in explanation_cols:
+            with op.batch_alter_table("context_explanation_entries") as batch_op:
+                batch_op.add_column(
+                    sa.Column(
+                        "embedding",
+                        AsymmetricVector(EMBEDDING_DIMENSIONS),
+                        nullable=True,
+                    )
                 )
-            )
-        with op.batch_alter_table("context_facts") as batch_op:
-            batch_op.add_column(
-                sa.Column(
-                    "embedding",
-                    AsymmetricVector(EMBEDDING_DIMENSIONS),
-                    nullable=True,
+        if "embedding" not in facts_cols:
+            with op.batch_alter_table("context_facts") as batch_op:
+                batch_op.add_column(
+                    sa.Column(
+                        "embedding",
+                        AsymmetricVector(EMBEDDING_DIMENSIONS),
+                        nullable=True,
+                    )
                 )
-            )
     else:
-        op.add_column(
-            "context_explanation_entries",
-            sa.Column(
-                "embedding",
-                AsymmetricVector(EMBEDDING_DIMENSIONS),
-                nullable=True,
-            ),
-        )
-        op.add_column(
-            "context_facts",
-            sa.Column(
-                "embedding",
-                AsymmetricVector(EMBEDDING_DIMENSIONS),
-                nullable=True,
-            ),
-        )
+        if "embedding" not in explanation_cols:
+            op.add_column(
+                "context_explanation_entries",
+                sa.Column(
+                    "embedding",
+                    AsymmetricVector(EMBEDDING_DIMENSIONS),
+                    nullable=True,
+                ),
+            )
+        if "embedding" not in facts_cols:
+            op.add_column(
+                "context_facts",
+                sa.Column(
+                    "embedding",
+                    AsymmetricVector(EMBEDDING_DIMENSIONS),
+                    nullable=True,
+                ),
+            )
 
 
 def downgrade() -> None:
