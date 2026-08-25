@@ -2226,7 +2226,7 @@
 
 - **Inputs** (small): none
 - **Outputs** (medium): counterclaims (list / table)
-- **Blurb:** List of counterclaim templates. Shows all available counterclaims a you may raise in an eviction case.
+- **Blurb:** List of counterclaim templates. Shows all available counterclaims you may raise in an eviction case.
 
 #### Eviction Defense List Defenses (`eviction_defense::eviction_defense_list_defenses`)
 
