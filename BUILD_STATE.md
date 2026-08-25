@@ -29,6 +29,11 @@ User's live Google Drive E2E was blocked by `UndefinedColumnError: column vault_
   - `GET /api/vault/{vault_id}/download?view=true` → `200`, `Content-Type: text/plain; charset=utf-8`
   - `GET /api/vault/{vault_id}/certificate` → `200`, certificate JSON with matching `sha256_hash`
 
+### Shipped
+- Merged to `main` via PR #115, commit `11acc152`.
+- Deployed to Render at `https://semptify-jsam.onrender.com` on 2026-08-25.
+- Health check and all Playwright smoke tests pass.
+
 ### Notes
 - The `neondb` database is still at the same `20260825_vault_review_catchup` head; no changes were made to it.
 - `context_facts` still has the three manually-added columns owned by `authenticator`; the app already had DML access through role membership.
