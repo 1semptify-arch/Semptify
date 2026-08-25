@@ -2039,7 +2039,22 @@
     "source": "ad-hoc",
     "status": "rejected",
     "target_model": "swe-1.7",
-    "title": "Add local provider support to get_provider — CANCELLED",
+    "title": "Add local provider support to get_provider \u2014 CANCELLED",
     "updated_at": "2026-08-24T22:15:00+00:00"
+  },
+  {
+    "assigned_agent": "Claude-Sonnet-4.5",
+    "category": "bug",
+    "created_at": "2026-08-24T00:00:00Z",
+    "description": "Add an idempotent Alembic migration to add review_state_json to vault_index and create document_shares if missing, so the UndefinedColumnError does not recur across environments.",
+    "file_path": "alembic/versions/20260824_add_vault_review_state_if_missing.py",
+    "id": "ad-hoc-vault-review-state-2026-08-24",
+    "notes": "[2026-08-25 01:03 UTC - Claude-Sonnet-4.5] Made 8b393a99538e idempotent and added catch-up migration 20260825_vault_review_catchup. Applied to production Neon: review_state_json now exists, alembic_version at new head. Verified with simulated broken-state DB tests and a live query reproduction. pytest tests/module_health 244 passed.",
+    "priority": "high",
+    "source": "ad-hoc",
+    "status": "resolved",
+    "target_model": "swe-1.7",
+    "title": "Fix missing vault_index.review_state_json column",
+    "updated_at": "2026-08-25T01:03:43.530889+00:00"
   }
 ]
