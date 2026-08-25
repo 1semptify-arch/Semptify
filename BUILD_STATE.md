@@ -1,3 +1,51 @@
+## Session — 2026-08-25 — Fix /ship skill's stale hardcoded checkout path
+
+### Goal
+Running `/ship` after the vault_index fix (previous entry below) surfaced that the skill's
+`cwd` was hardcoded to `E:\master-repo\sources\app-semptify-fastapi` — a separate, stale git
+checkout that did not contain that session's actual changes. Running the skill literally would
+have committed/pushed from the wrong location, appearing to succeed while shipping nothing real.
+
+### What changed
+- `.devin/skills/ship/SKILL.md` and `.github/prompts/ship.prompt.md` (kept in sync):
+  - Added Step 0: before doing anything else, confirm the working directory actually contains
+    the session's changes via `git status --short`, instead of trusting a hardcoded path.
+    Per master-repo `AGENTS.md`, `modules/<name>/` is the correct working checkout;
+    `sources/<name>/` is a reference copy and should not be edited/shipped from directly.
+  - Step 4: changed from a blanket `git add app/ static/ ...` to staging only the specific
+    files the session actually changed (one task per commit).
+  - Step 5: noted that `docs/doc-map.yaml`'s pre-commit hook requires certain commit subjects
+    to start with `admin:`/`user:`/`help:`/`adr:` — retry with the right prefix if rejected.
+  - Step 6: replaced the blind `git push origin main` with: identify the remote whose URL is
+    the actual GitHub repo (some checkouts have `origin` pointing at a local path instead), and
+    added a branch-protection fallback (create a branch, push, open a PR with `gh pr create`,
+    stop for review) instead of failing or attempting to bypass protection.
+  - Step 7/8/9: updated to report either a direct-push commit hash or a PR URL depending on
+    which path Step 6 took.
+
+### Why this approach (Option A: preflight check, not a hardcoded path swap)
+A hardcoded path fix (pointing the skill at `modules/` instead of `sources/`) would have solved
+today's instance but is fragile to the same class of failure if the working checkout ever moves
+again. A content-based preflight check (`git status` must show the session's own changes) catches
+the mismatch regardless of what the correct path is at the time, and fails loudly instead of
+silently shipping nothing.
+
+### Verification
+- Manually ran the corrected flow this session (see the vault_index fix entry below): confirmed
+  `git status --short` in `modules\app-semptify-fastapi` matched session changes, identified
+  `github-direct` as the real GitHub remote, hit the branch-protection rejection on `main`, and
+  followed the new PR fallback — PR #113 opened successfully.
+- No automated test covers a markdown skill file; this is a process fix, verified by the fact
+  that following the new steps produced the correct outcome (PR opened from the correct checkout).
+
+### Notes
+- `sources\app-semptify-fastapi` was confirmed untouched throughout (still at `97b6ab43`).
+- Task 3 (flagged, not resolved): `sources\app-semptify-fastapi`'s long-term purpose — whether it
+  should be deleted, resynced to match `modules`, or intentionally kept as a reference/backup
+  checkout — is an open decision for the project owner, not resolved here.
+
+---
+
 ## Session — 2026-08-25 — Fix production UndefinedColumnError on vault_index.review_state_json
 
 ### Goal
