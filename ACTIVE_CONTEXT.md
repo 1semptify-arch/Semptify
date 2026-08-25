@@ -232,9 +232,12 @@ Implemented the hotel analogy:
 
 ### Remaining blocker before assembly
 
-- Missing `feature_flags` DB table — causes fallback warnings but does not block public pages or the reconciled modules.
+- ~~Missing `feature_flags` DB table~~ — **stale**. The `feature_flags` table exists with expected rows in `semptifty_db`, `neondb`, and local SQLite; `ensure_schema()` in `app/core/features.py` creates it on startup. The real remaining issue is that Semptify currently has **two non-unified feature-flag systems**:
+  - `app/core/feature_flags.py` — in-memory store used by `FeatureFlagMiddleware` and the `/admin/api/flags` endpoints in `main.py`.
+  - `app/core/features.py` — DB-backed `FeatureFlagManager` used by `role_ui`, `admin_console`, `module_resolver`, and `ensure_schema`.
+  Toggling a flag in one system has no effect on the other. An investigation brief is in progress; Brad will decide the unification direction, matching the `context_loop` pattern.
 
-Next: GUI/site assembly.
+Next: GUI/site assembly, pending the feature-flag unification brief.
 
 Previous priority: Review/merge Funding Forge standalone add-on — completed 2026-07-25.
 Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).

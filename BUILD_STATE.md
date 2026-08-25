@@ -1,3 +1,32 @@
+## Session — 2026-08-25 — Stale `feature_flags` doc fix and feature-flag unification brief
+
+### Goal
+`ACTIVE_CONTEXT.md` still listed the `feature_flags` table as a missing blocker. Investigation confirmed the table exists in all relevant environments; the real issue is two independent, non-unified feature-flag systems. Fix the stale note, deliver a scoping brief, and clean up the tracker.
+
+### Root cause
+- The `feature_flags` table is present in `semptifty_db`, `neondb`, and local SQLite.
+- Semptify has two feature-flag systems: an in-memory store (`app/core/feature_flags.py`) used by `FeatureFlagMiddleware` and `/admin/api/flags`, and a DB-backed `FeatureFlagManager` (`app/core/features.py`) used by `role_ui`, `admin_console`, `module_resolver`, and startup schema checks. They do not share state.
+
+### What changed
+- `ACTIVE_CONTEXT.md`: removed the stale "missing `feature_flags` DB table" blocker and replaced it with a note describing the two non-unified systems and the open unification brief.
+- `docs/handoffs/handoff-feature-flags-unification.md`: new read-only scoping brief covering system locations, consumers, current state, performance, and unification options.
+- `tools/agent_orchestrator_tasks.json`: added/updated tracker entries:
+  - `ad-hoc-feature-flags-table-stale-2026-08-25` — resolved.
+  - `ad-hoc-feature-flags-unification-2026-08-25` — review (brief delivered, awaiting Brad's decision).
+  - `ad-hoc-local-storage-provider-cancelled-2026-08-25` — rejected (cancelled per Brad's rule).
+  - `ad-hoc-context-loop-brief-2026-08-25` — review (brief delivered, awaiting Brad's decision).
+
+### Verification
+- `feature_flags` table presence confirmed in `semptifty_db`, `neondb`, and local SQLite.
+- `python -m py_compile app/core/features.py app/core/feature_flags.py app/main.py`: PASS.
+- Tracker updates are valid JSON.
+
+### Notes
+- No code changes to either feature-flag system; this is a documentation/investigation handoff only.
+- No unification implementation will start until Brad decides the direction.
+
+---
+
 ## Session — 2026-08-25 — Fix production `vault_index.review_state_json` missing on `semptifty_db`
 
 ### Goal
