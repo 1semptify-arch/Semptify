@@ -98,7 +98,7 @@
 {% endblock %}
 
 {% block record_next %}
-<a href="/law-library" class="output-trigger">Browse related cases and court rules</a>
+<a href="{{ navigation.get_stage('law_library').path }}" class="output-trigger">Browse related cases and court rules</a>
 {% endblock %}
 
 {% block scripts %}
@@ -168,7 +168,7 @@
         });
       }
       if (res.status === 401 || res.status === 403) {
-        resultDiv.innerHTML = '<p>You need to be signed in to look this up. <a href="/preamble">Start here</a>.</p>';
+        resultDiv.innerHTML = '<p>You need to be signed in to look this up. <a href="{{ navigation.get_stage('preamble').path }}">Start here</a>.</p>';
         return;
       }
       return res.text().then(function (text) {

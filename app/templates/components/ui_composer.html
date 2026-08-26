@@ -79,7 +79,7 @@
         Tell us your state and preferences so we can surface the right facts
         and deadlines for you.
     </p>
-    <a href="/tenant/settings" class="uic-settings-prompt__cta">Configure settings</a>
+    <a href="{{ navigation.get_stage('tenant_settings').path }}" class="uic-settings-prompt__cta">Configure settings</a>
 </div>
 {% endmacro %}
 
@@ -94,7 +94,7 @@
         Review what you've uploaded so far, or add a new record to keep your
         timeline complete.
     </p>
-    <a href="/tenant/documents" class="uic-doc-review-prompt__cta">Review documents</a>
+    <a href="{{ navigation.get_stage('tenant_documents').path }}" class="uic-doc-review-prompt__cta">Review documents</a>
 </div>
 {% endmacro %}
 
@@ -296,9 +296,9 @@
         </div>
 
         <div class="uic-add-record-modal__links">
-            <a href="/tenant/documents" class="uic-add-record-modal__link">Upload document</a>
-            <a href="/tenant/tools/letters" class="uic-add-record-modal__link">Generate letter</a>
-            <a href="/tenant/tools/deadlines" class="uic-add-record-modal__link">Add deadline</a>
+            <a href="{{ navigation.get_stage('tenant_documents').path }}" class="uic-add-record-modal__link">Upload document</a>
+            <a href="{{ navigation.get_stage('tenant_tools_letters').path }}" class="uic-add-record-modal__link">Generate letter</a>
+            <a href="{{ navigation.get_stage('tenant_tools_deadlines').path }}" class="uic-add-record-modal__link">Add deadline</a>
         </div>
     </form>
 </dialog>

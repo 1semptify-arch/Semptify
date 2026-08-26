@@ -115,12 +115,12 @@
 
     <div class="gui-container {% block container_class %}{% endblock %}">
         <nav class="gui-nav" aria-label="Main">
-            <a href="/gui/home" class="gui-nav--brand">Semptify</a>
+            <a href="{{ navigation.get_stage('gui_home').path }}" class="gui-nav--brand">Semptify</a>
             <ul class="gui-nav--items">
-                <li><a href="/gui/home" class="gui-nav--link {% block nav_home %}{% endblock %}">Home</a></li>
-                <li><a href="/gui/record" class="gui-nav--link {% block nav_record %}{% endblock %}">Record</a></li>
-                <li><a href="/gui/know" class="gui-nav--link {% block nav_know %}{% endblock %}">Know</a></li>
-                <li><a href="/gui/act" class="gui-nav--link {% block nav_act %}{% endblock %}">Act</a></li>
+                <li><a href="{{ navigation.get_stage('gui_home').path }}" class="gui-nav--link {% block nav_home %}{% endblock %}">Home</a></li>
+                <li><a href="{{ navigation.get_stage('gui_record').path }}" class="gui-nav--link {% block nav_record %}{% endblock %}">Record</a></li>
+                <li><a href="{{ navigation.get_stage('gui_know').path }}" class="gui-nav--link {% block nav_know %}{% endblock %}">Know</a></li>
+                <li><a href="{{ navigation.get_stage('gui_act').path }}" class="gui-nav--link {% block nav_act %}{% endblock %}">Act</a></li>
             </ul>
         </nav>
 
@@ -129,7 +129,7 @@
         </main>
 
         <footer class="gui-footer">
-            <p>Semptify is an organizational tool, not a law firm. We can't give legal advice. <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help">Find legal help</a> · <a href="/public/feedback.html">Report a problem</a></p>
+            <p>Semptify is an organizational tool, not a law firm. We can't give legal advice. <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help">Find legal help</a> · <a href="{{ navigation.get_stage('public_feedback').path }}">Report a problem</a></p>
             {% include "components/locale_selector.html" %}
         </footer>
     </div>

@@ -98,7 +98,7 @@
 {% endblock %}
 
 {% block record_next %}
-<a href="/tenant/journal" class="output-trigger">View your journal</a>
+<a href="{{ navigation.get_stage('tenant_journal').path }}" class="output-trigger">View your journal</a>
 {% endblock %}
 
 {% block scripts %}
@@ -132,7 +132,7 @@
         });
       }
       if (res.status === 401 || res.status === 403) {
-        resultDiv.innerHTML = '<p>You need to be signed in to save. <a href="/preamble">Start here</a>.</p>';
+        resultDiv.innerHTML = '<p>You need to be signed in to save. <a href="{{ navigation.get_stage('preamble').path }}">Start here</a>.</p>';
         return;
       }
       return res.text().then(function (text) {
