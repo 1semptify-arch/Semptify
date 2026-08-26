@@ -3,7 +3,7 @@ Court Learning Engine - Bidirectional Information Flow
 
 Semptify learns from court outcomes to improve future defense strategies.
 
-INBOUND (From Court → Semptify):
+INBOUND (From Court ▸ Semptify):
 - Case outcomes (won, lost, settled, dismissed)
 - Which defenses worked vs. didn't
 - Judge patterns and tendencies
@@ -11,7 +11,7 @@ INBOUND (From Court → Semptify):
 - Timeline patterns (how long cases take)
 - Common landlord attorney tactics
 
-OUTBOUND (Semptify → Court):
+OUTBOUND (Semptify ▸ Court):
 - Pre-filled forms with validated data
 - Properly formatted evidence packets
 - Compliant filing packages

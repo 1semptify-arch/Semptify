@@ -5,12 +5,12 @@ This service connects ALL of Semptify's data sources to generate
 court-ready eviction defense packages.
 
 Data Flow:
-    User Profile → Tenant Info
-    Vault Documents → Evidence + Extracted Fields
-    Timeline Events → Chronological Narrative
-    Calendar → Court Dates & Deadlines
-    Rent Ledger → Payment History
-    AI Analysis → Suggested Defenses
+    User Profile ▸ Tenant Info
+    Vault Documents ▸ Evidence + Extracted Fields
+    Timeline Events ▸ Chronological Narrative
+    Calendar ▸ Court Dates & Deadlines
+    Rent Ledger ▸ Payment History
+    AI Analysis ▸ Suggested Defenses
 
 Output:
     Pre-filled court forms (Dakota County specific)
