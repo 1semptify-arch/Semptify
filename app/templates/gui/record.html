@@ -62,9 +62,9 @@
     </div>
 
     <div class="gui-screen--secondary">
-        <a href="/calendar" class="frame-btn frame-btn--primary">Calendar</a>
-        <a href="/timeline" class="frame-btn">Timeline</a>
-        <a href="/comms-log" class="frame-btn">Comms Log</a>
+        <a href="{{ navigation.get_stage('tenant_calendar').path }}" class="frame-btn frame-btn--primary">Calendar</a>
+        <a href="{{ navigation.get_stage('tenant_timeline').path }}" class="frame-btn">Timeline</a>
+        <a href="{{ navigation.get_stage('tenant_comms_log').path }}" class="frame-btn">Comms Log</a>
     </div>
 
     <div class="gui-screen--support">

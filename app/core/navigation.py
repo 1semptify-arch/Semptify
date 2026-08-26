@@ -71,6 +71,10 @@ class NavigationRegistry:
         for stage in cls.ADMIN_FLOW.values():
             paths.add(stage.path)
 
+        # GUI/in-task guide paths
+        for stage in cls.GUI_FLOW.values():
+            paths.add(stage.path)
+
         # Entry points
         paths.add("/")
         paths.add(cls.get_onboarding_start())
@@ -339,6 +343,83 @@ class NavigationRegistry:
         ),
     }
 
+    # --- GUI / In-Task Guide Flow (SSOT) ---
+    # Tenant-facing rendered pages and single-function guide pages.
+    GUI_FLOW: ClassVar[dict[str, FlowStage]] = {
+        "gui_home": FlowStage(
+            id="gui_home", name="GUI Home", path="/gui/home", next_stage=None, requires_checkpoint=False
+        ),
+        "gui_record": FlowStage(
+            id="gui_record", name="GUI Record", path="/gui/record", next_stage=None, requires_checkpoint=False
+        ),
+        "gui_know": FlowStage(
+            id="gui_know", name="GUI Know", path="/gui/know", next_stage=None, requires_checkpoint=False
+        ),
+        "gui_act": FlowStage(
+            id="gui_act", name="GUI Act", path="/gui/act", next_stage=None, requires_checkpoint=False
+        ),
+        "record_timeline_create_event": FlowStage(
+            id="record_timeline_create_event",
+            name="Record Timeline Create Event",
+            path="/gui/record/timeline/create-event",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "know_law_library_get_statute": FlowStage(
+            id="know_law_library_get_statute",
+            name="Know Law Library Get Statute",
+            path="/gui/know/law-library/get-statute",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "act_eviction_defense_calculate_deadlines": FlowStage(
+            id="act_eviction_defense_calculate_deadlines",
+            name="Act Eviction Defense Calculate Deadlines",
+            path="/gui/act/eviction-defense/calculate-deadlines",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "tenant_calendar": FlowStage(
+            id="tenant_calendar", name="Calendar", path="/calendar", next_stage=None, requires_checkpoint=False
+        ),
+        "tenant_comms_log": FlowStage(
+            id="tenant_comms_log", name="Comms Log", path="/comms-log", next_stage=None, requires_checkpoint=False
+        ),
+        "tenant_journal": FlowStage(
+            id="tenant_journal", name="Journal", path="/tenant/journal", next_stage=None, requires_checkpoint=False
+        ),
+        "tenant_documents": FlowStage(
+            id="tenant_documents", name="Documents", path="/tenant/documents", next_stage=None, requires_checkpoint=False
+        ),
+        "tenant_tools_letters": FlowStage(
+            id="tenant_tools_letters",
+            name="Tenant Tools Letters",
+            path="/tenant/tools/letters",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "tenant_tools_deadlines": FlowStage(
+            id="tenant_tools_deadlines",
+            name="Tenant Tools Deadlines",
+            path="/tenant/tools/deadlines",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+        "tenant_settings": FlowStage(
+            id="tenant_settings", name="Settings", path="/tenant/settings", next_stage=None, requires_checkpoint=False
+        ),
+        "help": FlowStage(
+            id="help", name="Help", path="/help", next_stage=None, requires_checkpoint=False
+        ),
+        "public_feedback": FlowStage(
+            id="public_feedback",
+            name="Public Feedback",
+            path="/public/feedback.html",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
+    }
+
     # --- Main Navigation (SSOT) ---
     # The 5 base navigation links present on EVERY page:
     # Home, Library, Office, Tools, Help
@@ -364,8 +445,13 @@ class NavigationRegistry:
 
     @classmethod
     def get_stage(cls, stage_id: str) -> FlowStage | None:
-        """Get flow stage by ID — searches all registries (onboarding + court + admin)."""
-        return cls.ONBOARDING_FLOW.get(stage_id) or cls.COURT_FLOW.get(stage_id) or cls.ADMIN_FLOW.get(stage_id)
+        """Get flow stage by ID — searches all registries (onboarding + court + admin + gui)."""
+        return (
+            cls.ONBOARDING_FLOW.get(stage_id)
+            or cls.COURT_FLOW.get(stage_id)
+            or cls.ADMIN_FLOW.get(stage_id)
+            or cls.GUI_FLOW.get(stage_id)
+        )
 
     @classmethod
     def get_next_path(cls, current_stage_id: str) -> str:
