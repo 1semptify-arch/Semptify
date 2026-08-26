@@ -113,7 +113,7 @@ async def seed_capability_defaults(
     existing_result = await session.execute(
         select(UserCapability.module_name).where(
             UserCapability.user_id == user_id,
-            UserCapability.is_active,
+            UserCapability.is_active == True,
         )
     )
     existing = {row[0] for row in existing_result.fetchall()}
@@ -158,7 +158,7 @@ async def get_user_capabilities(
     result = await session.execute(
         select(UserCapability.module_name).where(
             UserCapability.user_id == user_id,
-            UserCapability.is_active,
+            UserCapability.is_active == True,
         )
     )
     modules = {row[0] for row in result.fetchall()}

@@ -257,7 +257,7 @@ class AnalyticsEngine:
 
         # Calculate metrics
         total_requests = len([e for e in filtered_events if e.event_type == AnalyticsEventType.API_REQUEST])
-        unique_users = len({e.user_id for e in filtered_events if e.user_id})
+        unique_users = len(set(e.user_id for e in filtered_events if e.user_id))
 
         # Response times
         response_times = [e.duration_ms for e in filtered_events if e.duration_ms is not None]
@@ -388,7 +388,7 @@ class AnalyticsEngine:
             "total_events_stored": len(self.events),
             "buffered_events": len(self.event_buffer),
             "max_capacity": self.max_events,
-            "unique_users_all_time": len({e.user_id for e in all_events if e.user_id}),
+            "unique_users_all_time": len(set(e.user_id for e in all_events if e.user_id)),
             "oldest_event": min((e.timestamp for e in all_events), default=None),
             "newest_event": max((e.timestamp for e in all_events), default=None),
             "event_types": {et.value: len([e for e in all_events if e.event_type == et]) for et in AnalyticsEventType},
