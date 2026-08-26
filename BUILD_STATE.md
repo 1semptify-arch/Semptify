@@ -1,3 +1,44 @@
+## Session — 2026-08-26 — Agent Orchestration Protocol (Devin Local)
+
+### Guardrail Engine Run — 2026-08-26T13:37:48+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Build the master-level orchestration state and Devin Local subagent bridge so Claude (Sonnet 5 med) can dispatch tasks directly to SWE-1.7 without Brad copying context between sessions.
+
+### What changed
+- `E:\master-repo\tools\orchestrator_state.json` — new canonical state, seeded from `tools/agent_orchestrator_tasks.json` with `model_tier`, `subagent_profile`, `blocked_reason`, `handoff_doc`, `report_doc`, `verification`, and `usage` fields.
+- `E:\master-repo\tools\orchestrator_mark_task.py` — file-locked updater; role guard prevents `unlimited` agents from marking `resolved`/`rejected`; supports `--verification`, `--usage`, `--report-doc`, `--blocked-reason`.
+- `E:\master-repo\tools\handoff_template.md` — exact handoff schema.
+- `E:\master-repo\tools\agent_usage_ledger.jsonl` — append-only usage ledger.
+- `E:\master-repo\.devin\agents\swe-executor.md` — SWE-1.7 subagent profile (`model: swe`) that reads the state, executes handoffs, and reports back.
+- `E:\master-repo\.devin\skills\orchestrator_dispatch\SKILL.md` — orchestrator's Claude dispatch playbook.
+- `E:\master-repo\modules\app-semptify-fastapi\.devin\skills\orchestrator_preflight\SKILL.md` and `.github\prompts\orchestrator_preflight.prompt.md` — updated to point at the new state and the subagent flow.
+- `E:\master-repo\AGENTS.md` and `E:\master-repo\modules\app-semptify-fastapi\AGENTS.md` — new orchestration protocol sections.
+- `tools/agent_orchestrator_sync_review/DATA_FLOW.md` — noted that `phase_c_tier2_reconciliation_tasks.json` is archived.
+- `modules/app-semptify-fastapi/tools/phase_c_tier2_reconciliation_tasks.json` — archived to `E:\master-repo\archive\tools\phase_c_tier2_reconciliation_tasks.2026-08-26.json`.
+
+### Verification
+- `python -m py_compile E:\master-repo\tools\orchestrator_mark_task.py`: PASS.
+- `python -m json.tool E:\master-repo\tools\orchestrator_state.json`: valid.
+- `python E:\master-repo\tools\orchestrator_mark_task.py ... in_progress` and `... review`: PASS (file lock and updates work).
+- `python tools/sync_orchestrator.py --check` in Semptify: PASS (`OK: 0 stub(s), 148 task(s), 0 missing paths`).
+- Task `orchestration-001-dry-run-sync-check` marked `review` with report and usage.
+- Task `orchestration-000-bootstrap` marked `review`.
+
+### Notes
+- The dry-run was measurement-only; no Semptify source files were modified.
+- Both orchestrator tasks are `review`, awaiting the Claude orchestrator to resolve or block.
+- Semptify's `tools/agent_orchestrator_tasks.json` remains the module work queue until a future migration.
+
+---
+
 ## Session — 2026-08-26 — FCA/Qui Tam case readiness plug-in for Case Builder
 
 ### Guardrail Engine Run — 2026-08-26T11:29:26+00:00
