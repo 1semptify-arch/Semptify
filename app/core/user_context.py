@@ -23,7 +23,7 @@ Design Principles:
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class UserRole(StrEnum):
+class UserRole(str, Enum):
     """
     User roles determine what features/UI to show.
     A user can have ONE active role per session, but can switch.
@@ -56,7 +56,7 @@ class UserRole(StrEnum):
 # =============================================================================
 
 
-class StorageProvider(StrEnum):
+class StorageProvider(str, Enum):
     """Supported cloud storage providers."""
 
     GOOGLE_DRIVE = "google_drive"

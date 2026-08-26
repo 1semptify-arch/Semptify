@@ -15,13 +15,13 @@ DB is source of truth. In-memory cache with TTL for performance.
 import logging
 import time
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-class ModuleStatus(StrEnum):
+class ModuleStatus(str, Enum):
     """Canonical module lifecycle states."""
 
     UNKNOWN = "unknown"

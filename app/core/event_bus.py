@@ -9,7 +9,7 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Any, Optional
 
 from app.core.utc import utc_now
@@ -17,7 +17,7 @@ from app.core.utc import utc_now
 logger = logging.getLogger(__name__)
 
 
-class EventType(StrEnum):
+class EventType(str, Enum):
     """All event types in the system"""
 
     # Document events
