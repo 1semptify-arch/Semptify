@@ -61,6 +61,7 @@ class Feature(StrEnum):
     RATE_LIMITING = "rate_limiting"
     EXPERIMENTAL_AI_MODEL = "experimental_ai_model"
     EXPERIMENTAL_UI = "experimental_ui"
+    FCA_READINESS = "fca_readiness"
 
 
 # Code-level defaults — used when a flag has no DB row yet
@@ -88,6 +89,7 @@ DEFAULT_ENABLED: dict[str, bool] = {
     Feature.RATE_LIMITING.value: True,
     Feature.EXPERIMENTAL_AI_MODEL.value: False,
     Feature.EXPERIMENTAL_UI.value: False,
+    Feature.FCA_READINESS.value: False,
 }
 
 

@@ -1258,6 +1258,14 @@ class Incident(Base):
         String(36), nullable=True, comment="CASE_DATA overlay id in user cloud storage"
     )
 
+    # FCA/Qui Tam readiness — non-PII score/status only; checklist details live in overlay
+    fca_readiness_score: Mapped[int | None] = mapped_column(
+        Integer, nullable=True, comment="Percent complete for federal case readiness checklist"
+    )
+    fca_readiness_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTimeTZ, nullable=True, comment="Last time the readiness checklist was updated"
+    )
+
     # Relationships
     user: Mapped["User"] = relationship(back_populates="incidents")
     vault_items: Mapped[list["VaultItem"]] = relationship(back_populates="incident")

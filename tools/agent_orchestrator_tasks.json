@@ -2139,5 +2139,19 @@
     "created_at": "2026-08-25T05:05:30.497251+00:00",
     "updated_at": "2026-08-25T05:05:30.497251+00:00",
     "notes": "Brief exists at docs/handoffs/handoff-context-loop-vs-info-orchestrator.md. Status is review (awaiting Brad's decision session), not resolved."
+  },
+  {
+    "id": "todo-fca-001",
+    "title": "FCA/Qui Tam case readiness plug-in",
+    "description": "Build feature-flagged FCA case readiness extension inside case_builder module per plan-6cbf1765c6f1d54c",
+    "file_path": "app/modules/case_builder/router.py",
+    "status": "resolved",
+    "priority": "high",
+    "source": "plan",
+    "category": "feature",
+    "assigned_agent": "SWE-1.7-Max",
+    "created_at": "2026-08-26T05:00:00+00:00",
+    "updated_at": "2026-08-26T07:00:00+00:00",
+    "notes": "Implemented: feature flag, guard, checklist, PDF/ZIP export, UI, migration, contracts, tests. Guardrails pass."
   }
 ]

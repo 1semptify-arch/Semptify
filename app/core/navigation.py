@@ -379,6 +379,13 @@ class NavigationRegistry:
             next_stage=None,
             requires_checkpoint=False,
         ),
+        "act_fca_readiness": FlowStage(
+            id="act_fca_readiness",
+            name="Act FCA Qui Tam Case Readiness",
+            path="/ui/tool/fca-readiness",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
         "tenant_calendar": FlowStage(
             id="tenant_calendar", name="Calendar", path="/calendar", next_stage=None, requires_checkpoint=False
         ),

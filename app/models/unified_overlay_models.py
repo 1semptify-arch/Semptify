@@ -290,6 +290,7 @@ class CaseDataPayload(BaseModel):
     timeline: list[dict] = Field(default_factory=list)
     exhibit_refs: list[str] = Field(default_factory=list)
     flag_notes: dict[str, str] = Field(default_factory=dict)  # duress/misrepresentation/violation
+    readiness_checklist: list[dict] = Field(default_factory=list)
     schema_version: str = "1.0"
 
 

@@ -1,4 +1,63 @@
+## Session — 2026-08-26 — FCA/Qui Tam case readiness plug-in for Case Builder
+
+### Guardrail Engine Run — 2026-08-26
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Implement the approved FCA/Qui Tam case readiness feature inside Case Builder as a
+private, feature-flagged tenant workflow. Output is an attorney-review packet, not a
+legal conclusion or filing. Supported frameworks: False Claims Act / Qui Tam, Fair
+Housing Act, Minnesota anti-retaliation.
+
+### What changed
+- `app/core/features.py`: added `Feature.FCA_READINESS`, default `False`.
+- `app/core/config.py`: added `FCA_READINESS_ALLOWED_USER_IDS` allowlist.
+- `app/core/navigation.py`: added `act_fca_readiness` GUI flow stage.
+- `app/models/models.py`: added `Incident.fca_readiness_score` and `fca_readiness_updated_at` (non-PII only).
+- `app/models/unified_overlay_models.py`: added `CaseDataPayload.readiness_checklist`.
+- `app/modules/case_builder/fca_guard.py`: new feature + allowlist guard; returns 404 when disabled.
+- `app/modules/case_builder/fca_service.py`: default issue-spotting checklist, score, referral resources.
+- `app/modules/case_builder/fca_packet_export.py`: attorney-review PDF and ZIP (facts + timeline + evidence index only).
+- `app/modules/case_builder/router.py`: new `/cases/{case_id}/fca/readiness` GET/POST/reset, PDF, and ZIP endpoints.
+- `app/modules/case_builder/register.py`: new `FunctionGroupContract` registrations.
+- `app/modules/case_builder/tests/test_fca_readiness.py`: unit tests for checklist, score, PDF, ZIP.
+- `app/main.py`: added `/ui/tool/fca-readiness` page route and FCA panel in case builder (feature-flag conditional).
+- `app/templates/pages/fca_readiness.html`: tenant-facing issue-spotting checklist UI.
+- `app/templates/pages/case_builder.html`: conditional Federal Case Readiness panel when the feature is enabled.
+- `alembic/versions/0890abd391b2_add_incident_fca_readiness_columns.py`: idempotent migration.
+
+### Verification
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m pytest app/modules/case_builder/tests/test_fca_readiness.py -q --no-cov`: 9 passed.
+- `python -m pytest tests/module_health/test_case_builder.py -q --no-cov`: 1 passed.
+- `python -m pytest tests/test_ssot_architecture.py tests/module_health -q --no-cov`: 252 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- `python -m ruff check <changed files>`: all checks passed (pre-existing `app/core/config.py` UP012 auto-fixed).
+- `alembic upgrade head`: applied cleanly to active database.
+
+### Notes
+- The feature is **off by default** and requires `FEATURE_FCA_READINESS=true` plus an optional `FCA_READINESS_ALLOWED_USER_IDS` allowlist for access.
+- No legal conclusions or automatic filings. Packet output is factual, chronological, and includes the canonical UPL disclaimer and referral block.
+- Task `todo-fca-001` marked resolved.
+
+---
+
 ## Session — 2026-08-25 — Resync phase_c_tier2 tracker and review eviction court_procedures
+
+### Guardrail Engine Run — 2026-08-25T21:33:17
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Goal
 Continue the P0-2 Phase B/C/D reconciliation. During Batch 1 prep, discovered
