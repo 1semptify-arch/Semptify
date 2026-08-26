@@ -250,6 +250,16 @@
         <div id="curated-export-error" class="export-error" style="display: none;"></div>
     </div>
 
+    {% if fca_readiness_enabled %}
+    <div class="export-panel">
+        <h2 class="panel-title">Federal Case Readiness</h2>
+        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+            Organize federal issue-spotting notes and documents for attorney review (False Claims Act / Qui Tam, Fair Housing Act, Minnesota anti-retaliation).
+        </p>
+        <a href="/ui/tool/fca-readiness" class="btn btn--secondary">Open Federal Case Readiness</a>
+    </div>
+    {% endif %}
+
     <div class="main-content">
         <div class="documents-panel">
             <h2 class="panel-title">📄 Your Documents</h2>
