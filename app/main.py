@@ -1866,12 +1866,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # =========================================================================
     # Feature Flag Middleware — returns 503 for routes whose flag is disabled
-    # (Master Handoff Task 4)
+    # (Master Handoff Task 4). Migrated 2026-08-26 to the DB-backed
+    # FeatureFlagManager (app/core/features.py) — see
+    # docs/handoffs/handoff-feature-flags-unification.md for why the old
+    # in-memory app/core/feature_flags.py was retired.
     # =========================================================================
-    from app.core.feature_flags import FeatureFlagMiddleware
+    from app.core.features import RouteFeatureGateMiddleware
 
-    fastapi_app.add_middleware(FeatureFlagMiddleware)
-    logger.info("Feature flag middleware registered")
+    fastapi_app.add_middleware(RouteFeatureGateMiddleware)
+    logger.info("Feature flag middleware registered (DB-backed)")
 
     # =========================================================================
     # Admin Network Middleware — outermost guard for /admin paths.
@@ -2823,10 +2826,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/admin/api/flags", tags=["admin"])
     async def admin_get_flags(admin_uid: str = Depends(require_admin)):
-        """Return the current state of all feature flags."""
-        from app.core.feature_flags import FeatureFlags
+        """Return the current state of the route kill-switch flags.
 
-        return {"flags": FeatureFlags.all_flags()}
+        Migrated 2026-08-26 to read from the DB-backed FeatureFlagManager
+        (app/core/features.py) instead of the retired in-memory store. Only
+        the route kill-switch subset is returned here; the full product
+        feature set is at /api/system/feature-flags (admin_console).
+        """
+        from app.core.features import ROUTE_GATE_FLAGS, features
+
+        return {"flags": {name: await features.is_enabled(feature) for name, feature in ROUTE_GATE_FLAGS.items()}}
 
     @fastapi_app.put("/admin/api/flags/{name}", tags=["admin"])
     async def admin_set_flag(
@@ -2834,20 +2843,28 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         enabled: bool,
         admin_uid: str = Depends(require_admin),
     ):
-        """Set a feature flag to a specific value."""
-        from app.core.feature_flags import FeatureFlags
+        """Set a route kill-switch flag to a specific value."""
+        from app.core.features import ROUTE_GATE_FLAGS, features
 
-        return {"name": name, "enabled": FeatureFlags.set_flag(name, enabled)}
+        if name not in ROUTE_GATE_FLAGS:
+            raise HTTPException(status_code=404, detail=f"Unknown route flag: {name}")
+        await features.set_enabled(name, enabled, updated_by=admin_uid)
+        return {"name": name, "enabled": enabled}
 
     @fastapi_app.post("/admin/api/flags/{name}/toggle", tags=["admin"])
     async def admin_toggle_flag(
         name: str,
         admin_uid: str = Depends(require_admin),
     ):
-        """Toggle a feature flag."""
-        from app.core.feature_flags import FeatureFlags
+        """Toggle a route kill-switch flag."""
+        from app.core.features import ROUTE_GATE_FLAGS, features
 
-        return {"name": name, "enabled": FeatureFlags.toggle_flag(name)}
+        if name not in ROUTE_GATE_FLAGS:
+            raise HTTPException(status_code=404, detail=f"Unknown route flag: {name}")
+        current = await features.is_enabled(ROUTE_GATE_FLAGS[name])
+        new_state = not current
+        await features.set_enabled(name, new_state, updated_by=admin_uid)
+        return {"name": name, "enabled": new_state}
 
     @fastapi_app.get("/admin/api/script-catalog", tags=["admin"])
     async def admin_script_catalog_api(admin_uid: str = Depends(require_admin)):
