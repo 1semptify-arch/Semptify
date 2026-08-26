@@ -29,7 +29,7 @@ TEMPLATE = '''"""
 Generated: {timestamp}
 
 This module integrates with the Semptify Positronic Mesh.
-See docs/MODULE_DEVELOPMENT.md for documentation.
+See docs/admin/MODULE_DEVELOPMENT.md for documentation.
 """
 
 import logging

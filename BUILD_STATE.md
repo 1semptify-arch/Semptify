@@ -466,7 +466,7 @@ All checks passed.
 - PR #108 merged to `github-direct/main`.
 - `main` aligned across `origin/main` and `github-direct/main`.
 - Unrelated working-tree files (`.cursor/`, `BUILD_GUIDE_SSOT.md`,
-  `docs/SSOT_EXPORT.md`, `docs/blueprints/page_composer_assembly_formula_blueprint.md`,
+  `docs/admin/SSOT_EXPORT.md`, `docs/blueprints/page_composer_assembly_formula_blueprint.md`,
   `tools/module_registry.yaml`, `.devin/mcp_config.local.json`,
   `funding_forge/.cursor/`, `tools/gap_report.py`) were **not** committed.
 
@@ -4786,11 +4786,11 @@ All checks passed.
 - **Added** `refreshFromFile()` and an explicit `lastLoadSource` tracker.
 - **Updated** `showHelpStatus()` to report whether the queue came from the project file, embedded JSON, or localStorage.
 - **Updated** the standalone UI instructions and Data-card hint to describe the file-first behavior.
-- **Updated** `docs/AGENT_ORCHESTRATOR_MANUAL.md` to match the new standalone loading behavior.
+- **Updated** `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` to match the new standalone loading behavior.
 
 ### Files Changed
 - `tools/agent_orchestrator.html`
-- `docs/AGENT_ORCHESTRATOR_MANUAL.md`
+- `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md`
 - `BUILD_STATE.md` — this note
 
 ### Verification
@@ -6888,7 +6888,7 @@ All checks passed.
 - **Admin UI**: `static/admin/agent_orchestrator.html` linked from the admin dashboard.
 - **Standalone UI**: `tools/agent_orchestrator.html` — no server needed, uses browser `localStorage`, works inside Windsurf preview.
 - **Workbook bridge**: `tools/workbook_bridge.py` reads `Semptify_Master_Inventory_LIVE_reviewed.xlsx` and produces `tools/agent_orchestrator_tasks.json` for import (155 stubs + 16 duplicates = 171 tasks).
-- **Manual**: `docs/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
+- **Manual**: `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
 - **Registration**: `app/core/product_manifest.py` and `app/main.py` updated so the module and admin page load automatically.
 - **Per-task preflight workflow**: `.devin/workflows/orchestrator_preflight.md` (and prompt mirror) — run preflight before every orchestrator dispatch.
 
@@ -9272,7 +9272,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - **`app/templates/pages/admin.html`** — Added `admin_nav()` macro call with `ui_styles()`
 
 #### Interactive Admin Manual (COMPLETE)
-- **`docs/ADMIN_MANUAL.md`** — Comprehensive admin documentation covering:
+- **`docs/admin/ADMIN_MANUAL.md`** — Comprehensive admin documentation covering:
   - All admin pages (Dashboard, Function Browser, Contract Browser, Page Editor, Review Checklist)
   - Features, functions, settings, testing instructions per page
   - Troubleshooting guides with common issues and fixes
@@ -11321,7 +11321,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - All timestamp generation now uses Semptify standard
 
 2. **Enhanced Onboarding Flow with Vault Verification** — Complete end-to-end contracts
-   - Created comprehensive onboarding contracts document (`docs/onboarding-contracts.md`)
+   - Created comprehensive onboarding contracts document (`docs/admin/onboarding-contracts.md`)
    - Added vault verification APIs: `/api/vault/init`, `/api/vault/verify`
    - Enhanced onboarding completion validation with gate checks
    - Moved vault installation to dedicated vault-setup page with loading screen
@@ -11819,7 +11819,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - [x] **SSOT Fix** — `get_stage("onboarding_start")` → `get_onboarding_start()` (stage ID didn't exist)
 
 #### SSOT Documentation
-- [x] **`docs/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
+- [x] **`docs/admin/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
 
 #### Code Review
 - [x] **Verdict: APPROVE** — All changes clean, one SSOT violation caught and fixed during review
@@ -12346,7 +12346,7 @@ Set these in Render Dashboard > Service > Environment:
 - PR #33 (`adr-0008-pilot`) is already closed on GitHub with an explanatory comment from 2026-08-16; its ADR-0008 pilot pieces already landed through the Phase B/C PRs, so no replacement PR was cut.
 - Working-tree cleanup committed in PR #105:
   - Gitignore `data/vault_index/` and `data/registry/`; untrack `data/vault_index/vault_index.json`.
-  - Revert whitespace drift in `docs/USER_GUIDE.md` and `static/ai-helper-bundle.txt`.
+  - Revert whitespace drift in `docs/user-guides/USER_GUIDE.md` and `static/ai-helper-bundle.txt`.
   - Add `mockups/designs/semptify-final-prototype` design deliverable.
 - Six files changed in the merge: `app/core/error_handling.py`, `app/core/manager_dashboard.py`, `app/modules/litigation_intelligence/scheduler.py`, `app/modules/litigation_intelligence/storage_layer.py`, `app/services/recognition/handwriting_analyzer.py`, `app/services/recognition/models.py`.
 
