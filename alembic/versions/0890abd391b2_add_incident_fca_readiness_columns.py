@@ -5,18 +5,19 @@ Revises: 20260825_vault_review_catchup
 Create Date: 2026-08-26 01:21:35.102888
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import inspect
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '0890abd391b2'
-down_revision: Union[str, Sequence[str], None] = '20260825_vault_review_catchup'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = '20260825_vault_review_catchup'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def _column_exists(table: str, column: str) -> bool:
