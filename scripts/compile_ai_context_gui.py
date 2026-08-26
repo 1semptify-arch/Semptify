@@ -143,7 +143,7 @@ class ContextKitGUI:
         # Mirror the defaults from compile_ai_context.py
         defaults = [
             "Semptify_AI_Orchestration_Blueprint.md",
-            "docs/Semptify_Site_GUI_Framework.md",
+            "docs/admin/Semptify_Site_GUI_Framework.md",
             ".devin/skills/preflight/SKILL.md",
             "ACTIVE_CONTEXT.md",
             "BUILD_STATE.md",

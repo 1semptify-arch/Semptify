@@ -36,7 +36,7 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 1. **Read `BUILD_STATE.md`** — What was last shipped, what is known broken, what is pending.
 2. **Read `ACTIVE_CONTEXT.md`** — What is being worked on RIGHT NOW. Do not start something else.
 3. **Read `PROJECT_BIBLE.md`** — Canonical hierarchy, gate chain, and governance.
-4. **Read `docs/MOTIVATIONS.md`** — Foundational motivations, language rules, and design principles. Permanent decisions are also in `docs/adr/0001`–`0006`.
+4. **Read `docs/admin/MOTIVATIONS.md`** — Foundational motivations, language rules, and design principles. Permanent decisions are also in `docs/adr/0001`–`0006`.
 5. **Read `docs/AI_TEAM_OPERATING_PROTOCOL.md`** — Three-way collaboration protocol, decision authority matrix, and batching rules.
 6. **Read the Known Failure Registry below** — Do not repeat a past mistake.
 7. **State your plan before acting** — Tell the user what you intend to change and why before touching any file.
