@@ -31,7 +31,7 @@ USAGE:
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 from app.core.utc import utc_now
@@ -39,7 +39,7 @@ from app.core.utc import utc_now
 logger = logging.getLogger(__name__)
 
 
-class DataCategory(StrEnum):
+class DataCategory(str, Enum):
     """Categories of document data"""
 
     DATES = "dates"

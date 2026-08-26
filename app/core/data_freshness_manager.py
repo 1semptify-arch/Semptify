@@ -9,7 +9,7 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 from app.core.utc import utc_now
@@ -17,7 +17,7 @@ from app.core.utc import utc_now
 logger = logging.getLogger(__name__)
 
 
-class FreshnessType(StrEnum):
+class FreshnessType(str, Enum):
     """Types of data freshness management."""
 
     LEGAL_CONTENT = "legal_content"
@@ -31,7 +31,7 @@ class FreshnessType(StrEnum):
     MARKETING_CLAIMS = "marketing_claims"
 
 
-class FreshnessStatus(StrEnum):
+class FreshnessStatus(str, Enum):
     """Freshness status levels."""
 
     FRESH = "fresh"

@@ -29,11 +29,11 @@ logger = logging.getLogger(__name__)
 """
 
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 
-class PageIntent(StrEnum):
+class PageIntent(str, Enum):
     """Classification of page purpose/intent."""
 
     COLLECT = "collect"  # Gather information/documents from user
@@ -46,7 +46,7 @@ class PageIntent(StrEnum):
     OUTPUT = "output"  # Generate deliverables (forms, packets)
 
 
-class ComponentType(StrEnum):
+class ComponentType(str, Enum):
     """Types of page components."""
 
     API_ENDPOINT = "api_endpoint"

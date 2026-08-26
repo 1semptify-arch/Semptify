@@ -60,7 +60,7 @@ import importlib
 import logging
 import os
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from app.core.upl_guardrails import UPLRiskTier
@@ -76,7 +76,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class ProductTier(StrEnum):
+class ProductTier(str, Enum):
     """Semptify product tiers. Each tier is a bounded context."""
 
     CORE = "core"
@@ -102,7 +102,7 @@ class ProductTier(StrEnum):
         return [cls.CORE, cls.EXTENDED, cls.ADVOCATE, cls.ADMIN, cls.RESEARCH, cls.DEV]
 
 
-class FeesPolicy(StrEnum):
+class FeesPolicy(str, Enum):
     """Semantic classification for how the word "fee" may be used in a module.
 
     - tenant_no_fees: the module is tenant-facing or public-facing and must not

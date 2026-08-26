@@ -7,7 +7,7 @@ Purpose: Track compliance, maintain audit trails, and ensure accountability
 import hashlib
 import logging
 from datetime import datetime, timedelta
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel
@@ -17,7 +17,7 @@ from app.core.utc import utc_now
 logger = logging.getLogger(__name__)
 
 
-class ComplianceType(StrEnum):
+class ComplianceType(str, Enum):
     """Types of compliance requirements."""
 
     GDPR = "gdpr"
@@ -28,7 +28,7 @@ class ComplianceType(StrEnum):
     INTERNAL_POLICY = "internal_policy"
 
 
-class AuditAction(StrEnum):
+class AuditAction(str, Enum):
     """Types of audit actions."""
 
     DOCUMENT_ACCESS = "document_access"
@@ -40,7 +40,7 @@ class AuditAction(StrEnum):
     ERROR_OCCURRED = "error_occurred"
 
 
-class ComplianceStatus(StrEnum):
+class ComplianceStatus(str, Enum):
     """Compliance status."""
 
     COMPLIANT = "compliant"
