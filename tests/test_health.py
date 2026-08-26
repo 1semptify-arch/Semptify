@@ -81,7 +81,7 @@ async def test_readyz_checks_structure(client: AsyncClient):
     # Should check critical directories
     expected_dirs = ["dir_uploads", "dir_security", "dir_data"]
     for expected in expected_dirs:
-        assert expected in checks or any(expected in k for k in checks)
+        assert expected in checks or any(expected in k for k in checks.keys())
 
 
 @pytest.mark.anyio
