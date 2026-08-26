@@ -1,4 +1,62 @@
+## Session — 2026-08-25 — Ship ad-hoc loose ends: SSOT navigation and Jinja hardcoded-href cleanup
+
+### Guardrail Engine Run — 2026-08-25T19:30:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Ship the remaining mechanical loose ends from `ad-hoc-loose-ends-2026-08-22`:
+add the GUI/in-task guide flow to the navigation registry and remove hardcoded
+`href="/..."` strings from Jinja templates in favor of `navigation.get_stage(...).path`.
+
+### What changed
+- `app/core/navigation.py`:
+  - Added `GUI_FLOW` with tenant-facing single-function guide and utility pages.
+  - Updated `get_stage()` to search `GUI_FLOW` after `ADMIN_FLOW`.
+  - Updated `_build_canonical_set()` to include `GUI_FLOW` paths.
+- `app/templates/gui/base.html`, `app/templates/gui/record.html`,
+  `app/templates/components/ui_composer.html`, `app/templates/public_base.html`,
+  `app/templates/pages/journal_create_guide.html`,
+  `app/templates/pages/law_library_get_statute.html`,
+  `app/templates/pages/eviction_defense_calculate_deadlines.html`,
+  `app/templates/pages/timeline_create_event.html`:
+  - Replaced hardcoded `href="/..."` links with `{{ navigation.get_stage('...').path }}`.
+- `.cursor/rules/ironbee-devtools-use.mdc`:
+  - Enabled Node and Backend IronBee DevTools platforms to match current workspace configuration.
+- `tools/agent_orchestrator_tasks.json`:
+  - `ad-hoc-loose-ends-2026-08-22` moved through `in_progress` to `resolved`.
+- Deleted 5 scratch/investigation files from `tools/`:
+  - `_contracts_dump.json`, `_contracts_tenant_list.txt`, `_list_tenant.py`,
+    `_record_dump.py`, `dump_contracts.py`.
+
+### Verification
+- `python -m py_compile app/core/navigation.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 244 passed.
+- `python -m pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+
+### Notes
+- This completes the mechanical portion of the loose-ends task. Design-decision
+  items (context-loop consolidation, flagged modules, feature-flag unification)
+  remain in `review` and await Brad's sign-off.
+
+---
+
 ## Session — 2026-08-25 — Stale `feature_flags` doc fix and feature-flag unification brief
+
+### Guardrail Engine Run — 2026-08-25T02:35:37
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Goal
 `ACTIVE_CONTEXT.md` still listed the `feature_flags` table as a missing blocker. Investigation confirmed the table exists in all relevant environments; the real issue is two independent, non-unified feature-flag systems. Fix the stale note, deliver a scoping brief, and clean up the tracker.
