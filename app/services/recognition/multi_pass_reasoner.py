@@ -917,4 +917,4 @@ class MultiPassReasoner:
     def _validate_court_info(self, context: ReasoningContext) -> bool:
         """Validate court information consistency"""
         case_numbers = [e for e in context.validated_entities if e.entity_type == EntityType.COURT_CASE]
-        return len({c.value for c in case_numbers}) <= 1  # At most one unique case number
+        return len(set(c.value for c in case_numbers)) <= 1  # At most one unique case number
