@@ -1,6 +1,6 @@
 """
 Semptify 5.0 - Workflow Engine
-Deterministic transition engine for Process A → B1/B2/B4 routing.
+Deterministic transition engine for Process A ▸ B1/B2/B4 routing.
 
 Given a user's role, storage state, and current process state, the engine
 returns a WorkflowDecision: allowed_actions, the next process, and a
