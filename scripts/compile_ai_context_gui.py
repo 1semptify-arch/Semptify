@@ -8,12 +8,11 @@ Run:       python scripts/compile_ai_context_gui.py
            (or double-click the desktop launcher)
 """
 
-import contextlib
 import importlib
 import os
 import sys
 import tkinter as tk
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext, simpledialog, ttk
 
@@ -143,7 +142,7 @@ class ContextKitGUI:
         # Mirror the defaults from compile_ai_context.py
         defaults = [
             "Semptify_AI_Orchestration_Blueprint.md",
-            "docs/Semptify_Site_GUI_Framework.md",
+            "docs/admin/Semptify_Site_GUI_Framework.md",
             ".devin/skills/preflight/SKILL.md",
             "ACTIVE_CONTEXT.md",
             "BUILD_STATE.md",
@@ -235,7 +234,7 @@ class ContextKitGUI:
         if not os.path.isdir(root_dir):
             messagebox.showerror("Folder not found", f"This folder doesn't exist:\n{root_dir}")
             return
-        self._log(f"--- Build started {datetime.now().isoformat(timespec='seconds')} ---")
+        self._log(f"--- Build started {datetime.now(UTC).isoformat(timespec='seconds')} ---")
         self._log(f"Looking in: {root_dir}")
 
         # Chdir so the script's relative paths resolve correctly
@@ -332,8 +331,10 @@ class ContextKitGUI:
 
 def main():
     root = tk.Tk()
-    with contextlib.suppress(tk.TclError):
+    try:
         ttk.Style().theme_use("clam")
+    except tk.TclError:
+        pass
     ContextKitGUI(root)
     root.mainloop()
 

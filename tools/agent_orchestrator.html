@@ -193,7 +193,7 @@
           <code>python tools/archive_resolved_duplicates.py --dry-run</code> to preview, then without <code>--dry-run</code> to move the rows into the workbook's <code>Archive</code> sheet and drop them from the active queue.</li>
         <li><strong>Export/import:</strong> Use the Data card below to back up your queue as JSON or move it between machines.</li>
         <li><strong>Admin UI (alternative):</strong> <code>http://localhost:8000/admin/agent_orchestrator.html</code> (requires stealth admin login). Uses in-memory API store — wipes on server restart. Click <strong>Import JSON</strong> there to load <code>tools/agent_orchestrator_tasks.json</code> via <code>/api/agent-orchestrator/batch</code>.</li>
-        <li><strong>Full manual:</strong> <code>docs/AGENT_ORCHESTRATOR_MANUAL.md</code> — complete operation guide, troubleshooting, changelog.</li>
+        <li><strong>Full manual:</strong> <code>docs/admin/AGENT_ORCHESTRATOR_MANUAL.md</code> — complete operation guide, troubleshooting, changelog.</li>
         <li><strong>Diagnostics:</strong> Run <code>python tools/agent_orchestrator_sync_review/inspect_state.py</code> to see file sizes, task counts, missing paths, and git hook state.</li>
       </ol>
       <p class="hint" style="margin-top:0.75rem"><strong>Full refresh, in order</strong> (run from the repo root with <code>venv311</code> active):</p>

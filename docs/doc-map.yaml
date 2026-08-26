@@ -13,51 +13,45 @@
 #
 # Adding a new doc: append an entry here. The staleness check only sees docs
 # that appear in this file.
-#
-# NOTE on layout: existing docs currently live flat in docs/ (e.g. docs/ADMIN_MANUAL.md).
-# They are mapped here at those flat paths. New docs should go in the appropriate
-# subdir (admin/, user-guides/, help/, adr/). Relocating the existing flat docs
-# into subdirs is a tracked follow-up — do NOT move them in the same pass that
-# adds the staleness mechanism (see Known Failure #17: half-finished migrations).
 
 # ---------------------------------------------------------------------------
 # admin docs
 # ---------------------------------------------------------------------------
 
-- doc: ADMIN_MANUAL.md
+- doc: admin/ADMIN_MANUAL.md
   covers:
     - app/core/module_contracts.py
     - app/core/module_registry_loader.py
     - app/modules/admin_console
   category: admin
 
-- doc: AGENT_ORCHESTRATOR_MANUAL.md
+- doc: admin/AGENT_ORCHESTRATOR_MANUAL.md
   covers:
     - tools/workorder_runner.py
     - tools/agent_orchestrator_tasks.json
     - app/modules/agent_orchestrator
   category: admin
 
-- doc: CONTRACTS.md
+- doc: admin/CONTRACTS.md
   covers:
     - app/core/module_contracts.py
     - app/core/contract_loader.py
     - app/core/contracts_framework.py
   category: admin
 
-- doc: CORE_CONTRACTS_V1.md
+- doc: admin/CORE_CONTRACTS_V1.md
   covers:
     - app/core/module_contracts.py
   category: admin
 
-- doc: CREDENTIALS_SETUP_WORKBOOK.md
+- doc: admin/CREDENTIALS_SETUP_WORKBOOK.md
   covers:
     - app/core/oauth_token_manager.py
     - app/modules/auth
     - setup_credentials.py
   category: admin
 
-- doc: DEPLOYMENT_GUIDE.md
+- doc: admin/DEPLOYMENT_GUIDE.md
   covers:
     - Dockerfile
     - render.yaml
@@ -66,27 +60,27 @@
     - Procfile
   category: admin
 
-- doc: MODULE_DEVELOPMENT.md
+- doc: admin/MODULE_DEVELOPMENT.md
   covers:
     - app/modules/_template
     - app/core/module_sdk.py
     - app/core/module_hub.py
   category: admin
 
-- doc: OAUTH_SETUP.md
+- doc: admin/OAUTH_SETUP.md
   covers:
     - app/core/oauth_token_manager.py
     - app/modules/auth
     - app/core/stateless_oauth.py
   category: admin
 
-- doc: onboarding-contracts.md
+- doc: admin/onboarding-contracts.md
   covers:
     - app/modules/onboarding
     - app/core/onboarding_state.py
   category: admin
 
-- doc: OVERLAY_SYSTEM_DESIGN.md
+- doc: admin/OVERLAY_SYSTEM_DESIGN.md
   covers:
     - app/services/unified_overlay_manager.py
     - app/modules/unified_overlays
@@ -94,14 +88,14 @@
     - app/core/module_overlay.py
   category: admin
 
-- doc: SEMPTIFY_DEVELOPER_ONBOARDING.md
+- doc: admin/SEMPTIFY_DEVELOPER_ONBOARDING.md
   covers:
     - app/core
     - app/modules
     - AGENTS.md
   category: admin
 
-- doc: Semptify_Site_GUI_Framework.md
+- doc: admin/Semptify_Site_GUI_Framework.md
   covers:
     - app/templates
     - app/core/page_contracts.py
@@ -110,19 +104,19 @@
     - app/core/gui_contract.py
   category: admin
 
-- doc: SSOT_DESIGN_SYSTEM.md
+- doc: admin/SSOT_DESIGN_SYSTEM.md
   covers:
     - design-system
     - app/static/css
   category: admin
 
-- doc: SSOT_EXPORT.md
+- doc: admin/SSOT_EXPORT.md
   covers:
     - app/core/navigation.py
     - app/core/ssot_guard.py
   category: admin
 
-- doc: STORAGE_CONFIG.md
+- doc: admin/STORAGE_CONFIG.md
   covers:
     - app/services/storage
     - app/modules/storage
@@ -130,11 +124,41 @@
     - app/core/vault_paths.py
   category: admin
 
+# Living foundational reference for agents and collaborators.
+- doc: admin/MOTIVATIONS.md
+  covers:
+    - app/core/navigation.py
+    - app/core/ssot_guard.py
+    - app/templates/public
+    - app/modules/law_library
+  category: admin
+
+# Permanent, dated operational records (not architecture decisions, but stable).
+- doc: admin/SEMPTIFY_FOUNDATIONAL_FRAMEWORK.md
+  covers:
+    - app/core
+    - PROJECT_BIBLE.md
+  category: admin
+
+- doc: admin/PYTEST_HANG_ROOT_CAUSE_2026-07-27.md
+  covers:
+    - pytest.ini
+    - tests
+  category: admin
+
+- doc: admin/SECURITY_AUDIT_EVAL_EXEC_2026-07-27.md
+  covers:
+    - app/core/security.py
+    - app/core/security_middleware.py
+    - app/core/security_headers.py
+    - app/core/security_config.py
+  category: admin
+
 # ---------------------------------------------------------------------------
 # user docs
 # ---------------------------------------------------------------------------
 
-- doc: USER_GUIDE.md
+- doc: user-guides/USER_GUIDE.md
   covers:
     - app/modules/vault
     - app/modules/onboarding
@@ -150,45 +174,16 @@
 # ---------------------------------------------------------------------------
 # adr — Architecture Decision Records
 # ---------------------------------------------------------------------------
-# Dated postmortems and foundational records currently live flat in docs/.
-# They are mapped here so the staleness check treats them as permanent records
-# (ADR category). True ADRs going forward live in docs/adr/NNNN-<slug>.md and
-# are NEVER edited once accepted — a superseding ADR references the old one.
-
-- doc: SEMPTIFY_FOUNDATIONAL_FRAMEWORK.md
-  covers:
-    - app/core
-    - PROJECT_BIBLE.md
-  category: adr
-
-- doc: PYTEST_HANG_ROOT_CAUSE_2026-07-27.md
-  covers:
-    - pytest.ini
-    - tests
-  category: adr
-
-- doc: SECURITY_AUDIT_EVAL_EXEC_2026-07-27.md
-  covers:
-    - app/core/security.py
-    - app/core/security_middleware.py
-    - app/core/security_headers.py
-    - app/core/security_config.py
-  category: adr
-
-- doc: MOTIVATIONS.md
-  covers:
-    - app/core/navigation.py
-    - app/core/ssot_guard.py
-    - app/templates/public
-    - app/modules/law_library
-  category: adr
+# Numbered sequentially. Old ADRs are never edited; supersede with a new ADR.
 
 - doc: adr/0001-storage-architecture.md
   covers:
     - app/services/storage
     - app/modules/storage
-    - app/core/vault_paths.py
+    - app/core/storage_middleware.py
     - app/core/oauth_token_manager.py
+    - app/core/vault_paths.py
+    - app/modules/onboarding
   category: adr
 
 - doc: adr/0002-navigation-principle.md

@@ -554,7 +554,7 @@ These are the questions the current team has not answered. An independent team s
 ### Governance
 - `PROJECT_BIBLE.md` — Canonical doc hierarchy and governance
 - `AGENTS.md` — Python 3.11.9 mandate, Known Failure Registry, module contract rules
-- `docs/MOTIVATIONS.md` — Foundational motivations, language rules, design principles
+- `docs/admin/MOTIVATIONS.md` — Foundational motivations, language rules, design principles
 
 ---
 

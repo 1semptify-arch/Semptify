@@ -1,10 +1,10 @@
 # ADR-0008 — Information Orchestrator: Context-Aware, Non-Static Object & Page Explanation
 
 **Status:** Accepted
-**Date:** 2026-08-10 (rev. 4 — core pilot surfaces landed on main, 2026-08-14)
+**Date:** 2026-08-10 (rev. 3 — accepted, scoped to pilot)
 **Author:** Brad (via planning session), drafted by Claude
 **ADR number confirmed:** the OCR/semantic-reasoning privacy model ADR is **ADR-0007**, not ADR-0002 as originally guessed — confirmed via todo-068 preflight (2026-08-10). Still verify 0008 itself is the correct next open slot before final commit.
-**Implementation scope:** The pilot surfaces (Eviction Timeline and Vault upload flow) are now on `main` as of merge `7c5b5733` (PR #65, 2026-08-14). This includes Object/Page Envelopes, Layer 1/2 retrieval, Familiarity Tapering, Momentum Checkpoints, and the Experience Token for those two flows. Full-platform rollout beyond the two pilot surfaces remains a separate future decision.
+**Implementation scope:** Pilot only — Eviction Timeline and Vault upload flow (decision #2, section 5). Full-platform rollout is a separate future decision, made after the pilot proves out.
 
 **Rev. 3 changes:** Status moved to Accepted. Decision #6 resolved: `token_version: 1` as the default field on the Experience Token schema. See `agent_orchestrator_tasks.json` todo-063 through todo-075 for the implementation task queue.
 
