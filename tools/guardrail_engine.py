@@ -27,7 +27,7 @@ import sys
 import time
 import traceback
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ def discover_checks():
 
 
 def run_all_checks() -> EngineReport:
-    report = EngineReport(started_at=datetime.now().isoformat(timespec="seconds"))
+    report = EngineReport(started_at=datetime.now(UTC).isoformat(timespec="seconds"))
     start = time.time()
 
     checks = discover_checks()

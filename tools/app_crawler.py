@@ -23,7 +23,7 @@ import json
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import aiohttp
@@ -73,7 +73,7 @@ class Issue:
 class CrawlReport:
     """Complete crawl report."""
 
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     issues: list[Issue] = field(default_factory=list)
     stats: dict = field(default_factory=dict)
     files_scanned: int = 0
