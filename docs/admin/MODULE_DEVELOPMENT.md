@@ -26,7 +26,7 @@ from app.sdk import (
     PackType,
 )
 
-## Define your module
+# Define your module
 module_definition = ModuleDefinition(
     name="your_module_name",
     display_name="Your Module Name",
@@ -35,18 +35,20 @@ module_definition = ModuleDefinition(
     category=ModuleCategory.UTILITY,
 )
 
-## Create SDK instance
+# Create SDK instance
 sdk = ModuleSDK(module_definition)
 
-## Register actions
+
+# Register actions
 @sdk.action("your_action", produces=["result"])
 async def your_action(user_id, params, context):
     return {"result": "done"}
 
-## Initialize function
+
+# Initialize function
 def initialize():
     sdk.initialize()
-```text
+```
 
 ### Step 2: Register in main.py
 
@@ -54,6 +56,7 @@ Add to the startup sequence in `app/main.py`:
 
 ```python
 from app.modules.your_module_name import initialize as init_your_module
+
 init_your_module()
 ```
 
@@ -66,37 +69,32 @@ That's it! Your module is now part of the Positronic Mesh.
 ```python
 ModuleDefinition(
     # Required
-    name="unique_snake_case_name",      # Unique identifier
+    name="unique_snake_case_name",  # Unique identifier
     display_name="Human Readable Name",  # UI display name
-    description="What this module does", # Description
-    
+    description="What this module does",  # Description
     # Optional
-    version="1.0.0",                     # Semantic version
-    category=ModuleCategory.UTILITY,     # Organization category
-    
+    version="1.0.0",  # Semantic version
+    category=ModuleCategory.UTILITY,  # Organization category
     # Document handling
-    handles_documents=[                   # Document types this can process
+    handles_documents=[  # Document types this can process
         DocumentType.LEASE,
         DocumentType.EVICTION_NOTICE,
     ],
-    
     # Inter-module communication
-    accepts_packs=[                       # Info packs this can receive
+    accepts_packs=[  # Info packs this can receive
         PackType.EVICTION_DATA,
     ],
-    produces_packs=[                      # Info packs this creates
+    produces_packs=[  # Info packs this creates
         PackType.ANALYSIS_RESULT,
     ],
-    
     # Dependencies
-    depends_on=["documents", "calendar"], # Required modules
-    
+    depends_on=["documents", "calendar"],  # Required modules
     # Capabilities
-    has_ui=False,                         # Has frontend component
-    has_background_tasks=False,           # Runs background jobs
-    requires_auth=True,                   # Needs user authentication
+    has_ui=False,  # Has frontend component
+    has_background_tasks=False,  # Runs background jobs
+    requires_auth=True,  # Needs user authentication
 )
-```text
+```
 
 ---
 
@@ -106,19 +104,19 @@ Actions are functions your module exposes to the mesh:
 
 ```python
 @sdk.action(
-    "action_name",                        # Unique action identifier
+    "action_name",  # Unique action identifier
     description="What this action does",  # Human-readable description
-    required_params=["param1", "param2"], # Required parameters
-    optional_params=["param3"],           # Optional parameters
-    produces=["output_key"],              # Context keys this produces
-    requires_context=["needed_key"],      # Context keys this needs
-    timeout_seconds=30,                   # Max execution time
+    required_params=["param1", "param2"],  # Required parameters
+    optional_params=["param3"],  # Optional parameters
+    produces=["output_key"],  # Context keys this produces
+    requires_context=["needed_key"],  # Context keys this needs
+    timeout_seconds=30,  # Max execution time
 )
 async def action_name(
-    user_id: str,                         # User making the request
-    params: Dict[str, Any],               # Action parameters
-    context: Dict[str, Any],              # Workflow context
-) -> Dict[str, Any]:                      # Must return a dict
+    user_id: str,  # User making the request
+    params: Dict[str, Any],  # Action parameters
+    context: Dict[str, Any],  # Workflow context
+) -> Dict[str, Any]:  # Must return a dict
     # Your logic here
     return {"output_key": "result"}
 ```
@@ -128,7 +126,7 @@ async def action_name(
 All action handlers receive three arguments:
 
 | Argument | Type | Description |
-| ---------- | ------ | ------------- |
+|----------|------|-------------|
 | `user_id` | `str` | The user's unique identifier |
 | `params` | `Dict[str, Any]` | Parameters passed to this action |
 | `context` | `Dict[str, Any]` | Shared workflow context (accumulated from previous steps) |
@@ -144,7 +142,7 @@ Actions must return a `Dict[str, Any]`. The keys should match what you declared 
 ### Create Info Packs
 
 ```python
-## Send data to a specific module
+# Send data to a specific module
 sdk.create_pack(
     pack_type=PackType.EVICTION_DATA,
     user_id=user_id,
@@ -152,12 +150,12 @@ sdk.create_pack(
     target_module="eviction_defense",  # None = broadcast to all
     priority=5,  # 1-10, higher = more urgent
 )
-```text
+```
 
 ### Request Data from Modules
 
 ```python
-## Request specific data from another module
+# Request specific data from another module
 data = await sdk.request_data(
     from_module="documents",
     data_keys=["recent_uploads", "document_count"],
@@ -168,14 +166,14 @@ data = await sdk.request_data(
 ### Invoke Actions Directly
 
 ```python
-## Call an action on another module
+# Call an action on another module
 result = await sdk.invoke_action(
     module="calendar",
     action="calculate_deadlines",
     user_id=user_id,
     params={"start_date": "2024-01-01"},
 )
-```text
+```
 
 ---
 
@@ -184,7 +182,7 @@ result = await sdk.invoke_action(
 Modules can trigger multi-step workflows:
 
 ```python
-## Trigger a predefined workflow
+# Trigger a predefined workflow
 workflow = await sdk.trigger_workflow(
     workflow_type="eviction_defense",
     user_id=user_id,
@@ -195,7 +193,7 @@ workflow = await sdk.trigger_workflow(
 ### Available Workflow Types
 
 | Type | Description | Modules Involved |
-| ------ | ------------- | ------------------ |
+|------|-------------|------------------|
 | `eviction_defense` | Full eviction defense process | documents → calendar → eviction → forms → copilot |
 | `lease_analysis` | Analyze a lease document | documents → law_library → timeline → calendar |
 | `court_prep` | Prepare for court hearing | eviction → documents → timeline → forms → zoom_court |
@@ -222,12 +220,12 @@ async def on_workflow_completed(event_type: str, data: Dict[str, Any]):
 @sdk.on_event("document_uploaded")
 async def on_document_uploaded(event_type: str, data: Dict[str, Any]):
     # React to new document
-```text
+```
 
 ### Available Events
 
 | Event | Data | Description |
-| ------- | ------ | ------------- |
+|-------|------|-------------|
 | `workflow_started` | `workflow_id`, `type`, `user_id` | A workflow began |
 | `workflow_completed` | `workflow_id`, `type`, `context_keys` | A workflow finished |
 | `workflow_failed` | `workflow_id`, `step_id`, `error` | A workflow errored |
@@ -241,16 +239,16 @@ async def on_document_uploaded(event_type: str, data: Dict[str, Any]):
 
 ```python
 class ModuleCategory(str, Enum):
-    DOCUMENT = "document"          # Document processing
-    LEGAL = "legal"                # Legal analysis/forms
-    CALENDAR = "calendar"          # Scheduling/deadlines
+    DOCUMENT = "document"  # Document processing
+    LEGAL = "legal"  # Legal analysis/forms
+    CALENDAR = "calendar"  # Scheduling/deadlines
     COMMUNICATION = "communication"  # User communication
-    ANALYSIS = "analysis"          # Data analysis
-    STORAGE = "storage"            # File/data storage
-    UI = "ui"                      # User interface
-    UTILITY = "utility"            # General utilities
-    AI = "ai"                      # AI/ML features
-    INTEGRATION = "integration"    # External integrations
+    ANALYSIS = "analysis"  # Data analysis
+    STORAGE = "storage"  # File/data storage
+    UI = "ui"  # User interface
+    UTILITY = "utility"  # General utilities
+    AI = "ai"  # AI/ML features
+    INTEGRATION = "integration"  # External integrations
 ```
 
 ---
@@ -268,7 +266,7 @@ class DocumentType(str, Enum):
     LEGAL_FORM = "legal_form"
     ID_DOCUMENT = "id_document"
     UNKNOWN = "unknown"
-```text
+```
 
 ---
 
@@ -298,6 +296,7 @@ from typing import Optional
 
 router = APIRouter()
 
+
 @router.get("/your-endpoint")
 async def your_endpoint(
     semptify_uid: Optional[str] = Cookie(default=None),
@@ -305,12 +304,12 @@ async def your_endpoint(
     user_id = semptify_uid or "anonymous"
     # Your logic
     return {"result": "data"}
-```text
+```
 
 Then in `main.py`:
-
 ```python
 from app.modules.your_module import router as your_router
+
 app.include_router(your_router, prefix="/api/your-module", tags=["Your Module"])
 ```
 
@@ -325,9 +324,10 @@ See `app/modules/example_payment_tracking.py` for a complete working example.
 ## 🧪 Testing Your Module
 
 ```python
-## test_your_module.py
+# test_your_module.py
 import pytest
 from app.modules.your_module import sdk, your_action
+
 
 @pytest.mark.asyncio
 async def test_your_action():
@@ -338,7 +338,7 @@ async def test_your_action():
     )
     assert "result" in result
     assert result["result"] == "expected_value"
-```text
+```
 
 ---
 
@@ -348,17 +348,17 @@ Check your module's status:
 
 ```python
 status = sdk.get_status()
-## Returns:
-## {
-##     "name": "your_module",
-##     "display_name": "Your Module",
-##     "version": "1.0.0",
-##     "initialized": True,
-##     "actions": ["action1", "action2"],
-##     "event_handlers": ["workflow_started"],
-##     "connected_to_mesh": True,
-##     "connected_to_hub": True,
-## }
+# Returns:
+# {
+#     "name": "your_module",
+#     "display_name": "Your Module",
+#     "version": "1.0.0",
+#     "initialized": True,
+#     "actions": ["action1", "action2"],
+#     "event_handlers": ["workflow_started"],
+#     "connected_to_mesh": True,
+#     "connected_to_hub": True,
+# }
 ```
 
 ---
@@ -377,7 +377,7 @@ status = sdk.get_status()
 
 ## 🔗 Architecture Diagram
 
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                     POSITRONIC MESH                          │
 │                 (Workflow Orchestration)                     │
@@ -400,7 +400,7 @@ status = sdk.get_status()
 
 ---
 
-## ❓ Need Help
+## ❓ Need Help?
 
 - Check `app/modules/example_payment_tracking.py` for a complete example
 - Review `app/sdk/module_sdk.py` for full API documentation

@@ -40,15 +40,22 @@ staleness check only sees docs that appear in this file.
 ### 2. Commit-tagged categorized changelog
 
 Every commit touching something in a doc's `covers` list gets a category prefix
-in its message: `admin:`, `user:`, `help:`, or `adr:`. A git hook / CI step
-parses commit messages on push and appends a line to
-`docs/CHANGELOG-{category}.md` — timestamp, commit hash, short description,
-files touched.
+in its message: `admin:`, `user:`, `help:`, or `adr:`. The `commit-msg` hook
+enforces the prefix, and `tools/docs_changelog.py` parses the history and
+regenerates `docs/CHANGELOG-{category}.md` (timestamp, commit hash, short
+description, files touched).
 
 This produces a running, categorized log automatically. No one has to remember
 to write it by hand.
 
-> **Status:** hook not yet implemented. Tracked follow-up.
+> **Status:** implemented in `tools/hooks/commit-msg` (enforcement) and
+> `tools/docs_changelog.py` (regeneration). Run the regenerator directly or via
+> `tools/recurring_scheduler.py --run docs-changelog`.
+>
+> Enable the `commit-msg` hook with `git config core.hooksPath tools/hooks`.
+> (`tools/hooks` also contains an existing `pre-commit` hook; if you only want
+> the category check, copy `tools/hooks/commit-msg` to your active git hooks
+> directory instead.)
 
 ### 3. Scheduled staleness check
 
@@ -65,8 +72,8 @@ changes to the docs. A designated agent triages the report, drafts update
 tasks, and pings Brad only for Tier-A-adjacent content per existing sign-off
 rules. A flagged item still goes through normal review before anything changes.
 
-> **Status:** staleness script not yet implemented. Tracked follow-up.
-> Threshold: 21 days (decided 2026-08-06).
+> **Status:** implemented in `tools/docs_staleness_check.py` (21-day threshold).
+> Run it directly or via `tools/recurring_scheduler.py --run docs-staleness`.
 
 ### 4. ADRs for foundational decisions
 
@@ -102,20 +109,9 @@ building a parallel identity system.
 ## Current state (2026-08-06)
 
 - [x] Directory structure scaffolded.
-- [x] `doc-map.yaml` created with existing docs backfilled (mapped at their
-      current flat paths in `docs/`).
+- [x] `doc-map.yaml` created with existing docs mapped to code paths.
 - [x] ADR template + ADR 0001 (storage architecture split) created.
-- [ ] Commit-tagged changelog hook — follow-up.
-- [ ] Staleness check script — follow-up.
-- [ ] Relocate existing flat docs into subdirs — follow-up (do NOT do this in
-      the same pass as the staleness mechanism; see Known Failure #17).
-
-## Follow-up: relocating existing flat docs
-
-Existing docs (`ADMIN_MANUAL.md`, `USER_GUIDE.md`, etc.) currently live flat in
-`docs/`. They are mapped in `doc-map.yaml` at those flat paths. The intended
-final layout is to move them into `admin/`, `user-guides/`, etc., but this must
-be a dedicated pass that updates every reference (template links, AGENTS.md
-pointers, etc.) and verifies the running app still resolves them — not a
-side effect of the staleness mechanism. A half-finished relocation committed
-overnight is worse than no relocation (Known Failure #17).
+- [x] Commit-tagged changelog hook — `tools/docs_changelog.py`.
+- [x] Staleness check script — `tools/docs_staleness_check.py` (21-day threshold).
+- [x] Recurring scheduler — `tools/recurring_scheduler.py` (runs staleness, changelog, and future OCR beta review on a weekly cadence).
+- [x] Existing flat docs relocated into `admin/`, `user-guides/`, etc., with cross-references updated.
