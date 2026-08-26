@@ -1,3 +1,31 @@
+## Session — 2026-08-25 — Resync phase_c_tier2 tracker and review eviction court_procedures
+
+### Goal
+Continue the P0-2 Phase B/C/D reconciliation. During Batch 1 prep, discovered
+that `tools/phase_c_tier2_reconciliation_tasks.json` was stale: Batch 1
+service-deletion tasks had already been merged to `main` but still showed as
+open. Resynced the file from `tools/agent_orchestrator_tasks.json`, then
+reviewed the only remaining open `phase2` task: `phase2-1a1341-055`.
+
+### What changed
+- `tools/phase_c_tier2_reconciliation_tasks.json`:
+  - Resynced 35 phase2 task statuses from the active tracker.
+  - Only `phase2-1a1341-055` remained open; now resolved.
+- `tools/agent_orchestrator_tasks.json`:
+  - `phase2-1a1341-055` marked `resolved` with review notes.
+- `app/services/eviction/court_procedures.py`:
+  - No code changes. Pilot version differs only in type-hint/import style
+    (StrEnum → (str, Enum), `X | None` → `Optional[X]`, trailing-comma/quote
+    formatting). Legal content is unchanged and factual; no case-outcome
+    language or legal determinations for users. Decision: preserve main.
+
+### Verification
+- Diffed `app/services/eviction/court_procedures.py` against
+  `github-direct/adr-0008-pilot`: legal rules, motions, objections, counterclaims,
+  defenses, and procedure-step text are unchanged; only style regressions in pilot.
+
+---
+
 ## Session — 2026-08-25 — Ship ad-hoc loose ends: SSOT navigation and Jinja hardcoded-href cleanup
 
 ### Guardrail Engine Run — 2026-08-25T19:30:00
