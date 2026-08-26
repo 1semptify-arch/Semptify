@@ -6,9 +6,9 @@ Admin is NOT a role. It is a time-limited elevation granted after TOTP verificat
 Flow:
     1. User connects OAuth normally (tenant/manager/any role)
     2. User navigates to /admin/* — elevation check fires
-    3. If no valid elevation cookie → redirect to /admin/login (inline prompt)
-    4. User enters password + TOTP → elevation cookie issued (4 hours)
-    5. Elevation expires → user falls back to normal OAuth session automatically
+    3. If no valid elevation cookie ▸ redirect to /admin/login (inline prompt)
+    4. User enters password + TOTP ▸ elevation cookie issued (4 hours)
+    5. Elevation expires ▸ user falls back to normal OAuth session automatically
 
 Cookie format:
     semptify_admin_elev = <payload_b64>.<hmac_hex>
