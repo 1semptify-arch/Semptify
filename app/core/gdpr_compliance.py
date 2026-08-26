@@ -476,7 +476,7 @@ class GDPRComplianceManager:
 
         # Consent statistics
         consent_stats = {}
-        for _user_id, consents in self.user_consents.items():
+        for user_id, consents in self.user_consents.items():
             for consent in consents:
                 consent_type = consent.consent_type.value
                 status = consent.status.value
