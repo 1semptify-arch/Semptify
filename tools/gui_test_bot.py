@@ -22,11 +22,10 @@ Examples:
 
 import argparse
 import asyncio
-import contextlib
 import json
 import traceback
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -89,7 +88,7 @@ class TestResult:
 class TestReport:
     """Complete test run report."""
 
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     results: list[TestResult] = field(default_factory=list)
     config: dict[str, Any] = field(default_factory=dict)
 
@@ -176,7 +175,7 @@ class SemptifyGUITestBot:
 
     async def take_screenshot(self, page: Page, name: str) -> str:
         """Take a screenshot and return the path."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         filename = f"{name}_{timestamp}.png"
         filepath = self.screenshots_dir / filename
         await page.screenshot(path=str(filepath), full_page=True)
@@ -209,8 +208,10 @@ class SemptifyGUITestBot:
             duration = (asyncio.get_event_loop().time() - start_time) * 1000
 
             # Take screenshot on failure
-            with contextlib.suppress(BaseException):
+            try:
                 screenshot_path = await self.take_screenshot(page, f"FAILED_{test_name}")
+            except Exception:
+                pass
 
             return TestResult(
                 name=test_name,
@@ -593,12 +594,12 @@ class SemptifyGUITestBot:
         summary = self.report.get_summary()
 
         # JSON report
-        json_path = self.reports_dir / f"gui_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        json_path = self.reports_dir / f"gui_test_report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
         with open(json_path, "w") as f:
             json.dump(self.report.to_dict(), f, indent=2)
 
         # HTML report
-        html_path = self.reports_dir / f"gui_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+        html_path = self.reports_dir / f"gui_test_report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.html"
         html_content = self._generate_html_report()
         with open(html_path, "w") as f:
             f.write(html_content)
