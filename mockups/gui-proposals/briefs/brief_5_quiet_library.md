@@ -115,7 +115,7 @@ column flow.
 
 ## Output path
 
-`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\quiet_library\index.html`
+`C:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\quiet_library\index.html`
 
 ## Image needs
 

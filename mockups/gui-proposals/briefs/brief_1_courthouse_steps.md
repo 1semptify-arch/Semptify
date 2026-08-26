@@ -89,7 +89,7 @@ user's place in the journey. Reads like the header of a court filing.
 
 ## Output path
 
-`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\courthouse_steps\index.html`
+`C:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\courthouse_steps\index.html`
 (and `assets/` subfolder if needed)
 
 ## Image needs

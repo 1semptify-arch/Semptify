@@ -116,4 +116,4 @@ The Tier C candidate list is a first cut; many candidates are likely cosmetic fa
 
 ## Repo cleanup items
 
-- The `origin` remote in this worktree points to the local path `E:/master-repo/sources/app-semptify-fastapi` instead of GitHub. This causes a false "ahead by 66 commits" reading against `github-direct/main`. Remove or repoint the `origin` alias to `https://github.com/1semptify-arch/Semptify.git` when convenient.
+- The `origin` remote in this worktree points to the local path `C:/master-repo/sources/app-semptify-fastapi` instead of GitHub. This causes a false "ahead by 66 commits" reading against `github-direct/main`. Remove or repoint the `origin` alias to `https://github.com/1semptify-arch/Semptify.git` when convenient.

@@ -95,7 +95,7 @@ the single most important UI element on the site.
 
 ## Output path
 
-`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\beacon\index.html`
+`C:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\beacon\index.html`
 
 ## Image needs
 

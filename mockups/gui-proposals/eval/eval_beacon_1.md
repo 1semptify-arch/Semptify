@@ -84,8 +84,8 @@ The page delivers a strong, coherent "Beacon" identity: a stark black/white/ambe
 
 Captured at three viewports and saved alongside this report:
 
-- `E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\eval\beacon_desktop_1440.png`
-- `E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\eval\beacon_tablet_768.png`
-- `E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\eval\beacon_mobile_375.png`
+- `C:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\eval\beacon_desktop_1440.png`
+- `C:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\eval\beacon_tablet_768.png`
+- `C:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\eval\beacon_mobile_375.png`
 
 *Note: The page was served locally at `http://localhost:8001/index.html` for Playwright capture because the `file://` protocol was blocked by the browser tool.*
