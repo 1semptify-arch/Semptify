@@ -41,7 +41,7 @@ STATUS_MAP = {
 JF_FILE_REFS = {
     3: "app/core/product_manifest.py (see Module Inventory + Duplicates tabs)",
     6: "app/core/product_manifest.py, app/services/positronic_brain.py",
-    7: "docs/Semptify_Site_GUI_Framework.md (RECORD pillar section), Duplicates tab",
+    7: "docs/admin/Semptify_Site_GUI_Framework.md (RECORD pillar section), Duplicates tab",
 }
 
 

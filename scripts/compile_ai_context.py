@@ -21,7 +21,7 @@ OUTPUT_FILE = "AI_HANDOFF_PACKET.md"
 # actually exists; an outdated list here silently produces a stale packet.
 TARGET_DOCS = [
     "Semptify_AI_Orchestration_Blueprint.md",
-    "docs/Semptify_Site_GUI_Framework.md",
+    "docs/admin/Semptify_Site_GUI_Framework.md",
     ".devin/skills/preflight/SKILL.md",
     "ACTIVE_CONTEXT.md",
     "BUILD_STATE.md",
