@@ -15,7 +15,7 @@ import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 from app.core.trusted_config import ACTIVE_INVITE_CODES, TRUSTED_ADVOCATE_DOMAINS, TRUSTED_LEGAL_DOMAINS
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class VerificationStatus(StrEnum):
+class VerificationStatus(str, Enum):
     """Status of role verification request."""
 
     PENDING = "pending"  # Awaiting review
@@ -40,7 +40,7 @@ class VerificationStatus(StrEnum):
     REVOKED = "revoked"  # Manually revoked
 
 
-class VerificationMethod(StrEnum):
+class VerificationMethod(str, Enum):
     """How the role was verified."""
 
     EMAIL_DOMAIN = "email_domain"  # Trusted org email

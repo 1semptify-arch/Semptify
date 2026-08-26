@@ -6,12 +6,12 @@ All overlay categories: traceability, processing, annotations, forms, queries, r
 """
 
 import logging
-from enum import StrEnum
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 
-class OverlayType(StrEnum):
+class OverlayType(str, Enum):
     """
     All overlay types for the unified overlay system.
 

@@ -46,7 +46,7 @@ ID Types (canonical prefixes):
 import logging
 import secrets
 import string
-from enum import StrEnum
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ _DEFAULT_LENGTH = 16
 _MAX_PREFIX_LEN = 10  # Prevent absurdly long prefixes
 
 
-class IdType(StrEnum):
+class IdType(str, Enum):
     """Canonical ID type prefixes for type safety."""
 
     DOCUMENT = "doc"

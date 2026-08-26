@@ -41,7 +41,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from app.core.module_contracts import (
@@ -66,7 +66,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class ModuleCapability(StrEnum):
+class ModuleCapability(str, Enum):
     """Capabilities a module can declare."""
 
     ROUTER = "router"  # Provides FastAPI routes

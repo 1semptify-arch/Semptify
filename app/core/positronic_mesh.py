@@ -16,7 +16,7 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 from app.core.id_gen import make_id
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class WorkflowType(StrEnum):
+class WorkflowType(str, Enum):
     """Pre-defined cross-module workflows"""
 
     # Document-triggered workflows
@@ -51,7 +51,7 @@ class WorkflowType(StrEnum):
     EMERGENCY_MODE = "emergency_mode"  # Activate urgent response mode
 
 
-class WorkflowStage(StrEnum):
+class WorkflowStage(str, Enum):
     """Stages a workflow goes through"""
 
     PENDING = "pending"

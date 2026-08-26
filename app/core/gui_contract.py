@@ -8,13 +8,13 @@ This ensures consistency across the application and makes it easy to understand 
 Usage: Each module creates a GUI_REQUIREMENTS dict following this contract.
 """
 
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class InputType(StrEnum):
+class InputType(str, Enum):
     """Types of input fields."""
 
     TEXT = "text"
@@ -35,7 +35,7 @@ class InputType(StrEnum):
     TOGGLE = "toggle"
 
 
-class OutputType(StrEnum):
+class OutputType(str, Enum):
     """Types of output displays."""
 
     TEXT = "text"
@@ -54,7 +54,7 @@ class OutputType(StrEnum):
     BADGE = "badge"
 
 
-class ActionType(StrEnum):
+class ActionType(str, Enum):
     """Types of actions/buttons."""
 
     SUBMIT = "submit"
@@ -75,7 +75,7 @@ class ActionType(StrEnum):
     CUSTOM = "custom"
 
 
-class IndicatorType(StrEnum):
+class IndicatorType(str, Enum):
     """Types of indicators."""
 
     PROGRESS = "progress"
@@ -91,7 +91,7 @@ class IndicatorType(StrEnum):
     TIMER = "timer"
 
 
-class PopOutType(StrEnum):
+class PopOutType(str, Enum):
     """Types of pop-outs/modals."""
 
     MODAL = "modal"

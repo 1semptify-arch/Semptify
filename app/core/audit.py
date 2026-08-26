@@ -25,7 +25,7 @@ import json
 import logging
 from collections.abc import Callable
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from functools import wraps
 from pathlib import Path
 from typing import Any, TypeVar
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-class AuditAction(StrEnum):
+class AuditAction(str, Enum):
     """Enumeration of auditable actions."""
 
     # Authentication

@@ -22,10 +22,10 @@ Coverage State Definitions:
 """
 
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 
 
-class CoverageStatus(StrEnum):
+class CoverageStatus(str, Enum):
     COMPLETE = "complete"
     PARTIAL = "partial"
     MISSING = "missing"

@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class JurisdictionLevel(StrEnum):
+class JurisdictionLevel(str, Enum):
     """Levels of jurisdiction granularity."""
 
     COUNTRY = "country"  # e.g., "US"

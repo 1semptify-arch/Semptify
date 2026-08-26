@@ -10,7 +10,7 @@ import logging
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +19,7 @@ from app.core.utc import utc_now
 logger = logging.getLogger(__name__)
 
 
-class InventoryType(StrEnum):
+class InventoryType(str, Enum):
     """Types of inventory items."""
 
     BACKUP = "backup"
@@ -30,7 +30,7 @@ class InventoryType(StrEnum):
     SYSTEM_STATE = "system_state"
 
 
-class RotationPolicy(StrEnum):
+class RotationPolicy(str, Enum):
     """Rotation policies for inventory items."""
 
     KEEP_2 = "keep_2"  # Keep only 2 most recent

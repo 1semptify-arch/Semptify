@@ -52,10 +52,10 @@ This module is the single source of truth for UPL risk classification.
 Other modules import the enum from here — they MUST NOT redefine it.
 """
 
-from enum import StrEnum
+from enum import Enum
 
 
-class UPLRiskTier(StrEnum):
+class UPLRiskTier(str, Enum):
     """
     Risk tier for Unauthorized Practice of Law (UPL) enforcement.
 
