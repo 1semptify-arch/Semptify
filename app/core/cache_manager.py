@@ -341,7 +341,7 @@ class CacheManager:
 
     async def cleanup_expired(self):
         """Clean up expired entries."""
-        for _, backend in self.backends.items():
+        for backend_name, backend in self.backends.items():
             if hasattr(backend, "cleanup_expired"):
                 await backend.cleanup_expired()
 
