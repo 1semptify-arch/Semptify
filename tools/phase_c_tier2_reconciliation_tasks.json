@@ -262,11 +262,11 @@
     "target_model": "swe-1.7",
     "priority": "medium",
     "file_path": "app/services/eviction/court_procedures.py",
-    "status": "pending",
-    "notes": "Module cluster: services/eviction. Files: 6. \n[2026-08-26 02:31 UTC - swe-1.7] Resynced from agent_orchestrator_tasks.json: status=pending, assigned_agent=swe-1.7 | agent notes: Module cluster: services/eviction. Files: 6. \n[2026-08-15 09:59 UTC - swe-1.7] Released: agent claimed in error during preflight; task remains parked per user direction.",
+    "status": "resolved",
+    "notes": "Module cluster: services/eviction. Files: 6. \n[2026-08-26 02:31 UTC - swe-1.7] Resynced from agent_orchestrator_tasks.json: status=pending, assigned_agent=swe-1.7 | agent notes: Module cluster: services/eviction. Files: 6. \n[2026-08-15 09:59 UTC - swe-1.7] Released: agent claimed in error during preflight; task remains parked per user direction.\n[2026-08-26 02:32 UTC - swe-1.7] Resynced from agent_orchestrator_tasks.json after review: Module cluster: services/eviction. Files: 6. \n[2026-08-15 09:59 UTC - swe-1.7] Released: agent claimed in error during preflight; task remains parked per user direction.\n[2026-08-26 02:32 UTC - SWE-1.7-Max] Reviewed app/services/eviction/court_procedures.py against adr-0008-pilot. Pilot changes are type-hint",
     "created_at": "2026-08-15T04:28:25Z",
-    "updated_at": "2026-08-15T09:59:31.417731+00:00",
-    "assigned_agent": "swe-1.7",
+    "updated_at": "2026-08-26T02:32:33.239832+00:00",
+    "assigned_agent": "SWE-1.7-Max",
     "source": "phase_c_tier2"
   },
   {
