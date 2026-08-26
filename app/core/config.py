@@ -43,7 +43,7 @@ def _resolve_secret_key() -> str:
         from hashlib import sha256
 
         db_url = os.getenv("DATABASE_URL", "in-memory")
-        return sha256(f"{_TEST_KEY_SALT}:{db_url}".encode("utf-8")).hexdigest()
+        return sha256(f"{_TEST_KEY_SALT}:{db_url}".encode()).hexdigest()
 
     if not key or key == _WEAK_KEY:
         raise ValueError(
@@ -103,6 +103,11 @@ class Settings:
         # Re-resolve DATABASE_URL at instantiation so tests can override it via
         # os.environ without re-importing the settings module.
         self.database_url = _resolve_database_url()
+
+        # Comma-separated allowlist of user IDs that may access the FCA readiness
+        # feature while it is feature-flagged. Empty means feature-flag system only.
+        raw = os.getenv("FCA_READINESS_ALLOWED_USER_IDS", "")
+        self.fca_readiness_allowed_user_ids = {uid.strip() for uid in raw.split(",") if uid.strip()}
 
     allowed_extensions: str = "pdf,png,jpg,jpeg,gif,doc,docx,txt,mp3,mp4,wav"
     ai_provider: Literal["openai", "azure", "ollama", "groq", "anthropic", "gemini", "none"] = "anthropic"
