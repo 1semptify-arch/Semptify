@@ -11,8 +11,10 @@ Output: AI_HANDOFF_PACKET.md (in the project root)
 """
 
 import os
+import shutil
 import subprocess
-from datetime import datetime
+
+from app.core.utc import utc_now
 
 OUTPUT_FILE = "AI_HANDOFF_PACKET.md"
 
@@ -21,7 +23,7 @@ OUTPUT_FILE = "AI_HANDOFF_PACKET.md"
 # actually exists; an outdated list here silently produces a stale packet.
 TARGET_DOCS = [
     "Semptify_AI_Orchestration_Blueprint.md",
-    "Semptify_Site_GUI_Framework.md",
+    "docs/admin/Semptify_Site_GUI_Framework.md",
     ".devin/skills/preflight/SKILL.md",
     "ACTIVE_CONTEXT.md",
     "BUILD_STATE.md",
@@ -39,15 +41,20 @@ WORKBOOK_NOTE = (
 
 def get_git_commit():
     """Get the current commit hash, or a clear placeholder if not in a repo."""
+    git_path = shutil.which("git")
+    if git_path is None:
+        return "NO_GIT_REPOSITORY_DETECTED"
     try:
-        return subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL).decode("utf-8").strip()
+        return (
+            subprocess.check_output([git_path, "rev-parse", "HEAD"], stderr=subprocess.DEVNULL).decode("utf-8").strip()
+        )
     except Exception:
         return "NO_GIT_REPOSITORY_DETECTED"
 
 
 def compile_handoff_packet():
     commit_hash = get_git_commit()
-    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    timestamp = utc_now().strftime("%Y-%m-%d %H:%M:%S UTC")
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
         out.write("# SEMPTIFY — AI HANDOFF PACKET\n")
