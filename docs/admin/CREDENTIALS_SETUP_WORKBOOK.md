@@ -7,7 +7,7 @@ This workbook guides you through setting up storage provider credentials for the
 ## Quick Reference
 
 | Provider | Difficulty | Setup Time | Recommended |
-| ---------- | ------------ | ------------ | ------------- |
+|----------|------------|------------|-------------|
 | Google Drive | Easy | 10-15 minutes | **Yes** |
 | Dropbox | Medium | 15-20 minutes | No |
 | OneDrive | Hard | 20-30 minutes | No |
@@ -19,7 +19,7 @@ This workbook guides you through setting up storage provider credentials for the
 ### Step 1: Create Google Cloud Project
 
 1. **Go to Google Cloud Console**
-   - URL: <https://console.cloud.google.com/>
+   - URL: https://console.cloud.google.com/
    - Sign in with your Google account
 
 2. **Create New Project**
@@ -43,8 +43,8 @@ This workbook guides you through setting up storage provider credentials for the
    - Select "External" (for testing)
    - Fill in required fields:
      - App name: "Semptify Development"
-     - User support email: <your-email@gmail.com>
-     - Developer contact: <your-email@gmail.com>
+     - User support email: your-email@gmail.com
+     - Developer contact: your-email@gmail.com
    - Click "SAVE AND CONTINUE"
    - Add test users (your email address)
    - Click "SAVE AND CONTINUE" through remaining steps
@@ -67,43 +67,39 @@ This workbook guides you through setting up storage provider credentials for the
 
 ### Step 4: Set Environment Variables
 
-#### Windows (Command Prompt):
-
+**Windows (Command Prompt):**
 ```cmd
 set GOOGLE_DRIVE_CLIENT_ID=your_client_id_here
 set GOOGLE_DRIVE_CLIENT_SECRET=your_client_secret_here
-```text
+```
 
 **Windows (PowerShell):**
-
 ```powershell
 $env:GOOGLE_DRIVE_CLIENT_ID="your_client_id_here"
 $env:GOOGLE_DRIVE_CLIENT_SECRET="your_client_secret_here"
 ```
 
-#### Linux/Mac:
-
+**Linux/Mac:**
 ```bash
 export GOOGLE_DRIVE_CLIENT_ID="your_client_id_here"
 export GOOGLE_DRIVE_CLIENT_SECRET="your_client_secret_here"
-```text
+```
 
 ### Step 5: Test Integration
 
 1. **Restart Server**
-
    ```bash
    python -m uvicorn app.main:fastapi_app --reload
    ```
 
-1. **Connect Storage**
-   - Visit: <http://localhost:8000/storage/providers>
+2. **Connect Storage**
+   - Visit: http://localhost:8000/storage/providers
    - Click "Google Drive"
    - Complete OAuth flow
    - Grant permissions
 
-2. **Test Upload**
-   - Visit: <http://localhost:8000/tenant/dashboard>
+3. **Test Upload**
+   - Visit: http://localhost:8000/tenant/dashboard
    - Try uploading a file
 
 ---
@@ -113,7 +109,7 @@ export GOOGLE_DRIVE_CLIENT_SECRET="your_client_secret_here"
 ### Step 1: Create Dropbox App
 
 1. **Go to Dropbox Developers**
-   - URL: <https://www.dropbox.com/developers/apps>
+   - URL: https://www.dropbox.com/developers/apps
    - Sign in with your Dropbox account
 
 2. **Create New App**
@@ -164,7 +160,7 @@ export DROPBOX_APP_SECRET="your_app_secret_here"
 ### Step 1: Create Azure App
 
 1. **Go to Azure Portal**
-   - URL: <https://portal.azure.com/>
+   - URL: https://portal.azure.com/
    - Sign in with Microsoft account
 
 2. **Create App Registration**
@@ -219,32 +215,27 @@ export ONEDRIVE_CLIENT_SECRET="your_client_secret_here"
 ### Common Issues
 
 #### Google Drive
-
 - **"redirect_uri_mismatch"**: Ensure redirect URI exactly matches in Google Console
 - **"invalid_client"**: Check Client ID and Secret are correct
 - **"access_denied"**: Make sure you're added as a test user
 
 #### Dropbox
-
 - **"invalid_redirect_uri"**: Check redirect URI in Dropbox app settings
 - **"app_not_found"**: Ensure app is in development mode
 
 #### OneDrive
-
 - **"invalid_client"**: Check Application ID and Client Secret
 - **"consent_required"**: Grant admin consent for API permissions
 
 ### Debug Tips
 
 1. **Check Server Logs**
-
    ```bash
    # Look for OAuth-related errors
    tail -f logs/semptify.log
-   ```text
+   ```
 
 2. **Verify Environment Variables**
-
    ```bash
    # Check if variables are set
    echo $GOOGLE_DRIVE_CLIENT_ID
@@ -252,7 +243,7 @@ export ONEDRIVE_CLIENT_SECRET="your_client_secret_here"
    ```
 
 3. **Test OAuth Flow**
-   - Visit: <http://localhost:8000/storage/providers>
+   - Visit: http://localhost:8000/storage/providers
    - Check browser console for errors
    - Monitor network requests
 
@@ -261,9 +252,9 @@ export ONEDRIVE_CLIENT_SECRET="your_client_secret_here"
 If you need to start over:
 
 1. **Revoke Access**
-   - Google: <https://myaccount.google.com/permissions>
-   - Dropbox: <https://www.dropbox.com/account/connected_apps>
-   - Microsoft: <https://account.microsoft.com/permissions>
+   - Google: https://myaccount.google.com/permissions
+   - Dropbox: https://www.dropbox.com/account/connected_apps
+   - Microsoft: https://account.microsoft.com/permissions
 
 2. **Clear Browser Data**
    - Clear cookies for localhost
@@ -278,20 +269,17 @@ If you need to start over:
 ## Security Best Practices
 
 ### Development
-
 - Use test accounts, not production credentials
 - Set app to "testing" mode when available
 - Limit scope to only necessary permissions
 
 ### Production
-
 - Use environment variables, not hardcoded credentials
 - Rotate credentials regularly
 - Monitor API usage and access logs
 - Use HTTPS in production
 
 ### Credential Management
-
 - Never commit credentials to version control
 - Use secure credential storage (vault, secrets manager)
 - Share credentials only with authorized team members
@@ -328,19 +316,16 @@ After setting up credentials:
 ## Support
 
 ### Documentation
-
-- Google Drive API: <https://developers.google.com/drive/api>
-- Dropbox API: <https://www.dropbox.com/developers/documentation>
-- Microsoft Graph: <https://docs.microsoft.com/en-us/graph/api>
+- Google Drive API: https://developers.google.com/drive/api
+- Dropbox API: https://www.dropbox.com/developers/documentation
+- Microsoft Graph: https://docs.microsoft.com/en-us/graph/api
 
 ### Community
-
 - Semptify GitHub Issues
 - Stack Overflow (tag with semptify)
 - Developer Discord (if available)
 
 ### Debug Resources
-
 - Browser Developer Tools
 - Server logs
 - API documentation at /docs endpoint

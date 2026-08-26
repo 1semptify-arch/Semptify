@@ -29,8 +29,7 @@
 
 **EVALUATED EXPRESSION:** `test_case.test_code` (also `setup_code` and `teardown_code` in the same `_execute_code` method).
 
-### DATA ORIGIN:
-
+**DATA ORIGIN:**
 - `test_code` values are hardcoded Python strings inside `app/core/testing_framework.py` (module-level default suites) and inside `app/modules/testing/router.py` (the `/suites` endpoint branches on `request.tags` such as `"core"`, `"security"`, `"performance"`).
 - The public `TestSuiteCreateRequest` schema only accepts `suite_id`, `name`, `description`, and `tags`; it does **not** accept a `test_cases` list or any `test_code` field.
 - No other route or caller in the current codebase constructs a `TestCase` from request/form/query data.
@@ -62,7 +61,7 @@
 ## Summary
 
 | File | Actual call? | Evaluated string origin | Untrusted path? | Classification |
-| ------ | -------------- | ------------------------ | ----------------- | ---------------- |
+|------|--------------|------------------------|-----------------|----------------|
 | `app/core/file_validator.py:432-433` | No | Hardcoded byte-string patterns | No | SAFE |
 | `app/core/testing_framework.py:354` | Yes (`exec`) | Hardcoded `TestCase` code strings | No | SAFE (harden recommended) |
 | `app/modules/development/router.py:435-445` | No | Source-file content read from disk | No | SAFE |

@@ -1,9 +1,9 @@
 # Process Contract: User Reconnect Flow
 
-**Contract ID**: `proc_user_reconnect`  
-**Function Group**: `user_session_recovery`  
-**Version**: 2.0  
-**Status**: Active  
+**Contract ID**: `proc_user_reconnect`
+**Function Group**: `user_session_recovery`
+**Version**: 2.0
+**Status**: Active
 **Created**: 2026-04-24
 
 ---
@@ -23,13 +23,12 @@
 ## 2. Entry Criteria
 
 | Condition | Required | Source |
-| ----------- | ---------- | -------- |
+|-----------|----------|--------|
 | User has previously used Semptify | Yes | Determined by `provider_subject` match in DB |
 | User has valid cookie OR needs re-auth | No | Handled transparently |
 | User's storage provider is known | Yes | From cookie or user selection at `/storage/reconnect` |
 
 **Entry Points**:
-
 - `/storage/` - User with cookie (most common)
 - `/storage/reconnect` - User lost cookie, must select provider
 
@@ -38,8 +37,7 @@
 ## 3. Process Steps
 
 ### Flow A: Returning User with Valid Session
-
-```text
+```
 GET /storage/
   ↓
 storage_home() parses semptify_uid=GU7x9kM2pQ
@@ -54,8 +52,7 @@ Redirect to tenant dashboard
 ```
 
 ### Flow B: Returning User with Expired Tokens (Silent Reauthorize)
-
-```text
+```
 GET /storage/
   ↓
 storage_home() parses cookie
@@ -70,8 +67,7 @@ _route_user(user_id) → home page
 ```
 
 ### Flow C: Returning User with Invalid Session (Silent Reauthorize)
-
-```text
+```
 GET /storage/
   ↓
 storage_home() parses cookie → GU7x9kM2pQ
@@ -96,8 +92,7 @@ _route_user(user_id) → home page
 ```
 
 ### Flow D: Reconnect User (Lost Cookie)
-
-```text
+```
 GET /storage/reconnect
   ↓
 User selects their storage provider (Google Drive/Dropbox/OneDrive)
@@ -126,7 +121,7 @@ _route_user(user_id) → home page
 ## 4. Exit Criteria
 
 | Condition | Required | Verification |
-| ----------- | ---------- | -------------- |
+|-----------|----------|--------------|
 | `semptify_uid` cookie set | Yes | Browser cookie with 1-year expiry |
 | Storage tokens valid | Yes | `get_valid_session()` confirms |
 | User identity verified | Yes | `provider_subject` matched in DB |
@@ -137,7 +132,7 @@ _route_user(user_id) → home page
 ## 5. Error Handling
 
 | Scenario | Action | User Message |
-| ---------- | -------- | -------------- |
+|----------|--------|--------------|
 | Invalid user ID in cookie | Clear cookie, redirect to /storage/reconnect | "Please reconnect your storage" |
 | Token refresh failed | Silent OAuth reauthorize | Brief OAuth screen only |
 | Provider mismatch in user ID | 400 error | "Provider mismatch" (security) |
@@ -151,7 +146,6 @@ _route_user(user_id) → home page
 **Tone**: Invisible/reassuring - "Reconnecting you..."
 
 **Flow Characteristics**:
-
 - **Flow A** (< 100ms): Instant redirect, user sees nothing
 - **Flow B** (< 2s): Silent token refresh, user sees brief spinner
 - **Flow C** (5-15s): OAuth reauthorize, user sees provider login briefly
@@ -179,7 +173,7 @@ the requested action carries. This is the SSOT mechanism behind Flows A-D above
 refreshed, or sent back through OAuth.
 
 | Level | Ice-cube analogy | Token check | Used for |
-| ------- | ------------------- | -------------- | ---------- |
+|-------|-------------------|--------------|----------|
 | 🟢 **GREEN** | Ice cube, any age | Memory cache only, no provider call | Read-only: library, viewing documents/timeline |
 | 🟡 **YELLOW** | Ice cube < 4hrs, not melted | Cache + auto-refresh via provider if expired | Default app use: uploads, vault writes, contacts |
 | 🔴 **RED** | Fresh ice cube < 30min | Always asks provider live, no cache accepted | Destructive/high-risk: delete, court filings, exports |
@@ -206,7 +200,7 @@ connected or how often.
 ## 8. Implementation Files
 
 | File | Purpose |
-| ------ | --------- |
+|------|---------|
 | `app/modules/storage/router.py` | Main entry point (`/storage/`), OAuth handlers, session management, provider picker (`/storage/providers`), Rehome flow |
 | `app/modules/onboarding/reconnect.py` | Owns `/storage/reconnect` (lost-cookie provider picker) as a gate-enforcement concern |
 | `app/core/security.py` | Traffic-light access levels (`green_access`/`yellow_access`/`red_access`) — see Section 7a |
@@ -221,33 +215,28 @@ connected or how often.
 ## 9. API Endpoints
 
 ### GET `/storage/`
-
-**Purpose**: Main entry point for returning users  
-**Cookie**: `semptify_uid`  
+**Purpose**: Main entry point for returning users
+**Cookie**: `semptify_uid`
 **Response**: 302 redirect to home page, OAuth, or /storage/reconnect
 
 ### GET `/storage/session/status`
-
-**Purpose**: Check session status for frontend auto-reconnect  
+**Purpose**: Check session status for frontend auto-reconnect
 **Response**: `{has_session, is_valid, user_id, role, provider, has_storage}`
 
 ### GET `/storage/reconnect`
-
-**Purpose**: UI for users who lost their cookie  
+**Purpose**: UI for users who lost their cookie
 **Response**: HTML page with provider selection
 
 ### GET `/storage/auth/{provider}`
-
-**Query**: `?existing_uid={uid}&return_to={url}`  
-**Purpose**: Initiate OAuth flow for reconnect  
+**Query**: `?existing_uid={uid}&return_to={url}`
+**Purpose**: Initiate OAuth flow for reconnect
 **Logic**: If `existing_uid` → returning user reauth; else → reconnection attempt
 
 ### GET `/storage/callback/{provider}`
-
-**Query**: `?code={auth_code}&state={csrf_token}`  
-**Purpose**: OAuth callback, identify user by `provider_subject`  
+**Query**: `?code={auth_code}&state={csrf_token}`
+**Purpose**: OAuth callback, identify user by `provider_subject`
 **Response**: Redirect to role-appropriate dashboard
 
 ---
 
-#### END OF CONTRACT
+**END OF CONTRACT**
