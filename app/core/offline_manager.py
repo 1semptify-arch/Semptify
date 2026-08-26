@@ -5,7 +5,6 @@ Offline Manager - Network Connectivity Detection
 Handles offline/online state detection and user notifications.
 """
 
-import contextlib
 import logging
 from collections.abc import Callable
 
@@ -30,8 +29,10 @@ class OfflineManager:
     def remove_callback(self, event_type: str, callback: Callable):
         """Remove callback for offline/online events."""
         if event_type in self.callbacks:
-            with contextlib.suppress(ValueError):
+            try:
                 self.callbacks[event_type].remove(callback)
+            except ValueError:
+                pass
 
     def _trigger_callbacks(self, event_type: str, data: dict = None):
         """Trigger all callbacks for an event type."""
