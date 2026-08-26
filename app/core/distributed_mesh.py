@@ -31,7 +31,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Any, TypeVar
 from weakref import WeakSet
 
@@ -75,7 +75,7 @@ class NodeIdentity:
 # =============================================================================
 
 
-class MessageType(StrEnum):
+class MessageType(str, Enum):
     """Types of messages in the mesh"""
 
     # Discovery

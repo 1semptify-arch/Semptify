@@ -19,7 +19,7 @@ Usage:
 
 import logging
 from collections.abc import Callable
-from enum import StrEnum
+from enum import Enum
 from functools import wraps
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-class Feature(StrEnum):
+class Feature(str, Enum):
     """Feature flags enumeration."""
 
     AI_COPILOT = "ai_copilot"

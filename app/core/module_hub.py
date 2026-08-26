@@ -31,7 +31,7 @@ from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Any, Optional
 
 from app.core.event_bus import EventType as BusEventType, event_bus
@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class ModuleType(StrEnum):
+class ModuleType(str, Enum):
     """All registered module types"""
 
     EVICTION_DEFENSE = "eviction_defense"
@@ -70,7 +70,7 @@ class ModuleType(StrEnum):
     CUSTOM = "custom"  # For unknown/plugin modules
 
 
-class DocumentCategory(StrEnum):
+class DocumentCategory(str, Enum):
     """Document categories that trigger module routing"""
 
     EVICTION_NOTICE = "eviction_notice"
@@ -91,7 +91,7 @@ class DocumentCategory(StrEnum):
     PHOTO = "photo"
 
 
-class PackType(StrEnum):
+class PackType(str, Enum):
     """Types of info packs"""
 
     EVICTION_CASE = "eviction_case"
@@ -114,7 +114,7 @@ class PackType(StrEnum):
     USER_DATA = "user_data"
 
 
-class RequestType(StrEnum):
+class RequestType(str, Enum):
     """Types of data requests modules can make"""
 
     GET_USER_DOCUMENTS = "get_user_documents"
