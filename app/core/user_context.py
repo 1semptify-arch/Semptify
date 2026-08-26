@@ -243,7 +243,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B2 - Quick Case Triage",
         "ui_mode": "mobile",  # Mobile-first, simplified
         "landing_page": "/tenant/home",
-        "icon": "🏠",
+        "icon": "○",
     },
     UserRole.ADVOCATE: {
         "display_name": "Advocate",
@@ -251,7 +251,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "responsive",  # Tablet-friendly
         "landing_page": "/advocate/home",
-        "icon": "🤝",
+        "icon": "▸",
     },
     UserRole.MANAGER: {
         "display_name": "Case Manager",
@@ -259,7 +259,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",
         "landing_page": "/manager/home",
-        "icon": "📋",
+        "icon": "●",
     },
     UserRole.LEGAL: {
         "display_name": "Legal",
@@ -267,7 +267,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",  # Full complexity
         "landing_page": "/legal/home",
-        "icon": "⚖️",
+        "icon": "▸",
         "sub_roles": ("attorney", "judge", "clerk", "paralegal"),
         "requires_bar_license": True,
     },
@@ -277,7 +277,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",  # Full complexity
         "landing_page": "/judge/home",
-        "icon": "📜",
+        "icon": "●",
     },
     UserRole.ADMIN: {
         "display_name": "Administrator",
@@ -285,7 +285,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",  # Full complexity
         "landing_page": "/admin/home",
-        "icon": "🔧",
+        "icon": "▸",
     },
 }
 
