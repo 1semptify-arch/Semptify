@@ -11,13 +11,13 @@ Replaces the centralized brain bottleneck with a distributed architecture:
 
 Architecture:
 ┌─────────┐     ┌─────────┐     ┌─────────┐
-│ Legal   │◄───►│Documents│◄───►│Timeline │
+│ Legal   │▸───▸│Documents│▸───▸│Timeline │
 │ Analysis│     │ Engine  │     │ Service │
 └────┬────┘     └────┬────┘     └────┬────┘
      │               │               │
      └───────────────┼───────────────┘
                      │
-              ┌──────▼──────┐
+              ┌──────▸──────┐
               │  Mesh Index │  (Discovery only, not routing)
               │  (Optional) │
               └─────────────┘
