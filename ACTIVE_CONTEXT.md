@@ -41,7 +41,7 @@
 
 ## Current Build Status
 
-- **Agent Orchestration Protocol bootstrapped:** master-level `E:\master-repo\tools\orchestrator_state.json` is the new canonical queue; `.devin/agents/swe-executor.md` and `.devin/skills/orchestrator_dispatch/SKILL.md` enable direct Claude→SWE-1.7 dispatch in Devin Local; `orchestration-001-dry-run-sync-check` (`sync_orchestrator.py --check`) passed.
+- **Agent Orchestration Protocol bootstrapped:** master-level `C:\master-repo\tools\orchestrator_state.json` is the new canonical queue; `.devin/agents/swe-executor.md` and `.devin/skills/orchestrator_dispatch/SKILL.md` enable direct Claude→SWE-1.7 dispatch in Devin Local; `orchestration-001-dry-run-sync-check` (`sync_orchestrator.py --check`) passed.
 - **Verified and complete:** three in-task guide previews:
   - `journal_create` (RECORD) — write/save
   - `law_library_get_statute` (KNOW) — read/lookup
