@@ -486,7 +486,10 @@ class TestFramework:
         try:
             if isinstance(expected, dict) and isinstance(actual, dict):
                 # Compare dictionaries
-                return all(not (key not in actual or actual[key] != value) for key, value in expected.items())
+                for key, value in expected.items():
+                    if key not in actual or actual[key] != value:
+                        return False
+                return True
             else:
                 # Simple equality check
                 return actual == expected
