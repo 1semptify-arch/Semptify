@@ -31,8 +31,8 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
     provider_names = {"google_drive": "Google Drive", "dropbox": "Dropbox", "onedrive": "OneDrive"}
     provider_display = provider_names.get(provider, provider)
 
-    provider_icons = {"google_drive": "🔷", "dropbox": "📦", "onedrive": "☁️"}
-    provider_icon = provider_icons.get(provider, "📁")
+    provider_icons = {"google_drive": "◆", "dropbox": "●", "onedrive": "○"}
+    provider_icon = provider_icons.get(provider, "●")
 
     return f"""<!DOCTYPE html>
 <html lang="en">

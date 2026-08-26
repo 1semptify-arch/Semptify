@@ -77,7 +77,7 @@ GROUP_WELCOME = ProcessGroup(
         "role selection",
         "storage provider connection",
         "onboarding wizard",
-        "process routing (A → B1/B2/B4)",
+        "process routing (A ▸ B1/B2/B4)",
         "first-time user guidance",
     ),
     scope_excludes=(
