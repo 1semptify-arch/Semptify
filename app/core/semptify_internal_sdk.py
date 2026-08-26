@@ -691,7 +691,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
                     app.include_router(router, **kwargs)
                     installed.router = router
                     logger.info(
-                        "🔄 %s: router registered (%s)",
+                        "▸ %s: router registered (%s)",
                         manifest.name,
                         entry.qualified_name,
                     )
@@ -700,7 +700,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
                     if not entry.optional:
                         raise RuntimeError(installed.error)
                     logger.warning(
-                        "ℹ️  %s: router skipped (optional, not found)",
+                        "◆ %s: router skipped (optional, not found)",
                         manifest.name,
                     )
             except Exception as exc:
@@ -714,7 +714,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
         for contract in manifest.contracts:
             contract_registry.register(contract)
             logger.info(
-                "📋 %s: contract %s::%s registered",
+                "● %s: contract %s::%s registered",
                 manifest.name,
                 contract.module,
                 contract.group_name,
@@ -725,7 +725,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
     installed.initialized = True
 
     logger.info(
-        "✅ Module installed: %s (%s) — capabilities=%s",
+        "● Module installed: %s (%s) — capabilities=%s",
         manifest.name,
         manifest.tier.value,
         ", ".join(c.value for c in manifest.capabilities),
@@ -796,7 +796,7 @@ def register_tier_modules(app: FastAPI, *tiers: ProductTier) -> dict[str, Any]:
     }
 
     logger.info(
-        "🚀 Module registration complete: %d installed, %d skipped, %d errors (of %d)",
+        "▸ Module registration complete: %d installed, %d skipped, %d errors (of %d)",
         installed_count,
         skipped_count,
         error_count,
@@ -1081,7 +1081,7 @@ class ModuleHub:
     Module Hub - Bidirectional Communication System for All Modules
 
     This is the CENTRAL NERVOUS SYSTEM that connects all modules:
-    - Document Intake → Creates Info Packs → Routes to appropriate modules
+    - Document Intake ▸ Creates Info Packs ▸ Routes to appropriate modules
     - Modules can REQUEST data from the hub
     - Modules can SEND updates back to the hub
     - All communication is logged and traceable
@@ -1122,10 +1122,10 @@ class ModuleHub:
             on_update_received=on_update_received,
         )
         self._modules[module_type] = module
-        logger.info(f"🔌 Module registered: {name} ({module_type.value})")
+        logger.info(f"○ Module registered: {name} ({module_type.value})")
 
     # =========================================================================
-    # INFO PACKS (Hub → Module)
+    # INFO PACKS (Hub ▸ Module)
     # =========================================================================
 
     def create_info_pack(
@@ -1202,7 +1202,7 @@ class ModuleHub:
             user_id=user_id,
         )
 
-        logger.info(f"📨 Document routed: {doc_category.value} → {routing['target_module'].value} (pack: {pack.id})")
+        logger.info(f"● Document routed: {doc_category.value} ▸ {routing['target_module'].value} (pack: {pack.id})")
 
         return pack
 
@@ -1305,7 +1305,7 @@ class ModuleHub:
         )
 
     # =========================================================================
-    # DATA REQUESTS (Module → Hub)
+    # DATA REQUESTS (Module ▸ Hub)
     # =========================================================================
 
     async def request_data(
@@ -1498,7 +1498,7 @@ class ModuleHub:
         return self._get_user_store(user_id)
 
     # =========================================================================
-    # MODULE UPDATES (Module → Hub)
+    # MODULE UPDATES (Module ▸ Hub)
     # =========================================================================
 
     async def send_update(

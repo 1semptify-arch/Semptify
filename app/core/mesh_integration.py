@@ -52,7 +52,7 @@ class ServiceMeshRegistry:
         # Create nodes for all core services
         self._create_service_nodes()
 
-        logger.info("📦 ServiceMeshRegistry initialized")
+        logger.info("● ServiceMeshRegistry initialized")
 
     def _create_service_nodes(self):
         """Create mesh nodes for each service"""
@@ -191,7 +191,7 @@ class ServiceMeshRegistry:
             },
         )
 
-        logger.info(f"🔷 Created {len(self._service_nodes)} service mesh nodes")
+        logger.info(f"◆ Created {len(self._service_nodes)} service mesh nodes")
 
     def get_node(self, service_name: str) -> MeshNode | None:
         """Get the mesh node for a service"""
@@ -219,7 +219,7 @@ class ServiceMeshRegistry:
             await node.start()
 
         self._started = True
-        logger.info("🟢 All service mesh nodes started")
+        logger.info("● All service mesh nodes started")
 
     async def stop_all(self):
         """Stop all service nodes"""
@@ -227,7 +227,7 @@ class ServiceMeshRegistry:
             await node.stop()
 
         self._started = False
-        logger.info("🔴 All service mesh nodes stopped")
+        logger.info("◆ All service mesh nodes stopped")
 
     def get_all_nodes(self) -> dict[str, MeshNode]:
         """Get all service nodes"""
@@ -313,7 +313,7 @@ class BrainMeshBridge:
     def connect_brain(self, brain):
         """Connect to the old brain for event forwarding"""
         self._brain = brain
-        logger.info("🌉 BrainMeshBridge connected to PositronicBrain")
+        logger.info("○ BrainMeshBridge connected to PositronicBrain")
 
     async def forward_brain_event_to_mesh(self, event_type: str, data: dict[str, Any]):
         """Forward a brain event to the mesh"""
@@ -366,13 +366,13 @@ brain_mesh_bridge = BrainMeshBridge()
 async def start_mesh_network():
     """Start the distributed mesh network"""
     await service_mesh.start_all()
-    logger.info("🌐 Distributed mesh network started")
+    logger.info("○ Distributed mesh network started")
 
 
 async def stop_mesh_network():
     """Stop the distributed mesh network"""
     await service_mesh.stop_all()
-    logger.info("🌐 Distributed mesh network stopped")
+    logger.info("○ Distributed mesh network stopped")
 
 
 # =============================================================================

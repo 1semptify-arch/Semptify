@@ -204,7 +204,7 @@ class BackgroundTaskManager:
         # Wait for all tasks to complete
         results = await asyncio.gather(*self._tasks, return_exceptions=True)
 
-        for task, result in zip(self._tasks, results, strict=False):
+        for task, result in zip(self._tasks, results):
             if isinstance(result, asyncio.CancelledError):
                 logger.debug("Task cancelled: %s", task.get_name())
             elif isinstance(result, Exception):
