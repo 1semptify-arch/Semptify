@@ -1,3 +1,68 @@
+## Session — 2026-08-26 (part 2) — Feature-flag unification + NO-TOUCH onboarding rule
+
+### Guardrail Engine Run — 2026-08-26T (post-unification)
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+All checks passed. `python -m pytest tests/module_health tests/test_features.py -q --no-cov`: 270 passed.
+
+### Goal
+
+Resolve `orchestration-002-unify-feature-flags` (Brad's decision on the feature-flags
+architecture brief): merge the old ephemeral in-memory `app/core/feature_flags.py` into
+the DB-backed `app/core/features.py`, per Option A of
+`docs/handoffs/handoff-feature-flags-unification.md`. Also record a new standing
+NO-TOUCH rule for `app/modules/onboarding/`.
+
+### What changed
+
+- `app/core/features.py`:
+  - Added 5 `Feature` enum members for the old route kill-switches: `ADMIN_ACCESS`,
+    `COPILOT_ROUTE`, `VOICE_TO_TEXT`, `COMMUNICATION_IMPORT`, `RESOURCE_DIRECTORY`.
+    All default to `True` in `DEFAULT_ENABLED`, matching the old in-memory defaults
+    exactly — this migration is a behavioral no-op.
+  - Added `ROUTE_FEATURE_MAP`, `ROUTE_GATE_FLAGS`, `route_feature_for_path()`.
+  - Added `RouteFeatureGateMiddleware` (replaces the old `FeatureFlagMiddleware`),
+    using the same DB-backed `FeatureFlagManager.is_enabled()` as every other feature
+    check, with the same fail-open behavior on DB outage.
+- `app/main.py`: middleware registration now imports `RouteFeatureGateMiddleware` from
+  `app/core/features.py`. The three `/admin/api/flags` endpoints now read/write through
+  `features.is_enabled()` / `features.set_enabled()` instead of the deleted in-memory
+  `FeatureFlags` class.
+- `app/core/feature_flags.py`: deleted (no remaining references).
+- `tests/test_features.py`: added `TestRouteFeatureGate` (7 new tests: route map parity,
+  path resolution, default-true parity, middleware allow/block).
+- `AGENTS.md`: added a **NO-TOUCH MODULES** section — `app/modules/onboarding/` may not
+  be altered by any agent without Brad's explicit OK, due to a repeated pattern of past
+  agents breaking onboarding within minutes of starting work on it. Master-level
+  `AGENTS.md` orchestrator STOP-list updated to match.
+- `tools/agent_orchestrator_sync_review/DATA_FLOW.md` (earlier this session): noted the
+  new master-level `orchestrator_state.json` and the archived phase-C tracker.
+- `BACKLOG.md`: recorded Brad's four-piece vault unlock scheme (planned, not yet
+  implemented) under a new "Security architecture — future work" section.
+
+### Verification
+
+- `python -m py_compile app/core/features.py app/main.py tests/test_features.py`: PASS.
+- `python -m pytest tests/module_health tests/test_features.py -q --no-cov`: 270 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- Branch: `session-save-2026-08-26` (feature branch, not `main`). Not pushed; no PR
+  opened yet — pending Brad's review before opening one, per the no-direct-push rule.
+
+### Notes
+
+- `ad-hoc-feature-flags-unification-2026-08-25`, `ad-hoc-context-loop-brief-2026-08-25`,
+  `handoff-factcheck-closeout-2026-08-15`, and `ad-hoc-oauth-lutest-2026-08-24` were all
+  resolved in the master orchestrator state (`orchestrator_state.json`) this session.
+  The OAuth investigation was corrected after further review: `storage_middleware.py`
+  already has a complete, shipped `TOKEN_CORRUPT` → OAuth-reconnect recovery path;
+  no fix was needed.
+
+---
+
 ## Session — 2026-08-26 — Agent Orchestration Protocol (Devin Local)
 
 ### Guardrail Engine Run — 2026-08-26T13:37:48+00:00

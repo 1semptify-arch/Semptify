@@ -57,7 +57,30 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 
 ---
 
-## 🚫 Known Failure Registry — NEVER Repeat These
+## � NO-TOUCH MODULES — Read Before Touching Any File
+
+**`app/modules/onboarding/` is a NO-TOUCH module as of 2026-08-26.**
+
+Do not alter, refactor, "fix," or otherwise change any file under `app/modules/onboarding/`
+(or the onboarding logic still in `app/routers/onboarding.py` / `app/routers/storage.py`)
+until Brad explicitly says OK for that specific change.
+
+- **Why:** Multiple past agent sessions have broken onboarding within minutes of starting
+  work on it, each time confidently assuming they understood the flow well enough to
+  change it. They did not. The cost of these mistakes has been high and repeated.
+- **This is not a judgment on any current agent's ability.** It is a standing rule because
+  the pattern has repeated across many different agents and sessions, not because of any
+  one agent's mistake.
+- **If a task seems to require touching onboarding:** stop, describe the exact change you
+  believe is needed and why, and ask Brad first. Do not proceed on the assumption that this
+  time will be different.
+- **This rule applies even to seemingly trivial changes** (renaming a variable, fixing a
+  typo, "obvious" refactors). Ask first, every time, no exceptions, until Brad lifts this
+  rule explicitly.
+
+---
+
+## �🚫 Known Failure Registry — NEVER Repeat These
 
 These failures have each cost multiple sessions to fix. Read them. Do not cause them again.
 

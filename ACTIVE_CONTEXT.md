@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-26 (Agent Orchestration Protocol bootstrapped; master-level state file and Devin Local subagent dispatch now live; first dry-run passed)
+**Last Updated**: 2026-08-26 (Feature-flag systems unified into the DB-backed manager; NO-TOUCH rule added for `app/modules/onboarding/`; Agent Orchestration Protocol bootstrapped and first real dispatch cycle resolved)
 
 > Standing rule: see `.devin/rules/10-progressive-disclosure.md` for the **Progressive Disclosure / Capability Revelation** rule (companion to the GUI Design Rule and Navigation Principle).
 
