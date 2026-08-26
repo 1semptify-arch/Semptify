@@ -437,8 +437,9 @@ class FileValidator:
             issues.append("suspicious_patterns")
 
         # Specific checks for document types
-        if file_ext in ["doc", "docx", "xls", "xlsx"] and self._has_macro_content(file_content):
-            issues.append("macro_content")
+        if file_ext in ["doc", "docx", "xls", "xlsx"]:
+            if self._has_macro_content(file_content):
+                issues.append("macro_content")
 
         return issues
 
@@ -453,7 +454,11 @@ class FileValidator:
             b"\xfe\xed\xfa\xcf",  # Mach-O binary (macOS)
         ]
 
-        return any(file_content.startswith(signature) for signature in exe_signatures)
+        for signature in exe_signatures:
+            if file_content.startswith(signature):
+                return True
+
+        return False
 
     def _has_script_content(self, file_content: bytes) -> bool:
         """Check if file contains script content."""
@@ -470,7 +475,11 @@ class FileValidator:
         ]
 
         content_lower = file_content.lower()
-        return any(pattern in content_lower for pattern in script_patterns)
+        for pattern in script_patterns:
+            if pattern in content_lower:
+                return True
+
+        return False
 
     def _has_suspicious_patterns(self, file_content: bytes) -> bool:
         """Check for suspicious patterns in file."""
@@ -484,7 +493,11 @@ class FileValidator:
         ]
 
         content_lower = file_content.lower()
-        return any(pattern in content_lower for pattern in suspicious_patterns)
+        for pattern in suspicious_patterns:
+            if pattern in content_lower:
+                return True
+
+        return False
 
     def _has_macro_content(self, file_content: bytes) -> bool:
         """Check if Office document contains macros."""
@@ -498,7 +511,11 @@ class FileValidator:
         ]
 
         content_lower = file_content.lower()
-        return any(indicator in content_lower for indicator in macro_indicators)
+        for indicator in macro_indicators:
+            if indicator in content_lower:
+                return True
+
+        return False
 
     def get_allowed_extensions(self) -> list[str]:
         """Get list of allowed file extensions."""

@@ -13,13 +13,11 @@ from __future__ import annotations
 import json
 import logging
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from typing import Any
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -64,7 +62,7 @@ class TelemetryEvent:
         return json.dumps(self.to_dict(), default=str)
 
 
-# Event type → Priority mapping (from PageContracts)
+# Event type ▸ Priority mapping (from PageContracts)
 EVENT_PRIORITIES: dict[str, EventPriority] = {
     # Critical: Rights-affecting actions
     "eviction_answer_load": EventPriority.CRITICAL,
@@ -282,11 +280,11 @@ EMITTER = TelemetryEmitter()
 def console_handler(event: TelemetryEvent) -> None:
     """Log telemetry to console (development)."""
     emoji = {
-        EventPriority.CRITICAL: "🚨",
-        EventPriority.HIGH: "⚡",
-        EventPriority.MEDIUM: "📊",
-        EventPriority.LOW: "🔍",
-    }.get(event.priority, "📊")
+        EventPriority.CRITICAL: "◆",
+        EventPriority.HIGH: "◆",
+        EventPriority.MEDIUM: "◆",
+        EventPriority.LOW: "▸",
+    }.get(event.priority, "◆")
 
     logger.info(
         f"{emoji} [{event.priority.name}] {event.event_type} on {event.page_id} (session: {event.session_id[:8]}...)"
