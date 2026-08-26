@@ -27,9 +27,9 @@ python -m py_compile app/main.py
 
 ## Step 3: Open the canonical state
 
-The new master-level orchestrator queue is `E:\master-repo\tools\orchestrator_state.json`. Semptify's module-level queue `tools/agent_orchestrator_tasks.json` is still in use for Semptify-only tasks that have not been migrated.
+The new master-level orchestrator queue is `C:\master-repo\tools\orchestrator_state.json`. Semptify's module-level queue `tools/agent_orchestrator_tasks.json` is still in use for Semptify-only tasks that have not been migrated.
 
-Read `E:\master-repo\tools\orchestrator_state.json` first. If the task you are running is not there, fall back to `tools/agent_orchestrator_tasks.json`.
+Read `C:\master-repo\tools\orchestrator_state.json` first. If the task you are running is not there, fall back to `tools/agent_orchestrator_tasks.json`.
 
 ## Step 4: Pick the next task
 
@@ -49,23 +49,23 @@ Before dispatching, confirm the file exists at the exact `file_path`. If not, fl
 
 ### Master-level tasks (orchestrator_state.json)
 
-For `model_tier: unlimited`, the Claude orchestrator dispatches the `swe-executor` subagent using the handoff in `E:\master-repo\handoffs\<id>.md`. If you are the subagent:
+For `model_tier: unlimited`, the Claude orchestrator dispatches the `swe-executor` subagent using the handoff in `C:\master-repo\handoffs\<id>.md`. If you are the subagent:
 
 1. Claim the task:
    ```powershell
-   python E:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent swe-executor
+   python C:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent swe-executor
    ```
 2. Read the `handoff_doc`.
 3. Execute the scope.
 4. Run verification.
-5. Write `E:\master-repo\handoffs\<task_id>-report.md`.
+5. Write `C:\master-repo\handoffs\<task_id>-report.md`.
 6. Mark the task `review` with usage:
    ```powershell
-   python E:\master-repo\tools\orchestrator_mark_task.py <task_id> review --agent swe-executor --report-doc "E:\master-repo\handoffs\<task_id>-report.md" --usage '{"wall_clock_min": X, "tool_calls": Y}'
+   python C:\master-repo\tools\orchestrator_mark_task.py <task_id> review --agent swe-executor --report-doc "C:\master-repo\handoffs\<task_id>-report.md" --usage '{"wall_clock_min": X, "tool_calls": Y}'
    ```
    If you hit a STOP AND REPORT trigger, mark `blocked_on_decision` instead:
    ```powershell
-   python E:\master-repo\tools\orchestrator_mark_task.py <task_id> blocked_on_decision --agent swe-executor --blocked-reason "<why>"
+   python C:\master-repo\tools\orchestrator_mark_task.py <task_id> blocked_on_decision --agent swe-executor --blocked-reason "<why>"
    ```
 7. Do NOT mark `resolved` or `rejected`. Stop and let the orchestrator decide.
 

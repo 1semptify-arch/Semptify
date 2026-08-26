@@ -88,7 +88,7 @@ rotated ~-8deg, mono uppercase, with a thin double border. They should feel ink-
 
 ## Output path
 
-`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\field_notebook\index.html`
+`C:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\field_notebook\index.html`
 
 ## Image needs
 
