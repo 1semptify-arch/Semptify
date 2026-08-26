@@ -339,7 +339,7 @@ class MNDESFileValidator:
     ) -> list[MNDESValidationResult]:
         """Validate multiple files for MNDES compliance."""
         sizes = file_sizes or [None] * len(filenames)
-        return [self.validate_for_mndes(fn, sz) for fn, sz in zip(filenames, sizes, strict=False)]
+        return [self.validate_for_mndes(fn, sz) for fn, sz in zip(filenames, sizes)]
 
     def get_accepted_extensions(self) -> list[str]:
         """Return sorted list of all MNDES-accepted file extensions."""
