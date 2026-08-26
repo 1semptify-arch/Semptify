@@ -18,7 +18,7 @@
 
 ## DC Layout (desktop GUI, 3-pane)
 
-```text
+```
 +----------------+--------------------------------+-------------------+
 |  Vault List    |  Semptify Viewer               |  Overlays Panel   |
 |  (left)        |  (center, selected doc)        |  (right)          |
@@ -92,7 +92,6 @@ Tenant sees the progress bar fill and understands WHY something unlocked.
 Each document type has a checklist of required fields. A document only passes as **verified/official** for its stated type when all required fields are confirmed by the user.
 
 ### Example: Lease Agreement
-
 - [ ] Landlord full name
 - [ ] Tenant full name
 - [ ] Property address
@@ -103,7 +102,6 @@ Each document type has a checklist of required fields. A document only passes as
 - [ ] Signatures present
 
 ### Example: Notice to Vacate
-
 - [ ] Sender name
 - [ ] Recipient name
 - [ ] Date of notice
@@ -112,7 +110,6 @@ Each document type has a checklist of required fields. A document only passes as
 - [ ] Delivery method
 
 ### Example: Repair Request
-
 - [ ] Date submitted
 - [ ] Issue description
 - [ ] Property address

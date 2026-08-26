@@ -15,7 +15,7 @@ This extends the UPL audit rule (avoid "evidence"/"proof" as legal terms of art 
 
 ## Why
 
-Courtroom-weight language before a court date escalates anxiety and implies legal conclusions users are not qualified to make. Adversarial framing contradicts the Wisdom Principle and serenity-of-home positioning in `docs/MOTIVATIONS.md`. Calm language helps users stay proactive rather than reactive.
+Courtroom-weight language before a court date escalates anxiety and implies legal conclusions users are not qualified to make. Adversarial framing contradicts the Wisdom Principle and serenity-of-home positioning in `docs/admin/MOTIVATIONS.md`. Calm language helps users stay proactive rather than reactive.
 
 ## Consequences
 
