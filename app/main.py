@@ -73,6 +73,7 @@ from app.core.runtime_profile import log_active_profile
 from app.core.security import UserContext, green_access
 from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
+from app.modules.case_builder.fca_guard import require_fca_readiness
 
 
 # PyInstaller frozen executable detection
@@ -4831,7 +4832,34 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        return templates.TemplateResponse(request, "pages/case_builder.html", {"request": request})
+        from app.modules.case_builder.fca_guard import is_fca_readiness_visible
+        user_id = extract_user_id(request) or ""
+        fca_enabled = await is_fca_readiness_visible(user_id)
+        return templates.TemplateResponse(
+            request,
+            "pages/case_builder.html",
+            {"request": request, "fca_readiness_enabled": fca_enabled},
+        )
+
+    @fastapi_app.get("/ui/tool/fca-readiness", response_class=HTMLResponse)
+    @fastapi_app.get("/ui/tool/fca-readiness/", response_class=HTMLResponse)
+    async def fca_readiness_page(
+        request: Request,
+        user: UserContext = Depends(require_fca_readiness),
+    ):
+        """FCA / Qui Tam case readiness tool — issue spotting for counsel."""
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        return templates.TemplateResponse(
+            request,
+            "pages/fca_readiness.html",
+            {
+                "request": request,
+                "user_id": user.user_id,
+                "upl_disclaimer": "Semptify does not give legal advice. Get legal advice from a qualified attorney.",
+            },
+        )
 
     @fastapi_app.get("/ui/tool/plan-maker", response_class=HTMLResponse)
     @fastapi_app.get("/ui/tool/plan-maker/", response_class=HTMLResponse)
