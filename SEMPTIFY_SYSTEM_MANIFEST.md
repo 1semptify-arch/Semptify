@@ -11,8 +11,8 @@
 > before treating any module table, tier status, or root-path statement below as current.
 >
 > **Corrected header:**
-> - Active worktree: `E:\master-repo\modules\app-semptify-fastapi\`
-> - Canonical source mirror: `E:\master-repo\sources\app-semptify-fastapi\`
+> - Active worktree: `C:\master-repo\modules\app-semptify-fastapi\`
+> - Canonical source mirror: `C:\master-repo\sources\app-semptify-fastapi\`
 
 **Version:** 5.0.0 | **Last Updated:** 2026-06-14 (historical; see warning above)
 
@@ -27,7 +27,7 @@ This is the FIRST file any AI or developer must read before touching Semptify. I
 | App Name | Semptify |
 | Version | 5.0.0 |
 | Mission | Tenant rights protection platform (non-profit) |
-| Root Path | `E:\master-repo\sources\app-semptify-fastapi\` |
+| Root Path | `C:\master-repo\sources\app-semptify-fastapi\` |
 | Entry Point | `app/main.py` (DO NOT add routers here directly) |
 | Manifest | `app/core/product_manifest.py` (SINGLE SOURCE OF TRUTH) |
 | Python | **3.11.9 ONLY — hard enforced, kills server if wrong** |
@@ -223,7 +223,7 @@ FEMS (Forensic Evidence Management System) is the next module to be integrated.
 | Item | Value |
 | --- | --- |
 | FEMS Source | `c:\REPOs\PPPP\` |
-| Target Path | `E:\master-repo\sources\app-semptify-fastapi\app\modules\fems\` |
+| Target Path | `C:\master-repo\sources\app-semptify-fastapi\app\modules\fems\` |
 | Tier | `EXTENDED` |
 | Endpoints | `/api/fems/health`, `/api/fems/upload`, `/api/fems/search`, `/api/fems/documents`, `/api/fems/quarantine`, `/api/fems/stats` |
 | DB Adapter | Must use SQLAlchemy async (not psycopg2) |
@@ -252,7 +252,7 @@ FEMS provides: file deduplication, OCR text extraction, phone number extraction,
 
 ```powershell
 ## Activate environment
-cd "E:\master-repo\sources\app-semptify-fastapi"
+cd "C:\master-repo\sources\app-semptify-fastapi"
 .\venv311\Scripts\Activate.ps1
 
 ## Start server (dev)

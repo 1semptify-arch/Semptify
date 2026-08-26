@@ -12,8 +12,8 @@ An investigation into why `origin/main` kept moving unexpectedly during the ADR-
 
 | Clone path | Type | Remote | Branch | Status |
 |---|---|---|---|---|
-| `E:\master-repo\sources\app-semptify-fastapi` | Real clone | `github.com/1semptify-arch/Semptify.git` | `docs/adr-0001-0007` | 11 uncommitted files (untracked), 1 unpushed commit on `walnut-gauss` |
-| `E:\master-repo\modules\app-semptify-fastapi` | Git submodule of `sources/` (working as designed) | Local path to `sources/` | `adr-0008-pilot` | 1 uncommitted file, **40 unpushed-only commits across 2 branches** |
+| `C:\master-repo\sources\app-semptify-fastapi` | Real clone | `github.com/1semptify-arch/Semptify.git` | `docs/adr-0001-0007` | 11 uncommitted files (untracked), 1 unpushed commit on `walnut-gauss` |
+| `C:\master-repo\modules\app-semptify-fastapi` | Git submodule of `sources/` (working as designed) | Local path to `sources/` | `adr-0008-pilot` | 1 uncommitted file, **40 unpushed-only commits across 2 branches** |
 | `C:\Users\bradc\Downloads\Semptify-Archive-20260409-012245\...` | Old archive clone | GitHub | `main` | Clean, inert, nothing unique |
 | `C:\Users\bradc\Downloads\WindowsAppSDK\Semptify-Archive-20260409-012245\...` | Old archive clone (duplicate of above) | GitHub | `main` | Clean, inert, nothing unique |
 | `C:\Users\bradc\.windsurf\worktrees\...\walnut-gauss` | **Broken** — no `.git` metadata | N/A | N/A | Full file tree from 7/26/2026 present on disk, but no git history attached |
@@ -30,12 +30,12 @@ An investigation into why `origin/main` kept moving unexpectedly during the ADR-
 ## 3. Step 1 — Rescue pushes (do this first, before anything else in this doc)
 
 ```
-cd E:\master-repo\modules\app-semptify-fastapi
+cd C:\master-repo\modules\app-semptify-fastapi
 git remote add github-direct https://github.com/1semptify-arch/Semptify.git
 git push github-direct backup/local-main-pre-reset:backup/RESCUE-modules-local-main-pre-reset
 git push github-direct local/markdown-lint-pass:backup/RESCUE-modules-markdown-lint-pass
 
-cd E:\master-repo\sources\app-semptify-fastapi
+cd C:\master-repo\sources\app-semptify-fastapi
 git push origin walnut-gauss:backup/RESCUE-sources-walnut-gauss
 ```
 
@@ -62,8 +62,8 @@ Once safely on GitHub, these don't need to be resolved immediately — they need
 
 ## 6. Step 4 — Fix `/ship` and consolidate to one canonical clone
 
-- `C:\Semptify\Semptify-FastAPI` is not a git repo — the `/ship` script's `cwd` has been pointing at a dead folder. **Update `/ship` to target `E:\master-repo\sources\app-semptify-fastapi`** — that's the one real, GitHub-connected clone, and the natural canonical choice.
-- `E:\master-repo\modules\app-semptify-fastapi` is a legitimate git submodule of `sources/` — this is working as originally designed, not a problem to fix. Leave it as-is.
+- `C:\Semptify\Semptify-FastAPI` is not a git repo — the `/ship` script's `cwd` has been pointing at a dead folder. **Update `/ship` to target `C:\master-repo\sources\app-semptify-fastapi`** — that's the one real, GitHub-connected clone, and the natural canonical choice.
+- `C:\master-repo\modules\app-semptify-fastapi` is a legitimate git submodule of `sources/` — this is working as originally designed, not a problem to fix. Leave it as-is.
 - The two `Downloads\...\Semptify-Archive-...` folders are old and inert — safe to delete or ignore, nothing unique in them.
 - Once `/ship` is repointed, verify one clean run of it against `sources/` before trusting it again.
 

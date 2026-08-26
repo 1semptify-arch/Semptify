@@ -1,3 +1,109 @@
+## Session — 2026-08-26 (part 2) — Feature-flag unification + NO-TOUCH onboarding rule
+
+### Guardrail Engine Run — 2026-08-26T (post-unification)
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+All checks passed. `python -m pytest tests/module_health tests/test_features.py -q --no-cov`: 270 passed.
+
+### Goal
+
+Resolve `orchestration-002-unify-feature-flags` (Brad's decision on the feature-flags
+architecture brief): merge the old ephemeral in-memory `app/core/feature_flags.py` into
+the DB-backed `app/core/features.py`, per Option A of
+`docs/handoffs/handoff-feature-flags-unification.md`. Also record a new standing
+NO-TOUCH rule for `app/modules/onboarding/`.
+
+### What changed
+
+- `app/core/features.py`:
+  - Added 5 `Feature` enum members for the old route kill-switches: `ADMIN_ACCESS`,
+    `COPILOT_ROUTE`, `VOICE_TO_TEXT`, `COMMUNICATION_IMPORT`, `RESOURCE_DIRECTORY`.
+    All default to `True` in `DEFAULT_ENABLED`, matching the old in-memory defaults
+    exactly — this migration is a behavioral no-op.
+  - Added `ROUTE_FEATURE_MAP`, `ROUTE_GATE_FLAGS`, `route_feature_for_path()`.
+  - Added `RouteFeatureGateMiddleware` (replaces the old `FeatureFlagMiddleware`),
+    using the same DB-backed `FeatureFlagManager.is_enabled()` as every other feature
+    check, with the same fail-open behavior on DB outage.
+- `app/main.py`: middleware registration now imports `RouteFeatureGateMiddleware` from
+  `app/core/features.py`. The three `/admin/api/flags` endpoints now read/write through
+  `features.is_enabled()` / `features.set_enabled()` instead of the deleted in-memory
+  `FeatureFlags` class.
+- `app/core/feature_flags.py`: deleted (no remaining references).
+- `tests/test_features.py`: added `TestRouteFeatureGate` (7 new tests: route map parity,
+  path resolution, default-true parity, middleware allow/block).
+- `AGENTS.md`: added a **NO-TOUCH MODULES** section — `app/modules/onboarding/` may not
+  be altered by any agent without Brad's explicit OK, due to a repeated pattern of past
+  agents breaking onboarding within minutes of starting work on it. Master-level
+  `AGENTS.md` orchestrator STOP-list updated to match.
+- `tools/agent_orchestrator_sync_review/DATA_FLOW.md` (earlier this session): noted the
+  new master-level `orchestrator_state.json` and the archived phase-C tracker.
+- `BACKLOG.md`: recorded Brad's four-piece vault unlock scheme (planned, not yet
+  implemented) under a new "Security architecture — future work" section.
+
+### Verification
+
+- `python -m py_compile app/core/features.py app/main.py tests/test_features.py`: PASS.
+- `python -m pytest tests/module_health tests/test_features.py -q --no-cov`: 270 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- Branch: `session-save-2026-08-26` (feature branch, not `main`). Not pushed; no PR
+  opened yet — pending Brad's review before opening one, per the no-direct-push rule.
+
+### Notes
+
+- `ad-hoc-feature-flags-unification-2026-08-25`, `ad-hoc-context-loop-brief-2026-08-25`,
+  `handoff-factcheck-closeout-2026-08-15`, and `ad-hoc-oauth-lutest-2026-08-24` were all
+  resolved in the master orchestrator state (`orchestrator_state.json`) this session.
+  The OAuth investigation was corrected after further review: `storage_middleware.py`
+  already has a complete, shipped `TOKEN_CORRUPT` → OAuth-reconnect recovery path;
+  no fix was needed.
+
+---
+
+## Session — 2026-08-26 — Agent Orchestration Protocol (Devin Local)
+
+### Guardrail Engine Run — 2026-08-26T13:37:48+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Build the master-level orchestration state and Devin Local subagent bridge so Claude (Sonnet 5 med) can dispatch tasks directly to SWE-1.7 without Brad copying context between sessions.
+
+### What changed
+- `C:\master-repo\tools\orchestrator_state.json` — new canonical state, seeded from `tools/agent_orchestrator_tasks.json` with `model_tier`, `subagent_profile`, `blocked_reason`, `handoff_doc`, `report_doc`, `verification`, and `usage` fields.
+- `C:\master-repo\tools\orchestrator_mark_task.py` — file-locked updater; role guard prevents `unlimited` agents from marking `resolved`/`rejected`; supports `--verification`, `--usage`, `--report-doc`, `--blocked-reason`.
+- `C:\master-repo\tools\handoff_template.md` — exact handoff schema.
+- `C:\master-repo\tools\agent_usage_ledger.jsonl` — append-only usage ledger.
+- `C:\master-repo\.devin\agents\swe-executor.md` — SWE-1.7 subagent profile (`model: swe`) that reads the state, executes handoffs, and reports back.
+- `C:\master-repo\.devin\skills\orchestrator_dispatch\SKILL.md` — orchestrator's Claude dispatch playbook.
+- `C:\master-repo\modules\app-semptify-fastapi\.devin\skills\orchestrator_preflight\SKILL.md` and `.github\prompts\orchestrator_preflight.prompt.md` — updated to point at the new state and the subagent flow.
+- `C:\master-repo\AGENTS.md` and `C:\master-repo\modules\app-semptify-fastapi\AGENTS.md` — new orchestration protocol sections.
+- `tools/agent_orchestrator_sync_review/DATA_FLOW.md` — noted that `phase_c_tier2_reconciliation_tasks.json` is archived.
+- `modules/app-semptify-fastapi/tools/phase_c_tier2_reconciliation_tasks.json` — archived to `C:\master-repo\archive\tools\phase_c_tier2_reconciliation_tasks.2026-08-26.json`.
+
+### Verification
+- `python -m py_compile C:\master-repo\tools\orchestrator_mark_task.py`: PASS.
+- `python -m json.tool C:\master-repo\tools\orchestrator_state.json`: valid.
+- `python C:\master-repo\tools\orchestrator_mark_task.py ... in_progress` and `... review`: PASS (file lock and updates work).
+- `python tools/sync_orchestrator.py --check` in Semptify: PASS (`OK: 0 stub(s), 148 task(s), 0 missing paths`).
+- Task `orchestration-001-dry-run-sync-check` marked `review` with report and usage.
+- Task `orchestration-000-bootstrap` marked `review`.
+
+### Notes
+- The dry-run was measurement-only; no Semptify source files were modified.
+- Both orchestrator tasks are `review`, awaiting the Claude orchestrator to resolve or block.
+- Semptify's `tools/agent_orchestrator_tasks.json` remains the module work queue until a future migration.
+
+---
+
 ## Session — 2026-08-26 — FCA/Qui Tam case readiness plug-in for Case Builder
 
 ### Guardrail Engine Run — 2026-08-26T11:29:26+00:00
@@ -227,7 +333,7 @@ User's live Google Drive E2E was blocked by `UndefinedColumnError: column vault_
 
 ### Goal
 Running `/ship` after the vault_index fix (previous entry below) surfaced that the skill's
-`cwd` was hardcoded to `E:\master-repo\sources\app-semptify-fastapi` — a separate, stale git
+`cwd` was hardcoded to `C:\master-repo\sources\app-semptify-fastapi` — a separate, stale git
 checkout that did not contain that session's actual changes. Running the skill literally would
 have committed/pushed from the wrong location, appearing to succeed while shipping nothing real.
 
@@ -1643,7 +1749,7 @@ The three verified UI Composer in-task guide pages render without auth in dev, b
 
 ### Fix
 
-- Created a local `E:\master-repo\modules\app-semptify-fastapi\.env` with:
+- Created a local `C:\master-repo\modules\app-semptify-fastapi\.env` with:
   - `SECRET_KEY` — stable HMAC key for the signed `semptify_uid` cookie.
   - `PORT=8001` — matches the running local dev port.
   - `SECURITY_MODE=open` and `DATABASE_URL=sqlite+aiosqlite:///./semptify.db`.
@@ -1673,7 +1779,7 @@ A stable local dev bypass is now available. Go to `http://127.0.0.1:8001/debug/s
 
 ### How to use the bypass
 
-1. Start server: `cd E:\master-repo\modules\app-semptify-fastapi && venv311\Scripts\python.exe -m uvicorn app.main:fastapi_app --host 127.0.0.1 --port 8001 --reload`
+1. Start server: `cd C:\master-repo\modules\app-semptify-fastapi && venv311\Scripts\python.exe -m uvicorn app.main:fastapi_app --host 127.0.0.1 --port 8001 --reload`
 2. POST `http://127.0.0.1:8001/debug/seed-test-user` (e.g., with curl or a browser form). It sets the `semptify_uid` cookie and redirects to the RECORD guide.
 3. Use the three guide pages normally: save journal entries, look up statutes, calculate eviction deadlines.
 
@@ -2457,7 +2563,7 @@ Task tracker supported `in_progress` and `assigned_agent`, but no preflight file
 
 - `tools/mark_task_status.py`: require `--agent` when `status=in_progress`; add collision check for existing `in_progress` tasks on the same `file_path`.
 - `AGENTS.md`, `.cursor/rules/00-semptify-agents.mdc`, `.github/copilot-instructions.md`, `.devin/skills/preflight/SKILL.md`, `.github/prompts/preflight.prompt.md`, `.devin/skills/orchestrator_preflight/SKILL.md`, `.github/prompts/orchestrator_preflight.prompt.md`, `.devin/skills/13-mandated-readings.md`: add hard task-claiming rule.
-- Deleted `E:\master-repo\IN_PROGRESS_FILES.md`; the tracker now owns in-flight state.
+- Deleted `C:\master-repo\IN_PROGRESS_FILES.md`; the tracker now owns in-flight state.
 
 ### Verification
 
@@ -10858,7 +10964,7 @@ Returning tenants with documents were incorrectly routed to the upload wizard.
    - All 8 repos now under `1semptify-arch/` — single org, single owner
    - `SemptifyResearch` set to Private (intentional)
 
-2. **Orchestrator port conflict fixed** — `E:\master-repo\sources\REPOs\Orchestrator\start.bat`
+2. **Orchestrator port conflict fixed** — `C:\master-repo\sources\REPOs\Orchestrator\start.bat`
    - Was: port 8000 (same as Semptify core — hard conflict)
    - Fixed: port 8001
    - Architecture: Orchestrator is a sidecar — calls Semptify API at `localhost:8000`

@@ -4,7 +4,9 @@
 
 - **Canonical queue:** `tools/agent_orchestrator_tasks.json`
 - **Only two active inputs:** doc-sourced TODOs (from four markdown docs) and `stub_detector.py` code scans.
-- **Legacy/manual reference:** `Semptify_Master_Inventory_LIVE_reviewed.xlsx` and `tools/phase_c_tier2_reconciliation_tasks.json` are intentionally not auto-synced.
+- **Legacy/manual reference:** `Semptify_Master_Inventory_LIVE_reviewed.xlsx` is intentionally not auto-synced.
+- **New master-level canonical state:** `C:\master-repo\tools\orchestrator_state.json` is the single source of truth for agent orchestration and routing.
+- **Archived legacy tracker:** `tools/phase_c_tier2_reconciliation_tasks.json` has been archived to `C:\master-repo\archive\tools\phase_c_tier2_reconciliation_tasks.2026-08-26.json` and is no longer active.
 - **Derived/embedded views:** `tools/agent_orchestrator.html`, `tools/orchestrator_dashboard.html`, `static/admin/agent_orchestrator.html`.
 - **Current status:** 92 tasks in the canonical queue, 91 resolved, 1 pending (`phase2-1a1341-055`, parked).
 

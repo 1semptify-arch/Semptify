@@ -2,7 +2,7 @@
 
 **Status:** Phase A complete. PR #34 merged. Phase B ready to start in a fresh session. Stop-and-report per group.
 
-**Repository:** `E:\master-repo\sources\app-semptify-fastapi` (origin `https://github.com/1semptify-arch/Semptify.git`)
+**Repository:** `C:\master-repo\sources\app-semptify-fastapi` (origin `https://github.com/1semptify-arch/Semptify.git`)
 
 ---
 
@@ -25,10 +25,10 @@ The original Phase A handoff estimated 551 identical, 446 conflicting, ~1,590 pi
 | `D` — only on `main` | 172 | Files absent from pilot; do **not** delete when reconciling |
 | `R` — renamed/moved on pilot | 28 | Source path on `main`, target path on pilot (decision-needed pass) |
 
-Full per-status lists are in `E:\master-repo\phase_b_inventory.md` (generated alongside this handoff). Reproduce with:
+Full per-status lists are in `C:\master-repo\phase_b_inventory.md` (generated alongside this handoff). Reproduce with:
 
 ```powershell
-cd E:\master-repo\sources\app-semptify-fastapi
+cd C:\master-repo\sources\app-semptify-fastapi
 git fetch origin
 git diff --name-status origin/main origin/adr-0008-pilot > E:\tmp\phase_b_diff.txt
 ```
@@ -226,9 +226,9 @@ Begin with the GUI templates group only:
 
 ## 10. Artifacts generated with this handoff
 
-- `E:\master-repo\HANDOFF_branch_reconciliation_phase_b.md` (this file)
-- `E:\master-repo\phase_b_inventory.md` (full A/M/D/R file lists)
-- `E:\master-repo\generate_phase_b_inventory.py` (script that generated the inventory)
+- `C:\master-repo\HANDOFF_branch_reconciliation_phase_b.md` (this file)
+- `C:\master-repo\phase_b_inventory.md` (full A/M/D/R file lists)
+- `C:\master-repo\generate_phase_b_inventory.py` (script that generated the inventory)
 
 ---
 
