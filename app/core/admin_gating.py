@@ -64,7 +64,10 @@ def is_admin_network(client_ip: str) -> bool:
     except ValueError:
         return False
 
-    return any(addr in network for network in networks)
+    for network in networks:
+        if addr in network:
+            return True
+    return False
 
 
 async def require_admin_network(request: Request) -> None:
