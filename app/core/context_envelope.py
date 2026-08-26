@@ -11,6 +11,7 @@ Standing rule from ADR-0008 §2.1.1:
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
