@@ -116,7 +116,7 @@
 {% endblock %}
 
 {% block record_next %}
-<a href="/gui/know/law-library/get-statute" class="output-trigger">Look up the law behind these deadlines</a>
+<a href="{{ navigation.get_stage('know_law_library_get_statute').path }}" class="output-trigger">Look up the law behind these deadlines</a>
 {% endblock %}
 
 {% block scripts %}
@@ -177,7 +177,7 @@
     .then(function (res) {
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
-          resultDiv.innerHTML = '<p>You need to be signed in to use this tool. <a href="/help">Get help</a> if you need it now.</p>';
+          resultDiv.innerHTML = '<p>You need to be signed in to use this tool. <a href="{{ navigation.get_stage('help').path }}">Get help</a> if you need it now.</p>';
           return;
         }
         throw new Error('HTTP ' + res.status);
@@ -209,7 +209,7 @@
         warnings;
     })
     .catch(function (err) {
-      resultDiv.innerHTML = '<p>Could not calculate deadlines: ' + escapeHtml(err.message) + '. <a href="/help">Get help</a> if you need it now.</p>';
+      resultDiv.innerHTML = '<p>Could not calculate deadlines: ' + escapeHtml(err.message) + '. <a href="{{ navigation.get_stage('help').path }}">Get help</a> if you need it now.</p>';
     });
   }
 </script>
