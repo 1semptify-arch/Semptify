@@ -38,6 +38,14 @@ from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_OVERLAY_DOCUMENTS
 from app.models.models import Incident
 from app.models.unified_overlay_models import CaseDataPayload, CreateOverlayRequest
+from app.modules.case_builder.fca_guard import require_fca_readiness
+from app.modules.case_builder.fca_packet_export import build_fca_readiness_pdf, build_fca_readiness_zip
+from app.modules.case_builder.fca_service import (
+    FcaReadinessUpdate,
+    build_default_checklist,
+    build_readiness_summary,
+    get_referral_resources,
+)
 from app.modules.case_builder.packet_export import (
     PacketExportRequest,
     build_curated_packet_zip,
@@ -523,6 +531,15 @@ def _build_case_data_payload(case_data: dict[str, Any]) -> CaseDataPayload:
         if value:
             flag_notes[key.replace("_note", "")] = str(value)
 
+    raw_checklist = case_data.get("readiness_checklist")
+    readiness_checklist: list[dict] = []
+    if raw_checklist:
+        for item in raw_checklist:
+            if isinstance(item, dict):
+                readiness_checklist.append(item)
+            elif hasattr(item, "model_dump"):
+                readiness_checklist.append(item.model_dump())
+
     return CaseDataPayload(
         flag_category=flag_category,
         narrative=narrative,
@@ -530,6 +547,7 @@ def _build_case_data_payload(case_data: dict[str, Any]) -> CaseDataPayload:
         timeline=list(case_data.get("timeline", [])),
         exhibit_refs=exhibit_refs,
         flag_notes=flag_notes,
+        readiness_checklist=readiness_checklist,
     )
 
 
@@ -624,6 +642,13 @@ async def save_case(case_id: str, case_data: dict, user_id: str) -> None:
         incident.incident_type = payload.flag_category or incident.incident_type
         incident.title = f"Case: {payload.flag_category or 'uncategorized'}"
         incident.incident_metadata = {}
+
+        # Update FCA readiness score from the overlay checklist (non-PII summary)
+        from app.modules.case_builder.fca_service import calculate_readiness_score
+
+        score = calculate_readiness_score(payload.readiness_checklist)
+        incident.fca_readiness_score = score if payload.readiness_checklist else None
+        incident.fca_readiness_updated_at = utc_now() if payload.readiness_checklist else None
 
         await session.commit()
 
@@ -3170,6 +3195,141 @@ async def export_curated_packet(
     except Exception as exc:
         logger.exception("Curated packet export failed for case %s: %s", case_id, exc)
         raise HTTPException(status_code=500, detail="Packet export failed")
+
+    return StreamingResponse(
+        io.BytesIO(zip_bytes),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# =============================================================================
+# FCA / QUI TAM CASE READINESS (Feature: FCA_READINESS)
+# =============================================================================
+# Issue-spotting and evidence organization for federal case review by counsel.
+# This is not a determination that any claim exists or is viable.
+# =============================================================================
+
+
+@router.get("/cases/{case_id}/fca/readiness")
+async def get_fca_readiness(
+    case_id: str,
+    user: StorageUser = Depends(require_fca_readiness),
+):
+    """Get the FCA/federal case readiness checklist and summary for a case."""
+    user_id = user.user_id
+    case = await load_case(case_id, user_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    checklist = case.get("readiness_checklist", [])
+    if not checklist:
+        checklist = build_default_checklist()
+        case["readiness_checklist"] = checklist
+        await save_case(case_id, case, user_id)
+
+    summary = build_readiness_summary(checklist, case.get("narrative", ""))
+
+    return {
+        "case_id": case_id,
+        "readiness_checklist": checklist,
+        "summary": summary,
+        "referral_resources": get_referral_resources(),
+        "upl_disclaimer": "Semptify does not give legal advice. Get legal advice from a qualified attorney.",
+    }
+
+
+@router.post("/cases/{case_id}/fca/readiness")
+async def update_fca_readiness(
+    case_id: str,
+    body: FcaReadinessUpdate,
+    user: StorageUser = Depends(require_fca_readiness),
+):
+    """Save the FCA readiness checklist for a case."""
+    user_id = user.user_id
+    case = await load_case(case_id, user_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    case["readiness_checklist"] = [item.model_dump() for item in body.readiness_checklist]
+    case["updated_at"] = utc_now().isoformat()
+    await save_case(case_id, case, user_id)
+
+    reloaded = await load_case(case_id, user_id)
+    summary = build_readiness_summary(reloaded.get("readiness_checklist", []), reloaded.get("narrative", ""))
+
+    return {
+        "case_id": case_id,
+        "readiness_checklist": reloaded.get("readiness_checklist", []),
+        "summary": summary,
+        "upl_disclaimer": "Semptify does not give legal advice. Get legal advice from a qualified attorney.",
+    }
+
+
+@router.post("/cases/{case_id}/fca/readiness/reset")
+async def reset_fca_readiness(
+    case_id: str,
+    user: StorageUser = Depends(require_fca_readiness),
+):
+    """Reset the FCA readiness checklist to the default."""
+    user_id = user.user_id
+    case = await load_case(case_id, user_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    case["readiness_checklist"] = build_default_checklist()
+    case["updated_at"] = utc_now().isoformat()
+    await save_case(case_id, case, user_id)
+
+    reloaded = await load_case(case_id, user_id)
+    summary = build_readiness_summary(reloaded.get("readiness_checklist", []), reloaded.get("narrative", ""))
+
+    return {
+        "case_id": case_id,
+        "readiness_checklist": reloaded.get("readiness_checklist", []),
+        "summary": summary,
+    }
+
+
+@router.get("/cases/{case_id}/fca/readiness/pdf")
+async def export_fca_readiness_pdf(
+    case_id: str,
+    user: StorageUser = Depends(require_fca_readiness),
+):
+    """Download the FCA readiness packet as a PDF for attorney review."""
+    from app.services.vault_upload_service import get_vault_service
+
+    user_id = user.user_id
+    case = await load_case(case_id, user_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    user_docs = await get_vault_service().get_user_documents(user_id)
+    pdf_bytes = build_fca_readiness_pdf(case, user_docs)
+
+    filename = f"fca-readiness-{case_id}.pdf"
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/cases/{case_id}/fca/readiness/zip")
+async def export_fca_readiness_zip(
+    case_id: str,
+    user: StorageUser = Depends(require_fca_readiness),
+):
+    """Download the FCA readiness packet as a ZIP (PDF + JSON summary)."""
+    from app.services.vault_upload_service import get_vault_service
+
+    user_id = user.user_id
+    case = await load_case(case_id, user_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    user_docs = await get_vault_service().get_user_documents(user_id)
+    zip_bytes, filename = build_fca_readiness_zip(case, user_docs)
 
     return StreamingResponse(
         io.BytesIO(zip_bytes),
