@@ -69,7 +69,9 @@ class RoleVerification:
         """Check if verification is currently valid."""
         if self.status != VerificationStatus.VERIFIED:
             return False
-        return not (self.expires_at and utc_now() > self.expires_at)
+        if self.expires_at and utc_now() > self.expires_at:
+            return False
+        return True
 
 
 # =============================================================================
@@ -228,7 +230,7 @@ class RoleValidator:
         # Success! Decrement uses (in production, this would be atomic DB update)
         ACTIVE_INVITE_CODES[code]["uses_remaining"] -= 1
 
-        logger.info(f"✅ User {user_id} verified as {requested_role.value} via invite code from {code_data['org']}")
+        logger.info(f"● User {user_id} verified as {requested_role.value} via invite code from {code_data['org']}")
 
         return RoleVerification(
             user_id=user_id,
@@ -269,7 +271,7 @@ class RoleValidator:
                 notes=f"Domain {domain} not in trusted list. Pending manual review.",
             )
 
-        logger.info(f"✅ User {user_id} verified as {requested_role.value} via trusted domain {domain}")
+        logger.info(f"● User {user_id} verified as {requested_role.value} via trusted domain {domain}")
 
         return RoleVerification(
             user_id=user_id,
@@ -311,7 +313,7 @@ class RoleValidator:
         }
 
         if bar_number in known_valid_bars:
-            logger.info(f"✅ Bar number {bar_number} verified for user {user_id}")
+            logger.info(f"● Bar number {bar_number} verified for user {user_id}")
             return RoleVerification(
                 user_id=user_id,
                 role=UserRole.LEGAL,
@@ -326,7 +328,7 @@ class RoleValidator:
                 notes=f"Bar number verified using local allowlist ({bar_number}).",
             )
 
-        logger.info(f"⏳ Bar number {bar_number} submitted for verification (user: {user_id})")
+        logger.info(f"◆ Bar number {bar_number} submitted for verification (user: {user_id})")
         return RoleVerification(
             user_id=user_id,
             role=UserRole.LEGAL,
@@ -355,7 +357,7 @@ class RoleValidator:
         }
 
         if cert_number in known_hud_certs:
-            logger.info(f"✅ HUD cert {cert_number} verified for user {user_id}")
+            logger.info(f"● HUD cert {cert_number} verified for user {user_id}")
             return RoleVerification(
                 user_id=user_id,
                 role=UserRole.ADVOCATE,
@@ -369,7 +371,7 @@ class RoleValidator:
                 notes=f"HUD certification verified using local allowlist ({cert_number}).",
             )
 
-        logger.info(f"⏳ HUD cert {cert_number} submitted for verification (user: {user_id})")
+        logger.info(f"◆ HUD cert {cert_number} submitted for verification (user: {user_id})")
         return RoleVerification(
             user_id=user_id,
             role=UserRole.ADVOCATE,
@@ -399,7 +401,7 @@ class RoleValidator:
             )
 
         logger.warning(
-            f"⚠️ ATTESTATION: User {user_id} attested for {requested_role.value} role. "
+            f"◆ ATTESTATION: User {user_id} attested for {requested_role.value} role. "
             f"Email: {email or 'not provided'}. Audit trail created."
         )
 
@@ -463,7 +465,7 @@ class RoleValidator:
                     "Self-attestation with UPL acknowledgment (logged)",
                 ],
                 "warning": (
-                    "⚠️ Attorney-client privilege protections apply only to licensed attorneys. "
+                    "◆ Attorney-client privilege protections apply only to licensed attorneys. "
                     "Unauthorized practice of law is a crime under MN Statute 481.02."
                 ),
             },
