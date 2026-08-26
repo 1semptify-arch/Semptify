@@ -249,13 +249,20 @@ Before ending any session, you MUST:
 
 ### Orchestrator Task Status Rule
 
-Whenever you pick up a task from `agent_orchestrator_tasks.json`, immediately run:
-`python tools/mark_task_status.py <task_id> in_progress --agent <your-model-name>`
+Semptify's module-level queue is still `tools/agent_orchestrator_tasks.json`, managed by `tools/mark_task_status.py`. For Semptify tasks, continue using:
 
-When you finish:
-`python tools/mark_task_status.py <task_id> resolved --notes "<one-line summary>" --agent <your-model-name>`
+- Pick up: `python tools/mark_task_status.py <task_id> in_progress --agent <your-model-name>`
+- Finish: `python tools/mark_task_status.py <task_id> resolved --notes "<one-line summary>" --agent <your-model-name>`
+- Blocked: `python tools/mark_task_status.py <task_id> review --notes "<why>" --agent <your-model-name>`
 
-If you get blocked, use `review` instead of `resolved` and explain why in `--notes`. Do this every time, without being asked — it's how the queue stays accurate without a human tracking it by hand.
+The **master orchestrator queue** is `E:\master-repo\tools\orchestrator_state.json`. Use it for any task with a `model_tier` or a handoff. Read it to find the next task, and use:
+
+- Pick up: `python E:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent <your-model-name>`
+- Executor finish (swe-executor): `python E:\master-repo\tools\orchestrator_mark_task.py <task_id> review --usage '{"wall_clock_min": X, "tool_calls": Y}' --agent swe-executor`
+- Orchestrator finish (Claude): `python E:\master-repo\tools\orchestrator_mark_task.py <task_id> resolved --pr <url> --agent claude-code`
+- Blocked: `python E:\master-repo\tools\orchestrator_mark_task.py <task_id> blocked_on_decision --blocked-reason "<why>" --agent <your-model-name>`
+
+Unlimited agents (swe-executor, SWE-1.7, etc.) may NOT mark a task `resolved` or `rejected`; they stop at `review` or `blocked_on_decision`. Do this every time, without being asked — it is how the queue stays accurate without a human tracking it by hand.
 
 ---
 
