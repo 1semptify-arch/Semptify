@@ -19,7 +19,7 @@ from collections import OrderedDict, deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 from app.core.id_gen import make_id
@@ -37,7 +37,7 @@ MAX_COLLABORATIONS = 1000
 # =============================================================================
 
 
-class RequestType(StrEnum):
+class RequestType(str, Enum):
     """Types of inter-module requests"""
 
     QUERY = "query"  # Read-only request
@@ -47,7 +47,7 @@ class RequestType(StrEnum):
     COLLABORATE = "collaborate"  # Multi-module collaboration
 
 
-class MergeStrategy(StrEnum):
+class MergeStrategy(str, Enum):
     """How to merge results from multiple modules"""
 
     COMBINE = "combine"  # Combine all results into one dict
