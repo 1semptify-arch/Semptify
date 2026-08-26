@@ -10,7 +10,7 @@ This document is a planning/reference artifact. Developers can cherry-pick secti
 
 The user requested a **standalone** resource directory app (not wired into Semptify). That app is now built at:
 
-`E:\master-repo\resource-directory-standalone`
+`C:\master-repo\resource-directory-standalone`
 
 It is a self-contained FastAPI + Jinja2 + SQLite app that implements all three requested approaches:
 

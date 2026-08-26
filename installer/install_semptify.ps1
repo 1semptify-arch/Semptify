@@ -7,7 +7,7 @@
     Installs Python, PostgreSQL (optional), and all dependencies.
     
 .PARAMETER InstallPath
-    Installation directory (default: E:\master-repo\sources\app-semptify-fastapi)
+    Installation directory (default: C:\master-repo\sources\app-semptify-fastapi)
     
 .PARAMETER UsePostgreSQL
     Install and configure PostgreSQL (default: true)

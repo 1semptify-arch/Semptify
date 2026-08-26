@@ -26,7 +26,7 @@ Compared against `backup/RESCUE-sources-walnut-gauss` under the correct pinned i
 
 ### `backup/RESCUE-modules-markdown-lint-pass` — mostly resolved
 - The 2 headline commits (`8013e644` bulk markdown lint, `0f8beb5e` cleanup) are confirmed already on `main` via PR #17 (`d22c85a4`/`275151a6`, matching content under different hashes).
-- **Still open:** 5 other commits on this same branch were never checked against `main`: `f59ad8eb` (.devin/workflows → .devin/skills migration), `4d307317` (--status flag fix), `009fd39e`/`75720093`/`0802902e` (path-reference updates to E:\master-repo paths).
+- **Still open:** 5 other commits on this same branch were never checked against `main`: `f59ad8eb` (.devin/workflows → .devin/skills migration), `4d307317` (--status flag fix), `009fd39e`/`75720093`/`0802902e` (path-reference updates to C:\master-repo paths).
 
 ```
 Check whether these 5 commits from backup/RESCUE-modules-markdown-lint-pass
@@ -72,8 +72,8 @@ never made it anywhere.
 
 Once Step 3's two open items above are resolved:
 
-- Repoint the `/ship` skill's working directory from the dead `C:\Semptify\Semptify-FastAPI` (confirmed not a git repo at all) to `E:\master-repo\sources\app-semptify-fastapi` — the one real, GitHub-connected clone.
-- `E:\master-repo\modules\app-semptify-fastapi` is a legitimate git submodule of `sources/` — working as designed, no change needed.
+- Repoint the `/ship` skill's working directory from the dead `C:\Semptify\Semptify-FastAPI` (confirmed not a git repo at all) to `C:\master-repo\sources\app-semptify-fastapi` — the one real, GitHub-connected clone.
+- `C:\master-repo\modules\app-semptify-fastapi` is a legitimate git submodule of `sources/` — working as designed, no change needed.
 - The two `Downloads\...\Semptify-Archive-...` folders are old, inert, nothing unique — safe to delete or ignore.
 - Verify one clean `/ship` run against the corrected path before trusting it again.
 
