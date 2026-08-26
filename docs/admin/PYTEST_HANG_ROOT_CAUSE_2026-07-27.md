@@ -10,9 +10,9 @@ The full-suite hang was **not** caused by `app.main` starting the job processor 
 
 ## Answers to the investigation questions
 
-### 1. Which lines in `app.main` start the job processor and websocket manager
+### 1. Which lines in `app.main` start the job processor and websocket manager?
 
-#### They are not started by `app.main` at import time
+**They are not started by `app.main` at import time.**
 
 - `app/core/job_processor.py:465-476` defines `get_job_processor()`, which lazily instantiates and starts `JobProcessor` worker threads the first time it is called.
 - `app/core/websocket_manager.py:456-464` defines `get_websocket_manager()`, which lazily instantiates the manager the first time it is called.
@@ -21,11 +21,11 @@ The full-suite hang was **not** caused by `app.main` starting the job processor 
   - `app/core/websocket_manager.py:492-493`: `atexit.register(lambda: asyncio.run(get_websocket_manager().shutdown()))`
 - These `atexit` handlers run when the Python process exits. They *do* start the job processor just to stop it, which is wasteful and produces the `ValueError: I/O operation on closed file` logging errors seen at the end of every pytest run, but they do not cause a hang.
 
-### 2. Why doesn't the hang occur on targeted test subsets
+### 2. Why doesn't the hang occur on targeted test subsets?
 
 The targeted subsets (e.g., `test_ssot_architecture.py`, `test_manager_dashboard.py`, `test_document_delivery_service.py`, etc.) do not import or collect `tests/test_all_endpoints.py`. That file is the only root test file that performs live network I/O at module level, so its requests are only executed when the whole `tests/` tree is collected.
 
-### 3. What kind of background services are these
+### 3. What kind of background services are these?
 
 - **Job processor:** `threading.Thread` daemon worker pool (4 workers by default) plus optional retry threads.
 - **WebSocket manager:** Pure `asyncio` background tasks (broadcast/cleanup loops) created on demand.

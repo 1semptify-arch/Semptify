@@ -13,7 +13,7 @@ This is a real standard every feature and wording choice gets checked against, n
 
 ## Why
 
-Semptify exists to protect serenity of home, not to amplify crisis or manipulate users into engagement. Motivation rooted in fear or resentment teaches adversarial thinking that violates Language Rules (ADR 0005). Dishonesty and greed undermine the Information Integrity Standards in `docs/MOTIVATIONS.md` §7.
+Semptify exists to protect serenity of home, not to amplify crisis or manipulate users into engagement. Motivation rooted in fear or resentment teaches adversarial thinking that violates Language Rules (ADR 0005). Dishonesty and greed undermine the Information Integrity Standards in `docs/admin/MOTIVATIONS.md` §7.
 
 ## Consequences
 

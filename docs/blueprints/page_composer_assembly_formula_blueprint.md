@@ -1,6 +1,6 @@
 # Page Composer Assembly Formula — Blueprint
 
-**Status:** APPROVED — implemented
+**Status:** DRAFT — pending approval
 **Module path:** `app.modules.page_composer` (formula lives in `app/modules/page_composer/assembly.py`)
 **Type:** Feature Module enhancement (CORE tier)
 **Capability tier:** CORE
@@ -42,7 +42,7 @@ Without this formula, the three composers risk producing conflicting pages for t
 ## 3. Roles
 
 | Role | Default access | Notes |
-| --- | --- | --- |
+|---|---|---|
 | `tenant` | YES | Primary consumer; formula drives their dashboard, timeline, library, and subject pages. |
 | `advocate` | YES | Can invoke formula on behalf of a linked tenant; same output shape. |
 | `admin` | YES | Can introspect formula inputs/outputs for debugging. |
@@ -57,7 +57,7 @@ No new tables. The formula reads existing sources and writes nothing to the data
 All endpoints live under the existing `app.modules.page_composer.router` prefix `/api/page`.
 
 | Method | Path | Purpose |
-| --- | --- | --- |
+|---|---|---|
 | GET | `/api/page/{subject}` | Assemble a page for a canonical subject (legacy JSON view). |
 | GET | `/api/page/{subject}/preview` | Public preview of a subject page, no user case data. |
 | GET | `/api/page/{subject}/config` | **NEW** Return the assembled `PageConfig` for Page Shell rendering. |
@@ -68,7 +68,7 @@ All endpoints live under the existing `app.modules.page_composer.router` prefix 
 ## 6. Modules / services it calls
 
 | Callee | Data provided |
-| --- | --- |
+|---|---|
 | `app.services.context_loop` | User context (document count, deadlines, urgency, active case flags). |
 | `app.modules.context_engine.cache` | Verified facts for `subject` + `jurisdiction`. |
 | `app.modules.context_engine.stories` | Published tenant stories. |
@@ -82,14 +82,14 @@ All endpoints live under the existing `app.modules.page_composer.router` prefix 
 
 ## 7. The assembly formula
 
-```text
+```
 Page = Assemble(UserContext, Subject, Jurisdiction, RequestedIntent)
 ```
 
 ### 7.1 Inputs
 
 | Input | Source | Notes |
-| --- | --- | --- |
+|---|---|---|
 | `user_id` | Cookie / auth gate | Optional for public preview. |
 | `subject` | Path param or intent | One of the 13 `context_engine.taxonomy.Subject` values, or `null` for intent-only pages. |
 | `jurisdiction` | Query param, default `MN` | Drives fact lookup and action availability. |
@@ -100,7 +100,7 @@ Page = Assemble(UserContext, Subject, Jurisdiction, RequestedIntent)
 
 Compute the user's **intensity** (0-100) from Context Loop signals:
 
-```text
+```
 intensity = max(
   deadline_proximity_score,   # 0-100, higher as nearest deadline approaches
   case_active_score,          # 0 or 70 if any open case
@@ -115,7 +115,7 @@ The exact scoring function is hand-tunable in `assembly.py`; the formula only re
 From `subject` + `intent` + `intensity`, choose a `major_pillar`:
 
 | Situation | `major_pillar` | Rationale |
-| --- | --- | --- |
+|---|---|---|
 | New user, ≤1 doc, no urgency | `record` | First job is to start capturing evidence. |
 | User browsing a subject with no active case | `know` | Library-style, facts-first. |
 | Active case + upcoming deadline/hearing | `act` | User needs to do something now. |
@@ -128,7 +128,7 @@ From `subject` + `intent` + `intensity`, choose a `major_pillar`:
 The blend is a named preset in `app.modules.page_shell.blends`. The formula picks the blend, then derives `ChannelLevels` from it. Channel levels can be *modified* by intensity but never beyond the blend's intent.
 
 | `major_pillar` + intensity | Blend | Channels (record, know, act, govern) |
-| --- | --- | --- |
+|---|---|---|
 | `record`, low intensity | `first_contact` | 70, 60, 15, 30 |
 | `record`, high capture need | `quiet_capture` | 90, 10, 5, 25 |
 | `know`, low intensity | `orientation` | 20, 80, 20, 20 |
@@ -177,12 +177,12 @@ Drop any block whose `writes_to` or `on_trigger` target requires a module the us
 
 ### 7.6 Phase 5 — Apply GOVERN rules
 
-**Correction (2026-08-22 bug fix):** the GOVERN floor must be resolved and applied to the `channels.govern` level **before** blocks are gathered/distributed into zones, not on the finished draft `PageConfig`. A zone's rendered block count is fixed at build time by its channel level (`page_shell.zones.level_to_prominence`); clamping the level afterward changes the reported number but does not restore any safety-net content that was already trimmed at the lower, pre-clamp level. `assemble_page()` now:
+Pass the draft `PageConfig` through `app.modules.page_shell.govern.apply_govern_rules`:
 
-1. Resolves the risk tier and rejects immediately (safe fallback) if it is `very_high_do_not_build`.
-2. Computes the GOVERN floor for that risk tier and raises `channels.govern` to the floor *before* gathering/distributing blocks.
-3. Gathers blocks and builds the `PageConfig` at the already-floor-adjusted level.
-4. Runs `app.modules.page_shell.govern.apply_govern_rules` afterward only to collect `suppresses_act_block` IDs from GOVERN blocks and remove suppressed ACT blocks from the ACT zone, and to produce the audit report (restoring the true pre-floor level so the report still shows whether a clamp occurred).
+1. Clamp GOVERN to the floor for the inferred risk tier.
+2. Collect `suppresses_act_block` IDs from GOVERN blocks.
+3. Remove suppressed ACT blocks from the ACT zone.
+4. If the inferred risk tier is `very_high_do_not_build`, reject the page and return a safe fallback (GOVERN-only page with a legal-aid prompt).
 
 ### 7.7 Phase 6 — Output
 
@@ -190,17 +190,17 @@ The formula returns a `PageAssemblyResult`:
 
 ```python
 {
-  "page_config": PageConfig,           # for page_shell renderer
-  "components": List[ComponentDict],   # legacy UI Composer component list
-  "govern_report": dict,                # clamping, suppression, dropped blocks
-  "metadata": {
-    "subject": str | None,
-    "jurisdiction": str,
-    "major_pillar": str,
-    "blend": str,
-    "intensity": int,
-    "risk_tier": str,
-  }
+    "page_config": PageConfig,  # for page_shell renderer
+    "components": List[ComponentDict],  # legacy UI Composer component list
+    "govern_report": dict,  # clamping, suppression, dropped blocks
+    "metadata": {
+        "subject": str | None,
+        "jurisdiction": str,
+        "major_pillar": str,
+        "blend": str,
+        "intensity": int,
+        "risk_tier": str,
+    },
 }
 ```
 
@@ -209,7 +209,7 @@ The formula returns a `PageAssemblyResult`:
 ## 8. Data mapping reference
 
 | Source data | Becomes | Block kind | Zone |
-| --- | --- | --- | --- |
+|---|---|---|---|
 | Context Engine fact | InfoBlock | `info` | KNOW |
 | Tenant story | InfoBlock (collapsed) | `info` | KNOW |
 | Vault document count | Stat badge / empty state | `info` | RECORD |
@@ -223,7 +223,7 @@ The formula returns a `PageAssemblyResult`:
 ## 9. Risk
 
 | Risk | Mitigation |
-| --- | --- |
+|---|---|
 | Different pages for the same user state | Formula is deterministic; all tunable weights live in one file and are versioned. |
 | GOVERN under-weighted for high-risk cases | Floor rules in `page_shell.govern` clamp GOVERN before render; formula cannot override them. |
 | Capabilities leak blocks to wrong role | Capability filter in Phase 4 gates every `OutputBlock` and `InputBlock`. |
@@ -231,17 +231,7 @@ The formula returns a `PageAssemblyResult`:
 | Facts without `source_url` | `page_composer.service` already rejects/handles this; the formula only passes through verified facts. |
 | Overly complex scoring | Intensity is a simple bounded max() of signals; no ML, no hidden state. |
 
-## 10. Implementation notes
-
-- The assembly formula is implemented in `app/modules/page_composer/assembly.py`.
-- `PageAssemblyResult` is in `app/modules/page_composer/models.py`.
-- The capability filter uses `block.module_name` (now present on `InputBlock`, `InfoBlock`, and `OutputBlock`) and compares it against `context["capabilities"]` (resolved module paths from `app.core.module_gate`).
-- The capability-filter endpoints in `app/modules/page_composer/router.py`, `/gui/dashboard`, and `/gui/page/{subject}` pass resolved module paths into `assemble_page`.
-- Case Builder integration is provided by `app/modules/case_builder/case_builder.py::get_cases_for_user`.
-- Page Shell is a CORE dependency in `app/core/product_manifest.py`; its contracts are loaded by `app/core/contract_loader.py`.
-- Mobile rendering is handled by the `max-width: 1024px` media query in `static/page_shell/page_shell.css`, which switches `.page-shell` to normal document flow (`height: auto; overflow: visible`).
-
-## 11. Build order
+## 10. Build order
 
 1. Add `app/modules/page_composer/assembly.py` with the classification, blend selection, and block-gather functions.
 2. Add `PageAssemblyResult` model to `app/modules/page_composer/models.py` (or a new `schemas.py`).

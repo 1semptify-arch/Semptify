@@ -29,14 +29,12 @@ A 3-pane desktop GUI page. Left: vault document list. Center: Semptify Viewer (t
 A design + build plan covering:
 
 ### 1. Information Architecture
-
 - The 3-pane layout — exact contents of each pane
 - What "selected item options" live in the viewer top bar
 - What an overlay row in the right panel looks like (name, %, status, goal, action)
 - How the unlock pattern is communicated to the tenant (progress, "what's next", not gimmicky)
 
 ### 2. Viewer Design
-
 - How the document renders (PDF.js for PDFs; image fallback for non-PDFs; what about .docx, .html, photos)
 - How highlights, notes, references appear on the document
 - How Semptify's extraction highlights appear (distinct from user highlights)
@@ -44,7 +42,6 @@ A design + build plan covering:
 - How "user + Semptify walk through together" actually feels (step mode? live mode? both?)
 
 ### 3. Overlay Panel Design
-
 - Which overlays exist per document type (OCR, Parties, Dates, Addresses, Amounts, Signatures, References, ...)
 - What "completion %" means per overlay — what counts as 100%
 - How an overlay's "original goal" is defined and shown
@@ -52,7 +49,6 @@ A design + build plan covering:
 - How the user drills into an overlay from the panel
 
 ### 4. The Unlock Pattern
-
 - Exact rules: how much verified metadata unlocks what
 - First unlock = Timeline. Define the threshold.
 - Second unlock = Journal. Define the threshold.
@@ -61,13 +57,11 @@ A design + build plan covering:
 - How to avoid overwhelming a stressed tenant
 
 ### 5. Per-Document-Type Checklists
-
 - Pick the first 5 document types to ship (suggest: Lease, Notice to Vacate, Repair Request, Rent Receipt, Move-in Inspection)
 - For each: required fields, optional fields, what "Verified" means
 - Where the checklist definition lives in code (suggest: `app/core/document_types.py` as SSOT)
 
 ### 6. Code Structure (respect Semptify conventions)
-
 - New module: `app/modules/document_center/` (router, viewer, overlays, register)
 - New SDK: `app/sdk/document_center/` if reusable
 - New templates: `app/templates/pages/document_center.html` + partials for each pane
@@ -76,7 +70,6 @@ A design + build plan covering:
 - Contract: register `FunctionGroupContract` entries in `app/core/module_contracts.py` for any new DC APIs
 
 ### 7. Build Slices (smallest useful first)
-
 - Slice 1: 3-pane shell + vault list + viewer renders one PDF + one overlay (OCR) with a fake %
 - Slice 2: Real OCR overlay wired to a real extraction call
 - Slice 3: One document type checklist (Lease) + inline confirm/correct
@@ -88,7 +81,6 @@ A design + build plan covering:
 Each slice must compile clean and be testable on its own. No slice breaks the previous.
 
 ### 8. Risks & Open Questions
-
 - Performance: large PDFs in the viewer
 - Storage: where do highlight/notes overlays live (R2? User's vault? Both?)
 - Trust: how does the tenant know Semptify didn't misread a field

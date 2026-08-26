@@ -2,18 +2,17 @@
 
 This folder contains approved blueprints for Semptify modules, plugins, and add-ons.
 
-## No module may be built without a blueprint in this folder, approved by the project owner
+**No module may be built without a blueprint in this folder, approved by the project owner.**
 
 ## Naming convention
 
-```text
+```
 your_module_name_blueprint.md
 ```
 
 ## Status line
 
 Each blueprint must include a status line near the top:
-
 - `Status: DRAFT — pending approval`
 - `Status: APPROVED — approved YYYY-MM-DD`
 - `Status: BUILT — shipped in commit <hash>`

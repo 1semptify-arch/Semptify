@@ -101,7 +101,6 @@ Standing rules going forward:
 - **No advertising, no endorsing.**
 - **Disclose AI-generated content.**
 - **Fact-check as a standing process, not a one-time pass.**
-- **Freshness-checked is a scheduled, mechanical process.** As of 2026-08-15, public-facing numeric claims (starting with the landing page hero fact strip) are verified on a schedule using the fact-check/freshness system described in **ADR-0009**. An unverifiable or stale claim is surfaced as an alert and must not be displayed as confirmed.
 
 This standard applies hardest to the Know Your Rights Library and any Research/Information tooling.
 
@@ -109,7 +108,7 @@ This standard applies hardest to the Know Your Rights Library and any Research/I
 
 ## 8. Open Threads to Revisit
 
-- **Content freshness pipeline** — see `docs/README.md` (staleness check + weekly report) and **ADR-0009** (fact-check/freshness system for public-facing claims).
+- **Content freshness pipeline** — see `docs/README.md` (staleness check + weekly report).
 - **Sourcing standard for Law Library content**
 - **Collaborate & Be Heard as features, not just values**
 - **Comfort-of-home shape library** — intentionally open-ended

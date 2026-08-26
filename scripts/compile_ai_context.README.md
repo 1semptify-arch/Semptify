@@ -6,7 +6,7 @@ Bundles Semptify's canonical project docs into one paste-ready `AI_HANDOFF_PACKE
 
 - Script: `scripts/compile_ai_context.py`
 - Output: `AI_HANDOFF_PACKET.md` (written to the **project root**, not `scripts/`)
-- Run from: **repo root** (`E:\master-repo\sources\app-semptify-fastapi`)
+- Run from: **repo root** (`E:\master-repo\modules\app-semptify-fastapi`)
 
 Paths inside the script are relative to the repo root. Running it from anywhere else will silently skip every file.
 
@@ -21,22 +21,20 @@ Paths inside the script are relative to the repo root. Running it from anywhere 
 ## How to run
 
 ```powershell
-## From the repo root — NOT from inside scripts/
-cd E:\master-repo\sources\app-semptify-fastapi
+# From the repo root — NOT from inside scripts/
+cd E:\master-repo\modules\app-semptify-fastapi
 python scripts/compile_ai_context.py
-```text
+```
 
 You should see one line per target doc:
 
 ```
-
   merged: Semptify_AI_Orchestration_Blueprint.md
-  SKIPPED (not found): <path>
+  merged: docs/admin/Semptify_Site_GUI_Framework.md
   merged: .devin/skills/preflight/SKILL.md
   ...
 Done. Packet written to: AI_HANDOFF_PACKET.md
-
-```text
+```
 
 ## Output
 
@@ -56,7 +54,7 @@ Defined in `TARGET_DOCS` near the top of the script. Current list:
 | Path | Status |
 | ------ | -------- |
 | `Semptify_AI_Orchestration_Blueprint.md` | merged |
-| `Semptify_Site_GUI_Framework.md` | **needs path fix** — actually lives at `DOCUMENTS/Semptify_Site_GUI_Framework.md` |
+| `docs/admin/Semptify_Site_GUI_Framework.md` | merged |
 | `.devin/skills/preflight/SKILL.md` | merged |
 | `ACTIVE_CONTEXT.md` | merged |
 | `BUILD_STATE.md` | merged |
@@ -79,11 +77,11 @@ Edit `TARGET_DOCS` in `scripts/compile_ai_context.py`:
 ```python
 TARGET_DOCS = [
     "Semptify_AI_Orchestration_Blueprint.md",
-    "DOCUMENTS/Semptify_Site_GUI_Framework.md",   # fixed path
+    "docs/admin/Semptify_Site_GUI_Framework.md",
     ".devin/skills/preflight/SKILL.md",
     "ACTIVE_CONTEXT.md",
     "BUILD_STATE.md",
-    "PROJECT_BIBLE.md",                            # new entry
+    "PROJECT_BIBLE.md",  # new entry
 ]
 ```
 
@@ -105,10 +103,10 @@ Rules for the list:
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
-| --------- | ------- | ----- |
+|---------|-------|-----|
 | Every file shows `SKIPPED` | Ran from wrong directory | `cd` to repo root, re-run |
 | One file shows `SKIPPED` but it exists | Path in `TARGET_DOCS` is stale | Find real path, update `TARGET_DOCS`, re-run |
-| `DeprecationWarning: datetime.utcnow()` | Python 3.11+ warns on this | Cosmetic only — does not affect output. If it bothers you, replace with `datetime.now(datetime.UTC)` |
+| `DeprecationWarning: datetime.utcnow()` | Python 3.11+ warns on this | Fixed in the scripts — `compile_ai_context.py` uses `utc_now()` and `compile_ai_context_gui.py` uses `datetime.now(UTC)` |
 | `NO_GIT_REPOSITORY_DETECTED` in header | Not in a git repo, or git not on PATH | Run from inside the repo, or ignore — packet still generates |
 | Packet is huge | Too many docs in `TARGET_DOCS` | Trim the list to true canonicals only |
 | Packet is stale | Source doc changed but script not re-run | Re-run the script before each handoff |

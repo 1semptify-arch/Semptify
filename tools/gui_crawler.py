@@ -8,7 +8,7 @@ import asyncio
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import aiohttp
@@ -331,7 +331,7 @@ class GUICrawler:
         print("=" * 60)
         print("Semptify GUI Crawler")
         print("=" * 60)
-        print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Started: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Base URL: {self.base_url}")
         print()
 
@@ -419,7 +419,7 @@ class GUICrawler:
 
         # Save detailed report to JSON
         report_data = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "summary": {
                 "pages_checked": r.pages_checked,
                 "links_checked": r.links_checked,
