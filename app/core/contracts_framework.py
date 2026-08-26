@@ -6,7 +6,7 @@ Purpose: Manage all legal contracts, waivers, and user agreements
 
 import logging
 from datetime import UTC, datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel
@@ -16,7 +16,7 @@ from app.core.utc import utc_now
 logger = logging.getLogger(__name__)
 
 
-class ContractType(StrEnum):
+class ContractType(str, Enum):
     """Types of contracts and agreements."""
 
     TERMS_OF_SERVICE = "terms_of_service"
@@ -31,7 +31,7 @@ class ContractType(StrEnum):
     COURT_FILING = "court_filing_agreement"
 
 
-class ContractStatus(StrEnum):
+class ContractStatus(str, Enum):
     """Status of contracts."""
 
     DRAFT = "draft"
@@ -41,7 +41,7 @@ class ContractStatus(StrEnum):
     SUSPENDED = "suspended"
 
 
-class ConsentLevel(StrEnum):
+class ConsentLevel(str, Enum):
     """Levels of user consent."""
 
     NONE = "none"
