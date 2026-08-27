@@ -57,9 +57,9 @@
     <button type="button" class="voice-btn" id="voiceBtn-{{ target }}" aria-label="Start voice input">🎤 Speak</button>
     <button type="button" class="voice-btn" id="voiceStopBtn-{{ target }}" style="display:none;" aria-label="Stop voice input">⏹ Stop</button>
     <span class="voice-status" id="voiceStatus-{{ target }}"></span>
-    <label class="voice-keep" title="Keep a copy of the audio recording in your vault as evidence">
+    <label class="voice-keep" title="Keep a copy of the audio recording in your vault as a record">
         <input type="checkbox" id="voiceKeep-{{ target }}">
-        Keep audio recording as evidence
+        Keep audio recording as a record
     </label>
 </div>
 
@@ -227,7 +227,7 @@
             if (result.success) {
                 appendText(result.transcript);
                 if (keepAudio && result.audio_vault_id) {
-                    setStatus('Transcribed and saved as evidence.');
+                    setStatus('Transcribed and saved as a record.');
                 } else if (result.audio_keep_error) {
                     setStatus('Transcribed. ' + result.audio_keep_error);
                 } else {

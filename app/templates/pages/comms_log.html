@@ -54,7 +54,7 @@
             </label>
             <label style="color:#cbd5e1; font-size:0.875rem; display:flex; align-items:center; gap:0.5rem;">
                 <input type="checkbox" id="commEvidence" style="accent-color:#3b82f6;">
-                This is evidence
+                This is a record
             </label>
             <button type="submit" class="frame-btn frame-btn--primary" style="justify-self:start;">Log contact</button>
             <div id="commStatus" style="font-size:0.8125rem; color:#94a3b8;"></div>
@@ -202,7 +202,7 @@
             title.textContent = methodLabel(method) + ' with ' + partyLabel(party);
             const subtitle = document.createElement('div');
             subtitle.className = 'frame-item--meta';
-            subtitle.textContent = fmtDate(it.date_display || it.event_date) + (it.is_evidence ? ' · Evidence' : '');
+            subtitle.textContent = fmtDate(it.date_display || it.event_date) + (it.is_evidence ? ' · Record' : '');
             main.appendChild(title);
             main.appendChild(subtitle);
             if (notes) {
