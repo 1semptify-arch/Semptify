@@ -4,11 +4,15 @@ import pytest
 
 from app.core.features import (
     DEFAULT_ENABLED,
+    ROUTE_FEATURE_MAP,
+    ROUTE_GATE_FLAGS,
     Feature,
     FeatureFlagManager,
+    RouteFeatureGateMiddleware,
     features,
     require_feature,
     require_feature_for_user,
+    route_feature_for_path,
 )
 
 
@@ -180,3 +184,68 @@ class TestRequireFeatureDecorator:
             return "ok"
 
         assert await endpoint(user_id="u1") == "ok"
+
+
+# ---------------------------------------------------------------------------
+# Route kill-switches — migrated from app/core/feature_flags.py (2026-08-26)
+# ---------------------------------------------------------------------------
+class TestRouteFeatureGate:
+    def test_route_feature_map_matches_old_prefixes(self):
+        """The old ROUTE_FLAG_MAP prefixes must all still be gated by something."""
+        expected_prefixes = {
+            "/admin",
+            "/api/copilot",
+            "/tenant/copilot",
+            "/api/voice",
+            "/api/import",
+            "/api/resources",
+            "/tenant/resources",
+        }
+        assert expected_prefixes == set(ROUTE_FEATURE_MAP.keys())
+
+    def test_route_feature_for_path_resolves_admin(self):
+        assert route_feature_for_path("/admin/dashboard") == Feature.ADMIN_ACCESS
+
+    def test_route_feature_for_path_resolves_copilot(self):
+        assert route_feature_for_path("/api/copilot/chat") == Feature.COPILOT_ROUTE
+        assert route_feature_for_path("/tenant/copilot/chat") == Feature.COPILOT_ROUTE
+
+    def test_route_feature_for_path_ungated_returns_none(self):
+        assert route_feature_for_path("/api/journal/") is None
+
+    def test_route_gate_flags_default_true(self):
+        """Route kill-switches must default to enabled, matching the old
+        in-memory feature_flags.py defaults, so migration is a no-op for
+        current behavior."""
+        for flag_name in ROUTE_GATE_FLAGS:
+            assert DEFAULT_ENABLED[flag_name] is True
+
+    @pytest.mark.anyio
+    async def test_middleware_allows_enabled_route(self):
+        middleware = RouteFeatureGateMiddleware(app=None)
+
+        request = type("R", (), {"url": type("U", (), {"path": "/api/journal/"})()})()
+
+        async def call_next(_request):
+            return "next-called"
+
+        result = await middleware.dispatch(request, call_next)
+        assert result == "next-called"
+
+    @pytest.mark.anyio
+    async def test_middleware_blocks_disabled_route(self, monkeypatch):
+        monkeypatch.setenv("FEATURE_ADMIN_ACCESS", "false")
+        features._env_loaded = False
+        features._env_overrides = {}
+
+        middleware = RouteFeatureGateMiddleware(app=None)
+        request = type("R", (), {"url": type("U", (), {"path": "/admin/dashboard"})()})()
+
+        async def call_next(_request):
+            raise AssertionError("call_next should not run when the flag is disabled")
+
+        response = await middleware.dispatch(request, call_next)
+        assert response.status_code == 503
+
+        features._env_loaded = False
+        features._env_overrides = {}

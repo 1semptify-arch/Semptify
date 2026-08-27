@@ -51,7 +51,7 @@ Any file matching these patterns: **apply automatically, no escalation needed, n
 ## How to handle a Tier C item without stopping everyone for 3 hours
 
 **Don't halt the whole session on one hard file.** Instead:
-1. Skip that file for now, note it in a running list (append to `E:\master-repo\phase_c_tier2_pending_review.md` — create if it doesn't exist).
+1. Skip that file for now, note it in a running list (append to `C:\master-repo\phase_c_tier2_pending_review.md` — create if it doesn't exist).
 2. Continue the batch with the rest of the files.
 3. Include the skipped file's summary in that pending-review doc using the same format as always: Core difference / Missing fix or different approach? / Recommendation.
 
@@ -76,7 +76,7 @@ When Claude is available again, that one file gets reviewed in a single pass —
 - One task/batch per commit, still.
 - No self-merge by any agent — Brad or Claude must say "merge," never the agent that wrote the code.
 - No `git reset --hard` on any branch without explicit confirmation first.
-- The two-folder separation stays: agent 1 in `E:\master-repo\sources\app-semptify-fastapi`, agent 2 (Alan) in `E:\master-repo\sources\app-semptify-fastapi-agent2`. Don't collapse back to one folder.
+- The two-folder separation stays: agent 1 in `C:\master-repo\sources\app-semptify-fastapi`, agent 2 (Alan) in `C:\master-repo\sources\app-semptify-fastapi-agent2`. Don't collapse back to one folder.
 - If anything looks like it could break production, or an agent is guessing rather than confident — stop and add to the pending-review doc rather than proceeding on a guess.
 
 ---
