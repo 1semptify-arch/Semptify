@@ -9,6 +9,13 @@
 
 All checks passed.
 
+### Ship
+
+- **Branch:** buildstate-guardrail-2026-08-27
+- **PR:** #131 — https://github.com/1semptify-arch/Semptify/pull/131
+- **What changed:** Added guardrail run record to BUILD_STATE.md.
+- **Next step:** Review and merge to land the record on main.
+
 ### Goal
 
 Apply Brad's copy-tone decisions from `handoffs/maintenance-p2-1-gui-ux-backlog-report.md` to public-facing templates on branch `maintenance-p2-1-copy-tone`. Replace adversarial framing, `evidence`/`proof` terminology, and non-literal urgency language with calm, plain-language alternatives while preserving internal technical identifiers and real priority mechanisms.
