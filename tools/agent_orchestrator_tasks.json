@@ -2167,5 +2167,19 @@
     "target_model": "claude",
     "title": "Design SECRET_KEY rotation / token migration strategy",
     "updated_at": "2026-08-27T23:32:57.116136+00:00"
+  },
+  {
+    "assigned_agent": null,
+    "category": "frontend",
+    "created_at": "2026-08-27T00:00:00Z",
+    "description": "Run a live end-to-end browser test of the dispute_tracker and eviction_timeline HTML pages. Verify the create/save flows actually call the real API endpoints, the desktop-poster / mobile-stacked-scroll layout renders at 375px and 1280px without clipping, and the pages have a calm Get help now CTA and no dead ends. Fix any functional, SSOT, or responsive regressions found. Report what passed and what is still pending.",
+    "file_path": "app/templates/pages/dispute_tracker.html",
+    "id": "ad-hoc-dt-et-live-verify-2026-08-27",
+    "notes": "Handoff from ACTIVE_CONTEXT.md: B2 dispute_tracker + B3 eviction_timeline greenfield build is scaffolded, but the live manual HTML page test has not been run.",
+    "priority": "high",
+    "status": "pending",
+    "target_model": "swe-1.7",
+    "title": "Live verify dispute_tracker and eviction_timeline pages",
+    "updated_at": "2026-08-27T23:55:52.163249+00:00"
   }
 ]
