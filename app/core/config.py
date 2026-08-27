@@ -37,6 +37,12 @@ def _resolve_secret_key() -> str:
     key = os.getenv("SECRET_KEY", "")
     testing = os.getenv("TESTING", "").lower() in ("true", "1", "yes", "on")
     in_memory_db = ":memory:" in os.getenv("DATABASE_URL", "")
+    enforced = os.getenv("SECURITY_MODE", "open") == "enforced"
+
+    if enforced and (not key or key == _WEAK_KEY):
+        raise ValueError(
+            "SECRET_KEY must be configured in enforced security mode."
+        )
 
     if testing or in_memory_db:
         # Stable, deterministic key for tests. Not secret — test DBs are temporary.
