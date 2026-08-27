@@ -262,13 +262,22 @@ async def _fetch_documents_async(user_id: str) -> list[dict[str, Any]]:
 
 
 async def _fetch_timeline_events_async(user_id: str) -> list[dict[str, Any]]:
-    """Async fetch of timeline events from the TimelineEvent model."""
+    """Async fetch of timeline events from TimelineEvent and EvictionTimelineEvent."""
     items: list[dict[str, Any]] = []
     try:
         from sqlalchemy import select
 
         from app.core.database import get_db_session
-        from app.models.models import TimelineEvent
+        from app.models.models import EvictionTimelineEvent, TimelineEvent
+
+        def _format_eviction_title(event_type: str) -> str:
+            return event_type.replace("_", " ").title()
+
+        def _classify_eviction(event_type: str) -> tuple[bool, bool]:
+            et = event_type.lower()
+            is_evidence = any(k in et for k in ("court", "filing", "hearing", "judgment", "notice"))
+            is_deadline = any(k in et for k in ("deadline", "due", "response", "appeal"))
+            return is_evidence, is_deadline
 
         async with get_db_session() as db:
             stmt = (
@@ -290,10 +299,47 @@ async def _fetch_timeline_events_async(user_id: str) -> list[dict[str, Any]]:
                         "timestamp_label": ts_data["timestamp_label"],
                         "icon": "•",
                         "link": "/tenant/timeline",
+                        "is_evidence": bool(getattr(event, "is_evidence", False)),
+                        "is_deadline": bool(getattr(event, "is_deadline", False)),
                         "metadata": {
                             "event_id": event.id,
                             "event_type": event.event_type,
                             "is_urgent": bool(getattr(event, "is_urgent", False)),
+                        },
+                    }
+                )
+                items.append(item)
+
+            eviction_stmt = (
+                select(EvictionTimelineEvent)
+                .where(EvictionTimelineEvent.user_id == user_id)
+                .order_by(EvictionTimelineEvent.event_date.desc())
+                .limit(50)
+            )
+            eviction_rows = (await db.execute(eviction_stmt)).scalars().all()
+            for event in eviction_rows:
+                ts_data = _format_timestamp(event.event_date or event.created_at)
+                title = _format_eviction_title(event.event_type)
+                is_evidence, is_deadline = _classify_eviction(event.event_type)
+                item = _empty_item()
+                item.update(
+                    {
+                        "type": "timeline_event",
+                        "title": title,
+                        "subtitle": (event.source or "manual").title(),
+                        "timestamp_iso": ts_data["timestamp_iso"],
+                        "timestamp_label": ts_data["timestamp_label"],
+                        "icon": "▸" if is_evidence else "•",
+                        "link": "/tenant/timeline",
+                        "is_evidence": is_evidence,
+                        "is_deadline": is_deadline,
+                        "metadata": {
+                            "event_id": event.id,
+                            "event_type": event.event_type,
+                            "source_document_id": event.source_document_id,
+                            "content_overlay_id": event.content_overlay_id,
+                            "jurisdiction": event.jurisdiction,
+                            "subject_id": event.subject_id,
                         },
                     }
                 )

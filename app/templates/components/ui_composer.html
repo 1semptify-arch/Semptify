@@ -137,6 +137,11 @@
         <time class="uic-timeline-event__time" datetime="{{ data.timestamp_iso or '' }}">
             {{ data.timestamp_label or "" }}
         </time>
+        {% if data.is_evidence or data.is_deadline %}
+        <span class="uic-timeline-event__meta">
+            {% if data.is_evidence %}▸ Evidence{% endif %}{% if data.is_evidence and data.is_deadline %} · {% endif %}{% if data.is_deadline %}◆ Deadline{% endif %}
+        </span>
+        {% endif %}
         {% if data.link %}
         <a href="{{ data.link }}" class="uic-timeline-event__link">View</a>
         {% endif %}
