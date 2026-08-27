@@ -1843,9 +1843,9 @@
     "source": "ad-hoc",
     "target_model": "swe-1.7",
     "created_at": "2026-08-24T00:00:00Z",
-    "updated_at": "2026-08-24T05:28:55.124401+00:00",
-    "notes": "Handoff from Load Profile System / memory assessment. Investigation-only; report findings before any token code changes.\n[2026-08-24 05:28 UTC - SWE-1.7-Max] Investigation complete. Root cause: key mismatch (SECRET_KEY used for encryption differs from decryption). LUtest1234 session currently decrypts with local .env secret, but GUbGQUTpK6 session fails with InvalidTag. Fresh GUtest1234 token with consistent key works. Failure is data/config-dependent, not all tokens. Recommend: stable SECRET_KEY enforcement and key-rotation migration path before production. Do not change token code without sign-off.",
-    "assigned_agent": "SWE-1.7-Max"
+    "updated_at": "2026-08-27T18:43:34.926511+00:00",
+    "notes": "Handoff from Load Profile System / memory assessment. Investigation-only; report findings before any token code changes.\n[2026-08-24 05:28 UTC - SWE-1.7-Max] Investigation complete. Root cause: key mismatch (SECRET_KEY used for encryption differs from decryption). LUtest1234 session currently decrypts with local .env secret, but GUbGQUTpK6 session fails with InvalidTag. Fresh GUtest1234 token with consistent key works. Failure is data/config-dependent, not all tokens. Recommend: stable SECRET_KEY enforcement and key-rotation migration path before production. Do not change token code without sign-off.\n[2026-08-27 18:43 UTC - claude] Reassigned from SWE-1.7-Max to Claude. SWE-1.7 subagent path deprecated (Devin CLI not authenticated).",
+    "assigned_agent": "claude"
   },
   {
     "id": "ad-hoc-kfr-arrays-2026-08-24",
@@ -2107,10 +2107,10 @@
     "priority": "high",
     "source": "ad-hoc",
     "category": "investigation",
-    "assigned_agent": "SWE-1.7-Max",
+    "assigned_agent": "claude",
     "created_at": "2026-08-25T05:05:30.497251+00:00",
-    "updated_at": "2026-08-25T05:05:30.497251+00:00",
-    "notes": "Brief delivered at docs/handoffs/handoff-feature-flags-unification.md. Awaiting Brad's decision on unification direction; implementation is explicitly out of scope until then."
+    "updated_at": "2026-08-27T18:43:35.488751+00:00",
+    "notes": "Brief delivered at docs/handoffs/handoff-feature-flags-unification.md. Awaiting Brad's decision on unification direction; implementation is explicitly out of scope until then.\n[2026-08-27 18:43 UTC - claude] Reassigned from SWE-1.7-Max to Claude. Awaiting Brad's decision; no SWE-1.7 subagent."
   },
   {
     "id": "ad-hoc-local-storage-provider-cancelled-2026-08-25",
@@ -2135,10 +2135,10 @@
     "priority": "high",
     "source": "ad-hoc",
     "category": "investigation",
-    "assigned_agent": "SWE-1.7-Max",
+    "assigned_agent": "claude",
     "created_at": "2026-08-25T05:05:30.497251+00:00",
-    "updated_at": "2026-08-25T05:05:30.497251+00:00",
-    "notes": "Brief exists at docs/handoffs/handoff-context-loop-vs-info-orchestrator.md. Status is review (awaiting Brad's decision session), not resolved."
+    "updated_at": "2026-08-27T18:43:35.881304+00:00",
+    "notes": "Brief exists at docs/handoffs/handoff-context-loop-vs-info-orchestrator.md. Status is review (awaiting Brad's decision session), not resolved.\n[2026-08-27 18:43 UTC - claude] Reassigned from SWE-1.7-Max to Claude. Awaiting Brad's decision; no SWE-1.7 subagent."
   },
   {
     "id": "todo-fca-001",
