@@ -1,3 +1,28 @@
+## Session — 2026-08-27 — .devin skill/workflow cleanup
+
+### Guardrail Engine Run — 2026-08-27T21:48:00+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Ship
+
+- **Branch:** `admin/devin-skill-migration-2026-08-27`
+- **PR:** #135 — https://github.com/1semptify-arch/Semptify/pull/135
+- **What changed:** Migrated `.devin/workflows/open-workbook.md` to `.devin/skills/open-workbook/SKILL.md`, added `.devin/skills/gui/SKILL.md`, and added `.devin/workflows/ship.md`. Excluded `test_artifacts/` (temporary GUI test output).
+- **Next step:** Review and merge PR #135.
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS
+- `python tools/guardrail_engine.py`: all checks passed
+
+---
+
 ## Session — 2026-08-27 — Public copy tone pass (maintenance-p2-1-copy-tone)
 
 ### Guardrail Engine Run — 2026-08-27T17:43:10+00:00
