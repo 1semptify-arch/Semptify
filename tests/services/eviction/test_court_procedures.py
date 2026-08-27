@@ -579,7 +579,7 @@ class TestCourtProceduresEngineGenerateMotion:
             case_number="00-CV-00-00000",
             facts={},
         )
-        assert "MotionType.REDEMPTION" in result
+        assert "redemption" in result.lower()
         assert "not found" in result
 
 

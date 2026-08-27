@@ -538,7 +538,7 @@ async def test_extract_tenant_info_from_lease(builder):
     session = AsyncMock()
     session.execute.return_value = result
 
-    tenant = await builder._extract_tenant_info(session, user)
+    tenant = await builder._extract_tenant_info(session, user, [doc])
 
     assert tenant.full_name == "Jane Doe"
     assert "123 Main Street" in tenant.address
@@ -829,11 +829,8 @@ async def test_build_case_integration(monkeypatch, fixed_now):
     user_result.scalar_one_or_none.return_value = user
     user_result.scalars.return_value.all.return_value = []
 
-    tenant_docs_result = MagicMock()
-    tenant_docs_result.scalars.return_value.all.return_value = [lease_doc]
-
     all_docs_result = MagicMock()
-    all_docs_result.scalars.return_value.all.return_value = [notice_doc, receipt_doc, photo_doc]
+    all_docs_result.scalars.return_value.all.return_value = [lease_doc, notice_doc, receipt_doc, photo_doc]
 
     timeline_result = MagicMock()
     timeline_result.scalars.return_value.all.return_value = [timeline_event]
@@ -848,7 +845,6 @@ async def test_build_case_integration(monkeypatch, fixed_now):
     mock_session.execute = AsyncMock(
         side_effect=[
             user_result,
-            tenant_docs_result,
             all_docs_result,
             timeline_result,
             calendar_result,
@@ -875,7 +871,7 @@ async def test_build_case_integration(monkeypatch, fixed_now):
     assert case.notice.notice_type == "nonpayment"
     assert case.notice.amount_claimed == 150000
     assert case.notice.court_date == datetime(2025, 12, 15, 9, 0, tzinfo=UTC)
-    assert len(case.evidence) == 3
+    assert len(case.evidence) == 4
     assert case.evidence[0].exhibit_label == "Exhibit A"
     assert len(case.timeline) == 1
     assert case.timeline[0].has_evidence is True
