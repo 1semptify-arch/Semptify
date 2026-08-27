@@ -86,7 +86,7 @@
             <div class="card">
                 <h3>📊 Stats</h3>
                 <div class="stat-row"><span>Active Clients</span><span class="stat-val" id="stat-clients">—</span></div>
-                <div class="stat-row"><span>Urgent Cases</span><span class="stat-val" id="stat-urgent">—</span></div>
+                <div class="stat-row"><span>Priority Cases</span><span class="stat-val" id="stat-urgent">—</span></div>
                 <div class="stat-row"><span>Total Events</span><span class="stat-val" id="stat-events">—</span></div>
             </div>
 
@@ -104,7 +104,7 @@
         <p>Paste what your client said and jump to intake or queue.</p>
         <textarea id="advocate-intake" placeholder="Example: Tenant received hearing notice and needs filing checklist"></textarea>
         <div class="chip-row">
-            <button class="btn btn--secondary btn--sm" type="button" data-advocate-suggest="Urgent filing deadline in 48 hours.">Urgent Filing</button>
+            <button class="btn btn--secondary btn--sm" type="button" data-advocate-suggest="Priority filing deadline in 48 hours.">Priority Filing</button>
             <button class="btn btn--secondary btn--sm" type="button" data-advocate-suggest="New tenant needs full intake.">New Tenant</button>
             <a class="btn btn--primary btn--sm" href="/advocate/intake">Open Intake</a>
             <a class="btn btn--secondary btn--sm" href="/advocate/queue">Open Queue</a>
@@ -156,7 +156,7 @@ async function loadDashboard() {
         document.getElementById('stat-urgent').textContent = urgent.length;
         queueEl.innerHTML = queueRes.queue.slice(0, 10).map(q => `
             <div class="queue-item">
-                <div class="queue-title">${q.urgent ? '<span class="badge badge-urgent">URGENT</span> ' : ''}${q.title || 'Untitled event'}</div>
+                <div class="queue-title">${q.urgent ? '<span class="badge badge-urgent">PRIORITY</span> ' : ''}${q.title || 'Untitled event'}</div>
                 <div class="queue-meta">Client: ${q.client_id.substring(0, 12)}... · ${q.created_at ? new Date(q.created_at).toLocaleDateString() : ''}</div>
             </div>
         `).join('');

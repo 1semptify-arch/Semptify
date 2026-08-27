@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Crisis Intake - Semptify{% endblock %}
-{% block description %}Quick assessment for urgent housing crisis situations{% endblock %}
+{% block description %}Quick assessment for housing crisis situations{% endblock %}
 
 {% block styles %}
 <style>
@@ -263,10 +263,10 @@
         <!-- Step 2: How urgent -->
         <div class="crisis-step" id="step-2">
             <p class="crisis-step__number">Step 2 of 5</p>
-            <h2 class="crisis-step__question">How urgent is this?</h2>
+            <h2 class="crisis-step__question">How soon do you need help?</h2>
             <div class="crisis-choices">
                 <button class="crisis-choice" onclick="selectChoice(this, 2, 'critical')"><span class="crisis-choice__label">Critical — court date within days</span></button>
-                <button class="crisis-choice" onclick="selectChoice(this, 2, 'urgent')"><span class="crisis-choice__label">Urgent — need help this week</span></button>
+                <button class="crisis-choice" onclick="selectChoice(this, 2, 'urgent')"><span class="crisis-choice__label">This week — need help within 7 days</span></button>
                 <button class="crisis-choice" onclick="selectChoice(this, 2, 'soon')"><span class="crisis-choice__label">Soon — within the next month</span></button>
                 <button class="crisis-choice" onclick="selectChoice(this, 2, 'planning')"><span class="crisis-choice__label">Planning ahead — no immediate deadline</span></button>
             </div>

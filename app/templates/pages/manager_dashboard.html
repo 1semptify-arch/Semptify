@@ -43,7 +43,7 @@
                 <div class="stat-value">{{ pending_documents|default(0) }}</div>
                 <div class="stat-label">Pending Signatures</div>
                 <div class="stat-change {% if urgent_documents > 0 %}negative{% else %}positive{% endif %}">
-                    {% if urgent_documents > 0 %}{{ urgent_documents }} urgent{% else %}All caught up{% endif %}
+                    {% if urgent_documents > 0 %}{{ urgent_documents }} priority{% else %}All caught up{% endif %}
                 </div>
             </div>
             <div class="stat-card">
