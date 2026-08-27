@@ -41,6 +41,17 @@
   Scope: after `create_app()` is called in the guardrail engine, walk `fastapi_app.routes` and flag any route whose path starts with an entry in `PUBLIC_PREFIXES` but is not in a registered module contract. This closes the gap that let `/debug/seed-test-user` become reachable without storage auth.
   Not urgent for the current handoff; do not build before CASE_DATA migration is complete.
 
+## Security architecture — future work
+
+- `[considering]` **Four-piece vault unlock scheme (Brad, 2026-08-26).** Not yet specced or implemented — recorded here so the shape isn't lost before it's ready to build.
+  Concept: opening the vault requires four pieces combining in one specific order, at one instant:
+  1. **Semptify's piece** — held server-side.
+  2. **Provider's piece** — the OAuth-level connection/grant itself, held by the storage provider (Google Drive / Dropbox / OneDrive).
+  3. **User's piece** — physically stored *inside the user's own cloud storage/vault*, but invisible to the user — they never see it, open it, or know it exists.
+  4. **The fourth piece** — holds/stores nothing on its own, exists nowhere at rest. It is a *creation event*: the instant pieces 1–3 combine correctly, it creates the actual unlock key, completes its one job, and vanishes. Nothing to capture, because it never contained anything to begin with.
+  Why it matters: no single party — not Semptify, not the provider, not the user, not any fourth store — ever holds the complete key at rest. The key exists only for an instant, in motion, when all three real pieces align. This extends the existing storage-as-identity model (see `docs/process_contracts/user_reconnect_v2.md`, `SECURITY_AND_PRIVACY_ARCHITECTURE.md`) one layer deeper: today the DB holds an encrypted OAuth token; this scheme would mean no persistent store anywhere holds a complete, usable key at all.
+  Needs before building: a real spec (exact derivation order, what piece 4's creation function actually is, key-rotation/reconnect implications given piece 3 lives inside the user's own storage, and how this interacts with the existing `_derive_key(user_id, secret_key)` / AES-256-GCM token encryption already in `app/sdk/vault/encryption.py` and `app/core/auto_refresh.py`).
+
 ## New ideas / considering
 
 - `[considering]` **Expand Information Orchestrator (ADR-0008) beyond pilot surfaces.**

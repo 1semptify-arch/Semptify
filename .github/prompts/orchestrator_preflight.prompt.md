@@ -7,11 +7,9 @@ description: Run preflight before every Agent Orchestrator task dispatch
 
 # Agent Orchestrator — Pre-task Pre-Flight
 
-Run this immediately before dispatching **any** task from the orchestrator queue. One task, one preflight.
+Run this immediately before dispatching **any** task. One task, one preflight.
 
 ## Step 1: Read mandatory context
-
-Read these files before selecting a task:
 
 1. `AGENTS.md` — Python version, Known Failure Registry, swap protocol, module contracts.
 2. `ACTIVE_CONTEXT.md` — what is being worked on right now.
@@ -24,45 +22,70 @@ Read these files before selecting a task:
 - The app compiles:
 
 ```powershell
-cd c:\Semptify\Semptify-FastAPI
 python -m py_compile app/main.py
 ```
 
-## Step 3: Open the orchestrator
+## Step 3: Open the canonical state
 
-- Standalone UI: `http://127.0.0.1:8088/agent_orchestrator.html`
-- In-app UI: `/admin/agent_orchestrator.html` (requires admin login)
-- Import `tools/agent_orchestrator_tasks.json` if the queue is empty.
+The new master-level orchestrator queue is `C:\master-repo\tools\orchestrator_state.json`. Semptify's module-level queue `tools/agent_orchestrator_tasks.json` is still in use for Semptify-only tasks that have not been migrated.
+
+Read `C:\master-repo\tools\orchestrator_state.json` first. If the task you are running is not there, fall back to `tools/agent_orchestrator_tasks.json`.
 
 ## Step 4: Pick the next task
 
-Filter by **pending** + highest priority. Prefer the target model assigned by the bridge.
+Filter by `status == open`, then highest `priority`.
+
+- `model_tier: unlimited` → SWE-1.7 / `swe-executor` work. Confirm `subagent_profile` is `swe-executor` and a `handoff_doc` exists.
+- `model_tier: claude` → judgment work for the Claude orchestrator. Do not pick this unless you are the Claude parent.
+- `model_tier: unassigned` → stop and let the orchestrator classify it first.
+
+For legacy Semptify tasks without `model_tier`, filter by `pending` and highest priority.
 
 ## Step 5: Verify the file path
 
-The bridge guessed paths. Before dispatching, confirm the file exists at the exact path. If not, fix the path in the orchestrator task row.
+Before dispatching, confirm the file exists at the exact `file_path`. If not, flag it as a path error and stop.
 
 ## Step 6: Dispatch
 
-1. Click **Copy** next to the task.
-2. Open the assigned model session (SWE-1.7, Kimi 2.7, GLM-5.2, etc.).
-3. Paste the prompt and tell the agent to work on a feature branch.
-4. Update the task status to `in_progress` and set `assigned_agent` before the agent writes any code:
+### Master-level tasks (orchestrator_state.json)
+
+For `model_tier: unlimited`, the Claude orchestrator dispatches the `swe-executor` subagent using the handoff in `C:\master-repo\handoffs\<id>.md`. If you are the subagent:
+
+1. Claim the task:
+   ```powershell
+   python C:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent swe-executor
    ```
+2. Read the `handoff_doc`.
+3. Execute the scope.
+4. Run verification.
+5. Write `C:\master-repo\handoffs\<task_id>-report.md`.
+6. Mark the task `review` with usage:
+   ```powershell
+   python C:\master-repo\tools\orchestrator_mark_task.py <task_id> review --agent swe-executor --report-doc "C:\master-repo\handoffs\<task_id>-report.md" --usage '{"wall_clock_min": X, "tool_calls": Y}'
+   ```
+   If you hit a STOP AND REPORT trigger, mark `blocked_on_decision` instead:
+   ```powershell
+   python C:\master-repo\tools\orchestrator_mark_task.py <task_id> blocked_on_decision --agent swe-executor --blocked-reason "<why>"
+   ```
+7. Do NOT mark `resolved` or `rejected`. Stop and let the orchestrator decide.
+
+### Legacy Semptify tasks (agent_orchestrator_tasks.json)
+
+1. Update the task status to `in_progress` and set `assigned_agent` before writing any code:
+   ```powershell
    python tools/mark_task_status.py <task_id> in_progress --agent <model-id>
    ```
-   Verify no other `in_progress` task already exists for the same `file_path`.
+2. Verify no other `in_progress` task already exists for the same `file_path`.
 
 ## Step 7: After the agent reports back
 
-1. Review the diff. Verify changed files compile.
-2. Update the task status:
-
+1. Review the diff. Verify changed files compile (`python -m py_compile <file>`).
+2. For master-level tasks, the orchestrator updates the state to `resolved` (with `--pr`) or `blocked_on_decision`. Unlimited agents stop at `review`.
+3. For legacy Semptify tasks, update status:
    - `resolved` if the fix is merged and verified.
-   - `review` if it needs your review first.
+   - `review` if it needs review first.
    - `rejected` if it is not safe or not fixable.
-
-3. Update `BUILD_STATE.md` if the task resulted in shipped code.
+4. Update `BUILD_STATE.md` if the task resulted in shipped code.
 
 ## Step 8: Next task
 

@@ -86,7 +86,7 @@ feel like a calm hand on the shoulder.
 
 ## Output path
 
-`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\calm_room\index.html`
+`C:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\calm_room\index.html`
 
 ## Image needs
 

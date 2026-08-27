@@ -23,7 +23,9 @@ from enum import Enum
 from functools import wraps
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 from app.core.utc import utc_now
 
@@ -63,6 +65,17 @@ class Feature(str, Enum):
     EXPERIMENTAL_UI = "experimental_ui"
     FCA_READINESS = "fca_readiness"
 
+    # Route kill-switches — migrated from the old in-memory app/core/feature_flags.py
+    # (2026-08-26 unification). These gate whole route prefixes for emergency
+    # disable, distinct from product features above. Kept as separate enum
+    # members rather than reusing AI_COPILOT, because "copilot route reachable
+    # at all" and "AI copilot feature enabled" are different concepts.
+    ADMIN_ACCESS = "admin_access"
+    COPILOT_ROUTE = "copilot"
+    VOICE_TO_TEXT = "voice_to_text"
+    COMMUNICATION_IMPORT = "communication_import"
+    RESOURCE_DIRECTORY = "resource_directory"
+
 
 # Code-level defaults — used when a flag has no DB row yet
 DEFAULT_ENABLED: dict[str, bool] = {
@@ -90,7 +103,41 @@ DEFAULT_ENABLED: dict[str, bool] = {
     Feature.EXPERIMENTAL_AI_MODEL.value: False,
     Feature.EXPERIMENTAL_UI.value: False,
     Feature.FCA_READINESS.value: False,
+    # Route kill-switches default to True (fail-open), matching the old
+    # in-memory feature_flags.py defaults exactly, so migration is a no-op
+    # for current behavior.
+    Feature.ADMIN_ACCESS.value: True,
+    Feature.COPILOT_ROUTE.value: True,
+    Feature.VOICE_TO_TEXT.value: True,
+    Feature.COMMUNICATION_IMPORT.value: True,
+    Feature.RESOURCE_DIRECTORY.value: True,
 }
+
+
+# Map URL path prefixes to the route kill-switch Feature. Add new routes here
+# as they are built. Migrated from the old ROUTE_FLAG_MAP in
+# app/core/feature_flags.py (2026-08-26 unification).
+ROUTE_FEATURE_MAP: dict[str, Feature] = {
+    "/admin": Feature.ADMIN_ACCESS,
+    "/api/copilot": Feature.COPILOT_ROUTE,
+    "/tenant/copilot": Feature.COPILOT_ROUTE,
+    "/api/voice": Feature.VOICE_TO_TEXT,
+    "/api/import": Feature.COMMUNICATION_IMPORT,
+    "/api/resources": Feature.RESOURCE_DIRECTORY,
+    "/tenant/resources": Feature.RESOURCE_DIRECTORY,
+}
+
+# String-keyed view for the /admin/api/flags endpoints, which take a plain
+# flag name in the URL rather than an enum member.
+ROUTE_GATE_FLAGS: dict[str, Feature] = {feature.value: feature for feature in ROUTE_FEATURE_MAP.values()}
+
+
+def route_feature_for_path(path: str) -> Feature | None:
+    """Return the Feature that gates a path, or None if the path is ungated."""
+    for prefix, feature in ROUTE_FEATURE_MAP.items():
+        if path.startswith(prefix):
+            return feature
+    return None
 
 
 class FeatureFlagManager:
@@ -384,6 +431,32 @@ async def ensure_schema(db: "AsyncSession") -> None:
 
 # Global feature flag manager — single instance for the process
 features = FeatureFlagManager()
+
+
+class RouteFeatureGateMiddleware(BaseHTTPMiddleware):
+    """Return 503 Service Unavailable for routes whose kill-switch Feature is disabled.
+
+    Replaces the old in-memory FeatureFlagMiddleware from app/core/feature_flags.py
+    (2026-08-26 unification). Uses the same DB-backed FeatureFlagManager as every
+    other feature check, so there is one system instead of two.
+
+    Fail-open behavior is preserved: FeatureFlagManager.is_enabled() already
+    falls back to DEFAULT_ENABLED (all True for route gates) if the DB is
+    unreachable, so a DB outage does not 503 every route.
+    """
+
+    async def dispatch(self, request: Request, call_next: Callable):
+        feature = route_feature_for_path(request.url.path)
+        if feature and not await features.is_enabled(feature):
+            logger.warning("Feature %s disabled; blocking %s", feature.value, request.url.path)
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "error": "Service temporarily disabled",
+                    "flag": feature.value,
+                },
+            )
+        return await call_next(request)
 
 
 def require_feature(feature: Feature):
