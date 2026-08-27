@@ -8,8 +8,8 @@ import os
 import subprocess
 import sys
 
-SEMPtIFY_PATH = r"E:\master-repo\sources\app-semptify-fastapi"
-BACKEND_PATH = r"E:\master-repo\sources\REPOs\backend"
+SEMPtIFY_PATH = r"C:\master-repo\sources\app-semptify-fastapi"
+BACKEND_PATH = r"C:\master-repo\sources\REPOs\backend"
 
 
 def run_command(cmd, cwd=None):
