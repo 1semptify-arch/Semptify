@@ -1,4 +1,36 @@
+## Session — 2026-08-27 — Public copy tone pass (maintenance-p2-1-copy-tone)
+
+### Goal
+
+Apply Brad's copy-tone decisions from `handoffs/maintenance-p2-1-gui-ux-backlog-report.md` to public-facing templates on branch `maintenance-p2-1-copy-tone`. Replace adversarial framing, `evidence`/`proof` terminology, and non-literal urgency language with calm, plain-language alternatives while preserving internal technical identifiers and real priority mechanisms.
+
+### What changed
+
+- Public and tenant-facing templates in `app/templates/`: adversarial wording (fight, battle, confrontation, beat) replaced; `evidence`/`proof` replaced with `document`/`record`; non-literal `Urgent`/`immediate attention` labels reframed to `Priority`/`high priority`.
+- Internal CSS classes, data attributes, form field names (`is_evidence`, `is_urgent`, `urgent_count`, etc.) and the real queue-priority description in `docs/planning/semptify_document_center_tickets.md` preserved.
+- No changes to Page Engine facade, dark-mode, color sets, production logic, Python route handlers, database schemas, or onboarding.
+
+### Verification
+
+- `python -m pytest tests/module_health -q --no-cov`: 244 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- Public page HTTP smoke test (`/`, `/portal`, `/about`, `/renters-guide`, `/advocacy`, `/legal-research`, `/complaints`, `/help`, `/law-library`): all 200, no old tone strings found in rendered HTML.
+- Tenant/auth routes require storage connection; verified by template grep and public-page smoke tests.
+
+### STOP AND REPORT flags
+
+- Law library disclaimer at `app/templates/pages/law_library.html` line 695 was edited (`a lawyer helps you fight` → `a lawyer helps you protect your rights`) because it is adversarial public copy inside an educational disclaimer. The change preserves the disclaimer's referral intent and does not alter its legal substance, but it touches UPL-sensitive text and is flagged for review.
+
 ## Session — 2026-08-26 (part 2) — Feature-flag unification + NO-TOUCH onboarding rule
+
+### Guardrail Engine Run — 2026-08-27T07:18:08+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Guardrail Engine Run — 2026-08-26T (post-unification)
 

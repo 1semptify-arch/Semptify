@@ -42,6 +42,7 @@ class TestOverlayTypeEnum:
             "SENSITIVE_REDACTION",
             "IDENTITY_ADAPTER",
             "COMMUNICATION",
+            "CASE_DATA",
             "FILEDORED",
             "DUPLICATE_DETECTION",
         }

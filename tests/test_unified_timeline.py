@@ -13,7 +13,7 @@ from app.models.models import EvictionTimelineEvent
 @pytest.mark.anyio
 async def test_eviction_timeline_in_unified_timeline(authenticated_client):
     """An EvictionTimelineEvent appears in the unified timeline with correct mapping."""
-    user_id = "GUa1b2c3d4"  # matches authenticated_client fixture
+    user_id = "GUowner123"  # matches authenticated_client fixture
     event = EvictionTimelineEvent(
         id=str(uuid4()),
         user_id=user_id,
@@ -53,7 +53,7 @@ async def test_eviction_timeline_in_unified_timeline(authenticated_client):
 @pytest.mark.anyio
 async def test_eviction_timeline_deadline_and_manual_source(authenticated_client):
     """Deadline keyword and manual source are mapped correctly."""
-    user_id = "GUa1b2c3d4"
+    user_id = "GUowner123"
     event = EvictionTimelineEvent(
         id=str(uuid4()),
         user_id=user_id,
@@ -86,7 +86,7 @@ async def test_eviction_timeline_deadline_and_manual_source(authenticated_client
 @pytest.mark.anyio
 async def test_eviction_timeline_evidence_filter(authenticated_client):
     """Evidence-only filter excludes non-eviction-keyword eviction events."""
-    user_id = "GUa1b2c3d4"
+    user_id = "GUowner123"
     evidence = EvictionTimelineEvent(
         id=str(uuid4()),
         user_id=user_id,
@@ -119,7 +119,7 @@ async def test_eviction_timeline_evidence_filter(authenticated_client):
 @pytest.mark.anyio
 async def test_tenant_timeline_renders_eviction_event(authenticated_client):
     """/tenant/timeline (UI Composer) renders an eviction-sourced event."""
-    user_id = "GUa1b2c3d4"
+    user_id = "GUowner123"
     event = EvictionTimelineEvent(
         id=str(uuid4()),
         user_id=user_id,
@@ -142,7 +142,7 @@ async def test_tenant_timeline_renders_eviction_event(authenticated_client):
 @pytest.mark.anyio
 async def test_legacy_timeline_page_loads_with_eviction_event(authenticated_client):
     """/timeline (legacy list page) loads and contains the unified timeline script."""
-    user_id = "GUa1b2c3d4"
+    user_id = "GUowner123"
     event = EvictionTimelineEvent(
         id=str(uuid4()),
         user_id=user_id,
