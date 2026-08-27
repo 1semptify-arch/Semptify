@@ -2,7 +2,7 @@
 {% block body_class %}template-1{% endblock %}
 
 {% block title %}Build My Case - Semptify{% endblock %}
-{% block description %}Organize your documents and evidence for your housing case.{% endblock %}
+{% block description %}Organize your documents and records for your housing case.{% endblock %}
 
 {% block nav %}<a href="/tenant/home">← Home</a><a href="/documents">Documents</a><a href="/timeline">Timeline</a>{% endblock %}
 
@@ -206,7 +206,7 @@
 
     <div class="header">
         <h1>Build My Case</h1>
-        <p>Select documents as evidence and add your notes to build your case summary.</p>
+        <p>Select documents and records and add your notes to build your case summary.</p>
     </div>
 
     <div class="export-panel">
@@ -269,7 +269,7 @@
         </div>
 
         <div class="evidence-panel">
-            <h2 class="panel-title">📋 Evidence Summary</h2>
+            <h2 class="panel-title">📋 Record Summary</h2>
 
             <div class="evidence-section">
                 <h3>Selected Documents</h3>
@@ -376,9 +376,9 @@ function generateSummary() {
     const arguments = document.getElementById('case-arguments').value;
     const selectedNames = documents.filter(d => selectedDocs.has(d.vault_id)).map(d => d.filename);
 
-    let summary = '<h3>Evidence Documents</h3>';
+    let summary = '<h3>Selected Documents</h3>';
     if (selectedNames.length === 0) {
-        summary += '<p>No documents selected as evidence.</p>';
+        summary += '<p>No documents selected.</p>';
     } else {
         summary += '<ul>' + selectedNames.map(name => `<li>${name}</li>`).join('') + '</ul>';
     }

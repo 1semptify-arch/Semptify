@@ -314,7 +314,8 @@ function formatDate(iso) {
 
 function severityBadge(sev) {
     const cls = (sev === 'high' || sev === 'urgent' || sev === 'critical') ? 'sev-high' : 'sev-normal';
-    return `<span class="timeline-item-sev ${cls}">${sev || 'normal'}</span>`;
+    const label = { urgent: 'high priority', high: 'high', critical: 'critical', normal: 'normal' }[sev] || (sev || 'normal');
+    return `<span class="timeline-item-sev ${cls}">${label}</span>`;
 }
 
 async function loadClientDetail() {
