@@ -1838,13 +1838,13 @@
     "title": "Investigate OAuth refresh-token decryption failure for LUtest***",
     "description": "Investigate only; do not change token code. Determine whether the LUtest*** decrypt failure is isolated or systemic, find the real exception and call site, check Render/local key divergence, and identify blast radius of storage-as-identity flows that depend on refresh-token decryption.",
     "file_path": "app/core/oauth_token_manager.py",
-    "status": "review",
+    "status": "resolved",
     "priority": "high",
     "source": "ad-hoc",
     "target_model": "swe-1.7",
     "created_at": "2026-08-24T00:00:00Z",
-    "updated_at": "2026-08-27T18:43:34.926511+00:00",
-    "notes": "Handoff from Load Profile System / memory assessment. Investigation-only; report findings before any token code changes.\n[2026-08-24 05:28 UTC - SWE-1.7-Max] Investigation complete. Root cause: key mismatch (SECRET_KEY used for encryption differs from decryption). LUtest1234 session currently decrypts with local .env secret, but GUbGQUTpK6 session fails with InvalidTag. Fresh GUtest1234 token with consistent key works. Failure is data/config-dependent, not all tokens. Recommend: stable SECRET_KEY enforcement and key-rotation migration path before production. Do not change token code without sign-off.\n[2026-08-27 18:43 UTC - claude] Reassigned from SWE-1.7-Max to Claude. SWE-1.7 subagent path deprecated (Devin CLI not authenticated).",
+    "updated_at": "2026-08-27T23:32:48.670868+00:00",
+    "notes": "Handoff from Load Profile System / memory assessment. Investigation-only; report findings before any token code changes.\n[2026-08-24 05:28 UTC - SWE-1.7-Max] Investigation complete. Root cause: key mismatch (SECRET_KEY used for encryption differs from decryption). LUtest1234 session currently decrypts with local .env secret, but GUbGQUTpK6 session fails with InvalidTag. Fresh GUtest1234 token with consistent key works. Failure is data/config-dependent, not all tokens. Recommend: stable SECRET_KEY enforcement and key-rotation migration path before production. Do not change token code without sign-off.\n[2026-08-27 18:43 UTC - claude] Reassigned from SWE-1.7-Max to Claude. SWE-1.7 subagent path deprecated (Devin CLI not authenticated).\n[2026-08-27 23:32 UTC - claude] Resolved. Decrypt/reconnect fix verified live and does not depend on local-provider code (which has since been removed). Remaining open item (SECRET_KEY rotation strategy) split into new task \u2014 see ad-hoc-secretkey-rotation-2026-08-27.",
     "assigned_agent": "claude"
   },
   {
@@ -2153,5 +2153,19 @@
     "created_at": "2026-08-26T05:00:00+00:00",
     "updated_at": "2026-08-26T07:00:00+00:00",
     "notes": "Implemented: feature flag, guard, checklist, PDF/ZIP export, UI, migration, contracts, tests. Guardrails pass."
+  },
+  {
+    "assigned_agent": "claude",
+    "category": "investigate",
+    "created_at": "2026-08-27T00:00:00Z",
+    "description": "Investigate only; do not change token code yet. Currently, if SECRET_KEY ever changes, every existing stored OAuth refresh token becomes permanently undecryptable (InvalidTag), forcing all affected users through /storage/reconnect. Determine: (1) whether a versioned-key scheme (e.g. storing which key version encrypted each token, retaining prior keys for a grace period) is feasible without adding local storage or new persistent secrets tiers; (2) what the reconnect blast radius looks like today if SECRET_KEY were rotated right now; (3) a recommended rotation procedure (e.g. staged re-encryption on next successful token refresh) that keeps the storage-as-identity model intact and requires no action from tenants unless their token is already stale. Report findings and a recommended approach before any implementation.",
+    "file_path": "app/core/config.py",
+    "id": "ad-hoc-secretkey-rotation-2026-08-27",
+    "notes": "Handoff from ad-hoc-oauth-lutest-2026-08-24 (OAuth refresh-token decryption investigation). This is the deferred, unresolved item from that task \u2014 investigation-only, sign-off required before touching token code.",
+    "priority": "high",
+    "status": "review",
+    "target_model": "claude",
+    "title": "Design SECRET_KEY rotation / token migration strategy",
+    "updated_at": "2026-08-27T23:32:57.116136+00:00"
   }
 ]
