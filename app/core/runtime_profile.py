@@ -113,17 +113,17 @@ _PROFILES: dict[str, LoadProfile] = {
     "render_mvp": LoadProfile(
         name="render_mvp",
         description=(
-            "Current Render-tuned production behavior — unchanged by this "
-            "task. All infrastructure services on (already memory-capped: "
-            "bounded deques, no psutil.net_connections()). Per the "
-            "2026-08-16 measurement in BUILD_STATE.md, these services add "
-            "only ~3.6MB in the full app context, so this profile mirrors "
-            "today's default (ENABLE_HEAVY_SERVICES=true) exactly."
+            "Current Render-tuned production behavior. All infrastructure "
+            "services on except the embedding model, which is loaded on first "
+            "request. Preloading all-MiniLM-L6-v2 at startup adds 25-100 MB "
+            "of RAM on top of an already-capped free-tier container, so it "
+            "is now warmed lazily while the retrieval code still caches it "
+            "as a singleton after the first use."
         ),
         positronic_brain=True,
         module_hub=True,
         mesh_network=True,
-        embedding_model=True,
+        embedding_model=False,
         performance_monitoring=True,
     ),
     "full": LoadProfile(
