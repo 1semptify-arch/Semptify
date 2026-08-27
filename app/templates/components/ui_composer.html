@@ -139,7 +139,7 @@
         </time>
         {% if data.is_evidence or data.is_deadline %}
         <span class="uic-timeline-event__meta">
-            {% if data.is_evidence %}▸ Evidence{% endif %}{% if data.is_evidence and data.is_deadline %} · {% endif %}{% if data.is_deadline %}◆ Deadline{% endif %}
+            {% if data.is_evidence %}▸ Record{% endif %}{% if data.is_evidence and data.is_deadline %} · {% endif %}{% if data.is_deadline %}◆ Deadline{% endif %}
         </span>
         {% endif %}
         {% if data.link %}
@@ -285,7 +285,7 @@
 
         <label class="uic-add-record-modal__field uic-add-record-modal__checkbox">
             <input type="checkbox" name="is_urgent" value="true" />
-            <span>Mark as urgent</span>
+            <span>Mark as high priority</span>
         </label>
 
         <div class="uic-add-record-modal__actions">
