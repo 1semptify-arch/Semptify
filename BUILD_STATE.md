@@ -1,5 +1,14 @@
 ## Session — 2026-08-27 — Public copy tone pass (maintenance-p2-1-copy-tone)
 
+### Guardrail Engine Run — 2026-08-27T17:43:10+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Goal
 
 Apply Brad's copy-tone decisions from `handoffs/maintenance-p2-1-gui-ux-backlog-report.md` to public-facing templates on branch `maintenance-p2-1-copy-tone`. Replace adversarial framing, `evidence`/`proof` terminology, and non-literal urgency language with calm, plain-language alternatives while preserving internal technical identifiers and real priority mechanisms.
