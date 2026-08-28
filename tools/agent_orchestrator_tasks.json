@@ -2103,14 +2103,14 @@
     "title": "Feature-flag unification investigation",
     "description": "Investigate the two independent feature-flag systems (in-memory app/core/feature_flags.py and DB-backed app/core/features.py) and produce a scoping brief for Brad's decision.",
     "file_path": "docs/handoffs/handoff-feature-flags-unification.md",
-    "status": "review",
+    "status": "resolved",
     "priority": "high",
     "source": "ad-hoc",
     "category": "investigation",
     "assigned_agent": "claude",
     "created_at": "2026-08-25T05:05:30.497251+00:00",
-    "updated_at": "2026-08-27T18:43:35.488751+00:00",
-    "notes": "Brief delivered at docs/handoffs/handoff-feature-flags-unification.md. Awaiting Brad's decision on unification direction; implementation is explicitly out of scope until then.\n[2026-08-27 18:43 UTC - claude] Reassigned from SWE-1.7-Max to Claude. Awaiting Brad's decision; no SWE-1.7 subagent."
+    "updated_at": "2026-08-28T02:29:04.313311+00:00",
+    "notes": "Brief delivered at docs/handoffs/handoff-feature-flags-unification.md. Awaiting Brad's decision on unification direction; implementation is explicitly out of scope until then.\n[2026-08-27 18:43 UTC - claude] Reassigned from SWE-1.7-Max to Claude. Awaiting Brad's decision; no SWE-1.7 subagent.\n[2026-08-28 - claude] User confirmed merged. Marking resolved."
   },
   {
     "id": "ad-hoc-local-storage-provider-cancelled-2026-08-25",
@@ -2131,14 +2131,14 @@
     "title": "Context Loop vs. Information Orchestrator scoping brief",
     "description": "Produce and deliver the read-only scoping brief on the two context systems. No implementation or final recommendation until Brad decides.",
     "file_path": "docs/handoffs/handoff-context-loop-vs-info-orchestrator.md",
-    "status": "review",
+    "status": "resolved",
     "priority": "high",
     "source": "ad-hoc",
     "category": "investigation",
     "assigned_agent": "claude",
     "created_at": "2026-08-25T05:05:30.497251+00:00",
-    "updated_at": "2026-08-27T18:43:35.881304+00:00",
-    "notes": "Brief exists at docs/handoffs/handoff-context-loop-vs-info-orchestrator.md. Status is review (awaiting Brad's decision session), not resolved.\n[2026-08-27 18:43 UTC - claude] Reassigned from SWE-1.7-Max to Claude. Awaiting Brad's decision; no SWE-1.7 subagent."
+    "updated_at": "2026-08-28T02:29:04.313311+00:00",
+    "notes": "Brief exists at docs/handoffs/handoff-context-loop-vs-info-orchestrator.md. Status is review (awaiting Brad's decision session), not resolved.\n[2026-08-27 18:43 UTC - claude] Reassigned from SWE-1.7-Max to Claude. Awaiting Brad's decision; no SWE-1.7 subagent.\n[2026-08-28 - claude] User confirmed merged. Marking resolved."
   },
   {
     "id": "todo-fca-001",
@@ -2175,11 +2175,12 @@
     "description": "Run a live end-to-end browser test of the dispute_tracker and eviction_timeline HTML pages. Verify the create/save flows actually call the real API endpoints, the desktop-poster / mobile-stacked-scroll layout renders at 375px and 1280px without clipping, and the pages have a calm Get help now CTA and no dead ends. Fix any functional, SSOT, or responsive regressions found. Report what passed and what is still pending.",
     "file_path": "app/templates/pages/dispute_tracker.html",
     "id": "ad-hoc-dt-et-live-verify-2026-08-27",
-    "notes": "Handoff from ACTIVE_CONTEXT.md: B2 dispute_tracker + B3 eviction_timeline greenfield build is scaffolded, but the live manual HTML page test has not been run.",
+    "notes": "Handoff from ACTIVE_CONTEXT.md: B2 dispute_tracker + B3 eviction_timeline greenfield build is scaffolded, but the live manual HTML page test has not been run.\n[2026-08-28 - claude] PR #137 confirmed merged via gh CLI at 2026-08-28T00:36:44Z. Marking resolved.",
     "priority": "high",
-    "status": "pending",
+    "status": "resolved",
     "target_model": "swe-1.7",
     "title": "Live verify dispute_tracker and eviction_timeline pages",
-    "updated_at": "2026-08-27T23:55:52.163249+00:00"
+    "updated_at": "2026-08-28T02:29:04.313311+00:00",
+    "pr": "https://github.com/1semptify-arch/Semptify/pull/137"
   }
 ]
