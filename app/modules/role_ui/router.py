@@ -613,9 +613,9 @@ async def module_tool_page(
         raise HTTPException(status_code=404, detail=f"Module '{module_name}' not found")
 
     return _templates.TemplateResponse(
+        request,
         "pages/module_page.html",
         {
-            "request": request,
             "contract": contract,
             "user": user,
         },

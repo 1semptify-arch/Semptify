@@ -59,9 +59,9 @@ async def eviction_timeline_page(
     events = result.scalars().all()
 
     return templates.TemplateResponse(
+        request,
         "pages/eviction_timeline.html",
         {
-            "request": request,
             "events": events,
             "user": user,
         },
