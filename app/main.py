@@ -139,8 +139,8 @@ def register_stateless_routes(app: FastAPI):
         from app.modules.context_engine.cache import get_verified_landing_facts
 
         landing_facts = await get_verified_landing_facts()
-        ctx = {"request": request, "year": utc_now().year, "landing_facts": landing_facts}
-        return templates.TemplateResponse("index.html", ctx)
+        ctx = {"year": utc_now().year, "landing_facts": landing_facts}
+        return templates.TemplateResponse(request, "index.html", ctx)
 
     @app.get("/api/landing/facts", include_in_schema=False)
     async def landing_facts_api():
