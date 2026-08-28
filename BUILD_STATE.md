@@ -1,3 +1,37 @@
+## Session — 2026-08-28 — live verify dispute_tracker and eviction_timeline
+
+### Task
+
+- **Task ID:** `ad-hoc-dt-et-live-verify-2026-08-27`
+- **Scope:** End-to-end browser verification of `/api/dispute-tracker/` and `/api/eviction-timeline/`, including POST flows, 375px/1280px layouts, SSOT routing, console errors, and regression fixes.
+
+### Findings and fixes
+
+- Both pages were raising `TypeError: unhashable type: 'dict'` at render because `Jinja2Templates.TemplateResponse` was being called with the deprecated `(name, context)` signature. Updated to the current `(request, name, context)` signature.
+- Form `action` attributes in the two page templates were hardcoded paths. Replaced them with `url_for(...)` so the POST targets stay consistent with SSOT routing.
+- The same `TemplateResponse` regression existed in `app/main.py` (landing page `index.html`) and `app/modules/role_ui/router.py`; both were corrected.
+- Live verification completed against the running app in `SECURITY_MODE=open`:
+  - `/api/dispute-tracker/` loads and renders at 1280px and 375px.
+  - Dispute creation form saves and the new dispute appears in the list.
+  - Comparison creation form saves and the new comparison appears in the list.
+  - `/api/eviction-timeline/` loads and renders at 1280px and 375px.
+  - Eviction timeline event creation form saves and the new event appears in the list.
+  - Browser console shows only the pre-existing unrelated 404 for `/api/location/current`.
+
+### Ship
+
+- **Branch:** `fix/template-response-and-ssot-form-actions`
+- **PR:** #137 — https://github.com/1semptify-arch/Semptify/pull/137
+- **What changed:** `app/main.py`, `app/modules/dispute_tracker/router.py`, `app/modules/eviction_timeline/router.py`, `app/modules/role_ui/router.py`, `app/templates/pages/dispute_tracker.html`, `app/templates/pages/eviction_timeline.html`.
+- **Next step:** Review and merge PR #137; then run the live verification again in `enforced` mode if possible.
+
+### Verification
+
+- `python -m py_compile app/main.py app/modules/dispute_tracker/router.py app/modules/eviction_timeline/router.py app/modules/role_ui/router.py`: PASS
+- Playwright / MCP live verification: PASS
+
+---
+
 ## Session — 2026-08-27 — .devin skill/workflow cleanup
 
 ### Guardrail Engine Run — 2026-08-27T21:48:00+00:00
