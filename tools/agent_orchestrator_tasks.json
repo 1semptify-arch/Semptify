@@ -2255,45 +2255,45 @@
     "updated_at": "2026-08-29T10:21:00.000000+00:00"
   },
   {
-    "assigned_agent": null,
+    "assigned_agent": "claude",
     "category": "architecture",
     "created_at": "2026-08-29T00:00:00Z",
     "description": "Prepare a decision brief (do NOT decide unilaterally \u2014 this is an architecture decision reserved for Brad) on the context_loop dual-implementation. Lay out: what each implementation does, why both currently exist, the tradeoffs of keeping one vs the other vs both, and a clear recommendation. Format so Brad can respond with one word or a tap, not an open-ended question. Output to handoffs/context-loop-decision-brief-2026-08-29-report.md.",
     "file_path": "handoffs/",
     "id": "context-loop-decision-brief-2026-08-29",
-    "notes": "",
+    "notes": "[2026-08-29 10:18 UTC - claude] Brief written to handoffs/context-loop-decision-brief-2026-08-29-report.md. Recommends Option A (keep module copy, retire service copy). Brad decision needed: A/B/C.",
     "priority": "medium",
-    "status": "open",
+    "status": "review",
     "target_model": "swe-1.7",
     "title": "Prepare context_loop decision brief for Brad",
-    "updated_at": "2026-08-29T00:00:00Z"
+    "updated_at": "2026-08-29T10:18:05.786591+00:00"
   },
   {
-    "assigned_agent": null,
+    "assigned_agent": "claude",
     "category": "architecture",
     "created_at": "2026-08-29T00:00:00Z",
     "description": "The adr-0008-pilot branch is 79 commits ahead of main but effectively stale. Investigate what's still valuable in it (if anything) vs. what's already superseded elsewhere. Prepare a recommendation brief: cherry-pick specific commits, or formally close/delete the branch outright. Do NOT delete or merge the branch \u2014 this is Brad's call. Format so Brad can respond with one word or a tap. Output to handoffs/adr-0008-pilot-fate-brief-2026-08-29-report.md.",
     "file_path": "handoffs/",
     "id": "adr-0008-pilot-fate-brief-2026-08-29",
-    "notes": "",
+    "notes": "[2026-08-29 10:19 UTC - claude] Brief written to handoffs/adr-0008-pilot-fate-brief-2026-08-29-report.md. Recommends Option A (delete the branch). Brad decision needed: A/B/C.",
     "priority": "medium",
-    "status": "open",
+    "status": "review",
     "target_model": "swe-1.7",
     "title": "Prepare adr-0008-pilot branch fate recommendation for Brad",
-    "updated_at": "2026-08-29T00:00:00Z"
+    "updated_at": "2026-08-29T10:19:40.980582+00:00"
   },
   {
-    "assigned_agent": null,
+    "assigned_agent": "claude",
     "category": "bugfix",
     "created_at": "2026-08-29T00:00:00Z",
     "description": "State-law metadata is stale: tracked docs say '43/49' complete but actual current state is 11 complete / 38 stub. Find every doc/dashboard referencing the old count (INVENTORY.md, MAINTENANCE_TASKLIST.md, any dashboard HTML, README badges, etc.) and correct them to the real 11/38 figures. Mechanical fix, no judgment call needed.",
     "file_path": "docs/",
     "id": "state-law-count-fix-2026-08-29",
-    "notes": "",
+    "notes": "[2026-08-29 10:21 UTC - claude] Updated static/data/state-laws.json metadata (11 complete, 38 stub, 2026-08-29), product_manifest.py dev_notes, master MAINTENANCE_TASKLIST.md, and master orchestrator_state.json. BUILD_STATE.md/AI_HANDOFF_PACKET.md historical session entries left unchanged because they are session logs.",
     "priority": "low",
-    "status": "open",
+    "status": "review",
     "target_model": "swe-1.7",
     "title": "Fix stale state-law completion count in tracked docs",
-    "updated_at": "2026-08-29T00:00:00Z"
+    "updated_at": "2026-08-29T10:21:31.549676+00:00"
   }
 ]
