@@ -3225,6 +3225,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """Serve the Library â€” legal resources and guides."""
         return templates.TemplateResponse(request, "pages/library.html")
 
+    @fastapi_app.get("/law-library", response_class=HTMLResponse)
+    async def law_library_page(request: Request):
+        """Serve the public Law Library."""
+        return templates.TemplateResponse(request, "pages/law_library.html")
+
     @fastapi_app.get("/tools", response_class=HTMLResponse)
     async def tools_page(request: Request):
         """Serve Tools â€” document generators and case utilities."""
