@@ -1,3 +1,34 @@
+## Session — 2026-08-29 — public-page audit non-blocking observations
+
+### Task
+
+- **Task ID:** `public-page-audit-fixes-2026-08-28`
+- **Scope:** Fix two non-blocking observations from `handoffs/public-page-accessibility-audit-2026-08-28-report.md`: add an explicit `/law-library` route handler, and remove `/home` from `SmartCheckpointMiddleware.PROTECTED_PREFIXES` so it does not break public access if the checkpoint is ever re-enabled.
+
+### Findings and fixes
+
+- `/law-library` was listed in `PUBLIC_PATHS` and used as a redirect target, but had no explicit route handler. Added `@fastapi_app.get("/law-library")` in `app/main.py` to serve `pages/law_library.html`.
+- `/home` was in both `StorageRequirementMiddleware.PUBLIC_PATHS` and `SmartCheckpointMiddleware.PROTECTED_PREFIXES`. Removed it from `PROTECTED_PREFIXES` in `app/core/checkpoint_middleware.py`.
+
+### Ship
+
+- **Branch:** `fix/public-page-audit-fixes-2026-08-28`
+- **What changed:** `app/main.py`, `app/core/checkpoint_middleware.py`
+- **Next step:** Review and merge if the branch is pushed.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/checkpoint_middleware.py`: PASS
+- `pytest tests/module_health -q --no-cov`: 244 passed
+- **Guardrail Engine Run — 2026-08-29T10:05:52+00:00**:
+  - **contract_route_check**: PASS
+  - **fees_policy_check**: PASS
+  - **manifest_sync_check**: PASS
+  - **stub_check**: PASS
+  - All checks passed.
+
+---
+
 ## Session — 2026-08-28 — live verify dispute_tracker and eviction_timeline
 
 ### Task

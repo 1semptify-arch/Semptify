@@ -2161,12 +2161,12 @@
     "description": "Investigate only; do not change token code yet. Currently, if SECRET_KEY ever changes, every existing stored OAuth refresh token becomes permanently undecryptable (InvalidTag), forcing all affected users through /storage/reconnect. Determine: (1) whether a versioned-key scheme (e.g. storing which key version encrypted each token, retaining prior keys for a grace period) is feasible without adding local storage or new persistent secrets tiers; (2) what the reconnect blast radius looks like today if SECRET_KEY were rotated right now; (3) a recommended rotation procedure (e.g. staged re-encryption on next successful token refresh) that keeps the storage-as-identity model intact and requires no action from tenants unless their token is already stale. Report findings and a recommended approach before any implementation.",
     "file_path": "app/core/config.py",
     "id": "ad-hoc-secretkey-rotation-2026-08-27",
-    "notes": "Handoff from ad-hoc-oauth-lutest-2026-08-24 (OAuth refresh-token decryption investigation). This is the deferred, unresolved item from that task \u2014 investigation-only, sign-off required before touching token code.",
+    "notes": "Handoff from ad-hoc-oauth-lutest-2026-08-24 (OAuth refresh-token decryption investigation). This is the deferred, unresolved item from that task \u2014 investigation-only, sign-off required before touching token code.\n[2026-08-29 06:16 UTC] Reviewed against current code. Versioned-key rotation design is feasible and complete for its scope: add sessions.key_version, SECRET_KEY_HISTORY, lazy re-encryption on next provider refresh, grace period. Open questions need Brad's sign-off before any token-code implementation. Note: duplicate _derive_key in app/modules/storage/router.py must be included or unified, and app/sdk/vault/encryption.py uses a separate ':token:' derivation not covered by this scheme. Handoff: C:\\master-repo\\handoffs\\ad-hoc-secretkey-rotation-2026-08-27-report.md.",
     "priority": "high",
-    "status": "review",
+    "status": "resolved",
     "target_model": "claude",
     "title": "Design SECRET_KEY rotation / token migration strategy",
-    "updated_at": "2026-08-27T23:32:57.116136+00:00"
+    "updated_at": "2026-08-29T06:16:39.653512+00:00"
   },
   {
     "assigned_agent": null,
@@ -2182,5 +2182,62 @@
     "title": "Live verify dispute_tracker and eviction_timeline pages",
     "updated_at": "2026-08-28T02:29:04.313311+00:00",
     "pr": "https://github.com/1semptify-arch/Semptify/pull/137"
+  },
+  {
+    "assigned_agent": "claude",
+    "category": "research",
+    "created_at": "2026-08-28T00:00:00Z",
+    "description": "Draft a full technical design spec for the client-side plugin architecture using these LOCKED decisions from handoffs/plugin-architecture-tasklist-2026-08-28.md: (1) packaging: plan for all three candidates D (browser extension), E (desktop app), F (local script) \u2014 no priority order; (2) token scope: scoped per-endpoint tokens only, never full tenant access; (3) document access: zero-transfer model \u2014 Core NEVER touches document bytes, plugin connects directly to tenant's own cloud storage (Drive/iCloud) using existing storage-as-identity OAuth, Core's only role is identity/permission confirmation. Read handoffs/plugin-architecture-clientside-research-2026-08-28-report.md and handoffs/plugin-architecture-tasklist-2026-08-28.md for full context. Output: a design spec covering token issuance flow, plugin manifest format, and how each of D/E/F authenticates. This is still PLANNING \u2014 do not write implementation code.",
+    "file_path": "handoffs/",
+    "id": "plugin-arch-design-spec-2026-08-28",
+    "notes": "Reassigned from glm-5.2 to swe-1.7 2026-08-28: task includes token issuance/auth flow design, which is security-sensitive. Per Brad: GLM 5.2 is restricted to non-security work only.\n[2026-08-29 06:26 UTC - claude] Design spec complete and written to C:\\master-repo\\handoffs\\plugin-architecture-design-spec-2026-08-28-report.md. Follows locked decisions: D/E/F packaging, per-endpoint scoped tokens, zero-transfer document access. Open decisions not resolved: directory location and reference-plugin-vs-API-first.",
+    "priority": "high",
+    "status": "review",
+    "target_model": "swe-1.7",
+    "title": "Draft technical design spec: zero-transfer client-side plugin architecture",
+    "updated_at": "2026-08-29T06:26:25.017256+00:00"
+  },
+  {
+    "assigned_agent": "claude",
+    "category": "investigate",
+    "created_at": "2026-08-28T00:00:00Z",
+    "description": "Propose (do NOT create) a repo name and initial structure for the plugin architecture prototype, separate from master-repo per Brad's decision to isolate this from the open ADR-0008 merge reconciliation. Suggest naming under GitHub org 1semptify-arch, matching the PMAS decoupling pattern (see AGENTS.md/memory for precedent). Stop after proposing \u2014 wait for Brad's explicit go-ahead before running any git/gh repo-creation commands.",
+    "file_path": "N/A - new repo proposal",
+    "id": "plugin-arch-repo-proposal-2026-08-28",
+    "notes": "[2026-08-29 09:59 UTC - claude] Repo name and initial structure proposal written to C:\\master-repo\\handoffs\\plugin-arch-repo-proposal-2026-08-28-report.md. Proposes Semptify-Plugins (or alternatives) under 1semptify-arch, decoupled from Semptify, with mock_core/ + browser_extension/ + desktop_app/ + local_script/ + plugin_api_spec/. No repo created; awaiting Brad's go-ahead.",
+    "priority": "medium",
+    "status": "review",
+    "target_model": "swe-1.7",
+    "title": "Propose separate prototype repo for plugin architecture",
+    "updated_at": "2026-08-29T09:59:51.761115+00:00"
+  },
+  {
+    "assigned_agent": "claude",
+    "category": "bugfix",
+    "created_at": "2026-08-28T00:00:00Z",
+    "description": "Fix two non-blocking observations from handoffs/public-page-accessibility-audit-2026-08-28-report.md: (1) /law-library is in PUBLIC_PATHS but has no explicit route handler \u2014 may 404, add the missing handler; (2) /home is listed in both PUBLIC_PATHS and the checkpoint's PROTECTED_PREFIXES \u2014 harmless while checkpoint is disabled but should be cleaned up so it doesn't silently break access if the checkpoint is ever re-enabled. Mechanical fix, low risk.",
+    "file_path": "app/core/",
+    "id": "public-page-audit-fixes-2026-08-28",
+    "notes": "[2026-08-29 10:07 UTC - claude] Fixed: added /law-library route in app/main.py, removed /home from SmartCheckpointMiddleware.PROTECTED_PREFIXES. Verification: py_compile PASS, pytest tests/module_health 244 passed, guardrail engine all checks PASS.",
+    "priority": "low",
+    "status": "resolved",
+    "target_model": "swe-1.7",
+    "title": "Fix public-page audit non-blocking observations",
+    "updated_at": "2026-08-29T10:07:24.776943+00:00"
+  },
+  {
+    "assigned_agent": null,
+    "category": "architecture",
+    "created_at": "2026-08-28T00:00:00Z",
+    "blocked_reason": "Need Brad's decision on: (1) plugin directory location \u2014 same domain (semptify.org/plugins) vs separate domain; (2) build a reference plugin first vs publish the API spec first for third-party development. See handoffs/plugin-architecture-clientside-research-2026-08-28-report.md decision points 3 and 5.",
+    "description": "Two remaining decision points from the client-side plugin research report need Brad's sign-off before the design spec (plugin-arch-design-spec-2026-08-28) can be finalized.",
+    "file_path": "handoffs/plugin-architecture-clientside-research-2026-08-28-report.md",
+    "id": "plugin-arch-remaining-decisions-2026-08-28",
+    "notes": "",
+    "priority": "medium",
+    "status": "blocked_on_decision",
+    "target_model": "claude",
+    "title": "Remaining plugin-architecture decisions needing Brad",
+    "updated_at": "2026-08-28T00:00:00Z"
   }
 ]
