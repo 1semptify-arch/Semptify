@@ -2239,5 +2239,61 @@
     "target_model": "claude",
     "title": "Remaining plugin-architecture decisions needing Brad",
     "updated_at": "2026-08-28T00:00:00Z"
+  },
+  {
+    "assigned_agent": "claude",
+    "category": "maintenance",
+    "created_at": "2026-08-29T00:00:00Z",
+    "description": "Working tree is not clean per full-repo-status-audit-2026-08-29-report.md: submodule is 7 commits ahead of master-repo's index, active branch is 1 commit ahead of main, and there are uncommitted changes to ironbee-devtools-use.mdc, BACKLOG.md, and the tracker, plus an untracked test_artifacts/ directory. For each: (1) review the actual diff/content, (2) describe in plain terms what it is and whether it looks intentional/safe, (3) commit only what's clearly safe and expected, (4) if anything looks unclear or risky, do NOT commit it \u2014 report it and set status to blocked_on_decision instead. Do not push to main. One commit per logical change, per standing rules.",
+    "file_path": "C:\\master-repo",
+    "id": "working-tree-cleanup-2026-08-29",
+    "notes": "Removed untracked test_artifacts/ and added it to .gitignore. Committed safe state updates (BACKLOG, tracker). Did NOT commit the uncommitted .cursor/rules/ironbee-devtools-use.mdc diff (it reverts the committed Node/Backend platform sections to OFF and needs a product/tooling decision) or update the master-repo submodule pointer because the submodule worktree is still dirty. Needs Brad's decision before proceeding.",
+    "priority": "high",
+    "status": "blocked_on_decision",
+    "target_model": "swe-1.7",
+    "title": "Clean up working tree (submodule sync, uncommitted changes, untracked files)",
+    "updated_at": "2026-08-29T10:21:00.000000+00:00"
+  },
+  {
+    "assigned_agent": null,
+    "category": "architecture",
+    "created_at": "2026-08-29T00:00:00Z",
+    "description": "Prepare a decision brief (do NOT decide unilaterally \u2014 this is an architecture decision reserved for Brad) on the context_loop dual-implementation. Lay out: what each implementation does, why both currently exist, the tradeoffs of keeping one vs the other vs both, and a clear recommendation. Format so Brad can respond with one word or a tap, not an open-ended question. Output to handoffs/context-loop-decision-brief-2026-08-29-report.md.",
+    "file_path": "handoffs/",
+    "id": "context-loop-decision-brief-2026-08-29",
+    "notes": "",
+    "priority": "medium",
+    "status": "open",
+    "target_model": "swe-1.7",
+    "title": "Prepare context_loop decision brief for Brad",
+    "updated_at": "2026-08-29T00:00:00Z"
+  },
+  {
+    "assigned_agent": null,
+    "category": "architecture",
+    "created_at": "2026-08-29T00:00:00Z",
+    "description": "The adr-0008-pilot branch is 79 commits ahead of main but effectively stale. Investigate what's still valuable in it (if anything) vs. what's already superseded elsewhere. Prepare a recommendation brief: cherry-pick specific commits, or formally close/delete the branch outright. Do NOT delete or merge the branch \u2014 this is Brad's call. Format so Brad can respond with one word or a tap. Output to handoffs/adr-0008-pilot-fate-brief-2026-08-29-report.md.",
+    "file_path": "handoffs/",
+    "id": "adr-0008-pilot-fate-brief-2026-08-29",
+    "notes": "",
+    "priority": "medium",
+    "status": "open",
+    "target_model": "swe-1.7",
+    "title": "Prepare adr-0008-pilot branch fate recommendation for Brad",
+    "updated_at": "2026-08-29T00:00:00Z"
+  },
+  {
+    "assigned_agent": null,
+    "category": "bugfix",
+    "created_at": "2026-08-29T00:00:00Z",
+    "description": "State-law metadata is stale: tracked docs say '43/49' complete but actual current state is 11 complete / 38 stub. Find every doc/dashboard referencing the old count (INVENTORY.md, MAINTENANCE_TASKLIST.md, any dashboard HTML, README badges, etc.) and correct them to the real 11/38 figures. Mechanical fix, no judgment call needed.",
+    "file_path": "docs/",
+    "id": "state-law-count-fix-2026-08-29",
+    "notes": "",
+    "priority": "low",
+    "status": "open",
+    "target_model": "swe-1.7",
+    "title": "Fix stale state-law completion count in tracked docs",
+    "updated_at": "2026-08-29T00:00:00Z"
   }
 ]

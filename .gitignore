@@ -282,6 +282,7 @@ test-results/
 tests/e2e/node_modules/
 tests/e2e/test-results/
 playwright-report/
+test_artifacts/
 
 # Personal / scratch files (not part of Semptify)
 genminy.txt
