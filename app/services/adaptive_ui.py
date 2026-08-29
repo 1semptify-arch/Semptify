@@ -583,7 +583,7 @@ def sync_from_context_loop(user_id: str):
     This ensures both systems have the same view of the user.
     """
     try:
-        from app.services.context_loop import context_loop
+        from app.modules.context_loop.service import context_loop
 
         loop_ctx = context_loop.get_context(user_id)
         ui_ctx = adaptive_ui.get_or_create_context(user_id)
@@ -631,7 +631,7 @@ def build_ui_with_intensity(user_id: str) -> dict:
 
     # Get intensity from context loop
     try:
-        from app.services.context_loop import context_loop
+        from app.modules.context_loop.service import context_loop
 
         intensity_report = context_loop.get_intensity_report(user_id)
     except ImportError:

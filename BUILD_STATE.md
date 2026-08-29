@@ -1,5 +1,14 @@
 ## Session — 2026-08-29 — public-page audit non-blocking observations
 
+### Guardrail Engine Run — 2026-08-29T11:26:21+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Task
 
 - **Task ID:** `public-page-audit-fixes-2026-08-28`

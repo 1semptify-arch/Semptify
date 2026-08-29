@@ -30,7 +30,7 @@ def _assembly_patches(page_data: dict[str, Any] | None = None):
     stack = ExitStack()
     stack.enter_context(patch("app.modules.page_composer.assembly.compose_page", new=AsyncMock(return_value=data)))
     stack.enter_context(patch("app.modules.page_composer.assembly.ui_compose_page", new=Mock(return_value={"components": [{"type": "mock"}]})))
-    stack.enter_context(patch("app.services.context_loop.context_loop.get_state", new=Mock(return_value={})))
+    stack.enter_context(patch("app.modules.context_loop.service.context_loop.get_state", new=Mock(return_value={})))
     return stack
 
 
