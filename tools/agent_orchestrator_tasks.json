@@ -1390,11 +1390,12 @@
     "description": "Fix two observations from handoffs/public-page-accessibility-audit-2026-08-28-report.md: (1) /law-library in PUBLIC_PATHS has no route handler, may 404; (2) /home is in both PUBLIC_PATHS and checkpoint's PROTECTED_PREFIXES, harmless now but risky if checkpoint re-enabled.",
     "file_path": "app/core/",
     "priority": "low",
-    "status": "open",
+    "status": "resolved",
     "target_model": "swe-1.7",
-    "notes": "Restored after sync_orchestrator.py wiped manually-added tasks 2026-08-29.",
+    "notes": "Restored after sync_orchestrator.py wiped manually-added tasks 2026-08-29.\n[2026-08-29 11:30 UTC - claude] Code already in place: /law-library route handler present in app/main.py, /home removed from SmartCheckpointMiddleware.PROTECTED_PREFIXES; py_compile passes.",
     "created_at": "2026-08-28T00:00:00Z",
-    "updated_at": "2026-08-29T00:00:00Z"
+    "updated_at": "2026-08-29T11:30:53.176346+00:00",
+    "assigned_agent": "claude"
   },
   {
     "id": "context-loop-migration-2026-08-29",
