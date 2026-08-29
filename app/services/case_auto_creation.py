@@ -769,7 +769,7 @@ async def trigger_case_evaluation(user_id: str, case_number: str, trigger_docume
 
     try:
         # Emit event for other systems to react
-        from app.services.context_loop import EventType, context_loop
+        from app.modules.context_loop.service import EventType, context_loop
 
         context_loop.emit_event(
             EventType.ACTION_TAKEN,
