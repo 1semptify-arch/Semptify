@@ -71,7 +71,7 @@ def get_sitemap_entries() -> list[dict[str, str]]:
         entries.append(
             {
                 "path": page.path,
-                "priority": "0.8" if page.id in ("services", "renters_guide") else "0.6",
+                "priority": "0.8" if page.id == "services" else "0.6",
                 "changefreq": "weekly" if page.id in ("services", "tools") else "monthly",
             }
         )

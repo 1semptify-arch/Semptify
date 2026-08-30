@@ -3395,11 +3395,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """GUI Record — Vault document list with upload/view/download."""
         return templates.TemplateResponse(request, "gui/record.html")
 
-    @fastapi_app.get("/gui/know", response_class=HTMLResponse)
-    async def gui_know_page(request: Request):
-        """GUI Know — placeholder."""
-        return templates.TemplateResponse(request, "gui/know.html")
-
     @fastapi_app.get("/gui/act", response_class=HTMLResponse)
     async def gui_act_page(request: Request):
         """GUI Act — placeholder."""
