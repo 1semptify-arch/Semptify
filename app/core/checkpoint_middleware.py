@@ -74,7 +74,6 @@ PROTECTED_PREFIXES = (
     "/documents/",
     "/timeline/",
     "/case/",
-    "/home",
     "/dashboard",
 )
 
