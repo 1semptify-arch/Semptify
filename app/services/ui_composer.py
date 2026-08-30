@@ -425,9 +425,9 @@ def _compose_library(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
 
     if selected_subject and selected_subject in ALL_SUBJECTS:
         label = SUBJECT_LABELS.get(selected_subject, selected_subject)
-        page_title = f"{label} — Know Your Rights — Semptify"
+        page_title = f"{label} — Law Library — Semptify"
     else:
-        page_title = "Library — Know Your Rights — Semptify"
+        page_title = "Law Library — Semptify"
 
     return {
         "page_title": page_title,
