@@ -41,7 +41,7 @@ except ImportError:
 
 # Import context loop for event emission
 try:
-    from app.services.context_loop import EventType, context_loop
+    from app.modules.context_loop.service import EventType, context_loop
 
     HAS_CONTEXT_LOOP = True
 except ImportError:

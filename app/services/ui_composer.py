@@ -92,7 +92,7 @@ def _get_user_context(user_id: str) -> dict[str, Any]:
     must never crash the page render. It degrades gracefully to an empty state.
     """
     try:
-        from app.services.context_loop import context_loop
+        from app.modules.context_loop.service import context_loop
 
         ctx = context_loop.get_user_context(user_id) if hasattr(context_loop, "get_user_context") else {}
         if ctx is None:
