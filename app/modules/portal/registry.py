@@ -80,9 +80,9 @@ class PortalRegistry:
         PortalService(
             id="tenant_rights_library",
             name="Law Library",
-            short_description="Plain-language guides to tenant law in your state. Facts only, no opinions.",
+            short_description="Verified statutes, cases, and court rules with official source links. Not legal advice.",
             cta_label="Browse the Library",
-            cta_path="/library",
+            cta_path="/law-library",
             icon="📚",
             category="tenant",
             order=20,
