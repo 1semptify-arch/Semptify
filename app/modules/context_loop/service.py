@@ -22,11 +22,21 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import Any
 
 from app.core.event_bus import EventType as BusEventType, event_bus, subscribe_async_to_event
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
+
+# Import data freshness manager for validation
+try:
+    from app.core.data_freshness_manager import FreshnessStatus, data_freshness_manager
+
+    FRESHNESS_AVAILABLE = True
+except ImportError:
+    logger.warning("Data freshness manager not available - freshness validation disabled")
+    FRESHNESS_AVAILABLE = False
 
 
 class EventType(StrEnum):
@@ -68,6 +78,37 @@ class ContextEvent:
     severity: Severity = Severity.INFO
     source: str = ""  # What triggered this event
     processed: bool = False
+    freshness_status: dict[str, str] | None = None  # Freshness validation results
+
+    def validate_freshness(self) -> dict[str, str]:
+        """Validate freshness of data referenced in this event."""
+        if not FRESHNESS_AVAILABLE:
+            return {"status": "unavailable", "message": "Freshness validation not available"}
+
+        freshness_results = {}
+
+        # Check legal content freshness
+        if "law_id" in self.data:
+            law_freshness = data_freshness_manager.check_freshness(f"statute_{self.data['law_id']}")
+            freshness_results["legal_content"] = law_freshness.value
+
+        # Check court rules freshness
+        if "court" in self.data:
+            court_freshness = data_freshness_manager.check_freshness(f"court_rules_{self.data['court']}")
+            freshness_results["court_rules"] = court_freshness.value
+
+        # Check form requirements freshness
+        if "form_type" in self.data:
+            form_freshness = data_freshness_manager.check_freshness(f"form_{self.data['form_type']}")
+            freshness_results["form_requirements"] = form_freshness.value
+
+        # Check deadline rules freshness
+        if "jurisdiction" in self.data:
+            deadline_freshness = data_freshness_manager.check_freshness(f"deadline_rules_{self.data['jurisdiction']}")
+            freshness_results["deadline_rules"] = deadline_freshness.value
+
+        self.freshness_status = freshness_results
+        return freshness_results
 
     def to_dict(self) -> dict:
         return {
@@ -80,6 +121,7 @@ class ContextEvent:
             "severity": self.severity.value,
             "source": self.source,
             "processed": self.processed,
+            "freshness_status": self.freshness_status,
         }
 
 
@@ -118,6 +160,75 @@ class UserContext:
     updated_at: datetime = field(default_factory=datetime.utcnow)
     last_activity: datetime = field(default_factory=datetime.utcnow)
 
+    # Freshness tracking
+    freshness_score: float = 0.0  # Overall freshness score 0-100
+    freshness_warnings: list[str] = field(default_factory=list)
+
+    def calculate_freshness_score(self) -> float:
+        """Calculate overall freshness score for user context."""
+        if not FRESHNESS_AVAILABLE:
+            return 0.0
+
+        freshness_scores = []
+
+        # Check legal content freshness
+        for law in self.applicable_laws:
+            if isinstance(law, dict) and "id" in law:
+                freshness = data_freshness_manager.check_freshness(f"statute_{law['id']}")
+                freshness_scores.append(100 if freshness == FreshnessStatus.FRESH else 0)
+
+        # Check deadline rules freshness
+        for deadline in self.deadlines:
+            if isinstance(deadline, dict) and "jurisdiction" in deadline:
+                freshness = data_freshness_manager.check_freshness(f"deadline_rules_{deadline['jurisdiction']}")
+                freshness_scores.append(100 if freshness == FreshnessStatus.FRESH else 0)
+
+        # Check form requirements freshness if forms are used
+        if self.document_types:
+            form_freshness = data_freshness_manager.check_freshness("court_forms")
+            freshness_scores.append(100 if form_freshness == FreshnessStatus.FRESH else 0)
+
+        self.freshness_score = sum(freshness_scores) / len(freshness_scores) if freshness_scores else 100.0
+        return self.freshness_score
+
+    def validate_context_freshness(self) -> dict[str, Any]:
+        """Validate freshness of all context data and return warnings."""
+        if not FRESHNESS_AVAILABLE:
+            return {"status": "unavailable", "warnings": []}
+
+        warnings = []
+
+        # Check legal content freshness
+        stale_laws = []
+        for law in self.applicable_laws:
+            if isinstance(law, dict) and "id" in law:
+                freshness = data_freshness_manager.check_freshness(f"statute_{law['id']}")
+                if freshness != FreshnessStatus.FRESH:
+                    stale_laws.append(law.get("name", law["id"]))
+
+        if stale_laws:
+            warnings.append(f"Legal content may be outdated: {', '.join(stale_laws)}")
+
+        # Check deadline rules freshness
+        for deadline in self.deadlines:
+            if isinstance(deadline, dict) and "jurisdiction" in deadline:
+                freshness = data_freshness_manager.check_freshness(f"deadline_rules_{deadline['jurisdiction']}")
+                if freshness != FreshnessStatus.FRESH:
+                    warnings.append(f"Deadline rules for {deadline['jurisdiction']} may be outdated")
+
+        # Check form requirements freshness
+        form_freshness = data_freshness_manager.check_freshness("court_forms")
+        if form_freshness != FreshnessStatus.FRESH:
+            warnings.append("Court form requirements may be outdated")
+
+        self.freshness_warnings = warnings
+        return {
+            "status": "validated",
+            "freshness_score": self.calculate_freshness_score(),
+            "warnings": warnings,
+            "stale_items": len(warnings),
+        }
+
     def to_dict(self) -> dict:
         return {
             "user_id": self.user_id,
@@ -135,6 +246,8 @@ class UserContext:
             "predicted_needs": self.predicted_needs,
             "risk_factors": self.risk_factors,
             "last_activity": self.last_activity.isoformat(),
+            "freshness_score": self.freshness_score,
+            "freshness_warnings": self.freshness_warnings,
         }
 
 
@@ -445,6 +558,7 @@ class IntensityEngine:
         }
 
 
+
 class ContextDataLoop:
     """
     The Core Processing Loop - Everything flows through here.
@@ -493,6 +607,12 @@ class ContextDataLoop:
                 "added_at": event.timestamp.isoformat(),
             }
         )
+
+        # Validate freshness of document-related data
+        if FRESHNESS_AVAILABLE:
+            freshness_validation = context.validate_context_freshness()
+            if freshness_validation["stale_items"] > 0:
+                logger.warning(f"⚠️ Freshness warnings for {user_id}: {freshness_validation['warnings']}")
 
         # Trigger document processing
         logger.info(f"📄 Document added for {user_id}, triggering processing")
@@ -570,6 +690,16 @@ class ContextDataLoop:
         # Add to timeline
         if extracted.get("count", 0) > 0:
             logger.info(f"📅 {extracted['count']} events extracted for {user_id}")
+
+            # Validate freshness of extracted events
+            if FRESHNESS_AVAILABLE and extracted.get("events"):
+                for event_data in extracted["events"]:
+                    if event_data.get("event_type") in ["deadline", "court_date", "hearing"]:
+                        # Check deadline rules freshness for jurisdiction
+                        jurisdiction = event_data.get("jurisdiction", "default")
+                        freshness = data_freshness_manager.check_freshness(f"deadline_rules_{jurisdiction}")
+                        if freshness != FreshnessStatus.FRESH:
+                            logger.warning(f"⚠️ Stale deadline rules for {jurisdiction} in event extraction")
 
             # Publish timeline update
             await event_bus.publish(
@@ -658,6 +788,9 @@ class ContextDataLoop:
             severity=severity,
             source=source,
         )
+
+        # Validate freshness of event data
+        event.validate_freshness()
 
         # Add to queue
         self.event_queue.append(event)  # Process immediately
@@ -1015,6 +1148,37 @@ class ContextDataLoop:
             "phase": context.phase,
             "risk_level": self._get_risk_level(context.intensity_score),
         }
+
+
+    async def process_input(self, input_data: dict) -> ContextEvent:
+        """Process a raw input dict into the context loop.
+
+        Used by event-bus handlers for DEADLINE_APPROACHING and VIOLATION_FOUND.
+        Accepts a dict with at least `type`, `user_id`, and a payload; maps the
+        top-level (non-metadata) fields into the event data payload.
+        """
+        event_type = input_data.get("type", EventType.ISSUE_DETECTED)
+        if not isinstance(event_type, EventType):
+            try:
+                event_type = EventType(str(event_type))
+            except (ValueError, TypeError):
+                event_type = EventType.ISSUE_DETECTED
+
+        user_id = input_data.get("user_id", "system")
+        source = input_data.get("source") or input_data.get("reason") or "process_input"
+
+        # Strip top-level routing keys; the remainder is the event payload.
+        payload = {
+            k: v
+            for k, v in input_data.items()
+            if k not in ("type", "user_id", "source")
+        }
+
+        return self.emit_event(event_type, user_id, payload, source)
+
+    def get_user_context(self, user_id: str) -> dict:
+        """Return a plain-dict snapshot of the user's context for UI callers."""
+        return self.get_context(user_id).to_dict()
 
     def _get_risk_level(self, intensity: float) -> dict:
         """Get risk level description."""

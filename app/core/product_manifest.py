@@ -532,7 +532,7 @@ _register(
     tier=ProductTier.CORE,
     lifecycle="beta",
     upl_risk_tier=UPLRiskTier.LOW,
-    dev_notes="6 states complete (MN, NY, CA, TX, FL, IL). 43 states remain stubs with external resource links only.",
+    dev_notes="11 states complete (CA, FL, GA, IL, MI, MN, NC, NY, OH, PA, TX). 38 states remain stubs with external resource links only.",
 )
 _register("app.modules.law_library.router", tags=("Law Library",), tier=ProductTier.CORE, upl_risk_tier=UPLRiskTier.LOW)
 _register(
