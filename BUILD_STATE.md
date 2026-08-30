@@ -31,6 +31,16 @@ All checks passed.
 
 - The legacy `agent_orchestrator_tasks.json` is **not deprecated**; it is retained as a generated read-only mirror of the canonical master queue. The master `orchestrator_state.json` remains the source of truth.
 
+### Ship
+
+- **Branch:** `admin/loose-ends-audit-2026-08-29`
+- **PR:** Semptify `1semptify-arch/Semptify` #142
+- **What changed:**
+  - `tools/sync_orchestrator.py` — added `step_master_sync()` to mirror canonical master queue into legacy queue.
+  - `tools/agent_orchestrator_tasks.json` — regenerated from master (184 tasks, 0 missing paths).
+  - `tools/agent_orchestrator.html` and `tools/orchestrator_dashboard.html` — regenerated with embedded task JSON.
+- **Next step:** Review and merge PR #142; after merge, master submodule pointer in PR #10 will become valid.
+
 ---
 
 ## Session — 2026-08-29 — Repository-wide loose ends audit and task registration
@@ -58,6 +68,7 @@ All checks passed.
 ### Ship
 
 - **Branch:** `admin/loose-ends-audit-2026-08-29`
+- **PR:** Semptify `1semptify-arch/Semptify` #142; master `1semptify-arch/master-repo` #10
 - **What changed:**
   - `C:\master-repo\tools\orchestrator_state.json` — added 22 new tasks.
   - `C:\master-repo\modules\app-semptify-fastapi\tools\agent_orchestrator_tasks.json` — added 19 new tasks.
