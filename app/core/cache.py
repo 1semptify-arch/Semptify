@@ -352,7 +352,10 @@ def cached(
         @wraps(func)
         async def wrapper(*args, **kwargs) -> T:
             # Build cache key
-            cache_key = key_builder(*args, **kwargs) if key_builder else _make_cache_key(prefix, args, kwargs)
+            if key_builder:
+                cache_key = key_builder(*args, **kwargs)
+            else:
+                cache_key = _make_cache_key(prefix, args, kwargs)
 
             # Try to get from cache
             cached_value = await cache.get(cache_key)

@@ -211,7 +211,7 @@ No named roles beyond "you" exist yet. If the housing worker's office becomes re
 
 ---
 
-## SOURCE FILE: docs/Semptify_Site_GUI_Framework.md
+## SOURCE FILE: docs/admin/Semptify_Site_GUI_Framework.md
 
 ## Semptify — Website & GUI Framework
 
@@ -1559,7 +1559,7 @@ All checks passed.
 - **Admin UI**: `static/admin/agent_orchestrator.html` linked from the admin dashboard.
 - **Standalone UI**: `tools/agent_orchestrator.html` — no server needed, uses browser `localStorage`, works inside Windsurf preview.
 - **Workbook bridge**: `tools/workbook_bridge.py` reads `Semptify_Master_Inventory_LIVE_reviewed.xlsx` and produces `tools/agent_orchestrator_tasks.json` for import (155 stubs + 16 duplicates = 171 tasks).
-- **Manual**: `docs/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
+- **Manual**: `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
 - **Registration**: `app/core/product_manifest.py` and `app/main.py` updated so the module and admin page load automatically.
 - **Per-task preflight workflow**: `.devin/workflows/orchestrator_preflight.md` (and prompt mirror) — run preflight before every orchestrator dispatch.
 
@@ -4299,7 +4299,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 
 #### Interactive Admin Manual (COMPLETE)
 
-- **`docs/ADMIN_MANUAL.md`** — Comprehensive admin documentation covering:
+- **`docs/admin/ADMIN_MANUAL.md`** — Comprehensive admin documentation covering:
   - All admin pages (Dashboard, Function Browser, Contract Browser, Page Editor, Review Checklist)
   - Features, functions, settings, testing instructions per page
   - Troubleshooting guides with common issues and fixes
@@ -6088,7 +6088,7 @@ Returning tenants with documents were incorrectly routed to the upload wizard.
    - All 8 repos now under `1semptify-arch/` — single org, single owner
    - `SemptifyResearch` set to Private (intentional)
 
-2. **Orchestrator port conflict fixed** — `E:\master-repo\sources\REPOs\Orchestrator\start.bat`
+2. **Orchestrator port conflict fixed** — `C:\master-repo\sources\REPOs\Orchestrator\start.bat`
    - Was: port 8000 (same as Semptify core — hard conflict)
    - Fixed: port 8001
    - Architecture: Orchestrator is a sidecar — calls Semptify API at `localhost:8000`
@@ -6564,7 +6564,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - All timestamp generation now uses Semptify standard
 
 2. **Enhanced Onboarding Flow with Vault Verification** — Complete end-to-end contracts
-   - Created comprehensive onboarding contracts document (`docs/onboarding-contracts.md`)
+   - Created comprehensive onboarding contracts document (`docs/admin/onboarding-contracts.md`)
    - Added vault verification APIs: `/api/vault/init`, `/api/vault/verify`
    - Enhanced onboarding completion validation with gate checks
    - Moved vault installation to dedicated vault-setup page with loading screen
@@ -7109,7 +7109,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 #### SSOT Documentation
 
-- [x] **`docs/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
+- [x] **`docs/admin/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
 
 #### Code Review
 

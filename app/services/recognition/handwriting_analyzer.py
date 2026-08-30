@@ -892,12 +892,12 @@ class HandwritingAnalyzer:
                             ForgeryIndicator(
                                 id=make_id("fri"),
                                 forgery_type=ForgeryType.DATE_ALTERATION,
-                                description="Notice date appears to be backdated to meet statutory requirements",
+                                description="Received date appears to be backdated to meet statutory requirements",
                                 location=date_elem.location,
                                 risk_level=RiskLevel.CRITICAL,
                                 confidence=0.75,
                                 evidence=[
-                                    f"Notice dated {date_elem.content}",
+                                    f"Received on {date_elem.content}",
                                     "Date suspiciously close to statutory deadline",
                                 ],
                                 legal_significance="Backdating notices violates MN Stat. 504B - improper notice is a defense to eviction",

@@ -1,0 +1,90 @@
+# =============================================================================
+# Semptify FastAPI - Render MVP Dockerfile
+# =============================================================================
+# Render free-tier deployment image.
+# Sets DEPLOY_TARGET=render_mvp by default so the app starts in minimal mode.
+# To switch to the full feature set later, override DEPLOY_TARGET at the
+# service level (e.g. render.yaml env var) without changing this file.
+#
+# Build: docker build -t semptify:render-mvp -f Dockerfile.render .
+# Run:   docker run -p 8000:8000 --env-file .env semptify:render-mvp
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Stage 1: Builder - Install dependencies
+# -----------------------------------------------------------------------------
+FROM python:3.11.9-slim AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    libffi-dev \
+    libpq-dev \
+    libmagic1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements first for better caching
+COPY requirements-render-mvp.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-render-mvp.txt
+
+# -----------------------------------------------------------------------------
+# Stage 2: Runtime - Minimal production image
+# -----------------------------------------------------------------------------
+FROM python:3.11.9-slim
+
+ARG DEPLOY_TARGET=render_mvp
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PORT=8000 \
+    DEPLOY_TARGET=${DEPLOY_TARGET}
+
+WORKDIR /app
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    libmagic1 \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Create non-root user for security
+RUN groupadd --gid 1000 semptify && \
+    useradd --uid 1000 --gid semptify --shell /bin/bash --create-home semptify
+
+# Copy application code
+COPY --chown=semptify:semptify . .
+
+# Create runtime directories and ensure the semptify user can write to /app
+RUN mkdir -p uploads uploads/vault logs security data data/inventory && \
+    chown -R semptify:semptify /app
+
+# Switch to non-root user
+USER semptify
+
+# Expose port (Render sets PORT env var, defaults to 8000)
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
+# Start command - uses $PORT env var for Render compatibility
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]

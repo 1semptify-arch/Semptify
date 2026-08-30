@@ -67,8 +67,12 @@ async def compose_page_endpoint(
     user_id = _get_user_id_from_request(request)
 
     # Build a minimal context from query params (real context comes from Context Loop)
+    from app.core.module_gate import get_module_access
+
+    access = get_module_access(request)
     context: dict[str, Any] = {
         "document_count": document_count,
+        "resolved_module_paths": access.resolved_module_paths,
     }
 
     try:

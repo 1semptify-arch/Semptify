@@ -17,7 +17,6 @@ Missing translations fall back to English. Translators can mark a catalog
 with {"_meta": {"status": "human_reviewed"}} once reviewed.
 """
 
-import contextlib
 import json
 import logging
 import os
@@ -141,8 +140,10 @@ class I18n:
             value = key
 
         if kwargs and isinstance(value, str):
-            with contextlib.suppress(KeyError, ValueError, IndexError):
+            try:
                 value = value.format(**kwargs)
+            except (KeyError, ValueError, IndexError):
+                pass
 
         return str(value)
 

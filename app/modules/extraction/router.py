@@ -240,7 +240,7 @@ async def get_review_items(
                     {"field_name": "hearing_date", "display_name": "Court Hearing Date", "required": True},
                     {"field_name": "hearing_time", "display_name": "Hearing Time", "required": False},
                     {"field_name": "answer_deadline", "display_name": "Answer Due Date", "required": True},
-                    {"field_name": "notice_date", "display_name": "Date Notice Was Served", "required": False},
+                    {"field_name": "notice_date", "display_name": "Received Date", "required": False},
                 ],
             },
             {

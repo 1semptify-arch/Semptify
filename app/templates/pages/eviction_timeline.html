@@ -134,7 +134,7 @@
     <div class="et-grid">
         <section class="et-panel et-add-event" aria-labelledby="add-event-heading">
             <h2 id="add-event-heading">Add an event</h2>
-            <form method="post" action="/api/eviction-timeline/events" class="et-form">
+            <form method="post" action="{{ url_for('create_eviction_event') }}" class="et-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="et-form-row">
                     <div class="form-group">

@@ -66,7 +66,10 @@ def detect_hardcoded_url(value: str) -> bool:
         r'["\']/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+["\']',  # /path/route
         r'window\.location\.href\s*=\s*["\'][^"\']+["\']',  # JS redirects
     ]
-    return any(re.search(pattern, value) for pattern in patterns)
+    for pattern in patterns:
+        if re.search(pattern, value):
+            return True
+    return False
 
 
 class SSOTViolation(Exception):

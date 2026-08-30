@@ -98,7 +98,7 @@ Router   → Enriches only (no separate call)
 
 ### 8. Update SSOT Documentation
 
-Add to `docs/SSOT_EXPORT.md`:
+Add to `docs/admin/SSOT_EXPORT.md`:
 
 - New unified flow diagram
 - Certification states table
@@ -148,6 +148,6 @@ Step 0: [Entry]
 
 ## Example: Document Upload Flow
 
-See `docs/SSOT_EXPORT.md` section 1.1 for completed example.
+See `docs/admin/SSOT_EXPORT.md` section 1.1 for completed example.
 
 Key insight: Every vault document auto-registers - router only enriches.

@@ -25,6 +25,9 @@ from app.core.event_bus import EventType as BusEventType, event_bus
 from app.core.security import StorageUser, red_access
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_ROOT
+from app.models.unified_overlay_models import CreateOverlayRequest
+from app.services.unified_overlay_manager import UnifiedOverlayManager
+from app.services.vault_upload_service import get_vault_service
 
 from .service import form_generator
 
@@ -74,6 +77,62 @@ class DefenseInfo(BaseModel):
     type: str
     title: str
     statute: str
+
+
+class LibraryFormRenderRequest(BaseModel):
+    """Request to render a library form."""
+
+    field_values: dict
+    output_format: str = "pdf"  # html, pdf, text
+
+
+class LibraryFormSaveRequest(LibraryFormRenderRequest):
+    """Request to generate and save a library form to the user's vault."""
+
+    filename: str | None = None
+
+
+class LibraryFormPacketItem(BaseModel):
+    """One form to include in a packet."""
+
+    form_id: str
+    field_values: dict
+
+
+class LibraryFormPacketRequest(BaseModel):
+    """Request to assemble a packet of library forms."""
+
+    items: list[LibraryFormPacketItem]
+    filename: str = "Court_Filing_Packet.pdf"
+
+
+class LibraryFormRenderResponse(BaseModel):
+    """Response with rendered library form."""
+
+    form_id: str
+    title: str
+    description: str
+    format: str
+    content: str
+    fields_used: list[str]
+    generated_at: str
+    missing_required: list[dict[str, str]] = []
+    court_rules: list[str] = []
+    signature_required: bool = True
+
+
+class LibraryFormSaveResponse(BaseModel):
+    """Response after saving a generated library form to the user's vault."""
+
+    form_id: str
+    title: str
+    vault_id: str
+    overlay_id: str | None = None
+    storage_path: str
+    storage_provider: str
+    filename: str
+    generated_at: str
+    missing_required: list[dict[str, str]] = []
 
 
 # =============================================================================
@@ -563,6 +622,181 @@ async def quick_generate_answer(
     )
 
     return HTMLResponse(result["content"])
+
+
+# =============================================================================
+# Dynamic Form Library (CIV/HOU/Rule 60.02 forms)
+# =============================================================================
+
+
+@router.get("/library", response_model=list[dict])
+async def list_library_forms():
+    """List all forms in the JSON library."""
+    return form_generator.get_library_forms()
+
+
+@router.get("/library/{form_id}")
+async def get_library_form_definition(form_id: str):
+    """Get a single form definition from the library."""
+    form = form_generator.get_library_form(form_id)
+    if not form:
+        raise HTTPException(status_code=404, detail=f"Unknown form: {form_id}")
+    return form
+
+
+@router.post("/library/{form_id}/render", response_model=LibraryFormRenderResponse)
+async def render_library_form(
+    form_id: str,
+    request: LibraryFormRenderRequest,
+    user: StorageUser = Depends(red_access),
+):
+    """Render a library form as HTML, text, or base64 PDF."""
+    result = await form_generator.generate_form(
+        form_type=form_id,
+        case_data=request.field_values,
+        output_format=request.output_format,
+    )
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+
+    content = result["content"]
+    if isinstance(content, bytes):
+        import base64
+
+        content = base64.b64encode(content).decode("utf-8")
+
+    return LibraryFormRenderResponse(
+        form_id=form_id,
+        title=result["title"],
+        description=result["description"],
+        format=request.output_format,
+        content=content,
+        fields_used=result["fields_used"],
+        generated_at=result["generated_at"],
+        missing_required=result.get("missing_required", []),
+        court_rules=result.get("court_rules", []),
+        signature_required=result.get("signature_required", True),
+    )
+
+
+@router.post("/library/{form_id}/save", response_model=LibraryFormSaveResponse)
+async def save_library_form(
+    form_id: str,
+    request: LibraryFormSaveRequest,
+    user: StorageUser = Depends(red_access),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate a library form as PDF and save it to the user's connected vault."""
+    from app.core.overlay_types import OverlayType
+    from app.core.user_id import get_provider_from_user_id
+    from app.services.storage import get_provider
+
+    # Generate PDF
+    result = await form_generator.generate_form(
+        form_type=form_id,
+        case_data=request.field_values,
+        output_format="pdf",
+    )
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+
+    pdf_bytes = result["content"]
+    if not isinstance(pdf_bytes, bytes):
+        raise HTTPException(status_code=500, detail="PDF generation did not produce bytes")
+
+    # Determine storage provider and token
+    provider_code = get_provider_from_user_id(user.user_id) or "local"
+    _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+    token = token_obj.access_token if token_obj else None
+
+    # Save the PDF to the user's vault
+    vault_service = get_vault_service()
+    filename = request.filename or f"{form_id}_{utc_now().strftime('%Y%m%d')}.pdf"
+    try:
+        vault_doc = await vault_service.upload(
+            user_id=user.user_id,
+            filename=filename,
+            content=pdf_bytes,
+            mime_type="application/pdf",
+            document_type="court_form",
+            description=f"{result['title']} generated via court forms library",
+            tags=["court_forms", form_id, result.get('case_type', form_id)],
+            source_module="court_forms",
+            access_token=token,
+            storage_provider=provider_code,
+        )
+    except Exception as exc:
+        logger.exception("Vault upload failed for %s: %s", form_id, exc)
+        raise HTTPException(status_code=500, detail="Could not save form to vault") from exc
+
+    # Create a FORM_FILL overlay attached to the generated PDF
+    # Local/dev storage has no live cloud provider, so overlay creation is best-effort.
+    overlay_id = None
+    if token and provider_code and provider_code != "local":
+        try:
+            storage_provider = get_provider(provider_code, access_token=token)
+            overlay_manager = UnifiedOverlayManager(storage_provider, user.user_id)
+
+            overlay_request = CreateOverlayRequest(
+                overlay_type=OverlayType.FORM_FILL,
+                document_id=vault_doc.vault_id,
+                vault_path=vault_doc.storage_path,
+                payload={
+                    "form_id": form_id,
+                    "form_title": result["title"],
+                    "field_values": request.field_values,
+                    "court_rules": result.get("court_rules", []),
+                    "generated_at": result["generated_at"],
+                    "fields_used": result.get("fields_used", []),
+                    "missing_required": result.get("missing_required", []),
+                },
+                metadata={
+                    "source": "court_forms_library",
+                    "form_description": result["description"],
+                    "storage_provider": vault_doc.storage_provider,
+                },
+            )
+            overlay_response = await overlay_manager.create_overlay(overlay_request)
+            if overlay_response.success:
+                overlay_id = overlay_response.overlay_id
+            else:
+                logger.warning("FORM_FILL overlay failed: %s", overlay_response.message)
+        except Exception as exc:
+            logger.warning("Could not create FORM_FILL overlay: %s", exc)
+
+    return LibraryFormSaveResponse(
+        form_id=form_id,
+        title=result["title"],
+        vault_id=vault_doc.vault_id,
+        overlay_id=overlay_id,
+        storage_path=vault_doc.storage_path,
+        storage_provider=vault_doc.storage_provider,
+        filename=filename,
+        generated_at=result["generated_at"],
+        missing_required=result.get("missing_required", []),
+    )
+
+
+@router.post("/library/packet")
+async def generate_library_packet(
+    request: LibraryFormPacketRequest,
+    user: StorageUser = Depends(red_access),
+):
+    """Generate multiple library forms and merge them into one PDF packet."""
+    packet_bytes = await form_generator.assemble_packet(
+        [item.model_dump() for item in request.items]
+    )
+    if not packet_bytes:
+        raise HTTPException(status_code=400, detail="No forms could be generated for packet")
+
+    import base64
+
+    content = base64.b64encode(packet_bytes).decode("utf-8")
+    return {
+        "filename": request.filename,
+        "content": content,
+        "form_ids": [item.form_id for item in request.items],
+    }
 
 
 # =============================================================================

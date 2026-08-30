@@ -303,7 +303,7 @@ class EventExtractor:
 
         # Fall back to doc_type hints
         type_defaults = {
-            "notice": ("notice", "Notice Date", 0.6),
+            "notice": ("notice", "Received Date", 0.6),
             "lease": ("other", "Lease Date", 0.6),
             "court_filing": ("court", "Court Date", 0.7),
             "receipt": ("payment", "Payment Date", 0.6),

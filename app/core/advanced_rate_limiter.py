@@ -358,7 +358,10 @@ class AdvancedRateLimiter:
             return False
 
         current_time = time.time()
-        return bool(state.blocked_until and current_time < state.blocked_until)
+        if state.blocked_until and current_time < state.blocked_until:
+            return True
+
+        return False
 
     def _get_block_duration(self, client_key: str) -> int:
         """Get remaining block duration."""

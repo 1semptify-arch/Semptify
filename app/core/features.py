@@ -19,18 +19,25 @@ Usage:
 
 import logging
 from collections.abc import Callable
-from enum import StrEnum
+from enum import Enum
 from functools import wraps
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+from app.core.utc import utc_now
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
 
-class Feature(StrEnum):
+class Feature(str, Enum):
     """Feature flags enumeration."""
 
     AI_COPILOT = "ai_copilot"
@@ -56,6 +63,18 @@ class Feature(StrEnum):
     RATE_LIMITING = "rate_limiting"
     EXPERIMENTAL_AI_MODEL = "experimental_ai_model"
     EXPERIMENTAL_UI = "experimental_ui"
+    FCA_READINESS = "fca_readiness"
+
+    # Route kill-switches — migrated from the old in-memory app/core/feature_flags.py
+    # (2026-08-26 unification). These gate whole route prefixes for emergency
+    # disable, distinct from product features above. Kept as separate enum
+    # members rather than reusing AI_COPILOT, because "copilot route reachable
+    # at all" and "AI copilot feature enabled" are different concepts.
+    ADMIN_ACCESS = "admin_access"
+    COPILOT_ROUTE = "copilot"
+    VOICE_TO_TEXT = "voice_to_text"
+    COMMUNICATION_IMPORT = "communication_import"
+    RESOURCE_DIRECTORY = "resource_directory"
 
 
 # Code-level defaults — used when a flag has no DB row yet
@@ -83,7 +102,42 @@ DEFAULT_ENABLED: dict[str, bool] = {
     Feature.RATE_LIMITING.value: True,
     Feature.EXPERIMENTAL_AI_MODEL.value: False,
     Feature.EXPERIMENTAL_UI.value: False,
+    Feature.FCA_READINESS.value: False,
+    # Route kill-switches default to True (fail-open), matching the old
+    # in-memory feature_flags.py defaults exactly, so migration is a no-op
+    # for current behavior.
+    Feature.ADMIN_ACCESS.value: True,
+    Feature.COPILOT_ROUTE.value: True,
+    Feature.VOICE_TO_TEXT.value: True,
+    Feature.COMMUNICATION_IMPORT.value: True,
+    Feature.RESOURCE_DIRECTORY.value: True,
 }
+
+
+# Map URL path prefixes to the route kill-switch Feature. Add new routes here
+# as they are built. Migrated from the old ROUTE_FLAG_MAP in
+# app/core/feature_flags.py (2026-08-26 unification).
+ROUTE_FEATURE_MAP: dict[str, Feature] = {
+    "/admin": Feature.ADMIN_ACCESS,
+    "/api/copilot": Feature.COPILOT_ROUTE,
+    "/tenant/copilot": Feature.COPILOT_ROUTE,
+    "/api/voice": Feature.VOICE_TO_TEXT,
+    "/api/import": Feature.COMMUNICATION_IMPORT,
+    "/api/resources": Feature.RESOURCE_DIRECTORY,
+    "/tenant/resources": Feature.RESOURCE_DIRECTORY,
+}
+
+# String-keyed view for the /admin/api/flags endpoints, which take a plain
+# flag name in the URL rather than an enum member.
+ROUTE_GATE_FLAGS: dict[str, Feature] = {feature.value: feature for feature in ROUTE_FEATURE_MAP.values()}
+
+
+def route_feature_for_path(path: str) -> Feature | None:
+    """Return the Feature that gates a path, or None if the path is ungated."""
+    for prefix, feature in ROUTE_FEATURE_MAP.items():
+        if path.startswith(prefix):
+            return feature
+    return None
 
 
 class FeatureFlagManager:
@@ -154,11 +208,22 @@ class FeatureFlagManager:
                 rows = result.fetchall()
             for row in rows:
                 self._cache[row.flag_name] = row.enabled
+                allowed_roles = row.allowed_roles
+                if isinstance(allowed_roles, str):
+                    # SQLite has no ARRAY type - allowed_roles is stored as
+                    # JSON text there (nothing writes it yet, but be
+                    # tolerant if something does in the future).
+                    import json
+
+                    try:
+                        allowed_roles = json.loads(allowed_roles) if allowed_roles else []
+                    except (ValueError, TypeError):
+                        allowed_roles = []
                 self._cache_detail[row.flag_name] = {
                     "flag_name": row.flag_name,
                     "enabled": row.enabled,
                     "rollout_percent": row.rollout_percent or 100,
-                    "allowed_roles": row.allowed_roles or [],
+                    "allowed_roles": allowed_roles or [],
                     "description": row.description or "",
                     "source": "database",
                 }
@@ -208,22 +273,29 @@ class FeatureFlagManager:
         return not (allowed_roles and role not in allowed_roles)
 
     async def set_enabled(self, flag_name: str, enabled: bool, updated_by: str = "system") -> None:
-        """Persist flag change to PostgreSQL and update in-memory cache immediately."""
+        """Persist flag change to the DB and update in-memory cache immediately.
+
+        Uses a Python-generated UTC timestamp passed as a bound parameter so the
+        same code is safe against SQL injection and works on both PostgreSQL and
+        SQLite (the ON CONFLICT ... DO UPDATE ... EXCLUDED syntax is supported
+        by both).
+        """
         from sqlalchemy import text
 
         from app.core.database import get_session_factory
 
         async with get_session_factory()() as session:
+            updated_at = utc_now()
             await session.execute(
                 text("""
                 INSERT INTO feature_flags (flag_name, enabled, updated_by, updated_at)
-                VALUES (:name, :enabled, :by, NOW())
+                VALUES (:name, :enabled, :by, :updated_at)
                 ON CONFLICT (flag_name) DO UPDATE
                     SET enabled    = EXCLUDED.enabled,
                         updated_by = EXCLUDED.updated_by,
-                        updated_at = NOW()
+                        updated_at = EXCLUDED.updated_at
             """),
-                {"name": flag_name, "enabled": enabled, "by": updated_by},
+                {"name": flag_name, "enabled": enabled, "by": updated_by, "updated_at": updated_at},
             )
             await session.commit()
         self._cache[flag_name] = enabled
@@ -265,8 +337,126 @@ class FeatureFlagManager:
         self._cache_loaded_at = 0.0
 
 
+# =============================================================================
+# DB Schema Initialization
+# =============================================================================
+# alembic/versions/20260609_add_feature_flags_table.py creates this table for
+# real deploys, but two things leave local dev without it:
+#   1. Alembic auto-migration only runs when RENDER=true (see app/main.py) -
+#      local dev never runs migrations at all, by design.
+#   2. Even if it did, that migration uses sa.ARRAY for allowed_roles /
+#      allowed_states, which SQLite does not support (same class of issue as
+#      the pre-existing module_registry migration).
+# ensure_schema() below mirrors the app/core/module_overrides.py pattern:
+# a dialect-aware CREATE TABLE IF NOT EXISTS run at startup, so local SQLite
+# dev gets a real table with the same default rows as the Postgres
+# migration, without touching or replacing that migration.
+_DEFAULT_FLAG_ROWS: list[tuple[str, bool, str]] = [
+    ("eviction_defense_nd", True, "Enable eviction defense in North Dakota"),
+    ("counterclaim_builder", False, "Enable counterclaim builder (legal only)"),
+    ("advanced_analytics", False, "Enable advanced analytics dashboard"),
+    ("new_ui_theme", False, "Enable new UI theme (gradual rollout)"),
+    ("batch_operations", False, "Enable admin batch operations"),
+]
+
+
+def _dialect_name(db: "AsyncSession") -> str:
+    dialect = getattr(db.bind, "dialect", None)
+    return getattr(dialect, "name", "") if dialect else ""
+
+
+async def ensure_schema(db: "AsyncSession") -> None:
+    """Create the feature_flags table (and seed default rows) if missing.
+
+    Safe to call on every startup - CREATE TABLE IF NOT EXISTS is a no-op on
+    an already-migrated Postgres deploy; the seed insert only runs when the
+    table is empty, so it never overwrites admin-set flags.
+    """
+    from sqlalchemy import text
+
+    try:
+        is_postgres = _dialect_name(db) == "postgresql"
+        if is_postgres:
+            id_col = "id SERIAL PRIMARY KEY"
+            ts_type = "TIMESTAMPTZ"
+            ts_default = "NOW()"
+            roles_type = "TEXT[]"
+        else:
+            # SQLite (and most others): no SERIAL, no ARRAY, no NOW().
+            id_col = "id INTEGER PRIMARY KEY AUTOINCREMENT"
+            ts_type = "TIMESTAMP"
+            ts_default = "CURRENT_TIMESTAMP"
+            roles_type = "TEXT"  # unused today (nothing writes allowed_roles yet)
+
+        await db.execute(
+            text(
+                f"""
+                CREATE TABLE IF NOT EXISTS feature_flags (
+                    {id_col},
+                    flag_name TEXT NOT NULL UNIQUE,
+                    flag_type TEXT NOT NULL DEFAULT 'boolean',
+                    enabled BOOLEAN NOT NULL DEFAULT FALSE,
+                    rollout_percent INTEGER NOT NULL DEFAULT 0,
+                    allowed_roles {roles_type},
+                    allowed_states {roles_type},
+                    description TEXT,
+                    created_by TEXT,
+                    updated_by TEXT,
+                    created_at {ts_type} NOT NULL DEFAULT {ts_default},
+                    updated_at {ts_type} NOT NULL DEFAULT {ts_default}
+                )
+                """
+            )
+        )
+
+        result = await db.execute(text("SELECT COUNT(*) FROM feature_flags"))
+        existing_count = result.scalar() or 0
+        if existing_count == 0:
+            for flag_name, enabled, description in _DEFAULT_FLAG_ROWS:
+                await db.execute(
+                    text(
+                        "INSERT INTO feature_flags (flag_name, flag_type, enabled, description, created_by) "
+                        "VALUES (:name, 'boolean', :enabled, :desc, 'system')"
+                    ),
+                    {"name": flag_name, "enabled": enabled, "desc": description},
+                )
+            logger.info("FeatureFlags: seeded %d default rows", len(_DEFAULT_FLAG_ROWS))
+
+        await db.commit()
+        logger.info("FeatureFlags: schema ensured (feature_flags table)")
+    except Exception as e:
+        await db.rollback()
+        logger.warning("FeatureFlags: schema init failed: %s", e)
+
+
 # Global feature flag manager — single instance for the process
 features = FeatureFlagManager()
+
+
+class RouteFeatureGateMiddleware(BaseHTTPMiddleware):
+    """Return 503 Service Unavailable for routes whose kill-switch Feature is disabled.
+
+    Replaces the old in-memory FeatureFlagMiddleware from app/core/feature_flags.py
+    (2026-08-26 unification). Uses the same DB-backed FeatureFlagManager as every
+    other feature check, so there is one system instead of two.
+
+    Fail-open behavior is preserved: FeatureFlagManager.is_enabled() already
+    falls back to DEFAULT_ENABLED (all True for route gates) if the DB is
+    unreachable, so a DB outage does not 503 every route.
+    """
+
+    async def dispatch(self, request: Request, call_next: Callable):
+        feature = route_feature_for_path(request.url.path)
+        if feature and not await features.is_enabled(feature):
+            logger.warning("Feature %s disabled; blocking %s", feature.value, request.url.path)
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "error": "Service temporarily disabled",
+                    "flag": feature.value,
+                },
+            )
+        return await call_next(request)
 
 
 def require_feature(feature: Feature):

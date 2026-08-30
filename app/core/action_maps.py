@@ -352,7 +352,7 @@ CRISIS_INTAKE_ACTIONS: dict[str, QuickAction] = {
         label="Emergency Hotline",
         icon="phone",
         action_type=ActionType.EXTERNAL,
-        target="tel:+1-800-xxx-xxxx",  # Placeholder
+        target="tel:211",
         telemetry_event="hotline_connected",
     ),
     "legal_aid": QuickAction(
@@ -436,8 +436,8 @@ if __name__ == "__main__":
 
     for page_id, actions in ALL_ACTION_MAPS.items():
         logger.info(f"\n{page_id}:")
-        for _action_id, action in actions.items():
+        for action_id, action in actions.items():
             roles = action.required_roles or ["all"]
             logger.info(f"  - {action.label} ({action.action_type.name}, roles: {roles})")
 
-    logger.info("\n✅ Action maps ready for integration.")
+    logger.info("\n● Action maps ready for integration.")

@@ -11,7 +11,7 @@
     </div>
     <div class="frame-panel--body">
         <p style="color:#94a3b8; font-size:0.9375rem;">
-            Everything that happened in your tenancy. Use the filters below to find events, documents, deadlines, and evidence.
+            Everything that happened in your tenancy. Use the filters below to find events, documents, deadlines, and records.
         </p>
     </div>
 </section>
@@ -22,8 +22,8 @@
     </div>
     <div class="frame-panel--body" id="queryPanel" style="display:grid; gap:0.75rem;">
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <input type="text" id="searchInput" placeholder="Search titles and descriptions…" style="flex:1; min-width:200px; padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
-            <select id="dateAxis" style="padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
+            <input type="text" id="searchInput" aria-label="Search titles and descriptions" placeholder="Search titles and descriptions…" style="flex:1; min-width:200px; padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
+            <select id="dateAxis" aria-label="Sort records by" style="padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
                 <option value="event_time">Event time</option>
                 <option value="record_time">Record time</option>
                 <option value="entry_time">Entry time</option>
@@ -44,7 +44,7 @@
             <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="urgency-filter" value="low" checked> Low</label>
         </div>
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; color:#cbd5e1; font-size:0.8125rem;">
-            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" id="evidenceOnly"> Evidence only</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" id="evidenceOnly"> Records only</label>
             <label style="display:flex; align-items:center; gap:0.25rem;"><input type="date" id="startDate" style="padding:0.25rem; border-radius:0.25rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;"> Start</label>
             <label style="display:flex; align-items:center; gap:0.25rem;"><input type="date" id="endDate" style="padding:0.25rem; border-radius:0.25rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;"> End</label>
         </div>
@@ -212,7 +212,7 @@
             const meta = document.createElement('div');
             meta.className = 'frame-item--meta';
             const dateStr = fmtDate(it.date_display || it.event_date || it.entry_date);
-            meta.textContent = dateStr + ' · ' + typeLabel(it) + (it.is_evidence ? ' · Evidence' : '') + (it.is_deadline ? ' · Deadline' : '');
+            meta.textContent = dateStr + ' · ' + typeLabel(it) + (it.is_evidence ? ' · Record' : '') + (it.is_deadline ? ' · Deadline' : '');
             main.appendChild(title);
             main.appendChild(meta);
             if (it.description) {
@@ -274,7 +274,7 @@
                     </div>
                     <div style="display:flex;gap:1rem;align-items:center;font-size:.85rem;color:#cbd5e1;">
                         <label><input id="me-deadline" type="checkbox"> Deadline</label>
-                        <label><input id="me-evidence" type="checkbox"> Evidence</label>
+                        <label><input id="me-evidence" type="checkbox"> Record</label>
                     </div>
                 </div>
                 <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.25rem;">

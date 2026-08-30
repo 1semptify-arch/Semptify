@@ -14,6 +14,9 @@ Contract:
 import logging
 from datetime import UTC
 
+from cryptography.exceptions import InvalidTag
+
+from app.core.utc import utc_now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,6 +36,7 @@ class RefreshResult:
     REFRESH_FAILED = "refresh_failed"
     USER_NOT_FOUND = "user_not_found"
     PROVIDER_ERROR = "provider_error"
+    TOKEN_CORRUPT = "token_corrupt"
 
 
 async def ensure_valid_token(user_id: str, db: AsyncSession | None = None) -> tuple[bool, OAuthToken | None, str]:
@@ -105,6 +109,37 @@ def _decrypt_string(encrypted: str, user_id: str) -> str:
     return data["v"]
 
 
+def _try_decrypt(encrypted: str | None, user_id: str, label: str) -> tuple[str | None, Exception | None]:
+    """Try to decrypt a token and return a user-safe result.
+
+    Returns (value, None) on success or (None, exception) on failure.
+    InvalidTag means the encryption key changed and the stored token is
+    permanently unreadable — the user must reconnect.
+    """
+    if not encrypted:
+        return None, None
+
+    try:
+        return _decrypt_string(encrypted, user_id), None
+    except InvalidTag as e:
+        logger.warning(
+            "Stored %s for user %s*** is unreadable (key changed): %s",
+            label,
+            user_id[:6],
+            e,
+        )
+        return None, e
+    except Exception as e:
+        logger.warning(
+            "Failed to decrypt %s for user %s***: %s (%s)",
+            label,
+            user_id[:6],
+            type(e).__name__,
+            e,
+        )
+        return None, e
+
+
 async def _refresh_from_db(user_id: str, db: AsyncSession) -> tuple[bool, OAuthToken | None, str]:
     """
     Load refresh token from DB and attempt async refresh.
@@ -123,14 +158,15 @@ async def _refresh_from_db(user_id: str, db: AsyncSession) -> tuple[bool, OAuthT
             logger.warning(f"Session {user_id[:6]}*** not found in DB")
             return False, None, RefreshResult.USER_NOT_FOUND
 
-        # Decrypt refresh token
-        refresh_token = None
-        if session_row.refresh_token_encrypted:
-            try:
-                refresh_token = _decrypt_string(session_row.refresh_token_encrypted, user_id)
-            except Exception as e:
-                logger.warning(f"Failed to decrypt refresh token for {user_id[:6]}***: {e}")
-
+        # Decrypt refresh token. If the stored token is unreadable, the
+        # encryption key has changed and the only safe recovery is to have the
+        # tenant reconnect through OAuth. Do not continue to provider refresh
+        # with a corrupt token.
+        refresh_token, refresh_error = _try_decrypt(
+            session_row.refresh_token_encrypted, user_id, "refresh token"
+        )
+        if refresh_error:
+            return False, None, RefreshResult.TOKEN_CORRUPT
         if not refresh_token:
             logger.warning(f"No refresh token for user {user_id[:6]}***")
             return False, None, RefreshResult.NO_REFRESH_TOKEN
@@ -141,17 +177,25 @@ async def _refresh_from_db(user_id: str, db: AsyncSession) -> tuple[bool, OAuthT
             logger.error(f"Could not parse provider from user_id {user_id[:6]}***")
             return False, None, RefreshResult.PROVIDER_ERROR
 
-        # Decrypt access token
-        access_token = ""
-        if session_row.access_token_encrypted:
-            try:
-                access_token = _decrypt_string(session_row.access_token_encrypted, user_id)
-            except Exception as e:
-                logger.warning(f"Failed to decrypt access token for {user_id[:6]}***: {e}")
+        # Decrypt access token. If it is unreadable but the refresh token is
+        # valid, we can recover by treating the token as expired and asking the
+        # provider for a fresh access token.
+        access_token, access_error = _try_decrypt(
+            session_row.access_token_encrypted, user_id, "access token"
+        )
+        force_expired = bool(access_error)
+        if access_error:
+            # Force a provider refresh with the valid refresh token.
+            access_token = ""
 
         # Normalize naive expires_at to UTC so token.is_expired() does not crash
         # comparing aware and naive datetimes (SQLite returns naive datetimes).
         expires_at = session_row.expires_at
+        if force_expired or not expires_at:
+            # Access token is unreadable or missing — make the token immediately
+            # expired so we go straight to provider refresh instead of returning
+            # an empty token as "valid".
+            expires_at = utc_now()
         if expires_at and expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=UTC)
 
@@ -206,21 +250,21 @@ async def _refresh_from_db(user_id: str, db: AsyncSession) -> tuple[bool, OAuthT
 
 async def get_valid_token_or_redirect(
     user_id: str, return_to: str, db: AsyncSession | None = None
-) -> tuple[OAuthToken | None, str | None]:
+) -> tuple[OAuthToken | None, str | None, str]:
     """
     Get a valid token, or return the redirect URL for full reauth.
 
     This is the main entry point for storage middleware.
 
     Returns:
-        (token, redirect_url)
-        - If token is valid: (token, None)
-        - If reauth needed: (None, redirect_url)
+        (token, redirect_url, status)
+        - If token is valid: (token, None, success)
+        - If reauth needed: (None, redirect_url, <reason>)
     """
     is_valid, token, status = await ensure_valid_token(user_id, db)
 
     if is_valid:
-        return token, None
+        return token, None, status
 
     # Refresh failed - need full reauth
     from app.core.navigation import navigation
@@ -230,10 +274,11 @@ async def get_valid_token_or_redirect(
     reconnect_path = reconnect_stage.path if reconnect_stage else "/storage/reconnect"
 
     # Build reconnect URL with return_to
+    provider = provider or ""
     reconnect_url = f"{reconnect_path}?return_to={return_to}&provider={provider}"
 
     logger.info(f"Reauth required for user {user_id[:6]}*** (status={status}) → {reconnect_path}")
-    return None, reconnect_url
+    return None, reconnect_url, status
 
 
 def register_provider_refresh_callbacks():

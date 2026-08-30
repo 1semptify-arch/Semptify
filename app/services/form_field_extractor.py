@@ -843,7 +843,7 @@ class FormFieldExtractor:
                 if not self.result.notice_date:
                     self.result.notice_date = ExtractedField(
                         field_name="notice_date",
-                        display_name="Notice Date",
+                        display_name="Received Date",
                         value=dt.strftime("%Y-%m-%d"),
                         confidence=FieldConfidence.MEDIUM,
                         source_text=text_found,

@@ -9,6 +9,7 @@ from collections.abc import Sequence
 from typing import Union
 
 import sqlalchemy as sa
+from sqlalchemy import inspect
 
 from alembic import op
 
@@ -21,12 +22,20 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Add canonical_value column to context_facts for drift detection."""
-    op.add_column(
-        'context_facts',
-        sa.Column('canonical_value', sa.Text(), nullable=True),
-    )
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    existing_columns = {col["name"] for col in inspector.get_columns("context_facts")}
+    if "canonical_value" not in existing_columns:
+        op.add_column(
+            'context_facts',
+            sa.Column('canonical_value', sa.Text(), nullable=True),
+        )
 
 
 def downgrade() -> None:
     """Drop canonical_value column."""
-    op.drop_column('context_facts', 'canonical_value')
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    existing_columns = {col["name"] for col in inspector.get_columns("context_facts")}
+    if "canonical_value" in existing_columns:
+        op.drop_column('context_facts', 'canonical_value')

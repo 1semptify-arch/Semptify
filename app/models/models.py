@@ -296,7 +296,12 @@ class Document(Base):
     """Deep OCR pipeline status: pending, processing, complete, failed, needs_reprocess."""
 
     # Timestamps
+    # uploaded_at is immutable (set by the system on intake).
     uploaded_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    # event_date = when the underlying real-world event happened (tenant-editable).
+    event_date: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
+    # received_date = when the document was formally received/served (tenant-editable, optional).
+    received_date: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="documents")
@@ -1248,6 +1253,19 @@ class Incident(Base):
     # Metadata
     incident_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
+    # Overlay pointer — actual case content lives in the user's cloud storage
+    case_overlay_id: Mapped[str | None] = mapped_column(
+        String(36), nullable=True, comment="CASE_DATA overlay id in user cloud storage"
+    )
+
+    # FCA/Qui Tam readiness — non-PII score/status only; checklist details live in overlay
+    fca_readiness_score: Mapped[int | None] = mapped_column(
+        Integer, nullable=True, comment="Percent complete for federal case readiness checklist"
+    )
+    fca_readiness_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTimeTZ, nullable=True, comment="Last time the readiness checklist was updated"
+    )
+
     # Relationships
     user: Mapped["User"] = relationship(back_populates="incidents")
     vault_items: Mapped[list["VaultItem"]] = relationship(back_populates="incident")
@@ -1507,7 +1525,12 @@ class VaultIndexDB(Base):
     review_state_json: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Timestamps
+    # uploaded_at is immutable (set by the system on intake).
     uploaded_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    # event_date = when the underlying real-world event happened (tenant-editable).
+    event_date: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
+    # received_date = when the document was formally received/served (tenant-editable, optional).
+    received_date: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
 
     @property

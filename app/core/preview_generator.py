@@ -528,7 +528,7 @@ class PreviewGenerator:
 
     def get_preview(self, document_id: str, preview_type: PreviewType) -> PreviewResult | None:
         """Get cached preview."""
-        for _key, result in self.preview_cache.items():
+        for key, result in self.preview_cache.items():
             if result.document_id == document_id and result.preview_type == preview_type:
                 self.stats["cache_hits"] += 1
                 return result

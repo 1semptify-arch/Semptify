@@ -62,15 +62,18 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.compliance import validate_app_compliance
 from app.core.config import get_settings
 from app.core.cookie_auth import extract_user_id
-from app.core.database import close_db, init_db
+from app.core.database import close_db, get_db, init_db
 from app.core.navigation import navigation
+from app.core.runtime_profile import log_active_profile
 from app.core.security import UserContext, green_access
 from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
+from app.modules.case_builder.fca_guard import require_fca_readiness
 
 
 # PyInstaller frozen executable detection
@@ -136,8 +139,8 @@ def register_stateless_routes(app: FastAPI):
         from app.modules.context_engine.cache import get_verified_landing_facts
 
         landing_facts = await get_verified_landing_facts()
-        ctx = {"request": request, "year": utc_now().year, "landing_facts": landing_facts}
-        return templates.TemplateResponse("index.html", ctx)
+        ctx = {"year": utc_now().year, "landing_facts": landing_facts}
+        return templates.TemplateResponse(request, "index.html", ctx)
 
     @app.get("/api/landing/facts", include_in_schema=False)
     async def landing_facts_api():
@@ -214,8 +217,20 @@ templates.env.filters["format_date"] = format_date_filter
 
 # Product Manifest — replaces the 200+ line router-import block
 from app.core.contract_loader import load_all_contracts
-from app.core.product_manifest import ProductTier, register_tiers
+from app.core.product_manifest import ProductTier, is_mvp_deploy, register_tiers
 from app.core.utc import utc_now
+
+# Tier configuration: production = CORE/EXTENDED/ADVOCATE/ADMIN; development = all
+_LIVE_TIERS: dict[str, list[ProductTier]] = {
+    "production": [ProductTier.CORE, ProductTier.EXTENDED, ProductTier.ADVOCATE, ProductTier.ADMIN],
+    "development": list(ProductTier.all()),
+}
+
+
+def _get_enabled_tiers() -> list[ProductTier]:
+    """Return the product tiers that should be enabled for this process."""
+    env = os.getenv("SEMPTIFY_ENV", "production").lower()
+    return _LIVE_TIERS.get(env, _LIVE_TIERS["production"])
 
 # =============================================================================
 # Logging Setup
@@ -518,6 +533,15 @@ async def lifespan(_app: FastAPI):
                 await load_overrides(db)
             lifespan_logger.info("   Module overrides schema ensured and cache warmed")
 
+            # feature_flags table: same problem as module_overrides above -
+            # Alembic auto-migration doesn't run locally, and the Postgres
+            # migration uses sa.ARRAY, which SQLite can't create anyway.
+            from app.core.features import ensure_schema as ensure_feature_flags_schema
+
+            async with factory() as db:
+                await ensure_feature_flags_schema(db)
+            lifespan_logger.info("   Feature flags schema ensured")
+
         def verify_module_overrides():
             return True
 
@@ -525,11 +549,12 @@ async def lifespan(_app: FastAPI):
 
         # --- STAGE 3.5: Load Module Contracts ---
         async def load_contracts():
-            result = load_all_contracts()
+            result = load_all_contracts(enabled_tiers=_get_enabled_tiers())
             lifespan_logger.info(
-                "   Contracts: %s loaded, %s failed, %s total",
+                "   Contracts: %s loaded, %s failed, %s skipped, %s total",
                 result["loaded"],
                 result["failed"],
+                result["skipped"],
                 result["total_contracts"],
             )
 
@@ -553,14 +578,15 @@ async def lifespan(_app: FastAPI):
 
         # --- STAGE 5: Initialize Services ---
         async def init_services():
-            # Heavy services re-enabled with memory fixes (deque bounds, no net_connections).
-            # Guard with ENABLE_HEAVY_SERVICES=false for emergency rollback.
-            enable_heavy = os.getenv("ENABLE_HEAVY_SERVICES", "true").lower() != "false"
-            if not enable_heavy:
-                logger.info("   Heavy services skipped (ENABLE_HEAVY_SERVICES=false)")
+            # Gated by the runtime load profile (app/core/runtime_profile.py),
+            # resolved once in create_app() and stashed on app.state so both
+            # this lifespan and create_app()'s own gates (performance
+            # monitor) agree on the same profile for one process.
+            load_profile = _app.state.load_profile
+            logger.info("   Runtime load profile: %s", load_profile.name)
 
             # Positronic Brain - re-enabled (event_history was already capped at 1000)
-            if enable_heavy:
+            if load_profile.positronic_brain:
                 try:
                     from app.services.brain_integrations import initialize_brain_connections
 
@@ -570,7 +596,7 @@ async def lifespan(_app: FastAPI):
                     logger.warning(f"   Positronic Brain init failed (non-fatal): {e}")
 
             # Module Hub - re-enabled (unbounded lists replaced with deque(maxlen=N))
-            if enable_heavy:
+            if load_profile.module_hub:
                 try:
                     from app.services.module_actions import register_all_actions
                     from app.services.module_registration import register_all_modules
@@ -581,8 +607,9 @@ async def lifespan(_app: FastAPI):
                 except Exception as e:
                     logger.warning(f"   Module Hub init failed (non-fatal): {e}")
 
-            # Location Service - re-enabled
-            if enable_heavy:
+            # Location Service - registers into positronic_mesh (Brain-adjacent
+            # action registry), so it follows the positronic_brain flag.
+            if load_profile.positronic_brain:
                 try:
                     from app.services.location_service import register_with_mesh
 
@@ -595,7 +622,7 @@ async def lifespan(_app: FastAPI):
             # Canonical complaint wizard lives at app.modules.complaints.router (EXTENDED tier).
 
             # Mesh Network - re-enabled with bounded request/collaboration history
-            if enable_heavy:
+            if load_profile.mesh_network:
                 try:
                     from app.services.mesh_handlers import register_all_mesh_handlers
 
@@ -609,10 +636,28 @@ async def lifespan(_app: FastAPI):
             # discovered_plugins = plugin_manager.discover_plugins()
             # plugin_stats = plugin_manager.load_all()
 
-            if enable_heavy:
-                logger.info("   Core + heavy services active (plugins disabled for memory optimization)")
+            if any(load_profile.flags().values()):
+                logger.info("   Services active per profile '%s' (plugins disabled for memory optimization)", load_profile.name)
             else:
-                logger.info("   Core services only - heavy/mesh/plugins disabled for memory optimization")
+                logger.info("   Core services only - all infra flags off per profile '%s'", load_profile.name)
+
+            # Embedding model for Layer 2 semantic retrieval.
+            # Loaded once as a singleton; gated by the load profile for
+            # memory-constrained rollbacks and for environments without the model.
+            # We start it as a background task so slow loads (network cache
+            # refresh, CPU-bound torch init) do not block other services.
+            if load_profile.embedding_model:
+                from app.modules.context_engine.embedding_model import load_embedding_model
+
+                async def _warm_embedding_model():
+                    try:
+                        loop = asyncio.get_event_loop()
+                        await loop.run_in_executor(None, load_embedding_model)
+                        logger.info("   Embedding model loaded for semantic retrieval")
+                    except Exception as e:
+                        logger.warning("   Embedding model load failed (non-fatal): %s", e)
+
+                asyncio.create_task(_warm_embedding_model())
 
             from app.core.event_subscribers import register_all_subscribers
 
@@ -1348,6 +1393,10 @@ def create_app() -> FastAPI:
     setup_logging()
     validate_app_compliance(app_settings)
 
+    # Resolve the runtime load profile once and log it, so a startup log is
+    # self-explanatory about what's running (see app/core/runtime_profile.py).
+    load_profile = log_active_profile()
+
     # OpenAPI tags for documentation organization
     tags_metadata = [
         {
@@ -1496,6 +1545,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 
     fastapi_app.state.limiter = limiter
+    fastapi_app.state.load_profile = load_profile
     fastapi_app.add_middleware(SlowAPIMiddleware)
     fastapi_app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
@@ -1612,7 +1662,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # Performance monitoring - re-enabled with memory fixes
     # (removed psutil.net_connections(), shrank deques, 60s sampling)
-    if os.getenv("ENABLE_HEAVY_SERVICES", "true").lower() != "false":
+    # Gated by the runtime load profile (app/core/runtime_profile.py), not a
+    # scattered env check - see load_profile resolved above.
+    if load_profile.performance_monitoring:
         try:
             from app.core.performance_monitor import get_performance_monitor
 
@@ -1622,7 +1674,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         except Exception as e:
             logger.warning(f"Performance monitoring init failed (non-fatal): {e}")
     else:
-        logger.info("Performance monitoring skipped (ENABLE_HEAVY_SERVICES=false)")
+        logger.info("Performance monitoring skipped (profile=%s)", load_profile.name)
 
     logger.info("Semptify 5.0 FastAPI application created successfully")
 
@@ -1669,7 +1721,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # bounded request_metrics deque (maxlen=500). The original memory issue was
     # caused by psutil.net_connections(), which has already been removed.
 
-    enable_perf_middleware = os.getenv("ENABLE_HEAVY_SERVICES", "true").lower() != "false"
+    enable_perf_middleware = load_profile.performance_monitoring
     if enable_perf_middleware:
 
         @fastapi_app.middleware("http")
@@ -1703,7 +1755,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         logger.info("Performance monitoring middleware enabled (slim mode)")
     else:
-        logger.info("Performance monitoring middleware skipped (ENABLE_HEAVY_SERVICES=false)")
+        logger.info("Performance monitoring middleware skipped (profile=%s)", load_profile.name)
 
     # =========================================================================
     # Middleware (order matters - first added = last to run)
@@ -1814,12 +1866,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # =========================================================================
     # Feature Flag Middleware — returns 503 for routes whose flag is disabled
-    # (Master Handoff Task 4)
+    # (Master Handoff Task 4). Migrated 2026-08-26 to the DB-backed
+    # FeatureFlagManager (app/core/features.py) — see
+    # docs/handoffs/handoff-feature-flags-unification.md for why the old
+    # in-memory app/core/feature_flags.py was retired.
     # =========================================================================
-    from app.core.feature_flags import FeatureFlagMiddleware
+    from app.core.features import RouteFeatureGateMiddleware
 
-    fastapi_app.add_middleware(FeatureFlagMiddleware)
-    logger.info("Feature flag middleware registered")
+    fastapi_app.add_middleware(RouteFeatureGateMiddleware)
+    logger.info("Feature flag middleware registered (DB-backed)")
 
     # =========================================================================
     # Admin Network Middleware — outermost guard for /admin paths.
@@ -1857,17 +1912,26 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Register Routers via Product Manifest
     # =========================================================================
 
-    # ALL TIERS ENABLED - Full live deployment
-    # CORE + EXTENDED + ADVOCATE + ADMIN + RESEARCH + DEV
-    register_tiers(
-        fastapi_app,
-        ProductTier.CORE,
-        ProductTier.EXTENDED,
-        ProductTier.ADVOCATE,
-        ProductTier.ADMIN,
-        ProductTier.RESEARCH,
-        ProductTier.DEV,
-    )
+    enabled_tiers = _get_enabled_tiers()
+    register_tiers(fastapi_app, *enabled_tiers)
+
+    # Document Center is a DEV-tier module that may not have been loaded above.
+    # For non-MVP builds, explicitly mount /api/dc so the document-type registry
+    # (including house_rules) is reachable without requiring a full development env.
+    if not is_mvp_deploy():
+        from app.modules.document_center import router as document_center_router
+
+        already_mounted = any(
+            getattr(r, "path", "").startswith("/api/dc")
+            for r in fastapi_app.routes
+            if hasattr(r, "path")
+        )
+        if not already_mounted:
+            fastapi_app.include_router(
+                document_center_router,
+                prefix="/api/dc",
+                tags=["Document Center"],
+            )
 
     # Stateless composer landing prototype for the public utility experience.
     app_static_path = BASE_PATH / "app" / "static"
@@ -2762,10 +2826,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/admin/api/flags", tags=["admin"])
     async def admin_get_flags(admin_uid: str = Depends(require_admin)):
-        """Return the current state of all feature flags."""
-        from app.core.feature_flags import FeatureFlags
+        """Return the current state of the route kill-switch flags.
 
-        return {"flags": FeatureFlags.all_flags()}
+        Migrated 2026-08-26 to read from the DB-backed FeatureFlagManager
+        (app/core/features.py) instead of the retired in-memory store. Only
+        the route kill-switch subset is returned here; the full product
+        feature set is at /api/system/feature-flags (admin_console).
+        """
+        from app.core.features import ROUTE_GATE_FLAGS, features
+
+        return {"flags": {name: await features.is_enabled(feature) for name, feature in ROUTE_GATE_FLAGS.items()}}
 
     @fastapi_app.put("/admin/api/flags/{name}", tags=["admin"])
     async def admin_set_flag(
@@ -2773,20 +2843,28 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         enabled: bool,
         admin_uid: str = Depends(require_admin),
     ):
-        """Set a feature flag to a specific value."""
-        from app.core.feature_flags import FeatureFlags
+        """Set a route kill-switch flag to a specific value."""
+        from app.core.features import ROUTE_GATE_FLAGS, features
 
-        return {"name": name, "enabled": FeatureFlags.set_flag(name, enabled)}
+        if name not in ROUTE_GATE_FLAGS:
+            raise HTTPException(status_code=404, detail=f"Unknown route flag: {name}")
+        await features.set_enabled(name, enabled, updated_by=admin_uid)
+        return {"name": name, "enabled": enabled}
 
     @fastapi_app.post("/admin/api/flags/{name}/toggle", tags=["admin"])
     async def admin_toggle_flag(
         name: str,
         admin_uid: str = Depends(require_admin),
     ):
-        """Toggle a feature flag."""
-        from app.core.feature_flags import FeatureFlags
+        """Toggle a route kill-switch flag."""
+        from app.core.features import ROUTE_GATE_FLAGS, features
 
-        return {"name": name, "enabled": FeatureFlags.toggle_flag(name)}
+        if name not in ROUTE_GATE_FLAGS:
+            raise HTTPException(status_code=404, detail=f"Unknown route flag: {name}")
+        current = await features.is_enabled(ROUTE_GATE_FLAGS[name])
+        new_state = not current
+        await features.set_enabled(name, new_state, updated_by=admin_uid)
+        return {"name": name, "enabled": new_state}
 
     @fastapi_app.get("/admin/api/script-catalog", tags=["admin"])
     async def admin_script_catalog_api(admin_uid: str = Depends(require_admin)):
@@ -3147,6 +3225,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """Serve the Library â€” legal resources and guides."""
         return templates.TemplateResponse(request, "pages/library.html")
 
+    @fastapi_app.get("/law-library", response_class=HTMLResponse)
+    async def law_library_page(request: Request):
+        """Serve the public Law Library."""
+        return templates.TemplateResponse(request, "pages/law_library.html")
+
     @fastapi_app.get("/tools", response_class=HTMLResponse)
     async def tools_page(request: Request):
         """Serve Tools â€” document generators and case utilities."""
@@ -3322,6 +3405,188 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """GUI Act — placeholder."""
         return templates.TemplateResponse(request, "gui/act.html")
 
+    @fastapi_app.get("/gui/record/journal/create", response_class=HTMLResponse)
+    async def gui_journal_create_guide_page(
+        request: Request,
+        db: AsyncSession = Depends(get_db),
+    ):
+        """In-task guide preview for creating a journal entry (RECORD pillar)."""
+        from app.core.module_contracts import contract_registry
+        from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+
+        contract = contract_registry.get("journal", "journal_create")
+        if contract is None:
+            raise HTTPException(status_code=404, detail="Function contract not found")
+
+        narration = {
+            "state": "pending",
+            "step_label": "When you click Save, Semptify does the following:",
+            "mode": "sync",
+            "narration": [
+                "Checks that the entry type is one of the allowed kinds.",
+                "Saves the title, content, and time to your personal record.",
+                "Links the entry to your Semptify user ID so only you can see it.",
+                "Returns the new entry ID and the saved entry.",
+            ],
+        }
+
+        object_type = f"{contract.module}:{contract.group_name}"
+        tapering_ctx = await get_tapering_context(request, object_type, db)
+        situational_available = is_function_resolved(request, contract.module)
+
+        response = templates.TemplateResponse(
+            request,
+            "pages/journal_create_guide.html",
+            {
+                "contract": contract.to_dict(),
+                "intensity_level": tapering_ctx["intensity_level"],
+                "exposure_count": tapering_ctx["exposure_count"],
+                "situational_available": situational_available,
+                "narration": narration,
+                "next_step": {"label": "View your journal", "path": "/tenant/journal"},
+            },
+        )
+        if not tapering_ctx["experience_token_saved_to_cloud"]:
+            set_experience_token_cookie(response, tapering_ctx["experience_token"])
+        return response
+
+    @fastapi_app.get("/gui/know/law-library/get-statute", response_class=HTMLResponse)
+    async def gui_law_library_get_statute_guide_page(
+        request: Request,
+        db: AsyncSession = Depends(get_db),
+    ):
+        """In-task guide preview for looking up a statute (KNOW pillar)."""
+        from app.core.module_contracts import contract_registry
+        from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+
+        contract = contract_registry.get("law_library", "law_library_get_statute")
+        if contract is None:
+            raise HTTPException(status_code=404, detail="Function contract not found")
+
+        narration = {
+            "state": "pending",
+            "step_label": "When you click Look up, Semptify does the following:",
+            "mode": "sync",
+            "narration": [
+                "Checks the verified Minnesota law library for the statute you chose.",
+                "Returns the title, citation, summary, and key points.",
+                "Semptify does not interpret the law or give legal advice.",
+            ],
+        }
+
+        object_type = f"{contract.module}:{contract.group_name}"
+        tapering_ctx = await get_tapering_context(request, object_type, db)
+        situational_available = is_function_resolved(request, contract.module)
+
+        response = templates.TemplateResponse(
+            request,
+            "pages/law_library_get_statute.html",
+            {
+                "contract": contract.to_dict(),
+                "intensity_level": tapering_ctx["intensity_level"],
+                "exposure_count": tapering_ctx["exposure_count"],
+                "situational_available": situational_available,
+                "narration": narration,
+                "next_step": {"label": "Browse related cases and court rules", "path": "/law-library"},
+            },
+        )
+        if not tapering_ctx["experience_token_saved_to_cloud"]:
+            set_experience_token_cookie(response, tapering_ctx["experience_token"])
+        return response
+
+    @fastapi_app.get("/gui/act/eviction-defense/calculate-deadlines", response_class=HTMLResponse)
+    async def gui_eviction_defense_calculate_deadlines_guide_page(
+        request: Request,
+        db: AsyncSession = Depends(get_db),
+    ):
+        """In-task guide preview for calculating eviction deadlines (ACT pillar)."""
+        from app.core.module_contracts import contract_registry
+        from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+
+        contract = contract_registry.get("eviction_defense", "eviction_defense_calculate_deadlines")
+        if contract is None:
+            raise HTTPException(status_code=404, detail="Function contract not found")
+
+        narration = {
+            "state": "pending",
+            "step_label": "When you click Calculate, Semptify does the following:",
+            "mode": "sync",
+            "narration": [
+                "Takes the service date and case type you entered.",
+                "Adds the standard Minnesota eviction deadlines.",
+                "Highlights any deadlines that are close or already passed.",
+                "Semptify does not file anything for you.",
+            ],
+        }
+
+        object_type = f"{contract.module}:{contract.group_name}"
+        tapering_ctx = await get_tapering_context(request, object_type, db)
+        situational_available = is_function_resolved(request, contract.module)
+
+        response = templates.TemplateResponse(
+            request,
+            "pages/eviction_defense_calculate_deadlines.html",
+            {
+                "contract": contract.to_dict(),
+                "intensity_level": tapering_ctx["intensity_level"],
+                "exposure_count": tapering_ctx["exposure_count"],
+                "situational_available": situational_available,
+                "narration": narration,
+                "next_step": {"label": "Look up the law behind these deadlines", "path": "/gui/know/law-library/get-statute"},
+            },
+        )
+        if not tapering_ctx["experience_token_saved_to_cloud"]:
+            set_experience_token_cookie(response, tapering_ctx["experience_token"])
+        return response
+
+    @fastapi_app.get("/gui/record/timeline/create-event", response_class=HTMLResponse)
+    async def gui_timeline_create_event_guide_page(
+        request: Request,
+        db: AsyncSession = Depends(get_db),
+    ):
+        """In-task guide preview for creating a timeline event (RECORD pillar)."""
+        from app.core.module_contracts import contract_registry
+        from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+
+        contract = contract_registry.get("timeline", "timeline_create_event")
+        if contract is None:
+            raise HTTPException(status_code=404, detail="Function contract not found")
+
+        narration = {
+            "state": "pending",
+            "step_label": "When you click Save, Semptify does the following:",
+            "mode": "sync",
+            "narration": [
+                "Checks the event has a date and a title.",
+                "Saves the event, type, and details to your timeline.",
+                "Makes it available to your case builder and deadline tracker.",
+            ],
+        }
+
+        object_type = f"{contract.module}:{contract.group_name}"
+        tapering_ctx = await get_tapering_context(request, object_type, db)
+        situational_available = is_function_resolved(request, contract.module)
+
+        response = templates.TemplateResponse(
+            request,
+            "pages/timeline_create_event.html",
+            {
+                "contract": contract.to_dict(),
+                "intensity_level": tapering_ctx["intensity_level"],
+                "exposure_count": tapering_ctx["exposure_count"],
+                "situational_available": situational_available,
+                "narration": narration,
+                "next_step": {"label": "View your timeline", "path": "/tenant/timeline"},
+            },
+        )
+        if not tapering_ctx["experience_token_saved_to_cloud"]:
+            set_experience_token_cookie(response, tapering_ctx["experience_token"])
+        return response
+
     @fastapi_app.get("/gui/packet-builder", response_class=HTMLResponse)
     async def gui_packet_builder_page(request: Request):
         """GUI Packet Builder — build and download curated document packets."""
@@ -3339,6 +3604,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
 
         from app.core.cookie_auth import verify_user_id
+        from app.core.module_gate import get_jurisdiction, get_module_access
         from app.modules.context_engine.taxonomy import ALL_SUBJECTS
         from app.modules.page_composer.assembly import assemble_page
         from app.modules.page_shell.renderer import render_page_shell
@@ -3347,7 +3613,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             raise HTTPException(status_code=404, detail=f"Unknown subject: {subject}")
 
         user_id = verify_user_id(request.cookies.get("semptify_uid", "")) or ""
-        result = await assemble_page(subject=subject, user_id=user_id, intent=intent)
+        resolved = get_module_access(request).resolved_module_paths
+        jurisdiction = get_jurisdiction(request)
+        jurisdiction_data = {"state": jurisdiction.state or "MN", "county": jurisdiction.county}
+        result = await assemble_page(
+            subject=subject,
+            user_id=user_id,
+            jurisdiction=jurisdiction.state or "MN",
+            county=jurisdiction.county,
+            intent=intent,
+            user_context={"capabilities": resolved},
+        )
         return templates.TemplateResponse(
             request,
             "gui/assembled_page.html",
@@ -3355,6 +3631,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "subject": subject,
                 "shell_html": render_page_shell(result.page_config),
                 "assembly_metadata": result.metadata,
+                "jurisdiction": jurisdiction_data,
+                "jurisdiction_json": json.dumps(jurisdiction_data),
             },
         )
 
@@ -3366,6 +3644,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
 
         from app.core.cookie_auth import verify_user_id
+        from app.core.module_gate import get_jurisdiction, get_module_access
         from app.modules.context_engine.taxonomy import ALL_SUBJECTS
         from app.modules.page_composer.assembly import assemble_page
         from app.modules.page_shell.renderer import render_page_shell
@@ -3374,7 +3653,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             raise HTTPException(status_code=404, detail=f"Unknown subject: {subject}")
 
         user_id = verify_user_id(request.cookies.get("semptify_uid", "")) or ""
-        result = await assemble_page(subject=subject, user_id=user_id)
+        resolved = get_module_access(request).resolved_module_paths
+        jurisdiction = get_jurisdiction(request)
+        jurisdiction_data = {"state": jurisdiction.state or "MN", "county": jurisdiction.county}
+        result = await assemble_page(
+            subject=subject,
+            user_id=user_id,
+            jurisdiction=jurisdiction.state or "MN",
+            county=jurisdiction.county,
+            user_context={"capabilities": resolved},
+        )
         return templates.TemplateResponse(
             request,
             "gui/assembled_page.html",
@@ -3382,6 +3670,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "subject": subject,
                 "shell_html": render_page_shell(result.page_config),
                 "assembly_metadata": result.metadata,
+                "jurisdiction": jurisdiction_data,
+                "jurisdiction_json": json.dumps(jurisdiction_data),
             },
         )
 
@@ -3414,6 +3704,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/debug/status")
     async def debug_status(request: Request):
         """Temporary: show user/gate/middleware state for debugging."""
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3470,6 +3762,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/debug/alembic")
     async def debug_alembic(request: Request):
         """Temporary: check alembic state and force migration if drifted."""
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3512,6 +3806,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.post("/debug/force-migrate")
     async def debug_force_migrate(request: Request):
         """Temporary: force alembic to stamp pre-legal_sub_role then upgrade head."""
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3554,6 +3850,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         This bypasses alembic entirely to fix the schema drift where
         alembic_version says head but columns are missing.
         """
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3622,6 +3920,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         Used after manually fixing schema drift so future alembic upgrade head
         calls don't try to re-run already-applied migrations.
         """
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -3655,20 +3955,26 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.post("/debug/seed-test-user")
     async def debug_seed_test_user(request: Request):
-        """Temporary: insert or update a test user row to bypass onboarding gate.
+        """Dev-only: seed a local tenant user and log the browser in.
 
-        Creates a User row with primary_provider='google_drive', default_role='tenant',
-        and completed_groups containing 'storage' and 'vault' so the storage middleware
-        and role guards let the user through to tenant pages.
+        Creates or updates a test User row, signs the semptify_uid cookie,
+        and redirects to the RECORD in-task guide so the three proven guide
+        pages can be used end-to-end without real OAuth credentials.
+
+        Only works when SECURITY_MODE=open (the local dev default).
         """
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
         try:
             from sqlalchemy import text
 
+            from app.core.cookie_auth import set_auth_cookie
             from app.core.database import get_session_factory
 
+            now = utc_now()
             factory = get_session_factory()
             async with factory() as db:
                 # Check if user exists
@@ -3683,10 +3989,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                             "primary_provider = 'google_drive', "
                             "default_role = 'tenant', "
                             "completed_groups = :groups, "
-                            "updated_at = NOW() "
+                            "updated_at = :now "
                             "WHERE id = :uid"
                         ),
-                        {"uid": "GUbGQUTpK6", "groups": "storage_connected,vault_initialized"},
+                        {"uid": "GUbGQUTpK6", "groups": "storage_connected,vault_initialized", "now": now},
                     )
                     info["action"] = "updated"
                 else:
@@ -3696,12 +4002,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                             "INSERT INTO users (id, primary_provider, storage_user_id, "
                             "default_role, intensity_level, completed_groups, created_at, updated_at) "
                             "VALUES (:uid, 'google_drive', :sid, 'tenant', 'low', "
-                            ":groups, NOW(), NOW())"
+                            ":groups, :now1, :now2)"
                         ),
                         {
                             "uid": "GUbGQUTpK6",
                             "sid": "test-storage-user-id",
                             "groups": "storage_connected,vault_initialized",
+                            "now1": now,
+                            "now2": now,
                         },
                     )
                     info["action"] = "inserted"
@@ -3723,14 +4031,22 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     }
 
             info["step"] = "done"
+
+            # Log the browser in as the seeded user.
+            redirect = ssot_redirect("/gui/record/journal/create", context="debug seed-test-user")
+            set_auth_cookie(redirect, "GUbGQUTpK6")
+            return redirect
+
         except Exception as exc:
             info["error"] = str(exc)
             info["traceback"] = _tb.format_exc()
-        return JSONResponse(content=info)
+            return JSONResponse(content=info)
 
     @fastapi_app.get("/debug/create-vault")
     async def debug_create_vault(request: Request):
         """Temporary: force vault folder creation for debugging."""
+        if app_settings.security_mode != "open":
+            return JSONResponse({"error": "not found"}, status_code=404)
         import traceback as _tb
 
         info = {"step": "init"}
@@ -4538,7 +4854,34 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        return templates.TemplateResponse(request, "pages/case_builder.html", {"request": request})
+        from app.modules.case_builder.fca_guard import is_fca_readiness_visible
+        user_id = extract_user_id(request) or ""
+        fca_enabled = await is_fca_readiness_visible(user_id)
+        return templates.TemplateResponse(
+            request,
+            "pages/case_builder.html",
+            {"request": request, "fca_readiness_enabled": fca_enabled},
+        )
+
+    @fastapi_app.get("/ui/tool/fca-readiness", response_class=HTMLResponse)
+    @fastapi_app.get("/ui/tool/fca-readiness/", response_class=HTMLResponse)
+    async def fca_readiness_page(
+        request: Request,
+        user: UserContext = Depends(require_fca_readiness),
+    ):
+        """FCA / Qui Tam case readiness tool — issue spotting for counsel."""
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        return templates.TemplateResponse(
+            request,
+            "pages/fca_readiness.html",
+            {
+                "request": request,
+                "user_id": user.user_id,
+                "upl_disclaimer": "Semptify does not give legal advice. Get legal advice from a qualified attorney.",
+            },
+        )
 
     @fastapi_app.get("/ui/tool/plan-maker", response_class=HTMLResponse)
     @fastapi_app.get("/ui/tool/plan-maker/", response_class=HTMLResponse)
@@ -4838,13 +5181,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             # Aggregate the real feed (async — uses vault service + DB)
             feed_items = await aggregate_feed_async(user_id) if user_id else []
 
-            # Compose the page structure
+            # Compose the page structure, passing the resolved modules from the middleware
+            from app.core.module_gate import get_module_access
+
             page = compose_page(
                 user_id,
                 "timeline",
                 context={
                     "document_count": len([i for i in feed_items if i["type"] == "document"]),
                     "upcoming_deadlines": len([i for i in feed_items if i["type"] == "deadline"]),
+                    "resolved_module_paths": get_module_access(request).resolved_module_paths,
                 },
             )
 
@@ -4898,11 +5244,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 facts = await ctx_cache.get_facts(subject, jurisdiction)
             stories = await ctx_stories.get_published_stories(subject, jurisdiction, limit=3)
 
+            from app.core.module_gate import get_module_access
+
             context = {
                 "subject": subject,
                 "facts": facts,
                 "stories": stories,
                 "label": SUBJECT_LABELS.get(subject, subject),
+                "resolved_module_paths": get_module_access(request).resolved_module_paths,
             }
             page = compose_page(user_id, "library", context=context)
 
@@ -4939,7 +5288,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             user_id_cookie = request.cookies.get("semptify_uid", "")
             user_id = verify_user_id(user_id_cookie) or ""
 
-            page = compose_page(user_id, "library", context={})
+            from app.core.module_gate import get_module_access
+
+            page = compose_page(
+                user_id,
+                "library",
+                context={
+                    "resolved_module_paths": get_module_access(request).resolved_module_paths,
+                },
+            )
 
             return templates.TemplateResponse(
                 request,

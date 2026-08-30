@@ -112,7 +112,7 @@ async def get_onboarding_state(
             vault_initialized=False,
         )
 
-    completed = {g.strip() for g in row.split(",") if g.strip()}
+    completed = set(g.strip() for g in row.split(",") if g.strip())
 
     return OnboardingState(
         user_id=user_id,
@@ -130,7 +130,7 @@ async def get_onboarding_state_no_db(completed_groups_str: str | None, user_id: 
         completed_groups_str: The User.completed_groups value (may be None).
         user_id: Raw user ID string.
     """
-    completed = {g.strip() for g in (completed_groups_str or "").split(",") if g.strip()}
+    completed = set(g.strip() for g in (completed_groups_str or "").split(",") if g.strip())
     return OnboardingState(
         user_id=user_id,
         storage_connected="storage_connected" in completed,

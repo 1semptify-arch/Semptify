@@ -164,3 +164,90 @@ register_function_group(
         deterministic=True,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="court_forms",
+        group_name="court_forms_library_list",
+        title="Court Forms Library List (SSOT)",
+        description=(
+            "CANONICAL list of Minnesota civil and housing court forms from the "
+            "JSON library. Returns form_id, title, category, case_type, and "
+            "related forms."
+        ),
+        inputs=(),
+        outputs=("forms",),
+        dependencies=("app.modules.court_forms.router", "app.modules.court_forms.library"),
+        deterministic=True,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="court_forms",
+        group_name="court_forms_library_get",
+        title="Court Forms Library Get Definition (SSOT)",
+        description=(
+            "CANONICAL get a single form definition from the JSON library, "
+            "including all required_fields and court_rules."
+        ),
+        inputs=("form_id",),
+        outputs=("form_definition",),
+        dependencies=("app.modules.court_forms.router", "app.modules.court_forms.library"),
+        deterministic=True,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="court_forms",
+        group_name="court_forms_library_render",
+        title="Court Forms Library Render (SSOT)",
+        description=(
+            "CANONICAL render a library form as HTML, text, or base64 PDF from "
+            "confirmed field values."
+        ),
+        inputs=("form_id", "field_values", "output_format", "user_id"),
+        outputs=("form_id", "title", "content", "fields_used", "missing_required"),
+        dependencies=("app.modules.court_forms.router",),
+        deterministic=False,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="court_forms",
+        group_name="court_forms_library_save",
+        title="Court Forms Library Save to Vault (SSOT)",
+        description=(
+            "CANONICAL generate a library form PDF and save it to the user's "
+            "connected vault. Creates a FORM_FILL overlay attached to the "
+            "generated PDF."
+        ),
+        inputs=("form_id", "field_values", "filename?", "user_id"),
+        outputs=("form_id", "vault_id", "overlay_id", "storage_path", "filename"),
+        dependencies=(
+            "app.modules.court_forms.router",
+            "app.services.vault_upload_service.VaultUploadService",
+            "app.services.unified_overlay_manager.UnifiedOverlayManager",
+            "app.core.overlay_types.OverlayType.FORM_FILL",
+        ),
+        deterministic=False,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="court_forms",
+        group_name="court_forms_library_packet",
+        title="Court Forms Library Packet Assembly (SSOT)",
+        description=(
+            "CANONICAL render multiple library forms and merge them into a single "
+            "PDF packet. Returns the packet as base64 PDF."
+        ),
+        inputs=("items", "filename"),
+        outputs=("filename", "content", "form_ids"),
+        dependencies=("app.modules.court_forms.router",),
+        deterministic=False,
+    )
+)

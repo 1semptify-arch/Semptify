@@ -11,6 +11,9 @@ Provider Codes (1 char):
 - D = Dropbox
 - O = OneDrive
 
+Tenant users MUST connect one of the three OAuth cloud storage providers.
+Local-only users are not supported.
+
 Role Codes (1 char):
 - U = User (displayed as Tenant in housing context)
 - M = Manager
@@ -29,7 +32,7 @@ import logging
 import secrets
 import string
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -40,7 +43,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class ProviderCode(StrEnum):
+class ProviderCode(str, Enum):
     """Single-character provider codes."""
 
     GOOGLE_DRIVE = "G"
@@ -48,7 +51,7 @@ class ProviderCode(StrEnum):
     ONEDRIVE = "O"
 
 
-class RoleCode(StrEnum):
+class RoleCode(str, Enum):
     """Single-character role codes."""
 
     ADMIN = "A"

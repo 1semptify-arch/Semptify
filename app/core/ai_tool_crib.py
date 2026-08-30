@@ -6,7 +6,7 @@ Purpose: Centralized management of all AI services and tools
 
 import logging
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel
@@ -16,7 +16,7 @@ from app.core.utc import utc_now
 logger = logging.getLogger(__name__)
 
 
-class AIServiceType(StrEnum):
+class AIServiceType(str, Enum):
     """Types of AI services in the crib."""
 
     DOCUMENT_CLASSIFIER = "document_classifier"
@@ -29,7 +29,7 @@ class AIServiceType(StrEnum):
     OCR_ENGINE = "ocr_engine"
 
 
-class AIProvider(StrEnum):
+class AIProvider(str, Enum):
     """AI service providers."""
 
     OPENAI = "openai"

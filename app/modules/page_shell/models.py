@@ -45,6 +45,8 @@ class InputBlock(BaseModel):
     label: str
     required: bool = False
     writes_to: str | None = None
+    # Optional module name for capability gating.
+    module_name: str | None = None
     # Optional UI hint — does NOT override zone prominence; purely cosmetic.
     placeholder: str | None = None
 
@@ -58,6 +60,8 @@ class InfoBlock(BaseModel):
     content_ref: str
     reading_level: Literal["plain", "intermediate", "legal"] = "plain"
     collapsed_by_default: bool = False
+    # Optional module name for capability gating.
+    module_name: str | None = None
     # Spec-confirmed field (§8): human-readable summary shown in the
     # collapsed view. Official part of the schema, not an assumption.
     summary: str | None = None
@@ -73,6 +77,8 @@ class OutputBlock(BaseModel):
     label: str
     risk_tier: RiskTier = "low"
     on_trigger: str
+    # Optional module name for capability gating.
+    module_name: str | None = None
     # GOVERN override hook — if True, this block (when placed in the GOVERN
     # zone) suppresses the ACT block whose block_id matches `suppresses_act_block`.
     # Implements §3 "GOVERN ceiling override". Empty by default.
@@ -138,6 +144,10 @@ class PageConfig(BaseModel):
     escalation: Escalation = Field(default_factory=Escalation)
     intensity_override: int | None = None
     intensity_source: str | None = None
+    # Jurisdiction metadata — lets renderers (e.g. Law Linker) resolve
+    # county-specific citations to the user's actual location.
+    jurisdiction: str | None = None
+    county: str | None = None
 
     @field_validator("major_pillar")
     @classmethod

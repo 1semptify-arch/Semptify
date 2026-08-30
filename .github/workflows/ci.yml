@@ -43,6 +43,10 @@ jobs:
 
       - name: Run pre-commit checks
         run: pre-commit run --all-files
+        env:
+          SECURITY_MODE: enforced
+          DATABASE_URL: sqlite+aiosqlite:///./test.db
+          SECRET_KEY: test-secret-key-for-ci-only  # pragma: allowlist secret
 
       - name: Verify tracker sync
         run: python tools/sync_orchestrator.py --check

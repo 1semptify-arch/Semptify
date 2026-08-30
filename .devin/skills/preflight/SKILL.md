@@ -42,7 +42,7 @@ Read ALL of the following — not skim, READ:
 
 1. `AGENTS.md` — Full document including Known Failure Registry (all 16 items)
 2. `PROJECT_BIBLE.md` — Governance, gate chain, onboarding flow, doc hierarchy
-3. `docs/MOTIVATIONS.md` — Foundational motivations, language rules, Information Integrity Standards
+3. `docs/admin/MOTIVATIONS.md` — Foundational motivations, language rules, Information Integrity Standards
 4. `docs/adr/0001`–`0006` — Permanent decisions (storage, navigation, attraction, banned motivations, language, open access)
 5. `BUILD_GUIDE_SSOT.md` — Build philosophy, active features, SSOT rules
 6. `CORE_CONTEXT.md` — What Semptify IS, who it's for, what we never build

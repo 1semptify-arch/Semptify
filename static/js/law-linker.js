@@ -9,7 +9,7 @@
  *   - IRS Publications (IRS Publication XXX) -> irs.gov
  *   - Minneapolis Code (Minneapolis Code § XXX) -> library.municode.com
  *   - St. Paul Code (St. Paul Ordinance XX-XX) -> library.municode.com
- *   - Hennepin County Ordinances -> hennepin.us
+ *   - County / municipal code (e.g. Hennepin County Code § ...) -> library.municode.com (jurisdiction-aware)
  *   - US Supreme Court (XXX U.S. XXX (YYYY)) -> courtlistener.com
  *   - Federal Appellate (XXX F.3d XXX (Xth Cir. YYYY)) -> courtlistener.com
  *   - Minnesota Cases (XXX Minn. XX, XXX N.W.2d XXX) -> courtlistener.com
@@ -26,9 +26,133 @@
     'use strict';
 
     const lawCache = new Map();
+    const countyCache = new Map();
     const MAX_CACHE_SIZE = 50;
     let popup = null;
     let scrollHandler = null;
+    let userJurisdiction = null;
+    let jurisdictionPromise = null;
+
+    // Multi-word Minnesota county names. Keep in sync with
+    // app/core/law_source_registry.py _MN_MULTIWORD_COUNTIES.
+    const MN_MULTIWORD_COUNTIES = new Set([
+        'Big Stone', 'Blue Earth', 'Crow Wing', 'Lac qui Parle',
+        'Lake of the Woods', 'Le Sueur', 'Mille Lacs', 'Otter Tail',
+        'Red Lake', 'St. Louis', 'Yellow Medicine',
+    ]);
+    const INVALID_COUNTY_WORDS = new Set([
+        'this', 'that', 'the', 'a', 'an', 'see', 'per', 'in', 'under',
+        'of', 'for', 'from', 'by', 'with', 'as', 'at', 'to', 'on', 'about',
+        'and', 'or', 'but', 'if', 'is', 'are', 'was', 'were', 'be', 'been',
+        'my', 'our', 'your', 'their', 'his', 'her', 'its', 'such',
+    ]);
+
+    // =========================================================================
+    // Jurisdiction helpers — used for county-code resolution
+    // =========================================================================
+
+    function getJurisdiction() {
+        if (userJurisdiction) return userJurisdiction;
+        if (typeof window !== 'undefined' && window.SEMPTIFY_JURISDICTION) {
+            const j = window.SEMPTIFY_JURISDICTION;
+            userJurisdiction = {
+                state: j.state || 'MN',
+                county: j.county || '',
+            };
+            return userJurisdiction;
+        }
+        return { state: 'MN', county: '' };
+    }
+
+    async function loadJurisdiction() {
+        if (jurisdictionPromise) return jurisdictionPromise;
+        if (userJurisdiction && userJurisdiction.county) return userJurisdiction;
+        jurisdictionPromise = (async () => {
+            try {
+                const res = await fetch('/api/location/current', {
+                    credentials: 'include',
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    userJurisdiction = {
+                        state: data.state_code || 'MN',
+                        county: data.county || '',
+                    };
+                    return userJurisdiction;
+                }
+            } catch (e) {
+                // Silent fail — this is best-effort location data.
+                console.debug('Law Linker: jurisdiction load failed', e);
+            }
+            return getJurisdiction();
+        })();
+        return jurisdictionPromise;
+    }
+
+    function buildMunicodeCountyUrl(county, state) {
+        // Mirrors the Python CountyCodeRegistry slug normalization.
+        const slug = (county || '')
+            .replace(/\s+county$/i, '')
+            .toLowerCase()
+            .replace(/\./g, '')
+            .replace(/'/g, '')
+            .replace(/[^a-z0-9\s]/g, '')
+            .trim()
+            .replace(/\s+/g, '_') + '_county';
+        return 'https://library.municode.com/' + (state || 'mn').toLowerCase() + '/' + slug + '/codes/code_of_ordinances';
+    }
+
+    async function resolveCountyUrl(county, state) {
+        const j = getJurisdiction();
+        const stateCode = (state || j.state || 'MN').toUpperCase();
+        const countyName = (county || j.county || '').trim();
+        if (!countyName) return 'https://library.municode.com/' + stateCode.toLowerCase();
+
+        const cacheKey = stateCode + ':' + countyName;
+        if (countyCache.has(cacheKey)) return countyCache.get(cacheKey);
+
+        try {
+            const url = new URL('/api/law-library/county-code', window.location.origin);
+            url.searchParams.set('county', countyName);
+            url.searchParams.set('state', stateCode);
+            const res = await fetch(url, {
+                credentials: 'include',
+            });
+            if (res.ok) {
+                const data = await res.json();
+                countyCache.set(cacheKey, data.official_url);
+                return data.official_url;
+            }
+        } catch (e) {
+            console.debug('Law Linker: county-code endpoint failed', e);
+        }
+
+        // Fallback to the client-side Municode slug builder.
+        const fallback = buildMunicodeCountyUrl(countyName, stateCode);
+        countyCache.set(cacheKey, fallback);
+        return fallback;
+    }
+
+    function cleanCountyName(name) {
+        if (!name) return getJurisdiction().county || '';
+        name = name.trim();
+        if (MN_MULTIWORD_COUNTIES.has(name)) return name;
+        const parts = name.split(/\s+/);
+        if (parts.length === 1) {
+            return INVALID_COUNTY_WORDS.has(name.toLowerCase()) ? (getJurisdiction().county || '') : name;
+        }
+        const last = parts[parts.length - 1];
+        const leading = parts.slice(0, -1).join(' ').toLowerCase();
+        const leadingWords = leading.split(/\s+/);
+        if (parts.length > 2 && MN_MULTIWORD_COUNTIES.has(name)) return name;
+        if (leadingWords.length === 1 && INVALID_COUNTY_WORDS.has(leading)) {
+            return last;
+        }
+        if (parts.length > 2) {
+            return INVALID_COUNTY_WORDS.has(last.toLowerCase()) ? (getJurisdiction().county || '') : last;
+        }
+        return name;
+    }
 
     // =========================================================================
     // Citation patterns — order matters (most specific first)
@@ -111,16 +235,19 @@
             displayLabel: () => 'St. Paul Legislative Code',
             apiPath: '/api/law-library/statutes/'
         },
-        // Hennepin County
+        // County / municipal code of ordinances (jurisdiction-aware)
+        // Matches "Hennepin County Code § 1.02", "St. Louis County Ordinance 123",
+        // and generic "County Code § ..." (uses the user's detected county).
         {
-            type: 'hennepin',
-            label: 'Hennepin County',
-            regex: /Hennepin\s*County\s*Ordinance/gi,
-            detect: /Hennepin\s*County/i,
-            idBuilder: () => 'hennepin_county',
-            urlBuilder: () => 'https://www.hennepin.us/property-tax',
-            displayLabel: () => 'Hennepin County Ordinances',
-            apiPath: '/api/law-library/statutes/'
+            type: 'county_code',
+            label: 'County Code',
+            regex: /([A-Z][a-zA-Z\s.']+?)?\s*County(?:\s+(?:Code|Ordinance|Ord\.?))(?:\s+(?:§|No\.|#)\s*[\w.\-]+)?/gi,
+            detect: /(?:[A-Z][a-zA-Z\s.']+?\s*)?County\s+(?:Code|Ordinance|Ord\.?)/i,
+            idBuilder: (county) => 'county_' + (county || getJurisdiction().county || 'unknown').toLowerCase().replace(/\s+/g, '_'),
+            urlBuilder: (county) => buildMunicodeCountyUrl(county || getJurisdiction().county, getJurisdiction().state),
+            displayLabel: (county) => (county || getJurisdiction().county || 'County') + ' County Code',
+            apiPath: null,
+            countyName: true
         },
         // US Supreme Court (e.g. 576 U.S. 519 (2015))
         {
@@ -353,6 +480,25 @@
         if (lawCache.has(cacheKey)) {
             return lawCache.get(cacheKey);
         }
+
+        // County codes are resolved against the jurisdiction endpoint.
+        if (citation.type === 'county_code') {
+            const officialUrl = await resolveCountyUrl(citation.county, citation.state);
+            const countyName = citation.county || getJurisdiction().county || 'County';
+            const data = {
+                statute: {
+                    title: countyName + ' County Code of Ordinances',
+                    source_name: 'Municode County Code of Ordinances',
+                    official_url: officialUrl,
+                    last_verified: '2026-08-21',
+                    summary: 'County-level ordinances for ' + countyName + '.',
+                    full_text: '',
+                }
+            };
+            setCache(cacheKey, data);
+            return data;
+        }
+
         if (!citation.apiPath) {
             return { error: 'no_api', message: 'No API endpoint for this citation type. Use the official source link.' };
         }
@@ -445,7 +591,10 @@
     // =========================================================================
     // Process element — scan text nodes for any recognized citation
     // =========================================================================
-    function processElement(element) {
+    async function processElement(element) {
+        if (element.closest && element.closest('.law-linker-cite, #law-linker-popup')) return;
+        await loadJurisdiction();
+
         const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
         const nodesToReplace = [];
         let node;
@@ -484,6 +633,19 @@
                         apiPath: pattern.apiPath,
                         matchedText: m[0]
                     };
+
+                    // County codes must be resolved against the user's jurisdiction
+                    // before we create the link.
+                    if (citation.type === 'county_code') {
+                        const county = cleanCountyName(args[0] || getJurisdiction().county || '');
+                        const state = getJurisdiction().state || 'MN';
+                        citation.county = county;
+                        citation.state = state;
+                        citation.id = 'county_' + county.toLowerCase().replace(/\s+/g, '_');
+                        citation.displayLabel = county + ' County Code';
+                        citation.officialUrl = await resolveCountyUrl(county, state);
+                    }
+
                     matches.push({ index: m.index, length: m[0].length, citation });
                 }
             }
@@ -553,8 +715,9 @@
     // Public API
     // =========================================================================
     window.LawLinker = {
-        init: function(selector) {
+        init: async function(selector) {
             initStyles();
+            await loadJurisdiction();
             let elements;
             if (selector) {
                 elements = document.querySelectorAll(selector);
@@ -565,7 +728,9 @@
                     elements = document.querySelectorAll('main, article, .law-summary, .law-card, .modal-section, .content, .document-body, .analysis-text');
                 }
             }
-            elements.forEach(el => processElement(el));
+            for (const el of elements) {
+                await processElement(el);
+            }
         },
         process: processElement,
         parseCitation: parseCitation

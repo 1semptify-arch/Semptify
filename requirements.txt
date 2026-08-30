@@ -53,9 +53,9 @@ Pillow>=10.0.0              # Image processing (optional)
 # =============================================================================
 # PDF Generation (Court Packets)
 # =============================================================================
-reportlab>=4.0.0
+reportlab>=4.0.0,<5
 PyPDF2>=3.0.0
-# xhtml2pdf>=0.2.17         # Advanced PDF generation - disabled (requires Cairo/GDK system libs not in slim)
+xhtml2pdf>=0.2.17           # HTML-to-PDF fallback (reportlab-based, no Cairo/GDK required)
 
 # =============================================================================
 # Document Conversion (Markdown to DOCX/HTML)
@@ -101,8 +101,15 @@ lxml>=5.0.0                 # Fast XML/HTML parser
 gunicorn>=21.0.0            # WSGI (use with uvicorn workers)
 pdfplumber>=0.10.0
 pymupdf>=1.23.0
+pytesseract>=0.3.10      # Local Tesseract OCR wrapper (requires tesseract-ocr binary)
 
 # PostgreSQL driver for production
 psycopg2-binary>=2.9.9
 
 alembic>=1.17.0
+
+# =============================================================================
+# Semantic retrieval (Problem A — Semptify's own curated content)
+# =============================================================================
+sentence-transformers>=2.2.0  # all-MiniLM-L6-v2 embeddings, offline, no per-query cost
+pgvector>=0.2.4               # pgvector SQLAlchemy integration for PostgreSQL

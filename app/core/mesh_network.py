@@ -19,7 +19,7 @@ from collections import OrderedDict, deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 from app.core.id_gen import make_id
@@ -37,7 +37,7 @@ MAX_COLLABORATIONS = 1000
 # =============================================================================
 
 
-class RequestType(StrEnum):
+class RequestType(str, Enum):
     """Types of inter-module requests"""
 
     QUERY = "query"  # Read-only request
@@ -47,7 +47,7 @@ class RequestType(StrEnum):
     COLLABORATE = "collaborate"  # Multi-module collaboration
 
 
-class MergeStrategy(StrEnum):
+class MergeStrategy(str, Enum):
     """How to merge results from multiple modules"""
 
     COMBINE = "combine"  # Combine all results into one dict
@@ -148,7 +148,7 @@ class MeshNetwork:
             "avg_response_time_ms": 0.0,
         }
 
-        logger.info("🕸️ Mesh Network initialized")
+        logger.info("○ Mesh Network initialized")
 
     def _add_collaboration(self, collaboration_id: str, collab: dict[str, Any]) -> None:
         """Store a collaboration, pruning oldest entries when over the memory bound."""
@@ -174,14 +174,14 @@ class MeshNetwork:
             module_id=module_id, name=name, capabilities=capabilities, provides=provides or [], requires=requires or []
         )
         self._handlers[module_id] = {}
-        logger.info(f"🔌 Module '{name}' ({module_id}) registered with {len(capabilities)} capabilities")
+        logger.info(f"○ Module '{name}' ({module_id}) registered with {len(capabilities)} capabilities")
 
     def register_handler(self, module_id: str, action: str, handler: Callable) -> None:
         """Register an action handler for a module."""
         if module_id not in self._handlers:
             self._handlers[module_id] = {}
         self._handlers[module_id][action] = handler
-        logger.debug(f"   → Handler registered: {module_id}.{action}")
+        logger.debug(f"   ▸ Handler registered: {module_id}.{action}")
 
     # =========================================================================
     # SINGLE MODULE CALLS
@@ -353,13 +353,13 @@ class MeshNetwork:
                     if isinstance(contribution, dict):
                         context.update(contribution)
                         collab["module_contributions"][module_id] = contribution
-                        logger.info(f"   ✓ {module_id} contributed {len(contribution)} fields")
+                        logger.info(f"   ● {module_id} contributed {len(contribution)} fields")
 
                 except TimeoutError:
-                    logger.warning(f"   ⚠ {module_id} timed out")
+                    logger.warning(f"   ◆ {module_id} timed out")
                     collab["module_contributions"][module_id] = {"error": "timeout"}
                 except Exception as e:
-                    logger.error(f"   ✗ {module_id} error: {e}")
+                    logger.error(f"   ◆ {module_id} error: {e}")
                     collab["module_contributions"][module_id] = {"error": str(e)}
             else:
                 logger.debug(f"   - {module_id} has no handler for '{goal}'")
@@ -404,7 +404,7 @@ class MeshNetwork:
             except Exception as e:
                 logger.error(f"Broadcast handler error: {e}")
 
-        logger.info(f"📢 Broadcast '{event_type}' from {source} → {notified} handlers")
+        logger.info(f"▸ Broadcast '{event_type}' from {source} ▸ {notified} handlers")
         return notified
 
     def subscribe(self, event_type: str, handler: Callable) -> None:

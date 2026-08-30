@@ -64,6 +64,7 @@ venv311_clean/
 # needs to be tracked. The other files are truly generated artifacts.)
 stub_tasks.json
 todo_comments.json
+GAPS.md
 temp/
 ENV/
 env.bak/
@@ -102,6 +103,8 @@ data/vault_storage/
 data/legal_filings/cases/
 data/inventory/
 data/.setup_complete
+data/vault_index/
+data/registry/
 
 # Local config
 .env.local
@@ -193,6 +196,13 @@ CREDENTIALS_SETUP_WORKBOOK_REVEALED.html
 
 # PDFs / binary attachments
 *.pdf
+
+# Allow synthetic classification test fixtures; keep the real case PDF out.
+!docs/classification-test-fixtures/lease_01.pdf
+!docs/classification-test-fixtures/notice_01.pdf
+!docs/classification-test-fixtures/mixed_01.pdf
+docs/classification-test-fixtures/lease_02.pdf
+
 semptify logo.png
 5.jpg
 
@@ -233,6 +243,8 @@ openapi_check.json
 compatibility_system.json
 trusted_domains.json
 invite_codes.json
+docs/STALENESS-REPORT.md
+tools/.recurring_scheduler_state.json
 
 # Duplicate / outdated requirements
 requirements_clean.txt
@@ -275,3 +287,7 @@ playwright-report/
 genminy.txt
 setup_claude_code_free.ps1
 REPOs/
+
+# Local MCP / IDE configs (machine-specific)
+.devin/mcp_config.local.json
+funding_forge/.cursor/

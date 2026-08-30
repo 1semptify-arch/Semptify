@@ -79,8 +79,9 @@ class JSONFormatter(logging.Formatter):
                     "threadName",
                     "message",
                     "taskName",
-                ] and not key.startswith("_"):
-                    log_data[key] = value
+                ]:
+                    if not key.startswith("_"):
+                        log_data[key] = value
 
         return json.dumps(log_data, default=str)
 

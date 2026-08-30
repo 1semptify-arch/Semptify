@@ -1474,7 +1474,7 @@ class DocumentRecognitionEngine:
             (["rent due", "payment due", "due date"], "Payment Due Date"),
             (["served", "service date", "service of"], "Service Date"),
             (["dated", "this", "signed"], "Document Date"),
-            (["notice", "notified"], "Notice Date"),
+            (["notice", "notified"], "Received Date"),
         ]
 
         for keywords, label in labels:

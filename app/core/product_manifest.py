@@ -58,8 +58,9 @@ from __future__ import annotations
 
 import importlib
 import logging
+import os
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from app.core.upl_guardrails import UPLRiskTier
@@ -75,7 +76,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class ProductTier(StrEnum):
+class ProductTier(str, Enum):
     """Semptify product tiers. Each tier is a bounded context."""
 
     CORE = "core"
@@ -101,7 +102,7 @@ class ProductTier(StrEnum):
         return [cls.CORE, cls.EXTENDED, cls.ADVOCATE, cls.ADMIN, cls.RESEARCH, cls.DEV]
 
 
-class FeesPolicy(StrEnum):
+class FeesPolicy(str, Enum):
     """Semantic classification for how the word "fee" may be used in a module.
 
     - tenant_no_fees: the module is tenant-facing or public-facing and must not
@@ -1079,16 +1080,18 @@ _register(
     dev_notes="Legal tactics recommendations, evidence checklist, pre-hearing timeline, retaliation/habitability checks.",
 )
 
-# Standalone module files (dev_only — not yet wired into main app flow)
+# Page Shell is a CORE rendering dependency of Page Composer. The /api/page-shell
+# introspection/demo routes remain admin-gated, but the renderer itself is used by
+# production tenant routes (/gui/page/{subject}, /gui/dashboard, /api/page/{subject}/render).
 _register(
     "app.modules.page_shell.router",
     prefix="/api/page-shell",
     tags=("Page Shell", "Pillar Mixer"),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
+    tier=ProductTier.CORE,
+    lifecycle="stable",
     requires_role=("admin",),
-    dev_notes="Shell + rendering engine for the pillar-mixer backbone. Renders four skeletons (RECORD/KNOW/ACT/GOVERN) from a validated page config. Does not pick blends or compute intensity. Spec: temp/semptify_pillar_mixer_backbone.md",
-    log_message="Page Shell router active — /api/page-shell (admin-only)",
+    dev_notes="Core shell + rendering engine for the pillar-mixer backbone. Renders four skeletons (RECORD/KNOW/ACT/GOVERN) from a validated page config. Used directly by Page Composer's tenant-facing routes; the /api/page-shell debug endpoints stay admin-only. Does not pick blends or compute intensity. Spec: temp/semptify_pillar_mixer_backbone.md",
+    log_message="Page Shell router active — /api/page-shell (admin introspection)",
 )
 _register(
     "app.modules.example_payment_tracking",
@@ -1105,72 +1108,12 @@ _register(
     lifecycle="dev_only",
     dev_notes="Thin wrapper that mounts the legal_filing router from app.modules.legal_filing. 5 endpoints under /api/legal-filing.",
 )
-_register(
-    "app.modules.vault_sync",
-    tags=("Vault Sync",),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
-    optional=True,
-    dev_notes=(
-        "ON HOLD — user approved plan 2026-07-01, deferred until GUI Phase 1 ships. "
-        "Live encrypted replica of Semptify metadata (journal, timeline, letters, deadlines, document pointers) "
-        "streamed to user's own OAuth-connected cloud drive (Dropbox prototype first — true append API). "
-        "AES-256-GCM chunk encryption with user-passphrase-derived key (server never stores plaintext). "
-        "Background drain loop: batch flush every 3-5s OR 50 rows. Output: encrypted .jsonl on user's cloud. "
-        "Open questions on revive: (1) Dropbox-only prototype — pending final OK, "
-        "(2) passphrase model A per-session vs B persistent — user has not picked, "
-        "(3) greenlight to scaffold — not yet. "
-        "Files planned: __init__.py, register.py, router.py, sync_engine.py, providers/dropbox.py, "
-        "crypto.py, sync_log.py + alembic migration for sync_log table. "
-        "Does NOT touch documents (those already live in user's cloud). No PII, no OAuth tokens synced."
-    ),
-)
-
 # =============================================================================
 # UPL Matrix — Conceptual module registrations
 # =============================================================================
 # These modules are declared in the UPL risk matrix but do not yet have code.
-# Registered here so their UPL tier is declared and ready for when they are
-# built. All are dev_only, optional, no router — safe to import-fail.
 # When a module is built, update its entry with the real module_path and
 # move it to the appropriate tier block above.
-
-_register(
-    "app.modules.eviction_notice_explainer",
-    tags=("Eviction Notice Explainer",),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
-    optional=True,
-    upl_risk_tier=UPLRiskTier.HIGH,
-    dev_notes="Conceptual from UPL matrix. Explains eviction notices in plain language. HIGH tier — generates tailored legal analysis of a user's specific notice, requires attorney-review gate before output. No router yet.",
-)
-_register(
-    "app.modules.response_letter_generator",
-    tags=("Response Letter Generator",),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
-    optional=True,
-    upl_risk_tier=UPLRiskTier.HIGH,
-    dev_notes="Conceptual from UPL matrix. Generates response letters (e.g. answer to complaint). HIGH tier — drafts documents intended to be filed, requires attorney-review gate. No router yet.",
-)
-_register(
-    "app.modules.eviction_defense_content",
-    tags=("Eviction Defense Content",),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
-    optional=True,
-    upl_risk_tier=UPLRiskTier.LOW,
-    dev_notes="Conceptual from UPL matrix. Informational-only eviction defense content — plain-language facts and statutes, no filtering/selection flow, no tailored advice. LOW tier: pure facts and neutral listings. No router yet. DO NOT build a filtering or selection flow — that would move this to MEDIUM_HIGH+.",
-)
-_register(
-    "app.modules.ai_copilot",
-    tags=("AI Copilot",),
-    tier=ProductTier.DEV,
-    lifecycle="dev_only",
-    optional=True,
-    upl_risk_tier=UPLRiskTier.LOW,
-    dev_notes="Conceptual from UPL matrix. AI assistant for tenant questions. LOW tier per matrix — provides facts and organization, not legal advice. Banned-phrase checker in upl_guardrails.py is the safety net. No router yet.",
-)
 
 # Modules wired via main.py direct import (tracked here for manifest visibility)
 _register(
@@ -1357,6 +1300,40 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
 
 
 # =============================================================================
+# Deploy Target Gating (MVP / Render)
+# =============================================================================
+
+_MVP_ALLOWED_MODULES: frozenset[str] | None = None
+
+
+def get_deploy_target() -> str | None:
+    """Return the active DEPLOY_TARGET env value, if any."""
+    return os.getenv("DEPLOY_TARGET") or None
+
+
+def is_mvp_deploy() -> bool:
+    """True when DEPLOY_TARGET=render_mvp (minimal Render free-tier build)."""
+    return get_deploy_target() == "render_mvp"
+
+
+def get_mvp_allowed_modules() -> frozenset[str]:
+    """Return the explicit allow-list of module paths for the MVP Render build.
+
+    Current policy:
+    - All ProductTier.CORE router modules are included (tenant-rights essentials).
+    - app.modules.intake.router is included even though it is EXTENDED, because
+      Pass 1 document intake (OCR + pattern extraction) is part of MVP.
+    - This set is a starting point; the exact MVP feature set should be
+      reviewed and tightened as the Render MVP stabilizes.
+    """
+    global _MVP_ALLOWED_MODULES
+    if _MVP_ALLOWED_MODULES is None:
+        core_paths = {e.module_path for e in MANIFEST.all() if e.tier == ProductTier.CORE}
+        _MVP_ALLOWED_MODULES = frozenset(core_paths | {"app.modules.intake.router"})
+    return _MVP_ALLOWED_MODULES
+
+
+# =============================================================================
 # Registration API
 # =============================================================================
 
@@ -1395,7 +1372,12 @@ def register_tiers(app: FastAPI, *tiers: ProductTier) -> dict:
     if not tiers:
         raise ValueError("At least one ProductTier must be specified")
 
-    entries = MANIFEST.by_tier(*tiers)
+    if is_mvp_deploy():
+        allowed_modules = get_mvp_allowed_modules()
+        entries = [e for e in MANIFEST.all() if e.module_path in allowed_modules]
+        logger.info("DEPLOY_TARGET=render_mvp: loading %d MVP core modules", len(entries))
+    else:
+        entries = MANIFEST.by_tier(*tiers)
     registered = 0
     skipped = 0
     errors = 0

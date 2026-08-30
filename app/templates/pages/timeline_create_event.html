@@ -1,0 +1,151 @@
+{% extends "body/record_body.html" %}
+
+{% block title %}{{ contract.title }} — Semptify{% endblock %}
+{% block record_aria_label %}Create a timeline event{% endblock %}
+{% block record_controls_title %}Add the event{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .record-guide__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .record-guide__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .record-guide__field--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.625rem;
+  }
+  .record-guide__result {
+    margin-top: 1rem;
+    color: #4a4a4a;
+    line-height: 1.6;
+  }
+  .record-guide__result code {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #1e3a5f;
+  }
+</style>
+{% endblock %}
+
+{% block record_controls %}
+<form id="timelineForm" class="record-guide__form" onsubmit="event.preventDefault(); submitTimelineEvent();" novalidate>
+  <div class="record-guide__field block-input">
+    <label for="title">What happened <span class="required">*</span></label>
+    <input id="title" name="title" type="text" maxlength="255" placeholder="e.g., Landlord refused repair request" required>
+  </div>
+
+  <div class="record-guide__field block-input">
+    <label for="event_date">Date it happened <span class="required">*</span></label>
+    <input id="event_date" name="event_date" type="date" required>
+  </div>
+
+  <div class="record-guide__field block-input">
+    <label for="event_date_end">End date <span class="optional">(optional, for a range)</span></label>
+    <input id="event_date_end" name="event_date_end" type="date">
+  </div>
+
+  <div class="record-guide__field block-input">
+    <label for="event_type">Event type <span class="required">*</span></label>
+    <select id="event_type" name="event_type" required>
+      <option value="manual" selected>Other / general</option>
+      <option value="notice">Notice</option>
+      <option value="payment">Payment</option>
+      <option value="maintenance">Maintenance / repair</option>
+      <option value="communication">Communication</option>
+      <option value="court">Court / hearing</option>
+      <option value="conversation">Conversation</option>
+      <option value="visit">Visit / inspection</option>
+      <option value="observation">Observation</option>
+    </select>
+  </div>
+
+  <div class="record-guide__field block-input">
+    <label for="description">Details</label>
+    <textarea id="description" name="description" rows="4" placeholder="Who, where, what was said, and anything else that matters."></textarea>
+  </div>
+
+  <details class="record-guide__extra">
+    <summary>Add more detail</summary>
+    <div class="record-guide__extra-fields">
+      <div class="record-guide__field block-input">
+        <label for="urgency">Urgency</label>
+        <select id="urgency" name="urgency">
+          <option value="normal" selected>Normal</option>
+          <option value="low">Low</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+
+      <div class="record-guide__field record-guide__field--inline">
+        <input id="is_deadline" name="is_deadline" class="record-guide__checkbox" type="checkbox" value="true">
+        <label for="is_deadline">This is a deadline</label>
+      </div>
+
+      <div class="record-guide__field record-guide__field--inline">
+        <input id="is_evidence" name="is_evidence" class="record-guide__checkbox" type="checkbox" value="true">
+        <label for="is_evidence">This is a record</label>
+      </div>
+    </div>
+  </details>
+
+  <button type="submit" class="output-trigger output-trigger--primary">Save timeline event</button>
+  <div id="timelineResult" class="record-guide__result" role="status" aria-live="polite"></div>
+</form>
+{% endblock %}
+
+{% block record_next %}
+<a href="{{ navigation.get_stage('tenant_timeline').path }}" class="output-trigger">View your timeline</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  function submitTimelineEvent() {
+    const form = document.getElementById('timelineForm');
+    const formData = new FormData(form);
+    const payload = {
+      event_type: formData.get('event_type') || 'manual',
+      title: (formData.get('title') || '').trim(),
+      description: (formData.get('description') || '').trim() || null,
+      event_date: formData.get('event_date'),
+      event_date_end: formData.get('event_date_end') || null,
+      urgency: formData.get('urgency') || 'normal',
+      is_deadline: form.is_deadline.checked,
+      is_evidence: form.is_evidence.checked,
+    };
+    fetch('/api/timeline/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload),
+    })
+    .then(function (res) {
+      const resultDiv = document.getElementById('timelineResult');
+      if (res.ok) {
+        return res.json().then(function (data) {
+          resultDiv.innerHTML = '<p>Saved. Event ID: <code>' + (data.id || '—') + '</code></p>';
+          form.reset();
+        });
+      }
+      if (res.status === 401 || res.status === 403) {
+        resultDiv.innerHTML = '<p>You need to be signed in to save. <a href="{{ navigation.get_stage('preamble').path }}">Start here</a>.</p>';
+        return;
+      }
+      return res.text().then(function (text) {
+        resultDiv.innerHTML = '<p>Save failed: ' + text + '</p>';
+      });
+    })
+    .catch(function (err) {
+      document.getElementById('timelineResult').innerHTML = '<p>Could not save: ' + err.message + '</p>';
+    });
+  }
+</script>
+{% endblock %}

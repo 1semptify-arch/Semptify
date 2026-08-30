@@ -345,7 +345,7 @@ class ConfidenceScorer:
             negative.append(f"Low average confidence ({avg_confidence:.0%})")
 
         # Check for key entity types
-        entity_types = {e.entity_type for e in entities}
+        entity_types = set(e.entity_type for e in entities)
 
         key_types_found = sum(
             1 for t in [EntityType.PERSON, EntityType.ADDRESS, EntityType.DATE, EntityType.MONEY] if t in entity_types
@@ -751,7 +751,7 @@ class ConfidenceScorer:
                 metrics.conflicting_signals.extend(factor.negative_signals)
 
         # Check for missing key information
-        entity_types = {e.entity_type for e in entities}
+        entity_types = set(e.entity_type for e in entities)
 
         if EntityType.PERSON not in entity_types:
             metrics.missing_information.append("No parties identified")
@@ -793,12 +793,12 @@ class ConfidenceScorer:
             explanation.append("")
             explanation.append("Uncertain Areas:")
             for item in metrics.ambiguous_elements[:5]:
-                explanation.append(f"  ⚠ {item}")
+                explanation.append(f"  ◆ {item}")
 
         if metrics.missing_information:
             explanation.append("")
             explanation.append("Missing Information:")
             for item in metrics.missing_information[:5]:
-                explanation.append(f"  ❓ {item}")
+                explanation.append(f"  ? {item}")
 
         return "\n".join(explanation)

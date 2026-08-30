@@ -10,6 +10,7 @@ from sqlalchemy import and_, select
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now
+from app.modules.context_engine.embedding_model import embed_text
 from app.modules.context_engine.models import ContextFact
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS
 
@@ -86,6 +87,8 @@ async def upsert_fact(
     """Insert or update a fact in the cache. No hallucination — source required."""
     now = utc_now().replace(tzinfo=None)
     expires_at = now + timedelta(days=ttl_days)
+    embedding = await embed_text(f"{subject} {claim}")
+
     async with get_db_session() as db:
         # Dedup by (subject, jurisdiction, source_url, claim hash)
         result = await db.execute(
@@ -106,6 +109,7 @@ async def upsert_fact(
             existing.is_verified = is_verified
             existing.verified_at = now
             existing.expires_at = expires_at
+            existing.embedding = embedding
             await db.commit()
             await db.refresh(existing)
             return existing
@@ -118,6 +122,7 @@ async def upsert_fact(
             citation=citation,
             canonical_value=canonical_value,
             extraction_pattern=extraction_pattern,
+            embedding=embedding,
             is_verified=is_verified,
             verified_at=now,
             expires_at=expires_at,

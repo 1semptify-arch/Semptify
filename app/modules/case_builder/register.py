@@ -444,3 +444,70 @@ register_function_group(
         deterministic=True,
     )
 )
+
+# --- FCA / Qui Tam Case Readiness ---
+
+register_function_group(
+    FunctionGroupContract(
+        module="case_builder",
+        group_name="case_builder_fca_readiness_get",
+        title="Case Builder FCA Readiness Get (SSOT)",
+        description=(
+            "CANONICAL get the federal case readiness checklist and summary for a case. "
+            "Issue-spotting only — no determination that a claim exists or is viable. "
+            "Requires the FCA_READINESS feature flag."
+        ),
+        inputs=("case_id", "user_id"),
+        outputs=("readiness_checklist", "summary", "referral_resources"),
+        dependencies=("app.modules.case_builder.router", "app.modules.case_builder.fca_service"),
+        deterministic=True,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="case_builder",
+        group_name="case_builder_fca_readiness_update",
+        title="Case Builder FCA Readiness Update (SSOT)",
+        description=(
+            "CANONICAL save the federal case readiness checklist for a case. "
+            "Stores checklist in user cloud storage (CASE_DATA overlay) and a non-PII score in the DB."
+        ),
+        inputs=("case_id", "user_id", "readiness_checklist"),
+        outputs=("readiness_checklist", "summary"),
+        dependencies=("app.modules.case_builder.router", "app.modules.case_builder.fca_service"),
+        deterministic=False,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="case_builder",
+        group_name="case_builder_fca_readiness_pdf",
+        title="Case Builder FCA Readiness PDF (SSOT)",
+        description=(
+            "CANONICAL download the federal case readiness packet as a PDF for attorney review. "
+            "Facts and dates only — no legal conclusions or recommendations."
+        ),
+        inputs=("case_id", "user_id"),
+        outputs=("pdf_bytes", "filename"),
+        dependencies=("app.modules.case_builder.router", "app.modules.case_builder.fca_packet_export"),
+        deterministic=True,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="case_builder",
+        group_name="case_builder_fca_readiness_zip",
+        title="Case Builder FCA Readiness ZIP (SSOT)",
+        description=(
+            "CANONICAL download the federal case readiness packet as a ZIP containing a PDF "
+            "and a JSON summary for attorney review."
+        ),
+        inputs=("case_id", "user_id"),
+        outputs=("zip_bytes", "filename"),
+        dependencies=("app.modules.case_builder.router", "app.modules.case_builder.fca_packet_export"),
+        deterministic=True,
+    )
+)
