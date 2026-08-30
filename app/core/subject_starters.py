@@ -29,10 +29,10 @@ def get_subject_starters() -> list[SubjectStarter]:
         SubjectStarter("I got an eviction notice", "/gui/act"),
         SubjectStarter("My security deposit wasn't returned", "/gui/act"),
         SubjectStarter("My landlord entered without notice", "/gui/record"),
-        SubjectStarter("I have a question about rent increases", "/gui/know"),
+        SubjectStarter("I have a question about rent increases", "/law-library"),
         SubjectStarter("I'm being retaliated against", "/gui/act"),
-        SubjectStarter("I need to break my lease", "/gui/know"),
-        SubjectStarter("What are my rights as a tenant?", "/gui/know"),
+        SubjectStarter("I need to break my lease", "/law-library"),
+        SubjectStarter("What are my rights as a tenant?", "/law-library"),
         SubjectStarter("How do I document a problem?", "/gui/record"),
     ]
 
