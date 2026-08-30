@@ -1,4 +1,47 @@
-## Session — 2026-08-30 — Reconcile legacy Semptify orchestrator queue with canonical master
+## Session — 2026-08-30 — Law Library rewrite Phase 2: fact-only, source-cited public page
+
+### Guardrail Engine Run — 2026-08-30T11:06:43+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `law-library-fact-only-rewrite-2026-08-29`
+- **Scope:** Phase 2 — apply swap protocol and replace `app/templates/pages/law_library.html` with a minimal, mobile-first, fact-only, source-cited public legal reference. No opinion, no trivia, no "Know Your Rights" destination.
+
+### What changed
+
+- Renamed the original `app/templates/pages/law_library.html` to `law_library_old.html`, rewrote the new template, then deleted the old file once `py_compile`, `pytest tests/module_health`, and `pytest tests/test_a11y.py` passed.
+- `app/templates/pages/law_library.html` now uses the public `record_body.html`-style layout: jurisdiction selector, search, official-source cards, and a local-help finder.
+- `app/core/subject_starters.py` — updated the Law Library subject starter to use the canonical research wording.
+- `app/modules/portal/registry.py` and `app/templates/pages/tenant_home.html` / `app/templates/pages/tenant_help.html` — removed remaining "Know Your Rights" labels and linked to `/law-library`.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/subject_starters.py app/modules/portal/registry.py`: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `pytest tests/test_a11y.py -q --no-cov`: 6 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- Browser/Playwright live verification was not run because the IronBee DevTools browser MCP server is not available in this workspace; a manual browser pass is recommended before merge.
+
+### Next step
+
+- Phase 3: wire the Law Linker into document overlay note text (`law-linker-document-overlay-2026-08-29` in orchestrator). This depends on a note text container in the document/overlay render path that currently shows notes as pins/toasts.
+
+### Ship
+
+- **Branch:** `feature/law-library-fact-only-rewrite-2026-08-29`
+- **PR:** #140 — https://github.com/1semptify-arch/Semptify/pull/140
+- **What changed:** Law Library template rewrite and public-page reference cleanup.
+
+---
+
+## Session — 2026-08-30 — Law Library rewrite scope 1: retire redundant "Know Your Rights" pages
 
 ### Guardrail Engine Run — 2026-08-30T08:09:14+00:00
 
@@ -11,234 +54,44 @@ All checks passed.
 
 ### Task
 
-- **Task ID:** `legacy-queue-staleness-2026-08-29`
-- **Scope:** Stop `tools/sync_orchestrator.py` from wiping the legacy `agent_orchestrator_tasks.json` and reconcile it with the canonical master `orchestrator_state.json`.
+- **Task ID:** `law-library-fact-only-rewrite-2026-08-29`
+- **Scope:** Phase 1 — retire `/renters-guide` and `/gui/know` as redundant "Know Your Rights" destinations; rebrand surviving references to "Law Library".
 
 ### What changed
 
-- Added a `step_master_sync()` to `tools/sync_orchestrator.py` that pulls Semptify-specific tasks from `C:\master-repo\tools\orchestrator_state.json` and merges them into `tools/agent_orchestrator_tasks.json`.
-- Regenerated `tools/agent_orchestrator_tasks.json`, `tools/agent_orchestrator.html`, and `tools/orchestrator_dashboard.html` from the master queue.
-- Legacy queue now reflects the master canonical queue: 184 tasks, with the 3 stale `plugin-arch-*` / `adr-0008-pilot-delete` tasks correctly resolved and missing current Semptify tasks restored.
+- Removed `renters_guide` from `app/modules/portal/pages.py` and deleted `app/templates/public/renters_guide.html`.
+- Removed `GET /gui/know` hub route from `app/main.py`, the `gui_know` navigation stage from `app/core/navigation.py`, and deleted `app/templates/gui/know.html`.
+- Removed `/renters-guide` from `SmartCheckpointMiddleware.PUBLIC_PATHS` and `StorageRequirementMiddleware.PUBLIC_PATHS`.
+- Updated `app/modules/portal/registry.py` service name from "Know Your Rights Library" to "Law Library".
+- Updated `app/services/ui_composer.py` page titles to use "Law Library".
+- Replaced `/gui/know` link in `app/templates/pages/help.html` with `/law-library` and clarified the label.
+- Renamed "Know Your Rights" heading to "Law Library" in `app/templates/pages/tenant_help.html`.
+- Updated `app/templates/public/about.html` feature list to say "Law Library".
+- Removed `/renters-guide` from `tests/test_a11y.py` public path list.
 
 ### Verification
 
-- `python -m py_compile tools/sync_orchestrator.py`: PASS.
-- `python tools/sync_orchestrator.py`: regenerated successfully (184 tasks, 0 missing paths).
-- `python tools/sync_orchestrator.py --check`: PASS.
+- `python -m py_compile` on changed `.py` files: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `pytest tests/test_a11y.py -q --no-cov`: 6 passed.
 - `python tools/guardrail_engine.py`: all checks passed.
 
-### Decision
+### Next step
 
-- The legacy `agent_orchestrator_tasks.json` is **not deprecated**; it is retained as a generated read-only mirror of the canonical master queue. The master `orchestrator_state.json` remains the source of truth.
-
-### Ship
-
-- **Branch:** `admin/loose-ends-audit-2026-08-29`
-- **PR:** Semptify `1semptify-arch/Semptify` #142
-- **What changed:**
-  - `tools/sync_orchestrator.py` — added `step_master_sync()` to mirror canonical master queue into legacy queue.
-  - `tools/agent_orchestrator_tasks.json` — regenerated from master (184 tasks, 0 missing paths).
-  - `tools/agent_orchestrator.html` and `tools/orchestrator_dashboard.html` — regenerated with embedded task JSON.
-- **Next step:** Review and merge PR #142; after merge, master submodule pointer in PR #10 will become valid.
-
----
-
-## Session — 2026-08-29 — Repository-wide loose ends audit and task registration
-
-### Guardrail Engine Run — 2026-08-30T03:33:57+00:00
-
-- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
-- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
-- **manifest_sync_check**: PASS — Sync orchestrator passed.
-- **stub_check**: PASS — No stubs found.
-
-All checks passed.
-
-### Task
-
-- **Task ID:** `master-loose-ends-audit-2026-08-29`
-- **Scope:** Find all unfinished, incomplete, and loose-end items across the master repo and Semptify, deduplicate them, and add concrete tasks to both orchestrator queues.
-
-### Findings
-
-- Canonical master queue has 5 non-terminal tasks; legacy Semptify queue has 3 stale open tasks and is missing 3 current master Semptify tasks.
-- Targeted Semptify code scan found 53 stub/NotImplemented/TODO markers in 26 files; broad master scan found 3,520 raw markers across 1,466 files (heavy false positives).
-- State docs contain accepted/considering/known items not in orchestrator: post-`create_app()` public route scan, `/api/location/current` 404, case builder phantom function, page shell manifest mismatch, missing FunctionGroupContracts, landing page rebuild, tenant Flagship UI, law linker overlay, and versioned `SECRET_KEY` rotation.
-
-### Ship
-
-- **Branch:** `admin/loose-ends-audit-2026-08-29`
-- **PR:** Semptify `1semptify-arch/Semptify` #142; master `1semptify-arch/master-repo` #10
-- **What changed:**
-  - `C:\master-repo\tools\orchestrator_state.json` — added 22 new tasks.
-  - `C:\master-repo\modules\app-semptify-fastapi\tools\agent_orchestrator_tasks.json` — added 19 new tasks.
-  - `C:\master-repo\handoffs\loose-ends-audit-2026-08-29-report.md` — full audit report.
-- **Next step:** Review the new `blocked_on_decision` tasks and triage the code-stub and broad-scan tasks.
-
-### Verification
-
-- `python -m py_compile app/main.py`: PASS.
-- `python tools/guardrail_engine.py`: all checks passed.
-
----
-
-## Session — 2026-08-29 — Brad refines Law Library rewrite handoff
-
-### Guardrail Engine Run — 2026-08-30T03:32:08+00:00
-
-- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
-- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
-- **manifest_sync_check**: PASS — Sync orchestrator passed.
-- **stub_check**: PASS — No stubs found.
-
-All checks passed.
-
-### Task
-
-- **Task ID:** `law-library-fact-only-rewrite-2026-08-29` (orchestrator task already open)
-- **Scope:** Update the handoff with Brad's specific refinements.
-
-### Findings
-
-- Law Library content must be **verbatim official text** from government sources, with statute/case numbers and source URLs.
-- Plain-language summaries are **optional only**: user-requested or government-published.
-- Jurisdiction lookup includes optional city-ordinance resolution.
-- When no law is available, the page must show a contact finder by **zip code, address, or city**.
-- "Know Your Rights" is a **process, not a UI object**: an indirect, context-driven action delivered through the Context Loop / Information Orchestrator and rendered by the Page/UI Composer, using the Law Linker for citations.
-- Law Linker must be wired into document overlay notes (auto, keyboard shortcut, or toolbar button).
-- Implementer must produce a quick reference guide to the relevant modules and contracts.
-
-### Ship
-
-- **Branch:** none — documentation and handoff refinement only.
-- **What changed:**
-  - `C:\master-repo\handoffs\law-library-fact-only-rewrite-2026-08-29.md` — refined with verbatim text, contact finder, context-loop/Information-Orchestrator "Know Your Rights" process, overlay-note activation methods, and quick-reference guide.
-  - `C:\master-repo\modules\app-semptify-fastapi\BUILD_STATE.md` — this addendum.
-- **Next step:** Brad reviewed the refined handoff and responded "close enough — we will refine when the picture becomes clearer." Task remains open in `orchestrator_state.json` for a future implementation session.
-
-### Verification
-
-- No Python files changed; `python -m py_compile app/main.py`: PASS.
-
----
-
-## Session — 2026-08-29 — Brad's decision on "Know Your Rights" conflicts and Law Library rewrite
-
-### Task
-
-- **Task ID:** `law-library-fact-only-rewrite-2026-08-29`
-- **Scope:** Record Brad's decision from the comparison of the three "Know Your Rights" destinations and produce the implementation handoff.
-
-### Findings
-
-- `/renters-guide` and `/gui/know` are small, static, redundant "Know Your Rights" labels that both point back to the Law Library. They are to be **retired**.
-- `/law-library` is a 1,366-line, ~153 KB standalone research tool with search, an AI Legal Librarian, state law lookup, and an eviction-answer tool. It is **not** a "Know Your Rights" page; it is the canonical public **Research destination** (pillar 02 — Research / KNOW pillar).
-- Law Library must be rewritten as a public, always-open, fact-only, official-source-only, jurisdiction-aware legal reference, with deeper case law.
-- Law Linker must be expanded so it pulls statute/case-law data from the Law Library and surfaces citations in **document overlay notes**.
-
-### Ship
-
-- **Branch:** none — documentation and handoff only.
-- **What changed:**
-  - `C:\master-repo\tools\orchestrator_state.json` — added open task `law-library-fact-only-rewrite-2026-08-29`.
-  - `C:\master-repo\handoffs\law-library-fact-only-rewrite-2026-08-29.md` — implementation handoff.
-  - `C:\master-repo\NAMING_SSOT_DICTIONARY.md` — updated the "'Know Your Rights' naming rule" to reflect the resolved decision.
-  - `C:\master-repo\SEMPTIFY_REFERENCE_LIBRARY.md` — updated Section 21.2 to record the resolved conflict and the public Research destination rule.
-  - `C:\master-repo\modules\app-semptify-fastapi\BUILD_STATE.md` — this entry.
-- **Next step:** Brad to review the handoff and approve before implementation begins. Implementation is large and should be done on `feature/law-library-fact-only-rewrite-2026-08-29`.
-
-### Verification
-
-- No Python files changed; `python -m py_compile app/main.py`: PASS (sanity check).
-- Handoff written against `tools/handoff_template.md`.
-
----
-
-## Session — 2026-08-29 — Consolidate & validate three architecture principles
-
-### Task
-
-- **Task ID:** `consolidate-validate-architecture-principles-2026-08-29`
-- **Scope:** Investigate and document three architecture principles from Brad's handoff:
-  1. Two separate pillar systems (four internal vs. six public-site pillars).
-  2. Tenant Flagship function list scope for the Semptify 5.0 tenant-only UI rebuild.
-  3. "Know Your Rights" is system logic, not a standalone user-facing page/feature.
-- **Rules:** Investigate only; do not remove, merge, or refactor existing code that conflicts with the principles.
-
-### Findings
-
-1. **Four-pillar / six-pillar distinction** — No conflation found in the repo. The four internal pillars (`RECORD`, `KNOW`, `ACT`, `GOVERN`) and the six public mission pillars (`Information`, `Research`, `Documentation`, `Organize`, `Collaborate`, `Be Heard`) are already documented separately. The six are currently titled "The Six Core Functions" in `docs/admin/MOTIVATIONS.md` and `SEMPTIFY_REFERENCE_LIBRARY.md`.
-2. **Tenant Flagship function list** — Role separation is already implemented:
-   - `app/modules/role_ui/router.py` handles role detection, role-specific landing pages, navigation menus, and feature flags for `USER` (tenant), `ADVOCATE`, `LEGAL`, `MANAGER`, and `ADMIN`.
-   - `app/main.py` has role-specific route prefixes (`/tenant/*`, `/advocate/*`, `/legal/*`, `/manager/*`, `/admin/*`).
-   - A tenant-only Flagship UI built around the six functional sections in `handoffs/tenant-role-ui-function-list-2026-08-29.md` is **not yet implemented**. The current tenant UI still exposes case builder, eviction defense, complaint, and plan-maker tools, and role-switching UI still exists.
-3. **"Know Your Rights" principle** — A law linker mechanism exists:
-   - `static/js/law-linker.js` and `app/core/law_source_registry.py` turn plain-text legal citations into clickable, hover-popup links to official sources.
-   - `app/modules/law_library/register.py` registers `law_library_county_code` as the contract the Law Linker uses for county-level citations.
-   - **Conflict/decision point:** Several existing UI/routes still present "Know Your Rights" as a standalone destination, which contradicts the principle that rights information should be surfaced contextually:
-     - `/renters-guide` (`app/templates/public/renters_guide.html` — title "Renter's Guide — Know Your Rights — Semptify").
-     - `/law-library` (`app/templates/pages/law_library.html`; also branded "Know Your Rights Library" in `app/modules/portal/registry.py` and linked as "Know your rights" from `tenant_home.html` and `tenant_help.html`).
-     - `/gui/know` (`app/templates/gui/know.html` — KNOW-pillar hub titled "Know Your Rights").
-   - These were reported, not removed or merged, per the handoff rules.
-
-### Ship
-
-- **Branch:** none — documentation-only, no code changes.
-- **What changed:**
-  - `C:\master-repo\NAMING_SSOT_DICTIONARY.md` — added "Two-pillar-system rule" and "'Know Your Rights' naming rule" sections.
-  - `C:\master-repo\SEMPTIFY_REFERENCE_LIBRARY.md` — added new "Two Pillar Systems, Tenant Flagship, and the 'Know Your Rights' Rule" section.
-  - `C:\master-repo\modules\app-semptify-fastapi\BUILD_STATE.md` — this entry.
-- **Next step:** Brad to decide how to handle the standalone "Know Your Rights" destinations and how to wire the law linker into document-understanding / next-step flows.
-
-### Verification
-
-- `python -m py_compile app/main.py`: PASS (sanity check, no Python files changed).
-- Validation performed with targeted `grep`, `find_file_by_name`, and manual file review.
-- `NAMING_SSOT_DICTIONARY.md` was found at `C:\master-repo\NAMING_SSOT_DICTIONARY.md` after the initial investigation and was updated with the two-pillar-system rule and the "Know Your Rights" naming rule.
-
----
-
-## Session — 2026-08-29 — public-page audit non-blocking observations
-
-### Guardrail Engine Run — 2026-08-29T11:26:21+00:00
-
-- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
-- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
-- **manifest_sync_check**: PASS — Sync orchestrator passed.
-- **stub_check**: PASS — No stubs found.
-
-All checks passed.
-
-### Task
-
-- **Task ID:** `public-page-audit-fixes-2026-08-28`
-- **Scope:** Fix two non-blocking observations from `handoffs/public-page-accessibility-audit-2026-08-28-report.md`: add an explicit `/law-library` route handler, and remove `/home` from `SmartCheckpointMiddleware.PROTECTED_PREFIXES` so it does not break public access if the checkpoint is ever re-enabled.
-
-### Findings and fixes
-
-- `/law-library` was listed in `PUBLIC_PATHS` and used as a redirect target, but had no explicit route handler. Added `@fastapi_app.get("/law-library")` in `app/main.py` to serve `pages/law_library.html`.
-- `/home` was in both `StorageRequirementMiddleware.PUBLIC_PATHS` and `SmartCheckpointMiddleware.PROTECTED_PREFIXES`. Removed it from `PROTECTED_PREFIXES` in `app/core/checkpoint_middleware.py`.
-
-### Ship
-
-- **Branch:** `fix/public-page-audit-fixes-2026-08-28`
-- **What changed:** `app/main.py`, `app/core/checkpoint_middleware.py`
-- **Next step:** Review and merge if the branch is pushed.
-
-### Verification
-
-- `python -m py_compile app/main.py app/core/checkpoint_middleware.py`: PASS
-- `pytest tests/module_health -q --no-cov`: 244 passed
-- **Guardrail Engine Run — 2026-08-29T10:05:52+00:00**:
-  - **contract_route_check**: PASS
-  - **fees_policy_check**: PASS
-  - **manifest_sync_check**: PASS
-  - **stub_check**: PASS
-  - All checks passed.
+- Phase 2 requires the swap-protocol rename of `app/templates/pages/law_library.html` to `law_library_old.html`, then the full fact-only, jurisdiction-aware template rewrite and Law Linker overlay wiring.
 
 ---
 
 ## Session — 2026-08-28 — live verify dispute_tracker and eviction_timeline
+
+### Guardrail Engine Run — 2026-08-30T08:09:14+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Task
 

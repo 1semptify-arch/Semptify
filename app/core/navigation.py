@@ -352,9 +352,6 @@ class NavigationRegistry:
         "gui_record": FlowStage(
             id="gui_record", name="GUI Record", path="/gui/record", next_stage=None, requires_checkpoint=False
         ),
-        "gui_know": FlowStage(
-            id="gui_know", name="GUI Know", path="/gui/know", next_stage=None, requires_checkpoint=False
-        ),
         "gui_act": FlowStage(
             id="gui_act", name="GUI Act", path="/gui/act", next_stage=None, requires_checkpoint=False
         ),
