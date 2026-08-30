@@ -52,9 +52,7 @@ def get_dashboard_stats(organization_id: str, db_session) -> dict[str, Any]:
     pending_docs = (
         db_session.query(Document)
         .filter(
-            Document.user_id.in_(user_ids),
-            Document.requires_signature,
-            ~Document.signature_received,
+            Document.user_id.in_(user_ids), Document.requires_signature == True, Document.signature_received == False
         )
         .count()
         if hasattr(Document, "requires_signature")
@@ -64,11 +62,7 @@ def get_dashboard_stats(organization_id: str, db_session) -> dict[str, Any]:
     # Urgent (overdue) items
     urgent_items = (
         db_session.query(Document)
-        .filter(
-            Document.user_id.in_(user_ids),
-            Document.due_date < utc_now(),
-            ~Document.completed,
-        )
+        .filter(Document.user_id.in_(user_ids), Document.due_date < utc_now(), Document.completed == False)
         .count()
         if hasattr(Document, "due_date")
         else 0
@@ -207,8 +201,8 @@ def get_pending_signatures(organization_id: str, db_session) -> list[dict[str, A
             db_session.query(Document)
             .filter(
                 Document.user_id.in_(user_ids),
-                Document.requires_signature,
-                ~Document.signature_received,
+                Document.requires_signature == True,
+                Document.signature_received == False,
             )
             .order_by(Document.created_at.desc())
             .limit(10)
@@ -260,7 +254,7 @@ def get_recent_activity(organization_id: str, db_session, limit: int = 20) -> li
         db_session.query(User).filter_by(id=doc.user_id).first()
         activities.append(
             {
-                "icon": "📄",
+                "icon": "●",
                 "description": f"<strong>Tenant {doc.user_id[:8]}</strong> uploaded {doc.filename or 'a document'}",
                 "time": format_time_ago(doc.created_at),
                 "timestamp": doc.created_at.isoformat() if doc.created_at else None,

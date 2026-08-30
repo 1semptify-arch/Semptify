@@ -217,7 +217,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="nr-notice-date">Notice Date</label>
+            <label for="nr-notice-date">Received Date</label>
             <input type="date" id="nr-notice-date">
           </div>
         </div>
@@ -383,7 +383,7 @@ ${addr}`;
       const type = document.getElementById('nr-type');
       const noticeName = type.options[type.selectedIndex].text;
       const noticeDate = document.getElementById('nr-notice-date').value;
-      const ndStr = noticeDate ? ` dated ${(new Date(noticeDate+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}))}` : '';
+      const ndStr = noticeDate ? ` on ${(new Date(noticeDate+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}))}` : '';
       const defense = document.getElementById('nr-defense').value.trim() || '[Your response or defense]';
       const tpl = templates.notice;
       let tone = '';

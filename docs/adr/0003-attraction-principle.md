@@ -15,7 +15,7 @@ Navigation (ADR 0002) rules out checkpoints *within* a path; Attraction rules ou
 
 ## Why
 
-Mandatory flows and system-driven routing create the same abandonment and mistrust as physical gates. Users in crisis must always feel they chose their next step. Offering tools without requiring engagement respects composure and the Wisdom Principle in `docs/MOTIVATIONS.md`.
+Mandatory flows and system-driven routing create the same abandonment and mistrust as physical gates. Users in crisis must always feel they chose their next step. Offering tools without requiring engagement respects composure and the Wisdom Principle in `docs/admin/MOTIVATIONS.md`.
 
 ## Consequences
 

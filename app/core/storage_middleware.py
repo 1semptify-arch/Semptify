@@ -145,7 +145,7 @@ PUBLIC_PREFIXES = (
     "/api/resources/",  # Resource directory — public read endpoints
     "/api/i18n/",  # i18n — public locale read/set endpoints
     "/admin/api/",  # Admin API endpoints — auth checked by route (elevation/capability)
-    "/debug/",  # TEMPORARY: diagnostic endpoints
+    "/debug/",  # TEMPORARY: diagnostic endpoints (gated to SECURITY_MODE=open in routes)
     "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)
 )
 
@@ -317,15 +317,30 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
 
             factory = get_session_factory()
             async with factory() as refresh_db:
-                token, reconnect_url = await get_valid_token_or_redirect(raw_user_id, return_to=path, db=refresh_db)
+                token, reconnect_url, status = await get_valid_token_or_redirect(raw_user_id, return_to=path, db=refresh_db)
 
                 if reconnect_url:
                     if path.startswith("/api/"):
+                        # Calm, plain language — the user's stored connection is
+                        # no longer usable (expired, corrupt, or missing). Route
+                        # them to reconnect instead of a dead-end 401.
+                        if status == "token_corrupt":
+                            message = (
+                                "Your stored storage connection can't be read. "
+                                "Reconnecting will restore access. Your documents are safe."
+                            )
+                            error_code = "reconnect_required"
+                        else:
+                            message = (
+                                "Your storage connection needs to be refreshed. "
+                                "Reconnecting will restore access. Your documents are safe."
+                            )
+                            error_code = "reconnect_required"
                         return JSONResponse(
                             status_code=401,
                             content={
-                                "error": "token_expired",
-                                "message": "Your storage connection expired. Please reconnect.",
+                                "error": error_code,
+                                "message": message,
                                 "action": "redirect",
                                 "redirect_url": reconnect_url,
                             },

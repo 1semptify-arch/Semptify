@@ -62,9 +62,9 @@ async def dispute_tracker_page(
     comparisons = cmp_result.scalars().all()
 
     return templates.TemplateResponse(
+        request,
         "pages/dispute_tracker.html",
         {
-            "request": request,
             "disputes": disputes,
             "comparisons": comparisons,
             "user": user,

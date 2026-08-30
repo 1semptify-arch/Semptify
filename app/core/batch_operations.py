@@ -17,6 +17,7 @@ from typing import Any
 
 from app.core.id_gen import make_id
 from app.core.utc import utc_now
+from app.core.websocket_manager import WebSocketMessage
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +157,7 @@ class BatchProcessor:
 
         # Create batch items
         batch_items = []
-        for _i, item_data in enumerate(items):
+        for i, item_data in enumerate(items):
             batch_item = BatchItem(item_id=make_id("item"), item_type=item_data.get("type", "unknown"), data=item_data)
             batch_items.append(batch_item)
 
@@ -222,7 +223,7 @@ class BatchProcessor:
                 batch_results = await handler(batch_items, operation.settings)
 
                 # Update item statuses
-                for j, _item in enumerate(batch_items):
+                for j, item in enumerate(batch_items):
                     item_index = i + j
 
                     if item_index < len(batch_results):
@@ -292,7 +293,7 @@ class BatchProcessor:
     async def _send_progress_update(self, operation: BatchOperation):
         """Send progress update via WebSocket."""
         try:
-            from app.core.websocket_manager import WebSocketMessage, get_websocket_manager
+            from app.core.websocket_manager import get_websocket_manager
 
             ws_manager = get_websocket_manager()
 
@@ -349,8 +350,9 @@ class BatchProcessor:
         user_operations = []
 
         for operation in self.operations.values():
-            if operation.user_id == user_id and (status is None or operation.status == status):
-                user_operations.append(operation.to_dict())
+            if operation.user_id == user_id:
+                if status is None or operation.status == status:
+                    user_operations.append(operation.to_dict())
 
         # Sort by creation time (newest first)
         user_operations.sort(key=lambda x: x["created_at"], reverse=True)

@@ -57,9 +57,12 @@ services:
     sync: false
   - key: ADMIN_USERNAME
     sync: false
+  - key: DEPLOY_TARGET
+    value: render_mvp
+    sync: false
   region: ohio
   dockerContext: .
-  dockerfilePath: ./Dockerfile
+  dockerfilePath: ./Dockerfile.render
   domains:
   - www.semptify.org
   - semptify.org

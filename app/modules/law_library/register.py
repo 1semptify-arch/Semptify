@@ -151,3 +151,20 @@ register_function_group(
         deterministic=True,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="law_library",
+        group_name="law_library_county_code",
+        title="Law Library County Code (SSOT)",
+        description=(
+            "CANONICAL county code of ordinances URL for a given state and county. "
+            "Used by the Law Linker to resolve county-level citations to the user's "
+            "jurisdiction. Returns the official Municode or equivalent URL."
+        ),
+        inputs=("county", "state?"),
+        outputs=("official_url", "source_name", "last_verified", "jurisdiction"),
+        dependencies=("app.modules.law_library.router",),
+        deterministic=True,
+    )
+)

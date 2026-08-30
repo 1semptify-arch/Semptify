@@ -27,7 +27,10 @@ class MeshModeConfig:
             return True
 
         # Lean mode: skip deferred modules
-        return module not in self.deferred_action_modules
+        if module in self.deferred_action_modules:
+            return False
+
+        return True
 
 
 # Default Lean Mode: Core mechanics only
@@ -65,7 +68,10 @@ current_mesh_config = LEAN_MESH_CONFIG
 def set_mesh_mode(mode: str) -> MeshModeConfig:
     """Switch mesh operating mode."""
     global current_mesh_config
-    current_mesh_config = FULL_MESH_CONFIG if mode == "full" else LEAN_MESH_CONFIG
+    if mode == "full":
+        current_mesh_config = FULL_MESH_CONFIG
+    else:
+        current_mesh_config = LEAN_MESH_CONFIG
     return current_mesh_config
 
 

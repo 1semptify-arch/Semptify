@@ -1,0 +1,183 @@
+{% extends "body/know_body.html" %}
+
+{% block title %}{{ contract.title }} — Semptify{% endblock %}
+{% block record_aria_label %}Look up a Minnesota statute{% endblock %}
+{% block record_controls_title %}Look it up{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .record-guide__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .record-guide__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .record-guide__result {
+    margin-top: 1rem;
+    color: #4a4a4a;
+    line-height: 1.6;
+  }
+  .record-guide__result h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+  }
+  .record-guide__result p {
+    color: #4a4a4a;
+    line-height: 1.6;
+  }
+  .record-guide__result ul {
+    list-style: disc;
+    margin: 0.5rem 0 0.75rem 1.25rem;
+    color: #4a4a4a;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+  .record-guide__result li {
+    margin-bottom: 0.375rem;
+  }
+  .record-guide__result code {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #1e3a5f;
+  }
+  .record-guide__result a {
+    color: #1e3a5f;
+    text-decoration: underline;
+  }
+  .record-guide__disclaimer {
+    margin-top: 1rem;
+    font-size: 0.8125rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+  .record-guide__full-text {
+    white-space: pre-wrap;
+    color: #4a4a4a;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    max-height: 24rem;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+  .record-guide__meta {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block record_controls %}
+<form id="statuteForm" class="record-guide__form" onsubmit="event.preventDefault(); lookupStatute();" novalidate>
+  <div class="record-guide__field block-input">
+    <label for="statute_id">Statute <span class="required">*</span></label>
+    <select id="statute_id" name="statute_id" required>
+      <option value="" disabled selected>Choose a statute</option>
+      <option value="minn_stat_504b">Minnesota Landlord and Tenant Law</option>
+      <option value="minn_stat_504b_321">Eviction Actions — Procedures</option>
+      <option value="minn_stat_504b_375">Security Deposits</option>
+      <option value="minn_stat_504b_211">Habitability — Covenants</option>
+      <option value="minn_stat_504b_285">Retaliatory Eviction</option>
+    </select>
+    <p class="record-guide__hint">Pick the law you want to check. The full text is available after you look it up.</p>
+  </div>
+
+  <button type="submit" class="output-trigger output-trigger--primary">Look up statute</button>
+  <div id="statuteResult" class="record-guide__result" role="status" aria-live="polite"></div>
+</form>
+{% endblock %}
+
+{% block record_narration %}
+{{ process_indicator(narration) }}
+{% endblock %}
+
+{% block record_next %}
+<a href="{{ navigation.get_stage('law_library').path }}" class="output-trigger">Browse related cases and court rules</a>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  function revisorUrl(citation) {
+    if (!citation) return null;
+    var match = citation.match(/§\s*([A-Z0-9][A-Z0-9.]*)/i);
+    if (!match) return null;
+    return 'https://www.revisor.mn.gov/statutes/cite/' + encodeURIComponent(match[1]);
+  }
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function lookupStatute() {
+    var form = document.getElementById('statuteForm');
+    var resultDiv = document.getElementById('statuteResult');
+    var statuteId = form.statute_id.value;
+
+    if (!statuteId) {
+      resultDiv.innerHTML = '<p>Please choose a statute.</p>';
+      return;
+    }
+
+    resultDiv.innerHTML = '<p>Looking it up…</p>';
+
+    fetch('/api/law-library/statutes/' + encodeURIComponent(statuteId), {
+      method: 'GET',
+      credentials: 'same-origin',
+    })
+    .then(function (res) {
+      if (res.ok) {
+        return res.json().then(function (data) {
+          var s = data.statute || data;
+          var title = escapeHtml(s.title || '');
+          var citation = escapeHtml(s.citation || '');
+          var summary = escapeHtml(s.summary || '');
+          var fullText = escapeHtml(s.full_text || s.text || '');
+          var points = (s.key_points || []).map(escapeHtml);
+          var source = (s.source_name || 'Minnesota Revisor of Statutes');
+
+          var html = '<h3>' + title + '</h3>';
+          if (citation) {
+            var rev = revisorUrl(citation);
+            if (rev) {
+              html += '<p class="record-guide__meta"><a href="' + escapeHtml(rev) + '" target="_blank" rel="noopener noreferrer">' + citation + '</a> — ' + escapeHtml(source) + '</p>';
+            } else {
+              html += '<p class="record-guide__meta">' + citation + ' — ' + escapeHtml(source) + '</p>';
+            }
+          }
+          if (summary) html += '<p>' + summary + '</p>';
+          if (points.length) {
+            html += '<ul>' + points.map(function (p) { return '<li>' + p + '</li>'; }).join('') + '</ul>';
+          }
+          if (fullText) {
+            html += '<div class="record-guide__full-text">' + fullText + '</div>';
+          }
+          html += '<p class="record-guide__disclaimer">Semptify does not interpret the law or give legal advice.</p>';
+          resultDiv.innerHTML = html;
+        });
+      }
+      if (res.status === 401 || res.status === 403) {
+        resultDiv.innerHTML = '<p>You need to be signed in to look this up. <a href="{{ navigation.get_stage('preamble').path }}">Start here</a>.</p>';
+        return;
+      }
+      return res.text().then(function (text) {
+        resultDiv.innerHTML = '<p>Look-up failed: ' + escapeHtml(text) + '</p>';
+      });
+    })
+    .catch(function (err) {
+      resultDiv.innerHTML = '<p>Could not look it up: ' + escapeHtml(err.message) + '</p>';
+    });
+  }
+</script>
+{% endblock %}

@@ -6,7 +6,6 @@ Set SECURITY_MODE=enforced in production. See .env.example for all options.
 
 import logging
 import os
-import secrets
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -21,23 +20,47 @@ _WEAK_KEY = "change-me-in-production-use-secrets"
 logger = logging.getLogger(__name__)
 
 
+_TEST_KEY_SALT = "se mptify-deterministic-test-key-salt"
+
+
 def _resolve_secret_key() -> str:
-    """Return SECRET_KEY from env, or generate a secure random key with a warning."""
+    """Return SECRET_KEY from env. Fail loud if missing/weak; never silently generate a random key.
+
+    A random, per-process key silently corrupts every stored session the next time the
+    process restarts with a different key, because tokens are encrypted with
+    SHA256(SECRET_KEY + user_id). The only safe default is a stable, explicit key.
+
+    Test harnesses are the one exception: when TESTING=true, the key is derived
+    deterministically from a fixed salt and the DATABASE_URL so the test suite can
+    create and read sessions without a committed secret.
+    """
     key = os.getenv("SECRET_KEY", "")
-    security_mode = os.getenv("SECURITY_MODE", "open").lower()
-    if not key or key == _WEAK_KEY:
-        if security_mode == "enforced":
-            raise ValueError(
-                "SECRET_KEY must be configured for document registry integrity when SECURITY_MODE=enforced."
-            )
-        generated = secrets.token_urlsafe(64)
-        logger.warning(
-            "SECRET_KEY not set or uses the insecure default. "
-            "A temporary key has been generated for this session. "
-            "Set SECRET_KEY in your .env file for production: SECRET_KEY=%s",
-            generated,
+    testing = os.getenv("TESTING", "").lower() in ("true", "1", "yes", "on")
+    in_memory_db = ":memory:" in os.getenv("DATABASE_URL", "")
+    enforced = os.getenv("SECURITY_MODE", "open") == "enforced"
+
+    if enforced and (not key or key == _WEAK_KEY):
+        raise ValueError(
+            "SECRET_KEY must be configured in enforced security mode."
         )
-        return generated
+
+    if testing or in_memory_db:
+        # Stable, deterministic key for tests. Not secret — test DBs are temporary.
+        from hashlib import sha256
+
+        db_url = os.getenv("DATABASE_URL", "in-memory")
+        return sha256(f"{_TEST_KEY_SALT}:{db_url}".encode()).hexdigest()
+
+    if not key or key == _WEAK_KEY:
+        raise ValueError(
+            "Semptify cannot start: SECRET_KEY is missing, empty, or uses the insecure default.\n"
+            "Session tokens are encrypted with SHA256(SECRET_KEY + user_id). "
+            "If SECRET_KEY changes between restarts, every stored session becomes unreadable "
+            "and tenants will be forced to reconnect.\n"
+            "Set a stable SECRET_KEY in your environment or .env file "
+            "and keep it the same across all deployments."
+        )
+
     return key
 
 
@@ -86,6 +109,11 @@ class Settings:
         # Re-resolve DATABASE_URL at instantiation so tests can override it via
         # os.environ without re-importing the settings module.
         self.database_url = _resolve_database_url()
+
+        # Comma-separated allowlist of user IDs that may access the FCA readiness
+        # feature while it is feature-flagged. Empty means feature-flag system only.
+        raw = os.getenv("FCA_READINESS_ALLOWED_USER_IDS", "")
+        self.fca_readiness_allowed_user_ids = {uid.strip() for uid in raw.split(",") if uid.strip()}
 
     allowed_extensions: str = "pdf,png,jpg,jpeg,gif,doc,docx,txt,mp3,mp4,wav"
     ai_provider: Literal["openai", "azure", "ollama", "groq", "anthropic", "gemini", "none"] = "anthropic"

@@ -274,6 +274,26 @@ class IdentityAdapterPayload(BaseModel):
     resolution_logic: dict = Field(default_factory=dict)
 
 
+# --- Case Pattern Signals ---
+
+
+class CaseDataPayload(BaseModel):
+    """Payload for CASE_DATA overlays.
+
+    Holds pattern-recognition signals and tenant-provided narrative. It does NOT
+    hold case-management fields (case number, motions, deadlines, party identity).
+    """
+
+    flag_category: str | None = None  # e.g. "possible retaliation pattern"
+    narrative: str | None = None  # Tenant's own description / notes
+    harm_description: str | None = None
+    timeline: list[dict] = Field(default_factory=list)
+    exhibit_refs: list[str] = Field(default_factory=list)
+    flag_notes: dict[str, str] = Field(default_factory=dict)  # duress/misrepresentation/violation
+    readiness_checklist: list[dict] = Field(default_factory=list)
+    schema_version: str = "1.0"
+
+
 # =============================================================================
 # Request/Response Models
 # =============================================================================

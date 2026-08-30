@@ -36,7 +36,7 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 1. **Read `BUILD_STATE.md`** — What was last shipped, what is known broken, what is pending.
 2. **Read `ACTIVE_CONTEXT.md`** — What is being worked on RIGHT NOW. Do not start something else.
 3. **Read `PROJECT_BIBLE.md`** — Canonical hierarchy, gate chain, and governance.
-4. **Read `docs/MOTIVATIONS.md`** — Foundational motivations, language rules, and design principles. Permanent decisions are also in `docs/adr/0001`–`0006`.
+4. **Read `docs/admin/MOTIVATIONS.md`** — Foundational motivations, language rules, and design principles. Permanent decisions are also in `docs/adr/0001`–`0006`.
 5. **Read `docs/AI_TEAM_OPERATING_PROTOCOL.md`** — Three-way collaboration protocol, decision authority matrix, and batching rules.
 6. **Read the Known Failure Registry below** — Do not repeat a past mistake.
 7. **State your plan before acting** — Tell the user what you intend to change and why before touching any file.
@@ -57,7 +57,30 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 
 ---
 
-## 🚫 Known Failure Registry — NEVER Repeat These
+## � NO-TOUCH MODULES — Read Before Touching Any File
+
+**`app/modules/onboarding/` is a NO-TOUCH module as of 2026-08-26.**
+
+Do not alter, refactor, "fix," or otherwise change any file under `app/modules/onboarding/`
+(or the onboarding logic still in `app/routers/onboarding.py` / `app/routers/storage.py`)
+until Brad explicitly says OK for that specific change.
+
+- **Why:** Multiple past agent sessions have broken onboarding within minutes of starting
+  work on it, each time confidently assuming they understood the flow well enough to
+  change it. They did not. The cost of these mistakes has been high and repeated.
+- **This is not a judgment on any current agent's ability.** It is a standing rule because
+  the pattern has repeated across many different agents and sessions, not because of any
+  one agent's mistake.
+- **If a task seems to require touching onboarding:** stop, describe the exact change you
+  believe is needed and why, and ask Brad first. Do not proceed on the assumption that this
+  time will be different.
+- **This rule applies even to seemingly trivial changes** (renaming a variable, fixing a
+  typo, "obvious" refactors). Ask first, every time, no exceptions, until Brad lifts this
+  rule explicitly.
+
+---
+
+## �🚫 Known Failure Registry — NEVER Repeat These
 
 These failures have each cost multiple sessions to fix. Read them. Do not cause them again.
 
@@ -180,7 +203,20 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 
 ---
 
-## 📋 Module Contract Mandate
+## � Gap Report — run this before hunting for bugs by hand
+
+`python tools/gap_report.py` wires together the gap-detection tooling that already exists in
+this repo (`tools/stub_detector.py` AST-verified stub scan, `tools/guardrail_engine.py`,
+`tools/module_registry.yaml` flags, and `FunctionGroupContract` coverage from
+`app/core/contract_loader.py`) into one prioritized `GAPS.md` snapshot, plus a short list of
+architectural gaps no automated check can find (documented directly in the script). Regenerate
+it at the start of a gap-hunting session instead of re-discovering the same issues by hand.
+`GAPS.md` is gitignored — it's a snapshot, not authored documentation; the script is the
+source of truth.
+
+---
+
+## �📋 Module Contract Mandate
 
 ### Every service that exposes a reusable API MUST register a `FunctionGroupContract` in `app/core/module_contracts.py`
 
@@ -236,13 +272,20 @@ Before ending any session, you MUST:
 
 ### Orchestrator Task Status Rule
 
-Whenever you pick up a task from `agent_orchestrator_tasks.json`, immediately run:
-`python tools/mark_task_status.py <task_id> in_progress --agent <your-model-name>`
+Semptify's module-level queue is still `tools/agent_orchestrator_tasks.json`, managed by `tools/mark_task_status.py`. For Semptify tasks, continue using:
 
-When you finish:
-`python tools/mark_task_status.py <task_id> resolved --notes "<one-line summary>" --agent <your-model-name>`
+- Pick up: `python tools/mark_task_status.py <task_id> in_progress --agent <your-model-name>`
+- Finish: `python tools/mark_task_status.py <task_id> resolved --notes "<one-line summary>" --agent <your-model-name>`
+- Blocked: `python tools/mark_task_status.py <task_id> review --notes "<why>" --agent <your-model-name>`
 
-If you get blocked, use `review` instead of `resolved` and explain why in `--notes`. Do this every time, without being asked — it's how the queue stays accurate without a human tracking it by hand.
+The **master orchestrator queue** is `C:\master-repo\tools\orchestrator_state.json`. Use it for any task with a `model_tier` or a handoff. Read it to find the next task, and use:
+
+- Pick up: `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent <your-model-name>`
+- Executor finish (swe-executor): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> review --usage '{"wall_clock_min": X, "tool_calls": Y}' --agent swe-executor`
+- Orchestrator finish (Claude): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> resolved --pr <url> --agent claude-code`
+- Blocked: `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> blocked_on_decision --blocked-reason "<why>" --agent <your-model-name>`
+
+Unlimited agents (swe-executor, SWE-1.7, etc.) may NOT mark a task `resolved` or `rejected`; they stop at `review` or `blocked_on_decision`. Do this every time, without being asked — it is how the queue stays accurate without a human tracking it by hand.
 
 ---
 
@@ -255,6 +298,7 @@ It is for people who may not be able to afford a legal team, may be overwhelmed,
 
 - **Semptify is NOT a business model.** It is a public-service housing-rights tool.
 - **NEVER use the word "free"** on any page, button, label, or description — *when describing Semptify itself*. Saying "free" insinuates we charge for other things. We don't. We never have. We never will. **Exception:** factual descriptions of external resources (e.g., "Free legal help for low-income tenants" describing Legal Aid) are permitted — these are facts about *their* services, not Semptify self-promotion.
+- **NEVER expose AI/LLM output in the tenant/advocate/attorney-facing system.** AI may be used for development tooling and future backend/admin-only modules (system health, staleness checks), but it is never surfaced to tenants, attorneys, or advocates. Form-fill and signatures are browser-native only — never stored server-side or treated as Semptify-managed profile data.
 - **NEVER use business-model terminology** — no "accounts", "log in", "sign up", "subscription", "upgrade", "premium", "paid plan", "trial", "pricing", or similar. These words imply a commercial product. Semptify is not one.
 - No advertising — ever. No banner ads, no sponsored content, no affiliate links, no tracking pixels for ad networks.
 - **Listing vs advertising — there is a difference.** A *listing* is a neutral directory entry of a resource (e.g., "HOME Line MN — 612-728-5767"). An *advertisement* is promotional content paid for or placed to generate revenue/clicks. Listings are permitted only when:
@@ -562,3 +606,17 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
 | `correspondence` | T2 | Tenant/landlord correspondence, metadata + content. |
 | `user_concerns` | T2 | Tenant-submitted content, PII-bearing. |
 | `advanced` | T1 (tools) / T0 (`detect_repeated_fees` cost-guard) | Cost-guard is counting only, no identity data. |
+
+### 20. Alembic `sa.ARRAY` migrations fail on SQLite (module_registry and feature_flags)
+
+- **What happened:** SQLite has no native `ARRAY` type. Two Alembic migrations used `sa.ARRAY(sa.String())` and silently failed to run on local SQLite:
+  - First occurrence: `alembic/versions/20260615_add_module_registry.py` (`module_registry.depends_on` column) — caused 24 test failures until `app/models/models.py` changed `depends_on` from `ARRAY(String)` to `JSON`.
+  - Second occurrence: `alembic/versions/20260609_add_feature_flags_table.py` (`feature_flags.allowed_roles` and `allowed_states`) — the table silently did not exist in local dev, masking real feature-flag behavior.
+- **Fix pattern:** Keep the PostgreSQL/Render Alembic migrations unchanged (they are correct for Postgres), but add a dialect-aware `ensure_schema()` startup path for SQLite:
+  - `app/core/module_overrides.py::ensure_schema()` already uses this pattern for the `module_overrides` table.
+  - `app/core/features.py::ensure_schema()` now mirrors it for `feature_flags`, creating the table with `TEXT` columns instead of `TEXT[]`, `INTEGER PRIMARY KEY AUTOINCREMENT` instead of `SERIAL`, and `CURRENT_TIMESTAMP` instead of `NOW()`.
+  - `app/main.py` calls both `ensure_schema()` functions during the lifespan "Module Overrides Init" stage.
+  - Readers (e.g. `FeatureFlagManager._refresh_from_db()`) must tolerate `allowed_roles` as a JSON string on SQLite.
+- **Rule: ANY new Alembic migration that uses `sa.ARRAY` needs a SQLite-compatible fallback path from the start.** Either avoid `sa.ARRAY` in the model, or add a matching dialect-aware `ensure_schema()` and make the reader code tolerate the SQLite representation.
+- **Files:** `alembic/versions/20260615_add_module_registry.py`, `alembic/versions/20260609_add_feature_flags_table.py`, `app/models/models.py`, `app/core/module_overrides.py`, `app/core/features.py`, `app/main.py`.
+- **Other `sa.ARRAY` migrations found during this search:** Only the two above (`module_registry` and `feature_flags`). No other Alembic migration in `alembic/versions/` currently uses `sa.ARRAY`.

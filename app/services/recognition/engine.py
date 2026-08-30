@@ -61,11 +61,11 @@ class DocumentRecognitionEngine:
     - Multi-dimensional confidence scoring
 
     Architecture:
-    1. Context Analysis → Understand document structure
-    2. Multi-Pass Reasoning → Extract and validate entities
-    3. Legal Analysis → Apply MN tenant law rules
-    4. Relationship Mapping → Connect entities logically
-    5. Confidence Scoring → Quantify certainty
+    1. Context Analysis ▸ Understand document structure
+    2. Multi-Pass Reasoning ▸ Extract and validate entities
+    3. Legal Analysis ▸ Apply MN tenant law rules
+    4. Relationship Mapping ▸ Connect entities logically
+    5. Confidence Scoring ▸ Quantify certainty
     """
 
     VERSION = "2.0.0"  # Upgraded with preprocessing and legal dictionary
@@ -689,11 +689,11 @@ class DocumentRecognitionEngine:
     def explain_analysis(self, result: RecognitionResult) -> str:
         """Generate human-readable analysis explanation"""
         lines = [
-            "📄 Document Analysis Report",
+            "● Document Analysis Report",
             "=" * 40,
             "",
-            f"📋 Document Type: {result.document_type.value.replace('_', ' ').title()}",
-            f"📊 Confidence: {result.confidence.overall_score:.1f}% ({result.confidence.level.value})",
+            f"● Document Type: {result.document_type.value.replace('_', ' ').title()}",
+            f"◆ Confidence: {result.confidence.overall_score:.1f}% ({result.confidence.level.value})",
             "",
         ]
 
@@ -701,7 +701,7 @@ class DocumentRecognitionEngine:
         tenant = result.relationships.get_tenant()
         landlord = result.relationships.get_landlord()
         if tenant or landlord:
-            lines.append("👥 Parties:")
+            lines.append("● Parties:")
             if tenant:
                 lines.append(f"   Tenant: {tenant.value}")
             if landlord:
@@ -710,25 +710,25 @@ class DocumentRecognitionEngine:
 
         # Property
         if result.relationships.primary_property:
-            lines.append(f"🏠 Property: {result.relationships.primary_property}")
+            lines.append(f"○ Property: {result.relationships.primary_property}")
             lines.append("")
 
         # Financial
         total = result.relationships.get_total_claimed()
         if total > 0:
-            lines.append(f"💰 Amount Claimed: ${total:,.2f}")
+            lines.append(f"● Amount Claimed: ${total:,.2f}")
             lines.append("")
 
         # Issues
         if result.legal_analysis.issues:
-            lines.append(f"⚠️  Legal Issues Found: {len(result.legal_analysis.issues)}")
+            lines.append(f"◆  Legal Issues Found: {len(result.legal_analysis.issues)}")
             for issue in result.legal_analysis.issues[:5]:
                 severity_emoji = {
-                    "critical": "🔴",
-                    "high": "🟠",
-                    "medium": "🟡",
-                    "low": "🟢",
-                    "informational": "ℹ️",
+                    "critical": "◆",
+                    "high": "◆",
+                    "medium": "◆",
+                    "low": "●",
+                    "informational": "ℹ",
                 }
                 emoji = severity_emoji.get(issue.severity.value, "•")
                 lines.append(f"   {emoji} {issue.title}")
@@ -737,7 +737,7 @@ class DocumentRecognitionEngine:
         # Deadlines
         deadlines = result.get_deadlines(within_days=30)
         if deadlines:
-            lines.append("📅 Upcoming Deadlines:")
+            lines.append("◆ Upcoming Deadlines:")
             for d in deadlines[:3]:
                 if d.event_date:
                     lines.append(f"   • {d.event_date.strftime('%B %d, %Y')}: {d.title}")
@@ -745,15 +745,15 @@ class DocumentRecognitionEngine:
 
         # Defenses
         if result.legal_analysis.defense_options:
-            lines.append("🛡️  Potential Defenses:")
+            lines.append("◆  Potential Defenses:")
             for defense in result.legal_analysis.defense_options[:3]:
                 lines.append(f"   • {defense}")
             lines.append("")
 
         # Immediate actions
         if result.legal_analysis.immediate_actions:
-            lines.append("📌 Recommended Actions:")
+            lines.append("◆ Recommended Actions:")
             for action in result.legal_analysis.immediate_actions[:3]:
-                lines.append(f"   → {action}")
+                lines.append(f"   ▸ {action}")
 
         return "\n".join(lines)

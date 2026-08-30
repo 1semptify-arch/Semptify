@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}FCA/Qui Tam Case Readiness — Semptify{% endblock %}
+{% block description %}Organize federal case materials for attorney review.{% endblock %}
+
+{% block content %}
+<div class="container container--narrow" style="padding-top: 2rem;">
+    <div class="alert alert--warning" role="alert">
+        <strong>{{ upl_disclaimer }}</strong><br>
+        This tool helps you organize facts and documents so a qualified attorney can review whether federal or state claims may apply. It does not decide that a claim exists or is viable, and it does not file anything.
+    </div>
+
+    <h1>Federal Case Readiness</h1>
+    <p class="text-secondary">Organize chronology, records, and issue-spotting notes for attorney review.</p>
+
+    <div class="form-group" id="case-select-group">
+        <label class="form-label" for="case-select">Choose a case</label>
+        <select id="case-select" class="form-select">
+            <option value="">— select a case —</option>
+        </select>
+    </div>
+
+    <div id="score-bar" class="hidden" style="margin: 1rem 0;">
+        <strong>Readiness: <span id="score-pct">0%</span></strong>
+        <div class="text-secondary" id="missing-count"></div>
+    </div>
+
+    <div id="checklist-container" class="hidden">
+        <form id="fca-form">
+            <div id="checklist-by-framework"></div>
+            <div style="margin-top: 1.5rem;">
+                <button type="submit" class="btn btn--primary">Save checklist</button>
+                <button type="button" id="reset-btn" class="btn btn--secondary" style="margin-left: 0.5rem;">Reset to default</button>
+                <button type="button" id="pdf-btn" class="btn btn--secondary" style="margin-left: 0.5rem;">Download PDF</button>
+                <button type="button" id="zip-btn" class="btn btn--secondary" style="margin-left: 0.5rem;">Download ZIP</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="loading" class="spinner hidden" style="margin: 2rem auto;"></div>
+    <div id="message" class="alert hidden" role="alert" style="margin-top: 1rem;"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const caseSelect = document.getElementById('case-select');
+    const checklistContainer = document.getElementById('checklist-container');
+    const checklistByFramework = document.getElementById('checklist-by-framework');
+    const scoreBar = document.getElementById('score-bar');
+    const scorePct = document.getElementById('score-pct');
+    const missingCount = document.getElementById('missing-count');
+    const loading = document.getElementById('loading');
+    const message = document.getElementById('message');
+
+    let currentCaseId = '';
+    let currentChecklist = [];
+
+    function showMessage(text, type) {
+        message.textContent = text;
+        message.className = `alert alert--${type}`;
+        message.classList.remove('hidden');
+        setTimeout(() => message.classList.add('hidden'), 5000);
+    }
+
+    async function loadCases() {
+        const res = await fetch('/api/case-builder/cases', { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        data.cases.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.case_id;
+            opt.textContent = c.title || `Case ${c.case_id}`;
+            caseSelect.appendChild(opt);
+        });
+    }
+
+    function frameworkTitle(fw) {
+        return {
+            'false_claims_act': 'False Claims Act / Qui Tam',
+            'fair_housing': 'Fair Housing Act',
+            'mn_anti_retaliation': 'Minnesota Anti-Retaliation',
+            'cross_cutting': 'General Preparation'
+        }[fw] || fw;
+    }
+
+    function renderFrameworkSection(fw, items) {
+        const section = document.createElement('section');
+        section.style = 'margin-top: 1.5rem; padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-md);';
+        const heading = document.createElement('h2');
+        heading.textContent = frameworkTitle(fw);
+        section.appendChild(heading);
+        items.forEach((item, idx) => {
+            const itemEl = document.createElement('div');
+            itemEl.style = 'margin-top: 1rem;';
+            itemEl.innerHTML = `
+                <label style="display:flex; gap:0.5rem; align-items:flex-start; cursor:pointer;">
+                    <input type="checkbox" data-idx="${idx}" ${item.completed ? 'checked' : ''}>
+                    <span>
+                        <strong>${item.label}</strong>
+                        ${item.required ? '<span class="text-error" title="required">*</span>' : ''}
+                        <br><small class="text-muted">${item.hint}</small>
+                    </span>
+                </label>
+                <textarea class="form-textarea" data-notes-idx="${idx}" placeholder="Your notes (optional)" style="margin-top:0.5rem; min-height:60px; font-size:0.9rem;">${item.notes || ''}</textarea>
+                <input type="text" class="form-input" data-docs-idx="${idx}" placeholder="Linked document IDs, comma separated" value="${(item.document_ids || []).join(', ')}" style="margin-top:0.5rem; font-size:0.9rem;">
+            `;
+            section.appendChild(itemEl);
+        });
+        return section;
+    }
+
+    function renderChecklist(checklist) {
+        currentChecklist = checklist;
+        checklistByFramework.innerHTML = '';
+        const byFw = {};
+        checklist.forEach((item, idx) => {
+            if (!byFw[item.framework]) byFw[item.framework] = [];
+            byFw[item.framework].push({ ...item, _idx: idx });
+        });
+        Object.keys(byFw).forEach(fw => {
+            const section = renderFrameworkSection(fw, byFw[fw]);
+            checklistByFramework.appendChild(section);
+        });
+
+        checklistByFramework.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', e => {
+                const idx = parseInt(e.target.dataset.idx, 10);
+                currentChecklist[idx].completed = e.target.checked;
+            });
+        });
+        checklistByFramework.querySelectorAll('textarea[data-notes-idx]').forEach(ta => {
+            ta.addEventListener('input', e => {
+                const idx = parseInt(e.target.dataset.notesIdx, 10);
+                currentChecklist[idx].notes = e.target.value;
+            });
+        });
+        checklistByFramework.querySelectorAll('input[data-docs-idx]').forEach(inp => {
+            inp.addEventListener('input', e => {
+                const idx = parseInt(e.target.dataset.docsIdx, 10);
+                const ids = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                currentChecklist[idx].document_ids = ids;
+            });
+        });
+    }
+
+    async function loadChecklist(caseId) {
+        loading.classList.remove('hidden');
+        const res = await fetch(`/api/case-builder/cases/${caseId}/fca/readiness`, { credentials: 'include' });
+        loading.classList.add('hidden');
+        if (!res.ok) {
+            showMessage('Could not load readiness checklist.', 'error');
+            return;
+        }
+        const data = await res.json();
+        renderChecklist(data.readiness_checklist || []);
+        updateSummary(data.summary || buildSummary(currentChecklist));
+        checklistContainer.classList.remove('hidden');
+        scoreBar.classList.remove('hidden');
+    }
+
+    function buildSummary(checklist) {
+        const required = checklist.filter(i => i.required);
+        const completed = required.filter(i => i.completed).length;
+        return {
+            score: required.length ? Math.round((completed / required.length) * 100) : 0,
+            missing_required_count: required.length - completed
+        };
+    }
+
+    function updateSummary(summary) {
+        scorePct.textContent = `${summary.score || 0}%`;
+        missingCount.textContent = summary.missing_required_count
+            ? `${summary.missing_required_count} required items still to complete`
+            : 'All required items are complete — save and take to an attorney';
+    }
+
+    caseSelect.addEventListener('change', e => {
+        currentCaseId = e.target.value;
+        if (!currentCaseId) {
+            checklistContainer.classList.add('hidden');
+            scoreBar.classList.add('hidden');
+            return;
+        }
+        loadChecklist(currentCaseId);
+    });
+
+    document.getElementById('fca-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        if (!currentCaseId) return;
+        const res = await window.fetchWithCSRF(`/api/case-builder/cases/${currentCaseId}/fca/readiness`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ readiness_checklist: currentChecklist })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            renderChecklist(data.readiness_checklist || []);
+            updateSummary(data.summary || buildSummary(currentChecklist));
+            showMessage('Checklist saved.', 'success');
+        } else {
+            showMessage('Could not save checklist.', 'error');
+        }
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', async () => {
+        if (!currentCaseId || !confirm('Reset checklist to default? Your notes will be replaced.')) return;
+        const res = await window.fetchWithCSRF(`/api/case-builder/cases/${currentCaseId}/fca/readiness/reset`, {
+            method: 'POST'
+        });
+        if (res.ok) {
+            const data = await res.json();
+            renderChecklist(data.readiness_checklist || []);
+            updateSummary(data.summary || buildSummary(currentChecklist));
+            showMessage('Checklist reset.', 'info');
+        } else {
+            showMessage('Could not reset checklist.', 'error');
+        }
+    });
+
+    document.getElementById('pdf-btn').addEventListener('click', () => {
+        if (currentCaseId) window.open(`/api/case-builder/cases/${currentCaseId}/fca/readiness/pdf`);
+    });
+
+    document.getElementById('zip-btn').addEventListener('click', () => {
+        if (currentCaseId) window.open(`/api/case-builder/cases/${currentCaseId}/fca/readiness/zip`);
+    });
+
+    loadCases();
+</script>
+{% endblock %}

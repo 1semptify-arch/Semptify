@@ -277,4 +277,8 @@ def validate_local_path(path: str | Path) -> bool:
 
     # Split path and check each component
     components = path_str.split("\\")
-    return all(not (component and any(char in component for char in invalid_chars)) for component in components)
+    for component in components:
+        if component and any(char in component for char in invalid_chars):
+            return False
+
+    return True
