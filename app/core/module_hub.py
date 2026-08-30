@@ -891,7 +891,7 @@ class ModuleHub:
     async def _get_user_context(self, user_id: str, params: dict) -> dict:
         """Get full user context from context loop"""
         try:
-            from app.services.context_loop import context_loop
+            from app.modules.context_loop.service import context_loop
 
             return context_loop.get_state(user_id)
         except Exception as e:

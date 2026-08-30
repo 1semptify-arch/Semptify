@@ -37,7 +37,7 @@ def _patch_assembly(page_data: dict[str, Any] | None = None, gather_blocks=None)
     stack = ExitStack()
     stack.enter_context(patch("app.modules.page_composer.assembly.compose_page", new=AsyncMock(return_value=data)))
     stack.enter_context(patch("app.modules.page_composer.assembly.ui_compose_page", new=Mock(return_value={"components": [{"type": "mock"}]})))
-    stack.enter_context(patch("app.services.context_loop.context_loop.get_state", new=Mock(return_value={})))
+    stack.enter_context(patch("app.modules.context_loop.service.context_loop.get_state", new=Mock(return_value={})))
     if gather_blocks is not None:
         stack.enter_context(patch("app.modules.page_composer.assembly._gather_blocks", new=gather_blocks))
     return stack
@@ -245,7 +245,7 @@ async def test_assemble_page_normalizes_real_context_loop_state():
         "summary": {"documents": 4, "active_issues": 2, "deadlines": 1},
     }
     with _patch_assembly():
-        with patch("app.services.context_loop.context_loop.get_state", new=Mock(return_value=real_state)):
+        with patch("app.modules.context_loop.service.context_loop.get_state", new=Mock(return_value=real_state)):
             result = await assemble_page(
                 subject="repair",
                 jurisdiction="MN",
