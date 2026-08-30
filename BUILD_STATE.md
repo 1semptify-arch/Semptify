@@ -1,3 +1,46 @@
+## Session — 2026-08-30 — Law Library rewrite Phase 2: fact-only, source-cited public page
+
+### Guardrail Engine Run — 2026-08-30T11:06:43+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `law-library-fact-only-rewrite-2026-08-29`
+- **Scope:** Phase 2 — apply swap protocol and replace `app/templates/pages/law_library.html` with a minimal, mobile-first, fact-only, source-cited public legal reference. No opinion, no trivia, no "Know Your Rights" destination.
+
+### What changed
+
+- Renamed the original `app/templates/pages/law_library.html` to `law_library_old.html`, rewrote the new template, then deleted the old file once `py_compile`, `pytest tests/module_health`, and `pytest tests/test_a11y.py` passed.
+- `app/templates/pages/law_library.html` now uses the public `record_body.html`-style layout: jurisdiction selector, search, official-source cards, and a local-help finder.
+- `app/core/subject_starters.py` — updated the Law Library subject starter to use the canonical research wording.
+- `app/modules/portal/registry.py` and `app/templates/pages/tenant_home.html` / `app/templates/pages/tenant_help.html` — removed remaining "Know Your Rights" labels and linked to `/law-library`.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/subject_starters.py app/modules/portal/registry.py`: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `pytest tests/test_a11y.py -q --no-cov`: 6 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- Browser/Playwright live verification was not run because the IronBee DevTools browser MCP server is not available in this workspace; a manual browser pass is recommended before merge.
+
+### Next step
+
+- Phase 3: wire the Law Linker into document overlay note text (`law-linker-document-overlay-2026-08-29` in orchestrator). This depends on a note text container in the document/overlay render path that currently shows notes as pins/toasts.
+
+### Ship
+
+- **Branch:** `feature/law-library-fact-only-rewrite-2026-08-29`
+- **PR:** #140 — https://github.com/1semptify-arch/Semptify/pull/140
+- **What changed:** Law Library template rewrite and public-page reference cleanup.
+
+---
+
 ## Session — 2026-08-30 — Law Library rewrite scope 1: retire redundant "Know Your Rights" pages
 
 ### Guardrail Engine Run — 2026-08-30T08:09:14+00:00
