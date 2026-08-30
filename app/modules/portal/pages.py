@@ -83,18 +83,6 @@ class PortalPageRegistry:
             order=20,
         ),
         PortalPage(
-            id="renters_guide",
-            title="Renter's Guide — Know Your Rights — Semptify",
-            path="/renters-guide",
-            template="public/renters_guide.html",
-            description="A plain-language guide to tenant rights and responsibilities. Understand what your landlord must do, and what you must do. Facts only, no opinions.",
-            keywords="renters guide, tenant rights, tenant responsibilities, landlord tenant law, housing rights",
-            og_title="Renter's Guide — Know Your Rights — Semptify",
-            og_description="A plain-language guide to tenant rights and responsibilities.",
-            footer_label="Renter's Guide",
-            order=30,
-        ),
-        PortalPage(
             id="advocacy",
             title="Advocacy — Semptify",
             path="/advocacy",

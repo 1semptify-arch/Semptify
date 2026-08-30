@@ -79,7 +79,7 @@ class PortalRegistry:
         ),
         PortalService(
             id="tenant_rights_library",
-            name="Know Your Rights Library",
+            name="Law Library",
             short_description="Plain-language guides to tenant law in your state. Facts only, no opinions.",
             cta_label="Browse the Library",
             cta_path="/library",

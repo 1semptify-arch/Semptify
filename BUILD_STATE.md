@@ -1,4 +1,54 @@
+## Session — 2026-08-30 — Law Library rewrite scope 1: retire redundant "Know Your Rights" pages
+
+### Guardrail Engine Run — 2026-08-30T08:09:14+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `law-library-fact-only-rewrite-2026-08-29`
+- **Scope:** Phase 1 — retire `/renters-guide` and `/gui/know` as redundant "Know Your Rights" destinations; rebrand surviving references to "Law Library".
+
+### What changed
+
+- Removed `renters_guide` from `app/modules/portal/pages.py` and deleted `app/templates/public/renters_guide.html`.
+- Removed `GET /gui/know` hub route from `app/main.py`, the `gui_know` navigation stage from `app/core/navigation.py`, and deleted `app/templates/gui/know.html`.
+- Removed `/renters-guide` from `SmartCheckpointMiddleware.PUBLIC_PATHS` and `StorageRequirementMiddleware.PUBLIC_PATHS`.
+- Updated `app/modules/portal/registry.py` service name from "Know Your Rights Library" to "Law Library".
+- Updated `app/services/ui_composer.py` page titles to use "Law Library".
+- Replaced `/gui/know` link in `app/templates/pages/help.html` with `/law-library` and clarified the label.
+- Renamed "Know Your Rights" heading to "Law Library" in `app/templates/pages/tenant_help.html`.
+- Updated `app/templates/public/about.html` feature list to say "Law Library".
+- Removed `/renters-guide` from `tests/test_a11y.py` public path list.
+
+### Verification
+
+- `python -m py_compile` on changed `.py` files: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `pytest tests/test_a11y.py -q --no-cov`: 6 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+
+### Next step
+
+- Phase 2 requires the swap-protocol rename of `app/templates/pages/law_library.html` to `law_library_old.html`, then the full fact-only, jurisdiction-aware template rewrite and Law Linker overlay wiring.
+
+---
+
 ## Session — 2026-08-28 — live verify dispute_tracker and eviction_timeline
+
+### Guardrail Engine Run — 2026-08-30T08:09:14+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Task
 
