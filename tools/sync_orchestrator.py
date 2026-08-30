@@ -30,6 +30,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TOOLS_DIR = REPO_ROOT / "tools"
+MASTER_ORCHESTRATOR_STATE = REPO_ROOT.parent.parent / "tools" / "orchestrator_state.json"
+MASTER_ORCHESTRATOR_STATE = REPO_ROOT.parent.parent / "tools" / "orchestrator_state.json"
 
 STUB_DETECTOR = TOOLS_DIR / "stub_detector.py"
 WORKBOOK_BRIDGE = TOOLS_DIR / "workbook_bridge.py"
@@ -285,6 +287,118 @@ def git_add(paths: list[Path]) -> None:
     run(["git", "add", *existing], "git add (re-stage synced files)")
 
 
+
+
+def _is_semtify_task(task: dict) -> bool:
+    """Return True if a master orchestrator task belongs in the Semptify legacy queue.
+
+    Master queue is repo-wide. The Semptify legacy queue should only carry tasks
+    whose file_path is inside Semptify FastAPI, Semptify-PI, or Semptify root
+    docs/tools, not generic master-repo work.
+    """
+    fp = task.get("file_path") or ""
+    if not fp:
+        return False
+    tid = task.get("id", "")
+    if tid in {
+        "non-semtify-modules-loose-ends-2026-08-29",
+        "master-state-docs-loose-ends-2026-08-29",
+    }:
+        return False
+
+    # Exclude master module scans and master-only docs.
+    if fp.startswith(("modules/", "modules\\")) and not fp.startswith(
+        ("modules/app-semptify-fastapi", "modules\\app-semptify-fastapi")
+    ):
+        return False
+    if fp.startswith(("docs/", "docs\\")):
+        return False
+
+    # Allow absolute paths only under Semptify FastAPI or Semptify-PI.
+    if fp.startswith("C:") or fp.startswith("/"):
+        norm = fp.replace("\\", "/").lower()
+        return (
+            "/master-repo/modules/app-semptify-fastapi/" in norm
+            or "/master-repo/sources/app-semptify-pi/" in norm
+        )
+
+    return True
+
+
+def _map_master_to_legacy(task: dict) -> dict:
+    """Map master orchestrator_state.json schema to legacy agent_orchestrator_tasks.json schema."""
+    return {
+        "id": task.get("id"),
+        "title": task.get("title"),
+        "description": task.get("description"),
+        "file_path": task.get("file_path"),
+        "priority": task.get("priority"),
+        "status": task.get("status"),
+        "category": task.get("category", "other"),
+        "notes": task.get("notes", ""),
+        "created_at": task.get("created_at"),
+        "updated_at": task.get("updated_at"),
+        "target_model": task.get("model_tier") or "unassigned",
+        "assigned_agent": task.get("assigned_to") or "unassigned",
+    }
+
+
+def step_master_sync() -> int:
+    """Pull Semptify tasks from the canonical master orchestrator queue.
+
+    The master queue (C:\\master-repo\\tools\\orchestrator_state.json) is the
+    canonical source of truth. This step merges any Semptify-specific tasks
+    from master into the local agent_orchestrator_tasks.json so the legacy
+    queue does not diverge or get wiped by the workbook-only path.
+    """
+    if not MASTER_ORCHESTRATOR_STATE.exists():
+        print(f"-> skipping master sync (not found: {MASTER_ORCHESTRATOR_STATE})")
+        return 0
+
+    with MASTER_ORCHESTRATOR_STATE.open("r", encoding="utf-8") as f:
+        master_data = json.load(f)
+    master_tasks = master_data.get("tasks", [])
+
+    semtify_tasks = [_map_master_to_legacy(t) for t in master_tasks if _is_semtify_task(t)]
+    if not semtify_tasks:
+        print("-> no Semptify tasks found in master queue")
+        return 0
+
+    current_data = []
+    if ORCHESTRATOR_TASKS.exists():
+        try:
+            current_data = json.loads(ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            current_data = []
+    if not isinstance(current_data, list):
+        current_data = (
+            current_data.get("created", current_data.get("tasks", []))
+            if isinstance(current_data, dict)
+            else []
+        )
+
+    current_by_id = {t.get("id"): t for t in current_data if t.get("id")}
+    updated = 0
+    added = 0
+    for mt in semtify_tasks:
+        if mt["id"] in current_by_id:
+            # Master wins for status and core fields; keep any extra legacy fields.
+            existing = current_by_id[mt["id"]]
+            existing.update({k: v for k, v in mt.items() if v is not None})
+            updated += 1
+        else:
+            current_data.append(mt)
+            current_by_id[mt["id"]] = mt
+            added += 1
+
+    new_content = json.dumps(current_data, indent=2) + "\n"
+    ORCHESTRATOR_TASKS.write_text(new_content, encoding="utf-8", newline="\n")
+    print(
+        f"-> master sync: {added} new, {updated} updated Semptify task(s) in "
+        f"{ORCHESTRATOR_TASKS.name} (total: {len(current_data)})"
+    )
+    return len(current_data)
+
 def print_task_summary(path: Path, label: str) -> None:
     """Print a human-readable status summary for a task JSON list."""
     try:
@@ -335,6 +449,7 @@ def main() -> int:
             step_docs_todos()
             merge_tasks()
             preserve_manual_fields(previous_tasks)
+            step_master_sync()
             print_task_summary(ORCHESTRATOR_TASKS, "Final canonical queue")
             step_sync_registry()
 
