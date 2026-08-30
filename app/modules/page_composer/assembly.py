@@ -290,7 +290,7 @@ async def _resolve_context(
 ) -> dict[str, Any]:
     """Merge user_context with any available Context Engine state.
 
-    BUG FIX: `context_loop.get_state()` (app.services.context_loop) exposes real
+    BUG FIX: `context_loop.get_state()` (app.modules.context_loop.service) exposes real
     user state under `documents_count`, `deadlines` (a list of loosely-shaped
     dicts), and `active_issues` — not the `document_count` / `next_deadline` /
     `recent_events` / `urgency_cues` / `case_count` keys the rest of this module
@@ -303,7 +303,7 @@ async def _resolve_context(
     merged = dict(user_context)
     if user_id:
         try:
-            from app.services.context_loop import context_loop
+            from app.modules.context_loop.service import context_loop
 
             state = context_loop.get_state(user_id)
             if state and isinstance(state, dict):

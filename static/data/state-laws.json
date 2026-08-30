@@ -1,11 +1,21 @@
 {
   "metadata": {
     "version": "1.0",
-    "last_updated": "2025-04-23",
+    "last_updated": "2026-08-29",
     "complete_states": [
-      "MN"
+      "CA",
+      "FL",
+      "GA",
+      "IL",
+      "MI",
+      "MN",
+      "NC",
+      "NY",
+      "OH",
+      "PA",
+      "TX"
     ],
-    "stub_states": 49
+    "stub_states": 38
   },
   "states": {
     "MN": {
