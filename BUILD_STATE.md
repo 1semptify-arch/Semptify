@@ -1,3 +1,38 @@
+## Session — 2026-08-30 — Reconcile legacy Semptify orchestrator queue with canonical master
+
+### Guardrail Engine Run — 2026-08-30T08:09:14+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `legacy-queue-staleness-2026-08-29`
+- **Scope:** Stop `tools/sync_orchestrator.py` from wiping the legacy `agent_orchestrator_tasks.json` and reconcile it with the canonical master `orchestrator_state.json`.
+
+### What changed
+
+- Added a `step_master_sync()` to `tools/sync_orchestrator.py` that pulls Semptify-specific tasks from `C:\master-repo\tools\orchestrator_state.json` and merges them into `tools/agent_orchestrator_tasks.json`.
+- Regenerated `tools/agent_orchestrator_tasks.json`, `tools/agent_orchestrator.html`, and `tools/orchestrator_dashboard.html` from the master queue.
+- Legacy queue now reflects the master canonical queue: 184 tasks, with the 3 stale `plugin-arch-*` / `adr-0008-pilot-delete` tasks correctly resolved and missing current Semptify tasks restored.
+
+### Verification
+
+- `python -m py_compile tools/sync_orchestrator.py`: PASS.
+- `python tools/sync_orchestrator.py`: regenerated successfully (184 tasks, 0 missing paths).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: all checks passed.
+
+### Decision
+
+- The legacy `agent_orchestrator_tasks.json` is **not deprecated**; it is retained as a generated read-only mirror of the canonical master queue. The master `orchestrator_state.json` remains the source of truth.
+
+---
+
 ## Session — 2026-08-29 — Repository-wide loose ends audit and task registration
 
 ### Guardrail Engine Run — 2026-08-30T03:33:57+00:00
