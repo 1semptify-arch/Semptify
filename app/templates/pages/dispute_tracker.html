@@ -133,13 +133,13 @@
 <div class="dt-page">
     <div class="dt-header">
         <h1>Dispute Tracker</h1>
-        <p>Track property-management disputes and compare fees or terms. Your descriptions and evidence live in your secure vault — only structural data is kept here.</p>
+        <p>Track property-management disputes and compare fees or terms. Your descriptions and records live in your secure vault — only structural data is kept here.</p>
     </div>
 
     <div class="dt-grid">
         <section class="dt-panel dt-add-dispute" aria-labelledby="add-dispute-heading">
             <h2 id="add-dispute-heading">Add a dispute</h2>
-            <form method="post" action="/api/dispute-tracker/disputes" class="dt-form">
+            <form method="post" action="{{ url_for('create_dispute') }}" class="dt-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="dt-form-row">
                     <div class="form-group">
@@ -204,7 +204,7 @@
 
         <section class="dt-panel dt-add-compare" aria-labelledby="add-compare-heading">
             <h2 id="add-compare-heading">Add a comparison</h2>
-            <form method="post" action="/api/dispute-tracker/comparisons" class="dt-form">
+            <form method="post" action="{{ url_for('create_comparison') }}" class="dt-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="form-group">
                     <label class="form-label form-label--required" for="dispute_record_id">Related dispute</label>

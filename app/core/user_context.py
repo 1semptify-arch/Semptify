@@ -23,7 +23,7 @@ Design Principles:
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class UserRole(StrEnum):
+class UserRole(str, Enum):
     """
     User roles determine what features/UI to show.
     A user can have ONE active role per session, but can switch.
@@ -56,7 +56,7 @@ class UserRole(StrEnum):
 # =============================================================================
 
 
-class StorageProvider(StrEnum):
+class StorageProvider(str, Enum):
     """Supported cloud storage providers."""
 
     GOOGLE_DRIVE = "google_drive"
@@ -243,7 +243,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B2 - Quick Case Triage",
         "ui_mode": "mobile",  # Mobile-first, simplified
         "landing_page": "/tenant/home",
-        "icon": "🏠",
+        "icon": "○",
     },
     UserRole.ADVOCATE: {
         "display_name": "Advocate",
@@ -251,7 +251,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "responsive",  # Tablet-friendly
         "landing_page": "/advocate/home",
-        "icon": "🤝",
+        "icon": "▸",
     },
     UserRole.MANAGER: {
         "display_name": "Case Manager",
@@ -259,7 +259,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",
         "landing_page": "/manager/home",
-        "icon": "📋",
+        "icon": "●",
     },
     UserRole.LEGAL: {
         "display_name": "Legal",
@@ -267,7 +267,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",  # Full complexity
         "landing_page": "/legal/home",
-        "icon": "⚖️",
+        "icon": "▸",
         "sub_roles": ("attorney", "judge", "clerk", "paralegal"),
         "requires_bar_license": True,
     },
@@ -277,7 +277,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",  # Full complexity
         "landing_page": "/judge/home",
-        "icon": "📜",
+        "icon": "●",
     },
     UserRole.ADMIN: {
         "display_name": "Administrator",
@@ -285,7 +285,7 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",  # Full complexity
         "landing_page": "/admin/home",
-        "icon": "🔧",
+        "icon": "▸",
     },
 }
 
@@ -421,6 +421,9 @@ class UserContext:
     # Session tracking
     session_id: str | None = None
     authenticated_at: datetime | None = None
+
+    # Reconnect reason (e.g. token_corrupt) for access-level responses
+    reconnect_reason: str | None = None
 
     def __post_init__(self):
         """Set permissions based on role if not provided."""

@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class JurisdictionLevel(StrEnum):
+class JurisdictionLevel(str, Enum):
     """Levels of jurisdiction granularity."""
 
     COUNTRY = "country"  # e.g., "US"
@@ -312,10 +312,28 @@ class ModuleGateMiddleware(BaseHTTPMiddleware):
         return UserRole.USER
 
     def _extract_jurisdiction(self, request: Request) -> Jurisdiction:
-        """Extract jurisdiction from request (headers, params, or IP geolocation)."""
+        """Extract jurisdiction from request (headers, params, or LocationService)."""
         # Try explicit jurisdiction header
         state = request.headers.get("x-jurisdiction-state") or request.query_params.get("state")
         county = request.headers.get("x-jurisdiction-county") or request.query_params.get("county")
+
+        # Prefer user location from LocationService for state/county, but let
+        # explicit headers/params override it.
+        try:
+            from app.core.cookie_auth import extract_user_id
+            from app.services.location_service import location_service
+
+            user_id = extract_user_id(request)
+            if user_id:
+                location = location_service.get_user_location(user_id)
+                if location and location.state_code:
+                    if not state:
+                        state = location.state_code
+                    if not county and location.county:
+                        county = location.county
+        except Exception:
+            # Never let jurisdiction lookup break the request.
+            pass
 
         # Fallback to default
         if not state:
@@ -409,6 +427,24 @@ def get_module_access(request: Request) -> ModuleAccess:
         jurisdiction=Jurisdiction(),
         resolved_module_paths={e.module_path for e in MANIFEST.all()},
     )
+
+
+def get_function_module_path(contract_module: str) -> str:
+    """Map a contract module name to its product-manifest module_path."""
+    # Strip any app.modules. / .router noise and re-assemble the canonical path
+    module = contract_module.strip().lower().replace("app.modules.", "").replace(".router", "")
+    return f"app.modules.{module}.router"
+
+
+def is_function_resolved(request: Request, contract_module: str) -> bool:
+    """Check whether a function's module is in the resolved set for the request.
+
+    This is the Phase 2.2 situational-availability check. The Module Resolver
+    considers role, jurisdiction, gates, lifecycle, and feature flags.
+    """
+    module_path = get_function_module_path(contract_module)
+    access = get_module_access(request)
+    return access.can_use_module_path(module_path)
 
 
 def get_jurisdiction(request: Request) -> Jurisdiction:

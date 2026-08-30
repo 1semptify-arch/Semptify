@@ -64,7 +64,9 @@ class DocumentType(StrEnum):
     MOVE_OUT_CHECKLIST = "move_out_checklist"
     SECURITY_DEPOSIT_RECEIPT = "security_deposit_receipt"
     SECURITY_DEPOSIT_ITEMIZATION = "security_deposit_itemization"
+    MIXED_DOCUMENT = "mixed_document"
     OTHER = "other"
+    HOUSE_RULES = "house_rules"
 
 
 class IntakeStatus(StrEnum):
@@ -263,6 +265,11 @@ class IntakeDocument:
     # Extraction results
     extraction: ExtractionResult | None = None
 
+    # Bundle segmentation
+    parent_id: str | None = None
+    child_doc_ids: list[str] = field(default_factory=list)
+    segment_index: int | None = None
+
     # Cross-references
     linked_timeline_events: list[str] = field(default_factory=list)
     linked_calendar_events: list[str] = field(default_factory=list)
@@ -292,6 +299,9 @@ class IntakeDocument:
             "status_message": self.status_message,
             "progress_percent": self.progress_percent,
             "extraction": self.extraction.to_dict() if self.extraction else None,
+            "parent_id": self.parent_id,
+            "child_doc_ids": self.child_doc_ids,
+            "segment_index": self.segment_index,
             "linked_timeline_events": self.linked_timeline_events,
             "linked_calendar_events": self.linked_calendar_events,
             "matched_laws": self.matched_laws,
@@ -311,6 +321,47 @@ class IntakeDocument:
 
 class DocumentClassifier:
     """Classify documents by type based on content analysis."""
+
+    # Lease-structural patterns are scored separately from ordinary vocabulary.
+    # A strong lease structure should not be overridden by generic
+    # eviction/notice vocabulary (e.g., "evict" or "vacate" in a lease clause).
+    # Mixed documents are flagged only when both strong lease structure AND
+    # strong notice/quit signals are present, matching real-world bundled packets.
+    LEASE_STRUCTURE = {
+        "patterns": {
+            # Term/duration language (real doc: lese.pdf has 16 "this lease" hits)
+            r"\bthis lease\b": 5,
+            r"\bterm of (?:this|the) lease\b": 5,
+            r"\b(?:commencing|beginning|expiring|ending) on\b": 4,
+            # Rent schedule language
+            r"\bmonthly rent\b": 4,
+            r"\brent is due\b": 4,
+            r"\bdue on the\b": 3,
+            # Party and signature-block markers
+            r"\blandlord and tenant\b": 4,
+            r"\blessor and lessee\b": 4,
+            r"\bin witness whereof\b": 5,
+            r"\bwitnesseth\b": 5,
+            # Financial/scope markers
+            r"\bsecurity deposit\b": 3,
+            r"\bdamage deposit\b": 3,
+            r"\bpet deposit\b": 3,
+            r"\bpremises\b": 2,
+            # Agreement type (often at the top; real doc: lese.pdf has 1 agreement mention)
+            r"\b(?:lease|rental|tenancy) agreement\b": 3,
+        },
+        # Per-pattern threshold to count as a structural hit
+        "min_hits": 1,
+    }
+
+    # Thresholds for mixed-document detection and lease override.
+    # These were calibrated against docs/classification-test-fixtures/:
+    #   lease_02.pdf (real court-admitted lease with enforcement clauses) must be LEASE.
+    #   mixed_01.pdf (synthetic lease + notice bundle) must be MIXED_DOCUMENT.
+    #   notice_01.pdf (synthetic notice) must be EVICTION_NOTICE or NOTICE_TO_QUIT.
+    MIXED_LEASE_STRUCTURAL_THRESHOLD = 20.0
+    MIXED_NOTICE_THRESHOLD = 5.0
+    LEASE_OVERRIDE_RATIO = 2.0
 
     # Keywords and patterns for document classification
     CLASSIFICATION_PATTERNS = {
@@ -400,6 +451,16 @@ class DocumentClassifier:
             ],
             "weight": 7,
         },
+        DocumentType.HOUSE_RULES: {
+            "keywords": [
+                "house rules",
+                "rules and regulations",
+                "resident rules",
+                "community rules",
+                "apartment rules",
+            ],
+            "weight": 10,
+        },
     }
 
     @classmethod
@@ -430,7 +491,53 @@ class DocumentClassifier:
 
             scores[doc_type] = score
 
-        # Find best match
+        # Compute lease-structural score separately from type vocabulary.
+        # Patterns are regex, counted by total matches, so repeated formal
+        # markers (e.g., "this lease" appearing 16 times in lese.pdf) count.
+        lease_structural_score = 0.0
+        for pattern, weight in cls.LEASE_STRUCTURE["patterns"].items():
+            matches = len(re.findall(pattern, text_lower))
+            if matches >= cls.LEASE_STRUCTURE["min_hits"]:
+                lease_structural_score += matches * weight
+
+        # Add filename bonus for lease-related names.
+        if "lease" in filename_lower:
+            lease_structural_score += 5.0
+
+        # Aggregate notice/eviction signal. NOTICE_TO_QUIT acts as the strong
+        # notice signal; EVICTION_NOTICE covers general eviction vocabulary.
+        eviction_score = scores.get(DocumentType.EVICTION_NOTICE, 0.0) + scores.get(
+            DocumentType.NOTICE_TO_QUIT, 0.0
+        )
+        notice_score = scores.get(DocumentType.NOTICE_TO_QUIT, 0.0)
+
+        lease_total = scores.get(DocumentType.LEASE, 0.0) + lease_structural_score
+
+        # Decision order:
+        # 1. Mixed packet: both strong lease structure AND strong notice signal.
+        # 2. Lease override: strong lease structure and either weak/no notice
+        #    signal or lease structure dominates eviction vocabulary.
+        # 3. Eviction override: strong eviction signal and weak/no lease structure.
+        # 4. Otherwise, fall through to the previous best-match behavior.
+        is_lease_structure_strong = (
+            lease_structural_score >= cls.MIXED_LEASE_STRUCTURAL_THRESHOLD
+        )
+        is_notice_strong = notice_score >= cls.MIXED_NOTICE_THRESHOLD
+
+        if is_lease_structure_strong and is_notice_strong:
+            # Both a lease and a notice present; likely a bundled packet.
+            mixed_score = lease_total + eviction_score
+            confidence = min(mixed_score / 80.0, 1.0)
+            return DocumentType.MIXED_DOCUMENT, max(confidence, 0.4)
+
+        if is_lease_structure_strong and (
+            notice_score == 0
+            or lease_structural_score >= eviction_score * cls.LEASE_OVERRIDE_RATIO
+        ):
+            confidence = min(lease_total / 50.0, 1.0)
+            return DocumentType.LEASE, max(confidence, 0.4)
+
+        # Find best match from category scores when no lease override applies.
         if scores:
             best_type = max(scores, key=scores.get)
             best_score = scores[best_type]
@@ -452,6 +559,309 @@ class DocumentClassifier:
             return DocumentType.PHOTO_EVIDENCE, 0.7
 
         return DocumentType.OTHER, 0.1
+
+
+# =============================================================================
+# DOCUMENT SEGMENTER (Pass 1 bundle splitting)
+# =============================================================================
+
+
+@dataclass
+class Segment:
+    """A contiguous region of a bundled PDF classified as one document type."""
+
+    page_start: int
+    page_end: int
+    text: str
+    doc_type: DocumentType
+    doc_type_confidence: float
+
+
+class DocumentSegmenter:
+    """
+    Split a bundled PDF into multiple document segments using regex/pattern
+    signals only. Pass 1 never uses AI/ML for classification.
+
+    Signals used:
+    - Explicit title/heading lines on a page (e.g. "House Rules",
+      "NOTICE TO QUIT", "Smoke-Free Lease Addendum").
+    - Repeated court exhibit stamps are stripped before matching so they do not
+      dominate or create false boundaries.
+    - A per-page classifier score is used as a secondary check when a page has
+      no explicit title.
+    """
+
+    # Headers/footers that appear on every page and should not drive boundaries.
+    PAGE_HEADER_PATTERN = re.compile(
+        r"^\s*\d{2}[A-Z]{2}-[A-Z]{2}-\d{2}-\d{4}\s*\n"
+        r"\s*Filed\s+in\s+(?:District|Housing)\s+Court\s*\n"
+        r"\s*State\s+of\s+\w+\s*\n"
+        r"\s*\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}\s*(?:AM|PM)?\s*\n?",
+        re.IGNORECASE,
+    )
+    PAGE_FOOTER_PATTERN = re.compile(
+        r"\n\s*Page\s+\d+\s+of\s+\d+\s*\n?\s*(?:revised\s+\d{1,2}/\d{4})?\s*$",
+        re.IGNORECASE,
+    )
+
+    # Title patterns mapped to document type. Order matters: more specific first.
+    # Patterns use re.MULTILINE so ^ matches the start of any line. This avoids
+    # matching addendum names that appear inside a list in the middle of a page.
+    TITLE_PATTERNS: list[tuple[re.Pattern, DocumentType, float]] = [
+        # Notices
+        (re.compile(r"^\s*NOTICE\s+TO\s+QUIT\b", re.IGNORECASE | re.MULTILINE), DocumentType.NOTICE_TO_QUIT, 0.95),
+        (re.compile(r"^\s*EVICTION\s+NOTICE\b", re.IGNORECASE | re.MULTILINE), DocumentType.EVICTION_NOTICE, 0.95),
+        (re.compile(r"^\s*NOTICE\s+TO\s+VACATE\b", re.IGNORECASE | re.MULTILINE), DocumentType.EVICTION_NOTICE, 0.95),
+        # House rules
+        (re.compile(r"^\s*HOUSE\s+RULES?\b", re.IGNORECASE | re.MULTILINE), DocumentType.HOUSE_RULES, 0.95),
+        (re.compile(r"^\s*COMMUNITY\s+RULES?\b", re.IGNORECASE | re.MULTILINE), DocumentType.HOUSE_RULES, 0.95),
+        # Addenda and riders (specific phrases so a lease checklist does not split)
+        (re.compile(r"^\s*SMOKE[-\s]?FREE\s+LEASE\s+ADDENDUM\b", re.IGNORECASE | re.MULTILINE), DocumentType.LEASE_AMENDMENT, 0.95),
+        (re.compile(r"^\s*(?:MINNESOTA\s+)?LOW\s*INCOME\s*HOUSING\s*TAX\s*CREDIT\s*LEASE\s*RIDER\b", re.IGNORECASE | re.MULTILINE), DocumentType.LEASE_AMENDMENT, 0.95),
+        (re.compile(r"^\s*GARAGE\s*/?\s*PARKING\s+AND\s+STORAGE\s+(?:LOCKER\s+)?LEASE\s+RIDER\b", re.IGNORECASE | re.MULTILINE), DocumentType.LEASE_AMENDMENT, 0.95),
+        (re.compile(r"^\s*MUTUAL\s*LEASE\s*TERMINATION\s*AGREEMENT\b", re.IGNORECASE | re.MULTILINE), DocumentType.LEASE_AMENDMENT, 0.95),
+        (re.compile(r"^\s*LEASE\s+ADDENDUM\b", re.IGNORECASE | re.MULTILINE), DocumentType.LEASE_AMENDMENT, 0.95),
+        # Court/government forms
+        (re.compile(r"^\s*CERTIFICATION\s+OF\s+DOMESTIC\s+VIOLENCE\b", re.IGNORECASE | re.MULTILINE), DocumentType.AFFIDAVIT, 0.95),
+        (re.compile(r"^\s*Form\s+HUD[-\s]?5382\b", re.IGNORECASE | re.MULTILINE), DocumentType.AFFIDAVIT, 0.95),
+        # Lease agreement (at the top of a lease; not a boundary if first)
+        (re.compile(r"^\s*(?:RESIDENTIAL\s+)?LEASE\s+AGREEMENT\b", re.IGNORECASE | re.MULTILINE), DocumentType.LEASE, 0.90),
+    ]
+
+    # Phrases that indicate a list of document names inside another document
+    # rather than a real new document boundary.
+    CHECKLIST_PHRASES = re.compile(
+        r"(?:have\s*)?(?:received?|receive)\s*a?\s*copy\s*of\s*(?:the\s*)?following\s*documents|"
+        r"following\s*documents\s*(?:have\s*been\s*)?(?:received|attached)",
+        re.IGNORECASE,
+    )
+
+    # Minimum words for a standalone segment (avoids empty/whitespace-only chunks).
+    MIN_SEGMENT_WORDS = 10
+
+    # Markers that indicate a chunk is still inside a lease body, even when the
+    # standalone classifier gets distracted by eviction/notice vocabulary.
+    LEASE_CONTINUATION_MARKERS = re.compile(
+        r"\b(?:this\s+lease|the\s+lease|lease\s+agreement|landlord|tenant|"
+        r"lessor|lessee|monthly\s+rent|rent\s+amount|security\s+deposit|"
+        r"premises|occupant)\b",
+        re.IGNORECASE,
+    )
+
+    @classmethod
+    def _strip_repeated_court_header(cls, text: str) -> str:
+        """Remove the court filing header that repeats on every page."""
+        return cls.PAGE_HEADER_PATTERN.sub("", text)
+
+    @classmethod
+    def _strip_page_footer(cls, text: str) -> str:
+        """Remove footer like 'Page 38 of 38'."""
+        return cls.PAGE_FOOTER_PATTERN.sub("", text)
+
+    @classmethod
+    def _preprocess_page(cls, text: str) -> str:
+        """Remove boilerplate headers/footers before boundary detection."""
+        text = cls._strip_repeated_court_header(text)
+        text = cls._strip_page_footer(text)
+        return text
+
+    @classmethod
+    def _find_title_match(cls, text: str) -> tuple[DocumentType, float] | None:
+        """Check the start of a chunk for an explicit section title."""
+        # Only search the first 1500 characters where titles live.
+        window = text[:1500]
+        for pattern, doc_type, confidence in cls.TITLE_PATTERNS:
+            if pattern.search(window):
+                return (doc_type, confidence)
+        return None
+
+    @classmethod
+    def _split_page_into_chunks(cls, page_text: str, page_index: int) -> list[dict]:
+        """Split one page into chunks by internal title boundaries."""
+        text = cls._preprocess_page(page_text)
+
+        # A list of document names inside a checklist is not a bundle boundary.
+        if cls.CHECKLIST_PHRASES.search(text):
+            return [{"page_index": page_index, "text": text, "title_type": None}]
+
+        # Collect all title match positions.
+        matches: list[tuple[int, int, DocumentType, float]] = []
+        for pattern, doc_type, confidence in cls.TITLE_PATTERNS:
+            for m in pattern.finditer(text):
+                # Avoid false positives: require the title to start a line or the
+                # document (first title at the very top is allowed).
+                start = m.start()
+                if start == 0 or text[start - 1] == "\n":
+                    matches.append((start, m.end(), doc_type, confidence))
+
+        if not matches:
+            return [{"page_index": page_index, "text": text, "title_type": None}]
+
+        matches.sort()
+
+        chunks = []
+        for i, (start, end, doc_type, confidence) in enumerate(matches):
+            # If the first title is not at the very top, the text before it is
+            # still part of the same titled section (extraction often inserts a
+            # court header or a continuation line). Start the first chunk at 0.
+            chunk_start = 0 if i == 0 else start
+            chunk_text = text[chunk_start:]
+            if i + 1 < len(matches):
+                next_start = matches[i + 1][0]
+                chunk_text = text[chunk_start:next_start]
+            chunks.append(
+                {
+                    "page_index": page_index,
+                    "text": chunk_text.strip(),
+                    "title_type": (doc_type, confidence),
+                }
+            )
+
+        # Drop empty chunks.
+        return [c for c in chunks if c["text"] and len(c["text"].split()) >= cls.MIN_SEGMENT_WORDS]
+
+    @classmethod
+    def _classify_chunk(cls, chunk: dict, filename: str) -> tuple[DocumentType, float]:
+        """Determine the document type for a chunk, title wins when present."""
+        if chunk["title_type"]:
+            return chunk["title_type"]
+        return DocumentClassifier.classify(chunk["text"], filename)
+
+    @classmethod
+    def segment(cls, pages: list[str], filename: str) -> list[Segment]:
+        """
+        Split the pages of a bundled PDF into one or more typed segments.
+
+        Returns a list of Segment objects. A single non-bundled PDF returns
+        exactly one Segment.
+        """
+        # 1. Split every page into chunks by internal title boundaries.
+        chunks: list[dict] = []
+        for idx, page_text in enumerate(pages):
+            chunks.extend(cls._split_page_into_chunks(page_text, idx))
+
+        if not chunks:
+            # No usable text; return a single empty segment.
+            return [Segment(0, len(pages) - 1, "", DocumentType.OTHER, 0.0)]
+
+        # 2. Assign each chunk a type. A chunk with an explicit title wins. A
+        #    title-less chunk inherits the running type unless the classifier is
+        #    very confident that the document type has changed. This keeps
+        #    multi-page lease bodies together while still detecting true
+        #    addendum/notice boundaries.
+        STRONG_SWITCH_CONFIDENCE = 0.85
+
+        for chunk in chunks:
+            chunk["doc_type"], chunk["confidence"] = cls._classify_chunk(chunk, filename)
+
+        # 3. Group consecutive chunks into raw segments using a running type.
+        raw_segments: list[Segment] = []
+        current = chunks[0]
+        start_chunk = 0
+
+        for i in range(1, len(chunks)):
+            prev = chunks[i - 1]
+            chunk = chunks[i]
+
+            if chunk["title_type"]:
+                # Explicit title boundary.
+                new_type = chunk["title_type"][0]
+            elif prev["doc_type"] == DocumentType.LEASE and not chunk["title_type"] and cls.LEASE_CONTINUATION_MARKERS.search(chunk["text"]):
+                # Eviction/notice vocabulary inside a lease body is almost always
+                # a lease clause, not a separate notice. Keep it as lease unless
+                # an explicit notice title appears.
+                new_type = DocumentType.LEASE
+                chunk["doc_type"] = new_type
+                chunk["confidence"] = max(chunk["confidence"], prev["confidence"])
+            elif chunk["confidence"] >= STRONG_SWITCH_CONFIDENCE and chunk["doc_type"] != prev["doc_type"]:
+                # Strong title-less type change (e.g. a single-page notice without a heading).
+                new_type = chunk["doc_type"]
+            else:
+                # Continue the previous type to avoid splitting leases across
+                # pages that mention eviction/notice language as clauses.
+                new_type = prev["doc_type"]
+                chunk["doc_type"] = new_type
+                chunk["confidence"] = prev["confidence"]
+
+            if new_type != current["doc_type"]:
+                text = "\n\n".join(c["text"] for c in chunks[start_chunk:i])
+                raw_segments.append(
+                    Segment(
+                        page_start=chunks[start_chunk]["page_index"],
+                        page_end=chunks[i - 1]["page_index"],
+                        text=text,
+                        doc_type=current["doc_type"],
+                        doc_type_confidence=current["confidence"],
+                    )
+                )
+                current = chunk
+                start_chunk = i
+
+        # Close final segment.
+        text = "\n\n".join(c["text"] for c in chunks[start_chunk:])
+        raw_segments.append(
+            Segment(
+                page_start=chunks[start_chunk]["page_index"],
+                page_end=chunks[-1]["page_index"],
+                text=text,
+                doc_type=current["doc_type"],
+                doc_type_confidence=current["confidence"],
+            )
+        )
+
+        # 4. Merge tiny segments with their neighbours and re-classify the final
+        #    segment text so the confidence is based on the full segment.
+        segments: list[Segment] = []
+        i = 0
+        while i < len(raw_segments):
+            seg = raw_segments[i]
+            word_count = len(seg.text.split())
+
+            # If a segment is too small, merge it with the neighbour that has the
+            # same type or the most text.
+            if word_count < cls.MIN_SEGMENT_WORDS and len(raw_segments) > 1:
+                merge_target = i - 1 if i > 0 else i + 1
+                if 0 <= merge_target < len(raw_segments):
+                    target = raw_segments[merge_target]
+                    merged_text = target.text + "\n\n" + seg.text
+                    merged_type = target.doc_type
+                    raw_segments[merge_target] = Segment(
+                        page_start=min(target.page_start, seg.page_start),
+                        page_end=max(target.page_end, seg.page_end),
+                        text=merged_text,
+                        doc_type=merged_type,
+                        doc_type_confidence=target.doc_type_confidence,
+                    )
+                    raw_segments.pop(i)
+                    continue
+
+            # Re-classify full segment text for a stable type/confidence.
+            final_type, final_conf = DocumentClassifier.classify(seg.text, filename)
+            if seg.doc_type_confidence >= 0.9:
+                # Strong title override from title matching: keep the title type
+                # but boost confidence from the full segment classifier if it
+                # agrees.
+                if final_type == seg.doc_type or final_conf < 0.4:
+                    final_type = seg.doc_type
+                    final_conf = max(seg.doc_type_confidence, final_conf)
+                else:
+                    # Full segment strongly disagrees with title; trust title but
+                    # lower confidence slightly.
+                    final_type = seg.doc_type
+                    final_conf = 0.7
+
+            segments.append(
+                Segment(
+                    page_start=seg.page_start,
+                    page_end=seg.page_end,
+                    text=seg.text,
+                    doc_type=final_type,
+                    doc_type_confidence=round(final_conf, 2),
+                )
+            )
+            i += 1
+
+        return segments
 
 
 # =============================================================================
@@ -952,6 +1362,7 @@ class DocumentAnalyzer:
             DocumentType.REPAIR_REQUEST: "This is a repair/maintenance request.",
             DocumentType.RECEIPT: "This is a payment receipt.",
             DocumentType.SECURITY_DEPOSIT_ITEMIZATION: "This is a security deposit itemization showing deductions.",
+            DocumentType.MIXED_DOCUMENT: "This document appears to contain multiple document types bundled together.",
         }
 
         base_summary = summaries.get(doc_type, "This document has been analyzed.")
@@ -1118,113 +1529,225 @@ class DocumentIntakeEngine:
 
     async def process_document(self, doc_id: str) -> IntakeDocument:
         """
-        Process a document through the full pipeline.
+        Process a document through the full Pass 1 pipeline.
 
-        Args:
-            doc_id: Document ID to process
-
-        Returns:
-            Updated IntakeDocument with extraction results
+        This is the legacy single-document return. If the PDF is a bundled
+        packet, child segments are created and stored, but the parent document
+        is returned for backward compatibility.
         """
-        doc = self._documents.get(doc_id)
-        if not doc:
+        docs = await self.process_bundle(doc_id)
+        return docs[0] if docs else self._documents.get(doc_id)
+
+    async def process_bundle(self, doc_id: str) -> list[IntakeDocument]:
+        """
+        Process a document, splitting bundled PDFs into separate IntakeDocument
+        records per detected segment.
+
+        Returns a list of IntakeDocument objects. The first entry is the parent
+        bundle record; subsequent entries are the typed segments. A single
+        non-bundled PDF returns a one-element list.
+        """
+        parent = self._documents.get(doc_id)
+        if not parent:
             raise ValueError(f"Document {doc_id} not found")
 
         try:
-            # Stage 1: Validation
-            doc.status = IntakeStatus.VALIDATING
-            doc.status_message = "Validating document..."
-            doc.progress_percent = 20
+            parent.status = IntakeStatus.VALIDATING
+            parent.status_message = "Validating document..."
+            parent.progress_percent = 20
 
-            # Read file content
-            if not doc.storage_path or not Path(doc.storage_path).exists():
+            if not parent.storage_path or not Path(parent.storage_path).exists():
                 raise ValueError("Document file not found")
 
-            file_content = Path(doc.storage_path).read_bytes()
+            file_content = Path(parent.storage_path).read_bytes()
 
-            # Stage 2: Extraction
-            doc.status = IntakeStatus.EXTRACTING
-            doc.status_message = "Extracting text..."
-            doc.progress_percent = 40
+            parent.status = IntakeStatus.EXTRACTING
+            parent.status_message = "Extracting text..."
+            parent.progress_percent = 40
 
-            # Extract text (simplified - real implementation would use OCR)
-            text = await self._extract_text(file_content, doc.mime_type, doc.filename)
+            # Per-page extraction so we can detect page-boundary signals.
+            pages = await self._extract_pages(file_content, parent.mime_type, parent.filename)
+            full_text = "\n\n".join(pages)
 
-            # Stage 3: Analysis
-            doc.status = IntakeStatus.ANALYZING
-            doc.status_message = "Analyzing content..."
-            doc.progress_percent = 60
+            parent.status = IntakeStatus.ANALYZING
+            parent.status_message = "Analyzing content..."
+            parent.progress_percent = 60
 
-            # Classify document
-            doc_type, type_confidence = DocumentClassifier.classify(text, doc.filename)
+            # Detect segments. If only one segment, treat the whole upload as a
+            # single document (no regression for simple uploads).
+            segments = DocumentSegmenter.segment(pages, parent.filename)
 
-            # Detect language (simplified)
-            language = self._detect_language(text)
+            if len(segments) == 1:
+                extraction = await self._process_text(
+                    segments[0].text or full_text,
+                    parent.filename,
+                    expected_doc_type=segments[0].doc_type,
+                    expected_confidence=segments[0].doc_type_confidence,
+                )
+                parent.extraction = extraction
+                parent.status = IntakeStatus.COMPLETE
+                parent.status_message = "Processing complete"
+                parent.progress_percent = 100
+                parent.processed_at = utc_now()
+                self._save_documents()
+                return [parent]
 
-            # Extract structured data
-            dates = DataExtractor.extract_dates(text)
-            amounts = DataExtractor.extract_amounts(text)
-            parties = DataExtractor.extract_parties(text, doc_type)
+            # Multi-segment bundle: the parent record becomes the first segment,
+            # and each additional segment gets its own IntakeDocument record. This
+            # turns one upload into multiple typed records without creating a
+            # synthetic bundle placeholder.
+            child_docs: list[IntakeDocument] = []
+            for idx, segment in enumerate(segments):
+                extraction = await self._process_text(
+                    segment.text,
+                    parent.filename,
+                    expected_doc_type=segment.doc_type,
+                    expected_confidence=segment.doc_type_confidence,
+                )
 
-            # Detect issues
-            issues = IssueDetector.detect_issues(text, doc_type, dates, amounts)
+                if idx == 0:
+                    # Re-use the parent record for the first segment so the
+                    # original upload ID remains stable.
+                    parent.extraction = extraction
+                    parent.segment_index = 0
+                    parent.status_message = f"Segment {idx}: {extraction.doc_type.value}"
+                    child_docs.append(parent)
+                else:
+                    child = IntakeDocument(
+                        id=make_id("doc"),
+                        user_id=parent.user_id,
+                        filename=f"{parent.filename} ({extraction.doc_type.value})",
+                        file_hash=parent.file_hash,
+                        file_size=parent.file_size,
+                        mime_type=parent.mime_type,
+                        status=IntakeStatus.COMPLETE,
+                        status_message=f"Segment {idx}: {extraction.doc_type.value}",
+                        progress_percent=100,
+                        extraction=extraction,
+                        vault_id=parent.vault_id,
+                        storage_path=parent.storage_path,
+                        storage_provider=parent.storage_provider,
+                        parent_id=parent.id,
+                        segment_index=idx,
+                        uploaded_at=parent.uploaded_at,
+                        processed_at=utc_now(),
+                        urgency=parent.urgency,
+                    )
+                    child_docs.append(child)
+                    self._documents[child.id] = child
 
-            # Generate summary and key points
-            summary = DocumentAnalyzer.generate_summary(text, doc_type, issues)
-            key_points = DocumentAnalyzer.generate_key_points(doc_type, dates, amounts, issues)
-
-            # Stage 4: Enrichment
-            doc.status = IntakeStatus.ENRICHING
-            doc.status_message = "Enriching with context..."
-            doc.progress_percent = 80
-
-            # Build extraction result
-            extraction = ExtractionResult(
-                doc_type=doc_type,
-                doc_type_confidence=type_confidence,
-                language=language,
-                full_text=text,
-                page_count=1,  # Simplified
-                word_count=len(text.split()),
-                dates=dates,
-                parties=parties,
-                amounts=amounts,
-                clauses=[],  # Would require more sophisticated analysis
-                issues=issues,
-                summary=summary,
-                key_points=key_points,
-                extraction_method="text_parse",
-            )
-
-            doc.extraction = extraction
-
-            # Complete
-            doc.status = IntakeStatus.COMPLETE
-            doc.status_message = "Processing complete"
-            doc.progress_percent = 100
-            doc.processed_at = utc_now()
+            parent.child_doc_ids = [c.id for c in child_docs if c is not parent]
+            parent.status = IntakeStatus.COMPLETE
+            parent.status_message = f"Bundle: {len(segments)} segments detected"
+            parent.progress_percent = 100
+            parent.processed_at = utc_now()
 
             self._save_documents()
 
         except Exception as e:
-            doc.status = IntakeStatus.FAILED
-            doc.status_message = f"Processing failed: {str(e)}"
-            doc.progress_percent = 0
+            parent.status = IntakeStatus.FAILED
+            parent.status_message = f"Processing failed: {str(e)}"
+            parent.progress_percent = 0
             self._save_documents()
             raise
 
-        return doc
+        return child_docs
+
+    async def _process_text(
+        self,
+        text: str,
+        filename: str,
+        expected_doc_type: DocumentType | None = None,
+        expected_confidence: float | None = None,
+    ) -> ExtractionResult:
+        """
+        Run Pass 1 extraction/analysis on a segment of text.
+
+        The caller may pass an `expected_doc_type` from the segmenter (e.g. a
+        strong title match). When the standalone classifier agrees, we keep its
+        confidence; otherwise we use the title signal so a bundle segment does
+        not get re-typed by keyword noise.
+        """
+        classifier_type, classifier_confidence = DocumentClassifier.classify(text, filename)
+
+        if expected_doc_type:
+            # Trust the segmenter's title/page-boundary signal for the document
+            # type. The standalone classifier operates on short chunks and can be
+            # thrown off by bundled cover sheets or eviction vocabulary inside a
+            # lease clause, so we use the segmenter type as Pass 1's best signal.
+            doc_type = expected_doc_type
+            type_confidence = expected_confidence if expected_confidence is not None else classifier_confidence
+        else:
+            doc_type = classifier_type
+            type_confidence = classifier_confidence
+
+        language = self._detect_language(text)
+
+        dates = DataExtractor.extract_dates(text)
+        amounts = DataExtractor.extract_amounts(text)
+        parties = DataExtractor.extract_parties(text, doc_type)
+
+        issues = IssueDetector.detect_issues(text, doc_type, dates, amounts)
+
+        summary = DocumentAnalyzer.generate_summary(text, doc_type, issues)
+        key_points = DocumentAnalyzer.generate_key_points(doc_type, dates, amounts, issues)
+
+        return ExtractionResult(
+            doc_type=doc_type,
+            doc_type_confidence=type_confidence,
+            language=language,
+            full_text=text,
+            page_count=1,
+            word_count=len(text.split()),
+            dates=dates,
+            parties=parties,
+            amounts=amounts,
+            clauses=[],
+            issues=issues,
+            summary=summary,
+            key_points=key_points,
+            extraction_method="text_parse",
+        )
 
     async def _extract_text(self, content: bytes, mime_type: str, filename: str) -> str:
-        """Extract text from document content using robust multi-method extraction."""
-        # For text files
+        """Extract full text from document content."""
+        pages = await self._extract_pages(content, mime_type, filename)
+        return "\n\n".join(p for p in pages if p)
+
+    async def _extract_pages(self, content: bytes, mime_type: str, filename: str) -> list[str]:
+        """Extract text page-by-page so Pass 1 can detect bundle boundaries."""
+        if mime_type == "application/pdf" or filename.lower().endswith(".pdf"):
+            try:
+                from app.services.pdf_extractor import get_pdf_extractor
+
+                extractor = get_pdf_extractor()
+                pages = extractor.extract_pages(content)
+                if pages and any(p.strip() for p in pages):
+                    return pages
+            except Exception as e:
+                logger.warning(f"Per-page PDF extraction failed: {e}")
+
+            # Fall back to the robust full-document extraction, returned as one page.
+            return [await self._extract_text_fallback(content, mime_type, filename)]
+
+        if mime_type.startswith("text/") or filename.endswith(".txt"):
+            try:
+                text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                text = content.decode("latin-1")
+            return [text]
+
+        # Fallback: one synthetic page with robust extraction.
+        return [await self._extract_text_fallback(content, mime_type, filename)]
+
+    async def _extract_text_fallback(self, content: bytes, mime_type: str, filename: str) -> str:
+        """Robust full-document text extraction used as a fallback for per-page extraction."""
         if mime_type.startswith("text/") or filename.endswith(".txt"):
             try:
                 return content.decode("utf-8")
             except UnicodeDecodeError:
                 return content.decode("latin-1")
 
-        # For PDFs - use the PDF extractor service
         if mime_type == "application/pdf" or filename.lower().endswith(".pdf"):
             try:
                 from app.core.config import get_settings
@@ -1233,13 +1756,11 @@ class DocumentIntakeEngine:
                 extractor = get_pdf_extractor()
                 settings = get_settings()
 
-                # Try extraction with OCR fallback if Azure is configured
-                if settings.azure_ai_key1:
-                    result = extractor.extract_with_ocr(
-                        content, azure_endpoint=settings.azure_ai_endpoint, azure_key=settings.azure_ai_key1
-                    )
-                else:
-                    result = extractor.extract(content)
+                result = extractor.extract_with_ocr(
+                    content,
+                    azure_endpoint=settings.azure_ai_endpoint if settings.azure_ai_key1 else None,
+                    azure_key=settings.azure_ai_key1 if settings.azure_ai_key1 else None,
+                )
 
                 if result.text.strip():
                     return result.text
@@ -1247,7 +1768,6 @@ class DocumentIntakeEngine:
                     return f"[PDF: {filename} - {result.page_count} pages, extraction method: {result.method_used}]"
 
             except Exception as e:
-                # Fallback to basic extraction
                 try:
                     import io
 
@@ -1260,7 +1780,6 @@ class DocumentIntakeEngine:
                     pass
                 return f"[PDF document: {filename} - extraction failed: {e}]"
 
-        # For images - use Azure OCR if available
         if mime_type.startswith("image/"):
             try:
                 from app.core.config import get_settings
@@ -1268,7 +1787,6 @@ class DocumentIntakeEngine:
                 settings = get_settings()
 
                 if settings.azure_ai_key1:
-                    # Use Azure Document Intelligence for image OCR
                     from app.services.azure_ai import get_azure_ai
 
                     azure = get_azure_ai()
@@ -1280,7 +1798,6 @@ class DocumentIntakeEngine:
                 pass
             return f"[Image: {filename} - OCR not available or failed]"
 
-        # Try generic decode
         try:
             return content.decode("utf-8")
         except UnicodeDecodeError:

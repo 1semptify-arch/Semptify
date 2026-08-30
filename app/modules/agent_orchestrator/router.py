@@ -17,6 +17,17 @@ Endpoints:
 """
 
 import logging
+import os
+
+logger = logging.getLogger(__name__)
+
+# Explicit environment guard — independent of the product-tier system.
+# The Agent Orchestrator is dev-only and must not load in production even if
+# the manifest is misconfigured.
+if os.getenv("SEMPTIFY_ENV", "production").lower() == "production":
+    raise ImportError(
+        "Agent Orchestrator router is disabled in production (SEMPTIFY_ENV=production)."
+    )
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
@@ -33,8 +44,6 @@ from app.modules.agent_orchestrator.schemas import (
     TaskStatus,
 )
 from app.modules.agent_orchestrator.service import AgentOrchestratorService
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Agent Orchestrator"])
 

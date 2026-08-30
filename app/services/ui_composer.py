@@ -103,19 +103,24 @@ def _get_user_context(user_id: str) -> dict[str, Any]:
         return {}
 
 
-def _get_resolved_modules(user_id: str, role: str = "tenant") -> list[str]:
-    """Get the list of module paths the user can see.
+def _get_resolved_modules(user_id: str, context: dict[str, Any] | None = None) -> set[str]:
+    """Get the set of module paths the user can see.
 
-    Falls back to empty list if Module Resolver is unavailable.
+    The Module Gate Middleware resolves modules per-request and the caller is
+    expected to pass the result in `context["resolved_module_paths"]`. When the
+    resolved set is present we use it directly; otherwise we fail open to all
+    manifest module paths so page rendering never breaks.
     """
-    try:
-        # Module Resolver is async — but we expose a sync wrapper for the composer.
-        # The router's async endpoints can call the async resolver directly.
-        # For the composer's sync use, we return empty and let the router enrich.
-        return []
-    except Exception as e:  # pylint: disable=broad-exception-caught
-        logger.warning("UI Composer: Module Resolver unavailable for %s: %s", user_id, e)
-        return []
+    if context and "resolved_module_paths" in context:
+        return set(context["resolved_module_paths"])
+
+    logger.warning(
+        "UI Composer: no resolved_module_paths in context for %s; failing open",
+        user_id,
+    )
+    from app.core.product_manifest import MANIFEST
+
+    return {e.module_path for e in MANIFEST.all()}
 
 
 def _is_new_user(context: dict[str, Any]) -> bool:
@@ -152,6 +157,10 @@ def compose_page(
 
     # Get user context (from caller or Context Loop)
     ctx = context if context is not None else _get_user_context(user_id)
+
+    # Merge resolved module paths from the Module Resolver (set by middleware)
+    resolved_modules = _get_resolved_modules(user_id, ctx)
+    ctx["resolved_modules"] = resolved_modules
 
     # Dispatch to the right composer
     if page_intent == "landing":

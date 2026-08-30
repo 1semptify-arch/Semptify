@@ -1518,7 +1518,12 @@ CASE_LAW_DATABASE = [
 # =============================================================================
 # Inject official source URLs from the law_source_registry (SSOT)
 # =============================================================================
-from app.core.law_source_registry import build_official_url, enrich_law_entry, resolve_source
+from app.core.law_source_registry import (
+    build_county_code_url,
+    build_official_url,
+    enrich_law_entry,
+    resolve_source,
+)
 
 for _law_id, _law_entry in ALL_LAWS.items():
     enrich_law_entry(_law_entry)
@@ -2355,6 +2360,36 @@ async def get_quick_reference(topic: str):
         raise HTTPException(status_code=404, detail="Quick reference not found")
 
     return quick_refs[topic]
+
+
+@router.get("/county-code")
+async def get_county_code(
+    county: str = Query(..., description="County name, e.g. 'Hennepin'"),
+    state: str = Query("MN", description="Two-letter state code, e.g. 'MN'"),
+):
+    """Return the canonical county code of ordinances URL for a county.
+
+    Uses the jurisdiction-aware CountyCodeRegistry in law_source_registry.py.
+    """
+    if not county:
+        raise HTTPException(status_code=400, detail="county is required")
+
+    official_url = build_county_code_url(county, state)
+    if not official_url:
+        raise HTTPException(
+            status_code=404,
+            detail=f"County code URL not available for {county}, {state}",
+        )
+
+    return {
+        "state": state,
+        "county": county,
+        "official_url": official_url,
+        "source_name": "Municode County Code of Ordinances",
+        "last_verified": "2026-08-21",
+        "jurisdiction": "local",
+        "disclaimer": LEGAL_DISCLAIMER,
+    }
 
 
 # =============================================================================

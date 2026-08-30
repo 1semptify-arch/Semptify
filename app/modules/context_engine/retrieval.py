@@ -1,36 +1,41 @@
-"""Layer 2 retrieval — metadata matching between Object Envelopes and Layer 1 entries.
+"""Layer 2 semantic retrieval — hybrid metadata + embedding matching.
 
-This is the pilot implementation of ADR-0008 §2.2. It does NOT use an
-embedding model (that is todo-077/todo-078). Instead it ranks
-`ContextExplanationEntry` rows by metadata overlap:
+Adopts the asymmetric architecture from ADR-0008 Problem A:
+  - pgvector / cosine_distance on PostgreSQL (production)
+  - JSON blob + pure-Python cosine similarity on SQLite (dev)
 
-- subject overlap (ObjectEnvelope.subject_tags ∩ entry.subject)
-- jurisdiction match
-- pillar match
-- review_status preference (VETTED over BETA)
-
-The `LAYER2_CONFIDENCE_THRESHOLD` is a named tuning constant so the same
-interface can later accept real cosine scores without touching callers.
+The model (all-MiniLM-L6-v2) is loaded once as a singleton; see
+``app/modules/context_engine/embedding_model.py``.
 """
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import Float, and_, select
+from sqlalchemy.sql.expression import bindparam
 
+from app.core.database import get_engine
+from app.modules.context_engine.embedding_model import embed_text, get_embedding_model
 from app.modules.context_engine.explanation_entries import (
     ContextExplanationEntry,
     get_explanation_entries,
 )
+from app.modules.context_engine.vector_math import cosine_similarity
 
 if TYPE_CHECKING:
     from app.core.context_envelope import ObjectEnvelope
 
-# Tuning parameter: ADR-0008 §5 #3. With metadata-only scoring this acts as a
-# score floor rather than a cosine threshold. Will be reused by real semantic
-# scoring in todo-078 without interface changes.
-LAYER2_CONFIDENCE_THRESHOLD = 0.75
+logger = logging.getLogger(__name__)
+
+# Confidence threshold for Layer 2 semantic retrieval.
+# Calibrated empirically against realistic Object Envelope queries and a
+# representative Layer 1 corpus. all-MiniLM-L6-v2 cosine scores for genuine
+# matches commonly fall in the 0.45-0.75 range, not near 1.0. We err on the
+# stricter side because silence is safer than a weak match.
+LAYER2_CONFIDENCE_THRESHOLD = 0.45
 
 
 class RetrievalResult(BaseModel):
@@ -51,59 +56,44 @@ class RetrievalResult(BaseModel):
     variant_minimal: str
 
 
-async def retrieve_explanations(
-    obj: ObjectEnvelope,
-    *,
-    jurisdiction: str = "MN",
-    limit: int = 5,
-) -> list[RetrievalResult]:
-    """Rank Layer 1 explanation entries against an Object Envelope.
+def _query_text(obj: ObjectEnvelope) -> str:
+    """Build a single query string from the Object Envelope.
 
-    Returns only results with a metadata score >= LAYER2_CONFIDENCE_THRESHOLD,
-    sorted highest-first.
+    ``subject_tags`` carry the primary semantic signal; ``why`` is appended as
+    context so the meaning of the object reinforces the tags rather than
+    overwhelming them.
     """
-    candidate_subjects = set(obj.subject_tags)
-    if not candidate_subjects:
-        return []
+    parts = list(obj.subject_tags)
+    if obj.why:
+        parts.append(obj.why)
+    return " ".join(parts)
 
-    # Fetch all candidate entries that share any subject with the object.
-    # We fetch per subject and then score; this keeps the query simple and
-    # does not require a full-text engine.
-    seen_ids: set[str] = set()
-    candidates: list[ContextExplanationEntry] = []
-    for subject in candidate_subjects:
-        entries = await get_explanation_entries(
-            subject=subject,
-            jurisdiction=jurisdiction,
-            pillar=obj.pillar,
-            limit=100,
-        )
-        for entry in entries:
-            if entry.entry_id not in seen_ids:
-                seen_ids.add(entry.entry_id)
-                candidates.append(entry)
 
-    results: list[RetrievalResult] = []
-    for entry in candidates:
-        score = _score_entry(obj, jurisdiction, entry)
-        if score >= LAYER2_CONFIDENCE_THRESHOLD:
-            results.append(
-                RetrievalResult(
-                    entry_id=entry.entry_id,
-                    subject=entry.subject,
-                    jurisdiction=entry.jurisdiction,
-                    upl_risk_tier=entry.upl_risk_tier,
-                    pillar=entry.pillar,
-                    review_status=entry.review_status,
-                    score=round(score, 4),
-                    variant_trust=entry.variant_trust,
-                    variant_mechanics=entry.variant_mechanics,
-                    variant_reinforcement=entry.variant_reinforcement,
-                    variant_minimal=entry.variant_minimal,
-                )
-            )
+def _explanation_text(entry: ContextExplanationEntry) -> str:
+    """Reconstruct the text the entry's embedding was generated from."""
+    return (
+        f"{entry.subject} {entry.variant_trust} {entry.variant_mechanics} "
+        f"{entry.variant_reinforcement} {entry.variant_minimal}"
+    )
 
-    # Highest score first; ties broken by VETTED first, then most recent.
+
+def _result_from_entry(entry: ContextExplanationEntry, score: float) -> RetrievalResult:
+    return RetrievalResult(
+        entry_id=entry.entry_id,
+        subject=entry.subject,
+        jurisdiction=entry.jurisdiction,
+        upl_risk_tier=entry.upl_risk_tier,
+        pillar=entry.pillar,
+        review_status=entry.review_status,
+        score=round(score, 4),
+        variant_trust=entry.variant_trust,
+        variant_mechanics=entry.variant_mechanics,
+        variant_reinforcement=entry.variant_reinforcement,
+        variant_minimal=entry.variant_minimal,
+    )
+
+
+def _sort_and_limit(results: list[RetrievalResult], limit: int) -> list[RetrievalResult]:
     results.sort(
         key=lambda r: (
             r.score,
@@ -115,29 +105,122 @@ async def retrieve_explanations(
     return results[:limit]
 
 
-def _score_entry(
+async def _score_with_python(
+    query_embedding: list[float],
     obj: ObjectEnvelope,
     jurisdiction: str,
-    entry: ContextExplanationEntry,
-) -> float:
-    """Compute a 0.0-1.0 metadata match score.
+    threshold: float,
+    limit: int,
+) -> list[RetrievalResult]:
+    """SQLite/dev path: metadata pre-filter, then pure-Python cosine similarity."""
+    # Metadata pre-filter: jurisdiction + pillar. We do not require an exact
+    # subject match — the point of semantic retrieval is to bridge tags that
+    # mean the same thing (e.g. "late fee" and "penalty charge").
+    candidates = await get_explanation_entries(
+        jurisdiction=jurisdiction,
+        pillar=obj.pillar,
+        limit=1000,
+    )
 
-    Weights:
-      - subject overlap: 0.4
-      - jurisdiction match: 0.2
-      - pillar match: 0.2
-      - review_status vetted: 0.2
+    results: list[RetrievalResult] = []
+    for entry in candidates:
+        embedding = entry.embedding
+        if embedding is None:
+            logger.debug("Skipping entry %s with no embedding", entry.entry_id)
+            continue
+        score = cosine_similarity(query_embedding, embedding)
+        if score >= threshold:
+            results.append(_result_from_entry(entry, score))
+
+    return _sort_and_limit(results, limit)
+
+
+async def _score_with_pgvector(
+    query_embedding: list[float],
+    obj: ObjectEnvelope,
+    jurisdiction: str,
+    threshold: float,
+    limit: int,
+) -> list[RetrievalResult] | None:
+    """PostgreSQL path: use pgvector's native <=> cosine-distance operator.
+
+    Returns ``None`` if the pgvector path cannot be used so the caller can
+    fall back to the pure-Python path.
     """
-    score = 0.0
-    if entry.subject in set(obj.subject_tags):
-        score += 0.4
-    if entry.jurisdiction == jurisdiction:
-        score += 0.2
-    if entry.pillar == obj.pillar:
-        score += 0.2
-    if entry.review_status == "VETTED":
-        score += 0.2
-    return score
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    try:
+        from app.core.database import get_db_session
+    except ImportError:  # pragma: no cover
+        return None
+
+    try:
+        from pgvector.sqlalchemy import VECTOR as PgVector
+
+        # The pgvector `<=>` operator is cosine distance; similarity = 1 - distance.
+        distance_expr = ContextExplanationEntry.embedding.op("<=>", return_type=Float)(
+            bindparam("query_vec", query_embedding, type_=PgVector(len(query_embedding)))
+        )
+        similarity_expr = 1 - distance_expr
+
+        stmt = (
+            select(ContextExplanationEntry, similarity_expr.label("score"))
+            .where(
+                and_(
+                    ContextExplanationEntry.jurisdiction == jurisdiction,
+                    ContextExplanationEntry.pillar == obj.pillar,
+                    ContextExplanationEntry.embedding.is_not(None),
+                    similarity_expr >= threshold,
+                )
+            )
+            .order_by(distance_expr)
+            .limit(limit * 2)
+        )
+
+        results: list[RetrievalResult] = []
+        async with get_db_session() as db:
+            rows = await db.execute(stmt)
+            for entry, score in rows:
+                results.append(_result_from_entry(entry, float(score)))
+        return _sort_and_limit(results, limit)
+    except Exception as e:
+        logger.warning("pgvector retrieval failed, falling back to Python: %s", e)
+        return None
+
+
+async def retrieve_explanations(
+    obj: ObjectEnvelope,
+    *,
+    jurisdiction: str = "MN",
+    limit: int = 5,
+) -> list[RetrievalResult]:
+    """Rank Layer 1 explanation entries against an Object Envelope.
+
+    Returns only results with a semantic score >= LAYER2_CONFIDENCE_THRESHOLD,
+    sorted highest-first.
+    """
+    query_text = _query_text(obj)
+    if not query_text.strip():
+        return []
+
+    query_embedding = await embed_text(query_text)
+    if query_embedding is None:
+        logger.warning("Embedding model not available; returning empty Layer 2 results")
+        return []
+
+    threshold = LAYER2_CONFIDENCE_THRESHOLD
+    engine = get_engine()
+
+    if engine.dialect.name == "postgresql":
+        pg_results = await _score_with_pgvector(
+            query_embedding, obj, jurisdiction, threshold, limit
+        )
+        if pg_results is not None:
+            return pg_results
+
+    return await _score_with_python(
+        query_embedding, obj, jurisdiction, threshold, limit
+    )
 
 
 def select_tapered_variant(result: RetrievalResult, exposure_count: int) -> str:

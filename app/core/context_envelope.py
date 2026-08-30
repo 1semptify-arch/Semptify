@@ -10,12 +10,13 @@ Standing rule from ADR-0008 §2.1.1:
 
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class ObjectType(StrEnum):
+class ObjectType(str, Enum):
     """Kinds of UI/UX objects that can carry explanation."""
 
     FIELD = "field"
@@ -25,7 +26,7 @@ class ObjectType(StrEnum):
     PAGE_ZONE = "page_zone"
 
 
-class Pillar(StrEnum):
+class Pillar(str, Enum):
     """Product pillars that set tone and framing for an object."""
 
     RECORD = "RECORD"
@@ -34,7 +35,7 @@ class Pillar(StrEnum):
     GOVERN = "GOVERN"
 
 
-class JourneyStage(StrEnum):
+class JourneyStage(str, Enum):
     """Tenant journey stages an object can be in for a given encounter.
 
     These are NOT static properties of the object definition. The resolver
@@ -47,7 +48,7 @@ class JourneyStage(StrEnum):
     REFLECTION = "reflection"
 
 
-class Who(StrEnum):
+class Who(str, Enum):
     """Audience lens the object is tuned for."""
 
     TENANT = "tenant"
@@ -58,7 +59,7 @@ class Who(StrEnum):
     DONOR = "donor"
 
 
-class Provenance(StrEnum):
+class Provenance(str, Enum):
     """Where the object's underlying value came from."""
 
     USER_ENTERED = "user_entered"
@@ -67,7 +68,7 @@ class Provenance(StrEnum):
     SEMANTICALLY_RETRIEVED = "semantically_retrieved"
 
 
-class TemporalValidity(StrEnum):
+class TemporalValidity(str, Enum):
     """How long the object value remains meaningfully current."""
 
     STATIC = "static"

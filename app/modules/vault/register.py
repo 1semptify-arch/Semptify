@@ -31,6 +31,22 @@ register_function_group(
 register_function_group(
     FunctionGroupContract(
         module="vault",
+        group_name="vault_folders",
+        title="Vault Folder Structure (SSOT)",
+        description=(
+            "All vault folder paths come from app/core/vault_paths.py. "
+            "NEVER hardcode Semptify5.0/ paths. NEVER duplicate these constants."
+        ),
+        inputs=("user_id", "access_token", "provider"),
+        outputs=("CANONICAL_VAULT_FOLDERS",),
+        dependencies=("app.core.vault_paths",),
+        deterministic=True,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="vault",
         group_name="vault_list_documents",
         title="Vault List Documents (SSOT)",
         description=(

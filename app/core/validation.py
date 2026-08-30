@@ -229,6 +229,27 @@ MAX_FORM_BODY_SIZE = 50 * 1024 * 1024  # 50MB (for file uploads)
 
 
 # =============================================================================
+# File Upload Validation
+# =============================================================================
+
+
+def get_allowed_extensions_set(allowed_extensions: str) -> set[str]:
+    """Parse a comma-separated allowed-extension string into a normalized set."""
+    return {item.strip().lower() for item in allowed_extensions.split(",") if item.strip()}
+
+
+def is_allowed_file_extension(filename: str, allowed_extensions: str) -> bool:
+    """Check whether a filename's extension is in the allowed list."""
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    return ext in get_allowed_extensions_set(allowed_extensions)
+
+
+def is_upload_size_within_limit(content: bytes, max_size_mb: int) -> bool:
+    """Check whether a file's byte size is within the configured megabyte limit."""
+    return len(content) <= max_size_mb * 1024 * 1024
+
+
+# =============================================================================
 # Exports
 # =============================================================================
 
@@ -258,6 +279,10 @@ __all__ = [
     "ShortText",
     "MediumText",
     "LongText",
+    # File upload validation
+    "get_allowed_extensions_set",
+    "is_allowed_file_extension",
+    "is_upload_size_within_limit",
     # Constants
     "MAX_JSON_BODY_SIZE",
     "MAX_FORM_BODY_SIZE",

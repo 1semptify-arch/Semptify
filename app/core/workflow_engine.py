@@ -1,6 +1,6 @@
 """
 Semptify 5.0 - Workflow Engine
-Deterministic transition engine for Process A → B1/B2/B4 routing.
+Deterministic transition engine for Process A ▸ B1/B2/B4 routing.
 
 Given a user's role, storage state, and current process state, the engine
 returns a WorkflowDecision: allowed_actions, the next process, and a
@@ -21,7 +21,7 @@ Process codes:
 
 import logging
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 
 from app.core.navigation import navigation
 from app.core.user_context import UserRole, get_role_definition
@@ -34,20 +34,20 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class StorageState(StrEnum):
+class StorageState(str, Enum):
     NEED_CONNECT = "need_connect"  # not authenticated yet
     ALREADY_CONNECTED = "already_connected"  # OAuth token valid
     REVIEW_ONLY = "review_only"  # no storage, read-only mode
 
 
-class ProcessState(StrEnum):
+class ProcessState(str, Enum):
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"
     COMPLETE = "complete"
     BLOCKED = "blocked"
 
 
-class ProcessCode(StrEnum):
+class ProcessCode(str, Enum):
     A = "A"  # Welcome
     B1 = "B1"  # Document Upload Wizard
     B2 = "B2"  # Quick Case Triage (Tenant path)

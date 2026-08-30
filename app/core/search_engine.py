@@ -624,7 +624,7 @@ class SearchEngine:
         suggestions = []
 
         # Get popular queries that start with partial query
-        for query, _count in self.search_stats["popular_queries"].most_common():
+        for query, count in self.search_stats["popular_queries"].most_common():
             if query.startswith(partial_query.lower()):
                 suggestions.append(query)
                 if len(suggestions) >= limit:

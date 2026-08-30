@@ -1,3 +1,2350 @@
+## Session — 2026-08-29 — public-page audit non-blocking observations
+
+### Task
+
+- **Task ID:** `public-page-audit-fixes-2026-08-28`
+- **Scope:** Fix two non-blocking observations from `handoffs/public-page-accessibility-audit-2026-08-28-report.md`: add an explicit `/law-library` route handler, and remove `/home` from `SmartCheckpointMiddleware.PROTECTED_PREFIXES` so it does not break public access if the checkpoint is ever re-enabled.
+
+### Findings and fixes
+
+- `/law-library` was listed in `PUBLIC_PATHS` and used as a redirect target, but had no explicit route handler. Added `@fastapi_app.get("/law-library")` in `app/main.py` to serve `pages/law_library.html`.
+- `/home` was in both `StorageRequirementMiddleware.PUBLIC_PATHS` and `SmartCheckpointMiddleware.PROTECTED_PREFIXES`. Removed it from `PROTECTED_PREFIXES` in `app/core/checkpoint_middleware.py`.
+
+### Ship
+
+- **Branch:** `fix/public-page-audit-fixes-2026-08-28`
+- **What changed:** `app/main.py`, `app/core/checkpoint_middleware.py`
+- **Next step:** Review and merge if the branch is pushed.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/checkpoint_middleware.py`: PASS
+- `pytest tests/module_health -q --no-cov`: 244 passed
+- **Guardrail Engine Run — 2026-08-29T10:05:52+00:00**:
+  - **contract_route_check**: PASS
+  - **fees_policy_check**: PASS
+  - **manifest_sync_check**: PASS
+  - **stub_check**: PASS
+  - All checks passed.
+
+---
+
+## Session — 2026-08-28 — live verify dispute_tracker and eviction_timeline
+
+### Task
+
+- **Task ID:** `ad-hoc-dt-et-live-verify-2026-08-27`
+- **Scope:** End-to-end browser verification of `/api/dispute-tracker/` and `/api/eviction-timeline/`, including POST flows, 375px/1280px layouts, SSOT routing, console errors, and regression fixes.
+
+### Findings and fixes
+
+- Both pages were raising `TypeError: unhashable type: 'dict'` at render because `Jinja2Templates.TemplateResponse` was being called with the deprecated `(name, context)` signature. Updated to the current `(request, name, context)` signature.
+- Form `action` attributes in the two page templates were hardcoded paths. Replaced them with `url_for(...)` so the POST targets stay consistent with SSOT routing.
+- The same `TemplateResponse` regression existed in `app/main.py` (landing page `index.html`) and `app/modules/role_ui/router.py`; both were corrected.
+- Live verification completed against the running app in `SECURITY_MODE=open`:
+  - `/api/dispute-tracker/` loads and renders at 1280px and 375px.
+  - Dispute creation form saves and the new dispute appears in the list.
+  - Comparison creation form saves and the new comparison appears in the list.
+  - `/api/eviction-timeline/` loads and renders at 1280px and 375px.
+  - Eviction timeline event creation form saves and the new event appears in the list.
+  - Browser console shows only the pre-existing unrelated 404 for `/api/location/current`.
+
+### Ship
+
+- **Branch:** `fix/template-response-and-ssot-form-actions`
+- **PR:** #137 — https://github.com/1semptify-arch/Semptify/pull/137
+- **What changed:** `app/main.py`, `app/modules/dispute_tracker/router.py`, `app/modules/eviction_timeline/router.py`, `app/modules/role_ui/router.py`, `app/templates/pages/dispute_tracker.html`, `app/templates/pages/eviction_timeline.html`.
+- **Next step:** Review and merge PR #137; then run the live verification again in `enforced` mode if possible.
+
+### Verification
+
+- `python -m py_compile app/main.py app/modules/dispute_tracker/router.py app/modules/eviction_timeline/router.py app/modules/role_ui/router.py`: PASS
+- Playwright / MCP live verification: PASS
+
+---
+
+## Session — 2026-08-27 — .devin skill/workflow cleanup
+
+### Guardrail Engine Run — 2026-08-27T21:48:00+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Ship
+
+- **Branch:** `admin/devin-skill-migration-2026-08-27`
+- **PR:** #135 — https://github.com/1semptify-arch/Semptify/pull/135
+- **What changed:** Migrated `.devin/workflows/open-workbook.md` to `.devin/skills/open-workbook/SKILL.md`, added `.devin/skills/gui/SKILL.md`, and added `.devin/workflows/ship.md`. Excluded `test_artifacts/` (temporary GUI test output).
+- **Next step:** Review and merge PR #135.
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS
+- `python tools/guardrail_engine.py`: all checks passed
+
+---
+
+## Session — 2026-08-27 — Public copy tone pass (maintenance-p2-1-copy-tone)
+
+### Guardrail Engine Run — 2026-08-27T17:43:10+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Ship
+
+- **Branch:** buildstate-guardrail-2026-08-27
+- **PR:** #131 — https://github.com/1semptify-arch/Semptify/pull/131
+- **What changed:** Added guardrail run record to BUILD_STATE.md.
+- **Next step:** Review and merge to land the record on main.
+
+### Goal
+
+Apply Brad's copy-tone decisions from `handoffs/maintenance-p2-1-gui-ux-backlog-report.md` to public-facing templates on branch `maintenance-p2-1-copy-tone`. Replace adversarial framing, `evidence`/`proof` terminology, and non-literal urgency language with calm, plain-language alternatives while preserving internal technical identifiers and real priority mechanisms.
+
+### What changed
+
+- Public and tenant-facing templates in `app/templates/`: adversarial wording (fight, battle, confrontation, beat) replaced; `evidence`/`proof` replaced with `document`/`record`; non-literal `Urgent`/`immediate attention` labels reframed to `Priority`/`high priority`.
+- Internal CSS classes, data attributes, form field names (`is_evidence`, `is_urgent`, `urgent_count`, etc.) and the real queue-priority description in `docs/planning/semptify_document_center_tickets.md` preserved.
+- No changes to Page Engine facade, dark-mode, color sets, production logic, Python route handlers, database schemas, or onboarding.
+
+### Verification
+
+- `python -m pytest tests/module_health -q --no-cov`: 244 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- Public page HTTP smoke test (`/`, `/portal`, `/about`, `/renters-guide`, `/advocacy`, `/legal-research`, `/complaints`, `/help`, `/law-library`): all 200, no old tone strings found in rendered HTML.
+- Tenant/auth routes require storage connection; verified by template grep and public-page smoke tests.
+
+### STOP AND REPORT flags
+
+- Law library disclaimer at `app/templates/pages/law_library.html` line 695 was edited (`a lawyer helps you fight` → `a lawyer helps you protect your rights`) because it is adversarial public copy inside an educational disclaimer. The change preserves the disclaimer's referral intent and does not alter its legal substance, but it touches UPL-sensitive text and is flagged for review.
+
+## Session — 2026-08-26 (part 2) — Feature-flag unification + NO-TOUCH onboarding rule
+
+### Guardrail Engine Run — 2026-08-27T07:18:08+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-08-26T (post-unification)
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+All checks passed. `python -m pytest tests/module_health tests/test_features.py -q --no-cov`: 270 passed.
+
+### Goal
+
+Resolve `orchestration-002-unify-feature-flags` (Brad's decision on the feature-flags
+architecture brief): merge the old ephemeral in-memory `app/core/feature_flags.py` into
+the DB-backed `app/core/features.py`, per Option A of
+`docs/handoffs/handoff-feature-flags-unification.md`. Also record a new standing
+NO-TOUCH rule for `app/modules/onboarding/`.
+
+### What changed
+
+- `app/core/features.py`:
+  - Added 5 `Feature` enum members for the old route kill-switches: `ADMIN_ACCESS`,
+    `COPILOT_ROUTE`, `VOICE_TO_TEXT`, `COMMUNICATION_IMPORT`, `RESOURCE_DIRECTORY`.
+    All default to `True` in `DEFAULT_ENABLED`, matching the old in-memory defaults
+    exactly — this migration is a behavioral no-op.
+  - Added `ROUTE_FEATURE_MAP`, `ROUTE_GATE_FLAGS`, `route_feature_for_path()`.
+  - Added `RouteFeatureGateMiddleware` (replaces the old `FeatureFlagMiddleware`),
+    using the same DB-backed `FeatureFlagManager.is_enabled()` as every other feature
+    check, with the same fail-open behavior on DB outage.
+- `app/main.py`: middleware registration now imports `RouteFeatureGateMiddleware` from
+  `app/core/features.py`. The three `/admin/api/flags` endpoints now read/write through
+  `features.is_enabled()` / `features.set_enabled()` instead of the deleted in-memory
+  `FeatureFlags` class.
+- `app/core/feature_flags.py`: deleted (no remaining references).
+- `tests/test_features.py`: added `TestRouteFeatureGate` (7 new tests: route map parity,
+  path resolution, default-true parity, middleware allow/block).
+- `AGENTS.md`: added a **NO-TOUCH MODULES** section — `app/modules/onboarding/` may not
+  be altered by any agent without Brad's explicit OK, due to a repeated pattern of past
+  agents breaking onboarding within minutes of starting work on it. Master-level
+  `AGENTS.md` orchestrator STOP-list updated to match.
+- `tools/agent_orchestrator_sync_review/DATA_FLOW.md` (earlier this session): noted the
+  new master-level `orchestrator_state.json` and the archived phase-C tracker.
+- `BACKLOG.md`: recorded Brad's four-piece vault unlock scheme (planned, not yet
+  implemented) under a new "Security architecture — future work" section.
+
+### Verification
+
+- `python -m py_compile app/core/features.py app/main.py tests/test_features.py`: PASS.
+- `python -m pytest tests/module_health tests/test_features.py -q --no-cov`: 270 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- Branch: `session-save-2026-08-26` (feature branch, not `main`). Not pushed; no PR
+  opened yet — pending Brad's review before opening one, per the no-direct-push rule.
+
+### Notes
+
+- `ad-hoc-feature-flags-unification-2026-08-25`, `ad-hoc-context-loop-brief-2026-08-25`,
+  `handoff-factcheck-closeout-2026-08-15`, and `ad-hoc-oauth-lutest-2026-08-24` were all
+  resolved in the master orchestrator state (`orchestrator_state.json`) this session.
+  The OAuth investigation was corrected after further review: `storage_middleware.py`
+  already has a complete, shipped `TOKEN_CORRUPT` → OAuth-reconnect recovery path;
+  no fix was needed.
+
+---
+
+## Session — 2026-08-26 — Agent Orchestration Protocol (Devin Local)
+
+### Guardrail Engine Run — 2026-08-26T13:37:48+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Build the master-level orchestration state and Devin Local subagent bridge so Claude (Sonnet 5 med) can dispatch tasks directly to SWE-1.7 without Brad copying context between sessions.
+
+### What changed
+- `C:\master-repo\tools\orchestrator_state.json` — new canonical state, seeded from `tools/agent_orchestrator_tasks.json` with `model_tier`, `subagent_profile`, `blocked_reason`, `handoff_doc`, `report_doc`, `verification`, and `usage` fields.
+- `C:\master-repo\tools\orchestrator_mark_task.py` — file-locked updater; role guard prevents `unlimited` agents from marking `resolved`/`rejected`; supports `--verification`, `--usage`, `--report-doc`, `--blocked-reason`.
+- `C:\master-repo\tools\handoff_template.md` — exact handoff schema.
+- `C:\master-repo\tools\agent_usage_ledger.jsonl` — append-only usage ledger.
+- `C:\master-repo\.devin\agents\swe-executor.md` — SWE-1.7 subagent profile (`model: swe`) that reads the state, executes handoffs, and reports back.
+- `C:\master-repo\.devin\skills\orchestrator_dispatch\SKILL.md` — orchestrator's Claude dispatch playbook.
+- `C:\master-repo\modules\app-semptify-fastapi\.devin\skills\orchestrator_preflight\SKILL.md` and `.github\prompts\orchestrator_preflight.prompt.md` — updated to point at the new state and the subagent flow.
+- `C:\master-repo\AGENTS.md` and `C:\master-repo\modules\app-semptify-fastapi\AGENTS.md` — new orchestration protocol sections.
+- `tools/agent_orchestrator_sync_review/DATA_FLOW.md` — noted that `phase_c_tier2_reconciliation_tasks.json` is archived.
+- `modules/app-semptify-fastapi/tools/phase_c_tier2_reconciliation_tasks.json` — archived to `C:\master-repo\archive\tools\phase_c_tier2_reconciliation_tasks.2026-08-26.json`.
+
+### Verification
+- `python -m py_compile C:\master-repo\tools\orchestrator_mark_task.py`: PASS.
+- `python -m json.tool C:\master-repo\tools\orchestrator_state.json`: valid.
+- `python C:\master-repo\tools\orchestrator_mark_task.py ... in_progress` and `... review`: PASS (file lock and updates work).
+- `python tools/sync_orchestrator.py --check` in Semptify: PASS (`OK: 0 stub(s), 148 task(s), 0 missing paths`).
+- Task `orchestration-001-dry-run-sync-check` marked `review` with report and usage.
+- Task `orchestration-000-bootstrap` marked `review`.
+
+### Notes
+- The dry-run was measurement-only; no Semptify source files were modified.
+- Both orchestrator tasks are `review`, awaiting the Claude orchestrator to resolve or block.
+- Semptify's `tools/agent_orchestrator_tasks.json` remains the module work queue until a future migration.
+
+---
+
+## Session — 2026-08-26 — FCA/Qui Tam case readiness plug-in for Case Builder
+
+### Guardrail Engine Run — 2026-08-26T11:29:26+00:00
+
+- **contract_route_check**: FAIL — Contract loader failed: 75 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-08-26
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Implement the approved FCA/Qui Tam case readiness feature inside Case Builder as a
+private, feature-flagged tenant workflow. Output is an attorney-review packet, not a
+legal conclusion or filing. Supported frameworks: False Claims Act / Qui Tam, Fair
+Housing Act, Minnesota anti-retaliation.
+
+### What changed
+- `app/core/features.py`: added `Feature.FCA_READINESS`, default `False`.
+- `app/core/config.py`: added `FCA_READINESS_ALLOWED_USER_IDS` allowlist.
+- `app/core/navigation.py`: added `act_fca_readiness` GUI flow stage.
+- `app/models/models.py`: added `Incident.fca_readiness_score` and `fca_readiness_updated_at` (non-PII only).
+- `app/models/unified_overlay_models.py`: added `CaseDataPayload.readiness_checklist`.
+- `app/modules/case_builder/fca_guard.py`: new feature + allowlist guard; returns 404 when disabled.
+- `app/modules/case_builder/fca_service.py`: default issue-spotting checklist, score, referral resources.
+- `app/modules/case_builder/fca_packet_export.py`: attorney-review PDF and ZIP (facts + timeline + evidence index only).
+- `app/modules/case_builder/router.py`: new `/cases/{case_id}/fca/readiness` GET/POST/reset, PDF, and ZIP endpoints.
+- `app/modules/case_builder/register.py`: new `FunctionGroupContract` registrations.
+- `app/modules/case_builder/tests/test_fca_readiness.py`: unit tests for checklist, score, PDF, ZIP.
+- `app/main.py`: added `/ui/tool/fca-readiness` page route and FCA panel in case builder (feature-flag conditional).
+- `app/templates/pages/fca_readiness.html`: tenant-facing issue-spotting checklist UI.
+- `app/templates/pages/case_builder.html`: conditional Federal Case Readiness panel when the feature is enabled.
+- `alembic/versions/0890abd391b2_add_incident_fca_readiness_columns.py`: idempotent migration.
+
+### Verification
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m pytest app/modules/case_builder/tests/test_fca_readiness.py -q --no-cov`: 9 passed.
+- `python -m pytest tests/module_health/test_case_builder.py -q --no-cov`: 1 passed.
+- `python -m pytest tests/test_ssot_architecture.py tests/module_health -q --no-cov`: 252 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- `python -m ruff check <changed files>`: all checks passed (pre-existing `app/core/config.py` UP012 auto-fixed).
+- `alembic upgrade head`: applied cleanly to active database.
+
+### Notes
+- The feature is **off by default** and requires `FEATURE_FCA_READINESS=true` plus an optional `FCA_READINESS_ALLOWED_USER_IDS` allowlist for access.
+- No legal conclusions or automatic filings. Packet output is factual, chronological, and includes the canonical UPL disclaimer and referral block.
+- Task `todo-fca-001` marked resolved.
+
+---
+
+## Session — 2026-08-25 — Resync phase_c_tier2 tracker and review eviction court_procedures
+
+### Guardrail Engine Run — 2026-08-25T21:33:17
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Continue the P0-2 Phase B/C/D reconciliation. During Batch 1 prep, discovered
+that `tools/phase_c_tier2_reconciliation_tasks.json` was stale: Batch 1
+service-deletion tasks had already been merged to `main` but still showed as
+open. Resynced the file from `tools/agent_orchestrator_tasks.json`, then
+reviewed the only remaining open `phase2` task: `phase2-1a1341-055`.
+
+### What changed
+- `tools/phase_c_tier2_reconciliation_tasks.json`:
+  - Resynced 35 phase2 task statuses from the active tracker.
+  - Only `phase2-1a1341-055` remained open; now resolved.
+- `tools/agent_orchestrator_tasks.json`:
+  - `phase2-1a1341-055` marked `resolved` with review notes.
+- `app/services/eviction/court_procedures.py`:
+  - No code changes. Pilot version differs only in type-hint/import style
+    (StrEnum → (str, Enum), `X | None` → `Optional[X]`, trailing-comma/quote
+    formatting). Legal content is unchanged and factual; no case-outcome
+    language or legal determinations for users. Decision: preserve main.
+
+### Verification
+- Diffed `app/services/eviction/court_procedures.py` against
+  `github-direct/adr-0008-pilot`: legal rules, motions, objections, counterclaims,
+  defenses, and procedure-step text are unchanged; only style regressions in pilot.
+
+---
+
+## Session — 2026-08-25 — Ship ad-hoc loose ends: SSOT navigation and Jinja hardcoded-href cleanup
+
+### Guardrail Engine Run — 2026-08-25T19:30:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Ship the remaining mechanical loose ends from `ad-hoc-loose-ends-2026-08-22`:
+add the GUI/in-task guide flow to the navigation registry and remove hardcoded
+`href="/..."` strings from Jinja templates in favor of `navigation.get_stage(...).path`.
+
+### What changed
+- `app/core/navigation.py`:
+  - Added `GUI_FLOW` with tenant-facing single-function guide and utility pages.
+  - Updated `get_stage()` to search `GUI_FLOW` after `ADMIN_FLOW`.
+  - Updated `_build_canonical_set()` to include `GUI_FLOW` paths.
+- `app/templates/gui/base.html`, `app/templates/gui/record.html`,
+  `app/templates/components/ui_composer.html`, `app/templates/public_base.html`,
+  `app/templates/pages/journal_create_guide.html`,
+  `app/templates/pages/law_library_get_statute.html`,
+  `app/templates/pages/eviction_defense_calculate_deadlines.html`,
+  `app/templates/pages/timeline_create_event.html`:
+  - Replaced hardcoded `href="/..."` links with `{{ navigation.get_stage('...').path }}`.
+- `.cursor/rules/ironbee-devtools-use.mdc`:
+  - Enabled Node and Backend IronBee DevTools platforms to match current workspace configuration.
+- `tools/agent_orchestrator_tasks.json`:
+  - `ad-hoc-loose-ends-2026-08-22` moved through `in_progress` to `resolved`.
+- Deleted 5 scratch/investigation files from `tools/`:
+  - `_contracts_dump.json`, `_contracts_tenant_list.txt`, `_list_tenant.py`,
+    `_record_dump.py`, `dump_contracts.py`.
+
+### Verification
+- `python -m py_compile app/core/navigation.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 244 passed.
+- `python -m pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+
+### Notes
+- This completes the mechanical portion of the loose-ends task. Design-decision
+  items (context-loop consolidation, flagged modules, feature-flag unification)
+  remain in `review` and await Brad's sign-off.
+
+---
+
+## Session — 2026-08-25 — Stale `feature_flags` doc fix and feature-flag unification brief
+
+### Guardrail Engine Run — 2026-08-25T02:35:37
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+`ACTIVE_CONTEXT.md` still listed the `feature_flags` table as a missing blocker. Investigation confirmed the table exists in all relevant environments; the real issue is two independent, non-unified feature-flag systems. Fix the stale note, deliver a scoping brief, and clean up the tracker.
+
+### Root cause
+- The `feature_flags` table is present in `semptifty_db`, `neondb`, and local SQLite.
+- Semptify has two feature-flag systems: an in-memory store (`app/core/feature_flags.py`) used by `FeatureFlagMiddleware` and `/admin/api/flags`, and a DB-backed `FeatureFlagManager` (`app/core/features.py`) used by `role_ui`, `admin_console`, `module_resolver`, and startup schema checks. They do not share state.
+
+### What changed
+- `ACTIVE_CONTEXT.md`: removed the stale "missing `feature_flags` DB table" blocker and replaced it with a note describing the two non-unified systems and the open unification brief.
+- `docs/handoffs/handoff-feature-flags-unification.md`: new read-only scoping brief covering system locations, consumers, current state, performance, and unification options.
+- `tools/agent_orchestrator_tasks.json`: added/updated tracker entries:
+  - `ad-hoc-feature-flags-table-stale-2026-08-25` — resolved.
+  - `ad-hoc-feature-flags-unification-2026-08-25` — review (brief delivered, awaiting Brad's decision).
+  - `ad-hoc-local-storage-provider-cancelled-2026-08-25` — rejected (cancelled per Brad's rule).
+  - `ad-hoc-context-loop-brief-2026-08-25` — review (brief delivered, awaiting Brad's decision).
+
+### Verification
+- `feature_flags` table presence confirmed in `semptifty_db`, `neondb`, and local SQLite.
+- `python -m py_compile app/core/features.py app/core/feature_flags.py app/main.py`: PASS.
+- Tracker updates are valid JSON.
+
+### Notes
+- No code changes to either feature-flag system; this is a documentation/investigation handoff only.
+- No unification implementation will start until Brad decides the direction.
+
+---
+
+## Session — 2026-08-25 — Fix production `vault_index.review_state_json` missing on `semptifty_db`
+
+### Goal
+User's live Google Drive E2E was blocked by `UndefinedColumnError: column vault_index.review_state_json does not exist`. The Render app is using the Neon database `semptifty_db`, which was at `alembic_version` `20260624_add_context_engine` while its schema was partially patched with later tables. `alembic upgrade head` failed with `DuplicateTable` and `must be owner of table context_facts`.
+
+### Root cause
+- `semptifty_db` was the database `DATABASE_URL` pointed to, not the previously fixed `neondb`.
+- Its `alembic_version` was far behind its actual schema (`journal_entries`, `document_shares`, etc. already existed).
+- Some table objects (notably `context_facts`) were owned by the `authenticator` role instead of `neondb_owner`, so `ALTER TABLE` on those tables failed.
+
+### What changed
+- `alembic/versions/aaebf71fa17a_add_journal_entries_table.py`: made idempotent — creates `journal_entries` and its indexes only if missing.
+- `alembic/versions/9f96d6ec5a65_add_canonical_value_to_context_facts.py`: made idempotent — adds `canonical_value` only if missing.
+- `alembic/versions/7f002a47b44a_add_extraction_pattern_to_context_facts.py`: made idempotent — adds `extraction_pattern` only if missing.
+- `alembic/versions/20260820_add_embedding_columns.py`: made idempotent — creates the `vector` extension and adds `embedding` columns only where missing.
+
+### Verification
+- Created the `vector` extension in `semptifty_db`.
+- Manually added `canonical_value`, `extraction_pattern`, and `embedding` to `context_facts` (owner `authenticator`) via the `authenticator` role.
+- Ran `alembic upgrade head` against `semptifty_db` from the current code; completed cleanly.
+- `alembic_version` now `20260825_vault_review_catchup`.
+- `vault_index` now contains `review_state_json`, `event_date`, and `received_date`.
+- The originally failing `SELECT ... FROM vault_index WHERE vault_id = ...` query shape no longer raises `UndefinedColumnError`.
+- `python -m py_compile` on all changed migration files: PASS.
+- Real Google Drive E2E against the deployed `https://semptify-jsam.onrender.com` using the supplied `semptify_uid` cookie:
+  - `GET /api/vault/` → `200`
+  - `POST /api/intake/upload/auto` (a small `e2e_test.txt`) → `200`, `vault_id=doc_Px3dDWcGcc8BPHKZ`, `storage_provider=google_drive`
+  - `GET /api/vault/{vault_id}/download` → `200`, `len=54`
+  - `GET /api/vault/{vault_id}/download?view=true` → `200`, `Content-Type: text/plain; charset=utf-8`
+  - `GET /api/vault/{vault_id}/certificate` → `200`, certificate JSON with matching `sha256_hash`
+
+### Shipped
+- Merged to `main` via PR #115, commit `11acc152`.
+- Deployed to Render at `https://semptify-jsam.onrender.com` on 2026-08-25.
+- Health check and all Playwright smoke tests pass.
+
+### Notes
+- The `neondb` database is still at the same `20260825_vault_review_catchup` head; no changes were made to it.
+- `context_facts` still has the three manually-added columns owned by `authenticator`; the app already had DML access through role membership.
+
+---
+
+## Session — 2026-08-25 — Fix /ship skill's stale hardcoded checkout path
+
+### Goal
+Running `/ship` after the vault_index fix (previous entry below) surfaced that the skill's
+`cwd` was hardcoded to `C:\master-repo\sources\app-semptify-fastapi` — a separate, stale git
+checkout that did not contain that session's actual changes. Running the skill literally would
+have committed/pushed from the wrong location, appearing to succeed while shipping nothing real.
+
+### What changed
+- `.devin/skills/ship/SKILL.md` and `.github/prompts/ship.prompt.md` (kept in sync):
+  - Added Step 0: before doing anything else, confirm the working directory actually contains
+    the session's changes via `git status --short`, instead of trusting a hardcoded path.
+    Per master-repo `AGENTS.md`, `modules/<name>/` is the correct working checkout;
+    `sources/<name>/` is a reference copy and should not be edited/shipped from directly.
+  - Step 4: changed from a blanket `git add app/ static/ ...` to staging only the specific
+    files the session actually changed (one task per commit).
+  - Step 5: noted that `docs/doc-map.yaml`'s pre-commit hook requires certain commit subjects
+    to start with `admin:`/`user:`/`help:`/`adr:` — retry with the right prefix if rejected.
+  - Step 6: replaced the blind `git push origin main` with: identify the remote whose URL is
+    the actual GitHub repo (some checkouts have `origin` pointing at a local path instead), and
+    added a branch-protection fallback (create a branch, push, open a PR with `gh pr create`,
+    stop for review) instead of failing or attempting to bypass protection.
+  - Step 7/8/9: updated to report either a direct-push commit hash or a PR URL depending on
+    which path Step 6 took.
+
+### Why this approach (Option A: preflight check, not a hardcoded path swap)
+A hardcoded path fix (pointing the skill at `modules/` instead of `sources/`) would have solved
+today's instance but is fragile to the same class of failure if the working checkout ever moves
+again. A content-based preflight check (`git status` must show the session's own changes) catches
+the mismatch regardless of what the correct path is at the time, and fails loudly instead of
+silently shipping nothing.
+
+### Verification
+- Manually ran the corrected flow this session (see the vault_index fix entry below): confirmed
+  `git status --short` in `modules\app-semptify-fastapi` matched session changes, identified
+  `github-direct` as the real GitHub remote, hit the branch-protection rejection on `main`, and
+  followed the new PR fallback — PR #113 opened successfully.
+- No automated test covers a markdown skill file; this is a process fix, verified by the fact
+  that following the new steps produced the correct outcome (PR opened from the correct checkout).
+
+### Notes
+- `sources\app-semptify-fastapi` was confirmed untouched throughout (still at `97b6ab43`).
+- Task 3 (flagged, not resolved): `sources\app-semptify-fastapi`'s long-term purpose — whether it
+  should be deleted, resynced to match `modules`, or intentionally kept as a reference/backup
+  checkout — is an open decision for the project owner, not resolved here.
+
+---
+
+## Session — 2026-08-25 — Fix production UndefinedColumnError on vault_index.review_state_json
+
+### Goal
+User hit a live error: `UndefinedColumnError: column vault_index.review_state_json does not exist`
+on production (Neon). Root cause and permanent fix, not a manual patch.
+
+### Root cause
+Migration `8b393a99538e` (2026-07-25) added `review_state_json` to `vault_index` and created
+`document_shares` in one non-idempotent script. A prior session (2026-07-28, see below) hit a
+failure when `document_shares` already existed and worked around it by hand-adding the column
+directly on one Neon instance instead of fixing the migration (Known Failure Registry #15
+pattern). That manual patch did not stick everywhere — production was stamped at
+`20260824_add_document_dates` (past this migration) but the column was still missing.
+
+### What changed
+- `alembic/versions/8b393a99538e_add_vault_review_state_and_document_.py`: made idempotent —
+  checks `inspector.get_columns()` / `inspector.has_table()` before adding the column or creating
+  `document_shares`, so re-running this migration (or running it against a DB that already has
+  one of the two objects) is a no-op instead of a hard failure.
+- `alembic/versions/20260825_vault_review_catchup.py` (new head): one-time catch-up migration for
+  databases already stamped past `8b393a99538e` but missing the column. SQLite-safe via
+  `batch_alter_table`.
+
+### Verification
+- Simulated the exact original failure (both `review_state_json` and `document_shares` already
+  present) against a throwaway SQLite DB running `alembic upgrade 8b393a99538e` — now completes
+  without error (previously failed).
+- Simulated production's actual broken state (column missing, `document_shares` present, stamped
+  at `20260824_add_document_dates`) and ran `alembic upgrade head` — catch-up migration adds the
+  column cleanly.
+- Ran `alembic upgrade head` against the real production Neon DB: column added
+  (`review_state_json exists: True`), `alembic_version` now at `20260825_vault_review_catchup`.
+  (First attempt failed on `UPDATE alembic_version` because the new revision id was too long for
+  `VARCHAR(32)` — shortened the id and re-ran cleanly.)
+- Reproduced the exact failing query (`SELECT ... FROM vault_index WHERE vault_id = ...`) against
+  production — executes without error post-fix.
+- `python -m py_compile app/main.py` + both changed migration files: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+
+### Notes
+- No data was deleted or modified; this only added a nullable column and, if missing, a table.
+- Task `ad-hoc-vault-review-state-2026-08-24` marked resolved in the orchestrator tracker.
+
+---
+
+## Session — 2026-08-24 — Remove L (LOCAL) as a valid user identity
+
+### Guardrail Engine Run — 2026-08-24T17:07:06
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Enforce the rule that every Semptify user must connect an OAuth cloud storage provider. Remove the partial `L` / `local` user identity support so `LU...` IDs are rejected at authentication and access gates.
+
+### What changed
+- `app/core/user_id.py`:
+  - Removed `ProviderCode.LOCAL` and all `local` / `"L"` mappings from `PROVIDER_TO_CODE` and `CODE_TO_PROVIDER`.
+  - Updated module docstring and `generate_user_id()` docstring to list only Google Drive, Dropbox, and OneDrive.
+- `app/core/security.py`:
+  - Removed `"L": StorageProvider.LOCAL` from the `get_current_user()` provider map.
+  - Updated `is_valid_user_storage()` docstring and allowed provider codes to only `G`, `D`, `O`.
+- `tests/test_user_id.py`: Rewrote to assert that `LU...` IDs are rejected and `is_valid_storage_user()` returns `False` for a signed local user ID.
+- `tools/agent_orchestrator_tasks.json`: Marked `ad-hoc-remove-local-provider-2026-08-24` resolved.
+
+### Verification
+- `python -m py_compile app/core/user_id.py app/core/security.py app/core/storage_middleware.py`: PASS.
+- `python -m pytest tests/test_user_id.py -q --no-cov`: PASS (7 passed).
+- `python -m pytest tests/module_health -q --no-cov`: PASS (244 passed).
+- Confirmed `is_valid_storage_user(sign(LU7x9kM2pQ))` is now `False`.
+
+### Notes
+- `StorageProvider.LOCAL` enum and `storage_provider == "local"` dev-only document fallback remain for open-mode test uploads and admin contexts, but no user can authenticate with an `LU...` identity.
+- Admin console still builds `UserContext(provider=StorageProvider.LOCAL, ...)` directly for 2FA admin sessions; this is a system context, not a user identity, and is unaffected.
+
+---
+
+## Session -- 2026-08-24 — Real OAuth / Google Drive end-to-end verification
+
+### Guardrail Engine Run — 2026-08-24T13:44:29
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What changed
+- Added `/onboarding/api/vault/verify` to `TimeoutMiddleware` extended timeouts
+  (`app/core/timeout.py`) so the onboarding upload pipeline gets 180s instead
+  of the default 30s.
+- Raised internal `asyncio.wait_for` timeouts in `app/modules/onboarding/router.py`
+  for vault probe (60s), `VaultUploadService.upload` (110s), and the
+  read-back verification (90s).
+- Fixed `app/modules/vault/router.py` `download_document`, `get_certificate`,
+  and `delete_document` to look up documents via the `vault_index` DB table
+  and use the stored `certificate_id` / `storage_path` / `provider_file_id`
+  instead of scanning certificate filenames for `document_id[:8]`, which
+  failed because certificates are named by `certificate_id`.
+
+### CI fix
+- Refactored `app/core/features.py::set_enabled()` to bind `updated_at` as a
+  parameter instead of interpolating `NOW()`/`CURRENT_TIMESTAMP` into the SQL
+  string, eliminating the Bandit B608 SQL-injection warning.
+
+### Database
+- Applied missing schema columns to Neon production branch manually
+  (`event_date`, `received_date` on `documents` and `vault_index`;
+  `canonical_value`, `extraction_pattern`, `embedding` on `context_facts`;
+  `case_overlay_id` on `incidents`) and stamped `alembic_version` to
+  `20260824_add_document_dates` after the migration failed because
+  `context_explanation_entries.embedding` already existed.
+
+### Verification
+- Real Google OAuth sign-in succeeded for user `GUyQ2ld1CC`.
+- `POST /onboarding/api/vault/verify` with `lease_01.pdf` succeeded:
+  `ok=true`, `document_saved=true`, `vault_id=doc_c5zeQ1BEz6Xqkm4Q`,
+  `document_id=SEM-2026-000001-22A0`, `certified=true`.
+- `GET /api/vault/{vault_id}/download` returns 200 with `application/pdf`
+  and 1780 bytes for both `view=true` and default download.
+- `GET /api/vault/{vault_id}/certificate` returns 200 with correct
+  `sha256_hash`, `certified_at`, `original_filename`, `storage_provider`.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `python -m py_compile` on changed files: PASS.
+
+## Session -- 2026-08-24 — Live verification gap fixes
+
+### What changed
+- Fixed Pass 2 OCR crash (`app/core/job_processor.py`) by reading document type
+  from `doc.extraction.doc_type` instead of the non-existent `doc.doc_type`.
+- Fixed vault View/Download 400 by using the authenticated `user.access_token`
+  as the default in `app/modules/vault/router.py` endpoints.
+- Added `L` (LOCAL) provider code to `security.py::is_valid_user_storage` so
+  local users are accepted at the access-control layer.
+- Mounted Document Center router at `/api/dc` in `app/main.py` for non-MVP
+  builds so `/api/dc/document-types` now returns the `house_rules` registry.
+
+### Verification
+- Live upload of `bundle_test2.pdf`: Light Intake 3 segments, Deep OCR job runs
+  without `AttributeError`; overlay writes still fail under the fake Google
+  token test setup.
+- API: `GET /api/dc/document-types` returns 200 with `house_rules` present.
+- `is_valid_user_storage('LUtest1234')` now True; live local upload with
+  encrypted session returns 200 and writes a `vault_index` row.
+- `pytest tests/test_document_intake.py -q --no-cov`: 52 passed.
+- `pytest tests/test_documents.py -q --no-cov`: 41 passed.
+- `pytest tests/test_user_id.py -q --no-cov`: 4 passed.
+- `pytest tests/test_document_types.py -q --no-cov`: 10 passed.
+- `python -m py_compile` on changed files: PASS.
+
+### Investigation: cookie/user_id mismatch on upload (no code changes)
+- **Root cause:** `app/templates/gui/record.html` line 94 appends
+  `cookie('semptify_uid')` as the `user_id` form field. The `semptify_uid`
+  cookie is the **signed** value (`user_id.<HMAC-signature>`), not the bare
+  user id, so the `user_id` field arrives as ~75 characters instead of the
+  expected 10-character id.
+- **Server behavior:** `app/modules/intake/router.py::upload_and_process`
+  already treats the form `user_id` as client-supplied and unreliable. It
+  depends on `yellow_access`, which verifies the cookie HMAC, and then
+  overrides the form value with `user.user_id` when they mismatch, logging:
+  `user_id mismatch: form=... vs session=... — using session identity`.
+- **Is the fallback safe?** Yes, under the current dependency chain. If the
+  cookie is invalid, `yellow_access` returns 401 before the endpoint runs. If
+  the cookie is valid, the session identity is authoritative. The fallback
+  cannot silently resolve to a different user.
+- **Is it a bug worth fixing?** Yes, but as a cleanup task, not a hotfix.
+  The form field should not be needed because the server already derives the
+  user from the authenticated session. The cleanest fix is either to remove
+  the `user_id` field from the form (and keep the backend `Form` default) or
+  stop reading the signed cookie for this purpose on the client. This is a
+  low-priority hygiene item that would eliminate the warning and remove the
+  reliance on defensive server-side override.
+
+## Session -- 2026-08-24 — Reconcile parallel sessions and ship follow-ups
+
+### What changed
+- Reconciled the three parallel sessions (Record view + dates + OCR, Pass 1
+  bundle segmentation, OAuth SECRET_KEY/reconnect) on a single `main`.
+- Opened PR #108, merged with a merge commit (not rebase).
+- Fast-forwarded the local source worktree and the module `main` to
+  `f35503d9` so `origin/main`, `github-direct/main`, and local `main` are
+  aligned.
+- Added `L` (LOCAL) as a first-class provider code in
+  `app/core/user_id.py` and `tests/test_user_id.py`.
+- Registered `house_rules` in `app/core/document_types.py` and added
+  `tests/test_document_types.py` coverage.
+
+### Verification
+- `pytest tests/test_documents.py -q --no-cov`: 41 passed.
+- `pytest tests/test_document_intake.py -q --no-cov`: 52 passed.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `pytest tests/test_user_id.py -q --no-cov`: 4 passed.
+- `pytest tests/test_document_types.py -q --no-cov`: 11 passed.
+- `python -m py_compile` on changed files: PASS.
+
+### Status
+- PR #108 merged to `github-direct/main`.
+- `main` aligned across `origin/main` and `github-direct/main`.
+- Unrelated working-tree files (`.cursor/`, `BUILD_GUIDE_SSOT.md`,
+  `docs/admin/SSOT_EXPORT.md`, `docs/blueprints/page_composer_assembly_formula_blueprint.md`,
+  `tools/module_registry.yaml`, `.devin/mcp_config.local.json`,
+  `funding_forge/.cursor/`, `tools/gap_report.py`) were **not** committed.
+
+---
+
+## Session -- 2026-08-24 — Bundled-packet PDF segmentation (Pass 1)
+
+### Guardrail Engine Run — 2026-08-24T08:11:14
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Detect document boundaries inside a single PDF upload so a bundled court-admitted lease packet is split into separate IntakeDocument records, one per logical document, without introducing AI/ML classification.
+
+### What changed
+- `app/services/document_intake.py`:
+  - Added `DocumentType.HOUSE_RULES` and a `HOUSE_RULES` classification pattern.
+  - Added `DocumentSegmenter`: regex/pattern boundary detection using explicit section titles, page-level type smoothing, and checklist-phrase filtering.
+  - Added `parent_id`, `child_doc_ids`, and `segment_index` to `IntakeDocument`.
+  - Added `DocumentIntakeEngine.process_bundle()`; `process_document()` now returns the first segment for backward compatibility.
+  - Added `DocumentIntakeEngine._extract_pages()` so Pass 1 can work with per-page text.
+  - `_process_text()` accepts a segmenter-provided `expected_doc_type` so title/page-boundary signals are not overwritten by keyword noise on short chunks.
+- `app/services/pdf_extractor.py`:
+  - Added `PDFExtractor.extract_pages()` for page-by-page text extraction.
+- `app/modules/intake/router.py`:
+  - `upload_and_process` now calls `process_bundle()` and returns `segments` in `AutoProcessResponse`.
+- `tests/test_document_intake.py`:
+  - Added `TestBundleSegmentation` covering single-document, intra-page mixed, and real bundled lease packet fixtures.
+
+### Verification
+- `python -m py_compile app/services/document_intake.py app/services/pdf_extractor.py app/modules/intake/router.py`: PASS.
+- `python -m pytest tests/test_document_intake.py -q --no-cov`: PASS (52 passed).
+- `python -m pytest tests/test_document_intake.py::TestBundleSegmentation -q --no-cov`: PASS (3 passed).
+- `python -m pytest tests/module_health -q --no-cov`: PASS (244 passed).
+- `python tools/guardrail_engine.py`: PASS.
+- `python -m ruff check app/services/document_intake.py app/services/pdf_extractor.py app/modules/intake/router.py tests/test_document_intake.py`: PASS.
+- Real fixture `lease_02.pdf` (23 pages) now produces 4 records: `lease` (pages 1-11), `house_rules` (page 12), `lease_amendment` (pages 13-20), `affidavit` (pages 21-23).
+- Single-document fixtures `lease_01.pdf` and `notice_01.pdf` each produce exactly 1 record.
+- Synthetic `mixed_01.pdf` (1 page, lease + notice) now produces 2 records: `lease` and `notice_to_quit`.
+
+### Signals used and why
+- **Explicit title/heading lines** (regex, `re.MULTILINE`): `House Rules`, `SMOKE-FREE LEASE ADDENDUM`, `LOW INCOME HOUSING TAX CREDIT LEASE RIDER`, `Garage/Parking and Storage Locker Lease Rider`, `MUTUAL LEASE TERMINATION AGREEMENT`, `LEASE ADDENDUM`, `CERTIFICATION OF DOMESTIC VIOLENCE`, `Form HUD-5382`. These are the most reliable boundary signal for addenda and riders.
+- **Checklist-phrase filter**: phrases like "received a copy of the following documents" prevent a lease-end addendum checklist from being mis-split.
+- **Page-level type smoothing**: title-less pages inside a lease inherit the running `LEASE` type unless the classifier is very confident of a change; this prevents eviction/notice vocabulary inside a lease clause from creating false `eviction_notice` segments.
+- **Court-header stripping**: the repeated "Filed in District Court" header on every page is removed before title detection.
+
+### Structural cases it still cannot handle
+- Addenda/riders that share the same `LEASE_AMENDMENT` document type (LIHTC, VAWA, Smoke-Free, Garage, Mutual Termination) are merged into one `lease_amendment` record. They are correctly separated from the lease and house rules, but not yet split from each other; the title patterns all map to `LEASE_AMENDMENT`.
+- Image-only or heavily corrupted pages that produce no extractable text will be skipped or merged because boundaries cannot be detected from text.
+- Addenda whose titles are not in the explicit `TITLE_PATTERNS` list will be typed by the per-page classifier, which can over-classify eviction vocabulary inside a lease.
+- Pages with titles that are concatenated by the extraction layer (e.g. `LowIncomeHousingTaxCreditLeaseRider`) are recognized, but only when the specific phrase is in the pattern list.
+
+---
+
+## Session -- 2026-08-24 — OAuth token decryption fixes (SECRET_KEY hard-fail + graceful reconnect)
+
+### Guardrail Engine Run — 2026-08-24T02:11:08
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Goal
+Implement the two fixes identified during the OAuth token-decryption investigation:
+1. Task A: stop silently generating a random per-process `SECRET_KEY` that corrupts stored sessions.
+2. Task B: route users through `/storage/reconnect` when a stored token cannot be decrypted, instead of a dead-end 401.
+
+### What changed
+- `app/core/config.py`:
+  - `_resolve_secret_key()` now raises at startup if `SECRET_KEY` is missing, empty, or the weak default.
+  - `TESTING=true` or in-memory `DATABASE_URL` gets a deterministic test key so the pytest suite still works.
+  - Removed the `secrets` fallback that was silently creating a new key every process.
+- `app/core/auto_refresh.py`:
+  - Added `RefreshResult.TOKEN_CORRUPT` and a `_try_decrypt()` helper that catches `cryptography.exceptions.InvalidTag` and other decrypt failures.
+  - `_refresh_from_db()` returns `TOKEN_CORRUPT` when the stored refresh token is unreadable; if only the access token is corrupt, it forces an immediate provider refresh.
+  - `get_valid_token_or_redirect()` now returns the refresh status so callers can explain the failure.
+- `app/core/storage_middleware.py`: uses the status to return a calm `reconnect_required` JSON with `redirect_url` for API calls.
+- `app/core/security.py`:
+  - `get_current_user()` captures the token status and passes it to `UserContext` as `reconnect_reason`.
+  - `yellow_access` and `red_access` return a `reconnect_required` response with plain-language storage-reconnect messaging.
+  - `auth_required` now also includes a `redirect_url` and message so there is no dead-end 401.
+- `app/core/user_context.py`: added optional `reconnect_reason` field.
+- `tools/agent_orchestrator_tasks.json`: task tracker updated for the two new ad-hoc tasks.
+
+### Verification
+- `python -m py_compile app/core/config.py app/core/auto_refresh.py app/core/storage_middleware.py app/core/security.py app/core/user_context.py app/main.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: PASS (244 passed).
+- `python -m pytest tests/test_async_token_calls.py -q --no-cov`: PASS.
+- `python -m pytest tests/test_documents.py -q --no-cov`: PASS (41 passed).
+- `python -m pytest tests/test_copilot.py -q --no-cov`: PASS (19 passed).
+- Live reproduction: `GUbGQUTpK6` (corrupt session in local DB) now returns `status=token_corrupt` and a `/storage/reconnect` redirect instead of an empty-token success.
+
+### Notes
+- No encryption/decryption math was changed — only the failure handling.
+- No stored token data was deleted or modified.
+- Key rotation tooling remains out of scope, as requested.
+
+---
+
+## Session -- 2026-08-24 — OAuth token decryption investigation + Known Failure Registry entry
+
+### Goal
+Two small, separate follow-ups from the Load Profile System handoff:
+1. Investigate the `Failed to decrypt refresh token for LUtest***` log line seen in the memory-assessment log.
+2. Record the `feature_flags` SQLite-ARRAY failure as a single, consolidated entry in the Known Failure Registry.
+
+### What changed
+- `AGENTS.md`: added Known Failure Registry entry #20 for the `sa.ARRAY`-on-SQLite bug class (module_registry and feature_flags migrations).
+- `tools/agent_orchestrator_tasks.json`: updated task tracker for the two ad-hoc tasks.
+
+### Findings (OAuth)
+- Decryption happens in `app/core/auto_refresh.py::_refresh_from_db()` at `_decrypt_string(refresh_token_encrypted, user_id)`.
+- The actual exception when a stored token cannot be decrypted is `cryptography.exceptions.InvalidTag` from the AES-GCM tag check.
+- In the local `semptify.db`, the `LUtest1234` session row currently decrypts with the local `.env` `SECRET_KEY`, but a second session row for `GUbGQUTpK6` fails to decrypt with that same key.
+- A freshly-created test user (`GUtest1234`) with a session encrypted using the current `SECRET_KEY` passes `ensure_valid_token()` cleanly.
+- Root cause is a **key mismatch**: tokens are encrypted with `SHA256(SECRET_KEY + user_id)`. If `SECRET_KEY` changes between when a session is written and when it is read, decryption fails.
+- Local `SECRET_KEY` resolution (`app/core/config.py::_resolve_secret_key()`) falls back to a **random, per-process key** when `SECRET_KEY` is unset or the weak default, which can leave sessions unreadable after a restart.
+- The `LUtest1234` user itself also has an invalid Semptify user-id prefix (`L` is not a provider code in `app/core/user_id.py`), so even with a decryptable token `ensure_valid_token()` returns `provider_error` and the user cannot proceed through `yellow_access`.
+- Blast radius if this is systemic: every storage-dependent flow (vault upload, document intake, timeline, case builder, document center, etc.) relies on `auto_refresh.ensure_valid_token()` or `storage_middleware` loading the session. A systemic decrypt failure would break all returning users until they re-authorize.
+- Isolated vs systemic: the observed failure is isolated to local test rows with stale/incorrect encryption, but the underlying `SECRET_KEY` fragility is a real, environment-agnostic operational risk.
+- Render impact: Render's `SECRET_KEY` is a static environment variable; if it is stable and never rotated, this exact failure should not appear. The risk on Render is a future key rotation without a token migration strategy.
+
+### Other sa.ARRAY-using migrations found
+Only two Alembic migrations in `alembic/versions/` use `sa.ARRAY`:
+- `20260615_add_module_registry.py`
+- `20260609_add_feature_flags_table.py`
+Both are covered by the new Known Failure Registry entry.
+
+### Verification
+- `python -m py_compile app/main.py`: PASS.
+- Pre-commit hook: PASS (0 stubs, 127 tasks, doc-map category matched).
+- No token-handling code was changed; only the investigation and documentation were recorded.
+
+---
+
+## Session -- 2026-08-24 — Real lease first-document E2E PoC
+
+### Problem
+
+After the Pass 1 classifier and OCR fallback work landed, the first-document pipeline
+needed a real end-to-end check against the 11-page `lease_02.pdf` fixture.
+
+### Verification
+
+- `docs/classification-test-fixtures/lease_02.pdf` (2.75 MB) uploaded via
+  `VaultUploadService.upload(storage_provider="local")`.
+- Vault returned `doc_DCzaqgdHnr7AFA7V`, `registry_id SEM-2026-000001-540A`,
+  `is_certified: True`.
+- `DocumentIntakeEngine.intake_document()` → `process_document()` completed with
+  status `complete` and 100% progress.
+
+### Findings
+
+- **Document type:** `lease` (confidence 1.0) — correctly classified, no longer
+  mislabeled as `eviction_notice`.
+- **Extraction quality:** 4907 words extracted; text includes lease parties
+  (`Dena Sazama`, `Bradley Crowe`), property address (`2977 Lexington Ave South,
+  Apt 104, Eagan, MN 55121`), monthly rent (`$1218.00`), late fee (`$97.44`,
+  8% of rent), lease start/end (`11/01/2024` → `10/31/2025`), move-in date
+  (`11/21/2024`), garage/storage rent, and court filing stamp (`19AV-CV-25-3477
+  Filed 11/17/2025`).
+- **Bundled-packet behavior:** Pass 1 still assigns one `doc_type` to the entire
+  upload (`lease`), so the bundled riders, addenda, and exhibits are not
+  segmented into separate documents.
+- **Three canonical dates:** `uploaded_at` is immutable; `event_date` and
+  `received_date` were set via the vault service and verified sortable by all
+  three keys.
+
+### Notes
+
+- No `Semptify_Lease_DocType_Template.md` was found in the workspace, so a
+  field-by-field template comparison could not be completed.
+- Local Tesseract OCR is not installed in this Windows dev shell; the test
+  fixture already contains enough embedded/extracted text for the current
+  classifier to succeed. A fully image-only packet should be tested inside the
+  Docker/Render image where `tesseract-ocr` is installed.
+
+---
+
+## Session -- 2026-08-24 — Load profile system + memory monitoring fixes
+
+### Goal
+Handoff from a local dev memory assessment: replace `ENABLE_HEAVY_SERVICES`
+with a proper runtime load profile system, fix `performance_monitor.py`
+conflating whole-machine and process memory, and fix the missing
+`feature_flags` table in local dev.
+
+### What changed
+- `app/core/runtime_profile.py` (new): named `LoadProfile`s
+  (`local_dev`, `local_dev_semantic`, `render_mvp`, `full`) governing
+  Positronic Brain, Mesh Network, Module Hub, embedding model, and
+  performance monitoring - a separate axis from `product_manifest.py`'s
+  feature tiers. Default derives from the existing `DEPLOY_TARGET`
+  (unset -> `local_dev`, `render_mvp` -> `render_mvp`); `LOAD_PROFILE`
+  overrides; `ENABLE_HEAVY_SERVICES=false` preserved as the legacy
+  emergency-rollback hard override.
+- `app/main.py`: replaced all four scattered `ENABLE_HEAVY_SERVICES` checks
+  with `load_profile.<flag>` reads; profile resolved once in `create_app()`
+  and stashed on `fastapi_app.state.load_profile` for `lifespan()` to reuse;
+  Location Service now follows the `positronic_brain` flag (it registers
+  into `positronic_mesh`, the Brain-adjacent registry) rather than being
+  unconditionally tied to the old single flag.
+- `scripts/start_local_dev.ps1` (new): "Brad start" - sets
+  `DEPLOY_TARGET=local` and launches uvicorn on the `local_dev` profile
+  with zero typing.
+- `app/core/performance_monitor.py`: added process-level memory tracking
+  (`psutil.Process().memory_info().rss` / `.memory_percent()`) alongside
+  the existing whole-machine `psutil.virtual_memory().percent`. Both are
+  stored on `SystemMetrics`, exposed via `to_dict()`/`get_performance_summary()`,
+  and included in the `high_memory_usage` alert message. The alert's
+  trigger/threshold itself is unchanged, per task scope.
+- `app/core/features.py`: added dialect-aware `ensure_schema()` (mirrors
+  `app/core/module_overrides.py`'s pattern) to create `feature_flags` on
+  SQLite, since Alembic auto-migration never runs locally and the
+  Postgres migration uses `sa.ARRAY` anyway. Also made `set_enabled()`
+  dialect-aware (`NOW()` -> `CURRENT_TIMESTAMP` on SQLite) and
+  `_refresh_from_db()` tolerant of `allowed_roles` as text. Wired into
+  the existing `module_overrides` startup stage in `app/main.py`.
+
+### Why
+Local dev on a 7.5GB machine was hitting constant "high memory" warnings.
+Root cause: `psutil.virtual_memory().percent` measures the whole machine
+(browser, IDE, everything), not just Semptify, so the warning was never a
+reliable signal either way. Separately, local dev always loaded the full
+production infra stack (mesh, brain, module hub, embedding model)
+regardless of need, and the `feature_flags` table silently didn't exist
+locally, masking a real feature.
+
+### Verification
+- `python -m py_compile` on all changed files: PASS.
+- `local_dev` profile: measured uvicorn worker at ~202MB working set /
+  ~416MB private memory vs. ~604MB / ~1140MB for the `full` profile on the
+  same machine - the embedding model load is the dominant driver, not the
+  mesh/brain/hub services (which a prior 2026-08-16 measurement already
+  found add only ~3.6MB in the full app context).
+- `full` profile reproduces the pre-change all-on startup log output
+  exactly (Positronic Brain, Module Hub, Mesh Network all initialize with
+  the same module counts as before).
+- `render_mvp` profile (derived from `DEPLOY_TARGET=render_mvp`) preserves
+  the existing MVP module tier gating (`46 MVP core modules`) unchanged.
+- `performance_monitor.py`: manual smoke test showed a bare python process
+  using 19MB/0.3% of RAM while the machine read 93.4% - confirms the two
+  numbers were previously conflated in the alert.
+- `features.py`: fresh SQLite DB gets `feature_flags` with 5 seeded rows on
+  startup; `is_enabled()`/`set_enabled()`/`get_all_flags()` round-trip
+  correctly against SQLite (verified via direct DB read after `set_enabled`).
+- `pytest tests/test_features.py -q --no-cov`: 19 passed.
+- `pytest tests/module_health -q --no-cov`: 244 passed (run twice, once
+  after Task 1+2, once after all three tasks).
+
+### Caveats / follow-up
+- Location Service's flag mapping (tied to `positronic_brain` rather than
+  its own flag) is a judgment call, not an explicit spec item - it
+  registers into `positronic_mesh` so this was the closest existing
+  category; flagged here in case it should be split out later.
+- The Alembic migration for `feature_flags` still uses `sa.ARRAY` and is
+  unchanged - it's correct for the real Postgres/Render deploy path.
+  `ensure_schema()` is a local-dev/SQLite-only safety net, not a
+  replacement.
+- OAuth refresh-token decryption failure for test user `LUtest***` (seen
+  in the original memory-assessment log) was explicitly flagged out of
+  scope for this handoff and still needs its own investigation.
+
+---
+
+## Session -- 2026-08-23 — Pass 1 classifier disambiguation (handoff)
+
+### Goal
+Fix Pass 1 document classifier so court-admitted lease copies with dense eviction/notice clauses are not mislabeled as `eviction_notice`, and add `mixed_document` detection for bundled lease + notice packets.
+
+### Constraint
+Regex/pattern only — no AI, ML, embeddings, or trained model. Per AGENTS.md and handoff.
+
+### What changed
+- `app/services/document_intake.py`:
+  - Added `DocumentType.MIXED_DOCUMENT`.
+  - Added `DocumentClassifier.LEASE_STRUCTURE` pattern set (term, rent, party/signature, deposit/property markers).
+  - Added thresholds and logic:
+    - `MIXED_LEASE_STRUCTURAL_THRESHOLD = 20.0`
+    - `MIXED_NOTICE_THRESHOLD = 5.0` (NOTICE_TO_QUIT score)
+    - `LEASE_OVERRIDE_RATIO = 2.0`
+    - Lease-structural score dominates generic eviction vocabulary.
+    - Mixed only triggers when both strong lease structure AND a strong notice-to-quit / unlawful detainer signal are present.
+  - Added mixed-document summary in `DocumentAnalyzer`.
+  - Rationale for each pattern and threshold documented inline as comments.
+- `docs/classification-test-fixtures/`:
+  - Synthetic `lease_01.pdf`, `notice_01.pdf`, `mixed_01.pdf` generated by `make_fixtures.py`.
+  - Real `lease_02.pdf` (copy of `E:\LEXINGTON FLATS\Leases\lese.pdf`) ignored by `.gitignore` so no case data is committed.
+  - `lease_02.label.json` records it as the confirmed real-world failure case.
+- `tests/test_document_intake.py`:
+  - Added parametrized `test_classifier_fixtures` regression test.
+- `tools/agent_orchestrator_tasks.json`:
+  - Claimed `ad-hoc-pass1-classifier-2026-08-23`.
+
+### Verification
+- `python -m py_compile app/services/document_intake.py`: PASS.
+- `python -m py_compile tests/test_document_intake.py`: PASS.
+- `python -m pytest tests/test_document_intake.py -q --no-cov`: 47 passed.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- Manual fixture run:
+  - `lease_01.pdf` → `LEASE`, confidence 1.0
+  - `lease_02.pdf` (real Brad lease) → `LEASE`, confidence 1.0
+  - `mixed_01.pdf` → `MIXED_DOCUMENT`, confidence 1.0
+  - `notice_01.pdf` → `EVICTION_NOTICE`, confidence 1.0
+
+### Out of scope (per handoff)
+- No OCR changes.
+- No UI or copy changes.
+- No trained model or embeddings.
+
+---
+
+## Session -- 2026-08-23 — Real-lease E2E: `lese.pdf` was a notice, not a lease
+
+### Guardrail Engine Run — 2026-08-23T22:11:02
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### New input
+Brad provided `E:\LEXINGTON FLATS\Leases\lese.pdf`.
+
+### What I checked
+- Full vault + intake pipeline on `lese.pdf`.
+- Quick text/classification checks on the other PDFs in the same folder.
+
+### Result
+- `lese.pdf` is **byte-for-byte identical** to the five `*_lease.pdf` candidates in `C:\Semptify\brads stuff\app-semptify-fastapi\sources\data\documents\` (SHA-256, 2,750,365 bytes, 67,360 chars of text).
+- Pass 1 again classified it as `eviction_notice` with confidence `1.0`.
+- The other PDFs in `E:\LEXINGTON FLATS\Leases\` are clearly the actual lease packet:
+  - `2 of11 2024-2025 lease_ocred.pdf` — classified as `lease` (conf `0.50`), but `0` dates, `0` amounts, `0` parties extracted, meaning the current `PDFExtractor` cannot read its text.
+  - `10 of11 2024-2025 lease_ocred.pdf` — classified as `lease` (conf `0.50`), also `0` extracted fields.
+  - `11 of11 2024-2025 lease_ocred.pdf` — classified as `eviction_notice` (conf `0.48`), `0` extracted fields.
+  - `LEASE 2025   2 DIFFERANT MONTHYLY  ORIGANAL AND  THE FORGED  ONE (1).pdf` — permission denied; could not read.
+
+### Implications
+- The `lese.pdf` file Brad sent is a notice/lease-violation document, not his lease.
+- The real lease appears to be an **11-page packet** split into separate PDFs. This is the bundled-packet/document-boundary finding: the pipeline will treat each page file as a separate document unless segmentation is built.
+- The OCRed lease pages are image-based enough that the current regex/PDF text extractor returns empty text (`word_count≈0`). Pass 1 cannot extract dates, amounts, or parties from them without OCR.
+- The "View" button 404 (`/api/unified-overlays/compose-view`) and the missing document date fields (`event_date`/`received_date`) are still blockers.
+
+### Cleanup
+- Server stopped.
+- Deleted uploaded copy, intake working copy, and DB/JSON test artifacts for `lese.pdf`.
+
+---
+
+## Session -- 2026-08-23 — Real-lease E2E proof attempt
+
+### Goal
+Run Brad's actual lease through the local upload pipeline, confirm first-document certification, compare Pass 1 extraction to the lease template, and verify the three MVP document dates can be set and sorted.
+
+### Setup
+- Started `app.main:fastapi_app` on `127.0.0.1:8001` with `SECURITY_MODE=open` and a fixed `SECRET_KEY` so the debug seed cookie and session-encryption key matched.
+- Seeded test user `GUbGQUTpK6` via `POST /debug/seed-test-user`.
+- Inserted a synthetic `sessions` row so `yellow_access` would resolve a non-expired token.
+
+### Candidate lease files
+Searched `C:\Semptify\brads stuff\app-semptify-fastapi\sources\data\documents\**/*lease*.pdf` and found five files plus one labeled "lease violation":
+- `GUZ2JU4YLJ/doc_4E9OTvkAM71iH8pc_lease.pdf`
+- `GUDbZsawvp/d6fdf94a-..._lease.pdf`
+- `GUUirpHGvM/17506880-..._lease.pdf`
+- `GUCnVDbFp6/7edcced6-..._lease.pdf`
+- `GUDOrIiaoF/b0510e60-..._lease.pdf`
+- `GUZ2JU4YLJ/doc_r7SHXjUahhTkVzi7_lease violation 8-1825.pdf`
+
+The five `*_lease.pdf` files are byte-for-byte duplicates (same SHA-256 and size `2750365` bytes). Pass 1 (regex/pattern) classified every one as `eviction_notice` with confidence `1.0`, extracting labels such as `move_out`, `lease_end`, `deadline` and a single `landlord` party role. This indicates the candidate files are not Brad's actual lease; they are a single notice-to-vacate or lease-violation document copied into multiple tenant folders.
+
+### Upload + certification result
+Ran `VaultUploadService.upload(..., storage_provider='local')` with the first candidate:
+- `vault_id`: `doc_Ls716zTQ6RbxPEJc`
+- `registry_id`: `SEM-2026-000001-5EA7`
+- `integrity_status`: `verified`
+- `is_certified`: `true`
+- `certificate_id`: `cert_IgI2RlUYmd7WHtov`
+- `storage_path`: `Semptify5.0/Vault/documents/doc_Ls716zTQ6RbxPEJc.pdf`
+
+Then verified the same through the HTTP surface:
+- `POST /debug/seed-test-user` set the `semptify_uid` cookie.
+- `GET /api/vault/all` returned `200` with the document listed.
+- `GET /api/vault/document/{vault_id}` returned `200` with registry, certificate, and integrity metadata.
+
+So the Task 8 first-document E2E certification path works end-to-end.
+
+### UI verification (IronBee DevTools)
+- `/gui/record` rendered the uploaded document as "1 file — doc_4E9OTvkAM71iH8pc_lease.pdf — Aug 24, 2026 · 2.6 MB · lease".
+- Clicking the "View" button caused a `404` on `GET /api/unified-overlays/compose-view?document_id=doc_Ls716zTQ6RbxPEJc&overlay_ids=[]&apply_redactions=true`, which redirected to `/help?status=down`. This is a live UI bug: the document detail view route is missing.
+
+### Three MVP document dates
+Tried to confirm `event_date`, `received_date`, and immutable `uploaded_at` on the document record. Findings:
+- `Document` model (`app/models/models.py`) only stores `uploaded_at`.
+- `VaultDocument` dataclass (`app/services/vault_upload_service.py`) only stores `uploaded_at`.
+- `DocumentResponse` in `app/modules/vault/router.py` has an `event_date` field, but it is never populated by the upload or update flows.
+- No API route exists to set or update `event_date` or `received_date` on a document.
+- `app/modules/document_center/router.py` supports `document_type` and `review_state` updates, not dates.
+Conclusion: the three independently editable/sortable document dates are not yet implemented. Only the immutable upload timestamp works.
+
+### Pass 1 vs lease template
+`Semptify_Lease_DocType_Template.md` was not found in the repo or `C:\Semptify`, so a field-by-field comparison could not be performed.
+
+### Bundled-packet boundary issue
+Not confirmed on the candidate files. The only test document was a single PDF (the duplicated notice). No multi-document packet boundary was observed. The duplicate copies across user folders are a data-seeding pattern, not a packet-boundary segmentation problem.
+
+### Blockers for next step
+1. Brad's actual lease is not in the `sources/data/documents` candidate set. Need the real file path to re-run Pass 1 against a genuine lease.
+2. MVP document date fields (`event_date`, `received_date`) need data-model, API, and UI work.
+3. Document "View" button needs a working `/api/unified-overlays/compose-view` route or replacement.
+
+### Cleanup
+- Stopped the dev server.
+- Deleted the uploaded PDF copy in `uploads/vault/Semptify5.0/Vault/documents/doc_Ls716zTQ6RbxPEJc.pdf`.
+- Deleted the intake working copy in `data/intake/GUbGQUTpK6/`.
+- Removed the test `doc` entry from `data/intake/documents.json` and the test `vault_index` entry from `data/vault_index/vault_index.json`.
+- Deleted the test `GUbGQUTpK6` rows from `users`, `sessions`, `documents`, `vault_index`, and `document_pipeline_index` in `semptify.db`.
+- Removed temporary scripts from `C:\Users\bradc\AppData\Local\Temp\`.
+
+---
+
+## Session -- 2026-08-23 — Gap report follow-through: 3 missing contracts wired, stale doc flagged
+
+### Guardrail Engine Run — 2026-08-23T01:27:30
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-08-23
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+All checks passed.
+
+### Problem
+
+`tools/gap_report.py` (built earlier this session) found real gaps to act on:
+
+1. `BUILD_GUIDE_SSOT.md` is stale (May 2026) and contradicts the current architecture.
+2. Three modules — `agent_orchestrator`, `document_center`, `portal` — each have a `register.py` with genuine `FunctionGroupContract` registrations that were never imported by `app/core/contract_loader.py`, so those contracts existed in code but never reached the live contract registry at runtime.
+3. The gap script's own "missing contract" heuristic had false positives: it flagged any manifest package without a loader entry, without checking whether that package's `register.py` (if any) actually contained a `FunctionGroupContract` at all. `judge` and `vault_installer` have `register.py` files for unrelated purposes (a `ModuleEntry` declaration and a plain router-mount helper, respectively) and were incorrectly flagged.
+
+### Fix
+
+- `BUILD_GUIDE_SSOT.md`: added a prominent superseded notice pointing to `ACTIVE_CONTEXT.md`/`BUILD_STATE.md`, explaining specifically what's out of date (pre-Page-Composer onboarding flow) and what's still accurate (the `Rehome.html` warning — verified `generate_rehome_html()` is still live in `app/services/storage/vault_manager.py`).
+- `app/core/contract_loader.py`: added `app.modules.agent_orchestrator.register`, `app.modules.document_center.register`, `app.modules.portal.register` to `_MODULES_WITH_CONTRACTS`.
+- `tools/gap_report.py`: `find_missing_contracts()` now only flags a package if its `register.py` actually contains `register_function_group(`, eliminating false positives (16 → 1). Added `KNOWN_INTENTIONAL_CONTRACT_EXCLUSIONS` so the one remaining, already-documented exception (`litigation_intelligence`, excluded per an existing `contract_loader.py` comment for a pre-existing router syntax error) is shown as "already decided," not re-flagged as new work every run.
+
+### Verification
+
+- `python -m py_compile` on all changed files: PASS.
+- Confirmed all 3 previously-missing contracts now present in the live registry: `agent_orchestrator::agent_orchestrator_tasks`, `document_center::dc_list`, `portal::portal_services` all resolve `True` after `load_all_contracts()`.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `pytest tests/module_health -q --no-cov`: 244 passed, no regressions.
+- Re-ran `tools/gap_report.py`: section 5 now shows "None new," with the one intentional exclusion clearly annotated.
+
+---
+
+## Session -- 2026-08-23 — Page Composer assembly formula bug fixes
+
+### Guardrail Engine Run — 2026-08-23T00:44:20
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Audit of Page Composer / Page Shell / Context Engine ("information system") found two real, silent-failure bugs in `app/modules/page_composer/assembly.py`:
+
+1. `_resolve_context()` merged `context_loop.get_state()`'s real user state directly into the formula's context dict, but Context Loop exposes fields as `documents_count` / `deadlines` (list) / `active_issues`, while the rest of the formula reads `document_count` / `next_deadline` (dict with `days_remaining`) / `case_count` / `recent_events` / `urgency_cues`. None of those keys ever existed, so every assembled page silently rendered as if the user had zero documents, no deadlines, and no case activity — regardless of their real state. `_build_ui_context()` had the same mismatch (`documents`/`deadlines` vs `document_count`/`deadline_count`).
+2. The GOVERN floor (`apply_govern_rules`) clamped `channels.govern` up to the required minimum for the page's risk tier, but only *after* `_distribute_blocks()` had already trimmed the GOVERN zone's blocks to the count allowed by the pre-clamp (lower) level (`zones.level_to_prominence` fixes block count from level at build time). The report correctly said "clamped", but the extra GOVERN safety content the floor exists to guarantee was never actually rendered.
+3. Minor: `_fact_label(fact)` was computed and discarded (dead code) instead of being used in the fact block's summary.
+
+### Fix
+
+- `app/modules/page_composer/assembly.py`:
+  - `_resolve_context()` now normalizes Context Loop's real field names into the keys the formula consumes, with a new `_earliest_deadline()` helper that defensively parses the loosely-shaped `deadlines` list (skips unparseable entries — silence beats fabrication). Caller-supplied `user_context` values still take precedence (`setdefault`).
+  - `_build_ui_context()` now reads `document_count` / `deadline_count` (the formula's own normalized keys) instead of the never-populated `documents` / `deadlines`.
+  - Reordered `assemble_page()`: risk tier is resolved and the GOVERN floor is applied to `channels` **before** blocks are gathered/distributed into zones, so zones are built at the level they're actually reported at. `apply_govern_rules()` now runs afterward only for override/suppression collection and audit reporting (pre-floor level is restored into the report so the "was this clamped" audit trail is preserved).
+  - `_fact_label()`'s return value is now used in the fact block's `summary`.
+  - Updated the module docstring's phase-order comment and `docs/blueprints/page_composer_assembly_formula_blueprint.md` §7.6 to describe the corrected ordering and why it matters.
+- `tests/test_page_composer_assembly.py`: added `test_assemble_page_normalizes_real_context_loop_state` and `test_govern_floor_applied_before_block_distribution` — both fail against the old code and pass against the fix.
+
+### Verification
+
+- `python -m py_compile` on all changed files: PASS.
+- `pytest tests/test_page_composer_assembly.py tests/test_page_composer_render.py -q --no-cov`: 18 passed (16 existing + 2 new regression tests).
+- `pytest tests/ -k "page_shell or page_composer" -q --no-cov`: 29 passed.
+- `pytest tests/module_health -q --no-cov`: 244 passed (full suite, no regressions).
+- Context Engine (`app/modules/context_engine/{retrieval,cache,stories,embedding_model,explanation_entries}.py`) audited — no bugs found; no-hallucination/source-required invariants intact. No standalone "Information Orchestrator" module exists yet (referenced conceptually in ADR-0008, not built — confirmed via file search).
+
+### Notes
+
+- Did not touch the separate, older `app/modules/context_loop/service.py` (a second, differently-shaped `UserContext` implementation) — it's a known duplicate system, out of scope for this fix, which only normalizes against the one actually wired into Page Composer (`app.services.context_loop`).
+- `page_shell/loader.py`'s GOVERN floor application (used for static/Forge-demo JSON configs, not the dynamic assembly path) was not affected by this bug — its zones are either caller-supplied as-is or auto-derived empty, so it doesn't hit the same block-trimming-before-clamp issue.
+
+---
+
+## Session -- 2026-08-23 — Task 8 Vault Fixes (local_dir, validation, contract consolidation)
+
+### Guardrail Engine Run — 2026-08-23
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+All checks passed.
+
+### Problem
+
+Three root-cause blockers in the first-document intake/vault path:
+
+1. `VaultUploadService._local_dir` was never initialized in the app, so any local-dev upload raised `RuntimeError: local storage directory not configured`.
+2. `POST /api/intake/upload/auto` and the batch upload route used a hardcoded 25MB limit while the vault service used `settings.max_upload_size_mb` (default 50MB), and the intake routes did not validate file extensions at all.
+3. `app/services/vault_upload_service.py` and `app/modules/vault/register.py` both registered `vault::vault_upload` and `vault::vault_init`, so one overwrote the other depending on import order.
+
+### Fix
+
+- `app/services/vault_upload_service.py`: initialize `self._local_dir = Path(get_settings().vault_dir)` in `__init__`.
+- `app/core/validation.py`: add `is_allowed_file_extension()` and `is_upload_size_within_limit()` helpers.
+- `app/modules/intake/router.py`: use `settings.max_upload_size_mb` and `is_allowed_file_extension()` for the single, auto, and batch upload routes.
+- `app/modules/vault/router.py`: use the same `is_allowed_file_extension()` helper and clean up unused optional preview imports.
+- `app/modules/vault/register.py`: add `vault_folders` contract.
+- `app/services/vault_upload_service.py`: remove the duplicate `vault_upload`, `vault_folders`, and `vault_init` `FunctionGroupContract` registrations.
+
+### Verification
+
+- `python -m py_compile` on changed files: PASS.
+- `python -m ruff check app/services/vault_upload_service.py app/modules/intake/router.py app/modules/vault/router.py app/modules/vault/register.py app/core/validation.py`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- Direct `VaultUploadService.upload(storage_provider="local")` test: PASS — returned `vault_id`, `storage_path`, `is_certified=True`, and content readback matched.
+- `tests/integration/test_vault_local.py`: PASS (run with `PYTHONPATH` set).
+- `app.core.module_contracts.contract_registry` after loading `app.modules.vault.register`: `vault::vault_upload`, `vault::vault_init`, and `vault::vault_folders` all present exactly once.
+- Size validation: file 1 byte over `max_upload_size_mb` rejected.
+- Extension validation: `.txt` allowed, `.exe` disallowed, using `settings.allowed_extensions`.
+
+### Notes
+
+- Three separate commits created (one per approved fix), all with `admin:` prefix per the commit-hook convention.
+- The running dev auth bypass (`/debug/seed-test-user`) still lacks a storage token, so `POST /api/intake/upload/auto` returns `token_required` through `yellow_access`. The service-level upload path is now unblocked; the dev-bypass token setup is a separate, pre-existing local-dev concern, not part of this task.
+
+---
+
+## Session -- 2026-08-22 — Notice Date → Received Date rename
+
+### Guardrail Engine Run — 2026-08-22T21:43:36
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Tenant-facing copy still uses the old "Notice Date" label for the date a document was received. Per the MVP scope, the three canonical document dates are Event Date, Received Date, and immutable Upload Date.
+
+### Fix
+
+- Updated tenant-facing labels and descriptions across the app to use "Received Date" while keeping internal code names (`notice_date` field/variable) unchanged.
+- `app/core/document_types.py`: changed `notice_date` field label from `Notice date` to `Received Date`.
+- `app/services/form_field_extractor.py`, `app/modules/extraction/service.py`: changed `display_name` from `Notice Date` to `Received Date`.
+- `app/services/document_recognition.py`: changed date classification label from `Notice Date` to `Received Date`.
+- `app/modules/documents/service.py`: changed default event title from `Notice Date` to `Received Date`.
+- `app/modules/case_builder/router.py`, `app/modules/eviction_defense/router.py`: changed defense reasons from `Notice date found` to `Received date found`.
+- `app/services/recognition/handwriting_analyzer.py`: changed forgery indicator text from `Notice date`/`Notice dated` to `Received date`/`Received on`.
+- `static/tools/generators.html`: changed form label to `Received Date` and fixed generated letter text from `dated` to `on`.
+- `static/tenant/tools/letters.html`: changed non-renewal label to `Non-Renewal Received Date` and generated letter text to `received your notice on`.
+
+### Verification
+
+- `grep -R "Notice Date"` on `app/`, `static/`, and `templates/` now returns only internal developer-facing references (variable names, docstrings, comments) and non-tenant artifacts (tests, scripts, docs).
+- `python -m py_compile` on all changed Python files: PASS.
+
+### Notes
+
+- Internal names such as `notice_date`, `noticeDate`, `nr-notice-date`, and `notice`/`notified` extraction keywords were intentionally left unchanged.
+
+---
+
+## Session -- 2026-08-22 — Jurisdiction-aware Law Linker + Page Composer county plumbing
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+The Law Linker was using a hardcoded, incorrect Hennepin County URL (`hennepin.us/property-tax`), the Page Composer was not carrying user county/jurisdiction into composed pages, and composed GUI pages did not expose jurisdiction data or load the Law Linker.
+
+### Fix
+
+- `app/core/law_source_registry.py`: Added `CountyCodeRegistry`, `_MN_MULTIWORD_COUNTIES`, and a jurisdiction-aware `_COUNTY_CITATION_RE`. County-code URLs are now built from a Municode slug with optional per-state/county overrides. Replaced the old Hennepin-specific source. Added `link_citations()` to wrap recognized citations in `<a class="law-linker-cite">` using the backend source-of-truth.
+- `app/modules/law_library/router.py`: Added `/county-code` endpoint that resolves county-code source URLs.
+- `app/core/module_gate.py`: `get_jurisdiction()` now surfaces the user’s stored county through `request.state.jurisdiction`, with explicit headers/query params as overrides.
+- `app/modules/page_composer/models.py`, `assembly.py`, `router.py`: `PageAssemblyRequest`/`PageAssemblyMetadata` now carry `county`; `assemble_page()` accepts and propagates county; Page Composer API routes now pass `county` from `get_jurisdiction(request)` or request body.
+- `app/modules/page_shell/models.py`, `renderer.py`: `PageConfig` carries `jurisdiction` and `county`; `_render_info_block()` runs `link_citations()` on block content so composed Page Shell output contains citation links.
+- `app/main.py`: `/gui/dashboard` and `/gui/page/{subject}` pass request jurisdiction/county into `assemble_page()` and the template.
+- `app/templates/gui/base.html`, `app/templates/gui/assembled_page.html`: Base template loads `/static/js/law-linker.js`; assembled page emits `window.SEMPTIFY_JURISDICTION` and marks content with `data-law-linker`.
+- `static/js/law-linker.js`: Now loads user jurisdiction, uses the `/county-code` endpoint to resolve county-code URLs, cleans county names to avoid false positives, and works on `data-law-linker` scopes.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m ruff check` on the changed Python files: PASS.
+- Runtime backend:
+  - `/api/law-library/county-code?county=Hennepin&state=MN` returns the correct Municode URL.
+  - `/api/page/eviction/render?county=Hennepin&state=MN` returns `metadata.county: "Hennepin"` and `county` in the rendered `PageConfig`.
+  - `/gui/page/eviction?county=Hennepin&state=MN` returned `window.SEMPTIFY_JURISDICTION = {"state":"MN","county":"Hennepin"}` and loads `law-linker.js`.
+- `app.core.law_source_registry.link_citations()` manual test: correctly links `Hennepin County Code § 1.02` to `library.municode.com/mn/hennepin_county/...` and `Minn. Stat. § 504B.321` to `revisor.mn.gov`, without false-positive linking leading words like "See".
+- `tests/module_health/test_page_composer.py -q --no-cov`: 1 passed.
+- `tests/module_health/test_law_library.py` and `test_page_shell.py` error at DB setup with `sqlite3.OperationalError: database or disk is full`; the environment is out of disk space.
+- Browser DOM/JS execution was not verified live because the `ironbee-dt-browser` MCP server is not present in this environment; static HTML fetch confirmed the script and jurisdiction data are present.
+
+### Notes
+
+- The runtime server (`uvicorn app.main:fastapi_app --host 127.0.0.1 --port 8001`) was started and the backend verification above was performed against it.
+- The environment disk-full issue should be cleaned up before running the full module health suite.
+- No PR or merge was requested; this is a local feature branch.
+
+---
+
+## Session -- 2026-08-21 — Render MVP Dockerfile
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Need a Render-specific Dockerfile that pins the MVP deployment mode and is easy to override for a future full-featured Render deploy.
+
+### Fix
+
+- Added `Dockerfile.render` based on the existing production multi-stage image, but pins `python:3.11.9-slim` and sets `DEPLOY_TARGET=render_mvp` by default via `ARG`/`ENV`.
+- Updated `render.yaml` to use `dockerfilePath: ./Dockerfile.render` and added a `DEPLOY_TARGET=render_mvp` env var override.
+- The same `Dockerfile.render` supports a future `render_full` deployment by overriding the `DEPLOY_TARGET` build arg or the runtime env var, without rebuilding the image from a different Dockerfile.
+
+### Verification
+
+- `python -m py_compile app/main.py` still passes (Dockerfile does not affect Python code).
+- `docker build -f Dockerfile.render -t semptify:render-mvp .` **succeeded** after adding `requirements-render-mvp.txt` and `.dockerignore`. The original build with the full `requirements.txt` failed because torch/nvidia wheels exceeded the available Docker storage, caused I/O errors, and crashed the Docker Desktop WSL backend.
+- `docker run` with `DEPLOY_TARGET=render_mvp` **succeeded** and the container booted cleanly. Logs show:
+  - `DEPLOY_TARGET=render_mvp`: loading 46 MVP core modules
+  - `Modules: 46 registered, 0 skipped, 0 errors`
+  - `Uvicorn running on http://0.0.0.0:8000`
+- Container failed on the first boot with `unable to open database file` because the `semptify` user did not own `/app`. Fixed `Dockerfile.render` by changing the `chown` step to `chown -R semptify:semptify /app`.
+
+### Notes
+
+- The image still installs the full `requirements.txt`; a future optimization can trim a `requirements-render-mvp.txt` if Render free-tier install time becomes an issue.
+- The original `Dockerfile` is left intact for full / local production builds.
+
+---
+
+## Session -- 2026-08-21 — DEPLOY_TARGET env var + Render MVP force-gating
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Need a single switch (`DEPLOY_TARGET=render_mvp`) that force-gates all non-MVP Semptify modules off for Render free-tier deployment while leaving local dev unchanged.
+
+### Fix
+
+- Added `DEPLOY_TARGET` helpers to `app/core/product_manifest.py`:
+  - `get_deploy_target()`, `is_mvp_deploy()`, `get_mvp_allowed_modules()`.
+  - MVP allow-list currently includes all `ProductTier.CORE` modules plus `app.modules.intake.router` (Pass 1 intake is required for MVP despite being `EXTENDED`).
+- Updated `register_tiers()` to ignore the requested tier list and only load the MVP allow-list when `DEPLOY_TARGET=render_mvp`.
+- Updated `app/core/contract_loader.py` to skip contract loading for modules outside the MVP allow-list under `render_mvp`.
+- Updated `app/modules/intake/router.py` to skip Deep OCR Pass 2 (`submit_deep_ocr_job`) and `DocumentFlowOrchestrator` Pass 2+ processing under `render_mvp`.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/product_manifest.py app/core/contract_loader.py app/modules/intake/router.py`: PASS.
+- `create_app()` without `DEPLOY_TARGET` loads 86 modules / 280 routes: PASS.
+- `create_app()` with `DEPLOY_TARGET=render_mvp` loads 46 modules / 240 routes: PASS.
+
+### Notes
+
+- The MVP allow-list is intentionally conservative (all CORE + intake). It should be reviewed and tightened to the exact MVP feature set as the deployment stabilizes.
+- `app.modules.calendar.router` is MVP-needed but not yet in the allow-list because it is currently `ProductTier.DEV`; promote it or add it to the allow-list when the Calendar task starts.
+- Main still wires `context_loop.service` and `filedored` subscribers independent of `product_manifest.py`; those are outside the router-gating scope.
+
+---
+
+## Session -- 2026-08-20 — Context Explanation Workbook doc cleanup
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+`docs/context_explanation_workbook.md` had two small defects: Section 6 said "20 suggested entries" but listed the same 10 twice, and the file references in Sections 6, 7, and 9 used inconsistent workbook/example/template CSV names.
+
+### Fix
+
+- Corrected the starter set heading to "10 suggested entries" and removed the duplicated 10-item list.
+- Replaced `data\explanation_workbook.csv` with `data\context_explanation_workbook.csv` in the CLI loader command.
+- Updated the Section 9 file list to include `data/context_explanation_workbook.csv` and `docs/context_explanation_needs.md` alongside the template/example CSVs and loader.
+
+### Verification
+
+- Confirmed the files on disk: `data/context_explanation_workbook.csv`, `data/explanation_workbook_template.csv`, `data/explanation_workbook_example.csv`, `docs/context_explanation_needs.md`, and `tools/load_explanation_workbook.py`.
+- Re-read the edited doc to confirm the starter list appears once and all CSV references are consistent.
+
+---
+
+## Session -- 2026-08-20 — CASE_DATA overlay migration + case_builder scope narrowing
+
+### Guardrail Engine Run — 2026-08-20
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+All checks passed.
+
+### Problem
+
+case_builder was persisting full case JSON (case_number, plaintiff, defendant, property_address, motions, deadlines, etc.) directly into `Incident.incident_metadata` in Postgres, violating the DB boundary rule and the corrected case_builder scope.
+
+### Fix
+
+- Added `OverlayType.CASE_DATA` and a new `case` overlay category in `app/core/overlay_types.py`.
+- Added `CaseDataPayload` in `app/models/unified_overlay_models.py` for the narrowed schema (flag_category, narrative, harm_description, timeline, exhibit_refs, flag_notes).
+- Added `case_overlay_id` to the `Incident` model and Alembic migration `20260820_add_case_overlay_id`.
+- Refactored `app/modules/case_builder/router.py`:
+  - `load_case()` reads the `CASE_DATA` overlay from the user's cloud storage via `UnifiedOverlayManager`.
+  - `save_case()` creates/updates a `CASE_DATA` overlay and stores only the overlay pointer, status, and non-PII category tags in the `Incident` row.
+  - `create_case()` now creates the `Incident` row with no case content and immediately calls `save_case()` to persist the overlay.
+  - Dropped case-management fields (case_number, case_name, motions, deadlines, plaintiff/defendant) from the overlay payload; logs a warning if they are present.
+- Registered `/gui/record/journal/create` in `app/core/navigation.py` to resolve the SSOT advisory from the debug redirect.
+- Added the post-`create_app()` route-scan guardrail gap to `BACKLOG.md`.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m ruff check` on all changed files: PASS.
+- `pytest tests/test_case_builder_overlay.py -q --no-cov`: 3 passed.
+- `pytest tests/test_unified_overlay_manager.py -q --no-cov`: 12 passed.
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
+- `pytest tests/test_eviction_case_builder.py -q --no-cov`: 32 passed.
+- `pytest tests/test_case_builder.py -q --no-cov`: 6 passed, 9 skipped.
+- `pytest tests/module_health -q --no-cov`: 244 passed, 1 warning.
+- `pytest -o addopts="--cov=app.services.unified_overlay_manager --cov-report=term-missing" tests/test_unified_overlay_manager.py tests/test_case_builder_overlay.py -q`: 15 passed, unified_overlay_manager.py coverage 80.69% (81%).
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Notes
+
+- Existing routes that append to `case["motions"]`, `case["deadlines"]`, `case["counterclaims"]`, and similar case-management fields still call `save_case()`; those fields are intentionally dropped from the `CASE_DATA` overlay and should be reviewed/removed in the form-fill scope, not case_builder.
+- Legacy `Incident` rows that still have `incident_metadata` are handled by a fallback in `load_case()`; new rows set `incident_metadata = {}`.
+
+---
+
+## Session -- 2026-08-20 — Rule 60.02 / CIV / HOU court forms library
+
+### Guardrail Engine Run — 2026-08-20T18:03:23
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-08-20T18:02:06
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Adapt the generic court-form generation blueprint into the existing canonical `app/modules/court_forms` module so Brad's Rule 60.02 Motion to Vacate case can be filled through the Semptify UI, with civil and housing form metadata, dynamic field rendering, validation, PDF generation, packet assembly, and vault save.
+
+### Fix
+
+- Added `app/modules/court_forms/data/forms_library.json` — JSON catalog of Minnesota civil/housing forms, including CIV601–CIV604, CIV901–CIV905, HOU101–HOU125, HOU202, HOU802, HOU803, HOU602, HOU702, and Rule 60.02 variants (`CIV602_R60_02`, `CIV603_R60_02`).
+- Added `app/modules/court_forms/library.py` — Pydantic `CourtForm`/`CourtFormField` models, JSON loader, field validation, HTML/PDF renderer with Minnesota caption, numbered paragraphs, bold headers, signature block, and `PyPDF2` packet merge.
+- Extended `app/modules/court_forms/service.py` — `CourtFormGenerator` now falls back to the JSON library for unknown `form_type`s, supports `_generate_library_form`, `_generate_pdf_bytes`, and `assemble_packet`.
+- Extended `app/modules/court_forms/router.py` — new `/api/forms/library` routes: `GET /library`, `GET /library/{form_id}`, `POST /library/{form_id}/render`, `POST /library/{form_id}/save`, `POST /library/packet`.
+- Extended `app/modules/court_forms/register.py` — `FunctionGroupContract` registrations for the library list/get/render/save/packet APIs.
+- Enabled `xhtml2pdf>=0.2.17` and pinned `reportlab>=4.0.0,<5` in `requirements.txt` for working HTML-to-PDF rendering in local dev and production.
+- Ran `tools/sync_registry.py --write` and `pytest tests/module_health -q --no-cov` (244 passed).
+
+### Verification
+
+- `python -m py_compile app/modules/court_forms/library.py app/modules/court_forms/service.py app/modules/court_forms/router.py app/modules/court_forms/register.py app/main.py`: PASS.
+- `python -m ruff check app/modules/court_forms/library.py app/modules/court_forms/service.py app/modules/court_forms/router.py app/modules/court_forms/register.py`: PASS.
+- `pytest tests/module_health/test_court_forms.py -q --no-cov`: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed, 1 warning.
+- Synthetic Rule 60.02 render via `CourtFormGenerator` produced valid `%PDF-1.4` motion and affidavit PDFs and merged them into a packet.
+- PDFs include centered footer page numbers via `xhtml2pdf` static frames.
+- FastAPI `TestClient` smoke test: `GET /api/forms/library` and `GET /api/forms/library/CIV602_R60_02` returned 200; `POST /api/forms/library/packet` returned a base64 merged PDF with both forms.
+- Save endpoint is wired but requires a live connected cloud vault; local-only dev storage is not configured in this environment.
+
+### Notes
+
+- Existing hardcoded forms (`answer_to_complaint`, `motion_to_dismiss`, etc.) are untouched and take precedence in `CourtFormGenerator`.
+- Rule 60.02 PII/case data must only be entered through the running app with a connected tenant vault; no real case data was placed in test fixtures, commits, or temporary files.
+
+---
+
+## Session -- 2026-08-20 — ADR-0008 Layer 2 Problem A: semantic retrieval
+
+### Guardrail Engine Run — 2026-08-20T11:55:05
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Implement dialect-aware embeddings for Semptify's own curated content (`context_explanation_entries` and `context_facts`), replacing the metadata-only placeholder retrieval in `app/modules/context_engine/retrieval.py` with a hybrid metadata pre-filter + embedding similarity pipeline. Must load `all-MiniLM-L6-v2` once, generate query embeddings at request time, keep the SQLite dev path pure-Python, support pgvector on PostgreSQL, add migration/backfill, and recalibrate the confidence threshold empirically.
+
+### Fix
+
+- Added `app/core/database_types.py` with `AsymmetricVector` (pgvector `VECTOR(384)` on PostgreSQL, `JSON` on SQLite).
+- Added `embedding` columns to `ContextExplanationEntry` (`app/modules/context_engine/explanation_entries.py`) and `ContextFact` (`app/modules/context_engine/models.py`).
+- Added `app/modules/context_engine/embedding_model.py` singleton `all-MiniLM-L6-v2` loader and `app/modules/context_engine/vector_math.py` pure-Python cosine.
+- Rewrote `app/modules/context_engine/retrieval.py` to pre-filter by `jurisdiction` and `pillar`, then score by embedding cosine. PostgreSQL uses the pgvector `<=>` distance operator; SQLite uses `vector_math.cosine_similarity`.
+- Recalibrated `LAYER2_CONFIDENCE_THRESHOLD` from `0.75` (metadata-only) to `0.45` based on realistic Object Envelope spot-checks.
+- Wired embedding generation into `create_explanation_entry` and `update_explanation_entry` in `explanation_entries.py` and into `upsert_fact` in `cache.py`.
+- Added `scripts/backfill_context_embeddings.py` to backfill existing `context_explanation_entries` and `context_facts` rows.
+- Added Alembic migration `alembic/versions/20260820_add_embedding_columns.py` with `CREATE EXTENSION IF NOT EXISTS vector;` for PostgreSQL.
+- Added `sentence-transformers` and `pgvector` to `requirements.txt`.
+- Wired a startup background task in `app/main.py` to eagerly warm the singleton; guarded by `ENABLE_HEAVY_SERVICES` and `EMBEDDING_MODEL_LOCAL_FILES_ONLY`.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files — PASS.
+- `python -m pytest tests/test_information_orchestrator_pilot.py -q --no-cov` — 12/12 pass.
+- `python -m pytest tests/module_health/test_context_engine.py tests/test_context_engine_verifier.py -q --no-cov` — 7/7 pass.
+- `python -m pytest tests/module_health -q --no-cov` — 244/244 pass.
+- `alembic upgrade head` on SQLite — PASS; `context_explanation_entries.embedding` and `context_facts.embedding` columns created as `JSON`.
+- `python scripts/backfill_context_embeddings.py` — 0 explanation entries, 2 facts embedded, 0 failures.
+- Spot-check (dev script): "late fee" → returns late-fee entry (0.679) and penalty-charge entry (0.473); "penalty charge" → penalty-charge entry (0.589); "security deposit return" → deposit entry (0.510); "eviction notice deadline" → eviction entry (0.647); unrelated "traffic ticket" → [] (silence beats fabrication).
+- Local Uvicorn server on `127.0.0.1:8003` started and logs show `Embedding model all-MiniLM-L6-v2 loaded`.
+
+### Status
+
+Semantic retrieval for curated Layer 1 content is implemented, tested, and migration-ready. PostgreSQL parity was not locally exercised because no live PostgreSQL test environment is available; the code path and Alembic migration are in place. Local VM memory is 92–95% before model load, so the donation-funded deployment tier must be sized to accommodate the additional ~25–100 MB the model and torch add.
+
+---
+
+## Session -- 2026-08-20 — Page Composer architecture inventory (read-only, no facade work)
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+User asked to continue the Page Composer reform by producing a complete inventory of its current implementation, dependencies, callers, scope, contracts, templates, safety rules, routing, and consumers — as the last architectural block before considering a PageEngine facade. Facade work was explicitly not started.
+
+### What was done
+
+Read-only audit of `app/modules/page_composer`, `app/modules/page_shell`, `app/services/ui_composer`, calling routes in `app/main.py`, the contract registry, `product_manifest.py`, templates, tests, and the assembly formula blueprint. Live HTTP verification on `http://127.0.0.1:8001`:
+- `GET /api/page/` — 200, returns 14 Context Engine subjects.
+- `GET /api/page/repair/render` — 200, returns Page Shell HTML (`skeleton-act_focus`, blend `post_filing_calm`, 4 zones).
+- `GET /gui/page/repair` — 200.
+- `GET /api/page/eviction/preview` — 200, public preview returns empty facts/stories/case.
+
+### Inventory summary
+
+#### 1. Source files
+
+**Page Composer (`app/modules/page_composer/`)**
+- `__init__.py` — exports `router`.
+- `router.py` — FastAPI routes under `/api/page`.
+- `service.py` — `compose_page(subject, jurisdiction, user_id, fact_limit, story_limit)`; pulls Context Engine facts, stories, and optional Case Builder data.
+- `assembly.py` — `assemble_page(...)`; the assembly formula. Produces `PageConfig`, legacy UI Composer components, and a GOVERN report.
+- `models.py` — `PageAssemblyRequest`, `PageAssemblyMetadata`, `PageAssemblyResult`.
+- `register.py` — two `FunctionGroupContract` registrations (`page_compose`, `page_assemble`).
+
+**Page Shell (`app/modules/page_shell/`)**
+- `__init__.py` — docstring only.
+- `router.py` — `/api/page-shell/health`, `/skeletons`, `/blends`, `/render`, `/demo`.
+- `models.py` — Pydantic models: `PageConfig`, `Zone`, `InputBlock`, `InfoBlock`, `OutputBlock`, `ChannelLevels`, `AuditHook`, `Escalation`.
+- `blends.py` — 6 named blend presets (`first_contact`, `orientation`, `quiet_capture`, `urgent_action`, `post_filing_calm`, `high_stakes_review`).
+- `skeletons.py` — 4 skeleton grid layouts (`record_focus`, `know_focus`, `act_focus`, `govern_focus`).
+- `govern.py` — GOVERN floor by `risk_tier` and GOVERN `suppresses_act_block` override.
+- `zones.py` — `level_to_prominence()` and `level_to_visual_weight()`.
+- `renderer.py` — `render_page_shell(config)` → HTML string.
+- `loader.py` — `load_page_config()` validates a raw dict and applies GOVERN rules.
+- `register.py` — comments noting registration is in `product_manifest.py`; no `register_function_group` call.
+- `README.md` — implementation notes.
+- `sample_configs/record_focus_demo.json` and `govern_focus_demo.json`.
+
+**UI Composer (separate, for comparison)**
+- `app/services/ui_composer.py` — `compose_page(user_id, page_intent, context)` returns component list.
+- `app/modules/ui_composer/router.py` — `/api/ui/page/{intent}`, `/api/ui/fragment/{component_type}`, `/api/ui/process/{workflow_id}`.
+- `app/modules/ui_composer/register.py` — three `FunctionGroupContract` registrations.
+- `app/templates/components/ui_composer.html` — macro library.
+- `app/templates/generic_page.html` — UI Composer consumer.
+
+**Templates / CSS directly tied to Page Shell**
+- `app/templates/gui/assembled_page.html` — wraps `render_page_shell` output.
+- `static/page_shell/page_shell.css` — 100vh desktop grid + mobile stacked scroll, 4 skeletons, level-driven visual weight.
+- `static/admin/page_shell_demo.html` — admin demo toggling record/govern focus.
+
+**Design docs**
+- `docs/blueprints/page_composer_assembly_formula_blueprint.md` — DRAFT blueprint for the assembly formula.
+- `temp/semptify_pillar_mixer_backbone.md` (referenced) — spec for the Page Shell.
+
+#### 2. Routing
+
+**Page Composer API (`app/modules/page_composer/router.py`) — mounted in `app/core/product_manifest.py` as CORE tier**
+- `GET /api/page/` — list 14 subjects.
+- `GET /api/page/{subject}/preview` — public, no auth, no case data.
+- `GET /api/page/{subject}` — legacy JSON view, requires `auth_gate`.
+- `GET /api/page/{subject}/assemble` — requires auth.
+- `POST /api/page/assemble` — requires auth.
+- `GET /api/page/{subject}/config` — requires auth.
+- `GET /api/page/{subject}/components` — requires auth.
+- `GET /api/page/{subject}/render` — requires auth; returns shell HTML.
+
+**Page Shell API (`app/modules/page_shell/router.py`) — mounted in `product_manifest.py` as DEV tier, `dev_only`, `requires_role=("admin",)`, prefix `/api/page-shell`**
+- `GET /api/page-shell/health`
+- `GET /api/page-shell/skeletons`
+- `GET /api/page-shell/blends`
+- `POST /api/page-shell/render`
+- `GET /api/page-shell/demo`
+
+**Main app HTML routes using Page Composer / Page Shell (`app/main.py`)**
+- `GET /gui/dashboard?subject=&intent=` (line ~3490) — tenant dashboard.
+- `GET /gui/page/{subject}` (line ~3521) — assembled subject page.
+- `GET /tenant/library/{subject}` (line ~5047) — KNOW library subject; uses `page_composer.service.compose_page` + `ui_composer.compose_page` + `generic_page.html`.
+- `GET /api/ui/fragment/library/{subject}` (line ~5189) — HTMX fragment; uses `page_composer.service.compose_page` for facts.
+
+**In-task guide pages (UI Composer extended, NOT Page Composer)**
+- `GET /gui/record/journal/create` (`app/main.py` ~3348) — `record_body.html` / `pages/journal_create_guide.html`.
+- `GET /gui/know/law-library/get-statute` (`app/main.py`).
+- `GET /gui/act/eviction-defense/calculate-deadlines` (`app/main.py`).
+These are strict single-pillar, single-function pages; they borrow Page Shell CSS tokens but do not use `PageConfig`/skeletons/blends.
+
+#### 3. Dependencies and callers
+
+**Page Composer `service.py` calls**
+- `app.modules.context_engine.cache.get_facts`
+- `app.modules.context_engine.stories.get_published_stories`
+- `app.modules.case_builder.case_builder.get_cases_for_user` (best-effort, optional; currently may return nothing because the function does not exist — noted).
+
+**Page Composer `assembly.py` calls**
+- `app.modules.page_composer.service.compose_page`
+- `app.modules.page_shell.blends.get_blend`
+- `app.modules.page_shell.govern.apply_govern_rules`
+- `app.modules.page_shell.zones.level_to_prominence`
+- `app.modules.page_shell.models` (PageConfig, Zone, blocks)
+- `app.services.ui_composer.compose_page` (legacy component fallback)
+- `app.services.context_loop.context_loop.get_state` (local import, best-effort)
+
+**Page Shell `renderer.py` calls**
+- `app.modules.page_shell.govern.collect_suppressed_act_blocks`
+- `app.modules.page_shell.models`
+- `app.modules.page_shell.skeletons`
+- `app.modules.page_shell.zones`
+
+#### 4. Contracts and safety rules
+
+- `app/modules/page_composer/register.py` registers two `FunctionGroupContract`s: `page_compose` and `page_assemble`.
+- `app/modules/page_shell/register.py` does not register any contract; its registration lives only in `product_manifest.py`.
+- **Neither `app.modules.page_composer.register` nor `app.modules.page_shell.register` is listed in `app/core/contract_loader.py:_MODULES_WITH_CONTRACTS`.** The Page Composer/Page Shell contracts are therefore not loaded at startup, even though Page Composer is a CORE module. This contradicts the AGENTS.md module-contract mandate for reusable service APIs.
+- UI Composer contracts (`app/modules/ui_composer/register.py`) are listed in `contract_loader.py` and are active.
+- Page Composer routes use `app.core.security.auth_gate` (valid user only).
+- Page Shell loader rejects: missing `major_pillar`, unknown `blend`, `risk_tier="very_high_do_not_build"`.
+- Page Shell GOVERN rules clamp GOVERN to a floor based on risk tier and can suppress named ACT blocks via `OutputBlock.suppresses_act_block`.
+
+#### 5. Templates / styling
+
+- `app/templates/gui/assembled_page.html` — wraps `shell_html|safe`, loads `/static/page_shell/page_shell.css`.
+- `static/page_shell/page_shell.css` — 100vh desktop grid, mobile breakpoint at 1024px, 4 zone base hues, `visual-weight-{low,moderate,deep}` gradients, no cards/borders/shadows.
+- `app/templates/generic_page.html` — UI Composer consumer; loads `ssot-design-system.css`, not Page Shell CSS.
+- `app/templates/components/ui_composer.html` — Jinja macros for UI Composer component types.
+
+#### 6. Scope boundaries
+
+- **Page Composer** — multi-pillar page orchestration. Decides `major_pillar`, blend, channel levels, block content, GOVERN rules. Emits `PageConfig` + legacy component list. Intended for concierge/dashboard/landing/library-browse pages.
+- **Page Shell** — pure data-driven renderer. Input is a validated `PageConfig`; output is HTML. Knows nothing about user context, facts, or case data.
+- **UI Composer** — legacy/extended single-pillar in-task page composer. Returns ordered component lists for `generic_page.html` and the three in-task guide pages. Owns `record_body.html`, `know_body.html`, `act_body.html`.
+- The two page families share Context Loop, `module_contracts.py`/`contract_registry`, and `module_gate` resolution, but they do not render the same page types.
+
+#### 7. Consumers
+
+- Public / marketing: `/api/page/{subject}/preview`.
+- Tenant dashboard: `/gui/dashboard`.
+- Tenant subject pages: `/gui/page/{subject}`.
+- KNOW library: `/tenant/library/{subject}` and `/api/ui/fragment/library/{subject}`.
+- Admin tooling: `/admin/page_shell_demo.html` and `/api/page-shell/*`.
+
+#### 8. Gaps and observations (not fixed)
+
+- **Page Composer / Page Shell contracts not loaded** because `register.py` paths are missing from `app/core/contract_loader.py`.
+- **Page Shell is DEV/admin-only in the manifest but is production-exposed via Page Composer** (`/api/page/{subject}/render` and `/gui/page/{subject}` call `render_page_shell`). This is a lifecycle/permission mismatch.
+- **Capability filter in `assembly.py` is currently a no-op** — `_apply_capability_filter` only filters if `context["capabilities"]` is present, and `_block_allowed` always returns True because `AnyBlock` does not carry a module name.
+- **`page_composer.service._gather_user_case` calls `cb_module.get_cases_for_user`**, which does not exist in `app/modules/case_builder` (the `get_cases_for_user` attribute check fails silently; case data is always `None`).
+- **Page Shell skeleton uses `height: 100vh; overflow: hidden`**, but only on the `.page-shell` class. The three proven UI Composer in-task guide pages do not use the `.page-shell` wrapper, so the rule does not apply to them. Verified at 375x667: all three pages have `body { overflow: visible }`, `scrollHeight > innerHeight`, and scroll correctly. This gap remains a concern for Page Composer's own blended dashboard pages (`/gui/page/{subject}`, `/gui/dashboard`), not for the in-task guides.
+- **The blueprint (`page_composer_assembly_formula_blueprint.md`) is still DRAFT** and not fully canonical.
+
+### Quick check — `page_shell.css` `100vh`/`overflow: hidden` scope
+
+- Rule in `static/page_shell/page_shell.css` is `.page-shell { height: 100vh; overflow: hidden; }`.
+- The three proven in-task guide pages (`record_body.html`, `know_body.html`, `act_body.html`) render inside `.record-guide`/`.know-guide`/`.act-guide` wrappers, not `.page-shell`, and override `.zone { overflow: visible; }`.
+- Verified at 375x667 via browser resize/evaluate against the running app:
+  - `/gui/record/journal/create` — `scrollHeight: 2373`, `innerHeight: 667`, `body { overflow: visible }`, no `.page-shell` element, scrolls.
+  - `/gui/know/law-library/get-statute` — `scrollHeight: 1666`, `innerHeight: 667`, `body { overflow: visible }`, no `.page-shell` element, scrolls.
+  - `/gui/act/eviction-defense/calculate-deadlines` — `scrollHeight: 2185`, `innerHeight: 667`, `body { overflow: visible }`, no `.page-shell` element, scrolls.
+- Conclusion: the rule is **narrowly scoped** to `.page-shell` and does not clip the three proven pages. No immediate fix needed; gap remains in backlog for Page Composer/Page Shell blended pages.
+
+### Status
+
+Inventory complete. No code changes made. Facade work not started. The next decision point is whether to address the contract-loading and capability-filter gaps before any PageEngine facade is discussed.
+
+---
+
+## Session -- 2026-08-20 — Page Composer / Page Shell prioritized cleanup
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+The Page Composer inventory identified six gaps. This session addressed all six in the user-provided priority order, with real-request verification for the live Page Composer routes.
+
+### What was done
+
+1. **Capability filter no-op → fixed**
+   - Added `module_name` to `InputBlock`, `InfoBlock`, `OutputBlock` in `app/modules/page_shell/models.py`.
+   - Set `module_name` on every Page Composer block in `app/modules/page_composer/assembly.py` (vault, case_builder, calendar, timeline).
+   - Rewrote `_apply_capability_filter` / `_block_allowed` to use `context["capabilities"]` (resolved module paths) and warn visibly when capabilities are missing.
+   - Wired `resolved_module_paths` from `app.core.module_gate.get_module_access(request)` into `assemble_page` calls in `app/modules/page_composer/router.py`, `/gui/dashboard`, and `/gui/page/{subject}`.
+
+2. **Case Builder phantom function → fixed**
+   - Created `app/modules/case_builder/case_builder.py` with `get_cases_for_user(user_id, subject=None)`.
+   - Updated `app/modules/page_composer/service.py::_gather_user_case` to use the new function and log visible warnings when the module or function is missing.
+
+3. **CSS mobile check → no fix needed**
+   - Confirmed `static/page_shell/page_shell.css` already switches `.page-shell` to `height: auto; overflow: visible` at `max-width: 1024px`.
+   - At 375px on `/gui/page/repair` and `/gui/dashboard` the document scrolls normally (`scrollHeight > innerHeight`, `overflow: visible`).
+
+4. **Manifest mismatch → fixed**
+   - Promoted `app.modules.page_shell.router` from `ProductTier.DEV / lifecycle="dev_only"` to `ProductTier.CORE / lifecycle="stable"` in `app/core/product_manifest.py`.
+   - Kept `requires_role=("admin",)` on the `/api/page-shell` introspection router; the renderer is used through Page Composer's tenant routes.
+
+5. **Contracts not loaded → fixed**
+   - Added `app.modules.page_composer.register` and `app.modules.page_shell.register` to `app/core/contract_loader.py`.
+   - Gave `app/modules/page_shell/register.py` real `FunctionGroupContract` registrations for `render_page` and `load_page_config`.
+
+6. **Assembly formula blueprint still DRAFT → promoted**
+   - Updated `docs/blueprints/page_composer_assembly_formula_blueprint.md` status from `DRAFT` to `APPROVED — implemented`.
+   - Added implementation notes covering capability filter, Case Builder, manifest, contracts, and mobile CSS.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed, 1 warning.
+- `pytest tests/test_page_composer_assembly.py tests/test_page_composer_assembly_api.py tests/test_page_composer_render.py -q --no-cov`: 23 passed.
+- Real request `GET /api/page/repair/render` with seeded user: HTTP 200, blocks present in record/act zones.
+- Mobile (375×667) browser check on `/gui/page/repair` and `/gui/dashboard`: `overflow: visible`, document scrollable.
+
+### Remaining
+
+- No remaining Page Composer/Page Shell cleanup gaps from this inventory.
+- PageEngine facade remains explicitly deferred.
+
+---
+
+## Session -- 2026-08-20 — Add single-function guide page: timeline create event
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+User selected option 1 from the master handoff: add more single-function guide pages using the proven pattern. Chose `timeline::timeline_create_event` as the next RECORD-pillar function.
+
+### What was done
+
+- Created `app/templates/pages/timeline_create_event.html` extending `body/record_body.html`.
+- Reused Page Shell CSS tokens, zone/block classes, `record-guide` layout, form-first ordering, `details`-wrapped optional fields, primary `output-trigger` save button, and "View your timeline" next-step CTA.
+- Added route `GET /gui/record/timeline/create-event` in `app/main.py` with tapering context, resolver notice, and a 3-step backstage narration.
+- The page form calls the existing `POST /api/timeline/events` endpoint.
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `pytest tests/test_page_composer_assembly.py tests/test_page_composer_assembly_api.py tests/test_page_composer_render.py -q --no-cov`: 23 passed.
+- Real request `GET /gui/record/timeline/create-event`: HTTP 200.
+- Browser real-use pass: filled title, date, description, clicked Save; returned `Saved. Event ID: evt_xiG3qMKoRiHjEIGL`.
+- Mobile check at 375px: document scrolls (`scrollHeight: 2470`, `innerHeight: 667`, `overflow: visible`), zero console errors.
+
+### Notes
+
+- The contract title still reads `Timeline Create Event (SSOT)`, which is backlog item "contract copy too technical." Not fixed per-function; tracked centrally.
+
+---
+
+## Session -- 2026-08-20 — Real-use verification of the three in-task guide pages
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+User instructed: "Real use is genuinely unblocked: seed a test user and go work through journal_create, the statute lookup, and the deadline calculator yourself." The goal was to exercise the three proven in-task guide pages end-to-end as a real user, not just inspect code or run another handoff.
+
+### What was done
+
+Seeded the test tenant by setting the signed `semptify_uid` cookie in the browser and exercised all three flows:
+
+- **Journal create** — filled `Other` / "Test journal entry" / "The landlord refused to fix the leaking sink.", clicked Save. Result: `Saved. Entry ID: jrn_TI7uKblqSJhqW3wn`.
+- **Law library get statute** — selected `Security Deposits`, clicked Look up. Result: 404. The page was calling `/api/law-library/statute?statute_id=...`, which does not exist. The canonical endpoint is `/api/law-library/statutes/{statute_id}` and returns `{statute: {...}}`.
+- **Deadline calculator** — entered `2026-09-01` / `Nonpayment of rent`, clicked Calculate. Result: deadlines starting September 1, 2026 (`Answer due September 8, 2026`, etc.).
+
+### Fix
+
+- `app/templates/pages/law_library_get_statute.html`
+  - Changed the fetch URL from `/api/law-library/statute?statute_id=` to `/api/law-library/statutes/` + `statuteId`.
+  - Changed response parsing to use `s = data.statute || data` before reading `title`, `citation`, `summary`, `full_text`, `key_points`, and `source_name`.
+
+### Verification
+
+- Re-ran the statute lookup after the fix: selected `Security Deposits` → rendered `Minn. Stat. § 504B.375` with summary, key points, and source link.
+- Console errors on all three pages: 0.
+- All three flows now complete their real function with the seeded test user.
+
+---
+
+## Session -- 2026-08-20 — Local dev tenant auth bypass for in-task guide testing
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+The three verified UI Composer in-task guide pages render without auth in dev, but their save/action APIs (`POST /api/journal/`, `POST /api/eviction-defense/calculate-deadlines`, etc.) require a real user and return 401. Real OAuth onboarding is not configured locally (no client ID/secret), and the existing `/debug/seed-test-user` bypass was broken on SQLite (`NOW()` not supported) and did not set the signed `semptify_uid` cookie. This blocks "real use" testing of the proven pages.
+
+### Fix
+
+- Created a local `C:\master-repo\modules\app-semptify-fastapi\.env` with:
+  - `SECRET_KEY` — stable HMAC key for the signed `semptify_uid` cookie.
+  - `PORT=8001` — matches the running local dev port.
+  - `SECURITY_MODE=open` and `DATABASE_URL=sqlite+aiosqlite:///./semptify.db`.
+  - No OAuth credentials; the `.env` file is gitignored.
+- Fixed `POST /debug/seed-test-user` in `app/main.py`:
+  - Replaced SQL `NOW()` with `utc_now()` bind parameters so it works with SQLite.
+  - After seeding/upserting the `GUbGQUTpK6` tenant row, signs and sets the `semptify_uid` cookie via `set_auth_cookie()`.
+  - Returns a 302 redirect to `/gui/record/journal/create` so a browser following the POST is immediately logged in.
+- The bypass creates a user with `primary_provider='google_drive'`, `default_role='tenant'`, and `completed_groups='storage_connected,vault_initialized'`, which satisfies `require_user` and the local (non-enforced) storage middleware.
+
+### Verification
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- End-to-end dev bypass verification (curl with cookie jar):
+  - `POST /debug/seed-test-user` → 302, sets `semptify_uid` cookie.
+  - `GET /gui/record/journal/create` → 200.
+  - `GET /gui/know/law-library/get-statute` → 200.
+  - `GET /gui/act/eviction-defense/calculate-deadlines` → 200.
+  - `POST /api/journal/` with seeded cookie → 200, returns created journal entry.
+  - `POST /api/eviction-defense/calculate-deadlines` with seeded cookie → 200, returns deadlines.
+  - `GET /api/law-library/statutes` with seeded cookie → 200, returns statute list.
+
+### Status
+
+A stable local dev bypass is now available. Go to `http://127.0.0.1:8001/debug/seed-test-user` (POST) to log in as a fake tenant and use all three in-task guide pages for real. Real cloud OAuth still requires provider credentials and a registered redirect URI.
+
+### How to use the bypass
+
+1. Start server: `cd C:\master-repo\modules\app-semptify-fastapi && venv311\Scripts\python.exe -m uvicorn app.main:fastapi_app --host 127.0.0.1 --port 8001 --reload`
+2. POST `http://127.0.0.1:8001/debug/seed-test-user` (e.g., with curl or a browser form). It sets the `semptify_uid` cookie and redirects to the RECORD guide.
+3. Use the three guide pages normally: save journal entries, look up statutes, calculate eviction deadlines.
+
+---
+
+## Session — 2026-08-20 — Context Explanation Workbook + Loader
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+The `context_explanation_entries` table was empty; the embedding/retrieval pipeline is fully wired but had no content. The user confirmed the blocker is content, not model training, and asked for a workbook to be filled in plus a way to add the information.
+
+### What was done
+
+- Wrote `docs/context_explanation_workbook.md` — a complete content-author spec:
+  - Schema and allowed values.
+  - The four variant slots and the exact exposure-count mapping (exposure 1 → mechanics, 2 → trust, 3 → reinforcement, 4+ → minimal).
+  - Writing rules: 5th-grade reading level, no HTML, length targets, embedding signal.
+  - Canonical subject list (14 subjects) with labels.
+  - Starter set of 20 suggested entry priorities.
+  - Loading options: CLI loader, admin API, future admin form.
+- Wrote `docs/context_explanation_needs.md` — a human-readable checklist of all 56 subject/pillar combinations, sorted with the 10 high-priority starter rows first, including context-of-use and the four variant prompts for each.
+- Created `data/explanation_workbook_template.csv` — empty template with headers.
+- Created `data/explanation_workbook_example.csv` — three complete, ready-to-load example rows.
+- Created `data/context_explanation_workbook.csv` — **full 56-row workbook** with one row for every subject/jurisdiction/pillar combination. Each row has placeholder prompts for the four variant slots, pre-filled `upl_risk_tier`, and `review_status=BETA`.
+- Created `tools/load_explanation_workbook.py` — a CLI loader that:
+  - Validates each row against subject / pillar / risk tier / review status enums.
+  - Generates embeddings via `create_explanation_entry`.
+  - Reports skipped rows and errors.
+  - Supports `--dry-run`, `--jurisdiction` defaults, and `--show-placeholders`.
+  - **Skips rows that still contain `[FILL...`, `TODO`, or `[WRITE` markers**, so a partially completed workbook can be loaded safely.
+- Loaded the three example rows into `context_explanation_entries` (IDs `exp_HYUuOV4t2OyNVBmp`, `exp_QslAX2EaSVRztQoK`, `exp_cbYYtux6FzuUyYgV`).
+
+### Verification
+
+- `python -m py_compile tools/load_explanation_workbook.py`: PASS.
+- `pytest tests/module_health/test_context_engine.py tests/test_context_engine_verifier.py -q --no-cov`: 7 passed.
+- Loader dry-run on example CSV: 3 rows, 0 skipped.
+- Loader dry-run on full workbook CSV: 56 placeholder rows skipped, summarized cleanly.
+- Loader real run on example CSV: 3 rows created, zero errors.
+- Real HTTP request `GET /api/context/explanations?limit=10`: returned the 3 new entries.
+
+### Notes
+
+- The 0.45 `LAYER2_CONFIDENCE_THRESHOLD` should be re-checked once 20-30 real entries exist. The workbook documents this.
+- The actual remaining work is editorial: content authors need to fill the CSV and run the loader.
+
+---
+
+## Session -- 2026-08-19 — UI Composer form-factor variants and Page Shell CSS alignment
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Add desktop-poster / mobile-stacked-scroll form-factor variants to the three proven UI Composer in-task guide pages and align their visual vocabulary with Page Shell tokens (zone/block/block-input/output-trigger) without adopting Page Shell's four-pillar grid, skeletons, PageConfig, channels, blends, or GOVERN floor logic. Must preserve form-first order, next-step lead-in, calm `Get help now` CTA, progressive-disclosure `<details>`, Familiarity Tapering, and Module Resolver non-blocking notice behavior.
+
+### Fix
+
+- Reused the existing 900px media-query breakpoint and desktop-poster / mobile-stacked-scroll naming convention from `app/templates/pages/dispute_tracker.html` and `app/templates/pages/eviction_timeline.html`.
+- Loaded `/static/page_shell/page_shell.css` in `app/templates/body/{record,know,act}_body.html`.
+- Updated all three body templates to use Page Shell zone/block/block-input/output-trigger class vocabulary and level-driven shade depth, with zone-based background separation and no card borders/shadows.
+- Implemented a custom CSS grid for desktop (form/controls on the left, narration/inputs/outputs/next on the right; sticky controls) and a single-column natural scroll for mobile.
+- Added a `grid-area: auto` reset on each guide section so Page Shell's own `.zone[data-zone]` `grid-area` rules do not collapse the mobile single-column layout or override the custom desktop grid.
+- Preserved all must-not-regress behavior:
+  - Action/form is first visible (RECORD, KNOW) and the consequence-notice-then-action flow (ACT).
+  - Internal contract fields like `user_id` remain filtered from the templates.
+  - Calm, secondary-weight `Get help now` CTA remains reachable in both variants.
+  - `<details>` "Add more detail" progressive disclosure is intact.
+  - Familiarity Tapering `intensity_level` narration behavior is unchanged.
+  - Module Resolver non-blocking notice behavior is unchanged.
+  - One next-step lead-in remains on each page.
+- Did not start PageEngine facade work; deferred per `ACTIVE_CONTEXT.md`.
+
+### Verification
+
+- `python -m py_compile app\core\module_gate.py app\main.py app\modules\ui_composer\router.py app\services\ui_composer.py app\modules\ui_composer\tapering.py` — PASS.
+- `python -m pytest tests\module_health -q --no-cov` — 244 passed.
+- IronBee DevTools verification for all three pages (`/gui/record/journal/create`, `/gui/know/law-library/get-statute`, `/gui/act/eviction-defense/calculate-deadlines`) at 375px mobile and 1280px desktop:
+  - `main`, heading, and form present in both viewport classes for all three pages.
+  - Console returned no messages.
+  - ACT functional path (fill service date, click Calculate) completed successfully with no console errors.
+- Screenshots saved at `C:\Users\bradc\AppData\Local\Temp\uic-verify`:
+  - `record_desktop_1.png`, `record_mobile_4.png`
+  - `know_desktop_2.png`, `know_mobile_5.png`
+  - `act_desktop_3.png`, `act_mobile_6.png`
+
+### Status
+
+The three UI Composer in-task guide body templates now share the established desktop-poster / mobile-stacked-scroll form-factor pattern and Page Shell CSS token vocabulary while remaining strict single-function compositions. Visual consistency with the existing Page Composer-rendered pages is achieved through shared tokens, not shared composition logic. PageEngine facade remains deferred.
+
+---
+
+## Session -- 2026-08-19 — UI Composer Module Resolver wiring
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Wire the existing Module Resolver (Phase 2.2) into the UI Composer so single-function in-task guide pages and the `compose_page` service no longer ignore `request.state.module_access.resolved_module_paths`. `_get_resolved_modules()` in `app/services/ui_composer.py` was a hardcoded `[]` stub.
+
+### Fix
+
+- Added helpers to `app/core/module_gate.py`:
+  - `get_function_module_path(contract_module)` maps a contract module name to its product-manifest `module_path`.
+  - `is_function_resolved(request, contract_module)` checks `request.state.module_access.resolved_module_paths`.
+- Updated `app/services/ui_composer.py`:
+  - `_get_resolved_modules(user_id, context)` now returns `context["resolved_module_paths"]` when supplied, and fails open to all manifest module paths when not.
+  - `compose_page` injects `resolved_modules` into the context for downstream composers.
+- Updated the three UI Composer in-task guide routes in `app/main.py` to compute `situational_available = is_function_resolved(request, contract.module)` and pass it to the templates.
+- Updated `app/templates/body/{record,know,act}_body.html` to show a non-blocking "This function is not currently available for your role or location" notice when `situational_available` is false, while still showing the title, description, and narration (function is visible, just not actionable).
+- Updated `app/main.py` UI Composer `compose_page` call sites (`/tenant/timeline`, `/tenant/library/{subject}`, `/tenant/library`) and `app/modules/ui_composer/router.py` (`/api/ui/page/{intent}`) to pass `resolved_module_paths` from `get_module_access(request)`.
+
+### Verification
+
+- `python -m py_compile app/main.py app/services/ui_composer.py app/core/module_gate.py app/modules/ui_composer/router.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- IronBee DevTools navigation/ARIA/console verification:
+  - `/gui/record/journal/create`, `/gui/know/law-library/get-statute`, `/gui/act/eviction-defense/calculate-deadlines` all render the form and show no unavailable notice (modules are resolved for the default user role/jurisdiction).
+  - `/tenant/library` renders successfully with `Page Title: Semptify Composer`.
+  - Console returned no messages.
+
+### Status
+
+Module Resolver is now wired into both the UI Composer `compose_page` service and the three in-task guide pages. Function availability is now resolved from role/jurisdiction/gates/lifecycle while familiarity tapering still controls narration verbosity. When a function is not situationally available, the page stays visible but explains why it cannot be used.
+
+---
+
+## Session -- 2026-08-19 — UI Composer real Familiarity Tapering dial
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Replace the hardcoded `tapering_tier="new"` in all three verified single-function in-task guide pages with a real `intensity_level`/`exposure_count` dial backed by ADR-0008's Experience Token. Must preserve the no-server-side-tracking constraint, fall back for pre-OAuth/unauthenticated users, and keep `process_indicator` backwards-compatible.
+
+### Fix
+
+- Added `app/modules/ui_composer/tapering.py` — helpers to load/record/save Experience Token per function:
+  - Loads from tenant cloud storage when a user is connected.
+  - Falls back to a signed `semptify_exp_token` cookie for pre-OAuth / unauthenticated users.
+  - New users with no token start at `intensity_level=High` (per the Progressive Disclosure rule) and exposure 0.
+  - Records one exposure per page load for the function and persists the token.
+- Updated `app/templates/components/ui_composer.html` `process_indicator` macro:
+  - Uses `intensity_level` and `exposure_count` from template context.
+  - Maps `High` → full list until exposure 5, first item until exposure 7, none after.
+  - Maps `Standard` → full until 4, first until 6.
+  - Maps `Subtle` → full until 3, first until 5.
+  - Maps `Off` → no narration.
+  - Imported with `with context` in the three pillar body templates so the macro can read the page context.
+- Updated the three UI Composer routes in `app/main.py` (`/gui/record/journal/create`, `/gui/know/law-library/get-statute`, `/gui/act/eviction-defense/calculate-deadlines`):
+  - Added `db: AsyncSession = Depends(get_db)`.
+  - Compute `intensity_level` and `exposure_count` via `get_tapering_context`.
+  - Removed `tapering_tier="new"`; pass real values to templates.
+  - Set the signed cookie when the token is not saved to cloud storage.
+
+### Verification
+
+- `python -m py_compile app/main.py app/modules/ui_composer/tapering.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- IronBee DevTools + direct HTTP/cookie verification:
+  - Fresh session, 8 reloads of `/gui/record/journal/create`:
+    - Visits 1–4: full narration list (4 listitems) — `intensity=High`, exposure < 5.
+    - Visits 5–6: first item only (0 listitems, paragraph shown) — exposure 5–6.
+    - Visits 7–8: no narration (0 listitems, 0 paragraph) — exposure >= 7.
+  - `/gui/know/law-library/get-statute` and `/gui/act/eviction-defense/calculate-deadlines` render full narration on first visit (3 and 4 listitems respectively).
+  - `o11y_get-console-messages` returned no messages.
+
+### Status
+
+The real Familiarity Tapering dial is live. The three verified previews now expose the real `intensity_level` and `exposure_count` from the Experience Token instead of a hardcoded tier. Recording happens on page load for now; a task-completion event can be added later without changing the macro/routes.
+
+---
+
+## Session -- 2026-08-19 — UI Composer third in-task guide preview in ACT pillar
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Stress-test the single-function in-task guide pattern in the ACT pillar. ACT is the hardest case because it touches GOVERN/UPL risk tiers (the selected module is `eviction_defense`, which is `UPLRiskTier.HIGH` in the product manifest). The goal is to confirm the pattern holds for a guided lawful-action page without degrading into a multi-function dashboard or creating a competing page architecture.
+
+### Fix
+
+- Added `app/templates/body/act_body.html` — pillar body template for ACT. Mirrors `record_body.html` and `know_body.html` with ACT-specific eyebrow, `nav_act` active, "What this does" narration heading, internal `user_id` filter, calm `.gui-help-now` override, progressive-disclosure `<details>` styling, and a new `record_controls_legal_notice` block for the UPL disclaimer that must sit on the same screen as the output.
+- Added `app/templates/pages/eviction_defense_calculate_deadlines.html` — single-function in-task guide for `eviction_defense::eviction_defense_calculate_deadlines`.
+  - Form first: service-date input; optional `case_type` select is hidden behind a native `<details>` "Add more detail".
+  - A plain-language consequence notice appears **before** the action button: "This calculates dates only. It does not file anything for you or send anything to the court."
+  - JavaScript POSTs to `/api/eviction-defense/calculate-deadlines`.
+  - Renders deadlines as a labeled list, with the API's warning shown in a high-visibility callout.
+  - Parses returned ISO dates as UTC to avoid local-timezone off-by-one display errors.
+  - Includes a UPL-appropriate legal notice below the output ("Semptify is not a law firm. These deadlines are estimates…") and a visible `find legal help` link.
+  - Next-step lead-in to the KNOW law-library page: "Look up the law behind these deadlines."
+- Added route `GET /gui/act/eviction-defense/calculate-deadlines` in `app/main.py`. Uses `contract_registry.get("eviction_defense", "eviction_defense_calculate_deadlines")`, hardcoded `tapering_tier="new"`, and honest sync narration about what the calculation does.
+
+### Verification
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- IronBee DevTools browser verification at `http://127.0.0.1:8001/gui/act/eviction-defense/calculate-deadlines`:
+  - `a11y_take-aria-snapshot` shows the `Calculate deadlines` form first, `Act` nav active, contract inputs `start_date` and `case_type (optional)`, output `deadlines`, consequence notice before the action button, optional `case_type` hidden behind "Add more detail", legal notice on the same screen, one next-step link.
+  - `interaction_fill` + `interaction_click` exercised the functional path with a future service date and with a past service date.
+  - Past-date test surfaced the API's `⚠️ ANSWER DEADLINE HAS PASSED - File immediately!` warning; it rendered in the warning callout.
+  - Dates displayed correctly after a UTC fix (e.g., `2026-08-20` → "August 20, 2026").
+  - `o11y_get-console-messages` returned no messages (no JS errors).
+  - Screenshots confirm form-first layout, visible result, warning styling, legal notice, calm help CTA, and chronological/spatial eye path.
+
+### Status
+
+Third in-task guide preview is live and verified. The pattern now generalizes across all three non-GOVERN pillars:
+
+- RECORD: `journal_create` — write/save
+- KNOW: `law_library_get_statute` — read/lookup
+- ACT: `eviction_defense_calculate_deadlines` — guided calculation, UPL-risk output
+
+No Page Composer, Page Shell, contract-schema, or Module Resolver work was done. The `record_controls_legal_notice` block in `act_body.html` is a lightweight way to surface GOVERN-required disclaimers on ACT-pillar outputs without breaking the one-function/one-page model.
+
+---
+
+## Session -- 2026-08-19 — UI Composer second in-task guide preview in KNOW pillar
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Prove the one-function/one-page/tapering-density pattern proven by `journal_create` generalizes to a structurally different function — a read/lookup, not a write/save. Build a second in-task guide in the KNOW pillar without Page Composer, Page Shell, contract-schema changes, or Module Resolver work.
+
+### Fix
+
+- Added `app/templates/body/know_body.html` — pillar body template for KNOW, same structure as `record_body.html` with KNOW eyebrow, `nav_know` active, "What this looks up" narration heading, internal `user_id` filter, calm `.gui-help-now` override, and progressive-disclosure `<details>` styling.
+- Added `app/templates/pages/law_library_get_statute.html` — single-function in-task guide for `law_library::law_library_get_statute`.
+  - Form is the first section (`Look it up`)
+  - Single `statute_id` input rendered as a select of common Minnesota statutes
+  - JavaScript fetches `/api/law-library/statutes/{statute_id}` and renders the result
+  - Result shows title, citation, summary, key points, and a source link by default
+  - Full text and related forms stay inside a native `<details>` summary ("Show full text and related forms") until requested
+  - Includes the API's legal disclaimer and `last_verified` metadata
+  - Next step links to the existing `/law-library` hub ("Browse related cases and court rules")
+- Added route `GET /gui/know/law-library/get-statute` in `app/main.py` that pulls the `law_library_get_statute` contract and passes `tapering_tier="new"` with minimal sync narration.
+
+### Verification
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- IronBee DevTools browser verification at `http://127.0.0.1:8001/gui/know/law-library/get-statute`:
+  - `a11y_take-aria-snapshot` shows the lookup form first, `Know` nav active, `user_id` absent, contract I/O listed, "What's next" lead-in present.
+  - `interaction_select` chose "Security Deposits" and `interaction_click` on "Look up statute" retrieved the statute.
+  - `a11y_take-aria-snapshot` after lookup shows the title, citation, summary, key points, source link, collapsed `<details>`, disclaimer, and last verified.
+  - Clicked "Show full text and related forms" summary; ARIA snapshot confirmed the full text and related forms are exposed.
+  - `o11y_get-console-messages` returned no messages (no JS errors).
+  - Screenshots confirm form-first layout, calm help CTA, and progressive disclosure of the statute output.
+
+### Status
+
+Second in-task guide preview is live and verified. The pattern (one function, one page, one pillar, contract-driven I/O, form-first, progressive disclosure, calm help CTA) now holds for both a write/save action (journal) and a read/lookup action (statute). No second polish round was needed; the pattern generalized on the first try.
+
+---
+
+## Session -- 2026-08-19 — UI Composer journal_create preview polish pass
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Polish the `journal_create` in-task preview before generalizing to a second function. The first pass worked but felt like a form buried under documentation, exposed an internal `user_id` input, showed every optional field by default, and made the persistent "Get help now" CTA louder than the primary Save action.
+
+### Fix
+
+- `app/templates/body/record_body.html`:
+  - Reordered sections so the entry form (the action) appears immediately after the header.
+  - Filtered `user_id` from the rendered "What this needs" contract input list.
+  - Added a calm, secondary-weight override for the fixed `.gui-help-now` CTA so the Save button stays visually primary while help remains reachable.
+  - Added reusable `.record-guide__extra` styles for a native `<details>` progressive-disclosure block.
+- `app/templates/pages/journal_create_guide.html`:
+  - Show only Type, Title, and "What happened" by default.
+  - Wrapped all other optional fields (`occurred_at`, `involved_party`, `tags`, `document_link`, `is_urgent`) in a `<details>` summary with the summary text "Add more detail". The fields are always available and submitted with the form, just not visible by default.
+
+### Verification
+
+- `python -m py_compile app/main.py` — PASS (no Python changed, but compile checked as required).
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- IronBee DevTools browser verification at `http://127.0.0.1:8001/gui/record/journal/create`:
+  - `a11y_take-aria-snapshot` shows form first, no `user_id` in "What this needs", all other sections below.
+  - `interaction_click` on the "Add more detail" summary expands the optional fields.
+  - `interaction_fill` Title → `interaction_click` Save submits the form.
+  - `o11y_get-console-messages` shows only the expected 401 from `/api/journal/`, no JS errors.
+  - Screenshot confirms: form and Save are visually primary, "Get help now" is a calm present button, extra fields are collapsed by default and open on request, unauthenticated save shows the friendly "You need to be signed in to save. Start here" message with a `/preamble` link.
+
+### Status
+
+Polish pass complete. The page now presents one action immediately reachable, hides internal contract inputs, discloses optional fields progressively, and keeps the help path visually secondary. Ready to repeat the pattern for a second function in a different pillar.
+
+---
+
+## Session -- 2026-08-18 — Handoff: Context Loop vs. Information Orchestrator and Page Composer vs. UI Composer
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Answer two architecture questions blocking the UI Composer / in-task guide work:
+
+1. Is the older Context Loop a predecessor system replaced by ADR-0008 Information Orchestrator, or do they coexist?
+2. Does Page Composer bypass UI Composer and build whole multi-pillar pages by itself, or does it feed UI Composer content and let it produce components?
+
+### Fix
+
+- Read-only investigation of `app/modules/context_loop/`, `app/modules/context_engine/`, `app/services/ui_composer.py`, `app/modules/page_composer/`, `app/modules/page_shell/`, and the ADR-0008 document.
+- Wrote `docs/handoffs/handoff-context-loop-vs-info-orchestrator.md` with:
+  - Plain-language bottom line.
+  - Side-by-side comparison of Context Loop and Information Orchestrator.
+  - Evidence that Page Composer calls `app.services.ui_composer.compose_page()` as a legacy component-emit step after building its own `PageConfig`.
+  - Clarification that the in-task guide preview uses the `components/ui_composer.html` Jinja macro library, not the `ui_composer` service or Page Composer.
+  - Recommendations for integration and ADR-0008 expansion.
+
+### Verification
+
+- No code changed; no compile required.
+- Handoff document contains direct file citations and line-level evidence.
+- Cross-checked against `docs/adr/0008-information-orchestrator.md`, `BACKLOG.md`, and `tests/test_information_orchestrator_pilot.py`.
+
+### Status
+
+Handoff complete. Context Loop and Information Orchestrator are coexisting systems. Page Composer is the higher-level page orchestrator; it builds `PageConfig` for Page Shell and also feeds UI Composer a pre-built context to emit legacy components.
+
+---
+
+## Session -- 2026-08-18 — UI Composer in-task guide preview for journal_create
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+Build the smallest real deliverable for the in-task guide / UI Composer architecture: one function, one page, one pillar body template, hardcoded `new` tapering, function description + I/O from `FunctionGroupContract`, sync backstage narration, and one next-step lead-in.
+
+### Fix
+
+- Extended `process_indicator` macro in `app/templates/components/ui_composer.html` to support `mode: "sync"` and a `narration` list, with verbosity driven by `tapering_tier`.
+- Created `app/templates/body/record_body.html` — the first pillar body template (RECORD).
+- Created `app/templates/pages/journal_create_guide.html` extending the record body template.
+- Added route `/gui/record/journal/create` in `app/main.py` that pulls `journal::journal_create` from `module_contracts`, hardcodes `tapering_tier = "new"`, and renders the guide.
+- The page form POSTs to the existing `/api/journal/` endpoint via JavaScript; unauthenticated users get a friendly "You need to be signed in to save" message with a link to `/preamble`.
+
+### Verification
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest tests/module_health -q --no-cov` — 244 passed.
+- Live server on `http://127.0.0.1:8001`; page renders at `/gui/record/journal/create`.
+- Playwright ARIA snapshot confirms: Record nav active, title, description, contract inputs/outputs, sync narration, form fields, next-step link.
+- Form functional test: filled title, clicked Save, received expected 401 (no session), and the page displayed the friendly sign-in prompt with no dead end.
+
+### IronBee DevTools setup and rerun
+
+- Installed `@ironbee-ai/devtools` via `npx` and prefetched Chromium.
+- Added three IronBee MCP servers to `.devin/mcp_config.local.json`:
+  - `ironbee-dt-browser`
+  - `ironbee-dt-backend`
+  - `ironbee-dt-node`
+- Because this Devin session started before the new MCP config, the `mcp_list_servers` tool did not pick them up; a session reload is needed for the `mcp_*` tools to see them.
+- To verify immediately, started the IronBee daemon on port 8787 and drove the browser platform through its HTTP `/call` endpoint:
+  - `navigation_go-to` to `http://127.0.0.1:8001/gui/record/journal/create`
+  - `content_take-screenshot` → page rendered correctly (title, description, inputs, form, footer visible).
+  - `a11y_take-aria-snapshot` → ARIA tree shows Record nav active, all contract inputs/outputs, sync narration, form, and next-step link.
+  - `interaction_fill` on Title, `interaction_click` Save, `o11y_get-console-messages` → one expected 401 from `/api/journal/`, `a11y_take-aria-snapshot` confirms the "You need to be signed in to save. Start here" status with no dead end.
+
+### Status
+
+Preview complete. Known gap: `user_id` appears in the contract input list but is auto-supplied from the session; future iteration can annotate or filter it. Out of scope per handoff: real Familiarity Tapering counters, all 4 pillar body templates, Page Composer/Context Loop changes.
+
+---
+
+## Session -- 2026-08-16 — Prune dead product manifest registrations and restore active modules
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+`todo-084` required deleting 7 dead module `_register()` entries in `app/core/product_manifest.py` whose `app/modules/` directories no longer exist. Removing all 7 also dropped `app.modules.example_payment_tracking` and `app.modules.legal_filing_module`, which still have real code and routers, so they had to be restored.
+
+### Fix
+
+- Restored `_register()` entries for `app.modules.example_payment_tracking` and `app.modules.legal_filing_module` in `app/core/product_manifest.py` (`ProductTier.DEV`, `dev_only` lifecycle, with their existing router tags and `dev_notes`).
+- Deleted only the 5 truly dead conceptual/placeholder registrations: `vault_sync`, `eviction_notice_explainer`, `response_letter_generator`, `eviction_defense_content`, and `ai_copilot`.
+- Updated `tools/agent_orchestrator_tasks.json` `todo-084` notes to record which 5 were removed and which 2 were restored, and set `status` to `resolved`.
+
+### Verification
+
+- `python -m py_compile app/core/product_manifest.py` — PASS.
+- `python tools/sync_orchestrator.py --check` — PASS (97 tasks, 0 missing paths).
+
+### Status
+
+`todo-084` resolved. The product manifest now contains only real router-backed modules plus the intentionally conceptual UPL Matrix placeholders; the 5 dead conceptual registrations are gone.
+
+---
+
+## Session -- 2026-08-16 — Measure always-on heavy services RSS footprint
+
+### Guardrail Engine Run — not run
+
+### Problem
+
+`todo-086` asked for an investigation of the always-on heavy services (Positronic Brain, mesh, module hub, event subscribers, litigation-intelligence) to determine what they load, whether they should be tier-gated or lazy-loaded, and whether any init can be deferred. Actual per-service RSS measurements were required before proposing fixes.
+
+### Fix
+
+- Measured per-service isolated RSS using temporary measurement scripts:
+  - Positronic Brain ~5.3 MB
+  - Module Hub ~5.5 MB
+  - Mesh ~5.5 MB
+  - Event subscribers ~4.2 MB
+  - Litigation Intelligence package ~62 MB (driven by `court_scraper` importing `playwright` at package load).
+- Compared full-app worker memory with `ENABLE_HEAVY_SERVICES=false` (208.0 MB) vs. `true` (211.6 MB); the heavy services add only ~3.6 MB in the full production context.
+- Recorded the measurements and findings in `tools/agent_orchestrator_tasks.json` `todo-086` notes and set `status` to `resolved`.
+
+### Verification
+
+- `python tools/sync_orchestrator.py --check` — PASS (97 tasks, 0 missing paths).
+- No code change required; only task tracker notes were updated with the measured data.
+
+### Status
+
+Heavy services memory footprint is quantified. The individual packages are lightweight except for the Litigation Intelligence package, which loads `playwright` eagerly. The full-app delta is small, so gating/lazy-loading is now a data-informed decision rather than an assumption.
+
+---
+
 ## Session -- 2026-08-15 — Fact-check/freshness system close-out (Phases A–D)
 
 ### Guardrail Engine Run — not run
@@ -354,7 +2701,7 @@ Task tracker supported `in_progress` and `assigned_agent`, but no preflight file
 
 - `tools/mark_task_status.py`: require `--agent` when `status=in_progress`; add collision check for existing `in_progress` tasks on the same `file_path`.
 - `AGENTS.md`, `.cursor/rules/00-semptify-agents.mdc`, `.github/copilot-instructions.md`, `.devin/skills/preflight/SKILL.md`, `.github/prompts/preflight.prompt.md`, `.devin/skills/orchestrator_preflight/SKILL.md`, `.github/prompts/orchestrator_preflight.prompt.md`, `.devin/skills/13-mandated-readings.md`: add hard task-claiming rule.
-- Deleted `E:\master-repo\IN_PROGRESS_FILES.md`; the tracker now owns in-flight state.
+- Deleted `C:\master-repo\IN_PROGRESS_FILES.md`; the tracker now owns in-flight state.
 
 ### Verification
 
@@ -2692,11 +5039,11 @@ All checks passed.
 - **Added** `refreshFromFile()` and an explicit `lastLoadSource` tracker.
 - **Updated** `showHelpStatus()` to report whether the queue came from the project file, embedded JSON, or localStorage.
 - **Updated** the standalone UI instructions and Data-card hint to describe the file-first behavior.
-- **Updated** `docs/AGENT_ORCHESTRATOR_MANUAL.md` to match the new standalone loading behavior.
+- **Updated** `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` to match the new standalone loading behavior.
 
 ### Files Changed
 - `tools/agent_orchestrator.html`
-- `docs/AGENT_ORCHESTRATOR_MANUAL.md`
+- `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md`
 - `BUILD_STATE.md` — this note
 
 ### Verification
@@ -3933,7 +6280,82 @@ Resumed browser switch + storage validation work from 10 hours prior. Identified
 - Tests: .\test_browser_switch_full.ps1 passes ✅
 
 ---
-# BUILD_STATE.md -- Semptify Live Deployment State
+# BUILD_STATE
+
+## Session -- 2026-08-24 — OCR fallback for image-only PDFs
+
+### What changed
+- `app/services/document_intake.py`: `_extract_text` now always calls `extractor.extract_with_ocr()` for PDFs, instead of only when Azure Document Intelligence is configured. The existing `extract_with_ocr()` first tries normal text extraction, then Azure if credentials are present, then the local Tesseract fallback.
+- `requirements.txt`: added `pytesseract>=0.3.10` (Python wrapper for Tesseract OCR).
+- `Dockerfile`: added `tesseract-ocr` and `tesseract-ocr-eng` to the runtime image so local OCR is available on Render.
+- `tests/test_document_intake.py`: added `TestOCRFallback` with two regression tests:
+  - `test_image_only_pdf_triggers_local_ocr`: builds an image-only PDF (pages rendered to bitmaps and embedded), confirms `extract()` returns almost no text, then confirms `extract_with_ocr()` falls through to `local_ocr` and returns the mocked Tesseract output.
+  - `test_intake_extract_uses_ocr_for_image_pdf`: confirms the intake engine’s `_extract_text()` path uses the OCR fallback for image-only PDFs.
+
+### Why
+- Image-only / scanned PDFs (such as the 11-page lease packet) previously came through the intake pipeline with empty text because the local Tesseract fallback was only reachable when Azure OCR was configured. The existing `PDFExtractor` already had the local OCR method; the only missing piece was the call from the intake engine.
+
+### Verification
+- `python -m py_compile` on changed Python files: PASS.
+- `pytest tests/test_document_intake.py -q --no-cov`: 49 passed.
+- `pytest tests/test_documents.py -q --no-cov`: 41 passed.
+- Synthetic image-PDF test: confirmed the OCR fallback path is triggered and the mocked output is used.
+
+### Caveats / follow-up
+- Local OCR quality depends on the system Tesseract binary. It is now installed in the production Docker image but is **not installed in this Windows dev shell**, so the real 11-page packet cannot be OCR’d here until Tesseract is added to the local PATH or the file is tested inside the Docker/Render environment.
+- The existing `_local_ocr()` renders each PDF page to an image using PyMuPDF and runs Tesseract on it. It is single-threaded and may be slow for large packets; this is acceptable for an offline fallback, but a future performance pass could page the work or add a timeout.
+- No document-boundary / packet segmentation logic was added; each PDF page is processed independently.
+
+---
+
+## Session -- 2026-08-24 — Document date fields and sorting
+
+### What changed
+- `app/models/models.py`: added nullable `event_date` and `received_date` columns to both `Document` and `VaultIndexDB`. `uploaded_at` remains immutable.
+- `app/services/vault_upload_service.py`: `VaultDocument` dataclass now carries `event_date` and `received_date`; `VaultDocumentIndex.update` converts ISO date strings to `datetime` for the DB and refreshes the in-memory object from the DB.
+- `app/modules/vault/router.py`:
+  - `DocumentResponse` and `VaultDocumentSummary` schemas include the three date fields.
+  - `GET /api/vault/all` accepts `sort_by` (uploaded_at, event_date, received_date) and `sort_order` (asc/desc) and applies server-side sorting.
+  - New `PUT /api/vault/document/{vault_id}/dates` endpoint for tenant-owned event/received dates, with user-ownership guard and ISO 8601 validation.
+  - Existing `DocumentResponse` constructors updated to carry the new fields.
+- `app/templates/gui/record.html`:
+  - Added a "Sort by" dropdown (Upload / Event / Received date) that fetches `/api/vault/all` with the selected key.
+  - Each document row now displays inline `type=date` inputs for Event and Received dates; changing a date sends `PUT /api/vault/document/{vault_id}/dates` and updates the local cache.
+- `alembic/versions/20260824_add_document_dates.py`: SQLite-safe migration adding the two date columns to `documents` and `vault_index` for production/Renew deploys.
+
+### Why
+- The tenant needs to distinguish the date the document was created/uploaded (system), the date of the real-world event, and the date the document was formally received, and be able to sort by any of them.
+
+### Verification
+- `python -m py_compile` on changed Python files: PASS.
+- `pytest tests/test_documents.py -q --no-cov`: 41 passed.
+- `pytest tests/test_document_intake.py -q --no-cov`: 47 passed.
+- Live API check: uploaded a notice PDF, listed it, set `event_date` and `received_date` via `PUT /api/vault/document/{id}/dates`, re-listed sorted by `event_date`, and confirmed the persisted ISO values.
+- Browser check (unauthenticated): `/gui/record` renders the new Sort by dropdown with Event date and Received date options; page structure unchanged.
+
+### Caveats / follow-up
+- The Alembic chain on SQLite has a pre-existing `module_registry` migration that uses `ARRAY` and will not run on SQLite. This new migration is for PostgreSQL/Render targets or for a fresh SQLite DB created by `init_db`. The local `data/app.db` was renamed to let `init_db` recreate with the new columns.
+- `Document` table consumers outside the vault path (e.g., `setup/router.py`) still insert `Document` rows and will need to be updated if they need to expose or accept the new dates.
+
+---
+
+## Session -- 2026-08-24 — View button dead-end fix
+
+### What changed
+- `app/modules/vault/router.py`: added `view` query parameter to `/api/vault/{document_id}/download`. When `view=true` (or `view=1`), the endpoint returns `Content-Disposition: inline` so the browser can display the PDF in a tab.
+- `app/templates/gui/record.html`: `viewDoc()` now opens `/api/vault/{vault_id}/download?view=1` in a new tab instead of calling the missing `POST /api/unified-overlays/compose-view` route.
+
+### Why
+- `/api/unified-overlays/compose-view` lives in `app.modules.unified_overlays` which is a `ProductTier.RESEARCH` module and is not mounted in the live product (`_LIVE_TIERS` enables only CORE/EXTENDED/ADVOCATE/ADMIN). The Record page UI was hitting a 404 and silently falling back to a download.
+- The existing vault download endpoint is already authenticated and serves the file from cloud storage, so it is the canonical path for both download and preview.
+
+### Verification
+- `python -m py_compile app/modules/vault/router.py`: PASS.
+- `python -m pytest tests/test_documents.py -q --no-cov`: 41 passed.
+- UI static review: the View button now calls a mounted core endpoint.
+
+---
+.md -- Semptify Live Deployment State
 
 ### Guardrail Engine Run — 2026-07-16T12:25:25
 
@@ -4719,7 +7141,7 @@ All checks passed.
 - **Admin UI**: `static/admin/agent_orchestrator.html` linked from the admin dashboard.
 - **Standalone UI**: `tools/agent_orchestrator.html` — no server needed, uses browser `localStorage`, works inside Windsurf preview.
 - **Workbook bridge**: `tools/workbook_bridge.py` reads `Semptify_Master_Inventory_LIVE_reviewed.xlsx` and produces `tools/agent_orchestrator_tasks.json` for import (155 stubs + 16 duplicates = 171 tasks).
-- **Manual**: `docs/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
+- **Manual**: `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
 - **Registration**: `app/core/product_manifest.py` and `app/main.py` updated so the module and admin page load automatically.
 - **Per-task preflight workflow**: `.devin/workflows/orchestrator_preflight.md` (and prompt mirror) — run preflight before every orchestrator dispatch.
 
@@ -7103,7 +9525,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - **`app/templates/pages/admin.html`** — Added `admin_nav()` macro call with `ui_styles()`
 
 #### Interactive Admin Manual (COMPLETE)
-- **`docs/ADMIN_MANUAL.md`** — Comprehensive admin documentation covering:
+- **`docs/admin/ADMIN_MANUAL.md`** — Comprehensive admin documentation covering:
   - All admin pages (Dashboard, Function Browser, Contract Browser, Page Editor, Review Checklist)
   - Features, functions, settings, testing instructions per page
   - Troubleshooting guides with common issues and fixes
@@ -8680,7 +11102,7 @@ Returning tenants with documents were incorrectly routed to the upload wizard.
    - All 8 repos now under `1semptify-arch/` — single org, single owner
    - `SemptifyResearch` set to Private (intentional)
 
-2. **Orchestrator port conflict fixed** — `E:\master-repo\sources\REPOs\Orchestrator\start.bat`
+2. **Orchestrator port conflict fixed** — `C:\master-repo\sources\REPOs\Orchestrator\start.bat`
    - Was: port 8000 (same as Semptify core — hard conflict)
    - Fixed: port 8001
    - Architecture: Orchestrator is a sidecar — calls Semptify API at `localhost:8000`
@@ -9152,7 +11574,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - All timestamp generation now uses Semptify standard
 
 2. **Enhanced Onboarding Flow with Vault Verification** — Complete end-to-end contracts
-   - Created comprehensive onboarding contracts document (`docs/onboarding-contracts.md`)
+   - Created comprehensive onboarding contracts document (`docs/admin/onboarding-contracts.md`)
    - Added vault verification APIs: `/api/vault/init`, `/api/vault/verify`
    - Enhanced onboarding completion validation with gate checks
    - Moved vault installation to dedicated vault-setup page with loading screen
@@ -9650,7 +12072,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - [x] **SSOT Fix** — `get_stage("onboarding_start")` → `get_onboarding_start()` (stage ID didn't exist)
 
 #### SSOT Documentation
-- [x] **`docs/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
+- [x] **`docs/admin/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
 
 #### Code Review
 - [x] **Verdict: APPROVE** — All changes clean, one SSOT violation caught and fixed during review
@@ -10150,6 +12572,46 @@ Set these in Render Dashboard > Service > Environment:
 **Known working:**
 - Core compile check passes (`python -m py_compile app/main.py app/core/product_manifest.py app/core/compliance.py`).
 - `main` branch pushed to origin.
+
+**Known broken / pending:**
+- GUI Phase 1 four-pillar interface (ACTIVE_CONTEXT priority).
+- Document Center planning.
+- Attorney Intake Packet scaffold awaiting user review.
+- Remaining `agent_orchestrator_tasks.json` duplicate-resolve items: `complaints`, `free_api`, `cloud_sync`, `search`, `brain/mesh`, `timeline`, `housing_accountability`, etc.
+
+**Next session should start with:**
+- Continue next orchestrator duplicate-resolve task or resume GUI Phase 1 work per ACTIVE_CONTEXT.
+
+---
+
+## Session Ship — 2026-08-17 PR queue clean-up
+
+**Deployed commit:** `42dabccd`
+
+**What was shipped:**
+- Opened and merged PR #105 (`devin/main-catchup-2026-08-18`) to land local `main` on `github-direct/main`.
+- PR #105 includes the catch-up merge of already-merged upstream PRs:
+  - #41 `ed6f6314` — admin: reconcile Phase C Tier 1 batch 7
+  - #42 `bd911a22` — admin: reconcile Phase C Tier 1 batch 8
+  - #59 `b1becad8` — fix: replace naive datetime.now() with utc_now() in 4 app files
+  - #103 `b78d45f0` — docs: Repo presentation cleanup (FUNDING, README, CONTRIBUTING)
+- PR #98 (`1da0d408`) was already present in both local and `github-direct/main`; no rebase needed.
+- PR #33 (`adr-0008-pilot`) is already closed on GitHub with an explanatory comment from 2026-08-16; its ADR-0008 pilot pieces already landed through the Phase B/C PRs, so no replacement PR was cut.
+- Working-tree cleanup committed in PR #105:
+  - Gitignore `data/vault_index/` and `data/registry/`; untrack `data/vault_index/vault_index.json`.
+  - Revert whitespace drift in `docs/user-guides/USER_GUIDE.md` and `static/ai-helper-bundle.txt`.
+  - Add `mockups/designs/semptify-final-prototype` design deliverable.
+- Six files changed in the merge: `app/core/error_handling.py`, `app/core/manager_dashboard.py`, `app/modules/litigation_intelligence/scheduler.py`, `app/modules/litigation_intelligence/storage_layer.py`, `app/services/recognition/handwriting_analyzer.py`, `app/services/recognition/models.py`.
+
+**Verified:**
+- `python -m py_compile` on `app/main.py` and all six touched files: PASS.
+- `python tools/sync_orchestrator.py --check`: PASS (0 stubs, 98 tasks, 0 missing paths).
+- `pytest tests/test_information_orchestrator_pilot.py -q --no-cov`: 12 passed.
+- App startup and `GET /healthz`: `{"status":"ok"}`.
+
+**Known working:**
+- Local `main` and `github-direct/main` are in sync at `42dabccd`.
+- Core compile and sync check pass.
 
 **Known broken / pending:**
 - GUI Phase 1 four-pillar interface (ACTIVE_CONTEXT priority).

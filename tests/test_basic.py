@@ -12,8 +12,6 @@ from httpx import ASGITransport, AsyncClient
 os.environ["SECURITY_MODE"] = "open"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_semptify.db"
 
-import contextlib
-
 from app.main import app
 
 
@@ -217,5 +215,7 @@ async def cleanup():
     import os
 
     if os.path.exists("test_semptify.db"):
-        with contextlib.suppress(PermissionError):
+        try:
             os.remove("test_semptify.db")
+        except PermissionError:
+            pass

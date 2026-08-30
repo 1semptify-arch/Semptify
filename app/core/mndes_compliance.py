@@ -23,7 +23,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import date
-from enum import StrEnum
+from enum import Enum
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -173,7 +173,7 @@ MNDES_PHYSICAL_ONLY_NOTE = (
 # ============================================================================
 
 
-class MNDESIssueCode(StrEnum):
+class MNDESIssueCode(str, Enum):
     PROHIBITED_TYPE = "prohibited_type"  # Zip, exe, etc.
     PROPRIETARY_FORMAT = "proprietary_format"  # Needs judge exception
     NOT_ON_APPROVED_LIST = "not_on_approved_list"  # Unknown/unsupported type
@@ -339,7 +339,7 @@ class MNDESFileValidator:
     ) -> list[MNDESValidationResult]:
         """Validate multiple files for MNDES compliance."""
         sizes = file_sizes or [None] * len(filenames)
-        return [self.validate_for_mndes(fn, sz) for fn, sz in zip(filenames, sizes, strict=False)]
+        return [self.validate_for_mndes(fn, sz) for fn, sz in zip(filenames, sizes)]
 
     def get_accepted_extensions(self) -> list[str]:
         """Return sorted list of all MNDES-accepted file extensions."""
