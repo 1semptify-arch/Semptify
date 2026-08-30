@@ -107,7 +107,6 @@ PUBLIC_PATHS: set[str] = {
     "/portal",
     "/about",
     "/services",
-    "/renters-guide",
     "/advocacy",
     "/legal-research",
     "/complaints",
