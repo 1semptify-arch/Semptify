@@ -98,6 +98,12 @@ templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
 # instead of hardcoded URL strings (Known Failure #9).
 templates.env.globals["navigation"] = navigation
 
+# Expose public portal page registry so templates can link to /about, /services, /plugins, etc.
+# without hardcoding public portal paths.
+from app.modules.portal.pages import portal_pages as _portal_pages
+
+templates.env.globals["portal_pages"] = _portal_pages
+
 # Expose concrete subject starters for AI-assist surfaces (Task 3 content pass).
 from app.core.subject_starters import get_subject_starters as _get_subject_starters
 
@@ -139,7 +145,20 @@ def register_stateless_routes(app: FastAPI):
         from app.modules.context_engine.cache import get_verified_landing_facts
 
         landing_facts = await get_verified_landing_facts()
-        ctx = {"year": utc_now().year, "landing_facts": landing_facts}
+
+        # Public portal pages surfaced on the landing page — ordered by relevance to a visitor.
+        _portal_page_ids = ["services", "help", "developers", "plugins", "about"]
+        _public_portals = [
+            _portal_pages.get_page(pid)
+            for pid in _portal_page_ids
+            if _portal_pages.get_page(pid)
+        ]
+        ctx = {
+            "year": utc_now().year,
+            "landing_facts": landing_facts,
+            "footer_pages": _portal_pages.get_footer_pages(),
+            "public_portals": _public_portals,
+        }
         return templates.TemplateResponse(request, "index.html", ctx)
 
     @app.get("/api/landing/facts", include_in_schema=False)
@@ -1933,25 +1952,37 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 tags=["Document Center"],
             )
 
-    # Stateless composer landing prototype for the public utility experience.
+    # Stateless public landing for Semptify.org.
     app_static_path = BASE_PATH / "app" / "static"
     if app_static_path.exists():
         fastapi_app.mount("/assets", StaticFiles(directory=str(app_static_path)), name="app_static")
 
     @fastapi_app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
     async def root_compose(request: Request):
-        """Serve a calm, stateless landing experience with hash-based panel routing."""
+        """Serve the public Semptify.org landing page with portal CTAs."""
+        from app.modules.context_engine.cache import get_verified_landing_facts
+
         if request.method == "HEAD":
             return Response(status_code=200)
 
         current_year = utc_now().year
+        landing_facts = await get_verified_landing_facts()
+
+        # Public portal pages surfaced on the landing page — ordered by relevance to a visitor.
+        _portal_page_ids = ["services", "help", "developers", "plugins", "about"]
+        _public_portals = [
+            _portal_pages.get_page(pid)
+            for pid in _portal_page_ids
+            if _portal_pages.get_page(pid)
+        ]
         return templates.TemplateResponse(
             request,
             "index.html",
             {
                 "year": current_year,
-                "page_title": "Semptify Composer",
-                "page_description": "A calm, stateless landing workspace for triage, vault, and timeline support.",
+                "landing_facts": landing_facts,
+                "footer_pages": _portal_pages.get_footer_pages(),
+                "public_portals": _public_portals,
             },
         )
 

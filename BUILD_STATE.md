@@ -1,4 +1,47 @@
+## Session — 2026-08-31 — Improve Semptify.org public landing page and CTAs
+
+### Guardrail Engine Run — 2026-08-31
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+### Task
+
+- **Task ID:** `public-website-landing-ctas-2026-08-30`
+- **Scope:** Expand the public Semptify.org landing page with clear CTAs and working portal links.
+
+### What changed
+
+- `app/templates/index.html` — added a primary CTA to `/preamble`, a secondary CTA to the Law Library, and a public-portals nav row (Law Library, Services, Help, Developers, Plugins, About). Footer now uses the `PortalPageRegistry` footer pages.
+- `app/main.py` — `root_compose` now passes `landing_facts`, `footer_pages`, and `public_portals` to the landing template. Exposed `portal_pages` as a Jinja2 global so templates can avoid hardcoded public portal paths.
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS.
+- `python tools/guardrail_engine.py`: all 4 checks PASS.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- Runtime: `GET /` returns 200 with title `Semptify — Every Renter Deserves Peace at Home`.
+- Playwright MCP: landing page rendered with public portal links, no console errors.
+
+### Notes
+
+- `/plugins` is now linked from the landing page as a public portal CTA. The page remains an honest coming-soon placeholder.
+- Admin portal is functioning (returns 401 without auth) but not linked from the public landing.
+
+---
+
 ## Session — 2026-08-30 — Add public /plugins placeholder page
+
+### Guardrail Engine Run — 2026-08-31T06:27:36+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Guardrail Engine Run — 2026-08-30
 

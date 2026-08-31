@@ -115,6 +115,31 @@
       }
       .landing-cta-secondary:hover { color: #ffffff; }
 
+      /* Portal links: a calm row of public entry points below the primary CTA. */
+      .landing-portals {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-3);
+        max-width: 60ch;
+      }
+      .landing-portal-link {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.08);
+        color: #e2e8f0;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: background var(--transition-fast), color var(--transition-fast);
+      }
+      .landing-portal-link:hover {
+        background: rgba(255, 255, 255, 0.16);
+        color: #ffffff;
+      }
+
       /* -------- Footer zone: visually separated by background tone, no border -------- */
       .landing-footer {
         background: var(--zone-bg-inverse);
@@ -161,18 +186,34 @@
           Organize your documents, understand your rights, and see your next step clearly —
           in your own storage, on your own terms.
         </p>
-        <a href="/preamble" class="landing-cta-primary">Get help now</a>
+        <a href="{{ navigation.get_stage('preamble').path }}" class="landing-cta-primary">Get help now</a>
         <p class="landing-cta-note">Takes about a minute. Nothing is shared without you choosing to share it.</p>
-        <a href="/portal" class="landing-cta-secondary">Browse tools &amp; services first</a>
+        <a href="{{ navigation.get_stage('law_library').path }}" class="landing-cta-secondary">Learn your rights first</a>
+
+        <nav class="landing-portals" aria-label="Public resources">
+          {% set _law = navigation.get_stage('law_library') %}
+          {% if _law %}<a class="landing-portal-link" href="{{ _law.path }}">{{ _law.name }}</a>{% endif %}
+          {% for page in public_portals %}
+          <a class="landing-portal-link" href="{{ page.path }}">
+            {% if page.footer_label %}{{ page.footer_label }}
+            {% else %}{{ page.title.split(' —')[0] }}
+            {% endif %}
+          </a>
+          {% endfor %}
+        </nav>
       </main>
 
       <footer class="landing-footer">
         <div class="landing-footer-links">
-          <a href="/portal">Services</a>
-          <a href="/about">About</a>
-          <a href="/help">Help</a>
+          {% for page in footer_pages %}
+          <a href="{{ page.path }}">
+            {% if page.footer_label %}{{ page.footer_label }}
+            {% else %}{{ page.title.split(' —')[0] }}
+            {% endif %}
+          </a>
+          {% endfor %}
         </div>
-        <span>Semptify.org · No cost, always · No ads · © {{ year }}</span>
+        <span>Semptify.org · No cost to tenants · No ads · © {{ year }}</span>
       </footer>
     </div>
   </body>
