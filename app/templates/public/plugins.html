@@ -1,0 +1,44 @@
+{% extends "public_base.html" %}
+
+{% block title %}Plugins — Semptify{% endblock %}
+{% block description %}Semptify plugins for developers and power users. Connect Semptify to your own tools and storage.{% endblock %}
+{% block keywords %}semptify plugins, semptify pi, browser extension, desktop app, local script, tenant tools{% endblock %}
+
+{% block header_title %}🔌 Plugins{% endblock %}
+{% block header_tagline %}Connect Semptify to your own tools{% endblock %}
+{% block header_subtitle %}Browser extension, desktop app, and local script support is on the way.{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <h2 class="section-title">Plugin directory — coming soon</h2>
+    <p style="color: var(--text-light);">
+        We are building a directory of client-side plugins that connect directly to your own
+        cloud storage. Semptify Core never holds your documents; the plugins run on your device
+        and use the same storage connection you already trust.
+    </p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">What to expect</h2>
+    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
+        <li><strong>Browser extension</strong> — capture documents and notes while you browse.</li>
+        <li><strong>Desktop app</strong> — organize and review records locally.</li>
+        <li><strong>Local script</strong> — for developers and power users who want direct control.</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">For developers</h2>
+    <p style="color: var(--text-light);">
+        The plugin interface will be documented at <a href="/developers">/developers</a> as it
+        becomes available. If you want to build with Semptify, start there.
+    </p>
+</section>
+
+<section class="cta-section">
+    <h2>For tenants: the web app has what you need right now</h2>
+    <a href="/preamble" class="cta-button-large">Get Started →</a>
+</section>
+
+{% endblock %}

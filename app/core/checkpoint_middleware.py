@@ -57,6 +57,7 @@ EXEMPT_PATHS = {
     "/legal-research",
     "/complaints",
     "/donate",
+    "/plugins",
     "/developers",
     "/contact",
     "/privacy",

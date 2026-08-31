@@ -1,3 +1,37 @@
+## Session — 2026-08-30 — Add public /plugins placeholder page
+
+### Guardrail Engine Run — 2026-08-30
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+### Task
+
+- **Task ID:** `add-plugins-landing-page-2026-08-30`
+- **Scope:** Add a minimal, honest public `/plugins` landing page to Semptify Core so the public portal no longer returns 404.
+
+### What changed
+
+- `app/templates/public/plugins.html` — new public page extending `public_base.html`. Calm coming-soon copy; no account/tracking language; links to `/developers` and `/preamble`.
+- `app/modules/portal/pages.py` — registered the `/plugins` page in `PortalPageRegistry`, with `in_footer=False` until the real plugin directory is available.
+- `app/core/storage_middleware.py` — added `/plugins` to `PUBLIC_PATHS`.
+- `app/core/checkpoint_middleware.py` — added `/plugins` to `EXEMPT_PATHS`.
+
+### Verification
+
+- `python -m py_compile app/modules/portal/pages.py app/core/storage_middleware.py app/core/checkpoint_middleware.py`: PASS.
+- `python tools/guardrail_engine.py`: all 4 checks PASS.
+- `pytest tests/module_health -q --no-cov`: 251 passed.
+- Runtime check: `GET /plugins` returns 200 with title `Plugins — Semptify`.
+
+### Notes
+
+- The page is intentionally a placeholder. Once the Render plugin directory instance has a URL, the Core `/plugins` page can become a redirect or gain a live CTA without changing the route.
+
+---
+
 ## Session — 2026-08-28 — live verify dispute_tracker and eviction_timeline
 
 ### Task

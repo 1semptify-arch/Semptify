@@ -112,6 +112,7 @@ PUBLIC_PATHS: set[str] = {
     "/legal-research",
     "/complaints",
     "/donate",
+    "/plugins",
     "/developers",
     "/contact",
     "/privacy",
