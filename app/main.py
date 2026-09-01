@@ -3670,6 +3670,77 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             },
         )
 
+    @fastapi_app.get("/gui/page-contract/{page_id}", response_class=HTMLResponse)
+    async def gui_page_contract(request: Request, page_id: str):
+        """Render a page from a registered PageContract.
+
+        This is an isolated build/verification route. It is not linked from
+        navigation. If a PageContract is registered for ``page_id`` its
+        ``PageConfig`` is rendered through the Page Shell. Otherwise, if
+        ``page_id`` matches an ``ALL_SUBJECTS`` value, the request falls back
+        to the existing subject assembly path. If neither matches, 404.
+        """
+        guard_redirect = await _guard_role_page(request, {"tenant", "user"})
+        if guard_redirect:
+            return guard_redirect
+
+        from app.core.cookie_auth import verify_user_id
+        from app.core.module_gate import get_jurisdiction, get_module_access
+        from app.modules.context_engine.taxonomy import ALL_SUBJECTS
+        from app.modules.page_composer.assembly import assemble_page
+        from app.modules.page_shell.page_contract import page_contract_registry
+        from app.modules.page_shell.renderer import render_page_shell
+
+        contract = page_contract_registry.get(page_id)
+        if contract is not None:
+            page_config = contract.to_page_config()
+            jurisdiction_data = {
+                "state": contract.jurisdiction or "MN",
+                "county": contract.county,
+            }
+            assembly_metadata = {
+                "source": "page_contract",
+                "page_id": page_id,
+                "pillar": page_config.major_pillar,
+            }
+            return templates.TemplateResponse(
+                request,
+                "gui/assembled_page.html",
+                {
+                    "subject": page_id,
+                    "shell_html": render_page_shell(page_config),
+                    "assembly_metadata": assembly_metadata,
+                    "jurisdiction": jurisdiction_data,
+                    "jurisdiction_json": json.dumps(jurisdiction_data),
+                },
+            )
+
+        if page_id in ALL_SUBJECTS:
+            user_id = verify_user_id(request.cookies.get("semptify_uid", "")) or ""
+            resolved = get_module_access(request).resolved_module_paths
+            jurisdiction = get_jurisdiction(request)
+            jurisdiction_data = {"state": jurisdiction.state or "MN", "county": jurisdiction.county}
+            result = await assemble_page(
+                subject=page_id,
+                user_id=user_id,
+                jurisdiction=jurisdiction.state or "MN",
+                county=jurisdiction.county,
+                user_context={"capabilities": resolved},
+            )
+            return templates.TemplateResponse(
+                request,
+                "gui/assembled_page.html",
+                {
+                    "subject": page_id,
+                    "shell_html": render_page_shell(result.page_config),
+                    "assembly_metadata": result.metadata,
+                    "jurisdiction": jurisdiction_data,
+                    "jurisdiction_json": json.dumps(jurisdiction_data),
+                },
+            )
+
+        raise HTTPException(status_code=404, detail=f"Unknown page contract: {page_id}")
+
     # =========================================================================
     # Calendar Page
     # =========================================================================

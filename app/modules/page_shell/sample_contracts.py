@@ -266,7 +266,7 @@ register_contract(
         display_title="Attorney review required",
         pillar="govern",
         roles=["tenant"],
-        subject="eviction_defense",
+        subject="govern_review",
         jurisdiction="MN",
         inputs=[
             PageContractInput(

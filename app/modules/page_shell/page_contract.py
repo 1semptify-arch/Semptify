@@ -282,11 +282,25 @@ class PageContract(BaseModel):
             return self.page_config
 
         pillar = self.pillar
+
+        # GOVERN must be visible so the error/help route is reachable.
+        govern_level = 90 if pillar == "govern" else 30
+
+        # ACT needs to be visible when there are actions (exit/export/review).
+        has_actions = bool(
+            self.exit_transition or self.export_type or (self.review_state and self.review_state.required)
+        )
+        act_level = 90 if pillar == "act" else (30 if has_actions else 10)
+
+        # KNOW needs to be visible when there is narrative or preview content.
+        has_know = bool(self.narrative_ref or self.preview_state)
+        know_level = 90 if pillar == "know" else (30 if has_know else 10)
+
         channels = ChannelLevels(
             record=90 if pillar == "record" else 10,
-            know=90 if pillar == "know" else 10,
-            act=90 if pillar == "act" else 10,
-            govern=90 if pillar == "govern" else 10,
+            know=know_level,
+            act=act_level,
+            govern=govern_level,
         )
 
         zones: dict[str, Zone] = {

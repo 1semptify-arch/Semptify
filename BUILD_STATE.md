@@ -1,3 +1,51 @@
+## Session — 2026-08-31 — Wire Page Composer to consume PageContract via isolated /gui/page-contract/{page_id} route
+
+### Guardrail Engine Run — 2026-08-31
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `wire-pagecomposer-pagecontract-2026-08-31`
+- **Scope:** Build an isolated `/gui/page-contract/{page_id}` route that renders `PageConfig` from a registered `PageContract`, falling back to existing subject assembly for `ALL_SUBJECTS` if no contract exists. Do not touch the three live UI Composer routes.
+
+### What changed
+
+- `app/modules/page_shell/__init__.py` — loads `sample_contracts` at package import so the four sample `PageContract`s are available in the in-memory registry.
+- `app/modules/page_shell/sample_contracts.py` — fixed `high_stakes_review.subject` from `eviction_defense` to `govern_review` to avoid a subject-collision data-hygiene issue.
+- `app/modules/page_shell/page_contract.py` — adjusted `to_page_config()` channel levels so GOVERN (error route), ACT (exit/export/review), and KNOW (narrative/preview) zones are visible (level 30) when they contain content, while the primary pillar stays dominant (level 90).
+- `app/main.py` — added new `GET /gui/page-contract/{page_id}` route. Looks up `page_contract_registry`; if a contract is found, renders via `contract.to_page_config()` and `render_page_shell()`. If `page_id` is an `ALL_SUBJECTS` value and no contract is registered, falls back to `assemble_page()`. Otherwise 404.
+
+### Findings
+
+- All four sample contracts render through the new route at 200 OK:
+  - `journal_create` — select with options, textarea, text, datetime-local, date inputs; GOVERN help button visible.
+  - `law_library_get_statute` — select with disabled placeholder and statute options; KNOW narrative visible.
+  - `eviction_defense_calculate_deadlines` — date input, select with default-selected option, help banner visible.
+  - `high_stakes_review` — GOVERN-pillar layout, UPL banner visible, `file_with_court` suppressed, `download_draft` shown.
+- The route is defined only in `app/main.py`; no navigation link or template references it, so it is not tenant-discoverable.
+- The three live UI Composer routes (`/gui/record/journal/create`, `/gui/know/law-library/get-statute`, `/gui/act/eviction-defense/calculate-deadlines`) were not modified.
+
+### Verification
+
+- `python -m py_compile app/modules/page_shell/__init__.py app/modules/page_shell/page_contract.py app/modules/page_shell/sample_contracts.py app/main.py`: PASS
+- `python tools/guardrail_engine.py`: all 4 checks PASS
+- `pytest tests/page_shell/test_page_contract.py -v --no-cov`: 9 passed
+- `pytest tests/module_health -q --no-cov`: 244 passed
+- Manual HTTP check of `/gui/page-contract/{page_id}` for all four page IDs: 200 OK, correct input types and options, error/help routes visible.
+
+### Next step
+
+- `ModuleContract` remains blocked.
+- The isolated route proves the `PageContract` → `PageConfig` → render pipeline end-to-end. Deciding whether to migrate the live UI Composer routes to contract-driven rendering is a separate, higher-stakes future task.
+
+---
+
 ## Session — 2026-08-31 — Extend PageConfig.InputBlock and Page Shell renderer for select/checkbox/number/datetime-local
 
 ### Guardrail Engine Run — 2026-08-31
