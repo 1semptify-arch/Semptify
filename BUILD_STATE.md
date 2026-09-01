@@ -1,4 +1,59 @@
+## Session — 2026-08-31 — PageContract Pydantic model and pressure tests
+
+### Guardrail Engine Run — 2026-08-31
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `page-contract-pydantic-model-2026-08-31`
+- **Scope:** Build a PageContract Pydantic model (page flow/UX contract) in `app/modules/page_shell/page_contract.py`, wire it to a PageContractRegistry, add four sample contracts (RECORD, KNOW, ACT, GOVERN), and pressure-test with `to_page_config()` conversion.
+
+### What changed
+
+- `app/modules/page_shell/page_contract.py` — new `PageContract` Pydantic model and `PageContractRegistry`. Includes full draft field set: `page_id`, `pillar`, `roles`, `inputs`, `special_needs`, `narrative_ref`, `preview_state`, `review_state`, `export_type`, `exit_transition`, `error_route` (non-optional), `mobile_constraints`, `audit_hook`, `escalation`, `risk_tier`, and optional pre-built `page_config`. Added `to_page_config()` conversion and `PageConfigResistanceError` for clean failure when `PageConfig` cannot represent a contract field.
+- `app/modules/page_shell/sample_contracts.py` — four sample contracts:
+  - `journal_create` (RECORD)
+  - `law_library_get_statute` (KNOW)
+  - `eviction_defense_calculate_deadlines` (ACT)
+  - `high_stakes_review` (GOVERN), carrying the existing `govern_focus_demo.json` PageConfig.
+- `tests/page_shell/test_page_contract.py` — 9 tests covering registry, field presence, GOVERN PageConfig round-trip, text-only conversion, and `PageConfig` resistance for the three `select`-driven pages.
+
+### Findings
+
+- **PageContract model validates cleanly** for all four samples.
+- **`to_page_config()` succeeds** for the GOVERN sample (pre-built PageConfig) and for a synthetic text-only contract.
+- **`to_page_config()` resists for the three real `select`-driven pages** because the current `PageConfig.InputBlock` schema does not support an `options` field. This is the expected signal — the contract is more expressive than the current `PageConfig` block model for select/choice inputs.
+- No `FunctionGroupContract` or `ModuleManifest` changes were made. `ModuleContract` remains blocked per the 2026-08-31 review decision.
+
+### Verification
+
+- `python -m py_compile app/modules/page_shell/page_contract.py app/modules/page_shell/sample_contracts.py tests/page_shell/test_page_contract.py`: PASS
+- `python tools/guardrail_engine.py`: all 4 checks PASS
+- `pytest tests/page_shell/test_page_contract.py -v --no-cov`: 9 passed
+- `pytest tests/module_health -q --no-cov`: 244 passed
+
+### Next step
+
+- Decide whether to (a) extend `PageConfig.InputBlock` with an `options` field, (b) map select options through a different mechanism, or (c) adjust `PageContract` v1 to avoid `select` until `PageConfig` supports it. `ModuleContract` stays blocked pending backfill of missing `FunctionGroupContract`s.
+
+---
+
 ## Session — 2026-08-28 — live verify dispute_tracker and eviction_timeline
+
+### Guardrail Engine Run — 2026-09-01T00:14:12+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Task
 
