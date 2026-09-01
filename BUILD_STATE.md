@@ -1,3 +1,48 @@
+## Session — 2026-08-31 — Extend PageConfig.InputBlock and Page Shell renderer for select/checkbox/number/datetime-local
+
+### Guardrail Engine Run — 2026-08-31
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `extend-pageconfig-inputblock-options-2026-08-31`
+- **Scope:** Add `options` to `PageConfig.InputBlock`, extend `input_type` to include `textarea`, `datetime-local`, `checkbox`, `number`, and update the Page Shell renderer to render select options plus the new input types.
+
+### What changed
+
+- `app/modules/page_shell/models.py` — added `SelectOption` Pydantic model (`value`, `label`, `disabled`, `selected`); extended `InputBlock.input_type` to include `textarea`, `datetime-local`, `select`, `checkbox`, `number`; added `InputBlock.options`.
+- `app/modules/page_shell/renderer.py` — updated `_render_input_block` to render `<select>` with options, and `<input type="checkbox">`, `<input type="number">`, `<input type="datetime-local">`, and `<textarea>`.
+- `static/page_shell/page_shell.css` — added override so checkboxes are not stretched to full width.
+- `app/modules/page_shell/page_contract.py` — updated `PageContractInput.options` to use `SelectOption`; removed the `PageConfigResistanceError` for `select` options; `to_page_config()` now maps `select`, `textarea`, `datetime-local`, `checkbox`, `number` directly to `InputBlock`.
+- `app/modules/page_shell/sample_contracts.py` — updated `PageContractInput.options` from raw strings to `SelectOption` objects with proper `value`/`label` pairs; added a disabled placeholder for the statute lookup and a selected default for eviction case type.
+- `tests/page_shell/test_page_contract.py` — replaced resistance tests with conversion-success tests; all four sample contracts now convert cleanly to `PageConfig`.
+
+### Findings
+
+- **All four PageContract samples now convert to `PageConfig` without resistance.**
+- The `SelectOption` shape (`value`, `label`, `disabled`, `selected`) matches the real guide-page templates (e.g. disabled placeholder option, default-selected option).
+- The `module_health` suite still passes at 244 — no regression in the existing onboarding/vault/document-center surfaces.
+
+### Verification
+
+- `python -m py_compile app/modules/page_shell/models.py app/modules/page_shell/page_contract.py app/modules/page_shell/sample_contracts.py app/modules/page_shell/renderer.py tests/page_shell/test_page_contract.py`: PASS
+- `python tools/guardrail_engine.py`: all 4 checks PASS
+- `pytest tests/page_shell/test_page_contract.py -v --no-cov`: 9 passed
+- `pytest tests/module_health -q --no-cov`: 244 passed
+
+### Next step
+
+- `ModuleContract` remains blocked pending backfill of missing `FunctionGroupContract`s.
+- PageContract can now be used for real guide-page generation; the next decision is whether to wire the Page Composer to consume these contracts at runtime.
+
+---
+
 ## Session — 2026-08-31 — PageContract Pydantic model and pressure tests
 
 ### Guardrail Engine Run — 2026-08-31

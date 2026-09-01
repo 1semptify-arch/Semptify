@@ -7,8 +7,6 @@ state, export type, exit transition, error route, mobile constraints)
 while building on the existing ``PageConfig`` / block types in
 ``app.modules.page_shell.models``.
 
-This is v1 / pressure-test scaffolding. It intentionally does NOT modify
-``PageConfig`` or ``InputBlock`` to work around gaps; instead,
 ``to_page_config()`` raises ``PageConfigResistanceError`` when a contract
 field cannot be represented cleanly by the current ``PageConfig`` schema.
 """
@@ -29,6 +27,7 @@ from app.modules.page_shell.models import (
     OutputBlock,
     PageConfig,
     RiskTier,
+    SelectOption,
     Zone,
 )
 
@@ -63,7 +62,7 @@ class PageContractInput(BaseModel):
     max_length: int | None = None
     validation: str | None = None
     placeholder: str | None = None
-    options: list[str] | None = None
+    options: list[SelectOption] | None = None
     writes_to: str | None = None
     module_name: str | None = None
 
@@ -157,33 +156,8 @@ class PageContract(BaseModel):
     page_config: PageConfig | None = None
 
     def _input_block(self, index: int, field: PageContractInput) -> InputBlock:
-        """Convert one PageContractInput into an InputBlock.
-
-        Raises PageConfigResistanceError if the current PageConfig/InputBlock
-        schema cannot represent the field cleanly.
-        """
-        if field.input_type in ("select",) and field.options:
-            if "options" not in InputBlock.model_fields:
-                raise PageConfigResistanceError(
-                    f"InputBlock does not support field 'options' "
-                    f"needed for select input '{field.name}' on page '{self.page_id}'. "
-                    f"PageContract has options={field.options}. "
-                    f"Add an 'options' field to InputBlock, or adjust PageContract."
-                )
-
-        # Map UI-composer input types to the narrower InputBlock literal.
-        input_type_map = {
-            "text": "text",
-            "textarea": "text",
-            "select": "select",
-            "date": "date",
-            "datetime-local": "date",
-            "checkbox": "select",  # would need options; caught above if unsupported
-            "number": "text",
-            "file_upload": "file_upload",
-            "signature": "signature",
-        }
-        input_type = input_type_map.get(field.input_type, "text")
+        """Convert one PageContractInput into an InputBlock."""
+        input_type = field.input_type
 
         if input_type == "select" and not field.options:
             # PageConfig select without options is not meaningful; treat as text.
@@ -198,6 +172,7 @@ class PageContract(BaseModel):
             writes_to=field.writes_to or field.name,
             module_name=field.module_name,
             placeholder=field.placeholder,
+            options=field.options,
         )
 
     def _narrative_block(self) -> InfoBlock | None:

@@ -36,12 +36,31 @@ RiskTier = Literal[
 # ---------------------------------------------------------------------------
 
 
+class SelectOption(BaseModel):
+    """One option inside a select input."""
+
+    value: str
+    label: str
+    disabled: bool = False
+    selected: bool = False
+
+
 class InputBlock(BaseModel):
     """RECORD-zone block — captures something from the tenant."""
 
     block_id: str
     kind: Literal["input"] = "input"
-    input_type: Literal["file_upload", "text", "date", "select", "signature"] = "text"
+    input_type: Literal[
+        "file_upload",
+        "text",
+        "textarea",
+        "date",
+        "datetime-local",
+        "select",
+        "checkbox",
+        "number",
+        "signature",
+    ] = "text"
     label: str
     required: bool = False
     writes_to: str | None = None
@@ -49,6 +68,8 @@ class InputBlock(BaseModel):
     module_name: str | None = None
     # Optional UI hint — does NOT override zone prominence; purely cosmetic.
     placeholder: str | None = None
+    # Options for select inputs (value + label pairs).
+    options: list[SelectOption] | None = None
 
 
 class InfoBlock(BaseModel):

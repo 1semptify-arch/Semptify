@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.modules.page_shell.models import PageConfig
+from app.modules.page_shell.models import PageConfig, SelectOption
 from app.modules.page_shell.page_contract import (
     PageContract,
     PageContractErrorRoute,
@@ -54,7 +54,13 @@ register_contract(
                 input_type="select",
                 label="Type",
                 required=True,
-                options=["note", "conversation", "incident", "repair_request", "other"],
+                options=[
+                    SelectOption(value="note", label="Note"),
+                    SelectOption(value="conversation", label="Conversation"),
+                    SelectOption(value="incident", label="Incident"),
+                    SelectOption(value="repair_request", label="Repair request"),
+                    SelectOption(value="other", label="Other"),
+                ],
                 writes_to="journal.entry_type",
             ),
             PageContractInput(
@@ -160,13 +166,14 @@ register_contract(
                 label="Statute",
                 required=True,
                 options=[
-                    "minn_stat_504b",
-                    "minn_stat_504b_321",
-                    "minn_stat_504b_375",
-                    "minn_stat_504b_211",
-                    "minn_stat_504b_285",
+                    SelectOption(value="", label="Choose a statute", disabled=True),
+                    SelectOption(value="minn_stat_504b", label="Minnesota Landlord and Tenant Law"),
+                    SelectOption(value="minn_stat_504b_321", label="Eviction Actions — Procedures"),
+                    SelectOption(value="minn_stat_504b_375", label="Security Deposits"),
+                    SelectOption(value="minn_stat_504b_211", label="Habitability — Covenants"),
+                    SelectOption(value="minn_stat_504b_285", label="Retaliatory Eviction"),
                 ],
-                placeholder="Choose a statute",
+                placeholder="Pick the law you want to check.",
                 writes_to="law_library.statute_id",
             ),
         ],
@@ -218,10 +225,10 @@ register_contract(
                 label="Case type",
                 required=False,
                 options=[
-                    "nonpayment",
-                    "lease_violation",
-                    "holdover",
-                    "other",
+                    SelectOption(value="nonpayment", label="Nonpayment of rent", selected=True),
+                    SelectOption(value="lease_violation", label="Lease violation"),
+                    SelectOption(value="holdover", label="Holdover"),
+                    SelectOption(value="other", label="Other"),
                 ],
                 placeholder="This does not change the deadlines, but helps Semptify label your plan.",
                 writes_to="eviction.case_type",

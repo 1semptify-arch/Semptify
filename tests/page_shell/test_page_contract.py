@@ -1,20 +1,14 @@
 """Tests for PageContract and its conversion to PageConfig.
 
-The goal is to pressure-test the PageContract Pydantic model against four
-real page shapes (RECORD, KNOW, ACT, GOVERN). The contract itself should
-validate cleanly. ``to_page_config()`` should succeed for the GOVERN sample
-(which carries a pre-built PageConfig) and should fail cleanly for the three
-select-driven pages because the current ``PageConfig.InputBlock`` schema does
-not support ``options``.
+Pressure-test the PageContract Pydantic model against four real page shapes
+(RECORD, KNOW, ACT, GOVERN). All four contracts should validate cleanly and
+convert to ``PageConfig`` without raising ``PageConfigResistanceError``.
 """
 
 from __future__ import annotations
 
-import pytest
-
 from app.modules.page_shell.models import PageConfig
 from app.modules.page_shell.page_contract import (
-    PageConfigResistanceError,
     PageContract,
     PageContractErrorRoute,
     PageContractInput,
@@ -114,20 +108,42 @@ class TestPageContractToPageConfig:
             b.block_id == "blk_upl_banner" for b in govern_zone.blocks
         ), "UPL banner should be in GOVERN zone"
 
-    def test_record_select_resistance(self) -> None:
+    def test_record_select_converts_cleanly(self) -> None:
         contract = _get_contract("journal_create")
-        with pytest.raises(PageConfigResistanceError) as exc:
-            contract.to_page_config()
-        assert "options" in str(exc.value)
+        config = contract.to_page_config()
+        assert isinstance(config, PageConfig)
+        assert config.major_pillar == "record"
+        record_zone = config.zones["record"]
+        entry_type = next(
+            (b for b in record_zone.blocks if b.block_id == "input_0_entry_type"), None
+        )
+        assert entry_type is not None
+        assert entry_type.input_type == "select"
+        assert entry_type.options
+        assert entry_type.options[0].value == "note"
 
-    def test_know_select_resistance(self) -> None:
+    def test_know_select_converts_cleanly(self) -> None:
         contract = _get_contract("law_library_get_statute")
-        with pytest.raises(PageConfigResistanceError) as exc:
-            contract.to_page_config()
-        assert "options" in str(exc.value)
+        config = contract.to_page_config()
+        assert isinstance(config, PageConfig)
+        assert config.major_pillar == "know"
+        know_zone = config.zones["know"]
+        statute_input = next(
+            (b for b in know_zone.blocks if b.block_id == "input_0_statute_id"), None
+        )
+        assert statute_input is not None
+        assert statute_input.input_type == "select"
+        assert statute_input.options[0].disabled is True
 
-    def test_act_select_resistance(self) -> None:
+    def test_act_select_converts_cleanly(self) -> None:
         contract = _get_contract("eviction_defense_calculate_deadlines")
-        with pytest.raises(PageConfigResistanceError) as exc:
-            contract.to_page_config()
-        assert "options" in str(exc.value)
+        config = contract.to_page_config()
+        assert isinstance(config, PageConfig)
+        assert config.major_pillar == "act"
+        act_zone = config.zones["act"]
+        case_type = next(
+            (b for b in act_zone.blocks if b.block_id == "input_1_case_type"), None
+        )
+        assert case_type is not None
+        assert case_type.input_type == "select"
+        assert any(opt.selected for opt in case_type.options)

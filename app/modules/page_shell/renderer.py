@@ -153,31 +153,70 @@ def _render_input_block(b: InputBlock, emphasis: str) -> str:
     required = ' aria-required="true"' if b.required else ""
     required_mark = ' <span class="required" aria-hidden="true">*</span>' if b.required else ""
     placeholder = html.escape(b.placeholder) if b.placeholder else ""
+    base_attrs = (
+        f'id="{html.escape(b.block_id)}" '
+        f'name="{html.escape(b.block_id)}" '
+        f'data-writes-to="{html.escape(b.writes_to or "")}"'
+    )
 
     if b.input_type == "file_upload":
-        field = (
-            f'<input type="file" name="{html.escape(b.block_id)}"'
-            f' data-writes-to="{html.escape(b.writes_to or "")}"{required}>'
-        )
+        field = f'<input type="file" {base_attrs}{required}>'
     elif b.input_type == "date":
-        field = f'<input type="date" name="{html.escape(b.block_id)}"{required}>'
+        field = f'<input type="date" {base_attrs}{required}>'
+    elif b.input_type == "datetime-local":
+        field = f'<input type="datetime-local" {base_attrs}{required}>'
+    elif b.input_type == "number":
+        field = f'<input type="number" {base_attrs}{required}>'
+    elif b.input_type == "checkbox":
+        field = (
+            f'<input type="checkbox" {base_attrs} class="checkbox-input"{required}>'
+        )
     elif b.input_type == "select":
-        # Options come from config in a real system; for the shell demo
-        # we render an empty select with a data attribute signaling that
-        # options are external. No hardcoded option text.
-        field = f'<select name="{html.escape(b.block_id)}"{required} data-options-source="external"></select>'
+        options_html = ""
+        if b.options:
+            for opt in b.options:
+                value = html.escape(opt.value)
+                opt_label = html.escape(opt.label)
+                disabled_attr = ' disabled' if opt.disabled else ""
+                selected_attr = ' selected' if opt.selected else ""
+                options_html += (
+                    f'<option value="{value}"{disabled_attr}{selected_attr}>'
+                    f'{opt_label}</option>\n'
+                )
+        placeholder_attr = f' data-placeholder="{placeholder}"' if placeholder else ""
+        field = (
+            f'<select {base_attrs}{required}{placeholder_attr}>\n'
+            f'{options_html}'
+            f'</select>'
+        )
     elif b.input_type == "signature":
         field = (
-            f'<input type="text" name="{html.escape(b.block_id)}"'
+            f'<input type="text" {base_attrs}'
             f' class="signature-input" placeholder="{placeholder}"{required}>'
         )
+    elif b.input_type == "textarea":
+        field = (
+            f'<textarea {base_attrs} rows="4" placeholder="{placeholder}"{required}>'
+            f'</textarea>'
+        )
     else:  # text
-        field = f'<input type="text" name="{html.escape(b.block_id)}" placeholder="{placeholder}"{required}>'
+        field = f'<input type="text" {base_attrs} placeholder="{placeholder}"{required}>'
+
+    # Checkbox looks better with the field before its label text.
+    if b.input_type == "checkbox":
+        field_and_label = (
+            f'{field}\n'
+            f'  <label for="{html.escape(b.block_id)}">{label}</label>'
+        )
+    else:
+        field_and_label = (
+            f'  <label for="{html.escape(b.block_id)}">{label}{required_mark}</label>\n'
+            f"  {field}"
+        )
 
     return (
         f'<div class="block block-input emphasis-{emphasis}" data-block-id="{html.escape(b.block_id)}">\n'
-        f'  <label for="{html.escape(b.block_id)}">{label}{required_mark}</label>\n'
-        f"  {field}\n"
+        f"{field_and_label}\n"
         f"</div>\n"
     )
 
