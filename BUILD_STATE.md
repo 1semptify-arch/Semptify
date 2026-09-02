@@ -1,4 +1,42 @@
-## Session — 2026-08-31 — Wire Page Composer to consume PageContract via isolated /gui/page-contract/{page_id} route
+## Session — 2026-09-02 — Build ModuleContract Pydantic model and registry
+
+### Guardrail Engine Run — 2026-09-02
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `build-module-page-contracts-2026-09-02`
+- **Scope:** Implement the Pydantic `ModuleContract` and `ModuleContractRegistry` per the `review-page-module-contract-schema` decisions. Add sample `ModuleContract` registrations for `page_shell` and `page_composer`. Keep PageContract's `narrative_ref` as a stable reference to context-explanation entries.
+
+### What changed
+
+- `app/core/module_contract.py` — new Pydantic `ModuleContract`, `ModuleContractInput`, lifecycle, security classification, and error-route models.
+- `app/core/module_contract_registry.py` — in-memory registry keyed by stable ID or `module_path`.
+- `app/modules/page_shell/register.py` — registers a `ModuleContract` for Page Shell and references its `FunctionGroupContract` IDs.
+- `app/modules/page_composer/register.py` — registers a `ModuleContract` for Page Composer.
+- `app/modules/page_shell/page_contract.py` — adds optional `module_contract_id` field.
+- `tests/test_module_contract.py` — 7 tests covering registry, lookup, stable IDs, and `narrative_ref` round-trip.
+
+### Verification
+
+- `python -m py_compile app/core/module_contract.py app/core/module_contract_registry.py app/modules/page_shell/register.py app/modules/page_composer/register.py app/modules/page_shell/page_contract.py tests/test_module_contract.py`: PASS
+- `python tools/guardrail_engine.py`: all 4 checks PASS
+- `pytest tests/test_module_contract.py tests/page_shell/test_page_contract.py -v --no-cov`: **16 passed**
+- `pytest tests/module_health -q --no-cov`: **244 passed**
+
+### Next step
+
+- Backfill `ModuleContract` registrations for the remaining ~25 modules as a separate follow-up task.
+
+---
+
+## Session — 2026-08-31 — Wire Page Composer to consume PageContract via isolated /gui/page-contract/{file_id} route
 
 ### Guardrail Engine Run — 2026-08-31
 
