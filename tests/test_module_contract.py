@@ -116,3 +116,19 @@ class TestModuleContractBackfill:
             "internal",
             "deprecated",
         }
+
+    def test_backfill_derives_pillar(self) -> None:
+        from app.core.contract_loader import load_all_contracts
+        from app.core.module_contract_registry import module_contract_registry
+
+        module_contract_registry.clear()
+        load_all_contracts()
+
+        law_library = module_contract_registry.get_by_module_path("app.modules.law_library")
+        assert law_library is not None and law_library.pillar == "know"
+
+        eviction_defense = module_contract_registry.get_by_module_path("app.modules.eviction_defense")
+        assert eviction_defense is not None and eviction_defense.pillar == "act"
+
+        admin_console = module_contract_registry.get_by_module_path("app.modules.admin_console")
+        assert admin_console is not None and admin_console.pillar == "govern"

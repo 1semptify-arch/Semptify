@@ -198,6 +198,145 @@ def _all_tiers_enabled(enabled_tiers: list[ProductTier]) -> bool:
     return set(enabled_tiers) >= set(ProductTier.all())
 
 
+_PILLAR_BY_MODULE: dict[str, str] = {
+    # KNOW
+    "law_library": "know",
+    "state_laws": "know",
+    "location": "know",
+    "context_engine": "know",
+    "research": "know",
+    "public_forms": "know",
+    "public_exposure": "know",
+    "legal_analysis": "know",
+    "housing_accountability": "know",
+    "context_loop": "know",
+    # ACT
+    "eviction_defense": "act",
+    "eviction_timeline": "act",
+    "dispute_tracker": "act",
+    "court_forms": "act",
+    "court_packet": "act",
+    "legal_filing": "act",
+    "legal_trails": "act",
+    "plan_maker": "act",
+    "complaints": "act",
+    "actions": "act",
+    "guided_intake": "act",
+    # GOVERN
+    "admin_console": "govern",
+    "advocate": "govern",
+    "manager": "govern",
+    "analytics": "govern",
+    "security": "govern",
+    "role_ui": "govern",
+    "role_upgrade": "govern",
+    "setup": "govern",
+    "dashboard": "govern",
+    "tools_api": "govern",
+    "user": "govern",
+    "health": "govern",
+    "help": "govern",
+    "onboarding": "govern",
+    # RECORD
+    "vault": "record",
+    "documents": "record",
+    "journal": "record",
+    "timeline": "record",
+    "contacts": "record",
+    "calendar": "record",
+    "search": "record",
+    "intake": "record",
+    "case_builder": "record",
+    "packet_builder": "record",
+    "tenant_feed": "record",
+    "evidence": "record",
+    "document_center": "record",
+    "vault_engine": "record",
+}
+
+_PILLAR_KEYWORDS: dict[str, list[str]] = {
+    "govern": [
+        "admin",
+        "advocate",
+        "manager",
+        "dashboard",
+        "analytics",
+        "security",
+        "role",
+        "setup",
+        "help",
+        "health",
+        "tools",
+        "user",
+        "onboarding",
+    ],
+    "act": [
+        "eviction",
+        "deadline",
+        "dispute",
+        "filing",
+        "action",
+        "plan",
+        "response",
+        "answer",
+        "complaint",
+        "calculate",
+        "send",
+        "letter",
+        "packet",
+        "create",
+        "defense",
+    ],
+    "know": [
+        "law",
+        "statute",
+        "library",
+        "state",
+        "context",
+        "research",
+        "lookup",
+        "explain",
+        "knowledge",
+        "analysis",
+        "public",
+    ],
+    "record": [
+        "document",
+        "journal",
+        "timeline",
+        "calendar",
+        "contact",
+        "vault",
+        "intake",
+        "case",
+        "evidence",
+        "note",
+        "record",
+        "feed",
+        "search",
+    ],
+}
+
+
+def _derive_pillar(module_name: str, tags: tuple[str, ...], contract_titles: list[str]) -> str:
+    """Infer a Four Pillars value for a module from its name, tags, and contract titles."""
+    if module_name in _PILLAR_BY_MODULE:
+        return _PILLAR_BY_MODULE[module_name]
+
+    text = module_name.replace("_", " ")
+    text += " " + " ".join(t.replace("_", " ") for t in tags)
+    text += " " + " ".join(t.replace("_", " ") for t in contract_titles)
+    text = text.lower()
+
+    # Order matters: govern and know are more specific than act/record.
+    for pillar in ("govern", "know", "act", "record"):
+        for keyword in _PILLAR_KEYWORDS[pillar]:
+            if keyword in text:
+                return pillar
+
+    return "record"
+
+
 def _derive_module_contracts() -> int:
     """Backfill ModuleContract records from the loaded FunctionGroupContract registry.
 
@@ -246,10 +385,14 @@ def _derive_module_contracts() -> int:
 
         title = contracts[0].title if contracts else module_name.replace("_", " ").title()
 
+        manifest_tags: tuple[str, ...] = manifest_entry.tags if manifest_entry is not None else ()
+        titles = [c.title for c in contracts]
+        pillar = _derive_pillar(module_name, manifest_tags, titles)
+
         contract = ModuleContract(
             module_path=module_path,
             title=title,
-            pillar="record",  # Default; refined by backfill per-module as needed.
+            pillar=pillar,  # type: ignore[arg-type]
             roles=roles,
             lifecycle=lifecycle,  # type: ignore[arg-type]
             inputs=[ModuleContractInput(name=i, kind="input") for i in sorted(inputs)],
