@@ -131,6 +131,9 @@ class PageContract(BaseModel):
     jurisdiction: str | None = None
     county: str | None = None
 
+    # Reference to the module-level contract that owns this page, if any.
+    module_contract_id: str | None = None
+
     inputs: list[PageContractInput] = Field(default_factory=list)
     special_needs: list[str] = Field(default_factory=list)
     narrative_ref: str | None = None  # stable ref to context-explanation entry
