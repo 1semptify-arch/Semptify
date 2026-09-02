@@ -30,9 +30,45 @@ All checks passed.
 - `pytest tests/test_module_contract.py tests/page_shell/test_page_contract.py -v --no-cov`: **16 passed**
 - `pytest tests/module_health -q --no-cov`: **244 passed**
 
+## Session — 2026-09-02 — Backfill ModuleContracts for all modules with FunctionGroupContracts
+
+### Guardrail Engine Run — 2026-09-02
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `build-module-page-contracts-2026-09-02` (continued)
+- **Scope:** Derive `ModuleContract` records from the `FunctionGroupContract` registry for every loaded module and register them at startup.
+
+### What changed
+
+- `app/core/contract_loader.py` — after loading `FunctionGroupContract`s, `_derive_module_contracts()` groups them by module and creates one `ModuleContract` per module. Aggregates inputs, outputs, dependencies, and function-group IDs. Inherits lifecycle, roles, UPL risk tier, and fees policy from the matching `MANIFEST` entry.
+- `app/core/module_contract.py` — expanded `ModuleContractLifecycle` to include `internal` and `deprecated`, and `upl_risk_tier` to include all `UPLRiskTier` values.
+- `tests/test_module_contract.py` — added backfill tests confirming 115 derived module contracts and manifest-derived lifecycle.
+
+### Verification
+
+- `python -m py_compile app/core/contract_loader.py app/core/module_contract.py tests/test_module_contract.py`: PASS
+- `python tools/guardrail_engine.py`: all 4 checks PASS
+- `pytest tests/test_module_contract.py -v --no-cov`: **9 passed**
+- `pytest tests/page_shell/test_page_contract.py -v --no-cov`: **9 passed**
+- `pytest tests/module_health -q --no-cov`: **244 passed**
+
+### Findings
+
+- `load_all_contracts()` now registers **115 module contracts** automatically.
+- Spot-check: `vault` and `storage` contracts are present with aggregated dependencies.
+- No changes to `FunctionGroupContract` registration; backfill is additive.
+
 ### Next step
 
-- Backfill `ModuleContract` registrations for the remaining ~25 modules as a separate follow-up task.
+- Refine `pillar` values per module (currently defaulted to `record` in the derived contract). This can be done by adding an explicit `ModuleContract` registration or a manifest tag mapping.
 
 ---
 
