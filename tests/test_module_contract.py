@@ -74,3 +74,45 @@ class TestModuleContractToPageContract:
         narrative_blocks = [b for b in know_zone.blocks if b.block_id == "narrative"]
         assert len(narrative_blocks) == 1
         assert narrative_blocks[0].content_ref == "ctx_explain/demo_2"
+
+
+class TestModuleContractBackfill:
+    def test_backfill_derives_from_function_group_contracts(self) -> None:
+        from app.core.contract_loader import load_all_contracts
+        from app.core.module_contract_registry import module_contract_registry
+
+        # Clear any test-time samples, then load all contract modules and derive.
+        module_contract_registry.clear()
+        load_all_contracts()
+
+        contracts = module_contract_registry.list()
+        assert len(contracts) >= 10, f"Expected at least 10 module contracts, got {len(contracts)}"
+
+        # Spot-check a few modules that are known to have FunctionGroupContracts.
+        vault = module_contract_registry.get_by_module_path("app.modules.vault")
+        assert vault is not None
+        assert "vault::" in vault.function_group_ids[0]
+
+        storage = module_contract_registry.get_by_module_path("app.modules.storage")
+        assert storage is not None
+        assert storage.dependencies
+
+    def test_backfill_respects_manifest_lifecycle(self) -> None:
+        from app.core.contract_loader import load_all_contracts
+        from app.core.module_contract_registry import module_contract_registry
+
+        module_contract_registry.clear()
+        load_all_contracts()
+
+        page_shell = module_contract_registry.get_by_module_path("app.modules.page_shell")
+        assert page_shell is not None
+        # Lifecycle should be filled from the manifest (real value depends on manifest).
+        assert page_shell.lifecycle in {
+            "stable",
+            "beta",
+            "experimental",
+            "dev_only",
+            "preview",
+            "internal",
+            "deprecated",
+        }

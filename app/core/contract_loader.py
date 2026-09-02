@@ -20,6 +20,7 @@ import importlib
 import logging
 
 from app.core.product_manifest import MANIFEST, ProductTier, get_mvp_allowed_modules, is_mvp_deploy
+from app.core.module_contract import ModuleContract, ModuleContractInput
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +198,76 @@ def _all_tiers_enabled(enabled_tiers: list[ProductTier]) -> bool:
     return set(enabled_tiers) >= set(ProductTier.all())
 
 
+def _derive_module_contracts() -> int:
+    """Backfill ModuleContract records from the loaded FunctionGroupContract registry.
+
+    Each module's FunctionGroupContracts are grouped by ``module``. The resulting
+    ModuleContract carries aggregate inputs, outputs, dependencies, a list of
+    function-group IDs, and metadata inherited from the matching MANIFEST entry
+    when one exists.
+    """
+    from app.core.module_contracts import contract_registry
+    from app.core.module_contract_registry import module_contract_registry
+
+    by_module: dict[str, list] = {}
+    for fgc in contract_registry.list_contracts():
+        by_module.setdefault(fgc.module, []).append(fgc)
+
+    registered = 0
+    for module_name, contracts in by_module.items():
+        module_path = f"app.modules.{module_name}"
+        manifest_entry = MANIFEST.find(module_path)
+
+        inputs: set[str] = set()
+        outputs: set[str] = set()
+        dependencies: set[str] = set()
+        group_ids: list[str] = []
+
+        for fgc in contracts:
+            inputs.update(fgc.inputs)
+            outputs.update(fgc.outputs)
+            dependencies.update(fgc.dependencies)
+            group_ids.append(f"{fgc.module}::{fgc.group_name}")
+
+        # Inherit richer metadata from the product manifest when available.
+        lifecycle: str = "preview"
+        roles: list[str] = ["tenant"]
+        upl_risk: str = "none"
+        fees_policy: str = ""
+        product_manifest_path: str | None = None
+        if manifest_entry is not None:
+            lifecycle = manifest_entry.lifecycle
+            if manifest_entry.requires_role:
+                roles = list(manifest_entry.requires_role)
+            # ModuleEntry uses UPLRiskTier enum; ModuleContract accepts the string value.
+            upl_risk = str(manifest_entry.upl_risk_tier.value)
+            fees_policy = str(manifest_entry.fees_policy.value)
+            product_manifest_path = manifest_entry.module_path
+
+        title = contracts[0].title if contracts else module_name.replace("_", " ").title()
+
+        contract = ModuleContract(
+            module_path=module_path,
+            title=title,
+            pillar="record",  # Default; refined by backfill per-module as needed.
+            roles=roles,
+            lifecycle=lifecycle,  # type: ignore[arg-type]
+            inputs=[ModuleContractInput(name=i, kind="input") for i in sorted(inputs)],
+            outputs=[ModuleContractInput(name=o, kind="output") for o in sorted(outputs)],
+            dependencies=sorted(dependencies),
+            function_group_ids=group_ids,
+            product_manifest_path=product_manifest_path,
+            upl_risk_tier=upl_risk,  # type: ignore[arg-type]
+            fees_policy=fees_policy,
+        )
+
+        module_contract_registry.register(contract)
+        registered += 1
+
+    logger.info("ModuleContract registry loaded: %s modules", registered)
+    return registered
+
+
 def load_all_contracts(enabled_tiers: list[ProductTier] | None = None) -> dict[str, int]:
     """Import module register.py files for enabled tiers to trigger contract registration.
 
@@ -256,5 +327,7 @@ def load_all_contracts(enabled_tiers: list[ProductTier] | None = None) -> dict[s
         failed,
         skipped,
     )
+
+    _derive_module_contracts()
 
     return {"loaded": loaded, "failed": failed, "skipped": skipped, "total_contracts": total}

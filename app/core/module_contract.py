@@ -45,7 +45,18 @@ ModuleContractLifecycle = Literal[
     "experimental",
     "beta",
     "stable",
+    "internal",
     "deprecated",
+]
+
+ModuleContractUPLRiskTier = Literal[
+    "low",
+    "low_medium",
+    "medium",
+    "medium_high",
+    "high",
+    "very_high_do_not_build",
+    "none",
 ]
 
 
@@ -104,7 +115,7 @@ class ModuleContract(BaseModel):
     module_manifest_path: str | None = None
 
     # UPL and financial guardrails.
-    upl_risk_tier: Literal["none", "low", "medium", "high"] = "none"
+    upl_risk_tier: ModuleContractUPLRiskTier = "none"
     fees_policy: str = ""
 
     # Optional flat stable contract ID. If not provided, the registry uses
