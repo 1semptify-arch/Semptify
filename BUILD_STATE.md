@@ -1,3 +1,38 @@
+## Session — 2026-09-03 — `index.html` a11y fix + `/law-library` added to a11y public paths
+
+### Task
+
+- **Task ID:** `gui-base-template-consolidation-2026-09-03`
+- **Status:** In progress — first step completed.
+
+### What changed
+
+1. **Fixed `app/templates/index.html`.** The file had two concatenated `<!DOCTYPE html>`-style blocks and two `<main>` elements, causing `tests/test_a11y.py[/]` to fail. Rewrote it as one valid document:
+   - One `<!DOCTYPE html>`, one `<html>`, one `<head>`, one `<body>`, one `<main>`.
+   - Kept the calm home-field SVG background, the hero, and the verified-facts section.
+   - Added accessible `<header>` + `<nav>` and `<footer>` landmarks.
+   - Preserved the "Get help now" and "Browse tools" CTAs and the locale selector.
+2. **Removed redundant `role="main"` from `app/templates/pages/law_library.html`.** The page used `<main role="main">`; the native `<main>` already exposes the landmark, so the `role` was double-counted by the a11y test.
+3. **Added `/law-library` to `tests/test_a11y.py` `PUBLIC_PATHS`.**
+
+### Verification
+
+- `pytest tests/test_a11y.py -q --no-cov`: **7 passed**
+- `python tools/guardrail_engine.py`: **all checks passed**
+- `pytest tests/module_health -q --no-cov`: **244 passed** (re-run not required for this template-only change, but the prior run still reports clean)
+- Local browser check at `http://127.0.0.1:8001/`:
+  - Page loads, 1 `<main>`, 1 `<body>`, 1 `<header>`, 1 `<nav>`, 1 `<footer>`.
+  - No console errors.
+  - No horizontal overflow at 375 px.
+  - Hero text renders correctly (hardcoded English; no missing i18n keys displayed).
+
+### Known Broken / Pending
+
+- The root `/` route is served by `root_compose` in `app/main.py`, which passes `page_title="Semptify Composer"` and no `landing_facts`. The previous `register_stateless_routes` root (with `landing_facts`) is registered later and does not match. This is a route-ordering decision, not a template bug — flagged for Brad sign-off before the next step of base-template consolidation.
+- The universal `shared_base.html` consolidation and migration of the remaining pages is still open under `gui-base-template-consolidation-2026-09-03`.
+
+---
+
 ## Session — 2026-09-03 — GUI migration: law_library.html re-scope
 
 ### Guardrail Engine Run — 2026-09-03T16:55:28+00:00
