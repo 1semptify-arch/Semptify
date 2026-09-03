@@ -1,3 +1,63 @@
+## Session — 2026-09-03 — GUI migration: law_library.html re-scope
+
+### Guardrail Engine Run — 2026-09-03T16:55:28+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `gui-migration-law-library-2026-09-02`
+- **Status:** Resolved — `app/templates/pages/law_library.html` SSOT migration shipped.
+- **Scope:** CSS-only SSOT migration of the public Law Library page. No new routes, no backend changes, no content changes.
+
+### What changed
+
+1. **CSS-only migration.** Removed the custom `:root` color variables, card shadows, and rounded corners. Replaced with SSOT design-system tokens and classes:
+   - Applied `template-5` public-page color set (per existing `library` → `template-5` mapping).
+   - Used `.page-header`, `.page-footer`, `.container-md`, `.container`.
+   - Used `.btn`, `.btn--primary`, `.btn--secondary`, `.form-input`, `.form-select`, `.badge`, `.sr-only`.
+   - Kept page-specific layout classes (`.ll-toolbar`, `.ll-tab`, `.ll-card`, `.ll-chat`, etc.) but styled them only with SSOT tokens; no page-specific color variables or shadows.
+2. **Added Google Fonts preconnect/link** so `Inter` and `IBM Plex Mono` load correctly.
+3. **Added a calm "Get help now" CTA** above the footer, matching the pattern on other tenant/public pages.
+4. **Preserved all existing behavior.** Category loading, statute/case-law search, local help search, and the Law Librarian chat all continue to use the same API calls and JavaScript logic.
+
+### One-function / eye-path audit
+
+The page is treated as a single public "research the law" hub. The primary flow remains top-to-bottom:
+- State selection / search
+- Category tabs
+- Results
+- Local help (secondary)
+- Ask the Law Librarian (secondary)
+The secondary actions stay at the bottom. A follow-up task can still split them into separate routes if strict one-function is later required.
+
+### Verification
+
+- `python -m py_compile` on changed `.py` files: not applicable (no Python files changed).
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `pytest tests/test_a11y.py -q --no-cov`: 5 passed, 1 pre-existing failure on `/` (see Known broken).
+- `python tools/guardrail_engine.py`: all checks passed.
+- `node run.js C:/tmp/playwright-test-semptify.js` (canonical `ship` Playwright suite): 6 passed.
+- IronBee DevTools Playwright verification (`/law-library`):
+  - Loads at 1280×900 and 375×812.
+  - No console errors.
+  - Category tabs render; first tab loads results.
+  - Search for "deposit" returns results.
+  - "Show official text" `<details>` expands.
+  - No horizontal overflow or clipped content at mobile width.
+
+### Known broken / pending
+
+- `app/templates/index.html` has two `<main>` elements and two concatenated `<body>`/`<!DOCTYPE html>`-style blocks. This causes `tests/test_a11y.py::test_public_pages_have_accessible_landmarks[/]` to fail. This pre-existing issue was **not** touched by this change and needs a separate `index.html` consolidation / a11y fix.
+- Once the `index.html` a11y issue is resolved, consider adding `/law-library` to `tests/test_a11y.py`'s `PUBLIC_PATHS` list.
+
+---
+
 ## Session — 2026-09-03 — Live verify dispute_tracker and eviction_timeline pages
 
 ### Task
