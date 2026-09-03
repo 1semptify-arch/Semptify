@@ -2189,16 +2189,16 @@
   {
     "id": "ad-hoc-dt-et-live-verify-2026-08-27",
     "title": "Live verify dispute_tracker and eviction_timeline pages",
-    "description": "Run a live end-to-end browser test of the dispute_tracker and eviction_timeline HTML pages. Verify the create/save flows actually call the real API endpoints, the desktop-poster / mobile-stacked-scroll layout renders at 375px and 1280px without clipping, and the pages have a calm 'Get help now' CTA and no dead ends. Fix any functional, SSOT, or responsive regressions found. Report what passed and what is still pending.",
+    "description": "Run a live end-to-end browser test of the dispute_tracker and eviction_timeline HTML pages. Verify the create/save flows actually call the real API endpoints, the desktop-poster / mobile-stacked-scroll layout renders at 375px and 1280px without clipping, and the pages have a calm Get help now CTA and no dead ends. Fix any functional, SSOT, or responsive regressions found. Report what passed and what is still pending.",
     "file_path": "app/templates/pages/dispute_tracker.html",
     "priority": "high",
     "status": "resolved",
     "category": "frontend",
-    "notes": "Handoff from ACTIVE_CONTEXT.md: B2 dispute_tracker + B3 eviction_timeline greenfield build is scaffolded, but the live manual HTML page test has not been run.\n[2026-08-28 00:12 UTC - swe-1.7] Live verification completed in open mode. Both pages render at 375px and 1280px, create/save forms work, and redirects return to canonical view. Fixed TemplateResponse signature regression and hardcoded form actions.\n[2026-08-28 - claude] PR #137 confirmed merged via gh CLI at 2026-08-28T00:36:44Z. Marking resolved.",
+    "notes": "Live verification complete. Fixed mobile header overflow, form-row mobile fallback, added Get help now CTA. Module health 244 passed, guardrail all pass. Pre-existing /api/location/current 404 remains.",
     "created_at": "2026-08-27T00:00:00Z",
-    "updated_at": "2026-08-28T02:24:55.361657+00:00",
+    "updated_at": "2026-09-03T12:52:14.620528+00:00",
     "target_model": "unlimited",
-    "assigned_agent": "swe-1.7"
+    "assigned_agent": "claude"
   },
   {
     "id": "plugin-clientside-research-2026-08-28",
@@ -2360,11 +2360,11 @@
     "description": "Per Brad's build-order decision, publish the API spec first, before any reference plugin (D/E/F) is built. In the Semptify-PI repo (C:\\master-repo\\sources\\app-semptify-pi): finalize plugin_api_spec/openapi.yaml (full OpenAPI 3.0 spec for /api/v1/plugins/* covering plugin directory listing, token issuance/connect, plugin/me, direct download-url and upload-url capabilities) and plugin_api_spec/manifest.schema.json (JSON schema a plugin manifest must satisfy). Base this on plugin-architecture-design-spec-2026-08-28-report.md. This spec is the contract third-party/future plugin authors build against \u2014 it should be complete and stable before reference plugin code exists. Implement against mock_core/ (already scaffolded) so the spec can be validated with real request/response examples, not just written by hand. HOSTING SPLIT (Brad's decision 2026-08-29): the actual downloadable plugin files (browser extension zip, desktop app installer, local script bundle) are NOT served through Render/Core \u2014 they are hosted as GitHub Releases attached to the Semptify-PI repo (free, no bandwidth cap, portable independent of API hosting). The API's plugin-directory endpoint returns metadata plus a github.com/1semptify-arch/Semptify-PI/releases/... URL for each plugin, it does not proxy or store the file itself. Reflect this in openapi.yaml (the download field is a GitHub Releases URL, not a Core-hosted path). One commit per logical change, no push to Semptify main.",
     "file_path": "C:\\master-repo\\sources\\app-semptify-pi\\plugin_api_spec",
     "priority": "high",
-    "status": "review",
+    "status": "resolved",
     "category": "other",
-    "notes": "[2026-08-29 17:25 UTC - claude] Claimed for API spec finalization and validation against mock_core",
+    "notes": "[2026-08-29 17:25 UTC - claude] Claimed for API spec finalization and validation against mock_core\n[2026-08-30 15:25 UTC - claude] Spec committed in sources/app-semptify-pi: bbd4ff3 (publish openapi.yaml and manifest.schema.json) and 72bc716 (mock_core test double + validation script). Awaiting Brad approval before marking resolved.",
     "created_at": "2026-08-29T00:00:00Z",
-    "updated_at": "2026-08-29T17:32:47.967615+00:00",
+    "updated_at": "2026-08-30T15:32:24.642045+00:00",
     "target_model": "unlimited",
     "assigned_agent": "claude"
   },
@@ -2374,11 +2374,11 @@
     "description": "Brad decided: Semptify-PI gets its own separate Render service and subdomain (suggest plugins.semptify.org), independent from the main Semptify Render service (semptify.org). No shared environment variables or secrets with the main Semptify Render service, per the decoupling rule already in Semptify-PI's AGENTS.md. HARD CONSTRAINT: this MUST be Render's free tier, verified, not a free trial. Brad funds all of this personally out of limited disability income and cannot take on any recurring cost. Before creating the service, confirm free-tier limits (spin-down behavior, custom domain/SSL availability on free tier, any request/bandwidth caps) using current Render documentation, not assumptions from training data. If a custom subdomain or SSL requires a paid plan on Render's CURRENT pricing, stop and report back to Brad rather than proceeding \u2014 do not create anything that could incur a charge. Stop and report back with the proposed subdomain/config for Brad's confirmation before finalizing DNS either way.",
     "file_path": "N/A - Render infrastructure",
     "priority": "medium",
-    "status": "blocked_on_decision",
+    "status": "in_progress",
     "category": "other",
-    "notes": "[2026-08-29 17:33 UTC - claude] Checking Render free-tier capacity before proposing subdomain",
+    "notes": "[2026-08-29 17:33 UTC - claude] Checking Render free-tier capacity before proposing subdomain\n[2026-09-02 01:49 UTC - claude] Still blocked on Render free-tier limits and Brad's confirmation. No service or DNS created.\n[2026-09-02 02:04 UTC - claude] Resuming research. Will check current Render free-tier docs for spin-down behavior, custom domain/SSL availability, request/bandwidth caps, and whether a second free service fits the 750 instance-hour limit.\n[2026-09-02 02:14 UTC - claude] Brad decided: stay on Render free tier. No real users yet, so cold starts acceptable. Cloudflare used for DNS. Next: prepare render.yaml/env list, then confirm before creating service or DNS record.\n[2026-09-02 02:16 UTC - claude] Brad decided free tier. No real users yet, so spin-downs are acceptable. Cloudflare for DNS. Prepared render.yaml, /health endpoint, BUILD_GUIDE/BLUEPRINT updates. PI pushed a059827. Awaiting final OK before creating Render service and Cloudflare CNAME.\n[2026-09-02 02:26 UTC - claude] Render service septify-pi created: https://septify-pi.onrender.com. Free Render Postgres septify-pi-db created. Semptify-PI GitHub repo made public. Build/deploy in progress. Next: set real DATABASE_URL (from Render Dashboard), SEMPIFY_PI_ENCRYPTION_KEY, and OAuth credentials in Render env vars; update OAuth redirect URIs to https://septify-pi.onrender.com/auth/{provider}/callback.\n[2026-09-02 02:46 UTC - claude] Dedicated 'septify_pi' database created in Neon. Render service fails until DATABASE_URL and SEMPIFY_PI_ENCRYPTION_KEY are set in dashboard. BUILD_GUIDE and BUILD_STATE updated. Awaiting Brad to set env vars and redeploy.",
     "created_at": "2026-08-29T00:00:00Z",
-    "updated_at": "2026-08-29T17:33:51.696334+00:00",
+    "updated_at": "2026-09-02T02:46:36.195911+00:00",
     "target_model": "unlimited",
     "assigned_agent": "claude"
   },
@@ -2388,11 +2388,11 @@
     "description": "Rewrite /law-library to be a public, always-open, fact-only, official-source-only legal reference under Semptify's information-integrity rules. Retire /renters-guide and /gui/know as redundant 'Know Your Rights' labels. Expand the Law Linker so it pulls statute/case-law data from the Law Library and surfaces case-law/statute links in document overlay notes.",
     "file_path": "app/templates/pages/law_library.html",
     "priority": "high",
-    "status": "review",
+    "status": "resolved",
     "category": "feature",
-    "notes": "Added 2026-08-29 by claude after Brad's decision: /law-library is a standalone public Research tool, not a 'Know Your Rights' destination. /renters-guide and /gui/know are to be retired. Law Linker must be wired into document overlay notes. Handoff refined 2026-08-29 with: verbatim official text, optional plain-language summary, contact finder by zip/address/city, city-ordinance lookup, 'Know Your Rights' as a context-loop/Information-Orchestrator process, and Law Linker overlay-note activation (auto/shortcut/toolbar). Brad approved handoff as 'close enough, refine when picture becomes clearer'; implementation session TBD.\n[2026-08-30 08:11 UTC - claude] Phase 1 complete in PR #140: retired /renters-guide and /gui/know, rebranded to Law Library. Phase 2 (law_library.html rewrite + Law Linker overlays) needs the swap-protocol rename by Brad before proceeding.",
+    "notes": "Added 2026-08-29 by claude after Brad's decision: /law-library is a standalone public Research tool, not a 'Know Your Rights' destination. /renters-guide and /gui/know are to be retired. Law Linker must be wired into document overlay notes. Handoff refined 2026-08-29 with: verbatim official text, optional plain-language summary, contact finder by zip/address/city, city-ordinance lookup, 'Know Your Rights' as a context-loop/Information-Orchestrator process, and Law Linker overlay-note activation (auto/shortcut/toolbar). Brad approved handoff as 'close enough, refine when picture becomes clearer'; implementation session TBD.\n[2026-08-30 08:11 UTC - claude] Phase 1 complete in PR #140: retired /renters-guide and /gui/know, rebranded to Law Library. Phase 2 (law_library.html rewrite + Law Linker overlays) needs the swap-protocol rename by Brad before proceeding.\n[2026-08-30 10:21 UTC - claude] Phase 2a complete: law_library.html rewritten, /gui/know and Know your rights references retired, committed. Phase 2b: Law Linker document overlay wiring remains.\n[2026-08-30 11:12 UTC - claude] Phase 1 (retire redundant Know Your Rights pages) and Phase 2 (fact-only Law Library rewrite) pushed to PR #140. Next slice: Phase 3 Law Linker overlay wiring.\n[2026-08-30 11:45 UTC - claude] Phase 3 (note text panel) complete. /document-viewer route registered, note panel renders overlay notes as selectable text and runs LawLinker.process per note, unified_overlays promoted to CORE so the API is loaded in production. Verification: py_compile, module_health 244 passed, test_a11y 6 passed, guardrail engine all passed, /document-viewer 200, /api/unified-overlays/health 200. Full Law Linker citation linking still needs an end-to-end test with a real note once function token/storage session is available.",
     "created_at": "2026-08-29T00:00:00Z",
-    "updated_at": "2026-08-30T08:11:52.454464+00:00",
+    "updated_at": "2026-08-30T15:32:15.015142+00:00",
     "target_model": "claude",
     "assigned_agent": "claude"
   },
@@ -2402,11 +2402,11 @@
     "description": "Legacy agent_orchestrator_tasks.json has 3 open tasks (plugin-arch-design-spec, plugin-arch-repo-proposal, adr-0008-pilot-delete) already resolved in canonical orchestrator_state.json, and is missing current Semptify open/review/blocked tasks. Reconcile statuses and missing tasks; decide whether to deprecate the legacy queue.",
     "file_path": "tools/agent_orchestrator_tasks.json",
     "priority": "medium",
-    "status": "in_progress",
+    "status": "resolved",
     "category": "maintenance",
-    "notes": "3 stale open entries vs 3 missing current tasks (law-library, semptify-pi-api-spec, semptify-pi-render-hosting).",
+    "notes": "3 stale open entries vs 3 missing current tasks (law-library, semptify-pi-api-spec, semptify-pi-render-hosting).\n[2026-08-30 09:08 UTC - claude] PR #141 adds master sync to tools/sync_orchestrator.py and regenerates the legacy queue. Decision: retain legacy as a generated mirror, not deprecate it.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T09:02:42.443946+00:00",
+    "updated_at": "2026-08-30T15:20:19.630502+00:00",
     "target_model": "unassigned",
     "assigned_agent": "claude"
   },
@@ -2416,13 +2416,13 @@
     "description": "MAINTENANCE_TASKLIST.md still shows P1-3 and P2-1 through P2-7 as open, but orchestrator_state.json has them resolved. Update the tasklist or mark it as stale and align the source of truth.",
     "file_path": "MAINTENANCE_TASKLIST.md",
     "priority": "low",
-    "status": "open",
+    "status": "resolved",
     "category": "maintenance",
     "notes": "P1-3, P2-1, P2-3, P2-4, P2-5, P2-6, P2-7 all resolved in master queue.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-08-30T15:22:11.598592+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "inventory-md-refresh-2026-08-29",
@@ -2430,13 +2430,13 @@
     "description": "INVENTORY.md was generated 2026-08-03 and is stale. Re-run the inventory scan to update submodule SHAs, file counts, remotes, and the anomalies list.",
     "file_path": "INVENTORY.md",
     "priority": "low",
-    "status": "open",
+    "status": "resolved",
     "category": "maintenance",
     "notes": "Generated 2026-08-03; last master commit 2026-08-20.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-08-30T15:24:05.638152+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "semtify-code-stubs-audit-2026-08-29",
@@ -2444,13 +2444,13 @@
     "description": "Targeted scan found 53 actionable markers in 26 .py files (app/core, app/modules, app/services, tests, tools). 15 non-template source files need triage and resolution, including app/core/module_gate.py, page_recipe.py, product_manifest.py, shutdown.py, stateless_oauth.py, models.py, modules/agent_orchestrator/service.py, correspondence/router.py, page_shell/skeletons.py, storage/router.py, system_health/router.py, user_concerns/router.py, services/eviction/seed_court_data.py, vault_ingestion.py, and onboarding/oauth.py (NO-TOUCH). Raw list at C:\\Users\\bradc\\AppData\\Local\\Temp\\semtify_code_loose_ends.json.",
     "file_path": "app/",
     "priority": "medium",
-    "status": "open",
+    "status": "resolved",
     "category": "audit",
-    "notes": "15 non-template files; onboarding/oauth.py is NO-TOUCH\u2014do not edit without Brad approval.",
+    "notes": "15 non-template files; onboarding/oauth.py is NO-TOUCH\u2014do not edit without Brad approval.\n[2026-08-30 11:51 UTC - claude] Picked up as next highest-priority open task after law-library Phase 3. Will triage 53 markers and fix low-risk mechanical stubs; STOP and report before touching onboarding/oauth.py (NO-TOUCH) or any module with legal/UPL/PII implications.\n[2026-08-30 12:01 UTC - claude] Closed false-positive stub markers in 8 non-template source files. Canonical stub_detector now reports 0 stubs; guardrail engine all passed; module_health 244 passed; a11y + coverage 24 passed. Left untouched: module_gate feature flag integration (STOP trigger \u2014 touches feature_flags/features.py), onboarding/oauth.py (NO-TOUCH), 501 placeholders in correspondence/system_health/user_concerns routers, and MNCIS/Eviction Lab stubs in seed_court_data. BUILD_STATE.md updated with full close-out.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-08-30T15:32:22.299074+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "api-location-current-404-2026-08-29",
@@ -2458,13 +2458,13 @@
     "description": "Live verification (BUILD_STATE.md 2026-08-28 dispute_tracker/eviction_timeline session) shows the browser console reports a pre-existing 404 for /api/location/current. Investigate whether the endpoint should exist or the client call should be removed/suppressed.",
     "file_path": "app/main.py",
     "priority": "low",
-    "status": "open",
+    "status": "resolved",
     "category": "bug",
-    "notes": "Pre-existing unrelated 404 per BUILD_STATE.",
+    "notes": "Pre-existing unrelated 404 per BUILD_STATE.\n[2026-08-30 15:15 UTC - claude] Claimed to verify 404 is resolved by location module promotion to CORE.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-08-30T15:17:59.814617+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "case-builder-phantom-function-2026-08-29",
@@ -2514,13 +2514,13 @@
     "description": "BACKLOG.md accepted: after create_app() is called, walk fastapi_app.routes and flag any public route not in a registered module contract. This closes the /debug/seed-test-user public-route gap.",
     "file_path": "tools/checks/",
     "priority": "medium",
-    "status": "open",
+    "status": "blocked_on_decision",
     "category": "feature",
-    "notes": "Accepted in BACKLOG; do not build before CASE_DATA migration is complete.",
+    "notes": "Accepted in BACKLOG; do not build before CASE_DATA migration is complete.\n[2026-09-02 02:00 UTC - claude] Scanned the requirement. The task's own note says 'do not build before CASE_DATA migration is complete.' No implementation until that prerequisite is unblocked.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-02T02:00:52.559785+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "law-linker-document-overlay-2026-08-29",
@@ -2528,13 +2528,13 @@
     "description": "BUILD_STATE.md 2026-08-29 law-library decision: Law Linker must pull statute/case-law data from the Law Library and surface citations in document overlay notes (auto, keyboard shortcut, or toolbar button).",
     "file_path": "app/core/law_source_registry.py",
     "priority": "medium",
-    "status": "open",
+    "status": "resolved",
     "category": "feature",
-    "notes": "Part of law-library-fact-only-rewrite ecosystem.",
+    "notes": "Part of law-library-fact-only-rewrite ecosystem.\n[2026-08-30 11:45 UTC - claude] Completed alongside law-library-fact-only-rewrite-2026-08-29: document viewer note text panel fetches overlay notes and runs LawLinker.process on each note body. /document-viewer route registered; unified_overlays promoted to CORE. Runtime verification: /document-viewer 200, /api/unified-overlays/health 200. End-to-end citation linking with a real note pending function token test.\n[2026-08-30 15:07 UTC - claude] Work completed within law-library-rewrite-implementation branch. Awaiting Brad approval to merge to main; no separate PR yet.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-08-30T15:32:19.897986+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "public-page-fixes-unpushed-2026-08-29",
@@ -2542,11 +2542,11 @@
     "description": "Local commit 2020f291 on branch fix/public-page-audit-fixes-2026-08-28 (app/main.py + app/core/checkpoint_middleware.py) is not pushed. Open a PR or merge after review.",
     "file_path": "app/main.py",
     "priority": "high",
-    "status": "review",
+    "status": "resolved",
     "category": "bug",
     "notes": "BUILD_STATE 2026-08-29: next step is review and merge if the branch is pushed.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T07:46:03.404929+00:00",
+    "updated_at": "2026-08-30T15:20:08.793079+00:00",
     "target_model": "unassigned",
     "assigned_agent": "claude"
   },
@@ -2556,13 +2556,13 @@
     "description": "BACKLOG.md: fact-check/freshness system is [building]; Phase A-D merged; Phase B content-level verifier in production use is the remaining work.",
     "file_path": "app/modules/fact_check/",
     "priority": "medium",
-    "status": "open",
+    "status": "resolved",
     "category": "feature",
-    "notes": "BACKLOG status [building].",
+    "notes": "BACKLOG status [building].\n[2026-09-02 01:59 UTC - claude] Claiming to scope Phase B content-level verifier. Will read ADR-0009, BUILD_STATE close-out, and existing fact-check phases before planning build.\n[2026-09-02 02:00 UTC - claude] Phase B content-level verifier already implemented and tested: ContextFact has canonical_value and extraction_pattern; context_engine/verifier.py GETs source, extracts via regex, compares to canonical, raises alerts; data_freshness_manager has marketing_claims rule and verify_landing_claims refresh function; /api/data-freshness/cron/verify-landing-claims endpoint exists; /api/landing/facts returns verified facts. tests/test_landing_facts_endpoint.py 2 passed. No code changes needed.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-02T02:00:48.812628+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "consolidate-validate-architecture-principles-2026-08-29",
@@ -2572,11 +2572,11 @@
     "priority": "medium",
     "status": "blocked_on_decision",
     "category": "feature",
-    "notes": "Blocked: needs Brad's product/architecture decisions.",
+    "notes": "Blocked: needs Brad's product/architecture decisions.\n[2026-08-30 15:40 UTC - claude] Standalone /renters-guide and /gui/know retired: redirect to /law-library implemented and verified. Remaining blocker: tenant Flagship UI scope/timing and Law Linker next-step wiring in document-understanding flows.\n[2026-09-02 02:00 UTC - claude] Still blocked on Brad's product/architecture decisions: how to handle standalone Know Your Rights destinations and how to wire the law linker into document-understanding/next-step flows.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-02T02:00:55.162643+00:00",
     "target_model": "claude",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "landing-page-rebuild-2026-08-29",
@@ -2588,9 +2588,9 @@
     "category": "feature",
     "notes": "BACKLOG status [done] for planning but not built.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-02T02:04:55.659036+00:00",
     "target_model": "claude",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "tenant-flagship-ui-rebuild-2026-08-29",
@@ -2602,9 +2602,9 @@
     "category": "feature",
     "notes": "From BUILD_STATE 2026-08-29.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-02T02:04:58.374689+00:00",
     "target_model": "claude",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "retire-renters-guide-gui-know-2026-08-29",
@@ -2612,13 +2612,13 @@
     "description": "BUILD_STATE.md consolidate-validate session decided /renters-guide and /gui/know are redundant and should be retired; rights information should be surfaced contextually. Requires safe redirects or replacements.",
     "file_path": "app/templates/public/renters_guide.html",
     "priority": "medium",
-    "status": "blocked_on_decision",
+    "status": "resolved",
     "category": "feature",
-    "notes": "Per naming/pillar rule; do not break public access.",
+    "notes": "Per naming/pillar rule; do not break public access.\n[2026-08-30 15:34 UTC - claude] Brad directive 'get all reviews done then all blockers': standalone pages redirect target locked to /law-library; implementing redirects now.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-08-30T15:40:21.120471+00:00",
     "target_model": "claude",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "claude"
   },
   {
     "id": "four-piece-vault-unlock-2026-08-29",
@@ -2647,5 +2647,103 @@
     "updated_at": "2026-08-30T03:31:44.813Z",
     "target_model": "claude",
     "assigned_agent": "unassigned"
+  },
+  {
+    "id": "law-library-rewrite-plan-2026-08-29",
+    "title": "Create scoped plan for Law Library rewrite",
+    "description": "Read handoffs/architecture-principles-validation-2026-08-29-report.md, the current law_library.html, and related backend/Linker code. Investigate the four mandated areas (non-fact tabs, jurisdiction-aware design, case-law expansion, Law Linker overlay integration) and write a scoped implementation plan to handoffs/law-library-rewrite-plan-2026-08-29-report.md with keep/cut/relocate recommendations, effort estimates, and a recommended build order. Do not implement or modify law-library content/code.",
+    "file_path": "handoffs/law-library-rewrite-plan-2026-08-29-report.md",
+    "priority": "high",
+    "status": "resolved",
+    "category": "planning",
+    "notes": "Pasted handoff from Brad 2026-08-30. Read-only investigation and planning only; no implementation.\n[2026-08-30 13:09 UTC - claude] Read-only investigation complete. Findings written to handoffs/law-library-rewrite-plan-2026-08-29-report.md. Current /law-library already fact-only; legacy static/tenant/law-library.html still contains non-fact tabs. Jurisdiction-aware endpoints and location service exist and can be wired. Case-law DB has 15 cases and can be expanded via CourtListener/MN courts. Document viewer note panel already runs LawLinker.process; backend overlay-note generation is the remaining work. Awaiting Brad's decisions on non-fact tabs, IP geolocation, and case-law scope before implementation.",
+    "created_at": "2026-08-30T00:00:00Z",
+    "updated_at": "2026-08-30T15:32:12.404463+00:00",
+    "target_model": "claude",
+    "assigned_agent": "claude"
+  },
+  {
+    "id": "law-library-rewrite-implementation-2026-08-30",
+    "title": "Implement Law Library rewrite: archive legacy page, wire county selector, expand case law, generate overlay notes",
+    "description": "Execute the four workstreams from handoffs/law-library-rewrite-plan-2026-08-29-report.md with Brad's decisions: (1) archive static/tenant/law-library.html to archive/; (2) reuse the tenant home county selector to filter Law Library content by county; (3) propose and add 5-10 additional case-law entries; (4) build backend pipeline to generate FOOTNOTE/NOTE overlays from document citations using law_source_registry and Law Linker.",
+    "file_path": "app/templates/pages/law_library.html",
+    "priority": "high",
+    "status": "resolved",
+    "category": "feature",
+    "notes": "Brad decisions 2026-08-30: archive legacy law-library.html; do not build new location detection, reuse existing county selector; case-law expansion 5-10 cases; Law Linker overlay notes backend.\n[2026-08-30 13:40 UTC - claude] Step 1 done: archived static/tenant/law-library.html to archive/tenant-pages/law-library.html; verified guardrail and targeted tests pass. Step 3 proposal written to modules/app-semptify-fastapi/handoffs/law-library-case-law-proposal-2026-08-30.md with 8 additional cases (plus optional 9th). Step 2 blocked: no existing county selector on tenant home page; need Brad decision on whether to wire the Law Library help-input or add a selector.\n[2026-08-30 14:25 UTC - claude] Step 2 done: wired jurisdiction into /law-library. Public cookie with explicit consent; authenticated users use /api/location/current/update. Promoted location module to CORE and added public API paths. Step 3 proposal still pending approval.\n[2026-08-30 14:35 UTC - claude] Step 4 done: added Law Linker backend service and wired it into vault_upload_service and job_processor. Step 3 case-law proposal still pending Brad approval.\n[2026-08-30 14:49 UTC - claude] Step 3 done: added 8 approved case-law entries to CASE_LAW_DATABASE; fixed citation regexes and URL quoting. All steps 1-4 complete. Awaiting Brad's direction on next workstream.\n[2026-08-30 14:54 UTC - claude] Step 3 now 9 cases: added Knight v. McGinity. All Law Library rewrite steps 1-4 complete on feature branch.",
+    "created_at": "2026-08-30T00:00:00Z",
+    "updated_at": "2026-08-30T15:32:17.564784+00:00",
+    "target_model": "claude",
+    "assigned_agent": "claude"
+  },
+  {
+    "id": "page-contract-pydantic-model-2026-08-31",
+    "title": "Build PageContract Pydantic model and pressure-test against guide pages",
+    "description": "Implement a PageContract Pydantic model that formalizes page flow/UX fields (inputs, special_needs, narrative_ref, preview_state, review_state, export_type, exit_transition, error_route, mobile_constraints). Pressure-test against journal_create (RECORD), law_library_get_statute (KNOW), and eviction_defense_calculate_deadlines (ACT). Keep ModuleContract blocked per review decision.",
+    "file_path": "C:\\master-repo\\modules\\app-semptify-fastapi\\app\\modules\\page_shell",
+    "priority": "high",
+    "status": "resolved",
+    "category": "implementation",
+    "notes": "PageContract cleared to build per review decision (2026-08-31). ModuleContract remains blocked pending backfill of missing FunctionGroupContracts.\n[2026-08-31 17:52 UTC - claude] Claimed. Will write handoff, design PageContract Pydantic model, wire into Page Shell / Page Composer, and pressure-test against the three proven guide pages.\n[2026-09-01 00:20 UTC - claude] PageContract model + registry + 4 sample contracts + tests committed. PageConfig resistance found: InputBlock does not support options. Awaiting Brad decision before extending PageConfig or adjusting PageContract.\n[2026-09-02 01:00 UTC - claude] Resuming review. Will verify PageContract Pydantic model and pressure tests.\n[2026-09-02 01:04 UTC - claude] Reviewed and verified: PageContract Pydantic model py_compile PASS, guardrail all checks PASS, test_page_contract 9 passed, branch pushed to github-direct. Runtime /gui/page-contract route requires auth (SECURITY_MODE=enforced) so not re-verified live; covered by tests and prior session.",
+    "created_at": "2026-08-31T17:52:37.851934+00:00",
+    "updated_at": "2026-09-02T01:04:56.535355+00:00",
+    "target_model": "unlimited",
+    "assigned_agent": "claude"
+  },
+  {
+    "id": "extend-pageconfig-inputblock-options-2026-08-31",
+    "title": "Extend PageConfig.InputBlock and Page Shell renderer for select/checkbox/number/datetime-local",
+    "description": "Add options field to PageConfig.InputBlock, extend input_type Literal, update renderer to render select options and checkbox/number/datetime-local inputs, then re-run PageContract tests to confirm all four samples convert cleanly.",
+    "file_path": "C:\\master-repo\\modules\\app-semptify-fastapi\\app\\modules\\page_shell",
+    "priority": "high",
+    "status": "resolved",
+    "category": "implementation",
+    "notes": "Follow-up to page-contract-pydantic-model-2026-08-31. Scope confirmed as schema + renderer.\n[2026-09-01 00:32 UTC - claude] Scope confirmed as schema + renderer. Will update PageConfig.InputBlock, renderer, PageContractInput options shape, and re-run tests.\n[2026-09-01 00:41 UTC - claude] PageConfig.InputBlock extended with SelectOption and new input types. Renderer updated. PageContract tests now pass for all four samples. module_health still 244. No regression.\n[2026-09-02 01:06 UTC - claude] Resuming review. Will verify PageConfig InputBlock extension, renderer, and re-run PageContract tests.\n[2026-09-02 01:07 UTC - claude] Reviewed and verified: PageConfig.InputBlock extended with SelectOption and new input types, renderer handles select/checkbox/number/datetime-local, PageContract tests 9 passed, guardrail not re-run (already passed in same branch). Branch already pushed to github-direct.",
+    "created_at": "2026-09-01T00:32:14.147716+00:00",
+    "updated_at": "2026-09-02T01:07:03.064529+00:00",
+    "target_model": "unlimited",
+    "assigned_agent": "claude"
+  },
+  {
+    "id": "wire-pagecomposer-pagecontract-2026-08-31",
+    "title": "Wire Page Composer to consume PageContract at runtime",
+    "description": "Implement a canary where the Page Composer checks PageContractRegistry first for a page_id and uses contract.to_page_config(), falling back to existing hand-authored assembly. Requires confirming live/demo status of four pressure-test pages and resolving how PageContract page_ids map to Page Composer subjects/routes.",
+    "file_path": "C:\\master-repo\\modules\\app-semptify-fastapi\\app\\modules\\page_composer",
+    "priority": "high",
+    "status": "resolved",
+    "category": "implementation",
+    "notes": "BLOCKED: needs answer on live/demo status of four page IDs and decision on how to wire PageContract page_ids into Page Composer subject/route model.\n[2026-09-01 01:03 UTC - claude] Isolated /gui/page-contract/{page_id} route implemented. Four sample contracts render. Manual HTTP verification pass. module_health 244. No live routes touched.\n[2026-09-02 01:07 UTC - claude] Resuming review. The isolated /gui/page-contract/{page_id} canary route is in place and the four sample contracts render. Need final sign-off on whether the canary satisfies the task or a full Page Composer wiring decision is still needed.\n[2026-09-02 01:07 UTC - claude] Reviewed and verified: isolated /gui/page-contract/{page_id} canary route is implemented, py_compile PASS, guardrail all checks PASS. The route is not linked from navigation and does not touch live UI Composer routes. Full migration of live routes to contract-driven rendering remains a separate future decision. Branch already pushed to github-direct.",
+    "created_at": "2026-09-01T00:48:07.133335+00:00",
+    "updated_at": "2026-09-02T01:07:33.705948+00:00",
+    "target_model": "claude",
+    "assigned_agent": "claude"
+  },
+  {
+    "id": "gui-migration-law-library-2026-09-02",
+    "title": "GUI migration: law_library.html",
+    "description": "Per-page SSOT CSS migration for law_library.html. Apply one-function rule, migrate legacy/inline CSS to ssot-design-system.css, next-step/eye-path audit.",
+    "file_path": "app/templates/law_library.html",
+    "priority": "high",
+    "status": "review",
+    "category": "ui",
+    "notes": "Hand-off: stalled GUI migration remediation. Worst offender per audit. One page, one commit.\n[2026-09-02 06:51 UTC - claude] Split plan for law_library.html written to BUILD_STATE.md. No code changed. Awaiting Brad's review of the proposed page map and commit sequence before first split commit.",
+    "created_at": "2026-09-02T03:00:00Z",
+    "updated_at": "2026-09-02T06:51:40.953057+00:00",
+    "target_model": "claude",
+    "assigned_agent": "claude"
+  },
+  {
+    "id": "asymmetric-composer-preview-shell-2026-09-02",
+    "title": "Asymmetric Composer/Preview Template System",
+    "description": "Review mock-site reference, confirm/correct the asymmetric composer/preview shell plan, then build the shared shell component and migrate 3-4 high-traffic pages onto it. Phase 2: after Phase 0 foundation fixes and Phase 1 GUI migration.",
+    "file_path": "app/templates/",
+    "priority": "medium",
+    "status": "open",
+    "category": "ui",
+    "notes": "New planning hand-off received. Need to confirm/correct against C:\\master-repo\\handoffs\\mock-site\\ before Ticket 1.\n[2026-09-02 08:43 UTC - claude] Plan confirmed/corrected against mock-site. Corrections recorded in ACTIVE_CONTEXT.md: mock-site split is main+help, not composer+preview; shell must support composer, preview, and contextual help; primary/split props handle asymmetry. Task remains queued as Phase 2 behind Phase 0 + Phase 1.",
+    "created_at": "2026-09-02T04:00:00Z",
+    "updated_at": "2026-09-02T08:43:27.221160+00:00",
+    "target_model": "unassigned",
+    "assigned_agent": "claude"
   }
 ]

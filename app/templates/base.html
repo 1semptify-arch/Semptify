@@ -318,6 +318,23 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+
+        .locale-selector {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
+        .locale-selector__select {
+            max-width: 100%;
+        }
+
+        .storage-session-indicator {
+            white-space: nowrap;
         }
         
         /* Footer */
@@ -508,6 +525,17 @@
             
             .header__nav {
                 flex-wrap: wrap;
+                justify-content: center;
+                width: 100%;
+            }
+
+            .header__inner {
+                justify-content: center;
+            }
+
+            .storage-session-indicator,
+            .locale-selector {
+                width: auto;
                 justify-content: center;
             }
         }
