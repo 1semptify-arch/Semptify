@@ -1,5 +1,14 @@
 ## Session — 2026-09-03 — `index.html` a11y fix + `/law-library` added to a11y public paths
 
+### Guardrail Engine Run — 2026-09-03T23:24:49+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Task
 
 - **Task ID:** `gui-base-template-consolidation-2026-09-03`
@@ -28,8 +37,43 @@
 
 ### Known Broken / Pending
 
-- The root `/` route is served by `root_compose` in `app/main.py`, which passes `page_title="Semptify Composer"` and no `landing_facts`. The previous `register_stateless_routes` root (with `landing_facts`) is registered later and does not match. This is a route-ordering decision, not a template bug — flagged for Brad sign-off before the next step of base-template consolidation.
 - The universal `shared_base.html` consolidation and migration of the remaining pages is still open under `gui-base-template-consolidation-2026-09-03`.
+
+---
+
+## Session — 2026-09-03 — Removed duplicate `/` route handler (`root_compose`)
+
+### Task
+
+- **Task ID:** `gui-base-template-consolidation-2026-09-03` (prerequisite fix for `semptify-public-landing-liquid-hero-2026-09-03`)
+
+### What changed
+
+- **Root cause:** `app/main.py` registered two handlers for `GET /` — `root_compose`
+  (registered during `create_app()`, before routers) and `root` inside
+  `register_stateless_routes()` (called last). FastAPI/Starlette matches routes in
+  registration order, so `root_compose` silently won every request. It rendered
+  `index.html` with no `landing_facts` and stale "Semptify Composer" branding, meaning
+  the verified-facts section (`{% if landing_facts %}`) never actually rendered in
+  production, and the page title/description defaults in `index.html` were being
+  overridden by `root_compose`'s own hardcoded strings for no real reason.
+- **Fix:** removed `root_compose` entirely. The one remaining `/` handler (`root` in
+  `register_stateless_routes()`) is now canonical: it fetches real
+  `get_verified_landing_facts()` and lets `index.html`'s own `page_title`/
+  `page_description` defaults apply. Left the unrelated `/assets` static mount in place.
+- Brad confirmed (2026-09-03) this was a judgment call for the agent to make, not a
+  product decision — resolved as a duplicate-route bug per the same class as Known
+  Failure Registry #11 (duplicate handler registration silently overriding a working one).
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS
+- `pytest tests/test_a11y.py -q --no-cov`: **7 passed**
+- `pytest tests/module_health -q --no-cov`: **244 passed**
+- `python tools/guardrail_engine.py`: all checks passed
+- Live check at `http://127.0.0.1:8001/`: `<title>Semptify — Protect the serenity of
+  home</title>`, one `<main>`, verified-facts section markup present (empty list locally
+  — no seeded facts in dev DB, this is expected/correct auto-hide behavior).
 
 ---
 
