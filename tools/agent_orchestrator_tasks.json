@@ -2745,5 +2745,19 @@
     "updated_at": "2026-09-02T08:43:27.221160+00:00",
     "target_model": "unassigned",
     "assigned_agent": "claude"
+  },
+  {
+    "id": "gui-base-template-consolidation-2026-09-03",
+    "title": "Consolidate base templates and universal header/footer",
+    "description": "Merge base.html, public_base.html, gui/base.html, and standalone page shells into one universal base template with a fixed header/footer and the five SSOT template color sets. Align all tenant/public/admin pages on the single base; remove duplicate CSS variables and rounded-corner/shadow overrides. Fix the index.html a11y bug (two <main> elements, duplicated body blocks). Does not build the composer/preview shell.",
+    "file_path": "app/templates/base.html",
+    "priority": "high",
+    "status": "open",
+    "category": "ui",
+    "notes": "Created from GUI/UX audit 2026-09-03. Prerequisite for asymmetric-composer-preview-shell-2026-09-02. Handoff: handoffs/gui-base-template-consolidation-2026-09-03.md. Stop for Brad review before file edits.",
+    "created_at": "2026-09-03T17:35:00Z",
+    "updated_at": "2026-09-03T17:35:00Z",
+    "target_model": "claude",
+    "assigned_agent": "claude"
   }
 ]
