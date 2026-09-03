@@ -100,6 +100,19 @@
     padding: var(--space-4) 0;
 }
 
+.dt-help-cta {
+    margin-top: var(--space-6);
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: var(--type-body);
+}
+
+.dt-help-cta a {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
 /* Desktop poster layout: forms left, lists right */
 @media (min-width: 900px) {
     .dt-grid {
@@ -118,6 +131,10 @@
 /* Mobile: chronological stacked scroll */
 @media (max-width: 899px) {
     .dt-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dt-form-row {
         grid-template-columns: 1fr;
     }
 
@@ -275,5 +292,9 @@
             {% endif %}
         </section>
     </div>
+
+    <p class="dt-help-cta">
+        Need help understanding your rights or next steps? <a href="/tenant/help">Get help now</a>.
+    </p>
 </div>
 {% endblock %}
