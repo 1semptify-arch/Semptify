@@ -1,3 +1,32 @@
+## Session — 2026-09-03 — Live verify dispute_tracker and eviction_timeline pages
+
+### Task
+
+- **Task ID:** `ad-hoc-dt-et-live-verify-2026-08-27`
+- **Scope:** Run a live end-to-end browser test of the `dispute_tracker` and `eviction_timeline` HTML pages, verify create/save flows, desktop-poster/mobile-stacked-scroll layout at 375px and 1280px, and calm "Get help now" CTA. Fix any responsive regressions found.
+
+### What changed
+
+- `app/templates/base.html`: made the global header wrap on narrow viewports by adding `flex-wrap` to `.header__inner`, giving `.locale-selector` a `max-width` and mobile-centered rules, and preventing the language form from overflowing the viewport.
+- `app/templates/pages/dispute_tracker.html`: added mobile-only `.dt-form-row { grid-template-columns: 1fr; }` fallback and a calm `Get help now` CTA above the footer.
+- `app/templates/pages/eviction_timeline.html`: added mobile-only `.et-form-row { grid-template-columns: 1fr; }` fallback and a calm `Get help now` CTA above the footer.
+
+### Verification
+
+- Semptify local dev server running on `http://10.0.0.140:8000` (bound to `0.0.0.0` for Playwright access).
+- Seeded a test user via `POST /debug/seed-test-user`.
+- Playwright browser tests:
+  - `/api/dispute-tracker/` page loads and renders at 1280px and 375px without horizontal overflow.
+  - Add dispute form submits, new dispute appears in list.
+  - Add comparison form submits, new comparison appears in list.
+  - `/api/eviction-timeline/` page loads and renders at 1280px and 375px without horizontal overflow.
+  - Add event form submits, new event appears in list.
+  - Both pages have a calm "Get help now" CTA above the footer.
+- Console: only the pre-existing `404 /api/location/current` remains (noted as pre-existing in BUILD_STATE.md).
+- `python -m pytest tests/module_health -q --no-cov`: 244 passed.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python -m py_compile`: not applicable (HTML/CSS changes only).
+
 ## Session — 2026-08-30 — Law Library rewrite Phase 2: fact-only, source-cited public page
 
 ### Guardrail Engine Run — 2026-08-30T11:06:43+00:00
