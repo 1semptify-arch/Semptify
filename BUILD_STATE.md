@@ -5,6 +5,8 @@
 - **Task ID:** `semptify-public-landing-liquid-hero-2026-09-03`
 - **Status:** In progress — `index.html` rebuilt with liquid, asymmetrical layout.
 - **Branch:** `feature/landing-liquid-hero`
+- **Commit:** `64c06905`
+- **PR:** <https://github.com/1semptify-arch/Semptify/pull/146>
 
 ### What changed
 
