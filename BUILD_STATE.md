@@ -1,3 +1,39 @@
+## Session — 2026-09-04 — Public landing liquid/asymmetrical hero
+
+### Task
+
+- **Task ID:** `semptify-public-landing-liquid-hero-2026-09-03`
+- **Status:** In progress — `index.html` rebuilt with liquid, asymmetrical layout.
+- **Branch:** `feature/landing-liquid-hero`
+
+### What changed
+
+1. **Redesigned `app/templates/index.html` hero/facts area.**
+   - Replaced the centered, single-column, dark-centered-hero template with an off-center, two-zone liquid layout.
+   - The left zone holds the eyebrow, headline, subheadline, primary CTA (`/preamble`), secondary link (`/portal`), and calm note.
+   - The right zone is a large SVG liquid shape with a subtle home-comforts motif (houses, windows, tree, chair, smoke).
+   - Verified-facts list sits in the right column on desktop (when `landing_facts` is present) and stacks below on mobile.
+   - Uses `ssot-design-system.css` tokens for colors/spacing; no card borders, no shadows, no rounded corners.
+   - Preserves `prefers-reduced-motion`, skip link, `aria-labelledby`, i18n locale selector, and base `unified-footer`.
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS.
+- `pytest tests/test_a11y.py -q --no-cov`: 7 passed.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- IronBee DevTools Playwright (via `mcp-playwright`):
+  - 375×812: no horizontal overflow (`scrollWidth` <= `clientWidth`), one `<main>`, one `<header>`, one `<footer>`, valid `<html lang="en">`.
+  - 1280×900: same landmark counts, no overflow; liquid shape and hero visible; footer/trust line renders.
+  - Console: only pre-existing `/api/location/current` 404.
+
+### Known / pending
+
+- `landing_facts` is empty in the local dev DB, so the two-column verified-facts list is only visible when the context engine returns facts (template and CSS handle both states).
+- The public landing keeps a minimal transparent topbar override in `index.html` (distinct from the shared `.main-nav`) because `semptify.org` is a public entry surface. The base `unified-footer` is used as-is.
+
+---
+
 ## Session — 2026-09-04 — Universal base template consolidation (prerequisite for landing hero)
 
 ### Guardrail Engine Run — 2026-09-04T00:09:00+00:00
