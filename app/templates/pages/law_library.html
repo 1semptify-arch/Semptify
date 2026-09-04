@@ -1,159 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Law Library — Semptify</title>
-  <link rel="stylesheet" href="/static/css/ssot-design-system.css">
-  <style>
-    :root {
-      --ll-bg: #fdfcfa;
-      --ll-paper: #ffffff;
-      --ll-text: #1e293b;
-      --ll-muted: #64748b;
-      --ll-border: #e2e8f0;
-      --ll-primary: #1e3a5f;
-      --ll-primary-light: #2d5a87;
-      --ll-accent: #3b82f6;
-      --ll-accent-hover: #2563eb;
-      --ll-warm: #f59e0b;
-      --ll-success: #10b981;
-      --ll-radius: 0.75rem;
-      --ll-shadow: 0 4px 6px rgba(0,0,0,0.07);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: var(--ll-bg); color: var(--ll-text); line-height: 1.6; }
-    a { color: var(--ll-accent); }
-    a:hover { color: var(--ll-accent-hover); }
-    .skiplink { position: absolute; top: -40px; left: 0; background: var(--ll-primary); color: #fff; padding: 8px 16px; text-decoration: none; }
-    .skiplink:focus { top: 0; }
-    .page-header { background: linear-gradient(135deg, var(--ll-primary) 0%, var(--ll-primary-light) 100%); color: #fff; padding: 2.5rem 1.5rem 2rem; text-align: center; }
-    .page-header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 600; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
-    .page-header .subtitle { opacity: 0.9; font-size: 1.05rem; max-width: 720px; margin: 0.5rem auto 0; }
-    .disclaimer { max-width: 720px; margin: 1.25rem auto 0; padding: 1rem 1.25rem; background: rgba(255,255,255,0.12); border-radius: var(--ll-radius); font-size: 0.9rem; line-height: 1.55; }
-    .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.25rem; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; align-items: end; }
-    .field { display: flex; flex-direction: column; gap: 0.35rem; }
-    .field label { font-size: 0.82rem; font-weight: 600; color: var(--ll-muted); }
-    .field select, .field input { padding: 0.65rem 0.85rem; border: 1px solid var(--ll-border); border-radius: var(--ll-radius); font-size: 1rem; background: var(--ll-paper); }
-    .field select:focus, .field input:focus { outline: 2px solid var(--ll-accent); border-color: var(--ll-accent); }
-    .btn { padding: 0.7rem 1.25rem; border: none; border-radius: var(--ll-radius); font-weight: 600; cursor: pointer; font-size: 0.95rem; }
-    .btn-primary { background: var(--ll-accent); color: #fff; }
-    .btn-primary:hover { background: var(--ll-accent-hover); }
-    .btn-secondary { background: var(--ll-paper); color: var(--ll-primary); border: 1px solid var(--ll-border); }
-    .search-wrap { flex: 1; min-width: 260px; }
-    .search-wrap input { width: 100%; }
-    .tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
-    .tab { padding: 0.55rem 1rem; border: 1px solid var(--ll-border); background: var(--ll-paper); border-radius: 99px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--ll-muted); }
-    .tab.active { background: var(--ll-primary); color: #fff; border-color: var(--ll-primary); }
-    .tab:hover:not(.active) { border-color: var(--ll-accent); color: var(--ll-accent); }
-    .section-title { font-size: 1.25rem; color: var(--ll-primary); margin-bottom: 1rem; font-weight: 600; }
-    .results { display: grid; gap: 1rem; }
-    .card { background: var(--ll-paper); border: 1px solid var(--ll-border); border-radius: var(--ll-radius); padding: 1.25rem; box-shadow: var(--ll-shadow); }
-    .card h3 { font-size: 1.05rem; color: var(--ll-primary); margin-bottom: 0.35rem; font-weight: 600; }
-    .citation { font-size: 0.85rem; color: var(--ll-accent); font-weight: 600; margin-bottom: 0.75rem; display: block; }
-    .meta { font-size: 0.8rem; color: var(--ll-muted); margin-bottom: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
-    .meta span { background: var(--ll-bg); padding: 0.15rem 0.55rem; border-radius: 99px; border: 1px solid var(--ll-border); }
-    .summary { font-size: 0.95rem; color: var(--ll-text); margin-bottom: 0.75rem; }
-    .source { font-size: 0.8rem; color: var(--ll-muted); margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--ll-border); }
-    .source a { font-weight: 600; }
-    .empty { text-align: center; padding: 2rem; color: var(--ll-muted); }
-    .help-box { background: #fffbeb; border-left: 4px solid var(--ll-warm); border-radius: var(--ll-radius); padding: 1.25rem; margin-top: 2rem; }
-    .help-box h2 { font-size: 1.15rem; color: #78350f; margin-bottom: 0.5rem; }
-    .librarian { background: var(--ll-paper); border: 1px solid var(--ll-border); border-radius: var(--ll-radius); padding: 1.25rem; margin-top: 2rem; }
-    .librarian h2 { font-size: 1.15rem; color: var(--ll-primary); margin-bottom: 0.75rem; }
-    .chat { border: 1px solid var(--ll-border); border-radius: var(--ll-radius); padding: 1rem; height: 220px; overflow-y: auto; background: var(--ll-bg); margin-bottom: 0.75rem; }
-    .msg { margin-bottom: 0.75rem; padding: 0.6rem 0.85rem; border-radius: 0.5rem; font-size: 0.92rem; }
-    .msg.bot { background: var(--ll-paper); border: 1px solid var(--ll-border); }
-    .msg.user { background: var(--ll-primary); color: #fff; margin-left: 10%; }
-    .chat-input { display: flex; gap: 0.5rem; }
-    .chat-input input { flex: 1; padding: 0.65rem 0.85rem; border: 1px solid var(--ll-border); border-radius: var(--ll-radius); font-size: 1rem; }
-    .footer { background: #f1f5f9; padding: 2rem 1.5rem; text-align: center; font-size: 0.85rem; color: var(--ll-muted); margin-top: 2rem; }
-    .footer a { margin: 0 0.35rem; }
-    .badge { display: inline-block; background: #ecfdf5; color: #065f46; border-radius: 99px; padding: 0.15rem 0.6rem; font-size: 0.75rem; font-weight: 600; margin-right: 0.5rem; }
-    .official { display: inline-flex; align-items: center; gap: 0.35rem; }
-    .sr-only { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+{% extends "base.html" %}
+
+{% block title %}Law Library — Semptify{% endblock %}
+{% block description %}A public, fact-only reference for Minnesota tenant law. Every card shows the official source and the date it was last verified.{% endblock %}
+{% block body_class %}template-5{% endblock %}
+{% block main_class %}ll-main{% endblock %}
+
+{% block styles %}
+<style>
+    .ll-disclaimer { margin-top: var(--space-4); padding: var(--space-4); background: rgba(255, 255, 255, 0.12); font-size: var(--text-sm); line-height: var(--leading-relaxed); }
+    .ll-disclaimer a { color: var(--color-white); text-decoration: underline; }
+    .ll-main { width: 100%; max-width: var(--max-width-5xl); margin: 0 auto; padding: 0 var(--space-4) var(--space-8); }
+    .ll-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-6); align-items: end; }
+    .ll-help .ll-toolbar { margin-bottom: 0; }
+    .ll-field { display: flex; flex-direction: column; gap: var(--space-1); }
+    .ll-search { flex: 1; min-width: 260px; }
+    .ll-section-title { font-size: var(--type-h2); color: var(--color-primary); margin: 0 0 var(--space-3); font-weight: var(--type-h2-weight); }
+    .ll-tabs { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-4); }
+    .ll-tab { padding: var(--space-2) var(--space-3); border: 1px solid var(--border-color); background: var(--bg-card); font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--text-secondary); cursor: pointer; }
+    .ll-tab:hover:not(.ll-tab--active) { border-color: var(--color-primary-light); color: var(--color-primary); }
+    .ll-tab--active { background: var(--color-primary); color: var(--text-inverse); border-color: var(--color-primary); }
+    .ll-results { display: grid; gap: var(--space-4); }
+    .ll-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: var(--space-4); }
+    .ll-card h3 { font-size: var(--type-h3); color: var(--color-primary); margin: 0 0 var(--space-1); font-weight: var(--type-h3-weight); }
+    .ll-card details { margin-top: var(--space-3); }
+    .ll-card details summary { color: var(--color-info); font-weight: var(--font-semibold); cursor: pointer; }
+    .ll-card details pre { white-space: pre-wrap; font-size: var(--text-sm); margin-top: var(--space-3); padding: var(--space-3); background: var(--bg-page); border: 1px solid var(--border-color); }
+    .ll-card ul { margin-left: var(--space-6); font-size: var(--text-sm); color: var(--text-secondary); margin-bottom: var(--space-3); }
+    .ll-citation { font-size: var(--text-sm); color: var(--color-info); font-weight: var(--font-semibold); margin: 0 0 var(--space-3); display: block; }
+    .ll-meta { font-size: var(--text-xs); color: var(--text-secondary); margin: 0 0 var(--space-3); display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .ll-meta span { background: var(--color-gray-100); padding: var(--space-1) var(--space-2); }
+    .ll-summary { font-size: var(--text-base); color: var(--text-primary); margin: 0 0 var(--space-3); line-height: var(--leading-relaxed); }
+    .ll-source { font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border-color); }
+    .ll-source a { font-weight: var(--font-semibold); }
+    .ll-verified { color: var(--text-secondary); margin-left: var(--space-2); }
+    .ll-empty { text-align: center; padding: var(--space-8); color: var(--text-secondary); }
+    .ll-help { background: var(--bg-card); border: 1px solid var(--border-color); border-left: 4px solid var(--color-warning); padding: var(--space-4); margin-top: var(--space-8); }
+    .ll-help p { font-size: var(--text-sm); color: var(--text-secondary); margin: 0 0 var(--space-3); }
+    .ll-librarian { background: var(--bg-card); border: 1px solid var(--border-color); padding: var(--space-4); margin-top: var(--space-8); }
+    .ll-librarian > p { font-size: var(--text-sm); color: var(--text-secondary); margin: 0 0 var(--space-3); }
+    .ll-chat { border: 1px solid var(--border-color); padding: var(--space-4); height: 220px; overflow-y: auto; background: var(--bg-page); margin-bottom: var(--space-3); }
+    .ll-msg { margin-bottom: var(--space-3); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-relaxed); }
+    .ll-msg--bot { background: var(--bg-card); border: 1px solid var(--border-color); }
+    .ll-msg--user { background: var(--color-primary); color: var(--text-inverse); margin-left: 10%; }
+    .ll-chat-input { display: flex; gap: var(--space-2); }
+    .ll-chat-input .form-input { flex: 1; }
+    .ll-cta { background: var(--bg-card); padding: var(--space-8) 0; text-align: center; }
+    .ll-cta p { color: var(--text-secondary); margin: 0; }
+    .ll-cta a { color: var(--color-primary); font-weight: var(--font-semibold); text-decoration: none; }
+    .ll-cta a:hover { text-decoration: underline; }
+
     @media (max-width: 640px) {
-      .page-header { padding: 1.75rem 1rem; }
-      .container { padding: 1.25rem 1rem; }
-      .toolbar { flex-direction: column; align-items: stretch; }
-      .search-wrap, .field select, .field input { width: 100%; }
+      .ll-toolbar { flex-direction: column; align-items: stretch; }
+      .ll-search, .ll-field .form-input, .ll-field .form-select { width: 100%; }
+      .ll-toolbar .btn { width: 100%; }
+      .ll-chat-input { flex-direction: column; }
+      .ll-chat-input .btn { width: 100%; }
     }
-  </style>
-</head>
-<body>
-  <a href="#main" class="skiplink">Skip to main content</a>
+</style>
+{% endblock %}
 
-  <header class="page-header">
-    <h1>Law Library</h1>
-    <p class="subtitle">A public, fact-only reference for Minnesota tenant law. Every card shows the official source and the date it was last verified.</p>
-    <p class="disclaimer"><strong>This is not legal advice.</strong> Laws change. Before taking action, check the official source and talk with a licensed attorney or your local legal aid office. If you need help right now, visit <a href="/help" style="color:#fff;text-decoration:underline;">Get help</a>.</p>
-  </header>
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="/law-library">Library</a></li>
+<li class="nav-item"><a class="nav-link" href="/office">Office</a></li>
+<li class="nav-item"><a class="nav-link" href="/tools">Tools</a></li>
+<li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+{% endblock %}
 
-  <main id="main" class="container">
-    <div class="toolbar" role="search" aria-label="Law library search">
-      <div class="field">
-        <label for="state-select">State</label>
-        <select id="state-select" aria-label="Select state">
-          <option value="MN" selected>Minnesota</option>
-          <option value="other">Other state</option>
-        </select>
-      </div>
-      <div class="field search-wrap">
-        <label for="search-input">Search statutes, cases, and rules</label>
-        <input id="search-input" type="text" placeholder="For example: eviction notice, security deposit, habitability" autocomplete="off">
-      </div>
-      <button class="btn btn-primary" onclick="searchLaw()" id="search-btn">Search</button>
+{% block header %}
+{{ super() }}
+<section class="page-header">
+    <div class="container-md">
+        <h1 class="page-header__title">Law Library</h1>
+        <p class="page-header__subtitle">A public, fact-only reference for Minnesota tenant law. Every card shows the official source and the date it was last verified.</p>
+        <p class="ll-disclaimer"><strong>This is not legal advice.</strong> Laws change. Before taking action, check the official source and talk with a licensed attorney or your local legal aid office. If you need help right now, visit <a href="/help">Get help</a>.</p>
     </div>
+</section>
+{% endblock %}
 
-    <p id="other-state" class="empty" style="display:none;">Semptify's law library is still building coverage for other states. For other states, visit <a href="/help">Get help</a> to find local resources.</p>
+{% block content %}
+<div class="ll-toolbar" role="search" aria-label="Law library search">
+    <div class="ll-field">
+        <label for="state-select" class="form-label">State</label>
+        <select id="state-select" class="form-select" aria-label="Select state">
+            <option value="MN" selected>Minnesota</option>
+            <option value="other">Other state</option>
+        </select>
+    </div>
+    <div class="ll-field ll-search">
+        <label for="search-input" class="form-label">Search statutes, cases, and rules</label>
+        <input id="search-input" type="text" class="form-input" placeholder="For example: eviction notice, security deposit, habitability" autocomplete="off">
+    </div>
+    <button class="btn btn--primary" type="button" onclick="searchLaw()" id="search-btn">Search</button>
+</div>
 
-    <h2 class="section-title">Browse by topic</h2>
-    <nav id="tabs" class="tabs" aria-label="Law library categories"></nav>
+<p id="other-state" class="ll-empty" style="display:none;">Semptify's law library is still building coverage for other states. For other states, visit <a href="/help">Get help</a> to find local resources.</p>
 
-    <section id="results" aria-live="polite" aria-busy="false">
-      <p class="empty">Choose a topic or search to see verified legal references.</p>
-    </section>
+<h2 class="ll-section-title">Browse by topic</h2>
+<nav id="tabs" class="ll-tabs" aria-label="Law library categories"></nav>
 
-    <section class="help-box" aria-labelledby="help-title">
-      <h2 id="help-title">Find local help</h2>
-      <p style="margin-bottom:0.75rem;color:#78350f;">Search by city, county, or ZIP for legal aid, housing inspectors, tenant unions, and courts.</p>
-      <div class="toolbar" style="margin-bottom:0;">
-        <div class="field search-wrap">
-          <label for="help-input" class="sr-only">City, county, or ZIP</label>
-          <input id="help-input" type="text" placeholder="City, county, or ZIP">
+<section id="results" class="ll-results" aria-live="polite" aria-busy="false">
+    <p class="ll-empty">Choose a topic or search to see verified legal references.</p>
+</section>
+
+<section class="ll-help" aria-labelledby="help-title">
+    <h2 class="ll-section-title" id="help-title">Find local help</h2>
+    <p>Search by city, county, or ZIP for legal aid, housing inspectors, tenant unions, and courts.</p>
+    <div class="ll-toolbar" role="search" aria-label="Find local help">
+        <div class="ll-field ll-search">
+            <label for="help-input" class="sr-only">City, county, or ZIP</label>
+            <input id="help-input" type="text" class="form-input" placeholder="City, county, or ZIP">
         </div>
-        <button class="btn btn-secondary" onclick="findHelp()" id="help-btn">Search</button>
-      </div>
-      <div id="help-results" style="margin-top:1rem;"></div>
-    </section>
+        <button class="btn btn--secondary" type="button" onclick="findHelp()" id="help-btn">Search</button>
+    </div>
+    <div id="help-results" class="ll-results"></div>
+</section>
 
-    <section class="librarian" aria-labelledby="librarian-title">
-      <h2 id="librarian-title">Ask the Law Librarian</h2>
-      <p style="font-size:0.9rem;color:var(--ll-muted);margin-bottom:0.75rem;">This assistant only searches the Law Library. It cannot give legal advice. It will cite its sources.</p>
-      <div id="chat" class="chat" role="log" aria-live="polite" aria-atomic="false">
-        <div class="msg bot">I can point you to statutes, cases, and court rules in the Law Library. What would you like to find?</div>
-      </div>
-      <div class="chat-input">
+<section class="ll-librarian" aria-labelledby="librarian-title">
+    <h2 class="ll-section-title" id="librarian-title">Ask the Law Librarian</h2>
+    <p>This assistant only searches the Law Library. It cannot give legal advice. It will cite its sources.</p>
+    <div id="chat" class="ll-chat" role="log" aria-live="polite" aria-atomic="false">
+        <div class="ll-msg ll-msg--bot">I can point you to statutes, cases, and court rules in the Law Library. What would you like to find?</div>
+    </div>
+    <div class="ll-chat-input">
         <label for="chat-input" class="sr-only">Your question</label>
-        <input id="chat-input" type="text" placeholder="Ask about a tenant rights topic...">
-        <button class="btn btn-primary" onclick="askLibrarian()">Ask</button>
-      </div>
-    </section>
-  </main>
+        <input id="chat-input" type="text" class="form-input" placeholder="Ask about a tenant rights topic...">
+        <button class="btn btn--primary" type="button" onclick="askLibrarian()">Ask</button>
+    </div>
+</section>
 
-  <footer class="footer">
-    <p style="margin-bottom:0.75rem;">
-      <a href="/">Home</a> &middot;
-      <a href="/help">Get help</a> &middot;
-      <a href="/portal">Find tools</a> &middot;
-      <a href="/public-feedback">Report a problem</a>
-    </p>
-    <p>Semptify is an organizational tool, not a law firm. We do not give legal advice. We do not charge tenants. No advertising, ever.</p>
-  </footer>
+<section class="ll-cta" aria-label="Get help">
+    <div class="container">
+        <h2 class="ll-section-title">Get help now</h2>
+        <p>Need help understanding your rights or next steps? <a href="/help">Get help now</a>.</p>
+    </div>
+</section>
+{% endblock %}
 
-  <script>
+{% block scripts %}
+<script>
     const resultsEl = document.getElementById('results');
     const tabsEl = document.getElementById('tabs');
     const stateSelect = document.getElementById('state-select');
@@ -163,7 +148,7 @@
     stateSelect.addEventListener('change', () => {
       if (stateSelect.value === 'other') {
         otherState.style.display = 'block';
-        resultsEl.innerHTML = '<p class="empty">Choose a topic or search to see verified legal references.</p>';
+        resultsEl.innerHTML = '<p class="ll-empty">Choose a topic or search to see verified legal references.</p>';
       } else {
         otherState.style.display = 'none';
       }
@@ -178,32 +163,32 @@
 
     function renderSource(item) {
       if (!item.official_url) return '';
-      return `<p class="source"><span class="official">Official source:</span> <a href="${escapeHtml(item.official_url)}" target="_blank" rel="noopener">${escapeHtml(item.source_name || 'View official source')}</a> <span style="margin-left:0.5rem;color:var(--ll-muted);">Verified ${escapeHtml(item.last_verified || 'not yet')}</span></p>`;
+      return `<p class="ll-source"><span>Official source:</span> <a href="${escapeHtml(item.official_url)}" target="_blank" rel="noopener">${escapeHtml(item.source_name || 'View official source')}</a> <span class="ll-verified">Verified ${escapeHtml(item.last_verified || 'not yet')}</span></p>`;
     }
 
     function renderStatute(s) {
       const keyPoints = (s.key_points || []).map(k => `<li>${escapeHtml(k)}</li>`).join('');
       return `
-        <article class="card" tabindex="0" aria-label="${escapeHtml(s.title)}">
+        <article class="ll-card" tabindex="0" aria-label="${escapeHtml(s.title)}">
           <h3>${escapeHtml(s.title)}</h3>
-          <span class="citation">${escapeHtml(s.citation)}</span>
-          <div class="meta"><span class="badge">Statute</span><span>${escapeHtml(s.category)}</span></div>
-          <p class="summary">${escapeHtml(s.summary)}</p>
-          ${keyPoints ? `<ul style="margin-left:1.25rem;font-size:0.92rem;color:var(--ll-muted);margin-bottom:0.75rem;">${keyPoints}</ul>` : ''}
+          <span class="ll-citation">${escapeHtml(s.citation)}</span>
+          <div class="ll-meta"><span class="badge badge--success">Statute</span><span>${escapeHtml(s.category)}</span></div>
+          <p class="ll-summary">${escapeHtml(s.summary)}</p>
+          ${keyPoints ? `<ul>${keyPoints}</ul>` : ''}
           ${renderSource(s)}
-          ${s.full_text && s.full_text !== 'Chapter 504B governs...' ? `<details style="margin-top:0.75rem;"><summary style="cursor:pointer;color:var(--ll-accent);font-weight:600;">Show official text</summary><pre style="white-space:pre-wrap;font-size:0.85rem;margin-top:0.75rem;padding:0.75rem;background:var(--ll-bg);border-radius:var(--ll-radius);">${escapeHtml(s.full_text)}</pre></details>` : ''}
+          ${s.full_text && s.full_text !== 'Chapter 504B governs...' ? `<details><summary>Show official text</summary><pre>${escapeHtml(s.full_text)}</pre></details>` : ''}
         </article>
       `;
     }
 
     function renderCase(c) {
       return `
-        <article class="card" tabindex="0" aria-label="${escapeHtml(c.case_name)}">
+        <article class="ll-card" tabindex="0" aria-label="${escapeHtml(c.case_name)}">
           <h3>${escapeHtml(c.case_name)}</h3>
-          <span class="citation">${escapeHtml(c.citation)}</span>
-          <div class="meta"><span class="badge">Case law</span><span>${escapeHtml(c.court)}</span><span>${escapeHtml(c.date_decided)}</span></div>
-          <p class="summary">${escapeHtml(c.summary)}</p>
-          <p style="font-size:0.9rem;color:var(--ll-text);margin-bottom:0.75rem;"><strong>Holding:</strong> ${escapeHtml(c.holding || '')}</p>
+          <span class="ll-citation">${escapeHtml(c.citation)}</span>
+          <div class="ll-meta"><span class="badge badge--success">Case law</span><span>${escapeHtml(c.court)}</span><span>${escapeHtml(c.date_decided)}</span></div>
+          <p class="ll-summary">${escapeHtml(c.summary)}</p>
+          <p class="ll-summary"><strong>Holding:</strong> ${escapeHtml(c.holding || '')}</p>
           ${renderSource(c)}
         </article>
       `;
@@ -211,11 +196,11 @@
 
     function renderRule(r) {
       return `
-        <article class="card" tabindex="0" aria-label="${escapeHtml(r.title)}">
+        <article class="ll-card" tabindex="0" aria-label="${escapeHtml(r.title)}">
           <h3>${escapeHtml(r.title)}</h3>
-          <span class="citation">Rule ${escapeHtml(r.rule_number)}</span>
-          <div class="meta"><span class="badge">Court rule</span><span>${escapeHtml(r.category)}</span></div>
-          <p class="summary">${escapeHtml(r.summary)}</p>
+          <span class="ll-citation">Rule ${escapeHtml(r.rule_number)}</span>
+          <div class="ll-meta"><span class="badge badge--success">Court rule</span><span>${escapeHtml(r.category)}</span></div>
+          <p class="ll-summary">${escapeHtml(r.summary)}</p>
           ${renderSource(r)}
         </article>
       `;
@@ -231,17 +216,17 @@
         const res = await fetch('/api/law-library/categories');
         const data = await res.json();
         const cats = (data.statute_categories || []).slice(0, 9);
-        tabsEl.innerHTML = cats.map((c, i) => `<button class="tab ${i===0?'active':''}" data-cat="${escapeHtml(c.id)}" onclick="selectCategory(this)">${escapeHtml(c.name)}</button>`).join('');
+        tabsEl.innerHTML = cats.map((c, i) => `<button class="ll-tab ${i===0?'ll-tab--active':''}" data-cat="${escapeHtml(c.id)}" onclick="selectCategory(this)">${escapeHtml(c.name)}</button>`).join('');
         if (cats.length) selectCategory(tabsEl.children[0]);
       } catch (e) {
-        tabsEl.innerHTML = '<p style="color:var(--ll-muted)">Could not load categories.</p>';
+        tabsEl.innerHTML = '<p class="ll-empty">Could not load categories.</p>';
       }
     }
 
     async function selectCategory(btn) {
       if (!btn) return;
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
+      document.querySelectorAll('.ll-tab').forEach(t => t.classList.remove('ll-tab--active'));
+      btn.classList.add('ll-tab--active');
       currentCategory = btn.dataset.cat;
       await loadCategory(currentCategory);
     }
@@ -254,19 +239,19 @@
         const data = await res.json();
         const statutes = data.statutes || [];
         if (!statutes.length) {
-          resultsEl.innerHTML = '<p class="empty">No statutes found in this category yet. Try searching.</p>';
+          resultsEl.innerHTML = '<p class="ll-empty">No statutes found in this category yet. Try searching.</p>';
         } else {
-          resultsEl.innerHTML = `<h2 class="section-title">${escapeHtml(btnLabelFor(cat))}</h2><div class="results">${statutes.map(renderStatute).join('')}</div>`;
+          resultsEl.innerHTML = `<h2 class="ll-section-title">${escapeHtml(btnLabelFor(cat))}</h2><div class="ll-results">${statutes.map(renderStatute).join('')}</div>`;
         }
       } catch (e) {
-        resultsEl.innerHTML = '<p class="empty">Could not load results. Please try again.</p>';
+        resultsEl.innerHTML = '<p class="ll-empty">Could not load results. Please try again.</p>';
       } finally {
         setBusy(false);
       }
     }
 
     function btnLabelFor(cat) {
-      const btn = document.querySelector(`.tab[data-cat="${cat}"]`);
+      const btn = document.querySelector(`.ll-tab[data-cat="${cat}"]`);
       return btn ? btn.textContent : 'Results';
     }
 
@@ -275,7 +260,7 @@
       const query = document.getElementById('search-input').value.trim();
       if (!query) return;
       setBusy(true);
-      resultsEl.innerHTML = '<p class="empty">Searching...</p>';
+      resultsEl.innerHTML = '<p class="ll-empty">Searching...</p>';
       try {
         const [statRes, caseRes] = await Promise.all([
           fetch('/api/law-library/statutes?search=' + encodeURIComponent(query)),
@@ -287,12 +272,12 @@
         (sData.statutes || []).forEach(s => items.push({type:'statute', item:s}));
         (cData.cases || []).forEach(c => items.push({type:'case', item:c}));
         if (!items.length) {
-          resultsEl.innerHTML = '<p class="empty">No matching results. Try a different term, or search for local help below.</p>';
+          resultsEl.innerHTML = '<p class="ll-empty">No matching results. Try a different term, or search for local help below.</p>';
         } else {
-          resultsEl.innerHTML = `<h2 class="section-title">Search results</h2><div class="results">${items.map(({type, item}) => type==='statute'?renderStatute(item):renderCase(item)).join('')}</div>`;
+          resultsEl.innerHTML = `<h2 class="ll-section-title">Search results</h2><div class="ll-results">${items.map(({type, item}) => type==='statute'?renderStatute(item):renderCase(item)).join('')}</div>`;
         }
       } catch (e) {
-        resultsEl.innerHTML = '<p class="empty">Search failed. Please try again.</p>';
+        resultsEl.innerHTML = '<p class="ll-empty">Search failed. Please try again.</p>';
       } finally {
         setBusy(false);
       }
@@ -303,7 +288,7 @@
       const chat = document.getElementById('chat');
       const q = input.value.trim();
       if (!q) return;
-      chat.innerHTML += `<div class="msg user">${escapeHtml(q)}</div>`;
+      chat.innerHTML += `<div class="ll-msg ll-msg--user">${escapeHtml(q)}</div>`;
       input.value = '';
       chat.scrollTop = chat.scrollHeight;
       try {
@@ -313,14 +298,14 @@
           body: JSON.stringify({question: q, context: 'public law library'})
         });
         const data = await res.json();
-        let html = `<div class="msg bot">${escapeHtml(data.answer || 'No answer available. Please search the library or contact legal aid.')}</div>`;
+        let html = `<div class="ll-msg ll-msg--bot">${escapeHtml(data.answer || 'No answer available. Please search the library or contact legal aid.')}</div>`;
         const sources = data.sources || [];
         if (sources.length) {
-          html += `<div class="msg bot"><strong>Sources:</strong><ul style="margin-left:1.25rem;margin-top:0.5rem;">${sources.map(s => `<li><a href="${escapeHtml(s.url || '#')}" target="_blank" rel="noopener">${escapeHtml(s.title || s.citation || 'Source')}</a></li>`).join('')}</ul></div>`;
+          html += `<div class="ll-msg ll-msg--bot"><strong>Sources:</strong><ul style="margin-left:1.25rem;margin-top:0.5rem;">${sources.map(s => `<li><a href="${escapeHtml(s.url || '#')}" target="_blank" rel="noopener">${escapeHtml(s.title || s.citation || 'Source')}</a></li>`).join('')}</ul></div>`;
         }
         chat.innerHTML += html;
       } catch (e) {
-        chat.innerHTML += '<div class="msg bot">Something went wrong. You can also call your local legal aid office for help.</div>';
+        chat.innerHTML += '<div class="ll-msg ll-msg--bot">Something went wrong. You can also call your local legal aid office for help.</div>';
       }
       chat.scrollTop = chat.scrollHeight;
     }
@@ -330,32 +315,31 @@
       const out = document.getElementById('help-results');
       const area = input.value.trim();
       if (!area) return;
-      out.innerHTML = '<p style="color:var(--ll-muted)">Searching...</p>';
+      out.innerHTML = '<p class="ll-empty">Searching...</p>';
       try {
         const res = await fetch('/api/resources?service_area=' + encodeURIComponent(area));
         const data = await res.json();
         const resources = data.resources || [];
         if (!resources.length) {
-          out.innerHTML = `<p>No local listings found for <strong>${escapeHtml(area)}</strong>. <a href="/help">Get help finding a resource</a>.</p>`;
+          out.innerHTML = `<p class="ll-empty">No local listings found for <strong>${escapeHtml(area)}</strong>. <a href="/help">Get help finding a resource</a>.</p>`;
         } else {
-          out.innerHTML = `<h3 style="margin-bottom:0.5rem;">Local resources near ${escapeHtml(area)}</h3><div class="results">${resources.map(r => `
-            <article class="card">
+          out.innerHTML = `<h2 class="ll-section-title">Local resources near ${escapeHtml(area)}</h2><div class="ll-results">${resources.map(r => `
+            <article class="ll-card">
               <h3>${escapeHtml(r.name)}</h3>
-              <p class="summary">${escapeHtml(r.description || '')}</p>
-              <p style="font-size:0.85rem;color:var(--ll-muted);">${escapeHtml(r.category || '')} &middot; ${escapeHtml(r.service_area || '')}</p>
-              ${r.phone ? `<p><a href="tel:${escapeHtml(r.phone)}">${escapeHtml(r.phone)}</a></p>` : ''}
-              ${r.url ? `<p><a href="${escapeHtml(r.url)}" target="_blank" rel="noopener">Visit website</a></p>` : ''}
+              <p class="ll-summary">${escapeHtml(r.description || '')}</p>
+              <p class="ll-meta"><span>${escapeHtml(r.category || '')}</span><span>${escapeHtml(r.service_area || '')}</span></p>
+              ${r.phone ? `<p class="ll-source"><a href="tel:${escapeHtml(r.phone)}">${escapeHtml(r.phone)}</a></p>` : ''}
+              ${r.url ? `<p class="ll-source"><a href="${escapeHtml(r.url)}" target="_blank" rel="noopener">Visit website</a></p>` : ''}
             </article>
           `).join('')}</div>`;
         }
       } catch (e) {
-        out.innerHTML = '<p style="color:var(--ll-muted)">Could not load local resources. Try <a href="/help">Get help</a>.</p>';
+        out.innerHTML = '<p class="ll-empty">Could not load local resources. Try <a href="/help">Get help</a>.</p>';
       }
     }
 
     document.getElementById('help-input').addEventListener('keypress', e => { if (e.key === 'Enter') findHelp(); });
 
     loadCategories();
-  </script>
-</body>
-</html>
+</script>
+{% endblock %}
