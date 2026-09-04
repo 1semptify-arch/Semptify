@@ -16,6 +16,7 @@ from lxml import html
 PUBLIC_PATHS: list[str] = [
     "/",
     "/help",
+    "/law-library",
 ]
 
 # Pages an authenticated tenant user reaches.

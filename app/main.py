@@ -1933,27 +1933,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 tags=["Document Center"],
             )
 
-    # Stateless composer landing prototype for the public utility experience.
+    # Static asset mount used by public pages (unrelated to the root route below).
     app_static_path = BASE_PATH / "app" / "static"
     if app_static_path.exists():
         fastapi_app.mount("/assets", StaticFiles(directory=str(app_static_path)), name="app_static")
 
-    @fastapi_app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-    async def root_compose(request: Request):
-        """Serve a calm, stateless landing experience with hash-based panel routing."""
-        if request.method == "HEAD":
-            return Response(status_code=200)
-
-        current_year = utc_now().year
-        return templates.TemplateResponse(
-            request,
-            "index.html",
-            {
-                "year": current_year,
-                "page_title": "Semptify Composer",
-                "page_description": "A calm, stateless landing workspace for triage, vault, and timeline support.",
-            },
-        )
+    # NOTE: The single canonical "/" handler is `root` in `register_stateless_routes()`
+    # (called at the end of this function), which renders index.html with real
+    # `landing_facts`. A second "/" handler (`root_compose`) used to be registered
+    # here — it rendered the same template with no facts and stale "Semptify
+    # Composer" branding, and silently won route resolution over the facts-bearing
+    # handler because FastAPI matches routes in registration order. Removed as a
+    # duplicate-route bug (see gui-base-template-consolidation-2026-09-03 /
+    # BUILD_STATE.md 2026-09-03) rather than left as two competing handlers.
 
     # Favicon - serve a simple SVG to prevent 404 errors
     @fastapi_app.get("/favicon.ico")

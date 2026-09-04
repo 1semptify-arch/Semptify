@@ -1,3 +1,217 @@
+## Session — 2026-09-04 — Universal base template consolidation (prerequisite for landing hero)
+
+### Guardrail Engine Run — 2026-09-04T00:09:00+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `gui-base-template-consolidation-2026-09-03`
+- **Status:** Resolved — universal `base.html` consolidation shipped for the bounded scope.
+- **Branch:** `feature/gui-base-template-consolidation-2026-09-03`
+- **Commit:** `7c383ec0`
+- **PR:** <https://github.com/1semptify-arch/Semptify/pull/145>
+
+### What changed
+
+1. **Created a universal `app/templates/base.html`.**
+   - One shared `<!DOCTYPE html>` shell, `<html lang>`, `<head>`, `<body>`.
+   - Loads Google Fonts (Inter + IBM Plex Mono), `ssot-design-system.css`, HTMX, and `law-linker.js`.
+   - Provides shared `{% block title %}`, `{% block description %}`, `{% block styles %}`, `{% block header %}`, `{% block nav %}`, `{% block pre_main %}`, `{% block main_class %}`, `{% block content %}`, `{% block post_main %}`, `{% block footer %}`, `{% block scripts %}`.
+   - Includes a skip link, a sticky `.main-nav` header with plain-text nav links and an always-visible "Get help now" CTA, and a `.unified-footer` with legal disclaimer, help path, and trust line.
+   - Default body class is `template-1`; pages override via `body_class`.
+
+2. **Made `app/templates/public_base.html` extend `base.html`.**
+   - Removed its own `<html>`/`<head>`/`<body>` shell and `:root` token block.
+   - Scoped the previous public token mapping to `.template-5` as a transitional bridge.
+   - Kept public utility classes (`.main-content`, `.service-card`, `.info-banner`, etc.).
+   - Added a shared page-header band via the `header` block.
+
+3. **Made `app/templates/gui/base.html` extend `base.html`.**
+   - Removed its own full document shell and inline `:root`/hardcoded body styles.
+   - Sets `body_class` to `template-1` and uses `gui-panels.css`.
+   - Added a `gui-help-now` band and `gui-container` wrapping on `<main>`.
+   - Kept the `nav_*` and `container_class` child overrides for existing GUI pages.
+
+4. **Wrapped `app/templates/index.html` in the universal base.**
+   - Removed the standalone `<!DOCTYPE html>`/`<html>`/`<head>`/`<body>` shell and duplicate `<main>`.
+   - Overrode `header` and `footer` to keep the calm landing topbar and landing footer.
+   - Moved landing-specific styles and the home-field SVG into `styles` and `content` blocks.
+
+5. **Wrapped `app/templates/pages/law_library.html` in the universal base.**
+   - Removed the standalone shell and raw-HTML serving path.
+   - Updated `app/modules/law_library/router.py` to serve the page through `Jinja2Templates` with `get_locale`, `_`, `supported_locales`, `navigation`, and `year` context so the shared base renders correctly.
+   - Preserved all category, search, local-help, and Law Librarian JavaScript.
+
+6. **Updated `static/css/ssot-design-system.css`.**
+   - Added missing tokens used by `.main-nav` and `.unified-footer`: `--color-header-1`, `--color-header-2`, `--color-warm`, `--surface-0`, `--surface-1`, `--border-light`, `--primary-50`, `--primary-600`, `--z-50`.
+   - Added `.skip-link` and `.main-nav` overrides so the nav works on dark template headers, wraps on mobile, and hides the unused hamburger toggle.
+
+7. **Removed symbol/emoji navigation controls from migrated shells.**
+   - The universal nav uses plain text links (`Home`, `Library`, `Office`, `Tools`, `Help`).
+   - The landing topbar and footer use text links and a helpline dot (decorative only, `aria-hidden`).
+
+### Verification
+
+- `python -m py_compile app/modules/law_library/router.py`: PASS.
+- `pytest tests/test_a11y.py -q --no-cov`: 7 passed.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- IronBee DevTools Playwright checks:
+  - `/` and `/law-library` at 375×812 and 1280×900: no console errors (except the pre-existing `/api/location/current` 404), no horizontal overflow (`scrollWidth <= clientWidth`), exactly one `<main>`, one `<footer>`, valid `<html lang>`, correct nav/header/footer counts.
+  - `/help` and `/gui/record/journal/create` at 375 and 1280: pages render, no overflow, one `<main>`, base header/footer present.
+  - `/law-library` search for "deposit" returns results; category tabs render.
+
+### Known broken / pending
+
+- The remaining ~118 template files still use `public_base.html`, `gui/base.html`, or `base.html` directly; a follow-up per-page `template-N` class and token sweep is needed to finish the full migration.
+
+---
+
+## Session — 2026-09-03 — `index.html` a11y fix + `/law-library` added to a11y public paths
+
+### Guardrail Engine Run — 2026-09-03T23:24:49+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `gui-base-template-consolidation-2026-09-03`
+- **Status:** In progress — first step completed.
+
+### What changed
+
+1. **Fixed `app/templates/index.html`.** The file had two concatenated `<!DOCTYPE html>`-style blocks and two `<main>` elements, causing `tests/test_a11y.py[/]` to fail. Rewrote it as one valid document:
+   - One `<!DOCTYPE html>`, one `<html>`, one `<head>`, one `<body>`, one `<main>`.
+   - Kept the calm home-field SVG background, the hero, and the verified-facts section.
+   - Added accessible `<header>` + `<nav>` and `<footer>` landmarks.
+   - Preserved the "Get help now" and "Browse tools" CTAs and the locale selector.
+2. **Removed redundant `role="main"` from `app/templates/pages/law_library.html`.** The page used `<main role="main">`; the native `<main>` already exposes the landmark, so the `role` was double-counted by the a11y test.
+3. **Added `/law-library` to `tests/test_a11y.py` `PUBLIC_PATHS`.**
+
+### Verification
+
+- `pytest tests/test_a11y.py -q --no-cov`: **7 passed**
+- `python tools/guardrail_engine.py`: **all checks passed**
+- `pytest tests/module_health -q --no-cov`: **244 passed** (re-run not required for this template-only change, but the prior run still reports clean)
+- Local browser check at `http://127.0.0.1:8001/`:
+  - Page loads, 1 `<main>`, 1 `<body>`, 1 `<header>`, 1 `<nav>`, 1 `<footer>`.
+  - No console errors.
+  - No horizontal overflow at 375 px.
+  - Hero text renders correctly (hardcoded English; no missing i18n keys displayed).
+
+### Known Broken / Pending
+
+- The universal `shared_base.html` consolidation and migration of the remaining pages is still open under `gui-base-template-consolidation-2026-09-03`.
+
+---
+
+## Session — 2026-09-03 — Removed duplicate `/` route handler (`root_compose`)
+
+### Task
+
+- **Task ID:** `gui-base-template-consolidation-2026-09-03` (prerequisite fix for `semptify-public-landing-liquid-hero-2026-09-03`)
+
+### What changed
+
+- **Root cause:** `app/main.py` registered two handlers for `GET /` — `root_compose`
+  (registered during `create_app()`, before routers) and `root` inside
+  `register_stateless_routes()` (called last). FastAPI/Starlette matches routes in
+  registration order, so `root_compose` silently won every request. It rendered
+  `index.html` with no `landing_facts` and stale "Semptify Composer" branding, meaning
+  the verified-facts section (`{% if landing_facts %}`) never actually rendered in
+  production, and the page title/description defaults in `index.html` were being
+  overridden by `root_compose`'s own hardcoded strings for no real reason.
+- **Fix:** removed `root_compose` entirely. The one remaining `/` handler (`root` in
+  `register_stateless_routes()`) is now canonical: it fetches real
+  `get_verified_landing_facts()` and lets `index.html`'s own `page_title`/
+  `page_description` defaults apply. Left the unrelated `/assets` static mount in place.
+- Brad confirmed (2026-09-03) this was a judgment call for the agent to make, not a
+  product decision — resolved as a duplicate-route bug per the same class as Known
+  Failure Registry #11 (duplicate handler registration silently overriding a working one).
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS
+- `pytest tests/test_a11y.py -q --no-cov`: **7 passed**
+- `pytest tests/module_health -q --no-cov`: **244 passed**
+- `python tools/guardrail_engine.py`: all checks passed
+- Live check at `http://127.0.0.1:8001/`: `<title>Semptify — Protect the serenity of
+  home</title>`, one `<main>`, verified-facts section markup present (empty list locally
+  — no seeded facts in dev DB, this is expected/correct auto-hide behavior).
+
+---
+
+## Session — 2026-09-03 — GUI migration: law_library.html re-scope
+
+### Guardrail Engine Run — 2026-09-03T16:55:28+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `gui-migration-law-library-2026-09-02`
+- **Status:** Resolved — `app/templates/pages/law_library.html` SSOT migration shipped.
+- **Scope:** CSS-only SSOT migration of the public Law Library page. No new routes, no backend changes, no content changes.
+
+### What changed
+
+1. **CSS-only migration.** Removed the custom `:root` color variables, card shadows, and rounded corners. Replaced with SSOT design-system tokens and classes:
+   - Applied `template-5` public-page color set (per existing `library` → `template-5` mapping).
+   - Used `.page-header`, `.page-footer`, `.container-md`, `.container`.
+   - Used `.btn`, `.btn--primary`, `.btn--secondary`, `.form-input`, `.form-select`, `.badge`, `.sr-only`.
+   - Kept page-specific layout classes (`.ll-toolbar`, `.ll-tab`, `.ll-card`, `.ll-chat`, etc.) but styled them only with SSOT tokens; no page-specific color variables or shadows.
+2. **Added Google Fonts preconnect/link** so `Inter` and `IBM Plex Mono` load correctly.
+3. **Added a calm "Get help now" CTA** above the footer, matching the pattern on other tenant/public pages.
+4. **Preserved all existing behavior.** Category loading, statute/case-law search, local help search, and the Law Librarian chat all continue to use the same API calls and JavaScript logic.
+
+### One-function / eye-path audit
+
+The page is treated as a single public "research the law" hub. The primary flow remains top-to-bottom:
+- State selection / search
+- Category tabs
+- Results
+- Local help (secondary)
+- Ask the Law Librarian (secondary)
+The secondary actions stay at the bottom. A follow-up task can still split them into separate routes if strict one-function is later required.
+
+### Verification
+
+- `python -m py_compile` on changed `.py` files: not applicable (no Python files changed).
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `pytest tests/test_a11y.py -q --no-cov`: 5 passed, 1 pre-existing failure on `/` (see Known broken).
+- `python tools/guardrail_engine.py`: all checks passed.
+- `node run.js C:/tmp/playwright-test-semptify.js` (canonical `ship` Playwright suite): 6 passed.
+- IronBee DevTools Playwright verification (`/law-library`):
+  - Loads at 1280×900 and 375×812.
+  - No console errors.
+  - Category tabs render; first tab loads results.
+  - Search for "deposit" returns results.
+  - "Show official text" `<details>` expands.
+  - No horizontal overflow or clipped content at mobile width.
+
+### Known broken / pending
+
+- `app/templates/index.html` has two `<main>` elements and two concatenated `<body>`/`<!DOCTYPE html>`-style blocks. This causes `tests/test_a11y.py::test_public_pages_have_accessible_landmarks[/]` to fail. This pre-existing issue was **not** touched by this change and needs a separate `index.html` consolidation / a11y fix.
+- Once the `index.html` a11y issue is resolved, consider adding `/law-library` to `tests/test_a11y.py`'s `PUBLIC_PATHS` list.
+
+---
+
 ## Session — 2026-09-03 — Live verify dispute_tracker and eviction_timeline pages
 
 ### Task
