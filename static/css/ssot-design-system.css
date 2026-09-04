@@ -214,6 +214,17 @@
   /* Type-weight as boundary signal */
   --zone-header-weight: 600;
   --zone-body-weight: 400;
+
+  /* Supporting tokens for .main-nav / .unified-footer */
+  --color-header-1: var(--color-primary-dark);
+  --color-header-2: var(--color-primary);
+  --color-warm: var(--color-warning);
+  --surface-0: var(--bg-card);
+  --surface-1: var(--color-gray-100);
+  --border-light: var(--border-color);
+  --primary-50: rgba(59, 130, 246, 0.12);
+  --primary-600: var(--color-primary-light);
+  --z-50: 50;
 }
 
 /* ============================================================================
@@ -1459,4 +1470,63 @@ a:hover {
   .nav-actions {
     display: flex;
   }
+}
+
+/* Skip link — visible on focus only */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  padding: var(--space-2) var(--space-4);
+  z-index: calc(var(--z-sticky) + 1);
+  text-decoration: none;
+  font-weight: var(--font-medium);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 0;
+  outline: 2px solid var(--text-inverse);
+  outline-offset: 2px;
+}
+
+/* Main-nav appearance on dark template headers and mobile wrapping */
+.main-nav .nav-container {
+  height: auto;
+  min-height: 64px;
+}
+
+.main-nav .nav-links {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.main-nav .nav-toggle,
+.main-nav .nav-mobile {
+  display: none;
+}
+
+.main-nav .nav-link,
+.main-nav .nav-mobile-links a {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.main-nav .nav-link:hover,
+.main-nav .nav-link:focus,
+.main-nav .nav-mobile-links a:hover,
+.main-nav .nav-mobile-links a:focus {
+  color: var(--text-primary);
+}
+
+.main-nav .nav-link.active,
+.main-nav .nav-link[aria-current="page"] {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+/* Always show brand title */
+.nav-title {
+  display: inline;
 }
