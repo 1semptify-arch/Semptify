@@ -1,17 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Law Library — Semptify</title>
-  <meta name="description" content="A public, fact-only reference for Minnesota tenant law. Every card shows the official source and the date it was last verified.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/ssot-design-system.css">
-  <style>
-    .ll-skip { position: absolute; top: -40px; left: 0; background: var(--color-primary); color: var(--color-white); padding: var(--space-2) var(--space-3); text-decoration: none; z-index: var(--z-sticky); }
-    .ll-skip:focus { top: 0; }
+{% extends "base.html" %}
+
+{% block title %}Law Library — Semptify{% endblock %}
+{% block description %}A public, fact-only reference for Minnesota tenant law. Every card shows the official source and the date it was last verified.{% endblock %}
+{% block body_class %}template-5{% endblock %}
+{% block main_class %}ll-main{% endblock %}
+
+{% block styles %}
+<style>
     .ll-disclaimer { margin-top: var(--space-4); padding: var(--space-4); background: rgba(255, 255, 255, 0.12); font-size: var(--text-sm); line-height: var(--leading-relaxed); }
     .ll-disclaimer a { color: var(--color-white); text-decoration: underline; }
     .ll-main { width: 100%; max-width: var(--max-width-5xl); margin: 0 auto; padding: 0 var(--space-4) var(--space-8); }
@@ -53,7 +48,7 @@
     .ll-cta p { color: var(--text-secondary); margin: 0; }
     .ll-cta a { color: var(--color-primary); font-weight: var(--font-semibold); text-decoration: none; }
     .ll-cta a:hover { text-decoration: underline; }
-    .page-footer p { margin: 0 0 var(--space-2); }
+
     @media (max-width: 640px) {
       .ll-toolbar { flex-direction: column; align-items: stretch; }
       .ll-search, .ll-field .form-input, .ll-field .form-select { width: 100%; }
@@ -61,91 +56,89 @@
       .ll-chat-input { flex-direction: column; }
       .ll-chat-input .btn { width: 100%; }
     }
-  </style>
-</head>
-<body class="template-5">
-  <a href="#main" class="ll-skip">Skip to main content</a>
+</style>
+{% endblock %}
 
-  <header class="page-header">
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="/law-library">Library</a></li>
+<li class="nav-item"><a class="nav-link" href="/office">Office</a></li>
+<li class="nav-item"><a class="nav-link" href="/tools">Tools</a></li>
+<li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+{% endblock %}
+
+{% block header %}
+{{ super() }}
+<section class="page-header">
     <div class="container-md">
-      <h1 class="page-header__title">Law Library</h1>
-      <p class="page-header__subtitle">A public, fact-only reference for Minnesota tenant law. Every card shows the official source and the date it was last verified.</p>
-      <p class="ll-disclaimer"><strong>This is not legal advice.</strong> Laws change. Before taking action, check the official source and talk with a licensed attorney or your local legal aid office. If you need help right now, visit <a href="/help">Get help</a>.</p>
+        <h1 class="page-header__title">Law Library</h1>
+        <p class="page-header__subtitle">A public, fact-only reference for Minnesota tenant law. Every card shows the official source and the date it was last verified.</p>
+        <p class="ll-disclaimer"><strong>This is not legal advice.</strong> Laws change. Before taking action, check the official source and talk with a licensed attorney or your local legal aid office. If you need help right now, visit <a href="/help">Get help</a>.</p>
     </div>
-  </header>
+</section>
+{% endblock %}
 
-  <main id="main" class="ll-main">
-    <div class="ll-toolbar" role="search" aria-label="Law library search">
-      <div class="ll-field">
+{% block content %}
+<div class="ll-toolbar" role="search" aria-label="Law library search">
+    <div class="ll-field">
         <label for="state-select" class="form-label">State</label>
         <select id="state-select" class="form-select" aria-label="Select state">
-          <option value="MN" selected>Minnesota</option>
-          <option value="other">Other state</option>
+            <option value="MN" selected>Minnesota</option>
+            <option value="other">Other state</option>
         </select>
-      </div>
-      <div class="ll-field ll-search">
+    </div>
+    <div class="ll-field ll-search">
         <label for="search-input" class="form-label">Search statutes, cases, and rules</label>
         <input id="search-input" type="text" class="form-input" placeholder="For example: eviction notice, security deposit, habitability" autocomplete="off">
-      </div>
-      <button class="btn btn--primary" type="button" onclick="searchLaw()" id="search-btn">Search</button>
     </div>
+    <button class="btn btn--primary" type="button" onclick="searchLaw()" id="search-btn">Search</button>
+</div>
 
-    <p id="other-state" class="ll-empty" style="display:none;">Semptify's law library is still building coverage for other states. For other states, visit <a href="/help">Get help</a> to find local resources.</p>
+<p id="other-state" class="ll-empty" style="display:none;">Semptify's law library is still building coverage for other states. For other states, visit <a href="/help">Get help</a> to find local resources.</p>
 
-    <h2 class="ll-section-title">Browse by topic</h2>
-    <nav id="tabs" class="ll-tabs" aria-label="Law library categories"></nav>
+<h2 class="ll-section-title">Browse by topic</h2>
+<nav id="tabs" class="ll-tabs" aria-label="Law library categories"></nav>
 
-    <section id="results" class="ll-results" aria-live="polite" aria-busy="false">
-      <p class="ll-empty">Choose a topic or search to see verified legal references.</p>
-    </section>
+<section id="results" class="ll-results" aria-live="polite" aria-busy="false">
+    <p class="ll-empty">Choose a topic or search to see verified legal references.</p>
+</section>
 
-    <section class="ll-help" aria-labelledby="help-title">
-      <h2 class="ll-section-title" id="help-title">Find local help</h2>
-      <p>Search by city, county, or ZIP for legal aid, housing inspectors, tenant unions, and courts.</p>
-      <div class="ll-toolbar" role="search" aria-label="Find local help">
+<section class="ll-help" aria-labelledby="help-title">
+    <h2 class="ll-section-title" id="help-title">Find local help</h2>
+    <p>Search by city, county, or ZIP for legal aid, housing inspectors, tenant unions, and courts.</p>
+    <div class="ll-toolbar" role="search" aria-label="Find local help">
         <div class="ll-field ll-search">
-          <label for="help-input" class="sr-only">City, county, or ZIP</label>
-          <input id="help-input" type="text" class="form-input" placeholder="City, county, or ZIP">
+            <label for="help-input" class="sr-only">City, county, or ZIP</label>
+            <input id="help-input" type="text" class="form-input" placeholder="City, county, or ZIP">
         </div>
         <button class="btn btn--secondary" type="button" onclick="findHelp()" id="help-btn">Search</button>
-      </div>
-      <div id="help-results" class="ll-results"></div>
-    </section>
+    </div>
+    <div id="help-results" class="ll-results"></div>
+</section>
 
-    <section class="ll-librarian" aria-labelledby="librarian-title">
-      <h2 class="ll-section-title" id="librarian-title">Ask the Law Librarian</h2>
-      <p>This assistant only searches the Law Library. It cannot give legal advice. It will cite its sources.</p>
-      <div id="chat" class="ll-chat" role="log" aria-live="polite" aria-atomic="false">
+<section class="ll-librarian" aria-labelledby="librarian-title">
+    <h2 class="ll-section-title" id="librarian-title">Ask the Law Librarian</h2>
+    <p>This assistant only searches the Law Library. It cannot give legal advice. It will cite its sources.</p>
+    <div id="chat" class="ll-chat" role="log" aria-live="polite" aria-atomic="false">
         <div class="ll-msg ll-msg--bot">I can point you to statutes, cases, and court rules in the Law Library. What would you like to find?</div>
-      </div>
-      <div class="ll-chat-input">
+    </div>
+    <div class="ll-chat-input">
         <label for="chat-input" class="sr-only">Your question</label>
         <input id="chat-input" type="text" class="form-input" placeholder="Ask about a tenant rights topic...">
         <button class="btn btn--primary" type="button" onclick="askLibrarian()">Ask</button>
-      </div>
-    </section>
-  </main>
-
-  <section class="ll-cta" aria-label="Get help">
-    <div class="container">
-      <h2 class="ll-section-title">Get help now</h2>
-      <p>Need help understanding your rights or next steps? <a href="/help">Get help now</a>.</p>
     </div>
-  </section>
+</section>
 
-  <footer class="page-footer">
+<section class="ll-cta" aria-label="Get help">
     <div class="container">
-      <p>
-        <a href="/">Home</a> &middot;
-        <a href="/help">Get help</a> &middot;
-        <a href="/portal">Find tools</a> &middot;
-        <a href="/public-feedback">Report a problem</a>
-      </p>
-      <p>Semptify is an organizational tool, not a law firm. We do not give legal advice. We do not charge tenants. No advertising, ever.</p>
+        <h2 class="ll-section-title">Get help now</h2>
+        <p>Need help understanding your rights or next steps? <a href="/help">Get help now</a>.</p>
     </div>
-  </footer>
+</section>
+{% endblock %}
 
-  <script>
+{% block scripts %}
+<script>
     const resultsEl = document.getElementById('results');
     const tabsEl = document.getElementById('tabs');
     const stateSelect = document.getElementById('state-select');
@@ -348,6 +341,5 @@
     document.getElementById('help-input').addEventListener('keypress', e => { if (e.key === 'Enter') findHelp(); });
 
     loadCategories();
-  </script>
-</body>
-</html>
+</script>
+{% endblock %}

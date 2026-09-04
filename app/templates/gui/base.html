@@ -1,139 +1,55 @@
-<!DOCTYPE html>
-<html lang="{{ get_locale(request) | default('en') }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block description %}Semptify — Tenant rights protection{% endblock %}">
-    <title>{% block title %}Semptify{% endblock %}</title>
+{% extends "base.html" %}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+{% block body_class %}template-1{% endblock %}
+{% block main_class %}gui-container {% block container_class %}{% endblock %}{% endblock %}
 
-    <link rel="stylesheet" href="/static/css/ssot-design-system.css">
-    <link rel="stylesheet" href="/static/css/gui-panels.css">
+{% block nav %}
+<li class="nav-item"><a class="nav-link {% block nav_home %}{% endblock %}" href="{{ navigation.get_stage('gui_home').path }}">Home</a></li>
+<li class="nav-item"><a class="nav-link {% block nav_record %}{% endblock %}" href="{{ navigation.get_stage('gui_record').path }}">Record</a></li>
+<li class="nav-item"><a class="nav-link {% block nav_know %}{% endblock %}" href="{{ navigation.get_stage('law_library').path }}">Library</a></li>
+<li class="nav-item"><a class="nav-link {% block nav_act %}{% endblock %}" href="{{ navigation.get_stage('gui_act').path }}">Act</a></li>
+{% endblock %}
 
-    <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        html { font-size: 16px; }
-        @media (prefers-reduced-motion: no-preference) {
-            html { scroll-behavior: smooth; }
-        }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            min-height: 100vh;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
+{% block pre_main %}
+{% set help_path = (navigation.MAIN_NAV | selectattr('name', 'equalto', 'Help') | map(attribute='path') | first) | default('/help', true) %}
+<a href="{{ help_path }}" class="gui-help-now" aria-label="Get help now">Get help now</a>
+{% endblock %}
 
-        .skip-link {
-            position: absolute;
-            top: -100%;
-            left: 0;
-            z-index: 1000;
-            padding: 0.75rem 1rem;
-            background: var(--color-calm-dark, #3a4f66);
-            color: var(--color-white, #fff);
-            text-decoration: none;
-        }
-        .skip-link:focus { top: 0; }
+{% block styles %}
+<link rel="stylesheet" href="/static/css/gui-panels.css">
+<style>
+    body.template-1 {
+        background: var(--zone-bg-primary);
+        color: var(--text-inverse);
+    }
 
-        .gui-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
+    .gui-help-now {
+        display: block;
+        background: var(--color-calm-dark, #3a4f66);
+        color: var(--text-inverse, #fff);
+        text-decoration: none;
+        text-align: center;
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        transition: background 0.2s ease;
+    }
 
-        /* Nav shell */
-        .gui-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 2rem;
-        }
+    .gui-help-now:hover,
+    .gui-help-now:focus-visible {
+        background: var(--zone-bg-tertiary, #334155);
+        outline: 2px solid var(--text-inverse);
+        outline-offset: -2px;
+    }
 
-        .gui-nav--brand {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: #fff;
-            text-decoration: none;
-        }
+    .gui-container {
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 1rem 3rem;
+    }
 
-        .gui-nav--items {
-            display: flex;
-            gap: 1.5rem;
-            list-style: none;
-        }
-
-        .gui-nav--link {
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-            padding: 0.25rem 0;
-            border-bottom: 2px solid transparent;
-            transition: color 0.15s ease, border-color 0.15s ease;
-        }
-
-        .gui-nav--link:hover,
-        .gui-nav--link.active {
-            color: #fff;
-            border-bottom-color: #3b82f6;
-        }
-
-        .gui-main { padding-bottom: 3rem; }
-
-        .gui-footer {
-            padding: 2rem 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-
-        .gui-footer a {
-            color: #3b82f6;
-            text-decoration: none;
-        }
-
-        @media (max-width: 375px) {
-            .gui-nav { flex-direction: column; gap: 0.75rem; }
-            .gui-nav--items { flex-wrap: wrap; justify-content: center; gap: 1rem; }
-        }
-    </style>
-    {% block styles %}{% endblock %}
-</head>
-<body>
-    <a href="#gui-main-content" class="skip-link">Skip to main content</a>
-
-    {% set help_path = (navigation.MAIN_NAV | selectattr('name', 'equalto', 'Help') | map(attribute='path') | first) | default('/help', true) %}
-    <a href="{{ help_path }}" class="gui-help-now" aria-label="Get help now">Get help now</a>
-
-    <div class="gui-container {% block container_class %}{% endblock %}">
-        <nav class="gui-nav" aria-label="Main">
-            <a href="{{ navigation.get_stage('gui_home').path }}" class="gui-nav--brand">Semptify</a>
-            <ul class="gui-nav--items">
-                <li><a href="{{ navigation.get_stage('gui_home').path }}" class="gui-nav--link {% block nav_home %}{% endblock %}">Home</a></li>
-                <li><a href="{{ navigation.get_stage('gui_record').path }}" class="gui-nav--link {% block nav_record %}{% endblock %}">Record</a></li>
-                <li><a href="{{ navigation.get_stage('gui_know').path }}" class="gui-nav--link {% block nav_know %}{% endblock %}">Know</a></li>
-                <li><a href="{{ navigation.get_stage('gui_act').path }}" class="gui-nav--link {% block nav_act %}{% endblock %}">Act</a></li>
-            </ul>
-        </nav>
-
-        <main id="gui-main-content" class="gui-main">
-            {% block content %}{% endblock %}
-        </main>
-
-        <footer class="gui-footer">
-            <p>Semptify is an organizational tool, not a law firm. We can't give legal advice. <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help">Find legal help</a> · <a href="{{ navigation.get_stage('public_feedback').path }}">Report a problem</a></p>
-            {% include "components/locale_selector.html" %}
-        </footer>
-    </div>
-    {% block scripts %}{% endblock %}
-    <script src="/static/js/law-linker.js"></script>
-</body>
-</html>
+    .gui-viewport-locked {
+        min-height: calc(100vh - 120px);
+    }
+</style>
+{% endblock %}
