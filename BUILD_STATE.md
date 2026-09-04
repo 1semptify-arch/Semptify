@@ -13,6 +13,9 @@ All checks passed.
 
 - **Task ID:** `gui-base-template-consolidation-2026-09-03`
 - **Status:** Resolved — universal `base.html` consolidation shipped for the bounded scope.
+- **Branch:** `feature/gui-base-template-consolidation-2026-09-03`
+- **Commit:** `7c383ec0`
+- **PR:** <https://github.com/1semptify-arch/Semptify/pull/145>
 
 ### What changed
 
