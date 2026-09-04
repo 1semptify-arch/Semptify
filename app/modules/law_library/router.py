@@ -9,8 +9,9 @@ Minnesota Tenant Rights, Statutes, Case Law, and Court Rules.
 import logging
 import pathlib
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from app.core.capabilities import require_capability
@@ -2400,6 +2401,25 @@ async def get_county_code(
 page_router = APIRouter(tags=["Law Library"])
 
 _TEMPLATE_PATH = pathlib.Path(__file__).parent.parent.parent / "templates" / "pages" / "law_library.html"
+TEMPLATES_DIR = _TEMPLATE_PATH.parent.parent
+
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+try:
+    from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale
+
+    templates.env.globals["_"] = _jinja2_gettext
+    templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
+    templates.env.globals["get_locale"] = get_locale
+except ImportError:
+    pass
+
+try:
+    from app.core.navigation import navigation
+
+    templates.env.globals["navigation"] = navigation
+except ImportError:
+    pass
 
 
 def _load_law_library_html() -> str:
@@ -2530,6 +2550,14 @@ _LAW_LIBRARY_HTML_LEGACY = """<!DOCTYPE html>
 
 
 @page_router.get("/law-library", response_class=HTMLResponse)
-async def law_library_page():
+async def law_library_page(request: Request):
     """Serve the consolidated Law Library page. Owned by the law_library module."""
-    return HTMLResponse(content=_load_law_library_html())
+    from app.core.utc import utc_now
+
+    return templates.TemplateResponse(
+        request,
+        "pages/law_library.html",
+        {
+            "year": utc_now().year,
+        },
+    )

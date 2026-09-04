@@ -1,3 +1,75 @@
+## Session — 2026-09-04 — Universal base template consolidation (prerequisite for landing hero)
+
+### Guardrail Engine Run — 2026-09-04T00:09:00+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `gui-base-template-consolidation-2026-09-03`
+- **Status:** Resolved — universal `base.html` consolidation shipped for the bounded scope.
+
+### What changed
+
+1. **Created a universal `app/templates/base.html`.**
+   - One shared `<!DOCTYPE html>` shell, `<html lang>`, `<head>`, `<body>`.
+   - Loads Google Fonts (Inter + IBM Plex Mono), `ssot-design-system.css`, HTMX, and `law-linker.js`.
+   - Provides shared `{% block title %}`, `{% block description %}`, `{% block styles %}`, `{% block header %}`, `{% block nav %}`, `{% block pre_main %}`, `{% block main_class %}`, `{% block content %}`, `{% block post_main %}`, `{% block footer %}`, `{% block scripts %}`.
+   - Includes a skip link, a sticky `.main-nav` header with plain-text nav links and an always-visible "Get help now" CTA, and a `.unified-footer` with legal disclaimer, help path, and trust line.
+   - Default body class is `template-1`; pages override via `body_class`.
+
+2. **Made `app/templates/public_base.html` extend `base.html`.**
+   - Removed its own `<html>`/`<head>`/`<body>` shell and `:root` token block.
+   - Scoped the previous public token mapping to `.template-5` as a transitional bridge.
+   - Kept public utility classes (`.main-content`, `.service-card`, `.info-banner`, etc.).
+   - Added a shared page-header band via the `header` block.
+
+3. **Made `app/templates/gui/base.html` extend `base.html`.**
+   - Removed its own full document shell and inline `:root`/hardcoded body styles.
+   - Sets `body_class` to `template-1` and uses `gui-panels.css`.
+   - Added a `gui-help-now` band and `gui-container` wrapping on `<main>`.
+   - Kept the `nav_*` and `container_class` child overrides for existing GUI pages.
+
+4. **Wrapped `app/templates/index.html` in the universal base.**
+   - Removed the standalone `<!DOCTYPE html>`/`<html>`/`<head>`/`<body>` shell and duplicate `<main>`.
+   - Overrode `header` and `footer` to keep the calm landing topbar and landing footer.
+   - Moved landing-specific styles and the home-field SVG into `styles` and `content` blocks.
+
+5. **Wrapped `app/templates/pages/law_library.html` in the universal base.**
+   - Removed the standalone shell and raw-HTML serving path.
+   - Updated `app/modules/law_library/router.py` to serve the page through `Jinja2Templates` with `get_locale`, `_`, `supported_locales`, `navigation`, and `year` context so the shared base renders correctly.
+   - Preserved all category, search, local-help, and Law Librarian JavaScript.
+
+6. **Updated `static/css/ssot-design-system.css`.**
+   - Added missing tokens used by `.main-nav` and `.unified-footer`: `--color-header-1`, `--color-header-2`, `--color-warm`, `--surface-0`, `--surface-1`, `--border-light`, `--primary-50`, `--primary-600`, `--z-50`.
+   - Added `.skip-link` and `.main-nav` overrides so the nav works on dark template headers, wraps on mobile, and hides the unused hamburger toggle.
+
+7. **Removed symbol/emoji navigation controls from migrated shells.**
+   - The universal nav uses plain text links (`Home`, `Library`, `Office`, `Tools`, `Help`).
+   - The landing topbar and footer use text links and a helpline dot (decorative only, `aria-hidden`).
+
+### Verification
+
+- `python -m py_compile app/modules/law_library/router.py`: PASS.
+- `pytest tests/test_a11y.py -q --no-cov`: 7 passed.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- IronBee DevTools Playwright checks:
+  - `/` and `/law-library` at 375×812 and 1280×900: no console errors (except the pre-existing `/api/location/current` 404), no horizontal overflow (`scrollWidth <= clientWidth`), exactly one `<main>`, one `<footer>`, valid `<html lang>`, correct nav/header/footer counts.
+  - `/help` and `/gui/record/journal/create` at 375 and 1280: pages render, no overflow, one `<main>`, base header/footer present.
+  - `/law-library` search for "deposit" returns results; category tabs render.
+
+### Known broken / pending
+
+- The remaining ~118 template files still use `public_base.html`, `gui/base.html`, or `base.html` directly; a follow-up per-page `template-N` class and token sweep is needed to finish the full migration.
+
+---
+
 ## Session — 2026-09-03 — `index.html` a11y fix + `/law-library` added to a11y public paths
 
 ### Guardrail Engine Run — 2026-09-03T23:24:49+00:00
