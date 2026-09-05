@@ -53,12 +53,12 @@ class TestPlanMakerService:
         plan = create_plan(
             user_id="u1",
             title="Eviction Defense",
-            landlord_name="ExampleCo Property",
+            landlord_name="Example Property",
             issues=["Retaliation", "Delayed repairs"],
             desired_outcomes="Maintain housing",
         )
         assert "Retaliation" in plan.issues
-        assert plan.landlord_name == "ExampleCo Property"
+        assert plan.landlord_name == "Example Property"
 
     def test_add_entity(self):
         plan = create_plan(user_id="u1", title="T")
@@ -228,7 +228,7 @@ class TestPlanMakerRouter:
                 "plan": plan,
                 "name": "Example LLC",
                 "role": "landlord",
-                "address": "7645 Lyndale Ave S",
+                "address": "123 Example Ave S",
                 "registered_agent": "CT Corp",
                 "notes": "",
             },

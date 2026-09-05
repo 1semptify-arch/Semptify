@@ -292,3 +292,15 @@ REPOs/
 # Local MCP / IDE configs (machine-specific)
 .devin/mcp_config.local.json
 funding_forge/.cursor/
+
+# Real case data & personal documents — backed up outside repo (brads temp); never commit
+data/cases/
+data/case_outputs/
+data/converted_documents/
+data/court_cases/
+DOCUMENTS/
+r22.pdf
+test_mcro.py
+scripts/add_sample_docs.py
+scripts/build_case_timeline.py
+app/modules/litigation_intelligence/moduals  to be included/
