@@ -13,6 +13,8 @@ All checks passed.
 
 - **Task ID:** `page-shell-manifest-mismatch-2026-08-29`
 - **Status:** Resolved — product manifest and health check corrected.
+- **Branch:** `fix/page-shell-manifest-mismatch-2026-09-04`
+- **PR:** <https://github.com/1semptify-arch/Semptify/pull/147>
 - **Scope:** Correct the Page Shell module registration so it matches its real production use as a core rendering dependency.
 
 ### What changed
