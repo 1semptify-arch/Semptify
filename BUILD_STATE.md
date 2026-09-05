@@ -1,3 +1,30 @@
+## Session — 2026-09-05 — Doc hygiene: manifest refresh, BLUEPRINT sanitize, MODULE_BLUEPRINT template
+
+### Task
+
+- **Task ID:** `docs-manifest-blueprint-template-fix-2026-09-05`
+- **Status:** Review — docs-only change, no code touched.
+- **Scope:** Fix three stale/missing doc items flagged during the master-blueprint session.
+
+### What changed
+
+1. **`SEMPTIFY_SYSTEM_MANIFEST.md` rewritten.** Root cause of staleness: it hardcoded module tables and tier statuses that drifted (it claimed only CORE+DEV were active; production actually runs CORE + EXTENDED + ADVOCATE + ADMIN via `_LIVE_TIERS` in `main.py`). Now holds stable identity/rules plus a dated snapshot generated from `MANIFEST.summary()` — verified live: **123 registrations** (core 45, extended 21, advocate 4, admin 16, research 17, dev 20; 100 stable / 12 beta / 7 dev_only / 2 experimental / 1 internal / 1 deprecated; no duplicates). Includes the command to regenerate.
+2. **`BLUEPRINT.md` sanitized + marked SUPERSEDED.** Removed the real court case number and party names (PII rule). Kept the original bi-directional data-flow diagram and a lineage note (DOC_INDEX flagged the diagram as having historical value). Points to live sources.
+3. **`MODULE_BLUEPRINT.md` created in repo root.** Four docs referenced it (`AGENTS.md` "Part 0A", `docs/blueprints/README.md`, `docs/admin/SEMPTIFY_DEVELOPER_ONBOARDING.md`, `static/ai-helper-bundle.txt`) but the file was archived in commit `d0cc608d`. New v2.0 written with current language rules (no "free" self-reference) and current architecture (tiers, pillars, FunctionGroupContract, CAPABILITY_DEFAULTS, UPL/fees policies). Part 0A = the full required-sections list; Part 0B = fillable template.
+4. **Master blueprint `bp 9 2.md`** (in `C:\master-repo\brads temp\`, outside repo) updated with verified manifest counts.
+
+### Verification
+
+- `MANIFEST.summary()` + `MANIFEST.validate()` run under `venv311`: numbers above confirmed, no duplicate module_path+router_attr pairs.
+- No Python files changed — `py_compile` not applicable.
+- `git status` note: `.cursor/rules/ironbee-devtools-use.mdc`, `app/models/models.py`, `app/templates/index.html` were already modified before this session — not touched here.
+
+### Known broken / pending — STOP AND REPORT
+
+- **Real case data is committed to git.** `data/cases/**/*.json` and `data/converted_documents/test_motion.html` (tracked — 76 files under `data/`) contain a real court case number and real document filenames; `BUILD_STATE.md` line ~1270 also quotes the filing stamp. `.gitignore` does not cover `data/cases/` or `data/converted_documents/`. Fixing this means deleting tracked case records and possibly history rewriting — needs Brad's decision on scope (working-tree only vs. history purge vs. gitignore + untrack) and whether these files are still needed locally.
+
+---
+
 ## Session — 2026-09-04 — Page Shell manifest mismatch fix
 
 ### Guardrail Engine Run — 2026-09-05T06:53:30+00:00
@@ -1263,12 +1290,11 @@ needed a real end-to-end check against the 11-page `lease_02.pdf` fixture.
 
 - **Document type:** `lease` (confidence 1.0) — correctly classified, no longer
   mislabeled as `eviction_notice`.
-- **Extraction quality:** 4907 words extracted; text includes lease parties
-  (`Jane Doe`, `Project Owner`), property address (`123 Example Ave,
-  Apt 1, Example City, MN 55000`), monthly rent (`$1218.00`), late fee (`$97.44`,
-  8% of rent), lease start/end (`11/01/2024` → `10/31/2025`), move-in date
-  (`11/21/2024`), garage/storage rent, and court filing stamp (`19AV-CV-25-0000
-  Filed 11/17/2025`).
+- **Extraction quality:** 4907 words extracted; text includes lease parties,
+  property address, monthly rent, late fee, lease start/end, move-in date,
+  garage/storage rent, and a court filing stamp. (Specific names, addresses,
+  and case numbers removed 2026-09-05 — real case data does not belong in the
+  repo; backup preserved outside version control.)
 - **Bundled-packet behavior:** Pass 1 still assigns one `doc_type` to the entire
   upload (`lease`), so the bundled riders, addenda, and exhibits are not
   segmented into separate documents.

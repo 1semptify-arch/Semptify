@@ -404,20 +404,6 @@
       "command": "python scripts/backup.py [--restore latest] [--list] [--uploads-only] [--db-only]"
     },
     {
-      "name": "scripts/add_sample_docs.py",
-      "path": "scripts/add_sample_docs.py",
-      "description": "Adds sample eviction case documents for timeline testing to the document index.",
-      "effects": "Modifies data/documents/index.json. No database modifications.",
-      "command": "python scripts/add_sample_docs.py"
-    },
-    {
-      "name": "scripts/build_case_timeline.py",
-      "path": "scripts/build_case_timeline.py",
-      "description": "Extracts dates from documents and builds chronological timeline for retaliation case against property management. Specific to case 19AV-CV-25-0000.",
-      "effects": "Writes timeline JSON and TXT files. No database modifications.",
-      "command": "python scripts/build_case_timeline.py"
-    },
-    {
       "name": "scripts/download_forms.py",
       "path": "scripts/download_forms.py",
       "description": "Downloads Minnesota Court forms for offline use from mncourts.gov.",
