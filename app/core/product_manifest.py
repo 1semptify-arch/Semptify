@@ -1089,9 +1089,8 @@ _register(
     tags=("Page Shell", "Pillar Mixer"),
     tier=ProductTier.CORE,
     lifecycle="stable",
-    requires_role=("admin",),
     dev_notes="Core shell + rendering engine for the pillar-mixer backbone. Renders four skeletons (RECORD/KNOW/ACT/GOVERN) from a validated page config. Used directly by Page Composer's tenant-facing routes; the /api/page-shell debug endpoints stay admin-only. Does not pick blends or compute intensity. Spec: temp/semptify_pillar_mixer_backbone.md",
-    log_message="Page Shell router active — /api/page-shell (admin introspection)",
+    log_message="Page Shell router active — core production renderer",
 )
 _register(
     "app.modules.example_payment_tracking",
