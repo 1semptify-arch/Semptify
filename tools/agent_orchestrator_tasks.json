@@ -2773,5 +2773,19 @@
     "updated_at": "2026-09-04T00:13:09.250529+00:00",
     "target_model": "unassigned",
     "assigned_agent": null
+  },
+  {
+    "id": "docs-manifest-blueprint-template-fix-2026-09-05",
+    "title": "Fix stale SEMPTIFY_SYSTEM_MANIFEST.md, sanitize BLUEPRINT.md PII, create MODULE_BLUEPRINT.md template",
+    "description": "Rewrite stale manifest (tiers/module tables contradict product_manifest.py), remove real case number and names from BLUEPRINT.md, create the MODULE_BLUEPRINT.md template referenced by docs/blueprints/README.md and AGENTS.md, update bp 9 2.md with verified MANIFEST.summary() counts.",
+    "file_path": "SEMPTIFY_SYSTEM_MANIFEST.md, BLUEPRINT.md, MODULE_BLUEPRINT.md",
+    "category": "docs",
+    "priority": "medium",
+    "status": "review",
+    "created_at": "2026-09-05T19:36:24Z",
+    "updated_at": "2026-09-05T19:39:39.254855+00:00",
+    "assigned_agent": "devin-swe-1.7",
+    "target_model": "unlimited",
+    "notes": "[2026-09-05 19:39 UTC] Docs-only. Manifest rewritten w/ verified MANIFEST.summary() snapshot (123 entries). BLUEPRINT.md PII removed + superseded banner. MODULE_BLUEPRINT.md created (Part 0A spec + template). bp 9 2.md counts verified. STOP-AND-REPORT: real case data committed under data/cases/ + data/converted_documents/ \u2014 needs Brad decision."
   }
 ]

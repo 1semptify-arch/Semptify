@@ -1,7 +1,7 @@
 # Audit: Semantic Context Database System for Semptify
 
 **Date:** 2026-08-19
-**Author:** Devin (per request of Project Owner)
+**Author:** Devin (per request of the project owner)
 **Purpose:** Provide a complete, objective, self-contained audit of the semantic context storage/retrieval problem in Semptify, so an independent team with no prior exposure can evaluate the full problem space and propose solutions — including ones not considered by the current team.
 **Status:** Read-only audit. No code was changed. No solution is prescribed.
 
