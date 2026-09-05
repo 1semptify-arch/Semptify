@@ -2,52 +2,39 @@
 
 {% block title %}{{ page_title | default('Semptify — Protect the serenity of home') }}{% endblock %}
 {% block description %}{{ page_description | default('Semptify is a nonprofit tenant-rights platform. Document what happened, understand your rights, and keep a record an attorney can actually use — without storing your private files on our servers.') }}{% endblock %}
-{% block body_class %}template-5 page-landing{% endblock %}
-{% block main_class %}landing-main{% endblock %}
+{% block body_class %}template-1 page-landing{% endblock %}
+{% block main_class %}landing-main{% if landing_facts %} landing-main--with-facts{% endif %}{% endblock %}
 
 {% block styles %}
 <style>
-    /* Landing page: calm, full-viewport public entry point.
-       Uses ssot-design-system.css tokens; a few landing-only tone overrides. */
+    /* Public landing — liquid / asymmetrical layout.
+       Builds on ssot-design-system.css tokens; no card borders, no shadows.
+       The large SVG shape is the only decorative grouping; zones are separated
+       by background and spacing, not boxes. */
 
-    .template-5 body.page-landing {
+    body.page-landing,
+    .template-1 body.page-landing,
+    .template-1 main.landing-main,
+    main.landing-main {
         background-color: var(--zone-bg-primary);
         color: #f0f4f8;
     }
 
-    .template-5 main.landing-main {
-        background: transparent;
+    .page-landing a {
+        color: #e2e8f0;
     }
 
-    body.page-landing {
-        font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+    .page-landing a:hover,
+    .page-landing a:focus {
+        color: #ffffff;
     }
 
-    .home-field {
-        position: fixed;
-        inset: 0;
-        z-index: -1;
-        pointer-events: none;
-    }
-
-    .home-field__svg {
-        width: 100%;
-        height: 100%;
-        display: block;
-    }
-
-    .landing-main {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        position: relative;
-        z-index: 1;
-    }
-
-    /* Top bar: brand + public paths to help. */
+    /* Transparent public topbar — a calm, minimal path to help.
+       Sits over the hero zone; does not use a card or shadow. */
     .landing-topbar {
-        display: flex;
-        align-items: center;
+        position: relative;
+        z-index: 20;
+        background: transparent;
         padding: var(--space-6) var(--space-8);
     }
 
@@ -55,7 +42,8 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        width: 100%;
+        gap: var(--space-4);
+        flex-wrap: wrap;
     }
 
     .landing-brand {
@@ -72,6 +60,7 @@
         display: flex;
         align-items: center;
         gap: var(--space-6);
+        flex-wrap: wrap;
     }
 
     .landing-topbar__links a {
@@ -80,7 +69,12 @@
         font-size: var(--type-body);
     }
 
-    .landing-topbar__links a:hover { color: #ffffff; }
+    .landing-topbar__links a:hover,
+    .landing-topbar__links a:focus {
+        color: #ffffff;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
 
     .topbar__helpline {
         display: inline-flex;
@@ -95,16 +89,44 @@
         display: inline-block;
     }
 
-    /* Main content: centered hero, then verified facts. */
-    .landing-hero {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
+    /* Main stage: two-zone asymmetrical grid. */
+    .landing-main {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr;
+        min-height: 100vh;
+        min-height: 100dvh;
         align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: var(--space-8) var(--space-6);
-        gap: var(--space-6);
+    }
+
+    @media (min-width: 900px) {
+        .landing-main--with-facts {
+            grid-template-columns: 1.1fr .9fr;
+            align-items: center;
+        }
+    }
+
+    /* Liquid background shape — decorative, aria-hidden. */
+    .landing-liquid {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .landing-liquid__svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    /* Hero stanza: left column, off-center, left-aligned. */
+    .landing-hero {
+        position: relative;
+        z-index: 1;
+        padding: var(--space-8) var(--space-8) var(--space-16);
+        max-width: 60ch;
     }
 
     .landing-eyebrow {
@@ -113,24 +135,32 @@
         text-transform: uppercase;
         letter-spacing: var(--type-label-tracking);
         color: #b794f6;
-        margin: 0;
+        margin: 0 0 var(--space-4);
     }
 
     .landing-title {
-        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        font-size: clamp(2.2rem, 6vw, 4.2rem);
         font-weight: 800;
         line-height: 1.05;
-        margin: 0;
+        margin: 0 0 var(--space-5);
         color: #ffffff;
-        max-width: 18ch;
+        max-width: 28ch;
     }
 
     .landing-sub {
         font-size: clamp(1rem, 1.6vw, 1.2rem);
-        color: #b9c2d0;
+        color: #c7ced8;
         max-width: 46ch;
-        line-height: 1.6;
-        margin: 0;
+        line-height: 1.65;
+        margin: 0 0 var(--space-6);
+    }
+
+    .landing-cta-group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-4) var(--space-6);
+        margin-bottom: var(--space-4);
     }
 
     .landing-cta-primary {
@@ -143,9 +173,11 @@
         font-weight: 700;
         padding: var(--space-4) var(--space-8);
         text-decoration: none;
+        transition: background 0.15s ease;
     }
 
-    .landing-cta-primary:hover {
+    .landing-cta-primary:hover,
+    .landing-cta-primary:focus {
         background: var(--color-accent-hover);
         color: #1a1330;
         text-decoration: none;
@@ -153,56 +185,61 @@
 
     .landing-cta-note {
         font-size: var(--type-body);
-        color: #8b96a8;
+        color: #c7ced8;
         margin: 0;
+        max-width: 46ch;
     }
 
     .landing-cta-secondary {
         font-size: var(--type-body);
-        color: #b9c2d0;
+        color: #c7ced8;
         text-decoration: underline;
         text-underline-offset: 3px;
     }
 
-    .landing-cta-secondary:hover { color: #ffffff; }
-
-    /* Verified facts: neutral, factual, source-linked. */
-    .facts {
-        padding: var(--space-8) var(--space-6);
-        background: var(--zone-bg-inverse);
+    .landing-cta-secondary:hover,
+    .landing-cta-secondary:focus {
+        color: #ffffff;
     }
 
-    .facts__list {
-        list-style: none;
-        margin: 0 auto;
-        padding: 0;
-        max-width: 65ch;
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-4);
+    /* Verified facts: right column, no cards, separated by hairline rules. */
+    .facts {
+        position: relative;
+        z-index: 1;
+        padding: var(--space-8) var(--space-8) var(--space-16);
+        max-width: 60ch;
     }
 
     .facts__heading {
         font-size: var(--type-h3);
         color: #ffffff;
-        margin: 0 0 var(--space-4);
-        text-align: center;
+        margin: 0 0 var(--space-5);
+    }
+
+    .facts__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
     }
 
     .fact {
         display: flex;
         align-items: flex-start;
         gap: var(--space-3);
-        padding: var(--space-3) 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: var(--space-4) 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         color: #e2e8f0;
     }
 
-    .fact:last-child { border-bottom: none; }
+    .fact:first-child { border-top: none; }
 
     .fact__check {
         flex-shrink: 0;
         color: var(--color-success);
+        margin-top: 2px;
     }
 
     .fact__text {
@@ -211,64 +248,31 @@
         gap: var(--space-1);
     }
 
-    .fact__claim { line-height: 1.5; }
+    .fact__claim {
+        line-height: 1.55;
+        margin: 0;
+    }
 
     .fact__source {
-        color: #94a3b8;
-        font-size: var(--type-small);
+        color: #c7ced8;
+        font-size: 0.85rem;
         text-decoration: none;
     }
 
-    .fact__source:hover { color: #e2e8f0; text-decoration: underline; }
-
-    /* Footer: trust line, locale selector, paths. */
-    .landing-footer {
-        background: var(--zone-bg-inverse);
-        padding: var(--space-4) var(--space-8);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: var(--space-4);
-        font-size: var(--type-label);
-        color: #8b96a8;
-    }
-
-    .landing-footer a { color: #b9c2d0; text-decoration: none; margin-right: var(--space-4); }
-    .landing-footer a:last-child { margin-right: 0; }
-    .landing-footer a:hover { color: #ffffff; text-decoration: underline; }
-
-    .landing-footer__meta { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
-    .landing-footer__trust { margin: 0; }
-
-    .locale-selector {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
-    }
-
-    .locale-selector__label { color: #b9c2d0; }
-    .locale-selector__select { background: transparent; color: #f0f4f8; border: 1px solid #475569; }
-    .locale-selector__button {
-        background: var(--color-primary);
+    .fact__source:hover,
+    .fact__source:focus {
         color: #ffffff;
-        border: none;
-        padding: var(--space-1) var(--space-3);
-        font-size: var(--type-small);
+        text-decoration: underline;
     }
 
-    /* Desktop poster: one viewport for the hero. */
-    @media (min-width: 900px) {
-        .landing-hero { min-height: 100vh; }
-    }
-
-    /* Mobile stacked scroll. */
+    /* Mobile: stack and reduce padding. */
     @media (max-width: 899px) {
         .landing-topbar { padding: var(--space-4); }
         .landing-topbar__links { gap: var(--space-3); }
-        .landing-hero { padding: var(--space-6) var(--space-4); }
-        .facts { padding: var(--space-6) var(--space-4); }
-        .landing-footer { flex-direction: column; align-items: flex-start; padding: var(--space-4); }
+        .landing-hero { padding: var(--space-6) var(--space-4) var(--space-8); }
+        .facts { padding: var(--space-6) var(--space-4) var(--space-8); }
+        .landing-title { font-size: clamp(1.9rem, 10vw, 2.8rem); }
+        .landing-cta-primary { width: 100%; justify-content: center; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -296,59 +300,55 @@
 {% endblock %}
 
 {% block content %}
-<!-- Calm comforts-of-home field — decorative only. -->
-<div class="home-field" aria-hidden="true">
-    <svg class="home-field__svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" focusable="false">
+<!-- Liquid home-field — a soft, off-center zone that holds the comforts-of-home motif. -->
+<div class="landing-liquid" aria-hidden="true">
+    <svg class="landing-liquid__svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" focusable="false">
         <defs>
-            <radialGradient id="halo" cx="50%" cy="42%" r="65%">
-                <stop offset="0%" stop-color="#1e3a8a" stop-opacity="0.55"/>
-                <stop offset="55%" stop-color="#1e3a8a" stop-opacity="0.18"/>
+            <linearGradient id="liquid-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0f172a"/>
+                <stop offset="55%" stop-color="#1e3a5f"/>
+                <stop offset="100%" stop-color="#172a4d"/>
+            </linearGradient>
+            <radialGradient id="liquid-glow" cx="65%" cy="35%" r="55%">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.18"/>
                 <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
             </radialGradient>
-            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#0b1d3a"/>
-                <stop offset="60%" stop-color="#102a52"/>
-                <stop offset="100%" stop-color="#0a1428"/>
-            </linearGradient>
-            <pattern id="grain" width="3" height="3" patternUnits="userSpaceOnUse">
+            <pattern id="liquid-grain" width="3" height="3" patternUnits="userSpaceOnUse">
                 <rect width="3" height="3" fill="#ffffff" fill-opacity="0.012"/>
             </pattern>
         </defs>
-        <rect width="1440" height="900" fill="url(#sky)"/>
-        <rect width="1440" height="900" fill="url(#grain)"/>
-        <rect width="1440" height="900" fill="url(#halo)"/>
-        <g class="twinkle" fill="#fde68a">
-            <circle cx="120"  cy="140" r="1.4" opacity="0.8"/>
-            <circle cx="260"  cy="90"  r="1.0" opacity="0.6"/>
-            <circle cx="430"  cy="170" r="1.2" opacity="0.7"/>
-            <circle cx="640"  cy="70"  r="1.1" opacity="0.65"/>
-            <circle cx="880"  cy="120" r="1.3" opacity="0.75"/>
-            <circle cx="1080" cy="80"  r="1.0" opacity="0.6"/>
-            <circle cx="1240" cy="160" r="1.2" opacity="0.7"/>
-            <circle cx="1360" cy="100" r="1.1" opacity="0.65"/>
+
+        <path d="M0,0 L1440,0 L1440,900 C1080,900 960,780 840,660 C720,540 540,560 0,480 L0,0 Z"
+              fill="url(#liquid-fill)"/>
+        <path d="M0,0 L1440,0 L1440,900 C1080,900 960,780 840,660 C720,540 540,560 0,480 L0,0 Z"
+              fill="url(#liquid-glow)"/>
+        <path d="M0,0 L1440,0 L1440,900 C1080,900 960,780 840,660 C720,540 540,560 0,480 L0,0 Z"
+              fill="url(#liquid-grain)"/>
+
+        <!-- Comforts of home — faint silhouettes inside the liquid zone. -->
+        <g stroke="#93c5fd" stroke-opacity="0.22" stroke-width="2" fill="none">
+            <!-- rooftops -->
+            <path d="M900,720 L960,670 L1020,720 L1020,760 L900,760 Z"/>
+            <path d="M1050,720 L1100,680 L1150,720 L1150,760 L1050,760 Z"/>
+            <path d="M1200,720 L1260,660 L1320,720 L1320,760 L1200,760 Z"/>
+            <!-- chimney -->
+            <path d="M1130,690 L1130,670 L1145,670 L1145,695"/>
+            <!-- tree -->
+            <path d="M800,720 L800,660"/>
+            <path d="M800,660 C780,640 780,612 800,600 C820,612 820,640 800,660"/>
+            <!-- chair -->
+            <path d="M650,680 L650,750 M650,700 L720,700 M720,680 L720,750"/>
         </g>
-        <g class="rooftops" stroke="#3b82f6" stroke-opacity="0.22" stroke-width="2" fill="none">
-            <path d="M0 720 L120 720 L120 660 L170 660 L170 720 L300 720"/>
-            <path d="M300 720 L300 640 L360 600 L420 640 L420 720"/>
-            <path d="M420 720 L560 720 L560 670 L610 670 L610 720 L760 720"/>
-            <path d="M760 720 L760 630 L830 590 L900 630 L900 720"/>
-            <path d="M900 720 L1060 720 L1060 660 L1110 660 L1110 720 L1240 720"/>
-            <path d="M1240 720 L1240 645 L1300 610 L1360 645 L1360 720 L1440 720"/>
+        <g fill="#fde68a" fill-opacity="0.45">
+            <!-- windows -->
+            <rect x="1030" y="690" width="8" height="10"/>
+            <rect x="1120" y="700" width="8" height="10"/>
+            <rect x="1250" y="690" width="8" height="10"/>
         </g>
-        <g class="smoke" fill="#93c5fd" fill-opacity="0.10">
-            <circle cx="388" cy="560" r="10"/>
-            <circle cx="858" cy="552" r="9"/>
-            <circle cx="1328" cy="568" r="11"/>
-        </g>
-        <g class="windows" fill="#fbbf24" fill-opacity="0.55">
-            <rect x="150" y="678" width="8" height="10"/>
-            <rect x="580" y="688" width="8" height="10"/>
-            <rect x="820" y="652" width="8" height="10"/>
-            <rect x="1080" y="678" width="8" height="10"/>
-        </g>
-        <g class="tree" stroke="#34d399" stroke-opacity="0.30" stroke-width="2" fill="none">
-            <path d="M980 720 L980 660"/>
-            <path d="M980 660 C960 640 960 612 980 600 C1000 612 1000 640 980 660"/>
+        <g fill="#93c5fd" fill-opacity="0.10">
+            <!-- smoke puffs -->
+            <circle cx="1138" cy="650" r="8"/>
+            <circle cx="820" cy="570" r="10"/>
         </g>
     </svg>
 </div>
@@ -356,16 +356,18 @@
 <section class="landing-hero" aria-labelledby="landing-title">
     <p class="landing-eyebrow">A nonprofit tenant-rights platform</p>
     <h1 id="landing-title" class="landing-title">
-        Document. Know your rights. Act with confidence.
+        Document what happened. Know the facts. Take the next step.
     </h1>
     <p class="landing-sub">
-        Organize your documents, understand your rights, and see your next step clearly — in your own storage, on your own terms.
+        Semptify helps renters organize the paper trail between them and their landlord — in their own storage, on their own terms.
     </p>
-    <a href="/preamble" class="landing-cta-primary">Get help now</a>
+    <div class="landing-cta-group">
+        <a href="/preamble" class="landing-cta-primary">Get help now</a>
+        <a href="/portal" class="landing-cta-secondary">Browse tools &amp; services first</a>
+    </div>
     <p class="landing-cta-note">
         Takes about a minute. Nothing is shared without you choosing to share it.
     </p>
-    <a href="/portal" class="landing-cta-secondary">Browse tools &amp; services first</a>
 </section>
 
 {% if landing_facts %}
@@ -375,12 +377,12 @@
         {% for fact in landing_facts %}
         <li class="fact">
             <span class="fact__check" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m5 12 5 5L20 7"/>
                 </svg>
             </span>
             <span class="fact__text">
-                <span class="fact__claim">{{ fact.claim }}</span>
+                <p class="fact__claim">{{ fact.claim }}</p>
                 {% if fact.citation and fact.source_url %}
                 <a class="fact__source" href="{{ fact.source_url }}" target="_blank" rel="noopener">
                     {{ fact.citation }}
@@ -394,38 +396,25 @@
 {% endif %}
 {% endblock %}
 
-{% block footer %}
-<footer class="landing-footer">
-    <div class="landing-footer__meta">
-        {% include "components/locale_selector.html" %}
-        <p class="landing-footer__trust">No cost, always · No ads · Your data stays yours · Not legal advice — get a qualified attorney</p>
-    </div>
-    <div class="landing-footer__links">
-        <a href="/about">About</a>
-        <a href="/help">Help</a>
-        <span>&copy; {{ year }} Semptify.org</span>
-    </div>
-</footer>
-{% endblock %}
-
 {% block scripts %}
 <script>
-    // Progressive enhancement only. Core content + help links work with JS off.
+    // Progressive enhancement only: the liquid home-field shifts gently with pointer movement.
+    // Core content, navigation, and help links work with JavaScript off.
     (function () {
         var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (reduce) {
             document.documentElement.setAttribute("data-motion", "off");
             return;
         }
-        var field = document.querySelector(".home-field__svg");
+        var field = document.querySelector(".landing-liquid__svg");
         if (!field) return;
         var ticking = false;
         function onMove(e) {
             if (ticking) return;
             ticking = true;
             window.requestAnimationFrame(function () {
-                var x = (e.clientX / window.innerWidth - 0.5) * 14;
-                var y = (e.clientY / window.innerHeight - 0.5) * 10;
+                var x = (e.clientX / window.innerWidth - 0.5) * 16;
+                var y = (e.clientY / window.innerHeight - 0.5) * 12;
                 field.style.transform = "translate(" + (-x) + "px," + (-y) + "px)";
                 ticking = false;
             });
