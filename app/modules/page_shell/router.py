@@ -44,7 +44,7 @@ async def health() -> dict:
     return {
         "status": "ok",
         "module": "page_shell",
-        "lifecycle": "dev_only",
+        "lifecycle": "stable",
         "timestamp": utc_now().isoformat(),
     }
 
