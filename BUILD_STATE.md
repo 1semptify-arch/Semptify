@@ -1,3 +1,78 @@
+## Session — 2026-09-04 — Page Shell manifest mismatch fix
+
+### Guardrail Engine Run — 2026-09-05T06:53:30+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `page-shell-manifest-mismatch-2026-08-29`
+- **Status:** Resolved — product manifest and health check corrected.
+- **Branch:** `fix/page-shell-manifest-mismatch-2026-09-04`
+- **PR:** <https://github.com/1semptify-arch/Semptify/pull/147>
+- **Scope:** Correct the Page Shell module registration so it matches its real production use as a core rendering dependency.
+
+### What changed
+
+1. **`app/core/product_manifest.py`:** removed `requires_role=("admin",)` from the `app.modules.page_shell.router` entry and updated the log message to reflect that it is a core production renderer.
+2. **`app/modules/page_shell/router.py`:** changed the `/health` response `lifecycle` from `"dev_only"` to `"stable"` so it matches the manifest.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/product_manifest.py app/modules/page_shell/router.py`: PASS.
+- `pytest tests/module_health -q --no-cov`: **244 passed**.
+- `python tools/guardrail_engine.py`: all checks passed.
+
+### Notes
+
+- No access-control or gating changes. Page Shell was already loaded and used by tenant-facing Page Composer routes; this only fixes the manifest metadata and the stale health-string.
+- The `/api/page-shell/*` introspection routes remain mounted but are not protected by role in the router itself; that is a separate route-guard question, not part of this manifest fix.
+
+---
+
+## Session — 2026-09-04 — Public landing liquid/asymmetrical hero
+
+### Task
+
+- **Task ID:** `semptify-public-landing-liquid-hero-2026-09-03`
+- **Status:** In progress — `index.html` rebuilt with liquid, asymmetrical layout.
+- **Branch:** `feature/landing-liquid-hero`
+- **Commit:** `64c06905`
+- **PR:** <https://github.com/1semptify-arch/Semptify/pull/146>
+
+### What changed
+
+1. **Redesigned `app/templates/index.html` hero/facts area.**
+   - Replaced the centered, single-column, dark-centered-hero template with an off-center, two-zone liquid layout.
+   - The left zone holds the eyebrow, headline, subheadline, primary CTA (`/preamble`), secondary link (`/portal`), and calm note.
+   - The right zone is a large SVG liquid shape with a subtle home-comforts motif (houses, windows, tree, chair, smoke).
+   - Verified-facts list sits in the right column on desktop (when `landing_facts` is present) and stacks below on mobile.
+   - Uses `ssot-design-system.css` tokens for colors/spacing; no card borders, no shadows, no rounded corners.
+   - Preserves `prefers-reduced-motion`, skip link, `aria-labelledby`, i18n locale selector, and base `unified-footer`.
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS.
+- `pytest tests/test_a11y.py -q --no-cov`: 7 passed.
+- `pytest tests/module_health -q --no-cov`: 244 passed.
+- `python tools/guardrail_engine.py`: all checks passed.
+- IronBee DevTools Playwright (via `mcp-playwright`):
+  - 375×812: no horizontal overflow (`scrollWidth` <= `clientWidth`), one `<main>`, one `<header>`, one `<footer>`, valid `<html lang="en">`.
+  - 1280×900: same landmark counts, no overflow; liquid shape and hero visible; footer/trust line renders.
+  - Console: only pre-existing `/api/location/current` 404.
+
+### Known / pending
+
+- `landing_facts` is empty in the local dev DB, so the two-column verified-facts list is only visible when the context engine returns facts (template and CSS handle both states).
+- The public landing keeps a minimal transparent topbar override in `index.html` (distinct from the shared `.main-nav`) because `semptify.org` is a public entry surface. The base `unified-footer` is used as-is.
+
+---
+
 ## Session — 2026-09-04 — Universal base template consolidation (prerequisite for landing hero)
 
 ### Guardrail Engine Run — 2026-09-04T00:09:00+00:00
