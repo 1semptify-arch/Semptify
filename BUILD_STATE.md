@@ -1,3 +1,38 @@
+## Session — 2026-09-04 — Page Shell manifest mismatch fix
+
+### Guardrail Engine Run — 2026-09-05T06:53:30+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task
+
+- **Task ID:** `page-shell-manifest-mismatch-2026-08-29`
+- **Status:** Resolved — product manifest and health check corrected.
+- **Scope:** Correct the Page Shell module registration so it matches its real production use as a core rendering dependency.
+
+### What changed
+
+1. **`app/core/product_manifest.py`:** removed `requires_role=("admin",)` from the `app.modules.page_shell.router` entry and updated the log message to reflect that it is a core production renderer.
+2. **`app/modules/page_shell/router.py`:** changed the `/health` response `lifecycle` from `"dev_only"` to `"stable"` so it matches the manifest.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/product_manifest.py app/modules/page_shell/router.py`: PASS.
+- `pytest tests/module_health -q --no-cov`: **244 passed**.
+- `python tools/guardrail_engine.py`: all checks passed.
+
+### Notes
+
+- No access-control or gating changes. Page Shell was already loaded and used by tenant-facing Page Composer routes; this only fixes the manifest metadata and the stale health-string.
+- The `/api/page-shell/*` introspection routes remain mounted but are not protected by role in the router itself; that is a separate route-guard question, not part of this manifest fix.
+
+---
+
 ## Session — 2026-09-04 — Public landing liquid/asymmetrical hero
 
 ### Task
