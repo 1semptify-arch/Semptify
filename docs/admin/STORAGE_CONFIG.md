@@ -167,7 +167,7 @@ If you want to test without configuring cloud storage:
 
 To add local storage support or change configuration:
 
-**Contact:** Project Owner / Development Team
+**Contact:** Semptify Development Team
 **Issue:** [No local storage provider available]
 **Workaround:** Use Google Drive (easiest setup)
 

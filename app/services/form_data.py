@@ -207,7 +207,7 @@ class FormDataService:
         """Extract case information from documents and timeline"""
         # Look for case number patterns
         case_patterns = [
-            r"(\d{2}[A-Z]{2}-CV-\d{2}-\d+)",  # 19AV-CV-25-0000
+            r"(\d{2}[A-Z]{2}-CV-\d{2}-\d+)",  # e.g., 19AV-CV-25-0000
             r"(\d{2}-CV-[A-Z]{2}-\d{2}-\d+)",  # 27-CV-HC-24-5847
             r"Case\s*(?:No\.?|Number|#)?\s*:?\s*([A-Z0-9-]+)",
         ]
