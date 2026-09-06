@@ -2472,13 +2472,13 @@
     "description": "Page Composer's _gather_user_case depends on a non-existent get_cases_for_user. ACTIVE_CONTEXT.md lists this as 'Logged, not urgent, do not fix yet'. Investigate and implement or correct the dependency.",
     "file_path": "app/modules/page_composer/assembly.py",
     "priority": "low",
-    "status": "open",
+    "status": "resolved",
     "category": "bug",
-    "notes": "Active context: not urgent, do not fix yet.",
+    "notes": "Active context: not urgent, do not fix yet.\n[2026-09-06 20:32 UTC - devin-swe17] Already fixed: get_cases_for_user exists at case_builder.py:32 and is used by page_composer/service.py:99",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-06T20:32:59.388589+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "page-shell-manifest-mismatch-2026-08-29",
