@@ -263,10 +263,10 @@ if ($IsSourceInstall) {
         $gitAvailable = $null -ne (Get-Command git -ErrorAction SilentlyContinue)
         
         if ($gitAvailable) {
-            git clone https://github.com/1semptify-arch/Semptify5.0.git $InstallPath
+            git clone https://github.com/1semptify-arch/Semptify.git $InstallPath
         } else {
             # Download ZIP
-            $zipUrl = "https://github.com/1semptify-arch/Semptify5.0/archive/refs/heads/main.zip"
+            $zipUrl = "https://github.com/1semptify-arch/Semptify/archive/refs/heads/main.zip"
             $zipPath = "$env:TEMP\semptify.zip"
             
             Write-Step "Downloading from GitHub"
