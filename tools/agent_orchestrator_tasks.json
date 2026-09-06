@@ -2766,13 +2766,13 @@
     "description": "The bounded prerequisite consolidated base.html/public_base.html/gui/base.html and wrapped index.html + law_library.html. The remaining ~118 templates still use one of the old shells, hardcoded headers/footers, or legacy template-* classes. Systematically migrate each to extend the universal base.html, assign the correct template-N body class, remove duplicate document shells / scripts / footers, and verify with a11y and live browser checks. This is additive follow-up work; do not restart the landing hero until this is either completed in full or explicitly split into smaller per-pillar follow-ups.",
     "file_path": "app/templates/",
     "priority": "medium",
-    "status": "open",
+    "status": "in_progress",
     "category": "ui",
     "notes": "Created after gui-base-template-consolidation-2026-09-03 was resolved to track the remaining template migration scope separately from the landing-liquid-hero task.",
     "created_at": "2026-09-04T00:13:09.250529+00:00",
-    "updated_at": "2026-09-04T00:13:09.250529+00:00",
+    "updated_at": "2026-09-06T19:43:05.533007+00:00",
     "target_model": "unassigned",
-    "assigned_agent": null
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "docs-manifest-blueprint-template-fix-2026-09-05",
@@ -2781,11 +2781,11 @@
     "file_path": "SEMPTIFY_SYSTEM_MANIFEST.md, BLUEPRINT.md, MODULE_BLUEPRINT.md",
     "category": "docs",
     "priority": "medium",
-    "status": "review",
+    "status": "resolved",
     "created_at": "2026-09-05T19:36:24Z",
-    "updated_at": "2026-09-05T19:39:39.254855+00:00",
-    "assigned_agent": "devin-swe-1.7",
+    "updated_at": "2026-09-06T19:42:34.939709+00:00",
+    "assigned_agent": "devin-swe17",
     "target_model": "unlimited",
-    "notes": "[2026-09-05 19:39 UTC] Docs-only. Manifest rewritten w/ verified MANIFEST.summary() snapshot (123 entries). BLUEPRINT.md PII removed + superseded banner. MODULE_BLUEPRINT.md created (Part 0A spec + template). bp 9 2.md counts verified. STOP-AND-REPORT: real case data committed under data/cases/ + data/converted_documents/ \u2014 needs Brad decision."
+    "notes": "[2026-09-05 19:39 UTC] Docs-only. Manifest rewritten w/ verified MANIFEST.summary() snapshot (123 entries). BLUEPRINT.md PII removed + superseded banner. MODULE_BLUEPRINT.md created (Part 0A spec + template). bp 9 2.md counts verified. STOP-AND-REPORT: real case data committed under data/cases/ + data/converted_documents/ \u2014 needs Brad decision.\n[2026-09-06 19:42 UTC - devin-swe17] Merged via PRs #148 + #149"
   }
 ]
