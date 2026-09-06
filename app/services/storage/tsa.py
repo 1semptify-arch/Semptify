@@ -218,9 +218,9 @@ def _hmac_fallback(document_hash: str, timestamp_iso: str, reason: str) -> TSARe
     """
     import hmac as _hmac
 
-    from app.core.config import get_settings
+    from app.core.key_derivation import _current_secret
 
-    secret = get_settings().secret_key
+    secret = _current_secret()
 
     combined = f"HMAC-FALLBACK:{timestamp_iso}:{document_hash}:{secret}"
     hmac_hex = _hmac.new(secret.encode(), combined.encode(), hashlib.sha256).hexdigest()
@@ -273,14 +273,19 @@ def verify_tsa_token(token_b64: str, document_hash: str) -> dict:
     try:
         payload = json.loads(raw.decode())
         if payload.get("type") == "hmac_fallback":
-            from app.core.config import get_settings
+            from app.core.key_derivation import iter_verifiable_secrets
 
-            secret = get_settings().secret_key
             ts = payload["timestamp"]
             dh = payload["document_hash"]
-            combined = f"HMAC-FALLBACK:{ts}:{dh}:{secret}"
-            expected = _hmac.new(secret.encode(), combined.encode(), hashlib.sha256).hexdigest()
-            ok = _hmac.compare_digest(expected, payload.get("hmac", ""))
+            # TSA tokens are long-lived legal artifacts — verify against the
+            # current key, in-grace history, and verify_forever history.
+            ok = False
+            for _version, secret in iter_verifiable_secrets(verify_forever=True):
+                combined = f"HMAC-FALLBACK:{ts}:{dh}:{secret}"
+                expected = _hmac.new(secret.encode(), combined.encode(), hashlib.sha256).hexdigest()
+                if _hmac.compare_digest(expected, payload.get("hmac", "")):
+                    ok = True
+                    break
             return {
                 "verified": ok,
                 "method": "hmac_fallback",
