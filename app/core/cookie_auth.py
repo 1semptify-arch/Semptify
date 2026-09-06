@@ -8,35 +8,29 @@ Example: GU7x9kM2pQ.a3f8c2d1e4b7...
 sign_user_id()   — called once at OAuth callback (cookie write)
 verify_user_id() — called at every cookie read (middleware, guards, routes)
 
-If SECRET_KEY changes, all existing cookies become invalid and users
-are re-routed to /storage/providers to re-authenticate. Expected behavior.
+On SECRET_KEY rotation, cookies signed with a retired key keep verifying
+for the SECRET_KEY_HISTORY grace window (60 days), then users are re-routed
+to /storage/providers to re-authenticate. Expected behavior.
 """
 
-import hashlib
-import hmac
 import logging
 
-from app.core.config import get_settings
+from app.core.key_derivation import hmac_sign_user_id, hmac_verify_user_id
 
 logger = logging.getLogger(__name__)
 
 _SEPARATOR = "."
 
 
-def _get_secret() -> bytes:
-    """Return SECRET_KEY as bytes."""
-    return get_settings().secret_key.encode("utf-8")
-
-
 def sign_user_id(user_id: str) -> str:
     """
     Sign a user_id and return the cookie value.
     Returns: "<user_id>.<hmac_hex>"
+    Always signs with the CURRENT SECRET_KEY version.
     """
     if not user_id:
         raise ValueError("user_id cannot be empty")
-    sig = hmac.new(_get_secret(), user_id.encode("utf-8"), hashlib.sha256).hexdigest()
-    return f"{user_id}{_SEPARATOR}{sig}"
+    return f"{user_id}{_SEPARATOR}{hmac_sign_user_id(user_id)}"
 
 
 def verify_user_id(cookie_value: str | None) -> str | None:
@@ -63,9 +57,9 @@ def verify_user_id(cookie_value: str | None) -> str | None:
         logger.warning("cookie_auth: empty user_id or signature")
         return None
 
-    expected_sig = hmac.new(_get_secret(), user_id.encode("utf-8"), hashlib.sha256).hexdigest()  # noqa: S324
-
-    if not hmac.compare_digest(expected_sig, provided_sig):
+    # Verify against the current key, then valid SECRET_KEY_HISTORY entries
+    # (60-day grace window per the vault-security spec).
+    if not hmac_verify_user_id(user_id, provided_sig):
         logger.warning(
             "cookie_auth: signature mismatch for user_id prefix=%s",
             user_id[:4] + "***",

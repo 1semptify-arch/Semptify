@@ -6,7 +6,6 @@ on storage operations only. Encryption is a cross-cutting concern used by
 the Vault Installer for token backup creation.
 """
 
-import hashlib
 import json
 import logging
 import secrets
@@ -81,9 +80,14 @@ class MasterToken:
 
 
 def _derive_key(user_id: str, secret_key: str) -> bytes:
-    """Derive encryption key from user_id + server secret."""
-    combined = f"{secret_key}:token:{user_id}".encode()
-    return hashlib.sha256(combined).digest()
+    """Derive the MasterToken key — delegates to canonical derivation.
+
+    The ":token:" separator is PURPOSE_MASTER_TOKEN in key_derivation —
+    intentional domain separation from session-token keys.
+    """
+    from app.core.key_derivation import PURPOSE_MASTER_TOKEN, derive_key_material
+
+    return derive_key_material(secret_key, user_id, PURPOSE_MASTER_TOKEN)
 
 
 def encrypt_token(token: MasterToken, user_id: str, secret_key: str) -> bytes:
@@ -137,13 +141,25 @@ def decrypt_token(encrypted: bytes, user_id: str, secret_key: str) -> MasterToke
 
     from app.services.storage.legal_integrity import TokenIntegrity
 
-    key = _derive_key(user_id, secret_key)
     nonce = encrypted[:12]
     ciphertext = encrypted[12:]
 
-    # AES-GCM decryption - will fail if tampered
-    aesgcm = AESGCM(key)
-    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
+    # Try the caller-supplied secret first, then every valid versioned secret
+    # (backups written before a key rotation stay readable during the grace
+    # window — same lazy pattern as session tokens).
+    from app.core.key_derivation import iter_valid_secrets
+
+    secrets_to_try = [secret_key] + [s for _v, s in iter_valid_secrets() if s != secret_key]
+    plaintext = None
+    last_error: Exception | None = None
+    for secret in secrets_to_try:
+        try:
+            plaintext = AESGCM(_derive_key(user_id, secret)).decrypt(nonce, ciphertext, None)
+            break
+        except Exception as e:  # InvalidTag or parse — try next version
+            last_error = e
+    if plaintext is None:
+        raise ValueError(f"MasterToken decrypt failed under all valid keys: {last_error}")
 
     wrapped = json.loads(plaintext.decode())
 

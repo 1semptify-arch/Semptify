@@ -15,7 +15,6 @@ All imports remain absolute since storage is a CORE module that depends
 on shared infrastructure (database, security, navigation, user_id, etc.).
 """
 
-import hashlib
 import json
 import logging
 import secrets
@@ -41,6 +40,7 @@ except ImportError:
 
 from app.core.config import get_settings
 from app.core.cookie_auth import set_auth_cookie
+from app.core.key_derivation import current_key_version, decrypt_value, encrypt_value
 from app.core.database import get_db
 from app.core.navigation import navigation
 from app.core.security import (
@@ -470,24 +470,10 @@ async def get_valid_session(
 
 # ============================================================================
 # Database Session Helpers
+#
+# Token encryption/decryption lives in app.core.key_derivation (canonical
+# versioned derivation). Do not re-add local helpers here.
 # ============================================================================
-
-
-def _encrypt_string(value: str, user_id: str) -> str:
-    """Encrypt a single string value. Returns base64 encoded string."""
-    import base64
-
-    encrypted_bytes = _encrypt_token({"v": value}, user_id)
-    return base64.b64encode(encrypted_bytes).decode("utf-8")
-
-
-def _decrypt_string(encrypted: str, user_id: str) -> str:
-    """Decrypt a base64 encoded encrypted string."""
-    import base64
-
-    encrypted_bytes = base64.b64decode(encrypted.encode("utf-8"))
-    data = _decrypt_token(encrypted_bytes, user_id)
-    return data["v"]
 
 
 async def get_session_from_db(db: AsyncSession, user_id: str) -> dict | None:
@@ -501,8 +487,12 @@ async def get_session_from_db(db: AsyncSession, user_id: str) -> dict | None:
             session_data = {
                 "user_id": session_row.user_id,
                 "provider": session_row.provider,
-                "access_token": _decrypt_string(session_row.access_token_encrypted, user_id),
-                "refresh_token": _decrypt_string(session_row.refresh_token_encrypted, user_id)
+                "access_token": decrypt_value(
+                    session_row.access_token_encrypted, user_id, key_version=session_row.key_version
+                ),
+                "refresh_token": decrypt_value(
+                    session_row.refresh_token_encrypted, user_id, key_version=session_row.key_version
+                )
                 if session_row.refresh_token_encrypted
                 else None,
                 "authenticated_at": session_row.authenticated_at.isoformat() if session_row.authenticated_at else None,
@@ -539,10 +529,12 @@ async def save_session_to_db(
     now = utc_now()
 
     if session_row:
-        # Update existing session
+        # Update existing session — always re-encrypt with the current key
+        # version (this is the lazy re-encryption path for key rotation).
         session_row.provider = provider
-        session_row.access_token_encrypted = _encrypt_string(access_token, user_id)
-        session_row.refresh_token_encrypted = _encrypt_string(refresh_token, user_id) if refresh_token else None
+        session_row.access_token_encrypted = encrypt_value(access_token, user_id)
+        session_row.refresh_token_encrypted = encrypt_value(refresh_token, user_id) if refresh_token else None
+        session_row.key_version = current_key_version()
         session_row.authenticated_at = now
         session_row.last_activity = now
         session_row.expires_at = expires_at
@@ -551,8 +543,9 @@ async def save_session_to_db(
         session_row = SessionModel(
             user_id=user_id,
             provider=provider,
-            access_token_encrypted=_encrypt_string(access_token, user_id),
-            refresh_token_encrypted=_encrypt_string(refresh_token, user_id) if refresh_token else None,
+            access_token_encrypted=encrypt_value(access_token, user_id),
+            refresh_token_encrypted=encrypt_value(refresh_token, user_id) if refresh_token else None,
+            key_version=current_key_version(),
             authenticated_at=now,
             last_activity=now,
             expires_at=expires_at,
@@ -724,40 +717,6 @@ VALID_INVITE_CODES = set(_os.getenv("INVITE_CODES", "CHANGE-ME-1,CHANGE-ME-2").s
 
 # Admin PIN - loaded from environment
 ADMIN_PIN = _os.getenv("ADMIN_PIN", "CHANGE-ME")
-
-
-# ============================================================================
-# Encryption Helpers
-# ============================================================================
-
-
-def _derive_key(user_id: str) -> bytes:
-    settings = _get_settings()
-    secret_key = getattr(settings, "secret_key", None) or getattr(settings, "SECRET_KEY", "")
-    combined = f"{secret_key}:{user_id}".encode()
-    return hashlib.sha256(combined).digest()
-
-
-def _encrypt_token(token_data: dict, user_id: str) -> bytes:
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
-    key = _derive_key(user_id)
-    nonce = secrets.token_bytes(12)
-    plaintext = json.dumps(token_data).encode()
-    aesgcm = AESGCM(key)
-    ciphertext = aesgcm.encrypt(nonce, plaintext, None)
-    return nonce + ciphertext
-
-
-def _decrypt_token(encrypted: bytes, user_id: str) -> dict:
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
-    key = _derive_key(user_id)
-    nonce = encrypted[:12]
-    ciphertext = encrypted[12:]
-    aesgcm = AESGCM(key)
-    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
-    return json.loads(plaintext.decode())
 
 
 # ============================================================================
