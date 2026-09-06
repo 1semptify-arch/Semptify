@@ -2500,11 +2500,11 @@
     "description": "ACTIVE_CONTEXT.md notes ~25 modules are missing FunctionGroupContract and no contract has GUI fields. Audit and add the missing contracts.",
     "file_path": "app/core/contract_loader.py",
     "priority": "low",
-    "status": "review",
+    "status": "resolved",
     "category": "feature",
-    "notes": "Logged, not urgent.\n[2026-09-06 20:47 UTC - devin-swe17] PR #152 - 33 contracts across 8 modules; GUI-fields half flagged as schema decision for Brad",
+    "notes": "Logged, not urgent.\n[2026-09-06 20:47 UTC - devin-swe17] PR #152 - 33 contracts across 8 modules; GUI-fields half flagged as schema decision for Brad\n[2026-09-06 21:07 UTC - devin-swe17] PR #152 merged",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-06T20:47:49.864434+00:00",
+    "updated_at": "2026-09-06T21:07:29.922408+00:00",
     "target_model": "unassigned",
     "assigned_agent": "devin-swe17"
   },
@@ -2724,13 +2724,13 @@
     "description": "Per-page SSOT CSS migration for law_library.html. Apply one-function rule, migrate legacy/inline CSS to ssot-design-system.css, next-step/eye-path audit.",
     "file_path": "app/templates/law_library.html",
     "priority": "high",
-    "status": "review",
+    "status": "resolved",
     "category": "ui",
-    "notes": "Hand-off: stalled GUI migration remediation. Worst offender per audit. One page, one commit.\n[2026-09-02 06:51 UTC - claude] Split plan for law_library.html written to BUILD_STATE.md. No code changed. Awaiting Brad's review of the proposed page map and commit sequence before first split commit.",
+    "notes": "Hand-off: stalled GUI migration remediation. Worst offender per audit. One page, one commit.\n[2026-09-02 06:51 UTC - claude] Split plan for law_library.html written to BUILD_STATE.md. No code changed. Awaiting Brad's review of the proposed page map and commit sequence before first split commit.\n[2026-09-06 21:08 UTC - devin-swe17] Work shipped via merged PRs #144 (SSOT migration) and #145 (base wrap). Verified live 2026-09-06: categories load, search returns cited statutes, landmarks correct, console clean except pre-existing /api/location/current 404",
     "created_at": "2026-09-02T03:00:00Z",
-    "updated_at": "2026-09-02T06:51:40.953057+00:00",
+    "updated_at": "2026-09-06T21:08:46.753004+00:00",
     "target_model": "claude",
-    "assigned_agent": "claude"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "asymmetric-composer-preview-shell-2026-09-02",
