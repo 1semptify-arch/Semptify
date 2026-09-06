@@ -1,5 +1,7 @@
 # Semptify v5.0 Deployment Readiness Report
 
+> **Note (2026-09-05):** This is a dated readiness snapshot. Treat the checklist as historical verification evidence, not a live status claim — re-verify against current `main` before any deploy.
+
 **Date**: April 10, 2026  
 **Status**: READY FOR PRODUCTION  
 
@@ -95,7 +97,7 @@ Total: 63 PASSED in 58.38s | Coverage: 25%
 2. **Transfer Code to Production**
 
    ```bash
-   git clone https://github.com/1semptify-arch/Semptify5.0.git /app/semptify
+   git clone https://github.com/1semptify-arch/Semptify.git /app/semptify
    cd /app/semptify && git checkout main
    ```
 

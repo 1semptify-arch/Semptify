@@ -164,7 +164,7 @@ psql -U postgres -c "ALTER USER postgres PASSWORD 'NewPassword';"
 ## 📞 Support
 
 - **Documentation:** See `docs/` folder
-- **Issues:** <https://github.com/1semptify-arch/Semptify5.0/issues>
+- **Issues:** <https://github.com/1semptify-arch/Semptify/issues>
 - **Email:** <support@semptify.com>
 
 ## 📄 License
