@@ -90,7 +90,7 @@ Onboarding is gate-driven, not flag-driven. Each gate unlocks the next:
 [nothing] → storage_connected → vault_initialized → [onboarding complete]
 ```
 
-Post-onboarding, the `client_activated` gate is set by `documents.py` on first document upload.
+The `client_activated` gate was removed on 2026-05-12 — after `vault_initialized` the tenant lands directly in tenant home. See `.devin/rules/08-onboarding-gates.md`; do not reintroduce a third gate.
 
 ### Canonical Onboarding Implementation
 

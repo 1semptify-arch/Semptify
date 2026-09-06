@@ -273,7 +273,7 @@ We may update this Privacy Policy from time to time. Changes will be:
 If you have questions about this Privacy Policy:
 
 - **Email**: [privacy@semptify.com]
-- **GitHub**: [https://github.com/1semptify-arch/Semptify-FastAPI]
+- **GitHub**: [https://github.com/1semptify-arch/Semptify]
 
 ---
 

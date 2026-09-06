@@ -1,6 +1,8 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-26 (Feature-flag systems unified into the DB-backed manager; NO-TOUCH rule added for `app/modules/onboarding/`; Agent Orchestration Protocol bootstrapped and first real dispatch cycle resolved)
+**Last Updated**: 2026-09-05 (PII/case-data purge: real case files untracked + backed up outside repo, full GitHub history rewrite + force-push on `1semptify-arch/Semptify`, `protect-main` ruleset restored; stale docs fixed — manifest rewritten with verified snapshot (123 registrations), `MODULE_BLUEPRINT.md` created, `BLUEPRINT.md` superseded, dead `client_activated` gate reference removed from PROJECT_BIBLE, repo URLs corrected to `1semptify-arch/Semptify`)
+
+**Previous**: 2026-08-26 (Feature-flag systems unified into the DB-backed manager; NO-TOUCH rule added for `app/modules/onboarding/`; Agent Orchestration Protocol bootstrapped and first real dispatch cycle resolved)
 
 > Standing rule: see `.devin/rules/10-progressive-disclosure.md` for the **Progressive Disclosure / Capability Revelation** rule (companion to the GUI Design Rule and Navigation Principle).
 
