@@ -1,0 +1,165 @@
+{% extends "gui/base.html" %}
+{#
+  Composer/Preview Shell — asymmetric two-pane task-page layout.
+
+  Contract (handoff: composer-preview-shell-2026-09-02, corrected against mock-site):
+    - Three regions: composer (task/inputs), preview (output/review/empty/error),
+      help (persistent contextual help rail).
+    - Layout is declared per page, never hand-tuned:
+        shell_ratio        — "3fr 2fr" | "2fr 3fr" | "1fr 1fr"  (first two regions' desktop split)
+        shell_primary      — "composer" | "preview"  (semantic emphasis hook)
+        shell_mobile_order — list like ["composer","preview","help"]; DOM order == visual
+                             order == mobile stack order (a11y: non-negotiable).
+    - Regions render in shell_mobile_order sequence; on desktop they appear
+      left→right in that same order, help last as a fixed-width rail.
+    - Blocks: composer, preview, help (help optional — omit block to hide rail),
+      cps_title, cps_description, cps_eyebrow, cps_controls_title,
+      cps_preview_title, cps_help_title.
+    - Reuses Page Shell zone/block vocabulary + ssot-design-system.css tokens.
+      No new color/type/spacing system.
+#}
+{% from "components/ui_composer.html" import process_indicator with context %}
+
+{% set _order = shell_mobile_order | default(["composer", "preview", "help"], true) %}
+{% set _has_help = self.help() | trim | length > 0 %}
+
+{% block styles %}
+<link rel="stylesheet" href="/static/page_shell/page_shell.css">
+<style>
+  .cps {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(0.5rem, 1.5vh, 1rem);
+    padding: clamp(0.5rem, 2vw, 1.5rem);
+    background: #f7f7f5;
+    color: #1a1a1a;
+    border-radius: clamp(4px, 0.8vh, 8px);
+    box-sizing: border-box;
+    align-items: start;
+  }
+  .cps__region { min-width: 0; }
+  .cps__region .zone {
+    min-height: auto;
+    overflow: visible;
+    padding: clamp(0.5rem, 1vh, 1rem);
+  }
+  .cps__region .block {
+    background: rgba(255, 255, 255, 0.55);
+    padding: clamp(0.6rem, 1.2vh, 1rem);
+  }
+  .cps__preview .block {
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px dashed #c9c9c0;
+  }
+  .cps__help .block {
+    background: #faf7f0;
+  }
+
+  .cps__eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b5b4a;
+    margin-bottom: 0.25rem;
+  }
+  .cps__title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+  }
+  .cps__description {
+    color: #4a4a4a;
+    margin-top: 0.5rem;
+    line-height: 1.6;
+  }
+  .cps__section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.75rem;
+  }
+  .cps__hint {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+  }
+  .cps__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cps__list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    color: #4a4a4a;
+    font-size: 0.9375rem;
+  }
+  .cps__list li:last-child { border-bottom: none; }
+  .cps__empty {
+    color: #6b7280;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+  .cps__situational-notice {
+    padding: 1rem 1.25rem;
+    background: #faf7f0;
+    color: #5c4b3a;
+    border-radius: 4px;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  /* Desktop: regions left→right in DOM order (a11y: DOM == visual).
+     First two regions share --cps-ratio; help is a fixed right rail when present. */
+  @media (min-width: 900px) {
+    .cps { grid-template-columns: var(--cps-a, 3fr) var(--cps-b, 2fr); }
+    .cps--has-help { grid-template-columns: var(--cps-a, 3fr) var(--cps-b, 2fr) clamp(230px, 20vw, 300px); }
+    .cps__help { position: sticky; top: 1rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<article class="cps{% if _has_help %} cps--has-help{% endif %} cps--primary-{{ shell_primary | default('composer', true) }}"
+         style="--cps-a: {{ (shell_ratio | default('3fr 2fr', true)).split(' ')[0] }}; --cps-b: {{ (shell_ratio | default('3fr 2fr', true)).split(' ')[1] }};"
+         aria-label="{% block cps_aria_label %}{{ contract.title | default('Function') }}{% endblock %}">
+
+  {% for region in _order %}
+    {% if region == "composer" %}
+      <section class="cps__region cps__composer zone" aria-labelledby="cps-composer-title">
+        <div class="block">
+          <p class="cps__eyebrow">{% block cps_eyebrow %}{{ contract.module | default('') }}{% endblock %}</p>
+          <h1 class="cps__title">{% block cps_title %}{{ contract.title }}{% endblock %}</h1>
+          <p class="cps__description">{% block cps_description %}{{ contract.description }}{% endblock %}</p>
+          <h2 id="cps-composer-title" class="cps__section-title">{% block cps_controls_title %}Do it{% endblock %}</h2>
+          {% if situational_available | default(true) %}
+            {% block composer %}{% endblock %}
+          {% else %}
+            <p class="cps__situational-notice" role="note">
+              This function is not currently available for your role or location. You can still read what it does below, but you cannot use it here.
+            </p>
+          {% endif %}
+        </div>
+      </section>
+    {% elif region == "preview" %}
+      <section class="cps__region cps__preview zone" aria-labelledby="cps-preview-title">
+        <div class="block">
+          <h2 id="cps-preview-title" class="cps__section-title">{% block cps_preview_title %}Result{% endblock %}</h2>
+          {% block preview %}
+            <p class="cps__empty">Nothing here yet. Fill in the form and your result will appear in this space.</p>
+          {% endblock %}
+        </div>
+      </section>
+    {% elif region == "help" and _has_help %}
+      <aside class="cps__region cps__help zone" aria-labelledby="cps-help-title">
+        <div class="block">
+          <h2 id="cps-help-title" class="cps__section-title">{% block cps_help_title %}About this step{% endblock %}</h2>
+          {% block help %}{% endblock %}
+        </div>
+      </aside>
+    {% endif %}
+  {% endfor %}
+</article>
+{% endblock %}

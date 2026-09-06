@@ -2738,13 +2738,13 @@
     "description": "Review mock-site reference, confirm/correct the asymmetric composer/preview shell plan, then build the shared shell component and migrate 3-4 high-traffic pages onto it. Phase 2: after Phase 0 foundation fixes and Phase 1 GUI migration.",
     "file_path": "app/templates/",
     "priority": "medium",
-    "status": "open",
+    "status": "in_progress",
     "category": "ui",
     "notes": "New planning hand-off received. Need to confirm/correct against C:\\master-repo\\handoffs\\mock-site\\ before Ticket 1.\n[2026-09-02 08:43 UTC - claude] Plan confirmed/corrected against mock-site. Corrections recorded in ACTIVE_CONTEXT.md: mock-site split is main+help, not composer+preview; shell must support composer, preview, and contextual help; primary/split props handle asymmetry. Task remains queued as Phase 2 behind Phase 0 + Phase 1.",
     "created_at": "2026-09-02T04:00:00Z",
-    "updated_at": "2026-09-02T08:43:27.221160+00:00",
+    "updated_at": "2026-09-06T20:14:10.331051+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "claude"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "gui-base-template-consolidation-2026-09-03",
@@ -2766,13 +2766,13 @@
     "description": "The bounded prerequisite consolidated base.html/public_base.html/gui/base.html and wrapped index.html + law_library.html. The remaining ~118 templates still use one of the old shells, hardcoded headers/footers, or legacy template-* classes. Systematically migrate each to extend the universal base.html, assign the correct template-N body class, remove duplicate document shells / scripts / footers, and verify with a11y and live browser checks. This is additive follow-up work; do not restart the landing hero until this is either completed in full or explicitly split into smaller per-pillar follow-ups.",
     "file_path": "app/templates/",
     "priority": "medium",
-    "status": "open",
+    "status": "review",
     "category": "ui",
-    "notes": "Created after gui-base-template-consolidation-2026-09-03 was resolved to track the remaining template migration scope separately from the landing-liquid-hero task.",
+    "notes": "Created after gui-base-template-consolidation-2026-09-03 was resolved to track the remaining template migration scope separately from the landing-liquid-hero task.\n[2026-09-06 19:54 UTC - devin-swe17] PR #150 - real leftovers were 2 standalone shells + 2 duplicate mains + class assignments",
     "created_at": "2026-09-04T00:13:09.250529+00:00",
-    "updated_at": "2026-09-04T00:13:09.250529+00:00",
+    "updated_at": "2026-09-06T19:54:04.135880+00:00",
     "target_model": "unassigned",
-    "assigned_agent": null
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "docs-manifest-blueprint-template-fix-2026-09-05",
@@ -2781,11 +2781,11 @@
     "file_path": "SEMPTIFY_SYSTEM_MANIFEST.md, BLUEPRINT.md, MODULE_BLUEPRINT.md",
     "category": "docs",
     "priority": "medium",
-    "status": "review",
+    "status": "resolved",
     "created_at": "2026-09-05T19:36:24Z",
-    "updated_at": "2026-09-05T19:39:39.254855+00:00",
-    "assigned_agent": "devin-swe-1.7",
+    "updated_at": "2026-09-06T19:42:34.939709+00:00",
+    "assigned_agent": "devin-swe17",
     "target_model": "unlimited",
-    "notes": "[2026-09-05 19:39 UTC] Docs-only. Manifest rewritten w/ verified MANIFEST.summary() snapshot (123 entries). BLUEPRINT.md PII removed + superseded banner. MODULE_BLUEPRINT.md created (Part 0A spec + template). bp 9 2.md counts verified. STOP-AND-REPORT: real case data committed under data/cases/ + data/converted_documents/ \u2014 needs Brad decision."
+    "notes": "[2026-09-05 19:39 UTC] Docs-only. Manifest rewritten w/ verified MANIFEST.summary() snapshot (123 entries). BLUEPRINT.md PII removed + superseded banner. MODULE_BLUEPRINT.md created (Part 0A spec + template). bp 9 2.md counts verified. STOP-AND-REPORT: real case data committed under data/cases/ + data/converted_documents/ \u2014 needs Brad decision.\n[2026-09-06 19:42 UTC - devin-swe17] Merged via PRs #148 + #149"
   }
 ]
