@@ -19,7 +19,7 @@
 #define MyAppName "Semptify"
 #define MyAppVersion "5.0.0"
 #define MyAppPublisher "Semptify - Pro Se Legal Assistant"
-#define MyAppURL "https://github.com/1semptify-arch/Semptify-FastAPI"
+#define MyAppURL "https://github.com/1semptify-arch/Semptify"
 #define MyAppExeName "Semptify.exe"
 #define MyAppDescription "AI-Powered Legal Self-Help for Tenants"
 
