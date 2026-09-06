@@ -1,153 +1,119 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Vault - {{ app_name }}</title>
+{% extends "base.html" %}
 
-    <!-- Google Fonts: Inter + IBM Plex Mono (Design Handoff 2026-07-01) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+{% block title %}Document Vault - {{ app_name }}{% endblock %}
+{% block body_class %}template-1{% endblock %}
+{% block main_class %}vault-main{% endblock %}
 
-    <!-- SSOT Design System -->
-    <link rel="stylesheet" href="/static/css/ssot-design-system.css">
+{% block styles %}
+<link rel="stylesheet" href="/css/components/vault-portal.css">
+<style>
+    .template-1 .vault-main {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: #fff;
+        padding: 2rem;
+    }
+    .template-1 .vault-main * { margin: 0; padding: 0; box-sizing: border-box; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .vault-main header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        background: transparent;
+        color: #fff;
+    }
+    .vault-main h1 { font-size: 1.5rem; font-weight: 600; }
+    .status {
+        background: #10b981;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+    }
+    .card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1.125rem; margin-bottom: 1rem; color: #94a3b8; }
+    .upload-zone {
+        border: 2px dashed rgba(255,255,255,0.2);
+        border-radius: 0.75rem;
+        padding: 3rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .upload-zone:hover { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+    .upload-zone input { display: none; }
+    .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .btn {
+        background: #3b82f6;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+    }
+    .btn:hover { background: #2563eb; }
+    .btn--primary { background: #3b82f6; color: white; }
+    .btn--primary:hover { background: #2563eb; }
+    .documents { display: grid; gap: 1rem; }
+    .doc-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(255,255,255,0.03);
+        border-radius: 0.5rem;
+    }
+    .doc-icon { font-size: 2rem; }
+    .doc-info { flex: 1; }
+    .doc-name { font-weight: 500; }
+    .doc-meta { font-size: 0.875rem; color: #64748b; }
+    #message {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        display: none;
+    }
+    .success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; }
+    .error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
 
-    <link rel="stylesheet" href="/css/components/vault-portal.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding: 2rem;
-        }
-        .container { max-width: 900px; margin: 0 auto; }
-        header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        h1 { font-size: 1.5rem; font-weight: 600; }
-        .status { 
-            background: #10b981; 
-            padding: 0.5rem 1rem; 
-            border-radius: 2rem;
-            font-size: 0.875rem;
-        }
-        .card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .card h2 { font-size: 1.125rem; margin-bottom: 1rem; color: #94a3b8; }
-        .upload-zone {
-            border: 2px dashed rgba(255,255,255,0.2);
-            border-radius: 0.75rem;
-            padding: 3rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .upload-zone:hover { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
-        .upload-zone input { display: none; }
-        .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
-        .btn {
-            background: #3b82f6;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s;
-        }
-        .btn:hover { background: #2563eb; }
-        .documents { display: grid; gap: 1rem; }
-        .doc-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(255,255,255,0.03);
-            border-radius: 0.5rem;
-        }
-        .doc-icon { font-size: 2rem; }
-        .doc-info { flex: 1; }
-        .doc-name { font-weight: 500; }
-        .doc-meta { font-size: 0.875rem; color: #64748b; }
-        #message { 
-            padding: 1rem; 
-            border-radius: 0.5rem; 
-            margin-bottom: 1rem;
-            display: none;
-        }
-        .success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; }
-        .error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
+    /* Empty state styles */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #64748b;
+    }
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    .empty-state-hint {
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+    .mt-sm { margin-top: 0.5rem; }
+    .mt-md { margin-top: 1rem; }
+    .p-lg { padding: 2rem; }
+    .text-secondary { color: #64748b; font-size: 0.875rem; }
+    .text-center { text-align: center; }
+    .text-error { color: #ef4444; }
+</style>
+{% endblock %}
 
-        /* Empty state styles */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #64748b;
-        }
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-        .empty-state-hint {
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-        }
-        .mt-sm {
-            margin-top: 0.5rem;
-        }
-        .mt-md {
-            margin-top: 1rem;
-        }
-        .p-lg {
-            padding: 2rem;
-        }
-        .text-secondary {
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .text-error {
-            color: #ef4444;
-        }
-
-        /* Button styles */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-        }
-        .btn--primary {
-            background: #3b82f6;
-            color: white;
-        }
-        .btn--primary:hover {
-            background: #2563eb;
-        }
-    </style>
-</head>
-<body class="template-1">
+{% block content %}
     <div class="container">
         <header>
             <h1>Document Vault</h1>
@@ -159,7 +125,6 @@
             </div>
         </header>
 
-        <main id="main-content">
         <div id="message"></div>
 
         <div class="card">
@@ -182,9 +147,10 @@
                 </p>
             </div>
         </div>
-    </main>
     </div>
+{% endblock %}
 
+{% block scripts %}
     <script>
         let functionToken = null;
         let functionTokenReverifySeconds = 120;
@@ -311,11 +277,11 @@
         async function loadDocuments(accessToken) {
             try {
                 // Use /api/vault/all - reads from vault database (more reliable than certificates in cloud storage)
-                const res = await fetch('/api/vault/all', { 
-                    credentials: 'include' 
+                const res = await fetch('/api/vault/all', {
+                    credentials: 'include'
                 });
                 const data = await res.json();
-                
+
                 const list = document.getElementById('documents-list');
                 if (data.documents && data.documents.length > 0) {
                     document.getElementById('export-btn').style.display = 'inline-flex';
@@ -325,7 +291,7 @@
                             <div class="doc-info">
                                 <div class="doc-name">${doc.filename}</div>
                                 <div class="doc-meta">
-                                    ${formatSize(doc.file_size)} · 
+                                    ${formatSize(doc.file_size)} ·
                                     ${new Date(doc.uploaded_at).toLocaleDateString()}
                                 </div>
                             </div>
@@ -345,7 +311,7 @@
                     `;
                 }
             } catch (e) {
-                document.getElementById('documents-list').innerHTML = 
+                document.getElementById('documents-list').innerHTML =
                     '<p class="text-error text-center">Failed to load documents</p>';
             }
         }
@@ -447,5 +413,4 @@
         init();
     </script>
     <script src="/js/core/vault-portal.js?v=20260626d"></script>
-</body>
-</html>
+{% endblock %}

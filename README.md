@@ -127,7 +127,7 @@ When running in debug mode, visit:
 
 ```
 
-Semptify-FastAPI/
+Semptify/
 ├── app/
 │   ├── main.py              # FastAPI application entry
 │   ├── core/
