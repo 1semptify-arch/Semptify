@@ -101,6 +101,12 @@ class Settings:
     # open = no auth (dev/testing); enforced = storage OAuth required (production)
     security_mode: Literal["open", "enforced"] = os.getenv("SECURITY_MODE", "open")
     secret_key: str = _resolve_secret_key()
+    # Versioned key rotation (spec: vault-security-pair, Scope A). The current
+    # key's version stamp (0 = pre-versioning). SECRET_KEY_HISTORY is a JSON
+    # list of retired keys: [{"version":1,"key":"...","rotated_at":"<iso8601>"}]
+    # — entries verify for a 60-day grace window, then stop verifying.
+    secret_key_version: int = int(os.getenv("SECRET_KEY_VERSION", "0"))
+    secret_key_history: str = os.getenv("SECRET_KEY_HISTORY", "")
     upload_dir: str = "uploads"
     vault_dir: str = "uploads/vault"
     max_upload_size_mb: int = 50
