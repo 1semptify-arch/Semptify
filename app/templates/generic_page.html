@@ -12,6 +12,7 @@
 {# available even if the composer doesn't emit it).                  #}
 {# ================================================================= #}
 {% extends "base.html" %}
+{% block body_class %}template-4{% endblock %}
 {% from "components/ui_composer.html" import render_component %}
 
 {% block title %}{{ page_title }}{% endblock %}
@@ -265,13 +266,13 @@
         <aside class="uic-library-picker">
             {{ render_component(picker) }}
         </aside>
-        <main class="uic-library-main" id="library-content">
+        <section class="uic-library-main" id="library-content">
             {% for component in components %}
                 {% if component.type != 'subject_grid' %}
                 {{ render_component(component) }}
                 {% endif %}
             {% endfor %}
-        </main>
+        </section>
     </div>
     {% else %}
     <div class="uic-components">
