@@ -1,0 +1,126 @@
+{% extends "body/tenant_guide_body.html" %}
+{#
+  Tenant flagship home — Phase A (spec: tenant-flagship-ui-spec-2026-09-06).
+
+  Route: /tenant/start (fresh path; /tenant/home keeps serving the old page
+  until cutover, then redirects here).
+
+  Contract (inputs / outputs / layout):
+    Inputs:  user cookie (briefcase lookup) — no form inputs.
+    Outputs: status facts, entry links to the six flagship sections.
+    Layout:  tenant_guide_body shell — hero → status → actions → capture →
+             sections → help, in fixed chronological order.
+
+  Per the locked spec: no Take Action pillar, no role badge, no tool cards,
+  no Court Case Lookup, no emoji — typography-led throughout.
+#}
+
+{% block title %}Semptify — Home{% endblock %}
+{% block nav_home %}nav-active{% endblock %}
+{% block tg_aria_label %}Your home — what to do right now{% endblock %}
+
+{% block tg_eyebrow %}Semptify · Home{% endblock %}
+
+{% block tg_title %}
+  {% if user_name %}Hello, {{ user_name }}.{% else %}Hello.{% endif %}
+  Here's where things stand.
+{% endblock %}
+
+{% block tg_description %}
+  Keep a record, know your rights, and take the next step — in order, at
+  your own pace. Nothing here is legal advice, but everything here is yours.
+{% endblock %}
+
+{% block tg_hero_extra %}
+  <a class="tg__cta" href="/tenant/get-help">Get help now</a>
+  {% if not vault_connected %}
+    <a class="tg__cta tg__cta--secondary" href="/storage/providers">Connect your storage</a>
+  {% else %}
+    <a class="tg__cta tg__cta--secondary" href="/tenant/capture">Record something</a>
+  {% endif %}
+{% endblock %}
+
+{% block tg_status %}
+  <div class="tg__status-row">
+    <span class="tg__status-label">Document vault</span>
+    <span class="tg__status-value">
+      {% if vault_connected %}{{ document_count }} document{{ "s" if document_count != 1 }} stored
+      {% else %}Not connected{% endif %}
+    </span>
+  </div>
+  <div class="tg__status-row">
+    <span class="tg__status-label">Next deadline</span>
+    <span class="tg__status-value{% if next_deadline and next_deadline.days_remaining is not none and next_deadline.days_remaining <= 7 %} tg__status-value--warn{% endif %}">
+      {% if next_deadline %}{{ next_deadline.title }} — {{ next_deadline.date }}
+        {% if next_deadline.days_remaining is not none %}({{ next_deadline.days_remaining }} day{{ "s" if next_deadline.days_remaining != 1 }}){% endif %}
+      {% else %}None upcoming{% endif %}
+    </span>
+  </div>
+  <div class="tg__status-row">
+    <span class="tg__status-label">Journal entries</span>
+    <span class="tg__status-value">{{ journal_count }}</span>
+  </div>
+{% endblock %}
+
+{% block tg_actions %}
+  <a class="tg__action" href="/gui/record/journal/create">
+    <span class="tg__action-num">1</span>
+    <span class="tg__action-title">Write in your journal</span>
+    <span class="tg__action-desc">Log what happened — dated, on the record.</span>
+  </a>
+  <a class="tg__action" href="/tenant/capture">
+    <span class="tg__action-num">2</span>
+    <span class="tg__action-title">Add a document or photo</span>
+    <span class="tg__action-desc">Notices, photos, letters — into your vault.</span>
+  </a>
+  <a class="tg__action" href="/law-library">
+    <span class="tg__action-num">3</span>
+    <span class="tg__action-title">Look up a right</span>
+    <span class="tg__action-desc">Plain-English guides and the actual law.</span>
+  </a>
+{% endblock %}
+
+{% block tg_capture %}
+  <p>Log it now while it's fresh — details matter later.</p>
+  <div class="tg__chips">
+    <a class="tg__chip" href="/tenant/capture?type=maintenance">Maintenance request</a>
+    <a class="tg__chip" href="/tenant/capture?type=issue">Housing issue</a>
+    <a class="tg__chip" href="/tenant/capture?type=notice">Received a notice</a>
+    <a class="tg__chip" href="/tenant/capture?type=communication">Landlord conversation</a>
+    <a class="tg__chip" href="/tenant/capture?type=payment">Payment made</a>
+  </div>
+{% endblock %}
+
+{% block tg_sections_title %}Where everything lives{% endblock %}
+
+{% block tg_sections %}
+  <a class="tg__section-link" href="/gui/record">
+    <span class="tg__section-name">Your record</span>
+    <div class="tg__section-desc">Vault, timeline, journal, and notes — everything you've kept.</div>
+  </a>
+  <a class="tg__section-link" href="/dc">
+    <span class="tg__section-name">Read your documents</span>
+    <div class="tg__section-desc">Open any document and get a plain-English explanation.</div>
+  </a>
+  <a class="tg__section-link" href="/gui/packet-builder">
+    <span class="tg__section-name">Prepare a packet</span>
+    <div class="tg__section-desc">Assemble the documents a court, agency, or advocate will ask for.</div>
+  </a>
+  <a class="tg__section-link" href="/help">
+    <span class="tg__section-name">Find help near you</span>
+    <div class="tg__section-desc">Legal aid, hotlines, and county resources for where you live.</div>
+  </a>
+  <a class="tg__section-link" href="/law-library">
+    <span class="tg__section-name">Law library</span>
+    <div class="tg__section-desc">Minnesota tenant law, federal protections, and housing rules.</div>
+  </a>
+{% endblock %}
+
+{% block tg_help_title %}In a crisis or can't find it{% endblock %}
+
+{% block tg_help %}
+  <p>Some things can't wait for a website. If you have a court date, a lockout,
+     or a deadline in the next few days, talk to a person.</p>
+  <p><a href="/help">Free tenant help and hotlines</a> &nbsp;·&nbsp;
+     <a href="/tenant/get-help">Guided: figure out my next step</a></p>
+{% endblock %}

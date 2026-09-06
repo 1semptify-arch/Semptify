@@ -1,0 +1,195 @@
+{% extends "body/composer_preview_body.html" %}
+{#
+  Guided triage — "Get help now" destination for the tenant flagship.
+
+  Route: /tenant/get-help (fresh; /help remains the static crisis page).
+
+  Module contract — guided_intake:guided_intake_save
+    Inputs:  primary concern, urgency, dates, situation (optional)
+    Outputs: concern summary + suggested next steps (preview region)
+    Layout:  asymmetric composer/preview, preview-primary on desktop.
+
+  No emoji (flagship rule) — backend step strings may arrive emoji-prefixed;
+  the renderer strips leading non-word characters.
+#}
+
+{% block title %}Get help now — Semptify{% endblock %}
+{% block nav_home %}nav-active{% endblock %}
+
+{% block cps_aria_label %}Get help now — guided triage{% endblock %}
+{% block cps_eyebrow %}Guided · First step{% endblock %}
+{% block cps_title %}Get help now{% endblock %}
+{% block cps_description %}Tell us what's going on — a few questions, then we'll point you at the right next step.{% endblock %}
+{% block cps_controls_title %}What's happening{% endblock %}
+{% block cps_preview_title %}Your next steps{% endblock %}
+{% block cps_help_title %}About this page{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .triage-form { display: flex; flex-direction: column; gap: var(--space-4); }
+  .triage-field label { display: block; font-weight: var(--font-semibold); color: var(--text-primary); font-size: var(--text-sm); margin-bottom: var(--space-2); }
+  .triage-field select, .triage-field input, .triage-field textarea {
+    width: 100%; padding: var(--space-3); border: 1px solid var(--border-color);
+    border-radius: 4px; font-size: var(--text-base); background: var(--color-white);
+    color: var(--text-primary); font-family: inherit; box-sizing: border-box;
+  }
+  .triage-field textarea { min-height: 5rem; resize: vertical; }
+  .triage-optional { font-weight: var(--font-normal); color: var(--text-secondary); font-size: var(--text-xs); }
+  #urgentDateWrap { display: none; }
+  .triage-submit {
+    padding: var(--space-3) var(--space-6); background: var(--color-primary); color: var(--text-inverse);
+    border: none; border-radius: 4px; font-size: var(--text-base); font-weight: var(--font-semibold);
+    cursor: pointer; font-family: inherit;
+  }
+  .triage-submit:disabled { opacity: 0.6; cursor: wait; }
+  .triage-steps { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4); }
+  .triage-step { padding: var(--space-3) var(--space-4); background: var(--bg-card); border-radius: 4px; color: var(--text-primary); font-size: var(--text-sm); line-height: var(--leading-relaxed); }
+  .triage-urgent { padding: var(--space-3) var(--space-4); background: var(--color-warning); border-radius: 4px; color: var(--text-primary); font-size: var(--text-sm); margin-top: var(--space-3); }
+  .triage-urgent a { color: var(--text-primary); font-weight: var(--font-semibold); }
+  .triage-answer { font-size: var(--type-h2); font-weight: var(--type-h2-weight); color: var(--text-primary); margin: 0; }
+</style>
+{% endblock %}
+
+{% block composer %}
+<form id="triageForm" class="triage-form" novalidate>
+  <div class="triage-field">
+    <label for="primaryConcern">What's going on?</label>
+    <select id="primaryConcern" required>
+      <option value="">Choose the closest match…</option>
+      <option value="eviction">Eviction — notice, filing, or court date</option>
+      <option value="repairs">Repairs or unsafe living conditions</option>
+      <option value="rent">Rent — increase, fees, or can't pay</option>
+      <option value="harassment">Landlord behavior — entry, threats, pressure</option>
+      <option value="lease">Lease questions or terms</option>
+      <option value="other">Something else about my housing</option>
+    </select>
+  </div>
+
+  <div class="triage-field">
+    <label for="urgency">How urgent is it?</label>
+    <select id="urgency" required>
+      <option value="">Choose one…</option>
+      <option value="court_soon">I have a court date or filing soon</option>
+      <option value="deadline">There's a deadline on a notice</option>
+      <option value="move_out">I may have to move out soon</option>
+      <option value="exploring">No deadline — I'm figuring things out</option>
+    </select>
+  </div>
+
+  <div class="triage-field" id="urgentDateWrap">
+    <label for="urgentDate">When is it? <span class="triage-optional">(optional)</span></label>
+    <input type="date" id="urgentDate">
+  </div>
+
+  <div class="triage-field">
+    <label for="timelineStart">When did this start? <span class="triage-optional">(optional)</span></label>
+    <input type="date" id="timelineStart">
+  </div>
+
+  <div class="triage-field">
+    <label for="situation">Anything else we should know? <span class="triage-optional">(optional)</span></label>
+    <textarea id="situation" placeholder="A sentence or two is plenty."></textarea>
+  </div>
+
+  <button type="submit" class="triage-submit">{{ submit_label | default("Find my next step", true) }}</button>
+</form>
+{% endblock %}
+
+{% block preview %}
+  <p class="cps__empty" id="triageEmpty">Your next steps will appear here.</p>
+  <div id="triageResult" hidden></div>
+{% endblock %}
+
+{% block help %}
+  <p><strong>This is triage, not legal advice.</strong> It helps you figure out
+  where to start. If you have a court date or a lockout happening now, skip
+  this — <a href="/help" style="color: var(--color-info);">call a free tenant hotline</a>.</p>
+  <p style="margin-top: var(--space-3);">This page asks the same first questions a
+  tenant advocate would: what's happening, how urgent it is, and when it
+  started.</p>
+  <p style="margin-top: var(--space-3); font-size: var(--text-xs); color: var(--text-secondary);">
+    Your answers stay with your record. When you know the next step, you can
+    <a href="/tenant/start" style="color: var(--color-info);">go back home</a> or
+    <a href="/tenant/capture" style="color: var(--color-info);">record what happened</a>.</p>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+(function () {
+  const form = document.getElementById('triageForm');
+  const urgency = document.getElementById('urgency');
+  const urgentDateWrap = document.getElementById('urgentDateWrap');
+  const empty = document.getElementById('triageEmpty');
+  const result = document.getElementById('triageResult');
+  const csrf = '{{ csrf_token | default("", true) }}';
+
+  // Show the date field only when urgency implies a hard date.
+  urgency.addEventListener('change', function () {
+    urgentDateWrap.style.display = ['court_soon', 'deadline', 'move_out'].includes(urgency.value) ? 'block' : 'none';
+  });
+
+  // Strip leading emoji/icon glyphs from backend step strings (flagship is
+  // typography-led; the backend predates that rule).
+  const clean = (s) => s.replace(/^[^A-Za-z0-9]+\s*/u, '');
+  const esc = (s) => s.replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const concern = document.getElementById('primaryConcern').value;
+    const urg = urgency.value;
+    if (!concern || !urg) return;
+
+    const body = {
+      intake_data: {
+        primaryConcern: concern,
+        urgency: urg,
+        urgentDate: document.getElementById('urgentDate').value || null,
+        timelineStart: document.getElementById('timelineStart').value || null,
+        situation: document.getElementById('situation').value || null,
+      },
+    };
+
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Working…'; }
+
+    try {
+      const res = await fetch('/api/guided-intake/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error('save failed: ' + res.status);
+      const data = await res.json();
+      const s = data.summary || {};
+
+      let html = '<p class="triage-answer">' + esc(s.primary_concern || 'Your situation') + '</p>';
+      if (s.is_urgent) {
+        html += '<div class="triage-urgent">This sounds time-sensitive. ' +
+          '<a href="/help">Free tenant help and hotlines</a> can act today — ' +
+          'the steps below still apply.</div>';
+      }
+      const steps = (s.next_steps || []).map(clean).filter(Boolean);
+      if (steps.length) {
+        html += '<div class="triage-steps">' +
+          steps.map((t, i) => '<div class="triage-step"><strong>' + (i + 1) + '.</strong> ' + esc(t) + '</div>').join('') +
+          '</div>';
+      }
+      html += '<p style="margin-top: var(--space-4); font-size: var(--text-sm); color: var(--text-secondary);">' +
+        'When you are ready: <a href="/tenant/start" style="color: var(--color-info);">back to your home</a> ' +
+        'or <a href="/tenant/capture" style="color: var(--color-info);">record what happened</a>.</p>';
+
+      empty.hidden = true;
+      result.hidden = false;
+      result.innerHTML = html;
+    } catch (err) {
+      empty.textContent = 'Something went wrong saving your answers. You can still go straight to /help for human help.';
+      empty.hidden = false;
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '{{ submit_label | default("Find my next step", true) }}'; }
+    }
+  });
+})();
+</script>
+{% endblock %}
