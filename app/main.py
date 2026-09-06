@@ -4508,6 +4508,71 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             status_code=200,
         )
 
+    @fastapi_app.get("/tenant/start", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/start/", response_class=HTMLResponse)
+    async def tenant_home_next(request: Request):
+        """Tenant flagship home (Phase A) — fresh route; /tenant/home keeps
+        serving the old page until cutover per the signed-off spec."""
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+
+        user_id = extract_user_id(request) or ""
+        briefcase = None
+        if user_id:
+            try:
+                briefcase = await _get_tenant_briefcase(user_id)
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Tenant briefcase load failed for %s: %s", user_id[:6] + "***", e)
+
+        context = {
+            "briefcase": briefcase,
+            "vault_connected": bool(
+                briefcase and briefcase.vault and briefcase.vault.total_documents is not None
+            ),
+            "user_name": briefcase.user_name if briefcase else None,
+            "document_count": briefcase.vault.total_documents if briefcase and briefcase.vault else 0,
+            "journal_count": briefcase.journal.total_entries if briefcase and briefcase.journal else 0,
+            "next_deadline": None,
+        }
+        if briefcase and briefcase.timeline and briefcase.timeline.next_deadline:
+            context["next_deadline"] = {
+                "title": briefcase.timeline.next_deadline.title,
+                "date": briefcase.timeline.next_deadline.date,
+                "days_remaining": briefcase.timeline.next_deadline.days_until,
+            }
+        return templates.TemplateResponse(request, "pages/tenant_home_next.html", context)
+
+    @fastapi_app.get("/tenant/get-help", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/get-help/", response_class=HTMLResponse)
+    async def tenant_get_help(request: Request):
+        """Guided triage — the 'Get help now' destination (Phase A).
+        Distinct from /help, which remains the static crisis-resource page."""
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+
+        contract = {
+            "module": "guided_intake",
+            "group_name": "guided_intake_save",
+            "title": "Get help now",
+            "description": "Guided triage — what is happening, how urgent, and the right next step.",
+            "inputs": ("primary_concern", "urgency", "urgent_date", "timeline_start", "situation"),
+            "outputs": ("primary_concern", "is_urgent", "next_steps"),
+        }
+        return templates.TemplateResponse(
+            request,
+            "pages/tenant_get_help.html",
+            {
+                "contract": contract,
+                "shell_ratio": "2fr 3fr",
+                "shell_primary": "preview",
+                "shell_mobile_order": ["composer", "preview", "help"],
+                "submit_label": "Find my next step",
+                "csrf_token": getattr(request.state, "csrf_token", ""),
+            },
+        )
+
     @fastapi_app.get("/tenant/capture", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/capture/", response_class=HTMLResponse)
     async def tenant_capture(request: Request, type: str = None):  # noqa: A002

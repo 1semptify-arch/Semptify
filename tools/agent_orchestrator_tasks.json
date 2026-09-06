@@ -2598,11 +2598,11 @@
     "description": "BUILD_STATE.md consolidate-validate session found the tenant-only Flagship UI per handoffs/tenant-role-ui-function-list-2026-08-29.md is not yet implemented. Current tenant UI still exposes case builder, eviction defense, complaint, plan-maker tools, and role-switching UI.",
     "file_path": "app/modules/role_ui/router.py",
     "priority": "medium",
-    "status": "review",
+    "status": "in_progress",
     "category": "feature",
-    "notes": "From BUILD_STATE 2026-08-29.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec first\n[2026-09-06 21:27 UTC - devin-swe17] Spec-first approved; deliverable = sections hidden/kept + role-switch removal + roll-out, no code\n[2026-09-06 21:32 UTC - devin-swe17] Spec complete + all decisions signed off by Brad 2026-09-06: handoffs/tenant-flagship-ui-spec-2026-09-06.md. No code until implementation is approved.",
+    "notes": "From BUILD_STATE 2026-08-29.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec first\n[2026-09-06 21:27 UTC - devin-swe17] Spec-first approved; deliverable = sections hidden/kept + role-switch removal + roll-out, no code\n[2026-09-06 21:32 UTC - devin-swe17] Spec complete + all decisions signed off by Brad 2026-09-06: handoffs/tenant-flagship-ui-spec-2026-09-06.md. No code until implementation is approved.\n[2026-09-06 21:56 UTC - devin-swe17] Brad green-lit Phase A implementation 2026-09-06",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-06T21:32:14.238122+00:00",
+    "updated_at": "2026-09-06T21:56:32.218835+00:00",
     "target_model": "claude",
     "assigned_agent": "devin-swe17"
   },
@@ -2642,9 +2642,9 @@
     "priority": "low",
     "status": "review",
     "category": "security",
-    "notes": "Also reconcile duplicate _derive_key in app/modules/storage/router.py and note the separate :token: derivation in app/sdk/vault/encryption.py.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec both vault items\n[2026-09-06 21:33 UTC - devin-swe17] Spec-only phase (Brad 2026-09-06): paired spec with four-piece unlock, no code\n[2026-09-06 21:34 UTC - devin-swe17] Paired spec written: handoffs/vault-security-pair-spec-2026-09-06.md \u2014 awaiting Brad decisions",
+    "notes": "Also reconcile duplicate _derive_key in app/modules/storage/router.py and note the separate :token: derivation in app/sdk/vault/encryption.py.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec both vault items\n[2026-09-06 21:33 UTC - devin-swe17] Spec-only phase (Brad 2026-09-06): paired spec with four-piece unlock, no code\n[2026-09-06 21:34 UTC - devin-swe17] Paired spec written: handoffs/vault-security-pair-spec-2026-09-06.md \u2014 awaiting Brad decisions\n[2026-09-06 21:50 UTC - devin-swe17] PR #155 - Scope A implemented, all acceptance checks pass",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-06T21:34:46.872756+00:00",
+    "updated_at": "2026-09-06T21:50:48.393947+00:00",
     "target_model": "claude",
     "assigned_agent": "devin-swe17"
   },
@@ -2787,5 +2787,19 @@
     "assigned_agent": "devin-swe17",
     "target_model": "unlimited",
     "notes": "[2026-09-05 19:39 UTC] Docs-only. Manifest rewritten w/ verified MANIFEST.summary() snapshot (123 entries). BLUEPRINT.md PII removed + superseded banner. MODULE_BLUEPRINT.md created (Part 0A spec + template). bp 9 2.md counts verified. STOP-AND-REPORT: real case data committed under data/cases/ + data/converted_documents/ \u2014 needs Brad decision.\n[2026-09-06 19:42 UTC - devin-swe17] Merged via PRs #148 + #149"
+  },
+  {
+    "id": "key-derivation-residual-hmac-surface-2026-09-06",
+    "title": "Extend key_derivation coverage to remaining SECRET_KEY signers",
+    "description": "PR #155 flag: admin_elevation, tsa, certificate_generator, document_registry, ui_composer/tapering, sdk/auth/tokens, and legal_integrity still HMAC-sign raw against SECRET_KEY with no version fallback. PREREQUISITE before any real production key rotation \u2014 without this, rotation breaks their signatures with no grace period.",
+    "file_path": "app/core/key_derivation.py",
+    "priority": "high",
+    "status": "pending",
+    "category": "security",
+    "notes": "[2026-09-06 - devin-swe17] Created per Brad: follow-up task, prerequisite for real rotation. Scope A (PR #155) covers sessions/cookies/MasterToken only.",
+    "created_at": "2026-09-06T21:56:21.884197+00:00",
+    "updated_at": "2026-09-06T21:56:21.884197+00:00",
+    "target_model": "unassigned",
+    "assigned_agent": "unassigned"
   }
 ]

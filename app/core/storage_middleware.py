@@ -99,6 +99,10 @@ PUBLIC_PATHS: set[str] = {
     # Middleware redirect here causes ERR_TOO_MANY_REDIRECTS loop
     "/tenant/home",
     "/tenant/home/",
+    "/tenant/start",
+    "/tenant/start/",
+    "/tenant/get-help",
+    "/tenant/get-help/",
     "/tenant/timeline",
     "/tenant/timeline/",
     "/tenant/library",
