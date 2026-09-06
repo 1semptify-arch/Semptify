@@ -26,7 +26,6 @@ from app.core.module_registry_loader import load_registry
 from app.core.security import require_admin
 
 router = APIRouter(
-    prefix="/api/admin/run",
     tags=["Run Modules"],
     dependencies=[Depends(require_admin)],
 )

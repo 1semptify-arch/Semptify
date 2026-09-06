@@ -135,6 +135,13 @@ class Settings:
         "ADMIN_IP_RANGES",
         "100.64.0.0/10,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1/128",
     )
+
+    # Rate limiting. require_admin and the generic check_rate_limit helper read
+    # these; admin routes get a tighter default than general endpoints.
+    rate_limit_window: int = int(os.getenv("RATE_LIMIT_WINDOW", "60"))
+    rate_limit_max_requests: int = int(os.getenv("RATE_LIMIT_MAX_REQUESTS", "60"))
+    admin_rate_limit_window: int = int(os.getenv("ADMIN_RATE_LIMIT_WINDOW", "60"))
+    admin_rate_limit_max_requests: int = int(os.getenv("ADMIN_RATE_LIMIT_MAX_REQUESTS", "30"))
     # Cloudflare R2 for log archive (optional — falls back to local logs/archive/)
     r2_account_id: str = os.getenv("R2_ACCOUNT_ID", "")
     r2_access_key_id: str = os.getenv("R2_ACCESS_KEY_ID", "")

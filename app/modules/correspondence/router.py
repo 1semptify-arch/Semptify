@@ -21,7 +21,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.core.security import require_admin
 
 router = APIRouter(
-    prefix="/api/admin/correspondence",
     tags=["Correspondence"],
     dependencies=[Depends(require_admin)],
 )

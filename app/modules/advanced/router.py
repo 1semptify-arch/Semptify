@@ -26,7 +26,6 @@ from pydantic import BaseModel, Field
 from app.core.security import require_admin
 
 router = APIRouter(
-    prefix="/api/admin/advanced",
     tags=["Advanced / Dev Tools"],
     dependencies=[Depends(require_admin)],
 )

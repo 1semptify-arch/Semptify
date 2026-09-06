@@ -2472,13 +2472,13 @@
     "description": "Page Composer's _gather_user_case depends on a non-existent get_cases_for_user. ACTIVE_CONTEXT.md lists this as 'Logged, not urgent, do not fix yet'. Investigate and implement or correct the dependency.",
     "file_path": "app/modules/page_composer/assembly.py",
     "priority": "low",
-    "status": "open",
+    "status": "resolved",
     "category": "bug",
-    "notes": "Active context: not urgent, do not fix yet.",
+    "notes": "Active context: not urgent, do not fix yet.\n[2026-09-06 20:32 UTC - devin-swe17] Already fixed: get_cases_for_user exists at case_builder.py:32 and is used by page_composer/service.py:99",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-06T20:32:59.388589+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "page-shell-manifest-mismatch-2026-08-29",
@@ -2500,13 +2500,13 @@
     "description": "ACTIVE_CONTEXT.md notes ~25 modules are missing FunctionGroupContract and no contract has GUI fields. Audit and add the missing contracts.",
     "file_path": "app/core/contract_loader.py",
     "priority": "low",
-    "status": "open",
+    "status": "review",
     "category": "feature",
-    "notes": "Logged, not urgent.",
+    "notes": "Logged, not urgent.\n[2026-09-06 20:47 UTC - devin-swe17] PR #152 - 33 contracts across 8 modules; GUI-fields half flagged as schema decision for Brad",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-06T20:47:49.864434+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "post-createapp-public-route-scan-2026-08-29",
