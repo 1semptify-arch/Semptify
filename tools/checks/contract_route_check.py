@@ -80,8 +80,22 @@ def run(repo_root: Path) -> CheckResult:
         if not allowed_routes and not allowed_prefixes and not tiers:
             continue
 
+        # Manifest entries may point at router.py, routes.py, or another
+        # module inside the package (e.g. vault_installer uses routes.py).
         module_path = f"app.modules.{module}.router"
         entry = MANIFEST.find(module_path)
+        if entry is None:
+            package_prefix = f"app.modules.{module}."
+            candidates = [
+                e for e in MANIFEST.all()
+                if e.module_path.startswith(package_prefix)
+            ]
+            entry = next(
+                (e for e in candidates if e.module_path.endswith(".router")),
+                candidates[0] if candidates else None,
+            )
+            if entry is not None:
+                module_path = entry.module_path
         if entry is None:
             failures.append(f"{module}: contract registered but no product manifest entry")
             continue
@@ -112,10 +126,27 @@ def run(repo_root: Path) -> CheckResult:
             continue
 
         actual_routes: set[str] = set()
+        # Routes under PUBLIC_PREFIXES that enforce their own auth via
+        # Depends(get_current_user / require_admin / ...) are not truly public —
+        # the middleware defers to the endpoint. Track which paths do this so
+        # the public-exposure rule below only flags genuinely open routes.
+        self_authed_paths: set[str] = set()
         for route in getattr(router, "routes", []) or []:
             path = getattr(route, "path", None)
-            if path:
-                actual_routes.add(_full_path(prefix, path))
+            if not path:
+                continue
+            full = _full_path(prefix, path)
+            actual_routes.add(full)
+
+            dep_names = {
+                getattr(getattr(dep, "call", None), "__name__", "")
+                for dep in getattr(getattr(route, "dependant", None), "dependencies", [])
+            }
+            if any(
+                name and ("current_user" in name or "require_admin" in name or "auth" in name)
+                for name in dep_names
+            ):
+                self_authed_paths.add(full)
 
         if not actual_routes:
             failures.append(f"{module}: router has no routes")
@@ -127,7 +158,13 @@ def run(repo_root: Path) -> CheckResult:
                 failures.append(f"{module}: actual route {route!r} not in allowed_routes")
 
             # Public exposure: only T0 routes may live under public prefixes/paths.
-            if is_public_path(route) and not all(t == "T0" for t in tiers):
+            # Routes that enforce their own auth dependency are exempt — the
+            # path is middleware-public but the endpoint is not.
+            if (
+                is_public_path(route)
+                and route not in self_authed_paths
+                and not all(t == "T0" for t in tiers)
+            ):
                 failures.append(
                     f"{module}: non-T0 route {route!r} is under a public prefix/path (tier={sorted(tiers)})"
                 )

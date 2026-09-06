@@ -1,5 +1,32 @@
 ## Session — 2026-09-05 — Doc hygiene: manifest refresh, BLUEPRINT sanitize, MODULE_BLUEPRINT template
 
+### Guardrail Engine Run — 2026-09-06T20:42:17+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-06T20:40:51+00:00
+
+- **contract_route_check**: FAIL — 4 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-09-06T20:38:58+00:00
+
+- **contract_route_check**: FAIL — 24 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
 ### Task
 
 - **Task ID:** `docs-manifest-blueprint-template-fix-2026-09-05`
