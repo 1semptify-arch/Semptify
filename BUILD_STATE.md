@@ -21,7 +21,7 @@
 
 ### Known broken / pending — STOP AND REPORT
 
-- **Real case data is committed to git.** `data/cases/**/*.json` and `data/converted_documents/test_motion.html` (tracked — 76 files under `data/`) contain a real court case number and real document filenames; `BUILD_STATE.md` line ~1270 also quotes the filing stamp. `.gitignore` does not cover `data/cases/` or `data/converted_documents/`. Fixing this means deleting tracked case records and possibly history rewriting — needs Brad's decision on scope (working-tree only vs. history purge vs. gitignore + untrack) and whether these files are still needed locally.
+- ~~**Real case data is committed to git.**~~ **RESOLVED 2026-09-05.** All case files untracked and gitignored (`data/cases`, `data/case_outputs`, `data/converted_documents`, `data/court_cases`, `data/vault_storage` history, `DOCUMENTS/`, `r22.pdf`, personal scripts). Full backup preserved outside the repo at `brads temp\semptify-case-backup-2026-09-05` (441 files). GitHub repo `1semptify-arch/Semptify` had **full history rewritten** via `git filter-repo` and force-pushed — all PII paths and name/case-number/address strings removed from all ~1,985 commits across all 21 branches; branch protection restored; local mirrors re-synced and old objects pruned. **Remaining:** GitHub still serves old commits via `refs/pull/*` caches — a GitHub Support sensitive-data removal request is the final step (owner action).
 
 ---
 
