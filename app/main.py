@@ -5805,6 +5805,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return {"status": "ok", "ts": utc_now().isoformat()}
 
     register_stateless_routes(fastapi_app)
+
+    # Post-mount audit: flag public routes that no FunctionGroupContract covers.
+    # Non-fatal (warnings) unless ROUTE_AUDIT_STRICT=1.
+    from app.core.route_audit import scan_public_routes
+
+    scan_public_routes(fastapi_app)
+
     return fastapi_app
 
 
