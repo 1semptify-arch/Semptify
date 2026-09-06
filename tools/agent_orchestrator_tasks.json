@@ -2514,13 +2514,13 @@
     "description": "BACKLOG.md accepted: after create_app() is called, walk fastapi_app.routes and flag any public route not in a registered module contract. This closes the /debug/seed-test-user public-route gap.",
     "file_path": "tools/checks/",
     "priority": "medium",
-    "status": "blocked_on_decision",
+    "status": "in_progress",
     "category": "feature",
-    "notes": "Accepted in BACKLOG; do not build before CASE_DATA migration is complete.\n[2026-09-02 02:00 UTC - claude] Scanned the requirement. The task's own note says 'do not build before CASE_DATA migration is complete.' No implementation until that prerequisite is unblocked.",
+    "notes": "Accepted in BACKLOG; do not build before CASE_DATA migration is complete.\n[2026-09-02 02:00 UTC - claude] Scanned the requirement. The task's own note says 'do not build before CASE_DATA migration is complete.' No implementation until that prerequisite is unblocked.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: CASE_DATA prerequisite done, build now",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-02T02:00:52.559785+00:00",
+    "updated_at": "2026-09-06T21:23:20.791600+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "claude"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "law-linker-document-overlay-2026-08-29",
@@ -2570,13 +2570,13 @@
     "description": "BUILD_STATE.md consolidate-validate session identified three architecture-principle findings and Brad's decisions, but no implementation was done. Work: retire /renters-guide and /gui/know (standalone 'Know Your Rights' destinations), build the tenant-only Flagship UI around the six functional sections, and wire the Law Linker into document/next-step flows.",
     "file_path": "BUILD_STATE.md",
     "priority": "medium",
-    "status": "blocked_on_decision",
+    "status": "pending",
     "category": "feature",
-    "notes": "Blocked: needs Brad's product/architecture decisions.\n[2026-08-30 15:40 UTC - claude] Standalone /renters-guide and /gui/know retired: redirect to /law-library implemented and verified. Remaining blocker: tenant Flagship UI scope/timing and Law Linker next-step wiring in document-understanding flows.\n[2026-09-02 02:00 UTC - claude] Still blocked on Brad's product/architecture decisions: how to handle standalone Know Your Rights destinations and how to wire the law linker into document-understanding/next-step flows.",
+    "notes": "Blocked: needs Brad's product/architecture decisions.\n[2026-08-30 15:40 UTC - claude] Standalone /renters-guide and /gui/know retired: redirect to /law-library implemented and verified. Remaining blocker: tenant Flagship UI scope/timing and Law Linker next-step wiring in document-understanding flows.\n[2026-09-02 02:00 UTC - claude] Still blocked on Brad's product/architecture decisions: how to handle standalone Know Your Rights destinations and how to wire the law linker into document-understanding/next-step flows.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: covered by flagship UI spec",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-02T02:00:55.162643+00:00",
+    "updated_at": "2026-09-06T21:23:26.529144+00:00",
     "target_model": "claude",
-    "assigned_agent": "claude"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "landing-page-rebuild-2026-08-29",
@@ -2584,13 +2584,13 @@
     "description": "BACKLOG.md: landing page rebuild planning is complete, but execution has not started. Awaiting Brad's go plus a Phase 1 sourcing audit.",
     "file_path": "app/templates/public/portal.html",
     "priority": "medium",
-    "status": "blocked_on_decision",
+    "status": "pending",
     "category": "feature",
-    "notes": "BACKLOG status [done] for planning but not built.",
+    "notes": "BACKLOG status [done] for planning but not built.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: build. Queued after route-scan guardrail",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-02T02:04:55.659036+00:00",
+    "updated_at": "2026-09-06T21:23:26.198966+00:00",
     "target_model": "claude",
-    "assigned_agent": "claude"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "tenant-flagship-ui-rebuild-2026-08-29",
@@ -2598,13 +2598,13 @@
     "description": "BUILD_STATE.md consolidate-validate session found the tenant-only Flagship UI per handoffs/tenant-role-ui-function-list-2026-08-29.md is not yet implemented. Current tenant UI still exposes case builder, eviction defense, complaint, plan-maker tools, and role-switching UI.",
     "file_path": "app/modules/role_ui/router.py",
     "priority": "medium",
-    "status": "blocked_on_decision",
+    "status": "pending",
     "category": "feature",
-    "notes": "From BUILD_STATE 2026-08-29.",
+    "notes": "From BUILD_STATE 2026-08-29.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec first",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-02T02:04:58.374689+00:00",
+    "updated_at": "2026-09-06T21:23:26.343855+00:00",
     "target_model": "claude",
-    "assigned_agent": "claude"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "retire-renters-guide-gui-know-2026-08-29",
@@ -2626,13 +2626,13 @@
     "description": "BACKLOG.md [considering]: Brad concept for a four-piece vault unlock with no complete key at rest. Needs a real spec covering derivation order, the piece-4 creation function, key-rotation/reconnect (piece 3 lives in the user's own storage), and interaction with the existing _derive_key(user_id, secret_key) / AES-256-GCM token encryption in app/sdk/vault/encryption.py and app/core/auto_refresh.py.",
     "file_path": "app/sdk/vault/encryption.py",
     "priority": "low",
-    "status": "blocked_on_decision",
+    "status": "pending",
     "category": "security",
-    "notes": "Security architecture future work.",
+    "notes": "Security architecture future work.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec both vault items",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-06T21:23:26.657530+00:00",
     "target_model": "claude",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "secret-key-rotation-2026-08-29",
@@ -2640,13 +2640,13 @@
     "description": "BACKLOG.md [considering]: versioned SECRET_KEY rotation with sessions.key_version, SECRET_KEY_HISTORY, historical cookie/token fallback, lazy re-encryption, migration, and token-code changes. Handoff: handoffs/ad-hoc-secretkey-rotation-2026-08-27-report.md.",
     "file_path": "app/core/security.py",
     "priority": "low",
-    "status": "blocked_on_decision",
+    "status": "pending",
     "category": "security",
-    "notes": "Also reconcile duplicate _derive_key in app/modules/storage/router.py and note the separate :token: derivation in app/sdk/vault/encryption.py.",
+    "notes": "Also reconcile duplicate _derive_key in app/modules/storage/router.py and note the separate :token: derivation in app/sdk/vault/encryption.py.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec both vault items",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-06T21:23:26.786604+00:00",
     "target_model": "claude",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "law-library-rewrite-plan-2026-08-29",
@@ -2738,11 +2738,11 @@
     "description": "Review mock-site reference, confirm/correct the asymmetric composer/preview shell plan, then build the shared shell component and migrate 3-4 high-traffic pages onto it. Phase 2: after Phase 0 foundation fixes and Phase 1 GUI migration.",
     "file_path": "app/templates/",
     "priority": "medium",
-    "status": "in_progress",
+    "status": "resolved",
     "category": "ui",
-    "notes": "New planning hand-off received. Need to confirm/correct against C:\\master-repo\\handoffs\\mock-site\\ before Ticket 1.\n[2026-09-02 08:43 UTC - claude] Plan confirmed/corrected against mock-site. Corrections recorded in ACTIVE_CONTEXT.md: mock-site split is main+help, not composer+preview; shell must support composer, preview, and contextual help; primary/split props handle asymmetry. Task remains queued as Phase 2 behind Phase 0 + Phase 1.",
+    "notes": "New planning hand-off received. Need to confirm/correct against C:\\master-repo\\handoffs\\mock-site\\ before Ticket 1.\n[2026-09-02 08:43 UTC - claude] Plan confirmed/corrected against mock-site. Corrections recorded in ACTIVE_CONTEXT.md: mock-site split is main+help, not composer+preview; shell must support composer, preview, and contextual help; primary/split props handle asymmetry. Task remains queued as Phase 2 behind Phase 0 + Phase 1.\n[2026-09-06 21:15 UTC - devin-swe17] All 4 approved pilots shipped: PR #151 (shell + journal/timeline/eviction) + PR #153 (law_library_get_statute, gate lifted after Phase 1 verified)",
     "created_at": "2026-09-02T04:00:00Z",
-    "updated_at": "2026-09-06T20:14:10.331051+00:00",
+    "updated_at": "2026-09-06T21:15:26.545075+00:00",
     "target_model": "unassigned",
     "assigned_agent": "devin-swe17"
   },
