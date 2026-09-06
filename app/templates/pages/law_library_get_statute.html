@@ -1,8 +1,29 @@
-{% extends "body/know_body.html" %}
+{% extends "body/composer_preview_body.html" %}
+{% from "components/ui_composer.html" import process_indicator with context %}
+
+{# Module Contract — law_library:law_library_get_statute (pillar: know)
+   Function: the tenant picks a verified Minnesota statute and reads its
+             title, citation, summary, key points, and official full text.
+   Inputs: statute_id (required — picker, small space)
+   Outputs: statute object (title, citation, summary, key_points, full_text,
+            source) — submit-only lookup, result is large (full text)
+   Preview: empty state = prompt copy; error state = inline message;
+            primary content (full statute text) — carries the page weight
+   Actions: Look up statute — composer-bottom, primary
+            Browse related cases and court rules — help-bottom, secondary
+   Layout: primary=preview, ratio=2fr 3fr, mobile=[composer, preview, help]
+           (justified: output is long-form legal text, input is one picker) #}
+{% set shell_ratio = "2fr 3fr" %}
+{% set shell_primary = "preview" %}
+{% set shell_mobile_order = ["composer", "preview", "help"] %}
 
 {% block title %}{{ contract.title }} — Semptify{% endblock %}
-{% block record_aria_label %}Look up a Minnesota statute{% endblock %}
-{% block record_controls_title %}Look it up{% endblock %}
+{% block nav_know %}active{% endblock %}
+{% block cps_aria_label %}Look up a Minnesota statute{% endblock %}
+{% block cps_eyebrow %}Know{% endblock %}
+{% block cps_controls_title %}Look it up{% endblock %}
+{% block cps_preview_title %}The statute{% endblock %}
+{% block cps_help_title %}How this works{% endblock %}
 
 {% block styles %}
 {{ super() }}
@@ -18,7 +39,6 @@
     gap: 0.375rem;
   }
   .record-guide__result {
-    margin-top: 1rem;
     color: #4a4a4a;
     line-height: 1.6;
   }
@@ -70,10 +90,80 @@
     color: #6b7280;
     margin-top: 0.5rem;
   }
+  .record-guide__hint {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+  }
+  /* Page Shell input vocabulary */
+  .block-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+  }
+  .block-input label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1a1a1a;
+  }
+  .block-input .required { color: #c62828; }
+  .block-input input,
+  .block-input select,
+  .block-input textarea {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    color: #1a1a1a;
+    background: #fff;
+    border: 1px solid #d0d0c8;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  .block-input input:focus,
+  .block-input select:focus,
+  .block-input textarea:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+  .output-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    background: #f0f0ec;
+    color: #1a1a1a;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  .output-trigger:hover,
+  .output-trigger:focus-visible {
+    background: #e8e8e2;
+  }
+  .output-trigger:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+  .output-trigger--primary {
+    background: #1e3a5f;
+    color: #fff;
+  }
+  .output-trigger--primary:hover,
+  .output-trigger--primary:focus-visible {
+    background: #2c5aa0;
+  }
+  .record-guide__next {
+    margin-top: 1rem;
+  }
 </style>
 {% endblock %}
 
-{% block record_controls %}
+{% block composer %}
 <form id="statuteForm" class="record-guide__form" onsubmit="event.preventDefault(); lookupStatute();" novalidate>
   <div class="record-guide__field block-input">
     <label for="statute_id">Statute <span class="required">*</span></label>
@@ -89,16 +179,46 @@
   </div>
 
   <button type="submit" class="output-trigger output-trigger--primary">Look up statute</button>
-  <div id="statuteResult" class="record-guide__result" role="status" aria-live="polite"></div>
 </form>
 {% endblock %}
 
-{% block record_narration %}
-{{ process_indicator(narration) }}
+{% block preview %}
+<div id="statuteResult" class="record-guide__result" role="status" aria-live="polite">
+  <p class="cps__empty">Pick a statute and click Look up. The citation, summary, and full text will appear here.</p>
+</div>
 {% endblock %}
 
-{% block record_next %}
-<a href="{{ navigation.get_stage('law_library').path }}" class="output-trigger">Browse related cases and court rules</a>
+{% block help %}
+  {% if narration %}
+  {{ process_indicator(narration) }}
+  {% endif %}
+
+  <h3 class="cps__section-title">What this needs</h3>
+  <ul class="cps__list">
+    {% for input in contract.inputs %}
+    {% set input_name = input[:-1] if input.endswith("?") else input %}
+    {% if input_name != "user_id" %}
+    <li>
+      {% if input.endswith("?") %}
+      {{ input[:-1] }} <span class="cps__hint">(optional)</span>
+      {% else %}
+      {{ input }}
+      {% endif %}
+    </li>
+    {% endif %}
+    {% endfor %}
+  </ul>
+
+  <h3 class="cps__section-title">What this gives back</h3>
+  <ul class="cps__list">
+    {% for output in contract.outputs %}
+    <li>{{ output }}</li>
+    {% endfor %}
+  </ul>
+
+  <p class="record-guide__next">
+    <a href="{{ next_step.path | default('/law-library') }}" class="output-trigger">{{ next_step.label | default('Browse the law library') }}</a>
+  </p>
 {% endblock %}
 
 {% block scripts %}
