@@ -27,7 +27,6 @@ from app.core.security import require_admin
 from app.core.utc import utc_now
 
 router = APIRouter(
-    prefix="/api/admin/system",
     tags=["System Health"],
     dependencies=[Depends(require_admin)],
 )
