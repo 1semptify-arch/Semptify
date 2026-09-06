@@ -336,17 +336,25 @@ class HashGenerator:
 
     @classmethod
     def combined_hash(cls, content_hash: str, metadata_hash: str, doc_id: str) -> str:
-        """Generate HMAC-based combined hash for tamper detection."""
-        message = f"{doc_id}:{content_hash}:{metadata_hash}".encode()
-        return hmac.new(cls._get_secret_key(), message, hashlib.sha256).hexdigest()
+        """Generate HMAC-based combined hash for tamper detection.
+        Signs with the current key via the canonical helper."""
+        from app.core.key_derivation import hmac_sign
+
+        message = f"{doc_id}:{content_hash}:{metadata_hash}"
+        return hmac_sign(message)
 
     @classmethod
     def verify_integrity(cls, content: bytes, metadata: dict, doc_id: str, stored_combined_hash: str) -> bool:
-        """Verify document hasn't been tampered with."""
+        """Verify document hasn't been tampered with.
+
+        Registry hashes are long-lived — verify against the current key plus
+        SECRET_KEY_HISTORY (including verify_forever entries)."""
+        from app.core.key_derivation import hmac_verify
+
         current_content_hash = cls.content_hash(content)
         current_metadata_hash = cls.metadata_hash(metadata)
-        current_combined = cls.combined_hash(current_content_hash, current_metadata_hash, doc_id)
-        return hmac.compare_digest(current_combined, stored_combined_hash)
+        message = f"{doc_id}:{current_content_hash}:{current_metadata_hash}"
+        return hmac_verify(message, stored_combined_hash, verify_forever=True)
 
     @classmethod
     def generate_verification_token(cls, doc_id: str, timestamp: datetime) -> str:

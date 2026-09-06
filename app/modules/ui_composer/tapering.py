@@ -15,18 +15,16 @@ existing `Standard` default for other surfaces.
 from __future__ import annotations
 
 import base64
-import hmac
 import json
 import logging
-from hashlib import sha256
 
 from fastapi import Request
 from fastapi.responses import Response
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import get_settings
 from app.core.cookie_auth import extract_user_id
+from app.core.key_derivation import hmac_sign, hmac_verify
 from app.core.experience_token import (
     ExperienceToken,
     IntensityLevel,
@@ -55,20 +53,18 @@ def _b64url_decode(value: str) -> str:
 
 
 def _sign(value: str) -> str:
-    """HMAC-SHA256 sign a value, returning `value.signature`."""
-    secret = get_settings().secret_key.encode("utf-8")
-    sig = hmac.new(secret, value.encode("utf-8"), sha256).hexdigest()
-    return f"{value}.{sig}"
+    """HMAC-SHA256 sign a value, returning `value.signature`.
+    Canonical signing lives in app.core.key_derivation (versioned keys)."""
+    return f"{value}.{hmac_sign(value)}"
 
 
 def _unsign(signed: str) -> str | None:
-    """Verify an HMAC-SHA256 signed value. Returns the payload or None."""
+    """Verify an HMAC-SHA256 signed value. Returns the payload or None.
+    Tries the current key, then in-grace SECRET_KEY_HISTORY entries."""
     if "." not in signed:
         return None
     value, provided_sig = signed.rsplit(".", 1)
-    secret = get_settings().secret_key.encode("utf-8")
-    expected_sig = hmac.new(secret, value.encode("utf-8"), sha256).hexdigest()
-    if not hmac.compare_digest(expected_sig, provided_sig):
+    if not hmac_verify(value, provided_sig):
         return None
     return value
 

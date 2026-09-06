@@ -86,6 +86,7 @@ def _history_entries() -> list[dict]:
                 "version": int(entry.get("version", 0)),
                 "key": str(entry["key"]),
                 "rotated_at": entry.get("rotated_at"),
+                "verify_forever": bool(entry.get("verify_forever")),
             }
         )
     # Newest-first so the most recent key is tried before older ones.
@@ -114,6 +115,27 @@ def iter_valid_secrets() -> Iterator[tuple[int, str]]:
     for entry in _history_entries():
         if _in_grace(entry):
             yield entry["version"], entry["key"]
+
+
+def iter_verifiable_secrets(verify_forever: bool = False) -> Iterator[tuple[int, str]]:
+    """Like iter_valid_secrets, plus history entries flagged verify_forever.
+
+    Long-lived artifacts — legal proofs, certificates, TSA fallback tokens,
+    document-registry hashes — must verify indefinitely. A history entry can
+    carry ``"verify_forever": true``; such entries verify past the grace
+    window *only* for callers that pass ``verify_forever=True``. Session and
+    cookie verifiers must not use it: their grace expiry is intentional.
+    """
+    yielded: set[int] = set()
+    for version, secret in iter_valid_secrets():
+        yielded.add(version)
+        yield version, secret
+    if verify_forever:
+        for entry in _history_entries():
+            if entry["version"] in yielded:
+                continue
+            if not _in_grace(entry) and entry.get("verify_forever"):
+                yield entry["version"], entry["key"]
 
 
 def _secret_for_version(version: int) -> str | None:
@@ -214,15 +236,44 @@ def decrypt_value(encrypted: str, user_id: str, key_version: int | None = None) 
 # Cookie HMAC — sign with current, verify against current + valid history
 # ---------------------------------------------------------------------------
 
+def _hmac_key(secret: str, domain: str | None) -> bytes:
+    """HMAC key material: secret, optionally domain-suffixed (e.g. ':admin_elevation')."""
+    return (secret + (":" + domain if domain else "")).encode("utf-8")
+
+
+def hmac_sign(value: str | bytes, domain: str | None = None) -> str:
+    """HMAC-SHA256 hex with the CURRENT secret. Byte-identical to the legacy
+    per-module formulas when ``domain`` matches their old key suffix."""
+    if isinstance(value, str):
+        value = value.encode("utf-8")
+    return hmac.new(_hmac_key(_current_secret(), domain), value, hashlib.sha256).hexdigest()
+
+
+def hmac_verify(
+    value: str | bytes,
+    provided_sig: str,
+    domain: str | None = None,
+    truncate: int | None = None,
+    verify_forever: bool = False,
+) -> bool:
+    """Constant-time verify against the current key, then valid history.
+    ``truncate`` supports legacy truncated signatures (e.g. ``[:16]``)."""
+    if isinstance(value, str):
+        value = value.encode("utf-8")
+    for _version, secret in iter_verifiable_secrets(verify_forever):
+        expected = hmac.new(_hmac_key(secret, domain), value, hashlib.sha256).hexdigest()
+        if truncate:
+            expected = expected[:truncate]
+        if hmac.compare_digest(expected, provided_sig):
+            return True
+    return False
+
+
 def hmac_sign_user_id(user_id: str) -> str:
     """HMAC-SHA256 signature over user_id with the current secret."""
-    return hmac.new(_current_secret().encode("utf-8"), user_id.encode("utf-8"), hashlib.sha256).hexdigest()
+    return hmac_sign(user_id)
 
 
 def hmac_verify_user_id(user_id: str, provided_sig: str) -> bool:
     """Constant-time verify; tries current key then valid history."""
-    for _version, secret in iter_valid_secrets():
-        expected = hmac.new(secret.encode("utf-8"), user_id.encode("utf-8"), hashlib.sha256).hexdigest()
-        if hmac.compare_digest(expected, provided_sig):
-            return True
-    return False
+    return hmac_verify(user_id, provided_sig)

@@ -22,12 +22,10 @@ Security:
 """
 
 import base64
-import hashlib
-import hmac
 import json
 import logging
 
-from app.core.config import get_settings
+from app.core.key_derivation import hmac_sign, hmac_verify
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -41,8 +39,8 @@ class AdminElevationRequired(Exception):
     """Raised when a protected admin route is accessed without valid elevation."""
 
 
-def _get_secret() -> bytes:
-    return (get_settings().secret_key + ":admin_elevation").encode("utf-8")
+# Domain suffix ":admin_elevation" is preserved via the canonical helper —
+# key mixing lives in app.core.key_derivation only.
 
 
 def issue_elevation_cookie(user_id: str) -> str:
@@ -63,7 +61,7 @@ def issue_elevation_cookie(user_id: str) -> str:
     }
     payload_json = json.dumps(payload, separators=(",", ":"))
     payload_b64 = base64.urlsafe_b64encode(payload_json.encode()).decode()
-    sig = hmac.new(_get_secret(), payload_b64.encode(), hashlib.sha256).hexdigest()
+    sig = hmac_sign(payload_b64, domain="admin_elevation")
     return f"{payload_b64}{_SEPARATOR}{sig}"
 
 
@@ -86,9 +84,9 @@ def verify_elevation_cookie(cookie_value: str | None) -> dict | None:
 
     payload_b64, provided_sig = parts[0], parts[1]
 
-    expected_sig = hmac.new(_get_secret(), payload_b64.encode(), hashlib.sha256).hexdigest()
-
-    if not hmac.compare_digest(expected_sig, provided_sig):
+    # Verify against the current key, then in-grace history (elevation
+    # cookies are short-lived; no verify_forever).
+    if not hmac_verify(payload_b64, provided_sig, domain="admin_elevation"):
         logger.warning("admin_elevation: signature mismatch — possible tampering")
         return None
 

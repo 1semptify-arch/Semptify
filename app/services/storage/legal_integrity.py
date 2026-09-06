@@ -42,6 +42,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from app.core.config import get_settings
+from app.core.key_derivation import hmac_sign, hmac_verify
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,12 @@ settings = get_settings()
 
 
 def _secret_key() -> str:
-    return getattr(settings, "SECRET_KEY", None) or getattr(settings, "secret_key", "")
+    """Current signing secret — canonical source is app.core.key_derivation.
+    Reads fresh settings each call (the module-level `settings` snapshot at
+    import time could go stale across config reloads / rotations)."""
+    from app.core.key_derivation import _current_secret
+
+    return _current_secret()
 
 
 # =============================================================================
@@ -162,17 +168,22 @@ def create_timestamp_proof(timestamp: str) -> str:
 
 
 def verify_timestamp_proof(timestamp: str, proof: str) -> bool:
-    """Verify a timestamp hasn't been tampered with."""
-    expected = create_timestamp_proof(timestamp)
-    return hmac.compare_digest(expected, proof)
+    """Verify a timestamp hasn't been tampered with.
+
+    Timestamp proofs are long-lived legal artifacts — tries the current key,
+    in-grace history, and verify_forever history entries."""
+    from app.core.key_derivation import iter_verifiable_secrets
+
+    for _version, secret in iter_verifiable_secrets(verify_forever=True):
+        expected = hashlib.sha256(f"{timestamp}:{secret}".encode()).hexdigest()
+        if hmac.compare_digest(expected, proof):
+            return True
+    return False
 
 
-def sign_proof(proof: DocumentProof) -> str:
-    """
-    Create HMAC signature of proof for integrity verification.
-    This proves the proof was created by this Semptify instance.
-    """
-    content = json.dumps(
+def _proof_content(proof: DocumentProof) -> str:
+    """Canonical JSON payload that sign_proof signs — shared by sign/verify."""
+    return json.dumps(
         {
             "proof_id": proof.proof_id,
             "document_hash": proof.document_hash,
@@ -184,13 +195,24 @@ def sign_proof(proof: DocumentProof) -> str:
         sort_keys=True,
     )
 
-    return hmac.new(_secret_key().encode(), content.encode(), hashlib.sha256).hexdigest()
+
+def sign_proof(proof: DocumentProof) -> str:
+    """
+    Create HMAC signature of proof for integrity verification.
+    This proves the proof was created by this Semptify instance.
+    Signs with the current key via app.core.key_derivation.
+    """
+    from app.core.key_derivation import hmac_sign
+
+    return hmac_sign(_proof_content(proof))
 
 
 def verify_proof_signature(proof: DocumentProof) -> bool:
-    """Verify proof signature is valid."""
-    expected_signature = sign_proof(proof)
-    return hmac.compare_digest(expected_signature, proof.signature)
+    """Verify proof signature is valid — current key plus history
+    (proofs are long-lived; verify_forever entries included)."""
+    from app.core.key_derivation import hmac_verify
+
+    return hmac_verify(_proof_content(proof), proof.signature, verify_forever=True)
 
 
 def compute_merkle_root(hashes: list[str]) -> str:
@@ -470,9 +492,9 @@ class LegalIntegrity:
                 "This report may be submitted as evidence per Federal Rules of Evidence 901(b)(9) "
                 "and Minnesota Statutes § 600.135."
             ),
-            "verification_signature": hmac.new(
-                _secret_key().encode(), json.dumps(verification, sort_keys=True).encode(), hashlib.sha256
-            ).hexdigest(),
+            "verification_signature": hmac_sign(
+                json.dumps(verification, sort_keys=True)
+            ),
         }
 
 
@@ -505,9 +527,7 @@ class TokenIntegrity:
             },
         }
 
-        wrapped["integrity"]["signature"] = hmac.new(
-            _secret_key().encode(), json.dumps(wrapped["integrity"], sort_keys=True).encode(), hashlib.sha256
-        ).hexdigest()
+        wrapped["integrity"]["signature"] = hmac_sign(json.dumps(wrapped["integrity"], sort_keys=True))
 
         return wrapped
 
@@ -536,11 +556,11 @@ class TokenIntegrity:
                 "user_id": integrity.get("user_id"),
                 "data_hash": integrity.get("data_hash"),
             }
-            expected_sig = hmac.new(
-                _secret_key().encode(), json.dumps(sig_data, sort_keys=True).encode(), hashlib.sha256
-            ).hexdigest()
-
-            if not hmac.compare_digest(integrity.get("signature", ""), expected_sig):
+            if not hmac_verify(
+                json.dumps(sig_data, sort_keys=True),
+                integrity.get("signature", ""),
+                verify_forever=True,
+            ):
                 return data, False
 
             return data, True
