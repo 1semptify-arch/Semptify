@@ -2500,13 +2500,13 @@
     "description": "ACTIVE_CONTEXT.md notes ~25 modules are missing FunctionGroupContract and no contract has GUI fields. Audit and add the missing contracts.",
     "file_path": "app/core/contract_loader.py",
     "priority": "low",
-    "status": "open",
+    "status": "in_progress",
     "category": "feature",
     "notes": "Logged, not urgent.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-08-30T03:31:44.813Z",
+    "updated_at": "2026-09-06T20:34:35.339749+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "post-createapp-public-route-scan-2026-08-29",

@@ -156,6 +156,8 @@ async def get_vault_status(
     """
     Check if vault is installed and ready.
     """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
     try:
         from app.modules.onboarding.gates import check_gate
         from app.modules.storage.router import get_valid_session
