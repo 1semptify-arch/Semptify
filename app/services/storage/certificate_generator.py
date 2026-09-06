@@ -93,23 +93,49 @@ def generate_certificate_id() -> str:
 
 
 def generate_verification_code(certificate_id: str, document_hash: str) -> str:
-    """Generate short verification code for manual lookup."""
-    combined = f"{certificate_id}:{document_hash}:{settings.SECRET_KEY}"
+    """Generate short verification code for manual lookup.
+    Uses the current secret via the canonical helper (key rotation–safe)."""
+    from app.core.key_derivation import _current_secret
+
+    combined = f"{certificate_id}:{document_hash}:{_current_secret()}"
     full_hash = hashlib.sha256(combined.encode()).hexdigest()
     # Return first 12 chars in groups of 4
     return f"{full_hash[:4]}-{full_hash[4:8]}-{full_hash[8:12]}".upper()
 
 
+def verification_code_matches(certificate_id: str, document_hash: str, code: str) -> bool:
+    """Re-derive the code under each verifiable key version and compare.
+
+    Certificates are long-lived artifacts — history entries flagged
+    verify_forever keep working past the rotation grace window.
+    """
+    import hmac as _hmac
+
+    from app.core.key_derivation import iter_verifiable_secrets
+
+    for _version, secret in iter_verifiable_secrets(verify_forever=True):
+        combined = f"{certificate_id}:{document_hash}:{secret}"
+        full_hash = hashlib.sha256(combined.encode()).hexdigest()
+        expected = f"{full_hash[:4]}-{full_hash[4:8]}-{full_hash[8:12]}".upper()
+        if _hmac.compare_digest(expected, code):
+            return True
+    return False
+
+
 def sign_certificate(certificate_data: dict) -> str:
-    """Create digital signature for certificate."""
-    import hmac
+    """Create digital signature for certificate.
+    Signs with the CURRENT key via the canonical helper. To verify a stored
+    certificate signature across a key rotation, use
+    key_derivation.hmac_verify(content, sig, verify_forever=True)."""
     import json
+
+    from app.core.key_derivation import hmac_sign
 
     # Remove signature field for signing
     data_to_sign = {k: v for k, v in certificate_data.items() if k != "certificate_signature"}
     content = json.dumps(data_to_sign, sort_keys=True)
 
-    return hmac.new(settings.SECRET_KEY.encode(), content.encode(), hashlib.sha256).hexdigest()
+    return hmac_sign(content)
 
 
 def create_verification_certificate(

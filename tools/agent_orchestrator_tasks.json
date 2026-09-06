@@ -2598,11 +2598,11 @@
     "description": "BUILD_STATE.md consolidate-validate session found the tenant-only Flagship UI per handoffs/tenant-role-ui-function-list-2026-08-29.md is not yet implemented. Current tenant UI still exposes case builder, eviction defense, complaint, plan-maker tools, and role-switching UI.",
     "file_path": "app/modules/role_ui/router.py",
     "priority": "medium",
-    "status": "in_progress",
+    "status": "review",
     "category": "feature",
-    "notes": "From BUILD_STATE 2026-08-29.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec first\n[2026-09-06 21:27 UTC - devin-swe17] Spec-first approved; deliverable = sections hidden/kept + role-switch removal + roll-out, no code\n[2026-09-06 21:32 UTC - devin-swe17] Spec complete + all decisions signed off by Brad 2026-09-06: handoffs/tenant-flagship-ui-spec-2026-09-06.md. No code until implementation is approved.\n[2026-09-06 21:56 UTC - devin-swe17] Brad green-lit Phase A implementation 2026-09-06",
+    "notes": "From BUILD_STATE 2026-08-29.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec first\n[2026-09-06 21:27 UTC - devin-swe17] Spec-first approved; deliverable = sections hidden/kept + role-switch removal + roll-out, no code\n[2026-09-06 21:32 UTC - devin-swe17] Spec complete + all decisions signed off by Brad 2026-09-06: handoffs/tenant-flagship-ui-spec-2026-09-06.md. No code until implementation is approved.\n[2026-09-06 21:56 UTC - devin-swe17] Brad green-lit Phase A implementation 2026-09-06\n[2026-09-06 22:06 UTC - devin-swe17] PR open - Phase A (home+triage) shipped; Phases B/C remain per spec\n[2026-09-06 23:28 UTC - devin-swe17] Phase A merged via PR #156 (c60d7ac2). /tenant/start + /tenant/get-help live; /tenant/home fallback intact. Phases B/C per spec remain.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-06T21:56:32.218835+00:00",
+    "updated_at": "2026-09-06T23:28:46.730205+00:00",
     "target_model": "claude",
     "assigned_agent": "devin-swe17"
   },
@@ -2794,12 +2794,12 @@
     "description": "PR #155 flag: admin_elevation, tsa, certificate_generator, document_registry, ui_composer/tapering, sdk/auth/tokens, and legal_integrity still HMAC-sign raw against SECRET_KEY with no version fallback. PREREQUISITE before any real production key rotation \u2014 without this, rotation breaks their signatures with no grace period.",
     "file_path": "app/core/key_derivation.py",
     "priority": "high",
-    "status": "pending",
+    "status": "in_progress",
     "category": "security",
     "notes": "[2026-09-06 - devin-swe17] Created per Brad: follow-up task, prerequisite for real rotation. Scope A (PR #155) covers sessions/cookies/MasterToken only.",
     "created_at": "2026-09-06T21:56:21.884197+00:00",
-    "updated_at": "2026-09-06T21:56:21.884197+00:00",
+    "updated_at": "2026-09-06T23:30:56.161871+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "devin-swe17"
   }
 ]
