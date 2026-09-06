@@ -14,13 +14,12 @@ Contract:
 import logging
 from datetime import UTC
 
-from cryptography.exceptions import InvalidTag
-
 from app.core.utc import utc_now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session_factory
+from app.core.key_derivation import decrypt_value
 from app.core.oauth_token_manager import OAuthToken, token_manager
 from app.core.user_id import parse_user_id
 from app.models.models import Session as SessionModel
@@ -64,71 +63,23 @@ async def ensure_valid_token(user_id: str, db: AsyncSession | None = None) -> tu
         return await _refresh_from_db(user_id, db)
 
 
-def _derive_key(user_id: str) -> bytes:
-    """Derive encryption key from user_id + server secret."""
-    import hashlib
-
-    from app.core.config import get_settings
-
-    settings = get_settings()
-    secret_key = getattr(settings, "secret_key", None) or getattr(settings, "SECRET_KEY", "")
-    combined = f"{secret_key}:{user_id}".encode()
-    return hashlib.sha256(combined).digest()
-
-
-def _encrypt_string(value: str, user_id: str) -> str:
-    """Encrypt a single string value. Returns base64 encoded string."""
-    import base64
-    import json
-    import secrets
-
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
-    key = _derive_key(user_id)
-    nonce = secrets.token_bytes(12)
-    plaintext = json.dumps({"v": value}).encode()
-    aesgcm = AESGCM(key)
-    encrypted = aesgcm.encrypt(nonce, plaintext, None)
-    return base64.b64encode(nonce + encrypted).decode("utf-8")
-
-
-def _decrypt_string(encrypted: str, user_id: str) -> str:
-    """Decrypt a base64 encoded encrypted string."""
-    import base64
-    import json
-
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
-    key = _derive_key(user_id)
-    encrypted_bytes = base64.b64decode(encrypted.encode("utf-8"))
-    nonce = encrypted_bytes[:12]
-    ciphertext = encrypted_bytes[12:]
-    aesgcm = AESGCM(key)
-    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
-    data = json.loads(plaintext.decode())
-    return data["v"]
-
-
-def _try_decrypt(encrypted: str | None, user_id: str, label: str) -> tuple[str | None, Exception | None]:
+def _try_decrypt(
+    encrypted: str | None,
+    user_id: str,
+    label: str,
+    key_version: int | None = None,
+) -> tuple[str | None, Exception | None]:
     """Try to decrypt a token and return a user-safe result.
 
     Returns (value, None) on success or (None, exception) on failure.
-    InvalidTag means the encryption key changed and the stored token is
-    permanently unreadable — the user must reconnect.
+    A total failure means the stored token is unreadable under every valid
+    key version — the user must reconnect.
     """
     if not encrypted:
         return None, None
 
     try:
-        return _decrypt_string(encrypted, user_id), None
-    except InvalidTag as e:
-        logger.warning(
-            "Stored %s for user %s*** is unreadable (key changed): %s",
-            label,
-            user_id[:6],
-            e,
-        )
-        return None, e
+        return decrypt_value(encrypted, user_id, key_version=key_version), None
     except Exception as e:
         logger.warning(
             "Failed to decrypt %s for user %s***: %s (%s)",
@@ -163,7 +114,8 @@ async def _refresh_from_db(user_id: str, db: AsyncSession) -> tuple[bool, OAuthT
         # tenant reconnect through OAuth. Do not continue to provider refresh
         # with a corrupt token.
         refresh_token, refresh_error = _try_decrypt(
-            session_row.refresh_token_encrypted, user_id, "refresh token"
+            session_row.refresh_token_encrypted, user_id, "refresh token",
+            key_version=session_row.key_version,
         )
         if refresh_error:
             return False, None, RefreshResult.TOKEN_CORRUPT
@@ -181,7 +133,8 @@ async def _refresh_from_db(user_id: str, db: AsyncSession) -> tuple[bool, OAuthT
         # valid, we can recover by treating the token as expired and asking the
         # provider for a fresh access token.
         access_token, access_error = _try_decrypt(
-            session_row.access_token_encrypted, user_id, "access token"
+            session_row.access_token_encrypted, user_id, "access token",
+            key_version=session_row.key_version,
         )
         force_expired = bool(access_error)
         if access_error:
@@ -216,8 +169,8 @@ async def _refresh_from_db(user_id: str, db: AsyncSession) -> tuple[bool, OAuthT
             return True, token, RefreshResult.SUCCESS
 
         # Token expired/melting - use the async provider-specific refresh.
-        # Local import avoids a top-level circular import with storage/router.py,
-        # which imports _encrypt_string/_decrypt_string from this module.
+        # Local import avoids a top-level circular import: storage/router.py
+        # imports this module's public API.
         try:
             from app.modules.storage.router import refresh_access_token
 

@@ -678,6 +678,10 @@ class Session(Base):
     access_token_encrypted: Mapped[str] = mapped_column(Text)
     refresh_token_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Which SECRET_KEY version encrypted the tokens above. NULL = written
+    # before key versioning existed (decrypt falls back through history).
+    key_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     # Session metadata
     authenticated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     expires_at: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
