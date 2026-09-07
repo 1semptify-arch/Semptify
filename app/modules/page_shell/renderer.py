@@ -9,6 +9,12 @@ of ACT's level.
 
 Output: HTML string for the shell. The shell loads its CSS from
 /static/page_shell/page_shell.css (mounted by main.py's StaticFiles).
+
+The four pillars (RECORD/KNOW/ACT/GOVERN) are an internal reasoning model.
+They are not rendered as visible labels, quadrants, or colored zones. The
+output is a single cohesive page with flow-based sections (primary,
+secondary, tertiary, quaternary, safety) and a calm safety strip when
+GOVERN material is present.
 """
 
 from __future__ import annotations
@@ -29,6 +35,8 @@ from app.modules.page_shell.skeletons import (
     grid_template_areas,
     grid_template_rows,
     skeleton_for,
+    zone_area_for,
+    zone_order_for,
 )
 from app.modules.page_shell.zones import level_to_prominence, level_to_visual_weight
 
@@ -39,8 +47,10 @@ def render_page_shell(config: PageConfig) -> str:
     """Render a full page shell from a validated config.
 
     The shell is a single <div class="page-shell skeleton-NAME"> containing
-    four <section class="zone" data-zone="PILLAR"> elements. Each zone
-    contains its blocks, filtered by level_to_prominence.
+    ordered <section class="zone section-FLOW" data-flow="FLOW"> elements.
+    Each section contains its blocks, filtered by level_to_prominence. The
+    internal pillar names are mapped to flow-based grid areas and are not
+    exposed as visible labels.
     """
     skeleton = skeleton_for(config.major_pillar)
     areas = grid_template_areas(skeleton)
@@ -57,17 +67,14 @@ def render_page_shell(config: PageConfig) -> str:
             )
 
     zones_html: list[str] = []
-    for pillar in ("record", "know", "act", "govern"):
+    zone_order = zone_order_for(skeleton)
+    for pillar in zone_order:
         zone = config.zones.get(pillar) if config.zones else None
         if zone is None:
-            # All four zones always exist (§7). Render an empty placeholder
-            # so the grid area is reserved — never collapse a zone away.
-            zones_html.append(
-                f'<section class="zone zone-empty" data-zone="{pillar}">'
-                f'<div class="zone-empty-placeholder"></div></section>'
-            )
             continue
-        zones_html.append(_render_zone(zone, pillar, suppressed, config.jurisdiction, config.county))
+        rendered = _render_zone(zone, pillar, skeleton, suppressed, config.jurisdiction, config.county)
+        if rendered:
+            zones_html.append(rendered)
 
     # CSS grid area strings use single quotes so the inline style remains a
     # valid double-quoted HTML attribute.
@@ -79,17 +86,21 @@ def render_page_shell(config: PageConfig) -> str:
 def _render_zone(
     zone: Zone,
     pillar: str,
+    skeleton: str,
     suppressed: set[str],
     state: str | None = None,
     county: str | None = None,
 ) -> str:
-    """Render one zone + its blocks, filtered by level.
+    """Render one flow section + its blocks, filtered by level.
 
     Two level-driven helpers apply:
       - level_to_prominence (§8): block count + emphasis class
       - level_to_visual_weight (§11): background shade depth class
-    Both are level-driven; no per-skeleton or per-zone special cases.
+
+    Returns an empty string if no blocks are visible, so empty zones do not
+    clutter the page.
     """
+    flow = zone_area_for(skeleton, pillar)
     prominence = level_to_prominence(zone.level, zone.max_blocks)
     visual_weight = level_to_visual_weight(zone.level)
 
@@ -101,24 +112,18 @@ def _render_zone(
     # Cap to the prominence-derived count. We take the FIRST N blocks —
     # the spec says block order is meaningful (zone is an ordered list).
     visible = blocks[: prominence.block_count]
+    if not visible:
+        return ""
 
+    safety_class = " is-safety-strip" if pillar == "govern" else ""
     blocks_html = "".join(_render_block(b, prominence.emphasis, state, county) for b in visible)
     emphasis_class = f"emphasis-{prominence.emphasis}"
     vw_class = f"visual-weight-{visual_weight.weight}"
     collapsed_attr = ' data-collapsed="true"' if prominence.collapsed else ""
-    level_attr = f' data-level="{zone.level}"'
-    vw_attr = f' data-visual-weight="{visual_weight.weight}"'
 
-    header = (
-        f'<header class="zone-header">'
-        f'<span class="zone-label">{html.escape(pillar.upper())}</span>'
-        f'<span class="zone-level">{zone.level}</span>'
-        f"</header>"
-    )
     return (
-        f'<section class="zone {emphasis_class} {vw_class}" '
-        f'data-zone="{pillar}"{level_attr}{vw_attr}{collapsed_attr}>\n'
-        f"{header}\n"
+        f'<section class="zone section-{flow} {emphasis_class} {vw_class}{safety_class}" '
+        f'data-flow="{flow}"{collapsed_attr}>\n'
         f'<div class="zone-blocks">{blocks_html}</div>\n'
         f"</section>"
     )
@@ -215,7 +220,7 @@ def _render_output_block(b: OutputBlock, emphasis: str) -> str:
     §11: no alert-style bright colors, no warning-banner treatment.
     risk_tier is kept as a data attribute for the composer/audit layer;
     it does NOT drive any visual styling. Visual weight comes from the
-    zone's level via level_to_visual_weight, not from the block's risk.
+    section's level via level_to_visual_weight, not from the block's risk.
     """
     label = html.escape(b.label)
     return (

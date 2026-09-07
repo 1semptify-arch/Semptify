@@ -34,7 +34,7 @@ def test_page_shell_style_uses_html_safe_grid_area_quotes():
 
     style = html.split('style="', 1)[1].split('"', 1)[0]
     assert '"' not in style
-    assert "grid-template-areas: 'record record know'" in style
+    assert "grid-template-areas: 'primary   primary   secondary'" in style
     assert "grid-template-rows:" in style
 
 
