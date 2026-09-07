@@ -343,17 +343,15 @@ async def get_navigation_menu(user: UserContext | None = Depends(get_current_use
     # Base menu for all users
     menu = []
 
-    # Tenant (USER) - simplified menu
+    # Tenant (USER) - simplified menu.
+    # Flagship Phase C: the four ACT-pillar case tools are hidden from the
+    # tenant surface (hard-gated server-side in module_tool_page below).
     if user.role == UserRole.USER:
         menu = [
             {"label": "My Case", "path": "/tenant", "icon": "●"},
             {"label": "Documents", "path": "/documents", "icon": "●"},
             {"label": "Timeline", "path": "/timeline", "icon": "◆"},
             {"divider": True},
-            {"label": "Build My Case", "path": "/ui/tool/case-builder", "icon": "▸"},
-            {"label": "Eviction Defense", "path": "/ui/tool/eviction-defense", "icon": "◆"},
-            {"label": "File Complaint", "path": "/ui/tool/complaints", "icon": "▸"},
-            {"label": "My Action Plan", "path": "/ui/tool/plan-maker", "icon": "●"},
             {"label": "My Progress", "path": "/ui/tool/progress", "icon": "◆"},
             {"divider": True},
             {"label": "Get Help", "path": "/tenant/help", "icon": "🆘"},
@@ -426,6 +424,20 @@ async def track_pageview_stub(request: Request):
 # =============================================================================
 
 _templates = Jinja2Templates(directory=str(Path("app/templates")))
+
+# module_page.html extends base.html, which needs the shared i18n/navigation
+# globals that main.py installs on its own env — mirror them here so the
+# generic tool renderer doesn't 500 on 'get_locale' / '_' (KF: pre-existing).
+from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale  # noqa: E402
+
+_templates.env.globals.update(
+    {
+        "get_locale": get_locale,
+        "_": _jinja2_gettext,
+        "supported_locales": SUPPORTED_LOCALES,
+        "navigation": navigation,
+    }
+)
 
 LEGAL_DISCLAIMER = (
     "This information is for educational purposes only and does not constitute legal advice. "
@@ -595,6 +607,14 @@ _MODULE_CONTRACTS = {
 }
 
 
+# Flagship Phase C — tools hard-gated server-side for the tenant role.
+# These four ACT-pillar case tools were cut from the tenant surface in the
+# signed-off flagship spec; unlinking alone leaves guessed-URL access, so
+# tenants are redirected to the flagship home. The tools stay available to
+# roles that legitimately own them.
+TENANT_HIDDEN_TOOLS = {"eviction-defense", "complaints", "case-builder", "plan-maker"}
+
+
 @router.get("/tool/{module_name}", response_class=HTMLResponse)
 async def module_tool_page(
     module_name: str,
@@ -606,6 +626,14 @@ async def module_tool_page(
         return ssot_redirect(
             navigation.get_stage("providers").path if navigation.get_stage("providers") else "/storage/providers",
             context="module_tool_page unauthenticated",
+        )
+
+    if user.role == UserRole.USER and module_name in TENANT_HIDDEN_TOOLS:
+        logger.info("tenant role gated from hidden tool /ui/tool/%s", module_name)
+        home_stage = navigation.get_stage("tenant_home_page")
+        return ssot_redirect(
+            home_stage.path if home_stage else "/tenant/start",
+            context=f"module_tool_page tenant-gated tool={module_name}",
         )
 
     contract = _MODULE_CONTRACTS.get(module_name)
