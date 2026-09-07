@@ -146,6 +146,8 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     # Page Composer + Page Shell (page assembly and rendering)
     "app.modules.page_composer.register",
     "app.modules.page_shell.register",
+    # Unified page router (dynamic manifest-driven template routes)
+    "app.modules.page_router.register",
     # Found via tools/gap_report.py: real register.py contracts that existed
     # but were never imported here, so they never reached the live registry.
     "app.modules.agent_orchestrator.register",
