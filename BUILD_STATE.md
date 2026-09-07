@@ -1,3 +1,31 @@
+## Session — 2026-09-07 — Information Composer / Page Composer re-verification
+
+### Task
+
+- **Task ID:** `semptify-page-composer-information-composer-completion-2026-09-03`
+- **Status:** Review — re-verification complete, report written, no code changes.
+- **Scope:** Go over the Page Composer / Information Composer state and confirm the four logged gaps are closed.
+
+### What changed
+
+- No code changes.
+- Seeded landing-page facts into local DB (`tools/seed_landing_facts.py`) so the live Page Composer preview could be verified.
+- Wrote report to `C:\master-repo\handoffs\semptify-page-composer-information-composer-completion-2026-09-03-report.md`.
+
+### Verified
+
+1. **Page Shell manifest** — `ProductTier.CORE`, `lifecycle="stable"`, used by tenant routes. Gap closed.
+2. **Contract coverage** — `page_composer`, `page_shell`, `ui_composer`, `context_engine`, `case_builder` all registered. Direct `load_all_contracts` returned 133 loaded, 0 failed, 1133 contracts.
+3. **`case_builder.get_cases_for_user`** — function exists with matching signature; live test of `/api/page/eviction/render` produced no warning.
+4. **Information Composer connection** — `app.modules.page_composer.service.compose_page` is the single assembly point pulling facts, stories, and case data. Live `/api/page` endpoints return 200; Page Shell renders. GOVERN floor clamp works on eviction (`govern_clamped=True`, 70 → 80).
+
+### Open observations
+
+- Landing facts are seeded with `jurisdiction="US"` but page composer defaults to `MN`, so the default preview appears empty. Either seed `MN` or make landing facts jurisdiction-aware.
+- Database has no facts for most subjects (`eviction`, etc.), so those pages return empty unless facts are seeded or gathered.
+
+---
+
 ## Session — 2026-09-06 — Incident note: unattributed UTCDateTime change landed, reverted
 
 **What happened:** An uncommitted `UTCDateTime` `TypeDecorator` change in
