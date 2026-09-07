@@ -73,7 +73,7 @@
     font-size: var(--text-base);
     font-weight: var(--font-semibold);
     text-decoration: none;
-    border-radius: 4px;
+    border-radius: var(--radius-block);
     background: var(--color-primary);
     color: var(--text-inverse);
   }
@@ -110,7 +110,7 @@
     padding: var(--space-3) var(--space-2);
     text-decoration: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 4px;
+    border-radius: var(--radius-block);
   }
   .tg__action:last-child { border-bottom: none; }
   .tg__action:hover, .tg__action:focus-visible { background: var(--bg-card); }
@@ -134,13 +134,13 @@
   }
 
   /* Quick capture — stress moments, calm but findable */
-  .tg__capture { background: var(--bg-card); border-radius: 4px; padding: var(--space-4); }
+  .tg__capture { background: var(--bg-card); border: none; border-radius: var(--radius-block); padding: var(--space-4); box-shadow: var(--elevation-1); }
   .tg__capture p { color: var(--text-secondary); font-size: var(--text-sm); margin: 0 0 var(--space-3); }
   .tg__chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
   .tg__chip {
     background: var(--bg-page);
     border: 1px solid var(--border-color);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     padding: var(--space-2) var(--space-4);
     font-size: var(--text-sm);
     color: var(--text-primary);
@@ -155,7 +155,7 @@
     padding: var(--space-3) var(--space-2);
     text-decoration: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 4px;
+    border-radius: var(--radius-block);
   }
   .tg__section-link:last-child { border-bottom: none; }
   .tg__section-link:hover, .tg__section-link:focus-visible { background: var(--bg-card); }
@@ -163,7 +163,7 @@
   .tg__section-desc { color: var(--text-secondary); font-size: var(--text-sm); margin-top: 0.125rem; }
 
   /* Help — low zone, separated, calm */
-  .tg__help { background: var(--bg-card); border-radius: 4px; padding: var(--space-4); }
+  .tg__help { background: var(--bg-card); border: none; border-radius: var(--radius-block); padding: var(--space-4); box-shadow: var(--elevation-1); }
   .tg__help p { color: var(--text-secondary); font-size: var(--text-sm); margin: 0 0 var(--space-2); line-height: var(--leading-relaxed); }
   .tg__help a { color: var(--color-primary); font-weight: var(--font-medium); }
 
