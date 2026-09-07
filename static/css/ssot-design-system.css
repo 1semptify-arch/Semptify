@@ -704,16 +704,22 @@ a:hover {
   font-size: var(--text-base);
 }
 
-/* Cards — flat, tone-only separation per design handoff. No shadows, no radius. */
+/* Cards — tone + shadow separation. No visible border; depth and movement come
+   from deliberate shadow tiers and a subtle lift on hover. */
 .card {
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .card__header {
   padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--border-color);
   background: var(--color-gray-50);
 }
 
@@ -736,7 +742,6 @@ a:hover {
 
 .card__footer {
   padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--border-color);
   background: var(--color-gray-50);
   display: flex;
   justify-content: flex-end;
@@ -750,12 +755,11 @@ a:hover {
 
 .card--flat {
   box-shadow: none;
-  border: 1px solid var(--border-color);
 }
 
 .card--flat:hover {
   box-shadow: none;
-  border-color: var(--color-gray-300);
+  transform: none;
 }
 
 /* Forms */
