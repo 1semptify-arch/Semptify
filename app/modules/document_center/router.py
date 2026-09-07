@@ -780,7 +780,30 @@ async def dc_explain_document(vault_id: str, request: Request) -> JSONResponse:
         )
 
     understanding = result.get("understanding", {})
-    return JSONResponse(
+
+    # IO expansion (ADR-0008): record exposure to the explanation surface so
+    # the Meaning tab can taper guidance as the tenant gains familiarity.
+    object_type = "document_center:document_explain"
+    intensity_level: int = 0
+    exposure_count = 0
+    experience_token = None
+    saved_to_cloud = False
+    try:
+        from app.modules.ui_composer.tapering import (
+            load_and_record_exposure,
+            set_experience_token_cookie,
+        )
+
+        experience_token, saved_to_cloud = await load_and_record_exposure(
+            request, object_type
+        )
+        exposure_count = experience_token.exposure_tallies.get(object_type, 0)
+        lvl = experience_token.intensity_level
+        intensity_level = int(lvl) if isinstance(lvl, (int,)) else int(getattr(lvl, "value", 0))
+    except Exception:
+        logger.warning("DC explain: experience-token recording failed", exc_info=True)
+
+    response = JSONResponse(
         {
             "title": understanding.get("title"),
             "summary": understanding.get("summary"),
@@ -789,8 +812,13 @@ async def dc_explain_document(vault_id: str, request: Request) -> JSONResponse:
             "urgency": result.get("urgency", {}),
             "action_items": result.get("insights", {}).get("action_items", []),
             "key_dates": result.get("extracted_data", {}).get("dates", []),
+            "intensity_level": intensity_level,
+            "exposure_count": exposure_count,
         }
     )
+    if experience_token is not None and not saved_to_cloud:
+        set_experience_token_cookie(response, experience_token)
+    return response
 
 
 @router.post("/document/{vault_id}/type")
