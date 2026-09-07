@@ -37,6 +37,16 @@
   --color-calm: #5c7a99;
   --color-calm-light: #8aa3bf;
   --color-calm-dark: #3a4f66;
+  --color-calm-50: #f0f4f8;
+  --color-calm-100: #dce4ed;
+  --color-calm-200: #b8c8d9;
+  --color-calm-300: #94a8bf;
+  --color-calm-400: #7a92a8;
+  --color-calm-500: #5c7a99;
+  --color-calm-600: #4a6582;
+  --color-calm-700: #3a4f66;
+  --color-calm-800: #2d3d4f;
+  --color-calm-900: #1f2b38;
   --color-alarm: #d97706;
   --color-alarm-hover: #b45309;
   --color-alarm-text: #ffffff;
@@ -54,11 +64,24 @@
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
 
-  /* Text Colors */
+  /* Text Colors
+     Contrast-fixed per design refresh 2026-09-07:
+     --text-secondary #5b6470 clears WCAG AA on white (5.2:1) and tinted
+     template bodies (~4.7:1). --text-muted #767d8a clears large text on
+     white (3.8:1) and improves over the old #9ca3af (2.4:1). */
   --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
+  --text-secondary: #5b6470;
+  --text-muted: #767d8a;
   --text-inverse: #ffffff;
+
+  /* Backward-compatible aliases for design-system source naming.
+     NOTE: we intentionally do NOT alias --color-text-* to --text-* here
+     because the existing gui-panels.css uses --color-text-primary with a
+     #fff fallback for dark GUI zones. Aliasing it would break that.
+     These surface/background aliases are safe because they are theme-agnostic. */
+  --color-bg-card: var(--bg-card);
+  --color-bg-primary: var(--bg-page);
+  --color-border: var(--border-color);
 
   /* Background Colors */
   --bg-page: #f8fafc;
@@ -116,22 +139,38 @@
   --leading-normal: 1.5;
   --leading-relaxed: 1.625;
 
-  /* Borders & Radius — Design Handoff: no rounded corners */
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
-  --radius-xl: 0;
-  --radius-2xl: 0;
-  --radius-full: 0;
+  /* Borders & Radius — Design Handoff 2026-09-07: radius is now a
+     deliberate depth/polish tool, not a prohibition. */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 10px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
+
+  /* Deliberate radius tokens for common surface types */
+  --radius-block: 6px;
+  --radius-block-lg: 10px;
+  --radius-pill: 9999px;
+  --radius-input: 4px;
 
   --border-width: 1px;
   --border-color: var(--color-gray-200);
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  /* Elevation — intentional shadow tiers for depth.
+     Legacy --shadow-* tokens are aliased to elevation values for backward
+     compatibility; prefer --elevation-* in new code. */
+  --elevation-1: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --elevation-2: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --elevation-3: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --elevation-4: 0 8px 32px rgba(15, 23, 42, 0.10);
+  --elevation-sticky: 0 1px 0 rgba(15, 23, 42, 0.06);
+
+  --shadow-sm: var(--elevation-1);
+  --shadow-md: var(--elevation-2);
+  --shadow-lg: var(--elevation-3);
+  --shadow-xl: var(--elevation-4);
 
   /* Layout */
   --max-width-xs: 20rem;      /* 320px */
@@ -147,10 +186,16 @@
   --max-width-7xl: 80rem;     /* 1280px */
   --max-width-full: 100%;
 
+  /* Easing curves — deliberate micro-interaction curves */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
   /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 250ms ease;
-  --transition-slow: 350ms ease;
+  --transition-fast: 150ms var(--ease-out);
+  --transition-normal: 250ms var(--ease-out);
+  --transition-slow: 350ms var(--ease-out);
 
   /* Z-Index Scale */
   --z-dropdown: 100;
@@ -215,6 +260,12 @@
   --zone-header-weight: 600;
   --zone-body-weight: 400;
 
+  /* Zone surface tiers — replaces card borders for content separation */
+  --zone-surface-1: var(--bg-card);
+  --zone-surface-2: var(--color-gray-50);
+  --zone-surface-3: var(--color-gray-100);
+  --zone-surface-inverse: var(--color-gray-900);
+
   /* Supporting tokens for .main-nav / .unified-footer */
   --color-header-1: var(--color-primary-dark);
   --color-header-2: var(--color-primary);
@@ -245,6 +296,12 @@
     --text-primary: #f0f0f0;
     --text-secondary: #c0c0c0;
     --text-muted: #909090;
+    --bg-page: #0f172a;
+    --bg-card: #1e293b;
+    --zone-surface-1: #1e293b;
+    --zone-surface-2: #273344;
+    --zone-surface-3: #334155;
+    --zone-surface-inverse: #0f172a;
   }
 }
 
@@ -257,6 +314,12 @@
   --text-primary: #f0f0f0;
   --text-secondary: #c0c0c0;
   --text-muted: #909090;
+  --bg-page: #0f172a;
+  --bg-card: #1e293b;
+  --zone-surface-1: #1e293b;
+  --zone-surface-2: #273344;
+  --zone-surface-3: #334155;
+  --zone-surface-inverse: #0f172a;
 }
 
 /* ============================================================================
@@ -358,8 +421,8 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  /* Design Handoff 2026-07-01: no rounded corners anywhere */
-  border-radius: 0 !important;
+  /* Design Handoff 2026-09-07: radius is deliberate, not prohibited.
+     Components opt into rounded corners via their own border-radius. */
 }
 
 html {
@@ -704,18 +767,19 @@ a:hover {
   font-size: var(--text-base);
 }
 
-/* Cards — tone + shadow separation. No visible border; depth and movement come
-   from deliberate shadow tiers and a subtle lift on hover. */
+/* Cards — tone + shadow separation. No visible border; depth comes from
+   deliberate shadow tiers and a subtle radius. No transform-lift. */
 .card {
   background: var(--bg-card);
-  box-shadow: var(--shadow-sm);
+  border: none;
+  border-radius: var(--radius-block);
+  box-shadow: var(--elevation-1);
   overflow: hidden;
-  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+  transition: box-shadow var(--transition-fast), background var(--transition-fast);
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  box-shadow: var(--elevation-2);
 }
 
 .card__header {
@@ -761,6 +825,75 @@ a:hover {
   box-shadow: none;
   transform: none;
 }
+
+/* ============================================================================
+   Zone Blocks — replaces the 16+ inline card families across templates.
+   No borders. Depth comes from tone shifts + deliberate shadow tiers + radius.
+   ============================================================================ */
+.zone-block {
+  background: var(--zone-surface-1);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  border: none;
+  border-radius: var(--radius-block);
+  box-shadow: var(--elevation-1);
+  transition: box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.zone-block--raised {
+  background: var(--zone-surface-2);
+  box-shadow: var(--elevation-2);
+}
+
+.zone-block--raised:hover,
+.zone-block--raised:focus-visible {
+  background: var(--zone-surface-3);
+  box-shadow: var(--elevation-3);
+}
+
+.zone-block--raised:active {
+  background: var(--zone-surface-2);
+  box-shadow: var(--elevation-1);
+}
+
+.zone-block--emphasis {
+  background: var(--zone-surface-3);
+  box-shadow: var(--elevation-3);
+}
+
+.zone-block--inverse {
+  background: var(--zone-surface-inverse);
+  color: var(--text-inverse);
+  box-shadow: var(--elevation-3);
+}
+
+.zone-block--flat {
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* Calm surface utilities */
+.bg-calm-50 { background-color: var(--color-calm-50); }
+.bg-calm-100 { background-color: var(--color-calm-100); }
+.bg-calm-200 { background-color: var(--color-calm-200); }
+.bg-calm-300 { background-color: var(--color-calm-300); }
+.bg-calm-700 { background-color: var(--color-calm-700); }
+.bg-calm-800 { background-color: var(--color-calm-800); }
+.bg-calm-900 { background-color: var(--color-calm-900); }
+
+/* Elevation utilities */
+.elevation-1 { box-shadow: var(--elevation-1); }
+.elevation-2 { box-shadow: var(--elevation-2); }
+.elevation-3 { box-shadow: var(--elevation-3); }
+.elevation-4 { box-shadow: var(--elevation-4); }
+.elevation-sticky { box-shadow: var(--elevation-sticky); }
+
+/* Radius utilities */
+.radius-none { border-radius: var(--radius-none); }
+.radius-block { border-radius: var(--radius-block); }
+.radius-block-lg { border-radius: var(--radius-block-lg); }
+.radius-pill { border-radius: var(--radius-pill); }
+.radius-input { border-radius: var(--radius-input); }
 
 /* Forms */
 .form-group {
@@ -1030,15 +1163,16 @@ a:hover {
   }
 }
 
-/* Sidebar */
+/* Sidebar — zone-based separation, no border */
 .sidebar {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
+  background: var(--zone-surface-2);
+  border-radius: var(--radius-block);
+  border: none;
   padding: var(--space-4);
   height: fit-content;
   position: sticky;
   top: var(--space-4);
+  box-shadow: var(--elevation-1);
 }
 
 .sidebar__section {
@@ -1056,10 +1190,11 @@ a:hover {
 
 /* Main Content Area */
 .main-content {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
+  background: var(--zone-surface-1);
+  border-radius: var(--radius-block);
+  border: none;
   padding: var(--space-6);
+  box-shadow: var(--elevation-1);
 }
 
 /* Footer */
@@ -1136,6 +1271,57 @@ a:hover {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* Viewport posture — explicit locked / scroll / hybrid behavior per surface.
+   These classes are applied to <body> or the main viewport container. */
+.app-posture-locked {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-posture-locked .app-content {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-posture-scroll {
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
+.app-posture-hybrid {
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+.app-posture-hybrid .app-content {
+  min-height: min-content;
+}
+
+/* Ambient motion — hero background gradient shift */
+@keyframes ambient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-ambient {
+  background-size: 200% 200%;
+  animation: ambient-shift 8s var(--ease-in-out) infinite;
+}
+
+/* Focus pulse — primary action attention ring, calm by default */
+@keyframes focus-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(44, 90, 160, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(44, 90, 160, 0.12); }
+}
+
+.animate-focus-pulse {
+  animation: focus-pulse 3s var(--ease-in-out) infinite;
 }
 
 /* ============================================================================
