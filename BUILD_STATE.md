@@ -1,3 +1,26 @@
+## Session — 2026-09-06 — Incident note: unattributed UTCDateTime change landed, reverted
+
+**What happened:** An uncommitted `UTCDateTime` `TypeDecorator` change in
+`app/models/models.py` (force UTC-aware datetime round-trips, notably on
+SQLite) — authored by an unknown session, explicitly held pending owner ID —
+was accidentally folded into the flagship Phase C commit `79ca886f` via a
+stale-index pickup during stash recovery, and merged to main in PR #159
+(`3b0eaf74`).
+
+**Disposition (Brad, 2026-09-06): reverted.** "It happened to be safe" does
+not satisfy the hold's purpose — it landed with no owner, no review, and no
+confirmation of intent. The revert removes only the unattributed work (the
+`UTCDateTime` decorator, its `TypeDecorator`/`timezone` imports, and the
+`DateTimeTZ = UTCDateTime()` rebinding). The pre-existing
+`DateTimeTZ = DateTime(timezone=True)` alias is restored untouched.
+
+**Re-landing:** the work should return as its own reviewed task once the
+author is identified — or as an explicitly claimed "found work" task with a
+fresh review. Nothing references `UTCDateTime` today, so the revert is
+behavior-neutral; the original `DateTimeTZ` alias is unchanged.
+
+---
+
 ## Session — 2026-09-05 — Doc hygiene: manifest refresh, BLUEPRINT sanitize, MODULE_BLUEPRINT template
 
 ### Guardrail Engine Run — 2026-09-06T20:42:17+00:00
