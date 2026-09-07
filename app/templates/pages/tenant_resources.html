@@ -1,0 +1,170 @@
+{% extends "body/composer_preview_body.html" %}
+{#
+  Resource directory — tenant-facing "find help near you" view (flagship Phase B).
+
+  Route: /tenant/resources
+
+  Module contract — resource_directory:list_resources
+    Inputs:  search text, category, language (optional)
+    Outputs: matching community resources (name, category, contact info)
+    Layout:  composer-primary, 2fr 3fr — filters left, results right.
+
+  Emergency / crisis / hotline / shelter listings are pinned to the top of
+  results and visually distinct, with one-tap tel: links.
+#}
+
+{% block title %}Find help near you — Semptify{% endblock %}
+{% block nav_home %}nav-active{% endblock %}
+
+{% block cps_aria_label %}Find help near you{% endblock %}
+{% block cps_eyebrow %}Know · Directory{% endblock %}
+{% block cps_title %}Find help near you{% endblock %}
+{% block cps_description %}Legal aid, hotlines, and community resources — verified listings for where you live.{% endblock %}
+{% block cps_controls_title %}Narrow it down{% endblock %}
+{% block cps_preview_title %}Resources{% endblock %}
+{% block cps_help_title %}About this directory{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .rd-form { display: flex; flex-direction: column; gap: var(--space-4); }
+  .rd-label { display: block; font-weight: var(--font-semibold); color: var(--text-primary); font-size: var(--text-sm); margin-bottom: var(--space-2); }
+  .rd-input, .rd-select {
+    width: 100%; padding: var(--space-3); border: 1px solid var(--border-color);
+    border-radius: 4px; font-size: var(--text-base); background: var(--color-white);
+    color: var(--text-primary); font-family: inherit; box-sizing: border-box;
+  }
+  .rd-results { display: flex; flex-direction: column; }
+  .rd-resource { padding: var(--space-3) 0; }
+  .rd-resource + .rd-resource { border-top: 1px solid var(--border-color); }
+  .rd-name { font-weight: var(--font-semibold); color: var(--text-primary); font-size: var(--text-base); }
+  .rd-cat { font-size: var(--text-xs); color: var(--text-secondary); text-transform: capitalize; }
+  .rd-contact { font-size: var(--text-sm); color: var(--text-primary); margin-top: var(--space-1); }
+  .rd-contact a { color: var(--color-info); }
+  .rd-meta { font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1); }
+  .rd-resource--emergency { background: var(--color-warning); padding: var(--space-3); border-radius: 4px; margin-bottom: var(--space-2); }
+  .rd-resource--emergency .rd-cat { color: var(--text-primary); font-weight: var(--font-semibold); }
+  .rd-count { font-size: var(--text-xs); color: var(--text-secondary); margin-bottom: var(--space-3); }
+  .rd-submit {
+    padding: var(--space-3) var(--space-6); background: var(--color-primary); color: var(--text-inverse);
+    border: none; border-radius: 4px; font-size: var(--text-base); font-weight: var(--font-semibold);
+    cursor: pointer; font-family: inherit;
+  }
+</style>
+{% endblock %}
+
+{% block composer %}
+<form id="rdForm" class="rd-form" novalidate>
+  <div>
+    <label class="rd-label" for="rdSearch">Search</label>
+    <input id="rdSearch" class="rd-input" type="search" placeholder="legal aid, food shelf, shelter…">
+  </div>
+  <div>
+    <label class="rd-label" for="rdCategory">Category</label>
+    <select id="rdCategory" class="rd-select">
+      <option value="">Everything</option>
+    </select>
+  </div>
+  <div>
+    <label class="rd-label" for="rdLang">Language <span style="font-weight:400; color:var(--text-secondary);">(optional)</span></label>
+    <input id="rdLang" class="rd-input" type="text" placeholder="es, so, hmn…">
+  </div>
+  <button type="submit" class="rd-submit">{{ submit_label | default("Find resources", true) }}</button>
+</form>
+{% endblock %}
+
+{% block preview %}
+  <p class="cps__empty" id="rdEmpty">Loading resources…</p>
+  <div id="rdResults" class="rd-results" hidden></div>
+{% endblock %}
+
+{% block help %}
+  <p><strong>These are community listings</strong> — legal aid offices,
+  tenant hotlines, shelters, and support services. Semptify keeps them
+  verified and up to date.</p>
+  <p style="margin-top: var(--space-3);">In an emergency — a lockout, a
+  court date this week, or no safe place to sleep — call the hotline
+  listings first. They're pinned at the top.</p>
+  <p style="margin-top: var(--space-3); font-size: var(--text-xs); color: var(--text-secondary);">
+    <a href="/help" style="color: var(--color-info);">Crisis help page</a> ·
+    <a href="/tenant/start" style="color: var(--color-info);">Back to home</a></p>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+(function () {
+  const esc = (s) => String(s || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const EMERGENCY = /emergency|crisis|hotline|shelter|domestic/i;
+
+  const empty = document.getElementById('rdEmpty');
+  const results = document.getElementById('rdResults');
+  const catSelect = document.getElementById('rdCategory');
+  let all = [];
+
+  function render(list) {
+    const emergency = list.filter((r) => EMERGENCY.test(r.category || ''));
+    const rest = list.filter((r) => !EMERGENCY.test(r.category || ''));
+    const ordered = emergency.concat(rest);
+    if (!ordered.length) {
+      results.innerHTML = '';
+      empty.hidden = false;
+      empty.textContent = 'Nothing matches — try a broader search, or the crisis page for immediate help.';
+      return;
+    }
+    let html = '<div class="rd-count">' + ordered.length + ' resource' + (ordered.length === 1 ? '' : 's') + '</div>';
+    ordered.forEach(function (r) {
+      const c = r.contact_info || {};
+      const isEm = EMERGENCY.test(r.category || '');
+      html += '<div class="rd-resource' + (isEm ? ' rd-resource--emergency' : '') + '">' +
+        '<div class="rd-name">' + esc(r.name) + '</div>' +
+        '<div class="rd-cat">' + esc(r.category || '') + (r.service_area ? ' · ' + esc(r.service_area) : '') + '</div>' +
+        '<div class="rd-contact">' +
+          (c.phone ? '<a href="tel:' + esc(String(c.phone).replace(/[^0-9+]/g, '')) + '">' + esc(c.phone) + '</a>' : '') +
+          (c.phone && c.website ? ' · ' : '') +
+          (c.website ? '<a href="' + esc(c.website) + '" rel="noopener">' + esc(c.website) + '</a>' : '') +
+          (c.address ? '<br>' + esc(c.address) : '') +
+        '</div>' +
+        (r.languages && r.languages.length ? '<div class="rd-meta">Languages: ' + esc(r.languages.join(', ')) + '</div>' : '') +
+      '</div>';
+    });
+    results.innerHTML = html;
+    empty.hidden = true;
+    results.hidden = false;
+  }
+
+  function applyFilters() {
+    const q = document.getElementById('rdSearch').value.trim().toLowerCase();
+    const cat = catSelect.value;
+    const lang = document.getElementById('rdLang').value.trim().toLowerCase();
+    let list = all;
+    if (cat) list = list.filter((r) => (r.category || '') === cat);
+    if (lang) list = list.filter((r) => (r.languages || []).map((l) => String(l).toLowerCase()).includes(lang));
+    if (q) list = list.filter((r) =>
+      (r.name || '').toLowerCase().includes(q) ||
+      (r.category || '').toLowerCase().includes(q) ||
+      (r.service_area || '').toLowerCase().includes(q));
+    render(list);
+  }
+
+  document.getElementById('rdForm').addEventListener('submit', (e) => { e.preventDefault(); applyFilters(); });
+  catSelect.addEventListener('change', applyFilters);
+
+  fetch('/api/resources', { credentials: 'include' })
+    .then((r) => r.ok ? r.json() : null)
+    .then((data) => {
+      all = (data && data.resources) || [];
+      const cats = [...new Set(all.map((r) => r.category).filter(Boolean))].sort();
+      cats.forEach(function (c) {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        catSelect.appendChild(opt);
+      });
+      render(all);
+    })
+    .catch(function () {
+      empty.textContent = 'Could not load the directory. The crisis help page has phone numbers that always work.';
+    });
+})();
+</script>
+{% endblock %}
