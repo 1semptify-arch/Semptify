@@ -164,7 +164,7 @@ def _tenant_decision(state: WorkflowState) -> WorkflowDecision:
     # All tenants land on their role home — upload CTA is built into the home page.
     # No separate "upload wizard" detour; home page handles first-document flow.
     _tenant_home_stage = navigation.get_stage("tenant_home")
-    _tenant_home_path = _tenant_home_stage.path if _tenant_home_stage else "/tenant/home"
+    _tenant_home_path = _tenant_home_stage.path if _tenant_home_stage else "/tenant/start"
 
     if not state.documents_present and state.storage_state != StorageState.REVIEW_ONLY:
         return WorkflowDecision(

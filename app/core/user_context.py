@@ -242,7 +242,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Individual renter or resident organizing their own housing and case documents with guided help.",
         "default_landing_process": "B2 - Quick Case Triage",
         "ui_mode": "mobile",  # Mobile-first, simplified
-        "landing_page": "/tenant/home",
+        "landing_page": "/tenant/start",  # flagship home (Phase C cutover)
         "icon": "○",
     },
     UserRole.ADVOCATE: {
