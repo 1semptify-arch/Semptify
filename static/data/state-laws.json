@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "version": "1.0",
-    "last_updated": "2026-08-29",
+    "version": "1.1",
+    "last_updated": "2026-09-07",
     "complete_states": [
       "CA",
       "FL",
@@ -15,7 +15,14 @@
       "PA",
       "TX"
     ],
-    "stub_states": 38
+    "stub_states": 33,
+    "partial_states": [
+      "IA",
+      "MO",
+      "ND",
+      "SD",
+      "WI"
+    ]
   },
   "states": {
     "MN": {
@@ -1692,19 +1699,85 @@
       "notes": "Many NJ cities have rent control. Strong anti-eviction protections."
     },
     "WI": {
-      "code": "WI",
-      "name": "Wisconsin",
-      "status": "stub",
-      "stub_url": "https://www.lawhelpwi.org/issues/housing",
-      "notes": "Wisconsin has statewide housing discrimination protections."
-    },
+        "code": "WI",
+        "name": "Wisconsin",
+        "status": "partial",
+        "stub_url": "https://core.tenantresourcecenter.org/wisconsin",
+        "notice_requirements": {
+          "nonpayment": "5-day written pay-or-vacate notice for month-to-month or lease of 1 year or less (Wis. Stat. 704.17(1p)(a) and (2)(a)). Tenant can stop the eviction by paying rent within that window.",
+          "lease_violation": "5-day notice to remedy the breach or vacate; if the same breach recurs within a year, landlord may give 14 days to vacate without a right to cure (Wis. Stat. 704.17(1p)(b) and (2)(b))."
+        },
+        "security_deposit": {
+          "limit": "No statutory cap (Wis. Stat. 704.28; ATCP 134.06)",
+          "return_deadline": "21 days after termination or surrender, with itemized deductions (Wis. Stat. 704.28(4); ATCP 134.06)",
+          "notes": "Wrongful withholding can trigger double damages plus attorney fees (ATCP 134.06)."
+        },
+        "landlord_entry": {
+          "notice_required": "At least 12 hours' advance notice for non-emergency entry, entry only at reasonable times (Wis. Stat. 704.05(2); ATCP 134.09(2))"
+        },
+        "eviction": {
+          "key_protection": "Lease provisions that conflict with Wis. Stat. chapter 704 are unenforceable unless the lease is for longer than one year (Wis. Stat. 704.17(5))."
+        },
+        "sources": [
+          {
+            "label": "Wis. Stat. 704.17 — notice terminating tenancies",
+            "url": "https://docs.legis.wisconsin.gov/statutes/statutes/704/17"
+          },
+          {
+            "label": "Wis. Stat. 704.28 — security deposit return",
+            "url": "https://docs.legis.wisconsin.gov/statutes/statutes/704/28"
+          },
+          {
+            "label": "Wis. Stat. 704.05(2) — access",
+            "url": "https://docs.legis.wisconsin.gov/statutes/statutes/704/05"
+          },
+          {
+            "label": "Tenant Resource Center — Wisconsin",
+            "url": "https://core.tenantresourcecenter.org/wisconsin"
+          }
+        ],
+        "notes": "Crisis-tier fields only — verified against Wis. Stat. and ATCP 2026-09-07."
+      },
     "MO": {
-      "code": "MO",
-      "name": "Missouri",
-      "status": "stub",
-      "stub_url": "https://www.lsmo.org/housing",
-      "notes": "Missouri is landlord-friendly. Kansas City and St. Louis have some local protections."
-    },
+        "code": "MO",
+        "name": "Missouri",
+        "status": "partial",
+        "stub_url": "https://www.mobar.org/attorneysearch/",
+        "notice_requirements": {
+          "nonpayment": "No formal notice-to-pay period required before filing a rent-and-possession action; landlord may file as soon as rent is past due, after a demand for payment (RSMo 535.010, 535.020)",
+          "lease_violation": "10-day written notice to vacate for illegal activity or controlled-substance use (RSMo 441.040); other lease breaches follow the lease's notice/cure terms. Month-to-month termination requires 30 days' notice (RSMo 441.060)."
+        },
+        "security_deposit": {
+          "limit": "2 months' rent (RSMo 535.300(1))",
+          "return_deadline": "30 days after termination, with written itemized deductions or full return (RSMo 535.300(2)-(3))",
+          "notes": "Wrongful withholding can mean up to double the withheld amount plus court costs and attorney fees."
+        },
+        "landlord_entry": {
+          "notice_required": "No fixed statutory notice period — 'reasonable notice' required for move-out inspection and is implied for other entry (RSMo 535.300(5); common law). 24 hours is typical practice."
+        },
+        "eviction": {
+          "key_protection": "Tenant may appear and plead within 5 days of service of the summons (RSMo 21-16-7 analog; Missouri Rules of Civil Procedure). For nonpayment, full payment before judgment may restore possession."
+        },
+        "sources": [
+          {
+            "label": "RSMo 535.010 - 535.020 — rent and possession",
+            "url": "https://revisor.mo.gov/main/OneSection.aspx?bid=28366&section=535.010"
+          },
+          {
+            "label": "RSMo 441.040 — 10-day notice for unlawful use",
+            "url": "https://revisor.mo.gov/main/OneSection.aspx?bid=24342&section=441.040"
+          },
+          {
+            "label": "RSMo 535.300 — security deposits",
+            "url": "https://revisor.mo.gov/main/OneSection.aspx?bid=28387&section=535.300"
+          },
+          {
+            "label": "Missouri Bar — lawyer search / legal aid",
+            "url": "https://www.mobar.org/attorneysearch/"
+          }
+        ],
+        "notes": "Crisis-tier fields only — verified against RSMo 2026-09-07. Missouri Bar is a referral, not legal aid; replace with a Missouri legal-aid URL when known."
+      },
     "AL": {
       "code": "AL",
       "name": "Alabama",
@@ -1755,12 +1828,44 @@
       "notes": "Idaho is landlord-friendly. No rent control."
     },
     "IA": {
-      "code": "IA",
-      "name": "Iowa",
-      "status": "stub",
-      "stub_url": "https://www.iowalegalaid.org/housing",
-      "notes": "Iowa has fair housing protections but limited rent regulation."
-    },
+        "code": "IA",
+        "name": "Iowa",
+        "status": "partial",
+        "stub_url": "https://www.iowalegalaid.org/issues/housing",
+        "notice_requirements": {
+          "nonpayment": "3-day written notice to pay rent or the landlord may terminate the rental agreement (Iowa Code 562A.27(2))",
+          "lease_violation": "7-day written notice to remedy the breach or terminate the rental agreement; if the same act recurs within 6 months, landlord may terminate with 7 days' notice and no right to cure (Iowa Code 562A.27(1))"
+        },
+        "security_deposit": {
+          "limit": "2 months' rent (Iowa Code 562A.12(1))",
+          "return_deadline": "30 days after termination and receipt of tenant's mailing address, with itemized deductions (Iowa Code 562A.12(3)(a))"
+        },
+        "landlord_entry": {
+          "notice_required": "At least 24 hours' notice, entry only at reasonable times; tenant may not unreasonably withhold consent (Iowa Code 562A.19)"
+        },
+        "eviction": {
+          "key_protection": "Landlord has no other right of access except by court order or as permitted by statute — access must be for specific purposes and not used to harass (Iowa Code 562A.19(4))."
+        },
+        "sources": [
+          {
+            "label": "Iowa Code 562A.27 — noncompliance / nonpayment",
+            "url": "https://www.legis.iowa.gov/docs/code/562A.27.pdf"
+          },
+          {
+            "label": "Iowa Code 562A.12 — rental deposits",
+            "url": "https://www.legis.iowa.gov/docs/code/562A.12.pdf"
+          },
+          {
+            "label": "Iowa Code 562A.19 — access",
+            "url": "https://www.legis.iowa.gov/docs/code/562A.19.pdf"
+          },
+          {
+            "label": "Iowa Legal Aid — housing",
+            "url": "https://www.iowalegalaid.org/issues/housing"
+          }
+        ],
+        "notes": "Crisis-tier fields only — verified against Iowa Code 2026-09-07."
+      },
     "KS": {
       "code": "KS",
       "name": "Kansas",
@@ -1839,12 +1944,44 @@
       "notes": "New Mexico has anti-discrimination and habitability protections."
     },
     "ND": {
-      "code": "ND",
-      "name": "North Dakota",
-      "status": "stub",
-      "stub_url": "https://www.legalassistnd.org/housing",
-      "notes": "North Dakota is landlord-friendly. Limited tenant protections."
-    },
+        "code": "ND",
+        "name": "North Dakota",
+        "status": "partial",
+        "stub_url": "https://www.ndcourts.gov/legal-self-help",
+        "notice_requirements": {
+          "nonpayment": "3-day notice of intention to evict; if nonpayment is the only ground, tenant has 3 days to pay in full or move out (NDCC 47-32-01, 47-32-02; ND Courts eviction forms)",
+          "lease_violation": "3-day notice of intention to evict for material violations of the lease (NDCC 47-32-01(4)-(6); 47-32-02)"
+        },
+        "security_deposit": {
+          "limit": "1 month's rent (up to 2 months for tenants with certain felony/judgment history or with a pet) (NDCC 47-16-07.1)",
+          "return_deadline": "30 days after termination and delivery of possession, with itemization (NDCC 47-16-07.1)"
+        },
+        "landlord_entry": {
+          "notice_required": "No fixed statutory hours — landlord must give reasonable notice and obtain consent identifying a time certain; consent is presumed if tenant does not object (NDCC 47-16-07.3)"
+        },
+        "eviction": {
+          "key_protection": "Landlord must serve the Notice of Intention to Evict and file proof of service with the court; three days must expire before filing the eviction action (NDCC 47-32-02)."
+        },
+        "sources": [
+          {
+            "label": "NDCC 47-32-01/47-32-02 — eviction grounds and notice",
+            "url": "https://ndlegis.gov/cencode/t47c32.pdf"
+          },
+          {
+            "label": "NDCC 47-16-07.1 — security deposits",
+            "url": "https://ndlegis.gov/cencode/t47c16.pdf"
+          },
+          {
+            "label": "NDCC 47-16-07.3 — landlord entry",
+            "url": "https://codes.findlaw.com/nd/title-47-property/nd-cent-code-sect-47-16-07-3/"
+          },
+          {
+            "label": "North Dakota Courts — self help / eviction",
+            "url": "https://www.ndcourts.gov/legal-self-help"
+          }
+        ],
+        "notes": "Crisis-tier fields only — verified against NDCC and ND Courts 2026-09-07."
+      },
     "OK": {
       "code": "OK",
       "name": "Oklahoma",
@@ -1867,12 +2004,40 @@
       "notes": "South Carolina is landlord-friendly."
     },
     "SD": {
-      "code": "SD",
-      "name": "South Dakota",
-      "status": "stub",
-      "stub_url": "https://www.sdlegalhelp.org/housing",
-      "notes": "South Dakota is landlord-friendly. Limited protections."
-    },
+        "code": "SD",
+        "name": "South Dakota",
+        "status": "partial",
+        "stub_url": "https://ujslawhelp.sd.gov/LegalTopics/For-Landlords-and-Tenants.aspx",
+        "notice_requirements": {
+          "nonpayment": "No notice to quit required since July 1, 2024; a landlord may file an eviction action after rent is 3 days late (SDCL 21-16-1(4); SB 90 repealed SDCL 21-16-2)",
+          "lease_violation": "Lease controls the cure/notice period; if silent, action may proceed after a reasonable time for the tenant to remedy the breach (SDCL 21-16; 43-32-24)"
+        },
+        "security_deposit": {
+          "limit": "1 month's rent; up to 2 months' rent if the tenant has a pet (SDCL 43-32-6.1, 43-32-24)",
+          "return_deadline": "Within 2 weeks (14 days) of termination and receipt of mailing address, unless the landlord is withholding, in which case a written statement and itemized accounting (on request within 45 days) are required (SDCL 43-32-24)"
+        },
+        "landlord_entry": {
+          "notice_required": "No fixed statutory notice period — entry must be at reasonable times and in a reasonable manner for enumerated purposes (SDCL 43-32-1 / 43-32-32)"
+        },
+        "eviction": {
+          "key_protection": "Self-help eviction is prohibited; landlords must use the court process (SDCL 21-16-1 et seq.). Tenant has 5 days to respond to the summons (SDCL 21-16-7)."
+        },
+        "sources": [
+          {
+            "label": "SDCL 21-16-1 and 21-16-2 — forcible entry and detainer",
+            "url": "https://law.justia.com/codes/south-dakota/2023/title-21/chapter-16/section-21-16-2/"
+          },
+          {
+            "label": "SDCL 43-32-6.1 and 43-32-24 — security deposits",
+            "url": "https://law.justia.com/codes/south-dakota/title-43/chapter-32/section-43-32-24/"
+          },
+          {
+            "label": "South Dakota Unified Judicial System — Landlords and Tenants",
+            "url": "https://ujslawhelp.sd.gov/LegalTopics/For-Landlords-and-Tenants.aspx"
+          }
+        ],
+        "notes": "Crisis-tier fields only — verified against SDCL and SD Courts 2026-09-07. Nonpayment notice requirement was removed by SB 90 in 2024."
+      },
     "TN": {
       "code": "TN",
       "name": "Tennessee",
