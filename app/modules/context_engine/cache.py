@@ -49,7 +49,10 @@ async def get_facts(
         return [r for r in rows if not _is_expired(r)]
 
 
-async def get_verified_landing_facts(limit: int = 10) -> list[ContextFact]:
+async def get_verified_landing_facts(
+    limit: int = 10,
+    jurisdiction: str = "MN",
+) -> list[ContextFact]:
     """Return verified, non-expired landing/public facts.
 
     This is the canonical source for hero claims on the landing page.
@@ -61,6 +64,7 @@ async def get_verified_landing_facts(limit: int = 10) -> list[ContextFact]:
             .where(
                 and_(
                     ContextFact.subject == "landing",
+                    ContextFact.jurisdiction == jurisdiction,
                     ContextFact.is_verified.is_(True),
                 )
             )
