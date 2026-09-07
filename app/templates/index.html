@@ -7,10 +7,11 @@
 
 {% block styles %}
 <style>
-    /* Public landing — liquid / asymmetrical layout.
-       Builds on ssot-design-system.css tokens; no card borders, no shadows.
-       The large SVG shape is the only decorative grouping; zones are separated
-       by background and spacing, not boxes. */
+    /* Public landing — fact-forward, typography-led.
+       Replaces the "comforts of home" motif: the page reads like a verified
+       record — a typographic ledger. Facts sit in a numbered rail beside the
+       hero, not stacked under it. No cards, no shadows; zones separate by
+       background and hairline rules per ssot-design-system.css. */
 
     body.page-landing,
     .template-1 body.page-landing,
@@ -20,17 +21,11 @@
         color: #f0f4f8;
     }
 
-    .page-landing a {
-        color: #e2e8f0;
-    }
-
+    .page-landing a { color: #e2e8f0; }
     .page-landing a:hover,
-    .page-landing a:focus {
-        color: #ffffff;
-    }
+    .page-landing a:focus { color: #ffffff; }
 
-    /* Transparent public topbar — a calm, minimal path to help.
-       Sits over the hero zone; does not use a card or shadow. */
+    /* Transparent public topbar — a calm, minimal path to help. */
     .landing-topbar {
         position: relative;
         z-index: 20;
@@ -89,25 +84,37 @@
         display: inline-block;
     }
 
-    /* Main stage: two-zone asymmetrical grid. */
+    /* Main stage: baseline-anchored asymmetric grid.
+       Without facts the hero sits alone, anchored low-left; with facts the
+       page splits into a wide hero column and a narrow facts rail separated
+       by a hairline — a ledger, not a dashboard. */
     .landing-main {
         position: relative;
         display: grid;
         grid-template-columns: 1fr;
         min-height: 100vh;
         min-height: 100dvh;
-        align-items: center;
+        align-items: end;
     }
 
     @media (min-width: 900px) {
         .landing-main--with-facts {
-            grid-template-columns: 1.1fr .9fr;
-            align-items: center;
+            grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+            align-items: stretch;
+        }
+        .landing-main--with-facts .landing-hero {
+            align-self: end;
+        }
+        .landing-main--with-facts .facts {
+            align-self: center;
+            border-left: 1px solid rgba(255, 255, 255, 0.12);
         }
     }
 
-    /* Liquid background shape — decorative, aria-hidden. */
-    .landing-liquid {
+    /* Typographic field — ruled ledger lines + an oversized record mark.
+       Decorative, aria-hidden; the gentle pointer drift is progressive
+       enhancement only. */
+    .landing-ledger {
         position: absolute;
         inset: 0;
         z-index: 0;
@@ -115,13 +122,13 @@
         pointer-events: none;
     }
 
-    .landing-liquid__svg {
+    .landing-ledger__svg {
         width: 100%;
         height: 100%;
         display: block;
     }
 
-    /* Hero stanza: left column, off-center, left-aligned. */
+    /* Hero stanza: anchored to the baseline, left-aligned, off-center. */
     .landing-hero {
         position: relative;
         z-index: 1;
@@ -139,18 +146,23 @@
     }
 
     .landing-title {
-        font-size: clamp(2.2rem, 6vw, 4.2rem);
+        font-size: clamp(2.4rem, 6.5vw, 4.6rem);
         font-weight: 800;
-        line-height: 1.05;
+        line-height: 1.02;
+        letter-spacing: -0.02em;
         margin: 0 0 var(--space-5);
         color: #ffffff;
-        max-width: 28ch;
+        max-width: 22ch;
+    }
+
+    .landing-title .verified {
+        color: var(--color-success);
     }
 
     .landing-sub {
-        font-size: clamp(1rem, 1.6vw, 1.2rem);
+        font-size: clamp(1.05rem, 1.7vw, 1.25rem);
         color: #c7ced8;
-        max-width: 46ch;
+        max-width: 44ch;
         line-height: 1.65;
         margin: 0 0 var(--space-6);
     }
@@ -202,18 +214,29 @@
         color: #ffffff;
     }
 
-    /* Verified facts: right column, no cards, separated by hairline rules. */
+    /* Facts rail: a numbered ledger — each claim gets an index numeral and a
+       source line. Numbers are the design element, not decoration. */
     .facts {
         position: relative;
         z-index: 1;
-        padding: var(--space-8) var(--space-8) var(--space-16);
-        max-width: 60ch;
+        padding: var(--space-8) var(--space-8) var(--space-12);
+        max-width: 46ch;
     }
 
     .facts__heading {
-        font-size: var(--type-h3);
-        color: #ffffff;
+        font-size: var(--type-label);
+        font-weight: var(--type-label-weight);
+        text-transform: uppercase;
+        letter-spacing: var(--type-label-tracking);
+        color: #b9c2d0;
+        margin: 0 0 var(--space-2);
+    }
+
+    .facts__note {
+        font-size: 0.85rem;
+        color: #8b94a3;
         margin: 0 0 var(--space-5);
+        max-width: 38ch;
     }
 
     .facts__list {
@@ -222,30 +245,35 @@
         padding: 0;
         display: flex;
         flex-direction: column;
-        gap: 0;
+        counter-reset: fact;
     }
 
     .fact {
         display: flex;
         align-items: flex-start;
-        gap: var(--space-3);
-        padding: var(--space-4) 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        gap: var(--space-4);
+        padding: var(--space-5) 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
         color: #e2e8f0;
+        counter-increment: fact;
     }
 
-    .fact:first-child { border-top: none; }
-
-    .fact__check {
+    .fact__num {
         flex-shrink: 0;
-        color: var(--color-success);
-        margin-top: 2px;
+        font-size: var(--type-h2);
+        font-weight: 800;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.28);
+        font-variant-numeric: tabular-nums;
+        min-width: 2ch;
     }
+
+    .fact__num::before { content: counter(fact, decimal-leading-zero); }
 
     .fact__text {
         display: flex;
         flex-direction: column;
-        gap: var(--space-1);
+        gap: var(--space-2);
     }
 
     .fact__claim {
@@ -254,7 +282,7 @@
     }
 
     .fact__source {
-        color: #c7ced8;
+        color: #8b94a3;
         font-size: 0.85rem;
         text-decoration: none;
     }
@@ -265,13 +293,14 @@
         text-decoration: underline;
     }
 
-    /* Mobile: stack and reduce padding. */
+    /* Mobile: stack, facts rail drops below the hero and loses the rail rule. */
     @media (max-width: 899px) {
+        .landing-main { align-items: start; }
         .landing-topbar { padding: var(--space-4); }
         .landing-topbar__links { gap: var(--space-3); }
-        .landing-hero { padding: var(--space-6) var(--space-4) var(--space-8); }
-        .facts { padding: var(--space-6) var(--space-4) var(--space-8); }
-        .landing-title { font-size: clamp(1.9rem, 10vw, 2.8rem); }
+        .landing-hero { padding: var(--space-8) var(--space-4) var(--space-8); }
+        .facts { padding: var(--space-6) var(--space-4) var(--space-10); }
+        .landing-title { font-size: clamp(2rem, 11vw, 2.9rem); }
         .landing-cta-primary { width: 100%; justify-content: center; }
     }
 
@@ -300,55 +329,41 @@
 {% endblock %}
 
 {% block content %}
-<!-- Liquid home-field — a soft, off-center zone that holds the comforts-of-home motif. -->
-<div class="landing-liquid" aria-hidden="true">
-    <svg class="landing-liquid__svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" focusable="false">
+<!-- Typographic ledger field — ruled lines and an oversized record mark,
+     replacing the comforts-of-home silhouettes. Decorative, aria-hidden. -->
+<div class="landing-ledger" aria-hidden="true">
+    <svg class="landing-ledger__svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" focusable="false">
         <defs>
-            <linearGradient id="liquid-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#0f172a"/>
-                <stop offset="55%" stop-color="#1e3a5f"/>
+            <linearGradient id="ledger-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#16213e"/>
+                <stop offset="60%" stop-color="#1e3a5f"/>
                 <stop offset="100%" stop-color="#172a4d"/>
             </linearGradient>
-            <radialGradient id="liquid-glow" cx="65%" cy="35%" r="55%">
-                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.18"/>
+            <radialGradient id="ledger-glow" cx="30%" cy="70%" r="60%">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.14"/>
                 <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
             </radialGradient>
-            <pattern id="liquid-grain" width="3" height="3" patternUnits="userSpaceOnUse">
+            <pattern id="ledger-grain" width="3" height="3" patternUnits="userSpaceOnUse">
                 <rect width="3" height="3" fill="#ffffff" fill-opacity="0.012"/>
+            </pattern>
+            <pattern id="ledger-lines" width="40" height="28" patternUnits="userSpaceOnUse">
+                <line x1="0" y1="27.5" x2="40" y2="27.5" stroke="#93c5fd" stroke-opacity="0.05" stroke-width="1"/>
             </pattern>
         </defs>
 
-        <path d="M0,0 L1440,0 L1440,900 C1080,900 960,780 840,660 C720,540 540,560 0,480 L0,0 Z"
-              fill="url(#liquid-fill)"/>
-        <path d="M0,0 L1440,0 L1440,900 C1080,900 960,780 840,660 C720,540 540,560 0,480 L0,0 Z"
-              fill="url(#liquid-glow)"/>
-        <path d="M0,0 L1440,0 L1440,900 C1080,900 960,780 840,660 C720,540 540,560 0,480 L0,0 Z"
-              fill="url(#liquid-grain)"/>
+        <rect width="1440" height="900" fill="url(#ledger-fill)"/>
+        <rect width="1440" height="900" fill="url(#ledger-glow)"/>
+        <rect width="1440" height="900" fill="url(#ledger-grain)"/>
+        <rect width="1440" height="900" fill="url(#ledger-lines)"/>
 
-        <!-- Comforts of home — faint silhouettes inside the liquid zone. -->
-        <g stroke="#93c5fd" stroke-opacity="0.22" stroke-width="2" fill="none">
-            <!-- rooftops -->
-            <path d="M900,720 L960,670 L1020,720 L1020,760 L900,760 Z"/>
-            <path d="M1050,720 L1100,680 L1150,720 L1150,760 L1050,760 Z"/>
-            <path d="M1200,720 L1260,660 L1320,720 L1320,760 L1200,760 Z"/>
-            <!-- chimney -->
-            <path d="M1130,690 L1130,670 L1145,670 L1145,695"/>
-            <!-- tree -->
-            <path d="M800,720 L800,660"/>
-            <path d="M800,660 C780,640 780,612 800,600 C820,612 820,640 800,660"/>
-            <!-- chair -->
-            <path d="M650,680 L650,750 M650,700 L720,700 M720,680 L720,750"/>
+        <!-- Oversized record marks — faint paragraph glyphs and a check,
+             the vocabulary of a verified record. -->
+        <g fill="#93c5fd" fill-opacity="0.05" font-family="Georgia, 'Times New Roman', serif" font-weight="bold">
+            <text x="1120" y="240" font-size="340">¶</text>
+            <text x="120" y="800" font-size="280">§</text>
         </g>
-        <g fill="#fde68a" fill-opacity="0.45">
-            <!-- windows -->
-            <rect x="1030" y="690" width="8" height="10"/>
-            <rect x="1120" y="700" width="8" height="10"/>
-            <rect x="1250" y="690" width="8" height="10"/>
-        </g>
-        <g fill="#93c5fd" fill-opacity="0.10">
-            <!-- smoke puffs -->
-            <circle cx="1138" cy="650" r="8"/>
-            <circle cx="820" cy="570" r="10"/>
+        <g stroke="#34d399" stroke-opacity="0.10" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1180 640 l44 44 96 -104"/>
         </g>
     </svg>
 </div>
@@ -356,7 +371,7 @@
 <section class="landing-hero" aria-labelledby="landing-title">
     <p class="landing-eyebrow">A nonprofit tenant-rights platform</p>
     <h1 id="landing-title" class="landing-title">
-        Document what happened. Know the facts. Take the next step.
+        Document what happened. Know the <span class="verified">verified</span> facts. Take the next step.
     </h1>
     <p class="landing-sub">
         Semptify helps renters organize the paper trail between them and their landlord — in their own storage, on their own terms.
@@ -373,14 +388,11 @@
 {% if landing_facts %}
 <section class="facts" aria-labelledby="facts-heading">
     <h2 id="facts-heading" class="facts__heading">Verified facts</h2>
+    <p class="facts__note">Every claim here is checked against a named source. If we can't verify it, we don't print it.</p>
     <ul class="facts__list">
         {% for fact in landing_facts %}
         <li class="fact">
-            <span class="fact__check" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m5 12 5 5L20 7"/>
-                </svg>
-            </span>
+            <span class="fact__num" aria-hidden="true"></span>
             <span class="fact__text">
                 <p class="fact__claim">{{ fact.claim }}</p>
                 {% if fact.citation and fact.source_url %}
@@ -398,23 +410,23 @@
 
 {% block scripts %}
 <script>
-    // Progressive enhancement only: the liquid home-field shifts gently with pointer movement.
-    // Core content, navigation, and help links work with JavaScript off.
+    // Progressive enhancement only: the ledger field drifts gently with pointer
+    // movement. Core content, navigation, and help links work with JavaScript off.
     (function () {
         var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (reduce) {
             document.documentElement.setAttribute("data-motion", "off");
             return;
         }
-        var field = document.querySelector(".landing-liquid__svg");
+        var field = document.querySelector(".landing-ledger__svg");
         if (!field) return;
         var ticking = false;
         function onMove(e) {
             if (ticking) return;
             ticking = true;
             window.requestAnimationFrame(function () {
-                var x = (e.clientX / window.innerWidth - 0.5) * 16;
-                var y = (e.clientY / window.innerHeight - 0.5) * 12;
+                var x = (e.clientX / window.innerWidth - 0.5) * 14;
+                var y = (e.clientY / window.innerHeight - 0.5) * 10;
                 field.style.transform = "translate(" + (-x) + "px," + (-y) + "px)";
                 ticking = false;
             });
