@@ -3321,8 +3321,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/gui", response_class=HTMLResponse)
     @fastapi_app.get("/gui/home", response_class=HTMLResponse)
     async def gui_home_page(request: Request):
-        """GUI Tenant Home — welcome + entry to Record."""
-        return templates.TemplateResponse(request, "gui/home.html")
+        """Legacy GUI frame home — flagship cutover (consolidate-validate).
+
+        The old frame shell is retired; the canonical tenant home is the
+        flagship. /gui/record, /gui/act, and /gui/* tool routes are separate
+        handlers and are unaffected.
+        """
+        home_stage = navigation.get_stage("tenant_home")
+        return ssot_redirect(
+            home_stage.path if home_stage else "/tenant/start",
+            context="gui_home_page legacy redirect",
+        )
 
     @fastapi_app.get("/gui/record", response_class=HTMLResponse)
     async def gui_record_page(request: Request):
