@@ -5,6 +5,14 @@ Implementation of the pillar-mixer backbone spec
 only**. Does not pick blends, compute intensity, or gather case data.
 Feed it a validated `PageConfig`, get back rendered HTML for the shell.
 
+The four pillars (RECORD / KNOW / ACT / GOVERN) are an **internal**
+reasoning model. They determine which blocks are gathered, which
+skeleton is selected, and how GOVERN safety rules are applied. They are
+**not** rendered as visible labels, colored quadrants, or named zones.
+The tenant sees a single cohesive page with sections in flow order:
+primary, secondary, tertiary, quaternary, and a calm safety strip for
+GOVERN material.
+
 ## Scope
 
 Built per the task brief:
@@ -13,10 +21,13 @@ Built per the task brief:
   configs missing `major_pillar` or with an unrecognized `blend` name.
 - **Skeleton selector** (`skeletons.py`) — four skeletons from §10 as
   grid-template-areas. `major_pillar` selects the skeleton; no other
-  logic overrides this.
+  logic overrides this. Grid areas use flow names (`primary`,
+  `secondary`, `tertiary`, `quaternary`, `safety`) so the rendered page
+  does not expose internal pillar names.
 - **Zone + Block rendering** (`renderer.py`) — `Zone` + three `Block`
   kinds (`InputBlock`, `InfoBlock`, `OutputBlock`) per §8. One renderer
-  per block kind, not per page.
+  per block kind, not per page. Zones are mapped to flow sections; no
+  visible zone labels, levels, or empty-zone placeholder text.
 - **Level → prominence** (`zones.py`) — single configurable function
   `level_to_prominence()` implementing the 0–25 / 26–60 / 61–100
   threshold rule. Hand-tunable in one place.
@@ -24,33 +35,32 @@ Built per the task brief:
   `level_to_visual_weight()` implementing the §11 shade-depth rule
   (0–30 low / 31–70 moderate / 71–100 deep). Drives background-color
   shifts and gradients only — never borders, shadows, or alert styling.
-  Applied to all four zones; no per-skeleton special cases.
+  Applied to all sections; no per-skeleton special cases.
 - **Layout mechanics** (`page_shell.css`) — `.page-shell` is
   `height: 100vh; overflow: hidden;` CSS Grid. `clamp()` for
-  spacing/typography. Zones scale via `fr` units. Individual zones get
-  `overflow-y: auto` only when their own content overflows. Visual
-  language per §11: no cards, no borders, no shadows — zone separation
-  via background-color shifts, gradients, and shape only.
+  spacing/typography. Sections scale via `fr` units. Individual sections
+  get `overflow-y: auto` only when their own content overflows. Visual
+  language per §11: no cards, no borders, no shadows — section
+  separation via background-color shifts, gradients, and shape only.
 - **Mobile renderer** (`page_shell.css`, media query ≤1024px) — §12:
   one config, two renderers. Below 1024px the same `PageConfig` renders
   as a single-column scrolling document (not the desktop poster
-  behavior). Zone stack order: `major_pillar` first, then remaining
-  non-GOVERN zones in fixed default order (KNOW → RECORD → ACT,
-  skipping the major_pillar). GOVERN is NOT in the scroll stack — it
-  renders as a pinned band at the bottom of the viewport
-  (`position: sticky; bottom: 0;`), staying visible regardless of
-  scroll. Breakpoints: `<768px` mobile, `768–1024px` mobile with wider
-  padding (via existing `clamp()` vw scaling — no separate query),
-  `>1024px` desktop skeleton renderer (§10). CSS-only implementation
-  via media queries + `order` property — no JS viewport detection, no
-  renderer-side branching (the skeleton class already encodes
-  major_pillar, so CSS can order zones without Python changes). §11
-  visual language applies identically on mobile — same
-  `visual-weight-{low|moderate|deep}` classes, same
+  behavior). The renderer emits sections in intended read order; GOVERN
+  material renders as a pinned safety strip at the bottom of the
+  viewport (`position: sticky; bottom: 0;`), staying visible regardless
+  of scroll. `govern_focus` pins the safety strip at the top instead,
+  because that skeleton is for high-stakes pages where the disclaimer
+  must be read first. Breakpoints: `<768px` mobile, `768–1024px` mobile
+  with wider padding (via existing `clamp()` vw scaling — no separate
+  query), `>1024px` desktop skeleton renderer (§10). CSS-only
+  implementation via media queries — no JS viewport detection, no
+  renderer-side branching. §11 visual language applies identically on
+  mobile — same `visual-weight-{low|moderate|deep}` classes, same
   `level_to_visual_weight()` helper, device-agnostic.
 - **GOVERN hard rules** (`govern.py`) — floor by risk_tier + override
   authority (GOVERN `suppresses_act_block` filters ACT blocks). GOVERN
-  always has its own dedicated grid area in all four skeletons.
+  material always has its own dedicated section in all four skeletons,
+  rendered as a safety strip.
 
 ## Files
 
@@ -132,9 +142,9 @@ Two sample configs exercise visibly different skeletons:
    tier rather than clamping GOVERN. Matches the codebase's UPL policy.
 
 4. **Zone derivation** — if a config omits `zones`, the loader derives
-   empty zones from `channels` so the grid still renders all four areas
-   (§7: all four zones always exist). Real configs will include `zones`
-   explicitly with their blocks.
+   empty zones from `channels`. The renderer skips any zone that has no
+   visible blocks, so empty areas do not clutter the page. Real configs
+   will include `zones` explicitly with their blocks.
 
 5. **InfoBlock content** — spec-confirmed field (§8). The shell renders
    a container with `data-content-ref` but does NOT load the referenced
@@ -150,7 +160,7 @@ Two sample configs exercise visibly different skeletons:
 7. **GOVERN visual weight** — §11 deletes the earlier §10 open question
    ("GOVERN strip may get visually heavier in `act_focus`"). GOVERN
    weight is now level-driven via `level_to_visual_weight()` like every
-   other zone — no per-skeleton special cases. GOVERN at level ≥71 gets
+   other section — no per-skeleton special cases. GOVERN at level ≥71 gets
    the deepest shade on the page; GOVERN at level ≤30 gets the lightest.
    No alert/banner styling anywhere in the shell.
 

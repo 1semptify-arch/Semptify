@@ -1,19 +1,21 @@
 /* Semptify Page Shell — §9 + §10 + §11 of the pillar-mixer backbone spec.
  *
  * Visual language (§11): no cards, no borders, no shadows, no icons.
- * Zone separation is achieved through background-color shifts, gradients,
- * and shape — never drawn lines. Severity/weight comes from wording +
- * shade depth + space, never from alert styling.
+ * Zone/section separation is achieved through background-color shifts,
+ * gradients, and shape — never drawn lines. Severity/weight comes from
+ * wording + shade depth + space, never from alert styling.
  *
- * Four skeletons (§10): record_focus, know_focus, act_focus, govern_focus.
- * Each has its own grid-template-areas. GOVERN always has its own
- * dedicated grid area in all four.
+ * The four internal pillars (RECORD/KNOW/ACT/GOVERN) drive which blocks
+ * are gathered and how the page is composed, but they are NOT rendered
+ * as visible labels, colored quadrants, or named zones. The tenant sees
+ * a single page flow: primary → secondary → tertiary → quaternary, with
+ * GOVERN material appearing as a calm safety strip.
  *
  * Visual weight (§11) is level-driven via level_to_visual_weight:
  *   0–30   → low (near-invisible shade shift)
  *   31–70  → moderate (clear shade/gradient shift)
  *   71–100 → deep (deepest shade on the page)
- * Applied to ALL four zones — no per-skeleton special cases.
+ * Applied to all sections — no per-skeleton special cases.
  */
 
 /* ---------------------------------------------------------------------------
@@ -48,100 +50,73 @@
 .page-shell.skeleton-govern_focus { /* areas set inline */ }
 
 /* ---------------------------------------------------------------------------
- * Zones — §8 + §11
+ * Sections (formerly zones) — §8 + §11
  *
  * No borders, no box-shadows, no stroke outlines. Separation comes from
- * background-color shifts and subtle gradients. Each zone has a faint
- * base hue (warm/cool) so adjacent zones are distinguishable without
- * drawn lines; visual-weight classes deepen the shade as level rises.
+ * background-color shifts and subtle gradients. Sections share a neutral
+ * base; the safety strip (GOVERN material) gets a faint warm base so it
+ * reads as a cohesive legal/safety band, not a labeled quadrant.
+ *
+ * Visual-weight classes deepen the shade as the level rises.
  * ------------------------------------------------------------------------- */
 .zone {
   min-height: 0;               /* required for grid children to shrink */
-  overflow-y: auto;            /* ONLY this zone scrolls, if its own content overflows */
+  overflow-y: auto;            /* ONLY this section scrolls, if its own content overflows */
   padding: clamp(0.5rem, 1vh, 1rem);
   border-radius: clamp(4px, 0.8vh, 8px);  /* shape, not a drawn border */
   display: flex;
   flex-direction: column;
   gap: clamp(0.25rem, 0.6vh, 0.75rem);
+  --zone-base: #f7f7f5;        /* neutral page background for most sections */
 }
 
-/* Per-zone base hues — very subtle, just enough to separate neighbors.
- * These are the LOW visual-weight backgrounds (level 0–30). */
-.zone[data-zone="record"] { background: #faf9f5; grid-area: record; }   /* warm neutral */
-.zone[data-zone="know"]   { background: #f5f7fa; grid-area: know; }   /* cool neutral */
-.zone[data-zone="act"]    { background: #f9f5fa; grid-area: act; }   /* faint violet */
-.zone[data-zone="govern"] { background: #faf7f0; grid-area: govern; }   /* warm amber */
+/* Flow-based grid areas. The renderer emits section-primary,
+ * section-secondary, section-tertiary, section-quaternary, and
+ * section-safety classes that map to these areas.
+ * The is-safety-strip class marks GOVERN material; it carries the warm
+ * safety tone and sticky behavior, while the section-* class still
+ * controls its position in the layout (so a govern_focus page can place
+ * the safety strip in the primary area). */
+.section-primary   { grid-area: primary; }
+.section-secondary { grid-area: secondary; }
+.section-tertiary  { grid-area: tertiary; }
+.section-quaternary { grid-area: quaternary; }
+.section-safety    { grid-area: safety; }
+.is-safety-strip   { --zone-base: #faf7f0; } /* warm safety tone */
 
 /* Visual weight — §11 level-driven shade depth.
  * Moderate: clear shift from the base. Deep: deepest shade on the page.
  * No alert colors, no warning styling — just darker shades of the same
- * hue family. GOVERN at 'deep' is the heaviest thing on the page, but
- * still calm (no yellow/red alert blocks). */
+ * hue family. The safety strip at 'deep' is the heaviest thing on the page,
+ * but still calm (no yellow/red alert blocks). */
 .zone.visual-weight-low {
-  background: var(--zone-base, #faf9f5);
+  background: var(--zone-base, #f7f7f5);
 }
 .zone.visual-weight-moderate {
   background: linear-gradient(
     160deg,
-    color-mix(in srgb, var(--zone-base, #faf9f5) 88%, #e0e0d8),
-    color-mix(in srgb, var(--zone-base, #faf9f5) 78%, #d0d0c8)
+    color-mix(in srgb, var(--zone-base, #f7f7f5) 88%, #e0e0d8),
+    color-mix(in srgb, var(--zone-base, #f7f7f5) 78%, #d0d0c8)
   );
 }
 .zone.visual-weight-deep {
   background: linear-gradient(
     160deg,
-    color-mix(in srgb, var(--zone-base, #faf9f5) 72%, #c8c8c0),
-    color-mix(in srgb, var(--zone-base, #faf9f5) 60%, #b8b8b0)
+    color-mix(in srgb, var(--zone-base, #f7f7f5) 72%, #c8c8c0),
+    color-mix(in srgb, var(--zone-base, #f7f7f5) 60%, #b8b8b0)
   );
 }
 
-/* Bind --zone-base per zone so the visual-weight gradients pick up the
- * right hue family. */
-.zone[data-zone="record"] { --zone-base: #faf9f5; }
-.zone[data-zone="know"]   { --zone-base: #f5f7fa; }
-.zone[data-zone="act"]    { --zone-base: #f9f5fa; }
-.zone[data-zone="govern"] { --zone-base: #faf7f0; }
-
-/* GOVERN at deep is the heaviest shade anywhere — but still no alert
+/* Safety strip at deep is the heaviest shade anywhere — but still no alert
  * styling. The gradient above already handles depth; this just ensures
- * GOVERN-deep reads as the most visually weighted thing on the page
- * without crossing into warning-banner territory. */
-.zone[data-zone="govern"].visual-weight-deep {
+ * a high-stakes safety strip reads as the most visually weighted thing on
+ * the page without crossing into warning-banner territory. */
+.is-safety-strip.visual-weight-deep {
   background: linear-gradient(
     160deg,
     #e8e3d4,
     #ddd6c2
   );
-}
-
-/* Empty zone placeholder — all four zones always exist (§7). */
-.zone-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f2f2ee;
-  color: #888;
-  font-style: italic;
-  font-size: 0.85em;
-}
-.zone-empty-placeholder::before { content: "(empty zone — all four zones always exist)"; }
-
-/* Zone header — no border-bottom. Separation via spacing + weight. */
-.zone-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-size: clamp(0.7rem, 1vh, 0.9rem);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #555;
-  padding-bottom: clamp(0.2rem, 0.4vh, 0.4rem);
-}
-.zone-label { font-weight: 600; }
-.zone-level {
-  font-variant-numeric: tabular-nums;
-  color: #888;
-  font-size: 0.9em;
 }
 
 /* Emphasis levels — driven by level_to_prominence (§8).
@@ -159,7 +134,7 @@
  * Blocks — §8. Three kinds: input, info, output.
  *
  * No borders, no box-shadows, no stroke outlines on blocks. Blocks are
- * separated from their zone background by a subtle background shift only.
+ * separated from their section background by a subtle background shift only.
  * ------------------------------------------------------------------------- */
 .block {
   padding: clamp(0.4rem, 0.8vh, 0.75rem);
@@ -196,7 +171,7 @@
 
 /* OutputBlock — §11: no alert-style bright colors, no warning-banner
  * treatment. risk_tier is NOT visually styled; visual weight comes from
- * the zone's level. Buttons are calm: plain background, no colored
+ * the section's level. Buttons are calm: plain background, no colored
  * borders, no bright alert fills. */
 .block-output .output-trigger {
   display: inline-block;
@@ -243,41 +218,20 @@
     font-size: 16px;            /* fixed readable size on mobile */
   }
   .zone {
-    overflow-y: visible;        /* zone scrolls with the document */
+    overflow-y: visible;        /* section scrolls with the document */
     min-height: auto;
   }
   .zone[data-collapsed="true"] .zone-blocks {
-    display: block;             /* collapsed zones expand on mobile */
+    display: block;             /* collapsed sections expand on mobile */
   }
 
-  /* --- Zone stack order (§12) ---
-   * Default: KNOW → RECORD → ACT. Major_pillar zone gets order:0 (first).
-   * GOVERN is NOT in the scroll stack — pinned separately below.
-   * The skeleton class already encodes major_pillar (e.g. skeleton-record_focus
-   * → record is major), so CSS can order without any renderer-side branching. */
-  .zone[data-zone="know"]   { order: 1; }
-  .zone[data-zone="record"] { order: 2; }
-  .zone[data-zone="act"]    { order: 3; }
-
-  .skeleton-record_focus .zone[data-zone="record"] { order: 0; }
-  .skeleton-know_focus   .zone[data-zone="know"]   { order: 0; }
-  .skeleton-act_focus    .zone[data-zone="act"]    { order: 0; }
-  /* govern_focus: no override — GOVERN is major but pinned, scroll stack
-   * is KNOW → RECORD → ACT in default order. */
-
-  /* --- GOVERN persistent band (§12) ---
-   * Pinned to bottom of viewport, stays visible regardless of scroll.
-   * Small, quiet, per §11 — no border, no icon, background/shade only.
-   * level_to_visual_weight still applies via the existing visual-weight-*
-   * classes on the zone. max-height prevents GOVERN from consuming the
-   * screen on mobile if its content is long.
-   *
-   * Default: bottom pin for record_focus / know_focus / act_focus — keeps
-   * the major_pillar content visible first on load.
-   * Override below: govern_focus pins TOP (matches its desktop top-dominant
-   * layout and the skeleton's high-stakes purpose per §10 — disclaimer
-   * must be read first on red-tier pages). */
-  .zone[data-zone="govern"] {
+  /* --- Section stack order (§12) ---
+   * The renderer already emits sections in the intended read order, but
+   * we pin the safety strip (GOVERN material) separately. For the three
+   * primary skeletons the safety strip is pinned to the bottom and has
+   * high order so it trails the scroll stack. For govern_focus the safety
+   * material is the primary focus and is pinned to the top. */
+  .is-safety-strip {
     position: sticky;
     bottom: 0;
     order: 99;
@@ -286,10 +240,10 @@
     overflow-y: auto;
     flex-shrink: 0;
   }
-  .skeleton-govern_focus .zone[data-zone="govern"] {
+  .skeleton-govern_focus .is-safety-strip {
     position: sticky;
     top: 0;
     bottom: auto;
-    order: 0;
+    order: -1;
   }
 }
