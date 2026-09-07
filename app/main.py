@@ -3133,74 +3133,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/home", response_class=HTMLResponse)
     async def semptify_home(request: Request):
-        """Serve the Semptify Home â€” tenant front door."""
-        user_id = extract_user_id(request) or ""
-        user_name = None
-        briefcase = None
-        if user_id:
-            try:
-                briefcase = await _get_tenant_briefcase(user_id)
-                user_name = briefcase.user_name
-            except Exception:  # pylint: disable=broad-exception-caught  # noqa: S110
-                # Briefcase fetch failed, will render without user data
-                pass
+        """Legacy tenant front door — flagship cutover (Phase C).
 
-        ctx = {
-            "user_name": user_name,
-            "next_deadline": None,
-            "document_count": 0,
-            "last_document_date": None,
-            "journal_count": 0,
-            "last_journal_date": None,
-            "recent_activity": [],
-            "vault_connected": False,
-            "jurisdiction": None,
-        }
-        if briefcase:
-            ctx["user_name"] = briefcase.user_name
-            ctx["document_count"] = briefcase.vault.total_documents if briefcase.vault else 0
-            ctx["journal_count"] = briefcase.journal.total_entries if briefcase.journal else 0
-            ctx["vault_connected"] = bool(briefcase.vault and briefcase.vault.total_documents is not None)
-            if hasattr(briefcase, "location") and briefcase.location:
-                loc = briefcase.location
-                ctx["jurisdiction"] = getattr(loc, "state_code", None) or getattr(loc, "zip_code", None)
-            if briefcase.timeline and briefcase.timeline.next_deadline:
-                ctx["next_deadline"] = {
-                    "title": briefcase.timeline.next_deadline.title,
-                    "date": briefcase.timeline.next_deadline.date,
-                    "days_remaining": briefcase.timeline.next_deadline.days_until,
-                }
-            activity = []
-            if briefcase.vault and briefcase.vault.documents:
-                for doc in briefcase.vault.documents[:3]:
-                    activity.append(
-                        {
-                            "icon": "ðŸ“„",
-                            "description": f"Document: {doc.get('title', 'Uploaded')}",
-                            "time_ago": doc.get("uploaded_at", "Recently"),
-                        }
-                    )
-            if briefcase.journal and briefcase.journal.recent_entries:
-                for entry in briefcase.journal.recent_entries[:3]:
-                    activity.append(
-                        {
-                            "icon": entry.icon or "ðŸ“",
-                            "description": entry.description,
-                            "time_ago": entry.created_at,
-                        }
-                    )
-            if briefcase.timeline and briefcase.timeline.recent_events:
-                for event in briefcase.timeline.recent_events[:3]:
-                    activity.append(
-                        {
-                            "icon": event.icon or "ðŸ“…",
-                            "description": event.title,
-                            "time_ago": event.date or "Recently",
-                        }
-                    )
-            ctx["recent_activity"] = activity[:5]
-
-        return templates.TemplateResponse(request, "pages/tenant_home.html", ctx)
+        Redirects to the flagship tenant home. Unauthenticated visitors are
+        sent onward by /tenant/start's role guard to the public landing.
+        """
+        home_stage = navigation.get_stage("tenant_home")
+        return ssot_redirect(
+            home_stage.path if home_stage else "/tenant/start",
+            context="semptify_home legacy redirect",
+        )
 
     # ------------------------------------------------------------------
     # Main Navigation Routes (SSOT) â€” /office, /library, /tools, /help
@@ -4465,78 +4407,25 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/home", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/home/", response_class=HTMLResponse)
     async def tenant_home(request: Request):
-        """Serve the tenant home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = await _guard_role_page(request, {"tenant"})
-        if guard_redirect:
-            return guard_redirect
+        """Legacy tenant home — flagship cutover (Phase C).
 
-        # Get user from cookie/session
-        user_id = extract_user_id(request) or ""
-        briefcase = None
-        if user_id:
-            try:
-                briefcase = await _get_tenant_briefcase(user_id)
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Tenant briefcase load failed for %s: %s", user_id[:6] + "***", e)
-
-        # Try tenant home template first, then fall back to main tenant template
-        tenant_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_home.html"
-        if tenant_home_template_path.exists():
-            try:
-                context = (
-                    {"briefcase": briefcase}
-                    if briefcase
-                    else {
-                        "briefcase": None,
-                        "vault": {"total_documents": 0, "has_documents": False},
-                        "timeline": {"has_timeline": False},
-                        "journal": {"has_journal": False},
-                        "inbox": {"unread_count": 0},
-                        "has_any_data": False,
-                        "is_new_tenant": True,
-                    }
-                )
-                # Add framework fields for the redesigned tenant home
-                context["vault_connected"] = bool(
-                    briefcase and briefcase.vault and briefcase.vault.total_documents is not None
-                )
-                context["jurisdiction"] = None
-                context["user_name"] = briefcase.user_name if briefcase else None
-                context["document_count"] = briefcase.vault.total_documents if briefcase and briefcase.vault else 0
-                context["journal_count"] = briefcase.journal.total_entries if briefcase and briefcase.journal else 0
-                context["next_deadline"] = None
-                context["last_document_date"] = None
-                context["last_journal_date"] = None
-                context["recent_activity"] = []
-                if briefcase and briefcase.timeline and briefcase.timeline.next_deadline:
-                    context["next_deadline"] = {
-                        "title": briefcase.timeline.next_deadline.title,
-                        "date": briefcase.timeline.next_deadline.date,
-                        "days_remaining": briefcase.timeline.next_deadline.days_until,
-                    }
-                return templates.TemplateResponse(request, "pages/tenant_home.html", context)
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Tenant home template error: %s", e)
-
-        # Fallback: template missing — return inline HTML (no redirect, never dead-end)
-        return HTMLResponse(
-            content=(
-                '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
-                '<meta name="viewport" content="width=device-width,initial-scale=1">'
-                '<title>Semptify</title></head><body style="font-family:sans-serif;max-width:600px;margin:2rem auto;padding:1rem">'
-                "<h1>Your home page is loading</h1>"
-                "<p>If this persists, call <strong>HOME Line: 612-728-5767</strong> for free tenant help.</p>"
-                '<p><a href="/help">Get help</a> &nbsp;|&nbsp; <a href="/tenant/timeline">View your timeline</a></p>'
-                "</body></html>"
-            ),
-            status_code=200,
+        Redirects to the flagship home at /tenant/start. The old page
+        (pages/tenant_home.html) stays on disk: instant rollback = restore
+        the previous handler body.
+        """
+        home_stage = navigation.get_stage("tenant_home_page")
+        return ssot_redirect(
+            home_stage.path if home_stage else "/tenant/start",
+            context="tenant_home legacy redirect",
         )
 
     @fastapi_app.get("/tenant/start", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/start/", response_class=HTMLResponse)
     async def tenant_home_next(request: Request):
-        """Tenant flagship home (Phase A) — fresh route; /tenant/home keeps
-        serving the old page until cutover per the signed-off spec."""
+        """Tenant flagship home — the canonical tenant landing page.
+
+        Phase C cutover: /home and /tenant/home redirect here; the legacy
+        template stays on disk for instant rollback."""
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
