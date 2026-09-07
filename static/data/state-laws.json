@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "version": "1.0",
-    "last_updated": "2026-08-29",
+    "version": "1.1",
+    "last_updated": "2026-09-07",
     "complete_states": [
       "CA",
       "FL",
@@ -15,7 +15,14 @@
       "PA",
       "TX"
     ],
-    "stub_states": 38
+    "stub_states": 33,
+    "partial_states": [
+      "AZ",
+      "MA",
+      "NJ",
+      "VA",
+      "WA"
+    ]
   },
   "states": {
     "MN": {
@@ -1221,19 +1228,89 @@
       }
     },
     "WA": {
-      "code": "WA",
-      "name": "Washington",
-      "status": "stub",
-      "stub_url": "https://www.washingtonlawhelp.org/issues/housing",
-      "notes": "Washington recently strengthened tenant protections including just cause eviction."
-    },
+        "code": "WA",
+        "name": "Washington",
+        "status": "partial",
+        "stub_url": "https://www.washingtonlawhelp.org/issues/housing",
+        "notice_requirements": {
+          "nonpayment": "14-day notice to pay rent or vacate, in the statutory form that must include legal-aid and rental-assistance information (RCW 59.12.030(3), 59.18.057).",
+          "lease_violation": "10-day notice to comply or vacate for lease breaches other than rent (RCW 59.12.030(4)); 3 days for nuisance, waste, or unlawful activity."
+        },
+        "security_deposit": {
+          "limit": "No statutory limit",
+          "return_deadline": "Within 30 days of termination and move-out, with a specific statement and documentation for any deductions (RCW 59.18.280 — extended from 21 to 30 days by 2023 amendment)",
+          "notes": "Deposit must be held in a trust account; its location must be disclosed to the tenant (RCW 59.18.270)."
+        },
+        "landlord_entry": {
+          "notice_required": "At least 2 days' written notice, entry only at reasonable times; 1 day's notice to show the unit to prospective tenants or purchasers (RCW 59.18.150(6))."
+        },
+        "eviction": {
+          "key_protection": "Just cause required for termination (RCW 59.18.650). Right to appointed counsel for qualifying low-income tenants in eviction cases — the statutory 14-day notice must say so (RCW 59.18.057, 59.18.640)."
+        },
+        "sources": [
+          {
+            "label": "RCW 59.12.030 — unlawful detainer notices",
+            "url": "https://app.leg.wa.gov/RCW/default.aspx?cite=59.12.030"
+          },
+          {
+            "label": "RCW 59.18.057 — 14-day notice statutory form",
+            "url": "https://app.leg.wa.gov/RCW/default.aspx?cite=59.18.057"
+          },
+          {
+            "label": "RCW 59.18.280 — deposit return",
+            "url": "https://app.leg.wa.gov/RCW/default.aspx?cite=59.18.280"
+          },
+          {
+            "label": "RCW 59.18.150 — landlord entry",
+            "url": "https://app.leg.wa.gov/RCW/default.aspx?cite=59.18.150"
+          },
+          {
+            "label": "WashingtonLawHelp — housing",
+            "url": "https://www.washingtonlawhelp.org/issues/housing"
+          }
+        ],
+        "notes": "Crisis-tier fields only — verified against RCW 2026-09-07. Deposit deadline is 30 days under current law (many secondary sources still say 21)."
+      },
     "MA": {
-      "code": "MA",
-      "name": "Massachusetts",
-      "status": "stub",
-      "stub_url": "https://www.masslegalhelp.org/housing",
-      "notes": "Strong tenant protections including rent control in some cities."
-    },
+        "code": "MA",
+        "name": "Massachusetts",
+        "status": "partial",
+        "stub_url": "https://www.masslegalhelp.org/housing-apartments-shelter",
+        "notice_requirements": {
+          "nonpayment": "14-day written notice to quit (M.G.L. c.186 s.11-s.12). A tenant at will who has not had a nonpayment notice in the prior 12 months can stop termination by paying in full within 10 days of the notice.",
+          "lease_violation": "Notice period set by the lease for lease violations; ending a month-to-month tenancy at will requires 30 days' notice or one full rental period, whichever is longer (M.G.L. c.186 s.12)."
+        },
+        "security_deposit": {
+          "limit": "1 month's rent — landlord may only collect first month, last month, a deposit equal to first month, and lock cost (M.G.L. c.186 s.15B(1)(b))",
+          "return_deadline": "Within 30 days of tenancy end; violations can mean treble damages (M.G.L. c.186 s.15B)",
+          "notes": "Deposit must sit in a separate interest-bearing MA account with receipts, annual interest, and a written statement of condition within 10 days."
+        },
+        "landlord_entry": {
+          "notice_required": "No fixed notice period in statute — but a lease may not permit entry except to inspect, repair, or show the unit (M.G.L. c.186 s.15B(1)(a))."
+        },
+        "eviction": {
+          "key_protection": "Nonpayment notices must include a state-mandated form and the statement 'This Notice To Quit Is Not An Eviction... Only A Court Order Can Force You To Leave' — courts may not accept a filing without proof of it (M.G.L. c.186 s.31)."
+        },
+        "sources": [
+          {
+            "label": "M.G.L. c.186 s.11-12 — notices to quit",
+            "url": "https://malegislature.gov/laws/generallaws/partii/titlei/chapter186/section11"
+          },
+          {
+            "label": "M.G.L. c.186 s.15B — security deposits",
+            "url": "https://malegislature.gov/laws/generallaws/partii/titlei/chapter186/section15b"
+          },
+          {
+            "label": "Mass.gov — eviction process / notice to quit",
+            "url": "https://www.mass.gov/info-details/find-out-how-to-start-the-eviction-process"
+          },
+          {
+            "label": "MassLegalHelp — housing",
+            "url": "https://www.masslegalhelp.org/housing-apartments-shelter"
+          }
+        ],
+        "notes": "Crisis-tier fields only — verified against M.G.L. and Mass.gov 2026-09-07."
+      },
     "OR": {
       "code": "OR",
       "name": "Oregon",
@@ -1671,26 +1748,124 @@
       }
     },
     "AZ": {
-      "code": "AZ",
-      "name": "Arizona",
-      "status": "stub",
-      "stub_url": "https://www.azlawhelp.org/issues/housing",
-      "notes": "Arizona prohibits rent control statewide. Landlord-friendly laws."
-    },
+        "code": "AZ",
+        "name": "Arizona",
+        "status": "partial",
+        "stub_url": "https://www.azcourts.gov/legalinfohub/Legal-Info-Sheets/Landlord-Tenant-Disputes-amp-Eviction",
+        "notice_requirements": {
+          "nonpayment": "5-day written notice that rent is unpaid and the rental agreement will terminate if not paid (A.R.S. 33-1368(B)). Paying all rent, late fees, and costs before judgment reinstates the tenancy.",
+          "lease_violation": "10-day notice to remedy for material noncompliance; 5 days for breaches materially affecting health and safety; immediate filing allowed only for material and irreparable breaches (A.R.S. 33-1368(A))."
+        },
+        "security_deposit": {
+          "limit": "1.5 months' rent (A.R.S. 33-1321(A))",
+          "return_deadline": "14 days excluding weekends and legal holidays, after termination plus possession plus tenant's demand, with itemized deductions (A.R.S. 33-1321(D))",
+          "notes": "Any fee not designated nonrefundable in writing is refundable."
+        },
+        "landlord_entry": {
+          "notice_required": "At least 2 days' notice, entry only at reasonable times; tenant's own repair request counts as permission for that repair (A.R.S. 33-1343)."
+        },
+        "eviction": {
+          "key_protection": "Court must dismiss if the termination notice was defective or improperly served; landlord cannot accept partial payment mid-process without a signed waiver (A.R.S. 33-1368, 33-1371; RPEA 13)."
+        },
+        "sources": [
+          {
+            "label": "A.R.S. 33-1368 — noncompliance / nonpayment",
+            "url": "https://www.azleg.gov/ars/33/01368.htm"
+          },
+          {
+            "label": "A.R.S. 33-1321 — security deposits",
+            "url": "https://azleg.gov/ars/33/01321.htm"
+          },
+          {
+            "label": "A.R.S. 33-1343 — access",
+            "url": "https://azleg.gov/ars/33/01343.htm"
+          },
+          {
+            "label": "AZ Courts — nonpayment info sheet",
+            "url": "https://www.azcourts.gov/legalinfohub/Legal-Info-Sheets/Landlord-Tenant-Disputes-amp-Eviction/Non-Payment-of-Rent"
+          }
+        ],
+        "notes": "Crisis-tier fields only — verified against A.R.S. 2026-09-07."
+      },
     "VA": {
-      "code": "VA",
-      "name": "Virginia",
-      "status": "stub",
-      "stub_url": "https://www.valegalaid.org/issues/housing",
-      "notes": "Virginia made significant tenant protection updates in recent years."
-    },
+        "code": "VA",
+        "name": "Virginia",
+        "status": "partial",
+        "stub_url": "https://www.valegalaid.org/issues/housing",
+        "notice_requirements": {
+          "nonpayment": "14-day written pay-or-quit notice before filing (Va. Code 55.1-1245(F), as amended effective July 1, 2026 — previously 5 days).",
+          "lease_violation": "30-day written notice; tenancy terminates unless breach is remedied within 21 days (Va. Code 55.1-1245)."
+        },
+        "security_deposit": {
+          "limit": "2 months' periodic rent (Va. Code 55.1-1226(A))",
+          "return_deadline": "45 days after termination or move-out, whichever is later, with itemized deductions (Va. Code 55.1-1226)"
+        },
+        "landlord_entry": {
+          "notice_required": "Notice of intent required; entry only at reasonable times. 72 hours' notice for unrequested routine maintenance (Va. Code 55.1-1229)."
+        },
+        "eviction": {
+          "key_protection": "Unlawful detainer filed only after the notice period expires; tenant's right of redemption preserved when the landlord gives proper statutory notice language (Va. Code 55.1-1250)."
+        },
+        "sources": [
+          {
+            "label": "Va. Code 55.1-1245 — noncompliance/pay-or-quit",
+            "url": "https://law.lis.virginia.gov/vacode/title55.1/chapter12/section55.1-1245/"
+          },
+          {
+            "label": "Va. Code 55.1-1226 — security deposits",
+            "url": "https://law.lis.virginia.gov/vacode/title55.1/section55.1-1226/"
+          },
+          {
+            "label": "Va. Code 55.1-1229 — landlord access",
+            "url": "https://law.lis.virginia.gov/vacode/title55.1/chapter12/section55.1-1229/"
+          },
+          {
+            "label": "Virginia Legal Aid — housing",
+            "url": "https://www.valegalaid.org/issues/housing"
+          }
+        ],
+        "notes": "Crisis-tier fields only — verified against Va. Code 2026-09-07. Pay-or-quit period changed to 14 days effective 2026-07-01 (HB15/SB48)."
+      },
     "NJ": {
-      "code": "NJ",
-      "name": "New Jersey",
-      "status": "stub",
-      "stub_url": "https://www.lsnjlawhotline.org/housing",
-      "notes": "Many NJ cities have rent control. Strong anti-eviction protections."
-    },
+        "code": "NJ",
+        "name": "New Jersey",
+        "status": "partial",
+        "stub_url": "https://www.lsnjlaw.org/Pages/Housing.aspx",
+        "notice_requirements": {
+          "nonpayment": "No advance notice-to-quit required — landlord may file after a written demand for rent. Tenant can stop the case by paying all rent owed plus costs any time before judgment (N.J.S.A. 2A:18-55, 2A:18-61.2).",
+          "lease_violation": "One month's written notice for substantial breach of covenant; 3 days for disorderly conduct or damage to premises (N.J.S.A. 2A:18-61.2)."
+        },
+        "security_deposit": {
+          "limit": "1.5 times one month's rent (N.J.S.A. 46:8-21.2)",
+          "return_deadline": "30 days after lease termination, with itemized deductions and tenant's share of interest (N.J.S.A. 46:8-21.1)",
+          "notes": "Deposit must be held in an insured, interest-bearing NJ account; wrongful withholding can cost double plus fees."
+        },
+        "landlord_entry": {
+          "notice_required": "No statewide statute — lease terms govern. DCA regulations for buildings with 3+ units treat 1 day as reasonable notice for inspections/repairs (N.J.A.C. 5:10)."
+        },
+        "eviction": {
+          "key_protection": "Just cause required statewide from day one — a landlord may only remove a residential tenant on a ground listed in the Anti-Eviction Act (N.J.S.A. 2A:18-61.1). Excludes owner-occupied buildings with 2 or fewer units."
+        },
+        "sources": [
+          {
+            "label": "N.J.S.A. 2A:18-61.2 — required notices",
+            "url": "https://law.justia.com/codes/new-jersey/title-2a/section-2a-18-61-2/"
+          },
+          {
+            "label": "N.J.S.A. 46:8-21.1/-21.2 — security deposits",
+            "url": "https://law.justia.com/codes/new-jersey/title-46/section-46-8-21-2/"
+          },
+          {
+            "label": "NJ DCA security deposit bulletin",
+            "url": "https://nj.gov/dca/divisions/codes/publications/pdf_lti/secty_deposit_bulletin.pdf"
+          },
+          {
+            "label": "Legal Services of NJ — housing",
+            "url": "https://www.lsnjlaw.org/Pages/Housing.aspx"
+          }
+        ],
+        "notes": "Crisis-tier fields only — verified against NJ statutes 2026-09-07. Full detail (discrimination, forms, programs) pending."
+      },
     "WI": {
       "code": "WI",
       "name": "Wisconsin",
