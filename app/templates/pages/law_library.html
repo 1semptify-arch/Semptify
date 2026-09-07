@@ -20,7 +20,7 @@
     .ll-tab:hover:not(.ll-tab--active) { border-color: var(--color-primary-light); color: var(--color-primary); }
     .ll-tab--active { background: var(--color-primary); color: var(--text-inverse); border-color: var(--color-primary); }
     .ll-results { display: grid; gap: var(--space-4); }
-    .ll-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: var(--space-4); }
+    .ll-card { background: var(--bg-card); border: none; border-radius: var(--radius-block); padding: var(--space-4); box-shadow: var(--elevation-1); }
     .ll-card h3 { font-size: var(--type-h3); color: var(--color-primary); margin: 0 0 var(--space-1); font-weight: var(--type-h3-weight); }
     .ll-card details { margin-top: var(--space-3); }
     .ll-card details summary { color: var(--color-info); font-weight: var(--font-semibold); cursor: pointer; }
@@ -34,13 +34,13 @@
     .ll-source a { font-weight: var(--font-semibold); }
     .ll-verified { color: var(--text-secondary); margin-left: var(--space-2); }
     .ll-empty { text-align: center; padding: var(--space-8); color: var(--text-secondary); }
-    .ll-help { background: var(--bg-card); border: 1px solid var(--border-color); border-left: 4px solid var(--color-warning); padding: var(--space-4); margin-top: var(--space-8); }
+    .ll-help { background: var(--bg-card); border: none; border-left: 4px solid var(--color-warning); border-radius: var(--radius-block); padding: var(--space-4); margin-top: var(--space-8); box-shadow: var(--elevation-1); }
     .ll-help p { font-size: var(--text-sm); color: var(--text-secondary); margin: 0 0 var(--space-3); }
-    .ll-librarian { background: var(--bg-card); border: 1px solid var(--border-color); padding: var(--space-4); margin-top: var(--space-8); }
+    .ll-librarian { background: var(--bg-card); border: none; border-radius: var(--radius-block); padding: var(--space-4); margin-top: var(--space-8); box-shadow: var(--elevation-1); }
     .ll-librarian > p { font-size: var(--text-sm); color: var(--text-secondary); margin: 0 0 var(--space-3); }
     .ll-chat { border: 1px solid var(--border-color); padding: var(--space-4); height: 220px; overflow-y: auto; background: var(--bg-page); margin-bottom: var(--space-3); }
     .ll-msg { margin-bottom: var(--space-3); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-relaxed); }
-    .ll-msg--bot { background: var(--bg-card); border: 1px solid var(--border-color); }
+    .ll-msg--bot { background: var(--bg-card); border: none; border-radius: var(--radius-block); box-shadow: var(--elevation-1); }
     .ll-msg--user { background: var(--color-primary); color: var(--text-inverse); margin-left: 10%; }
     .ll-chat-input { display: flex; gap: var(--space-2); }
     .ll-chat-input .form-input { flex: 1; }
