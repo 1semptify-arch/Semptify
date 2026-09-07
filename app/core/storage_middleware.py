@@ -103,6 +103,8 @@ PUBLIC_PATHS: set[str] = {
     "/tenant/start/",
     "/tenant/get-help",
     "/tenant/get-help/",
+    "/tenant/resources",
+    "/tenant/resources/",
     "/tenant/timeline",
     "/tenant/timeline/",
     "/tenant/library",

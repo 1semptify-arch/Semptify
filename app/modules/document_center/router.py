@@ -733,6 +733,66 @@ async def dc_view_document(vault_id: str, request: Request):
         return JSONResponse(status_code=500, content={"error": "view_failed", "detail": str(e)})
 
 
+@router.get("/document/{vault_id}/explain")
+async def dc_explain_document(vault_id: str, request: Request) -> JSONResponse:
+    """Return the plain-English 'What does this mean?' explanation for a doc.
+
+    Flagship Phase B: surfaces DocumentIntelligenceService output on the DC
+    page. Reads the cached intelligence_result from the pipeline index when
+    present; otherwise runs the analysis if the doc has extracted text.
+
+    404 — no pipeline row (never processed / not the user's doc)
+    422 — processed but no extracted text yet (needs Process first)
+    """
+    user_id = _auth(request)
+    if not user_id:
+        return JSONResponse(status_code=401, content={"error": "not_authenticated"})
+
+    row = await _get_pipeline_row(user_id, vault_id)
+    if row is None:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "error": "not_processed",
+                "message": "This document hasn't been processed yet. Run Process first, then its explanation will appear here.",
+            },
+        )
+
+    try:
+        payload = json.loads(row.payload_json or "{}")
+    except (json.JSONDecodeError, TypeError):
+        payload = {}
+
+    result = payload.get("intelligence_result")
+    if not result:
+        from app.services.document_pipeline import get_document_pipeline
+
+        pipeline = get_document_pipeline()
+        result = await pipeline.get_intelligence(row.doc_id)
+
+    if not result:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": "no_text",
+                "message": "No text has been extracted from this document yet — run Process, then try again.",
+            },
+        )
+
+    understanding = result.get("understanding", {})
+    return JSONResponse(
+        {
+            "title": understanding.get("title"),
+            "summary": understanding.get("summary"),
+            "plain_english": understanding.get("plain_english"),
+            "document_type": result.get("classification", {}).get("document_type"),
+            "urgency": result.get("urgency", {}),
+            "action_items": result.get("insights", {}).get("action_items", []),
+            "key_dates": result.get("extracted_data", {}).get("dates", []),
+        }
+    )
+
+
 @router.post("/document/{vault_id}/type")
 async def dc_set_document_type(vault_id: str, request: Request) -> JSONResponse:
     """Set or correct the document type from the DC viewer dropdown.

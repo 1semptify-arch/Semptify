@@ -3576,8 +3576,32 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/gui/packet-builder", response_class=HTMLResponse)
     async def gui_packet_builder_page(request: Request):
-        """GUI Packet Builder — build and download curated document packets."""
-        return templates.TemplateResponse(request, "gui/packet_builder.html")
+        """GUI Packet Builder — build and download curated document packets.
+
+        Flagship Phase B: composer/preview shell — document picker (left),
+        assembled packet + downloads (right). Auth is enforced by the
+        packet-builder API (yellow_access) and the storage middleware.
+        """
+        contract = {
+            "module": "packet_builder",
+            "group_name": "build_packet",
+            "title": "Build a packet",
+            "description": "Gather documents into one organized download for court, a landlord, or an advocate.",
+            "inputs": ("vault_ids", "name", "mode", "include flags", "case_id", "folder_id"),
+            "outputs": ("packet_id", "item_count", "download_urls"),
+        }
+        return templates.TemplateResponse(
+            request,
+            "gui/packet_builder.html",
+            {
+                "contract": contract,
+                "shell_ratio": "3fr 2fr",
+                "shell_primary": "composer",
+                "shell_mobile_order": ["composer", "preview", "help"],
+                "submit_label": "Build packet",
+                "csrf_token": getattr(request.state, "csrf_token", ""),
+            },
+        )
 
     @fastapi_app.get("/gui/dashboard", response_class=HTMLResponse)
     async def gui_dashboard_page(
@@ -4569,6 +4593,40 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "shell_primary": "preview",
                 "shell_mobile_order": ["composer", "preview", "help"],
                 "submit_label": "Find my next step",
+                "csrf_token": getattr(request.state, "csrf_token", ""),
+            },
+        )
+
+    @fastapi_app.get("/tenant/resources", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/resources/", response_class=HTMLResponse)
+    async def tenant_resources(request: Request):
+        """Tenant-facing resource directory — 'find help near you'.
+
+        Flagship Phase B: a real page over the existing /api/resources
+        directory instead of a raw JSON link. Emergency/crisis/hotline
+        listings are pinned on top with one-tap tel: links.
+        """
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+
+        contract = {
+            "module": "resource_directory",
+            "group_name": "list_resources",
+            "title": "Find help near you",
+            "description": "Legal aid, hotlines, and community resources — verified listings.",
+            "inputs": ("search", "category", "language"),
+            "outputs": ("resources", "contact_info"),
+        }
+        return templates.TemplateResponse(
+            request,
+            "pages/tenant_resources.html",
+            {
+                "contract": contract,
+                "shell_ratio": "2fr 3fr",
+                "shell_primary": "preview",
+                "shell_mobile_order": ["composer", "preview", "help"],
+                "submit_label": "Find resources",
                 "csrf_token": getattr(request.state, "csrf_token", ""),
             },
         )
