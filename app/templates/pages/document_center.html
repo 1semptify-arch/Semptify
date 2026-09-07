@@ -1155,6 +1155,12 @@
                 });
             }
             if (!html) html = '<div class="frame-empty"><p style="color:#94a3b8;">This document was processed but produced no explanation.</p></div>';
+            // IO expansion (ADR-0008): at high intensity or on a first visit,
+            // prepend a short orientation line; it tapers away with exposure.
+            if (html && (data.intensity_level >= 3 || data.exposure_count <= 1)) {
+                html = '<p style="color:#94a3b8; font-size:0.75rem; font-style:italic; margin-bottom:0.5rem;">' +
+                    'This is a plain-English read of what your document says and what it likely means for you — a starting point, not legal advice.</p>' + html;
+            }
             pane.innerHTML = html;
         } catch (e) {
             pane.innerHTML = '<div class="frame-empty"><p style="color:#94a3b8;">Could not load the explanation. Your document is safe — try again.</p></div>';

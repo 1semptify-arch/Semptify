@@ -1,4 +1,5 @@
 {% extends "body/composer_preview_body.html" %}
+{% from "components/ui_composer.html" import process_indicator with context %}
 {#
   Guided triage — "Get help now" destination for the tenant flagship.
 
@@ -97,6 +98,9 @@
 {% endblock %}
 
 {% block preview %}
+  {% if narration %}
+  {{ process_indicator(narration) }}
+  {% endif %}
   <p class="cps__empty" id="triageEmpty">Your next steps will appear here.</p>
   <div id="triageResult" hidden></div>
 {% endblock %}

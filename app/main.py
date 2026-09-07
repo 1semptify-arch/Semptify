@@ -4473,7 +4473,26 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "inputs": ("primary_concern", "urgency", "urgent_date", "timeline_start", "situation"),
             "outputs": ("primary_concern", "is_urgent", "next_steps"),
         }
-        return templates.TemplateResponse(
+
+        # IO expansion (ADR-0008): wire the Experience Token tapering dial —
+        # the process_indicator narration tapers as the tenant gains
+        # familiarity with this surface.
+        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+
+        object_type = "guided_intake:get_help_triage"
+        tapering_ctx = await get_tapering_context(request, object_type)
+        narration = {
+            "state": "pending",
+            "step_label": "When you click Find my next step, Semptify does the following:",
+            "mode": "sync",
+            "narration": [
+                "Reads your answers to understand what kind of situation you're in.",
+                "Suggests the most useful next step — a tool, a guide, or a verified resource.",
+                "Nothing is filed, sent, or shared — this is guidance, not a submission.",
+            ],
+        }
+
+        response = templates.TemplateResponse(
             request,
             "pages/tenant_get_help.html",
             {
@@ -4483,8 +4502,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "shell_mobile_order": ["composer", "preview", "help"],
                 "submit_label": "Find my next step",
                 "csrf_token": getattr(request.state, "csrf_token", ""),
+                "intensity_level": tapering_ctx["intensity_level"],
+                "exposure_count": tapering_ctx["exposure_count"],
+                "narration": narration,
             },
         )
+        if not tapering_ctx["experience_token_saved_to_cloud"]:
+            set_experience_token_cookie(response, tapering_ctx["experience_token"])
+        return response
 
     @fastapi_app.get("/tenant/resources", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/resources/", response_class=HTMLResponse)
