@@ -66,6 +66,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.compliance import validate_app_compliance
 from app.core.config import get_settings
+from app.core.context_envelope import (
+    ObjectEnvelope,
+    ObjectType,
+    Pillar,
+    Provenance,
+    TemporalValidity,
+    Who,
+)
 from app.core.cookie_auth import extract_user_id
 from app.core.database import close_db, get_db, init_db
 from app.core.navigation import navigation
@@ -74,6 +82,7 @@ from app.core.security import UserContext, green_access
 from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
 from app.modules.case_builder.fca_guard import require_fca_readiness
+from app.modules.context_engine.retrieval import retrieve_explanations, select_tapered_variant
 
 
 # PyInstaller frozen executable detection
@@ -3373,6 +3382,25 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
 
+        explanation_obj = ObjectEnvelope(
+            object_id=f"guide:{object_type}",
+            object_type=ObjectType.PAGE_ZONE,
+            pillar=Pillar.RECORD,
+            who=Who.TENANT,
+            why="Create a dated journal entry to document a housing event.",
+            provenance=Provenance.USER_ENTERED,
+            temporal_validity=TemporalValidity.EVENT_TRIGGERED,
+            subject_tags=["journal", "record", "entry", "timeline", "event", "evidence"],
+        )
+        explanation_results = await retrieve_explanations(
+            explanation_obj, jurisdiction="MN", limit=1
+        )
+        explanation = None
+        if explanation_results:
+            explanation = select_tapered_variant(
+                explanation_results[0], tapering_ctx["exposure_count"]
+            )
+
         response = templates.TemplateResponse(
             request,
             "pages/journal_create_guide.html",
@@ -3382,6 +3410,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "exposure_count": tapering_ctx["exposure_count"],
                 "situational_available": situational_available,
                 "narration": narration,
+                "explanation": explanation,
                 "next_step": {"label": "View your journal", "path": "/tenant/journal"},
             },
         )
@@ -3418,6 +3447,25 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
 
+        explanation_obj = ObjectEnvelope(
+            object_id=f"guide:{object_type}",
+            object_type=ObjectType.PAGE_ZONE,
+            pillar=Pillar.KNOW,
+            who=Who.TENANT,
+            why="Look up a verified Minnesota statute to understand a rent or payment rule.",
+            provenance=Provenance.USER_ENTERED,
+            temporal_validity=TemporalValidity.STATIC,
+            subject_tags=["rent", "payment", "statute", "law", "know", "lookup"],
+        )
+        explanation_results = await retrieve_explanations(
+            explanation_obj, jurisdiction="MN", limit=1
+        )
+        explanation = None
+        if explanation_results:
+            explanation = select_tapered_variant(
+                explanation_results[0], tapering_ctx["exposure_count"]
+            )
+
         response = templates.TemplateResponse(
             request,
             "pages/law_library_get_statute.html",
@@ -3427,6 +3475,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "exposure_count": tapering_ctx["exposure_count"],
                 "situational_available": situational_available,
                 "narration": narration,
+                "explanation": explanation,
                 "next_step": {"label": "Browse related cases and court rules", "path": "/law-library"},
             },
         )
@@ -3464,6 +3513,25 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
 
+        explanation_obj = ObjectEnvelope(
+            object_id=f"guide:{object_type}",
+            object_type=ObjectType.PAGE_ZONE,
+            pillar=Pillar.ACT,
+            who=Who.TENANT,
+            why="Calculate eviction deadlines from a service date and case type.",
+            provenance=Provenance.SYSTEM_COMPUTED,
+            temporal_validity=TemporalValidity.TIME_BOUND,
+            subject_tags=["eviction", "defense", "deadline", "calculate", "act", "date"],
+        )
+        explanation_results = await retrieve_explanations(
+            explanation_obj, jurisdiction="MN", limit=1
+        )
+        explanation = None
+        if explanation_results:
+            explanation = select_tapered_variant(
+                explanation_results[0], tapering_ctx["exposure_count"]
+            )
+
         response = templates.TemplateResponse(
             request,
             "pages/eviction_defense_calculate_deadlines.html",
@@ -3473,6 +3541,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "exposure_count": tapering_ctx["exposure_count"],
                 "situational_available": situational_available,
                 "narration": narration,
+                "explanation": explanation,
                 "next_step": {"label": "Look up the law behind these deadlines", "path": "/gui/know/law-library/get-statute"},
             },
         )
