@@ -176,7 +176,10 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3, 0.75rem);
-    padding: var(--space-3, 0.75rem) 0;
+    padding: var(--space-3, 0.75rem);
+    background: var(--zone-bg-secondary, #1e293b);
+    border-radius: var(--radius-block);
+    box-shadow: var(--elevation-1);
 }
 
 .gui-screen--support {
@@ -224,7 +227,7 @@
         flex: 0 0 auto;
         display: flex;
         gap: var(--space-3, 0.75rem);
-        padding: var(--space-3, 0.75rem) 0;
+        padding: var(--space-3, 0.75rem);
     }
 
     .gui-screen--support {
