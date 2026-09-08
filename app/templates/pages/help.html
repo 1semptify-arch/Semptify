@@ -4,14 +4,19 @@
 {% block description %}What's happening to you right now? Semptify routes you to the right tool.{% endblock %}
 {% block container_class %}app-posture-locked{% endblock %}
 
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/frame-light.css">
+{% endblock %}
+
 {% block content %}
-<div class="gui-screen">
+<div class="gui-screen frame-light">
 
     <div class="gui-screen--primary">
         <section class="frame-panel">
             <div class="frame-panel--body">
                 <h1 style="font-size:1.5rem; font-weight:600; margin-bottom:0.5rem;">What's happening to you right now?</h1>
-                <p style="color:#94a3b8; font-size:0.9375rem;">
+                <p style="color:var(--text-secondary); font-size:0.9375rem;">
                     Pick the one that fits. Each one takes you to the right tool — no guessing.
                 </p>
             </div>
@@ -78,7 +83,7 @@
     <div class="gui-screen--support">
         <section class="frame-panel">
             <div class="frame-panel--body">
-                <p style="color:#94a3b8; font-size:0.8125rem;">
+                <p style="color:var(--text-muted); font-size:0.8125rem;">
                     <strong>Semptify is an organizational tool, not a law firm.</strong>
                     We can't give legal advice. For legal advice, contact a licensed attorney
                     or your local legal aid society.
