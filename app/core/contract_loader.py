@@ -162,8 +162,11 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.user_concerns.register",
     "app.modules.voice.register",
     "app.modules.vault_installer.register",
-    # NOTE: litigation_intelligence.register excluded — module is INACTIVE in manifest
-    # and has a pre-existing SyntaxError in router.py (non-default arg after default arg).
+    # NOTE: litigation_intelligence.register included. It is a ProductTier.RESEARCH
+    # module, so contract loading is skipped unless all tiers are enabled (development).
+    # The previous SyntaxError claim in router.py was stale; router.py and register.py
+    # both compile and import cleanly. Module future remains undecided here.
+    "app.modules.litigation_intelligence.register",
     # Services with contracts
     "app.services.unified_overlay_manager",
     "app.services.communication_service",
