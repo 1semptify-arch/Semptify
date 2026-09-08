@@ -4262,11 +4262,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             root_path = root_stage.path if root_stage else "/"
             return ssot_redirect(root_path, context="delivery_send role mismatch")
 
-        send_path = BASE_PATH / "static" / "delivery_send.html"
-        send_fallback = _render_static_page(send_path)
-        if send_fallback:
-            return send_fallback
-        return HTMLResponse(content="<h1>Document Send page not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/document_delivery_send.html")
 
     # =========================================================================
     # Tenant Pages (My Case)
