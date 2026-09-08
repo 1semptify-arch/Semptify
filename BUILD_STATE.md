@@ -1,4 +1,31 @@
+## Session — 2026-09-08 — Footer consolidation (consolidate-footer-sources-2026-09-08)
+
+- Created canonical footer partial `app/templates/components/footer.html`.
+- `app/templates/base.html` now includes the canonical partial instead of duplicating the markup.
+- Added `GET /components/footer` route in `app/main.py` to render the same partial for JavaScript injection.
+- Updated `static/js/unified-footer-loader.js` to fetch `/components/footer` and inject it; added a fallback stylesheet only when `ssot-design-system.css` is not already loaded so legacy static pages without SSOT still show the footer.
+- Retired `static/components/footer.html` and `static/components/unified-footer.html` (no live references after module_converter retirement).
+- Verified: `python -m py_compile app/main.py` PASS, `tools/guardrail_engine.py` all 4 PASS, IronBee DevTools ARIA snapshots show correct footer on `/` and `/welcome.html` with no console errors.
+
 ## Session — 2026-09-08 — Dead-page/404 sweep: 5 PRs shipped
+
+### Guardrail Engine Run — 2026-09-08T15:42:18+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-08T15:35:17+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 - **PR #175** (`fix-delivery-send-404-2026-09-08`): `/delivery/send` 404'd for authorized professionals — fell back to missing `static/delivery_send.html`. Now renders `pages/document_delivery_send.html`. Added `/delivery/send` to `page_router._SKIP_ROUTES` (audit anomaly #7).
 - **PR #176** (`fix-setup-wizard-404-2026-09-08`): setup router redirected to missing `/static/setup_wizard.html` (3 places). New `GET /setup` renders `pages/setup_wizard.html` (manifest-declared route, CONTRACT_SETUP_WIZARD); `/setup` added to PUBLIC_PATHS so first-run wizard is reachable pre-storage.
