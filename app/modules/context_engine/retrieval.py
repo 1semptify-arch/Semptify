@@ -111,14 +111,17 @@ async def _score_with_python(
     jurisdiction: str,
     threshold: float,
     limit: int,
+    review_status: str | None,
 ) -> list[RetrievalResult]:
     """SQLite/dev path: metadata pre-filter, then pure-Python cosine similarity."""
-    # Metadata pre-filter: jurisdiction + pillar. We do not require an exact
-    # subject match — the point of semantic retrieval is to bridge tags that
-    # mean the same thing (e.g. "late fee" and "penalty charge").
+    # Metadata pre-filter: jurisdiction + pillar + review status. We do not
+    # require an exact subject match — the point of semantic retrieval is to
+    # bridge tags that mean the same thing (e.g. "late fee" and "penalty
+    # charge").
     candidates = await get_explanation_entries(
         jurisdiction=jurisdiction,
         pillar=obj.pillar,
+        review_status=review_status,
         limit=1000,
     )
 
@@ -141,6 +144,7 @@ async def _score_with_pgvector(
     jurisdiction: str,
     threshold: float,
     limit: int,
+    review_status: str | None,
 ) -> list[RetrievalResult] | None:
     """PostgreSQL path: use pgvector's native <=> cosine-distance operator.
 
@@ -163,16 +167,20 @@ async def _score_with_pgvector(
         )
         similarity_expr = 1 - distance_expr
 
+        conditions = [
+            ContextExplanationEntry.jurisdiction == jurisdiction,
+            ContextExplanationEntry.pillar == obj.pillar,
+            ContextExplanationEntry.embedding.is_not(None),
+            similarity_expr >= threshold,
+        ]
+        if review_status is not None:
+            conditions.append(
+                ContextExplanationEntry.review_status == review_status
+            )
+
         stmt = (
             select(ContextExplanationEntry, similarity_expr.label("score"))
-            .where(
-                and_(
-                    ContextExplanationEntry.jurisdiction == jurisdiction,
-                    ContextExplanationEntry.pillar == obj.pillar,
-                    ContextExplanationEntry.embedding.is_not(None),
-                    similarity_expr >= threshold,
-                )
-            )
+            .where(and_(*conditions))
             .order_by(distance_expr)
             .limit(limit * 2)
         )
@@ -193,11 +201,17 @@ async def retrieve_explanations(
     *,
     jurisdiction: str = "MN",
     limit: int = 5,
+    review_status: str | None = "VETTED",
 ) -> list[RetrievalResult]:
     """Rank Layer 1 explanation entries against an Object Envelope.
 
     Returns only results with a semantic score >= LAYER2_CONFIDENCE_THRESHOLD,
     sorted highest-first.
+
+    ``review_status`` defaults to ``"VETTED"`` so tenant-facing surfaces only
+    serve reviewed entries — unreviewed (BETA) content stays in the database
+    but does not retrieve for tenants. Admin/internal callers may pass
+    ``None`` to include entries of any review status.
     """
     query_text = _query_text(obj)
     if not query_text.strip():
@@ -213,13 +227,13 @@ async def retrieve_explanations(
 
     if engine.dialect.name == "postgresql":
         pg_results = await _score_with_pgvector(
-            query_embedding, obj, jurisdiction, threshold, limit
+            query_embedding, obj, jurisdiction, threshold, limit, review_status
         )
         if pg_results is not None:
             return pg_results
 
     return await _score_with_python(
-        query_embedding, obj, jurisdiction, threshold, limit
+        query_embedding, obj, jurisdiction, threshold, limit, review_status
     )
 
 
