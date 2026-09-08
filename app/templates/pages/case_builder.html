@@ -26,7 +26,7 @@
 }
 
 .header p {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     font-size: 1rem;
 }
 
@@ -37,24 +37,26 @@
 }
 
 .documents-panel {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     padding: 1.5rem;
+    box-shadow: var(--elevation-1);
 }
 
 .evidence-panel {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     padding: 1.5rem;
+    box-shadow: var(--elevation-1);
 }
 
 .panel-title {
     font-size: 1.125rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 .doc-list {
@@ -67,10 +69,11 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    border: none;
+    border-radius: var(--radius-input);
     margin-bottom: 0.5rem;
+    box-shadow: var(--elevation-1);
 }
 
 .doc-item input[type="checkbox"] {
@@ -85,12 +88,12 @@
 .doc-name {
     font-size: 0.9375rem;
     font-weight: 500;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 .doc-date {
     font-size: 0.8125rem;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
 }
 
 .evidence-section {
@@ -101,15 +104,16 @@
     font-size: 0.9375rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 .evidence-item {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    border: none;
+    border-radius: var(--radius-input);
     padding: 0.75rem;
     margin-bottom: 0.5rem;
+    box-shadow: var(--elevation-1);
 }
 
 .evidence-type {
@@ -121,17 +125,17 @@
 
 .evidence-desc {
     font-size: 0.875rem;
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
 }
 
 .notes-area {
     width: 100%;
     min-height: 100px;
     padding: 0.75rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    color: var(--color-text-primary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-input);
+    color: var(--text-primary);
     font-size: 0.875rem;
     resize: vertical;
 }
@@ -146,7 +150,7 @@
     flex: 1;
     padding: 0.75rem 1rem;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-input);
     font-weight: 600;
     cursor: pointer;
     font-size: 0.875rem;
@@ -158,33 +162,34 @@
 }
 
 .btn-secondary {
-    background: var(--color-bg-secondary);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 
 .empty-state {
     text-align: center;
     padding: 2rem;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
 }
 
 .export-panel {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    box-shadow: var(--elevation-1);
 }
 
 .export-panel .export-select {
     flex: 1;
     min-width: 200px;
     padding: 0.5rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-secondary);
-    color: var(--color-text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-input);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
 }
 
 .export-error {
@@ -211,7 +216,7 @@
 
     <div class="export-panel">
         <h2 class="panel-title">Attorney Intake Packet</h2>
-        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.75rem;">
             Download a facts-only packet to share with an attorney.
         </p>
         <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
@@ -226,7 +231,7 @@
 
     <div class="export-panel">
         <h2 class="panel-title">Curated Packet Export</h2>
-        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.75rem;">
             Download a ZIP with clean copies, marked-up copies, and a summary of highlights, notes, and footnotes.
         </p>
         <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
@@ -253,7 +258,7 @@
     {% if fca_readiness_enabled %}
     <div class="export-panel">
         <h2 class="panel-title">Federal Case Readiness</h2>
-        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.75rem;">
             Organize federal issue-spotting notes and documents for attorney review (False Claims Act / Qui Tam, Fair Housing Act, Minnesota anti-retaliation).
         </p>
         <a href="/ui/tool/fca-readiness" class="btn btn--secondary">Open Federal Case Readiness</a>
@@ -274,7 +279,7 @@
             <div class="evidence-section">
                 <h3>Selected Documents</h3>
                 <div id="selected-docs">
-                    <p style="color: var(--color-text-muted); font-size: 0.875rem;">No documents selected yet</p>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;">No documents selected yet</p>
                 </div>
             </div>
 
@@ -296,9 +301,9 @@
     </div>
 
     <div id="summary-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 2rem;">
-        <div style="background: var(--color-bg-card); border-radius: var(--radius-lg); padding: 2rem; max-width: 700px; max-height: 80vh; overflow-y: auto;">
+        <div style="background: var(--bg-card); border-radius: var(--radius-block); padding: 2rem; max-width: 700px; max-height: 80vh; overflow-y: auto;">
             <h2 style="margin-bottom: 1rem;">Case Summary</h2>
-            <div id="summary-content" style="line-height: 1.8; color: var(--color-text-secondary);"></div>
+            <div id="summary-content" style="line-height: 1.8; color: var(--text-secondary);"></div>
             <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
                 <button class="btn btn-secondary" onclick="closeModal()">Close</button>
                 <button class="btn btn-primary" onclick="printSummary()">Print</button>
@@ -353,13 +358,13 @@ function toggleDoc(id, name) {
 function updateSelectedDocs() {
     const container = document.getElementById('selected-docs');
     if (selectedDocs.size === 0) {
-        container.innerHTML = '<p style="color: var(--color-text-muted); font-size: 0.875rem;">No documents selected yet</p>';
+        container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.875rem;">No documents selected yet</p>';
         return;
     }
 
     const selectedNames = documents.filter(d => selectedDocs.has(d.vault_id)).map(d => d.filename);
     container.innerHTML = '<ul style="list-style: none; padding: 0;">' + selectedNames.map(name => `
-        <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.875rem;">📄 ${name}</li>
+        <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); font-size: 0.875rem;">📄 ${name}</li>
     `).join('') + '</ul>';
 }
 

@@ -1,5 +1,14 @@
 ## Session — 2026-09-07 — Information Composer / Page Composer re-verification + landing-fact re-seed
 
+### Guardrail Engine Run — 2026-09-08T02:48:05+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Task
 
 - **Task ID:** `semptify-page-composer-information-composer-completion-2026-09-03`
