@@ -34,7 +34,7 @@
     background: var(--color-accent);
     color: white;
     padding: 0.75rem 1.25rem;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-block);
     text-decoration: none;
     font-weight: 500;
     transition: background 0.2s ease;
@@ -49,10 +49,11 @@
     display: flex;
     gap: 1.5rem;
     padding: 1rem 1.25rem;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     margin-bottom: 1.5rem;
+    box-shadow: var(--elevation-1);
 }
 
 .stat-item {
@@ -67,7 +68,7 @@
 
 .stat-label {
     font-size: 0.75rem;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     text-transform: uppercase;
 }
 
@@ -79,16 +80,17 @@
 }
 
 .entry-card {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     padding: 1.25rem;
     transition: all 0.2s ease;
+    box-shadow: var(--elevation-1);
 }
 
 .entry-card:hover {
-    border-color: var(--color-border-hover);
-    background: var(--color-bg-hover);
+    background: var(--color-gray-100);
+    box-shadow: var(--elevation-2);
 }
 
 .entry-header {
@@ -104,7 +106,7 @@
     gap: 0.5rem;
     padding: 0.375rem 0.75rem;
     background: rgba(59, 130, 246, 0.1);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-pill);
     font-size: 0.8125rem;
     font-weight: 500;
     color: var(--color-accent);
@@ -117,11 +119,11 @@
 
 .entry-date {
     font-size: 0.875rem;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
 }
 
 .entry-preview {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     line-height: 1.6;
     margin-bottom: 0.75rem;
     display: -webkit-box;
@@ -135,7 +137,7 @@
     display: flex;
     gap: 1rem;
     font-size: 0.8125rem;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
 }
 
 .entry-meta span {
@@ -148,9 +150,10 @@
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
+    box-shadow: var(--elevation-1);
 }
 
 .empty-icon {
@@ -164,7 +167,7 @@
 }
 
 .empty-state p {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     margin-bottom: 1.5rem;
 }
 
@@ -178,11 +181,11 @@
 
 .filter-btn {
     padding: 0.5rem 1rem;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-full);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
     font-size: 0.875rem;
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
 }
