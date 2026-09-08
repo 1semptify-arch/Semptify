@@ -84,9 +84,23 @@
   --color-border: var(--border-color);
 
   /* Background Colors */
-  --bg-page: #f8fafc;
+  --bg-page: #f7f7f5;
   --bg-card: #ffffff;
+  --bg-elevated: #fafaf8;
   --bg-header: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 100%);
+
+  /* Tonal scale — warm neutral, used for zone separation instead of borders */
+  --tone-0: #ffffff;
+  --tone-50: #fafaf8;
+  --tone-100: #f7f7f5;
+  --tone-200: #f0f0ec;
+  --tone-300: #e8e3d4;
+  --tone-400: #d8d6c8;
+  --tone-500: #c8c8c0;
+  --tone-600: #a0a098;
+  --tone-700: #6b6b63;
+  --tone-800: #4a4a4a;
+  --tone-900: #1a1a1a;
 
   /* Spacing Scale (8px base) */
   --space-1: 0.25rem;   /* 4px */
@@ -211,9 +225,9 @@
      Header & footer are dark (white text, WCAG AA). Body is light (black text).
      ============================================================================ */
 
-  /* Template 1 — Tenants (blue / trust) */
+  /* Template 1 — Tenants (blue / warm neutral) */
   --tpl-1-header: #0C447C;
-  --tpl-1-body:   #E6F1FB;
+  --tpl-1-body:   #f7f7f5;
   --tpl-1-footer: #042C53;
 
   /* Template 2 — Legal / Agencies (teal / official) */
@@ -1273,34 +1287,13 @@ a:hover {
   animation: spin 1s linear infinite;
 }
 
-/* Viewport posture — explicit locked / scroll / hybrid behavior per surface.
-   These classes are applied to <body> or the main viewport container. */
-.app-posture-locked {
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.app-posture-locked .app-content {
-  flex: 1;
-  overflow: hidden;
-  min-height: 0;
-}
-
+/* Viewport posture — explicit scroll behavior for surfaces that should
+   naturally scroll (public pages, long-form content). Locked and hybrid
+   posture live in gui-panels.css, where .app-posture-locked is aliased to
+   the existing .gui-viewport-locked implementation. */
 .app-posture-scroll {
   min-height: 100vh;
   overflow-y: auto;
-}
-
-.app-posture-hybrid {
-  min-height: 100vh;
-  max-height: 100vh;
-  overflow-y: auto;
-}
-
-.app-posture-hybrid .app-content {
-  min-height: min-content;
 }
 
 /* Ambient motion — hero background gradient shift */

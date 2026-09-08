@@ -153,7 +153,10 @@
    ========================================================================= */
 
 /* Apply to .gui-container when a page should be viewport-locked on desktop.
+   .app-posture-locked is the canonical design-system class; .gui-viewport-locked
+   is kept as an alias for existing templates during the transition.
    Child pages keep overflow: auto on mobile. */
+.app-posture-locked,
 .gui-viewport-locked {
     display: flex;
     flex-direction: column;
@@ -198,12 +201,14 @@
 }
 
 @media (min-width: 768px) {
+    .app-posture-locked,
     .gui-viewport-locked {
         height: 100vh;
         min-height: 100vh;
         overflow: hidden;
     }
 
+    .app-posture-locked .gui-main,
     .gui-viewport-locked .gui-main {
         flex: 1 1 auto;
         min-height: 0;
