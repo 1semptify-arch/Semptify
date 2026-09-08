@@ -395,7 +395,7 @@ def _build_home_stage_cards(
                 card_id="filing",
                 title="5. Filing & Packet Prep",
                 description="Build the eviction answer, assemble the packet, and prepare for hearing readiness.",
-                route="/static/eviction_answer.html" if not court_packet_ready else "/static/court_packet.html",
+                route="/eviction-defense",
                 state=b3_state,
                 button_label=b3_button,
             ),
@@ -417,7 +417,7 @@ def _build_home_stage_cards(
         UserRole.MANAGER.value: "/admin",
     }.get(role, "/advocate")
 
-    output_route = "/zoom-court" if hearing_scheduled else "/static/court_packet.html"
+    output_route = "/zoom-court" if hearing_scheduled else "/eviction-defense"
     output_state = "Available" if documents_present or timeline_events > 0 else "Upcoming"
 
     return [
@@ -689,7 +689,7 @@ async def get_next_step(body: NextStepRequest) -> NextStepResponse:
         if not body.documents_present:
             return NextStepResponse(
                 next_process="B4",
-                next_route="/static/briefcase.html",
+                next_route="/vault",
                 next_action="collect_case_documents",
                 deterministic_reason="Active case found but no case documents detected. Gather documents in Briefcase first.",
                 warnings=warnings,
@@ -706,7 +706,7 @@ async def get_next_step(body: NextStepRequest) -> NextStepResponse:
 
         return NextStepResponse(
             next_process="B4",
-            next_route="/static/court_packet.html",
+            next_route="/eviction-defense",
             next_action="prepare_court_packet",
             deterministic_reason="Case context is available. Continue to packet preparation for filing and hearing readiness.",
             warnings=warnings,
@@ -734,7 +734,7 @@ async def get_next_step(body: NextStepRequest) -> NextStepResponse:
     if not body.defense_started:
         return NextStepResponse(
             next_process="B3",
-            next_route="/static/eviction_answer.html",
+            next_route="/eviction-defense",
             next_action="start_defense",
             deterministic_reason="Timeline exists. Begin the defense filing flow with an eviction answer.",
             warnings=warnings,
@@ -743,7 +743,7 @@ async def get_next_step(body: NextStepRequest) -> NextStepResponse:
     if not body.court_packet_ready:
         return NextStepResponse(
             next_process="B3",
-            next_route="/static/court_packet.html",
+            next_route="/eviction-defense",
             next_action="build_court_packet",
             deterministic_reason="Defense has started. Generate the court packet before hearing prep.",
             warnings=warnings,
@@ -760,7 +760,7 @@ async def get_next_step(body: NextStepRequest) -> NextStepResponse:
 
     return NextStepResponse(
         next_process="B4",
-        next_route="/static/hearing_prep.html",
+        next_route="/eviction-defense",
         next_action="hearing_prep",
         deterministic_reason="Packet is ready. Continue with hearing preparation and scheduling checklist.",
         warnings=warnings,
