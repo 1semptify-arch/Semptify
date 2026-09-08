@@ -400,6 +400,7 @@
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
+  flag_reason: dead weight — duplicate of law_library and law_library_page_router; registry cleanup tracked
 - id: contacts
   display_name: Contact Manager
   category: core
@@ -1423,6 +1424,7 @@
     health_check: 'import failed: Agent Orchestrator router is disabled in production
       (SEMPTIFY_ENV=production).'
     test_suite: 1 passed in 1.20s
+  flag_reason: expected/intentional — production-disabled by SEMPTIFY_ENV gate; test suite passes
 - id: ideas
   display_name: Dev Ideas
   category: advanced
@@ -1593,7 +1595,7 @@
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
-  flag_reason: module not available (optional router skipped)
+  flag_reason: dead weight — no module code or product manifest entry; registry cleanup tracked
 - id: response_letter_generator
   display_name: Response Letter Generator
   category: advanced
@@ -1608,7 +1610,7 @@
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
-  flag_reason: module not available (optional router skipped)
+  flag_reason: dead weight — no module code or product manifest entry; registry cleanup tracked
 - id: eviction_defense_content
   display_name: Eviction Defense Content
   category: advanced
@@ -1623,7 +1625,7 @@
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
-  flag_reason: module not available (optional router skipped)
+  flag_reason: dead weight — no module code or product manifest entry; registry cleanup tracked
 - id: ai_copilot
   display_name: Ai Copilot
   category: advanced
@@ -1638,7 +1640,7 @@
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
-  flag_reason: module not available (optional router skipped)
+  flag_reason: dead weight — no module code or product manifest entry; registry cleanup tracked
 - id: context_loop
   display_name: Context Loop
   category: advanced
