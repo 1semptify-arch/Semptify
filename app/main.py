@@ -4893,7 +4893,32 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         user_id = extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
 
-        context = {"briefcase": briefcase}
+        inbox = briefcase.inbox if briefcase else None
+        notifications = []
+        if inbox:
+            for n in inbox.notifications:
+                notifications.append(
+                    {
+                        "id": n.id,
+                        "read": n.is_read,
+                        "priority": "urgent" if n.is_urgent else "normal",
+                        "type": n.notification_type,
+                        "title": n.title,
+                        "message": n.message,
+                        "created_at": n.created_at,
+                        "source": "Semptify" if n.notification_type == "system" else None,
+                        "action_url": n.action_url,
+                        "action_text": n.action_text,
+                    }
+                )
+
+        context = {
+            "briefcase": briefcase,
+            "notifications": notifications,
+            "unread_count": inbox.unread_count if inbox else 0,
+            "urgent_count": inbox.urgent_count if inbox else 0,
+            "system_count": inbox.system_count if inbox else 0,
+        }
         return templates.TemplateResponse(request, "pages/tenant_inbox.html", context)
 
     @fastapi_app.get("/tenant/help", response_class=HTMLResponse)
