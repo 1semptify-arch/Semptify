@@ -1,3 +1,23 @@
+## Session — 2026-09-08 — Onboarding compliance + spec drafting (devin-swe17)
+
+### Shipped this session
+
+- **Onboarding disclaimer-footer gaps closed** (scoped no-touch exceptions, Brad-approved):
+  - `_reconnect_html` in `app/modules/onboarding/reconnect.py` — added `unified-footer-loader.js` (commit `334af218`).
+  - `/onboarding/select-role` (main.py) and `/onboarding/role-select` (module router) — both redirect to canonical `/onboarding/select-role.html`; `?fresh=true` cookie-clear preserved on the redirect (`a7a90c3b`, `f16548a7`).
+  - `static/onboarding/providers-reconnect.html` — footer loader added; `/storage/providers` verified (`6a541769`).
+- **Static chrome-rule investigation** — reachability classified for `onboarding/`, `mndes/`, `reconnect/`, `docs/`, and 5 root one-offs; dead/orphan pages logged to `retire-static-pages-2026-09-08`; findings in `LEGACY_PAGES_AUDIT.md` (master-repo).
+- **Ship-skill fix** — stale-server trap documented in `.devin/skills/ship/SKILL.md` + `.github/prompts/ship.prompt.md` (kill the uvicorn child by port, not just the shell) (`31eec980`).
+- **Specs drafted for Brad sign-off** (master-repo `handoffs/`, no code): `sticky-notes-spec-2026-09-08.md` (overlay-based notes per Brad direction), `law-linker-v2-spec-2026-09-08.md` (mark citations → official-source pop-out → save to notes).
+- **Tier-flag recommendations** — all 30 flagged module/subject tiers resolved with recommendations in `handoffs/module-guidance-audit-flagged-2026-09-07.md` (24 confirms, 3 splits, 4 changes); awaiting Brad's one-shot confirm.
+- **Board closures** — A1/A2 verified already-fixed; B2–B5 recorded (B3 parked for 5.1, Wave D deferred, B4 residuals verified in code, B5 intentionally dark); D2 synced; Law Linker v2 task created.
+
+### Pending
+
+- PR #186: tracker flips (law-linker-v2 + sticky-notes-spec → review).
+- Brad-only: A3 (now resolved via PR #183 by another session), D1 GitHub PII filing (draft ready), spec sign-offs, tier-flag confirm.
+- Next session: pick up spec implementation ONLY after Brad authorizes; retire-batch deletions need explicit go.
+
 ## Session — 2026-09-08 — Legacy pages SSOT migration verification (legacy-pages-migrate-2026-09-08)
 
 ### Playwright Verification — 2026-09-08T18:00:00+00:00
