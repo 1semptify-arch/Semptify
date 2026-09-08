@@ -15,22 +15,22 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.88rem;
     text-decoration: none;
     margin-bottom: 1rem;
 }
-.back-link:hover { color: var(--color-text-primary); }
+.back-link:hover { color: var(--text-primary); }
 
 .page-header { margin-bottom: 1.5rem; }
 .page-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.3rem 0; }
-.page-header p { color: var(--color-text-secondary); font-size: 0.9rem; margin: 0; }
+.page-header p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
 
 /* Info banner */
 .info-banner {
     background: #eff6ff;
     border: 1px solid #bfdbfe;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-input);
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
     font-size: 0.88rem;
@@ -41,11 +41,12 @@
 
 /* Cards */
 .card {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    box-shadow: var(--elevation-1);
 }
 .card h3 { margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 700; }
 
@@ -57,8 +58,8 @@
 }
 .form-field input, .form-field textarea {
     width: 100%; padding: 0.6rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-input);
     font-family: inherit; font-size: 0.9rem;
 }
 .form-field input {
@@ -67,7 +68,7 @@
 }
 .form-field textarea { min-height: 70px; resize: vertical; }
 .form-help {
-    font-size: 0.78rem; color: var(--color-text-secondary);
+    font-size: 0.78rem; color: var(--text-secondary);
     margin-top: 0.3rem;
 }
 
@@ -87,11 +88,11 @@
 .btn--danger { background: #dc2626; color: #fff; }
 .btn--danger:hover { background: #b91c1c; }
 .btn--secondary {
-    background: var(--color-bg-card);
-    color: var(--color-text-primary);
-    border-color: var(--color-border);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-color);
 }
-.btn--secondary:hover { background: var(--color-bg-hover); }
+.btn--secondary:hover { background: var(--color-gray-100); }
 .btn--sm { padding: 0.35rem 0.8rem; font-size: 0.82rem; }
 
 /* Advocate list */
@@ -100,10 +101,11 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.85rem 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border: none;
+    border-radius: var(--radius-input);
     margin-bottom: 0.5rem;
-    background: var(--color-bg-card);
+    background: var(--bg-card);
+    box-shadow: var(--elevation-1);
 }
 .advocate-avatar {
     width: 40px; height: 40px;
@@ -120,7 +122,7 @@
     word-break: break-all;
 }
 .advocate-meta {
-    font-size: 0.76rem; color: var(--color-text-secondary);
+    font-size: 0.76rem; color: var(--text-secondary);
     margin-top: 0.2rem;
 }
 .initiated-badge {
@@ -136,18 +138,18 @@
 .empty-state {
     text-align: center;
     padding: 2rem 1rem;
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.9rem;
 }
 
 /* Loading */
-.loading { text-align: center; padding: 2rem; color: var(--color-text-secondary); }
+.loading { text-align: center; padding: 2rem; color: var(--text-secondary); }
 
 /* My ID box */
 .my-id-box {
-    background: var(--color-bg-hover);
-    border: 1px dashed var(--color-border);
-    border-radius: var(--radius-md);
+    background: var(--color-gray-100);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-input);
     padding: 0.75rem 1rem;
     margin-bottom: 1rem;
     display: flex;
@@ -155,7 +157,7 @@
     gap: 0.75rem;
 }
 .my-id-label {
-    font-size: 0.78rem; color: var(--color-text-secondary);
+    font-size: 0.78rem; color: var(--text-secondary);
     flex-shrink: 0;
 }
 .my-id-value {
@@ -168,13 +170,13 @@
 .copy-btn {
     padding: 0.25rem 0.6rem;
     font-size: 0.75rem;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     cursor: pointer;
     flex-shrink: 0;
 }
-.copy-btn:hover { background: var(--color-bg-hover); }
+.copy-btn:hover { background: var(--color-gray-100); }
 </style>
 {% endblock %}
 
@@ -195,7 +197,7 @@
 
     <div class="card">
         <h3>Share Your ID</h3>
-        <p style="font-size:0.85rem;color:var(--color-text-secondary);margin:0 0 0.75rem 0;">
+        <p style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 0.75rem 0;">
             Give this ID to an advocate so they can add you to their client list.
         </p>
         <div class="my-id-box">
@@ -207,7 +209,7 @@
 
     <div class="card">
         <h3>Link to an Advocate</h3>
-        <p style="font-size:0.85rem;color:var(--color-text-secondary);margin:0 0 1rem 0;">
+        <p style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 1rem 0;">
             Enter your advocate's Semptify ID to give them access to your case.
         </p>
         <div class="form-field">

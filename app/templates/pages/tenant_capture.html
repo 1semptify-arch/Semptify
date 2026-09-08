@@ -27,7 +27,7 @@
 }
 
 .capture-header p {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
 }
 
 /* Type Selection */
@@ -39,9 +39,9 @@
 }
 
 .type-card {
-    background: var(--color-bg-card);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-block);
     padding: 1.25rem;
     text-align: center;
     cursor: pointer;
@@ -51,7 +51,7 @@
 .type-card:hover,
 .type-card.active {
     border-color: var(--color-accent);
-    background: var(--color-bg-hover);
+    background: var(--color-gray-100);
 }
 
 .type-card.active {
@@ -70,10 +70,11 @@
 
 /* Form Section */
 .form-section {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     padding: 1.5rem;
+    box-shadow: var(--elevation-1);
 }
 
 .form-group {
@@ -84,7 +85,7 @@
     display: block;
     font-weight: 500;
     margin-bottom: 0.5rem;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 .form-group input,
@@ -92,10 +93,10 @@
 .form-group select {
     width: 100%;
     padding: 0.75rem;
-    background: var(--color-bg-primary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    color: var(--color-text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-input);
+    color: var(--text-primary);
     font-size: 1rem;
 }
 
@@ -120,8 +121,8 @@
 
 /* File Upload */
 .file-upload {
-    border: 2px dashed var(--color-border);
-    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-block);
     padding: 2rem;
     text-align: center;
     cursor: pointer;
@@ -130,7 +131,7 @@
 
 .file-upload:hover {
     border-color: var(--color-accent);
-    background: var(--color-bg-hover);
+    background: var(--color-gray-100);
 }
 
 .file-upload-icon {
@@ -139,7 +140,7 @@
 }
 
 .file-upload-text {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.9375rem;
 }
 
@@ -150,7 +151,7 @@
     background: var(--color-accent);
     color: white;
     border: none;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-block);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -166,7 +167,7 @@
     display: none;
     background: rgba(16, 185, 129, 0.1);
     border: 1px solid var(--color-success);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-block);
     padding: 1.5rem;
     text-align: center;
     margin-bottom: 1.5rem;
@@ -185,7 +186,7 @@
 .urgency-banner {
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.1));
     border: 2px solid var(--color-warning);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-block);
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
     display: flex;
@@ -201,7 +202,7 @@
 
 .urgency-banner label {
     font-weight: 500;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 /* Media Capture */
@@ -217,17 +218,18 @@
 
 .media-capture__consent {
     font-size: 0.875rem;
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     margin-bottom: 0.75rem;
     line-height: 1.4;
 }
 
 .media-capture__stage {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    border: none;
+    border-radius: var(--radius-block);
     padding: 1rem;
     margin-bottom: 0.75rem;
+    box-shadow: var(--elevation-1);
 }
 
 .media-capture__preview-wrap {
@@ -238,7 +240,7 @@
 .media-capture__photo-result,
 .media-capture__canvas {
     max-width: 100%;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-input);
     display: block;
 }
 
@@ -261,7 +263,7 @@
     align-items: center;
     padding: 0.5rem 0.75rem;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-input);
     font-size: 0.9375rem;
 }
 
@@ -275,7 +277,7 @@
 }
 
 .media-capture__notice {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.9375rem;
 }
 </style>

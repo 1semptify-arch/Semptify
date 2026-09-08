@@ -1,16 +1,18 @@
 /* =========================================================================
    GUI Panel System — Shared frame/panel styling for Record, Timeline, Library
-   Zone-based separation: background-color tiers, no borders, no shadows.
+   Zone-based separation: background-color tiers, no borders. Radius and
+   shadow are deliberate depth/polish tools, not prohibited.
    Reusable across screens.
    ========================================================================= */
 
 .frame-panel {
     background: var(--zone-bg-secondary, #1e293b);
+    color: var(--color-text-primary, #fff);
     padding: var(--zone-gap-standard, 1.5rem);
     margin-bottom: var(--zone-gap-standard, 1.5rem);
     border: none;
-    border-radius: 0;
-    box-shadow: none;
+    border-radius: var(--radius-block);
+    box-shadow: var(--elevation-1);
 }
 
 .frame-panel--header {
@@ -45,7 +47,7 @@
     padding: var(--zone-gap-tight, 8px) var(--zone-gap-standard, 24px);
     border: none;
     background: transparent;
-    border-radius: 0;
+    border-radius: var(--radius-block);
     box-shadow: none;
     transition: background-color var(--transition-fast, 0.15s ease);
 }
@@ -104,7 +106,7 @@
     border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
     background: transparent;
     color: var(--color-text-primary, #fff);
-    border-radius: 0;
+    border-radius: var(--radius-input);
     cursor: pointer;
     transition: all var(--transition-fast, 0.15s ease);
     box-shadow: none;
@@ -151,7 +153,10 @@
    ========================================================================= */
 
 /* Apply to .gui-container when a page should be viewport-locked on desktop.
+   .app-posture-locked is the canonical design-system class; .gui-viewport-locked
+   is kept as an alias for existing templates during the transition.
    Child pages keep overflow: auto on mobile. */
+.app-posture-locked,
 .gui-viewport-locked {
     display: flex;
     flex-direction: column;
@@ -174,7 +179,10 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3, 0.75rem);
-    padding: var(--space-3, 0.75rem) 0;
+    padding: var(--space-3, 0.75rem);
+    background: var(--zone-bg-secondary, #1e293b);
+    border-radius: var(--radius-block);
+    box-shadow: var(--elevation-1);
 }
 
 .gui-screen--support {
@@ -193,12 +201,14 @@
 }
 
 @media (min-width: 768px) {
+    .app-posture-locked,
     .gui-viewport-locked {
         height: 100vh;
         min-height: 100vh;
         overflow: hidden;
     }
 
+    .app-posture-locked .gui-main,
     .gui-viewport-locked .gui-main {
         flex: 1 1 auto;
         min-height: 0;
@@ -222,7 +232,7 @@
         flex: 0 0 auto;
         display: flex;
         gap: var(--space-3, 0.75rem);
-        padding: var(--space-3, 0.75rem) 0;
+        padding: var(--space-3, 0.75rem);
     }
 
     .gui-screen--support {
@@ -260,8 +270,8 @@
     border: 1px solid var(--color-alarm, #d97706);
     background: var(--color-alarm, #d97706);
     color: var(--color-alarm-text, #ffffff);
-    border-radius: 0;
-    box-shadow: none;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--elevation-2);
     cursor: pointer;
     transition: background-color var(--transition-fast, 0.15s ease), border-color var(--transition-fast, 0.15s ease);
 }
@@ -271,6 +281,7 @@
     background: var(--color-alarm-hover, #b45309);
     border-color: var(--color-alarm-hover, #b45309);
     color: var(--color-alarm-text, #ffffff);
+    box-shadow: var(--elevation-3);
 }
 
 .gui-help-now:focus-visible {
