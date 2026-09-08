@@ -1,5 +1,14 @@
 ## Session — 2026-09-08 — Footer consolidation (consolidate-footer-sources-2026-09-08)
 
+### Guardrail Engine Run — 2026-09-08T16:16:40+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 - Created canonical footer partial `app/templates/components/footer.html`.
 - `app/templates/base.html` now includes the canonical partial instead of duplicating the markup.
 - Added `GET /components/footer` route in `app/main.py` to render the same partial for JavaScript injection.
