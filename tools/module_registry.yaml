@@ -400,7 +400,8 @@
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
-  flag_reason: dead weight — duplicate of law_library and law_library_page_router; registry cleanup tracked
+  flag_reason: "dead weight \u2014 duplicate of law_library and law_library_page_router;\
+    \ registry cleanup tracked"
 - id: contacts
   display_name: Contact Manager
   category: core
@@ -1424,7 +1425,8 @@
     health_check: 'import failed: Agent Orchestrator router is disabled in production
       (SEMPTIFY_ENV=production).'
     test_suite: 1 passed in 1.20s
-  flag_reason: expected/intentional — production-disabled by SEMPTIFY_ENV gate; test suite passes
+  flag_reason: "expected/intentional \u2014 production-disabled by SEMPTIFY_ENV gate;\
+    \ test suite passes"
 - id: ideas
   display_name: Dev Ideas
   category: advanced
@@ -1446,14 +1448,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.filedored.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-21T22:41:36.079423+00:00'
-  status: unverified
+  health_check: tools.module_health.check_filedored
+  test_suite: tests/module_health/test_filedored.py
+  last_verified: '2026-09-08T06:49:54.294981+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
-  flag_reason: pending Brad's decision on filedored_service classification
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 4.89s
 - id: data_freshness
   display_name: Data Freshness
   category: advanced
@@ -1575,11 +1576,11 @@
   module_path: app.modules.vault_sync
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-20T21:52:24.681963+00:00'
+  last_verified: '2026-09-08T06:37:31.303292+00:00'
   status: orphaned
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: ON HOLD per Brad's standing direction
+    test_suite: flagged
   flag_reason: ON HOLD per Brad's standing direction
 - id: eviction_notice_explainer
   display_name: Eviction Notice Explainer
@@ -1590,12 +1591,14 @@
   module_path: app.modules.eviction_notice_explainer
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-20T21:52:24.681963+00:00'
+  last_verified: '2026-09-08T06:37:31.303292+00:00'
   status: orphaned
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
-  flag_reason: dead weight — no module code or product manifest entry; registry cleanup tracked
+    health_check: "dead weight \u2014 no module code or product manifest entry; registry\
+      \ cleanup tracked"
+    test_suite: flagged
+  flag_reason: "dead weight \u2014 no module code or product manifest entry; registry\
+    \ cleanup tracked"
 - id: response_letter_generator
   display_name: Response Letter Generator
   category: advanced
@@ -1605,12 +1608,14 @@
   module_path: app.modules.response_letter_generator
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-20T21:52:24.681963+00:00'
+  last_verified: '2026-09-08T06:37:31.303292+00:00'
   status: orphaned
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
-  flag_reason: dead weight — no module code or product manifest entry; registry cleanup tracked
+    health_check: "dead weight \u2014 no module code or product manifest entry; registry\
+      \ cleanup tracked"
+    test_suite: flagged
+  flag_reason: "dead weight \u2014 no module code or product manifest entry; registry\
+    \ cleanup tracked"
 - id: eviction_defense_content
   display_name: Eviction Defense Content
   category: advanced
@@ -1620,12 +1625,14 @@
   module_path: app.modules.eviction_defense_content
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-20T21:52:24.681963+00:00'
+  last_verified: '2026-09-08T06:37:31.303292+00:00'
   status: orphaned
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
-  flag_reason: dead weight — no module code or product manifest entry; registry cleanup tracked
+    health_check: "dead weight \u2014 no module code or product manifest entry; registry\
+      \ cleanup tracked"
+    test_suite: flagged
+  flag_reason: "dead weight \u2014 no module code or product manifest entry; registry\
+    \ cleanup tracked"
 - id: ai_copilot
   display_name: Ai Copilot
   category: advanced
@@ -1635,12 +1642,14 @@
   module_path: app.modules.ai_copilot
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-20T21:52:24.681963+00:00'
+  last_verified: '2026-09-08T06:37:31.303292+00:00'
   status: orphaned
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
-  flag_reason: dead weight — no module code or product manifest entry; registry cleanup tracked
+    health_check: "dead weight \u2014 no module code or product manifest entry; registry\
+      \ cleanup tracked"
+    test_suite: flagged
+  flag_reason: "dead weight \u2014 no module code or product manifest entry; registry\
+    \ cleanup tracked"
 - id: context_loop
   display_name: Context Loop
   category: advanced
@@ -1760,14 +1769,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.housing_accountability.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-21T22:43:51.684454+00:00'
-  status: unverified
+  health_check: tools.module_health.check_housing_accountability_accountability_router
+  test_suite: tests/module_health/test_housing_accountability_accountability_router.py
+  last_verified: '2026-09-08T06:51:23.319982+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
-  flag_reason: pending Brad's decision on accountability_ledger / detect_repeated_fees
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 5.90s
 - id: external_mappings_mappings_router
   display_name: External Mappings / Court Cases / Properties / Agencies
   category: tenant_tool
