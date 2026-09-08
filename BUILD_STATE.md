@@ -1,3 +1,14 @@
+## Session — 2026-09-08 — Legacy pages SSOT migration verification (legacy-pages-migrate-2026-09-08)
+
+### Playwright Verification — 2026-09-08T18:00:00+00:00
+
+- Tool: Playwright (Chromium headless) against `http://127.0.0.1:8003`.
+- Public pages: `/calendar`, `/timeline`, `/comms-log`, `/help`, `/auto-mode`, `/auto-analysis`, `/tools`, `/office`, `/library`, `/law-library`.
+- Tenant pages: `/tenant/my-advocate`, `/tenant/capture`, `/tenant/journal`, `/tenant/inbox`.
+- All pages rendered HTTP 200 with correct `<title>` and full-page screenshots saved to `C:\Users\bradc\AppData\Local\Temp\migrated-pages-2026-09-08`.
+- Two non-blocking JS errors on `/auto-mode` and `/auto-analysis`: pages call status/analysis data endpoints that return 404/empty in local dev with no real user data. These are pre-existing data-availability issues, not SSOT token-migration defects.
+- `legacy-pages-migrate-2026-09-08` marked `resolved`.
+
 ## Session — 2026-09-08 — Footer consolidation (consolidate-footer-sources-2026-09-08)
 
 ### Guardrail Engine Run — 2026-09-08T16:28:20+00:00

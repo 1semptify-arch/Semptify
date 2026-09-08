@@ -2836,11 +2836,11 @@
     "description": "Migrate remaining reachable tenant-facing pages/ templates to SSOT tokens per Wave 2 pattern (token swap, borderless content containers + elevation, keep control borders). Targets: calendar, timeline, comms_log, tenant_home(skip-dead), auto_analysis_summary, auto_mode_panel, help, fca_readiness, documents, library, office, tools, plus partial-cleanup passes on tenant_capture, tenant_journal, tenant_inbox, tenant_my_advocate, law_library, dispute_tracker, eviction_timeline. Audit: C:\\master-repo\\LEGACY_PAGES_AUDIT.md section B.",
     "file_path": "app/templates/pages/",
     "priority": "medium",
-    "status": "review",
+    "status": "resolved",
     "category": "design",
-    "notes": "Created from legacy-pages audit follow-up; approved by Brad 2026-09-08.\n[2026-09-08 04:43 UTC - devin-swe17] Migrated calendar, timeline, comms_log, help, auto_analysis_summary, auto_mode_panel, tenant_my_advocate + residuals in tenant_capture/journal/inbox via shared frame-light.css scope. library/office/tools/documents/law_library/fca_readiness/dispute_tracker/eviction_timeline verified already clean. All migrated pages verified live (200) on local server. Screenshots pending IronBee-connected session.",
-    "updated_at": "2026-09-08T04:43:47.767960+00:00",
-    "assigned_agent": "devin-swe17"
+    "notes": "Created from legacy-pages audit follow-up; approved by Brad 2026-09-08.\n[2026-09-08 04:43 UTC - devin-swe17] Migrated calendar, timeline, comms_log, help, auto_analysis_summary, auto_mode_panel, tenant_my_advocate + residuals in tenant_capture/journal/inbox via shared frame-light.css scope. library/office/tools/documents/law_library/fca_readiness/dispute_tracker/eviction_timeline verified already clean. All migrated pages verified live (200) on local server. Screenshots pending IronBee-connected session.\n[2026-09-08 18:01 UTC - devin] Playwright full-page screenshots captured for all migrated public and tenant pages (C:\\Users\\bradc\\AppData\\Local\\Temp\\migrated-pages-2026-09-08). All rendered HTTP 200 with correct titles. Two non-blocking JS errors on /auto-mode and /auto-analysis due to missing status/analysis data endpoints in local dev (no real user data); not SSOT migration defects.",
+    "updated_at": "2026-09-08T18:01:18.387856+00:00",
+    "assigned_agent": "devin"
   },
   {
     "id": "retire-static-pages-2026-09-08",
