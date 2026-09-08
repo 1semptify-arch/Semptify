@@ -174,7 +174,7 @@ async def check_setup_needed():
 
     return {
         "setup_complete": setup_marker.exists(),
-        "redirect": "/command-center" if setup_marker.exists() else "/static/setup_wizard.html",
+        "redirect": "/command-center" if setup_marker.exists() else "/setup",
     }
 
 
@@ -213,10 +213,10 @@ async def reset_setup(
         return {
             "status": "reset",
             "message": "Setup wizard will show again on next visit.",
-            "redirect": "/static/setup_wizard.html",
+            "redirect": "/setup",
         }
 
-    return {"status": "already_reset", "message": "Setup was not completed.", "redirect": "/static/setup_wizard.html"}
+    return {"status": "already_reset", "message": "Setup was not completed.", "redirect": "/setup"}
 
 
 @router.get("/status")

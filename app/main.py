@@ -4205,6 +4205,33 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """Serve the command center dashboard from the Jinja template."""
         return templates.TemplateResponse(request, "pages/command_center.html")
 
+    @fastapi_app.get("/setup", response_class=HTMLResponse)
+    async def setup_wizard_page(request: Request):
+        """Serve the first-run setup wizard from the Jinja template."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID, get_provider_from_user_id
+
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
+        connected = bool(user_id and is_valid_storage_user(user_id))
+        provider = get_provider_from_user_id(user_id) if connected else None
+        return templates.TemplateResponse(
+            request,
+            "pages/setup_wizard.html",
+            {
+                "storage": {
+                    "connected": connected,
+                    "provider": provider or "No provider connected",
+                    "detail": (
+                        "Your storage provider is connected."
+                        if connected
+                        else "You need to connect a storage provider to continue."
+                    ),
+                },
+                "profile": {},
+            },
+        )
+
     # =========================================================================
     # Eviction Defense Page
     # =========================================================================
