@@ -42,6 +42,8 @@ If any file fails to compile, STOP and fix it before proceeding.
 
 ### Step 2 — Run Playwright tests (if server is running)
 
+**Stopping a dev server you started:** kill the actual server process, not just the shell — an orphaned uvicorn/python child can keep the port bound and serve stale pre-edit code, producing false-negative verification. Find and stop it by port: `Get-NetTCPConnection -LocalPort <port> -State Listen` → `Stop-Process -Id <OwningProcess> -Force`, then confirm the port is free before restarting.
+
 Check if a dev server is running on port 8000. If yes, run the Playwright test suite (see `tests/` or the `playwright` skill for the current runner path). If no test runner is configured, skip this step and note it in the commit message. All tests must pass before proceeding. Fix any failures first.
 
 ---
