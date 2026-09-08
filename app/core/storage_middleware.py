@@ -76,6 +76,7 @@ PUBLIC_PATHS: set[str] = {
     "/welcome.html",
     "/storage_setup.html",
     "/setup_wizard.html",
+    "/setup",
     "/index.html",
     "/index-simple.html",
     "/activate-vault",
