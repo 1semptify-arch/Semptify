@@ -55,7 +55,7 @@
 }
 
 .type-card.active {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 3px var(--color-calm-200);
 }
 
 .type-icon {
@@ -165,7 +165,7 @@
 /* Success Message */
 .success-message {
     display: none;
-    background: rgba(16, 185, 129, 0.1);
+    background: var(--color-success-50);
     border: 1px solid var(--color-success);
     border-radius: var(--radius-block);
     padding: 1.5rem;
@@ -184,7 +184,7 @@
 
 /* Urgency Banner */
 .urgency-banner {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.1));
+    background: linear-gradient(135deg, var(--color-error-50), var(--color-warning-50));
     border: 2px solid var(--color-warning);
     border-radius: var(--radius-block);
     padding: 1rem 1.25rem;
@@ -262,7 +262,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--zone-surface-2);
     border-radius: var(--radius-input);
     font-size: 0.9375rem;
 }
@@ -427,7 +427,7 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
     Array.from(e.target.files).forEach(file => {
         const div = document.createElement('div');
         div.textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-        div.style.cssText = 'padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 4px; margin-bottom: 0.25rem;';
+        div.style.cssText = 'padding: 0.5rem; background: var(--zone-surface-2); border-radius: 4px; margin-bottom: 0.25rem;';
         fileList.appendChild(div);
     });
 });
