@@ -2801,5 +2801,33 @@
     "updated_at": "2026-09-06T23:45:14.199477+00:00",
     "target_model": "unassigned",
     "assigned_agent": "devin-swe17"
+  },
+  {
+    "id": "design-refresh-wave2-2026-09-07",
+    "title": "Design-System Refresh: Wave 2 card-family migration",
+    "description": "Continue mechanical migration of remaining card-family templates and stylesheets per approved design-refresh spec. Scope: manager-dashboard.css, document_center.html, welcome.html, tenant_home.html, case_builder.html, action_plan.html, timeline.html, and remaining shared templates. Remove content-container borders, add elevation, use SSOT tokens.",
+    "file_path": "app/templates/pages/",
+    "priority": "medium",
+    "status": "in_progress",
+    "category": "design",
+    "notes": "Claimed by claude for Wave 2 continuation. Handoff: 2026-09-07 wave covered semptify_hub, advocate, tenant_my_advocate, tenant_inbox, tenant_journal. Next batch: manager-dashboard, document_center, welcome, tenant_home, case_builder, action_plan, timeline.\n[2026-09-08 01:20 UTC - claude] Wave 2 continuation. Pre-flight done. Migrated action_plan.html and complaints.html; reverted unused tenant.html. Remaining: case_builder, tenant_home, manager-dashboard, document_center, welcome, etc.",
+    "created_at": "2026-09-07T00:00:00Z",
+    "updated_at": "2026-09-08T01:20:26.878674+00:00",
+    "target_model": "claude",
+    "assigned_agent": "claude"
+  },
+  {
+    "id": "tenant-inbox-redirect-2026-09-07",
+    "title": "Investigate /tenant/inbox redirect to /help?status=down",
+    "description": "Determine whether /tenant/inbox redirecting to /help?status=down is intentional (feature genuinely down) or a routing/role-guard bug. One-line investigation, separate from the design refresh.",
+    "file_path": "app/main.py",
+    "priority": "low",
+    "status": "open",
+    "category": "investigation",
+    "notes": "Flagged during design-refresh Wave 2 verification. Route currently returns help-down page instead of rendering tenant_inbox.html.",
+    "created_at": "2026-09-07T20:30:00Z",
+    "updated_at": "2026-09-07T20:30:00Z",
+    "target_model": "unassigned",
+    "assigned_agent": "unassigned"
   }
 ]

@@ -1,5 +1,14 @@
 ## Session — 2026-09-06 — Incident note: unattributed UTCDateTime change landed, reverted
 
+### Guardrail Engine Run — 2026-09-08T01:09:35+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 **What happened:** An uncommitted `UTCDateTime` `TypeDecorator` change in
 `app/models/models.py` (force UTC-aware datetime round-trips, notably on
 SQLite) — authored by an unknown session, explicitly held pending owner ID —
