@@ -209,6 +209,7 @@ def _reconnect_html(existing_uid: str | None = None, return_to: str | None = Non
             window.location.href = url;
         }}
     </script>
+    <script src="/js/unified-footer-loader.js"></script>
 </body>
 </html>"""
 

@@ -1,5 +1,50 @@
 ## Session — 2026-09-07 — Information Composer / Page Composer re-verification + landing-fact re-seed
 
+### Guardrail Engine Run — 2026-09-08T04:32:09+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-08T04:31:38+00:00
+
+- **contract_route_check**: FAIL — Contract loader failed: 76 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-09-08T04:03:37+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-08T03:42:56+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-09-08T02:48:05+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Task
 
 - **Task ID:** `semptify-page-composer-information-composer-completion-2026-09-03`
@@ -13117,6 +13162,40 @@ Set these in Render Dashboard > Service > Environment:
 - Continue next orchestrator duplicate-resolve task or resume GUI Phase 1 work per ACTIVE_CONTEXT.
 
 ---
+
+---
+
+## Session Ship — 2026-09-08 — C1 /command-center fix + SSOT migration
+
+**Deployed commit:** `dcd1a2de` (pending review in PR #173)
+
+**What was shipped:**
+- Fixed `/command-center` route: serves `pages/command_center.html` via `TemplateResponse` instead of returning 404 for missing `static/command_center.html`.
+- Updated `app/modules/setup/router.py` redirects from `/static/command_center.html` to `/command-center` (3 occurrences).
+- Migrated `app/templates/pages/command_center.html` from legacy `var(--font-size-*)`, `var(--space-*)`, `var(--color-text-*)`, `var(--color-surface-*)` tokens to SSOT equivalents.
+- Verified `module_page.html` is already on SSOT tokens (inventory false positive).
+
+**Verified:**
+- `python -m py_compile` on `app/main.py`, `app/modules/setup/router.py`: PASS.
+- `tools/guardrail_engine.py`: 4/4 PASS.
+- `GET /command-center`: 200, renders with SSOT tokens.
+- `GET /tool/help` (module_page renderer): 200, `template-4`, SSOT tokens.
+- IronBee desktop + mobile screenshots captured; console clean.
+
+**Known working:**
+- `/command-center` now serves the migrated Jinja template.
+- Setup router redirects point to `/command-center`.
+- All guardrails pass.
+
+**Known broken / pending:**
+- `admin.html` not touched — `/admin` currently serves the working `static/admin/hub.html`; routing the Jinja template needs a product call.
+- `welcome.html` remains paused for B5 treatment decision.
+- Remaining template-4 pages with old tokens are inactive/unrouted or 404 (setup_wizard, brain, crawler, etc.).
+- `Semptify-PI` Render hosting parked for 5.1.
+- Uncommitted `.cursor/rules/ironbee-devtools-use.mdc` (user file) intentionally left out.
+
+**Next session should start with:**
+- Review/merge PR #173, then continue C1 cleanup or pick next stabilization item per `handoffs/5.0-stabilization-list-2026-09-08.md`.
 
 ## How to Use /ship
 At the end of every session, type `/ship` in Windsurf chat.

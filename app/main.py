@@ -83,6 +83,7 @@ from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
 from app.modules.case_builder.fca_guard import require_fca_readiness
 from app.modules.context_engine.retrieval import retrieve_explanations, select_tapered_variant
+from app.modules.ui_composer.explanation import get_explanation_for_guide
 
 
 # PyInstaller frozen executable detection
@@ -119,6 +120,12 @@ from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale, i18n
 templates.env.globals["_"] = _jinja2_gettext
 templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
 templates.env.globals["get_locale"] = get_locale
+
+# Central plain-language copy for contract-bearing pages (C2).
+from app.core.contract_copy import contract_description, contract_title
+
+templates.env.globals["contract_title"] = contract_title
+templates.env.globals["contract_description"] = contract_description
 
 # Minimal, privacy-first stateless landing route for the On-The-Fly Composer demo
 
@@ -2120,33 +2127,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return ssot_redirect(root_path, context="welcome_html fallback")
 
     # Onboarding pages - bypass static HTML block middleware
+    # /onboarding/select-role (no .html) was a footerless duplicate of the
+    # canonical generated page; redirect to the SSOT path. The .html variant
+    # is served by the onboarding module router (registered first), so this
+    # binding is intentionally removed to avoid a self-redirect if route
+    # order ever changes.
     @fastapi_app.get("/onboarding/select-role", response_class=HTMLResponse)
-    @fastapi_app.get("/onboarding/select-role.html", response_class=HTMLResponse)
     async def role_select_page():
-        """Serve role selection page with no-cache headers."""
-        # Try new file first (bypasses any caching issues)
-        pick_role_path = BASE_PATH / "static" / "onboarding" / "pick-role.html"
-        if pick_role_path.exists():
-            return FileResponse(
-                pick_role_path,
-                headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
-            )
-        # Fallback to old file
-        page_path = BASE_PATH / "static" / "onboarding" / "role-select.html"
-        if page_path.exists():
-            return FileResponse(
-                page_path,
-                headers={
-                    "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
-                    "Pragma": "no-cache",
-                    "Expires": "0",
-                    "Cloudflare-CDN-Cache-Control": "no-cache",
-                },
-            )
-        # Fallback to providers if role-select doesn't exist
-        providers_stage = navigation.get_stage("providers")
-        providers_path = providers_stage.path if providers_stage else "/storage/providers"
-        return ssot_redirect(providers_path, context="role_select fallback")
+        """Redirect legacy /onboarding/select-role to the canonical page."""
+        role_stage = navigation.get_stage("role_select")
+        role_path = role_stage.path if role_stage else "/onboarding/select-role.html"
+        return ssot_redirect(role_path, context="role_select legacy duplicate")
 
     @fastapi_app.get("/storage/providers", response_class=HTMLResponse)
     @fastapi_app.get("/storage/providers.html", response_class=HTMLResponse)
@@ -3360,7 +3351,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for creating a journal entry (RECORD pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
-        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+        from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("journal", "journal_create")
         if contract is None:
@@ -3378,28 +3369,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
         }
 
-        object_type = f"{contract.module}:{contract.group_name}"
-        tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
-
-        explanation_obj = ObjectEnvelope(
-            object_id=f"guide:{object_type}",
-            object_type=ObjectType.PAGE_ZONE,
-            pillar=Pillar.RECORD,
-            who=Who.TENANT,
-            why="Create a dated journal entry to document a housing event.",
-            provenance=Provenance.USER_ENTERED,
-            temporal_validity=TemporalValidity.EVENT_TRIGGERED,
-            subject_tags=["journal", "record", "entry", "timeline", "event", "evidence"],
+        explanation_data = await get_explanation_for_guide(
+            request,
+            contract,
+            Pillar.RECORD,
+            "Write a dated journal note about a housing situation.",
+            ["journal", "note", "log", "record"],
+            db=db,
         )
-        explanation_results = await retrieve_explanations(
-            explanation_obj, jurisdiction="MN", limit=1
-        )
-        explanation = None
-        if explanation_results:
-            explanation = select_tapered_variant(
-                explanation_results[0], tapering_ctx["exposure_count"]
-            )
+        explanation = explanation_data["explanation"]
+        tapering_ctx = explanation_data["tapering_ctx"]
 
         response = templates.TemplateResponse(
             request,
@@ -3426,7 +3406,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for looking up a statute (KNOW pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
-        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+        from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("law_library", "law_library_get_statute")
         if contract is None:
@@ -3443,28 +3423,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
         }
 
-        object_type = f"{contract.module}:{contract.group_name}"
-        tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
-
-        explanation_obj = ObjectEnvelope(
-            object_id=f"guide:{object_type}",
-            object_type=ObjectType.PAGE_ZONE,
-            pillar=Pillar.KNOW,
-            who=Who.TENANT,
-            why="Look up a verified Minnesota statute to understand a rent or payment rule.",
-            provenance=Provenance.USER_ENTERED,
-            temporal_validity=TemporalValidity.STATIC,
-            subject_tags=["rent", "payment", "statute", "law", "know", "lookup"],
+        explanation_data = await get_explanation_for_guide(
+            request,
+            contract,
+            Pillar.KNOW,
+            "Look up a verified Minnesota statute to understand a rule or right.",
+            ["law_library", "statute", "law", "lookup"],
+            db=db,
         )
-        explanation_results = await retrieve_explanations(
-            explanation_obj, jurisdiction="MN", limit=1
-        )
-        explanation = None
-        if explanation_results:
-            explanation = select_tapered_variant(
-                explanation_results[0], tapering_ctx["exposure_count"]
-            )
+        explanation = explanation_data["explanation"]
+        tapering_ctx = explanation_data["tapering_ctx"]
 
         response = templates.TemplateResponse(
             request,
@@ -3491,7 +3460,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for calculating eviction deadlines (ACT pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
-        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+        from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("eviction_defense", "eviction_defense_calculate_deadlines")
         if contract is None:
@@ -3509,28 +3478,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
         }
 
-        object_type = f"{contract.module}:{contract.group_name}"
-        tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
-
-        explanation_obj = ObjectEnvelope(
-            object_id=f"guide:{object_type}",
-            object_type=ObjectType.PAGE_ZONE,
-            pillar=Pillar.ACT,
-            who=Who.TENANT,
-            why="Calculate eviction deadlines from a service date and case type.",
-            provenance=Provenance.SYSTEM_COMPUTED,
-            temporal_validity=TemporalValidity.TIME_BOUND,
-            subject_tags=["eviction", "defense", "deadline", "calculate", "act", "date"],
+        explanation_data = await get_explanation_for_guide(
+            request,
+            contract,
+            Pillar.ACT,
+            "Calculate eviction deadlines from a service date and case type.",
+            ["eviction", "defense", "deadline", "calculate", "act", "date"],
+            db=db,
         )
-        explanation_results = await retrieve_explanations(
-            explanation_obj, jurisdiction="MN", limit=1
-        )
-        explanation = None
-        if explanation_results:
-            explanation = select_tapered_variant(
-                explanation_results[0], tapering_ctx["exposure_count"]
-            )
+        explanation = explanation_data["explanation"]
+        tapering_ctx = explanation_data["tapering_ctx"]
 
         response = templates.TemplateResponse(
             request,
@@ -3557,7 +3515,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for creating a timeline event (RECORD pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
-        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+        from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("timeline", "timeline_create_event")
         if contract is None:
@@ -3574,9 +3532,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
         }
 
-        object_type = f"{contract.module}:{contract.group_name}"
-        tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
+        explanation_data = await get_explanation_for_guide(
+            request,
+            contract,
+            Pillar.RECORD,
+            "Create a dated timeline event to build a chronological record.",
+            ["timeline", "record", "event", "chronology", "evidence"],
+            db=db,
+        )
+        explanation = explanation_data["explanation"]
+        tapering_ctx = explanation_data["tapering_ctx"]
 
         response = templates.TemplateResponse(
             request,
@@ -3587,6 +3553,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "exposure_count": tapering_ctx["exposure_count"],
                 "situational_available": situational_available,
                 "narration": narration,
+                "explanation": explanation,
                 "next_step": {"label": "View your timeline", "path": "/tenant/timeline"},
             },
         )
@@ -4234,13 +4201,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
 
     @fastapi_app.get("/command-center", response_class=HTMLResponse)
-    async def command_center_page():
-        """Serve the command center dashboard."""
-        command_center_path = BASE_PATH / "static" / "command_center.html"
-        command_center_content = _render_static_page(command_center_path)
-        if command_center_content:
-            return command_center_content
-        return HTMLResponse(content="<h1>Command Center not found</h1>", status_code=404)
+    async def command_center_page(request: Request):
+        """Serve the command center dashboard from the Jinja template."""
+        return templates.TemplateResponse(request, "pages/command_center.html")
 
     # =========================================================================
     # Eviction Defense Page
@@ -4555,7 +4518,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # IO expansion (ADR-0008): wire the Experience Token tapering dial —
         # the process_indicator narration tapers as the tenant gains
         # familiarity with this surface.
-        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+        from app.modules.ui_composer.tapering import (
+            get_tapering_context,
+            set_experience_token_cookie,
+        )
 
         object_type = "guided_intake:get_help_triage"
         tapering_ctx = await get_tapering_context(request, object_type)
@@ -4893,7 +4859,32 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         user_id = extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
 
-        context = {"briefcase": briefcase}
+        inbox = briefcase.inbox if briefcase else None
+        notifications = []
+        if inbox:
+            for n in inbox.notifications:
+                notifications.append(
+                    {
+                        "id": n.id,
+                        "read": n.is_read,
+                        "priority": "urgent" if n.is_urgent else "normal",
+                        "type": n.notification_type,
+                        "title": n.title,
+                        "message": n.message,
+                        "created_at": n.created_at,
+                        "source": "Semptify" if n.notification_type == "system" else None,
+                        "action_url": n.action_url,
+                        "action_text": n.action_text,
+                    }
+                )
+
+        context = {
+            "briefcase": briefcase,
+            "notifications": notifications,
+            "unread_count": inbox.unread_count if inbox else 0,
+            "urgent_count": inbox.urgent_count if inbox else 0,
+            "system_count": inbox.system_count if inbox else 0,
+        }
         return templates.TemplateResponse(request, "pages/tenant_inbox.html", context)
 
     @fastapi_app.get("/tenant/help", response_class=HTMLResponse)

@@ -133,8 +133,10 @@ class InboxSummary:
     total_notifications: int = 0
     unread_count: int = 0
     urgent_count: int = 0
+    system_count: int = 0
     has_notifications: bool = False
     latest_notification: Notification | None = None
+    notifications: list[Notification] = field(default_factory=list)
 
 
 @dataclass
@@ -825,13 +827,16 @@ async def _load_inbox_summary(user_id: str, briefcase: TenantBriefcase) -> Inbox
 
     unread = len([n for n in notifications if not n.is_read])
     urgent = len([n for n in notifications if n.is_urgent])
+    system = len([n for n in notifications if n.notification_type == "system"])
 
     return InboxSummary(
         total_notifications=len(notifications),
         unread_count=unread,
         urgent_count=urgent,
+        system_count=system,
         has_notifications=len(notifications) > 0,
         latest_notification=notifications[0] if notifications else None,
+        notifications=notifications,
     )
 
 

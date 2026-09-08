@@ -1,0 +1,167 @@
+/**
+ * Document Center — SSOT design-system overrides.
+ *
+ * Provides light-theme aliases for the legacy gui-panels.css tokens still used
+ * by the three-pane Document Center UI, and a few component-level styles that
+ * are not covered by the shared panel system.
+ */
+
+.document-center {
+  /* Map legacy gui-panels.css tokens to the current SSOT design system. */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border-color);
+  --color-accent: var(--color-primary-light);
+  --color-bg-card: var(--bg-card);
+
+  --zone-bg-primary: var(--zone-surface-1);
+  --zone-bg-secondary: var(--zone-surface-2);
+  --zone-bg-tertiary: var(--zone-surface-3);
+  --zone-bg-inverse: var(--zone-surface-inverse);
+  --zone-gap-tight: var(--space-2);
+  --zone-gap-standard: var(--space-6);
+
+  /* Legacy spacing/type aliases used by gui-panels.css fallbacks. */
+  --font-size-sm: var(--text-sm);
+  --font-size-lg: var(--text-lg);
+  --space-sm: var(--space-2);
+  --space-md: var(--space-4);
+  --space-xl: var(--space-8);
+}
+
+/* Document Center wrapper — full-width frame, no outer border. */
+.document-center > .frame-panel {
+  box-shadow: none;
+  border-radius: 0;
+  background: var(--bg-elevated);
+}
+
+/* The three pane shells use intentional background tones for separation. */
+#dcShell {
+  background: var(--bg-page);
+  display: grid;
+  gap: 0;
+  min-height: 500px;
+}
+
+@media (min-width: 768px) {
+  #dcShell {
+    grid-template-columns: 280px 1fr 320px;
+    height: calc(100vh - 180px);
+  }
+}
+
+@media (max-width: 767px) {
+  #dcShell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(280px, auto) minmax(280px, auto);
+  }
+  #dcLeft {
+    max-height: 360px;
+  }
+}
+
+#dcLeft,
+#dcRight {
+  background: var(--zone-surface-2);
+}
+
+#dcCenter {
+  background: var(--zone-surface-1);
+}
+
+#dcTopBar,
+#dcUnlocks,
+.document-center .frame-panel--header,
+#dcLeft > div:first-child,
+#dcRight > div:first-child {
+  background: var(--zone-surface-3);
+}
+
+/* The viewer area stays a quiet dark well so documents read clearly,
+   using the design-system inverse surface rather than a hardcoded slate. */
+#dcViewer {
+  background: var(--zone-surface-inverse);
+  color: var(--text-inverse);
+}
+
+#dcViewer .frame-empty,
+#dcViewer .frame-empty--icon,
+#dcViewer .frame-empty--hint {
+  color: var(--text-inverse);
+  opacity: 0.85;
+}
+
+/* Controls keep their borders. */
+#dcTypeSelect,
+#dcStatusSelect,
+#dcShareRecipient,
+#dcShareScope,
+#dcShareMessage,
+#dcShareUrl,
+.document-center input[type="text"],
+.document-center select,
+.document-center textarea {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-input);
+}
+
+/* Selected list item. */
+.document-center .frame-item.is-selected,
+#dcDocList .frame-item[data-selected="true"] {
+  background: var(--color-calm-100);
+}
+
+/* Status badges — semantic surface + text pairs. */
+.dc-status-new {
+  background: var(--color-gray-100);
+  color: var(--text-muted);
+}
+
+.dc-status-review {
+  background: var(--color-warning-50);
+  color: var(--color-warning-800);
+}
+
+.dc-status-verified {
+  background: var(--color-success-50);
+  color: var(--color-success-800);
+}
+
+.dc-status-mismatched {
+  background: var(--color-error-50);
+  color: var(--color-error-800);
+}
+
+/* Inline links in share list. */
+.document-center a.dc-share-link {
+  color: var(--color-info);
+  font-size: var(--text-xs);
+  word-break: break-all;
+}
+
+/* Upload drop zone — dashed border, no fill. */
+#dcDropZone {
+  background: var(--zone-surface-1);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-block);
+}
+
+#dcDropTitle {
+  color: var(--text-secondary);
+}
+
+#dcDropHint {
+  color: var(--text-muted);
+}
+
+/* Modal overlays. */
+#dcUploadModal > div,
+#dcShareModal > div {
+  background: var(--bg-card);
+  border-radius: var(--radius-block);
+  box-shadow: var(--elevation-4);
+}

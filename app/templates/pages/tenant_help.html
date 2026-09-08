@@ -30,7 +30,7 @@
 }
 
 .help-header p {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     font-size: 1.0625rem;
 }
 
@@ -38,7 +38,7 @@
 .crisis-banner {
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.1));
     border: 2px solid var(--color-error);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-block);
     padding: 1.25rem;
     margin-bottom: 2rem;
     text-align: center;
@@ -53,7 +53,7 @@
 .crisis-number {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
     display: block;
     margin: 0.5rem 0;
 }
@@ -67,22 +67,24 @@
 }
 
 .help-card {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     padding: 1.5rem;
     text-align: center;
     transition: all 0.2s ease;
+    box-shadow: var(--elevation-1);
 }
 
 .help-card:hover {
-    border-color: var(--color-accent);
-    background: var(--color-bg-hover);
+    background: var(--color-gray-100);
+    box-shadow: var(--elevation-2);
 }
 
 .help-card.featured {
-    border-color: var(--color-accent);
+    border: 2px solid var(--color-accent);
     background: rgba(59, 130, 246, 0.05);
+    box-shadow: var(--elevation-2);
 }
 
 .help-icon {
@@ -97,7 +99,7 @@
 }
 
 .help-card p {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.9375rem;
     margin-bottom: 1rem;
 }
@@ -108,7 +110,7 @@
     background: var(--color-accent);
     color: white;
     text-decoration: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-input);
     font-weight: 500;
     transition: background 0.2s ease;
 }
@@ -119,21 +121,22 @@
 
 .help-btn.secondary {
     background: transparent;
-    border: 1px solid var(--color-border);
-    color: var(--color-text-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
 }
 
 .help-btn.secondary:hover {
-    background: var(--color-bg-hover);
+    background: var(--color-gray-100);
 }
 
 /* Resources Section */
 .resources-section {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     padding: 1.5rem;
     margin-bottom: 2rem;
+    box-shadow: var(--elevation-1);
 }
 
 .resources-section h2 {
@@ -153,7 +156,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.875rem 0;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .resource-item:last-child {
@@ -170,12 +173,12 @@
 
 .resource-title {
     font-weight: 500;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 .resource-desc {
     font-size: 0.875rem;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
 }
 
 .resource-link {
@@ -197,11 +200,12 @@
 }
 
 .faq-item {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-input);
     margin-bottom: 0.75rem;
     overflow: hidden;
+    box-shadow: var(--elevation-1);
 }
 
 .faq-question {
@@ -209,7 +213,7 @@
     padding: 1rem 1.25rem;
     background: transparent;
     border: none;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
     font-size: 1rem;
     font-weight: 500;
     text-align: left;
@@ -222,7 +226,7 @@
 .faq-question::after {
     content: '+';
     font-size: 1.25rem;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
 }
 
 .faq-question.active::after {
@@ -241,7 +245,7 @@
 
 .faq-answer-content {
     padding: 0 1.25rem 1rem;
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     line-height: 1.6;
 }
 
@@ -249,9 +253,9 @@
 .help-footer-note {
     text-align: center;
     padding: 1.5rem;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     font-size: 0.875rem;
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid var(--border-color);
     margin-top: 2rem;
 }
 </style>
