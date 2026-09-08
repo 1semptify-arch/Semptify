@@ -14,7 +14,7 @@
 {% set shell_primary = "composer" %}
 {% set shell_mobile_order = ["composer", "preview", "help"] %}
 
-{% block title %}{{ contract.title }} - Semptify{% endblock %}
+{% block title %}{{ contract_title(contract) }} - Semptify{% endblock %}
 {% block nav_record %}active{% endblock %}
 {% block cps_aria_label %}Create a journal entry{% endblock %}
 {% block cps_controls_title %}Add the entry{% endblock %}

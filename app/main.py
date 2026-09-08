@@ -120,6 +120,12 @@ templates.env.globals["_"] = _jinja2_gettext
 templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
 templates.env.globals["get_locale"] = get_locale
 
+# Central plain-language copy for contract-bearing pages (C2).
+from app.core.contract_copy import contract_description, contract_title
+
+templates.env.globals["contract_title"] = contract_title
+templates.env.globals["contract_description"] = contract_description
+
 # Minimal, privacy-first stateless landing route for the On-The-Fly Composer demo
 
 
