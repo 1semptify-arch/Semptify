@@ -83,6 +83,7 @@ from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
 from app.modules.case_builder.fca_guard import require_fca_readiness
 from app.modules.context_engine.retrieval import retrieve_explanations, select_tapered_variant
+from app.modules.ui_composer.explanation import get_explanation_for_guide
 
 
 # PyInstaller frozen executable detection
@@ -3366,7 +3367,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for creating a journal entry (RECORD pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
-        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+        from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("journal", "journal_create")
         if contract is None:
@@ -3384,28 +3385,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
         }
 
-        object_type = f"{contract.module}:{contract.group_name}"
-        tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
-
-        explanation_obj = ObjectEnvelope(
-            object_id=f"guide:{object_type}",
-            object_type=ObjectType.PAGE_ZONE,
-            pillar=Pillar.RECORD,
-            who=Who.TENANT,
-            why="Create a dated journal entry to document a housing event.",
-            provenance=Provenance.USER_ENTERED,
-            temporal_validity=TemporalValidity.EVENT_TRIGGERED,
-            subject_tags=["journal", "record", "entry", "timeline", "event", "evidence"],
+        explanation_data = await get_explanation_for_guide(
+            request,
+            contract,
+            Pillar.RECORD,
+            "Write a dated journal note about a housing situation.",
+            ["journal", "note", "log", "record"],
+            db=db,
         )
-        explanation_results = await retrieve_explanations(
-            explanation_obj, jurisdiction="MN", limit=1
-        )
-        explanation = None
-        if explanation_results:
-            explanation = select_tapered_variant(
-                explanation_results[0], tapering_ctx["exposure_count"]
-            )
+        explanation = explanation_data["explanation"]
+        tapering_ctx = explanation_data["tapering_ctx"]
 
         response = templates.TemplateResponse(
             request,
@@ -3432,7 +3422,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for looking up a statute (KNOW pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
-        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+        from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("law_library", "law_library_get_statute")
         if contract is None:
@@ -3449,28 +3439,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
         }
 
-        object_type = f"{contract.module}:{contract.group_name}"
-        tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
-
-        explanation_obj = ObjectEnvelope(
-            object_id=f"guide:{object_type}",
-            object_type=ObjectType.PAGE_ZONE,
-            pillar=Pillar.KNOW,
-            who=Who.TENANT,
-            why="Look up a verified Minnesota statute to understand a rent or payment rule.",
-            provenance=Provenance.USER_ENTERED,
-            temporal_validity=TemporalValidity.STATIC,
-            subject_tags=["rent", "payment", "statute", "law", "know", "lookup"],
+        explanation_data = await get_explanation_for_guide(
+            request,
+            contract,
+            Pillar.KNOW,
+            "Look up a verified Minnesota statute to understand a rule or right.",
+            ["law_library", "statute", "law", "lookup"],
+            db=db,
         )
-        explanation_results = await retrieve_explanations(
-            explanation_obj, jurisdiction="MN", limit=1
-        )
-        explanation = None
-        if explanation_results:
-            explanation = select_tapered_variant(
-                explanation_results[0], tapering_ctx["exposure_count"]
-            )
+        explanation = explanation_data["explanation"]
+        tapering_ctx = explanation_data["tapering_ctx"]
 
         response = templates.TemplateResponse(
             request,
@@ -3497,7 +3476,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for calculating eviction deadlines (ACT pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
-        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+        from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("eviction_defense", "eviction_defense_calculate_deadlines")
         if contract is None:
@@ -3515,28 +3494,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
         }
 
-        object_type = f"{contract.module}:{contract.group_name}"
-        tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
-
-        explanation_obj = ObjectEnvelope(
-            object_id=f"guide:{object_type}",
-            object_type=ObjectType.PAGE_ZONE,
-            pillar=Pillar.ACT,
-            who=Who.TENANT,
-            why="Calculate eviction deadlines from a service date and case type.",
-            provenance=Provenance.SYSTEM_COMPUTED,
-            temporal_validity=TemporalValidity.TIME_BOUND,
-            subject_tags=["eviction", "defense", "deadline", "calculate", "act", "date"],
+        explanation_data = await get_explanation_for_guide(
+            request,
+            contract,
+            Pillar.ACT,
+            "Calculate eviction deadlines from a service date and case type.",
+            ["eviction", "defense", "deadline", "calculate", "act", "date"],
+            db=db,
         )
-        explanation_results = await retrieve_explanations(
-            explanation_obj, jurisdiction="MN", limit=1
-        )
-        explanation = None
-        if explanation_results:
-            explanation = select_tapered_variant(
-                explanation_results[0], tapering_ctx["exposure_count"]
-            )
+        explanation = explanation_data["explanation"]
+        tapering_ctx = explanation_data["tapering_ctx"]
 
         response = templates.TemplateResponse(
             request,
@@ -3563,7 +3531,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for creating a timeline event (RECORD pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
-        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+        from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("timeline", "timeline_create_event")
         if contract is None:
@@ -3580,9 +3548,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
         }
 
-        object_type = f"{contract.module}:{contract.group_name}"
-        tapering_ctx = await get_tapering_context(request, object_type, db)
         situational_available = is_function_resolved(request, contract.module)
+        explanation_data = await get_explanation_for_guide(
+            request,
+            contract,
+            Pillar.RECORD,
+            "Create a dated timeline event to build a chronological record.",
+            ["timeline", "record", "event", "chronology", "evidence"],
+            db=db,
+        )
+        explanation = explanation_data["explanation"]
+        tapering_ctx = explanation_data["tapering_ctx"]
 
         response = templates.TemplateResponse(
             request,
@@ -3593,6 +3569,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "exposure_count": tapering_ctx["exposure_count"],
                 "situational_available": situational_available,
                 "narration": narration,
+                "explanation": explanation,
                 "next_step": {"label": "View your timeline", "path": "/tenant/timeline"},
             },
         )
@@ -4561,7 +4538,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # IO expansion (ADR-0008): wire the Experience Token tapering dial —
         # the process_indicator narration tapers as the tenant gains
         # familiarity with this surface.
-        from app.modules.ui_composer.tapering import get_tapering_context, set_experience_token_cookie
+        from app.modules.ui_composer.tapering import (
+            get_tapering_context,
+            set_experience_token_cookie,
+        )
 
         object_type = "guided_intake:get_help_triage"
         tapering_ctx = await get_tapering_context(request, object_type)

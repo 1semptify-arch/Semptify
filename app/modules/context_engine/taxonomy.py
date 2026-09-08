@@ -4,7 +4,7 @@ from enum import StrEnum
 
 
 class Subject(StrEnum):
-    """Canonical 13 subjects for Context Engine."""
+    """Canonical subjects for Context Engine."""
 
     EVICTION = "eviction"
     REPAIR = "repair"
@@ -19,6 +19,8 @@ class Subject(StrEnum):
     COURT_PREP = "court_prep"
     EVIDENCE = "evidence"
     TIMELINE = "timeline"
+    JOURNAL = "journal"
+    LAW_LIBRARY = "law_library"
     LANDING = "landing"
 
 
@@ -37,6 +39,8 @@ SUBJECT_LABELS = {
     Subject.COURT_PREP.value: "Court Preparation",
     Subject.EVIDENCE.value: "Evidence Documentation",
     Subject.TIMELINE.value: "Timeline Building",
+    Subject.JOURNAL.value: "Journal / Record Keeping",
+    Subject.LAW_LIBRARY.value: "Law Library & Statutes",
     Subject.LANDING.value: "Landing Page",
 }
 
@@ -55,5 +59,7 @@ SUBJECT_TO_FREE_API = {
     Subject.COURT_PREP.value: "mncourts_search",
     Subject.EVIDENCE.value: None,  # No external API — guidance only
     Subject.TIMELINE.value: None,  # No external API — guidance only
+    Subject.JOURNAL.value: None,  # No external API — guidance only
+    Subject.LAW_LIBRARY.value: "mn_statute_search",
     Subject.LANDING.value: None,  # Public marketing/landing claims — verified by fact-check/freshness system
 }
