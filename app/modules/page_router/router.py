@@ -194,7 +194,8 @@ _SKIP_ROUTES = {
     "/manager",  # manager — handled by manager module
     "/register",  # register — handled by auth module
     "/tenant/help",  # tenant_help — handled in main.py
-    "/delivery/send",  # document_delivery_send — handled in main.py
+    "/zoom-court",  # zoom_court — generated HTML handler in main.py
+    "/setup",  # setup_wizard — handled in main.py
 }
 
 
