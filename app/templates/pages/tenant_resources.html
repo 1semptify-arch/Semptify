@@ -31,7 +31,7 @@
   .rd-label { display: block; font-weight: var(--font-semibold); color: var(--text-primary); font-size: var(--text-sm); margin-bottom: var(--space-2); }
   .rd-input, .rd-select {
     width: 100%; padding: var(--space-3); border: 1px solid var(--border-color);
-    border-radius: 4px; font-size: var(--text-base); background: var(--color-white);
+    border-radius: var(--radius-input); font-size: var(--text-base); background: var(--color-white);
     color: var(--text-primary); font-family: inherit; box-sizing: border-box;
   }
   .rd-results { display: flex; flex-direction: column; }
@@ -42,12 +42,12 @@
   .rd-contact { font-size: var(--text-sm); color: var(--text-primary); margin-top: var(--space-1); }
   .rd-contact a { color: var(--color-info); }
   .rd-meta { font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1); }
-  .rd-resource--emergency { background: var(--color-warning); padding: var(--space-3); border-radius: 4px; margin-bottom: var(--space-2); }
+  .rd-resource--emergency { background: var(--color-warning); padding: var(--space-3); border-radius: var(--radius-input); margin-bottom: var(--space-2); }
   .rd-resource--emergency .rd-cat { color: var(--text-primary); font-weight: var(--font-semibold); }
   .rd-count { font-size: var(--text-xs); color: var(--text-secondary); margin-bottom: var(--space-3); }
   .rd-submit {
     padding: var(--space-3) var(--space-6); background: var(--color-primary); color: var(--text-inverse);
-    border: none; border-radius: 4px; font-size: var(--text-base); font-weight: var(--font-semibold);
+    border: none; border-radius: var(--radius-input); font-size: var(--text-base); font-weight: var(--font-semibold);
     cursor: pointer; font-family: inherit;
   }
 </style>
