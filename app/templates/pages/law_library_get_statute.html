@@ -17,7 +17,7 @@
 {% set shell_primary = "preview" %}
 {% set shell_mobile_order = ["composer", "preview", "help"] %}
 
-{% block title %}{{ contract.title }} — Semptify{% endblock %}
+{% block title %}{{ contract_title(contract) }} — Semptify{% endblock %}
 {% block nav_know %}active{% endblock %}
 {% block cps_aria_label %}Look up a Minnesota statute{% endblock %}
 {% block cps_controls_title %}Look it up{% endblock %}

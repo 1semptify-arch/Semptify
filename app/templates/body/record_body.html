@@ -270,8 +270,8 @@
   <header class="record-guide__header zone" data-zone="record">
     <div class="block">
       <p class="record-guide__eyebrow">Record</p>
-      <h1 class="record-guide__title">{% block record_title %}{{ contract.title }}{% endblock %}</h1>
-      <p class="record-guide__description">{% block record_description %}{{ contract.description }}{% endblock %}</p>
+      <h1 class="record-guide__title">{% block record_title %}{{ contract_title(contract) }}{% endblock %}</h1>
+      <p class="record-guide__description">{% block record_description %}{{ contract_description(contract) }}{% endblock %}</p>
     </div>
   </header>
 

@@ -36,8 +36,19 @@ Sharing (2026-07-25):
 import json
 import logging
 import secrets
+from typing import Any
 
 from fastapi import APIRouter, Request
+
+from app.core.context_envelope import (
+    ObjectEnvelope,
+    ObjectType,
+    Pillar,
+    Provenance,
+    TemporalValidity,
+    Who,
+)
+from app.modules.context_engine.retrieval import retrieve_explanations, select_tapered_variant
 from fastapi.responses import JSONResponse, Response
 
 from app.core.auto_refresh import ensure_valid_token
@@ -65,6 +76,67 @@ ALLOWED_DOCUMENT_TYPES: frozenset[str] = frozenset(
         "other",
     }
 )
+
+# Mapping from document type to the contextual-explanation envelope used by
+# "What does this mean?". Pillar is chosen so it matches the right Layer 1
+# explanation entries (record-keeping, legal facts, next steps, or safety).
+_DOCUMENT_TYPE_EXPLANATION: dict[str, dict[str, Any]] = {
+    "notice_to_vacate": {
+        "pillar": Pillar.GOVERN,
+        "subject_tags": ["eviction", "notice", "document", "evidence"],
+        "why": "Explain an eviction-related notice and point the tenant toward help.",
+    },
+    "court_summons": {
+        "pillar": Pillar.GOVERN,
+        "subject_tags": ["eviction", "court", "summons", "document", "evidence"],
+        "why": "Explain a court summons and prompt the tenant to seek legal help.",
+    },
+    "repair_request": {
+        "pillar": Pillar.ACT,
+        "subject_tags": ["repair", "document", "evidence"],
+        "why": "Explain a repair request document and the next steps the tenant can take.",
+    },
+    "rent_receipt": {
+        "pillar": Pillar.KNOW,
+        "subject_tags": ["rent", "payment", "document", "evidence"],
+        "why": "Explain a rent or payment receipt.",
+    },
+    "lease": {
+        "pillar": Pillar.KNOW,
+        "subject_tags": ["lease", "document", "evidence"],
+        "why": "Explain a lease document and its key terms.",
+    },
+    "move_in_inspection": {
+        "pillar": Pillar.KNOW,
+        "subject_tags": ["deposit", "inspection", "document", "evidence"],
+        "why": "Explain a move-in or move-out inspection document.",
+    },
+    "correspondence": {
+        "pillar": Pillar.RECORD,
+        "subject_tags": ["evidence", "document", "communication"],
+        "why": "Explain a piece of correspondence in the tenant's record.",
+    },
+    "other": {
+        "pillar": Pillar.RECORD,
+        "subject_tags": ["evidence", "document"],
+        "why": "Explain a document in the tenant's record.",
+    },
+}
+
+
+def _explanation_envelope(vault_id: str, document_type: str) -> ObjectEnvelope:
+    """Build the Object Envelope for the Document Center Meaning tab."""
+    mapping = _DOCUMENT_TYPE_EXPLANATION.get(document_type, _DOCUMENT_TYPE_EXPLANATION["other"])
+    return ObjectEnvelope(
+        object_id=f"document_center:document_explain:{vault_id}",
+        object_type=ObjectType.PAGE_ZONE,
+        pillar=mapping["pillar"],
+        who=Who.TENANT,
+        why=mapping["why"],
+        provenance=Provenance.SYSTEM_COMPUTED,
+        temporal_validity=TemporalValidity.EVENT_TRIGGERED,
+        subject_tags=list(mapping["subject_tags"]),
+    )
 
 
 def _auth(request: Request) -> str | None:
@@ -780,10 +852,11 @@ async def dc_explain_document(vault_id: str, request: Request) -> JSONResponse:
         )
 
     understanding = result.get("understanding", {})
+    document_type = result.get("classification", {}).get("document_type") or "other"
 
-    # IO expansion (ADR-0008): record exposure to the explanation surface so
+    # IO expansion (ADR-0008): record exposure per document type so
     # the Meaning tab can taper guidance as the tenant gains familiarity.
-    object_type = "document_center:document_explain"
+    tally_key = f"document_center:document_explain:{document_type}"
     intensity_level: int = 0
     exposure_count = 0
     experience_token = None
@@ -795,25 +868,40 @@ async def dc_explain_document(vault_id: str, request: Request) -> JSONResponse:
         )
 
         experience_token, saved_to_cloud = await load_and_record_exposure(
-            request, object_type
+            request, tally_key
         )
-        exposure_count = experience_token.exposure_tallies.get(object_type, 0)
+        exposure_count = experience_token.exposure_tallies.get(tally_key, 0)
         lvl = experience_token.intensity_level
         intensity_level = int(lvl) if isinstance(lvl, (int,)) else int(getattr(lvl, "value", 0))
     except Exception:
         logger.warning("DC explain: experience-token recording failed", exc_info=True)
+
+    # IO Wave 2: retrieve a contextual explanation for this document type.
+    explanation = None
+    try:
+        explanation_obj = _explanation_envelope(vault_id, document_type)
+        explanation_results = await retrieve_explanations(
+            explanation_obj, jurisdiction="MN", limit=1
+        )
+        if explanation_results:
+            explanation = select_tapered_variant(
+                explanation_results[0], exposure_count
+            )
+    except Exception:
+        logger.warning("DC explain: explanation retrieval failed", exc_info=True)
 
     response = JSONResponse(
         {
             "title": understanding.get("title"),
             "summary": understanding.get("summary"),
             "plain_english": understanding.get("plain_english"),
-            "document_type": result.get("classification", {}).get("document_type"),
+            "document_type": document_type,
             "urgency": result.get("urgency", {}),
             "action_items": result.get("insights", {}).get("action_items", []),
             "key_dates": result.get("extracted_data", {}).get("dates", []),
             "intensity_level": intensity_level,
             "exposure_count": exposure_count,
+            "explanation": explanation,
         }
     )
     if experience_token is not None and not saved_to_cloud:

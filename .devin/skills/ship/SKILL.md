@@ -40,6 +40,14 @@ If any file fails to compile, STOP and fix it before proceeding.
 
 ### Step 2 — Run Playwright tests (if server is running)
 
+**Stopping a dev server you started:** kill the actual server process, not just the shell.
+`kill_shell` (or closing the terminal) can orphan the uvicorn/python child, leaving a stale
+pre-edit server bound to the port — later verification then silently tests old code.
+Find and stop it by port: `Get-NetTCPConnection -LocalPort <port> -State Listen` →
+`Stop-Process -Id <OwningProcess> -Force`, then confirm the port is free before restarting.
+(Real occurrence 2026-09-08: an orphaned server on :8001 served pre-edit pages and produced
+false-negative verification.)
+
 Check if a dev server is running on port 8000. If yes, run the Playwright test suite:
 
 Run: `node run.js C:/tmp/playwright-test-semptify.js` in cwd `C:/Users/bradc/.agents/skills/playwright`

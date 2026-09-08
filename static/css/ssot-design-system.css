@@ -27,6 +27,8 @@
 
   /* Semantic Colors */
   --color-success: #10b981;
+  --color-success-50: #ecfdf5;
+  --color-success-800: #065f46;
   --color-warning: #f59e0b;
   --color-warning-50: #fffbeb;
   --color-warning-800: #92400e;

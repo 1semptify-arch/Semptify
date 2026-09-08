@@ -1,0 +1,67 @@
+/**
+ * frame-light.css — Opt-in light-theme aliases for gui-panels.css frame-* components.
+ *
+ * gui-panels.css ships dark-zone token defaults (--zone-bg-*: dark slates,
+ * --color-text-*: light fallbacks). The SSOT design system intentionally does
+ * NOT alias those tokens globally (see the NOTE in ssot-design-system.css)
+ * because some GUI zones are dark by design.
+ *
+ * Pages on gui/base.html that should render on the light SSOT surface opt in
+ * by wrapping their content in `class="frame-light"`. This remaps the legacy
+ * tokens to the current design system within that scope only, so intentional
+ * dark zones elsewhere are unaffected. Same pattern as document-center.css.
+ */
+
+.frame-light {
+  /* Legacy text/color aliases → SSOT */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border-color);
+  --color-accent: var(--color-primary-light);
+  --color-bg-card: var(--bg-card);
+  --color-bg-primary: var(--bg-page);
+
+  /* Dark zone surfaces → light zone surfaces */
+  --zone-bg-primary: var(--zone-surface-1);
+  --zone-bg-secondary: var(--zone-surface-1);
+  --zone-bg-tertiary: var(--zone-surface-2);
+  --zone-bg-inverse: var(--zone-surface-inverse);
+  --zone-gap-tight: var(--space-2);
+  --zone-gap-standard: var(--space-6);
+
+  /* Legacy spacing/type fallbacks used inside gui-panels.css */
+  --font-size-sm: var(--text-sm);
+  --font-size-lg: var(--text-lg);
+  --space-sm: var(--space-2);
+  --space-md: var(--space-4);
+  --space-xl: var(--space-8);
+}
+
+/* Zebra striping on .frame-item reads as a surface tint, not a border. */
+.frame-light .frame-item:nth-child(even) {
+  background: var(--zone-surface-2);
+}
+
+/* Form controls inside frame panels keep visible borders and light fills. */
+.frame-light input[type="text"],
+.frame-light input[type="datetime-local"],
+.frame-light input[type="date"],
+.frame-light input[type="time"],
+.frame-light select,
+.frame-light textarea {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-input);
+}
+
+.frame-light input::placeholder,
+.frame-light textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Links on the light surface. */
+.frame-light a {
+  color: var(--color-primary-light);
+}

@@ -2374,13 +2374,13 @@
     "description": "Brad decided: Semptify-PI gets its own separate Render service and subdomain (suggest plugins.semptify.org), independent from the main Semptify Render service (semptify.org). No shared environment variables or secrets with the main Semptify Render service, per the decoupling rule already in Semptify-PI's AGENTS.md. HARD CONSTRAINT: this MUST be Render's free tier, verified, not a free trial. Brad funds all of this personally out of limited disability income and cannot take on any recurring cost. Before creating the service, confirm free-tier limits (spin-down behavior, custom domain/SSL availability on free tier, any request/bandwidth caps) using current Render documentation, not assumptions from training data. If a custom subdomain or SSL requires a paid plan on Render's CURRENT pricing, stop and report back to Brad rather than proceeding \u2014 do not create anything that could incur a charge. Stop and report back with the proposed subdomain/config for Brad's confirmation before finalizing DNS either way.",
     "file_path": "N/A - Render infrastructure",
     "priority": "medium",
-    "status": "in_progress",
+    "status": "resolved",
     "category": "other",
-    "notes": "[2026-08-29 17:33 UTC - claude] Checking Render free-tier capacity before proposing subdomain\n[2026-09-02 01:49 UTC - claude] Still blocked on Render free-tier limits and Brad's confirmation. No service or DNS created.\n[2026-09-02 02:04 UTC - claude] Resuming research. Will check current Render free-tier docs for spin-down behavior, custom domain/SSL availability, request/bandwidth caps, and whether a second free service fits the 750 instance-hour limit.\n[2026-09-02 02:14 UTC - claude] Brad decided: stay on Render free tier. No real users yet, so cold starts acceptable. Cloudflare used for DNS. Next: prepare render.yaml/env list, then confirm before creating service or DNS record.\n[2026-09-02 02:16 UTC - claude] Brad decided free tier. No real users yet, so spin-downs are acceptable. Cloudflare for DNS. Prepared render.yaml, /health endpoint, BUILD_GUIDE/BLUEPRINT updates. PI pushed a059827. Awaiting final OK before creating Render service and Cloudflare CNAME.\n[2026-09-02 02:26 UTC - claude] Render service septify-pi created: https://septify-pi.onrender.com. Free Render Postgres septify-pi-db created. Semptify-PI GitHub repo made public. Build/deploy in progress. Next: set real DATABASE_URL (from Render Dashboard), SEMPIFY_PI_ENCRYPTION_KEY, and OAuth credentials in Render env vars; update OAuth redirect URIs to https://septify-pi.onrender.com/auth/{provider}/callback.\n[2026-09-02 02:46 UTC - claude] Dedicated 'septify_pi' database created in Neon. Render service fails until DATABASE_URL and SEMPIFY_PI_ENCRYPTION_KEY are set in dashboard. BUILD_GUIDE and BUILD_STATE updated. Awaiting Brad to set env vars and redeploy.",
+    "notes": "[2026-08-29 17:33 UTC - claude] Checking Render free-tier capacity before proposing subdomain\n[2026-09-02 01:49 UTC - claude] Still blocked on Render free-tier limits and Brad's confirmation. No service or DNS created.\n[2026-09-02 02:04 UTC - claude] Resuming research. Will check current Render free-tier docs for spin-down behavior, custom domain/SSL availability, request/bandwidth caps, and whether a second free service fits the 750 instance-hour limit.\n[2026-09-02 02:14 UTC - claude] Brad decided: stay on Render free tier. No real users yet, so cold starts acceptable. Cloudflare used for DNS. Next: prepare render.yaml/env list, then confirm before creating service or DNS record.\n[2026-09-02 02:16 UTC - claude] Brad decided free tier. No real users yet, so spin-downs are acceptable. Cloudflare for DNS. Prepared render.yaml, /health endpoint, BUILD_GUIDE/BLUEPRINT updates. PI pushed a059827. Awaiting final OK before creating Render service and Cloudflare CNAME.\n[2026-09-02 02:26 UTC - claude] Render service septify-pi created: https://septify-pi.onrender.com. Free Render Postgres septify-pi-db created. Semptify-PI GitHub repo made public. Build/deploy in progress. Next: set real DATABASE_URL (from Render Dashboard), SEMPIFY_PI_ENCRYPTION_KEY, and OAuth credentials in Render env vars; update OAuth redirect URIs to https://septify-pi.onrender.com/auth/{provider}/callback.\n[2026-09-02 02:46 UTC - claude] Dedicated 'septify_pi' database created in Neon. Render service fails until DATABASE_URL and SEMPIFY_PI_ENCRYPTION_KEY are set in dashboard. BUILD_GUIDE and BUILD_STATE updated. Awaiting Brad to set env vars and redeploy.\n[2026-09-08 03:37 UTC - devin] Parked for 5.1 build per Brad 2026-09-08 (roadmap-sequencing handoff). Master queue updated. Nothing running or costing money; render.yaml + .env + Neon septify_pi DB ready.\n[2026-09-08 - devin-swe17] D2 status sync: master queue shows parked-for-5.1 (2026-09-08 decision); this repo entry was stale pending. Synced: parked for 5.1, do not start.\n[2026-09-08 10:46 UTC - devin] Parked for 5.1 per Brad 2026-09-08 roadmap-sequencing - synced to match master queue (blocked_on_decision/PARKED). No Render work in 5.0 scope.",
     "created_at": "2026-08-29T00:00:00Z",
-    "updated_at": "2026-09-02T02:46:36.195911+00:00",
+    "updated_at": "2026-09-08T10:46:46.275265+00:00",
     "target_model": "unlimited",
-    "assigned_agent": "claude"
+    "assigned_agent": "devin"
   },
   {
     "id": "law-library-fact-only-rewrite-2026-08-29",
@@ -2567,16 +2567,16 @@
   {
     "id": "consolidate-validate-architecture-principles-2026-08-29",
     "title": "Resolve standalone 'Know Your Rights' pages and tenant Flagship implementation",
-    "description": "BUILD_STATE.md consolidate-validate session identified three architecture-principle findings and Brad's decisions, but no implementation was done. Work: retire /renters-guide and /gui/know (standalone 'Know Your Rights' destinations), build the tenant-only Flagship UI around the six functional sections, and wire the Law Linker into document/next-step flows.",
+    "description": "BUILD_STATE.md consolidate-validate session identified three architecture-principle findings and Brad's decisions, but no implementation was done. Work: retire /renters-guide and /gui/know (standalone 'Know Your Rights' destinations), build the tenant-only Flagship UI around the six functional sections, and wire the Law Linker into document/next-step flows. [2026-09-08 Brad spec for Law Linker: wherever a statute/legal citation appears in ANY text in Semptify, the citation text is visually marked (colored, link-style). Clicking it opens a pop-out window showing the law text WORD-FOR-WORD from the official source (e.g. revisor.mn.gov). From the pop-out, the user can save the citation to their sticky notes - sticky notes do not exist yet and are a separate dependency task in Semptify Core. Ship order: citation-marking + pop-out first; add-to-sticky-notes when that feature lands.]",
     "file_path": "BUILD_STATE.md",
     "priority": "medium",
-    "status": "pending",
+    "status": "resolved",
     "category": "feature",
-    "notes": "Blocked: needs Brad's product/architecture decisions.\n[2026-08-30 15:40 UTC - claude] Standalone /renters-guide and /gui/know retired: redirect to /law-library implemented and verified. Remaining blocker: tenant Flagship UI scope/timing and Law Linker next-step wiring in document-understanding flows.\n[2026-09-02 02:00 UTC - claude] Still blocked on Brad's product/architecture decisions: how to handle standalone Know Your Rights destinations and how to wire the law linker into document-understanding/next-step flows.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: covered by flagship UI spec",
+    "notes": "Blocked: needs Brad's product/architecture decisions.\n[2026-08-30 15:40 UTC - claude] Standalone /renters-guide and /gui/know retired: redirect to /law-library implemented and verified. Remaining blocker: tenant Flagship UI scope/timing and Law Linker next-step wiring in document-understanding flows.\n[2026-09-02 02:00 UTC - claude] Still blocked on Brad's product/architecture decisions: how to handle standalone Know Your Rights destinations and how to wire the law linker into document-understanding/next-step flows.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: covered by flagship UI spec\n[2026-09-08 04:01 UTC - devin] Brad handoff 2026-09-08: direction APPROVED 2026-09-06 / confirmed today. Build tenant-only Flagship UI around six functional sections and wire Law Linker into document/next-step flows. Define and claim build task before implementing.\n[2026-09-08 - devin-swe17] Brad defined Law Linker behavior (see description). Residuals from flagship build also open: /ui/tool/* server-side role hardening + /tenant/home cutover verification.\n[2026-09-08 - devin-swe17] B4 residuals VERIFIED DONE in code: /ui/tool/{module} hard-gates tenant role from TENANT_HIDDEN_TOOLS server-side (role_ui/router.py:618, redirect to tenant_home_page); /tenant/home redirects to flagship /tenant/start (main.py:4448, Phase C cutover landed, legacy template kept on disk for rollback). Remaining open piece is the Law Linker build task - spec captured in description; separate task law-linker-v2-2026-09-08 created.\n[2026-09-08 10:46 UTC - devin] B4 resolved 2026-09-08: flagship home canonical (PRs #156/#158/#159), /ui/tool role hardening + /tenant/home cutover verified, standalone renters-guide/gui-know retired. Follow-up spawned as law-linker-v2-2026-09-08 (pending authorization).",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-06T21:23:26.529144+00:00",
+    "updated_at": "2026-09-08T10:46:45.935898+00:00",
     "target_model": "claude",
-    "assigned_agent": "devin-swe17"
+    "assigned_agent": "devin"
   },
   {
     "id": "landing-page-rebuild-2026-08-29",
@@ -2626,13 +2626,13 @@
     "description": "BACKLOG.md [considering]: Brad concept for a four-piece vault unlock with no complete key at rest. Needs a real spec covering derivation order, the piece-4 creation function, key-rotation/reconnect (piece 3 lives in the user's own storage), and interaction with the existing _derive_key(user_id, secret_key) / AES-256-GCM token encryption in app/sdk/vault/encryption.py and app/core/auto_refresh.py.",
     "file_path": "app/sdk/vault/encryption.py",
     "priority": "low",
-    "status": "review",
+    "status": "resolved",
     "category": "security",
-    "notes": "Security architecture future work.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec both vault items\n[2026-09-06 21:33 UTC - devin-swe17] Spec-only phase (Brad 2026-09-06): paired spec with secret-key-rotation, no code\n[2026-09-06 21:34 UTC - devin-swe17] Paired spec written: handoffs/vault-security-pair-spec-2026-09-06.md \u2014 awaiting Brad decisions on scope/piece-4/grace",
+    "notes": "Security architecture future work.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec both vault items\n[2026-09-06 21:33 UTC - devin-swe17] Spec-only phase (Brad 2026-09-06): paired spec with secret-key-rotation, no code\n[2026-09-06 21:34 UTC - devin-swe17] Paired spec written: handoffs/vault-security-pair-spec-2026-09-06.md \u2014 awaiting Brad decisions on scope/piece-4/grace\n[2026-09-08 04:01 UTC - devin] Brad handoff 2026-09-08: APPROVED - piece-4=unlock code, grace=60 days, onboarding=interface-only/no edits. Implementation ready; spec at handoffs/vault-security-pair-spec-2026-09-06.md.\n[2026-09-08 - devin-swe17] Brad decision: PARKED until Semptify 5.1 implementation window. Spec fully approved (piece-3 client-side, piece-4 unlock code, 60-day grace, onboarding interface-only). Do not start before 5.1.\n[2026-09-08 10:46 UTC - devin] Spec approved and parked for 5.1 per Brad decision 2026-09-08 (synced from master queue). Scope A merged (PRs #155/#157); Scope B implementation deferred - reopen at 5.1 start.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-06T21:34:46.669287+00:00",
+    "updated_at": "2026-09-08T10:46:45.565935+00:00",
     "target_model": "claude",
-    "assigned_agent": "devin-swe17"
+    "assigned_agent": "devin"
   },
   {
     "id": "secret-key-rotation-2026-08-29",
@@ -2808,13 +2808,13 @@
     "description": "Continue mechanical migration of remaining card-family templates and stylesheets per approved design-refresh spec. Scope: manager-dashboard.css, document_center.html, welcome.html, tenant_home.html, case_builder.html, action_plan.html, timeline.html, and remaining shared templates. Remove content-container borders, add elevation, use SSOT tokens.",
     "file_path": "app/templates/pages/",
     "priority": "medium",
-    "status": "in_progress",
+    "status": "resolved",
     "category": "design",
-    "notes": "Claimed by claude for Wave 2 continuation. Handoff: 2026-09-07 wave covered semptify_hub, advocate, tenant_my_advocate, tenant_inbox, tenant_journal. Next batch: manager-dashboard, document_center, welcome, tenant_home, case_builder, action_plan, timeline.\n[2026-09-08 01:20 UTC - claude] Wave 2 continuation. Pre-flight done. Migrated action_plan.html and complaints.html; reverted unused tenant.html. Remaining: case_builder, tenant_home, manager-dashboard, document_center, welcome, etc.",
+    "notes": "Claimed by claude for Wave 2 continuation. Handoff: 2026-09-07 wave covered semptify_hub, advocate, tenant_my_advocate, tenant_inbox, tenant_journal. Next batch: manager-dashboard, document_center, welcome, tenant_home, case_builder, action_plan, timeline.\n[2026-09-08 01:20 UTC - claude] Wave 2 continuation. Pre-flight done. Migrated action_plan.html and complaints.html; reverted unused tenant.html. Remaining: case_builder, tenant_home, manager-dashboard, document_center, welcome, etc.\n[2026-09-08 02:50 UTC - claude] Migrated case_builder.html. Skipping inactive tenant_home.html. Remaining: manager-dashboard.css, document_center.html, welcome.html, tenant_help.html, eviction_timeline.html, dispute_tracker.html, etc.\n[2026-09-08 02:53 UTC - claude] Migrated case_builder.html and tenant_help.html. Remaining: manager-dashboard.css, document_center.html, welcome.html, and other template-1/4/5 pages.\n[2026-09-08 03:15 UTC - claude] manager-dashboard.css migrated and committed. document_center.html is the next target; it has extensive JS-injected hardcoded dark colors and needs a dedicated batch.\n[2026-09-08 03:28 UTC - claude] Handed off. See handoff doc C:\\master-repo\\handoffs\\design-refresh-wave2-2026-09-08.md. Next: document_center.html. welcome.html paused pending treatment sign-off.\n[2026-09-08 04:09 UTC - devin] Resuming Wave 2 migration for document_center.html. Next target has extensive JavaScript-injected hardcoded dark colors.\n[2026-09-08 04:23 UTC - devin] Document Center batch completed and committed: document_center.html migrated to SSOT tokens, document-center.css added, responsive grid. Guardrail + 244 module-health tests pass. /dc verified live. welcome.html remains paused pending treatment sign-off; remaining templates (tenant_home, action_plan, timeline already done) not yet migrated.\n[2026-09-08 - devin-swe17] C1 closed per stabilization list: command_center.html migrated + route fixed (TemplateResponse to pages/command_center.html, setup redirects updated, verified live). admin.html INTENTIONALLY EXCLUDED - /admin serves the working static/admin/hub.html; replacing it with the Jinja template is a product decision, not a migration. welcome.html excluded per B5 (donor-facing dark page, intentionally out of tenant design system). All reachable card-family pages migrated.\n[2026-09-08 10:46 UTC - devin] C1 complete: all active template-4 pages migrated to SSOT (last: module_page.html 9b06e6c9). welcome.html excluded per B5 donor-facing resolution - reopen if that call reverses. 18 dead template-4 files split to retire-dead-template4-jinja-2026-09-08.",
     "created_at": "2026-09-07T00:00:00Z",
-    "updated_at": "2026-09-08T01:20:26.878674+00:00",
+    "updated_at": "2026-09-08T10:46:46.612571+00:00",
     "target_model": "claude",
-    "assigned_agent": "claude"
+    "assigned_agent": "devin"
   },
   {
     "id": "tenant-inbox-redirect-2026-09-07",
@@ -2822,12 +2822,89 @@
     "description": "Determine whether /tenant/inbox redirecting to /help?status=down is intentional (feature genuinely down) or a routing/role-guard bug. One-line investigation, separate from the design refresh.",
     "file_path": "app/main.py",
     "priority": "low",
-    "status": "open",
+    "status": "resolved",
     "category": "investigation",
-    "notes": "Flagged during design-refresh Wave 2 verification. Route currently returns help-down page instead of rendering tenant_inbox.html.",
+    "notes": "Flagged during design-refresh Wave 2 verification. Route currently returns help-down page instead of rendering tenant_inbox.html.\n[2026-09-08 04:02 UTC - devin] Claimed. Root cause suspected: route passes only briefcase; template expects notifications list + counts. Investigating and fixing.\n[2026-09-08 04:09 UTC - devin] Fixed. Route now builds notifications list and counts expected by tenant_inbox.html. Verified with IronBee DevTools: HTTP 200, page renders, ARIA snapshot shows Inbox UI.\n[2026-09-08 - devin-swe17] Re-verified during 5.0 final batch: task already resolved (ddf25160). Live check 2026-09-08: unauthenticated /tenant/inbox returns 302 -> / (correct role-guard behavior, not the error path). /help?status=down was the generic exception fallback firing when template render raised UndefinedError on missing context.",
     "created_at": "2026-09-07T20:30:00Z",
-    "updated_at": "2026-09-07T20:30:00Z",
+    "updated_at": "2026-09-08T10:51:56.973250+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "devin"
+  },
+  {
+    "id": "legacy-pages-migrate-2026-09-08",
+    "title": "Legacy pages migration: remaining tenant-facing SSOT token refresh",
+    "description": "Migrate remaining reachable tenant-facing pages/ templates to SSOT tokens per Wave 2 pattern (token swap, borderless content containers + elevation, keep control borders). Targets: calendar, timeline, comms_log, tenant_home(skip-dead), auto_analysis_summary, auto_mode_panel, help, fca_readiness, documents, library, office, tools, plus partial-cleanup passes on tenant_capture, tenant_journal, tenant_inbox, tenant_my_advocate, law_library, dispute_tracker, eviction_timeline. Audit: C:\\master-repo\\LEGACY_PAGES_AUDIT.md section B.",
+    "file_path": "app/templates/pages/",
+    "priority": "medium",
+    "status": "review",
+    "category": "design",
+    "notes": "Created from legacy-pages audit follow-up; approved by Brad 2026-09-08.\n[2026-09-08 04:43 UTC - devin-swe17] Migrated calendar, timeline, comms_log, help, auto_analysis_summary, auto_mode_panel, tenant_my_advocate + residuals in tenant_capture/journal/inbox via shared frame-light.css scope. library/office/tools/documents/law_library/fca_readiness/dispute_tracker/eviction_timeline verified already clean. All migrated pages verified live (200) on local server. Screenshots pending IronBee-connected session.",
+    "updated_at": "2026-09-08T04:43:47.767960+00:00",
+    "assigned_agent": "devin-swe17"
+  },
+  {
+    "id": "retire-static-pages-2026-09-08",
+    "title": "Retire dead/orphan static pages (log-only batch)",
+    "description": "Retire-candidate list from the static chrome-rule audit \u2014 no deletions yet, dispose later per retirement policy: static/ai-helper.html (live /ai-helper route but zero inbound nav links), static/filedored.html (dead, no route/refs), static/library.html (superseded by Jinja pages/library.html), static/search.html (dead; only link points to another dead file), static/status.html (dead), static/reconnect/index.html (orphan \u2014 has a full footer, never served; /storage/reconnect is generated by onboarding/reconnect.py), static/components/footer.html + unified-footer.html (non-canonical partials, referenced only by internal module_converter.html dropdown).",
+    "file_path": "static/",
+    "priority": "low",
+    "status": "pending",
+    "category": "cleanup",
+    "notes": "Brad: log only, no urgency, no deletions this pass. Audit: LEGACY_PAGES_AUDIT.md, 'Static chrome-rule follow-up' section.",
+    "created_at": "2026-09-08T06:23:11.060741+00:00",
+    "updated_at": "2026-09-08T06:23:11.060741+00:00",
+    "assigned_agent": null
+  },
+  {
+    "id": "consolidate-footer-sources-2026-09-08",
+    "title": "Consolidate three parallel footer implementations to one canonical source",
+    "description": "Three parallel footer implementations exist: (1) {% block footer %} in app/templates/base.html, (2) static/js/unified-footer-loader.js, (3) static/components/footer.html + unified-footer.html partials. This is an information-integrity risk \u2014 the legal-disclaimer wording could drift out of sync if only one implementation gets updated. Consolidate to a single canonical source (e.g., one shared partial/snippet consumed by both the Jinja block and the JS loader), then retire the components/ partials.",
+    "file_path": "app/templates/base.html; static/js/unified-footer-loader.js; static/components/",
+    "priority": "medium",
+    "status": "pending",
+    "category": "refactor",
+    "notes": "Brad: pick up once the stabilization queue has room \u2014 not urgent, but must stay tracked. Found during static chrome-rule audit.",
+    "created_at": "2026-09-08T06:23:11.060741+00:00",
+    "updated_at": "2026-09-08T06:23:11.060741+00:00",
+    "assigned_agent": null
+  },
+  {
+    "id": "onboarding-role-select-redirect-2026-09-08",
+    "title": "Redirect /onboarding/role-select (module router, no-touch) to canonical page",
+    "description": "GET /onboarding/role-select is defined inside the NO-TOUCH module at app/modules/onboarding/router.py:66 and serves the footerless static file static/onboarding/role-select.html. It is a duplicate of the canonical generated page at /onboarding/select-role.html. The main.py twin (/onboarding/select-role, no .html) was redirected in the 2026-09-08 compliance pass, but this route needs a scoped no-touch exception to edit the module router (redirect or remove). Nothing links to it \u2014 low risk while pending.",
+    "file_path": "app/modules/onboarding/router.py",
+    "priority": "low",
+    "status": "review",
+    "category": "compliance",
+    "notes": "Requires explicit Brad sign-off to touch app/modules/onboarding/ \u2014 the 2026-09-08 exception covered reconnect.py::_reconnect_html only.\n[2026-09-08 06:57 UTC - devin-swe17] Resolved: /onboarding/role-select now ssot_redirects to /onboarding/select-role.html (commit f16548a7). ?fresh=true cookie-clear preserved on the redirect. Verified live: 302 + Set-Cookie semptify_uid cleared.",
+    "created_at": "2026-09-08T06:23:11.060741+00:00",
+    "updated_at": "2026-09-08T06:57:09.753309+00:00",
+    "assigned_agent": "devin-swe17"
+  },
+  {
+    "id": "law-linker-v2-2026-09-08",
+    "title": "Law Linker v2: inline citation marks + official-source pop-out + sticky-note save",
+    "description": "Brad spec (2026-09-08): wherever a statute/legal citation appears in ANY text in Semptify, the citation text is visually marked (colored, link-style). Clicking it opens a pop-out window showing the law text WORD-FOR-WORD from the official source (e.g. revisor.mn.gov). From the pop-out, the user can save the citation to their sticky notes.\n\nExtends existing law-linker-document-overlay-2026-08-29 (resolved - overlay notes generation).\n\nShip order: (1) citation-marking + pop-out first - works standalone; (2) 'add to sticky notes' lands when the sticky-notes feature exists - sticky notes are a SEPARATE dependency task in Semptify Core, not yet defined. Before implementing: preflight the existing Law Linker code path, confirm citation-detection regex/parser coverage, and define which surfaces get marking (guide pages, journal, timeline, document explanations, law library). One task per commit; UI must follow the design blueprint (zones not cards, SSOT tokens).",
+    "file_path": "app/modules/law_library/; app/modules/ui_composer/; static/js/",
+    "priority": "medium",
+    "status": "pending",
+    "category": "feature",
+    "notes": "Spec from Brad verbatim; awaiting build authorization. Sticky-notes save is deferred behind a not-yet-defined sticky-notes feature task.",
+    "created_at": "2026-09-08T08:03:38.888068+00:00",
+    "updated_at": "2026-09-08T08:03:38.888068+00:00",
+    "assigned_agent": null
+  },
+  {
+    "id": "sticky-notes-spec-2026-09-08",
+    "title": "Sticky notes: spec-level feature (Law Linker v2 dependency)",
+    "description": "SPEC-LEVEL TASK ONLY - no build authorization. Sticky notes are referenced as a dependency by law-linker-v2-2026-09-08 (the 'save citation to sticky notes' action in the Law Linker pop-out), but no sticky-notes feature or spec exists yet.\n\nTo spec this, the following need definition for Brad's sign-off:\n- What a sticky note IS: user-authored annotation attached to what scope? (a citation, a document, a journal entry, a page, free-floating?) - likely per the Law Linker need: short text + optional attached citation/reference.\n- Where they live: tenant-owned surface (vault? journal? a dedicated notes panel?); must fit the zero-transfer model (notes about tenant data should live in tenant storage or tenant-owned DB rows, not expose content to other roles).\n- Surfaces that read/write them: Law Linker pop-out is the first consumer; likely journal, document center, timeline later.\n- Pillar assignment: probably RECORD (tenant's own notes on their record).\n- Data model, retention, and whether notes are exportable into packets.\n\nDraft a spec (analogous to the vault-security-pair and flagship-UI specs) for Brad's sign-off BEFORE any build is authorized. Do not implement.",
+    "file_path": "spec only - no file path yet",
+    "priority": "low",
+    "status": "pending",
+    "category": "feature",
+    "notes": "Created 2026-09-08 per Brad handoff: spec-level only, dependency of law-linker-v2-2026-09-08.",
+    "created_at": "2026-09-08T10:51:56.973250+00:00",
+    "updated_at": "2026-09-08T10:51:56.973250+00:00",
+    "assigned_agent": null
   }
 ]
