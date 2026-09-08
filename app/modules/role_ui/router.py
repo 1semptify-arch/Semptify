@@ -99,8 +99,8 @@ ROLE_FALLBACK_PAGES = {
     UserRole.USER: "/static/tenant/index.html",
     UserRole.ADVOCATE: "/static/advocate/index.html",
     UserRole.LEGAL: "/static/legal/index.html",
-    UserRole.MANAGER: "/static/admin/mission_control.html",
-    UserRole.ADMIN: "/static/admin/mission_control.html",
+    UserRole.MANAGER: "/manager",
+    UserRole.ADMIN: "/admin",
 }
 
 

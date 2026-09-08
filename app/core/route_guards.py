@@ -59,12 +59,12 @@ class RouteGuard:
         @app.get("/dashboard")
         @guard.require_auth()  # Any authenticated user
         async def dashboard():
-            return FileResponse("static/dashboard.html")
+            return FileResponse("static/admin/dashboard.html")
 
         @app.get("/admin")
         @guard.require_roles([UserRole.ADMIN])  # Admin only
         async def admin():
-            return FileResponse("static/admin.html")
+            return FileResponse("static/admin/hub.html")
     """
 
     def __init__(self):
