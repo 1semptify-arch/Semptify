@@ -2810,9 +2810,9 @@
     "priority": "medium",
     "status": "in_progress",
     "category": "design",
-    "notes": "Claimed by claude for Wave 2 continuation. Handoff: 2026-09-07 wave covered semptify_hub, advocate, tenant_my_advocate, tenant_inbox, tenant_journal. Next batch: manager-dashboard, document_center, welcome, tenant_home, case_builder, action_plan, timeline.\n[2026-09-08 01:20 UTC - claude] Wave 2 continuation. Pre-flight done. Migrated action_plan.html and complaints.html; reverted unused tenant.html. Remaining: case_builder, tenant_home, manager-dashboard, document_center, welcome, etc.\n[2026-09-08 02:50 UTC - claude] Migrated case_builder.html. Skipping inactive tenant_home.html. Remaining: manager-dashboard.css, document_center.html, welcome.html, tenant_help.html, eviction_timeline.html, dispute_tracker.html, etc.",
+    "notes": "Claimed by claude for Wave 2 continuation. Handoff: 2026-09-07 wave covered semptify_hub, advocate, tenant_my_advocate, tenant_inbox, tenant_journal. Next batch: manager-dashboard, document_center, welcome, tenant_home, case_builder, action_plan, timeline.\n[2026-09-08 01:20 UTC - claude] Wave 2 continuation. Pre-flight done. Migrated action_plan.html and complaints.html; reverted unused tenant.html. Remaining: case_builder, tenant_home, manager-dashboard, document_center, welcome, etc.\n[2026-09-08 02:50 UTC - claude] Migrated case_builder.html. Skipping inactive tenant_home.html. Remaining: manager-dashboard.css, document_center.html, welcome.html, tenant_help.html, eviction_timeline.html, dispute_tracker.html, etc.\n[2026-09-08 02:53 UTC - claude] Migrated case_builder.html and tenant_help.html. Remaining: manager-dashboard.css, document_center.html, welcome.html, and other template-1/4/5 pages.",
     "created_at": "2026-09-07T00:00:00Z",
-    "updated_at": "2026-09-08T02:50:47.872091+00:00",
+    "updated_at": "2026-09-08T02:53:03.461900+00:00",
     "target_model": "claude",
     "assigned_agent": "claude"
   },
