@@ -1,100 +1,158 @@
 /**
  * Unified Footer Loader - Semptify
  *
- * Injects the standardized, minimal footer into any page.
- * Include this script on all static HTML pages for consistent footers.
+ * Injects the canonical footer from the server-rendered Jinja partial.
+ * Pages that already load /static/css/ssot-design-system.css get the
+ * styled footer markup directly. Pages without SSOT get a minimal fallback
+ * stylesheet so the legal disclaimer and links remain visible.
  *
- * Last Updated: 2026-07-29
+ * Last Updated: 2026-09-08
  */
 
-(function() {
+(function () {
   'use strict';
 
-  const FOOTER_CONFIG = {
-    year: '2026',
-    company: 'Semptify',
-    upl: 'Semptify is an organizational tool, not a law firm.',
-    uplCta: "We can't give legal advice. For legal advice, contact a licensed attorney or your local legal aid society.",
-    getHelp: { text: 'Get help', href: '/help' },
-    reportProblem: { text: 'Report a problem', href: '/public/feedback.html' }
-  };
+  const FOOTER_ENDPOINT = '/components/footer';
 
-  const footerStyles = `
+  // Mirror of the footer section in /static/css/ssot-design-system.css,
+  // injected only when SSOT styles are not already available.
+  // Keep this fallback in sync with the canonical SSOT footer styles.
+  const FALLBACK_CSS = `
     .unified-footer {
-      background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+      background: linear-gradient(135deg, #15294a 0%, #1e3a5f 100%);
       color: rgba(255, 255, 255, 0.9);
-      padding: 1.5rem 1rem;
+      padding: 2rem 1.5rem 1.5rem;
       margin-top: auto;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      text-align: center;
     }
     .unified-footer a {
-      color: rgba(255, 255, 255, 0.9);
+      color: rgba(255, 255, 255, 0.8);
       text-decoration: none;
+      transition: color 0.15s ease;
     }
-    .unified-footer a:hover {
-      text-decoration: underline;
-    }
-    .footer-container {
-      max-width: 960px;
-      margin: 0 auto;
-    }
+    .unified-footer a:hover { color: #f59e0b; }
+    .footer-container { max-width: 1200px; margin: 0 auto; }
     .footer-disclaimer {
-      font-size: 0.9rem;
-      line-height: 1.5;
-      margin-bottom: 0.75rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+      text-align: center;
     }
-    .footer-disclaimer strong {
-      color: #fff;
+    .footer-disclaimer-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .footer-disclaimer-title {
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: #f59e0b;
+      margin-bottom: 0.5rem;
     }
-    .footer-actions {
-      font-size: 0.9rem;
-      margin-bottom: 0.75rem;
+    .footer-disclaimer-text {
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      color: rgba(255, 255, 255, 0.9);
     }
-    .footer-actions a {
-      margin: 0 0.35rem;
+    .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+    }
+    .footer-nav a { padding: 0.25rem 0.5rem; }
+    .footer-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.2);
+      margin: 1.5rem auto;
+      max-width: 600px;
     }
     .footer-bottom {
-      font-size: 0.8rem;
+      text-align: center;
+      font-size: 0.875rem;
       color: rgba(255, 255, 255, 0.7);
     }
+    .footer-copyright { margin-bottom: 0.5rem; }
+    .footer-mandates { font-weight: 600; color: #f59e0b; }
+    .footer-help { margin-top: 0.75rem; font-size: 0.75rem; }
+    .locale-selector { margin-top: 0.75rem; }
+    .locale-selector label,
+    .locale-selector select,
+    .locale-selector button {
+      font-size: 0.875rem;
+      padding: 0.25rem;
+    }
     @media (max-width: 640px) {
-      .unified-footer { padding: 1.25rem 0.75rem; }
-      .footer-disclaimer { font-size: 0.85rem; }
+      .unified-footer { padding: 2rem 1rem 1.25rem; }
+      .footer-nav { gap: 1rem; font-size: 0.875rem; }
+      .footer-disclaimer-text { font-size: 0.875rem; }
     }
   `;
 
-  function generateFooter() {
-    return `
-      <style>${footerStyles}</style>
-      <footer class="unified-footer" role="contentinfo" aria-label="Site footer">
-        <div class="footer-container">
-          <p class="footer-disclaimer">
-            <strong>${FOOTER_CONFIG.upl}</strong>
-            ${FOOTER_CONFIG.uplCta}
-          </p>
-          <p class="footer-actions">
-            <a href="${FOOTER_CONFIG.getHelp.href}">${FOOTER_CONFIG.getHelp.text}</a>
-            ·
-            <a href="${FOOTER_CONFIG.reportProblem.href}">${FOOTER_CONFIG.reportProblem.text}</a>
-          </p>
-          <p class="footer-bottom">
-            &copy; ${FOOTER_CONFIG.year} ${FOOTER_CONFIG.company} — No cost, always · No advertising · Privacy-first
-          </p>
-        </div>
-      </footer>
-    `;
+  function ssotFooterIsStyled() {
+    try {
+      for (const sheet of document.styleSheets) {
+        const rules = sheet.cssRules || sheet.rules || [];
+        for (const rule of rules) {
+          if (rule.selectorText && /\.unified-footer/.test(rule.selectorText)) {
+            return true;
+          }
+        }
+      }
+    } catch (e) {
+      // Cross-origin or restricted stylesheets may throw.
+    }
+    return false;
   }
 
-  function injectFooter() {
-    const existingFooters = document.querySelectorAll('footer');
-    existingFooters.forEach(footer => footer.remove());
-    document.body.insertAdjacentHTML('beforeend', generateFooter());
+  function injectFallbackCss() {
+    if (document.getElementById('unified-footer-fallback-css')) return;
+    const style = document.createElement('style');
+    style.id = 'unified-footer-fallback-css';
+    style.textContent = FALLBACK_CSS;
+    document.head.appendChild(style);
+  }
+
+  async function loadFooter() {
+    try {
+      const response = await fetch(FOOTER_ENDPOINT, {
+        credentials: 'same-origin',
+        cache: 'no-cache',
+      });
+      if (!response.ok) {
+        throw new Error(`Footer endpoint returned ${response.status}`);
+      }
+      const html = await response.text();
+      if (!html.trim()) {
+        throw new Error('Footer endpoint returned empty markup');
+      }
+
+      // Remove any previously injected footer so only the canonical one appears.
+      document.querySelectorAll('footer').forEach((footer) => footer.remove());
+
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = html.trim();
+      const footer = wrapper.querySelector('footer');
+      if (!footer) {
+        throw new Error('Footer partial did not contain a <footer> element');
+      }
+
+      document.body.appendChild(footer);
+
+      if (!ssotFooterIsStyled()) {
+        injectFallbackCss();
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('Semptify unified footer failed to load:', err.message);
+    }
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectFooter);
+    document.addEventListener('DOMContentLoaded', loadFooter);
   } else {
-    injectFooter();
+    loadFooter();
   }
 })();
