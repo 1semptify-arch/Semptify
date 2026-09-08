@@ -16,6 +16,7 @@ from app.core.context_envelope import (
     Who,
 )
 from app.modules.context_engine.explanation_entries import create_explanation_entry
+from app.modules.context_engine.retrieval import retrieve_explanations
 from app.modules.ui_composer.explanation import get_explanation_for_guide
 from app.modules.ui_composer.tapering import get_tapering_context
 
@@ -70,3 +71,57 @@ async def test_get_explanation_for_guide_returns_entry_and_context():
     assert result["explanation"] is not None
     assert result["explanation"] == "What to log and why."
     assert result["tapering_ctx"]["exposure_count"] == 1
+
+
+@pytest.mark.anyio
+async def test_retrieval_serves_only_vetted_entries_by_default():
+    """The BETA display gate: unreviewed entries never reach tenant surfaces."""
+    query_obj = ObjectEnvelope(
+        object_id="test:lease_lookup",
+        object_type=ObjectType.PAGE_ZONE,
+        pillar=Pillar.KNOW,
+        who=Who.TENANT,
+        why="Read the lease agreement terms and renewal conditions.",
+        provenance=Provenance.SYSTEM_COMPUTED,
+        temporal_validity=TemporalValidity.STATIC,
+        subject_tags=["lease", "agreement", "terms", "renewal", "tenant"],
+    )
+
+    beta_entry = await create_explanation_entry(
+        subject="lease",
+        jurisdiction="MN",
+        upl_risk_tier="LOW",
+        pillar="KNOW",
+        review_status="BETA",
+        variant_trust="Unreviewed lease guidance.",
+        variant_mechanics="A lease is the rental agreement between you and the landlord.",
+        variant_reinforcement="Check your lease terms.",
+        variant_minimal="Lease noted.",
+    )
+
+    # Default (tenant-facing): BETA must not be served — honest empty result.
+    results = await retrieve_explanations(query_obj, jurisdiction="MN")
+    assert all(r.entry_id != beta_entry.entry_id for r in results), (
+        "BETA entry leaked into default tenant-facing retrieval"
+    )
+
+    # Explicit opt-out (admin/internal use) can still see BETA rows.
+    all_results = await retrieve_explanations(
+        query_obj, jurisdiction="MN", review_status=None
+    )
+    assert any(r.entry_id == beta_entry.entry_id for r in all_results)
+
+    # Once reviewed, the entry is served normally.
+    vetted_entry = await create_explanation_entry(
+        subject="lease",
+        jurisdiction="MN",
+        upl_risk_tier="LOW",
+        pillar="KNOW",
+        review_status="VETTED",
+        variant_trust="Reviewed lease guidance.",
+        variant_mechanics="A lease is the rental agreement between you and the landlord.",
+        variant_reinforcement="Check your lease terms.",
+        variant_minimal="Lease noted.",
+    )
+    vetted_results = await retrieve_explanations(query_obj, jurisdiction="MN")
+    assert any(r.entry_id == vetted_entry.entry_id for r in vetted_results)
