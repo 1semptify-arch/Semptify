@@ -26,7 +26,7 @@ document — it belongs in an overlay in their cloud, not here.
 
 import enum
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from app.core.utc import utc_now
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 try:
     from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text
-    from sqlalchemy.types import JSON
+    from sqlalchemy.types import JSON, TypeDecorator
 
     JSONB = JSON  # Use generic JSON that works with both SQLite and PostgreSQL
     from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -43,6 +43,44 @@ try:
     from app.core.database import Base
 
     SQLALCHEMY_AVAILABLE = True
+
+    class UTCDateTime(TypeDecorator):
+        """DateTime column that always round-trips as timezone-aware UTC.
+
+        Root cause this exists to fix: SQLAlchemy's DateTime(timezone=True)
+        only actually enforces timezone-awareness on backends with a native
+        tz-aware column type (e.g. PostgreSQL TIMESTAMPTZ). SQLite has no
+        such type — it stores datetimes as plain strings and always returns
+        a naive datetime on read, regardless of the timezone=True flag. A
+        value written as UTC-aware can silently come back naive, which has
+        caused repeated "can't compare offset-naive and offset-aware
+        datetimes" crashes at comparison call sites across the codebase
+        (see AGENTS.md Known Failure #19).
+
+        Fixing it once here, at the type level, means every column that
+        uses DateTimeTZ is guaranteed timezone-aware UTC on the way in and
+        out, on every backend — callers never need to remember to
+        normalize a DateTimeTZ value before comparing it.
+        """
+
+        impl = DateTime(timezone=True)
+        cache_ok = True
+
+        def process_bind_param(self, value, dialect):  # noqa: ARG002
+            if value is None:
+                return None
+            # Naive datetimes are treated as already-UTC, matching the
+            # codebase-wide convention established by utc_now().
+            if value.tzinfo is None:
+                return value.replace(tzinfo=timezone.utc)
+            return value.astimezone(timezone.utc)
+
+        def process_result_value(self, value, dialect):  # noqa: ARG002
+            if value is None:
+                return None
+            if value.tzinfo is None:
+                return value.replace(tzinfo=timezone.utc)
+            return value.astimezone(timezone.utc)
 except ImportError:
     # Fallback stubs when SQLAlchemy not installed (test environment shim)
     class DateTime:
@@ -68,14 +106,18 @@ except ImportError:
     def relationship(*args, **kwargs):
         return None
 
+    class UTCDateTime(DummyColumnType):
+        pass  # Stub for test environment without SQLAlchemy
+
     class Base:
         metadata = type("m", (), {"create_all": staticmethod(lambda *args, **kwargs: None)})  # noqa: ARG005
 
     SQLALCHEMY_AVAILABLE = False
 
 
-# Type alias for timezone-aware DateTime columns
-DateTimeTZ = DateTime(timezone=True)
+# Type alias for timezone-aware DateTime columns. See UTCDateTime above for
+# why this is a TypeDecorator rather than a plain DateTime(timezone=True).
+DateTimeTZ = UTCDateTime()
 
 
 # =============================================================================
