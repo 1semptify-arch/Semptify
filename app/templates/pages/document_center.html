@@ -1,22 +1,26 @@
 {% extends "gui/base.html" %}
 {% block title %}Document Center — Semptify{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/document-center.css">
+{% endblock %}
 {% block nav_record %}active{% endblock %}
 
 {% block content %}
-<section class="frame-panel" style="padding:0; overflow:hidden; background:var(--zone-bg-secondary);">
-    <div class="frame-panel--header" style="padding:0.75rem 1rem; background:var(--zone-bg-tertiary);">
+<section class="frame-panel document-center" style="padding:0; overflow:hidden; background:var(--zone-surface-2);">
+    <div class="frame-panel--header" style="padding:0.75rem 1rem; background:var(--zone-surface-3);">
         <span class="frame-panel--title">Document Center</span>
-        <span id="dcOverall" style="font-size:0.8125rem; color:#64748b; margin-left:auto;"></span>
+        <span id="dcOverall" style="font-size:0.8125rem; color:var(--text-muted); margin-left:auto;"></span>
     </div>
-    <div id="dcShell" style="display:grid; grid-template-columns: 280px 1fr 320px; gap:0; height:calc(100vh - 180px); min-height:500px;">
+    <div id="dcShell">
 
         <!-- LEFT PANE: Vault List -->
-        <div id="dcLeft" style="background:var(--zone-bg-secondary); display:flex; flex-direction:column; overflow:hidden;">
-            <div style="padding:0.75rem; background:var(--zone-bg-tertiary); display:flex; gap:0.5rem;">
+        <div id="dcLeft" style="background:var(--zone-surface-2); display:flex; flex-direction:column; overflow:hidden;">
+            <div style="padding:0.75rem; background:var(--zone-surface-3); display:flex; gap:0.5rem;">
                 <button id="dcUploadBtn" class="frame-btn" type="button" style="flex:1;">+ Upload</button>
             </div>
-            <div style="padding:0.5rem 0.75rem; background:var(--zone-bg-tertiary); display:flex; gap:0.5rem; font-size:0.8125rem;">
-                <button class="frame-btn dc-filter" data-filter="all" style="flex:1; background:var(--zone-bg-primary);">All</button>
+            <div style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); display:flex; flex-wrap:wrap; gap:0.5rem; font-size:0.8125rem;">
+                <button class="frame-btn dc-filter" data-filter="all" style="flex:1; background:var(--zone-surface-1);">All</button>
                 <button class="frame-btn dc-filter" data-filter="new" style="flex:1;">New</button>
                 <button class="frame-btn dc-filter" data-filter="review" style="flex:1;">Review</button>
                 <button class="frame-btn dc-filter" data-filter="verified" style="flex:1;">Verified</button>
@@ -31,10 +35,10 @@
         </div>
 
         <!-- CENTER PANE: Viewer -->
-        <div id="dcCenter" style="background:var(--zone-bg-primary); display:flex; flex-direction:column; overflow:hidden;">
-            <div id="dcTopBar" style="padding:0.5rem 0.75rem; background:var(--zone-bg-tertiary); display:flex; align-items:center; gap:0.5rem; min-height:48px;">
-                <span id="dcDocName" style="color:#94a3b8; font-size:0.875rem; flex:1;">Select a document</span>
-                <select id="dcTypeSelect" style="background:#1e293b; color:#e2e8f0; border:1px solid #334155; border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
+        <div id="dcCenter" style="background:var(--zone-surface-1); display:flex; flex-direction:column; overflow:hidden;">
+            <div id="dcTopBar" style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); display:flex; align-items:center; gap:0.5rem; min-height:48px;">
+                <span id="dcDocName" style="color:var(--text-muted); font-size:0.875rem; flex:1;">Select a document</span>
+                <select id="dcTypeSelect" style="background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
                     <option value="">— Type —</option>
                     <option value="lease">Lease Agreement</option>
                     <option value="notice_to_vacate">Notice to Vacate</option>
@@ -45,17 +49,17 @@
                     <option value="correspondence">Correspondence</option>
                     <option value="other">Other</option>
                 </select>
-                <select id="dcStatusSelect" style="background:#1e293b; color:#e2e8f0; border:1px solid #334155; border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
+                <select id="dcStatusSelect" style="background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
                     <option value="">— Status —</option>
                     <option value="new">New</option>
                     <option value="review">In Review</option>
                     <option value="verified">Verified</option>
                     <option value="mismatched">Mismatched</option>
                 </select>
-                <div id="dcTypeSuggest" style="display:none; align-items:center; gap:0.375rem; background:var(--zone-bg-tertiary); padding:0.1875rem 0.5rem; font-size:0.75rem;">
-                    <span style="color:#f59e0b;">◆ Semptify suggests:</span>
-                    <span id="dcSuggestedType" style="color:#e2e8f0; font-weight:600;"></span>
-                    <button type="button" id="dcAcceptSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem; background:#052e16; color:#22c55e;">Accept</button>
+                <div id="dcTypeSuggest" style="display:none; align-items:center; gap:0.375rem; background:var(--zone-surface-3); padding:0.1875rem 0.5rem; font-size:0.75rem;">
+                    <span style="color:var(--color-warning-800);">◆ Semptify suggests:</span>
+                    <span id="dcSuggestedType" style="color:var(--text-primary); font-weight:600;"></span>
+                    <button type="button" id="dcAcceptSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem; background:var(--color-success-50); color:var(--color-success-800);">Accept</button>
                     <button type="button" id="dcDismissSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem;">✕</button>
                 </div>
                 <button id="dcDownloadBtn" class="frame-btn" type="button" style="display:none;">Download</button>
@@ -69,7 +73,7 @@
                     <button type="button" class="frame-btn dc-annot-tool" data-tool="none" style="padding:0.25rem 0.5rem; font-size:0.75rem;">✕ Cancel</button>
                 </div>
             </div>
-            <div id="dcViewer" style="flex:1; overflow:hidden; background:var(--zone-bg-inverse); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+            <div id="dcViewer" style="flex:1; overflow:hidden; background:var(--zone-surface-inverse); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
                 <div class="frame-empty" id="dcViewerEmpty">
                     <div class="frame-empty--icon">◆</div>
                     <p>No document selected</p>
@@ -81,9 +85,9 @@
         </div>
 
         <!-- RIGHT PANE: Overlays -->
-        <div id="dcRight" style="background:var(--zone-bg-secondary); display:flex; flex-direction:column; overflow:hidden;">
-            <div style="padding:0.5rem 0.75rem; background:var(--zone-bg-tertiary); display:flex; gap:0.5rem; font-size:0.8125rem;">
-                <button class="frame-btn dc-tab" data-tab="overlays" style="flex:1; background:var(--zone-bg-primary);">Overlays</button>
+        <div id="dcRight" style="background:var(--zone-surface-2); display:flex; flex-direction:column; overflow:hidden;">
+            <div style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); display:flex; flex-wrap:wrap; gap:0.5rem; font-size:0.8125rem;">
+                <button class="frame-btn dc-tab" data-tab="overlays" style="flex:1; background:var(--zone-surface-1);">Overlays</button>
                 <button class="frame-btn dc-tab" data-tab="checklist" style="flex:1;">Checklist</button>
                 <button class="frame-btn dc-tab" data-tab="meaning" style="flex:1;">Meaning</button>
             </div>
@@ -105,7 +109,7 @@
                     <p>Select a document, then press "What does this mean?" for a plain-English explanation.</p>
                 </div>
             </div>
-            <div id="dcUnlocks" style="padding:0.5rem 0.75rem; background:var(--zone-bg-tertiary); font-size:0.75rem; color:#64748b;"></div>
+            <div id="dcUnlocks" style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); font-size:0.75rem; color:var(--text-muted);"></div>
         </div>
 
     </div>
@@ -113,15 +117,15 @@
 
 <!-- Upload modal -->
 <div id="dcUploadModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center;">
-    <div style="background:var(--zone-bg-secondary); padding:1.5rem; max-width:500px; width:90%;">
-        <h3 style="color:#e2e8f0; margin-bottom:1rem;">Upload a document</h3>
+    <div style="background:var(--zone-surface-2); padding:1.5rem; max-width:500px; width:90%;">
+        <h3 style="color:var(--text-primary); margin-bottom:1rem;">Upload a document</h3>
         <form id="dcUploadForm" enctype="multipart/form-data">
-            <div id="dcDropZone" style="background:var(--zone-bg-primary); padding:2rem; text-align:center; cursor:pointer; margin-bottom:1rem;">
-                <div id="dcDropTitle" style="color:#94a3b8;">Tap here to choose a file</div>
-                <div id="dcDropHint" style="color:#64748b; font-size:0.8125rem; margin-top:0.5rem;">Photos, letters, PDFs, screenshots — anything about your tenancy.</div>
+            <div id="dcDropZone" style="background:var(--zone-surface-1); padding:2rem; text-align:center; cursor:pointer; margin-bottom:1rem;">
+                <div id="dcDropTitle" style="color:var(--text-muted);">Tap here to choose a file</div>
+                <div id="dcDropHint" style="color:var(--text-muted); font-size:0.8125rem; margin-top:0.5rem;">Photos, letters, PDFs, screenshots — anything about your tenancy.</div>
             </div>
             <input type="file" id="dcFileInput" name="file" accept="*/*" style="display:none;">
-            <div id="dcUploadStatus" style="font-size:0.8125rem; color:#94a3b8; margin-bottom:0.5rem;"></div>
+            <div id="dcUploadStatus" style="font-size:0.8125rem; color:var(--text-muted); margin-bottom:0.5rem;"></div>
             <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
                 <button type="button" id="dcUploadCancel" class="frame-btn">Cancel</button>
                 <button type="submit" id="dcUploadSubmit" class="frame-btn" disabled>Upload</button>
@@ -132,34 +136,34 @@
 
 <!-- Share modal -->
 <div id="dcShareModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center;">
-    <div style="background:var(--zone-bg-secondary); padding:1.5rem; max-width:500px; width:90%;">
-        <h3 style="color:#e2e8f0; margin-bottom:0.25rem;">Share document</h3>
-        <p style="color:#94a3b8; font-size:0.8125rem; margin-bottom:1rem;">You control who sees your documents. Semptify never shares without your action.</p>
-        <p style="color:#64748b; font-size:0.75rem; margin-bottom:1rem;">Sharing: <span id="dcShareDocName" style="color:#e2e8f0; font-weight:600;"></span></p>
+    <div style="background:var(--zone-surface-2); padding:1.5rem; max-width:500px; width:90%;">
+        <h3 style="color:var(--text-primary); margin-bottom:0.25rem;">Share document</h3>
+        <p style="color:var(--text-muted); font-size:0.8125rem; margin-bottom:1rem;">You control who sees your documents. Semptify never shares without your action.</p>
+        <p style="color:var(--text-muted); font-size:0.75rem; margin-bottom:1rem;">Sharing: <span id="dcShareDocName" style="color:var(--text-primary); font-weight:600;"></span></p>
         <form id="dcShareForm">
-            <label style="display:block; color:#94a3b8; font-size:0.8125rem; margin-bottom:0.25rem;">Recipient (advocate ID, legal ID, or email)</label>
-            <input type="text" id="dcShareRecipient" required style="width:100%; background:#0f172a; border:1px solid #334155; border-radius:0.25rem; padding:0.5rem; color:#e2e8f0; margin-bottom:0.75rem;">
-            <label style="display:block; color:#94a3b8; font-size:0.8125rem; margin-bottom:0.25rem;">What they can do</label>
-            <select id="dcShareScope" style="width:100%; background:#0f172a; border:1px solid #334155; border-radius:0.25rem; padding:0.5rem; color:#e2e8f0; margin-bottom:0.75rem;">
+            <label style="display:block; color:var(--text-muted); font-size:0.8125rem; margin-bottom:0.25rem;">Recipient (advocate ID, legal ID, or email)</label>
+            <input type="text" id="dcShareRecipient" required style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.5rem; color:var(--text-primary); margin-bottom:0.75rem;">
+            <label style="display:block; color:var(--text-muted); font-size:0.8125rem; margin-bottom:0.25rem;">What they can do</label>
+            <select id="dcShareScope" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.5rem; color:var(--text-primary); margin-bottom:0.75rem;">
                 <option value="view">View only</option>
                 <option value="comment">View + add notes</option>
                 <option value="download">View + download</option>
             </select>
-            <label style="display:block; color:#94a3b8; font-size:0.8125rem; margin-bottom:0.25rem;">Message (optional)</label>
-            <textarea id="dcShareMessage" rows="3" style="width:100%; background:#0f172a; border:1px solid #334155; border-radius:0.25rem; padding:0.5rem; color:#e2e8f0; margin-bottom:1rem; resize:vertical;"></textarea>
+            <label style="display:block; color:var(--text-muted); font-size:0.8125rem; margin-bottom:0.25rem;">Message (optional)</label>
+            <textarea id="dcShareMessage" rows="3" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.5rem; color:var(--text-primary); margin-bottom:1rem; resize:vertical;"></textarea>
             <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
                 <button type="button" id="dcShareCancel" class="frame-btn">Cancel</button>
                 <button type="submit" class="frame-btn">Share</button>
             </div>
         </form>
-        <div id="dcShareResult" style="display:none; margin-top:1rem; padding:0.75rem; background:#052e16; border-radius:0.375rem;">
-            <div style="color:#22c55e; font-size:0.8125rem; font-weight:600; margin-bottom:0.25rem;">Share link created</div>
-            <input type="text" id="dcShareUrl" readonly style="width:100%; background:#0f172a; border:1px solid #334155; border-radius:0.25rem; padding:0.5rem; color:#e2e8f0; font-size:0.75rem; margin-bottom:0.5rem;">
-            <div style="color:#64748b; font-size:0.75rem;">Send this link to the recipient. They must be signed in to open it.</div>
+        <div id="dcShareResult" style="display:none; margin-top:1rem; padding:0.75rem; background:var(--color-success-50); border-radius:0.375rem;">
+            <div style="color:var(--color-success-800); font-size:0.8125rem; font-weight:600; margin-bottom:0.25rem;">Share link created</div>
+            <input type="text" id="dcShareUrl" readonly style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.5rem; color:var(--text-primary); font-size:0.75rem; margin-bottom:0.5rem;">
+            <div style="color:var(--text-muted); font-size:0.75rem;">Send this link to the recipient. They must be signed in to open it.</div>
         </div>
         <div id="dcShareList" style="display:none; margin-top:1rem;">
-            <div style="color:#94a3b8; font-size:0.8125rem; margin-bottom:0.5rem;">Existing shares</div>
-            <div id="dcShareListItems" style="font-size:0.75rem; color:#e2e8f0;"></div>
+            <div style="color:var(--text-muted); font-size:0.8125rem; margin-bottom:0.5rem;">Existing shares</div>
+            <div id="dcShareListItems" style="font-size:0.75rem; color:var(--text-primary);"></div>
         </div>
     </div>
 </div>
@@ -210,14 +214,14 @@
             const modal = document.createElement('div');
             modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;';
             const box = document.createElement('div');
-            box.style.cssText = 'background:var(--zone-bg-secondary);padding:1rem;max-width:400px;width:90%;border-radius:0.375rem;';
+            box.style.cssText = 'background:var(--zone-surface-2);padding:1rem;max-width:400px;width:90%;border-radius:0.375rem;';
             const h = document.createElement('h4');
-            h.style.cssText = 'color:#e2e8f0;margin-bottom:0.5rem;font-size:0.875rem;';
+            h.style.cssText = 'color:var(--text-primary);margin-bottom:0.5rem;font-size:0.875rem;';
             h.textContent = title;
             const input = document.createElement('input');
             input.type = 'text';
             input.value = initial || '';
-            input.style.cssText = 'width:100%;padding:0.5rem;margin-bottom:0.75rem;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:0.25rem;';
+            input.style.cssText = 'width:100%;padding:0.5rem;margin-bottom:0.75rem;background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border-color);border-radius:0.25rem;';
             const btns = document.createElement('div');
             btns.style.cssText = 'display:flex;gap:0.5rem;justify-content:flex-end;';
             const ok = document.createElement('button');
@@ -257,10 +261,10 @@
 
     function statusBadge(s) {
         const badges = {
-            new: { label: 'Unverified', color: '#64748b', bg: '#1e293b' },
-            review: { label: 'In Review', color: '#f59e0b', bg: '#422006' },
-            verified: { label: 'Verified', color: '#22c55e', bg: '#052e16' },
-            mismatched: { label: 'Mismatched', color: '#ef4444', bg: '#450a0a' }
+            new: { label: 'Unverified', color: 'var(--text-muted)', bg: 'var(--color-gray-100)' },
+            review: { label: 'In Review', color: 'var(--color-warning-800)', bg: 'var(--color-warning-50)' },
+            verified: { label: 'Verified', color: 'var(--color-success-800)', bg: 'var(--color-success-50)' },
+            mismatched: { label: 'Mismatched', color: 'var(--color-error-800)', bg: 'var(--color-error-50)' }
         };
         const b = badges[s] || badges.new;
         return b;
@@ -353,7 +357,7 @@
             row.className = 'frame-item';
             row.style.cursor = 'pointer';
             if (currentDoc && currentDoc.id === d.id) {
-                row.style.background = '#1e293b';
+                row.style.background = 'var(--color-calm-100)';
             }
             const effStatus = effectiveStatus(d);
             const icon = document.createElement('div');
@@ -433,13 +437,13 @@
         const wrapper = document.createElement('div');
         wrapper.style.position = 'relative';
         wrapper.style.maxWidth = '100%';
-        wrapper.style.background = 'var(--zone-bg-inverse)';
+        wrapper.style.background = 'var(--zone-surface-inverse)';
         const img = document.createElement('img');
         img.src = '/api/dc/document/' + encodeURIComponent(doc.id) + '/view';
         img.style.display = 'block';
         img.style.maxWidth = '100%';
         img.style.height = 'auto';
-        img.style.background = '#fff';
+        img.style.background = 'var(--bg-card)';
         img.draggable = false;
         img.addEventListener('load', () => {
             applyImageHighlights(doc, wrapper, img);
@@ -499,7 +503,7 @@
         empty.style.display = 'none';
         iframe.style.display = 'none';
         container.style.display = 'flex';
-        container.innerHTML = '<div style="color:#94a3b8; padding:2rem;">Loading PDF…</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); padding:2rem;">Loading PDF…</div>';
         try {
             const url = '/api/dc/document/' + encodeURIComponent(doc.id) + '/view';
             const loadingTask = pdfjsLib.getDocument(url);
@@ -512,12 +516,12 @@
                 const pageWrapper = document.createElement('div');
                 pageWrapper.style.position = 'relative';
                 pageWrapper.style.marginBottom = '1rem';
-                pageWrapper.style.background = 'var(--zone-bg-inverse)';
+                pageWrapper.style.background = 'var(--zone-surface-inverse)';
                 const canvas = document.createElement('canvas');
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 canvas.style.display = 'block';
-                canvas.style.background = '#fff';
+                canvas.style.background = 'var(--bg-card)';
                 pageWrapper.appendChild(canvas);
                 const textLayerDiv = document.createElement('div');
                 textLayerDiv.className = 'dc-text-layer';
@@ -553,7 +557,7 @@
             applyHighlights(doc);
             loadUserAnnotations(doc);
         } catch (err) {
-            container.innerHTML = '<div style="color:#ef4444; padding:2rem;">Could not render PDF: ' + escapeHtml(err.message) + '</div>';
+            container.innerHTML = '<div style="color:var(--color-error-800); padding:2rem;">Could not render PDF: ' + escapeHtml(err.message) + '</div>';
         }
     }
 
@@ -635,8 +639,8 @@
                         box.style.top = (y - h / 2) + '%';
                         box.style.width = w + '%';
                         box.style.height = h + '%';
-                        box.style.background = 'rgba(59, 130, 246, 0.40)';
-                        box.style.border = '1px solid #3b82f6';
+                        box.style.background = 'rgba(59, 130, 246, 0.20)';
+                        box.style.border = '1px solid var(--color-info)';
                         box.style.borderRadius = '2px';
                         box.style.pointerEvents = 'auto';
                         box.style.cursor = 'pointer';
@@ -648,14 +652,14 @@
                     pin.style.position = 'absolute';
                     pin.style.width = '20px';
                     pin.style.height = '20px';
-                    pin.style.background = '#3b82f6';
+                    pin.style.background = 'var(--color-info)';
                     pin.style.borderRadius = '50%';
                     pin.style.cursor = 'pointer';
                     pin.style.zIndex = '50';
                     pin.style.display = 'flex';
                     pin.style.alignItems = 'center';
                     pin.style.justifyContent = 'center';
-                    pin.style.color = '#fff';
+                    pin.style.color = 'var(--text-inverse)';
                     pin.style.fontSize = '0.6875rem';
                     pin.textContent = '●';
                     pin.title = payload.content;
@@ -674,14 +678,14 @@
                     pin.style.position = 'absolute';
                     pin.style.width = '20px';
                     pin.style.height = '20px';
-                    pin.style.background = '#8b5cf6';
+                    pin.style.background = 'var(--color-info)';
                     pin.style.borderRadius = '50%';
                     pin.style.cursor = 'pointer';
                     pin.style.zIndex = '50';
                     pin.style.display = 'flex';
                     pin.style.alignItems = 'center';
                     pin.style.justifyContent = 'center';
-                    pin.style.color = '#fff';
+                    pin.style.color = 'var(--text-inverse)';
                     pin.style.fontSize = '0.6875rem';
                     pin.textContent = '●';
                     pin.title = 'References: ' + payload.reference_target;
@@ -708,20 +712,20 @@
         const popover = document.createElement('div');
         popover.style.position = 'fixed';
         popover.style.zIndex = '200';
-        popover.style.background = 'var(--zone-bg-tertiary)';
+        popover.style.background = 'var(--zone-surface-3)';
         popover.style.padding = '0.75rem';
         popover.style.maxWidth = '300px';
         const rect = span.getBoundingClientRect();
         popover.style.left = rect.left + 'px';
         popover.style.top = (rect.bottom + 8) + 'px';
         const title = document.createElement('div');
-        title.style.color = '#f59e0b';
+        title.style.color = 'var(--color-warning-800)';
         title.style.fontSize = '0.75rem';
         title.style.marginBottom = '0.25rem';
         title.textContent = (term.icon || '◆') + ' ' + term.overlay + ' — extracted';
         popover.appendChild(title);
         const value = document.createElement('div');
-        value.style.color = '#e2e8f0';
+        value.style.color = 'var(--text-primary)';
         value.style.fontSize = '0.875rem';
         value.style.marginBottom = '0.5rem';
         value.style.wordBreak = 'break-word';
@@ -792,7 +796,7 @@
             e.stopPropagation();
             activeAnnotTool = btn.dataset.tool;
             document.querySelectorAll('.dc-annot-tool').forEach(b => b.style.background = '');
-            if (activeAnnotTool !== 'none') btn.style.background = '#1e293b';
+            if (activeAnnotTool !== 'none') btn.style.background = 'var(--color-calm-100)';
             const container = document.getElementById('dcPdfContainer');
             container.style.cursor = activeAnnotTool === 'none' ? '' : 'crosshair';
             if (activeAnnotTool !== 'none' && window.SemptifyFeedback) {
@@ -833,8 +837,8 @@
         box.style.top = (y - 2) + '%';
         box.style.width = '4%';
         box.style.height = '4%';
-        box.style.background = 'rgba(59, 130, 246, 0.40)';
-        box.style.border = '1px solid #3b82f6';
+        box.style.background = 'rgba(59, 130, 246, 0.20)';
+        box.style.border = '1px solid var(--color-info)';
         box.style.borderRadius = '2px';
         box.style.pointerEvents = 'auto';
         box.style.cursor = 'pointer';
@@ -913,14 +917,14 @@
         pin.style.top = y + 'px';
         pin.style.width = '20px';
         pin.style.height = '20px';
-        pin.style.background = '#3b82f6';
+        pin.style.background = 'var(--color-info)';
         pin.style.borderRadius = '50%';
         pin.style.cursor = 'pointer';
         pin.style.zIndex = '50';
         pin.style.display = 'flex';
         pin.style.alignItems = 'center';
         pin.style.justifyContent = 'center';
-        pin.style.color = '#fff';
+        pin.style.color = 'var(--text-inverse)';
         pin.style.fontSize = '0.6875rem';
         pin.style.fontWeight = 'bold';
         pin.textContent = '●';
@@ -959,14 +963,14 @@
         pin.style.top = y + 'px';
         pin.style.width = '20px';
         pin.style.height = '20px';
-        pin.style.background = '#8b5cf6';
+        pin.style.background = 'var(--color-info)';
         pin.style.borderRadius = '50%';
         pin.style.cursor = 'pointer';
         pin.style.zIndex = '50';
         pin.style.display = 'flex';
         pin.style.alignItems = 'center';
         pin.style.justifyContent = 'center';
-        pin.style.color = '#fff';
+        pin.style.color = 'var(--text-inverse)';
         pin.style.fontSize = '0.6875rem';
         pin.textContent = '●';
         pin.title = 'References: ' + target;
@@ -1030,7 +1034,7 @@
             row.style.alignItems = 'stretch';
             row.style.padding = '0.5rem';
             row.style.marginBottom = '0.5rem';
-            row.style.background = '#1e293b';
+            row.style.background = 'var(--zone-surface-2)';
             row.style.borderRadius = '0.375rem';
             const header = document.createElement('div');
             header.style.display = 'flex';
@@ -1040,31 +1044,31 @@
             const icon = document.createElement('span');
             icon.textContent = ov.icon || '○';
             const name = document.createElement('strong');
-            name.style.color = '#e2e8f0';
+            name.style.color = 'var(--text-primary)';
             name.style.fontSize = '0.8125rem';
             name.style.flex = '1';
             name.textContent = ov.name;
             const pct = document.createElement('span');
-            pct.style.color = '#94a3b8';
+            pct.style.color = 'var(--text-muted)';
             pct.style.fontSize = '0.75rem';
             pct.textContent = ov.pct + '%';
             header.appendChild(icon);
             header.appendChild(name);
             header.appendChild(pct);
             const bar = document.createElement('div');
-            bar.style.background = '#0f172a';
+            bar.style.background = 'var(--color-gray-200)';
             bar.style.height = '4px';
             bar.style.borderRadius = '2px';
             bar.style.overflow = 'hidden';
             bar.style.marginBottom = '0.25rem';
             const fill = document.createElement('div');
-            fill.style.background = ov.pct >= 100 ? '#22c55e' : (ov.pct > 0 ? '#f59e0b' : '#334155');
+            fill.style.background = ov.pct >= 100 ? 'var(--color-success)' : (ov.pct > 0 ? 'var(--color-warning)' : 'var(--color-gray-200)');
             fill.style.height = '100%';
             fill.style.width = ov.pct + '%';
             fill.style.transition = 'width 0.3s';
             bar.appendChild(fill);
             const goal = document.createElement('div');
-            goal.style.color = '#64748b';
+            goal.style.color = 'var(--text-muted)';
             goal.style.fontSize = '0.75rem';
             goal.textContent = ov.goal || '';
             row.appendChild(header);
@@ -1072,7 +1076,7 @@
             if (ov.goal) row.appendChild(goal);
             if (ov.items && ov.items.length) {
                 const detail = document.createElement('div');
-                detail.style.color = '#94a3b8';
+                detail.style.color = 'var(--text-muted)';
                 detail.style.fontSize = '0.75rem';
                 detail.style.marginTop = '0.25rem';
                 detail.style.whiteSpace = 'pre-wrap';
@@ -1127,43 +1131,49 @@
     async function loadMeaning() {
         if (!currentDoc) return;
         const pane = document.getElementById('dcMeaning');
-        pane.innerHTML = '<div class="frame-empty"><p style="color:#94a3b8;">Reading your document…</p></div>';
+        pane.innerHTML = '<div class="frame-empty"><p style="color:var(--text-muted);">Reading your document…</p></div>';
         // Switch to the Meaning tab so the tenant sees the answer where they asked.
         document.querySelector('.dc-tab[data-tab="meaning"]').click();
         try {
             const r = await fetch('/api/dc/document/' + encodeURIComponent(currentDoc.id) + '/explain', { credentials: 'include' });
             const data = await r.json().catch(() => ({}));
             if (!r.ok) {
-                pane.innerHTML = '<div class="frame-empty"><p style="color:#94a3b8;">' +
+                pane.innerHTML = '<div class="frame-empty"><p style="color:var(--text-muted);">' +
                     escapeHtml(data.message || data.detail || 'No explanation is available for this document yet.') + '</p></div>';
                 return;
             }
             let html = '';
-            if (data.title) html += '<div style="color:#e2e8f0; font-weight:600; font-size:0.875rem; margin-bottom:0.375rem;">' + escapeHtml(data.title) + '</div>';
+            if (data.title) html += '<div style="color:var(--text-primary); font-weight:600; font-size:0.875rem; margin-bottom:0.375rem;">' + escapeHtml(data.title) + '</div>';
             if (data.urgency && (data.urgency.level === 'critical' || data.urgency.level === 'high')) {
-                html += '<div style="background:#7f1d1d; color:#fecaca; font-size:0.75rem; padding:0.375rem 0.5rem; margin-bottom:0.5rem;">' +
+                html += '<div style="background:var(--color-error-800); color:var(--color-error-50); font-size:0.75rem; padding:0.375rem 0.5rem; margin-bottom:0.5rem;">' +
                     '<strong>Time-sensitive:</strong> ' + escapeHtml(data.urgency.reason || 'This document may carry a deadline.') + '</div>';
             }
-            if (data.plain_english) html += '<p style="color:#cbd5e1; font-size:0.8125rem; line-height:1.55; margin-bottom:0.75rem;">' + escapeHtml(data.plain_english) + '</p>';
-            if (data.summary && data.summary !== data.plain_english) html += '<p style="color:#94a3b8; font-size:0.75rem; line-height:1.5; margin-bottom:0.75rem;">' + escapeHtml(data.summary) + '</p>';
+            if (data.plain_english) html += '<p style="color:var(--text-primary); font-size:0.8125rem; line-height:1.55; margin-bottom:0.75rem;">' + escapeHtml(data.plain_english) + '</p>';
+            if (data.summary && data.summary !== data.plain_english) html += '<p style="color:var(--text-muted); font-size:0.75rem; line-height:1.5; margin-bottom:0.75rem;">' + escapeHtml(data.summary) + '</p>';
             const items = data.action_items || [];
             if (items.length) {
-                html += '<div style="color:#94a3b8; font-size:0.75rem; font-weight:600; margin-bottom:0.25rem;">What to do next</div>';
+                html += '<div style="color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:0.25rem;">What to do next</div>';
                 items.forEach(function (it) {
                     const t = typeof it === 'string' ? it : (it.title || it.description || '');
-                    if (t) html += '<div style="color:#cbd5e1; font-size:0.75rem; padding:0.375rem 0; border-bottom:1px solid #1e293b;">' + escapeHtml(t) + '</div>';
+                    if (t) html += '<div style="color:var(--text-primary); font-size:0.75rem; padding:0.375rem 0; border-bottom:1px solid var(--border-color);">' + escapeHtml(t) + '</div>';
                 });
             }
-            if (!html) html = '<div class="frame-empty"><p style="color:#94a3b8;">This document was processed but produced no explanation.</p></div>';
+            if (!html) html = '<div class="frame-empty"><p style="color:var(--text-muted);">This document was processed but produced no explanation.</p></div>';
             // IO expansion (ADR-0008): at high intensity or on a first visit,
-            // prepend a short orientation line; it tapers away with exposure.
+            // prepend the contextual explanation if one was retrieved; otherwise
+            // fall back to a short orientation line.
             if (html && (data.intensity_level >= 3 || data.exposure_count <= 1)) {
-                html = '<p style="color:#94a3b8; font-size:0.75rem; font-style:italic; margin-bottom:0.5rem;">' +
-                    'This is a plain-English read of what your document says and what it likely means for you — a starting point, not legal advice.</p>' + html;
+                if (data.explanation) {
+                    html = '<p style="color:var(--text-muted); font-size:0.75rem; font-style:italic; margin-bottom:0.5rem;">' +
+                        escapeHtml(data.explanation) + '</p>' + html;
+                } else {
+                    html = '<p style="color:var(--text-muted); font-size:0.75rem; font-style:italic; margin-bottom:0.5rem;">' +
+                        'This is a plain-English read of what your document says and what it likely means for you — a starting point, not legal advice.</p>' + html;
+                }
             }
             pane.innerHTML = html;
         } catch (e) {
-            pane.innerHTML = '<div class="frame-empty"><p style="color:#94a3b8;">Could not load the explanation. Your document is safe — try again.</p></div>';
+            pane.innerHTML = '<div class="frame-empty"><p style="color:var(--text-muted);">Could not load the explanation. Your document is safe — try again.</p></div>';
         }
     }
 
@@ -1173,7 +1183,7 @@
     document.querySelectorAll('.dc-tab').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.dc-tab').forEach(b => b.style.background = '');
-            btn.style.background = '#1e293b';
+            btn.style.background = 'var(--color-calm-100)';
             currentTab = btn.dataset.tab;
             document.getElementById('dcOverlayList').style.display = currentTab === 'overlays' ? '' : 'none';
             document.getElementById('dcChecklist').style.display = currentTab === 'checklist' ? '' : 'none';
@@ -1200,16 +1210,16 @@
 
         const header = document.createElement('div');
         header.style.marginBottom = '0.5rem';
-        header.innerHTML = '<div style="color:#e2e8f0; font-size:0.875rem; font-weight:600; margin-bottom:0.25rem;">' + escapeHtml(def.label) + '</div>' +
-            '<div style="color:#64748b; font-size:0.75rem; margin-bottom:0.5rem;">' + escapeHtml(def.description) + '</div>' +
-            '<div style="background:var(--zone-bg-inverse); height:6px; overflow:hidden;"><div style="background:' + (overallPct >= 100 ? '#22c55e' : overallPct > 0 ? '#f59e0b' : '#334155') + '; height:100%; width:' + overallPct + '%; transition:width 0.3s;"></div></div>' +
-            '<div style="color:#94a3b8; font-size:0.75rem; margin-top:0.25rem;">' + confirmedCount + '/' + required.length + ' required fields confirmed · ' + overallPct + '%</div>';
+        header.innerHTML = '<div style="color:var(--text-primary); font-size:0.875rem; font-weight:600; margin-bottom:0.25rem;">' + escapeHtml(def.label) + '</div>' +
+            '<div style="color:var(--text-muted); font-size:0.75rem; margin-bottom:0.5rem;">' + escapeHtml(def.description) + '</div>' +
+            '<div style="background:var(--zone-surface-inverse); height:6px; overflow:hidden;"><div style="background:' + (overallPct >= 100 ? 'var(--color-success)' : overallPct > 0 ? 'var(--color-warning)' : 'var(--color-gray-200)') + '; height:100%; width:' + overallPct + '%; transition:width 0.3s;"></div></div>' +
+            '<div style="color:var(--text-muted); font-size:0.75rem; margin-top:0.25rem;">' + confirmedCount + '/' + required.length + ' required fields confirmed · ' + overallPct + '%</div>';
         checklist.appendChild(header);
 
         const reqSection = document.createElement('div');
         reqSection.style.marginBottom = '0.75rem';
         const reqTitle = document.createElement('div');
-        reqTitle.style.color = '#94a3b8';
+        reqTitle.style.color = 'var(--text-muted)';
         reqTitle.style.fontSize = '0.75rem';
         reqTitle.style.marginBottom = '0.25rem';
         reqTitle.style.textTransform = 'uppercase';
@@ -1222,7 +1232,7 @@
         if (optional.length) {
             const optSection = document.createElement('div');
             const optTitle = document.createElement('div');
-            optTitle.style.color = '#64748b';
+            optTitle.style.color = 'var(--text-muted)';
             optTitle.style.fontSize = '0.75rem';
             optTitle.style.marginBottom = '0.25rem';
             optTitle.style.textTransform = 'uppercase';
@@ -1237,9 +1247,9 @@
             const verified = document.createElement('div');
             verified.style.marginTop = '0.5rem';
             verified.style.padding = '0.5rem';
-            verified.style.background = '#052e16';
+            verified.style.background = 'var(--color-success-50)';
             verified.style.borderRadius = '0.375rem';
-            verified.style.color = '#22c55e';
+            verified.style.color = 'var(--color-success-800)';
             verified.style.fontSize = '0.8125rem';
             verified.textContent = '● All required fields verified.';
             checklist.appendChild(verified);
@@ -1251,7 +1261,7 @@
         const row = document.createElement('div');
         row.style.padding = '0.5rem';
         row.style.marginBottom = '0.25rem';
-        row.style.background = '#1e293b';
+        row.style.background = 'var(--zone-surface-2)';
         row.style.borderRadius = '0.375rem';
         const top = document.createElement('div');
         top.style.display = 'flex';
@@ -1260,12 +1270,12 @@
         const icon = document.createElement('span');
         icon.textContent = status === 'confirmed' ? '●' : status === 'corrected' ? '◆' : '○';
         const label = document.createElement('span');
-        label.style.color = '#e2e8f0';
+        label.style.color = 'var(--text-primary)';
         label.style.fontSize = '0.8125rem';
         label.style.flex = '1';
         label.textContent = field.label;
         const typeBadge = document.createElement('span');
-        typeBadge.style.color = '#64748b';
+        typeBadge.style.color = 'var(--text-muted)';
         typeBadge.style.fontSize = '0.6875rem';
         typeBadge.textContent = field.field_type;
         top.appendChild(icon);
@@ -1273,7 +1283,7 @@
         top.appendChild(typeBadge);
         row.appendChild(top);
         const hint = document.createElement('div');
-        hint.style.color = '#64748b';
+        hint.style.color = 'var(--text-muted)';
         hint.style.fontSize = '0.6875rem';
         hint.style.marginTop = '0.25rem';
         hint.textContent = 'Looks for: ' + field.ocr_target;
@@ -1330,7 +1340,7 @@
     document.querySelectorAll('.dc-filter').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.dc-filter').forEach(b => b.style.background = '');
-            btn.style.background = '#1e293b';
+            btn.style.background = 'var(--color-calm-100)';
             currentFilter = btn.dataset.filter;
             renderDocs();
         });
@@ -1492,9 +1502,9 @@
                 return;
             }
             itemsEl.innerHTML = shares.map(s =>
-                '<div style="margin-bottom:0.375rem; padding:0.375rem; background:#0f172a; border-radius:0.25rem;">' +
+                '<div style="margin-bottom:0.375rem; padding:0.375rem; background:var(--zone-surface-2); border-radius:0.25rem;">' +
                 '<div>' + escapeHtml(s.recipient) + ' · ' + escapeHtml(s.scope) + '</div>' +
-                '<a href="' + escapeHtml(s.share_url) + '" style="color:#3b82f6; font-size:0.6875rem; word-break:break-all;">' + escapeHtml(s.share_url) + '</a>' +
+                '<a href="' + escapeHtml(s.share_url) + '" style="color:var(--color-info); font-size:0.6875rem; word-break:break-all;">' + escapeHtml(s.share_url) + '</a>' +
                 '</div>'
             ).join('');
             listEl.style.display = '';
@@ -1581,7 +1591,7 @@
     });
     ['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, e => {
         e.preventDefault();
-        dropZone.style.borderColor = '#3b82f6';
+        dropZone.style.borderColor = 'var(--color-info)';
     }));
     ['dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => {
         e.preventDefault();
