@@ -2861,12 +2861,12 @@
     "description": "Three parallel footer implementations exist: (1) {% block footer %} in app/templates/base.html, (2) static/js/unified-footer-loader.js, (3) static/components/footer.html + unified-footer.html partials. This is an information-integrity risk \u2014 the legal-disclaimer wording could drift out of sync if only one implementation gets updated. Consolidate to a single canonical source (e.g., one shared partial/snippet consumed by both the Jinja block and the JS loader), then retire the components/ partials.",
     "file_path": "app/templates/base.html; static/js/unified-footer-loader.js; static/components/",
     "priority": "medium",
-    "status": "pending",
+    "status": "review",
     "category": "refactor",
-    "notes": "Brad: pick up once the stabilization queue has room \u2014 not urgent, but must stay tracked. Found during static chrome-rule audit.",
+    "notes": "Brad: pick up once the stabilization queue has room \u2014 not urgent, but must stay tracked. Found during static chrome-rule audit.\n[2026-09-08 15:44 UTC - devin] Canonical footer partial created; JS loader fetches /components/footer; components partials retired; py_compile, guardrail, and IronBee footer snapshots pass.",
     "created_at": "2026-09-08T06:23:11.060741+00:00",
-    "updated_at": "2026-09-08T06:23:11.060741+00:00",
-    "assigned_agent": null
+    "updated_at": "2026-09-08T15:44:57.025547+00:00",
+    "assigned_agent": "devin"
   },
   {
     "id": "onboarding-role-select-redirect-2026-09-08",

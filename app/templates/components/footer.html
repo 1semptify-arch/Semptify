@@ -1,0 +1,25 @@
+<footer class="unified-footer">
+    <div class="footer-container">
+        <div class="footer-disclaimer">
+            <div class="footer-disclaimer-icon" aria-hidden="true">!</div>
+            <p class="footer-disclaimer-title">Semptify is not legal advice</p>
+            <p class="footer-disclaimer-text">
+                Semptify helps tenants organize documents and find verified facts. It is not a law firm.
+                For legal advice, contact a licensed attorney or your local legal aid office.
+                If you need help right now, <a href="/help">get help now</a>.
+            </p>
+        </div>
+        <nav class="footer-nav" aria-label="Footer">
+            <a href="/">Home</a>
+            <a href="/help">Get help now</a>
+            <a href="/law-library">Law Library</a>
+            <a href="/public-feedback">Report a problem</a>
+        </nav>
+        <div class="footer-divider"></div>
+        <div class="footer-bottom">
+            <p class="footer-copyright">&copy; {{ year | default(2026) }} Semptify.org</p>
+            <p class="footer-mandates">No cost, always &middot; No ads &middot; Your data stays yours &middot; Not legal advice &mdash; get qualified help</p>
+            <div class="footer-help">{% include "components/locale_selector.html" %}</div>
+        </div>
+    </div>
+</footer>
