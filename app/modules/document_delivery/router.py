@@ -93,14 +93,9 @@ async def delivery_inbox_page(request: Request):
         providers_path = providers_stage.path if providers_stage else "/storage/providers"
         return ssot_redirect(providers_path, context="delivery_inbox_page unauthenticated")
 
-    # Return the static HTML page
-    from pathlib import Path
+    from app.main import templates
 
-    html_path = Path("static/delivery_inbox.html")
-    if html_path.exists():
-        return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
-    else:
-        raise HTTPException(status_code=404, detail="Delivery inbox page not found")
+    return templates.TemplateResponse(request, "pages/document_delivery_inbox.html")
 
 
 # =============================================================================
