@@ -1,3 +1,17 @@
+## Session — 2026-09-08 — Dead-page/404 sweep: 5 PRs shipped
+
+- **PR #175** (`fix-delivery-send-404-2026-09-08`): `/delivery/send` 404'd for authorized professionals — fell back to missing `static/delivery_send.html`. Now renders `pages/document_delivery_send.html`. Added `/delivery/send` to `page_router._SKIP_ROUTES` (audit anomaly #7).
+- **PR #176** (`fix-setup-wizard-404-2026-09-08`): setup router redirected to missing `/static/setup_wizard.html` (3 places). New `GET /setup` renders `pages/setup_wizard.html` (manifest-declared route, CONTRACT_SETUP_WIZARD); `/setup` added to PUBLIC_PATHS so first-run wizard is reachable pre-storage.
+- **PR #177** (`retire-legacy-pages-12-2026-09-08`): retired 7 unreachable legacy templates (manager, register, register_success, zoom_court, correspondence, error, tenant) + pruned 21 dead PAGE_MANIFEST entries (7 + 15 dangling from PR #174). Excluded: welcome (B5), admin (product call), tenant_home (Phase C rollback artifact), command_center/delivery_send (now live). 63 manifest entries remain.
+- **PR #178** (`fix-dead-static-links-2026-09-08`): repointed ~17 dead `/static/*.html` references to verified live routes across search/action/workflow routers + role_ui fallbacks; delivery_inbox page now renders its existing Jinja template; route_guards docstring corrected. 0 dead static refs remain in app code.
+- **PR #179** (`skip-routes-collision-fix-2026-09-08`): added `/zoom-court` and `/setup` to `page_router._SKIP_ROUTES` — all known page_router mount collisions now resolved; `decision-page-router-mount` technically unblocked (mount-vs-retire ~56 dormant pages remains Brad's call).
+
+All verified: py_compile PASS, guardrail all 4 PASS, live-route probes on dev server. Reports in `C:\master-repo\handoffs\*-report.md`.
+
+**Still open:** `decision-page-router-mount` (Brad), `utcdatetime-reland-review` (Claude-tier), `welcome` migration (B5), `admin` route-vs-retire product call.
+
+---
+
 ## Session — 2026-09-07 — Information Composer / Page Composer re-verification + landing-fact re-seed
 
 ### Guardrail Engine Run — 2026-09-08T04:32:09+00:00
