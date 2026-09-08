@@ -29,6 +29,11 @@ OUT_OF_SCOPE = {
     "vault_sync": "ON HOLD per Brad's standing direction",
     "housing_accountability_accountability_router": "pending Brad's decision on accountability_ledger / detect_repeated_fees",
     "filedored": "pending Brad's decision on filedored_service classification",
+    # C3 audit: dead-weight placeholder modules with no code or product-manifest entry.
+    "eviction_notice_explainer": "dead weight — no module code or product manifest entry; registry cleanup tracked",
+    "response_letter_generator": "dead weight — no module code or product manifest entry; registry cleanup tracked",
+    "eviction_defense_content": "dead weight — no module code or product manifest entry; registry cleanup tracked",
+    "ai_copilot": "dead weight — no module code or product manifest entry; registry cleanup tracked",
 }
 
 TEST_TEMPLATE = '''\
