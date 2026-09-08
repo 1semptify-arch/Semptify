@@ -69,7 +69,7 @@ All endpoints live under the existing `app.modules.page_composer.router` prefix 
 
 | Callee | Data provided |
 |---|---|
-| `app.services.context_loop` | User context (document count, deadlines, urgency, active case flags). |
+| `app.modules.context_loop.service.context_loop` | User context (document count, deadlines, urgency, active case flags). |
 | `app.modules.context_engine.cache` | Verified facts for `subject` + `jurisdiction`. |
 | `app.modules.context_engine.stories` | Published tenant stories. |
 | `app.modules.case_builder` | Active cases for the user filtered by subject. |

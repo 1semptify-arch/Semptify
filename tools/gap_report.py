@@ -48,26 +48,8 @@ KNOWN_INTENTIONAL_CONTRACT_EXCLUSIONS: dict[str, str] = {
 # Architectural / product-judgment gaps that no automated check catches.
 # Add to this list when you find one during manual audit work — it's the
 # durable record so the next session doesn't have to rediscover it.
-KNOWN_ARCHITECTURAL_GAPS: list[dict[str, str]] = [
-    {
-        "severity": "HIGH",
-        "title": "Two independent, live context-tracking systems",
-        "detail": (
-            "app.services.context_loop.context_loop (fed by app/services/document_pipeline.py "
-            "on every document upload/analysis) and app.modules.context_loop.service "
-            "(subscribed to the event bus at app startup, app/main.py) are separate "
-            "UserContext implementations with incompatible shapes (dict-based deadlines "
-            "vs object-attribute deadlines). Both are real and live, not dead code. "
-            "Page Composer's assembly formula reads only the former "
-            "(app.services.context_loop) — confirmed correct for that one dependency, "
-            "but any other consumer needs to know which one has the data it wants. "
-            "Needs a product decision: consolidate to one, or clearly document which "
-            "consumer should use which and why."
-        ),
-        "files": "app/services/context_loop.py, app/modules/context_loop/service.py",
-        "owner_decision_needed": "yes",
-    },
-]
+# Remove resolved entries; do not leave stale gaps in the report.
+KNOWN_ARCHITECTURAL_GAPS: list[dict[str, str]] = []
 
 
 def run_stub_detector() -> dict:
