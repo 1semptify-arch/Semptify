@@ -174,7 +174,7 @@ async def check_setup_needed():
 
     return {
         "setup_complete": setup_marker.exists(),
-        "redirect": "/static/command_center.html" if setup_marker.exists() else "/static/setup_wizard.html",
+        "redirect": "/command-center" if setup_marker.exists() else "/static/setup_wizard.html",
     }
 
 
@@ -193,7 +193,7 @@ async def skip_setup():
     return {
         "status": "skipped",
         "message": "Setup wizard skipped. You can configure later via settings.",
-        "redirect": "/static/command_center.html",
+        "redirect": "/command-center",
     }
 
 
@@ -631,7 +631,7 @@ async def complete_setup(
     return {
         "status": "complete",
         "message": "Setup complete! Your case is ready.",
-        "redirect": "/static/command_center.html",
+        "redirect": "/command-center",
         "case_summary": summary,
     }
 

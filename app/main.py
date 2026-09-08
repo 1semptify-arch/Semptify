@@ -4201,13 +4201,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
 
     @fastapi_app.get("/command-center", response_class=HTMLResponse)
-    async def command_center_page():
-        """Serve the command center dashboard."""
-        command_center_path = BASE_PATH / "static" / "command_center.html"
-        command_center_content = _render_static_page(command_center_path)
-        if command_center_content:
-            return command_center_content
-        return HTMLResponse(content="<h1>Command Center not found</h1>", status_code=404)
+    async def command_center_page(request: Request):
+        """Serve the command center dashboard from the Jinja template."""
+        return templates.TemplateResponse(request, "pages/command_center.html")
 
     # =========================================================================
     # Eviction Defense Page
