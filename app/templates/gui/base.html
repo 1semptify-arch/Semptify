@@ -19,37 +19,15 @@
 <link rel="stylesheet" href="/static/css/gui-panels.css">
 <style>
     body.template-1 {
-        background: var(--zone-bg-primary);
-        color: var(--text-inverse);
-    }
-
-    .gui-help-now {
-        display: block;
-        background: var(--color-calm-dark, #3a4f66);
-        color: var(--text-inverse, #fff);
-        text-decoration: none;
-        text-align: center;
-        padding: 0.75rem 1rem;
-        font-weight: 500;
-        transition: background 0.2s ease;
-    }
-
-    .gui-help-now:hover,
-    .gui-help-now:focus-visible {
-        background: var(--zone-bg-tertiary, #334155);
-        outline: 2px solid var(--text-inverse);
-        outline-offset: -2px;
+        background: var(--bg-page);
+        color: var(--text-primary);
     }
 
     .gui-container {
         width: 100%;
         max-width: 900px;
         margin: 0 auto;
-        padding: 0 1rem 3rem;
-    }
-
-    .gui-viewport-locked {
-        min-height: calc(100vh - 120px);
+        padding: 0 1rem 6rem;
     }
 </style>
 {% endblock %}

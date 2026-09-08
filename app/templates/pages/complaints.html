@@ -26,14 +26,14 @@
 }
 
 .header p {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     font-size: 1rem;
 }
 
 .crisis-banner {
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.1));
     border: 2px solid var(--color-error);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-block);
     padding: 1.25rem;
     margin-bottom: 2rem;
     text-align: center;
@@ -46,18 +46,19 @@
 }
 
 .section {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    box-shadow: var(--elevation-1);
 }
 
 .section h2 {
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 .agency-grid {
@@ -67,10 +68,11 @@
 }
 
 .agency-card {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    border: none;
+    border-radius: var(--radius-input);
     padding: 1.25rem;
+    box-shadow: var(--elevation-1);
 }
 
 .agency-card h3 {
@@ -81,7 +83,7 @@
 
 .agency-card p {
     font-size: 0.875rem;
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     margin-bottom: 0.75rem;
 }
 
@@ -107,7 +109,7 @@
     align-items: flex-start;
     gap: 0.75rem;
     padding: 0.75rem 0;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .checklist li:last-child {
@@ -123,7 +125,7 @@
 .checklist label {
     flex: 1;
     font-size: 0.9375rem;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
     cursor: pointer;
 }
 
@@ -132,7 +134,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 0;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .contact-row:last-child {
@@ -141,7 +143,7 @@
 
 .contact-name {
     font-weight: 500;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 .contact-phone {
@@ -240,7 +242,7 @@
 
     <div class="section">
         <h2>✅ Complaint Checklist</h2>
-        <p style="margin-bottom: 1rem; color: var(--color-text-secondary);">Before filing, gather this information:</p>
+        <p style="margin-bottom: 1rem; color: var(--text-secondary);">Before filing, gather this information:</p>
         <ul class="checklist">
             <li><input type="checkbox" id="c1"><label for="c1">Written lease or record of tenancy</label></li>
             <li><input type="checkbox" id="c2"><label for="c2">Photos or videos of the problem</label></li>

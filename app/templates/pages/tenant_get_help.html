@@ -32,7 +32,7 @@
   .triage-field label { display: block; font-weight: var(--font-semibold); color: var(--text-primary); font-size: var(--text-sm); margin-bottom: var(--space-2); }
   .triage-field select, .triage-field input, .triage-field textarea {
     width: 100%; padding: var(--space-3); border: 1px solid var(--border-color);
-    border-radius: 4px; font-size: var(--text-base); background: var(--color-white);
+    border-radius: var(--radius-input); font-size: var(--text-base); background: var(--color-white);
     color: var(--text-primary); font-family: inherit; box-sizing: border-box;
   }
   .triage-field textarea { min-height: 5rem; resize: vertical; }
@@ -40,13 +40,13 @@
   #urgentDateWrap { display: none; }
   .triage-submit {
     padding: var(--space-3) var(--space-6); background: var(--color-primary); color: var(--text-inverse);
-    border: none; border-radius: 4px; font-size: var(--text-base); font-weight: var(--font-semibold);
+    border: none; border-radius: var(--radius-input); font-size: var(--text-base); font-weight: var(--font-semibold);
     cursor: pointer; font-family: inherit;
   }
   .triage-submit:disabled { opacity: 0.6; cursor: wait; }
   .triage-steps { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4); }
-  .triage-step { padding: var(--space-3) var(--space-4); background: var(--bg-card); border-radius: 4px; color: var(--text-primary); font-size: var(--text-sm); line-height: var(--leading-relaxed); }
-  .triage-urgent { padding: var(--space-3) var(--space-4); background: var(--color-warning); border-radius: 4px; color: var(--text-primary); font-size: var(--text-sm); margin-top: var(--space-3); }
+  .triage-step { padding: var(--space-3) var(--space-4); background: var(--bg-card); border-radius: var(--radius-block); color: var(--text-primary); font-size: var(--text-sm); line-height: var(--leading-relaxed); }
+  .triage-urgent { padding: var(--space-3) var(--space-4); background: var(--color-warning); border-radius: var(--radius-block); color: var(--text-primary); font-size: var(--text-sm); margin-top: var(--space-3); }
   .triage-urgent a { color: var(--text-primary); font-weight: var(--font-semibold); }
   .triage-answer { font-size: var(--type-h2); font-weight: var(--type-h2-weight); color: var(--text-primary); margin: 0; }
 </style>

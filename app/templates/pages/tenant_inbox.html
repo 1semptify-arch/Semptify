@@ -38,7 +38,7 @@
     color: white;
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-pill);
     font-weight: 600;
 }
 
@@ -53,15 +53,16 @@
     display: flex;
     gap: 1rem;
     padding: 1.25rem;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
     transition: all 0.2s ease;
+    box-shadow: var(--elevation-1);
 }
 
 .notification-item:hover {
-    background: var(--color-bg-hover);
-    border-color: var(--color-border-hover);
+    background: var(--color-gray-100);
+    box-shadow: var(--elevation-2);
 }
 
 .notification-item.unread {
@@ -81,8 +82,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-bg-primary);
-    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    border-radius: var(--radius-input);
     flex-shrink: 0;
 }
 
@@ -94,11 +95,11 @@
 .notification-title {
     font-weight: 600;
     margin-bottom: 0.25rem;
-    color: var(--color-text-primary);
+    color: var(--text-primary);
 }
 
 .notification-text {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.9375rem;
     line-height: 1.5;
     margin-bottom: 0.5rem;
@@ -108,7 +109,7 @@
     display: flex;
     gap: 1rem;
     font-size: 0.8125rem;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
 }
 
 .notification-actions {
@@ -121,7 +122,7 @@
 .notification-actions a {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-input);
     cursor: pointer;
     text-decoration: none;
 }
@@ -134,17 +135,18 @@
 
 .btn-secondary {
     background: transparent;
-    border: 1px solid var(--color-border);
-    color: var(--color-text-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
 }
 
 /* Empty State */
 .empty-inbox {
     text-align: center;
     padding: 3rem 1rem;
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: none;
+    border-radius: var(--radius-block);
+    box-shadow: var(--elevation-1);
 }
 
 .empty-icon {
@@ -158,7 +160,7 @@
 }
 
 .empty-inbox p {
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
 }
 
 /* Tabs */
@@ -166,7 +168,7 @@
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 0.5rem;
 }
 
@@ -174,7 +176,7 @@
     padding: 0.625rem 1.25rem;
     background: transparent;
     border: none;
-    color: var(--color-text-secondary);
+    color: var(--text-secondary);
     font-size: 0.9375rem;
     cursor: pointer;
     border-bottom: 2px solid transparent;
@@ -188,9 +190,9 @@
 }
 
 .tab-btn .count {
-    background: var(--color-bg-primary);
+    background: var(--bg-elevated);
     padding: 0.125rem 0.5rem;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-pill);
     font-size: 0.75rem;
     margin-left: 0.5rem;
 }
