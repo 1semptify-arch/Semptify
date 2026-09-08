@@ -1,5 +1,7 @@
 # CONTEXT_LOOP_DECISION_BRIEF.md
 
+> **Resolution:** This fork was resolved by commit `be2daf69` (2026-08-29). `app/services/context_loop.py` was deleted and `app/modules/context_loop/service.py` was promoted as the canonical ContextDataLoop. All runtime consumers (`document_pipeline`, `case_auto_creation`, `adaptive_ui`, `ui_composer`, `page_composer/assembly`, `module_hub`) now import from `app.modules.context_loop.service`. The missing `process_input()` and `get_user_context()` methods were added to the canonical module.
+
 ## 1. Summary of the fork
 
 The `context_loop` logic exists as two independent implementations in `main`:
