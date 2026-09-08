@@ -2374,13 +2374,13 @@
     "description": "Brad decided: Semptify-PI gets its own separate Render service and subdomain (suggest plugins.semptify.org), independent from the main Semptify Render service (semptify.org). No shared environment variables or secrets with the main Semptify Render service, per the decoupling rule already in Semptify-PI's AGENTS.md. HARD CONSTRAINT: this MUST be Render's free tier, verified, not a free trial. Brad funds all of this personally out of limited disability income and cannot take on any recurring cost. Before creating the service, confirm free-tier limits (spin-down behavior, custom domain/SSL availability on free tier, any request/bandwidth caps) using current Render documentation, not assumptions from training data. If a custom subdomain or SSL requires a paid plan on Render's CURRENT pricing, stop and report back to Brad rather than proceeding \u2014 do not create anything that could incur a charge. Stop and report back with the proposed subdomain/config for Brad's confirmation before finalizing DNS either way.",
     "file_path": "N/A - Render infrastructure",
     "priority": "medium",
-    "status": "in_progress",
+    "status": "pending",
     "category": "other",
-    "notes": "[2026-08-29 17:33 UTC - claude] Checking Render free-tier capacity before proposing subdomain\n[2026-09-02 01:49 UTC - claude] Still blocked on Render free-tier limits and Brad's confirmation. No service or DNS created.\n[2026-09-02 02:04 UTC - claude] Resuming research. Will check current Render free-tier docs for spin-down behavior, custom domain/SSL availability, request/bandwidth caps, and whether a second free service fits the 750 instance-hour limit.\n[2026-09-02 02:14 UTC - claude] Brad decided: stay on Render free tier. No real users yet, so cold starts acceptable. Cloudflare used for DNS. Next: prepare render.yaml/env list, then confirm before creating service or DNS record.\n[2026-09-02 02:16 UTC - claude] Brad decided free tier. No real users yet, so spin-downs are acceptable. Cloudflare for DNS. Prepared render.yaml, /health endpoint, BUILD_GUIDE/BLUEPRINT updates. PI pushed a059827. Awaiting final OK before creating Render service and Cloudflare CNAME.\n[2026-09-02 02:26 UTC - claude] Render service septify-pi created: https://septify-pi.onrender.com. Free Render Postgres septify-pi-db created. Semptify-PI GitHub repo made public. Build/deploy in progress. Next: set real DATABASE_URL (from Render Dashboard), SEMPIFY_PI_ENCRYPTION_KEY, and OAuth credentials in Render env vars; update OAuth redirect URIs to https://septify-pi.onrender.com/auth/{provider}/callback.\n[2026-09-02 02:46 UTC - claude] Dedicated 'septify_pi' database created in Neon. Render service fails until DATABASE_URL and SEMPIFY_PI_ENCRYPTION_KEY are set in dashboard. BUILD_GUIDE and BUILD_STATE updated. Awaiting Brad to set env vars and redeploy.",
+    "notes": "[2026-08-29 17:33 UTC - claude] Checking Render free-tier capacity before proposing subdomain\n[2026-09-02 01:49 UTC - claude] Still blocked on Render free-tier limits and Brad's confirmation. No service or DNS created.\n[2026-09-02 02:04 UTC - claude] Resuming research. Will check current Render free-tier docs for spin-down behavior, custom domain/SSL availability, request/bandwidth caps, and whether a second free service fits the 750 instance-hour limit.\n[2026-09-02 02:14 UTC - claude] Brad decided: stay on Render free tier. No real users yet, so cold starts acceptable. Cloudflare used for DNS. Next: prepare render.yaml/env list, then confirm before creating service or DNS record.\n[2026-09-02 02:16 UTC - claude] Brad decided free tier. No real users yet, so spin-downs are acceptable. Cloudflare for DNS. Prepared render.yaml, /health endpoint, BUILD_GUIDE/BLUEPRINT updates. PI pushed a059827. Awaiting final OK before creating Render service and Cloudflare CNAME.\n[2026-09-02 02:26 UTC - claude] Render service septify-pi created: https://septify-pi.onrender.com. Free Render Postgres septify-pi-db created. Semptify-PI GitHub repo made public. Build/deploy in progress. Next: set real DATABASE_URL (from Render Dashboard), SEMPIFY_PI_ENCRYPTION_KEY, and OAuth credentials in Render env vars; update OAuth redirect URIs to https://septify-pi.onrender.com/auth/{provider}/callback.\n[2026-09-02 02:46 UTC - claude] Dedicated 'septify_pi' database created in Neon. Render service fails until DATABASE_URL and SEMPIFY_PI_ENCRYPTION_KEY are set in dashboard. BUILD_GUIDE and BUILD_STATE updated. Awaiting Brad to set env vars and redeploy.\n[2026-09-08 03:37 UTC - devin] Parked for 5.1 build per Brad 2026-09-08 (roadmap-sequencing handoff). Master queue updated. Nothing running or costing money; render.yaml + .env + Neon septify_pi DB ready.",
     "created_at": "2026-08-29T00:00:00Z",
-    "updated_at": "2026-09-02T02:46:36.195911+00:00",
+    "updated_at": "2026-09-08T03:37:57.166906+00:00",
     "target_model": "unlimited",
-    "assigned_agent": "claude"
+    "assigned_agent": "devin"
   },
   {
     "id": "law-library-fact-only-rewrite-2026-08-29",
@@ -2572,11 +2572,11 @@
     "priority": "medium",
     "status": "pending",
     "category": "feature",
-    "notes": "Blocked: needs Brad's product/architecture decisions.\n[2026-08-30 15:40 UTC - claude] Standalone /renters-guide and /gui/know retired: redirect to /law-library implemented and verified. Remaining blocker: tenant Flagship UI scope/timing and Law Linker next-step wiring in document-understanding flows.\n[2026-09-02 02:00 UTC - claude] Still blocked on Brad's product/architecture decisions: how to handle standalone Know Your Rights destinations and how to wire the law linker into document-understanding/next-step flows.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: covered by flagship UI spec",
+    "notes": "Blocked: needs Brad's product/architecture decisions.\n[2026-08-30 15:40 UTC - claude] Standalone /renters-guide and /gui/know retired: redirect to /law-library implemented and verified. Remaining blocker: tenant Flagship UI scope/timing and Law Linker next-step wiring in document-understanding flows.\n[2026-09-02 02:00 UTC - claude] Still blocked on Brad's product/architecture decisions: how to handle standalone Know Your Rights destinations and how to wire the law linker into document-understanding/next-step flows.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: covered by flagship UI spec\n[2026-09-08 04:01 UTC - devin] Brad handoff 2026-09-08: direction APPROVED 2026-09-06 / confirmed today. Build tenant-only Flagship UI around six functional sections and wire Law Linker into document/next-step flows. Define and claim build task before implementing.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-06T21:23:26.529144+00:00",
+    "updated_at": "2026-09-08T04:01:04.436989+00:00",
     "target_model": "claude",
-    "assigned_agent": "devin-swe17"
+    "assigned_agent": "devin"
   },
   {
     "id": "landing-page-rebuild-2026-08-29",
@@ -2626,13 +2626,13 @@
     "description": "BACKLOG.md [considering]: Brad concept for a four-piece vault unlock with no complete key at rest. Needs a real spec covering derivation order, the piece-4 creation function, key-rotation/reconnect (piece 3 lives in the user's own storage), and interaction with the existing _derive_key(user_id, secret_key) / AES-256-GCM token encryption in app/sdk/vault/encryption.py and app/core/auto_refresh.py.",
     "file_path": "app/sdk/vault/encryption.py",
     "priority": "low",
-    "status": "review",
+    "status": "pending",
     "category": "security",
-    "notes": "Security architecture future work.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec both vault items\n[2026-09-06 21:33 UTC - devin-swe17] Spec-only phase (Brad 2026-09-06): paired spec with secret-key-rotation, no code\n[2026-09-06 21:34 UTC - devin-swe17] Paired spec written: handoffs/vault-security-pair-spec-2026-09-06.md \u2014 awaiting Brad decisions on scope/piece-4/grace",
+    "notes": "Security architecture future work.\n[2026-09-06 21:23 UTC - devin-swe17] Brad approved 2026-09-06: spec both vault items\n[2026-09-06 21:33 UTC - devin-swe17] Spec-only phase (Brad 2026-09-06): paired spec with secret-key-rotation, no code\n[2026-09-06 21:34 UTC - devin-swe17] Paired spec written: handoffs/vault-security-pair-spec-2026-09-06.md \u2014 awaiting Brad decisions on scope/piece-4/grace\n[2026-09-08 04:01 UTC - devin] Brad handoff 2026-09-08: APPROVED - piece-4=unlock code, grace=60 days, onboarding=interface-only/no edits. Implementation ready; spec at handoffs/vault-security-pair-spec-2026-09-06.md.",
     "created_at": "2026-08-30T03:31:44.813Z",
-    "updated_at": "2026-09-06T21:34:46.669287+00:00",
+    "updated_at": "2026-09-08T04:01:03.403998+00:00",
     "target_model": "claude",
-    "assigned_agent": "devin-swe17"
+    "assigned_agent": "devin"
   },
   {
     "id": "secret-key-rotation-2026-08-29",
@@ -2822,12 +2822,12 @@
     "description": "Determine whether /tenant/inbox redirecting to /help?status=down is intentional (feature genuinely down) or a routing/role-guard bug. One-line investigation, separate from the design refresh.",
     "file_path": "app/main.py",
     "priority": "low",
-    "status": "open",
+    "status": "resolved",
     "category": "investigation",
-    "notes": "Flagged during design-refresh Wave 2 verification. Route currently returns help-down page instead of rendering tenant_inbox.html.",
+    "notes": "Flagged during design-refresh Wave 2 verification. Route currently returns help-down page instead of rendering tenant_inbox.html.\n[2026-09-08 04:02 UTC - devin] Claimed. Root cause suspected: route passes only briefcase; template expects notifications list + counts. Investigating and fixing.\n[2026-09-08 04:09 UTC - devin] Fixed. Route now builds notifications list and counts expected by tenant_inbox.html. Verified with IronBee DevTools: HTTP 200, page renders, ARIA snapshot shows Inbox UI.",
     "created_at": "2026-09-07T20:30:00Z",
-    "updated_at": "2026-09-07T20:30:00Z",
+    "updated_at": "2026-09-08T04:09:17.847477+00:00",
     "target_model": "unassigned",
-    "assigned_agent": "unassigned"
+    "assigned_agent": "devin"
   }
 ]
