@@ -28,7 +28,11 @@
   /* Semantic Colors */
   --color-success: #10b981;
   --color-warning: #f59e0b;
+  --color-warning-50: #fffbeb;
+  --color-warning-800: #92400e;
   --color-error: #ef4444;
+  --color-error-50: #fef2f2;
+  --color-error-800: #991b1b;
   --color-info: #3b82f6;
 
   /* Calm Baseline + Reserved Alarm (Task 1 — Master Handoff)
