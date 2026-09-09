@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Feedback – Semptify</title>
+  <link rel="stylesheet" href="/static/css/ssot-design-system.css">
   <style>
-    :root { --primary: #1e3a5f; --accent: #3b82f6; --text: #1e293b; --text-light: #475569; --bg: #fdfcfa; }
+    :root { --primary: var(--color-primary); --accent: var(--color-info); --text: var(--text-primary); --text-light: var(--text-secondary); --bg: var(--bg-page); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+    body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
     header { background: var(--primary); color: #fff; padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1rem; }
     header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 1.2rem; }
     header nav { margin-left: auto; display: flex; gap: 1.5rem; font-size: 0.9rem; }
@@ -18,15 +19,15 @@
     .subtitle { color: var(--text-light); margin-bottom: 2.5rem; font-size: 1.05rem; }
     label { display: block; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; font-size: 0.95rem; }
     select, textarea, input[type="email"] {
-      width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 8px;
-      font-size: 0.95rem; font-family: inherit; color: var(--text); background: #fff;
+      width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-block);
+      font-size: 0.95rem; font-family: inherit; color: var(--text); background: var(--bg-card);
       margin-bottom: 1.5rem; transition: border-color 0.15s;
     }
-    select:focus, textarea:focus, input[type="email"]:focus { outline: none; border-color: var(--accent); }
+    select:focus, textarea:focus, input[type="email"]:focus { outline: none; border-color: var(--color-accent); }
     textarea { resize: vertical; min-height: 130px; }
-    .btn { background: var(--primary); color: #fff; border: none; padding: 0.85rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
-    .btn:hover { background: #2d5a87; }
-    .success { display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 1.5rem; text-align: center; color: #166534; margin-top: 1rem; }
+    .btn { background: var(--primary); color: var(--text-inverse); border: none; padding: 0.85rem 2rem; border-radius: var(--radius-block); font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+    .btn:hover { background: var(--color-primary-light); }
+    .success { display: none; background: var(--color-success-50); border: 1px solid var(--color-success); border-radius: var(--radius-block); padding: 1.5rem; text-align: center; color: var(--color-success-800); margin-top: 1rem; }
     .success h3 { margin-bottom: 0.5rem; }
     footer { background: var(--primary); color: rgba(255,255,255,0.7); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
     footer a { color: rgba(255,255,255,0.7); margin: 0 0.75rem; text-decoration: none; }
