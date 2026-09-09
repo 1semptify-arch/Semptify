@@ -19,7 +19,6 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from app.core.capabilities import require_capability
-from app.main import templates
 from app.core.security import yellow_access
 from app.core.user_context import UserContext
 from app.modules.sticky_notes import service as sticky_notes_service
@@ -166,6 +165,8 @@ async def notes_page(
     user: UserContext = Depends(yellow_access),
 ):
     """Render the notepad page in the Record area."""
+    from app.main import templates
+
     overlays = await sticky_notes_service.list_sticky_notes(user)
     notes = [_overlay_to_response(o) for o in overlays]
     return templates.TemplateResponse(
