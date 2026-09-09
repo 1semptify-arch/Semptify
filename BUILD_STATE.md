@@ -1,5 +1,14 @@
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
 
+### Guardrail Engine Run — 2026-09-09T06:09:02+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Guardrail Engine Run — 2026-09-09T03:44:38+00:00
 
 - **contract_route_check**: PASS
