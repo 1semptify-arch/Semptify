@@ -2927,11 +2927,25 @@
     "category": "copy",
     "file_path": "app/services/ui_composer/",
     "priority": "high",
-    "status": "in_progress",
+    "status": "review",
     "assigned_agent": "claude",
     "target_model": "unlimited",
-    "notes": "ACTIVE_CONTEXT.md backlog: contract copy is too technical for user-facing display. Picked as next slice after SSOT rollout.",
+    "notes": "ACTIVE_CONTEXT.md backlog: contract copy is too technical for user-facing display. Picked as next slice after SSOT rollout.\n[2026-09-09 21:53 UTC - claude] Scope pivoted during discovery: contract_copy.py is already in place and wired, so the concrete missing-work gap was three modules without FunctionGroupContract registration (law_linker, sticky_notes, admin_console). Added register.py files for all three, updated contract_loader, verified live load, law-linker API, and guardrail. Committed 6e1c2b78.",
     "created_at": "2026-09-09T21:48:09.574290+00:00",
-    "updated_at": "2026-09-09T21:48:09.574290+00:00"
+    "updated_at": "2026-09-09T21:53:42.456574+00:00"
+  },
+  {
+    "id": "context-workbook-starter-20260909-2208",
+    "title": "Fill Context Explanation Workbook high-priority starter prompts",
+    "description": "Draft plain-language context-explanation variants for the 10-entry starter set in data/context_explanation_workbook.csv, covering the four exposure levels (mechanics, trust, reinforcement, minimal) and subject/pillar combos marked HIGH in docs/context_explanation_needs.md.",
+    "category": "content",
+    "file_path": "data/context_explanation_workbook.csv",
+    "priority": "high",
+    "status": "review",
+    "assigned_agent": "claude",
+    "target_model": "unlimited",
+    "notes": "10 starter rows filled with non-advisory, plain-language prompts. Dry-run validated; 46 rows remain placeholders for later editorial passes. UPL-risk HIGH entries explicitly direct users to advocates/attorneys.",
+    "created_at": "2026-09-09T22:08:06.120627+00:00",
+    "updated_at": "2026-09-09T22:08:06.120627+00:00"
   }
 ]
