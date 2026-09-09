@@ -1,3 +1,29 @@
+## Session — 2026-09-09 — Law Linker v2 implementation (claude)
+
+### Guardrail Engine Run — 2026-09-09T03:44:38+00:00
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+All checks passed.
+
+### Shipped this session
+
+- **Law Linker v2** (commit `3642df67`):
+  - Added `app.modules.law_linker` router/service with `/api/law-linker/citation`.
+  - Added official-source fetch/caching for Minnesota Statutes from `revisor.mn.gov`.
+  - Added `/law-linker/pop-out` page with source metadata, disclaimer, and "Copy to Scratch Pad" action.
+  - Updated `static/js/law-linker.js` to mark citations on any text surface, with hover preview, click-to-pop-out, and right-click "Copy to Scratch Pad" that writes overlay-only `STICKY_NOTE` items.
+  - Wired Law Library as the first tenant-facing surface; dynamic content is marked via a MutationObserver.
+  - Registered the module in `app.core.product_manifest` and capability defaults.
+
+### Notes
+
+- Unauthenticated testing confirmed the pop-out is gated and the scratch-pad action returns 401 as expected.
+- The long-run `/api/location/current` network call was removed from the client; best-effort jurisdiction defaults to MN.
+
 ## Session — 2026-09-08 — Onboarding compliance + spec drafting (devin-swe17)
 
 ### Guardrail Engine Run — 2026-09-09T03:44:38+00:00
