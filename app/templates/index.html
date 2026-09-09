@@ -18,12 +18,12 @@
     .template-1 main.landing-main,
     main.landing-main {
         background-color: var(--zone-bg-primary);
-        color: #f0f4f8;
+        color: var(--text-inverse);
     }
 
-    .page-landing a { color: #e2e8f0; }
+    .page-landing a { color: var(--text-inverse); }
     .page-landing a:hover,
-    .page-landing a:focus { color: #ffffff; }
+    .page-landing a:focus { color: var(--color-white); }
 
     /* Transparent public topbar — a calm, minimal path to help. */
     .landing-topbar {
@@ -335,19 +335,19 @@
     <svg class="landing-ledger__svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" focusable="false">
         <defs>
             <linearGradient id="ledger-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#16213e"/>
-                <stop offset="60%" stop-color="#1e3a5f"/>
-                <stop offset="100%" stop-color="#172a4d"/>
+                <stop offset="0%" stop-color="var(--zone-bg-inverse)"/>
+                <stop offset="60%" stop-color="var(--color-primary)"/>
+                <stop offset="100%" stop-color="var(--zone-bg-inverse)"/>
             </linearGradient>
             <radialGradient id="ledger-glow" cx="30%" cy="70%" r="60%">
-                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.14"/>
-                <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+                <stop offset="0%" stop-color="var(--color-primary-light)" stop-opacity="0.14"/>
+                <stop offset="100%" stop-color="var(--zone-bg-inverse)" stop-opacity="0"/>
             </radialGradient>
             <pattern id="ledger-grain" width="3" height="3" patternUnits="userSpaceOnUse">
                 <rect width="3" height="3" fill="#ffffff" fill-opacity="0.012"/>
             </pattern>
             <pattern id="ledger-lines" width="40" height="28" patternUnits="userSpaceOnUse">
-                <line x1="0" y1="27.5" x2="40" y2="27.5" stroke="#93c5fd" stroke-opacity="0.05" stroke-width="1"/>
+                <line x1="0" y1="27.5" x2="40" y2="27.5" stroke="var(--color-primary-light)" stroke-opacity="0.05" stroke-width="1"/>
             </pattern>
         </defs>
 

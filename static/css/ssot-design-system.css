@@ -289,10 +289,10 @@
      Primary = base page, secondary = adjacent zone, tertiary = nested/emphasized,
      inverse = high-emphasis dark band (GOVERN-style).
      ============================================================================ */
-  --zone-bg-primary:   #16213e;   /* base page background — main / center content */
-  --zone-bg-secondary: #1e293b;   /* one step lighter — adjacent zone (sidebars, lists) */
-  --zone-bg-tertiary:  #334155;   /* two steps — nested or emphasized zone (headers, toolbars) */
-  --zone-bg-inverse:   #0f172a;   /* darkest — high-emphasis sections, viewer area */
+  --zone-bg-primary:   hsl(var(--h-primary) 5% 12%);   /* base page background — main / center content */
+  --zone-bg-secondary: hsl(var(--h-primary) 5% 17%);   /* one step lighter — adjacent zone (sidebars, lists) */
+  --zone-bg-tertiary:  hsl(var(--h-primary) 5% 23%);   /* two steps — nested or emphasized zone (headers, toolbars) */
+  --zone-bg-inverse:   hsl(var(--h-primary) 5% 10%);   /* darkest — high-emphasis sections, viewer area */
 
   /* Shape cues — replaces border-radius-as-container-edge */
   --zone-corner-cut: 0;           /* default: flat edge meets flat edge */
@@ -376,7 +376,7 @@
    ============================================================================ */
 
 .template-1 .page-header,
-.template-1 header {
+.template-1 .main-nav {
   background: var(--tpl-1-header);
   color: #fff;
 }
@@ -386,14 +386,13 @@
   background: var(--tpl-1-body);
   color: #1a1a1a;
 }
-.template-1 .page-footer,
-.template-1 footer {
+.template-1 .page-footer {
   background: var(--tpl-1-footer);
   color: #fff;
 }
 
 .template-2 .page-header,
-.template-2 header {
+.template-2 .main-nav {
   background: var(--tpl-2-header);
   color: #fff;
 }
@@ -403,14 +402,13 @@
   background: var(--tpl-2-body);
   color: #1a1a1a;
 }
-.template-2 .page-footer,
-.template-2 footer {
+.template-2 .page-footer {
   background: var(--tpl-2-footer);
   color: #fff;
 }
 
 .template-3 .page-header,
-.template-3 header {
+.template-3 .main-nav {
   background: var(--tpl-3-header);
   color: #fff;
 }
@@ -420,14 +418,13 @@
   background: var(--tpl-3-body);
   color: #1a1a1a;
 }
-.template-3 .page-footer,
-.template-3 footer {
+.template-3 .page-footer {
   background: var(--tpl-3-footer);
   color: #fff;
 }
 
 .template-4 .page-header,
-.template-4 header {
+.template-4 .main-nav {
   background: var(--tpl-4-header);
   color: #fff;
 }
@@ -437,14 +434,13 @@
   background: var(--tpl-4-body);
   color: #1a1a1a;
 }
-.template-4 .page-footer,
-.template-4 footer {
+.template-4 .page-footer {
   background: var(--tpl-4-footer);
   color: #fff;
 }
 
 .template-5 .page-header,
-.template-5 header {
+.template-5 .main-nav {
   background: var(--tpl-5-header);
   color: #fff;
 }
@@ -454,8 +450,7 @@
   background: var(--tpl-5-body);
   color: #1a1a1a;
 }
-.template-5 .page-footer,
-.template-5 footer {
+.template-5 .page-footer {
   background: var(--tpl-5-footer);
   color: #fff;
 }
