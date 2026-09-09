@@ -1,6 +1,14 @@
 /* Workspace Stage Model - Semptify 5.0
    Provides consistent stage/workspace visual structure across all role pages.
 */
+@import url('/static/css/ssot-design-system.css');
+
+:root {
+  --color-surface: var(--bg-card);
+  --color-border: var(--border-color);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+}
 
 .workspace-stage {
     max-width: 1200px;
@@ -18,20 +26,20 @@
 }
 
 .workspace-stage__panel {
-    background: var(--color-surface, #ffffff);
-    border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: 8px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-block);
     padding: 1.25rem;
 }
 
 .workspace-stage__title {
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--color-text-primary, #111827);
+    color: var(--color-text-primary);
     margin-bottom: 0.5rem;
 }
 
 .workspace-stage__subtitle {
     font-size: 0.875rem;
-    color: var(--color-text-secondary, #6b7280);
+    color: var(--color-text-secondary);
 }

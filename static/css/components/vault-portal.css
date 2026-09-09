@@ -1,4 +1,5 @@
 /* Vault Portal modal styles — used by vault-portal.js across all pages */
+@import url('/static/css/ssot-design-system.css');
 
 .vault-modal {
   display: none;
@@ -22,14 +23,14 @@
 
 .vault-modal-content {
   position: relative;
-  background: white;
+  background: var(--bg-card);
   border-radius: 16px;
   width: 92%;
   max-width: 700px;
   max-height: 90vh;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  color: #111827;
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
 }
@@ -43,7 +44,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 
@@ -56,7 +57,7 @@
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #9ca3af;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.25rem;
 }
@@ -73,15 +74,15 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-surface);
   flex-shrink: 0;
   flex-wrap: wrap;
 }
 
 .file-list {
-  background: #f9fafb;
-  border-radius: 8px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-block);
   padding: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -91,8 +92,8 @@
   align-items: center;
   gap: 1rem;
   padding: 0.75rem;
-  background: white;
-  border-radius: 6px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
   margin-bottom: 0.5rem;
 }
 
@@ -110,12 +111,12 @@
 
 .file-name {
   font-weight: 500;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .file-size {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .capture-form {
@@ -130,22 +131,22 @@
   display: block;
   font-weight: 500;
   margin-bottom: 0.4rem;
-  color: #374151;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .form-input {
   width: 100%;
   padding: 0.6rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
   font-size: 0.95rem;
   box-sizing: border-box;
 }
 
 .type-description {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin-top: 0.5rem;
   font-style: italic;
 }
@@ -172,9 +173,9 @@
 }
 
 .metadata-preview {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
+  background: var(--color-info-50, var(--bg-surface));
+  border: 1px solid var(--color-info);
+  border-radius: var(--radius-block);
   padding: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -182,7 +183,7 @@
 .metadata-preview h4 {
   margin: 0 0 0.75rem 0;
   font-size: 0.9rem;
-  color: #1e40af;
+  color: var(--color-info);
 }
 
 .metadata-list {
@@ -194,13 +195,13 @@
 
 .metadata-list li {
   padding: 0.25rem 0;
-  color: #374151;
+  color: var(--text-secondary);
 }
 
 .metadata-note {
   margin: 0.75rem 0 0 0;
   font-size: 0.8rem;
-  color: #1d4ed8;
+  color: var(--color-info);
   line-height: 1.4;
 }
 
@@ -214,19 +215,19 @@
   gap: 0.5rem;
   cursor: pointer;
   font-weight: 500;
-  color: #dc2626;
+  color: var(--color-error);
 }
 
 .checkbox-label input[type="checkbox"] {
   width: 1.2rem;
   height: 1.2rem;
-  accent-color: #dc2626;
+  accent-color: var(--color-error);
 }
 
 .vault-storage-info {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
+  background: var(--color-success-50);
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-block);
   padding: 1rem;
   margin: 0 1.5rem 1.5rem;
 }
@@ -236,13 +237,13 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
-  color: #065f46;
+  color: var(--color-success-800);
   margin-bottom: 0.5rem;
 }
 
 .privacy-note {
   font-size: 0.8rem;
-  color: #059669;
+  color: var(--color-success);
   margin: 0;
 }
 
@@ -251,7 +252,7 @@
   align-items: center;
   justify-content: center;
   padding: 0.6rem 1.2rem;
-  border-radius: 8px;
+  border-radius: var(--radius-block);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -260,19 +261,19 @@
 }
 
 .btn-primary {
-  background: #3b82f6;
-  color: white;
+  background: var(--color-info);
+  color: var(--text-inverse);
 }
 
 .btn-primary:hover {
-  background: #2563eb;
+  background: var(--color-info);
 }
 
 .btn-secondary {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
 }
 
 .btn-secondary:hover {
-  background: #d1d5db;
+  background: var(--border-color);
 }
