@@ -4,38 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Template Letters – Semptify</title>
+<link rel="stylesheet" href="/static/css/ssot-design-system.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pinyon+Script&family=Great+Vibes&display=swap" rel="stylesheet">
   <style>
     :root {
-      --hdr1: #4c1d95; --hdr2: #5b21b6; --accent: #7c3aed;
-      --bg: #faf8ff; --light: #f5f3ff; --text: #1a1a2e; --muted: #64748b;
-      --border: #e2e8f0; --success: #16a34a; --warning: #d97706;
+      --hdr1: var(--color-primary); --hdr2: var(--color-primary); --accent: var(--color-primary-light);
+      --bg: var(--bg-page); --light: var(--bg-surface); --text: var(--text-primary); --muted: var(--text-muted);
+      --border: var(--border-color); --success: var(--color-success); --warning: var(--color-warning-800);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
 
-    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); position: sticky; top: 0; z-index: 100; }
     .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 60px; gap: 1rem; }
-    .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: #fff; }
+    .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: var(--text-inverse); }
     nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
-    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 6px; font-size: 0.88rem; }
-    nav.core-nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
-    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: var(--radius-lg); font-size: 0.88rem; }
+    nav.core-nav a:hover { background: rgba(255,255,255,0.15); color: var(--text-inverse); }
+    .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
 
-    .hero { background: linear-gradient(160deg, #ede9fe 0%, var(--bg) 60%); padding: 2rem 1.5rem 1.5rem; }
+    .hero { background: linear-gradient(160deg, var(--bg-surface) 0%, var(--bg) 60%); padding: 2rem 1.5rem 1.5rem; }
     .hero-inner { max-width: 1100px; margin: 0 auto; }
     .hero h1 { font-size: 1.8rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.4rem; }
     .hero p { color: var(--muted); font-size: 1rem; max-width: 580px; line-height: 1.6; }
 
     .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 
-    .disclaimer { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 0.85rem 1.1rem; font-size: 0.83rem; color: #92400e; line-height: 1.6; margin-bottom: 2rem; }
+    .disclaimer { background: var(--color-warning-50); border: 1px solid var(--color-warning); border-radius: var(--radius-block); padding: 0.85rem 1.1rem; font-size: 0.83rem; color: var(--color-warning-800); line-height: 1.6; margin-bottom: 2rem; }
 
     .letter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
 
-    .letter-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-    .letter-card-header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; padding: 1.1rem 1.25rem; }
+    .letter-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-block); overflow: hidden; }
+    .letter-card-header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); padding: 1.1rem 1.25rem; }
     .letter-card-header h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
     .letter-card-header p { font-size: 0.8rem; opacity: 0.85; }
     .letter-card-body { padding: 1.25rem; }
@@ -44,22 +45,22 @@
     .form-group { margin-bottom: 1rem; }
     .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem; }
     .form-group input, .form-group textarea, .form-group select {
-      width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #d1d5db; border-radius: 7px;
-      font-size: 0.88rem; font-family: inherit; color: var(--text); background: #fff; outline: none;
+      width: 100%; padding: 0.6rem 0.8rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+      font-size: 0.88rem; font-family: inherit; color: var(--text); background: var(--bg-card); outline: none;
     }
     .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent); }
     .form-group textarea { resize: vertical; min-height: 80px; }
 
     .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .btn { padding: 0.65rem 1.25rem; border: none; border-radius: 7px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .btn-primary { background: var(--hdr1); color: #fff; }
+    .btn { padding: 0.65rem 1.25rem; border: none; border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-primary { background: var(--hdr1); color: var(--text-inverse); }
     .btn-primary:hover { background: var(--hdr2); }
-    .btn-copy { background: var(--light); color: var(--accent); border: 1px solid #ddd6fe; }
-    .btn-copy:hover { background: #ede9fe; }
+    .btn-copy { background: var(--light); color: var(--accent); border: 1px solid var(--border-color); }
+    .btn-copy:hover { background: var(--bg-surface); }
 
     .preview-box {
-      display: none; background: #f8f9ff; border: 1px solid #c7d2fe;
-      border-radius: 8px; padding: 1rem 1.25rem; margin-top: 1rem;
+      display: none; background: var(--bg-surface); border: 1px solid var(--border-color);
+      border-radius: var(--radius-block); padding: 1rem 1.25rem; margin-top: 1rem;
       font-size: 0.83rem; line-height: 1.75; white-space: pre-wrap;
       font-family: Georgia, serif; color: var(--text);
     }
@@ -68,11 +69,11 @@
     .copy-confirm { display: none; color: var(--success); font-size: 0.8rem; margin-top: 0.35rem; font-weight: 600; }
     .copy-confirm.visible { display: block; }
 
-    .autofill-bar { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 0.85rem 1.1rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
-    .autofill-bar p { font-size: 0.85rem; color: #166534; margin: 0; }
-    .btn-autofill { background: #16a34a; color: #fff; border: none; padding: 0.55rem 1.1rem; border-radius: 7px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 0.4rem; }
-    .btn-autofill:hover { background: #15803d; }
-    .btn-autofill:disabled { background: #86efac; cursor: default; }
+    .autofill-bar { background: var(--color-success-50); border: 1px solid var(--color-success); border-radius: var(--radius-block); padding: 0.85rem 1.1rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+    .autofill-bar p { font-size: 0.85rem; color: var(--color-success-800); margin: 0; }
+    .btn-autofill { background: var(--color-success); color: var(--text-inverse); border: none; padding: 0.55rem 1.1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 0.4rem; }
+    .btn-autofill:hover { background: var(--color-success-800); }
+    .btn-autofill:disabled { background: var(--color-success); cursor: default; }
     .autofill-status { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
 
     footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
@@ -80,55 +81,55 @@
 
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
     .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; display: block; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); display: block; }
     .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
     .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
     .drawer-backdrop.open { display: block; }
 
     /* Sign button */
-    .btn-sign { background: #1d4ed8; color: #fff; border: none; }
-    .btn-sign:hover { background: #1e40af; }
-    .btn-print-signed { background: #0f766e; color: #fff; border: none; }
-    .btn-print-signed:hover { background: #0d6b62; }
+    .btn-sign { background: var(--color-info); color: var(--text-inverse); border: none; }
+    .btn-sign:hover { background: var(--color-info); }
+    .btn-print-signed { background: var(--color-success-800); color: var(--text-inverse); border: none; }
+    .btn-print-signed:hover { background: var(--color-success-800); }
     .sign-row { display: none; margin-top: 0.75rem; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
     .sign-row.visible { display: flex; }
-    .sig-preview-img { height: 40px; border-bottom: 1px solid #94a3b8; margin-left: 0.5rem; }
+    .sig-preview-img { height: 40px; border-bottom: 1px solid var(--text-muted); margin-left: 0.5rem; }
 
     /* Signature modal */
     .sig-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 2000; align-items: center; justify-content: center; }
     .sig-modal-backdrop.open { display: flex; }
-    .sig-modal { background: #fff; border-radius: 16px; padding: 1.5rem; width: min(520px, 95vw); box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+    .sig-modal { background: var(--bg-card); border-radius: var(--radius-2xl); padding: 1.5rem; width: min(520px, 95vw); box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
     .sig-modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--hdr1); }
-    .sig-tabs { display: flex; gap: 0; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-    .sig-tab { flex: 1; padding: 0.55rem; background: #f8fafc; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; color: var(--muted); }
-    .sig-tab.active { background: var(--hdr1); color: #fff; }
+    .sig-tabs { display: flex; gap: 0; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: var(--radius-block); overflow: hidden; }
+    .sig-tab { flex: 1; padding: 0.55rem; background: var(--bg-surface); font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; color: var(--muted); }
+    .sig-tab.active { background: var(--hdr1); color: var(--text-inverse); }
     .sig-panel { display: none; }
     .sig-panel.active { display: block; }
     /* Draw panel */
-    #sig-canvas { display: block; width: 100%; height: 140px; border: 2px solid #c7d2fe; border-radius: 8px; background: #f8f9ff; touch-action: none; cursor: crosshair; }
+    #sig-canvas { display: block; width: 100%; height: 140px; border: 2px solid var(--border-color); border-radius: var(--radius-block); background: var(--bg-surface); touch-action: none; cursor: crosshair; }
     .sig-draw-actions { display: flex; justify-content: flex-end; margin-top: 0.4rem; }
-    .btn-clear-sig { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.7rem; font-size: 0.8rem; cursor: pointer; color: var(--muted); }
+    .btn-clear-sig { background: none; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.3rem 0.7rem; font-size: 0.8rem; cursor: pointer; color: var(--muted); }
     /* Type panel */
-    .sig-type-input { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #d1d5db; border-radius: 7px; font-size: 1.6rem; font-family: 'Dancing Script', cursive; margin-bottom: 0.75rem; }
+    .sig-type-input { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 1.6rem; font-family: 'Dancing Script', cursive; margin-bottom: 0.75rem; }
     .sig-font-options { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
-    .sig-font-btn { padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; background: #fff; font-size: 1.1rem; }
-    .sig-font-btn.selected { border-color: var(--accent); background: #ede9fe; }
+    .sig-font-btn { padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: var(--radius-lg); cursor: pointer; background: var(--bg-card); font-size: 1.1rem; }
+    .sig-font-btn.selected { border-color: var(--accent); background: var(--bg-surface); }
     .sig-font-btn[data-font="Dancing Script"] { font-family: 'Dancing Script', cursive; }
     .sig-font-btn[data-font="Great Vibes"] { font-family: 'Great Vibes', cursive; }
     .sig-font-btn[data-font="Pinyon Script"] { font-family: 'Pinyon Script', cursive; }
     /* Modal actions */
     .sig-modal-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; justify-content: flex-end; }
-    .btn-apply-sig { background: var(--hdr1); color: #fff; border: none; padding: 0.65rem 1.4rem; border-radius: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
-    .btn-cancel-sig { background: #f1f5f9; color: var(--muted); border: none; padding: 0.65rem 1.1rem; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+    .btn-apply-sig { background: var(--hdr1); color: var(--text-inverse); border: none; padding: 0.65rem 1.4rem; border-radius: var(--radius-block); font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+    .btn-cancel-sig { background: var(--bg-surface); color: var(--muted); border: none; padding: 0.65rem 1.1rem; border-radius: var(--radius-block); font-size: 0.9rem; cursor: pointer; }
 
     /* Print styles */
     @media print {
       header, footer, .autofill-bar, .disclaimer, .btn-row, .sign-row,
       nav, .nav-drawer, .drawer-backdrop, .sig-modal-backdrop,
       .letter-card:not(.printing) { display: none !important; }
-      body { background: #fff; }
+      body { background: var(--bg-card); }
       .letter-card.printing { border: none !important; box-shadow: none !important; display: block !important; page-break-inside: avoid; }
-      .letter-card-header.printing-header { background: none !important; color: #000 !important; padding: 0 0 0.5rem !important; border-bottom: 1px solid #ccc; margin-bottom: 1rem; }
+      .letter-card-header.printing-header { background: none !important; color: var(--text-primary) !important; padding: 0 0 0.5rem !important; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
       .preview-box { display: block !important; border: none !important; background: none !important; padding: 0 !important; font-size: 11pt !important; }
       .print-sig-block { display: block !important; }
       .letter-card-body > p, .form-group, .letter-card-header p { display: none !important; }
@@ -150,8 +151,8 @@
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   <nav class="nav-drawer" id="nav-drawer">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:#fff;">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+      <strong style="color:var(--bg-card);">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:var(--bg-card);font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
     <a href="/tenant/home">🏠 Dashboard</a>
     <a href="/tenant/journal">📓 Journal</a>
@@ -226,7 +227,7 @@
     </div>
 
     <div class="disclaimer">
-      <strong>⚖️ Not Legal Advice —</strong> These templates are starting points. Adapt them to your exact situation. For complex or high-stakes situations, contact a licensed attorney or free legal aid. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer →</a>
+      <strong>⚖️ Not Legal Advice —</strong> These templates are starting points. Adapt them to your exact situation. For complex or high-stakes situations, contact a licensed attorney or free legal aid. <a href="/public/disclaimer.html" style="color:var(--color-warning-800);">Full disclaimer →</a>
     </div>
 
     <div class="letter-grid">
@@ -560,7 +561,7 @@
     function initCanvas() {
       _sigCanvas = document.getElementById('sig-canvas');
       _sigCtx = _sigCanvas.getContext('2d');
-      _sigCtx.strokeStyle = '#1a1a2e';
+      _sigCtx.strokeStyle = 'var(--text-primary)';
       _sigCtx.lineWidth = 2.5;
       _sigCtx.lineCap = 'round';
       _sigCtx.lineJoin = 'round';
@@ -616,10 +617,10 @@
       const c = document.createElement('canvas');
       c.width = 480; c.height = 140;
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#f8f9ff';
+      ctx.fillStyle = 'var(--bg-surface)';
       ctx.fillRect(0,0,c.width,c.height);
       ctx.font = `56px '${_selectedFont}', cursive`;
-      ctx.fillStyle = '#1a1a2e';
+      ctx.fillStyle = 'var(--text-primary)';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(text, c.width/2, c.height/2);
