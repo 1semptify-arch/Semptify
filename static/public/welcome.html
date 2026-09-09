@@ -219,9 +219,9 @@
     <script src="/js/unified-footer-loader.js"></script>
 
     <!-- SSOT Violation Notification Banner -->
-    <div id="ssotViolationBanner" style="display:none; position:fixed; top:0; left:0; right:0; background:#dc2626; color:white; padding:12px 20px; font-size:14px; z-index:9999; font-family:sans-serif;">
+    <div id="ssotViolationBanner" style="display:none; position:fixed; top:0; left:0; right:0; background:var(--color-error); color:var(--text-inverse); padding:12px 20px; font-size:14px; z-index:9999; font-family:var(--font-sans);">
         <strong>⚠️ SSOT VIOLATION DETECTED:</strong> <span id="ssotViolationMsg"></span>
-        <button onclick="this.parentElement.style.display='none'" style="float:right; background:white; color:#dc2626; border:none; padding:4px 12px; cursor:pointer; font-weight:bold;">✕</button>
+        <button onclick="this.parentElement.style.display='none'" style="float:right; background:var(--text-inverse); color:var(--color-error); border:none; padding:4px 12px; cursor:pointer; font-weight:bold;">✕</button>
     </div>
 
     <!-- Smart Gate: SSOT Navigation - Fetch paths from API, never hardcode -->

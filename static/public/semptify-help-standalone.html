@@ -5,17 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Semptify — Help & Resources (Always Available)</title>
 <meta name="description" content="Emergency housing and legal help resources. No login needed. Available even if semptify.org is down.">
+<link rel="stylesheet" href="/static/css/ssot-design-system.css">
 <style>
   :root {
-    --ink: #1a1a1a;
-    --ink-secondary: #4a4a4a;
-    --ink-muted: #6b6b6b;
-    --paper: #ffffff;
-    --tint: #E6F1FB;
-    --tint-strong: #0C447C;
-    --border: #dcdcdc;
-    --urgent: #993C1D;
-    --urgent-tint: #FAECE7;
+    --ink: var(--text-primary);
+    --ink-secondary: var(--text-secondary);
+    --ink-muted: var(--text-muted);
+    --paper: var(--bg-card);
+    --tint: var(--bg-surface);
+    --tint-strong: var(--color-primary);
+    --border: var(--border-color);
+    --urgent: var(--color-warning-800);
+    --urgent-tint: var(--color-warning-50);
   }
   * { box-sizing: border-box; }
   body {
@@ -83,13 +84,13 @@
     letter-spacing: 0.07em;
     color: var(--ink-muted);
     padding: 0.4rem 1.25rem;
-    background: #f5f5f4;
+    background: var(--bg-surface);
   }
   .item {
     padding: 0.75rem 1.25rem;
     border-bottom: 1px solid var(--border);
   }
-  .item:nth-child(even) { background: #fafaf9; }
+  .item:nth-child(even) { background: var(--bg-surface); }
   .item .name { font-weight: 600; font-size: 14.5px; margin: 0 0 2px; }
   .item a.number {
     font-size: 15px;
