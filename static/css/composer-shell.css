@@ -41,7 +41,7 @@
 
 /* Help rail — warm safety tone, no border */
 .cps__help .block {
-  background: #faf7f0;
+  background: var(--color-warning-50);
 }
 
 /* Desktop: composer left, preview right, help rail far right.
@@ -375,8 +375,8 @@
 .record-guide__consequence {
   margin-top: var(--space-1);
   padding: var(--space-3) var(--space-4);
-  background: #faf7f0;
-  color: #5c4b3a;
+  background: var(--color-warning-50);
+  color: var(--color-primary);
   border-radius: var(--radius-block);
   font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
@@ -395,8 +395,8 @@
 .record-guide__legal-notice {
   margin-top: var(--space-5);
   padding: var(--space-4) var(--space-5);
-  background: #faf7f0;
-  color: #5c4b3a;
+  background: var(--color-warning-50);
+  color: var(--color-primary);
   border-radius: var(--radius-block);
   font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
