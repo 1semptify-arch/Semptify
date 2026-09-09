@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Open Source Credits – Semptify</title>
+  <link rel="stylesheet" href="/static/css/ssot-design-system.css">
   <style>
     :root {
-      --hdr1: #4c1d95; --hdr2: #5b21b6; --accent: #7c3aed;
-      --bg: #faf8ff; --light: #f5f3ff; --text: #1a1a2e; --muted: #64748b;
-      --border: #e2e8f0;
+      --hdr1: var(--color-primary); --hdr2: var(--color-primary-light); --accent: var(--color-primary-light);
+      --bg: var(--bg-page); --light: var(--bg-surface); --text: var(--text-primary); --muted: var(--text-muted);
+      --border: var(--border-color);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
@@ -23,23 +24,23 @@
     h1 { font-size: 1.7rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.4rem; }
     .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
 
-    .notice { background: var(--light); border: 1px solid #ddd6fe; border-radius: 8px; padding: 1rem 1.25rem; font-size: 0.88rem; color: #4c1d95; margin-bottom: 2rem; line-height: 1.65; }
+    .notice { background: var(--light); border: 1px solid var(--border); border-radius: var(--radius-block); padding: 1rem 1.25rem; font-size: 0.88rem; color: var(--color-primary); margin-bottom: 2rem; line-height: 1.65; }
 
-    h2 { font-size: 1.05rem; font-weight: 700; color: var(--hdr1); margin: 2rem 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid #ede9fe; }
+    h2 { font-size: 1.05rem; font-weight: 700; color: var(--hdr1); margin: 2rem 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border); }
 
     table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin-bottom: 0.5rem; }
-    th { text-align: left; padding: 0.55rem 0.75rem; background: var(--light); color: var(--hdr1); font-weight: 700; border-bottom: 2px solid #ddd6fe; }
+    th { text-align: left; padding: 0.55rem 0.75rem; background: var(--light); color: var(--hdr1); font-weight: 700; border-bottom: 2px solid var(--border); }
     td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
     tr:last-child td { border-bottom: none; }
     td a { color: var(--accent); text-decoration: none; }
     td a:hover { text-decoration: underline; }
-    .badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 20px; background: #ede9fe; color: #5b21b6; white-space: nowrap; }
-    .badge.apache { background: #ecfdf5; color: #065f46; }
-    .badge.bsd { background: #eff6ff; color: #1e40af; }
-    .badge.lgpl { background: #fff7ed; color: #9a3412; }
-    .badge.psf { background: #f0fdf4; color: #14532d; }
+    .badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 20px; background: var(--primary-50); color: var(--color-primary); white-space: nowrap; }
+    .badge.apache { background: var(--color-success-50); color: var(--color-success-800); }
+    .badge.bsd { background: var(--bg-surface); color: var(--color-info); }
+    .badge.lgpl { background: var(--color-warning-50); color: var(--color-warning-800); }
+    .badge.psf { background: var(--color-success-50); color: var(--color-success-800); }
 
-    .license-block { background: #f8f9ff; border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-size: 0.8rem; font-family: 'Courier New', monospace; color: var(--muted); white-space: pre-wrap; margin-top: 2rem; line-height: 1.6; }
+    .license-block { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-block); padding: 1rem 1.25rem; font-size: 0.8rem; font-family: 'Courier New', monospace; color: var(--muted); white-space: pre-wrap; margin-top: 2rem; line-height: 1.6; }
     .license-block h3 { font-family: inherit; font-size: 0.85rem; color: var(--hdr1); margin-bottom: 0.5rem; }
 
     footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
