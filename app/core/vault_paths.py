@@ -57,6 +57,12 @@ VAULT_TIMELINE_EVENTS_FILE = normalize_cloud_path(f"{VAULT_TIMELINE}/{VAULT_TIME
 # Unified Overlay System Paths (single source of truth)
 # =============================================================================
 
+# Per-user scratchpad for sticky notes. Not a certified vault document; it
+# provides the document_id/vault_path anchor required by UnifiedOverlay while
+# the actual note content lives in NOTE/STICKY_NOTE overlays.
+VAULT_SCRATCHPAD = normalize_cloud_path(f"{VAULT_ROOT}/scratchpad")
+VAULT_SCRATCHPAD_FILE = normalize_cloud_path(f"{VAULT_SCRATCHPAD}/notepad.json")
+
 VAULT_OVERLAYS = normalize_cloud_path(f"{VAULT_ROOT}/overlays")
 VAULT_OVERLAY_REGISTRY = normalize_cloud_path(f"{VAULT_OVERLAYS}/registry.json")
 VAULT_OVERLAY_DOCUMENTS = normalize_cloud_path(f"{VAULT_OVERLAYS}/documents")
