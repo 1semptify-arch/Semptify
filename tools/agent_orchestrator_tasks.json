@@ -2887,11 +2887,11 @@
     "description": "Brad spec (2026-09-08): wherever a statute/legal citation appears in ANY text in Semptify, the citation text is visually marked (colored, link-style). Clicking it opens a pop-out window showing the law text WORD-FOR-WORD from the official source (e.g. revisor.mn.gov). From the pop-out, the user can save the citation to their sticky notes.\n\nExtends existing law-linker-document-overlay-2026-08-29 (resolved - overlay notes generation).\n\nShip order: (1) citation-marking + pop-out first - works standalone; (2) 'add to sticky notes' lands when the sticky-notes feature exists - sticky notes are a SEPARATE dependency task in Semptify Core, not yet defined. Before implementing: preflight the existing Law Linker code path, confirm citation-detection regex/parser coverage, and define which surfaces get marking (guide pages, journal, timeline, document explanations, law library). One task per commit; UI must follow the design blueprint (zones not cards, SSOT tokens).",
     "file_path": "app/modules/law_library/; app/modules/ui_composer/; static/js/",
     "priority": "medium",
-    "status": "pending",
+    "status": "in_progress",
     "category": "feature",
-    "notes": "Spec from Brad verbatim; awaiting build authorization. Sticky-notes save is deferred behind a not-yet-defined sticky-notes feature task.\n[2026-09-08 21:33 UTC - devin-swe17] Full spec drafted at handoffs/law-linker-v2-spec-2026-09-08.md. Key findings: link_citations() exists but has zero call sites; registry resolves official URLs but does not fetch text; pop-out + fetch/cache backend are the new work. Five decisions in spec section 5. No build authorization requested - spec review only.\n[2026-09-08 - devin-swe17] Brad approved spec as written. Awaiting sticky-notes base implementation; build authorized once sticky-notes lands.",
+    "notes": "Spec from Brad verbatim; awaiting build authorization. Sticky-notes save is deferred behind a not-yet-defined sticky-notes feature task.\n[2026-09-08 21:33 UTC - devin-swe17] Full spec drafted at handoffs/law-linker-v2-spec-2026-09-08.md. Key findings: link_citations() exists but has zero call sites; registry resolves official URLs but does not fetch text; pop-out + fetch/cache backend are the new work. Five decisions in spec section 5. No build authorization requested - spec review only.\n[2026-09-08 - devin-swe17] Brad approved spec as written. Awaiting sticky-notes base implementation; build authorized once sticky-notes lands.\n[2026-09-09 - devin-swe17] Sticky notes base is ready. Starting Law Linker v2 implementation (inline citation marks, official-source pop-out, save-to-sticky-notes).",
     "created_at": "2026-09-08T08:03:38.888068+00:00",
-    "updated_at": "2026-09-09T03:28:47.940132+00:00",
+    "updated_at": "2026-09-09T03:47:57.559222+00:00",
     "assigned_agent": "devin-swe17"
   },
   {
@@ -2913,11 +2913,11 @@
     "description": "Build authorized by Brad 2026-09-08 per sticky-notes-spec-2026-09-08. Implement a NOTE overlay notepad: per-user lazy notepad document in the vault, notepad surface inside the record area, paste/save affordance, and the 'save to sticky notes' hook for Law Linker v2. One task per commit; verify with guardrail_engine + IronBee.",
     "file_path": "app/services/unified_overlay_manager.py; app/modules/vault/; app/main.py",
     "priority": "low",
-    "status": "in_progress",
+    "status": "resolved",
     "category": "feature",
-    "notes": "Brad authorized 2026-09-08. Build on sticky-notes-spec-2026-09-08. First step: add NOTEPAD/STICKY_NOTE overlay type and lazy notepad document creation.",
+    "notes": "Brad authorized 2026-09-08. Build on sticky-notes-spec-2026-09-08. First step: add NOTEPAD/STICKY_NOTE overlay type and lazy notepad document creation.\n[2026-09-09 - devin-swe17] Built, verified guardrail + route smoke. Commits: overlay type (3025bf28), module (bad0337e), circular import fix (2c5bbd90).",
     "created_at": "2026-09-09T03:28:47.940132+00:00",
-    "updated_at": "2026-09-09T03:28:47.940132+00:00",
+    "updated_at": "2026-09-09T03:47:57.559222+00:00",
     "assigned_agent": "devin-swe17"
   }
 ]
