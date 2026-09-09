@@ -294,13 +294,22 @@ let analysisResults = [];
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         const response = await fetch('/api/auto-mode/status');
-        const status = await statusResponse.json();
-        
+        if (!response.ok) {
+            console.warn('Auto analysis status endpoint returned', response.status);
+            return;
+        }
+        const status = await response.json();
+        if (!status || typeof status !== 'object') {
+            console.warn('Auto analysis status response was not an object:', status);
+            return;
+        }
+
         // Update statistics
-        document.getElementById('doc-count').textContent = status.analysis_count || '0';
-        document.getElementById('event-count').textContent = Math.max(0, status.analysis_count * 5) || '0';
-        document.getElementById('success-rate').textContent = status.analysis_count > 0 ? '95%' : '--';
-        
+        const analysisCount = status.analysis_count || 0;
+        document.getElementById('doc-count').textContent = analysisCount || '0';
+        document.getElementById('event-count').textContent = Math.max(0, analysisCount * 5) || '0';
+        document.getElementById('success-rate').textContent = analysisCount > 0 ? '95%' : '--';
+
     } catch (error) {
         console.error('Error loading analysis data:', error);
     }
