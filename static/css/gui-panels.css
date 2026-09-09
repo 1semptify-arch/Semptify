@@ -5,11 +5,22 @@
    Reusable across screens.
    ========================================================================= */
 
+@import url('/static/css/ssot-design-system.css');
+:root {
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border-color);
+  --font-size-sm: var(--text-sm);
+  --font-size-lg: var(--text-lg);
+}
+
+
 .frame-panel {
-    background: var(--zone-bg-secondary, #1e293b);
-    color: var(--color-text-primary, #fff);
-    padding: var(--zone-gap-standard, 1.5rem);
-    margin-bottom: var(--zone-gap-standard, 1.5rem);
+    background: var(--zone-bg-secondary);
+    color: var(--color-text-primary);
+    padding: var(--zone-gap-standard);
+    margin-bottom: var(--zone-gap-standard);
     border: none;
     border-radius: var(--radius-block);
     box-shadow: var(--elevation-1);
@@ -19,15 +30,15 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: var(--zone-gap-tight, 8px);
-    margin-bottom: var(--zone-gap-tight, 8px);
+    padding-bottom: var(--zone-gap-tight);
+    margin-bottom: var(--zone-gap-tight);
     border-bottom: none;
 }
 
 .frame-panel--title {
-    font-size: var(--font-size-sm, 0.875rem);
+    font-size: var(--font-size-sm);
     font-weight: 500;
-    color: var(--color-text-secondary, #94a3b8);
+    color: var(--color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -35,7 +46,7 @@
 .frame-panel--body {
     display: flex;
     flex-direction: column;
-    gap: var(--space-sm, 0.5rem);
+    gap: var(--space-sm);
 }
 
 /* Individual record/list entry — reusable across Record, Timeline, Library.
@@ -43,28 +54,28 @@
 .frame-item {
     display: flex;
     align-items: center;
-    gap: var(--space-md, 1rem);
-    padding: var(--zone-gap-tight, 8px) var(--zone-gap-standard, 24px);
+    gap: var(--space-md);
+    padding: var(--zone-gap-tight) var(--zone-gap-standard);
     border: none;
     background: transparent;
     border-radius: var(--radius-block);
     box-shadow: none;
-    transition: background-color var(--transition-fast, 0.15s ease);
+    transition: background-color var(--transition-fast);
 }
 
 .frame-item:nth-child(even) {
-    background: var(--zone-bg-primary, #16213e);
+    background: var(--zone-bg-primary);
 }
 
 .frame-item:hover {
-    background: var(--zone-bg-tertiary, #334155);
+    background: var(--zone-bg-tertiary);
 }
 
 .frame-item--icon {
     flex-shrink: 0;
-    font-size: var(--font-size-lg, 1.125rem);
+    font-size: var(--font-size-lg);
     font-weight: 600;
-    color: var(--color-text-secondary, #94a3b8);
+    color: var(--color-text-secondary);
     min-width: 3rem;
     text-align: center;
     font-family: 'IBM Plex Mono', monospace;
@@ -77,21 +88,21 @@
 
 .frame-item--title {
     font-weight: 500;
-    color: var(--color-text-primary, #fff);
+    color: var(--color-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .frame-item--meta {
-    font-size: var(--font-size-sm, 0.875rem);
-    color: var(--color-text-muted, #64748b);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
     margin-top: 0.125rem;
 }
 
 .frame-item--actions {
     display: flex;
-    gap: var(--space-sm, 0.5rem);
+    gap: var(--space-sm);
     flex-shrink: 0;
 }
 
@@ -101,47 +112,47 @@
     align-items: center;
     gap: 0.25rem;
     padding: 0.375rem 0.75rem;
-    font-size: var(--font-size-sm, 0.875rem);
+    font-size: var(--font-size-sm);
     font-weight: 500;
-    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+    border: 1px solid var(--color-border);
     background: transparent;
-    color: var(--color-text-primary, #fff);
+    color: var(--color-text-primary);
     border-radius: var(--radius-input);
     cursor: pointer;
-    transition: all var(--transition-fast, 0.15s ease);
+    transition: all var(--transition-fast);
     box-shadow: none;
 }
 
 .frame-btn:hover {
-    border-color: var(--color-accent, #3b82f6);
-    color: var(--color-accent, #3b82f6);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
 }
 
 .frame-btn--primary {
-    border-color: var(--color-accent, #3b82f6);
-    color: var(--color-accent, #3b82f6);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
 }
 
 .frame-btn--primary:hover {
-    background: var(--color-accent, #3b82f6);
-    color: #fff;
+    background: var(--color-accent);
+    color: var(--text-inverse);
 }
 
 /* Empty state inside a panel */
 .frame-empty {
     text-align: center;
-    padding: var(--space-xl, 2rem) var(--space-md, 1rem);
-    color: var(--color-text-muted, #64748b);
+    padding: var(--space-xl) var(--space-md);
+    color: var(--color-text-muted);
 }
 
 .frame-empty--icon {
     font-size: 2rem;
-    margin-bottom: var(--space-sm, 0.5rem);
+    margin-bottom: var(--space-sm);
     opacity: 0.5;
 }
 
 .frame-empty--hint {
-    font-size: var(--font-size-sm, 0.875rem);
+    font-size: var(--font-size-sm);
     margin-top: 0.25rem;
 }
 
@@ -178,9 +189,9 @@
 .gui-screen--secondary {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3, 0.75rem);
-    padding: var(--space-3, 0.75rem);
-    background: var(--zone-bg-secondary, #1e293b);
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background: var(--zone-bg-secondary);
     border-radius: var(--radius-block);
     box-shadow: var(--elevation-1);
 }
@@ -188,8 +199,8 @@
 .gui-screen--support {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3, 0.75rem);
-    padding: var(--space-3, 0.75rem) 0;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
 }
 
 /* Secondary action button — full-width tap target on mobile, auto on desktop */
@@ -231,16 +242,16 @@
     .gui-screen--secondary {
         flex: 0 0 auto;
         display: flex;
-        gap: var(--space-3, 0.75rem);
-        padding: var(--space-3, 0.75rem);
+        gap: var(--space-3);
+        padding: var(--space-3);
     }
 
     .gui-screen--support {
         flex: 0 0 auto;
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: var(--space-3, 0.75rem);
-        padding: var(--space-3, 0.75rem) 0;
+        gap: var(--space-3);
+        padding: var(--space-3) 0;
         overflow: auto;
     }
 
@@ -256,7 +267,7 @@
     position: fixed;
     right: 1rem;
     bottom: 1rem;
-    z-index: var(--z-sticky, 200);
+    z-index: var(--z-sticky);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -267,25 +278,25 @@
     font-weight: 600;
     line-height: 1.25;
     text-decoration: none;
-    border: 1px solid var(--color-alarm, #d97706);
-    background: var(--color-alarm, #d97706);
-    color: var(--color-alarm-text, #ffffff);
+    border: 1px solid var(--color-alarm);
+    background: var(--color-alarm);
+    color: var(--color-alarm-text);
     border-radius: var(--radius-pill);
     box-shadow: var(--elevation-2);
     cursor: pointer;
-    transition: background-color var(--transition-fast, 0.15s ease), border-color var(--transition-fast, 0.15s ease);
+    transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .gui-help-now:hover,
 .gui-help-now:focus-visible {
-    background: var(--color-alarm-hover, #b45309);
-    border-color: var(--color-alarm-hover, #b45309);
-    color: var(--color-alarm-text, #ffffff);
+    background: var(--color-alarm-hover);
+    border-color: var(--color-alarm-hover);
+    color: var(--color-alarm-text);
     box-shadow: var(--elevation-3);
 }
 
 .gui-help-now:focus-visible {
-    outline: 3px solid var(--color-calm-light, #8aa3bf);
+    outline: 3px solid var(--color-calm-light);
     outline-offset: 2px;
 }
 
@@ -302,7 +313,7 @@
     .frame-item {
         flex-direction: column;
         align-items: flex-start;
-        gap: var(--space-sm, 0.5rem);
+        gap: var(--space-sm);
     }
     .frame-item--actions {
         width: 100%;
