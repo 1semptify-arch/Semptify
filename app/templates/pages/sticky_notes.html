@@ -1,0 +1,183 @@
+{% extends "gui/base.html" %}
+
+{% block title %}Notepad - Semptify{% endblock %}
+{% block nav_record %}active{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/frame-light.css">
+<style>
+.sticky-note {
+    background: var(--bg-elevated, #fffef0);
+    border: 1px solid var(--border-subtle, #e8e3c8);
+    border-radius: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.sticky-note:hover {
+    transform: rotate(-0.5deg);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.10);
+}
+.sticky-note--meta {
+    color: var(--text-tertiary, #6b6b6b);
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.sticky-note--text {
+    color: var(--text-primary, #1a1a1a);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.sticky-note--actions {
+    margin-top: 0.75rem;
+    text-align: right;
+}
+.sticky-note--actions button {
+    margin-left: 0.5rem;
+    font-size: 0.8125rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="frame-light">
+    <section class="frame-panel">
+        <div class="frame-panel--header">
+            <span class="frame-panel--title">Notepad</span>
+        </div>
+        <div class="frame-panel--body">
+            <p style="color:var(--text-secondary); font-size:0.9375rem; margin-top:0;">
+                A private scratch-pad in your cloud. Copy something from any page and paste it here.
+            </p>
+        </div>
+    </section>
+
+    <section class="frame-panel" id="addNotePanel">
+        <div class="frame-panel--header">
+            <span class="frame-panel--title">Add a note</span>
+        </div>
+        <div class="frame-panel--body">
+            <form id="noteForm" style="display:grid; gap:0.75rem;">
+                <label style="color:var(--text-primary); font-size:0.875rem;">
+                    Note
+                    <textarea id="noteText" rows="4" required placeholder="Paste or type your note..." style="width:100%; margin-top:0.25rem; padding:0.5rem;"></textarea>
+                </label>
+                <label style="color:var(--text-primary); font-size:0.875rem;">
+                    Source (optional)
+                    <input type="text" id="noteSource" placeholder="Where this came from" style="width:100%; margin-top:0.25rem; padding:0.5rem;">
+                </label>
+                <div>
+                    <button type="submit" class="btn btn-primary" style="padding:0.5rem 1rem;">Save note</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="frame-panel" id="notesListPanel">
+        <div class="frame-panel--header">
+            <span class="frame-panel--title">Your notes</span>
+        </div>
+        <div class="frame-panel--body" id="notesContainer">
+            {% if notes %}
+                {% for note in notes %}
+                <article class="sticky-note" data-id="{{ note.id }}">
+                    <div class="sticky-note--meta">
+                        <span>{{ note.created_at }}</span>
+                        {% if note.source %}<span>from {{ note.source }}</span>{% endif %}
+                    </div>
+                    <div class="sticky-note--text">{{ note.text }}</div>
+                    <div class="sticky-note--actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="editNote('{{ note.id }}')">Edit</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteNote('{{ note.id }}')">Delete</button>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <p id="emptyNotes" style="color:var(--text-secondary); font-size:0.9375rem;">No notes yet. Add one above or copy text from another page.</p>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<script>
+document.getElementById('noteForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const text = document.getElementById('noteText').value.trim();
+    const source = document.getElementById('noteSource').value.trim();
+    if (!text) return;
+
+    const response = await fetch('/api/sticky-notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, source: source || null })
+    });
+
+    if (response.ok) {
+        window.location.reload();
+    } else {
+        const data = await response.json().catch(() => ({}));
+        alert(data.detail || 'Could not save the note.');
+    }
+});
+
+async function deleteNote(id) {
+    if (!confirm('Delete this note?')) return;
+    const response = await fetch('/api/sticky-notes/' + encodeURIComponent(id), { method: 'DELETE' });
+    if (response.ok) {
+        window.location.reload();
+    } else {
+        alert('Could not delete the note.');
+    }
+}
+
+function editNote(id) {
+    const note = document.querySelector('article[data-id="' + id + '"]');
+    const textEl = note.querySelector('.sticky-note--text');
+    const actions = note.querySelector('.sticky-note--actions');
+    const currentText = textEl.textContent;
+
+    const textarea = document.createElement('textarea');
+    textarea.value = currentText;
+    textarea.style.width = '100%';
+    textarea.style.minHeight = '6rem';
+    textarea.style.padding = '0.5rem';
+    textarea.setAttribute('aria-label', 'Edit note');
+
+    textEl.replaceWith(textarea);
+
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'btn btn-sm btn-primary';
+    saveBtn.textContent = 'Save';
+    saveBtn.onclick = async function () {
+        const response = await fetch('/api/sticky-notes/' + encodeURIComponent(id), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: textarea.value.trim() })
+        });
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Could not update the note.');
+        }
+    };
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn btn-sm btn-outline-secondary';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = function () { window.location.reload(); };
+
+    actions.innerHTML = '';
+    actions.appendChild(saveBtn);
+    actions.appendChild(cancelBtn);
+}
+</script>
+{% endblock %}
