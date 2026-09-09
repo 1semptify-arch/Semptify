@@ -2887,12 +2887,12 @@
     "description": "Brad spec (2026-09-08): wherever a statute/legal citation appears in ANY text in Semptify, the citation text is visually marked (colored, link-style). Clicking it opens a pop-out window showing the law text WORD-FOR-WORD from the official source (e.g. revisor.mn.gov). From the pop-out, the user can save the citation to their sticky notes.\n\nExtends existing law-linker-document-overlay-2026-08-29 (resolved - overlay notes generation).\n\nShip order: (1) citation-marking + pop-out first - works standalone; (2) 'add to sticky notes' lands when the sticky-notes feature exists - sticky notes are a SEPARATE dependency task in Semptify Core, not yet defined. Before implementing: preflight the existing Law Linker code path, confirm citation-detection regex/parser coverage, and define which surfaces get marking (guide pages, journal, timeline, document explanations, law library). One task per commit; UI must follow the design blueprint (zones not cards, SSOT tokens).",
     "file_path": "app/modules/law_library/; app/modules/ui_composer/; static/js/",
     "priority": "medium",
-    "status": "pending",
+    "status": "review",
     "category": "feature",
-    "notes": "Spec from Brad verbatim; awaiting build authorization. Sticky-notes save is deferred behind a not-yet-defined sticky-notes feature task.",
+    "notes": "Spec from Brad verbatim; awaiting build authorization. Sticky-notes save is deferred behind a not-yet-defined sticky-notes feature task.\n[2026-09-08 21:33 UTC - devin-swe17] Full spec drafted at handoffs/law-linker-v2-spec-2026-09-08.md. Key findings: link_citations() exists but has zero call sites; registry resolves official URLs but does not fetch text; pop-out + fetch/cache backend are the new work. Five decisions in spec section 5. No build authorization requested - spec review only.",
     "created_at": "2026-09-08T08:03:38.888068+00:00",
-    "updated_at": "2026-09-08T08:03:38.888068+00:00",
-    "assigned_agent": null
+    "updated_at": "2026-09-08T21:33:24.279015+00:00",
+    "assigned_agent": "devin-swe17"
   },
   {
     "id": "sticky-notes-spec-2026-09-08",
@@ -2900,11 +2900,11 @@
     "description": "SPEC-LEVEL TASK ONLY - no build authorization. Sticky notes are referenced as a dependency by law-linker-v2-2026-09-08 (the 'save citation to sticky notes' action in the Law Linker pop-out), but no sticky-notes feature or spec exists yet.\n\nTo spec this, the following need definition for Brad's sign-off:\n- What a sticky note IS: user-authored annotation attached to what scope? (a citation, a document, a journal entry, a page, free-floating?) - likely per the Law Linker need: short text + optional attached citation/reference.\n- Where they live: tenant-owned surface (vault? journal? a dedicated notes panel?); must fit the zero-transfer model (notes about tenant data should live in tenant storage or tenant-owned DB rows, not expose content to other roles).\n- Surfaces that read/write them: Law Linker pop-out is the first consumer; likely journal, document center, timeline later.\n- Pillar assignment: probably RECORD (tenant's own notes on their record).\n- Data model, retention, and whether notes are exportable into packets.\n\nDraft a spec (analogous to the vault-security-pair and flagship-UI specs) for Brad's sign-off BEFORE any build is authorized. Do not implement.",
     "file_path": "spec only - no file path yet",
     "priority": "low",
-    "status": "pending",
+    "status": "review",
     "category": "feature",
-    "notes": "Created 2026-09-08 per Brad handoff: spec-level only, dependency of law-linker-v2-2026-09-08.",
+    "notes": "Created 2026-09-08 per Brad handoff: spec-level only, dependency of law-linker-v2-2026-09-08.\n[2026-09-08 20:18 UTC - devin-swe17] Spec drafted at handoffs/sticky-notes-spec-2026-09-08.md (commit in master-repo). Five decisions listed in section 5 for Brad sign-off. No code written - spec only per task scope.",
     "created_at": "2026-09-08T10:51:56.973250+00:00",
-    "updated_at": "2026-09-08T10:51:56.973250+00:00",
-    "assigned_agent": null
+    "updated_at": "2026-09-08T20:18:49.331982+00:00",
+    "assigned_agent": "devin-swe17"
   }
 ]
