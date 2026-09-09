@@ -2919,5 +2919,19 @@
     "created_at": "2026-09-09T03:28:47.940132+00:00",
     "updated_at": "2026-09-09T03:47:57.559222+00:00",
     "assigned_agent": "devin-swe17"
+  },
+  {
+    "id": "contract-copy-20260909-2148",
+    "title": "User-facing contract copy pass",
+    "description": "Replace technical module contract titles/descriptions with human-readable copy in user-facing templates. Templates expose title/description override blocks; create a central display-name mapping from contract keys and wire it into the guide-page renderer.",
+    "category": "copy",
+    "file_path": "app/services/ui_composer/",
+    "priority": "high",
+    "status": "in_progress",
+    "assigned_agent": "claude",
+    "target_model": "unlimited",
+    "notes": "ACTIVE_CONTEXT.md backlog: contract copy is too technical for user-facing display. Picked as next slice after SSOT rollout.",
+    "created_at": "2026-09-09T21:48:09.574290+00:00",
+    "updated_at": "2026-09-09T21:48:09.574290+00:00"
   }
 ]

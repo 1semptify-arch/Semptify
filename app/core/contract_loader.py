@@ -59,7 +59,7 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.advocate.register",
     "app.modules.manager.register",
     "app.modules.legal.register",
-    "app.modules.admin_console.module_admin_console",
+    "app.modules.admin_console.register",
     "app.modules.rent.register",
     "app.modules.court_forms.register",
     "app.modules.dev_lab.router",
@@ -162,6 +162,11 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.user_concerns.register",
     "app.modules.voice.register",
     "app.modules.vault_installer.register",
+    # Modules that recently gained register.py files (law_linker v2, sticky notes,
+    # admin console consolidated register).
+    "app.modules.law_linker.register",
+    "app.modules.sticky_notes.register",
+    "app.modules.admin_console.register",
     # NOTE: litigation_intelligence.register included. It is a ProductTier.RESEARCH
     # module, so contract loading is skipped unless all tiers are enabled (development).
     # The previous SyntaxError claim in router.py was stale; router.py and register.py
