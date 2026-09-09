@@ -13,16 +13,16 @@
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #fdfcfa;
-            color: #1e293b;
+            font-family: var(--font-sans);
+            background: var(--bg-page);
+            color: var(--text-primary);
             line-height: 1.6;
             font-size: 17px;
         }
 
         .header {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+            color: var(--text-inverse);
             padding: 3rem 2rem;
             text-align: center;
         }
@@ -35,24 +35,24 @@
             max-width: 720px;
             margin: 0 auto;
             padding: 2rem;
-            background: #ffffff;
+            background: var(--bg-card);
         }
 
         .section { margin-bottom: 2.5rem; }
         .section-title {
             font-size: 1.5rem;
-            color: #1e3a5f;
+            color: var(--color-primary);
             margin-bottom: 1rem;
             font-weight: 600;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 2px solid var(--border-color);
             padding-bottom: 0.5rem;
         }
 
-        p { margin-bottom: 1.25rem; color: #475569; }
+        p { margin-bottom: 1.25rem; color: var(--text-secondary); }
 
         .lead {
             font-size: 1.1rem;
-            color: #1e293b;
+            color: var(--text-primary);
         }
 
         .action-grid {
@@ -63,35 +63,35 @@
         }
 
         .action-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 1.25rem;
         }
 
         .action-card h3 {
-            color: #1e3a5f;
+            color: var(--color-primary);
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
         }
 
         .action-card p {
-            color: #475569;
+            color: var(--text-secondary);
             font-size: 0.9375rem;
             margin-bottom: 0;
         }
 
         .legal-note {
-            background: #fef3c7;
-            border: 1px solid #fcd34d;
-            border-radius: 8px;
+            background: var(--color-warning-50);
+            border: 1px solid var(--color-warning);
+            border-radius: var(--radius-block);
             padding: 1.25rem 1.5rem;
             margin: 2rem 0;
         }
 
         .legal-note p {
             margin: 0;
-            color: #92400e;
+            color: var(--color-warning-800);
             font-size: 0.95rem;
             text-align: center;
         }
@@ -99,38 +99,38 @@
         .cta {
             text-align: center;
             padding: 2.5rem 0;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid var(--border-color);
             margin-top: 2rem;
         }
 
         .cta-button {
             display: inline-block;
-            background: #1e3a5f;
-            color: white;
+            background: var(--color-primary);
+            color: var(--text-inverse);
             padding: 1rem 2.5rem;
             font-size: 1.1rem;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: var(--radius-block);
             font-weight: 500;
             transition: all 0.2s;
         }
 
-        .cta-button:hover { background: #2d5a87; transform: translateY(-2px); }
+        .cta-button:hover { background: var(--color-primary-light); transform: translateY(-2px); }
 
         .cta-subtext {
             margin-top: 1rem;
             font-size: 0.9rem;
-            color: #64748b;
+            color: var(--text-muted);
         }
 
         .footer-links {
             text-align: center;
             padding: 1rem;
             font-size: 0.85rem;
-            color: #64748b;
+            color: var(--text-muted);
         }
 
-        .footer-links a { color: #3b82f6; text-decoration: none; }
+        .footer-links a { color: var(--color-info); text-decoration: none; }
 
         @media (max-width: 768px) {
             .header h1 { font-size: 2rem; }
@@ -200,8 +200,8 @@
 
     </article>
 
-    <div class="cta" style="border-top: 2px solid #1e3a5f; margin-top: 0; padding: 3rem 2rem; background: #ffffff;">
-        <p style="margin-bottom: 1.5rem; font-size: 1.2rem; color: #1e3a5f; font-weight: 500;">Ready to protect your rights?</p>
+    <div class="cta" style="border-top: 2px solid var(--color-primary); margin-top: 0; padding: 3rem 2rem; background: var(--bg-card);">
+        <p style="margin-bottom: 1.5rem; font-size: 1.2rem; color: var(--color-primary); font-weight: 500;">Ready to protect your rights?</p>
         <a href="/preamble" class="cta-button">
             Get Started →
         </a>
