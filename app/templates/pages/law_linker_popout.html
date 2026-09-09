@@ -1,0 +1,120 @@
+{% extends "gui/base.html" %}
+
+{% block title %}{{ citation.title or 'Law' }} - Semptify{% endblock %}
+
+{% block header %}
+<header class="main-nav" style="padding:0.5rem 1rem;">
+    <div class="nav-container" style="justify-content:space-between;">
+        <a class="nav-brand" href="/" aria-label="Semptify home">
+            <span class="nav-logo" aria-hidden="true">S</span>
+            <span class="nav-title">Semptify Law Linker</span>
+        </a>
+        <a class="btn btn--sm" href="{{ navigation.get_stage('record_notepad').path }}" target="_blank">Open notepad</a>
+    </div>
+</header>
+{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/frame-light.css">
+<style>
+.law-popout--official-text {
+    background: var(--bg-elevated, #ffffff);
+    border: 1px solid var(--border-subtle, #e2e2e2);
+    border-radius: 0.25rem;
+    padding: 1rem;
+    max-height: 55vh;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--text-primary, #1a1a1a);
+}
+.law-popout--actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+.law-popout--meta {
+    color: var(--text-secondary, #555);
+    font-size: 0.8125rem;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="frame-light" style="padding:1rem;">
+    <section class="frame-panel">
+        <div class="frame-panel--header">
+            <span class="frame-panel--title" id="citationTitle">{{ citation.title or citation.citation }}</span>
+        </div>
+        <div class="frame-panel--body">
+            <div class="law-popout--meta">
+                <p style="margin:0;"><strong>Source:</strong> <span id="sourceName">{{ citation.source_name or 'official source' }}</span></p>
+                {% if citation.last_verified %}<p style="margin:0;"><strong>Last verified:</strong> {{ citation.last_verified }}</p>{% endif %}
+                {% if citation.verified_date %}<p style="margin:0;"><strong>Text fetched:</strong> {{ citation.verified_date }}</p>{% endif %}
+            </div>
+
+            {% if citation.text %}
+            <div class="law-popout--official-text" id="officialText" role="region" aria-label="Official text">
+{{ citation.text }}
+            </div>
+            {% else %}
+            <p id="officialText" style="display:none;"></p>
+            <p style="color:var(--text-secondary);">The full official text could not be loaded here. You can still view it at the official source.</p>
+            {% endif %}
+
+            <div class="law-popout--actions">
+                {% if citation.official_url %}
+                <a class="btn btn-primary" id="officialLink" href="{{ citation.official_url }}" target="_blank" rel="noopener noreferrer">View at official source</a>
+                {% endif %}
+                <button class="btn btn-secondary" id="saveToScratch" type="button" {% if not citation.text and not citation.official_url %}disabled{% endif %}>Save to scratch pad</button>
+            </div>
+
+            <p style="color:var(--text-tertiary); font-size:0.75rem; margin-top:1rem;">
+                {{ citation.disclaimer }}
+            </p>
+        </div>
+    </section>
+</div>
+
+<script>
+document.getElementById('saveToScratch').addEventListener('click', async function () {
+    const textEl = document.getElementById('officialText');
+    const title = document.getElementById('citationTitle').textContent.trim();
+    const source = document.getElementById('sourceName').textContent.trim();
+    const officialLink = document.getElementById('officialLink');
+
+    let bodyText = '';
+    if (textEl && textEl.textContent.trim()) {
+        bodyText = textEl.textContent.trim() + '\n\n— ' + title;
+    } else if (officialLink) {
+        bodyText = title + '\n' + officialLink.href;
+    } else {
+        bodyText = title;
+    }
+
+    try {
+        const res = await fetch('/api/sticky-notes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: bodyText, source: source })
+        });
+        if (res.ok) {
+            this.textContent = 'Saved';
+            this.disabled = true;
+        } else {
+            const data = await res.json().catch(() => ({}));
+            alert(data.detail || 'Could not save to scratch pad.');
+        }
+    } catch (e) {
+        alert('Could not save to scratch pad.');
+    }
+});
+</script>
+{% endblock %}

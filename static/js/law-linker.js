@@ -67,25 +67,9 @@
     async function loadJurisdiction() {
         if (jurisdictionPromise) return jurisdictionPromise;
         if (userJurisdiction && userJurisdiction.county) return userJurisdiction;
-        jurisdictionPromise = (async () => {
-            try {
-                const res = await fetch('/api/location/current', {
-                    credentials: 'include',
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    userJurisdiction = {
-                        state: data.state_code || 'MN',
-                        county: data.county || '',
-                    };
-                    return userJurisdiction;
-                }
-            } catch (e) {
-                // Silent fail — this is best-effort location data.
-                console.debug('Law Linker: jurisdiction load failed', e);
-            }
-            return getJurisdiction();
-        })();
+        // Jurisdiction is best-effort; default to MN and avoid a network call
+        // to a non-existent /api/location/current endpoint.
+        jurisdictionPromise = (async () => getJurisdiction())();
         return jurisdictionPromise;
     }
 
@@ -677,7 +661,7 @@
                 parts.push({ type: 'text', content: text.slice(lastIndex) });
             }
 
-            if (parts.length > 1) {
+            if (parts.some(p => p.type === 'cite')) {
                 nodesToReplace.push({ node, parts });
             }
         }
@@ -697,12 +681,11 @@
                     // Hover popup
                     span.addEventListener('mouseenter', () => showPopup(span, part.citation));
                     span.addEventListener('mouseleave', hidePopup);
-                    // Click opens official source in new tab
+                    // Click opens the Law Linker pop-out window
                     span.addEventListener('click', (e) => {
                         e.preventDefault();
-                        if (part.citation.officialUrl) {
-                            window.open(part.citation.officialUrl, '_blank', 'noopener,noreferrer');
-                        }
+                        const popOutUrl = '/law-linker/pop-out?citation=' + encodeURIComponent(part.citation.matchedText);
+                        window.open(popOutUrl, 'law_linker_popout', 'width=700,height=700,resizable=1,scrollbars=1,status=0,location=0');
                     });
                     parent.insertBefore(span, node);
                 }
@@ -736,9 +719,95 @@
         parseCitation: parseCitation
     };
 
+    // =========================================================================
+    // Mutation observer — keep marking citations in dynamically added content
+    // =========================================================================
+    function setupMutationObserver() {
+        const root = document.querySelector('main') || document.body;
+        if (!root) return;
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType !== Node.ELEMENT_NODE) continue;
+                    if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE') continue;
+                    if (node.closest && node.closest('.law-linker-cite, #law-linker-popup, #law-scratch-menu')) continue;
+                    processElement(node);
+                }
+            }
+        });
+        observer.observe(root, { childList: true, subtree: true });
+    }
+
+    // =========================================================================
+    // Right-click "Copy to Scratch Pad" for any selected text
+    // =========================================================================
+    function createScratchMenu() {
+        const menu = document.createElement('div');
+        menu.id = 'law-scratch-menu';
+        menu.style.cssText = 'position:fixed;z-index:11000;display:none;background:#1e293b;border:1px solid #475569;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.4);padding:4px 0;min-width:160px;color:#f8fafc;font-size:0.85rem;';
+        menu.innerHTML = '<button type="button" style="display:block;width:100%;text-align:left;padding:8px 16px;background:none;border:none;color:inherit;cursor:pointer;" data-action="save">Copy to Scratch Pad</button>';
+        document.body.appendChild(menu);
+
+        menu.addEventListener('click', async (e) => {
+            const selection = window.getSelection ? window.getSelection().toString().trim() : '';
+            if (!selection) {
+                hideScratchMenu();
+                return;
+            }
+            try {
+                const res = await fetch('/api/sticky-notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: selection, source: window.location.pathname })
+                });
+                if (res.ok) {
+                    menu.innerHTML = '<span style="display:block;padding:8px 16px;color:#93c5fd;">Saved</span>';
+                    setTimeout(hideScratchMenu, 800);
+                } else {
+                    menu.innerHTML = '<span style="display:block;padding:8px 16px;color:#f87171;">Could not save</span>';
+                    setTimeout(() => menu.innerHTML = '<button type="button" style="display:block;width:100%;text-align:left;padding:8px 16px;background:none;border:none;color:inherit;cursor:pointer;" data-action="save">Copy to Scratch Pad</button>', 1200);
+                }
+            } catch (err) {
+                menu.innerHTML = '<span style="display:block;padding:8px 16px;color:#f87171;">Could not save</span>';
+                setTimeout(() => menu.innerHTML = '<button type="button" style="display:block;width:100%;text-align:left;padding:8px 16px;background:none;border:none;color:inherit;cursor:pointer;" data-action="save">Copy to Scratch Pad</button>', 1200);
+            }
+        });
+
+        document.addEventListener('click', () => hideScratchMenu());
+        document.addEventListener('scroll', () => hideScratchMenu(), { passive: true });
+        return menu;
+    }
+
+    function hideScratchMenu() {
+        const menu = document.getElementById('law-scratch-menu');
+        if (menu) menu.style.display = 'none';
+    }
+
+    function showScratchMenu(x, y) {
+        let menu = document.getElementById('law-scratch-menu');
+        if (!menu) menu = createScratchMenu();
+        menu.innerHTML = '<button type="button" style="display:block;width:100%;text-align:left;padding:8px 16px;background:none;border:none;color:inherit;cursor:pointer;" data-action="save">Copy to Scratch Pad</button>';
+        menu.style.display = 'block';
+        const rect = menu.getBoundingClientRect();
+        let left = x;
+        let top = y;
+        if (left + rect.width > window.innerWidth) left = window.innerWidth - rect.width - 8;
+        if (top + rect.height > window.innerHeight) top = window.innerHeight - rect.height - 8;
+        menu.style.left = left + 'px';
+        menu.style.top = top + 'px';
+    }
+
+    document.addEventListener('contextmenu', (e) => {
+        const selection = window.getSelection ? window.getSelection().toString().trim() : '';
+        if (!selection) return;
+        if (e.target.closest && e.target.closest('.law-linker-cite, #law-linker-popup, #law-scratch-menu')) return;
+        e.preventDefault();
+        showScratchMenu(e.clientX, e.clientY);
+    });
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => LawLinker.init());
+        document.addEventListener('DOMContentLoaded', () => LawLinker.init().then(setupMutationObserver));
     } else {
-        LawLinker.init();
+        LawLinker.init().then(setupMutationObserver);
     }
 })();
