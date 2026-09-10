@@ -3359,12 +3359,26 @@
     "description": "Add --color-info-50 and --color-info-800 to ssot-design-system.css, then migrate app/templates/pages/advocate_invite.html and app/templates/pages/advocate_client_detail.html from legacy var(--color-*) aliases and hardcoded hex to canonical SSOT tokens. Verify /advocate/invite and /advocate/clients/{id} still load without 500/404.",
     "file_path": "app/templates/pages/advocate_invite.html",
     "priority": "medium",
-    "status": "in_progress",
+    "status": "review",
     "category": "ssot",
-    "notes": "[2026-09-10 02:50 UTC - claude] Brad chose 3A: add info scale and migrate both advocate pages.",
+    "notes": "[2026-09-10 02:50 UTC - claude] Brad chose 3A: add info scale and migrate both advocate pages.\n[2026-09-10 02:52 UTC - claude] Added --color-info-50 and --color-info-800 to ssot-design-system.css; migrated advocate_invite.html and advocate_client_detail.html to SSOT tokens; guardrail all pass; /advocate/invite and /advocate/clients/* return 302 (role-gated, no 500).",
     "created_at": "2026-09-10T02:48:21.633551+00:00",
-    "updated_at": "2026-09-10T02:48:21.633551+00:00",
+    "updated_at": "2026-09-10T02:52:46.241602+00:00",
     "target_model": "unlimited",
+    "assigned_agent": "claude"
+  },
+  {
+    "id": "admin-under-construction-landing-2026-09-10",
+    "title": "Replace admin hub with an under-construction landing page",
+    "description": "Create a minimal SSOT-styled under-construction admin landing page at static/admin/under_construction.html and update the /admin route in app/main.py to serve it. This is a temporary placeholder while Brad designs the new admin portal. Preserve existing hub.html as a legacy file.",
+    "file_path": "static/admin/under_construction.html",
+    "priority": "high",
+    "status": "in_progress",
+    "category": "frontend",
+    "notes": "[2026-09-10 03:00 UTC - claude] Brad decision: new admin portal will be designed later; existing admin panel to show under-construction landing.",
+    "created_at": "2026-09-10T03:07:53.180225+00:00",
+    "updated_at": "2026-09-10T03:07:53.180225+00:00",
+    "target_model": "claude",
     "assigned_agent": "claude"
   }
 ]
