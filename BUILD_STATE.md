@@ -77,7 +77,7 @@ All checks passed.
 
 ### Open items for Brad
 
-1. **Authoritative home for orchestration docs**: Should the four docs live in the Semptify module (`modules/app-semptify-fastapi/docs/orchestration/`), the master repo root, or both? The current landing is in Semptify.
+1. **Authoritative home for orchestration docs**: Resolved — `modules/app-semptify-fastapi/docs/orchestration/` is the canonical home. The documents describe Core/Semptify orchestration and the PR already lives in this repo. Master-repo references should be short citations, not copies (per `CONVENTIONS.md`).
 2. **Master `BUILD_STATE.md` missing**: The Opus charter references `BUILD_STATE.md` but `C:\master-repo\BUILD_STATE.md` does not exist. Is the Semptify module `BUILD_STATE.md` the canonical one, or should a master one be created?
 3. **Queue registration of this work**: The current `opus-setup` handoff is not in `orchestrator_state.json` or `agent_orchestrator_tasks.json`. Should it be registered post-hoc or is the handoff enough?
 4. **Temp-folder remaining files**: `CLAUDE_PREFLIGHT.md`, `orchestrator_add_task_SKILL.md`, `semptify-motivations.md`, and the four HTML prototypes still live in `hand offs and temp`. Where should they go, or can they be archived/deleted?
