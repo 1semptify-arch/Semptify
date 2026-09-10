@@ -21,16 +21,25 @@ All checks passed.
   - The existing `DISPLAY_OVERRIDES` for the four proven guide pages remain authoritative.
   - `tests/test_contracts_framework.py` + `tests/test_module_contracts.py` 26/26 pass; guardrail 4/4 PASS.
 
+### Shipped this session (continued)
+
+- **SSOT token adoption — four listed scopes** (commit `d65d0643`):
+  - Added `--color-black` to `static/css/ssot-design-system.css`.
+  - Replaced hardcoded `#hex`/`rgba()` in `app/templates/{public_base,index}.html`, `static/public/*.html`, `static/tenant/*.html`, `static/admin/*.html`, and legacy CSS files (`admin-nav.css`, `composer-shell.css`, `manager-dashboard.css`, `components/vault-portal.css`, `themes/*.css`) with SSOT tokens or `color-mix(in srgb, <token>, transparent <pct>% )`.
+  - Verified zero remaining hardcoded colors (`#` or `rgba()`) in those scopes; guardrail 4/4 PASS.
+  - Resolved four `orchestrator_state.json` SSOT tasks: `ssot-public-landing`, `ssot-public-legal`, `ssot-tenant-static`, `ssot-legacy-css-admin`.
+
 ### Active gap list
 
 Todolist in `orchestrator_state.json`:
 1. [x] Fix `/tenant/timeline` UI evidence label.
-2. [~] Central contract copy pass (generic humanization done; specific overrides can be added per page).
-3. [ ] Finish SSOT token adoption in remaining public/tenant/admin CSS.
-4. [ ] Verify or park Sticky Notes and Law Linker modules.
-5. [ ] Resolve page router / dormant manifest pages decision.
-6. [ ] Update route-audit for public/landing/i18n routes.
-7. [ ] Sync stale tracker statuses and close resolved review tasks.
+2. [x] Central contract copy pass (generic humanization done; specific overrides can be added per page).
+3. [x] Finish SSOT token adoption in the four listed public/tenant/admin scopes.
+4. [ ] Full-sweep remaining hardcoded colors in other static/legacy files (legacy office, manager, onboarding, mndes, tools, search, library, reconnect, etc.).
+5. [ ] Verify or park Sticky Notes and Law Linker modules.
+6. [ ] Resolve page router / dormant manifest pages decision.
+7. [ ] Update route-audit for public/landing/i18n routes.
+8. [ ] Sync stale tracker statuses and close resolved review tasks.
 
 ## Session — 2026-09-10 — Mechanics verification pass (claude)
 
