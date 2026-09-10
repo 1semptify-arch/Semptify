@@ -16,13 +16,13 @@
             background: white;
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px color-mix(in srgb, var(--color-black), transparent 90%);
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .folder-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px color-mix(in srgb, var(--color-black), transparent 85%);
         }
         .folder-icon {
             font-size: 48px;
@@ -34,7 +34,7 @@
             margin-bottom: 5px;
         }
         .folder-count {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 14px;
         }
         .document-list {
@@ -45,7 +45,7 @@
             border-radius: 4px;
             padding: 15px;
             margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--color-black), transparent 90%);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -59,18 +59,18 @@
         }
         .document-meta {
             font-size: 12px;
-            color: #666;
+            color: var(--text-secondary);
         }
         .ai-label {
-            background: #e3f2fd;
-            color: #1976d2;
+            background: var(--color-calm-50);
+            color: var(--color-info);
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: bold;
         }
         .process-button {
-            background: #4caf50;
+            background: var(--color-accent);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -79,23 +79,23 @@
             margin: 20px;
         }
         .process-button:hover {
-            background: #45a049;
+            background: var(--color-accent);
         }
         .loading {
             text-align: center;
             padding: 40px;
-            color: #666;
+            color: var(--text-secondary);
         }
         .error {
-            background: #ffebee;
-            color: #c62828;
+            background: var(--color-error-50);
+            color: var(--color-error-800);
             padding: 15px;
             border-radius: 4px;
             margin: 20px;
         }
         .success {
-            background: #e8f5e8;
-            color: #2e7d32;
+            background: var(--tone-200);
+            color: var(--color-accent-hover);
             padding: 15px;
             border-radius: 4px;
             margin: 20px;

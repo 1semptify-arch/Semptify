@@ -20,7 +20,7 @@
     text-align: center;
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.05));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-info), transparent 90%), color-mix(in srgb, var(--color-success), transparent 95%));
     border-radius: var(--radius-xl);
     border: 1px solid var(--color-border);
 }
@@ -135,7 +135,7 @@
 
 /* Emergency Capture - Prominent for stress moments */
 .emergency-capture {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.05));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-error), transparent 90%), color-mix(in srgb, var(--color-warning), transparent 95%));
     border: 2px solid var(--color-warning);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
@@ -308,21 +308,21 @@
 }
 
 .badge-ok {
-    background: rgba(16, 185, 129, 0.1);
-    color: #059669;
-    border-color: rgba(16, 185, 129, 0.3);
+    background: color-mix(in srgb, var(--color-success), transparent 90%);
+    color: var(--color-success);
+    border-color: color-mix(in srgb, var(--color-success), transparent 70%);
 }
 
 .badge-warn {
-    background: rgba(245, 158, 11, 0.1);
-    color: #d97706;
-    border-color: rgba(245, 158, 11, 0.3);
+    background: color-mix(in srgb, var(--color-warning), transparent 90%);
+    color: var(--color-alarm);
+    border-color: color-mix(in srgb, var(--color-warning), transparent 70%);
 }
 
 .badge-info {
-    background: rgba(59, 130, 246, 0.1);
-    color: #2563eb;
-    border-color: rgba(59, 130, 246, 0.3);
+    background: color-mix(in srgb, var(--color-info), transparent 90%);
+    color: var(--color-info);
+    border-color: color-mix(in srgb, var(--color-info), transparent 70%);
 }
 
 /* The Big Three - Primary quick actions */
@@ -352,13 +352,13 @@
 }
 
 .big-action-primary {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1));
-    border: 2px solid rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-info), transparent 85%), color-mix(in srgb, var(--color-info), transparent 90%));
+    border: 2px solid color-mix(in srgb, var(--color-info), transparent 60%);
 }
 
 .big-action-primary:hover {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.15));
-    border-color: rgba(59, 130, 246, 0.6);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-info), transparent 80%), color-mix(in srgb, var(--color-info), transparent 85%));
+    border-color: color-mix(in srgb, var(--color-info), transparent 40%);
 }
 
 .big-action-icon {
