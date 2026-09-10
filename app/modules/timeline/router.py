@@ -46,6 +46,7 @@ from app.models.models import (
     Document as DocumentModel,
     EvictionTimelineEvent,
     TimelineEvent as TimelineEventModel,
+    VaultIndexDB,
     VaultItem,
 )
 from app.services.unified_overlay_manager import UnifiedOverlayManager
@@ -465,6 +466,68 @@ async def _load_db_documents(
     return items
 
 
+async def _load_db_vault_index_documents(
+    session: AsyncSession, user_id: str, start_date: datetime | None, end_date: datetime | None, date_axis: DateAxis
+) -> list[TimelineItem]:
+    """Load vault-index documents from database, honoring event/received/uploaded timestamps."""
+    query = select(VaultIndexDB).where(VaultIndexDB.user_id == user_id)
+
+    if date_axis == DateAxis.EVENT_TIME:
+        display_col = func.coalesce(VaultIndexDB.event_date, VaultIndexDB.received_date, VaultIndexDB.uploaded_at)
+    elif date_axis == DateAxis.RECORD_TIME:
+        display_col = func.coalesce(VaultIndexDB.received_date, VaultIndexDB.event_date, VaultIndexDB.uploaded_at)
+    else:  # DateAxis.ENTRY_TIME / UPLOADED_AT
+        display_col = VaultIndexDB.uploaded_at
+
+    if start_date:
+        query = query.where(display_col >= start_date)
+    if end_date:
+        query = query.where(display_col <= end_date)
+
+    query = query.order_by(display_col.desc())
+
+    result = await session.execute(query)
+    documents = result.scalars().all()
+
+    items = []
+    for doc in documents:
+        uploaded_at = doc.uploaded_at or utc_now()
+        event_dt = doc.event_date
+        record_dt = doc.received_date
+
+        if date_axis == DateAxis.EVENT_TIME:
+            display_dt = event_dt or record_dt or uploaded_at
+        elif date_axis == DateAxis.RECORD_TIME:
+            display_dt = record_dt or event_dt or uploaded_at
+        else:
+            display_dt = uploaded_at
+
+        icon, color = _get_icon_and_color(ItemType.DOCUMENT, doc.document_type, False, Urgency.NORMAL)
+
+        items.append(
+            TimelineItem(
+                id=doc.vault_id,
+                item_type=ItemType.DOCUMENT,
+                title=doc.filename or "Untitled Document",
+                description=doc.description,
+                date_display=_format_date(display_dt) or "",
+                event_date=_format_date(event_dt),
+                record_date=_format_date(record_dt),
+                entry_date=_format_date(uploaded_at) or "",
+                is_evidence=doc.integrity_status == "verified",
+                urgency=Urgency.NORMAL,
+                item_subtype=doc.document_type,
+                icon=icon,
+                color=color,
+                source="vault",
+                document_id=doc.vault_id,
+                tags=doc.tags.split(",") if doc.tags else [],
+            )
+        )
+
+    return items
+
+
 async def _load_db_timeline_events(
     session: AsyncSession,
     user_id: str,
@@ -830,6 +893,11 @@ async def get_unified_timeline(
         if ItemType.DOCUMENT in request.item_types:
             docs = await _load_db_documents(session, user.user_id, start_date, end_date, request.date_axis)
             all_items.extend(docs)
+
+            vault_docs = await _load_db_vault_index_documents(
+                session, user.user_id, start_date, end_date, request.date_axis
+            )
+            all_items.extend(vault_docs)
 
         if ItemType.TIMELINE_EVENT in request.item_types:
             events = await _load_db_timeline_events(
