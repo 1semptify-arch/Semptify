@@ -401,16 +401,24 @@ async def _load_cloud_timeline_events(user: StorageUser) -> list[dict[str, Any]]
 async def _load_db_documents(
     session: AsyncSession, user_id: str, start_date: datetime | None, end_date: datetime | None, date_axis: DateAxis
 ) -> list[TimelineItem]:
-    """Load documents from database."""
+    """Load documents from database, respecting event/received/uploaded timestamps."""
     query = select(DocumentModel).where(DocumentModel.user_id == user_id)
 
-    # Date filtering (documents only have uploaded_at)
-    if start_date:
-        query = query.where(DocumentModel.uploaded_at >= start_date)
-    if end_date:
-        query = query.where(DocumentModel.uploaded_at <= end_date)
+    # The display/sort date for a document depends on the requested date axis.
+    # Fallback chains keep the timeline usable even when only one date is set.
+    if date_axis == DateAxis.EVENT_TIME:
+        display_col = func.coalesce(DocumentModel.event_date, DocumentModel.received_date, DocumentModel.uploaded_at)
+    elif date_axis == DateAxis.RECORD_TIME:
+        display_col = func.coalesce(DocumentModel.received_date, DocumentModel.event_date, DocumentModel.uploaded_at)
+    else:  # DateAxis.ENTRY_TIME
+        display_col = DocumentModel.uploaded_at
 
-    query = query.order_by(DocumentModel.uploaded_at.desc())
+    if start_date:
+        query = query.where(display_col >= start_date)
+    if end_date:
+        query = query.where(display_col <= end_date)
+
+    query = query.order_by(display_col.desc())
 
     result = await session.execute(query)
     documents = result.scalars().all()
@@ -419,16 +427,16 @@ async def _load_db_documents(
     for doc in documents:
         uploaded_at = doc.uploaded_at or utc_now()
 
-        # Documents don't have separate event/record times from DB
-        # Could extract from metadata in future
-        event_dt = None
-        record_dt = None
+        # Real-world dates (may be None)
+        event_dt = doc.event_date
+        record_dt = doc.received_date
 
         # Choose display date based on axis
-        if date_axis in (DateAxis.EVENT_TIME, DateAxis.RECORD_TIME):
-            # For documents without extraction, use uploaded_at as fallback
-            display_dt = uploaded_at
-        else:
+        if date_axis == DateAxis.EVENT_TIME:
+            display_dt = event_dt or record_dt or uploaded_at
+        elif date_axis == DateAxis.RECORD_TIME:
+            display_dt = record_dt or event_dt or uploaded_at
+        else:  # DateAxis.ENTRY_TIME
             display_dt = uploaded_at
 
         icon, color = _get_icon_and_color(ItemType.DOCUMENT, doc.document_type, False, Urgency.NORMAL)
