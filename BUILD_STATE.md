@@ -24,6 +24,17 @@ All checks passed.
   - `guardrail_engine.py` exit 0, all checks passed.
 - **Status**: PASS — Semptify-level substrate runs. Open item: `tools/orchestrator_state.json` and `tools/active_subagents.json` live at master-repo level, are stale, and do not include the current opus-setup work (flagged in open items).
 
+### Task 4 — Verify canonical SSOT docs are current and non-conflicting
+
+- **Problem**: The Opus COO Charter and the four new orchestration docs must not contradict the canonical SSOT documents.
+- **Fix**: Compared the new docs against `NAMING_SSOT_DICTIONARY.md` (master root), `SEMPTIFY_REFERENCE_LIBRARY.md` (master root), and `BUILD_STATE.md` (Semptify module).
+- **Verification**:
+  - `NAMING_SSOT_DICTIONARY.md` exists and is current; no Opus/orchestrator entries yet, but the language rules in it (no "free", no business-model terms) are consistent with `vision-brief-for-opus.md` and `opus-coo-charter.md`.
+  - `SEMPTIFY_REFERENCE_LIBRARY.md` exists and is current; it explicitly distinguishes the four internal pillars (`RECORD/KNOW/ACT/GOVERN`) from the six public mission pillars, which matches `opus-coo-charter.md`. It also repeats the public language rules.
+  - `BUILD_STATE.md` exists in the Semptify module and is current. It is **missing** at `C:\master-repo\BUILD_STATE.md`; the Opus charter refers to `BUILD_STATE.md` without resolving which path is canonical. Flagged as open item.
+  - One pre-existing contradiction found in `SEMPTIFY_REFERENCE_LIBRARY.md`: line 618 describes "Semptify Go" as a "free, open-source mobile web app... Free forever." while the same file's standing language rules (line 453) say "NEVER use the word 'free' when describing Semptify itself." This is not caused by the new docs, but it is a live SSOT contradiction and should be Brad's call (merge/retire/archive).
+- **Status**: PASS with flags — no conflicts introduced by the new docs, but two SSOT state issues need Brad's decision (master `BUILD_STATE.md` missing, `SEMPTIFY_REFERENCE_LIBRARY.md` "free" contradiction).
+
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
 
 ### Guardrail Engine Run — 2026-09-10T01:24:05+00:00
