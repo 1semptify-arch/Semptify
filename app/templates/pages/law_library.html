@@ -138,6 +138,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/law-linker.js" defer></script>
 <script>
     const resultsEl = document.getElementById('results');
     const tabsEl = document.getElementById('tabs');
@@ -215,7 +216,7 @@
       try {
         const res = await fetch('/api/law-library/categories');
         const data = await res.json();
-        const cats = (data.statute_categories || []).slice(0, 9);
+        const cats = data.statute_categories || [];
         tabsEl.innerHTML = cats.map((c, i) => `<button class="ll-tab ${i===0?'ll-tab--active':''}" data-cat="${escapeHtml(c.id)}" onclick="selectCategory(this)">${escapeHtml(c.name)}</button>`).join('');
         if (cats.length) selectCategory(tabsEl.children[0]);
       } catch (e) {
