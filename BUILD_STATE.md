@@ -1,5 +1,8 @@
 ## Session — 2026-09-10 — Opus orchestration setup (devin)
 
+- **Branch:** `orchestration/opus-setup-2026-09-09`
+- **Pull Request:** #187 (https://github.com/1semptify-arch/Semptify/pull/187)
+
 ### Guardrail Engine Run — 2026-09-10T01:24:05+00:00
 
 - **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
