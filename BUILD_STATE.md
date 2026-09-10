@@ -274,6 +274,24 @@ Mechanics verification handoff is clean.
 
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
 
+### Guardrail Engine Run — 2026-09-10T01:24:05+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-10T01:23:40+00:00
+
+- **contract_route_check**: FAIL — Contract loader failed: 80 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
 ### Guardrail Engine Run — 2026-09-09T06:09:02+00:00
 
 - **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
@@ -13609,3 +13627,27 @@ Set these in Render Dashboard > Service > Environment:
 At the end of every session, type `/ship` in Windsurf chat.
 It will: verify → stage → commit → push → update this file.
 Nothing is real until it is pushed.
+
+---
+
+## Session Ship — 2026-09-09 — Context Explanation Workbook complete (claude)
+
+**Branch:** orchestration/opus-setup-2026-09-09
+
+**What was shipped:**
+- Filled all 56 rows of data/context_explanation_workbook.csv with plain-language, non-advisory context-explanation prompts.
+- Five commits across five batches: starter set, batch 2, batch 3, batch 4 (HIGH-UPL), and final (safety, habitability, landing).
+- All 56 subject/pillar combinations now have mechanics, trust, reinforcement, and minimal variants.
+- Pushed branch `orchestration/opus-setup-2026-09-09` to `github-direct`; no branch-protection error.
+
+**Verification:**
+- `python tools/load_explanation_workbook.py data/context_explanation_workbook.csv --dry-run`: 56 rows ready, 0 skipped, 0 validation errors.
+- All HIGH and MEDIUM UPL rows direct tenants to advocates or attorneys and avoid legal-advice language.
+
+**Known working:**
+- Context explanation workbook is now a complete starter dataset ready for `load_explanation_workbook.py` into `context_explanation_entries`.
+
+**Known broken / pending:**
+- Remaining Semptify 5.0 gaps from prior gap analysis (PageEngine facade, any remaining FunctionGroupContract coverage, user-facing contract-copy expansion for new guide pages).
+- Branch `orchestration/opus-setup-2026-09-09` needs merge into `main`.
+
