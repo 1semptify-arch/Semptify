@@ -1832,3 +1832,80 @@
   last_result:
     health_check: 5 route(s), no exposure issues
     test_suite: 1 passed in 1.23s
+- id: page_router
+  display_name: Pages / Manifest
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.page_router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
+- id: public_surface
+  display_name: Public / Landing / I18N
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.public_surface.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
+- id: debug
+  display_name: Debug
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.debug.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
+- id: admin_auth
+  display_name: Admin Auth / Public
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.admin_auth.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
+- id: admin_api
+  display_name: Admin / Maintenance
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.admin_api.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
+- id: sticky_notes
+  display_name: Sticky Notes / Record
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.sticky_notes.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
+- id: law_linker
+  display_name: Law Linker / Know
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.law_linker.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
