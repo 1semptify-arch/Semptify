@@ -14,7 +14,10 @@ run time in `tools/.recurring_scheduler_state.json` so `--run-due` only runs
 jobs whose cadence has elapsed.
 
 Current jobs:
-    docs-staleness   — weekly docs staleness check (regenerates docs/STALENESS-REPORT.md)
+    docs-staleness   — weekly documentation staleness + reconciliation pass
+                       (regenerates docs/STALENESS-REPORT.md with timestamp staleness,
+                       canonical SSOT check, handoff/temp sweep, and flag-only
+                       contradiction scan per docs/orchestration/documentation-staleness-protocol.md)
     docs-changelog   — weekly categorized changelog update (appends to docs/CHANGELOG-*.md)
     ocr-beta-review  — TBD placeholder for monitoring ADR 0007 beta metrics
 
@@ -63,7 +66,7 @@ JOBS: dict[str, dict[str, object]] = {
     "docs-staleness": {
         "cadence_days": 7,
         "fn": lambda: _run_python("tools/docs_staleness_check.py"),
-        "description": "Regenerate docs/STALENESS-REPORT.md",
+        "description": "Recurring docs staleness + reconciliation pass (timestamp staleness, temp sweep, SSOT scan)",
     },
     "docs-changelog": {
         "cadence_days": 7,
