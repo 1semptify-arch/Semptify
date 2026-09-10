@@ -117,7 +117,7 @@ async def get_intake_status(request: Request, user: UserContext | None = Depends
     user_id = user.user_id if user else get_request_user_id(request)
     has_intake = user_id in _intake_storage
 
-    return {"completed": has_intake, "redirect_to": "/dashboard" if has_intake else "/static/intake/guide.html"}
+    return {"completed": has_intake, "redirect_to": "/dashboard" if has_intake else "/tenant/get-help"}
 
 
 def get_concern_display(concern: str | None) -> str:
