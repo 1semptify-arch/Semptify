@@ -14,33 +14,33 @@
   }
   .prep-header h1 {
     font-size: var(--font-size-xl, 2rem);
-    color: var(--color-text-primary, #1a1a1a);
+    color: var(--color-text-primary, var(--color-gray-900));
     margin-bottom: var(--space-xs, 0.5rem);
   }
   .prep-header p {
     font-size: var(--font-size-md, 1rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
   }
   .progress-indicator {
-    background: var(--color-surface-alt, #f7f7f7);
+    background: var(--color-surface-alt, var(--bg-page));
     padding: var(--space-md, 1.5rem);
     border-radius: var(--radius-md, 8px);
     margin-bottom: var(--space-lg, 2rem);
   }
   .progress-label {
     font-size: var(--font-size-sm, 0.875rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
     margin-bottom: var(--space-xs, 0.5rem);
   }
   .progress-bar {
     height: 10px;
-    background: var(--color-border, #ddd);
+    background: var(--color-border, var(--bg-footer));
     border-radius: var(--radius-sm, 4px);
     overflow: hidden;
   }
   .progress-fill {
     height: 100%;
-    background: var(--color-accent, #0066cc);
+    background: var(--color-accent, var(--color-info));
     border-radius: var(--radius-sm, 4px);
     transition: width 0.3s;
   }
@@ -55,26 +55,26 @@
     align-items: center;
     gap: var(--space-sm, 1rem);
     padding: var(--space-sm, 1rem);
-    background: var(--color-surface-alt, #f7f7f7);
+    background: var(--color-surface-alt, var(--bg-page));
     border-radius: var(--radius-md, 8px);
     font-size: var(--font-size-md, 1rem);
-    color: var(--color-text-primary, #1a1a1a);
+    color: var(--color-text-primary, var(--color-gray-900));
     cursor: pointer;
   }
-  .checklist-item input { accent-color: var(--color-accent, #0066cc); }
+  .checklist-item input { accent-color: var(--color-accent, var(--color-info)); }
   .reaction-working {
     display: none;
     align-items: center;
     gap: var(--space-sm, 1rem);
     padding: var(--space-sm, 1rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
     font-size: var(--font-size-sm, 0.875rem);
   }
   .reaction-working.active { display: flex; }
   .spinner {
     width: 16px; height: 16px;
-    border: 3px solid var(--color-border, #ccc);
-    border-top-color: var(--color-accent, #0066cc);
+    border: 3px solid var(--color-border, var(--tone-500));
+    border-top-color: var(--color-accent, var(--color-info));
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }

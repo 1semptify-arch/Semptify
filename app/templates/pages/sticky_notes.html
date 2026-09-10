@@ -8,20 +8,20 @@
 <link rel="stylesheet" href="/static/css/frame-light.css">
 <style>
 .sticky-note {
-    background: var(--bg-elevated, #fffef0);
-    border: 1px solid var(--border-subtle, #e8e3c8);
+    background: var(--bg-elevated, var(--color-warning-50));
+    border: 1px solid var(--border-subtle, var(--tone-300));
     border-radius: 0.25rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--color-black), transparent 92%);
     padding: 1rem;
     margin-bottom: 1rem;
     transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 .sticky-note:hover {
     transform: rotate(-0.5deg);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.10);
+    box-shadow: 0 3px 6px color-mix(in srgb, var(--color-black), transparent 90%);
 }
 .sticky-note--meta {
-    color: var(--text-tertiary, #6b6b6b);
+    color: var(--text-tertiary, var(--text-secondary));
     font-size: 0.75rem;
     margin-bottom: 0.5rem;
     display: flex;
@@ -29,7 +29,7 @@
     align-items: center;
 }
 .sticky-note--text {
-    color: var(--text-primary, #1a1a1a);
+    color: var(--text-primary, var(--color-gray-900));
     font-size: 0.9375rem;
     line-height: 1.5;
     white-space: pre-wrap;

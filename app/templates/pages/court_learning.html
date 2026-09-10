@@ -14,12 +14,12 @@
   }
   .learning-header h1 {
     font-size: var(--font-size-xl, 2rem);
-    color: var(--color-text-primary, #1a1a1a);
+    color: var(--color-text-primary, var(--color-gray-900));
     margin-bottom: var(--space-xs, 0.5rem);
   }
   .learning-header p {
     font-size: var(--font-size-md, 1rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
   }
   .topics-grid {
     display: grid;
@@ -27,40 +27,40 @@
     gap: var(--space-md, 1.5rem);
   }
   .topic-card {
-    background: var(--color-surface-alt, #f7f7f7);
+    background: var(--color-surface-alt, var(--bg-page));
     padding: var(--space-lg, 2rem);
     border-radius: var(--radius-md, 8px);
     cursor: pointer;
     transition: background 0.2s;
   }
-  .topic-card:hover { background: var(--color-surface-hover, #efefef); }
+  .topic-card:hover { background: var(--color-surface-hover, var(--bg-muted)); }
   .topic-card h3 {
     font-size: var(--font-size-lg, 1.25rem);
-    color: var(--color-text-primary, #1a1a1a);
+    color: var(--color-text-primary, var(--color-gray-900));
     margin-bottom: var(--space-xs, 0.5rem);
   }
   .topic-card p {
     font-size: var(--font-size-sm, 0.875rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
     margin-bottom: var(--space-sm, 1rem);
   }
   .topic-card .start-link {
     font-size: var(--font-size-sm, 0.875rem);
-    color: var(--color-accent, #0066cc);
+    color: var(--color-accent, var(--color-info));
   }
   .reaction-working {
     display: none;
     align-items: center;
     gap: var(--space-sm, 1rem);
     padding: var(--space-md, 1.5rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
     font-size: var(--font-size-md, 1rem);
   }
   .reaction-working.active { display: flex; }
   .spinner {
     width: 20px; height: 20px;
-    border: 3px solid var(--color-border, #ccc);
-    border-top-color: var(--color-accent, #0066cc);
+    border: 3px solid var(--color-border, var(--tone-500));
+    border-top-color: var(--color-accent, var(--color-info));
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }

@@ -5,24 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document Vault – Semptify Office</title>
   <style>
-    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; --vault: #f59e0b; --vault2: #d97706; }
+    :root { --hdr1: var(--color-calm-800); --hdr2: var(--color-calm-dark); --accent: var(--color-calm-600); --vault: var(--color-warning); --vault2: var(--color-alarm); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--color-gray-50); color: var(--color-gray-900); }
 
-    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); position: sticky; top: 0; z-index: 100; }
     .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
-    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: var(--text-inverse); }
     nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
-    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
-    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    nav.core-nav a { color: color-mix(in srgb, var(--color-white), transparent 20%); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: color-mix(in srgb, var(--bg-card), transparent 85%); color: var(--text-inverse); }
     .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
-    .vault-btn { background: linear-gradient(135deg, var(--vault), var(--vault2)); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
-    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
-    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .vault-btn { background: linear-gradient(135deg, var(--vault), var(--vault2)); color: var(--text-inverse); border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: color-mix(in srgb, var(--bg-card), transparent 85%); color: var(--text-inverse); border: 1px solid color-mix(in srgb, var(--bg-card), transparent 70%); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
 
     /* BREADCRUMB */
-    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
-    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb { background: var(--color-white); border-bottom: 1px solid var(--bg-footer); padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
     .breadcrumb a { color: var(--accent); text-decoration: none; }
     .breadcrumb a:hover { text-decoration: underline; }
 
@@ -30,59 +30,59 @@
     .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
 
     /* VAULT UPLOAD ZONE */
-    .upload-zone { background: linear-gradient(135deg, #fffbeb, #fff8e1); border: 2px dashed var(--vault); border-radius: 16px; padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem; }
-    .upload-zone:hover, .upload-zone.drag-over { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: var(--vault2); }
-    .upload-zone h2 { font-size: 1.3rem; color: #92400e; margin: 0.75rem 0 0.5rem; }
-    .upload-zone p { color: #78350f; font-size: 0.9rem; max-width: 400px; margin: 0 auto 1.25rem; line-height: 1.5; }
+    .upload-zone { background: linear-gradient(135deg, var(--color-warning-50), var(--color-warning-50)); border: 2px dashed var(--vault); border-radius: 16px; padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem; }
+    .upload-zone:hover, .upload-zone.drag-over { background: linear-gradient(135deg, var(--tone-300), var(--tone-400)); border-color: var(--vault2); }
+    .upload-zone h2 { font-size: 1.3rem; color: var(--color-warning-800); margin: 0.75rem 0 0.5rem; }
+    .upload-zone p { color: var(--color-warning-800); font-size: 0.9rem; max-width: 400px; margin: 0 auto 1.25rem; line-height: 1.5; }
     .upload-icon { font-size: 3rem; }
-    .upload-zone button { background: linear-gradient(135deg, var(--vault), var(--vault2)); color: #fff; border: none; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; }
-    .upload-zone small { display: block; margin-top: 0.75rem; color: #92400e; font-size: 0.78rem; opacity: 0.8; }
+    .upload-zone button { background: linear-gradient(135deg, var(--vault), var(--vault2)); color: var(--text-inverse); border: none; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; }
+    .upload-zone small { display: block; margin-top: 0.75rem; color: var(--color-warning-800); font-size: 0.78rem; opacity: 0.8; }
 
     /* FILTERS */
     .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
-    .filter-bar input { flex: 1; min-width: 200px; padding: 0.5rem 0.75rem; border: 1px solid #c5cae9; border-radius: 8px; font-size: 0.9rem; outline: none; background: #fff; }
+    .filter-bar input { flex: 1; min-width: 200px; padding: 0.5rem 0.75rem; border: 1px solid var(--color-calm-200); border-radius: 8px; font-size: 0.9rem; outline: none; background: var(--color-white); }
     .filter-bar input:focus { border-color: var(--accent); }
-    .filter-btn { padding: 0.4rem 0.85rem; border: 1px solid #c5cae9; border-radius: 20px; background: #fff; font-size: 0.82rem; cursor: pointer; color: #555; white-space: nowrap; }
-    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .filter-btn { padding: 0.4rem 0.85rem; border: 1px solid var(--color-calm-200); border-radius: 20px; background: var(--color-white); font-size: 0.82rem; cursor: pointer; color: var(--text-secondary); white-space: nowrap; }
+    .filter-btn.active { background: var(--accent); color: var(--text-inverse); border-color: var(--accent); }
 
     /* DOCUMENT TABLE */
-    .doc-section-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #888; padding: 0.5rem 0; border-top: 1px solid #e0e0e0; margin-top: 0.5rem; margin-bottom: 0.25rem; }
-    .doc-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 0.9rem 1rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; transition: all 0.15s; cursor: pointer; }
-    .doc-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(57,73,171,0.1); }
+    .doc-section-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.5rem 0; border-top: 1px solid var(--bg-footer); margin-top: 0.5rem; margin-bottom: 0.25rem; }
+    .doc-card { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 10px; padding: 0.9rem 1rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; transition: all 0.15s; cursor: pointer; }
+    .doc-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px color-mix(in srgb, var(--color-calm-600), transparent 90%); }
     .doc-icon { font-size: 1.75rem; flex-shrink: 0; }
     .doc-info { flex: 1; min-width: 0; }
     .doc-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .doc-meta { font-size: 0.78rem; color: #888; margin-top: 0.15rem; }
+    .doc-meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem; }
     .doc-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.3rem; }
-    .doc-tag { background: #e8eaf6; color: var(--accent); padding: 0.1rem 0.45rem; border-radius: 8px; font-size: 0.7rem; font-weight: 600; }
-    .doc-tag.verified { background: #d1fae5; color: #065f46; }
-    .doc-tag.pending { background: #fef3c7; color: #92400e; }
+    .doc-tag { background: var(--color-gray-200); color: var(--accent); padding: 0.1rem 0.45rem; border-radius: 8px; font-size: 0.7rem; font-weight: 600; }
+    .doc-tag.verified { background: var(--color-calm-100); color: var(--color-success-800); }
+    .doc-tag.pending { background: var(--tone-300); color: var(--color-warning-800); }
     .doc-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
-    .doc-action-btn { background: #f0f0f0; border: none; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; color: #555; }
-    .doc-action-btn:hover { background: #e8eaf6; color: var(--accent); }
+    .doc-action-btn { background: var(--bg-muted); border: none; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; color: var(--text-secondary); }
+    .doc-action-btn:hover { background: var(--color-gray-200); color: var(--accent); }
 
     /* EMPTY STATE */
-    .empty-state { text-align: center; padding: 3rem 1rem; color: #888; }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
     .empty-state p { font-size: 0.9rem; margin-top: 0.5rem; }
 
     /* SIDEBAR */
     .sidebar { display: flex; flex-direction: column; gap: 1rem; }
-    .sidebar-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
-    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 1rem; color: #1a1a2e; }
-    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; }
+    .sidebar-card { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 12px; padding: 1.25rem; }
+    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 1rem; color: var(--color-gray-900); }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0; border-bottom: 1px solid var(--bg-muted); font-size: 0.88rem; }
     .stat-row:last-child { border-bottom: none; }
     .stat-value { font-weight: 700; color: var(--accent); }
-    .privacy-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: #1e3a5f; line-height: 1.5; }
+    .privacy-box { background: var(--color-calm-50); border: 1px solid var(--color-calm-100); border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: var(--color-gray-700); line-height: 1.5; }
     .privacy-box strong { display: block; margin-bottom: 0.25rem; }
 
-    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
-    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: color-mix(in srgb, var(--color-white), transparent 20%); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: color-mix(in srgb, var(--color-white), transparent 30%); margin: 0 0.5rem; text-decoration: none; }
 
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
     .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
-    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
-    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .nav-drawer a { color: color-mix(in srgb, var(--color-white), transparent 15%); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: color-mix(in srgb, var(--bg-card), transparent 90%); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: color-mix(in srgb, var(--color-black), transparent 50%); z-index: 998; }
     .drawer-backdrop.open { display: block; }
 
     @media (max-width: 900px) {
@@ -100,16 +100,16 @@
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   <nav class="nav-drawer" id="nav-drawer">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:#fff;">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+      <strong style="color:var(--text-inverse);">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:var(--text-inverse);font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
     <a href="/home.html">🏠 Home</a>
     <a href="/library.html">📚 Library</a>
     <a href="/office.html">🏢 Office</a>
     <a href="/tools.html">🔧 Tools</a>
     <a href="/help.html">🆘 Help</a>
-    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
-    <a href="/office/vault.html" style="color:#f59e0b;font-weight:700;">🔒 Document Vault</a>
+    <hr style="border-color:color-mix(in srgb, var(--color-white), transparent 80%);margin:0.5rem 0;">
+    <a href="/office/vault.html" style="color:var(--color-warning);font-weight:700;">🔒 Document Vault</a>
     <a href="/office/inbox.html">📨 Inbox</a>
     <a href="/office/timeline.html">📅 Timeline</a>
     <a href="/office/delivery.html">📬 Delivery</a>
@@ -267,9 +267,9 @@
       <div class="sidebar-card">
         <div class="sidebar-title">⚡ Quick Actions</div>
         <div style="display:flex;flex-direction:column;gap:0.5rem;">
-          <button onclick="triggerUpload()" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:0.6rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;">📤 Upload Document</button>
-          <a href="/office/timeline.html" style="background:#e8eaf6;color:#3949ab;border:none;padding:0.6rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📅 Add Timeline Event</a>
-          <a href="/office/delivery.html" style="background:#f0f0f0;color:#444;border:none;padding:0.6rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📬 Send Document</a>
+          <button onclick="triggerUpload()" style="background:linear-gradient(135deg,var(--color-warning),var(--color-alarm));color:var(--text-inverse);border:none;padding:0.6rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;">📤 Upload Document</button>
+          <a href="/office/timeline.html" style="background:var(--color-gray-200);color:var(--color-calm);border:none;padding:0.6rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📅 Add Timeline Event</a>
+          <a href="/office/delivery.html" style="background:var(--bg-muted);color:var(--text-primary);border:none;padding:0.6rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📬 Send Document</a>
         </div>
       </div>
 
@@ -281,11 +281,11 @@
       <div class="sidebar-card">
         <div class="sidebar-title">🏢 Office Navigation</div>
         <div style="display:flex;flex-direction:column;gap:0.25rem;">
-          <a href="/office/vault.html" style="color:#f59e0b;font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault ←</a>
-          <a href="/office/inbox.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
-          <a href="/office/timeline.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
-          <a href="/office/delivery.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery</a>
-          <a href="/office/signer.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer</a>
+          <a href="/office/vault.html" style="color:var(--color-warning);font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault ←</a>
+          <a href="/office/inbox.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
+          <a href="/office/timeline.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
+          <a href="/office/delivery.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery</a>
+          <a href="/office/signer.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer</a>
         </div>
       </div>
     </aside>
@@ -356,7 +356,7 @@
     }
   </script>
 
-<footer style="background: var(--hdr1); color: #fff; padding: 2rem 1.5rem; margin-top: 3rem;">
+<footer style="background: var(--hdr1); color: var(--text-inverse); padding: 2rem 1.5rem; margin-top: 3rem;">
   <div style="max-width: 1200px; margin: 0 auto;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
       <div>
@@ -368,25 +368,25 @@
       <div>
         <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Legal</h4>
         <ul style="list-style: none; padding: 0; margin: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
         </ul>
       </div>
       <div>
         <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Connect</h4>
         <ul style="list-style: none; padding: 0; margin: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
         </ul>
       </div>
     </div>
-    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <div style="background: color-mix(in srgb, var(--bg-card), transparent 95%); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
       <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
         <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
       </p>
     </div>
-    <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: center;">
+    <div style="border-top: 1px solid color-mix(in srgb, var(--bg-card), transparent 90%); padding-top: 1.5rem; text-align: center;">
       <p style="font-size: 0.85rem; margin: 0 0 0.5rem 0; opacity: 0.8;">© 2024-2026 Semptify</p>
       <p style="font-size: 0.8rem; margin: 0; opacity: 0.7;">No Cost, Always • No Ads • Open Source</p>
     </div>

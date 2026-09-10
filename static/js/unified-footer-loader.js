@@ -19,22 +19,22 @@
   // Keep this fallback in sync with the canonical SSOT footer styles.
   const FALLBACK_CSS = `
     .unified-footer {
-      background: linear-gradient(135deg, #15294a 0%, #1e3a5f 100%);
-      color: rgba(255, 255, 255, 0.9);
+      background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-calm-dark) 100%);
+      color: color-mix(in srgb, var(--color-white), transparent 10%);
       padding: 2rem 1.5rem 1.5rem;
       margin-top: auto;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     .unified-footer a {
-      color: rgba(255, 255, 255, 0.8);
+      color: color-mix(in srgb, var(--color-white), transparent 20%);
       text-decoration: none;
       transition: color 0.15s ease;
     }
-    .unified-footer a:hover { color: #f59e0b; }
+    .unified-footer a:hover { color: var(--color-warning); }
     .footer-container { max-width: 1200px; margin: 0 auto; }
     .footer-disclaimer {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: color-mix(in srgb, var(--bg-card), transparent 90%);
+      border: 1px solid color-mix(in srgb, var(--bg-card), transparent 80%);
       border-radius: 6px;
       padding: 1.25rem;
       margin-bottom: 2rem;
@@ -44,7 +44,7 @@
     .footer-disclaimer-title {
       font-weight: 700;
       font-size: 1.125rem;
-      color: #f59e0b;
+      color: var(--color-warning);
       margin-bottom: 0.5rem;
     }
     .footer-disclaimer-text {
@@ -52,7 +52,7 @@
       line-height: 1.6;
       max-width: 800px;
       margin: 0 auto;
-      color: rgba(255, 255, 255, 0.9);
+      color: color-mix(in srgb, var(--color-white), transparent 10%);
     }
     .footer-nav {
       display: flex;
@@ -65,17 +65,17 @@
     .footer-nav a { padding: 0.25rem 0.5rem; }
     .footer-divider {
       height: 1px;
-      background: rgba(255, 255, 255, 0.2);
+      background: color-mix(in srgb, var(--bg-card), transparent 80%);
       margin: 1.5rem auto;
       max-width: 600px;
     }
     .footer-bottom {
       text-align: center;
       font-size: 0.875rem;
-      color: rgba(255, 255, 255, 0.7);
+      color: color-mix(in srgb, var(--color-white), transparent 30%);
     }
     .footer-copyright { margin-bottom: 0.5rem; }
-    .footer-mandates { font-weight: 600; color: #f59e0b; }
+    .footer-mandates { font-weight: 600; color: var(--color-warning); }
     .footer-help { margin-top: 0.75rem; font-size: 0.75rem; }
     .locale-selector { margin-top: 0.75rem; }
     .locale-selector label,

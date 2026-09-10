@@ -21,8 +21,8 @@
 <link rel="stylesheet" href="/static/css/frame-light.css">
 <style>
 .law-popout--official-text {
-    background: var(--bg-elevated, #ffffff);
-    border: 1px solid var(--border-subtle, #e2e2e2);
+    background: var(--bg-elevated, var(--color-white));
+    border: 1px solid var(--border-subtle, var(--bg-footer));
     border-radius: 0.25rem;
     padding: 1rem;
     max-height: 55vh;
@@ -31,7 +31,7 @@
     word-break: break-word;
     font-size: 0.9375rem;
     line-height: 1.6;
-    color: var(--text-primary, #1a1a1a);
+    color: var(--text-primary, var(--color-gray-900));
 }
 .law-popout--actions {
     display: flex;
@@ -40,7 +40,7 @@
     margin-top: 1rem;
 }
 .law-popout--meta {
-    color: var(--text-secondary, #555);
+    color: var(--text-secondary, var(--text-secondary));
     font-size: 0.8125rem;
     margin-bottom: 1rem;
 }

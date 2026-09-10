@@ -26,11 +26,11 @@
 {# ----------------------------------------------------------------- #}
 {% macro hero(icon, title, desc, color="blue") %}
 {% set colors = {
-    "blue":   "rgba(59,130,246,0.08), rgba(16,185,129,0.04)",
-    "purple": "rgba(139,92,246,0.08), rgba(59,130,246,0.04)",
-    "green":  "rgba(16,185,129,0.08), rgba(59,130,246,0.04)",
-    "red":    "rgba(239,68,68,0.06), rgba(245,158,11,0.04)",
-    "amber":  "rgba(245,158,11,0.08), rgba(217,119,6,0.04)"
+    "blue":   "color-mix(in srgb, var(--color-info), transparent 92%), color-mix(in srgb, var(--color-success), transparent 96%)",
+    "purple": "color-mix(in srgb, var(--color-info), transparent 92%), color-mix(in srgb, var(--color-info), transparent 96%)",
+    "green":  "color-mix(in srgb, var(--color-success), transparent 92%), color-mix(in srgb, var(--color-info), transparent 96%)",
+    "red":    "color-mix(in srgb, var(--color-error), transparent 94%), color-mix(in srgb, var(--color-warning), transparent 96%)",
+    "amber":  "color-mix(in srgb, var(--color-warning), transparent 92%), color-mix(in srgb, var(--color-alarm), transparent 96%)"
 } %}
 <div class="ui-hero" style="background: linear-gradient(135deg, {{ colors.get(color, colors.blue) }});">
     <h1 class="ui-hero__title">{{ icon }} {{ title }}</h1>
@@ -124,10 +124,10 @@
 {# ----------------------------------------------------------------- #}
 {% macro info_box(type="info") %}
 {% set box_colors = {
-    "info":    ("rgba(59,130,246,0.08)",  "var(--color-accent)"),
-    "warning": ("rgba(245,158,11,0.08)",  "var(--color-warning)"),
-    "success": ("rgba(16,185,129,0.08)",  "var(--color-success)"),
-    "error":   ("rgba(239,68,68,0.08)",   "var(--color-error)")
+    "info":    ("color-mix(in srgb, var(--color-info), transparent 92%)",  "var(--color-accent)"),
+    "warning": ("color-mix(in srgb, var(--color-warning), transparent 92%)",  "var(--color-warning)"),
+    "success": ("color-mix(in srgb, var(--color-success), transparent 92%)",  "var(--color-success)"),
+    "error":   ("color-mix(in srgb, var(--color-error), transparent 92%)",   "var(--color-error)")
 } %}
 {% set bg, border = box_colors.get(type, box_colors.info) %}
 <div class="ui-infobox" style="background: {{ bg }}; border-left-color: {{ border }};">
@@ -252,7 +252,7 @@
 .ui-scard { background: var(--bg-card); border: none; border-radius: var(--radius-block); padding: 1.5rem; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 0.5rem; transition: all 0.2s; position: relative; box-shadow: var(--elevation-1); }
 .ui-scard:hover { box-shadow: var(--elevation-2); transform: translateY(-2px); }
 .ui-scard--featured { box-shadow: 0 0 0 2px var(--color-warning); }
-.ui-scard__badge { position: absolute; top: 0.75rem; right: 0.75rem; background: var(--color-warning); color: #fff; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; }
+.ui-scard__badge { position: absolute; top: 0.75rem; right: 0.75rem; background: var(--color-warning); color: var(--text-inverse); padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; }
 .ui-scard__icon { font-size: 2.2rem; }
 .ui-scard__title { font-weight: 700; font-size: 1rem; }
 .ui-scard__desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; }
@@ -271,12 +271,12 @@
 .ui-infobox { border-left: 4px solid; border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; }
 
 /* Vault CTA */
-.ui-vault-cta { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.06)); border: none; border-radius: var(--radius-block); padding: 2rem; text-align: center; margin-bottom: 2rem; box-shadow: var(--elevation-2); }
+.ui-vault-cta { background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning), transparent 88%), color-mix(in srgb, var(--color-alarm), transparent 94%)); border: none; border-radius: var(--radius-block); padding: 2rem; text-align: center; margin-bottom: 2rem; box-shadow: var(--elevation-2); }
 .ui-vault-cta__title { font-size: 1.2rem; color: var(--color-warning); margin-bottom: 0.5rem; }
 .ui-vault-cta__desc { color: var(--text-secondary); font-size: 0.9rem; max-width: 500px; margin: 0 auto 1.25rem; }
 
 /* Emergency Box */
-.ui-emergency { background: rgba(239,68,68,0.08); border: 2px solid var(--color-error); border-radius: var(--radius-block); padding: 1.5rem; margin-bottom: 2rem; text-align: center; }
+.ui-emergency { background: color-mix(in srgb, var(--color-error), transparent 92%); border: 2px solid var(--color-error); border-radius: var(--radius-block); padding: 1.5rem; margin-bottom: 2rem; text-align: center; }
 .ui-emergency__title { color: var(--color-error); margin-bottom: 0.5rem; }
 .ui-emergency__desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
 
@@ -284,8 +284,8 @@
 .ui-progress { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 2rem; flex-wrap: wrap; }
 .ui-progress__step { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; min-width: 60px; }
 .ui-progress__dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: var(--bg-card); border: 2px solid var(--border-color); color: var(--text-muted); }
-.ui-progress__step--active .ui-progress__dot { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
-.ui-progress__step--done .ui-progress__dot { background: var(--color-success); border-color: var(--color-success); color: #fff; }
+.ui-progress__step--active .ui-progress__dot { background: var(--color-accent); border-color: var(--color-accent); color: var(--text-inverse); }
+.ui-progress__step--done .ui-progress__dot { background: var(--color-success); border-color: var(--color-success); color: var(--text-inverse); }
 .ui-progress__label { font-size: 0.7rem; color: var(--text-muted); text-align: center; }
 .ui-progress__step--active .ui-progress__label { color: var(--color-accent); font-weight: 600; }
 .ui-progress__line { width: 40px; height: 2px; background: var(--border-color); margin: 0 0.25rem; margin-bottom: 1.2rem; }
@@ -295,7 +295,7 @@
 .admin-nav { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .admin-nav__item { color: var(--text-secondary); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: var(--radius-md); font-size: 0.85rem; transition: all 0.15s; white-space: nowrap; }
 .admin-nav__item:hover { background: var(--color-gray-100); color: var(--text-primary); }
-.admin-nav__item--active { background: var(--color-accent); color: #fff; font-weight: 600; }
+.admin-nav__item--active { background: var(--color-accent); color: var(--text-inverse); font-weight: 600; }
 </style>
 {% endmacro %}
 

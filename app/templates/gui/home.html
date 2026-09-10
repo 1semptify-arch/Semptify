@@ -12,7 +12,7 @@
         <section class="frame-panel">
             <div class="frame-panel--body">
                 <h1 style="font-size:1.5rem; font-weight:600; margin-bottom:0.5rem;">You're not alone in this.</h1>
-                <p style="color:#94a3b8; font-size:0.9375rem;">
+                <p style="color:var(--color-calm-light); font-size:0.9375rem;">
                     Semptify helps you keep a clear record of everything between you and your landlord —
                     documents, dates, and what to do next. Plain language. No legal jargon.
                 </p>
@@ -72,9 +72,9 @@
     <div class="gui-screen--support">
         <section class="frame-panel">
             <div class="frame-panel--body">
-                <p style="font-size:0.8125rem; color:#64748b;">
+                <p style="font-size:0.8125rem; color:var(--color-gray-500);">
                     Semptify does not give legal advice. If you're facing eviction tonight,
-                    <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" style="color:#3b82f6;">find legal help near you</a>.
+                    <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" style="color:var(--color-info);">find legal help near you</a>.
                 </p>
             </div>
         </section>
@@ -109,7 +109,7 @@
             const critical = data.critical || [];
             if (critical.length) {
                 const e = critical[0];
-                meta.innerHTML = '<strong>' + escapeHtml(e.title) + '</strong> — ' + escapeHtml(fmtDate(e.start_datetime)) + ' <span style="color:#ef4444;">(' + data.days_to_next_critical + ' days left)</span>';
+                meta.innerHTML = '<strong>' + escapeHtml(e.title) + '</strong> — ' + escapeHtml(fmtDate(e.start_datetime)) + ' <span style="color:var(--color-error);">(' + data.days_to_next_critical + ' days left)</span>';
             } else if (events.length) {
                 const e = events[0];
                 meta.innerHTML = '<strong>' + escapeHtml(e.title) + '</strong> — ' + escapeHtml(fmtDate(e.start_datetime));
@@ -148,8 +148,8 @@
             }
             meta.textContent = 'Recent events:';
             preview.innerHTML = items.map(it => {
-                return '<div style="font-size:0.8125rem; color:#cbd5e1; padding:0.25rem 0;">'
-                    + '<span style="color:#94a3b8;">' + escapeHtml(fmtDate(it.date_display || it.event_date || it.entry_date)) + '</span> '
+                return '<div style="font-size:0.8125rem; color:var(--color-calm-200); padding:0.25rem 0;">'
+                    + '<span style="color:var(--color-calm-light);">' + escapeHtml(fmtDate(it.date_display || it.event_date || it.entry_date)) + '</span> '
                     + escapeHtml(it.title)
                     + '</div>';
             }).join('');

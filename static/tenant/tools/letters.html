@@ -561,7 +561,7 @@
     function initCanvas() {
       _sigCanvas = document.getElementById('sig-canvas');
       _sigCtx = _sigCanvas.getContext('2d');
-      _sigCtx.strokeStyle = 'var(--text-primary)';
+      _sigCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
       _sigCtx.lineWidth = 2.5;
       _sigCtx.lineCap = 'round';
       _sigCtx.lineJoin = 'round';
@@ -617,10 +617,11 @@
       const c = document.createElement('canvas');
       c.width = 480; c.height = 140;
       const ctx = c.getContext('2d');
-      ctx.fillStyle = 'var(--bg-surface)';
+      const _rootStyle = getComputedStyle(document.documentElement);
+      ctx.fillStyle = _rootStyle.getPropertyValue('--bg-surface').trim();
       ctx.fillRect(0,0,c.width,c.height);
       ctx.font = `56px '${_selectedFont}', cursive`;
-      ctx.fillStyle = 'var(--text-primary)';
+      ctx.fillStyle = _rootStyle.getPropertyValue('--text-primary').trim();
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(text, c.width/2, c.height/2);

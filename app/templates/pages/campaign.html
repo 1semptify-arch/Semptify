@@ -12,12 +12,12 @@
   }
   .page-heading {
     font-size: var(--font-size-xxl, 2rem);
-    color: var(--color-text-primary, #111);
+    color: var(--color-text-primary, var(--color-gray-900));
     margin-bottom: var(--space-xs, 0.5rem);
   }
   .page-subheading {
     font-size: var(--font-size-md, 1rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
     margin-bottom: var(--space-lg, 1.5rem);
   }
   .input-row {
@@ -25,8 +25,8 @@
   }
   .action-btn {
     font-size: var(--font-size-md, 1rem);
-    background: var(--color-action, #1a73e8);
-    color: var(--color-text-inverted, #fff);
+    background: var(--color-action, var(--color-info));
+    color: var(--color-text-inverted, var(--text-inverse));
     border: none;
     border-radius: var(--radius-md, 8px);
     padding: var(--space-sm, 0.75rem) var(--space-lg, 1.5rem);
@@ -39,7 +39,7 @@
     margin-bottom: var(--space-lg, 1.5rem);
   }
   .campaign-item {
-    background: var(--color-surface-raised, #f7f7f7);
+    background: var(--color-surface-raised, var(--bg-page));
     border-radius: var(--radius-md, 8px);
     padding: var(--space-md, 1rem);
     display: flex;
@@ -48,7 +48,7 @@
   }
   .campaign-name {
     font-size: var(--font-size-md, 1rem);
-    color: var(--color-text-primary, #111);
+    color: var(--color-text-primary, var(--color-gray-900));
   }
   .campaign-meta {
     display: flex;
@@ -59,21 +59,21 @@
     font-size: var(--font-size-xs, 0.75rem);
     padding: var(--space-xxs, 0.25rem) var(--space-sm, 0.75rem);
     border-radius: var(--radius-pill, 999px);
-    background: var(--color-action, #1a73e8);
-    color: var(--color-text-inverted, #fff);
+    background: var(--color-action, var(--color-info));
+    color: var(--color-text-inverted, var(--text-inverse));
   }
   .campaign-progress {
     font-size: var(--font-size-sm, 0.875rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
   }
   .reaction-area {
     min-height: var(--space-xl, 2rem);
     font-size: var(--font-size-sm, 0.875rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
   }
-  .reaction-working { color: var(--color-action, #1a73e8); }
-  .reaction-done { color: var(--color-success, #2e7d32); }
-  .reaction-error { color: var(--color-danger, #d32f2f); }
+  .reaction-working { color: var(--color-action, var(--color-info)); }
+  .reaction-done { color: var(--color-success, var(--color-accent-hover)); }
+  .reaction-error { color: var(--color-danger, var(--color-error)); }
   @media (max-width: 768px) {
     .page-container { padding: var(--space-md, 1rem); }
     .page-heading { font-size: var(--font-size-xl, 1.5rem); }

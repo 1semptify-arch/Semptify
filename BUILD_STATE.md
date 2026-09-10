@@ -29,13 +29,20 @@ All checks passed.
   - Verified zero remaining hardcoded colors (`#` or `rgba()`) in those scopes; guardrail 4/4 PASS.
   - Resolved four `orchestrator_state.json` SSOT tasks: `ssot-public-landing`, `ssot-public-legal`, `ssot-tenant-static`, `ssot-legacy-css-admin`.
 
+- **SSOT token adoption — full sweep** (this commit):
+  - Ran an algorithmic nearest-token migration across `app/templates/**/*.html`, `static/**/*.html`, `static/**/*.css`, `static/**/*.js`, and `static/ai-helper-bundle.txt`.
+  - Replaced all remaining `#hex` and `rgba()` values with the nearest SSOT design token or a `color-mix(in srgb, <token>, transparent <pct>%)` equivalent.
+  - Preserved `static/css/ssot-design-system.css` (the token source of truth), `static/onboarding/` (NO-TOUCH module), and `static/assets/semptify-favicon.svg` (external image; CSS variables would not resolve when loaded as image).
+  - Manually fixed Canvas `strokeStyle`/`fillStyle` assignments in `static/office/signer.html` and `static/tenant/tools/letters.html` to use `getComputedStyle(document.documentElement).getPropertyValue(...)` instead of raw `var()` strings, which the HTML canvas API does not resolve.
+  - Verified: guardrail engine 4/4 PASS; `tests/test_unified_timeline.py` 6/6; `tests/test_page_composer_assembly_api.py` 7/7; `tests/test_contracts_framework.py` + `tests/test_module_contracts.py` 26/26; runtime start-up clean; IronBee DevTools navigation to `/`, `/public/about.html`, and `/law-library` all 200 with no unexpected console errors.
+
 ### Active gap list
 
 Todolist in `orchestrator_state.json`:
 1. [x] Fix `/tenant/timeline` UI evidence label.
 2. [x] Central contract copy pass (generic humanization done; specific overrides can be added per page).
 3. [x] Finish SSOT token adoption in the four listed public/tenant/admin scopes.
-4. [ ] Full-sweep remaining hardcoded colors in other static/legacy files (legacy office, manager, onboarding, mndes, tools, search, library, reconnect, etc.).
+4. [x] Full-sweep remaining hardcoded colors in other static/legacy files (legacy office, manager, mndes, tools, search, library, reconnect, etc.).
 5. [ ] Verify or park Sticky Notes and Law Linker modules.
 6. [ ] Resolve page router / dormant manifest pages decision.
 7. [ ] Update route-audit for public/landing/i18n routes.

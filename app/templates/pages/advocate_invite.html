@@ -30,13 +30,13 @@
 
 /* Info banner */
 .info-banner {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
+    background: var(--color-calm-50);
+    border: 1px solid var(--color-calm-100);
     border-radius: var(--radius-md);
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
     font-size: 0.88rem;
-    color: #1e40af;
+    color: var(--color-calm-dark);
     line-height: 1.5;
 }
 .info-banner strong { font-weight: 700; }
@@ -59,7 +59,7 @@
     font-family: 'Courier New', monospace;
     font-size: 1.3rem;
     font-weight: 700;
-    color: #15803d;
+    color: var(--color-success-800);
     letter-spacing: 0.05em;
 }
 .code-role-badge {
@@ -67,8 +67,8 @@
     font-weight: 600;
     padding: 0.2rem 0.6rem;
     border-radius: 6px;
-    background: #f1f5f9;
-    color: #64748b;
+    background: var(--color-calm-50);
+    color: var(--color-gray-500);
 }
 .code-meta {
     display: flex;
@@ -98,8 +98,8 @@
     cursor: pointer;
     border: 1px solid transparent;
 }
-.btn--primary { background: #15803d; color: #fff; }
-.btn--primary:hover { background: #166534; }
+.btn--primary { background: var(--color-success-800); color: var(--text-inverse); }
+.btn--primary:hover { background: var(--color-success-800); }
 .btn--secondary { background: var(--color-bg-card); color: var(--color-text-primary); border-color: var(--color-border); }
 .btn--secondary:hover { background: var(--color-bg-hover); }
 .btn--sm { padding: 0.35rem 0.8rem; font-size: 0.82rem; }
@@ -117,7 +117,7 @@
 .modal-overlay {
     display: none;
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: color-mix(in srgb, var(--color-black), transparent 50%);
     z-index: 1000;
     align-items: center; justify-content: center;
 }
