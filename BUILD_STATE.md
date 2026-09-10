@@ -36,6 +36,14 @@ All checks passed.
   - Manually fixed Canvas `strokeStyle`/`fillStyle` assignments in `static/office/signer.html` and `static/tenant/tools/letters.html` to use `getComputedStyle(document.documentElement).getPropertyValue(...)` instead of raw `var()` strings, which the HTML canvas API does not resolve.
   - Verified: guardrail engine 4/4 PASS; `tests/test_unified_timeline.py` 6/6; `tests/test_page_composer_assembly_api.py` 7/7; `tests/test_contracts_framework.py` + `tests/test_module_contracts.py` 26/26; runtime start-up clean; IronBee DevTools navigation to `/`, `/public/about.html`, and `/law-library` all 200 with no unexpected console errors.
 
+- **Sticky Notes / Law Linker verification** (this commit):
+  - Law Linker v2 is live on `/law-library`: citations are auto-wrapped in `span.law-linker-cite`, use `--color-info` (resolved to `rgb(96,165,250)`), and show the expected accessible description "Click to view official source".
+  - Hover interaction is wired; the popup renders as a positioned `div#law-linker-popup` whose styles were migrated to SSOT tokens.
+  - Click on a citation attempts to open the gated pop-out (`/law-linker/pop-out?citation=...`); unauthenticated users are correctly redirected to `/help?status=down`.
+  - The public citation JSON API (`/api/law-linker/citation`) resolves "Minn. Stat. § 504B" to the full statute text, official URL, and disclaimer.
+  - Sticky Notes routes are gated: `/record/notes` and `POST /api/sticky-notes` both return 401 with the expected auth redirect.
+  - Console on the Law Library page is clean except for two pre-existing errors: `404 /search.html` (dead static page) and `401 /admin/dashboard` (unreachable without admin auth).
+
 ### Active gap list
 
 Todolist in `orchestrator_state.json`:
@@ -43,7 +51,7 @@ Todolist in `orchestrator_state.json`:
 2. [x] Central contract copy pass (generic humanization done; specific overrides can be added per page).
 3. [x] Finish SSOT token adoption in the four listed public/tenant/admin scopes.
 4. [x] Full-sweep remaining hardcoded colors in other static/legacy files (legacy office, manager, mndes, tools, search, library, reconnect, etc.).
-5. [ ] Verify or park Sticky Notes and Law Linker modules.
+5. [x] Verify or park Sticky Notes and Law Linker modules.
 6. [ ] Resolve page router / dormant manifest pages decision.
 7. [ ] Update route-audit for public/landing/i18n routes.
 8. [ ] Sync stale tracker statuses and close resolved review tasks.
