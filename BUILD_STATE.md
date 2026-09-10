@@ -13469,16 +13469,17 @@ Nothing is real until it is pushed.
 **What was shipped:**
 - Filled all 56 rows of data/context_explanation_workbook.csv with plain-language, non-advisory context-explanation prompts.
 - Five commits across five batches: starter set, batch 2, batch 3, batch 4 (HIGH-UPL), and final (safety, habitability, landing).
-- All 56 subject/pillar combinations now have mechanics, 	rust, 
-einforcement, and minimal variants.
+- All 56 subject/pillar combinations now have mechanics, trust, reinforcement, and minimal variants.
+- Pushed branch `orchestration/opus-setup-2026-09-09` to `github-direct`; no branch-protection error.
 
 **Verification:**
-- python tools/load_explanation_workbook.py data/context_explanation_workbook.csv --dry-run: 56 rows ready, 0 skipped, 0 validation errors.
+- `python tools/load_explanation_workbook.py data/context_explanation_workbook.csv --dry-run`: 56 rows ready, 0 skipped, 0 validation errors.
 - All HIGH and MEDIUM UPL rows direct tenants to advocates or attorneys and avoid legal-advice language.
 
 **Known working:**
-- Context explanation workbook is now a complete starter dataset ready for load_explanation_workbook.py into context_explanation_entries.
+- Context explanation workbook is now a complete starter dataset ready for `load_explanation_workbook.py` into `context_explanation_entries`.
 
 **Known broken / pending:**
 - Remaining Semptify 5.0 gaps from prior gap analysis (PageEngine facade, any remaining FunctionGroupContract coverage, user-facing contract-copy expansion for new guide pages).
+- Branch `orchestration/opus-setup-2026-09-09` needs merge into `main`.
 
