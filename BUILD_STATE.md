@@ -1,4 +1,29 @@
-## Session — 2026-09-10 — Mechanics verification pass (claude) — IN PROGRESS
+## Session — 2026-09-10 — 5.0 stabilization gaps (claude) — IN PROGRESS
+
+### Shipped this session
+
+- **Tenant timeline UI regression fixed** (commit `06a57125`):
+  - `app/templates/components/ui_composer.html` labeled evidence items as `▸ Record` instead of `▸ Evidence`.
+  - Restored the `Evidence` label; `tests/test_unified_timeline.py` now 6/6.
+  - Updated mechanics handoff verification to `test_unified_timeline 6/6`.
+
+- **Contract copy humanization improved** (commit `8e479689`):
+  - `app/core/contract_copy.py` now strips leading module names (e.g., `Briefcase Add Tag (SSOT)` → `Add Tag`) and removes implementation markers (HTTP method/path, `Stealth guard`, `Audit logged`) from descriptions.
+  - The existing `DISPLAY_OVERRIDES` for the four proven guide pages remain authoritative.
+  - `tests/test_contracts_framework.py` + `tests/test_module_contracts.py` 26/26 pass; guardrail 4/4 PASS.
+
+### Active gap list
+
+Todolist in `orchestrator_state.json`:
+1. [x] Fix `/tenant/timeline` UI evidence label.
+2. [~] Central contract copy pass (generic humanization done; specific overrides can be added per page).
+3. [ ] Finish SSOT token adoption in remaining public/tenant/admin CSS.
+4. [ ] Verify or park Sticky Notes and Law Linker modules.
+5. [ ] Resolve page router / dormant manifest pages decision.
+6. [ ] Update route-audit for public/landing/i18n routes.
+7. [ ] Sync stale tracker statuses and close resolved review tasks.
+
+## Session — 2026-09-10 — Mechanics verification pass (claude)
 
 ### Guardrail Engine Run — 2026-09-10T06:44:29+00:00
 
