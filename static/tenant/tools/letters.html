@@ -20,8 +20,8 @@
     .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 60px; gap: 1rem; }
     .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: var(--text-inverse); }
     nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
-    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: var(--radius-lg); font-size: 0.88rem; }
-    nav.core-nav a:hover { background: rgba(255,255,255,0.15); color: var(--text-inverse); }
+    nav.core-nav a { color: color-mix(in srgb, var(--color-white), transparent 20%); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: var(--radius-lg); font-size: 0.88rem; }
+    nav.core-nav a:hover { background: color-mix(in srgb, var(--color-white), transparent 85%); color: var(--text-inverse); }
     .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
 
     .hero { background: linear-gradient(160deg, var(--bg-surface) 0%, var(--bg) 60%); padding: 2rem 1.5rem 1.5rem; }
@@ -76,14 +76,14 @@
     .btn-autofill:disabled { background: var(--color-success); cursor: default; }
     .autofill-status { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
 
-    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
-    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: color-mix(in srgb, var(--color-white), transparent 20%); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
+    footer a { color: color-mix(in srgb, var(--color-white), transparent 30%); margin: 0 0.5rem; text-decoration: none; }
 
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
     .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); display: block; }
-    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
-    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .nav-drawer a { color: color-mix(in srgb, var(--color-white), transparent 15%); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); display: block; }
+    .nav-drawer a:hover { background: color-mix(in srgb, var(--color-white), transparent 90%); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: color-mix(in srgb, var(--color-black), transparent 50%); z-index: 998; }
     .drawer-backdrop.open { display: block; }
 
     /* Sign button */
@@ -96,9 +96,9 @@
     .sig-preview-img { height: 40px; border-bottom: 1px solid var(--text-muted); margin-left: 0.5rem; }
 
     /* Signature modal */
-    .sig-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 2000; align-items: center; justify-content: center; }
+    .sig-modal-backdrop { display: none; position: fixed; inset: 0; background: color-mix(in srgb, var(--color-black), transparent 45%); z-index: 2000; align-items: center; justify-content: center; }
     .sig-modal-backdrop.open { display: flex; }
-    .sig-modal { background: var(--bg-card); border-radius: var(--radius-2xl); padding: 1.5rem; width: min(520px, 95vw); box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+    .sig-modal { background: var(--bg-card); border-radius: var(--radius-2xl); padding: 1.5rem; width: min(520px, 95vw); box-shadow: 0 20px 60px color-mix(in srgb, var(--color-black), transparent 75%); }
     .sig-modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--hdr1); }
     .sig-tabs { display: flex; gap: 0; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: var(--radius-block); overflow: hidden; }
     .sig-tab { flex: 1; padding: 0.55rem; background: var(--bg-surface); font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; color: var(--muted); }

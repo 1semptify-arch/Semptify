@@ -14,7 +14,7 @@
     .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: var(--text-inverse); }
     nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
     nav.core-nav a { color: var(--text-inverse); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.9rem; white-space: nowrap; }
-    nav.core-nav a:hover { background: rgba(255, 255, 255, 0.15); color: var(--text-inverse); }
+    nav.core-nav a:hover { background: color-mix(in srgb, var(--color-white), transparent 85%); color: var(--text-inverse); }
     .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
     .vault-btn { background: linear-gradient(135deg, var(--color-warning), var(--color-warning-800)); color: var(--text-inverse); border: none; padding: 0.45rem 1rem; border-radius: var(--radius-block); font-weight: 700; cursor: pointer; font-size: 0.9rem; }
     .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
@@ -41,9 +41,9 @@
 
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
     .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
-    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
-    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .nav-drawer a { color: color-mix(in srgb, var(--color-white), transparent 15%); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: color-mix(in srgb, var(--color-white), transparent 90%); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: color-mix(in srgb, var(--color-black), transparent 50%); z-index: 998; }
     .drawer-backdrop.open { display: block; }
 
     @media (max-width: 768px) { nav.core-nav { display: none; } .hamburger { display: block; } }
@@ -54,8 +54,8 @@
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   <nav class="nav-drawer" id="nav-drawer">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:#fff;">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+      <strong style="color: var(--text-inverse);">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color: var(--text-inverse);font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
     <a href="/">🏠 Home</a>
     <a href="/tenant/journal">� Journal</a>
@@ -166,7 +166,7 @@
     <h2>11. Contact</h2>
     <p>For privacy questions or data requests, contact us at <a href="mailto:privacy@semptify.org">privacy@semptify.org</a>.</p>
 
-    <p style="margin-top:3rem;font-size:0.85rem;color:#888;">This privacy policy is a living document. Semptify is built on the principle that your data belongs to you. If we ever need to change that, we will tell you plainly and give you a choice.</p>
+    <p style="margin-top:3rem;font-size:0.85rem;color: var(--text-muted);">This privacy policy is a living document. Semptify is built on the principle that your data belongs to you. If we ever need to change that, we will tell you plainly and give you a choice.</p>
   </div>
 
   <footer style="background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); padding: 2rem 1.5rem; margin-top: 2rem;">
@@ -194,12 +194,12 @@
           </ul>
         </div>
       </div>
-      <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-block); margin-bottom: 1.5rem;">
+      <div style="background: color-mix(in srgb, var(--color-white), transparent 95%); padding: 1rem; border-radius: var(--radius-block); margin-bottom: 1.5rem;">
         <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
           <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
         </p>
       </div>
-      <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: center;">
+      <div style="border-top: 1px solid color-mix(in srgb, var(--color-white), transparent 90%); padding-top: 1.5rem; text-align: center;">
         <p style="font-size: 0.85rem; margin: 0 0 0.5rem 0; opacity: 0.8;">© 2024-2026 Semptify</p>
         <p style="font-size: 0.8rem; margin: 0; opacity: 0.7;">No Cost, Always • No Ads • Open Source</p>
       </div>

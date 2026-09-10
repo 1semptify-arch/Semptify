@@ -17,7 +17,7 @@
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     color: var(--text-inverse);
     padding: 1.5rem 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--color-black), transparent 70%);
 }
 
 .header-content {
@@ -50,8 +50,8 @@
 
 .header-btn {
     padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--color-white), transparent 90%);
+    border: 1px solid color-mix(in srgb, var(--color-white), transparent 80%);
     border-radius: var(--radius-input);
     color: white;
     font-size: 0.875rem;
@@ -64,7 +64,7 @@
 }
 
 .header-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--color-white), transparent 80%);
 }
 
 .header-btn.primary {
@@ -306,7 +306,7 @@
 
 .quick-action-btn:hover {
     border-color: var(--color-accent);
-    background: rgba(59, 130, 246, 0.1);
+    background: color-mix(in srgb, var(--color-info), transparent 90%);
 }
 
 .quick-action-icon {

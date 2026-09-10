@@ -1,5 +1,14 @@
 ## Session — 2026-09-10 — 5.0 stabilization gaps (claude) — IN PROGRESS
 
+### Guardrail Engine Run — 2026-09-10T09:11:08+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Shipped this session
 
 - **Tenant timeline UI regression fixed** (commit `06a57125`):
