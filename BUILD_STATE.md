@@ -13441,3 +13441,26 @@ Set these in Render Dashboard > Service > Environment:
 At the end of every session, type `/ship` in Windsurf chat.
 It will: verify → stage → commit → push → update this file.
 Nothing is real until it is pushed.
+
+---
+
+## Session Ship — 2026-09-09 — Context Explanation Workbook complete (claude)
+
+**Branch:** orchestration/opus-setup-2026-09-09
+
+**What was shipped:**
+- Filled all 56 rows of data/context_explanation_workbook.csv with plain-language, non-advisory context-explanation prompts.
+- Five commits across five batches: starter set, batch 2, batch 3, batch 4 (HIGH-UPL), and final (safety, habitability, landing).
+- All 56 subject/pillar combinations now have mechanics, 	rust, 
+einforcement, and minimal variants.
+
+**Verification:**
+- python tools/load_explanation_workbook.py data/context_explanation_workbook.csv --dry-run: 56 rows ready, 0 skipped, 0 validation errors.
+- All HIGH and MEDIUM UPL rows direct tenants to advocates or attorneys and avoid legal-advice language.
+
+**Known working:**
+- Context explanation workbook is now a complete starter dataset ready for load_explanation_workbook.py into context_explanation_entries.
+
+**Known broken / pending:**
+- Remaining Semptify 5.0 gaps from prior gap analysis (PageEngine facade, any remaining FunctionGroupContract coverage, user-facing contract-copy expansion for new guide pages).
+
