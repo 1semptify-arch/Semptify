@@ -1308,7 +1308,11 @@ While Chapter 13 primarily applies to government entities, private landlords sho
     },
 }
 
-from app.modules.law_library.expanded_laws import EXPANDED_LAWS
+from app.modules.law_library.expanded_laws import (
+    EXPANDED_CASES,
+    EXPANDED_LAWS,
+    EXPANDED_RULES,
+)
 
 # Combine all laws into unified database
 ALL_LAWS = {
@@ -1370,6 +1374,7 @@ DAKOTA_COUNTY_RULES = {
         ],
     },
 }
+DAKOTA_COUNTY_RULES.update(EXPANDED_RULES)
 
 CASE_LAW_DATABASE = [
     {
@@ -1517,6 +1522,7 @@ CASE_LAW_DATABASE = [
         ],
     },
 ]
+CASE_LAW_DATABASE.extend(EXPANDED_CASES)
 
 
 # =============================================================================
