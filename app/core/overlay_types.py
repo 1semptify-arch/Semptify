@@ -50,6 +50,9 @@ class OverlayType(str, Enum):
     NOTE = "note"
     """Free-form note attached to document position or standalone."""
 
+    STICKY_NOTE = "sticky_note"
+    """User scratch-pad note (not attached to a specific document)."""
+
     FOOTNOTE = "footnote"
     """Numbered annotation with optional legal citation."""
 
@@ -129,6 +132,7 @@ PROCESSING_OVERLAYS: set[OverlayType] = {
 ANNOTATION_OVERLAYS: set[OverlayType] = {
     OverlayType.HIGHLIGHT,
     OverlayType.NOTE,
+    OverlayType.STICKY_NOTE,
     OverlayType.FOOTNOTE,
     OverlayType.TRACKED_EDIT,
 }

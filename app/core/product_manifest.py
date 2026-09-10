@@ -1071,6 +1071,24 @@ _register(
     dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly→monthly→weekly→daily→hourly drill-down.",
 )
 
+# Sticky Notes — per-user scratch-pad (overlay-based, no certified document)
+_register(
+    "app.modules.sticky_notes.router",
+    tags=("Sticky Notes", "Record"),
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    dev_notes="Tenant scratch-pad: copy text from any page, paste into a private notepad stored as STICKY_NOTE overlays in the user's cloud. Page route /record/notes. API /api/sticky-notes.",
+)
+
+# Law Linker v2 — official-source pop-out for citations
+_register(
+    "app.modules.law_linker.router",
+    tags=("Law Linker", "KNOW"),
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    dev_notes="Citation pop-out: click a marked citation to open a window with word-for-word official text and a Save to Scratch Pad button. API /api/law-linker/citation. Page /law-linker/pop-out.",
+)
+
 # Tactics — Legal tactics development tools
 _register(
     "app.modules.tactics.router",
@@ -1212,6 +1230,8 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.search.router",
         "app.modules.packet_builder.router",
         "app.modules.dispute_tracker.router",
+        "app.modules.sticky_notes.router",
+        "app.modules.law_linker.router",
     ],
     "advocate": [
         # Everything tenant gets
@@ -1236,6 +1256,8 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.guided_intake.router",
         "app.modules.plan_maker.router",
         "app.modules.dispute_tracker.router",
+        "app.modules.sticky_notes.router",
+        "app.modules.law_linker.router",
         # Plus collaboration
         "app.modules.document_delivery.router",
         "app.modules.communication.router",

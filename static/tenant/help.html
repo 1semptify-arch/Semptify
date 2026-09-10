@@ -4,41 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Help & Resources – Semptify</title>
+<link rel="stylesheet" href="/static/css/ssot-design-system.css">
   <style>
     :root {
-      --hdr1: #4c1d95; --hdr2: #5b21b6; --accent: #7c3aed; --accent2: #8b5cf6;
-      --light: #f5f3ff; --bg: #faf8ff; --text: #1a1a2e; --muted: #64748b;
-      --danger: #dc2626; --success: #16a34a; --warning: #d97706;
-      --border: #e2e8f0;
+      --hdr1: var(--color-primary); --hdr2: var(--color-primary); --accent: var(--color-primary-light); --accent2: var(--color-primary-light);
+      --light: var(--bg-surface); --bg: var(--bg-page); --text: var(--text-primary); --muted: var(--text-muted);
+      --danger: var(--color-error); --success: var(--color-success); --warning: var(--color-warning-800);
+      --border: var(--border-color);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
 
     /* ── Header ── */
-    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); position: sticky; top: 0; z-index: 100; }
     .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
-    .logo { font-weight: 800; font-size: 1.3rem; text-decoration: none; color: #fff; white-space: nowrap; }
+    .logo { font-weight: 800; font-size: 1.3rem; text-decoration: none; color: var(--text-inverse); white-space: nowrap; }
     nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
-    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
-    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: var(--radius-lg); font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: var(--text-inverse); }
     .header-actions { margin-left: auto; }
-    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
-    .role-banner { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; padding: 0.4rem 0; font-size: 0.82rem; text-align: center; }
+    .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
+    .role-banner { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--text-inverse); padding: 0.4rem 0; font-size: 0.82rem; text-align: center; }
 
     /* ── Emergency Banner ── */
-    .emergency-banner { background: linear-gradient(135deg, #b91c1c, #991b1b); padding: 0.85rem 1.5rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap; }
-    .emergency-banner strong { color: #fff; font-size: 0.9rem; }
-    .emergency-banner a { color: #fff; text-decoration: none; padding: 0.4rem 0.9rem; background: rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
+    .emergency-banner { background: linear-gradient(135deg, var(--color-error), var(--color-error-800)); padding: 0.85rem 1.5rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .emergency-banner strong { color: var(--text-inverse); font-size: 0.9rem; }
+    .emergency-banner a { color: var(--text-inverse); text-decoration: none; padding: 0.4rem 0.9rem; background: rgba(255,255,255,0.2); border-radius: var(--radius-lg); font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
     .emergency-banner a:hover { background: rgba(255,255,255,0.35); }
 
     /* ── Page Hero ── */
-    .hero { background: linear-gradient(160deg, #ede9fe 0%, var(--bg) 60%); padding: 2.5rem 1.5rem 1.5rem; text-align: center; }
+    .hero { background: linear-gradient(160deg, var(--bg-surface) 0%, var(--bg) 60%); padding: 2.5rem 1.5rem 1.5rem; text-align: center; }
     .hero h1 { font-size: 1.9rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.5rem; }
     .hero p { color: var(--muted); max-width: 560px; margin: 0 auto 1.5rem; line-height: 1.6; }
 
     /* ── Search ── */
     .search-wrap { max-width: 600px; margin: 0 auto 0; }
-    .search-wrap input { width: 100%; padding: 0.85rem 1.25rem; font-size: 1rem; border: 2px solid #ddd6fe; border-radius: 10px; outline: none; font-family: inherit; }
+    .search-wrap input { width: 100%; padding: 0.85rem 1.25rem; font-size: 1rem; border: 2px solid var(--border-color); border-radius: var(--radius-block); outline: none; font-family: inherit; }
     .search-wrap input:focus { border-color: var(--accent); }
 
     /* ── Layout ── */
@@ -48,16 +49,16 @@
 
     /* ── Journey Steps ── */
     .journey-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.85rem; }
-    .journey-step { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; text-decoration: none; color: var(--text); display: flex; align-items: center; gap: 0.85rem; transition: all 0.15s; }
+    .journey-step { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-block); padding: 1.1rem; text-decoration: none; color: var(--text); display: flex; align-items: center; gap: 0.85rem; transition: all 0.15s; }
     .journey-step:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(124,58,237,0.1); transform: translateY(-1px); }
-    .step-num { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
+    .step-num { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--text-inverse); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
     .step-body h4 { font-size: 0.92rem; font-weight: 600; margin-bottom: 0.2rem; }
     .step-body p { font-size: 0.78rem; color: var(--muted); }
 
     /* ── Cards Grid ── */
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-    .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: all 0.15s; }
-    .card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(124,58,237,0.08); }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-block); padding: 1.25rem; transition: all 0.15s; }
+    .card:hover { border-color: var(--accent); box-shadow: 0 2px 8px hsl(var(--h-primary) var(--s-primary) var(--l-primary) / 0.08); }
     .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
     .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
     .card p { color: var(--muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.85rem; }
@@ -66,24 +67,24 @@
 
     /* ── Contact Grid ── */
     .contact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-    .contact-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+    .contact-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-block); padding: 1.25rem; }
     .contact-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--hdr1); }
     .contact-card .phone { font-size: 1.3rem; font-weight: 800; color: var(--success); margin-bottom: 0.35rem; }
     .contact-card p { font-size: 0.83rem; color: var(--muted); margin-bottom: 0.35rem; line-height: 1.5; }
-    .contact-card .hours { font-size: 0.75rem; color: #94a3b8; }
+    .contact-card .hours { font-size: 0.75rem; color: var(--text-muted); }
 
     /* ── Resource Links ── */
     .resource-list { display: flex; flex-direction: column; gap: 0.6rem; }
-    .resource-link { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.1rem; background: #fff; border: 1px solid var(--border); border-radius: 8px; color: var(--text); text-decoration: none; transition: all 0.15s; }
+    .resource-link { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-block); color: var(--text); text-decoration: none; transition: all 0.15s; }
     .resource-link:hover { border-color: var(--accent); background: var(--light); }
-    .resource-link.featured { border-color: var(--accent); background: #f5f3ff; }
+    .resource-link.featured { border-color: var(--accent); background: var(--bg-surface); }
     .resource-icon { font-size: 1.3rem; width: 28px; flex-shrink: 0; }
     .resource-body strong { display: block; font-size: 0.92rem; }
     .resource-body p { font-size: 0.8rem; color: var(--muted); margin: 0; }
 
     /* ── FAQ ── */
     .faq-list { display: flex; flex-direction: column; gap: 0.75rem; }
-    .faq-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .faq-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-block); overflow: hidden; }
     .faq-question { padding: 1.1rem 1.25rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; user-select: none; }
     .faq-question:hover { background: var(--light); }
     .faq-chevron { font-size: 0.8rem; transition: transform 0.2s; color: var(--muted); }
@@ -94,32 +95,32 @@
     .faq-answer a { color: var(--accent); }
 
     /* ── Disclaimer ── */
-    .disclaimer { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 1rem 1.25rem; font-size: 0.82rem; color: #92400e; line-height: 1.6; margin-bottom: 2rem; }
+    .disclaimer { background: var(--color-warning-50); border: 1px solid var(--color-warning); border-radius: var(--radius-block); padding: 1rem 1.25rem; font-size: 0.82rem; color: var(--color-warning-800); line-height: 1.6; margin-bottom: 2rem; }
     .disclaimer strong { display: block; margin-bottom: 0.25rem; }
 
     /* ── Back to top ── */
-    #backToTop { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: #fff; border: none; font-size: 1.1rem; cursor: pointer; opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
+    #backToTop { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--text-inverse); border: none; font-size: 1.1rem; cursor: pointer; opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px hsl(var(--h-primary) var(--s-primary) var(--l-primary) / 0.3); }
     #backToTop.visible { opacity: 1; }
 
     /* ── Status Banner (fatal error fallback) ── */
-    .status-banner { display: none; background: linear-gradient(135deg, #b91c1c, #7f1d1d); color: #fff; padding: 1.5rem 1.5rem; text-align: center; }
+    .status-banner { display: none; background: linear-gradient(135deg, var(--color-error), var(--color-error-800)); color: var(--text-inverse); padding: 1.5rem 1.5rem; text-align: center; }
     .status-banner.show { display: block; }
     .status-banner h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.4rem; }
     .status-banner p { font-size: 0.9rem; opacity: 0.95; max-width: 600px; margin: 0 auto; line-height: 1.5; }
     .status-banner .status-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
-    .status-banner.under-construction { background: linear-gradient(135deg, #d97706, #92400e); }
-    .status-banner.maintenance { background: linear-gradient(135deg, #1e40af, #1e3a8a); }
-    .status-banner.starting { background: linear-gradient(135deg, #6b7280, #374151); }
+    .status-banner.under-construction { background: linear-gradient(135deg, var(--color-warning-800), var(--color-warning-800)); }
+    .status-banner.maintenance { background: linear-gradient(135deg, var(--color-info), var(--color-info)); }
+    .status-banner.starting { background: linear-gradient(135deg, var(--text-muted), var(--text-secondary)); }
 
     /* ── Footer ── */
     footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
     footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
-    footer a:hover { color: #fff; }
+    footer a:hover { color: var(--text-inverse); }
 
     /* ── Mobile Nav Drawer ── */
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
     .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: block; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); font-size: 1rem; display: block; }
     .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
     .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
     .drawer-backdrop.open { display: block; }
@@ -136,11 +137,11 @@
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   <nav class="nav-drawer" id="nav-drawer">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:#fff;">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+      <strong style="color:var(--bg-card);">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:var(--bg-card);font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
     <a href="/">🏠 Home</a>
-    <a href="/static/tenant/help.html" style="color:#fbbf24;font-weight:700;">🆘 Help & Resources</a>
+    <a href="/static/tenant/help.html" style="color:var(--color-warning);font-weight:700;">🆘 Help & Resources</a>
   </nav>
 
   <header>
@@ -186,7 +187,7 @@
     <!-- Legal Disclaimer -->
     <div class="disclaimer">
       <strong>⚖️ Not Legal Advice</strong>
-      This page provides educational information only — not legal advice. Laws vary by location and change over time. For advice specific to your situation, contact a licensed attorney or free legal aid. See our <a href="/public/disclaimer.html" style="color:#92400e;">full disclaimer</a>.
+      This page provides educational information only — not legal advice. Laws vary by location and change over time. For advice specific to your situation, contact a licensed attorney or free legal aid. See our <a href="/public/disclaimer.html" style="color:var(--color-warning-800);">full disclaimer</a>.
     </div>
 
     <!-- Tools (educational use only) -->
@@ -588,7 +589,7 @@
 
   <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" aria-label="Back to top">▲</button>
 
-  <footer style="background: var(--hdr1); color: #fff; padding: 2rem 1.5rem; margin-top: 3rem;">
+  <footer style="background: var(--hdr1); color: var(--text-inverse); padding: 2rem 1.5rem; margin-top: 3rem;">
     <div style="max-width: 1200px; margin: 0 auto;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
         <div>
@@ -613,7 +614,7 @@
           </ul>
         </div>
       </div>
-      <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+      <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-block); margin-bottom: 1.5rem;">
         <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
           <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
         </p>

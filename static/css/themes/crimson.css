@@ -1,3 +1,4 @@
+@import url('/static/css/ssot-design-system.css');
 /* ========================================
    THEME: CRIMSON DARK
    For: Legal dashboard
@@ -5,41 +6,33 @@
 
 [data-theme="crimson"] {
   /* Header - Burgundy to Crimson */
-  --header-bg-start: #450a0a;
-  --header-bg-end: #7f1d1d;
-  --header-accent: #991b1b;
-  --header-text: #fef2f2;
-  
+  --header-bg-start: var(--color-primary);
+  --header-bg-end: var(--color-primary-light);
+  --header-accent: var(--color-info);
+  --header-text: var(--text-inverse);
   /* Footer - Dark red to burgundy */
-  --footer-bg-start: #280505;
-  --footer-bg-end: #450a0a;
-  --footer-accent: #7f1d1d;
-  --footer-text: #fecaca;
-  
+  --footer-bg-start: var(--color-primary-dark);
+  --footer-bg-end: var(--color-primary);
+  --footer-accent: var(--color-info);
+  --footer-text: var(--text-inverse);
   /* Body - White */
-  --body-bg: #ffffff;
-  --body-text: #450a0a;
-  
+  --body-bg: var(--bg-page);
+  --body-text: var(--text-primary);
   /* Cards - Light pink */
-  --card-bg: #fef2f2;
-  --card-border: #fecaca;
-  --card-text: #450a0a;
-  
+  --card-bg: var(--bg-card);
+  --card-border: var(--border-color);
+  --card-text: var(--text-primary);
   /* Text */
-  --text-primary: #450a0a;
-  --text-secondary: #991b1b;
-  --text-muted: #dc2626;
-  
+
   /* Accents */
-  --accent-primary: #ef4444;
-  --accent-secondary: #f97316;
-  --accent-success: #22c55e;
-  --accent-warning: #f59e0b;
-  --accent-error: #dc2626;
-  
+  --accent-primary: var(--color-primary);
+  --accent-secondary: var(--color-info);
+  --accent-success: var(--color-success);
+  --accent-warning: var(--color-warning);
+  --accent-error: var(--color-error);
   /* Interactive */
-  --hover-bg: #fee2e2;
-  --focus-ring: #ef4444;
+  --hover-bg: var(--bg-surface);
+  --focus-ring: var(--color-info);
 }
 
 /* Header Gradient */

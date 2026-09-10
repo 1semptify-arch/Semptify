@@ -1,65 +1,54 @@
+@import url('/static/css/ssot-design-system.css');
 /* ========================================
    THEME: DEEP OCEAN (Default)
    For: Public pages, Admin, Onboarding
    ======================================== */
 
-[data-theme="ocean"],
-:root {
+[data-theme="ocean"] {
   /* Header - Dark Navy to Midnight Blue */
-  --header-bg-start: #0a1628;
-  --header-bg-end: #1e3a5f;
-  --header-text: #f1f5f9;
-  --header-accent: #38bdf8;
-  
+  --header-bg-start: var(--color-primary);
+  --header-bg-end: var(--color-primary-light);
+  --header-text: var(--text-inverse);
+  --header-accent: var(--color-info);
   /* Footer - Slightly lighter navy */
-  --footer-bg-start: #0f172a;
-  --footer-bg-end: #1e293b;
-  --footer-text: #e2e8f0;
-  --footer-accent: #22d3ee;
-  
+  --footer-bg-start: var(--color-primary-dark);
+  --footer-bg-end: var(--color-primary);
+  --footer-text: var(--text-inverse);
+  --footer-accent: var(--color-info);
   /* Body - White background */
-  --body-bg: #ffffff;
-  --body-text: #0f172a;
-  
+  --body-bg: var(--bg-page);
+  --body-text: var(--text-primary);
   /* Cards - Light gray */
-  --card-bg: #f8fafc;
-  --card-border: #e2e8f0;
-  --card-text: #0f172a;
-  
+  --card-bg: var(--bg-card);
+  --card-border: var(--border-color);
+  --card-text: var(--text-primary);
   /* Text hierarchy */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  
+
   /* Accents */
-  --accent-primary: #10b981;
-  --accent-secondary: #3b82f6;
-  --accent-success: #22c55e;
-  --accent-warning: #f59e0b;
-  --accent-error: #ef4444;
-  
+  --accent-primary: var(--color-primary);
+  --accent-secondary: var(--color-info);
+  --accent-success: var(--color-success);
+  --accent-warning: var(--color-warning);
+  --accent-error: var(--color-error);
   /* Interactive states */
-  --hover-bg: #f1f5f9;
-  --focus-ring: #3b82f6;
+  --hover-bg: var(--bg-surface);
+  --focus-ring: var(--color-info);
 }
 
 /* Header Gradient */
-[data-theme="ocean"] .page-header,
-:root .page-header {
+[data-theme="ocean"] .page-header {
   background: linear-gradient(135deg, var(--header-bg-start) 0%, var(--header-bg-end) 100%);
   color: var(--header-text);
 }
 
 /* Footer Gradient */
-[data-theme="ocean"] .page-footer,
-:root .page-footer {
+[data-theme="ocean"] .page-footer {
   background: linear-gradient(180deg, var(--footer-bg-start) 0%, var(--footer-bg-end) 100%);
   color: var(--footer-text);
 }
 
 /* Body */
-[data-theme="ocean"] .page-body,
-:root .page-body {
+[data-theme="ocean"] .page-body {
   background: var(--body-bg);
   color: var(--body-text);
 }

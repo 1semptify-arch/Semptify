@@ -1,4 +1,172 @@
+## Session — 2026-09-10 — Opus orchestration setup (devin)
+
+### Guardrail Engine Run — 2026-09-10T02:11:53+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-10T02:03:07+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+- **Branch:** `orchestration/opus-setup-2026-09-09`
+- **Pull Request:** #187 (https://github.com/1semptify-arch/Semptify/pull/187)
+
+### Guardrail Engine Run — 2026-09-10T01:24:05+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task 2 — Sweep and rehome files in `C:\master-repo\hand offs and temp`
+
+- **Problem**: `C:\master-repo\hand offs and temp` contained working copies of the four Opus docs plus other handoffs, duplicates, and unclassified files. Leaving them there created a second canonical source and undermined the temp/trusted-doc boundary.
+- **Fix**: Inspected each file, compared it to known canonical copies, and either rehomed or flagged it.
+  - Moved to `C:\master-repo\handoffs\`: `semptify-documentation-system-handoff.md`, `semptify-information-audit-handoff.md`, `adr_compile_handoff.json`, `orchestrator_pilot_tasks.json` (renamed with date), `swe17_research_and_placement_handoff.md`, and the current `semptify-swe-handoff-opus-setup.md` (as `orchestration-005-opus-setup-2026-09-09.md`).
+  - Deleted as duplicates: the four Opus source docs (already landed in `docs/orchestration/`), `ADR-0008-information-orchestrator.md` (identical to canonical ADR-0008), `OPERATING_MANDATE.md` (master root copy is newer), and `files.zip` (container of duplicates).
+  - Left in temp and flagged: `CLAUDE_PREFLIGHT.md`, `orchestrator_add_task_SKILL.md`, `semptify-motivations.md`, and the four 8/7 HTML prototypes. Wrote `TEMP_SWEEP_REPORT.md` explaining why each is undetermined and needs Brad's call.
+- **Verification**: `Get-ChildItem 'C:\master-repo\hand offs and temp'` now shows only the 7 flagged files plus `TEMP_SWEEP_REPORT.md`; all duplicate/contained files are gone. `C:\master-repo\handoffs\` contains the rehomed items.
+- **Status**: PASS with flags — the temp folder is swept. The master-level `handoffs/` and `hand offs and temp/` workspace changes are not committed in git (master repo has no branch and no explicit commit scope was given); they are on disk for review. Open item: whether to commit, archive, or delete the 7 remaining flagged files.
+
+### Task 3 — Verify orchestrator substrate exists and runs
+
+- **Problem**: Opus COO Charter assumes several master-level and Semptify-level orchestration components exist, run, and reflect current repo state. Before routing work through them, we needed to confirm reality.
+- **Fix**: Ran each component under `venv311`.
+  - `tools/sync_orchestrator.py` — executed successfully. Merged 92 doc-sourced tasks and 114 master-sync updates into `tools/agent_orchestrator_tasks.json` (total 206 tasks). `tools/module_registry.yaml` updated to reflect 131 modules (added `sticky_notes`, `law_linker`).
+  - `tools/workbook_bridge.py` — executed successfully; no new stub tasks to add.
+  - `tools/mark_task_status.py` — invoked with `--help`; CLI is operational.
+  - `tools/guardrail_engine.py` — executed under `venv311`; all 4 checks pass. Running under system Python (3.14) fails due to missing venv packages; this is an environment issue, not a guardrail bug.
+- **Verification**:
+  - `sync_orchestrator.py` exit 0 and produced `OK: 0 stub(s) in stub_tasks_new.json, 206 task(s) in agent_orchestrator_tasks.json (0 missing paths).`
+  - `workbook_bridge.py` exit 0 and wrote 0 new tasks.
+  - `mark_task_status.py --help` exit 0 and prints usage.
+  - `guardrail_engine.py` exit 0, all checks passed.
+- **Status**: PASS — Semptify-level substrate runs. Open item: `tools/orchestrator_state.json` and `tools/active_subagents.json` live at master-repo level, are stale, and do not include the current opus-setup work (flagged in open items).
+
+### Task 4 — Verify canonical SSOT docs are current and non-conflicting
+
+- **Problem**: The Opus COO Charter and the four new orchestration docs must not contradict the canonical SSOT documents.
+- **Fix**: Compared the new docs against `NAMING_SSOT_DICTIONARY.md` (master root), `SEMPTIFY_REFERENCE_LIBRARY.md` (master root), and `BUILD_STATE.md` (Semptify module).
+- **Verification**:
+  - `NAMING_SSOT_DICTIONARY.md` exists and is current; no Opus/orchestrator entries yet, but the language rules in it (no "free", no business-model terms) are consistent with `vision-brief-for-opus.md` and `opus-coo-charter.md`.
+  - `SEMPTIFY_REFERENCE_LIBRARY.md` exists and is current; it explicitly distinguishes the four internal pillars (`RECORD/KNOW/ACT/GOVERN`) from the six public mission pillars, which matches `opus-coo-charter.md`. It also repeats the public language rules.
+  - `BUILD_STATE.md` exists in the Semptify module and is current. It is **missing** at `C:\master-repo\BUILD_STATE.md`; the Opus charter refers to `BUILD_STATE.md` without resolving which path is canonical. Flagged as open item.
+  - One pre-existing contradiction found in `SEMPTIFY_REFERENCE_LIBRARY.md`: line 618 describes "Semptify Go" as a "free, open-source mobile web app... Free forever." while the same file's standing language rules (line 453) say "NEVER use the word 'free' when describing Semptify itself." This is not caused by the new docs, but it is a live SSOT contradiction and should be Brad's call (merge/retire/archive).
+- **Status**: PASS with flags — no conflicts introduced by the new docs, but two SSOT state issues need Brad's decision (master `BUILD_STATE.md` missing, `SEMPTIFY_REFERENCE_LIBRARY.md` "free" contradiction).
+
+### Task 5 — Make Documentation Reconciliation Pass recurring
+
+- **Problem**: The Documentation Staleness Protocol calls for a recurring pass that pulls canonical SSOT docs, sweeps handoff/temp folders, scans for contradictions, and does not silently merge old/new content. The existing `recurring_scheduler.py` only ran a timestamp-based staleness check and did not cover the rest of the protocol.
+- **Fix**: Extended the existing `docs-staleness` job in `tools/recurring_scheduler.py` and `tools/docs_staleness_check.py` so they are one system, not two overlapping ones.
+  - `tools/docs_staleness_check.py` now appends a "Documentation Reconciliation Pass" section to `docs/STALENESS-REPORT.md`.
+  - That section checks the three canonical SSOT docs (`NAMING_SSOT_DICTIONARY.md`, `SEMPTIFY_REFERENCE_LIBRARY.md`, `BUILD_STATE.md`), lists handoff/temp folder contents (both `C:\master-repo\hand offs and temp` and `C:\master-repo\New hand offs and zips`), runs a flag-only contradiction scan for "free" and business-model/account language, and checks the known risk areas named in the protocol.
+  - `tools/recurring_scheduler.py` updated the `docs-staleness` job description and still invokes the same script.
+- **Verification**:
+  - `python tools/docs_staleness_check.py` (under venv311) exit 0 and wrote `docs/STALENESS-REPORT.md` with the new reconciliation section.
+  - `python tools/recurring_scheduler.py --list` shows the job registered with the new description.
+  - `python tools/recurring_scheduler.py --run docs-staleness` exit 0 and wrote `tools/.recurring_scheduler_state.json` with a `docs-staleness` last-run timestamp.
+  - `python tools/recurring_scheduler.py --run-due --dry-run` shows the scheduler evaluates due dates and would run other jobs without re-running `docs-staleness` (it just ran).
+- **Status**: PASS — the recurring pass is wired into the existing scheduler. It would fire automatically on its 7-day cadence without manual re-triggering. The flag-only scans need human review before any archive/delete.
+
+### Task 6 — Confirm agent trust-tier routing matches Opus COO Charter
+
+- **Problem**: The Opus COO Charter lays out a specific trust tier (Opus as highest, SWE-1.7 full trust, GLM 5.2 non-security only, Devin for coding/autonomous work). This must match the actual queues and code.
+- **Fix**: Audited the active routing layers.
+  - Master queue `C:\master-repo\tools\orchestrator_state.json`: 196 `model_tier: unlimited`, 43 `claude`, 24 `unassigned`. `unlimited` maps to a Claude session per `C:\master-repo\AGENTS.md`. No `SWE-1.7`, `GLM 5.2`, or `Opus` tiers appear.
+  - Semptify queue `tools/agent_orchestrator_tasks.json` (after sync): 165 `unlimited`, 21 `claude`, 17 `unassigned`, plus 2 legacy `swe-1.7` and 1 `glm-5.2` (resolved planning task). No `Opus`.
+  - Semptify `tools/workbook_bridge.py`: assigns `swe-1.7`, `swe-1.6`, `glm-5.2`, and `kimi-2.7` by category/priority. Low-priority stub fixes default to `glm-5.2`, including any that may touch security-sensitive code — this contradicts the charter's "GLM 5.2 non-security only" rule.
+  - `tools/sync_orchestrator.py` maps master `model_tier` directly to Semptify `target_model`, so the master `unlimited`/`claude`/`unassigned` scheme overwrites the workbook-bridge model names.
+  - `C:\master-repo\AGENTS.md` (master) states "SWE-1.7 subagent dispatch is deprecated" and says Claude now runs all tasks directly. `modules/app-semptify-fastapi/AGENTS.md` and `.devin/skills/orchestrator_dispatch/SKILL.md` still describe SWE-1.7/swe-executor as the unlimited executor. `.devin/agents/swe-executor.md` still exists and is active.
+  - `tools/mark_task_status.py` and `C:\master-repo\tools\orchestrator_mark_task.py` accept `--agent` and allow marking `resolved` regardless of agent tier. The Opus charter says agents must not self-approve; the tools do not enforce that.
+- **Verification**: Reviewed queue JSON, `workbook_bridge.py`, `sync_orchestrator.py`, `mark_task_status.py`, `orchestrator_mark_task.py`, the three `AGENTS.md`/`SKILL.md` files, and `.devin/agents/swe-executor.md`.
+- **Status**: FAIL/REROUTE NEEDED — the current queue and code do not match the Opus charter's tier names or rules. The routing model is also internally contradictory (master AGENTS deprecated SWE-1.7; Semptify/Opus still rely on it). No routing rules were changed; this is an open decision for Brad.
+
+### Open items for Brad
+
+1. **Authoritative home for orchestration docs**: Resolved — `modules/app-semptify-fastapi/docs/orchestration/` is the canonical home. The documents describe Core/Semptify orchestration and the PR already lives in this repo. Master-repo references should be short citations, not copies (per `CONVENTIONS.md`).
+2. **Master `BUILD_STATE.md` missing**: Resolved — created `C:\master-repo\BUILD_STATE.md` as a thin pointer. The Semptify module `modules/app-semptify-fastapi/BUILD_STATE.md` remains the canonical state log for Semptify Core work; the master file only points to it and notes cross-module master-level work.
+3. **Queue registration of this work**: The current `opus-setup` handoff is not in `orchestrator_state.json` or `agent_orchestrator_tasks.json`. Should it be registered post-hoc or is the handoff enough?
+4. **Temp-folder remaining files**: `CLAUDE_PREFLIGHT.md`, `orchestrator_add_task_SKILL.md`, `semptify-motivations.md`, and the four HTML prototypes still live in `hand offs and temp`. Where should they go, or can they be archived/deleted?
+5. **`SEMPTIFY_REFERENCE_LIBRARY.md` "free" contradiction**: Line 618 calls "Semptify Go" free while line 453 says never call Semptify free. Which is the intended SSOT?
+6. **Agent routing model conflict**: The Opus charter, master `AGENTS.md`, Semptify `AGENTS.md`, and `workbook_bridge.py` disagree on model names and which tier is allowed to do what. Brad needs to pick one canonical scheme so we can update `AGENTS.md`, `workbook_bridge.py`, `sync_orchestrator.py`, and the queues.
+7. **Self-approval enforcement**: `mark_task_status.py` and `orchestrator_mark_task.py` let any agent mark `resolved`. If the charter's "no self-approval" rule is real, the tools should enforce it.
+8. **`.gitignore` typo**: `hand offs and temop/` is a misspelling of `hand offs and temp/`. Should the actual temp folder be ignored?
+
+## Session — 2026-09-09 — Law Linker v2 implementation (claude)
+
+### Guardrail Engine Run — 2026-09-10T01:24:05+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-10T01:23:40+00:00
+
+- **contract_route_check**: FAIL — Contract loader failed: 80 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-09-09T06:09:02+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-09T03:44:38+00:00
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+All checks passed.
+
+### Shipped this session
+
+- **Law Linker v2** (commit `3642df67`):
+  - Added `app.modules.law_linker` router/service with `/api/law-linker/citation`.
+  - Added official-source fetch/caching for Minnesota Statutes from `revisor.mn.gov`.
+  - Added `/law-linker/pop-out` page with source metadata, disclaimer, and "Copy to Scratch Pad" action.
+  - Updated `static/js/law-linker.js` to mark citations on any text surface, with hover preview, click-to-pop-out, and right-click "Copy to Scratch Pad" that writes overlay-only `STICKY_NOTE` items.
+  - Wired Law Library as the first tenant-facing surface; dynamic content is marked via a MutationObserver.
+  - Registered the module in `app.core.product_manifest` and capability defaults.
+
+### Notes
+
+- Unauthenticated testing confirmed the pop-out is gated and the scratch-pad action returns 401 as expected.
+- The long-run `/api/location/current` network call was removed from the client; best-effort jurisdiction defaults to MN.
+
 ## Session — 2026-09-08 — Onboarding compliance + spec drafting (devin-swe17)
+
+### Guardrail Engine Run — 2026-09-09T03:44:38+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Shipped this session
 
@@ -13291,3 +13459,27 @@ Set these in Render Dashboard > Service > Environment:
 At the end of every session, type `/ship` in Windsurf chat.
 It will: verify → stage → commit → push → update this file.
 Nothing is real until it is pushed.
+
+---
+
+## Session Ship — 2026-09-09 — Context Explanation Workbook complete (claude)
+
+**Branch:** orchestration/opus-setup-2026-09-09
+
+**What was shipped:**
+- Filled all 56 rows of data/context_explanation_workbook.csv with plain-language, non-advisory context-explanation prompts.
+- Five commits across five batches: starter set, batch 2, batch 3, batch 4 (HIGH-UPL), and final (safety, habitability, landing).
+- All 56 subject/pillar combinations now have mechanics, trust, reinforcement, and minimal variants.
+- Pushed branch `orchestration/opus-setup-2026-09-09` to `github-direct`; no branch-protection error.
+
+**Verification:**
+- `python tools/load_explanation_workbook.py data/context_explanation_workbook.csv --dry-run`: 56 rows ready, 0 skipped, 0 validation errors.
+- All HIGH and MEDIUM UPL rows direct tenants to advocates or attorneys and avoid legal-advice language.
+
+**Known working:**
+- Context explanation workbook is now a complete starter dataset ready for `load_explanation_workbook.py` into `context_explanation_entries`.
+
+**Known broken / pending:**
+- Remaining Semptify 5.0 gaps from prior gap analysis (PageEngine facade, any remaining FunctionGroupContract coverage, user-facing contract-copy expansion for new guide pages).
+- Branch `orchestration/opus-setup-2026-09-09` needs merge into `main`.
+

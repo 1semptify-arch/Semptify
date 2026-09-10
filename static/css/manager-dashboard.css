@@ -2,10 +2,11 @@
  * Manager Dashboard Styles
  * ========================
  * External CSS for manager/agency dashboard page.
- * 
+ *
  * Usage: Include in base template or link directly:
  * <link rel="stylesheet" href="/static/css/manager-dashboard.css">
  */
+@import url('/static/css/ssot-design-system.css');
 
 .manager-dashboard {
     min-height: 100vh;
@@ -13,8 +14,8 @@
 }
 
 .dashboard-header {
-    background: linear-gradient(135deg, #475569 0%, #334155 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    color: var(--text-inverse);
     padding: 1.5rem 2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -229,18 +230,18 @@
 }
 
 .status-active {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
+    background: hsl(var(--h-success) var(--s-success) var(--l-success) / 0.2);
+    color: var(--color-success);
 }
 
 .status-pending {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fbbf24;
+    background: hsl(var(--h-warning) var(--s-warning) var(--l-warning) / 0.2);
+    color: var(--color-warning);
 }
 
 .status-urgent {
-    background: rgba(239, 68, 68, 0.2);
-    color: #f87171;
+    background: hsl(var(--h-error) var(--s-error) var(--l-error) / 0.2);
+    color: var(--color-error);
 }
 
 /* Staff List */

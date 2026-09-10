@@ -4,42 +4,42 @@
    ======================================== */
 
 [data-theme="royal"] {
-  /* Header - Purple gradient */
-  --header-bg-start: #2e1065;
-  --header-bg-end: #4c1d95;
-  --header-accent: #6d28d9;
-  --header-text: #faf5ff;
-  
-  /* Footer - Deep purple to indigo */
-  --footer-bg-start: #1e1b4b;
-  --footer-bg-end: #312e81;
-  --footer-accent: #4338ca;
-  --footer-text: #e0e7ff;
-  
-  /* Body - White */
-  --body-bg: #ffffff;
-  --body-text: #2e1065;
-  
-  /* Cards - Light purple */
-  --card-bg: #faf5ff;
-  --card-border: #e9d5ff;
-  --card-text: #2e1065;
-  
-  /* Text */
-  --text-primary: #2e1065;
-  --text-secondary: #6b21a8;
-  --text-muted: #9333ea;
-  
+  /* Header - Warm primary gradient */
+  --header-bg-start: var(--color-primary);
+  --header-bg-end: var(--color-primary);
+  --header-accent: var(--color-primary-light);
+  --header-text: var(--text-inverse);
+
+  /* Footer - Warm primary gradient */
+  --footer-bg-start: var(--color-primary);
+  --footer-bg-end: var(--color-primary);
+  --footer-accent: var(--color-primary-light);
+  --footer-text: var(--text-inverse);
+
+  /* Body */
+  --body-bg: var(--bg-page);
+  --body-text: var(--text-primary);
+
+  /* Cards */
+  --card-bg: var(--bg-card);
+  --card-border: var(--border-color);
+  --card-text: var(--text-primary);
+
+  /* Text (shadows SSOT within this theme scope) */
+  --text-primary: var(--color-primary);
+  --text-secondary: var(--text-muted);
+  --text-muted: var(--color-primary-light);
+
   /* Accents */
-  --accent-primary: #8b5cf6;
-  --accent-secondary: #ec4899;
-  --accent-success: #22c55e;
-  --accent-warning: #f59e0b;
-  --accent-error: #ef4444;
-  
+  --accent-primary: var(--color-primary);
+  --accent-secondary: var(--color-accent);
+  --accent-success: var(--color-success);
+  --accent-warning: var(--color-warning);
+  --accent-error: var(--color-error);
+
   /* Interactive */
-  --hover-bg: #f3e8ff;
-  --focus-ring: #8b5cf6;
+  --hover-bg: var(--bg-surface);
+  --focus-ring: var(--color-primary-light);
 }
 
 /* Header Gradient */

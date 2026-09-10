@@ -346,24 +346,34 @@ document.addEventListener('DOMContentLoaded', async function() {
     try {
         // Get auto mode status
         const statusResponse = await fetch('/api/auto-mode/status');
+        if (!statusResponse.ok) {
+            console.warn('Auto mode status endpoint returned', statusResponse.status);
+            return;
+        }
         const status = await statusResponse.json();
-        
+        if (!status || typeof status !== 'object') {
+            console.warn('Auto mode status response was not an object:', status);
+            return;
+        }
+
         // Update UI with status
         document.getElementById('auto-mode-status').textContent = status.enabled ? '✅ Enabled' : '⏸️ Disabled';
         document.getElementById('auto-mode-toggle').checked = status.enabled;
         document.getElementById('toggle-status').textContent = status.enabled ? 'Enabled' : 'Disabled';
         document.getElementById('last-analysis').textContent = status.last_analysis || 'Never';
-        document.getElementById('analysis-count').textContent = status.analysis_count;
+        document.getElementById('analysis-count').textContent = status.analysis_count || '0';
 
         // Set feature checkboxes
         let enabledCount = 0;
-        Object.keys(status.config).forEach(feature => {
-            const checkbox = document.querySelector(`[data-feature="${feature}"]`);
-            if (checkbox) {
-                checkbox.checked = status.config[feature];
-                if (status.config[feature]) enabledCount++;
-            }
-        });
+        if (status.config && typeof status.config === 'object') {
+            Object.keys(status.config).forEach(feature => {
+                const checkbox = document.querySelector(`[data-feature="${feature}"]`);
+                if (checkbox) {
+                    checkbox.checked = status.config[feature];
+                    if (status.config[feature]) enabledCount++;
+                }
+            });
+        }
         document.getElementById('features-count').textContent = `${enabledCount}/6`;
 
     } catch (error) {

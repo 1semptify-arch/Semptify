@@ -10,6 +10,12 @@ This is the first job of the recurring internal scheduler. It reads
 code path against the most recent git commit touching the doc file, and flags
 docs whose code changed more recently than the doc by at least the threshold.
 
+It also runs the Documentation Reconciliation Pass described in
+`docs/orchestration/documentation-staleness-protocol.md`: it checks the three
+canonical SSOT docs, sweeps handoff/temp folders, and scans for lightweight,
+flag-only contradictions in public-facing copy. Nothing is archived or deleted
+automatically — the report is for the designated reviewer.
+
 Output is `docs/STALENESS-REPORT.md`. The script does NOT commit the report —
 that is left for the designated reviewer.
 """
@@ -18,15 +24,43 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import re
 import subprocess
 from pathlib import Path
 
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+# Semptify repo is at C:\master-repo\modules\app-semptify-fastapi; master superproject is two levels above.
+MASTER_ROOT = REPO_ROOT.parent.parent
 DOC_MAP_PATH = REPO_ROOT / "docs" / "doc-map.yaml"
 REPORT_PATH = REPO_ROOT / "docs" / "STALENESS-REPORT.md"
 DEFAULT_THRESHOLD_DAYS = 21
+
+# Canonical SSOT docs required by the Documentation Staleness Protocol.
+CANONICAL_DOCS = {
+    "NAMING_SSOT_DICTIONARY.md": MASTER_ROOT / "NAMING_SSOT_DICTIONARY.md",
+    "SEMPTIFY_REFERENCE_LIBRARY.md": MASTER_ROOT / "SEMPTIFY_REFERENCE_LIBRARY.md",
+    "BUILD_STATE.md": REPO_ROOT / "BUILD_STATE.md",
+}
+
+# Handoff/temp folders that the recurring reconciliation pass must inspect.
+TEMP_FOLDERS = [
+    MASTER_ROOT / "hand offs and temp",
+    MASTER_ROOT / "New hand offs and zips",
+]
+
+# Known risk areas listed in docs/orchestration/documentation-staleness-protocol.md.
+# The pass checks whether these still exist so the next reviewer knows where to look.
+RISK_AREAS = [
+    ("footer parallel implementations", [
+        REPO_ROOT / "app/templates/base.html",
+        REPO_ROOT / "static/js/unified-footer-loader.js",
+        REPO_ROOT / "app/templates/components/footer.html",
+    ]),
+    ("gap_report.py", [REPO_ROOT / "tools" / "gap_report.py"]),
+    ("legacy pages audit", [MASTER_ROOT / "LEGACY_PAGES_AUDIT.md"]),
+]
 
 
 def _git_last_commit_time(path: Path) -> datetime.datetime | None:
@@ -114,6 +148,140 @@ def _compute_staleness(threshold_days: int) -> list[dict]:
     return flagged
 
 
+def _canonical_doc_status() -> str:
+    """Report whether the three canonical SSOT docs exist and are tracked."""
+    lines = ["### Canonical SSOT docs", ""]
+    for name, path in CANONICAL_DOCS.items():
+        if not path.exists():
+            lines.append(f"- **{name}**: MISSING at `{path}`")
+            continue
+        t = _git_last_commit_time(path)
+        age = "unknown"
+        if t is not None:
+            age = t.strftime("%Y-%m-%d")
+        lines.append(f"- **{name}**: present, last commit `{age}` (`{path}`)")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _handoff_temp_sweep() -> str:
+    """List remaining handoff/temp files; reconciliation is not auto-deletion."""
+    lines = ["### Handoff / temp folder sweep", ""]
+    for folder in TEMP_FOLDERS:
+        if not folder.exists():
+            lines.append(f"- `{folder}`: does not exist")
+            continue
+        entries = [p for p in folder.iterdir()]
+        if not entries:
+            lines.append(f"- `{folder}`: empty")
+        else:
+            lines.append(f"- `{folder}`: {len(entries)} item(s)")
+            for entry in sorted(entries, key=lambda p: p.name.lower()):
+                marker = " (flagged — undetermined)" if entry.is_file() and entry.name != "TEMP_SWEEP_REPORT.md" else ""
+                lines.append(f"  - `{entry.name}`{marker}")
+    report = MASTER_ROOT / "hand offs and temp" / "TEMP_SWEEP_REPORT.md"
+    if report.exists():
+        lines.append("")
+        lines.append(f"- Sweep report exists: `{report}`")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _ssot_contradiction_scan() -> str:
+    """First-pass, flag-only scan for known SSOT language contradictions.
+
+    This is intentionally lightweight. It does not archive or delete anything.
+    A human/agent must review each match and decide whether the SSOT or the
+    occurrence is the one that is outdated.
+    """
+    lines = ["### SSOT contradiction scan (flag-only)", ""]
+
+    # Pattern: the word "free" used to describe a Semptify product/offering.
+    # We scan only selected public-facing / guidance docs and templates.
+    free_pattern = re.compile(r"\bfree\b", re.IGNORECASE)
+    scan_targets = [
+        REPO_ROOT / "docs" / "user-guides" / "USER_GUIDE.md",
+        REPO_ROOT / "app" / "templates" / "index.html",
+        REPO_ROOT / "app" / "templates" / "public_base.html",
+        MASTER_ROOT / "SEMPTIFY_REFERENCE_LIBRARY.md",
+    ]
+    free_matches: list[str] = []
+    for target in scan_targets:
+        if not target.exists():
+            continue
+        try:
+            text = target.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for i, raw_line in enumerate(text.splitlines(), 1):
+            if free_pattern.search(raw_line):
+                free_matches.append(f"- `{target.relative_to(MASTER_ROOT if target.is_relative_to(MASTER_ROOT) else REPO_ROOT)}:{i}`: {raw_line.strip()[:120]}")
+
+    if free_matches:
+        lines.append("**Matches for 'free' (review whether it describes Semptify itself):**")
+        lines.extend(free_matches[:20])
+        if len(free_matches) > 20:
+            lines.append(f"- ... and {len(free_matches) - 20} more matches")
+    else:
+        lines.append("- No 'free' matches in scanned targets.")
+    lines.append("")
+
+    # Pattern: business-model/account language in public-facing templates.
+    login_pattern = re.compile(r"\b(log\s*in|login|sign\s*up|sign-up|account|subscription|premium|pricing|trial)\b", re.IGNORECASE)
+    login_matches: list[str] = []
+    public_templates_dir = REPO_ROOT / "app" / "templates" / "public"
+    if public_templates_dir.exists():
+        for target in sorted(public_templates_dir.rglob("*.html")):
+            try:
+                text = target.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            for i, raw_line in enumerate(text.splitlines(), 1):
+                if login_pattern.search(raw_line):
+                    login_matches.append(f"- `{target.relative_to(REPO_ROOT)}:{i}`: {raw_line.strip()[:120]}")
+
+    if login_matches:
+        lines.append("**Matches for business-model / account language in public templates (review for public-facing copy):**")
+        lines.extend(login_matches[:20])
+        if len(login_matches) > 20:
+            lines.append(f"- ... and {len(login_matches) - 20} more matches")
+    else:
+        lines.append("- No account/login/pricing language matches in public templates.")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _known_risk_area_check() -> str:
+    """Surface whether the risk areas named in the Staleness Protocol are still present."""
+    lines = ["### Known risk area check", ""]
+    for label, paths in RISK_AREAS:
+        present = [str(p.relative_to(REPO_ROOT if p.is_relative_to(REPO_ROOT) else MASTER_ROOT)) for p in paths if p.exists()]
+        missing = [str(p) for p in paths if not p.exists()]
+        if present:
+            lines.append(f"- **{label}**: still present — {', '.join(present)}")
+        if missing:
+            lines.append(f"- **{label}**: not found — {', '.join(missing)}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _reconciliation_report() -> str:
+    """Assemble the Documentation Reconciliation Pass section."""
+    sections = [
+        "## Documentation Reconciliation Pass",
+        "",
+        "This section is generated by the recurring `docs-staleness` job. It does not",
+        "auto-archive or auto-delete; it flags candidate contradictions and stale temp",
+        "files so the next reviewer can decide, per the Staleness Protocol.",
+        "",
+        _canonical_doc_status(),
+        _handoff_temp_sweep(),
+        _ssot_contradiction_scan(),
+        _known_risk_area_check(),
+    ]
+    return "\n".join(sections)
+
+
 def _format_time(t: datetime.datetime | None) -> str:
     if t is None:
         return "unknown"
@@ -171,6 +339,8 @@ def _generate_report(flagged: list[dict], threshold_days: int) -> str:
         lines.append("")
 
     lines.append("---")
+    lines.append("")
+    lines.append(_reconciliation_report())
     lines.append("")
     lines.append("Run `python tools/docs_staleness_check.py` to regenerate this report.")
     lines.append("")
