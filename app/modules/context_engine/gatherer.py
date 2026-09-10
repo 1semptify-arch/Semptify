@@ -6,6 +6,7 @@ Every fact must have a source URL — no hallucination.
 
 import logging
 import re
+from datetime import date as _date
 
 from app.modules.context_engine.cache import upsert_fact
 from app.modules.context_engine.models import ContextFact
@@ -84,7 +85,8 @@ async def gather_law_library_facts(
         if not source_url:
             continue
 
-        claim = f"{law.get('title', '')}: {law.get('summary', '')}".strip(": ")
+        citation = law.get("citation")
+        claim = citation or law.get("title", "")
         if not claim:
             continue
 
@@ -94,9 +96,18 @@ async def gather_law_library_facts(
             claim=claim,
             source_url=source_url,
             source_name=law.get("source_name", "Law Library"),
-            citation=law.get("citation"),
+            source_authority=law.get("source_name", "Law Library"),
+            citation=citation,
             canonical_value=law_id,
             extraction_pattern=law.get("category"),
+            fact_id=law_id,
+            taxonomy_subject=law.get("category", subject),
+            resolution_status="Resolved",
+            resolution_method="law_source_registry",
+            resolved_date=law.get("last_verified"),
+            last_verified_date=law.get("last_verified"),
+            ai_generated=False,
+            fabrication_check=True,
         )
         facts.append(fact)
         if len(facts) >= limit:
@@ -139,14 +150,22 @@ async def gather_for_subject(
                 source_url = resp.get("source_url", "")
                 if not source_url:
                     return facts
+                citation = f"Minn. Stat. § {section}"
                 facts.append(
                     await upsert_fact(
                         subject=subject,
                         jurisdiction=jurisdiction,
-                        claim=resp.get("title") or f"Minn. Stat. § {section}",
+                        claim=citation,
                         source_url=source_url,
                         source_name="MN Revisor of Statutes",
-                        citation=f"Minn. Stat. § {section}",
+                        source_authority="MN Revisor of Statutes",
+                        citation=citation,
+                        resolution_status="Resolved",
+                        resolution_method="mn_statute_search",
+                        resolved_date=str(_date.today()),
+                        last_verified_date=str(_date.today()),
+                        ai_generated=False,
+                        fabrication_check=True,
                     )
                 )
 
