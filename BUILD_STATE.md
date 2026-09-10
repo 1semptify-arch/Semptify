@@ -1,3 +1,33 @@
+## Session — 2026-09-10 — 5.0 stability sweep (claude)
+
+### Goal
+Post-ship pass over the 5.0 main branch to confirm runtime health, route availability,
+Part 3B fact quarantine, and no lingering guardrail/test failures.
+
+### Verification
+- `tools/guardrail_engine.py`: 7/7 PASS
+- `pytest tests/module_health -q --no-cov`: 246 passed in 423.53s
+- Route smoke (HTTP status):
+  - `/healthz`: 200
+  - `/`: 200
+  - `/law-library`: 200
+  - `/tenant`: 200
+  - `/tenant/home`: 200
+  - `/tenant/timeline`: 200
+  - `/about`, `/contact`, `/terms`, `/privacy`: 200
+  - `/admin`: 401 (expected, requires auth)
+- `context_facts` Part 3B health:
+  - Total facts: 114
+  - Resolved, non-AI, fabrication-checked: 110
+  - Unresolved / quarantined: 4 (landing-page stats awaiting RIIE attestation)
+- Browser preview: `/law-library` served successfully; law facts resolve to official source URLs.
+
+### Notes
+- 4 unresolved facts are pre-Part-3B landing-page statistics. They remain quarantined
+  (`ai_generated=1`, `resolution_status=Unresolved`) and do not surface through consumer
+  endpoints until they clear the Resource Intake & Integrity Engine / law-source pipeline.
+- No broken public routes, no failing tests, no guardrail regressions.
+
 ## Session — 2026-09-10 — Build Contract implementation (claude)
 
 ### Guardrail Engine Run — 2026-09-10T21:46:26+00:00
