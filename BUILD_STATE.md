@@ -44,9 +44,30 @@ All checks passed.
 - **Local OCR** is unavailable because `tesseract` is not installed in the dev environment.
 - **Route audit** reports 11 uncovered public routes (pre-existing; see recent logs).
 
-### Next
+### Tasks 6–9 (continued)
 
-Continue Tasks 6–9 (export/file generation, known open issues, data-layer health, Document Center function inventory) and close out this verification pass.
+- **Task 6 — Export/file generation**: `tests/module_health/test_export_import.py` 1/1; `tests/test_case_builder.py` + `tests/test_eviction_case_builder.py` 38 passed, 9 skipped (all skips are provider-specific). Case-building and export file generation pass.
+- **Task 7 — Known open issues status**:
+  - `_encrypt_string` import in `conftest.py` — **fixed** (commit `fa13ddad`).
+  - `test_tenant_timeline_renders_eviction_event` UI test — **still failing** (pre-existing UI/template regression; API layer is correct).
+  - `Route audit: 11 uncovered public routes` — still present (debug/admin routes + landing/i18n; pre-existing, not mechanics).
+  - `feature_flags` table warning in test runs — falls back to cache; not a runtime failure.
+- **Task 8 — Data layer healthy**: Guardrail engine 4/4 PASS; `tests/module_health` full suite 246/246 passed. Local SQLite path is healthy. Neon/R2 live reachability cannot be verified from this sandbox.
+- **Task 9 — Document Center function inventory**: `app/modules/document_center/router.py` exposes 16 documented endpoints (document-types, list, unlocks, overlays, reprocess, view, explain, type, review-state, share, shared-content, etc.); `app/modules/document_center/tests/test_dc_smoke.py` 22/22 passed. Key internal helpers (`_fetch_real_overlays`, `_get_pipeline_status`, `_build_progress_from_real`, `_compute_unlocks`) are present and exercised by smoke tests. No new issues found.
+
+### Summary signals
+
+1. **Four MVP mechanics confirmed**: storage reconnect path OK; document upload/framing OK; overlay creation OK; record/timeline logging OK.
+2. **Document Center inventory**: ready — 22/22 smoke tests pass, endpoints documented, no flagged functions beyond the vault/timeline structural gap noted below.
+
+### Hard flags requiring Brad sign-off
+
+- **Vault/timeline structural gap**: `vault_upload_service` writes to `vault_index` (`VaultIndexDB`/`VaultDocument`), but `app/modules/timeline/router.py` only reads `Document` (legacy notes/voice) and `VaultItem` (created only by `app/services/vault_ingestion.py`, not the upload path). Uploaded tenant documents therefore do not appear in the unified timeline. This is a cross-service integration decision, not a one-line fix.
+- **OCR binary missing locally**: `tesseract` not installed, so local scanned-PDF OCR cannot be verified; the code path is present and `pytesseract` imports.
+
+### Status
+
+Verification pass complete. Two small in-scope fixes committed. Structural vault/timeline gap and local OCR environment limitation flagged for next-step decision.
 
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
 
