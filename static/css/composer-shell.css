@@ -27,7 +27,7 @@
 }
 
 .cps__region .block {
-  background: rgba(255, 255, 255, 0.55);
+  background: color-mix(in srgb, var(--color-white), transparent 45%);
   padding: clamp(0.6rem, 1.2vh, 1rem);
   border-radius: var(--radius-block);
   border: none;

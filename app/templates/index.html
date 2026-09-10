@@ -44,12 +44,12 @@
     .landing-brand {
         font-size: var(--type-h2);
         font-weight: 700;
-        color: #ffffff;
+        color: var(--text-inverse);
         text-decoration: none;
         letter-spacing: -0.01em;
     }
 
-    .landing-brand .mark { color: #b794f6; }
+    .landing-brand .mark { color: var(--color-primary-light); }
 
     .landing-topbar__links {
         display: flex;
@@ -59,14 +59,14 @@
     }
 
     .landing-topbar__links a {
-        color: #b9c2d0;
+        color: var(--color-gray-300);
         text-decoration: none;
         font-size: var(--type-body);
     }
 
     .landing-topbar__links a:hover,
     .landing-topbar__links a:focus {
-        color: #ffffff;
+        color: var(--text-inverse);
         text-decoration: underline;
         text-underline-offset: 3px;
     }
@@ -107,7 +107,7 @@
         }
         .landing-main--with-facts .facts {
             align-self: center;
-            border-left: 1px solid rgba(255, 255, 255, 0.12);
+            border-left: 1px solid color-mix(in srgb, var(--color-white), transparent 88%);
         }
     }
 
@@ -141,7 +141,7 @@
         font-weight: var(--type-label-weight);
         text-transform: uppercase;
         letter-spacing: var(--type-label-tracking);
-        color: #b794f6;
+        color: var(--color-primary-light);
         margin: 0 0 var(--space-4);
     }
 
@@ -151,7 +151,7 @@
         line-height: 1.02;
         letter-spacing: -0.02em;
         margin: 0 0 var(--space-5);
-        color: #ffffff;
+        color: var(--text-inverse);
         max-width: 22ch;
     }
 
@@ -161,7 +161,7 @@
 
     .landing-sub {
         font-size: clamp(1.05rem, 1.7vw, 1.25rem);
-        color: #c7ced8;
+        color: var(--color-gray-300);
         max-width: 44ch;
         line-height: 1.65;
         margin: 0 0 var(--space-6);
@@ -180,7 +180,7 @@
         align-items: center;
         gap: var(--space-2);
         background: var(--color-accent);
-        color: #1a1330;
+        color: var(--text-primary);
         font-size: 1.1rem;
         font-weight: 700;
         padding: var(--space-4) var(--space-8);
@@ -191,27 +191,27 @@
     .landing-cta-primary:hover,
     .landing-cta-primary:focus {
         background: var(--color-accent-hover);
-        color: #1a1330;
+        color: var(--text-primary);
         text-decoration: none;
     }
 
     .landing-cta-note {
         font-size: var(--type-body);
-        color: #c7ced8;
+        color: var(--color-gray-300);
         margin: 0;
         max-width: 46ch;
     }
 
     .landing-cta-secondary {
         font-size: var(--type-body);
-        color: #c7ced8;
+        color: var(--color-gray-300);
         text-decoration: underline;
         text-underline-offset: 3px;
     }
 
     .landing-cta-secondary:hover,
     .landing-cta-secondary:focus {
-        color: #ffffff;
+        color: var(--text-inverse);
     }
 
     /* Facts rail: a numbered ledger — each claim gets an index numeral and a
@@ -228,13 +228,13 @@
         font-weight: var(--type-label-weight);
         text-transform: uppercase;
         letter-spacing: var(--type-label-tracking);
-        color: #b9c2d0;
+        color: var(--color-gray-300);
         margin: 0 0 var(--space-2);
     }
 
     .facts__note {
         font-size: 0.85rem;
-        color: #8b94a3;
+        color: var(--text-muted);
         margin: 0 0 var(--space-5);
         max-width: 38ch;
     }
@@ -253,8 +253,8 @@
         align-items: flex-start;
         gap: var(--space-4);
         padding: var(--space-5) 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-        color: #e2e8f0;
+        border-top: 1px solid color-mix(in srgb, var(--color-white), transparent 88%);
+        color: var(--color-gray-200);
         counter-increment: fact;
     }
 
@@ -263,7 +263,7 @@
         font-size: var(--type-h2);
         font-weight: 800;
         line-height: 1;
-        color: rgba(255, 255, 255, 0.28);
+        color: color-mix(in srgb, var(--color-white), transparent 72%);
         font-variant-numeric: tabular-nums;
         min-width: 2ch;
     }
@@ -282,14 +282,14 @@
     }
 
     .fact__source {
-        color: #8b94a3;
+        color: var(--text-muted);
         font-size: 0.85rem;
         text-decoration: none;
     }
 
     .fact__source:hover,
     .fact__source:focus {
-        color: #ffffff;
+        color: var(--text-inverse);
         text-decoration: underline;
     }
 
@@ -344,7 +344,7 @@
                 <stop offset="100%" stop-color="var(--zone-bg-inverse)" stop-opacity="0"/>
             </radialGradient>
             <pattern id="ledger-grain" width="3" height="3" patternUnits="userSpaceOnUse">
-                <rect width="3" height="3" fill="#ffffff" fill-opacity="0.012"/>
+                <rect width="3" height="3" fill="var(--color-white)" fill-opacity="0.012"/>
             </pattern>
             <pattern id="ledger-lines" width="40" height="28" patternUnits="userSpaceOnUse">
                 <line x1="0" y1="27.5" x2="40" y2="27.5" stroke="var(--color-primary-light)" stroke-opacity="0.05" stroke-width="1"/>
@@ -358,11 +358,11 @@
 
         <!-- Oversized record marks — faint paragraph glyphs and a check,
              the vocabulary of a verified record. -->
-        <g fill="#93c5fd" fill-opacity="0.05" font-family="Georgia, 'Times New Roman', serif" font-weight="bold">
+        <g fill="var(--color-info)" fill-opacity="0.05" font-family="Georgia, 'Times New Roman', serif" font-weight="bold">
             <text x="1120" y="240" font-size="340">¶</text>
             <text x="120" y="800" font-size="280">§</text>
         </g>
-        <g stroke="#34d399" stroke-opacity="0.10" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <g stroke="var(--color-success)" stroke-opacity="0.10" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <path d="M1180 640 l44 44 96 -104"/>
         </g>
     </svg>
