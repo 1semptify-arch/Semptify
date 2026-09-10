@@ -78,7 +78,7 @@ All checks passed.
 ### Open items for Brad
 
 1. **Authoritative home for orchestration docs**: Resolved — `modules/app-semptify-fastapi/docs/orchestration/` is the canonical home. The documents describe Core/Semptify orchestration and the PR already lives in this repo. Master-repo references should be short citations, not copies (per `CONVENTIONS.md`).
-2. **Master `BUILD_STATE.md` missing**: The Opus charter references `BUILD_STATE.md` but `C:\master-repo\BUILD_STATE.md` does not exist. Is the Semptify module `BUILD_STATE.md` the canonical one, or should a master one be created?
+2. **Master `BUILD_STATE.md` missing**: Resolved — created `C:\master-repo\BUILD_STATE.md` as a thin pointer. The Semptify module `modules/app-semptify-fastapi/BUILD_STATE.md` remains the canonical state log for Semptify Core work; the master file only points to it and notes cross-module master-level work.
 3. **Queue registration of this work**: The current `opus-setup` handoff is not in `orchestrator_state.json` or `agent_orchestrator_tasks.json`. Should it be registered post-hoc or is the handoff enough?
 4. **Temp-folder remaining files**: `CLAUDE_PREFLIGHT.md`, `orchestrator_add_task_SKILL.md`, `semptify-motivations.md`, and the four HTML prototypes still live in `hand offs and temp`. Where should they go, or can they be archived/deleted?
 5. **`SEMPTIFY_REFERENCE_LIBRARY.md` "free" contradiction**: Line 618 calls "Semptify Go" free while line 453 says never call Semptify free. Which is the intended SSOT?
