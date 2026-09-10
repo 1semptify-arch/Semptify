@@ -48,6 +48,8 @@
   --color-error-50: #fef2f2;
   --color-error-800: #991b1b;
   --color-info: #3b82f6;
+  --color-info-50: #eff6ff;
+  --color-info-800: #1e40af;
 
   /* Calm Baseline + Reserved Alarm (Task 1 — Master Handoff)
      Alarm color is reserved for genuine urgency only: real deadlines,
