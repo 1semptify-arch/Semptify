@@ -44,6 +44,13 @@ All checks passed.
   - Sticky Notes routes are gated: `/record/notes` and `POST /api/sticky-notes` both return 401 with the expected auth redirect.
   - Console on the Law Library page is clean except for two pre-existing errors: `404 /search.html` (dead static page) and `401 /admin/dashboard` (unreachable without admin auth).
 
+- **Page router / dormant manifest pages — decision point** (this commit, investigation only):
+  - `app.modules.page_router` is **not mounted** in `app/main.py`; its contract is loaded in `contract_loader.py`, but the FastAPI router is never `include_router`d.
+  - The page manifest has 63 template entries; the router's `_SKIP_ROUTES` skips 15 that have dedicated handlers; if mounted it would register 44 additional GET routes.
+  - Live probes confirm `/case-builder`, `/choose-role`, `/storage-info`, `/storage-connecting`, and `/xyzzy` all fall through to `/help?status=down` — there is no route backing them.
+  - Of the 44 unmounted pages: 32 are marked `COMPLETE`, 12 `PARTIAL`; 9 are `high` priority, including the onboarding sequence (`/choose-role`, `/storage-info`, `/storage-connecting`, `/storage-reconnect`, `/storage-setup`) and active-case tools (`/court-packet`, `/crisis-intake`, `/eviction-answer`, `/hearing-prep`).
+  - Decision required: mount `app.modules.page_router` (recommended so those 9 high-priority pages stop 404ing) or selectively add dedicated handlers and retire low-value manifest entries.
+
 ### Active gap list
 
 Todolist in `orchestrator_state.json`:
@@ -52,7 +59,7 @@ Todolist in `orchestrator_state.json`:
 3. [x] Finish SSOT token adoption in the four listed public/tenant/admin scopes.
 4. [x] Full-sweep remaining hardcoded colors in other static/legacy files (legacy office, manager, mndes, tools, search, library, reconnect, etc.).
 5. [x] Verify or park Sticky Notes and Law Linker modules.
-6. [ ] Resolve page router / dormant manifest pages decision.
+6. [~] Resolve page router / dormant manifest pages decision — investigation complete, decision point reached.
 7. [ ] Update route-audit for public/landing/i18n routes.
 8. [ ] Sync stale tracker statuses and close resolved review tasks.
 
