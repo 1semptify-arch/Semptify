@@ -16,14 +16,14 @@
   <!-- Page-specific styles -->
   <style>
     .page-footer {
-      background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
-      color: rgba(255, 255, 255, 0.9);
+      background: linear-gradient(135deg, var(--color-calm-dark) 0%, var(--color-calm-dark) 100%);
+      color: color-mix(in srgb, var(--color-white), transparent 10%);
       padding: 1.5rem 1rem;
       margin-top: auto;
       text-align: center;
     }
     .page-footer a {
-      color: rgba(255, 255, 255, 0.9);
+      color: color-mix(in srgb, var(--color-white), transparent 10%);
       text-decoration: none;
     }
     .page-footer a:hover {
@@ -39,7 +39,7 @@
       margin-bottom: 0.75rem;
     }
     .page-footer .footer-disclaimer strong {
-      color: #fff;
+      color: var(--text-inverse);
     }
     .page-footer .footer-actions {
       font-size: 0.9rem;
@@ -47,7 +47,7 @@
     }
     .page-footer .footer-copyright {
       font-size: 0.8rem;
-      color: rgba(255, 255, 255, 0.7);
+      color: color-mix(in srgb, var(--color-white), transparent 30%);
     }
     @media (max-width: 640px) {
       .page-footer { padding: 1.25rem 0.75rem; }
@@ -196,7 +196,7 @@
         if (indicator && text) {
           indicator.style.display = 'flex';
           text.textContent = 'Status check failed';
-          text.style.color = '#ef4444';
+          text.style.color = 'var(--color-error)';
         }
       }
     }
@@ -229,7 +229,7 @@
         console.error('Verification failed:', error);
         dot.className = 'status-dot status-disconnected';
         text.textContent = 'Error - Click to retry';
-        text.style.color = '#ef4444';
+        text.style.color = 'var(--color-error)';
       }
     }
 
@@ -266,11 +266,11 @@
       gap: 6px;
       font-size: 11px;
       font-weight: 500;
-      color: #64748b;
+      color: var(--color-gray-500);
       padding: 4px 10px;
-      background: #f8fafc;
+      background: var(--color-gray-50);
       border-radius: 12px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-gray-200);
     }
 
     .status-dot {
@@ -281,18 +281,18 @@
     }
 
     .status-connected {
-      background: #22c55e;
-      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+      background: var(--color-success);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-success), transparent 80%);
     }
 
     .status-disconnected {
-      background: #ef4444;
-      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+      background: var(--color-error);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-error), transparent 80%);
     }
 
     .status-reconnecting {
-      background: #f59e0b;
-      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+      background: var(--color-warning);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-warning), transparent 80%);
       animation: pulse 1.5s infinite;
     }
 

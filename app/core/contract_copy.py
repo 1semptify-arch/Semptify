@@ -74,24 +74,60 @@ def _remove_internal_markers(text: str) -> str:
     return text.strip()
 
 
-def _humanize_title(title: str) -> str:
+def _humanize_title(title: str, module: str = "", group_name: str = "") -> str:
     """Return a title that is safe for tenant-facing display."""
     title = _remove_internal_markers(title)
-    # If the title is still snake_case, convert to title case.
-    if "_" in title and title.islower():
+
+    # Strip leading module name so "Briefcase Add Tag" becomes "Add Tag".
+    lowered = title.lower()
+    for prefix in (module, group_name.split("_")[0] if group_name else ""):
+        if prefix:
+            prefix_text = prefix.lower().replace("_", " ").strip()
+            if lowered.startswith(prefix_text + " "):
+                title = title[len(prefix_text) :].strip()
+                lowered = title.lower()
+
+    # If the title is still snake_case or all-lowercase, convert to title case.
+    if title.islower():
         title = title.replace("_", " ").title()
+    elif lowered and title[0].islower():
+        title = title[0].upper() + title[1:]
+
     return title
 
 
-def _humanize_description(description: str) -> str:
+def _humanize_description(description: str, module: str = "", group_name: str = "") -> str:
     """Return a description safe for tenant-facing display."""
     description = _remove_internal_markers(description)
-    # Remove leading HTTP method + path fragments like "POST /process".
+
+    # Strip leading module name so descriptions read like tenant copy, not code.
+    lowered = description.lower()
+    for prefix in (module, group_name.split("_")[0] if group_name else ""):
+        if prefix:
+            prefix_text = prefix.lower().replace("_", " ").strip()
+            if lowered.startswith(prefix_text + " "):
+                description = description[len(prefix_text) :].strip()
+                lowered = description.lower()
+
+    # Remove "via POST /path" and leading HTTP method + path fragments.
+    description = re.sub(
+        r"(?:^|\s)via\s+(?:POST|GET|PUT|DELETE|PATCH)\s+\S+",
+        "",
+        description,
+        flags=re.IGNORECASE,
+    )
     description = re.sub(
         r"^\s*(?:POST|GET|PUT|DELETE|PATCH)\s+\S+\s*[-:]?\s*",
         "",
         description,
         flags=re.IGNORECASE,
+    )
+    # Remove trailing auth/audit notes and method markers that leak implementation.
+    description = re.sub(
+        r"(?:[.\s]|\-|—|:)\s*(?:Stealth(?:\s+\w+)?\s+guard(?:\s+\w+)?|Audit\s+logged|admin[-\s]?only|dev[-\s]?only).*",
+        "",
+        description,
+        flags=re.IGNORECASE | re.DOTALL,
     )
     return description
 
@@ -103,9 +139,11 @@ def get_display(contract: Any) -> tuple[str, str]:
     if override:
         return override["title"], override["description"]
 
-    return _humanize_title(_extract_text(contract, "title")), _humanize_description(
-        _extract_text(contract, "description")
-    )
+    module = _extract_text(contract, "module")
+    group_name = _extract_text(contract, "group_name")
+    return _humanize_title(
+        _extract_text(contract, "title"), module, group_name
+    ), _humanize_description(_extract_text(contract, "description"), module, group_name)
 
 
 def contract_title(contract: Any) -> str:

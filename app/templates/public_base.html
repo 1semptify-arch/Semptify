@@ -49,9 +49,9 @@
         --radius-lg: 0;
         --radius-xl: 0;
 
-        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        --shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-black), transparent 95%);
+        --shadow-md: 0 4px 6px color-mix(in srgb, var(--color-black), transparent 93%);
+        --shadow-lg: 0 10px 15px color-mix(in srgb, var(--color-black), transparent 90%);
 
         --font-family: var(--font-sans);
         --font-serif: var(--font-serif);
@@ -186,14 +186,14 @@
 
     /* Info banner */
     .info-banner {
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        background: linear-gradient(135deg, var(--color-warning-50) 0%, var(--color-warning) 100%);
         border-left: 4px solid var(--warm);
         padding: 1.25rem 1.5rem;
         margin: 2rem 0;
     }
 
     .info-banner p {
-        color: #78350f;
+        color: var(--color-warning-800);
         font-style: italic;
         text-align: center;
     }
@@ -230,7 +230,7 @@
 
     /* Footer */
     .site-footer {
-        background: #f1f5f9;
+        background: var(--color-gray-100);
         color: var(--text-light);
         padding: 2rem 1.5rem 1rem;
         font-size: 0.85rem;

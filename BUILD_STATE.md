@@ -1,6 +1,73 @@
-## Session — 2026-09-10 — Opus orchestration setup (devin)
+## Session — 2026-09-10 — Build Contract implementation (claude)
 
-### Guardrail Engine Run — 2026-09-10T02:11:53+00:00
+### Guardrail Engine Run — 2026-09-10T21:46:26+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 2 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-10T19:48:59+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 2 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-10T16:04:12+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 1 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Shipped
+
+- **Module Build Contract schema and tooling** (commit 59fad5e1):
+  - Added `app/core/module_contract.py` with Pydantic `ModuleContract`, `NarratorEvent`, `ModuleContractRegistry`, validator, and index generator.
+  - Added `app/modules/resource_intake/module_contract.json` as the first per-module contract.
+  - Added `tools/checks/module_contract_check.py` guardrail; validates all `app/modules/<name>/module_contract.json` files and ensures `docs/registry/module_contracts_index.json` stays in sync.
+  - Generated `docs/registry/module_contracts_index.json`.
+
+- **Resource Intake & Integrity Engine** (commit 59fad5e1):
+  - Added `app/modules/resource_intake/` package with `schemas.py`, `engine.py`, `register.py`.
+  - Added `data/composer_resources.json` as the compiled Information Composer resource pool with one approved, non-AI-generated, human-attested sample.
+  - Added `tools/checks/resource_intake_check.py` guardrail; fails the build if any item in the compiled pool has `ai_generated != false` or a missing/empty `approved_by`.
+  - Wired `app.modules.resource_intake.register` into `app/core/contract_loader.py`.
+
+### Verification
+
+- `python -m py_compile` on all new Python files: PASS.
+- `tools/guardrail_engine.py`: 6/6 PASS, including new `module_contract_check` and `resource_intake_check`.
+- `pytest tests/module_health -q --no-cov`: 246 passed.
+
+## Session — 2026-09-10 — 5.0 stabilization gaps (claude) — IN PROGRESS
+
+### Guardrail Engine Run — 2026-09-10T14:24:19+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 1 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-10T11:56:22+00:00
 
 - **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
 - **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
@@ -9,7 +76,25 @@
 
 All checks passed.
 
-### Guardrail Engine Run — 2026-09-10T02:03:07+00:00
+### Route-audit — resolved (this session)
+
+- **Refactored route ownership** out of `app/main.py` into dedicated modules with matching `FunctionGroupContract`s:
+  - `app/modules/public_surface` — `GET /api/landing/facts`, `GET /api/i18n/locale`, `POST /api/i18n/set-locale` (CORE).
+  - `app/modules/admin_auth` — `POST /admin/api/login-step1`, `POST /admin/api/login-step2` (ADMIN).
+  - `app/modules/admin_api` — `PUT /admin/api/logs/level`, `POST /admin/api/verify` (ADMIN).
+  - `app/modules/debug` — `POST /debug/force-migrate`, `POST /debug/add-legal-columns`, `POST /debug/stamp-alembic-head`, `POST /debug/seed-test-user` (CORE, gated by `SECURITY_MODE=open`).
+
+- **Moved shared admin guard** from `app/main.py` closure to `app.core.admin_elevation.require_elevation` so both the remaining admin handlers and the new `admin_api` router can reuse it.
+
+- **Updated `contract_route_check`** to recognize `require_elevation` as an auth-gated dependency, keeping the public-exposure rule correct for admin routes.
+
+- **Pre-load contracts before route audit** in `app/main.py` (`load_all_contracts` now runs before `scan_public_routes` in `create_app`), ensuring the audit sees the new contract metadata without waiting for lifespan.
+
+- **Verification**:
+  - `tools/guardrail_engine.py`: 4/4 PASS.
+  - `route_audit_list.py`: `Route audit: all actionable public routes have contract coverage. Total: 0`.
+
+### Guardrail Engine Run — 2026-09-10T11:40:31+00:00
 
 - **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
 - **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
@@ -18,10 +103,16 @@ All checks passed.
 
 All checks passed.
 
-- **Branch:** `orchestration/opus-setup-2026-09-09`
-- **Pull Request:** #187 (https://github.com/1semptify-arch/Semptify/pull/187)
+### Guardrail Engine Run — 2026-09-10T11:38:28+00:00
 
-### Guardrail Engine Run — 2026-09-10T01:24:05+00:00
+- **contract_route_check**: FAIL — 57 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-09-10T09:11:08+00:00
 
 - **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
 - **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
@@ -30,79 +121,156 @@ All checks passed.
 
 All checks passed.
 
-### Task 2 — Sweep and rehome files in `C:\master-repo\hand offs and temp`
+### Shipped this session
 
-- **Problem**: `C:\master-repo\hand offs and temp` contained working copies of the four Opus docs plus other handoffs, duplicates, and unclassified files. Leaving them there created a second canonical source and undermined the temp/trusted-doc boundary.
-- **Fix**: Inspected each file, compared it to known canonical copies, and either rehomed or flagged it.
-  - Moved to `C:\master-repo\handoffs\`: `semptify-documentation-system-handoff.md`, `semptify-information-audit-handoff.md`, `adr_compile_handoff.json`, `orchestrator_pilot_tasks.json` (renamed with date), `swe17_research_and_placement_handoff.md`, and the current `semptify-swe-handoff-opus-setup.md` (as `orchestration-005-opus-setup-2026-09-09.md`).
-  - Deleted as duplicates: the four Opus source docs (already landed in `docs/orchestration/`), `ADR-0008-information-orchestrator.md` (identical to canonical ADR-0008), `OPERATING_MANDATE.md` (master root copy is newer), and `files.zip` (container of duplicates).
-  - Left in temp and flagged: `CLAUDE_PREFLIGHT.md`, `orchestrator_add_task_SKILL.md`, `semptify-motivations.md`, and the four 8/7 HTML prototypes. Wrote `TEMP_SWEEP_REPORT.md` explaining why each is undetermined and needs Brad's call.
-- **Verification**: `Get-ChildItem 'C:\master-repo\hand offs and temp'` now shows only the 7 flagged files plus `TEMP_SWEEP_REPORT.md`; all duplicate/contained files are gone. `C:\master-repo\handoffs\` contains the rehomed items.
-- **Status**: PASS with flags — the temp folder is swept. The master-level `handoffs/` and `hand offs and temp/` workspace changes are not committed in git (master repo has no branch and no explicit commit scope was given); they are on disk for review. Open item: whether to commit, archive, or delete the 7 remaining flagged files.
+- **Tenant timeline UI regression fixed** (commit `06a57125`):
+  - `app/templates/components/ui_composer.html` labeled evidence items as `▸ Record` instead of `▸ Evidence`.
+  - Restored the `Evidence` label; `tests/test_unified_timeline.py` now 6/6.
+  - Updated mechanics handoff verification to `test_unified_timeline 6/6`.
 
-### Task 3 — Verify orchestrator substrate exists and runs
+- **Contract copy humanization improved** (commit `8e479689`):
+  - `app/core/contract_copy.py` now strips leading module names (e.g., `Briefcase Add Tag (SSOT)` → `Add Tag`) and removes implementation markers (HTTP method/path, `Stealth guard`, `Audit logged`) from descriptions.
+  - The existing `DISPLAY_OVERRIDES` for the four proven guide pages remain authoritative.
+  - `tests/test_contracts_framework.py` + `tests/test_module_contracts.py` 26/26 pass; guardrail 4/4 PASS.
 
-- **Problem**: Opus COO Charter assumes several master-level and Semptify-level orchestration components exist, run, and reflect current repo state. Before routing work through them, we needed to confirm reality.
-- **Fix**: Ran each component under `venv311`.
-  - `tools/sync_orchestrator.py` — executed successfully. Merged 92 doc-sourced tasks and 114 master-sync updates into `tools/agent_orchestrator_tasks.json` (total 206 tasks). `tools/module_registry.yaml` updated to reflect 131 modules (added `sticky_notes`, `law_linker`).
-  - `tools/workbook_bridge.py` — executed successfully; no new stub tasks to add.
-  - `tools/mark_task_status.py` — invoked with `--help`; CLI is operational.
-  - `tools/guardrail_engine.py` — executed under `venv311`; all 4 checks pass. Running under system Python (3.14) fails due to missing venv packages; this is an environment issue, not a guardrail bug.
-- **Verification**:
-  - `sync_orchestrator.py` exit 0 and produced `OK: 0 stub(s) in stub_tasks_new.json, 206 task(s) in agent_orchestrator_tasks.json (0 missing paths).`
-  - `workbook_bridge.py` exit 0 and wrote 0 new tasks.
-  - `mark_task_status.py --help` exit 0 and prints usage.
-  - `guardrail_engine.py` exit 0, all checks passed.
-- **Status**: PASS — Semptify-level substrate runs. Open item: `tools/orchestrator_state.json` and `tools/active_subagents.json` live at master-repo level, are stale, and do not include the current opus-setup work (flagged in open items).
+### Shipped this session (continued)
 
-### Task 4 — Verify canonical SSOT docs are current and non-conflicting
+- **SSOT token adoption — four listed scopes** (commit `d65d0643`):
+  - Added `--color-black` to `static/css/ssot-design-system.css`.
+  - Replaced hardcoded `#hex`/`rgba()` in `app/templates/{public_base,index}.html`, `static/public/*.html`, `static/tenant/*.html`, `static/admin/*.html`, and legacy CSS files (`admin-nav.css`, `composer-shell.css`, `manager-dashboard.css`, `components/vault-portal.css`, `themes/*.css`) with SSOT tokens or `color-mix(in srgb, <token>, transparent <pct>% )`.
+  - Verified zero remaining hardcoded colors (`#` or `rgba()`) in those scopes; guardrail 4/4 PASS.
+  - Resolved four `orchestrator_state.json` SSOT tasks: `ssot-public-landing`, `ssot-public-legal`, `ssot-tenant-static`, `ssot-legacy-css-admin`.
 
-- **Problem**: The Opus COO Charter and the four new orchestration docs must not contradict the canonical SSOT documents.
-- **Fix**: Compared the new docs against `NAMING_SSOT_DICTIONARY.md` (master root), `SEMPTIFY_REFERENCE_LIBRARY.md` (master root), and `BUILD_STATE.md` (Semptify module).
-- **Verification**:
-  - `NAMING_SSOT_DICTIONARY.md` exists and is current; no Opus/orchestrator entries yet, but the language rules in it (no "free", no business-model terms) are consistent with `vision-brief-for-opus.md` and `opus-coo-charter.md`.
-  - `SEMPTIFY_REFERENCE_LIBRARY.md` exists and is current; it explicitly distinguishes the four internal pillars (`RECORD/KNOW/ACT/GOVERN`) from the six public mission pillars, which matches `opus-coo-charter.md`. It also repeats the public language rules.
-  - `BUILD_STATE.md` exists in the Semptify module and is current. It is **missing** at `C:\master-repo\BUILD_STATE.md`; the Opus charter refers to `BUILD_STATE.md` without resolving which path is canonical. Flagged as open item.
-  - One pre-existing contradiction found in `SEMPTIFY_REFERENCE_LIBRARY.md`: line 618 describes "Semptify Go" as a "free, open-source mobile web app... Free forever." while the same file's standing language rules (line 453) say "NEVER use the word 'free' when describing Semptify itself." This is not caused by the new docs, but it is a live SSOT contradiction and should be Brad's call (merge/retire/archive).
-- **Status**: PASS with flags — no conflicts introduced by the new docs, but two SSOT state issues need Brad's decision (master `BUILD_STATE.md` missing, `SEMPTIFY_REFERENCE_LIBRARY.md` "free" contradiction).
+- **SSOT token adoption — full sweep** (this commit):
+  - Ran an algorithmic nearest-token migration across `app/templates/**/*.html`, `static/**/*.html`, `static/**/*.css`, `static/**/*.js`, and `static/ai-helper-bundle.txt`.
+  - Replaced all remaining `#hex` and `rgba()` values with the nearest SSOT design token or a `color-mix(in srgb, <token>, transparent <pct>%)` equivalent.
+  - Preserved `static/css/ssot-design-system.css` (the token source of truth), `static/onboarding/` (NO-TOUCH module), and `static/assets/semptify-favicon.svg` (external image; CSS variables would not resolve when loaded as image).
+  - Manually fixed Canvas `strokeStyle`/`fillStyle` assignments in `static/office/signer.html` and `static/tenant/tools/letters.html` to use `getComputedStyle(document.documentElement).getPropertyValue(...)` instead of raw `var()` strings, which the HTML canvas API does not resolve.
+  - Verified: guardrail engine 4/4 PASS; `tests/test_unified_timeline.py` 6/6; `tests/test_page_composer_assembly_api.py` 7/7; `tests/test_contracts_framework.py` + `tests/test_module_contracts.py` 26/26; runtime start-up clean; IronBee DevTools navigation to `/`, `/public/about.html`, and `/law-library` all 200 with no unexpected console errors.
 
-### Task 5 — Make Documentation Reconciliation Pass recurring
+- **Sticky Notes / Law Linker verification** (this commit):
+  - Law Linker v2 is live on `/law-library`: citations are auto-wrapped in `span.law-linker-cite`, use `--color-info` (resolved to `rgb(96,165,250)`), and show the expected accessible description "Click to view official source".
+  - Hover interaction is wired; the popup renders as a positioned `div#law-linker-popup` whose styles were migrated to SSOT tokens.
+  - Click on a citation attempts to open the gated pop-out (`/law-linker/pop-out?citation=...`); unauthenticated users are correctly redirected to `/help?status=down`.
+  - The public citation JSON API (`/api/law-linker/citation`) resolves "Minn. Stat. § 504B" to the full statute text, official URL, and disclaimer.
+  - Sticky Notes routes are gated: `/record/notes` and `POST /api/sticky-notes` both return 401 with the expected auth redirect.
+  - Console on the Law Library page is clean except for two pre-existing errors: `404 /search.html` (dead static page) and `401 /admin/dashboard` (unreachable without admin auth).
 
-- **Problem**: The Documentation Staleness Protocol calls for a recurring pass that pulls canonical SSOT docs, sweeps handoff/temp folders, scans for contradictions, and does not silently merge old/new content. The existing `recurring_scheduler.py` only ran a timestamp-based staleness check and did not cover the rest of the protocol.
-- **Fix**: Extended the existing `docs-staleness` job in `tools/recurring_scheduler.py` and `tools/docs_staleness_check.py` so they are one system, not two overlapping ones.
-  - `tools/docs_staleness_check.py` now appends a "Documentation Reconciliation Pass" section to `docs/STALENESS-REPORT.md`.
-  - That section checks the three canonical SSOT docs (`NAMING_SSOT_DICTIONARY.md`, `SEMPTIFY_REFERENCE_LIBRARY.md`, `BUILD_STATE.md`), lists handoff/temp folder contents (both `C:\master-repo\hand offs and temp` and `C:\master-repo\New hand offs and zips`), runs a flag-only contradiction scan for "free" and business-model/account language, and checks the known risk areas named in the protocol.
-  - `tools/recurring_scheduler.py` updated the `docs-staleness` job description and still invokes the same script.
-- **Verification**:
-  - `python tools/docs_staleness_check.py` (under venv311) exit 0 and wrote `docs/STALENESS-REPORT.md` with the new reconciliation section.
-  - `python tools/recurring_scheduler.py --list` shows the job registered with the new description.
-  - `python tools/recurring_scheduler.py --run docs-staleness` exit 0 and wrote `tools/.recurring_scheduler_state.json` with a `docs-staleness` last-run timestamp.
-  - `python tools/recurring_scheduler.py --run-due --dry-run` shows the scheduler evaluates due dates and would run other jobs without re-running `docs-staleness` (it just ran).
-- **Status**: PASS — the recurring pass is wired into the existing scheduler. It would fire automatically on its 7-day cadence without manual re-triggering. The flag-only scans need human review before any archive/delete.
+- **Page router / dormant manifest pages — resolved** (this commit):
+  - Mounted `app.modules.page_router` via `app/core/product_manifest.py` (`_register("app.modules.page_router", ...)`), so the 44 manifest template routes with no dedicated handler are now live.
+  - Server startup is clean; guardrail engine 4/4 PASS; selected test suites 39 passed.
+  - Live probes confirm `/case-builder`, `/choose-role`, and `/hearing-prep` now resolve through the unified router (unauthenticated users are redirected to `/` by the PAGE_CONTRACTS guard instead of falling through to `/help?status=down`).
+  - 15 routes with dedicated handlers remain in `_SKIP_ROUTES`; 32 of the 44 newly-served pages are `COMPLETE`, 12 are `PARTIAL`.
+  - Flag: onboarding pages (`/choose-role`, `/storage-info`, `/storage-connecting`, `/storage-reconnect`) still require a user cookie/role to render because the page_router guard enforces PAGE_CONTRACTS auth. The public welcome flow at `/` handles role selection client-side; whether these dedicated onboarding routes should be public is a separate product/security call.
 
-### Task 6 — Confirm agent trust-tier routing matches Opus COO Charter
+### Active gap list
 
-- **Problem**: The Opus COO Charter lays out a specific trust tier (Opus as highest, SWE-1.7 full trust, GLM 5.2 non-security only, Devin for coding/autonomous work). This must match the actual queues and code.
-- **Fix**: Audited the active routing layers.
-  - Master queue `C:\master-repo\tools\orchestrator_state.json`: 196 `model_tier: unlimited`, 43 `claude`, 24 `unassigned`. `unlimited` maps to a Claude session per `C:\master-repo\AGENTS.md`. No `SWE-1.7`, `GLM 5.2`, or `Opus` tiers appear.
-  - Semptify queue `tools/agent_orchestrator_tasks.json` (after sync): 165 `unlimited`, 21 `claude`, 17 `unassigned`, plus 2 legacy `swe-1.7` and 1 `glm-5.2` (resolved planning task). No `Opus`.
-  - Semptify `tools/workbook_bridge.py`: assigns `swe-1.7`, `swe-1.6`, `glm-5.2`, and `kimi-2.7` by category/priority. Low-priority stub fixes default to `glm-5.2`, including any that may touch security-sensitive code — this contradicts the charter's "GLM 5.2 non-security only" rule.
-  - `tools/sync_orchestrator.py` maps master `model_tier` directly to Semptify `target_model`, so the master `unlimited`/`claude`/`unassigned` scheme overwrites the workbook-bridge model names.
-  - `C:\master-repo\AGENTS.md` (master) states "SWE-1.7 subagent dispatch is deprecated" and says Claude now runs all tasks directly. `modules/app-semptify-fastapi/AGENTS.md` and `.devin/skills/orchestrator_dispatch/SKILL.md` still describe SWE-1.7/swe-executor as the unlimited executor. `.devin/agents/swe-executor.md` still exists and is active.
-  - `tools/mark_task_status.py` and `C:\master-repo\tools\orchestrator_mark_task.py` accept `--agent` and allow marking `resolved` regardless of agent tier. The Opus charter says agents must not self-approve; the tools do not enforce that.
-- **Verification**: Reviewed queue JSON, `workbook_bridge.py`, `sync_orchestrator.py`, `mark_task_status.py`, `orchestrator_mark_task.py`, the three `AGENTS.md`/`SKILL.md` files, and `.devin/agents/swe-executor.md`.
-- **Status**: FAIL/REROUTE NEEDED — the current queue and code do not match the Opus charter's tier names or rules. The routing model is also internally contradictory (master AGENTS deprecated SWE-1.7; Semptify/Opus still rely on it). No routing rules were changed; this is an open decision for Brad.
+Todolist in `orchestrator_state.json`:
+1. [x] Fix `/tenant/timeline` UI evidence label.
+2. [x] Central contract copy pass (generic humanization done; specific overrides can be added per page).
+3. [x] Finish SSOT token adoption in the four listed public/tenant/admin scopes.
+4. [x] Full-sweep remaining hardcoded colors in other static/legacy files (legacy office, manager, mndes, tools, search, library, reconnect, etc.).
+5. [x] Verify or park Sticky Notes and Law Linker modules.
+6. [x] Resolve page router / dormant manifest pages decision — page router mounted.
+7. [x] Update route-audit for public/landing/i18n routes — 11 uncovered routes now covered by new public_surface, admin_auth, admin_api, and debug modules.
+8. [x] Sync stale tracker statuses and close resolved review tasks — 2 tasks resolved (law-linker-v2, auto-mode JS guards); 7 design/content tasks kept in review until branch merges; mechanics handoff still awaiting Brad review.
 
-### Open items for Brad
+## Session — 2026-09-10 — Mechanics verification pass (claude)
 
-1. **Authoritative home for orchestration docs**: Resolved — `modules/app-semptify-fastapi/docs/orchestration/` is the canonical home. The documents describe Core/Semptify orchestration and the PR already lives in this repo. Master-repo references should be short citations, not copies (per `CONVENTIONS.md`).
-2. **Master `BUILD_STATE.md` missing**: Resolved — created `C:\master-repo\BUILD_STATE.md` as a thin pointer. The Semptify module `modules/app-semptify-fastapi/BUILD_STATE.md` remains the canonical state log for Semptify Core work; the master file only points to it and notes cross-module master-level work.
-3. **Queue registration of this work**: The current `opus-setup` handoff is not in `orchestrator_state.json` or `agent_orchestrator_tasks.json`. Should it be registered post-hoc or is the handoff enough?
-4. **Temp-folder remaining files**: `CLAUDE_PREFLIGHT.md`, `orchestrator_add_task_SKILL.md`, `semptify-motivations.md`, and the four HTML prototypes still live in `hand offs and temp`. Where should they go, or can they be archived/deleted?
-5. **`SEMPTIFY_REFERENCE_LIBRARY.md` "free" contradiction**: Line 618 calls "Semptify Go" free while line 453 says never call Semptify free. Which is the intended SSOT?
-6. **Agent routing model conflict**: The Opus charter, master `AGENTS.md`, Semptify `AGENTS.md`, and `workbook_bridge.py` disagree on model names and which tier is allowed to do what. Brad needs to pick one canonical scheme so we can update `AGENTS.md`, `workbook_bridge.py`, `sync_orchestrator.py`, and the queues.
-7. **Self-approval enforcement**: `mark_task_status.py` and `orchestrator_mark_task.py` let any agent mark `resolved`. If the charter's "no self-approval" rule is real, the tools should enforce it.
-8. **`.gitignore` typo**: `hand offs and temop/` is a misspelling of `hand offs and temp/`. Should the actual temp folder be ignored?
+### Guardrail Engine Run — 2026-09-10T06:44:29+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-10T06:44:00+00:00
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+### Shipped this session
+
+- **test fixture repair** (commit `fa13ddad`):
+  - `tests/conftest.py` was importing `_encrypt_string` from `app.core.auto_refresh`; that helper was removed when `app.core.key_derivation` was introduced.
+  - Updated to `from app.core.key_derivation import encrypt_value as _encrypt_string`.
+  - `tests/test_documents.py` now passes 41/41 (was 39 passed + 2 errors).
+  - `tests/test_page_composer_assembly_api.py` now passes 7/7.
+
+- **timeline document-date fix** (commit `9c1805c8`):
+  - `app/modules/timeline/router.py::_load_db_documents` was ignoring `Document.event_date` and `Document.received_date`; it always sorted/filtered by `uploaded_at`, which broke the `received_date < uploaded_at` case and the `event_time` date axis for documents.
+  - Fixed display/filter/sort column to use `coalesce(event_date, received_date, uploaded_at)` for `event_time`, `coalesce(received_date, event_date, uploaded_at)` for `record_time`, and `uploaded_at` for `entry_time`.
+  - Also populated `TimelineItem.event_date` and `record_date` from the model fields instead of always leaving them `None`.
+
+### Verified
+
+- **Task 1 — storage connection OAuth/reconnect**: TOKEN_CORRUPT path confirmed. A refresh token encrypted with the wrong key is correctly detected as corrupt and `get_valid_token_or_redirect` returns `/storage/reconnect`. Live provider health (Google/Dropbox/OneDrive token refresh) cannot be tested in this sandbox without real OAuth sessions.
+- **Task 2 — document upload/framing**: `tests/integration/test_document_e2e.py` 30/30; `tests/test_documents.py` 41/41; local storage correctly rejected when `SECURITY_MODE=enforced`; classification of lease vs. notice holds.
+- **Task 3 — OCR extraction and overlay creation**: `vault_upload_service.mark_processed()` correctly calls `UnifiedOverlayManager.create_overlay()` for `document_extraction` and `party_extraction` when an `access_token` is provided. Local Tesseract OCR binary is not installed in this environment, so scanned-image/PDF OCR cannot be exercised end-to-end; text-PDF extraction and classification works.
+- **Task 4 — contact/factual record logging**: `POST /api/timeline/events` creates a manual record with `event_date`; `POST /api/timeline/unified` returns it.
+- **Task 5 — timeline sequencing**: Fixed and verified for `Document` rows. The unified timeline now uses `event_date`/`received_date` for documents, not just `uploaded_at`.
+
+### Flags / pending
+
+- **test_tenant_timeline_renders_eviction_event** (UI Composer / `/tenant/timeline`) still fails: the rendered page no longer contains "Evidence". This is a UI/template regression, not an API/timeline-data regression; the API tests in `test_unified_timeline.py` pass.
+- **Vault-uploaded documents do not appear in the unified timeline**: the timeline loads `Document` and `VaultItem` tables, but `vault_upload_service` stores documents in `vault_index` (`VaultIndexDB`/`VaultDocument`). `VaultItem` is only created by `app/services/vault_ingestion.py`, which is not wired into the upload path. This is a structural integration gap, not a one-line fix.
+- **Local OCR** is unavailable because `tesseract` is not installed in the dev environment.
+- **Route audit** reports 11 uncovered public routes (pre-existing; see recent logs).
+
+### Tasks 6–9 (continued)
+
+- **Task 6 — Export/file generation**: `tests/module_health/test_export_import.py` 1/1; `tests/test_case_builder.py` + `tests/test_eviction_case_builder.py` 38 passed, 9 skipped (all skips are provider-specific). Case-building and export file generation pass.
+- **Task 7 — Known open issues status**:
+  - `_encrypt_string` import in `conftest.py` — **fixed** (commit `fa13ddad`).
+  - `test_tenant_timeline_renders_eviction_event` UI test — **still failing** (pre-existing UI/template regression; API layer is correct).
+  - `Route audit: 11 uncovered public routes` — still present (debug/admin routes + landing/i18n; pre-existing, not mechanics).
+  - `feature_flags` table warning in test runs — falls back to cache; not a runtime failure.
+- **Task 8 — Data layer healthy**: Guardrail engine 4/4 PASS; `tests/module_health` full suite 246/246 passed. Local SQLite path is healthy. Neon/R2 live reachability cannot be verified from this sandbox.
+- **Task 9 — Document Center function inventory**: `app/modules/document_center/router.py` exposes 16 documented endpoints (document-types, list, unlocks, overlays, reprocess, view, explain, type, review-state, share, shared-content, etc.); `app/modules/document_center/tests/test_dc_smoke.py` 22/22 passed. Key internal helpers (`_fetch_real_overlays`, `_get_pipeline_status`, `_build_progress_from_real`, `_compute_unlocks`) are present and exercised by smoke tests. No new issues found.
+
+### Summary signals
+
+1. **Four MVP mechanics confirmed**: storage reconnect path OK; document upload/framing OK; overlay creation OK; record/timeline logging OK.
+2. **Document Center inventory**: ready — 22/22 smoke tests pass, endpoints documented, no flagged functions beyond the vault/timeline structural gap noted below.
+
+### Additional fix this session
+
+- **Vault/timeline structural gap closed** (commit `0ec40ee4`):
+  - `app/modules/timeline/router.py` now reads from `VaultIndexDB` (`vault_index`) in addition to the legacy `Document` table.
+  - New loader `_load_db_vault_index_documents()` applies the same `event_time`/`record_time`/`entry_time` date-axis logic with `coalesce(event_date, received_date, uploaded_at)` so vault documents are filtered, sorted, and displayed by their real-world dates.
+  - Added regression test in `tests/test_unified_timeline.py`: a `VaultIndexDB` row with `event_date` 10 days ago appears in `POST /api/timeline/unified` with correct `event_date`, `record_date`, and `source="vault"`.
+
+### Flag resolved
+
+- **Vault/timeline structural gap**: now fixed; vault-uploaded tenant documents appear in the unified timeline.
+
+### Resolved flag
+
+- **OCR binary missing locally**: Installed Tesseract 5.5.3.20260724 via `winget` to `C:\Program Files\Tesseract-OCR` and added it to the user `PATH`. Verified:
+  - `pytesseract` reports version `5.5.3.20260724`.
+  - Direct image OCR returns the expected text.
+  - `PDFExtractor.extract_with_ocr()` on a scanned PDF (image-only, no embedded text) returns `method_used="local_ocr"` and extracted text.
+
+### Remaining flag
+
+- **test_tenant_timeline_renders_eviction_event** fixed 2026-09-10: `app/templates/components/ui_composer.html` was using `▸ Record` for evidence items; restored to `▸ Evidence`. `tests/test_unified_timeline.py` now 6/6.
+
+### Status
+
+Mechanics verification pass complete. Three small in-scope code fixes committed:
+1. `conftest.py` `_encrypt_string` import.
+2. `Document` timeline date-axis.
+3. `VaultIndexDB` wired into unified timeline.
+
+Environment resolved: Tesseract 5.5.3 installed and verified for image + scanned PDF OCR.
+
+UI regression fixed: `test_tenant_timeline_renders_eviction_event` now passes (`Evidence` label restored in timeline event meta).
+
+Mechanics verification handoff is clean.
 
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
 

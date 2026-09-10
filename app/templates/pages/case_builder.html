@@ -193,7 +193,7 @@
 }
 
 .export-error {
-    color: #991b1b;
+    color: var(--color-error-800);
     font-size: 0.875rem;
     margin-top: 0.5rem;
 }
@@ -300,7 +300,7 @@
         </div>
     </div>
 
-    <div id="summary-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 2rem;">
+    <div id="summary-modal" style="display: none; position: fixed; inset: 0; background: color-mix(in srgb, var(--color-black), transparent 50%); z-index: 1000; align-items: center; justify-content: center; padding: 2rem;">
         <div style="background: var(--bg-card); border-radius: var(--radius-block); padding: 2rem; max-width: 700px; max-height: 80vh; overflow-y: auto;">
             <h2 style="margin-bottom: 1rem;">Case Summary</h2>
             <div id="summary-content" style="line-height: 1.8; color: var(--text-secondary);"></div>

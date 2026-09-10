@@ -90,7 +90,7 @@ async def authenticated_client() -> AsyncGenerator[AsyncClient, None]:
     # Create session in database
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
-    from app.core.auto_refresh import _encrypt_string
+    from app.core.key_derivation import encrypt_value as _encrypt_string
     from app.core.database import get_engine
     from app.core.utc import utc_now
     from app.models.models import Session as SessionModel, StorageConfig, User

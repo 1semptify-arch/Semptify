@@ -14,7 +14,7 @@
     .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: var(--text-inverse); }
     nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
     nav.core-nav a { color: var(--text-inverse); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.9rem; white-space: nowrap; }
-    nav.core-nav a:hover { background: rgba(255, 255, 255, 0.15); color: var(--text-inverse); }
+    nav.core-nav a:hover { background: color-mix(in srgb, var(--color-white), transparent 85%); color: var(--text-inverse); }
     .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
     .vault-btn { background: linear-gradient(135deg, var(--color-warning), var(--color-warning-800)); color: var(--text-inverse); border: none; padding: 0.45rem 1rem; border-radius: var(--radius-block); font-weight: 700; cursor: pointer; font-size: 0.9rem; }
     .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
@@ -42,7 +42,7 @@
     .value-card p { font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 0; }
 
     .promise-banner { background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)); color: var(--text-inverse); border-radius: var(--radius-block); padding: 2rem 2rem 1.75rem; margin-bottom: 2.5rem; }
-    .promise-banner h2 { color: var(--text-inverse); margin-top: 0; font-size: 1.35rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 0.75rem; margin-bottom: 1.25rem; }
+    .promise-banner h2 { color: var(--text-inverse); margin-top: 0; font-size: 1.35rem; border-bottom: 1px solid color-mix(in srgb, var(--color-white), transparent 80%); padding-bottom: 0.75rem; margin-bottom: 1.25rem; }
     .promise-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
     .promise-list li { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.92rem; line-height: 1.5; }
     .promise-list li .mark { flex-shrink: 0; margin-top: 0.05rem; font-size: 1rem; }
@@ -64,7 +64,7 @@
     .data-col.never h4 { color: var(--color-error); }
     .data-col.only h4 { color: var(--color-success); }
     .data-col ul { list-style: none; padding: 0; margin: 0; }
-    .data-col ul li { font-size: 0.85rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; gap: 0.4rem; }
+    .data-col ul li { font-size: 0.85rem; padding: 0.35rem 0; border-bottom: 1px solid color-mix(in srgb, var(--color-black), transparent 94%); display: flex; gap: 0.4rem; }
     .data-col ul li:last-child { border-bottom: none; }
 
     .funding-box { background: var(--bg-surface); border-left: 4px solid var(--color-primary); border-radius: 0 var(--radius-block) var(--radius-block) 0; padding: 1.5rem 1.75rem; margin-bottom: 2.5rem; }
@@ -91,9 +91,9 @@
 
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
     .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
-    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
-    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .nav-drawer a { color: color-mix(in srgb, var(--color-white), transparent 15%); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: color-mix(in srgb, var(--color-white), transparent 90%); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: color-mix(in srgb, var(--color-black), transparent 50%); z-index: 998; }
     .drawer-backdrop.open { display: block; }
 
     @media (max-width: 768px) {
@@ -109,8 +109,8 @@
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   <nav class="nav-drawer" id="nav-drawer">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:#fff;">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+      <strong style="color: var(--text-inverse);">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color: var(--text-inverse);font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
     <a href="/">🏠 Home</a>
     <a href="/public/about.html">About</a>
@@ -126,14 +126,14 @@
       <a href="/" class="logo">Semptify</a>
       <nav class="core-nav">
         <a href="/">🏠 Home</a>
-        <a href="/public/about.html" style="color:#fff;background:rgba(255, 255, 255, 0.15)">About</a>
+        <a href="/public/about.html" style="color: var(--text-inverse);background:color-mix(in srgb, var(--color-white), transparent 85%)">About</a>
         <a href="/public/privacy.html">Privacy</a>
         <a href="/public/terms.html">Terms</a>
         <a href="/public/disclaimer.html">Disclaimer</a>
         <a href="/public/contact.html">Contact</a>
       </nav>
       <div class="header-actions">
-        <a href="/" style="background:linear-gradient(135deg,var(--color-warning),var(--color-warning-800));color:#fff;text-decoration:none;padding:0.45rem 1rem;border-radius:8px;font-weight:700;font-size:0.9rem;">Get Started</a>
+        <a href="/" style="background:linear-gradient(135deg,var(--color-warning),var(--color-warning-800));color: var(--text-inverse);text-decoration:none;padding:0.45rem 1rem;border-radius:8px;font-weight:700;font-size:0.9rem;">Get Started</a>
       </div>
     </div>
   </header>
@@ -464,12 +464,12 @@
           </ul>
         </div>
       </div>
-      <div style="background: rgba(255,255,255,0.07); padding: 1rem; border-radius: var(--radius-block); margin-bottom: 1.5rem;">
+      <div style="background: color-mix(in srgb, var(--color-white), transparent 93%); padding: 1rem; border-radius: var(--radius-block); margin-bottom: 1.5rem;">
         <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
           <strong>Important:</strong> Semptify is an organisational tool, not legal advice. Always consult a qualified attorney for legal guidance specific to your situation.
         </p>
       </div>
-      <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: center;">
+      <div style="border-top: 1px solid color-mix(in srgb, var(--color-white), transparent 90%); padding-top: 1.5rem; text-align: center;">
         <p style="font-size: 0.85rem; margin: 0 0 0.35rem 0; opacity: 0.8;">© 2024–2026 Semptify</p>
         <p style="font-size: 0.8rem; margin: 0; opacity: 0.65;">No Cost, Always &nbsp;·&nbsp; No Ads &nbsp;·&nbsp; No Tracking &nbsp;·&nbsp; Open Source &nbsp;·&nbsp; Donation Supported</p>
       </div>

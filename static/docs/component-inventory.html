@@ -4,28 +4,28 @@
   <meta charset="UTF-8">
   <title>Semptify Component Inventory - Reusable Objects</title>
   <style>
-    body { font-family: system-ui; background: #0f172a; color: #e2e8f0; padding: 2rem; }
-    .component { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
-    .component h3 { margin-top: 0; color: #10b981; }
-    .tag { display: inline-block; padding: 0.2rem 0.5rem; background: #334155; border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem; }
-    .mobile-yes { background: #065f46; color: #6ee7b7; }
-    .mobile-no { background: #7f1d1d; color: #fca5a5; }
-    .mobile-partial { background: #92400e; color: #fdba74; }
-    pre { background: #0f172a; padding: 1rem; border-radius: 4px; overflow-x: auto; }
-    .usage { background: #1e3a5f; padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; }
+    body { font-family: system-ui; background: var(--tone-900); color: var(--color-calm-100); padding: 2rem; }
+    .component { background: var(--color-primary-dark); border: 1px solid var(--color-calm-dark); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .component h3 { margin-top: 0; color: var(--color-success); }
+    .tag { display: inline-block; padding: 0.2rem 0.5rem; background: var(--color-calm-dark); border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem; }
+    .mobile-yes { background: var(--color-success-800); color: var(--color-calm-light); }
+    .mobile-no { background: var(--color-error-800); color: var(--color-calm-200); }
+    .mobile-partial { background: var(--color-warning-800); color: var(--color-warning); }
+    pre { background: var(--tone-900); padding: 1rem; border-radius: 4px; overflow-x: auto; }
+    .usage { background: var(--color-calm-dark); padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; }
   </style>
 </head>
 <body>
-  <nav style="background: #1e293b; padding: 1rem; margin: -2rem -2rem 2rem -2rem; border-bottom: 1px solid #334155;">
-    <a href="/docs/navigation-structure.html" style="color: #60a5fa; text-decoration: none; margin-right: 1.5rem;">🧭 Navigation Structure</a>
-    <a href="/docs/component-inventory.html" style="color: #10b981; text-decoration: none; margin-right: 1.5rem; font-weight: bold;">📦 Component Inventory</a>
-    <a href="/admin/function-browser.html" style="color: #60a5fa; text-decoration: none; margin-right: 1.5rem;">⚙️ Function Browser</a>
-    <a href="/docs/core-navigation-functions.md" style="color: #60a5fa; text-decoration: none;">📝 Markdown Reference</a>
+  <nav style="background: var(--color-primary-dark); padding: 1rem; margin: -2rem -2rem 2rem -2rem; border-bottom: 1px solid var(--color-calm-dark);">
+    <a href="/docs/navigation-structure.html" style="color: var(--color-info); text-decoration: none; margin-right: 1.5rem;">🧭 Navigation Structure</a>
+    <a href="/docs/component-inventory.html" style="color: var(--color-success); text-decoration: none; margin-right: 1.5rem; font-weight: bold;">📦 Component Inventory</a>
+    <a href="/admin/function-browser.html" style="color: var(--color-info); text-decoration: none; margin-right: 1.5rem;">⚙️ Function Browser</a>
+    <a href="/docs/core-navigation-functions.md" style="color: var(--color-info); text-decoration: none;">📝 Markdown Reference</a>
   </nav>
   
   <h1>📦 Semptify Component Inventory</h1>
   <p>All reusable UI objects, their mobile status, and how to use them. 
-     <a href="/admin/function-browser.html" style="color: #10b981;">Browse functions →</a></p>
+     <a href="/admin/function-browser.html" style="color: var(--color-success);">Browse functions →</a></p>
 
   <!-- NAVIGATION COMPONENTS -->
   <h2>🧭 Navigation Components</h2>
@@ -322,12 +322,12 @@
   </div>
 
   <!-- SUMMARY TABLE -->
-  <div style="background: #1e3a5f; padding: 1rem; border-radius: 8px; margin: 2rem 0;">
+  <div style="background: var(--color-calm-dark); padding: 1rem; border-radius: 8px; margin: 2rem 0;">
   <h3 style="margin-top: 0;">🔗 Related Documentation</h3>
   <p>
-    <a href="/docs/navigation-structure.html" style="color: #60a5fa; display: inline-block; margin-right: 1rem;">🧭 Where to position these components →</a><br><br>
-    <a href="/admin/function-browser.html" style="color: #60a5fa; display: inline-block; margin-right: 1rem;">⚙️ What functions they implement →</a><br><br>
-    <a href="/admin/theme-preview.html" style="color: #60a5fa; display: inline-block;">🎨 View color themes →</a>
+    <a href="/docs/navigation-structure.html" style="color: var(--color-info); display: inline-block; margin-right: 1rem;">🧭 Where to position these components →</a><br><br>
+    <a href="/admin/function-browser.html" style="color: var(--color-info); display: inline-block; margin-right: 1rem;">⚙️ What functions they implement →</a><br><br>
+    <a href="/admin/theme-preview.html" style="color: var(--color-info); display: inline-block;">🎨 View color themes →</a>
   </p>
 </div>
 
@@ -335,62 +335,62 @@
   
   <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
     <thead>
-      <tr style="background: #1e293b;">
-        <th style="padding: 0.75rem; text-align: left; border: 1px solid #334155;">Component</th>
-        <th style="padding: 0.75rem; text-align: center; border: 1px solid #334155;">Mobile</th>
-        <th style="padding: 0.75rem; text-align: left; border: 1px solid #334155;">Notes</th>
+      <tr style="background: var(--color-primary-dark);">
+        <th style="padding: 0.75rem; text-align: left; border: 1px solid var(--color-calm-dark);">Component</th>
+        <th style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark);">Mobile</th>
+        <th style="padding: 0.75rem; text-align: left; border: 1px solid var(--color-calm-dark);">Notes</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Core Navigation</td>
-        <td style="padding: 0.75rem; text-align: center; border: 1px solid #334155; color: #6ee7b7;">✅ Full</td>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Hamburger menu on mobile</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Core Navigation</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-light);">✅ Full</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Hamburger menu on mobile</td>
       </tr>
       <tr>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Vault Upload</td>
-        <td style="padding: 0.75rem; text-align: center; border: 1px solid #334155; color: #6ee7b7;">✅ Full</td>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Camera/gallery integration</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Vault Upload</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-light);">✅ Full</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Camera/gallery integration</td>
       </tr>
       <tr>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Document Viewer</td>
-        <td style="padding: 0.75rem; text-align: center; border: 1px solid #334155; color: #fdba74;">⚠️ Partial</td>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Thumbnail + download only</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Document Viewer</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-warning);">⚠️ Partial</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Thumbnail + download only</td>
       </tr>
       <tr>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">PDF Signer</td>
-        <td style="padding: 0.75rem; text-align: center; border: 1px solid #334155; color: #fca5a5;">❌ No</td>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Desktop only - email link option</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">PDF Signer</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-200);">❌ No</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Desktop only - email link option</td>
       </tr>
       <tr>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Data Tables</td>
-        <td style="padding: 0.75rem; text-align: center; border: 1px solid #334155; color: #fdba74;">⚠️ Partial</td>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Converts to card list</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Data Tables</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-warning);">⚠️ Partial</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Converts to card list</td>
       </tr>
       <tr>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Rich Text Editor</td>
-        <td style="padding: 0.75rem; text-align: center; border: 1px solid #334155; color: #fdba74;">⚠️ Partial</td>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Plain text fallback</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Rich Text Editor</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-warning);">⚠️ Partial</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Plain text fallback</td>
       </tr>
       <tr>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Split Pane</td>
-        <td style="padding: 0.75rem; text-align: center; border: 1px solid #334155; color: #fca5a5;">❌ No</td>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Stacks vertically on mobile</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Split Pane</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-200);">❌ No</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Stacks vertically on mobile</td>
       </tr>
       <tr>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Timeline</td>
-        <td style="padding: 0.75rem; text-align: center; border: 1px solid #334155; color: #6ee7b7;">✅ Full</td>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Vertical layout</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Timeline</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-light);">✅ Full</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Vertical layout</td>
       </tr>
       <tr>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">All Forms</td>
-        <td style="padding: 0.75rem; text-align: center; border: 1px solid #334155; color: #6ee7b7;">✅ Full</td>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Native inputs on mobile</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">All Forms</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-light);">✅ Full</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Native inputs on mobile</td>
       </tr>
       <tr>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Packet Builder</td>
-        <td style="padding: 0.75rem; text-align: center; border: 1px solid #334155; color: #fdba74;">⚠️ Partial</td>
-        <td style="padding: 0.75rem; border: 1px solid #334155;">Templates only</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Packet Builder</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-warning);">⚠️ Partial</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Templates only</td>
       </tr>
     </tbody>
   </table>

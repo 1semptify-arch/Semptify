@@ -31,8 +31,8 @@
   overflow: hidden;            /* page itself never scrolls as a whole */
   box-sizing: border-box;
   font-size: clamp(0.875rem, 1.4vh, 1.125rem);
-  background: #f7f7f5;
-  color: #1a1a1a;
+  background: var(--tone-100);
+  color: var(--color-gray-900);
 }
 
 .page-shell *,
@@ -67,7 +67,7 @@
   display: flex;
   flex-direction: column;
   gap: clamp(0.25rem, 0.6vh, 0.75rem);
-  --zone-base: #f7f7f5;        /* neutral page background for most sections */
+  --zone-base: var(--tone-100);        /* neutral page background for most sections */
 }
 
 /* Flow-based grid areas. The renderer emits section-primary,
@@ -82,7 +82,7 @@
 .section-tertiary  { grid-area: tertiary; }
 .section-quaternary { grid-area: quaternary; }
 .section-safety    { grid-area: safety; }
-.is-safety-strip   { --zone-base: #faf7f0; } /* warm safety tone */
+.is-safety-strip   { --zone-base: var(--tone-100); } /* warm safety tone */
 
 /* Visual weight — §11 level-driven shade depth.
  * Moderate: clear shift from the base. Deep: deepest shade on the page.
@@ -90,20 +90,20 @@
  * hue family. The safety strip at 'deep' is the heaviest thing on the page,
  * but still calm (no yellow/red alert blocks). */
 .zone.visual-weight-low {
-  background: var(--zone-base, #f7f7f5);
+  background: var(--zone-base, var(--tone-100));
 }
 .zone.visual-weight-moderate {
   background: linear-gradient(
     160deg,
-    color-mix(in srgb, var(--zone-base, #f7f7f5) 88%, #e0e0d8),
-    color-mix(in srgb, var(--zone-base, #f7f7f5) 78%, #d0d0c8)
+    color-mix(in srgb, var(--zone-base, var(--tone-100)) 88%, var(--tone-300)),
+    color-mix(in srgb, var(--zone-base, var(--tone-100)) 78%, var(--tone-400))
   );
 }
 .zone.visual-weight-deep {
   background: linear-gradient(
     160deg,
-    color-mix(in srgb, var(--zone-base, #f7f7f5) 72%, #c8c8c0),
-    color-mix(in srgb, var(--zone-base, #f7f7f5) 60%, #b8b8b0)
+    color-mix(in srgb, var(--zone-base, var(--tone-100)) 72%, var(--tone-500)),
+    color-mix(in srgb, var(--zone-base, var(--tone-100)) 60%, var(--tone-500))
   );
 }
 
@@ -114,8 +114,8 @@
 .is-safety-strip.visual-weight-deep {
   background: linear-gradient(
     160deg,
-    #e8e3d4,
-    #ddd6c2
+    var(--tone-300),
+    var(--tone-400)
   );
 }
 
@@ -139,7 +139,7 @@
 .block {
   padding: clamp(0.4rem, 0.8vh, 0.75rem);
   border-radius: clamp(3px, 0.5vh, 5px);
-  background: rgba(255, 255, 255, 0.5);
+  background: color-mix(in srgb, var(--bg-card), transparent 50%);
 }
 
 /* InputBlock — form fields need a visible boundary to be identifiable
@@ -149,7 +149,7 @@
   font-weight: 500;
   margin-bottom: 0.25rem;
 }
-.block-input .required { color: #c62828; }
+.block-input .required { color: var(--color-error-800); }
 .block-input input,
 .block-input select,
 .block-input textarea {
@@ -157,9 +157,9 @@
   padding: 0.35rem 0.5rem;
   font: inherit;
   border: none;
-  border-bottom: 1px solid #c8c8c0;  /* minimal underline only */
+  border-bottom: 1px solid var(--tone-500);  /* minimal underline only */
   border-radius: 2px;
-  background: #fff;
+  background: var(--color-white);
 }
 
 /* InfoBlock — collapsed summary is the visible affordance. No borders. */
@@ -180,10 +180,10 @@
   font-weight: 500;
   border: none;
   border-radius: 4px;
-  background: #f0f0ec;
+  background: var(--tone-200);
   cursor: pointer;
 }
-.block-output .output-trigger:hover { background: #e8e8e2; }
+.block-output .output-trigger:hover { background: var(--bg-footer); }
 
 /* Banner action_type (used in GOVERN for escalation) — full-width,
  * left-aligned, reads as calm text. No yellow/red alert background. */

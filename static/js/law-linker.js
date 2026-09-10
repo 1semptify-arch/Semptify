@@ -4,15 +4,18 @@
  *
  * Supported citation types (local -> state -> federal):
  *   - Minnesota Statutes (Minn. Stat. § XXXX.XXX) -> revisor.mn.gov
- *   - US Code (XX U.S.C. § XXXX) -> law.cornell.edu
+ *   - US Code (XX U.S.C. § XXXXf or XXXX-XX) -> law.cornell.edu
  *   - CFR (XX C.F.R. § XXX.XXX) -> ecfr.gov
  *   - IRS Publications (IRS Publication XXX) -> irs.gov
+ *   - HUD / FHEO Notices (HUD FHEO Notice YYYY-NN) -> hud.gov
  *   - Minneapolis Code (Minneapolis Code § XXX) -> library.municode.com
  *   - St. Paul Code (St. Paul Ordinance XX-XX) -> library.municode.com
  *   - County / municipal code (e.g. Hennepin County Code § ...) -> library.municode.com (jurisdiction-aware)
  *   - US Supreme Court (XXX U.S. XXX (YYYY)) -> courtlistener.com
  *   - Federal Appellate (XXX F.3d XXX (Xth Cir. YYYY)) -> courtlistener.com
+ *   - Federal District (XXX F. Supp. XXX (D. X YYYY)) -> courtlistener.com
  *   - Minnesota Cases (XXX Minn. XX, XXX N.W.2d XXX) -> courtlistener.com
+ *   - Westlaw / loose citations (YYYY WL XXXXXX) -> courtlistener.com
  *
  * Each popup shows: title, summary, full text excerpt, and a clickable
  * "View Official Source →" link to the authoritative source.
@@ -153,22 +156,22 @@
             displayLabel: (m) => 'Minn. Stat. § ' + m,
             apiPath: '/api/law-library/statutes/'
         },
-        // Minnesota Statutes — chapter level (e.g. Minn. Stat. § 504B, § 580)
+        // Minnesota Statutes — chapter level (e.g. Minn. Stat. § 504B, § 580, § 322C; § 333)
         {
             type: 'minnesota_statute_chapter',
             label: 'MN Statute Chapter',
-            regex: /Minn\.\s*Stat\.\s*§?\s*(\d+[A-Z]?)(?!\.\d)/gi,
-            detect: /Minn\.\s*Stat\.\s*§?\s*\d+[A-Z]?(?!\.)/i,
+            regex: /Minn\.\s*Stat\.\s*§?\s*(\d+[A-Z]?)(?!\.\d)(?:\s*;|\s*$|\s+)/gi,
+            detect: /Minn\.\s*Stat\.\s*§?\s*\d+[A-Z]?(?!\.\d)/i,
             idBuilder: (m) => 'minn_stat_' + m.toLowerCase(),
             urlBuilder: (m) => 'https://www.revisor.mn.gov/statutes/cite/' + m,
             displayLabel: (m) => 'Minn. Stat. § ' + m,
             apiPath: '/api/law-library/statutes/'
         },
-        // US Code (e.g. 42 U.S.C. § 3601)
+        // US Code (e.g. 42 U.S.C. § 3601, 42 U.S.C. § 1437f, 42 U.S.C. § 1715z-1)
         {
             type: 'us_code',
             label: 'US Code',
-            regex: /(\d+)\s*U\.?S\.?C\.?\s*[§\s]*(\d+(?:-\d+)?)/gi,
+            regex: /(\d+)\s*U\.?S\.?C\.?\s*[§\s]*(\d+[a-zA-Z]*(?:-[0-9a-zA-Z]+)?)(?:\s+note)?/gi,
             detect: /\d+\s*U\.?S\.?C\.?/i,
             idBuilder: (title, section) => 'usc_' + title + '_' + section,
             urlBuilder: (title, section) => 'https://www.law.cornell.edu/uscode/text/' + title + '/' + section,
@@ -196,6 +199,28 @@
             urlBuilder: (num) => 'https://www.irs.gov/publications/p' + num,
             displayLabel: (num) => 'IRS Publication ' + num,
             apiPath: '/api/law-library/statutes/'
+        },
+        // HUD / FHEO Notices (e.g. HUD FHEO Notice 2020-01)
+        {
+            type: 'hud_notice',
+            label: 'HUD Notice',
+            regex: /HUD\s*(?:FHEO\s*)?Notice\s*(\d{4})\s*[-/]?\s*(\d+)/gi,
+            detect: /HUD\s*(?:FHEO\s*)?Notice\s*\d{4}\s*[-/]?\s*\d+/i,
+            idBuilder: (year, num) => 'hud_notice_' + year + '_' + num,
+            urlBuilder: (year, num) => 'https://www.hud.gov/program_offices/fair_housing_equal_opp/assistance_animals',
+            displayLabel: (year, num) => 'HUD FHEO Notice ' + year + '-' + num,
+            apiPath: null
+        },
+        // Westlaw / loose reporter citations (e.g. 2014 WL 4782034)
+        {
+            type: 'westlaw',
+            label: 'Case Citation',
+            regex: /(\d{4})\s*WL\s*(\d+)/gi,
+            detect: /\d{4}\s*WL\s*\d+/i,
+            idBuilder: (year, num) => 'westlaw_' + year + '_' + num,
+            urlBuilder: (year, num) => 'https://www.courtlistener.com/?q=%22' + year + '+WL+' + num + '%22&type=o',
+            displayLabel: (year, num) => year + ' WL ' + num,
+            apiPath: '/api/law-library/case-law/'
         },
         // Minneapolis Code (e.g. Minneapolis Code § 244)
         {
@@ -303,14 +328,14 @@
         styles.id = 'law-linker-styles';
         styles.textContent = `
             .law-linker-cite {
-                color: #60a5fa;
-                border-bottom: 1px dotted #60a5fa;
+                color: var(--color-info);
+                border-bottom: 1px dotted var(--color-info);
                 cursor: help;
                 transition: all 0.2s;
             }
             .law-linker-cite:hover {
-                color: #93c5fd;
-                background: rgba(96, 165, 250, 0.1);
+                color: var(--color-calm-200);
+                background: color-mix(in srgb, var(--color-info), transparent 90%);
                 border-radius: 2px;
             }
             #law-linker-popup {
@@ -318,10 +343,10 @@
                 z-index: 10000;
                 max-width: 450px;
                 min-width: 300px;
-                background: #1e293b;
-                border: 1px solid #475569;
+                background: var(--color-primary-dark);
+                border: 1px solid var(--color-gray-600);
                 border-radius: 12px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+                box-shadow: 0 20px 40px color-mix(in srgb, var(--color-black), transparent 60%);
                 opacity: 0;
                 visibility: hidden;
                 transition: opacity 0.2s, visibility 0.2s;
@@ -337,20 +362,20 @@
                 justify-content: space-between;
                 align-items: center;
                 padding: 12px 16px;
-                background: linear-gradient(135deg, #1e3a5f, #1e293b);
+                background: linear-gradient(135deg, var(--color-calm-dark), var(--color-primary-dark));
                 border-radius: 12px 12px 0 0;
-                border-bottom: 1px solid #334155;
+                border-bottom: 1px solid var(--color-calm-dark);
             }
             .law-linker-citation {
                 font-weight: 700;
-                color: #f8fafc;
+                color: var(--text-inverse);
                 font-size: 0.95rem;
             }
             .law-linker-type {
                 font-size: 0.7rem;
                 text-transform: uppercase;
-                color: #94a3b8;
-                background: #334155;
+                color: var(--color-calm-light);
+                background: var(--color-calm-dark);
                 padding: 2px 8px;
                 border-radius: 99px;
             }
@@ -361,30 +386,30 @@
             }
             .law-linker-content h4 {
                 margin: 0 0 8px 0;
-                color: #60a5fa;
+                color: var(--color-info);
                 font-size: 0.9rem;
             }
             .law-linker-content p {
                 margin: 0;
-                color: #cbd5e1;
+                color: var(--color-calm-200);
                 font-size: 0.85rem;
                 line-height: 1.6;
             }
             .law-linker-content .law-fulltext {
-                background: #0f172a;
+                background: var(--tone-900);
                 padding: 12px;
                 border-radius: 8px;
                 font-size: 0.8rem;
-                color: #e2e8f0;
+                color: var(--color-calm-100);
                 line-height: 1.7;
-                border-left: 3px solid #3b82f6;
+                border-left: 3px solid var(--color-info);
                 margin-top: 12px;
                 white-space: pre-wrap;
             }
             .law-linker-content .law-verified {
                 margin-top: 10px;
                 font-size: 0.72rem;
-                color: #64748b;
+                color: var(--color-gray-500);
                 font-style: italic;
             }
             .law-linker-footer {
@@ -392,25 +417,25 @@
                 justify-content: space-between;
                 align-items: center;
                 padding: 10px 16px;
-                background: #0f172a;
+                background: var(--tone-900);
                 border-radius: 0 0 12px 12px;
-                border-top: 1px solid #334155;
+                border-top: 1px solid var(--color-calm-dark);
                 font-size: 0.75rem;
-                color: #64748b;
+                color: var(--color-gray-500);
             }
             .law-linker-full {
-                color: #60a5fa;
+                color: var(--color-info);
                 text-decoration: none;
                 font-weight: 600;
             }
             .law-linker-full:hover {
-                color: #93c5fd;
+                color: var(--color-calm-200);
                 text-decoration: underline;
             }
             .law-linker-loading {
                 text-align: center;
                 padding: 20px;
-                color: #94a3b8;
+                color: var(--color-calm-light);
             }
         `;
         document.head.appendChild(styles);
@@ -744,7 +769,7 @@
     function createScratchMenu() {
         const menu = document.createElement('div');
         menu.id = 'law-scratch-menu';
-        menu.style.cssText = 'position:fixed;z-index:11000;display:none;background:#1e293b;border:1px solid #475569;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.4);padding:4px 0;min-width:160px;color:#f8fafc;font-size:0.85rem;';
+        menu.style.cssText = 'position:fixed;z-index:11000;display:none;background:var(--color-primary-dark);border:1px solid var(--color-gray-600);border-radius:8px;box-shadow:0 10px 25px color-mix(in srgb, var(--color-black), transparent 60%);padding:4px 0;min-width:160px;color:var(--text-inverse);font-size:0.85rem;';
         menu.innerHTML = '<button type="button" style="display:block;width:100%;text-align:left;padding:8px 16px;background:none;border:none;color:inherit;cursor:pointer;" data-action="save">Copy to Scratch Pad</button>';
         document.body.appendChild(menu);
 
@@ -761,14 +786,14 @@
                     body: JSON.stringify({ text: selection, source: window.location.pathname })
                 });
                 if (res.ok) {
-                    menu.innerHTML = '<span style="display:block;padding:8px 16px;color:#93c5fd;">Saved</span>';
+                    menu.innerHTML = '<span style="display:block;padding:8px 16px;color:var(--color-calm-200);">Saved</span>';
                     setTimeout(hideScratchMenu, 800);
                 } else {
-                    menu.innerHTML = '<span style="display:block;padding:8px 16px;color:#f87171;">Could not save</span>';
+                    menu.innerHTML = '<span style="display:block;padding:8px 16px;color:var(--color-error);">Could not save</span>';
                     setTimeout(() => menu.innerHTML = '<button type="button" style="display:block;width:100%;text-align:left;padding:8px 16px;background:none;border:none;color:inherit;cursor:pointer;" data-action="save">Copy to Scratch Pad</button>', 1200);
                 }
             } catch (err) {
-                menu.innerHTML = '<span style="display:block;padding:8px 16px;color:#f87171;">Could not save</span>';
+                menu.innerHTML = '<span style="display:block;padding:8px 16px;color:var(--color-error);">Could not save</span>';
                 setTimeout(() => menu.innerHTML = '<button type="button" style="display:block;width:100%;text-align:left;padding:8px 16px;background:none;border:none;color:inherit;cursor:pointer;" data-action="save">Copy to Scratch Pad</button>', 1200);
             }
         });

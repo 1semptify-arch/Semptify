@@ -1,0 +1,23 @@
+{
+  "version": "1",
+  "entries": [
+    {
+      "module_path": "app.modules.document_center",
+      "contract_path": "app/modules/document_center/module_contract.json",
+      "module_name": "Document Center",
+      "output_type": "ui_state_change",
+      "has_preview_state": true,
+      "has_review_state": true,
+      "narrative_event_count": 8
+    },
+    {
+      "module_path": "app.modules.resource_intake",
+      "contract_path": "app/modules/resource_intake/module_contract.json",
+      "module_name": "Resource Intake & Integrity Engine",
+      "output_type": "file",
+      "has_preview_state": true,
+      "has_review_state": true,
+      "narrative_event_count": 3
+    }
+  ]
+}

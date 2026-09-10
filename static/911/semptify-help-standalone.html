@@ -7,15 +7,15 @@
 <meta name="description" content="Emergency housing and legal help resources. No login needed. Available even if semptify.org is down.">
 <style>
   :root {
-    --ink: #1a1a1a;
-    --ink-secondary: #4a4a4a;
-    --ink-muted: #6b6b6b;
-    --paper: #ffffff;
-    --tint: #E6F1FB;
-    --tint-strong: #0C447C;
-    --border: #dcdcdc;
-    --urgent: #993C1D;
-    --urgent-tint: #FAECE7;
+    --ink: var(--tone-900);
+    --ink-secondary: var(--tone-800);
+    --ink-muted: var(--tone-700);
+    --paper: var(--color-white);
+    --tint: var(--color-calm-50);
+    --tint-strong: var(--color-calm-dark);
+    --border: var(--bg-footer);
+    --urgent: var(--color-warning-800);
+    --urgent-tint: var(--tone-200);
   }
   * { box-sizing: border-box; }
   body {
@@ -65,7 +65,7 @@
     color: var(--ink);
     text-decoration: none;
     padding: 0.4rem 0;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-black), transparent 92%);
   }
   .emergency a.tel:last-child { border-bottom: none; }
   .emergency a.tel span.label {
@@ -83,13 +83,13 @@
     letter-spacing: 0.07em;
     color: var(--ink-muted);
     padding: 0.4rem 1.25rem;
-    background: #f5f5f4;
+    background: var(--bg-field);
   }
   .item {
     padding: 0.75rem 1.25rem;
     border-bottom: 1px solid var(--border);
   }
-  .item:nth-child(even) { background: #fafaf9; }
+  .item:nth-child(even) { background: var(--tone-50); }
   .item .name { font-weight: 600; font-size: 14.5px; margin: 0 0 2px; }
   .item a.number {
     font-size: 15px;

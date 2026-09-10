@@ -148,6 +148,11 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.page_shell.register",
     # Unified page router (dynamic manifest-driven template routes)
     "app.modules.page_router.register",
+    # Stateless public / admin / debug surface contracts
+    "app.modules.public_surface.register",
+    "app.modules.admin_auth.register",
+    "app.modules.admin_api.register",
+    "app.modules.debug.register",
     # Found via tools/gap_report.py: real register.py contracts that existed
     # but were never imported here, so they never reached the live registry.
     "app.modules.agent_orchestrator.register",
@@ -172,6 +177,8 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     # The previous SyntaxError claim in router.py was stale; router.py and register.py
     # both compile and import cleanly. Module future remains undecided here.
     "app.modules.litigation_intelligence.register",
+    # Resource Intake & Integrity Engine (build-time contract for Composer resources)
+    "app.modules.resource_intake.register",
     # Services with contracts
     "app.services.unified_overlay_manager",
     "app.services.communication_service",

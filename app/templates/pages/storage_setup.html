@@ -27,7 +27,7 @@
     /* Current connection status */
     .setup-current {
         padding: 1rem 1.25rem;
-        background: rgba(16, 185, 129, 0.06);
+        background: color-mix(in srgb, var(--color-success), transparent 94%);
         border-radius: var(--radius-lg);
         margin-bottom: 2rem;
         display: flex;
@@ -73,14 +73,14 @@
     }
 
     .provider-option--active {
-        background: rgba(16, 185, 129, 0.06);
+        background: color-mix(in srgb, var(--color-success), transparent 94%);
     }
 
     .provider-option__icon {
         width: 40px; height: 40px;
         display: grid; place-items: center;
         border-radius: var(--radius-md);
-        background: rgba(255, 255, 255, 0.08);
+        background: color-mix(in srgb, var(--bg-card), transparent 92%);
         font-size: 1.25rem;
         flex-shrink: 0;
     }

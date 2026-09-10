@@ -82,15 +82,15 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: color-mix(in srgb, var(--color-black), transparent 30%);
     backdrop-filter: blur(4px);
 }
 
 .preview-modal__container {
     position: relative;
-    background: #fff;
+    background: var(--color-white);
     border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px color-mix(in srgb, var(--color-black), transparent 70%);
     width: 90%;
     max-width: 900px;
     max-height: 90vh;
@@ -104,15 +104,15 @@
     align-items: center;
     justify-content: space-between;
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e5e7eb;
-    background: #f9fafb;
+    border-bottom: 1px solid var(--color-gray-200);
+    background: var(--color-gray-50);
 }
 
 .preview-modal__title {
     font-size: 1rem;
     font-weight: 600;
     margin: 0;
-    color: #111827;
+    color: var(--color-gray-900);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -131,21 +131,21 @@
     width: 36px;
     height: 36px;
     border: none;
-    background: #fff;
+    background: var(--color-white);
     border-radius: 8px;
     cursor: pointer;
-    color: #6b7280;
+    color: var(--color-gray-500);
     transition: all 0.15s;
 }
 
 .preview-modal__btn:hover {
-    background: #f3f4f6;
-    color: #111827;
+    background: var(--color-gray-100);
+    color: var(--color-gray-900);
 }
 
 .preview-modal__btn--close:hover {
-    background: #fee2e2;
-    color: #dc2626;
+    background: var(--bg-sidebar);
+    color: var(--color-error);
 }
 
 .preview-modal__content {
@@ -155,19 +155,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f3f4f6;
+    background: var(--color-gray-100);
 }
 
 .preview-modal__loading {
     text-align: center;
-    color: #6b7280;
+    color: var(--color-gray-500);
 }
 
 .preview-modal__spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid #e5e7eb;
-    border-top-color: #3b82f6;
+    border: 3px solid var(--color-gray-200);
+    border-top-color: var(--color-info);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 1rem;
@@ -193,7 +193,7 @@
     width: 100%;
     max-height: 70vh;
     padding: 1.5rem;
-    background: #fff;
+    background: var(--color-white);
     font-family: 'Courier New', monospace;
     font-size: 0.875rem;
     line-height: 1.6;
@@ -216,8 +216,8 @@
 .preview-modal__download-btn {
     margin-top: 1rem;
     padding: 0.75rem 1.5rem;
-    background: #3b82f6;
-    color: #fff;
+    background: var(--color-info);
+    color: var(--text-inverse);
     border: none;
     border-radius: 8px;
     font-weight: 600;
@@ -226,23 +226,23 @@
 }
 
 .preview-modal__download-btn:hover {
-    background: #2563eb;
+    background: var(--color-info);
 }
 
 .preview-modal__footer {
     padding: 0.75rem 1.25rem;
-    border-top: 1px solid #e5e7eb;
-    background: #f9fafb;
+    border-top: 1px solid var(--color-gray-200);
+    background: var(--color-gray-50);
 }
 
 .preview-modal__meta {
     font-size: 0.8rem;
-    color: #6b7280;
+    color: var(--color-gray-500);
 }
 
 .preview-modal__error {
     text-align: center;
-    color: #dc2626;
+    color: var(--color-error);
     padding: 2rem;
 }
 

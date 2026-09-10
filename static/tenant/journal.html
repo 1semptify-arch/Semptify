@@ -35,7 +35,7 @@
         }
         .logo { font-weight: 800; font-size: 1.3rem; text-decoration: none; color: var(--text-inverse); }
         .nav-links { display: flex; gap: 1.5rem; }
-        .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.95rem; }
+        .nav-links a { color: color-mix(in srgb, var(--color-white), transparent 15%); text-decoration: none; font-size: 0.95rem; }
         .nav-links a:hover { color: var(--text-inverse); }
         .nav-links a.active { color: var(--text-inverse); font-weight: 600; }
 
@@ -50,7 +50,7 @@
             border-radius: var(--radius-block);
             padding: 1.5rem;
             margin-bottom: 2rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--color-black), transparent 90%);
         }
         .form-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
@@ -102,7 +102,7 @@
         .timeline {
             background: var(--card);
             border-radius: var(--radius-block);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--color-black), transparent 90%);
             overflow: hidden;
         }
         .timeline-empty {
@@ -490,25 +490,25 @@
       <div>
         <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Legal</h4>
         <ul style="list-style: none; padding: 0; margin: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
         </ul>
       </div>
       <div>
         <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Connect</h4>
         <ul style="list-style: none; padding: 0; margin: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
         </ul>
       </div>
     </div>
-    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-block); margin-bottom: 1.5rem;">
+    <div style="background: color-mix(in srgb, var(--color-white), transparent 95%); padding: 1rem; border-radius: var(--radius-block); margin-bottom: 1.5rem;">
       <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
         <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
       </p>
     </div>
-    <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: center;">
+    <div style="border-top: 1px solid color-mix(in srgb, var(--color-white), transparent 90%); padding-top: 1.5rem; text-align: center;">
       <p style="font-size: 0.85rem; margin: 0 0 0.5rem 0; opacity: 0.8;">© 2024-2026 Semptify</p>
       <p style="font-size: 0.8rem; margin: 0; opacity: 0.7;">No Cost, Always • No Ads • Open Source</p>
     </div>

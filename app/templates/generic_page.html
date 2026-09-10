@@ -35,7 +35,7 @@
         letter-spacing: 0.05em;
         padding: 0.25rem 0.5rem;
         border-radius: var(--radius-sm);
-        background: rgba(59, 130, 246, 0.15);
+        background: color-mix(in srgb, var(--color-info), transparent 85%);
         color: var(--color-accent);
         margin-bottom: 1rem;
     }
@@ -48,7 +48,7 @@
     .uic-welcome {
         text-align: center;
         padding: 1.5rem;
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(16, 185, 129, 0.04));
+        background: linear-gradient(135deg, color-mix(in srgb, var(--color-info), transparent 92%), color-mix(in srgb, var(--color-success), transparent 96%));
         border: none;
         border-radius: var(--radius-xl);
         box-shadow: var(--elevation-1);
@@ -100,7 +100,7 @@
     .uic-timeline-group__empty { color: var(--text-muted); font-size: 0.875rem; text-align: center; padding: 1.5rem; }
 
     .uic-timeline-event { display: grid; grid-template-columns: 32px 1fr; gap: 0.75rem; padding: 0.75rem; border-radius: var(--radius-input); background: var(--color-gray-100); }
-    .uic-timeline-event__icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: rgba(59, 130, 246, 0.2); font-size: 0.875rem; }
+    .uic-timeline-event__icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--color-info), transparent 80%); font-size: 0.875rem; }
     .uic-timeline-event__title { font-size: 0.9375rem; font-weight: 500; margin: 0; color: var(--text-primary); }
     .uic-timeline-event__subtitle { font-size: 0.8125rem; color: var(--text-secondary); margin: 0.125rem 0 0; }
     .uic-timeline-event__time { font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem; }
@@ -177,7 +177,7 @@
         background: var(--bg-elevated); color: var(--text-primary);
         max-width: 500px; width: calc(100% - 2rem);
     }
-    .uic-add-record-modal::backdrop { background: rgba(0, 0, 0, 0.6); }
+    .uic-add-record-modal::backdrop { background: color-mix(in srgb, var(--color-black), transparent 40%); }
     .uic-add-record-modal__form { padding: 1.5rem; }
     .uic-add-record-modal__title { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem; }
     .uic-add-record-modal__body { color: var(--text-secondary); font-size: 0.875rem; margin: 0 0 1.25rem; }

@@ -14,26 +14,26 @@
   }
   .viewer-header h1 {
     font-size: var(--font-size-xl, 2rem);
-    color: var(--color-text-primary, #1a1a1a);
+    color: var(--color-text-primary, var(--color-gray-900));
     margin-bottom: var(--space-xs, 0.5rem);
   }
   .viewer-header .doc-name {
     font-size: var(--font-size-md, 1rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
   }
   .doc-content {
-    background: var(--color-surface, #fff);
+    background: var(--color-surface, var(--color-white));
     padding: var(--space-lg, 2rem);
     border-radius: var(--radius-md, 8px);
     margin-bottom: var(--space-lg, 2rem);
     min-height: 300px;
     font-size: var(--font-size-md, 1rem);
-    color: var(--color-text-primary, #1a1a1a);
+    color: var(--color-text-primary, var(--color-gray-900));
     line-height: 1.7;
   }
   .doc-placeholder {
     text-align: center;
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
     padding: var(--space-xl, 2.5rem);
   }
   .annot-tools {
@@ -41,31 +41,31 @@
     gap: var(--space-sm, 1rem);
     flex-wrap: wrap;
     padding: var(--space-md, 1.5rem);
-    background: var(--color-surface-alt, #f7f7f7);
+    background: var(--color-surface-alt, var(--bg-page));
     border-radius: var(--radius-md, 8px);
   }
   .annot-btn {
     padding: var(--space-sm, 1rem) var(--space-md, 1.5rem);
     font-size: var(--font-size-sm, 0.875rem);
     border-radius: var(--radius-md, 8px);
-    background: var(--color-surface-alt, #f5f5f5);
-    color: var(--color-text-primary, #1a1a1a);
+    background: var(--color-surface-alt, var(--color-gray-100));
+    color: var(--color-text-primary, var(--color-gray-900));
     cursor: pointer;
   }
-  .annot-btn:hover { background: var(--color-surface-alt, #f0f0f0); }
+  .annot-btn:hover { background: var(--color-surface-alt, var(--bg-muted)); }
   .reaction-working {
     display: none;
     align-items: center;
     gap: var(--space-sm, 1rem);
     padding: var(--space-md, 1.5rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
     font-size: var(--font-size-md, 1rem);
   }
   .reaction-working.active { display: flex; }
   .spinner {
     width: 20px; height: 20px;
-    border: 3px solid var(--color-border, #ccc);
-    border-top-color: var(--color-accent, #0066cc);
+    border: 3px solid var(--color-border, var(--tone-500));
+    border-top-color: var(--color-accent, var(--color-info));
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
