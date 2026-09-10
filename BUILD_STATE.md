@@ -1,3 +1,53 @@
+## Session — 2026-09-10 — Mechanics verification pass (claude) — IN PROGRESS
+
+### Guardrail Engine Run — 2026-09-10T06:44:29+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-10T06:44:00+00:00
+
+- **contract_route_check**: PASS
+- **fees_policy_check**: PASS
+- **manifest_sync_check**: PASS
+- **stub_check**: PASS
+
+### Shipped this session
+
+- **test fixture repair** (commit `fa13ddad`):
+  - `tests/conftest.py` was importing `_encrypt_string` from `app.core.auto_refresh`; that helper was removed when `app.core.key_derivation` was introduced.
+  - Updated to `from app.core.key_derivation import encrypt_value as _encrypt_string`.
+  - `tests/test_documents.py` now passes 41/41 (was 39 passed + 2 errors).
+  - `tests/test_page_composer_assembly_api.py` now passes 7/7.
+
+- **timeline document-date fix** (commit `9c1805c8`):
+  - `app/modules/timeline/router.py::_load_db_documents` was ignoring `Document.event_date` and `Document.received_date`; it always sorted/filtered by `uploaded_at`, which broke the `received_date < uploaded_at` case and the `event_time` date axis for documents.
+  - Fixed display/filter/sort column to use `coalesce(event_date, received_date, uploaded_at)` for `event_time`, `coalesce(received_date, event_date, uploaded_at)` for `record_time`, and `uploaded_at` for `entry_time`.
+  - Also populated `TimelineItem.event_date` and `record_date` from the model fields instead of always leaving them `None`.
+
+### Verified
+
+- **Task 1 — storage connection OAuth/reconnect**: TOKEN_CORRUPT path confirmed. A refresh token encrypted with the wrong key is correctly detected as corrupt and `get_valid_token_or_redirect` returns `/storage/reconnect`. Live provider health (Google/Dropbox/OneDrive token refresh) cannot be tested in this sandbox without real OAuth sessions.
+- **Task 2 — document upload/framing**: `tests/integration/test_document_e2e.py` 30/30; `tests/test_documents.py` 41/41; local storage correctly rejected when `SECURITY_MODE=enforced`; classification of lease vs. notice holds.
+- **Task 3 — OCR extraction and overlay creation**: `vault_upload_service.mark_processed()` correctly calls `UnifiedOverlayManager.create_overlay()` for `document_extraction` and `party_extraction` when an `access_token` is provided. Local Tesseract OCR binary is not installed in this environment, so scanned-image/PDF OCR cannot be exercised end-to-end; text-PDF extraction and classification works.
+- **Task 4 — contact/factual record logging**: `POST /api/timeline/events` creates a manual record with `event_date`; `POST /api/timeline/unified` returns it.
+- **Task 5 — timeline sequencing**: Fixed and verified for `Document` rows. The unified timeline now uses `event_date`/`received_date` for documents, not just `uploaded_at`.
+
+### Flags / pending
+
+- **test_tenant_timeline_renders_eviction_event** (UI Composer / `/tenant/timeline`) still fails: the rendered page no longer contains "Evidence". This is a UI/template regression, not an API/timeline-data regression; the API tests in `test_unified_timeline.py` pass.
+- **Vault-uploaded documents do not appear in the unified timeline**: the timeline loads `Document` and `VaultItem` tables, but `vault_upload_service` stores documents in `vault_index` (`VaultIndexDB`/`VaultDocument`). `VaultItem` is only created by `app/services/vault_ingestion.py`, which is not wired into the upload path. This is a structural integration gap, not a one-line fix.
+- **Local OCR** is unavailable because `tesseract` is not installed in the dev environment.
+- **Route audit** reports 11 uncovered public routes (pre-existing; see recent logs).
+
+### Next
+
+Continue Tasks 6–9 (export/file generation, known open issues, data-layer health, Document Center function inventory) and close out this verification pass.
+
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
 
 ### Guardrail Engine Run — 2026-09-09T06:09:02+00:00
