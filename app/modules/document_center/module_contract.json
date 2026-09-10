@@ -1,0 +1,102 @@
+{
+  "module_name": "Document Center",
+  "layout": "app/modules/document_center/ — 3-pane tenant UI (left vault list, center Semptify viewer, right overlays/checklist). Reads documents and real overlays from the user's cloud vault; persists review state and document type in the vault index; creates DocumentShare rows for sharing.",
+  "inputs": [
+    {
+      "name": "user_vault_documents",
+      "type": "list of VaultDocument records",
+      "expected_size": "one per uploaded document",
+      "required": true
+    },
+    {
+      "name": "document_type",
+      "type": "string (enum)",
+      "expected_size": "one of 8 allowed values",
+      "required": true
+    },
+    {
+      "name": "review_confirmations",
+      "type": "JSON object (field -> confirm/correct state)",
+      "expected_size": "one per required field",
+      "required": true
+    },
+    {
+      "name": "share_request",
+      "type": "DocumentShare request (recipient, scope)",
+      "expected_size": "one per share action",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "user_vault_documents",
+      "source": "auto_detect",
+      "note": "Discovered by scanning the authenticated user's cloud vault; no PII stored in PostgreSQL."
+    },
+    {
+      "input_name": "document_type",
+      "source": "dropdown",
+      "note": "Selected by the tenant from the 8 allowed document types, or corrected after upload."
+    },
+    {
+      "input_name": "review_confirmations",
+      "source": "typed",
+      "note": "Tenant confirms or corrects each extracted field; persisted as structured overlay data."
+    },
+    {
+      "input_name": "share_request",
+      "source": "typed",
+      "note": "Tenant enters recipient and scope when they choose to share a document."
+    }
+  ],
+  "preview_state": "Tenant sees the selected document rendered in the Semptify viewer with current overlay progress, document type dropdown, and status selector before saving any review state.",
+  "review_state": "Tenant sees the updated verification status (new/review/verified/mismatched), the saved field confirmation state, and the current feature-unlock progress after each review save.",
+  "output_type": "ui_state_change",
+  "output_how": "FastAPI endpoints return JSON to drive the 3-pane template; the main page is served by GET /dc (page_router + dedicated route). Sharing creates a DocumentShare row and returns a token.",
+  "output_where": "app/templates/pages/document_center.html in the browser; JSON from /api/dc/* endpoints; DocumentShare row for shared access.",
+  "output_why": "Gives the tenant a single, calm place to review, verify, annotate, and share their housing documents with full transparency and control over what Semptify extracts.",
+  "process_description": "Lists the tenant's vault documents, renders the selected file in the Semptify viewer, fetches real OCR overlays from cloud storage, lets the tenant confirm or correct extracted fields, tracks per-document-type required fields, computes verification status, unlocks downstream features as verified metadata accumulates, and supports scoped document sharing.",
+  "process_context": "Runs whenever a tenant visits /dc or calls a /api/dc/* endpoint; requires an authenticated user with valid cloud storage.",
+  "narrative_events": [
+    {
+      "verb": "is checking",
+      "object": "the uploaded document",
+      "context_clause": "because the tenant opened it in the Document Center viewer"
+    },
+    {
+      "verb": "found",
+      "object": "extracted fields",
+      "context_clause": "after the OCR pipeline processed the document"
+    },
+    {
+      "verb": "did not find",
+      "object": "all required fields",
+      "context_clause": "when the document type has requirements the OCR did not satisfy"
+    },
+    {
+      "verb": "confirmed",
+      "object": "the document type",
+      "context_clause": "because the tenant selected the correct type from the dropdown"
+    },
+    {
+      "verb": "saved",
+      "object": "the review state",
+      "context_clause": "after the tenant confirmed or corrected the extracted fields"
+    },
+    {
+      "verb": "flagged",
+      "object": "a field mismatch",
+      "context_clause": "when the tenant corrected more fields than they confirmed"
+    },
+    {
+      "verb": "sent",
+      "object": "a share link",
+      "context_clause": "because the tenant chose to share the document with a recipient"
+    },
+    {
+      "verb": "is waiting for",
+      "object": "the OCR pipeline",
+      "context_clause": "while the document is still being processed in the background"
+    }
+  ]
+}
