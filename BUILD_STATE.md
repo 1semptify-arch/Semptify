@@ -106,7 +106,7 @@ Todolist in `orchestrator_state.json`:
 5. [x] Verify or park Sticky Notes and Law Linker modules.
 6. [x] Resolve page router / dormant manifest pages decision — page router mounted.
 7. [x] Update route-audit for public/landing/i18n routes — 11 uncovered routes now covered by new public_surface, admin_auth, admin_api, and debug modules.
-8. [ ] Sync stale tracker statuses and close resolved review tasks.
+8. [x] Sync stale tracker statuses and close resolved review tasks — 2 tasks resolved (law-linker-v2, auto-mode JS guards); 7 design/content tasks kept in review until branch merges; mechanics handoff still awaiting Brad review.
 
 ## Session — 2026-09-10 — Mechanics verification pass (claude)
 
