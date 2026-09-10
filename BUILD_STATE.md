@@ -1,5 +1,23 @@
 ## Session — 2026-09-10 — Opus orchestration setup (devin)
 
+### Guardrail Engine Run — 2026-09-10T02:11:53+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-10T02:03:07+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 - **Branch:** `orchestration/opus-setup-2026-09-09`
 - **Pull Request:** #187 (https://github.com/1semptify-arch/Semptify/pull/187)
 
