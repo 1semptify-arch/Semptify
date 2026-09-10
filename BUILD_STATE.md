@@ -44,12 +44,12 @@ All checks passed.
   - Sticky Notes routes are gated: `/record/notes` and `POST /api/sticky-notes` both return 401 with the expected auth redirect.
   - Console on the Law Library page is clean except for two pre-existing errors: `404 /search.html` (dead static page) and `401 /admin/dashboard` (unreachable without admin auth).
 
-- **Page router / dormant manifest pages — decision point** (this commit, investigation only):
-  - `app.modules.page_router` is **not mounted** in `app/main.py`; its contract is loaded in `contract_loader.py`, but the FastAPI router is never `include_router`d.
-  - The page manifest has 63 template entries; the router's `_SKIP_ROUTES` skips 15 that have dedicated handlers; if mounted it would register 44 additional GET routes.
-  - Live probes confirm `/case-builder`, `/choose-role`, `/storage-info`, `/storage-connecting`, and `/xyzzy` all fall through to `/help?status=down` — there is no route backing them.
-  - Of the 44 unmounted pages: 32 are marked `COMPLETE`, 12 `PARTIAL`; 9 are `high` priority, including the onboarding sequence (`/choose-role`, `/storage-info`, `/storage-connecting`, `/storage-reconnect`, `/storage-setup`) and active-case tools (`/court-packet`, `/crisis-intake`, `/eviction-answer`, `/hearing-prep`).
-  - Decision required: mount `app.modules.page_router` (recommended so those 9 high-priority pages stop 404ing) or selectively add dedicated handlers and retire low-value manifest entries.
+- **Page router / dormant manifest pages — resolved** (this commit):
+  - Mounted `app.modules.page_router` via `app/core/product_manifest.py` (`_register("app.modules.page_router", ...)`), so the 44 manifest template routes with no dedicated handler are now live.
+  - Server startup is clean; guardrail engine 4/4 PASS; selected test suites 39 passed.
+  - Live probes confirm `/case-builder`, `/choose-role`, and `/hearing-prep` now resolve through the unified router (unauthenticated users are redirected to `/` by the PAGE_CONTRACTS guard instead of falling through to `/help?status=down`).
+  - 15 routes with dedicated handlers remain in `_SKIP_ROUTES`; 32 of the 44 newly-served pages are `COMPLETE`, 12 are `PARTIAL`.
+  - Flag: onboarding pages (`/choose-role`, `/storage-info`, `/storage-connecting`, `/storage-reconnect`) still require a user cookie/role to render because the page_router guard enforces PAGE_CONTRACTS auth. The public welcome flow at `/` handles role selection client-side; whether these dedicated onboarding routes should be public is a separate product/security call.
 
 ### Active gap list
 
