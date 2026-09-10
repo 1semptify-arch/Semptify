@@ -1,4 +1,37 @@
+## Session — 2026-09-10 — Build Contract implementation (claude)
+
+### Shipped
+
+- **Module Build Contract schema and tooling** (commit TBD):
+  - Added `app/core/module_contract.py` with Pydantic `ModuleContract`, `NarratorEvent`, `ModuleContractRegistry`, validator, and index generator.
+  - Added `app/modules/resource_intake/module_contract.json` as the first per-module contract.
+  - Added `tools/checks/module_contract_check.py` guardrail; validates all `app/modules/<name>/module_contract.json` files and ensures `docs/registry/module_contracts_index.json` stays in sync.
+  - Generated `docs/registry/module_contracts_index.json`.
+
+- **Resource Intake & Integrity Engine** (commit TBD):
+  - Added `app/modules/resource_intake/` package with `schemas.py`, `engine.py`, `register.py`.
+  - Added `data/composer_resources.json` as the compiled Information Composer resource pool with one approved, non-AI-generated, human-attested sample.
+  - Added `tools/checks/resource_intake_check.py` guardrail; fails the build if any item in the compiled pool has `ai_generated != false` or a missing/empty `approved_by`.
+  - Wired `app.modules.resource_intake.register` into `app/core/contract_loader.py`.
+
+### Verification
+
+- `python -m py_compile` on all new Python files: PASS.
+- `tools/guardrail_engine.py`: 6/6 PASS, including new `module_contract_check` and `resource_intake_check`.
+- `pytest tests/module_health -q --no-cov`: 246 passed.
+
 ## Session — 2026-09-10 — 5.0 stabilization gaps (claude) — IN PROGRESS
+
+### Guardrail Engine Run — 2026-09-10T14:24:19+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 1 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Guardrail Engine Run — 2026-09-10T11:56:22+00:00
 

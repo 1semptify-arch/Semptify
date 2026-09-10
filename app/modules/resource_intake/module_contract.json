@@ -1,0 +1,66 @@
+{
+  "module_name": "Resource Intake & Integrity Engine",
+  "layout": "app/modules/resource_intake/ — called by build guardrails (tools/checks/resource_intake_check.py) and admin tools. Writes the compiled Information Composer resource pool to data/composer_resources.json. Does not render tenant-facing output.",
+  "inputs": [
+    {
+      "name": "candidate",
+      "type": "ResourceCandidate (Pydantic)",
+      "expected_size": "one JSON object",
+      "required": true
+    },
+    {
+      "name": "approved_by",
+      "type": "string (human name)",
+      "expected_size": "short text",
+      "required": true
+    },
+    {
+      "name": "pool_path",
+      "type": "Path | None",
+      "expected_size": "one file path",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "candidate",
+      "source": "typed",
+      "note": "Submitted by a human operator via the intake API or build tool; schema-validated."
+    },
+    {
+      "input_name": "approved_by",
+      "source": "typed",
+      "note": "Human approver name recorded at approval time; hard gate, cannot be empty."
+    },
+    {
+      "input_name": "pool_path",
+      "source": "auto_detect",
+      "note": "Defaults to data/composer_resources.json relative to the project root."
+    }
+  ],
+  "preview_state": "Operator/admin sees the staged candidate with fact-check status and approval state before releasing.",
+  "review_state": "Operator/admin sees the updated compiled pool with the new approved resource listed and a generated timestamp.",
+  "output_type": "file",
+  "output_how": "Pydantic validation followed by JSON dump to data/composer_resources.json.",
+  "output_where": "data/composer_resources.json on disk; read by the Information Composer at runtime.",
+  "output_why": "Provides the Information Composer with a human-verified, non-AI-generated resource pool that satisfies the Part 3 sourcing contract.",
+  "process_description": "Ingests a candidate resource, validates it against the sourcing contract, tracks fact-check and human-approval states, and writes approved resources to a compiled JSON pool.",
+  "process_context": "Runs when an operator/admin submits a candidate resource for the Information Composer or when the build guardrail validates the compiled pool.",
+  "narrative_events": [
+    {
+      "verb": "is checking",
+      "object": "the candidate resource",
+      "context_clause": "because a new source was submitted for the Composer"
+    },
+    {
+      "verb": "saved",
+      "object": "the approved resource",
+      "context_clause": "because a human verifier confirmed the source"
+    },
+    {
+      "verb": "flagged",
+      "object": "the candidate resource",
+      "context_clause": "because it was marked as AI-generated or failed fact-check"
+    }
+  ]
+}

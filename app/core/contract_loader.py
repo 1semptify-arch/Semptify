@@ -177,6 +177,8 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     # The previous SyntaxError claim in router.py was stale; router.py and register.py
     # both compile and import cleanly. Module future remains undecided here.
     "app.modules.litigation_intelligence.register",
+    # Resource Intake & Integrity Engine (build-time contract for Composer resources)
+    "app.modules.resource_intake.register",
     # Services with contracts
     "app.services.unified_overlay_manager",
     "app.services.communication_service",

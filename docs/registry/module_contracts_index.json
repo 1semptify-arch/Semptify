@@ -1,0 +1,14 @@
+{
+  "version": "1",
+  "entries": [
+    {
+      "module_path": "app.modules.resource_intake",
+      "contract_path": "app/modules/resource_intake/module_contract.json",
+      "module_name": "Resource Intake & Integrity Engine",
+      "output_type": "file",
+      "has_preview_state": true,
+      "has_review_state": true,
+      "narrative_event_count": 3
+    }
+  ]
+}
