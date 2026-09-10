@@ -7,18 +7,18 @@
   <link rel="stylesheet" href="/css/admin-nav.css">
   <style>
     :root {
-      --hdr1: #0c4a6e;
-      --hdr2: #075985;
-      --accent: #0369a1;
-      --accent2: #38bdf8;
-      --bg: #0f172a;
-      --surface: #1e293b;
-      --border: #334155;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --success: #22c55e;
-      --warning: #f59e0b;
-      --error: #ef4444;
+      --hdr1: var(--text-primary);
+      --hdr2: var(--text-primary);
+      --accent: var(--color-info);
+      --accent2: var(--color-info);
+      --bg: var(--color-calm-900);
+      --surface: var(--color-calm-900);
+      --border: var(--border-color);
+      --text: var(--bg-surface);
+      --muted: var(--text-muted);
+      --success: var(--color-success);
+      --warning: var(--color-warning);
+      --error: var(--color-error);
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -43,10 +43,10 @@
       border-bottom: 1px solid var(--border);
     }
     
-    .logo { font-weight: 800; font-size: 1.1rem; color: #fff; text-decoration: none; }
+    .logo { font-weight: 800; font-size: 1.1rem; color: var(--text-inverse); text-decoration: none; }
     
     nav a {
-      color: rgba(255,255,255,0.75);
+      color: color-mix(in srgb, var(--text-inverse) 75%, transparent);
       text-decoration: none;
       padding: 0.35rem 0.75rem;
       border-radius: 6px;
@@ -54,8 +54,8 @@
       transition: all 0.15s;
     }
     
-    nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
-    nav a.active { background: rgba(255,255,255,0.2); color: #fff; font-weight: 600; }
+    nav a:hover { background: color-mix(in srgb, var(--text-inverse) 15%, transparent); color: var(--text-inverse); }
+    nav a.active { background: color-mix(in srgb, var(--text-inverse) 20%, transparent); color: var(--text-inverse); font-weight: 600; }
     
     .search-bar {
       background: var(--surface);
@@ -116,16 +116,16 @@
     }
     
     .toc-item:hover { background: var(--border); }
-    .toc-item.active { background: var(--accent); color: #fff; }
+    .toc-item.active { background: var(--accent); color: var(--text-inverse); }
     .toc-item.sub { padding-left: 1.5rem; font-size: 0.8rem; color: var(--muted); }
     
     .content { padding: 2rem 3rem; max-width: 900px; }
     
-    h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: #fff; }
+    h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-inverse); }
     .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
     h2 { font-size: 1.5rem; font-weight: 600; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--accent2); }
     h3 { font-size: 1.2rem; font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--text); }
-    p { line-height: 1.7; margin-bottom: 1rem; color: #cbd5e1; }
+    p { line-height: 1.7; margin-bottom: 1rem; color: var(--text-muted); }
     
     .feature-card {
       background: var(--surface);
@@ -145,7 +145,7 @@
     
     .collapsible-header {
       padding: 1rem 1.25rem;
-      background: rgba(255,255,255,0.03);
+      background: color-mix(in srgb, var(--text-inverse) 3%, transparent);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -154,7 +154,7 @@
       transition: background 0.15s;
     }
     
-    .collapsible-header:hover { background: rgba(255,255,255,0.05); }
+    .collapsible-header:hover { background: color-mix(in srgb, var(--text-inverse) 5%, transparent); }
     
     .collapsible-content {
       padding: 0 1.25rem;
@@ -168,48 +168,48 @@
     .collapsible.open .collapsible-arrow { transform: rotate(180deg); }
     
     .how-to-box {
-      background: rgba(34, 197, 94, 0.1);
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      background: color-mix(in srgb, var(--color-success) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
       border-radius: 8px;
       padding: 1rem 1.25rem;
       margin: 1rem 0;
     }
     
-    .how-to-title { color: #86efac; font-weight: 600; margin-bottom: 0.75rem; }
+    .how-to-title { color: var(--color-success); font-weight: 600; margin-bottom: 0.75rem; }
     
     .testing-box {
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      background: color-mix(in srgb, var(--color-info) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--color-info) 30%, transparent);
       border-radius: 8px;
       padding: 1rem 1.25rem;
       margin: 1rem 0;
     }
     
-    .testing-title { color: #93c5fd; font-weight: 600; margin-bottom: 0.75rem; }
+    .testing-title { color: var(--color-info); font-weight: 600; margin-bottom: 0.75rem; }
     
     .troubleshoot-box {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      background: color-mix(in srgb, var(--color-error) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
       border-radius: 8px;
       padding: 1rem 1.25rem;
       margin: 1rem 0;
     }
     
-    .troubleshoot-title { color: #fca5a5; font-weight: 600; margin-bottom: 0.75rem; }
+    .troubleshoot-title { color: var(--color-error); font-weight: 600; margin-bottom: 0.75rem; }
     
     table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.85rem; }
     th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
     th { background: var(--surface); font-weight: 600; color: var(--text); }
     td { color: var(--muted); }
     
-    code { background: rgba(0,0,0,0.3); padding: 0.15rem 0.4rem; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.85rem; color: #a5f3fc; }
+    code { background: color-mix(in srgb, var(--text-primary) 30%, transparent); padding: 0.15rem 0.4rem; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.85rem; color: var(--color-info); }
     
     .back-to-top {
       position: fixed;
       bottom: 2rem;
       right: 2rem;
       background: var(--accent);
-      color: #fff;
+      color: var(--text-inverse);
       width: 45px;
       height: 45px;
       border-radius: 50%;
@@ -233,6 +233,7 @@
       .content { padding: 1.5rem; }
     }
   </style>
+    <link rel="stylesheet" href="/static/css/ssot-design-system.css">
 </head>
 <body>
   <header>

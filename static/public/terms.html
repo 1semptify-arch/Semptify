@@ -3,43 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/css/ssot-design-system.css">
   <title>Terms of Service – Semptify</title>
   <style>
-    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
+    :root { --hdr1: var(--color-primary); --hdr2: var(--color-primary-light); --accent: var(--color-primary-light); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; line-height: 1.7; }
-    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    body { font-family: var(--font-sans); background: var(--bg-page); color: var(--text-primary); line-height: 1.7; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); position: sticky; top: 0; z-index: 100; }
     .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
-    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: var(--text-inverse); }
     nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
-    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
-    nav.core-nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    nav.core-nav a { color: var(--text-inverse); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover { background: rgba(255, 255, 255, 0.15); color: var(--text-inverse); }
     .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
-    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
-    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .vault-btn { background: linear-gradient(135deg, var(--color-warning), var(--color-warning-800)); color: var(--text-inverse); border: none; padding: 0.45rem 1rem; border-radius: var(--radius-block); font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
 
-    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
-    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb { background: var(--bg-card); border-bottom: 1px solid var(--border-color); padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
     .breadcrumb a { color: var(--accent); text-decoration: none; }
 
     .main { max-width: 800px; margin: 0 auto; padding: 2.5rem 1.5rem; }
 
     h1 { font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--hdr1); }
-    h2 { font-size: 1.15rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.75rem; color: #1a1a2e; border-bottom: 2px solid #e8eaf6; padding-bottom: 0.4rem; }
-    p { margin-bottom: 1rem; font-size: 0.95rem; color: #444; }
+    h2 { font-size: 1.15rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.75rem; color: var(--text-primary); border-bottom: 2px solid var(--border-color); padding-bottom: 0.4rem; }
+    p { margin-bottom: 1rem; font-size: 0.95rem; color: var(--text-secondary); }
     ul, ol { margin-left: 1.5rem; margin-bottom: 1rem; }
-    li { margin-bottom: 0.4rem; font-size: 0.92rem; color: #444; }
-    .highlight { background: #eff6ff; border-left: 4px solid var(--accent); padding: 1rem 1.25rem; margin: 1.25rem 0; border-radius: 0 8px 8px 0; font-size: 0.92rem; }
+    li { margin-bottom: 0.4rem; font-size: 0.92rem; color: var(--text-secondary); }
+    .highlight { background: var(--bg-surface); border-left: 4px solid var(--accent); padding: 1rem 1.25rem; margin: 1.25rem 0; border-radius: 0 var(--radius-block) var(--radius-block) 0; font-size: 0.92rem; }
     .highlight strong { color: var(--hdr1); display: block; margin-bottom: 0.35rem; }
-    .updated { font-size: 0.85rem; color: #888; margin-bottom: 2rem; }
+    .updated { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem; }
     a { color: var(--accent); }
 
-    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
-    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: var(--text-inverse); margin: 0 0.5rem; text-decoration: none; }
 
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
     .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
     .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
     .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
     .drawer-backdrop.open { display: block; }
@@ -156,7 +157,7 @@
     <p style="margin-top:3rem;font-size:0.85rem;color:#888;">By using Semptify, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and our <a href="/public/privacy.html">Privacy Policy</a>.</p>
   </div>
 
-  <footer style="background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; padding: 2rem 1.5rem; margin-top: 2rem;">
+  <footer style="background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); padding: 2rem 1.5rem; margin-top: 2rem;">
     <div style="max-width: 1200px; margin: 0 auto;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
         <div>
@@ -168,20 +169,20 @@
         <div>
           <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Legal</h4>
           <ul style="list-style: none; padding: 0; margin: 0;">
-            <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
-            <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
-            <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: var(--text-inverse); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: var(--text-inverse); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: var(--text-inverse); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
           </ul>
         </div>
         <div>
           <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Connect</h4>
           <ul style="list-style: none; padding: 0; margin: 0;">
-            <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
-            <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: var(--text-inverse); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: var(--text-inverse); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
           </ul>
         </div>
       </div>
-      <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+      <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-block); margin-bottom: 1.5rem;">
         <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
           <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
         </p>

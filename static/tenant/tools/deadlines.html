@@ -4,65 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deadline Tracker – Semptify</title>
+<link rel="stylesheet" href="/static/css/ssot-design-system.css">
   <style>
     :root {
-      --hdr1: #4c1d95; --hdr2: #5b21b6; --accent: #7c3aed;
-      --bg: #faf8ff; --light: #f5f3ff; --text: #1a1a2e; --muted: #64748b;
-      --border: #e2e8f0; --danger: #dc2626; --warning: #d97706; --success: #16a34a;
+      --hdr1: var(--color-primary); --hdr2: var(--color-primary); --accent: var(--color-primary-light);
+      --bg: var(--bg-page); --light: var(--bg-surface); --text: var(--text-primary); --muted: var(--text-muted);
+      --border: var(--border-color); --danger: var(--color-error); --warning: var(--color-warning-800); --success: var(--color-success);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
 
-    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); position: sticky; top: 0; z-index: 100; }
     .header-inner { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 60px; gap: 1rem; }
-    .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: #fff; }
+    .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: var(--text-inverse); }
     nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
-    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 6px; font-size: 0.88rem; }
-    nav.core-nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
-    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: var(--radius-lg); font-size: 0.88rem; }
+    nav.core-nav a:hover { background: rgba(255,255,255,0.15); color: var(--text-inverse); }
+    .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
 
-    .hero { background: linear-gradient(160deg, #ede9fe 0%, var(--bg) 60%); padding: 2rem 1.5rem 1.5rem; }
+    .hero { background: linear-gradient(160deg, var(--bg-surface) 0%, var(--bg) 60%); padding: 2rem 1.5rem 1.5rem; }
     .hero-inner { max-width: 1000px; margin: 0 auto; }
     .hero h1 { font-size: 1.8rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.4rem; }
     .hero p { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 580px; }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
 
-    .disclaimer { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 0.85rem 1.1rem; font-size: 0.83rem; color: #92400e; line-height: 1.6; margin-bottom: 2rem; }
+    .disclaimer { background: var(--color-warning-50); border: 1px solid var(--color-warning); border-radius: var(--radius-block); padding: 0.85rem 1.1rem; font-size: 0.83rem; color: var(--color-warning-800); line-height: 1.6; margin-bottom: 2rem; }
 
     /* Add deadline form */
-    .add-form { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem; }
+    .add-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-block); padding: 1.5rem; margin-bottom: 2rem; }
     .add-form h2 { font-size: 1.1rem; font-weight: 700; color: var(--hdr1); margin-bottom: 1.1rem; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.75rem; align-items: end; }
     .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
     .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
     .form-group input, .form-group select {
-      padding: 0.6rem 0.8rem; border: 1px solid #d1d5db; border-radius: 7px;
-      font-size: 0.88rem; font-family: inherit; color: var(--text); outline: none; background: #fff;
+      padding: 0.6rem 0.8rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+      font-size: 0.88rem; font-family: inherit; color: var(--text); outline: none; background: var(--bg-card);
     }
     .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
-    .btn-add { background: var(--hdr1); color: #fff; border: none; padding: 0.65rem 1.25rem; border-radius: 7px; font-size: 0.9rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .btn-add { background: var(--hdr1); color: var(--text-inverse); border: none; padding: 0.65rem 1.25rem; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
     .btn-add:hover { background: var(--hdr2); }
 
     /* Deadlines list */
     .deadlines-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
     .deadlines-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--hdr1); }
     .filter-tabs { display: flex; gap: 0.4rem; }
-    .filter-tab { padding: 0.35rem 0.85rem; border: 1px solid var(--border); border-radius: 20px; font-size: 0.8rem; cursor: pointer; background: #fff; color: var(--muted); font-family: inherit; }
-    .filter-tab.active, .filter-tab:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .filter-tab { padding: 0.35rem 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-pill); font-size: 0.8rem; cursor: pointer; background: var(--bg-card); color: var(--muted); font-family: inherit; }
+    .filter-tab.active, .filter-tab:hover { background: var(--accent); color: var(--text-inverse); border-color: var(--accent); }
 
     .deadline-list { display: flex; flex-direction: column; gap: 0.65rem; }
 
-    .deadline-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; }
-    .deadline-item.overdue { border-color: var(--danger); background: #fff5f5; }
-    .deadline-item.urgent { border-color: var(--warning); background: #fffbeb; }
-    .deadline-item.upcoming { border-color: #fde68a; background: #fefce8; }
-    .deadline-item.safe { border-color: #bbf7d0; background: #f0fdf4; }
+    .deadline-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-block); padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; }
+    .deadline-item.overdue { border-color: var(--danger); background: var(--color-error-50); }
+    .deadline-item.urgent { border-color: var(--warning); background: var(--color-warning-50); }
+    .deadline-item.upcoming { border-color: var(--color-warning-50); background: var(--color-warning-50); }
+    .deadline-item.safe { border-color: var(--color-success); background: var(--color-success-50); }
 
     .deadline-status { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .deadline-item.overdue .deadline-status { background: var(--danger); }
     .deadline-item.urgent .deadline-status { background: var(--warning); }
-    .deadline-item.upcoming .deadline-status { background: #ca8a04; }
+    .deadline-item.upcoming .deadline-status { background: var(--color-warning-800); }
     .deadline-item.safe .deadline-status { background: var(--success); }
 
     .deadline-info { flex: 1; }
@@ -71,20 +72,20 @@
     .deadline-days { font-weight: 700; font-size: 0.88rem; white-space: nowrap; }
     .deadline-item.overdue .deadline-days { color: var(--danger); }
     .deadline-item.urgent .deadline-days { color: var(--warning); }
-    .deadline-item.upcoming .deadline-days { color: #ca8a04; }
+    .deadline-item.upcoming .deadline-days { color: var(--color-warning-800); }
     .deadline-item.safe .deadline-days { color: var(--success); }
 
-    .btn-delete { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 1.1rem; padding: 0.2rem 0.4rem; border-radius: 4px; }
-    .btn-delete:hover { color: var(--danger); background: #fee2e2; }
+    .btn-delete { background: none; border: none; color: var(--border-color); cursor: pointer; font-size: 1.1rem; padding: 0.2rem 0.4rem; border-radius: var(--radius-sm); }
+    .btn-delete:hover { color: var(--danger); background: var(--color-error-50); }
 
     .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
     .empty-state .icon { font-size: 3rem; margin-bottom: 0.75rem; }
 
     /* MN Legal Deadlines Reference */
-    .reference-section { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-top: 2rem; }
+    .reference-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-block); padding: 1.5rem; margin-top: 2rem; }
     .reference-section h2 { font-size: 1.1rem; font-weight: 700; color: var(--hdr1); margin-bottom: 1rem; }
     .ref-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .ref-table th { text-align: left; padding: 0.6rem 0.75rem; background: var(--light); color: var(--hdr1); font-weight: 700; border-bottom: 2px solid #ddd6fe; }
+    .ref-table th { text-align: left; padding: 0.6rem 0.75rem; background: var(--light); color: var(--hdr1); font-weight: 700; border-bottom: 2px solid var(--border-color); }
     .ref-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
     .ref-table tr:last-child td { border-bottom: none; }
     .ref-table .law { font-size: 0.75rem; color: var(--muted); }
@@ -94,7 +95,7 @@
 
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
     .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; display: block; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); display: block; }
     .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
     .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
     .drawer-backdrop.open { display: block; }
@@ -113,8 +114,8 @@
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   <nav class="nav-drawer" id="nav-drawer">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:#fff;">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+      <strong style="color:var(--bg-card);">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:var(--bg-card);font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
     <a href="/tenant/home">🏠 Dashboard</a>
     <a href="/tenant/journal">📓 Journal</a>
@@ -147,7 +148,7 @@
   <div class="container">
 
     <div class="disclaimer">
-      <strong>⚖️ Not Legal Advice —</strong> Deadlines shown are based on Minnesota law as of early 2026. Always verify with an attorney or <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" style="color:#92400e;">HOME Line</a> for your specific situation. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer →</a>
+      <strong>⚖️ Not Legal Advice —</strong> Deadlines shown are based on Minnesota law as of early 2026. Always verify with an attorney or <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" style="color:var(--color-warning-800);">HOME Line</a> for your specific situation. <a href="/public/disclaimer.html" style="color:var(--color-warning-800);">Full disclaimer →</a>
     </div>
 
     <!-- Add Deadline Form -->
@@ -369,7 +370,7 @@
     renderDeadlines();
   </script>
 
-<footer style="background: var(--hdr1); color: #fff; padding: 2rem 1.5rem; margin-top: 3rem;">
+<footer style="background: var(--hdr1); color: var(--text-inverse); padding: 2rem 1.5rem; margin-top: 3rem;">
   <div style="max-width: 1000px; margin: 0 auto;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
       <div>
@@ -394,7 +395,7 @@
         </ul>
       </div>
     </div>
-    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-block); margin-bottom: 1.5rem;">
       <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
         <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
       </p>

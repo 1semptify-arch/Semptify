@@ -2946,14 +2946,24 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         request: Request,
         admin_uid: str = Depends(require_admin),
     ):
-        """Serve the Admin Hub - the single landing page for all administration."""
+        """Temporary under-construction admin landing.
+
+        The new admin portal is being designed and scoped. The old hub.html is
+        preserved as a legacy file; this placeholder is the canonical /admin
+        surface until the replacement is ready.
+        """
+        uc_path = BASE_PATH / "static" / "admin" / "under_construction.html"
+        if uc_path.exists():
+            content = uc_path.read_text(encoding="utf-8")
+            return HTMLResponse(content=content)
+        # Fallback to legacy hub if placeholder is missing.
         hub_path = BASE_PATH / "static" / "admin" / "hub.html"
         if hub_path.exists():
             content = hub_path.read_text(encoding="utf-8")
             return HTMLResponse(content=content)
         admin_dashboard_stage = navigation.get_stage("admin_dashboard")
         admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"
-        return ssot_redirect(admin_dashboard_path, context="admin_hub missing hub.html")
+        return ssot_redirect(admin_dashboard_path, context="admin_hub missing under_construction.html")
 
     @fastapi_app.get("/manager", response_class=HTMLResponse)
     async def manager_portal_page(request: Request):

@@ -210,6 +210,13 @@ class NavigationRegistry:
             next_stage=None,
             requires_checkpoint=False,
         ),
+        "record_notepad": FlowStage(
+            id="record_notepad",
+            name="Notepad",
+            path="/record/notes",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
         # --- Module root redirect targets (Post-Redirect-Get) ---
         # Used by module routers after a POST operation to redirect back to the module's GET view.
         "dispute_tracker_home": FlowStage(

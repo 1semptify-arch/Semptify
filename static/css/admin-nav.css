@@ -22,12 +22,12 @@
 
 .admin-nav__item:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .admin-nav__item--active {
   background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  color: var(--text-inverse);
   font-weight: 600;
 }
 
@@ -47,17 +47,17 @@
 
 /* Light theme variant (for pages with light headers) */
 .admin-nav--light .admin-nav__item {
-  color: #475569;
+  color: var(--text-muted);
 }
 
 .admin-nav--light .admin-nav__item:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #1e293b;
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .admin-nav--light .admin-nav__item--active {
-  background: rgba(59, 130, 246, 0.1);
-  color: #2563eb;
+  background: var(--color-info-50, var(--bg-surface));
+  color: var(--color-info);
   font-weight: 600;
 }
 
