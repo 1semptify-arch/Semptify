@@ -71,19 +71,27 @@ All checks passed.
 
 - **Vault/timeline structural gap**: now fixed; vault-uploaded tenant documents appear in the unified timeline.
 
+### Resolved flag
+
+- **OCR binary missing locally**: Installed Tesseract 5.5.3.20260724 via `winget` to `C:\Program Files\Tesseract-OCR` and added it to the user `PATH`. Verified:
+  - `pytesseract` reports version `5.5.3.20260724`.
+  - Direct image OCR returns the expected text.
+  - `PDFExtractor.extract_with_ocr()` on a scanned PDF (image-only, no embedded text) returns `method_used="local_ocr"` and extracted text.
+
 ### Remaining flag
 
-- **OCR binary missing locally**: `tesseract` not installed, so scanned-image/PDF OCR cannot be exercised end-to-end; the code path is present and `pytesseract` imports.
 - **test_tenant_timeline_renders_eviction_event** still fails (pre-existing UI/template regression; API layer is correct).
 
 ### Status
 
-Mechanics verification pass complete. Three small in-scope fixes committed:
+Mechanics verification pass complete. Three small in-scope code fixes committed:
 1. `conftest.py` `_encrypt_string` import.
 2. `Document` timeline date-axis.
 3. `VaultIndexDB` wired into unified timeline.
 
-One remaining local environment limitation (`tesseract` not installed) and one pre-existing UI test failure (`test_tenant_timeline_renders_eviction_event`) flagged.
+Environment resolved: Tesseract 5.5.3 installed and verified for image + scanned PDF OCR.
+
+One remaining flag: pre-existing UI test `test_tenant_timeline_renders_eviction_event` (UI Composer/template regression, not API/data).
 
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
 
