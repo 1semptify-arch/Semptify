@@ -28,17 +28,30 @@ async def get_facts(
     jurisdiction: str = "MN",
     limit: int = 10,
     include_expired: bool = False,
+    include_unresolved: bool = False,
 ) -> list[ContextFact]:
-    """Get cached facts for a subject + jurisdiction."""
+    """Get cached facts for a subject + jurisdiction.
+
+    Part 3B: by default only Resolved, non-AI-generated facts with a passing
+    fabrication check are returned. Set ``include_unresolved=True`` for admin
+    / debugging paths that need to see quarantined facts.
+    """
     async with get_db_session() as db:
+        filters = [
+            ContextFact.subject == subject,
+            ContextFact.jurisdiction == jurisdiction,
+        ]
+        if not include_unresolved:
+            filters.extend(
+                [
+                    ContextFact.resolution_status == "Resolved",
+                    ContextFact.ai_generated.is_(False),
+                    ContextFact.fabrication_check.is_(True),
+                ]
+            )
         stmt = (
             select(ContextFact)
-            .where(
-                and_(
-                    ContextFact.subject == subject,
-                    ContextFact.jurisdiction == jurisdiction,
-                )
-            )
+            .where(and_(*filters))
             .order_by(ContextFact.created_at.desc())
             .limit(limit)
         )
@@ -85,10 +98,23 @@ async def upsert_fact(
     citation: str | None = None,
     canonical_value: str | None = None,
     extraction_pattern: str | None = None,
+    fact_id: str | None = None,
+    source_authority: str | None = None,
+    taxonomy_subject: str | None = None,
+    resolution_status: str = "Unresolved",
+    resolution_method: str | None = None,
+    resolved_date: str | None = None,
+    last_verified_date: str | None = None,
+    ai_generated: bool = True,
+    fabrication_check: bool = False,
     is_verified: bool = True,
     ttl_days: int = DEFAULT_TTL_DAYS,
 ) -> ContextFact:
-    """Insert or update a fact in the cache. No hallucination — source required."""
+    """Insert or update a fact in the cache. No hallucination — source required.
+
+    Part 3B — consumers only see facts that are ``ai_generated=false``,
+    ``resolution_status='Resolved'``, and ``fabrication_check=true``.
+    """
     now = utc_now().replace(tzinfo=None)
     expires_at = now + timedelta(days=ttl_days)
     embedding = await embed_text(f"{subject} {claim}")
@@ -106,10 +132,19 @@ async def upsert_fact(
         )
         existing = result.scalars().first()
         if existing:
+            existing.fact_id = fact_id or existing.fact_id
             existing.claim = claim
             existing.citation = citation
             existing.canonical_value = canonical_value
             existing.extraction_pattern = extraction_pattern
+            existing.source_authority = source_authority
+            existing.taxonomy_subject = taxonomy_subject or subject
+            existing.resolution_status = resolution_status
+            existing.resolution_method = resolution_method
+            existing.resolved_date = resolved_date
+            existing.last_verified_date = last_verified_date
+            existing.ai_generated = ai_generated
+            existing.fabrication_check = fabrication_check
             existing.is_verified = is_verified
             existing.verified_at = now
             existing.expires_at = expires_at
@@ -118,14 +153,23 @@ async def upsert_fact(
             await db.refresh(existing)
             return existing
         fact = ContextFact(
+            fact_id=fact_id,
             subject=subject,
             jurisdiction=jurisdiction,
+            taxonomy_subject=taxonomy_subject or subject,
             claim=claim,
             source_url=source_url,
             source_name=source_name,
+            source_authority=source_authority,
             citation=citation,
             canonical_value=canonical_value,
             extraction_pattern=extraction_pattern,
+            resolution_status=resolution_status,
+            resolution_method=resolution_method,
+            resolved_date=resolved_date,
+            last_verified_date=last_verified_date,
+            ai_generated=ai_generated,
+            fabrication_check=fabrication_check,
             embedding=embedding,
             is_verified=is_verified,
             verified_at=now,

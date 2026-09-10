@@ -2023,3 +2023,8 @@ class EvictionTimelineEvent(Base):
 
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+# Import context engine models so they are registered on the shared Base.
+# This keeps Alembic autogenerate and other Base.metadata consumers in sync.
+from app.modules.context_engine.models import ContextFact, TenantStory  # noqa: F401

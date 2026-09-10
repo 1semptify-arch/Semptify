@@ -27,19 +27,37 @@ class ContextFact(Base):
     """Cached verified fact from an external source (MN Revisor, HUD, EPA ECHO, etc.).
 
     Every fact has a source URL — no hallucination.
+
+    Part 3B — Structured Fact Sourcing Contract (Legal Citation Pipeline):
+    - ``ai_generated`` must be ``false`` for resolved citation references.
+    - ``resolution_status`` is ``Resolved`` / ``Unresolved`` / ``Disputed``.
+    - Consumer endpoints only surface facts with ``ai_generated=false``,
+      ``resolution_status='Resolved'``, and a populated ``source_url``.
     """
 
     __tablename__ = "context_facts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fact_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     subject: Mapped[str] = mapped_column(String(50), index=True, nullable=False)
     jurisdiction: Mapped[str] = mapped_column(String(10), index=True, nullable=False, default="MN")
+    taxonomy_subject: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
     claim: Mapped[str] = mapped_column(Text, nullable=False)
     source_url: Mapped[str] = mapped_column(Text, nullable=False)
     source_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    source_authority: Mapped[str | None] = mapped_column(String(100), nullable=True)
     citation: Mapped[str | None] = mapped_column(Text, nullable=True)
     canonical_value: Mapped[str | None] = mapped_column(Text, nullable=True)
     extraction_pattern: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    resolution_status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="Unresolved"
+    )
+    resolution_method: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    resolved_date: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    last_verified_date: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    ai_generated: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    fabrication_check: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Pre-computed all-MiniLM-L6-v2 embedding of the fact claim.
     # Stored as pgvector in PostgreSQL and JSON in SQLite.
@@ -53,7 +71,10 @@ class ContextFact(Base):
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
 
-    __table_args__ = (Index("ix_context_facts_subject_jur", "subject", "jurisdiction"),)
+    __table_args__ = (
+        Index("ix_context_facts_subject_jur", "subject", "jurisdiction"),
+        Index("ix_context_facts_status", "resolution_status", "ai_generated"),
+    )
 
     def embedding_text(self) -> str:
         """Return the text that should be embedded for this fact."""
