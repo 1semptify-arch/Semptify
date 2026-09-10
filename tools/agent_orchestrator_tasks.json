@@ -2977,11 +2977,25 @@
     "category": "content",
     "file_path": "data/context_explanation_workbook.csv",
     "priority": "medium",
+    "status": "review",
+    "assigned_agent": "claude",
+    "target_model": "unlimited",
+    "notes": "10 rows, 40 prompts.\n[2026-09-10 01:53 UTC - claude] 10 rows filled. Dry-run: 33 ready, 23 placeholders. Committed 2adbcae0.",
+    "created_at": "2026-09-10T01:53:16.526795+00:00",
+    "updated_at": "2026-09-10T01:53:44.694484+00:00"
+  },
+  {
+    "id": "context-workbook-batch4-20260910-0153",
+    "title": "Fill Context Explanation Workbook batch 4 (retaliation, small_claims, court_prep)",
+    "description": "Fill the remaining HIGH-UPL subject/pillar rows for retaliation, small_claims, and court_prep in data/context_explanation_workbook.csv.",
+    "category": "content",
+    "file_path": "data/context_explanation_workbook.csv",
+    "priority": "high",
     "status": "in_progress",
     "assigned_agent": "claude",
     "target_model": "unlimited",
-    "notes": "10 rows, 40 prompts.",
-    "created_at": "2026-09-10T01:53:16.526795+00:00",
-    "updated_at": "2026-09-10T01:53:16.526795+00:00"
+    "notes": "11 rows, 44 prompts.",
+    "created_at": "2026-09-10T01:53:53.711012+00:00",
+    "updated_at": "2026-09-10T01:53:53.711012+00:00"
   }
 ]
