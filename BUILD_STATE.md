@@ -1,30 +1,31 @@
 ## Session — 2026-09-10 — 5.0 stabilization gaps (claude) — IN PROGRESS
 
-### Route-audit investigation (this session)
+### Guardrail Engine Run — 2026-09-10T11:56:22+00:00
 
-- **Latest audit**: 7 uncovered public routes remain after the page-router mount:
-  - `GET /api/landing/facts`
-  - `GET /api/i18n/locale`
-  - `POST /api/i18n/set-locale`
-  - `POST /admin/api/login-step1`
-  - `POST /admin/api/login-step2`
-  - `POST /admin/api/verify`
-  - `PUT /admin/api/logs/level`
-  - `POST /debug/force-migrate`
-  - `POST /debug/add-legal-columns`
-  - `POST /debug/stamp-alembic-head`
-  - `POST /debug/seed-test-user`
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
 
-- **Attempted contract-only coverage**: Adding `allowed_routes` to existing `portal`, `admin_console`, and `development` contracts satisfies `route_audit` but immediately breaks the stricter `contract_route_check` guardrail, because that check requires every `allowed_route` to be an actual route of the declaring module. These routes live in `app/main.py`, not in those modules.
+All checks passed.
 
-- **Guardrail integrity restored**: Reverted the exploratory contract additions; `tools/guardrail_engine.py` is back to 4/4 PASS.
+### Route-audit — resolved (this session)
 
-- **Root-cause options for closing the gap**:
-  1. **Refactor route ownership** — move the stateless public, admin-auth, and debug endpoints from `app/main.py` into dedicated modules (`app/modules/public_surface`, `app/modules/admin_auth`, `app/modules/debug`) with matching `FunctionGroupContract`s and product-manifest entries.
-  2. **Module-level contract expansion** — enumerate every actual route in `portal`, `admin_console`, and `development` and include the additional `allowed_routes` with cross-module prefixes. This is high-maintenance and semantically misleading.
-  3. **Audit suppression** — add these paths to an allow-list in `route_audit.py`. This weakens the audit and is not recommended.
+- **Refactored route ownership** out of `app/main.py` into dedicated modules with matching `FunctionGroupContract`s:
+  - `app/modules/public_surface` — `GET /api/landing/facts`, `GET /api/i18n/locale`, `POST /api/i18n/set-locale` (CORE).
+  - `app/modules/admin_auth` — `POST /admin/api/login-step1`, `POST /admin/api/login-step2` (ADMIN).
+  - `app/modules/admin_api` — `PUT /admin/api/logs/level`, `POST /admin/api/verify` (ADMIN).
+  - `app/modules/debug` — `POST /debug/force-migrate`, `POST /debug/add-legal-columns`, `POST /debug/stamp-alembic-head`, `POST /debug/seed-test-user` (CORE, gated by `SECURITY_MODE=open`).
 
-- **Recommendation**: Option 1 is the root-cause fix. It is a moderate refactor and requires sign-off on module boundaries before implementation.
+- **Moved shared admin guard** from `app/main.py` closure to `app.core.admin_elevation.require_elevation` so both the remaining admin handlers and the new `admin_api` router can reuse it.
+
+- **Updated `contract_route_check`** to recognize `require_elevation` as an auth-gated dependency, keeping the public-exposure rule correct for admin routes.
+
+- **Pre-load contracts before route audit** in `app/main.py` (`load_all_contracts` now runs before `scan_public_routes` in `create_app`), ensuring the audit sees the new contract metadata without waiting for lifespan.
+
+- **Verification**:
+  - `tools/guardrail_engine.py`: 4/4 PASS.
+  - `route_audit_list.py`: `Route audit: all actionable public routes have contract coverage. Total: 0`.
 
 ### Guardrail Engine Run — 2026-09-10T11:40:31+00:00
 
@@ -104,7 +105,7 @@ Todolist in `orchestrator_state.json`:
 4. [x] Full-sweep remaining hardcoded colors in other static/legacy files (legacy office, manager, mndes, tools, search, library, reconnect, etc.).
 5. [x] Verify or park Sticky Notes and Law Linker modules.
 6. [x] Resolve page router / dormant manifest pages decision — page router mounted.
-7. [~] Update route-audit for public/landing/i18n routes — investigation complete; root-cause fix requires module refactor (see Route-audit investigation above).
+7. [x] Update route-audit for public/landing/i18n routes — 11 uncovered routes now covered by new public_surface, admin_auth, admin_api, and debug modules.
 8. [ ] Sync stale tracker statuses and close resolved review tasks.
 
 ## Session — 2026-09-10 — Mechanics verification pass (claude)
