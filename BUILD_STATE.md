@@ -35,6 +35,20 @@ All checks passed.
   - One pre-existing contradiction found in `SEMPTIFY_REFERENCE_LIBRARY.md`: line 618 describes "Semptify Go" as a "free, open-source mobile web app... Free forever." while the same file's standing language rules (line 453) say "NEVER use the word 'free' when describing Semptify itself." This is not caused by the new docs, but it is a live SSOT contradiction and should be Brad's call (merge/retire/archive).
 - **Status**: PASS with flags — no conflicts introduced by the new docs, but two SSOT state issues need Brad's decision (master `BUILD_STATE.md` missing, `SEMPTIFY_REFERENCE_LIBRARY.md` "free" contradiction).
 
+### Task 5 — Make Documentation Reconciliation Pass recurring
+
+- **Problem**: The Documentation Staleness Protocol calls for a recurring pass that pulls canonical SSOT docs, sweeps handoff/temp folders, scans for contradictions, and does not silently merge old/new content. The existing `recurring_scheduler.py` only ran a timestamp-based staleness check and did not cover the rest of the protocol.
+- **Fix**: Extended the existing `docs-staleness` job in `tools/recurring_scheduler.py` and `tools/docs_staleness_check.py` so they are one system, not two overlapping ones.
+  - `tools/docs_staleness_check.py` now appends a "Documentation Reconciliation Pass" section to `docs/STALENESS-REPORT.md`.
+  - That section checks the three canonical SSOT docs (`NAMING_SSOT_DICTIONARY.md`, `SEMPTIFY_REFERENCE_LIBRARY.md`, `BUILD_STATE.md`), lists handoff/temp folder contents (both `C:\master-repo\hand offs and temp` and `C:\master-repo\New hand offs and zips`), runs a flag-only contradiction scan for "free" and business-model/account language, and checks the known risk areas named in the protocol.
+  - `tools/recurring_scheduler.py` updated the `docs-staleness` job description and still invokes the same script.
+- **Verification**:
+  - `python tools/docs_staleness_check.py` (under venv311) exit 0 and wrote `docs/STALENESS-REPORT.md` with the new reconciliation section.
+  - `python tools/recurring_scheduler.py --list` shows the job registered with the new description.
+  - `python tools/recurring_scheduler.py --run docs-staleness` exit 0 and wrote `tools/.recurring_scheduler_state.json` with a `docs-staleness` last-run timestamp.
+  - `python tools/recurring_scheduler.py --run-due --dry-run` shows the scheduler evaluates due dates and would run other jobs without re-running `docs-staleness` (it just ran).
+- **Status**: PASS — the recurring pass is wired into the existing scheduler. It would fire automatically on its 7-day cadence without manual re-triggering. The flag-only scans need human review before any archive/delete.
+
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
 
 ### Guardrail Engine Run — 2026-09-10T01:24:05+00:00
