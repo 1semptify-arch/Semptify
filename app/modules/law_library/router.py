@@ -1308,6 +1308,8 @@ While Chapter 13 primarily applies to government entities, private landlords sho
     },
 }
 
+from app.modules.law_library.expanded_laws import EXPANDED_LAWS
+
 # Combine all laws into unified database
 ALL_LAWS = {
     **MINNESOTA_TENANT_LAWS,
@@ -1316,6 +1318,7 @@ ALL_LAWS = {
     **TAX_LAWS,
     **REAL_ESTATE_LAWS,
     **BUSINESS_LAWS,
+    **EXPANDED_LAWS,
 }
 
 DAKOTA_COUNTY_RULES = {
