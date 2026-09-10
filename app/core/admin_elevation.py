@@ -25,6 +25,8 @@ import base64
 import json
 import logging
 
+from fastapi import HTTPException, Request
+
 from app.core.key_derivation import hmac_sign, hmac_verify
 from app.core.utc import utc_now
 
@@ -129,3 +131,15 @@ def clear_elevation_cookie(response) -> None:
         secure=True,
         samesite="strict",
     )
+
+
+async def require_elevation(request: Request) -> str:
+    """Stealth admin guard — raises AdminElevationRequired if no valid cookie.
+
+    Requires a valid admin elevation cookie issued by /admin/api/login-step2.
+    """
+    elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
+    payload = verify_elevation_cookie(str(elev_cookie) if elev_cookie else None)
+    if not payload:
+        raise AdminElevationRequired("Admin elevation required")
+    return payload["uid"]

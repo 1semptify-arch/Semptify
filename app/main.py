@@ -54,7 +54,6 @@ import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -64,6 +63,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.admin_elevation import require_elevation
 from app.core.compliance import validate_app_compliance
 from app.core.config import get_settings
 from app.core.context_envelope import (
@@ -162,61 +162,6 @@ def register_stateless_routes(app: FastAPI):
     async def footer_component(request: Request):
         """Return the canonical footer partial for both Jinja includes and JS injection."""
         return templates.TemplateResponse(request, "components/footer.html", {"year": utc_now().year})
-
-    @app.get("/api/landing/facts", include_in_schema=False)
-    async def landing_facts_api():
-        """Public endpoint returning verified, non-expired landing/public facts.
-
-        Unverified or expired claims are omitted; the landing page auto-hides them.
-        """
-        from app.modules.context_engine.cache import get_verified_landing_facts
-
-        facts = await get_verified_landing_facts()
-        return [
-            {
-                "claim": f.claim,
-                "citation": f.citation,
-                "source_url": f.source_url,
-                "source_name": f.source_name,
-                "canonical_value": f.canonical_value,
-                "verified_at": f.verified_at.isoformat() if f.verified_at else None,
-                "expires_at": f.expires_at.isoformat() if f.expires_at else None,
-            }
-            for f in facts
-        ]
-
-    @app.get("/api/i18n/locale", include_in_schema=False)
-    async def get_current_locale(request: Request):
-        """Return the resolved locale and supported locale list for JS."""
-        return JSONResponse(
-            {
-                "locale": i18n.get_locale(request),
-                "supported_locales": SUPPORTED_LOCALES,
-            }
-        )
-
-    @app.post("/api/i18n/set-locale", include_in_schema=False)
-    async def set_locale(request: Request, locale: str = Form(...)):
-        """Set the `semptify_locale` cookie and return the user to their prior page."""
-        if locale not in SUPPORTED_LOCALES:
-            raise HTTPException(status_code=400, detail="Unsupported locale")
-
-        referer = request.headers.get("referer", "/")
-        target_path = urlparse(referer).path or "/"
-        response = ssot_redirect(target_path, context="i18n.set-locale", strict=False)
-
-        # Mirrors cookie settings used by cookie_auth for consistency.
-        secure = request.url.scheme == "https"
-        response.set_cookie(
-            key="semptify_locale",
-            value=locale,
-            max_age=365 * 24 * 60 * 60,
-            path="/",
-            samesite="lax",
-            secure=secure,
-            httponly=False,
-        )
-        return response
 
 
 # Add custom Jinja2 filters
@@ -2292,10 +2237,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     from app.core.user_context import UserRole
 
-    # Admin credentials from environment (set in Render dashboard)
+    # Admin username from environment for the inline admin login page.
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")  # Must be set in production
-    ADMIN_TOTP_SECRET = os.getenv("ADMIN_TOTP_SECRET")  # Base32 secret for 2FA
 
     @fastapi_app.get("/admin/login", response_class=HTMLResponse)
     async def admin_login_page(request: Request):
@@ -2433,97 +2376,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 </html>"""
         )
 
-    @fastapi_app.post("/admin/api/login-step1")
-    async def admin_login_step1(request: Request):
-        """
-        Step 1: Validate username/password.
-        Returns step2_required=true if 2FA is enabled.
-        """
-        logger.info("=== ADMIN LOGIN STEP 1 CALLED ===")
-        try:
-            data = await request.json()
-            username = data.get("username", "").strip()
-            password = data.get("password", "")
-        except Exception as e:
-            logger.error(f"JSON parse error: {e}")
-            raise HTTPException(status_code=400, detail="Invalid JSON")
-
-        # Debug: Log credential status (without logging actual passwords)
-        logger.info(
-            f"Admin login attempt - Username: {username}, ADMIN_USERNAME set: {bool(ADMIN_USERNAME)}, ADMIN_PASSWORD set: {bool(ADMIN_PASSWORD)}, ADMIN_TOTP_SECRET set: {bool(ADMIN_TOTP_SECRET)}"
-        )
-
-        # Validate credentials
-        if not ADMIN_PASSWORD:
-            logger.error("ADMIN_PASSWORD not set - admin login disabled")
-            raise HTTPException(status_code=503, detail="Admin login not configured")
-
-        if username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
-            logger.warning(f"Failed admin login step 1: {username} (expected: {ADMIN_USERNAME})")
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        # Check if 2FA is enabled
-        if ADMIN_TOTP_SECRET:
-            return {"success": True, "step2_required": True, "message": "Two-step verification required"}
-        else:
-            # No 2FA configured - skip to step 2 directly
-            return {"success": True, "step2_required": True, "message": "Two-step verification required"}
-
-    @fastapi_app.post("/admin/api/login-step2")
-    async def admin_login_step2(request: Request, response: Response):
-        """
-        Step 2: Validate 2FA code and issue elevation cookie.
-        Requires existing OAuth session. Issues a 4-hour elevation cookie.
-        """
-        import pyotp
-
-        from app.core.admin_elevation import set_elevation_cookie
-        from app.core.cookie_auth import extract_user_id
-
-        admin_dashboard_stage = navigation.get_stage("admin_dashboard")
-        admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"
-        storage_select_stage = navigation.get_stage("storage_select")
-        storage_select_path = storage_select_stage.path if storage_select_stage else "/onboarding/providers"
-
-        try:
-            data = await request.json()
-            username = data.get("username", "").strip()
-            password = data.get("password", "")
-            totp_code = data.get("totp_code", "").strip()
-        except Exception:
-            raise HTTPException(status_code=400, detail="Invalid JSON")
-
-        # Re-validate credentials
-        if not ADMIN_PASSWORD or username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        # Validate TOTP code if 2FA is configured
-        if ADMIN_TOTP_SECRET:
-            totp = pyotp.TOTP(ADMIN_TOTP_SECRET)
-            if not totp.verify(totp_code, valid_window=2):  # Allow 60sec drift
-                logger.warning(f"Failed 2FA attempt for admin: {username}")
-                raise HTTPException(status_code=401, detail="Invalid two-step code")
-        elif totp_code != "000000":
-            pass  # TOTP not configured but code provided - ignore
-
-        # Get OAuth user_id for the elevation token (may be None if no OAuth session yet)
-        oauth_uid = extract_user_id(request) or f"admin_{username}"
-
-        # Issue 4-hour elevation cookie
-        set_elevation_cookie(response, oauth_uid)
-        logger.info(f"Admin elevation granted for {oauth_uid[:6]}...")
-
-        # If no OAuth session yet, redirect to onboarding to connect storage
-        has_oauth = extract_user_id(request) is not None
-        if not has_oauth:
-            return {
-                "success": True,
-                "redirect": f"{storage_select_path}?role=admin",
-                "message": "Please connect your storage to continue",
-            }
-
-        return {"success": True, "redirect": admin_dashboard_path}
-
     @fastapi_app.get("/admin/logout")
     async def admin_logout(response: Response):
         """Clear admin elevation (not the OAuth session)."""
@@ -2548,26 +2400,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # Admin guard - checks elevation cookie (time-limited TOTP-verified elevation)
     # Does NOT check OAuth role — elevation is separate from storage identity
-    async def _require_elevation(request: Request) -> str:
-        """
-        Stealth admin guard — redirects to /admin/login on missing/expired elevation.
-        Requires a valid admin elevation cookie issued by /admin/api/login-step2.
-        Elevation is valid for 2 hours and requires TOTP re-verification.
-        """
-        from app.core.admin_elevation import (
-            ELEVATION_COOKIE_NAME,
-            AdminElevationRequired,
-            verify_elevation_cookie,
-        )
-
-        elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
-        payload = verify_elevation_cookie(str(elev_cookie) if elev_cookie else None)
-        if not payload:
-            # Abort to admin elevation prompt — stealth: looks like a normal login page
-            raise AdminElevationRequired("Admin elevation required")
-        return payload["uid"]
-
-    require_admin = _require_elevation
+    require_admin = require_elevation
 
     @fastapi_app.get("/admin/dashboard", response_class=HTMLResponse)
     async def admin_dashboard_page(
@@ -2811,15 +2644,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         return {"entries": get_log_tail(n=min(max(n, 1), 1000))}
 
-    @fastapi_app.put("/admin/api/logs/level", tags=["admin"])
-    async def admin_set_log_level(
-        level: str,
-        admin_uid: str = Depends(require_admin),
-    ):
-        """Set the runtime root log level (DEBUG/INFO/WARNING/ERROR/CRITICAL)."""
-        from app.core.logging_service import set_log_level
 
-        return {"level": set_log_level(level)}
 
     @fastapi_app.get("/admin/api/flags", tags=["admin"])
     async def admin_get_flags(admin_uid: str = Depends(require_admin)):
@@ -2878,12 +2703,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         return load_registry()
 
-    @fastapi_app.post("/admin/api/verify", tags=["admin"])
-    async def admin_verify_api(admin_uid: str = Depends(require_admin)):
-        """Run sync_registry + verify_modules and return the updated registry."""
-        from app.core.module_registry_loader import run_sync_and_verify
 
-        return await run_sync_and_verify()
 
     @fastapi_app.get("/admin/health", tags=["admin"])
     async def admin_health(admin_uid: str = Depends(require_admin)):
@@ -3805,245 +3625,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             info["error"] = str(exc)
             info["traceback"] = _tb.format_exc()
         return JSONResponse(content=info)
-
-    @fastapi_app.post("/debug/force-migrate")
-    async def debug_force_migrate(request: Request):
-        """Temporary: force alembic to stamp pre-legal_sub_role then upgrade head."""
-        if app_settings.security_mode != "open":
-            return JSONResponse({"error": "not found"}, status_code=404)
-        import traceback as _tb
-
-        info = {"step": "init"}
-        try:
-            import asyncio
-
-            def _sync_fix():
-                from alembic.config import Config
-
-                from alembic import command
-
-                cfg = Config("alembic.ini")
-                # Stamp to the revision before legal_sub_role was added
-                command.stamp(cfg, "20260618_add_admin_error_queue")
-                # Now upgrade to head — this will run the legal_sub_role migration
-                command.upgrade(cfg, "head")
-                # Return current version
-                from alembic.runtime.migration import MigrationContext
-                from sqlalchemy import create_engine
-
-                sync_url = cfg.get_main_option("sqlalchemy.url")
-                eng = create_engine(sync_url)
-                with eng.connect() as conn:
-                    mc = MigrationContext.configure(conn)
-                    return mc.get_current_revision()
-
-            loop = asyncio.get_event_loop()
-            final_rev = await loop.run_in_executor(None, _sync_fix)
-            info["final_revision"] = str(final_rev)
-            info["step"] = "done"
-        except Exception as exc:
-            info["error"] = str(exc)
-            info["traceback"] = _tb.format_exc()
-        return JSONResponse(content=info)
-
-    @fastapi_app.post("/debug/add-legal-columns")
-    async def debug_add_legal_columns(request: Request):
-        """Temporary: directly add missing legal_sub_role and bar_license_number columns.
-
-        This bypasses alembic entirely to fix the schema drift where
-        alembic_version says head but columns are missing.
-        """
-        if app_settings.security_mode != "open":
-            return JSONResponse({"error": "not found"}, status_code=404)
-        import traceback as _tb
-
-        info = {"step": "init"}
-        try:
-            from sqlalchemy import text
-
-            from app.core.database import get_session_factory
-
-            factory = get_session_factory()
-            async with factory() as db:
-                # Check current state
-                result = await db.execute(
-                    text(
-                        "SELECT column_name FROM information_schema.columns "
-                        "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
-                    )
-                )
-                existing = [r[0] for r in result.fetchall()]
-                info["before"] = existing
-
-                if "legal_sub_role" not in existing:
-                    await db.execute(text("ALTER TABLE users ADD COLUMN legal_sub_role VARCHAR(20) NULL"))
-                    info["added_legal_sub_role"] = True
-                else:
-                    info["added_legal_sub_role"] = False
-
-                if "bar_license_number" not in existing:
-                    await db.execute(text("ALTER TABLE users ADD COLUMN bar_license_number VARCHAR(50) NULL"))
-                    info["added_bar_license_number"] = True
-                else:
-                    info["added_bar_license_number"] = False
-
-                # Add indexes if missing
-                try:
-                    await db.execute(
-                        text("CREATE INDEX IF NOT EXISTS ix_users_legal_sub_role ON users (legal_sub_role)")
-                    )
-                    await db.execute(
-                        text("CREATE INDEX IF NOT EXISTS ix_users_bar_license_number ON users (bar_license_number)")
-                    )
-                except Exception as ie:
-                    info["index_warning"] = str(ie)
-
-                await db.commit()
-
-                # Verify
-                result = await db.execute(
-                    text(
-                        "SELECT column_name FROM information_schema.columns "
-                        "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
-                    )
-                )
-                after = [r[0] for r in result.fetchall()]
-                info["after"] = after
-
-            info["step"] = "done"
-        except Exception as exc:
-            info["error"] = str(exc)
-            info["traceback"] = _tb.format_exc()
-        return JSONResponse(content=info)
-
-    @fastapi_app.post("/debug/stamp-alembic-head")
-    async def debug_stamp_alembic_head(request: Request):
-        """Temporary: stamp alembic_version to head without running migrations.
-
-        Used after manually fixing schema drift so future alembic upgrade head
-        calls don't try to re-run already-applied migrations.
-        """
-        if app_settings.security_mode != "open":
-            return JSONResponse({"error": "not found"}, status_code=404)
-        import traceback as _tb
-
-        info = {"step": "init"}
-        try:
-            import asyncio
-
-            def _sync_stamp():
-                from alembic.config import Config
-
-                from alembic import command
-
-                cfg = Config("alembic.ini")
-                command.stamp(cfg, "head")
-                from alembic.runtime.migration import MigrationContext
-                from sqlalchemy import create_engine
-
-                sync_url = cfg.get_main_option("sqlalchemy.url")
-                eng = create_engine(sync_url)
-                with eng.connect() as conn:
-                    mc = MigrationContext.configure(conn)
-                    return mc.get_current_revision()
-
-            loop = asyncio.get_event_loop()
-            final_rev = await loop.run_in_executor(None, _sync_stamp)
-            info["stamped_to"] = str(final_rev)
-            info["step"] = "done"
-        except Exception as exc:
-            info["error"] = str(exc)
-            info["traceback"] = _tb.format_exc()
-        return JSONResponse(content=info)
-
-    @fastapi_app.post("/debug/seed-test-user")
-    async def debug_seed_test_user(request: Request):
-        """Dev-only: seed a local tenant user and log the browser in.
-
-        Creates or updates a test User row, signs the semptify_uid cookie,
-        and redirects to the RECORD in-task guide so the three proven guide
-        pages can be used end-to-end without real OAuth credentials.
-
-        Only works when SECURITY_MODE=open (the local dev default).
-        """
-        if app_settings.security_mode != "open":
-            return JSONResponse({"error": "not found"}, status_code=404)
-        import traceback as _tb
-
-        info = {"step": "init"}
-        try:
-            from sqlalchemy import text
-
-            from app.core.cookie_auth import set_auth_cookie
-            from app.core.database import get_session_factory
-
-            now = utc_now()
-            factory = get_session_factory()
-            async with factory() as db:
-                # Check if user exists
-                result = await db.execute(text("SELECT id FROM users WHERE id = :uid"), {"uid": "GUbGQUTpK6"})
-                existing = result.scalar_one_or_none()
-
-                if existing:
-                    # Update existing user to be fully onboarded
-                    await db.execute(
-                        text(
-                            "UPDATE users SET "
-                            "primary_provider = 'google_drive', "
-                            "default_role = 'tenant', "
-                            "completed_groups = :groups, "
-                            "updated_at = :now "
-                            "WHERE id = :uid"
-                        ),
-                        {"uid": "GUbGQUTpK6", "groups": "storage_connected,vault_initialized", "now": now},
-                    )
-                    info["action"] = "updated"
-                else:
-                    # Insert new user
-                    await db.execute(
-                        text(
-                            "INSERT INTO users (id, primary_provider, storage_user_id, "
-                            "default_role, intensity_level, completed_groups, created_at, updated_at) "
-                            "VALUES (:uid, 'google_drive', :sid, 'tenant', 'low', "
-                            ":groups, :now1, :now2)"
-                        ),
-                        {
-                            "uid": "GUbGQUTpK6",
-                            "sid": "test-storage-user-id",
-                            "groups": "storage_connected,vault_initialized",
-                            "now1": now,
-                            "now2": now,
-                        },
-                    )
-                    info["action"] = "inserted"
-
-                await db.commit()
-
-                # Verify
-                result = await db.execute(
-                    text("SELECT id, primary_provider, default_role, completed_groups FROM users WHERE id = :uid"),
-                    {"uid": "GUbGQUTpK6"},
-                )
-                row = result.fetchone()
-                if row:
-                    info["user"] = {
-                        "id": str(row[0]),
-                        "primary_provider": str(row[1]),
-                        "default_role": str(row[2]),
-                        "completed_groups": list(row[3]) if row[3] else [],
-                    }
-
-            info["step"] = "done"
-
-            # Log the browser in as the seeded user.
-            redirect = ssot_redirect("/gui/record/journal/create", context="debug seed-test-user")
-            set_auth_cookie(redirect, "GUbGQUTpK6")
-            return redirect
-
-        except Exception as exc:
-            info["error"] = str(exc)
-            info["traceback"] = _tb.format_exc()
-            return JSONResponse(content=info)
 
     @fastapi_app.get("/debug/create-vault")
     async def debug_create_vault(request: Request):
@@ -5939,6 +5520,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return {"status": "ok", "ts": utc_now().isoformat()}
 
     register_stateless_routes(fastapi_app)
+
+    # Load module contracts now so the post-mount audit sees them. The lifespan
+    # also calls load_all_contracts, but the registry is idempotent.
+    contract_load_result = load_all_contracts(enabled_tiers=_get_enabled_tiers())
+    logger.info(
+        "Contract registry pre-audit load: %s contracts (%s modules ok, %s failed, %s skipped)",
+        contract_load_result["total_contracts"],
+        contract_load_result["loaded"],
+        contract_load_result["failed"],
+        contract_load_result["skipped"],
+    )
 
     # Post-mount audit: flag public routes that no FunctionGroupContract covers.
     # Non-fatal (warnings) unless ROUTE_AUDIT_STRICT=1.

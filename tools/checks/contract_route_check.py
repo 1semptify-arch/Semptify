@@ -143,7 +143,13 @@ def run(repo_root: Path) -> CheckResult:
                 for dep in getattr(getattr(route, "dependant", None), "dependencies", [])
             }
             if any(
-                name and ("current_user" in name or "require_admin" in name or "auth" in name)
+                name
+                and (
+                    "current_user" in name
+                    or "require_admin" in name
+                    or "require_elevation" in name
+                    or "auth" in name
+                )
                 for name in dep_names
             ):
                 self_authed_paths.add(full)

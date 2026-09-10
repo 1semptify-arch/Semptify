@@ -637,6 +637,22 @@ _register(
     log_message="Portal SEO router connected — sitemap.xml + robots.txt active",
 )
 
+# Public surface — stateless landing + i18n endpoints
+_register(
+    "app.modules.public_surface.router",
+    tags=("Public", "Landing", "i18n"),
+    tier=ProductTier.CORE,
+    log_message="Public surface router connected — /api/landing/facts and /api/i18n/* active",
+)
+
+# Debug surface — development-only maintenance endpoints
+_register(
+    "app.modules.debug.router",
+    tags=("Debug",),
+    tier=ProductTier.CORE,
+    log_message="Debug router connected — /debug/* maintenance endpoints active (gated by SECURITY_MODE)",
+)
+
 # UI Composer — self-assembling tenant GUI (Phase 1A)
 _register(
     "app.modules.ui_composer.router",
@@ -882,6 +898,18 @@ _register(
 )
 _register("app.modules.dashboard.router", tags=("Unified Dashboard",), tier=ProductTier.ADMIN)
 _register("app.modules.enterprise_dashboard.router", tags=("Enterprise Dashboard",), tier=ProductTier.ADMIN)
+_register(
+    "app.modules.admin_auth.router",
+    tags=("Admin Auth", "Public"),
+    tier=ProductTier.ADMIN,
+    log_message="Admin auth router connected — /admin/api/login-step1 and /admin/api/login-step2 active",
+)
+_register(
+    "app.modules.admin_api.router",
+    tags=("Admin", "Maintenance"),
+    tier=ProductTier.ADMIN,
+    log_message="Admin API router connected — /admin/api/logs/level and /admin/api/verify active",
+)
 _register(
     "app.modules.batch.router",
     prefix="/api/batch",
