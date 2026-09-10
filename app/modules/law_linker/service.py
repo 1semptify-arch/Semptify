@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import datetime, timezone
 
 import httpx
 from bs4 import BeautifulSoup
@@ -50,7 +49,7 @@ def _set_cached(citation: str, data: dict) -> None:
 
 
 def _now_date() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return utc_now().strftime("%Y-%m-%d")
 
 
 def _extract_mn_statute_text(html: str) -> str:
