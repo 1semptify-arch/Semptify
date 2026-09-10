@@ -1260,6 +1260,32 @@ EXPANDED_CASES = [
             "An emotional support animal can be a reasonable accommodation for a person with a disability."
         ],
     },
+    {
+        "id": "minnesota_v_andersen",
+        "case_name": "Minnesota v. Andersen",
+        "citation": "773 N.W.2d 463 (Minn. 2009)",
+        "court": "Minnesota Supreme Court",
+        "date_decided": "2009-05-21",
+        "summary": "Clarified that criminal restitution may be ordered for damages caused to rental property, including restoration costs.",
+        "holding": "Restitution for property damage may include reasonable repair and restoration costs.",
+        "relevance": "Relevant to landlord-tenant damage claims and restitution in criminal proceedings.",
+        "key_quotes": [
+            "Restitution is intended to restore the victim to the position occupied before the offense."
+        ],
+    },
+    {
+        "id": "baker_v_commodore",
+        "case_name": "Baker v. Commodore Properties",
+        "citation": "586 N.W.2d 313 (Minn. Ct. App. 1998)",
+        "court": "Minnesota Court of Appeals",
+        "date_decided": "1998-07-28",
+        "summary": "Addressed whether a lease provision requiring a tenant to pay landlord's attorney fees was enforceable.",
+        "holding": "An attorney-fee clause in a residential lease must be reciprocal to be enforceable.",
+        "relevance": "Important for evaluating lease attorney-fee provisions.",
+        "key_quotes": [
+            "A one-sided attorney fee provision in a residential lease is unconscionable and unenforceable."
+        ],
+    }
 ]
 
 EXPANDED_RULES = {
