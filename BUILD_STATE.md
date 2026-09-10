@@ -9,6 +9,16 @@
 
 All checks passed.
 
+### Task 2 — Sweep and rehome files in `C:\master-repo\hand offs and temp`
+
+- **Problem**: `C:\master-repo\hand offs and temp` contained working copies of the four Opus docs plus other handoffs, duplicates, and unclassified files. Leaving them there created a second canonical source and undermined the temp/trusted-doc boundary.
+- **Fix**: Inspected each file, compared it to known canonical copies, and either rehomed or flagged it.
+  - Moved to `C:\master-repo\handoffs\`: `semptify-documentation-system-handoff.md`, `semptify-information-audit-handoff.md`, `adr_compile_handoff.json`, `orchestrator_pilot_tasks.json` (renamed with date), `swe17_research_and_placement_handoff.md`, and the current `semptify-swe-handoff-opus-setup.md` (as `orchestration-005-opus-setup-2026-09-09.md`).
+  - Deleted as duplicates: the four Opus source docs (already landed in `docs/orchestration/`), `ADR-0008-information-orchestrator.md` (identical to canonical ADR-0008), `OPERATING_MANDATE.md` (master root copy is newer), and `files.zip` (container of duplicates).
+  - Left in temp and flagged: `CLAUDE_PREFLIGHT.md`, `orchestrator_add_task_SKILL.md`, `semptify-motivations.md`, and the four 8/7 HTML prototypes. Wrote `TEMP_SWEEP_REPORT.md` explaining why each is undetermined and needs Brad's call.
+- **Verification**: `Get-ChildItem 'C:\master-repo\hand offs and temp'` now shows only the 7 flagged files plus `TEMP_SWEEP_REPORT.md`; all duplicate/contained files are gone. `C:\master-repo\handoffs\` contains the rehomed items.
+- **Status**: PASS with flags — the temp folder is swept. The master-level `handoffs/` and `hand offs and temp/` workspace changes are not committed in git (master repo has no branch and no explicit commit scope was given); they are on disk for review. Open item: whether to commit, archive, or delete the 7 remaining flagged files.
+
 ### Task 3 — Verify orchestrator substrate exists and runs
 
 - **Problem**: Opus COO Charter assumes several master-level and Semptify-level orchestration components exist, run, and reflect current repo state. Before routing work through them, we needed to confirm reality.
@@ -48,6 +58,30 @@ All checks passed.
   - `python tools/recurring_scheduler.py --run docs-staleness` exit 0 and wrote `tools/.recurring_scheduler_state.json` with a `docs-staleness` last-run timestamp.
   - `python tools/recurring_scheduler.py --run-due --dry-run` shows the scheduler evaluates due dates and would run other jobs without re-running `docs-staleness` (it just ran).
 - **Status**: PASS — the recurring pass is wired into the existing scheduler. It would fire automatically on its 7-day cadence without manual re-triggering. The flag-only scans need human review before any archive/delete.
+
+### Task 6 — Confirm agent trust-tier routing matches Opus COO Charter
+
+- **Problem**: The Opus COO Charter lays out a specific trust tier (Opus as highest, SWE-1.7 full trust, GLM 5.2 non-security only, Devin for coding/autonomous work). This must match the actual queues and code.
+- **Fix**: Audited the active routing layers.
+  - Master queue `C:\master-repo\tools\orchestrator_state.json`: 196 `model_tier: unlimited`, 43 `claude`, 24 `unassigned`. `unlimited` maps to a Claude session per `C:\master-repo\AGENTS.md`. No `SWE-1.7`, `GLM 5.2`, or `Opus` tiers appear.
+  - Semptify queue `tools/agent_orchestrator_tasks.json` (after sync): 165 `unlimited`, 21 `claude`, 17 `unassigned`, plus 2 legacy `swe-1.7` and 1 `glm-5.2` (resolved planning task). No `Opus`.
+  - Semptify `tools/workbook_bridge.py`: assigns `swe-1.7`, `swe-1.6`, `glm-5.2`, and `kimi-2.7` by category/priority. Low-priority stub fixes default to `glm-5.2`, including any that may touch security-sensitive code — this contradicts the charter's "GLM 5.2 non-security only" rule.
+  - `tools/sync_orchestrator.py` maps master `model_tier` directly to Semptify `target_model`, so the master `unlimited`/`claude`/`unassigned` scheme overwrites the workbook-bridge model names.
+  - `C:\master-repo\AGENTS.md` (master) states "SWE-1.7 subagent dispatch is deprecated" and says Claude now runs all tasks directly. `modules/app-semptify-fastapi/AGENTS.md` and `.devin/skills/orchestrator_dispatch/SKILL.md` still describe SWE-1.7/swe-executor as the unlimited executor. `.devin/agents/swe-executor.md` still exists and is active.
+  - `tools/mark_task_status.py` and `C:\master-repo\tools\orchestrator_mark_task.py` accept `--agent` and allow marking `resolved` regardless of agent tier. The Opus charter says agents must not self-approve; the tools do not enforce that.
+- **Verification**: Reviewed queue JSON, `workbook_bridge.py`, `sync_orchestrator.py`, `mark_task_status.py`, `orchestrator_mark_task.py`, the three `AGENTS.md`/`SKILL.md` files, and `.devin/agents/swe-executor.md`.
+- **Status**: FAIL/REROUTE NEEDED — the current queue and code do not match the Opus charter's tier names or rules. The routing model is also internally contradictory (master AGENTS deprecated SWE-1.7; Semptify/Opus still rely on it). No routing rules were changed; this is an open decision for Brad.
+
+### Open items for Brad
+
+1. **Authoritative home for orchestration docs**: Should the four docs live in the Semptify module (`modules/app-semptify-fastapi/docs/orchestration/`), the master repo root, or both? The current landing is in Semptify.
+2. **Master `BUILD_STATE.md` missing**: The Opus charter references `BUILD_STATE.md` but `C:\master-repo\BUILD_STATE.md` does not exist. Is the Semptify module `BUILD_STATE.md` the canonical one, or should a master one be created?
+3. **Queue registration of this work**: The current `opus-setup` handoff is not in `orchestrator_state.json` or `agent_orchestrator_tasks.json`. Should it be registered post-hoc or is the handoff enough?
+4. **Temp-folder remaining files**: `CLAUDE_PREFLIGHT.md`, `orchestrator_add_task_SKILL.md`, `semptify-motivations.md`, and the four HTML prototypes still live in `hand offs and temp`. Where should they go, or can they be archived/deleted?
+5. **`SEMPTIFY_REFERENCE_LIBRARY.md` "free" contradiction**: Line 618 calls "Semptify Go" free while line 453 says never call Semptify free. Which is the intended SSOT?
+6. **Agent routing model conflict**: The Opus charter, master `AGENTS.md`, Semptify `AGENTS.md`, and `workbook_bridge.py` disagree on model names and which tier is allowed to do what. Brad needs to pick one canonical scheme so we can update `AGENTS.md`, `workbook_bridge.py`, `sync_orchestrator.py`, and the queues.
+7. **Self-approval enforcement**: `mark_task_status.py` and `orchestrator_mark_task.py` let any agent mark `resolved`. If the charter's "no self-approval" rule is real, the tools should enforce it.
+8. **`.gitignore` typo**: `hand offs and temop/` is a misspelling of `hand offs and temp/`. Should the actual temp folder be ignored?
 
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
 
