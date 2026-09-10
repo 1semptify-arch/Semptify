@@ -1,14 +1,25 @@
 ## Session — 2026-09-10 — Build Contract implementation (claude)
 
+### Guardrail Engine Run — 2026-09-10T16:04:12+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 1 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Shipped
 
-- **Module Build Contract schema and tooling** (commit TBD):
+- **Module Build Contract schema and tooling** (commit 59fad5e1):
   - Added `app/core/module_contract.py` with Pydantic `ModuleContract`, `NarratorEvent`, `ModuleContractRegistry`, validator, and index generator.
   - Added `app/modules/resource_intake/module_contract.json` as the first per-module contract.
   - Added `tools/checks/module_contract_check.py` guardrail; validates all `app/modules/<name>/module_contract.json` files and ensures `docs/registry/module_contracts_index.json` stays in sync.
   - Generated `docs/registry/module_contracts_index.json`.
 
-- **Resource Intake & Integrity Engine** (commit TBD):
+- **Resource Intake & Integrity Engine** (commit 59fad5e1):
   - Added `app/modules/resource_intake/` package with `schemas.py`, `engine.py`, `register.py`.
   - Added `data/composer_resources.json` as the compiled Information Composer resource pool with one approved, non-AI-generated, human-attested sample.
   - Added `tools/checks/resource_intake_check.py` guardrail; fails the build if any item in the compiled pool has `ai_generated != false` or a missing/empty `approved_by`.
