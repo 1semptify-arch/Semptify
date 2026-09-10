@@ -613,6 +613,14 @@ _register(
     tier=ProductTier.CORE,
     log_message="Page Composer router connected — unified page view (facts + stories + case)",
 )
+_register(
+    "app.modules.page_router",
+    router_attr="router",
+    tags=("Pages", "Manifest"),
+    tier=ProductTier.CORE,
+    log_message="Unified page router connected — manifest-driven template routes",
+    dev_notes="Dynamically serves all PAGE_MANIFEST template routes that are not in _SKIP_ROUTES. Adds 44 routes; 15 routes with dedicated handlers are skipped.",
+)
 
 # Public portal — guest portal + services catalog for semptify.org
 _register(
