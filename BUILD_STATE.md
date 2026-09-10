@@ -1,4 +1,48 @@
+## Session — 2026-09-10 — Opus orchestration setup (devin)
+
+### Guardrail Engine Run — 2026-09-10T01:24:05+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Task 3 — Verify orchestrator substrate exists and runs
+
+- **Problem**: Opus COO Charter assumes several master-level and Semptify-level orchestration components exist, run, and reflect current repo state. Before routing work through them, we needed to confirm reality.
+- **Fix**: Ran each component under `venv311`.
+  - `tools/sync_orchestrator.py` — executed successfully. Merged 92 doc-sourced tasks and 114 master-sync updates into `tools/agent_orchestrator_tasks.json` (total 206 tasks). `tools/module_registry.yaml` updated to reflect 131 modules (added `sticky_notes`, `law_linker`).
+  - `tools/workbook_bridge.py` — executed successfully; no new stub tasks to add.
+  - `tools/mark_task_status.py` — invoked with `--help`; CLI is operational.
+  - `tools/guardrail_engine.py` — executed under `venv311`; all 4 checks pass. Running under system Python (3.14) fails due to missing venv packages; this is an environment issue, not a guardrail bug.
+- **Verification**:
+  - `sync_orchestrator.py` exit 0 and produced `OK: 0 stub(s) in stub_tasks_new.json, 206 task(s) in agent_orchestrator_tasks.json (0 missing paths).`
+  - `workbook_bridge.py` exit 0 and wrote 0 new tasks.
+  - `mark_task_status.py --help` exit 0 and prints usage.
+  - `guardrail_engine.py` exit 0, all checks passed.
+- **Status**: PASS — Semptify-level substrate runs. Open item: `tools/orchestrator_state.json` and `tools/active_subagents.json` live at master-repo level, are stale, and do not include the current opus-setup work (flagged in open items).
+
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
+
+### Guardrail Engine Run — 2026-09-10T01:24:05+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-10T01:23:40+00:00
+
+- **contract_route_check**: FAIL — Contract loader failed: 80 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
 
 ### Guardrail Engine Run — 2026-09-09T06:09:02+00:00
 

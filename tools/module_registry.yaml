@@ -1832,3 +1832,25 @@
   last_result:
     health_check: 5 route(s), no exposure issues
     test_suite: 1 passed in 1.23s
+- id: sticky_notes
+  display_name: Sticky Notes / Record
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.sticky_notes.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
+- id: law_linker
+  display_name: Law Linker / Know
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.law_linker.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
