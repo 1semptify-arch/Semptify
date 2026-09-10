@@ -196,6 +196,7 @@ _SKIP_ROUTES = {
     "/tenant/help",  # tenant_help — handled in main.py
     "/zoom-court",  # zoom_court — generated HTML handler in main.py
     "/setup",  # setup_wizard — handled in main.py
+    "/delivery/send",  # document delivery send page — handled in main.py
 }
 
 

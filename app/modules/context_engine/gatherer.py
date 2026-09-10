@@ -6,12 +6,27 @@ Every fact must have a source URL — no hallucination.
 
 import logging
 import re
+from datetime import date as _date
 
 from app.modules.context_engine.cache import upsert_fact
 from app.modules.context_engine.models import ContextFact
 from app.modules.context_engine.taxonomy import SUBJECT_TO_FREE_API, Subject
 
 logger = logging.getLogger(__name__)
+
+
+# Map Law Library category to a Context Engine subject. Unmapped / federal topics
+# fall back to the canonical "law_library" subject.
+LAW_CATEGORY_TO_SUBJECT: dict[str, str] = {
+    "tenant_rights": Subject.TENANT_RIGHTS.value,
+    "eviction": Subject.EVICTION.value,
+    "security_deposits": Subject.DEPOSIT.value,
+    "habitability": Subject.HABITABILITY.value,
+    "retaliation": Subject.RETALIATION.value,
+    "discrimination": Subject.DISCRIMINATION.value,
+    "repairs": Subject.REPAIR.value,
+    "lease_terms": Subject.LEASE.value,
+}
 
 
 DEFAULT_SUBJECT_STATUTES = {
@@ -34,6 +49,71 @@ def _resolve_statute_section(subject: str, query: str | None) -> str | None:
     if query and re.match(r"^\d+[A-Z]?(\.\d+[\w.]*)?$", query.strip(), re.IGNORECASE):
         return query.strip()
     return DEFAULT_SUBJECT_STATUTES.get(subject)
+
+
+async def gather_law_library_facts(
+    subject: str,
+    jurisdiction: str = "MN",
+    query: str | None = None,
+    limit: int = 20,
+) -> list[ContextFact]:
+    """Pull verified facts from the in-app Law Library.
+
+    Every fact carries an official source URL — no hallucination. Entries are
+    deduplicated by (subject, jurisdiction, source_url). Only entries with a
+    resolvable source URL are upserted.
+    """
+    # Lazy import avoids a circular dependency at module load time.
+    from app.modules.law_library.router import ALL_LAWS
+
+    facts: list[ContextFact] = []
+    query_lower = (query or "").lower()
+
+    for law_id, law in ALL_LAWS.items():
+        category = law.get("category", "")
+        mapped_subject = LAW_CATEGORY_TO_SUBJECT.get(category, Subject.LAW_LIBRARY.value)
+        if subject != Subject.LAW_LIBRARY.value and mapped_subject != subject:
+            continue
+
+        # Optional query filter
+        if query_lower:
+            haystack = f"{law.get('title','')} {law.get('summary','')} {law.get('citation','')} {law.get('category','')} {law.get('subcategory','')}".lower()
+            if query_lower not in haystack:
+                continue
+
+        source_url = law.get("official_url")
+        if not source_url:
+            continue
+
+        citation = law.get("citation")
+        claim = citation or law.get("title", "")
+        if not claim:
+            continue
+
+        fact = await upsert_fact(
+            subject=subject,
+            jurisdiction=jurisdiction,
+            claim=claim,
+            source_url=source_url,
+            source_name=law.get("source_name", "Law Library"),
+            source_authority=law.get("source_name", "Law Library"),
+            citation=citation,
+            canonical_value=law_id,
+            extraction_pattern=law.get("category"),
+            fact_id=law_id,
+            taxonomy_subject=law.get("category", subject),
+            resolution_status="Resolved",
+            resolution_method="law_source_registry",
+            resolved_date=law.get("last_verified"),
+            last_verified_date=law.get("last_verified"),
+            ai_generated=False,
+            fabrication_check=True,
+        )
+        facts.append(fact)
+        if len(facts) >= limit:
+            break
+
+    return facts
 
 
 async def gather_for_subject(
@@ -70,14 +150,22 @@ async def gather_for_subject(
                 source_url = resp.get("source_url", "")
                 if not source_url:
                     return facts
+                citation = f"Minn. Stat. § {section}"
                 facts.append(
                     await upsert_fact(
                         subject=subject,
                         jurisdiction=jurisdiction,
-                        claim=resp.get("title") or f"Minn. Stat. § {section}",
+                        claim=citation,
                         source_url=source_url,
                         source_name="MN Revisor of Statutes",
-                        citation=f"Minn. Stat. § {section}",
+                        source_authority="MN Revisor of Statutes",
+                        citation=citation,
+                        resolution_status="Resolved",
+                        resolution_method="mn_statute_search",
+                        resolved_date=str(_date.today()),
+                        last_verified_date=str(_date.today()),
+                        ai_generated=False,
+                        fabrication_check=True,
                     )
                 )
 
@@ -157,7 +245,24 @@ async def gather_for_subject(
                         )
                     )
 
+        elif api_name == "law_library_catalog":
+            facts.extend(
+                await gather_law_library_facts(subject, jurisdiction, query)
+            )
+
     except Exception as e:
         logger.warning("Gatherer for %s failed: %s", subject, e)
+
+    # Cross-reference the in-app Law Library for every subject that has a
+    # matching category (e.g. eviction, discrimination, tenant_rights).
+    # This is additive, not a replacement for external gatherers.
+    if subject != Subject.LAW_LIBRARY.value:
+        try:
+            law_facts = await gather_law_library_facts(
+                subject, jurisdiction, query, limit=5
+            )
+            facts.extend(law_facts)
+        except Exception as e:
+            logger.warning("Law library cross-reference for %s failed: %s", subject, e)
 
     return facts

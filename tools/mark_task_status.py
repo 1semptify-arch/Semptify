@@ -38,6 +38,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 VALID_STATUSES = {"pending", "in_progress", "review", "resolved", "rejected"}
+PRIVILEGED_AGENTS = {"claude", "claude-code", "orchestrator"}
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TASKS_PATH = REPO_ROOT / "tools" / "agent_orchestrator_tasks.json"
@@ -81,6 +82,15 @@ def main() -> int:
         )
         return 2
 
+    if args.status in ("resolved", "rejected"):
+        if not args.agent or args.agent.lower() not in PRIVILEGED_AGENTS:
+            print(
+                f"Only privileged agents ({', '.join(PRIVILEGED_AGENTS)}) may mark a task '{args.status}'. "
+                "Executors report 'review' or 'blocked_on_decision' and stop.",
+                file=sys.stderr,
+            )
+            return 2
+
     if not TASKS_PATH.exists():
         print(f"Not found: {TASKS_PATH}", file=sys.stderr)
         return 1
@@ -109,6 +119,19 @@ def main() -> int:
                     return 1
 
         old_status = match.get("status")
+
+        # Self-approval guard: the same agent that owns the task may not mark it resolved/rejected.
+        if args.status in ("resolved", "rejected"):
+            assigned = (match.get("assigned_agent") or "").lower()
+            if assigned and args.agent and args.agent.lower() == assigned:
+                print(
+                    f"Self-approval blocked: task {args.task_id} is assigned to {match.get('assigned_agent')}, "
+                    f"so {args.agent} cannot mark it '{args.status}'. "
+                    "A different privileged agent or Brad must review and resolve.",
+                    file=sys.stderr,
+                )
+                return 2
+
         match["status"] = args.status
         match["updated_at"] = datetime.now(UTC).isoformat()
         if args.agent:

@@ -1308,6 +1308,12 @@ While Chapter 13 primarily applies to government entities, private landlords sho
     },
 }
 
+from app.modules.law_library.expanded_laws import (
+    EXPANDED_CASES,
+    EXPANDED_LAWS,
+    EXPANDED_RULES,
+)
+
 # Combine all laws into unified database
 ALL_LAWS = {
     **MINNESOTA_TENANT_LAWS,
@@ -1316,6 +1322,7 @@ ALL_LAWS = {
     **TAX_LAWS,
     **REAL_ESTATE_LAWS,
     **BUSINESS_LAWS,
+    **EXPANDED_LAWS,
 }
 
 DAKOTA_COUNTY_RULES = {
@@ -1367,6 +1374,7 @@ DAKOTA_COUNTY_RULES = {
         ],
     },
 }
+DAKOTA_COUNTY_RULES.update(EXPANDED_RULES)
 
 CASE_LAW_DATABASE = [
     {
@@ -1514,6 +1522,7 @@ CASE_LAW_DATABASE = [
         ],
     },
 ]
+CASE_LAW_DATABASE.extend(EXPANDED_CASES)
 
 
 # =============================================================================
@@ -1722,6 +1731,11 @@ async def list_categories():
             {"id": "retaliation", "name": "Retaliation Protection", "icon": "🛡️"},
             {"id": "discrimination", "name": "Fair Housing", "icon": "👥"},
             {"id": "disability", "name": "Disability Rights & ADA", "icon": "♿"},
+            {"id": "service_animals", "name": "Service & Support Animals", "icon": "🐕"},
+            {"id": "vulnerable_adults", "name": "Vulnerable Adults", "icon": "🤝"},
+            {"id": "housing_assistance", "name": "Housing Assistance & HUD", "icon": "🏢"},
+            {"id": "commerce", "name": "Commerce & Leases", "icon": "🤝"},
+            {"id": "accountability", "name": "Accountability & Enforcement", "icon": "⚖️"},
             {"id": "lease_terms", "name": "Lease Terms", "icon": "📝"},
             {"id": "repairs", "name": "Repairs & Maintenance", "icon": "🛠️"},
         ],

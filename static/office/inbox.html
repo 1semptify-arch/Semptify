@@ -5,90 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inbox – Semptify Office</title>
   <style>
-    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
+    :root { --hdr1: var(--color-calm-800); --hdr2: var(--color-calm-dark); --accent: var(--color-calm-600); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
-    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--color-gray-50); color: var(--color-gray-900); }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); position: sticky; top: 0; z-index: 100; }
     .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
-    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: var(--text-inverse); }
     nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
-    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
-    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    nav.core-nav a { color: color-mix(in srgb, var(--color-white), transparent 20%); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: color-mix(in srgb, var(--bg-card), transparent 85%); color: var(--text-inverse); }
     .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
-    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
-    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
-    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .vault-btn { background: linear-gradient(135deg, var(--color-warning), var(--color-alarm)); color: var(--text-inverse); border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: color-mix(in srgb, var(--bg-card), transparent 85%); color: var(--text-inverse); border: 1px solid color-mix(in srgb, var(--bg-card), transparent 70%); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
 
-    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
-    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb { background: var(--color-white); border-bottom: 1px solid var(--bg-footer); padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
     .breadcrumb a { color: var(--accent); text-decoration: none; }
 
     .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 260px 1fr; gap: 1.5rem; min-height: calc(100vh - 200px); }
 
     /* SIDEBAR NAV */
-    .inbox-nav { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem; height: fit-content; }
-    .inbox-nav-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 0.5rem; padding: 0 0.5rem; }
-    .inbox-nav-item { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0.75rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-bottom: 0.15rem; text-decoration: none; color: #1a1a2e; }
-    .inbox-nav-item:hover { background: #f0f0ff; }
-    .inbox-nav-item.active { background: var(--accent); color: #fff; font-weight: 600; }
-    .inbox-badge { background: #ef4444; color: #fff; border-radius: 10px; padding: 0.1rem 0.45rem; font-size: 0.7rem; font-weight: 700; }
-    .inbox-nav-item.active .inbox-badge { background: rgba(255,255,255,0.3); }
-    .inbox-nav-divider { border: none; border-top: 1px solid #e0e0e0; margin: 0.75rem 0; }
+    .inbox-nav { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 12px; padding: 1rem; height: fit-content; }
+    .inbox-nav-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem; padding: 0 0.5rem; }
+    .inbox-nav-item { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0.75rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-bottom: 0.15rem; text-decoration: none; color: var(--color-gray-900); }
+    .inbox-nav-item:hover { background: var(--color-calm-50); }
+    .inbox-nav-item.active { background: var(--accent); color: var(--text-inverse); font-weight: 600; }
+    .inbox-badge { background: var(--color-error); color: var(--text-inverse); border-radius: 10px; padding: 0.1rem 0.45rem; font-size: 0.7rem; font-weight: 700; }
+    .inbox-nav-item.active .inbox-badge { background: color-mix(in srgb, var(--bg-card), transparent 70%); }
+    .inbox-nav-divider { border: none; border-top: 1px solid var(--bg-footer); margin: 0.75rem 0; }
 
     /* MESSAGE AREA */
-    .message-area { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-    .message-toolbar { padding: 0.75rem 1rem; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 0.75rem; background: #fafafa; }
-    .message-toolbar input { flex: 1; padding: 0.45rem 0.75rem; border: 1px solid #c5cae9; border-radius: 8px; font-size: 0.88rem; outline: none; }
+    .message-area { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .message-toolbar { padding: 0.75rem 1rem; border-bottom: 1px solid var(--bg-muted); display: flex; align-items: center; gap: 0.75rem; background: var(--bg-elevated); }
+    .message-toolbar input { flex: 1; padding: 0.45rem 0.75rem; border: 1px solid var(--color-calm-200); border-radius: 8px; font-size: 0.88rem; outline: none; }
     .message-toolbar input:focus { border-color: var(--accent); }
 
     .msg-list { flex: 1; overflow-y: auto; }
-    .msg-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem 1.25rem; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.1s; }
-    .msg-item:hover { background: #f8f9ff; }
-    .msg-item.unread { background: #f0f4ff; }
+    .msg-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-gray-100); cursor: pointer; transition: background 0.1s; }
+    .msg-item:hover { background: var(--color-gray-50); }
+    .msg-item.unread { background: var(--color-calm-50); }
     .msg-item.unread .msg-subject { font-weight: 700; }
-    .msg-item.selected { background: #e8eaf6; }
-    .msg-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; color: #fff; }
-    .avatar-advocate { background: #166534; }
-    .avatar-legal { background: #9f1239; }
-    .avatar-system { background: #374151; }
-    .avatar-delivery { background: #b45309; }
+    .msg-item.selected { background: var(--color-gray-200); }
+    .msg-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; color: var(--text-inverse); }
+    .avatar-advocate { background: var(--color-success-800); }
+    .avatar-legal { background: var(--color-error-800); }
+    .avatar-system { background: var(--tone-800); }
+    .avatar-delivery { background: var(--color-alarm-hover); }
     .msg-content { flex: 1; min-width: 0; }
     .msg-from { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.1rem; }
     .msg-subject { font-size: 0.9rem; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .msg-preview { font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .msg-preview { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .msg-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; flex-shrink: 0; }
-    .msg-time { font-size: 0.75rem; color: #888; }
+    .msg-time { font-size: 0.75rem; color: var(--text-muted); }
     .msg-type-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 6px; font-weight: 600; }
-    .badge-review { background: #dbeafe; color: #1e40af; }
-    .badge-signature { background: #fef3c7; color: #92400e; }
-    .badge-message { background: #e8eaf6; color: #3949ab; }
-    .badge-system { background: #f3f4f6; color: #374151; }
+    .badge-review { background: var(--color-calm-100); color: var(--color-calm-dark); }
+    .badge-signature { background: var(--tone-300); color: var(--color-warning-800); }
+    .badge-message { background: var(--color-gray-200); color: var(--color-calm); }
+    .badge-system { background: var(--color-gray-100); color: var(--color-gray-700); }
 
     /* MESSAGE VIEWER */
     .msg-viewer { display: none; padding: 1.5rem; flex-direction: column; gap: 1rem; }
     .msg-viewer.open { display: flex; }
-    .msg-viewer-header { border-bottom: 1px solid #f0f0f0; padding-bottom: 1rem; }
+    .msg-viewer-header { border-bottom: 1px solid var(--bg-muted); padding-bottom: 1rem; }
     .msg-viewer-subject { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .msg-viewer-meta { font-size: 0.85rem; color: #666; display: flex; gap: 1rem; flex-wrap: wrap; }
-    .msg-viewer-body { font-size: 0.92rem; line-height: 1.7; color: #333; }
-    .msg-viewer-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 0.75rem; border-top: 1px solid #f0f0f0; }
+    .msg-viewer-meta { font-size: 0.85rem; color: var(--text-secondary); display: flex; gap: 1rem; flex-wrap: wrap; }
+    .msg-viewer-body { font-size: 0.92rem; line-height: 1.7; color: var(--text-primary); }
+    .msg-viewer-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 0.75rem; border-top: 1px solid var(--bg-muted); }
     .msg-action { padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; }
-    .msg-action.primary { background: var(--accent); color: #fff; }
-    .msg-action.secondary { background: #e8eaf6; color: var(--accent); }
-    .msg-action.danger { background: #fee2e2; color: #dc2626; }
-    .delivery-notice { background: #fffbeb; border: 1px solid #f59e0b; border-radius: 10px; padding: 1rem; font-size: 0.88rem; }
-    .delivery-notice strong { display: block; margin-bottom: 0.25rem; color: #92400e; }
+    .msg-action.primary { background: var(--accent); color: var(--text-inverse); }
+    .msg-action.secondary { background: var(--color-gray-200); color: var(--accent); }
+    .msg-action.danger { background: var(--bg-sidebar); color: var(--color-error); }
+    .delivery-notice { background: var(--color-warning-50); border: 1px solid var(--color-warning); border-radius: 10px; padding: 1rem; font-size: 0.88rem; }
+    .delivery-notice strong { display: block; margin-bottom: 0.25rem; color: var(--color-warning-800); }
 
-    .empty-inbox { text-align: center; padding: 4rem 1rem; color: #888; }
+    .empty-inbox { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
 
-    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
-    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: color-mix(in srgb, var(--color-white), transparent 20%); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: color-mix(in srgb, var(--color-white), transparent 30%); margin: 0 0.5rem; text-decoration: none; }
 
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
     .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
-    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
-    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .nav-drawer a { color: color-mix(in srgb, var(--color-white), transparent 15%); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: color-mix(in srgb, var(--bg-card), transparent 90%); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: color-mix(in srgb, var(--color-black), transparent 50%); z-index: 998; }
     .drawer-backdrop.open { display: block; }
 
     @media (max-width: 768px) {
@@ -104,17 +104,17 @@
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   <nav class="nav-drawer" id="nav-drawer">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:#fff;">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+      <strong style="color:var(--text-inverse);">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:var(--text-inverse);font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
     <a href="/home.html">🏠 Home</a>
     <a href="/library.html">📚 Library</a>
     <a href="/office.html">🏢 Office</a>
     <a href="/tools.html">🔧 Tools</a>
     <a href="/help.html">🆘 Help</a>
-    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
+    <hr style="border-color:color-mix(in srgb, var(--color-white), transparent 80%);margin:0.5rem 0;">
     <a href="/office/vault.html">🔒 Vault</a>
-    <a href="/office/inbox.html" style="color:#f59e0b;font-weight:700;">📨 Inbox</a>
+    <a href="/office/inbox.html" style="color:var(--color-warning);font-weight:700;">📨 Inbox</a>
     <a href="/office/timeline.html">📅 Timeline</a>
     <a href="/office/delivery.html">📬 Delivery</a>
     <a href="/office/signer.html">✍️ Signer</a>
@@ -154,7 +154,7 @@
         📥 Inbox <span class="inbox-badge">2</span>
       </a>
       <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'pending')">
-        ⏳ Pending Action <span class="inbox-badge" style="background:#f59e0b;">1</span>
+        ⏳ Pending Action <span class="inbox-badge" style="background:var(--color-warning);">1</span>
       </a>
       <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'sent')">📤 Sent</a>
       <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'archived')">🗄 Archived</a>
@@ -282,7 +282,7 @@
         updateBadgeCounts();
       } catch (e) {
         console.error('Inbox load failed:', e);
-        document.getElementById('msg-list').innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">⚠️</div><strong>Could not load inbox</strong><p>${e.message}</p><button onclick="loadInbox()" style="margin-top:1rem;padding:0.5rem 1rem;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;">Retry</button></div>`;
+        document.getElementById('msg-list').innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">⚠️</div><strong>Could not load inbox</strong><p>${e.message}</p><button onclick="loadInbox()" style="margin-top:1rem;padding:0.5rem 1rem;background:var(--accent);color:var(--text-inverse);border:none;border-radius:8px;cursor:pointer;">Retry</button></div>`;
       }
     }
 
@@ -493,7 +493,7 @@
         from: 'Semptify System',
         time: 'April 19 at 8:02am',
         type: 'system',
-        body: `<p><strong>3-Day Notice to Pay or Quit.pdf</strong> has been successfully blockchain timestamped.</p><br><p>This creates a tamper-evident record proving you possessed this document at this date and time. This timestamp can be used as evidence in court or housing authority proceedings.</p><br><p>Your document is stored in your Google Drive at: <code style="background:#f0f0f0;padding:0.15rem 0.4rem;border-radius:4px;">Semptify/notices/</code></p>`,
+        body: `<p><strong>3-Day Notice to Pay or Quit.pdf</strong> has been successfully blockchain timestamped.</p><br><p>This creates a tamper-evident record proving you possessed this document at this date and time. This timestamp can be used as evidence in court or housing authority proceedings.</p><br><p>Your document is stored in your Google Drive at: <code style="background:var(--bg-muted);padding:0.15rem 0.4rem;border-radius:4px;">Semptify/notices/</code></p>`,
         actions: ['vault']
       },
       5: {
@@ -568,7 +568,7 @@
     }
   </script>
 
-<footer style="background: var(--hdr1); color: #fff; padding: 2rem 1.5rem; margin-top: 3rem;">
+<footer style="background: var(--hdr1); color: var(--text-inverse); padding: 2rem 1.5rem; margin-top: 3rem;">
   <div style="max-width: 1200px; margin: 0 auto;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
       <div>
@@ -580,25 +580,25 @@
       <div>
         <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Legal</h4>
         <ul style="list-style: none; padding: 0; margin: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
         </ul>
       </div>
       <div>
         <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Connect</h4>
         <ul style="list-style: none; padding: 0; margin: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
         </ul>
       </div>
     </div>
-    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <div style="background: color-mix(in srgb, var(--bg-card), transparent 95%); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
       <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
         <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
       </p>
     </div>
-    <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: center;">
+    <div style="border-top: 1px solid color-mix(in srgb, var(--bg-card), transparent 90%); padding-top: 1.5rem; text-align: center;">
       <p style="font-size: 0.85rem; margin: 0 0 0.5rem 0; opacity: 0.8;">© 2024-2026 Semptify</p>
       <p style="font-size: 0.8rem; margin: 0; opacity: 0.7;">No Cost, Always • No Ads • Open Source</p>
     </div>

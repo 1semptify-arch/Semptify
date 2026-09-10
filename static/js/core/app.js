@@ -55,8 +55,8 @@ function uploadToVault() {
     if (!status) return;
     status.textContent = message;
     status.style.display = 'block';
-    status.style.background = type === 'error' ? '#fee2e2' : '#dcfce7';
-    status.style.color = type === 'error' ? '#991b1b' : '#166534';
+    status.style.background = type === 'error' ? 'var(--bg-sidebar)' : 'var(--color-success-50)';
+    status.style.color = type === 'error' ? 'var(--color-error-800)' : 'var(--color-success-800)';
   };
 
   if (!files || files.length === 0) {
@@ -182,7 +182,7 @@ function handleVaultFiles(files) {
       <span>📄</span>
       <div style="flex: 1;">
         <div style="font-weight: 500;">${file.name}</div>
-        <div style="font-size: 0.8rem; color: #9ca3af;">${(file.size/1024/1024).toFixed(2)} MB</div>
+        <div style="font-size: 0.8rem; color: var(--color-calm-light);">${(file.size/1024/1024).toFixed(2)} MB</div>
       </div>
       <button onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer;">✕</button>
     `;

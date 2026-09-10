@@ -14,12 +14,12 @@
   }
   .packet-header h1 {
     font-size: var(--font-size-xl, 2rem);
-    color: var(--color-text-primary, #1a1a1a);
+    color: var(--color-text-primary, var(--color-gray-900));
     margin-bottom: var(--space-xs, 0.5rem);
   }
   .packet-header p {
     font-size: var(--font-size-md, 1rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
   }
   .doc-selection {
     display: flex;
@@ -32,22 +32,22 @@
     align-items: center;
     gap: var(--space-sm, 1rem);
     padding: var(--space-sm, 1rem);
-    background: var(--color-surface-alt, #f7f7f7);
+    background: var(--color-surface-alt, var(--bg-page));
     border-radius: var(--radius-md, 8px);
     font-size: var(--font-size-md, 1rem);
-    color: var(--color-text-primary, #1a1a1a);
+    color: var(--color-text-primary, var(--color-gray-900));
     cursor: pointer;
   }
-  .doc-checkbox input { accent-color: var(--color-accent, #0066cc); }
+  .doc-checkbox input { accent-color: var(--color-accent, var(--color-info)); }
   .packet-preview {
-    background: var(--color-surface-alt, #f7f7f7);
+    background: var(--color-surface-alt, var(--bg-page));
     padding: var(--space-md, 1.5rem);
     border-radius: var(--radius-md, 8px);
     margin-bottom: var(--space-lg, 2rem);
   }
   .packet-preview h3 {
     font-size: var(--font-size-lg, 1.25rem);
-    color: var(--color-text-primary, #1a1a1a);
+    color: var(--color-text-primary, var(--color-gray-900));
     margin-bottom: var(--space-sm, 1rem);
   }
   .packet-preview ul {
@@ -57,7 +57,7 @@
   }
   .packet-preview li {
     font-size: var(--font-size-sm, 0.875rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
     padding: var(--space-xs, 0.5rem) 0;
   }
   .btn-generate {
@@ -65,26 +65,26 @@
     font-size: var(--font-size-md, 1rem);
     border-radius: var(--radius-md, 8px);
     border: none;
-    background: var(--color-accent, #0066cc);
-    color: var(--color-surface, #fff);
+    background: var(--color-accent, var(--color-info));
+    color: var(--color-surface, var(--text-inverse));
     cursor: pointer;
     width: 100%;
   }
-  .btn-generate:hover { background: var(--color-accent-dark, #004fa3); }
+  .btn-generate:hover { background: var(--color-accent-dark, var(--color-calm-dark)); }
   .reaction-working {
     display: none;
     align-items: center;
     gap: var(--space-sm, 1rem);
     padding: var(--space-md, 1.5rem);
-    color: var(--color-text-secondary, #555);
+    color: var(--color-text-secondary, var(--text-secondary));
     font-size: var(--font-size-md, 1rem);
   }
   .reaction-working.active { display: flex; }
   .reaction-done {
     display: none;
     padding: var(--space-sm, 1rem);
-    background: var(--color-success-soft, #e6f9ec);
-    color: var(--color-success, #1a7a3a);
+    background: var(--color-success-soft, var(--color-success-50));
+    color: var(--color-success, var(--color-success-800));
     border-radius: var(--radius-md, 8px);
     font-size: var(--font-size-md, 1rem);
     margin-bottom: var(--space-md, 1.5rem);
@@ -92,8 +92,8 @@
   .reaction-done.active { display: block; }
   .spinner {
     width: 20px; height: 20px;
-    border: 3px solid var(--color-border, #ccc);
-    border-top-color: var(--color-accent, #0066cc);
+    border: 3px solid var(--color-border, var(--tone-500));
+    border-top-color: var(--color-accent, var(--color-info));
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }

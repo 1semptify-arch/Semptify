@@ -116,7 +116,7 @@
 </section>
 
 <!-- Upload modal -->
-<div id="dcUploadModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center;">
+<div id="dcUploadModal" style="display:none; position:fixed; inset:0; background:color-mix(in srgb, var(--color-black), transparent 30%); z-index:100; align-items:center; justify-content:center;">
     <div style="background:var(--zone-surface-2); padding:1.5rem; max-width:500px; width:90%;">
         <h3 style="color:var(--text-primary); margin-bottom:1rem;">Upload a document</h3>
         <form id="dcUploadForm" enctype="multipart/form-data">
@@ -135,7 +135,7 @@
 </div>
 
 <!-- Share modal -->
-<div id="dcShareModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center;">
+<div id="dcShareModal" style="display:none; position:fixed; inset:0; background:color-mix(in srgb, var(--color-black), transparent 30%); z-index:100; align-items:center; justify-content:center;">
     <div style="background:var(--zone-surface-2); padding:1.5rem; max-width:500px; width:90%;">
         <h3 style="color:var(--text-primary); margin-bottom:0.25rem;">Share document</h3>
         <p style="color:var(--text-muted); font-size:0.8125rem; margin-bottom:1rem;">You control who sees your documents. Semptify never shares without your action.</p>
@@ -212,7 +212,7 @@
     function showValueModal(title, initial) {
         return new Promise((resolve) => {
             const modal = document.createElement('div');
-            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;';
+            modal.style.cssText = 'position:fixed;inset:0;background:color-mix(in srgb, var(--color-black), transparent 30%);z-index:200;display:flex;align-items:center;justify-content:center;';
             const box = document.createElement('div');
             box.style.cssText = 'background:var(--zone-surface-2);padding:1rem;max-width:400px;width:90%;border-radius:0.375rem;';
             const h = document.createElement('h4');
@@ -581,7 +581,7 @@
                             const span = entry.span;
                             if (span.dataset.highlighted) return;
                             span.dataset.highlighted = '1';
-                            span.style.background = 'rgba(245, 158, 11, 0.35)';
+                            span.style.background = 'color-mix(in srgb, var(--color-warning), transparent 65%)';
                             span.style.borderRadius = '2px';
                             span.style.cursor = 'pointer';
                             span.style.color = 'transparent';
@@ -620,7 +620,7 @@
                             if (entry.text.toLowerCase().includes(normalized) && !entry.span.dataset.userHighlight) {
                                 const span = entry.span;
                                 span.dataset.userHighlight = '1';
-                                span.style.background = 'rgba(59, 130, 246, 0.40)';
+                                span.style.background = 'color-mix(in srgb, var(--color-info), transparent 60%)';
                                 span.style.borderRadius = '2px';
                             }
                         });
@@ -639,7 +639,7 @@
                         box.style.top = (y - h / 2) + '%';
                         box.style.width = w + '%';
                         box.style.height = h + '%';
-                        box.style.background = 'rgba(59, 130, 246, 0.20)';
+                        box.style.background = 'color-mix(in srgb, var(--color-info), transparent 80%)';
                         box.style.border = '1px solid var(--color-info)';
                         box.style.borderRadius = '2px';
                         box.style.pointerEvents = 'auto';
@@ -741,7 +741,7 @@
         confirmBtn.style.fontSize = '0.75rem';
         confirmBtn.textContent = '● Confirm';
         confirmBtn.addEventListener('click', () => {
-            span.style.background = 'rgba(34, 197, 94, 0.35)';
+            span.style.background = 'color-mix(in srgb, var(--color-success), transparent 65%)';
             span.dataset.confirmed = '1';
             if (window.SemptifyFeedback) SemptifyFeedback.success('Extraction confirmed: ' + term.term);
             popover.remove();
@@ -756,7 +756,7 @@
         correctBtn.addEventListener('click', async () => {
             const corrected = await showValueModal('Correct value:', term.term);
             if (corrected !== null && corrected !== term.term) {
-                span.style.background = 'rgba(59, 130, 246, 0.35)';
+                span.style.background = 'color-mix(in srgb, var(--color-info), transparent 65%)';
                 span.dataset.corrected = '1';
                 if (window.SemptifyFeedback) SemptifyFeedback.success('Corrected to: ' + corrected);
             }
@@ -837,7 +837,7 @@
         box.style.top = (y - 2) + '%';
         box.style.width = '4%';
         box.style.height = '4%';
-        box.style.background = 'rgba(59, 130, 246, 0.20)';
+        box.style.background = 'color-mix(in srgb, var(--color-info), transparent 80%)';
         box.style.border = '1px solid var(--color-info)';
         box.style.borderRadius = '2px';
         box.style.pointerEvents = 'auto';
@@ -876,7 +876,7 @@
         }
         const text = span.dataset.text || '';
         if (!text.trim()) return;
-        span.style.background = 'rgba(59, 130, 246, 0.40)';
+        span.style.background = 'color-mix(in srgb, var(--color-info), transparent 60%)';
         span.style.borderRadius = '2px';
         span.dataset.userHighlight = '1';
         const page = span.dataset.page || 1;

@@ -7,7 +7,7 @@ import pytest
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now
-from app.models.models import EvictionTimelineEvent
+from app.models.models import EvictionTimelineEvent, VaultIndexDB
 
 
 @pytest.mark.anyio
@@ -159,3 +159,43 @@ async def test_legacy_timeline_page_loads_with_eviction_event(authenticated_clie
     assert "Timeline" in text
     assert "typeIcon" in text
     assert "is_deadline" in text or "is_evidence" in text
+
+
+@pytest.mark.anyio
+async def test_vault_document_appears_in_unified_timeline(authenticated_client):
+    """A vault-index document appears in the unified timeline using event_date."""
+    user_id = "GUowner123"
+
+    event_date = utc_now() - timedelta(days=10)
+    doc = VaultIndexDB(
+        vault_id="doc-vault-001",
+        user_id=user_id,
+        filename="notice_to_quit.pdf",
+        safe_filename="notice_to_quit.pdf",
+        sha256_hash="a" * 64,
+        file_size=1234,
+        mime_type="application/pdf",
+        storage_path="/vault/notice_to_quit.pdf",
+        storage_provider="local",
+        document_type="eviction_notice",
+        integrity_status="verified",
+        uploaded_at=utc_now(),
+        event_date=event_date,
+        received_date=event_date,
+    )
+    async with get_db_session() as db:
+        db.add(doc)
+
+    response = await authenticated_client.post(
+        "/api/timeline/unified",
+        json={"item_types": ["document"]},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert any(i["title"] == "notice_to_quit.pdf" for i in data["items"])
+
+    item = next(i for i in data["items"] if i["title"] == "notice_to_quit.pdf")
+    assert item["event_date"] == event_date.isoformat()
+    assert item["record_date"] == event_date.isoformat()
+    assert item["source"] == "vault"
+    assert item["is_evidence"] is True

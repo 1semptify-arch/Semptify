@@ -36,7 +36,7 @@
 
 /* Crisis Banner */
 .crisis-banner {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.1));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-error), transparent 85%), color-mix(in srgb, var(--color-warning), transparent 90%));
     border: 2px solid var(--color-error);
     border-radius: var(--radius-block);
     padding: 1.25rem;
@@ -83,7 +83,7 @@
 
 .help-card.featured {
     border: 2px solid var(--color-accent);
-    background: rgba(59, 130, 246, 0.05);
+    background: color-mix(in srgb, var(--color-info), transparent 95%);
     box-shadow: var(--elevation-2);
 }
 
@@ -270,8 +270,8 @@
     </div>
 
     <!-- Legal Disclaimer -->
-    <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:1.5rem;font-size:0.85rem;color:#92400e;line-height:1.6;">
-        <strong>⚖️ Not Legal Advice —</strong> This page is for education and organization only. For advice about your specific situation, contact a licensed attorney or free legal aid. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer →</a>
+    <div style="background:var(--color-warning-50);border:1px solid var(--color-warning);border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--color-warning-800);line-height:1.6;">
+        <strong>⚖️ Not Legal Advice —</strong> This page is for education and organization only. For advice about your specific situation, contact a licensed attorney or free legal aid. <a href="/public/disclaimer.html" style="color:var(--color-warning-800);">Full disclaimer →</a>
     </div>
 
     <!-- Crisis Banner -->

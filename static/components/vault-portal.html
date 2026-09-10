@@ -94,7 +94,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-alarm) 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -105,7 +105,7 @@
   
   .vault-door-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-warning), transparent 60%);
   }
   
   .vault-icon { font-size: 1.2rem; }
@@ -124,7 +124,7 @@
   .vault-modal-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.6);
+    background: color-mix(in srgb, var(--color-black), transparent 40%);
     backdrop-filter: blur(4px);
   }
   
@@ -136,7 +136,7 @@
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px color-mix(in srgb, var(--color-black), transparent 70%);
   }
   
   .vault-header {
@@ -144,7 +144,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--color-gray-200);
   }
   
   .vault-title {
@@ -156,7 +156,7 @@
   .vault-icon-large { font-size: 2rem; }
   
   .vault-subtitle {
-    color: #6b7280;
+    color: var(--color-gray-500);
     font-size: 0.9rem;
     margin: 0;
   }
@@ -165,7 +165,7 @@
     background: none;
     border: none;
     font-size: 1.5rem;
-    color: #9ca3af;
+    color: var(--color-calm-light);
     cursor: pointer;
     padding: 0.25rem;
   }
@@ -173,7 +173,7 @@
   .vault-upload-zone {
     margin: 1.5rem;
     padding: 2rem;
-    border: 2px dashed #d1d5db;
+    border: 2px dashed var(--color-gray-300);
     border-radius: 12px;
     text-align: center;
     cursor: pointer;
@@ -181,26 +181,26 @@
   }
   
   .vault-upload-zone:hover, .vault-upload-zone.dragover {
-    border-color: var(--accent-primary, #10b981);
-    background: #f9fafb;
+    border-color: var(--accent-primary, var(--color-success));
+    background: var(--color-gray-50);
   }
   
   .vault-upload-icon { font-size: 3rem; margin-bottom: 0.5rem; }
-  .vault-upload-text { font-weight: 500; color: #374151; }
-  .vault-upload-hint { font-size: 0.8rem; color: #9ca3af; margin-top: 0.25rem; }
+  .vault-upload-text { font-weight: 500; color: var(--color-gray-700); }
+  .vault-upload-hint { font-size: 0.8rem; color: var(--color-calm-light); margin-top: 0.25rem; }
   
   .vault-form { padding: 0 1.5rem; }
   .vault-storage-info {
     margin: 1rem 1.5rem;
     padding: 1rem;
-    background: #f0fdf4;
+    background: var(--color-success-50);
     border-radius: 8px;
-    border: 1px solid #bbf7d0;
+    border: 1px solid var(--color-gray-300);
   }
   
   .storage-provider { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
   .storage-icon { font-size: 1.2rem; }
-  .storage-privacy { font-size: 0.8rem; color: #065f46; margin: 0; }
+  .storage-privacy { font-size: 0.8rem; color: var(--color-success-800); margin: 0; }
   
   .vault-file-list { padding: 0 1.5rem; }
   .vault-file-item {
@@ -208,7 +208,7 @@
     align-items: center;
     gap: 1rem;
     padding: 0.75rem;
-    background: #f9fafb;
+    background: var(--color-gray-50);
     border-radius: 8px;
     margin-bottom: 0.5rem;
   }
@@ -218,7 +218,7 @@
     justify-content: flex-end;
     gap: 1rem;
     padding: 1.5rem;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--color-gray-200);
   }
   
   .upload-arrow { margin-left: 0.5rem; }
@@ -278,7 +278,7 @@
         <span>📄</span>
         <div style="flex: 1;">
           <div style="font-weight: 500;">${file.name}</div>
-          <div style="font-size: 0.8rem; color: #9ca3af;">${(file.size/1024/1024).toFixed(2)} MB</div>
+          <div style="font-size: 0.8rem; color: var(--color-calm-light);">${(file.size/1024/1024).toFixed(2)} MB</div>
         </div>
         <button onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer;">✕</button>
       `;

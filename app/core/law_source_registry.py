@@ -59,7 +59,10 @@ def _mn_stat_chapter_url(citation: str) -> str:
     """Build revisor.mn.gov URL for chapter-level citations (e.g. § 504B, § 580, Sec. 504)."""
     # Strip any "Sec." or "Section" prefix, then look for chapter number
     cleaned = re.sub(r"(?i)\bSec\.?\s*|\bSection\s*", "", citation)
-    m = re.search(r"(\d+[A-Z]?)", cleaned)
+    # Match chapter number before a section dot, semicolon, or end
+    m = re.search(r"(\d+[A-Z]?)(?:\s*[;\-]|\s*$)", cleaned)
+    if not m:
+        m = re.search(r"(\d+[A-Z]?)", cleaned)
     if m:
         return f"https://www.revisor.mn.gov/statutes/cite/{m.group(1)}"
     return "https://www.revisor.mn.gov/statutes/"
@@ -68,7 +71,9 @@ def _mn_stat_chapter_url(citation: str) -> str:
 def _usc_url(citation: str) -> str:
     """Build Cornell LII URL for U.S. Code citations."""
     # e.g. "42 U.S.C. § 3601-3619" -> 42/3601
-    m = re.search(r"(\d+)\s*U\.?S\.?C\.?\s*[§\s]*(\d+)", citation)
+    # e.g. "42 U.S.C. § 1437f" -> 42/1437f
+    # e.g. "42 U.S.C. § 1437f note" -> 42/1437f
+    m = re.search(r"(\d+)\s*U\.?S\.?C\.?\s*[§\s]*(\d+[a-zA-Z]*(?:-[0-9a-zA-Z]+)?)(?:\s+note)?", citation)
     if m:
         title, section = m.group(1), m.group(2)
         return f"https://www.law.cornell.edu/uscode/text/{title}/{section}"
@@ -139,6 +144,17 @@ def _hud_url(citation: str) -> str:
 def _ada_url(citation: str) -> str:
     """Build ADA.gov URL for ADA-related citations."""
     return "https://ada.gov/housing-and-housing-related/"
+
+
+def _hud_notice_url(citation: str) -> str:
+    """Build HUD FHEO guidance URL for HUD notices and guidance documents."""
+    # e.g. "HUD FHEO Notice 2020-01" -> HUD guidance page
+    return "https://www.hud.gov/program_offices/fair_housing_equal_opp/assistance_animals"
+
+
+def _westlaw_courtlistener_url(citation: str) -> str:
+    """Build a CourtListener search URL for loose / Westlaw-style case citations."""
+    return f"https://www.courtlistener.com/?q=%22{citation}%22&type=o"
 
 
 # =============================================================================
@@ -243,7 +259,7 @@ REGISTRY: list[tuple[re.Pattern, LawSource]] = [
     ),
     # Minnesota Statutes — chapter level (e.g. § 504B, Sec. 504, Section 580)
     (
-        re.compile(r"Minn\.?\s*Stat\.?\s*(?:§|Sec\.?|Section)?\s*\d+[A-Z]?(?:\s|$)", re.IGNORECASE),
+        re.compile(r"Minn\.?\s*Stat\.?\s*(?:§|Sec\.?|Section)?\s*\d+[A-Z]?(?:\s|;|$)", re.IGNORECASE),
         LawSource("Minnesota Revisor of Statutes", _mn_stat_chapter_url, "2026-01-15", "state"),
     ),
     # US Code
@@ -301,6 +317,16 @@ REGISTRY: list[tuple[re.Pattern, LawSource]] = [
     (
         re.compile(r"\d+\s*N\.?W\.?\w*\s*\d+\s*\(", re.IGNORECASE),
         LawSource("CourtListener (MN Cases)", _mn_case_url, "2026-01-15", "state"),
+    ),
+    # HUD / FHEO guidance notices (e.g. "HUD FHEO Notice 2020-01")
+    (
+        re.compile(r"HUD\s*(?:FHEO\s*)?Notice\s*\d{4}\s*[-/]?\s*\d+", re.IGNORECASE),
+        LawSource("HUD Fair Housing Guidance", _hud_notice_url, "2026-01-15", "federal"),
+    ),
+    # Westlaw / loose reporter citations (e.g. "2014 WL 4782034")
+    (
+        re.compile(r"\d{4}\s*WL\s*\d+", re.IGNORECASE),
+        LawSource("CourtListener (Westlaw search)", _westlaw_courtlistener_url, "2026-01-15", "state"),
     ),
 ]
 

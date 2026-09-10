@@ -5,88 +5,88 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document Signer – Semptify Office</title>
   <style>
-    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; --vault: #f59e0b; }
+    :root { --hdr1: var(--color-calm-800); --hdr2: var(--color-calm-dark); --accent: var(--color-calm-600); --vault: var(--color-warning); }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
-    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--color-gray-50); color: var(--color-gray-900); }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); position: sticky; top: 0; z-index: 100; }
     .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
-    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: var(--text-inverse); }
     nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
-    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
-    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    nav.core-nav a { color: color-mix(in srgb, var(--color-white), transparent 20%); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: color-mix(in srgb, var(--bg-card), transparent 85%); color: var(--text-inverse); }
     .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
-    .vault-btn { background: linear-gradient(135deg, var(--vault), #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
-    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
-    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .vault-btn { background: linear-gradient(135deg, var(--vault), var(--color-alarm)); color: var(--text-inverse); border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: color-mix(in srgb, var(--bg-card), transparent 85%); color: var(--text-inverse); border: 1px solid color-mix(in srgb, var(--bg-card), transparent 70%); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
 
-    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
-    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb { background: var(--color-white); border-bottom: 1px solid var(--bg-footer); padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
     .breadcrumb a { color: var(--accent); text-decoration: none; }
 
     .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
 
     /* DESKTOP WARNING */
-    .desktop-warning { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 10px 10px 0; padding: 1rem 1.25rem; margin-bottom: 1.25rem; font-size: 0.88rem; color: #78350f; line-height: 1.5; display: flex; align-items: flex-start; gap: 0.75rem; }
+    .desktop-warning { background: var(--color-warning-50); border-left: 4px solid var(--color-warning); border-radius: 0 10px 10px 0; padding: 1rem 1.25rem; margin-bottom: 1.25rem; font-size: 0.88rem; color: var(--color-warning-800); line-height: 1.5; display: flex; align-items: flex-start; gap: 0.75rem; }
     .desktop-warning strong { display: block; margin-bottom: 0.15rem; }
 
     /* PENDING DOCUMENTS */
     .pending-list { margin-bottom: 1.5rem; }
-    .pending-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.15s; }
-    .pending-card:hover, .pending-card.selected { border-color: var(--accent); box-shadow: 0 2px 8px rgba(57,73,171,0.1); }
-    .pending-card.selected { border-color: var(--accent); background: #f8f9ff; }
+    .pending-card { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.15s; }
+    .pending-card:hover, .pending-card.selected { border-color: var(--accent); box-shadow: 0 2px 8px color-mix(in srgb, var(--color-calm-600), transparent 90%); }
+    .pending-card.selected { border-color: var(--accent); background: var(--color-gray-50); }
     .pending-icon { font-size: 2rem; }
     .pending-info { flex: 1; min-width: 0; }
     .pending-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem; }
-    .pending-meta { font-size: 0.8rem; color: #888; }
-    .pending-urgent { background: #fef2f2; color: #dc2626; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
-    .pending-action { background: var(--accent); color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+    .pending-meta { font-size: 0.8rem; color: var(--text-muted); }
+    .pending-urgent { background: var(--color-error-50); color: var(--color-error); padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
+    .pending-action { background: var(--accent); color: var(--text-inverse); border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
 
     /* SIGNATURE AREA */
-    .signature-area { background: #fff; border: 2px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
-    .signature-area h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: #1a1a2e; }
-    .doc-preview { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; min-height: 160px; }
-    .doc-preview-placeholder { text-align: center; color: #888; font-size: 0.9rem; }
-    .doc-preview-title { font-weight: 600; color: #1a1a2e; margin-bottom: 0.5rem; }
-    .doc-preview-body { font-size: 0.85rem; line-height: 1.6; color: #555; text-align: left; }
+    .signature-area { background: var(--color-white); border: 2px solid var(--bg-footer); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+    .signature-area h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-gray-900); }
+    .doc-preview { background: var(--bg-elevated); border: 1px solid var(--bg-footer); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; min-height: 160px; }
+    .doc-preview-placeholder { text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+    .doc-preview-title { font-weight: 600; color: var(--color-gray-900); margin-bottom: 0.5rem; }
+    .doc-preview-body { font-size: 0.85rem; line-height: 1.6; color: var(--text-secondary); text-align: left; }
 
-    .signature-pad { border: 2px dashed #c5cae9; border-radius: 10px; background: #fff; height: 160px; display: flex; align-items: center; justify-content: center; color: #888; font-size: 0.9rem; cursor: crosshair; margin-bottom: 1rem; position: relative; }
+    .signature-pad { border: 2px dashed var(--color-calm-200); border-radius: 10px; background: var(--color-white); height: 160px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.9rem; cursor: crosshair; margin-bottom: 1rem; position: relative; }
     .signature-pad canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px; cursor: crosshair; }
     .sig-placeholder { pointer-events: none; display: flex; align-items: center; gap: 0.5rem; }
 
     .sign-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-    .btn-sign { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; border: none; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
-    .btn-clear { background: #f0f0f0; color: #444; border: none; padding: 0.75rem 1.25rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
-    .btn-reject { background: #fee2e2; color: #dc2626; border: none; padding: 0.75rem 1.25rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; margin-left: auto; }
+    .btn-sign { background: linear-gradient(135deg, var(--color-success), var(--color-success)); color: var(--text-inverse); border: none; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+    .btn-clear { background: var(--bg-muted); color: var(--text-primary); border: none; padding: 0.75rem 1.25rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+    .btn-reject { background: var(--bg-sidebar); color: var(--color-error); border: none; padding: 0.75rem 1.25rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; margin-left: auto; }
 
     /* HISTORY */
     .history-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; margin-top: 1rem; }
-    .history-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .history-card { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 10px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
     .history-status { font-size: 1.25rem; }
     .history-info { flex: 1; }
     .history-doc { font-weight: 600; font-size: 0.88rem; }
-    .history-meta { font-size: 0.75rem; color: #888; margin-top: 0.1rem; }
+    .history-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem; }
     .history-badge { font-size: 0.68rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 6px; white-space: nowrap; }
-    .badge-signed { background: #d1fae5; color: #065f46; }
-    .badge-rejected { background: #fee2e2; color: #991b1b; }
+    .badge-signed { background: var(--color-calm-100); color: var(--color-success-800); }
+    .badge-rejected { background: var(--bg-sidebar); color: var(--color-error-800); }
 
     /* SIDEBAR */
     .sidebar { display: flex; flex-direction: column; gap: 1rem; }
-    .sidebar-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
-    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem; color: #1a1a2e; }
-    .sidebar-stat { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; }
+    .sidebar-card { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 12px; padding: 1.25rem; }
+    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--color-gray-900); }
+    .sidebar-stat { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--bg-muted); font-size: 0.88rem; }
     .sidebar-stat:last-child { border-bottom: none; }
     .sidebar-stat strong { color: var(--accent); }
-    .notice-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: #1e3a5f; line-height: 1.5; }
+    .notice-box { background: var(--color-calm-50); border: 1px solid var(--color-calm-100); border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: var(--color-gray-700); line-height: 1.5; }
     .notice-box strong { display: block; margin-bottom: 0.25rem; }
 
-    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
-    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: color-mix(in srgb, var(--color-white), transparent 20%); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: color-mix(in srgb, var(--color-white), transparent 30%); margin: 0 0.5rem; text-decoration: none; }
 
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
     .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
-    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
-    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .nav-drawer a { color: color-mix(in srgb, var(--color-white), transparent 15%); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: color-mix(in srgb, var(--bg-card), transparent 90%); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: color-mix(in srgb, var(--color-black), transparent 50%); z-index: 998; }
     .drawer-backdrop.open { display: block; }
 
     @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .sidebar { order: -1; } }
@@ -104,20 +104,20 @@
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   <nav class="nav-drawer" id="nav-drawer">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:#fff;">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+      <strong style="color:var(--text-inverse);">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:var(--text-inverse);font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
     <a href="/home.html">🏠 Home</a>
     <a href="/library.html">📚 Library</a>
     <a href="/office.html">🏢 Office</a>
     <a href="/tools.html">🔧 Tools</a>
     <a href="/help.html">🆘 Help</a>
-    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
+    <hr style="border-color:color-mix(in srgb, var(--color-white), transparent 80%);margin:0.5rem 0;">
     <a href="/office/vault.html">🔒 Vault</a>
     <a href="/office/inbox.html">📨 Inbox</a>
     <a href="/office/timeline.html">📅 Timeline</a>
     <a href="/office/delivery.html">📬 Delivery</a>
-    <a href="/office/signer.html" style="color:#f59e0b;font-weight:700;">✍️ Signer</a>
+    <a href="/office/signer.html" style="color:var(--color-warning);font-weight:700;">✍️ Signer</a>
   </nav>
 
   <header>
@@ -177,7 +177,7 @@
             <div class="pending-title">Lease Renewal Acknowledgment</div>
             <div class="pending-meta">From: Harborview Properties · Sent Apr 15, 2025 · Deadline: May 15, 2025</div>
           </div>
-          <span class="pending-urgent" style="background:#fef3c7;color:#92400e;">24 DAYS</span>
+          <span class="pending-urgent" style="background:var(--tone-300);color:var(--color-warning-800);">24 DAYS</span>
           <button class="pending-action" onclick="event.stopPropagation();selectDoc(2)">Sign</button>
         </div>
       </div>
@@ -197,12 +197,12 @@
                 <li>Back rent reduced by $450</li>
                 <li>Both parties waive claims related to heater repair dispute</li>
               </ul>
-              <p style="margin-top:0.75rem;color:#666;">Review the full document in your vault before signing. This is a legally binding agreement.</p>
+              <p style="margin-top:0.75rem;color:var(--text-secondary);">Review the full document in your vault before signing. This is a legally binding agreement.</p>
             </div>
           </div>
         </div>
 
-        <label style="font-size:0.85rem;font-weight:600;color:#444;display:block;margin-bottom:0.5rem;">Your Signature</label>
+        <label style="font-size:0.85rem;font-weight:600;color:var(--text-primary);display:block;margin-bottom:0.5rem;">Your Signature</label>
         <div class="signature-pad" id="sig-pad">
           <canvas id="sig-canvas"></canvas>
           <div class="sig-placeholder" id="sig-placeholder">
@@ -210,7 +210,7 @@
           </div>
         </div>
 
-        <div style="font-size:0.82rem;color:#666;margin-bottom:1rem;">
+        <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:1rem;">
           By signing, you agree this signature is legally binding. Your signature, timestamp, and identity will be stored in your vault as tamper-evident evidence.
         </div>
 
@@ -255,8 +255,8 @@
 
       <div class="sidebar-card">
         <div class="sidebar-title">⏰ Next Deadline</div>
-        <div style="font-size:0.9rem;color:#92400e;font-weight:700;">April 25, 2025</div>
-        <div style="font-size:0.82rem;color:#666;margin-top:0.25rem;">Settlement Agreement — 4 days remaining</div>
+        <div style="font-size:0.9rem;color:var(--color-warning-800);font-weight:700;">April 25, 2025</div>
+        <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:0.25rem;">Settlement Agreement — 4 days remaining</div>
       </div>
 
       <div class="notice-box">
@@ -267,11 +267,11 @@
       <div class="sidebar-card">
         <div class="sidebar-title">🏢 Office Navigation</div>
         <div style="display:flex;flex-direction:column;gap:0.25rem;">
-          <a href="/office/vault.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault</a>
-          <a href="/office/inbox.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
-          <a href="/office/timeline.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
-          <a href="/office/delivery.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery</a>
-          <a href="/office/signer.html" style="color:#3949ab;font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer ←</a>
+          <a href="/office/vault.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault</a>
+          <a href="/office/inbox.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
+          <a href="/office/timeline.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
+          <a href="/office/delivery.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery</a>
+          <a href="/office/signer.html" style="color:var(--color-calm);font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer ←</a>
         </div>
       </div>
     </aside>
@@ -304,7 +304,7 @@
               <li>Back rent reduced by $450</li>
               <li>Both parties waive claims related to heater repair dispute</li>
             </ul>
-            <p style="margin-top:0.75rem;color:#666;">Review the full document in your vault before signing. This is a legally binding agreement.</p>
+            <p style="margin-top:0.75rem;color:var(--text-secondary);">Review the full document in your vault before signing. This is a legally binding agreement.</p>
           </div>`
       },
       2: {
@@ -318,7 +318,7 @@
               <li>Month-to-month option available with 60-day notice</li>
               <li>Security deposit remains unchanged</li>
             </ul>
-            <p style="margin-top:0.75rem;color:#666;">This is a standard renewal acknowledgment. No new terms beyond the stated increase.</p>
+            <p style="margin-top:0.75rem;color:var(--text-secondary);">This is a standard renewal acknowledgment. No new terms beyond the stated increase.</p>
           </div>`
       }
     };
@@ -345,7 +345,7 @@
       canvas.height = pad.clientHeight;
       ctx.lineWidth = 2;
       ctx.lineCap = 'round';
-      ctx.strokeStyle = '#1a1a2e';
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-gray-900').trim();
     }
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
@@ -392,12 +392,12 @@
       const btn = document.getElementById('pending-' + currentDoc).querySelector('.pending-action');
       btn.textContent = 'Rejected';
       btn.disabled = true;
-      btn.style.background = '#dc2626';
+      btn.style.background = 'var(--color-error)';
       clearSignature();
     }
   </script>
 
-<footer style="background: var(--hdr1); color: #fff; padding: 2rem 1.5rem; margin-top: 3rem;">
+<footer style="background: var(--hdr1); color: var(--text-inverse); padding: 2rem 1.5rem; margin-top: 3rem;">
   <div style="max-width: 1200px; margin: 0 auto;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
       <div>
@@ -409,25 +409,25 @@
       <div>
         <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Legal</h4>
         <ul style="list-style: none; padding: 0; margin: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
         </ul>
       </div>
       <div>
         <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Connect</h4>
         <ul style="list-style: none; padding: 0; margin: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
         </ul>
       </div>
     </div>
-    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <div style="background: color-mix(in srgb, var(--bg-card), transparent 95%); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
       <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
         <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
       </p>
     </div>
-    <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: center;">
+    <div style="border-top: 1px solid color-mix(in srgb, var(--bg-card), transparent 90%); padding-top: 1.5rem; text-align: center;">
       <p style="font-size: 0.85rem; margin: 0 0 0.5rem 0; opacity: 0.8;">© 2024-2026 Semptify</p>
       <p style="font-size: 0.8rem; margin: 0; opacity: 0.7;">No Cost, Always • No Ads • Open Source</p>
     </div>
