@@ -80,7 +80,7 @@ All checks passed.
 
 ### Remaining flag
 
-- **test_tenant_timeline_renders_eviction_event** still fails (pre-existing UI/template regression; API layer is correct).
+- **test_tenant_timeline_renders_eviction_event** fixed 2026-09-10: `app/templates/components/ui_composer.html` was using `▸ Record` for evidence items; restored to `▸ Evidence`. `tests/test_unified_timeline.py` now 6/6.
 
 ### Status
 
@@ -91,7 +91,9 @@ Mechanics verification pass complete. Three small in-scope code fixes committed:
 
 Environment resolved: Tesseract 5.5.3 installed and verified for image + scanned PDF OCR.
 
-One remaining flag: pre-existing UI test `test_tenant_timeline_renders_eviction_event` (UI Composer/template regression, not API/data).
+UI regression fixed: `test_tenant_timeline_renders_eviction_event` now passes (`Evidence` label restored in timeline event meta).
+
+Mechanics verification handoff is clean.
 
 ## Session — 2026-09-09 — Law Linker v2 implementation (claude)
 
