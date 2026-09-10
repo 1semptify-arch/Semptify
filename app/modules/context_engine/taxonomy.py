@@ -6,6 +6,7 @@ from enum import StrEnum
 class Subject(StrEnum):
     """Canonical subjects for Context Engine."""
 
+    TENANT_RIGHTS = "tenant_rights"
     EVICTION = "eviction"
     REPAIR = "repair"
     RENT = "rent"
@@ -26,6 +27,7 @@ class Subject(StrEnum):
 
 ALL_SUBJECTS = tuple(s.value for s in Subject)
 SUBJECT_LABELS = {
+    Subject.TENANT_RIGHTS.value: "Tenant Rights",
     Subject.EVICTION.value: "Eviction Defense",
     Subject.REPAIR.value: "Repair Requests",
     Subject.RENT.value: "Rent & Payments",
@@ -46,6 +48,7 @@ SUBJECT_LABELS = {
 
 # Map free_api_pack endpoints to subjects for gatherer integration
 SUBJECT_TO_FREE_API = {
+    Subject.TENANT_RIGHTS.value: "mn_statute_search",
     Subject.EVICTION.value: "court_listener_search",
     Subject.REPAIR.value: "epa_echo_lookup",
     Subject.HABITABILITY.value: "epa_echo_lookup",
@@ -60,6 +63,6 @@ SUBJECT_TO_FREE_API = {
     Subject.EVIDENCE.value: None,  # No external API — guidance only
     Subject.TIMELINE.value: None,  # No external API — guidance only
     Subject.JOURNAL.value: None,  # No external API — guidance only
-    Subject.LAW_LIBRARY.value: "mn_statute_search",
+    Subject.LAW_LIBRARY.value: "law_library_catalog",
     Subject.LANDING.value: None,  # Public marketing/landing claims — verified by fact-check/freshness system
 }

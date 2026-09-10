@@ -4,15 +4,18 @@
  *
  * Supported citation types (local -> state -> federal):
  *   - Minnesota Statutes (Minn. Stat. § XXXX.XXX) -> revisor.mn.gov
- *   - US Code (XX U.S.C. § XXXX) -> law.cornell.edu
+ *   - US Code (XX U.S.C. § XXXXf or XXXX-XX) -> law.cornell.edu
  *   - CFR (XX C.F.R. § XXX.XXX) -> ecfr.gov
  *   - IRS Publications (IRS Publication XXX) -> irs.gov
+ *   - HUD / FHEO Notices (HUD FHEO Notice YYYY-NN) -> hud.gov
  *   - Minneapolis Code (Minneapolis Code § XXX) -> library.municode.com
  *   - St. Paul Code (St. Paul Ordinance XX-XX) -> library.municode.com
  *   - County / municipal code (e.g. Hennepin County Code § ...) -> library.municode.com (jurisdiction-aware)
  *   - US Supreme Court (XXX U.S. XXX (YYYY)) -> courtlistener.com
  *   - Federal Appellate (XXX F.3d XXX (Xth Cir. YYYY)) -> courtlistener.com
+ *   - Federal District (XXX F. Supp. XXX (D. X YYYY)) -> courtlistener.com
  *   - Minnesota Cases (XXX Minn. XX, XXX N.W.2d XXX) -> courtlistener.com
+ *   - Westlaw / loose citations (YYYY WL XXXXXX) -> courtlistener.com
  *
  * Each popup shows: title, summary, full text excerpt, and a clickable
  * "View Official Source →" link to the authoritative source.
@@ -153,22 +156,22 @@
             displayLabel: (m) => 'Minn. Stat. § ' + m,
             apiPath: '/api/law-library/statutes/'
         },
-        // Minnesota Statutes — chapter level (e.g. Minn. Stat. § 504B, § 580)
+        // Minnesota Statutes — chapter level (e.g. Minn. Stat. § 504B, § 580, § 322C; § 333)
         {
             type: 'minnesota_statute_chapter',
             label: 'MN Statute Chapter',
-            regex: /Minn\.\s*Stat\.\s*§?\s*(\d+[A-Z]?)(?!\.\d)/gi,
-            detect: /Minn\.\s*Stat\.\s*§?\s*\d+[A-Z]?(?!\.)/i,
+            regex: /Minn\.\s*Stat\.\s*§?\s*(\d+[A-Z]?)(?!\.\d)(?:\s*;|\s*$|\s+)/gi,
+            detect: /Minn\.\s*Stat\.\s*§?\s*\d+[A-Z]?(?!\.\d)/i,
             idBuilder: (m) => 'minn_stat_' + m.toLowerCase(),
             urlBuilder: (m) => 'https://www.revisor.mn.gov/statutes/cite/' + m,
             displayLabel: (m) => 'Minn. Stat. § ' + m,
             apiPath: '/api/law-library/statutes/'
         },
-        // US Code (e.g. 42 U.S.C. § 3601)
+        // US Code (e.g. 42 U.S.C. § 3601, 42 U.S.C. § 1437f, 42 U.S.C. § 1715z-1)
         {
             type: 'us_code',
             label: 'US Code',
-            regex: /(\d+)\s*U\.?S\.?C\.?\s*[§\s]*(\d+(?:-\d+)?)/gi,
+            regex: /(\d+)\s*U\.?S\.?C\.?\s*[§\s]*(\d+[a-zA-Z]*(?:-[0-9a-zA-Z]+)?)(?:\s+note)?/gi,
             detect: /\d+\s*U\.?S\.?C\.?/i,
             idBuilder: (title, section) => 'usc_' + title + '_' + section,
             urlBuilder: (title, section) => 'https://www.law.cornell.edu/uscode/text/' + title + '/' + section,
@@ -196,6 +199,28 @@
             urlBuilder: (num) => 'https://www.irs.gov/publications/p' + num,
             displayLabel: (num) => 'IRS Publication ' + num,
             apiPath: '/api/law-library/statutes/'
+        },
+        // HUD / FHEO Notices (e.g. HUD FHEO Notice 2020-01)
+        {
+            type: 'hud_notice',
+            label: 'HUD Notice',
+            regex: /HUD\s*(?:FHEO\s*)?Notice\s*(\d{4})\s*[-/]?\s*(\d+)/gi,
+            detect: /HUD\s*(?:FHEO\s*)?Notice\s*\d{4}\s*[-/]?\s*\d+/i,
+            idBuilder: (year, num) => 'hud_notice_' + year + '_' + num,
+            urlBuilder: (year, num) => 'https://www.hud.gov/program_offices/fair_housing_equal_opp/assistance_animals',
+            displayLabel: (year, num) => 'HUD FHEO Notice ' + year + '-' + num,
+            apiPath: null
+        },
+        // Westlaw / loose reporter citations (e.g. 2014 WL 4782034)
+        {
+            type: 'westlaw',
+            label: 'Case Citation',
+            regex: /(\d{4})\s*WL\s*(\d+)/gi,
+            detect: /\d{4}\s*WL\s*\d+/i,
+            idBuilder: (year, num) => 'westlaw_' + year + '_' + num,
+            urlBuilder: (year, num) => 'https://www.courtlistener.com/?q=%22' + year + '+WL+' + num + '%22&type=o',
+            displayLabel: (year, num) => year + ' WL ' + num,
+            apiPath: '/api/law-library/case-law/'
         },
         // Minneapolis Code (e.g. Minneapolis Code § 244)
         {
