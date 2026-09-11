@@ -149,21 +149,18 @@ def category_for_stub(stub_type: str) -> str:
 
 
 def model_for_task(category: str, priority: str) -> str:
-    if category == "duplicate_resolve":
-        return "kimi-2.7"
-    if category == "test_add":
-        return "swe-1.6"
+    """Return a canonical model tier for workbook-generated tasks.
+
+    The canonical set is unlimited / claude / unassigned (per the master
+    orchestrator and the Opus COO Charter). The workbook bridge defaults every
+    generated task to `unlimited` because it cannot judge whether a task is
+    architecture/decision work. A human or the orchestrator must explicitly
+    set `claude` for judgment, design, or decision tasks.
+    """
     if category == "doc_update":
-        return "kimi-2.7"
-    if category == "refactor":
-        return "swe-1.7"
-    # stub_fix default by priority
-    priority = (priority or "").lower()
-    if priority == "high":
-        return "swe-1.7"
-    if priority == "medium":
-        return "swe-1.6"
-    return "glm-5.2"
+        return "unlimited"
+    # stub_fix / refactor / test_add / duplicate_resolve default to executor tier
+    return "unlimited"
 
 
 def file_path_for_stub(file_cell: str | None) -> str:
@@ -189,6 +186,10 @@ def parse_line(line_cell: str | None) -> int | None:
 def make_prompt(task: dict) -> str:
     """Generate the same prompt the standalone tool uses (kept in sync manually)."""
     model_name = {
+        "unlimited": "Unlimited executor (SWE-1.7 / Devin)",
+        "claude": "Claude (judgment / review)",
+        "unassigned": "Unassigned — classify before dispatch",
+        # Legacy aliases kept only for backfilled/old queue records
         "glm-5.2": "GLM-5.2",
         "swe-1.6": "SWE-1.6",
         "swe-1.7": "SWE-1.7",
