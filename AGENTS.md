@@ -287,6 +287,11 @@ The **master orchestrator queue** is `C:\master-repo\tools\orchestrator_state.js
 
 Unlimited agents (swe-executor, SWE-1.7, etc.) may NOT mark a task `resolved` or `rejected`; they stop at `review` or `blocked_on_decision`. Do this every time, without being asked — it is how the queue stays accurate without a human tracking it by hand.
 
+**Privileged agents and self-approval:**
+- Only `claude`, `claude-code`, and `orchestrator` may mark a task `resolved` or `rejected`.
+- No agent may mark its own assigned task `resolved` or `rejected`. If you are the assigned agent, stop at `review` and let a different privileged agent or Brad close it out.
+- These rules are enforced in `tools/mark_task_status.py` and `C:\master-repo\tools\orchestrator_mark_task.py`.
+
 ---
 
 ## Core Mission
