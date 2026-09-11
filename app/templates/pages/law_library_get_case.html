@@ -1,0 +1,167 @@
+{% extends "body/composer_preview_body.html" %}
+{% from "components/ui_composer.html" import process_indicator with context %}
+
+{# Module Contract — law_library:law_library_get_case (pillar: know)
+   Function: the tenant picks a verified housing case and reads its
+             name, citation, court, holding, and key quotes.
+   Inputs: case_id (required — picker, small space)
+   Outputs: case object (case_name, citation, court, summary, holding,
+            relevance, key_quotes) — submit-only lookup, result is large
+   Preview: empty state = prompt copy; error state = inline message;
+            primary content (case text) — carries the page weight
+   Actions: Look up case — composer-bottom, primary
+            Browse the law library — help-bottom, secondary
+   Layout: primary=preview, ratio=2fr 3fr, mobile=[composer, preview, help]
+           (justified: output is long-form legal text, input is one picker) #}
+{% set shell_ratio = "2fr 3fr" %}
+{% set shell_primary = "preview" %}
+{% set shell_mobile_order = ["composer", "preview", "help"] %}
+
+{% block title %}{{ contract_title(contract) }} — Semptify{% endblock %}
+{% block nav_know %}active{% endblock %}
+{% block cps_aria_label %}Look up a housing case{% endblock %}
+{% block cps_controls_title %}Find a case{% endblock %}
+{% block cps_preview_title %}The case{% endblock %}
+{% block cps_help_title %}How this works{% endblock %}
+
+{% block styles %}
+{{ super() }}
+{% endblock %}
+
+{% block composer %}
+<form id="caseForm" class="record-guide__form" onsubmit="event.preventDefault(); lookupCase();" novalidate>
+  <div class="record-guide__field block-input">
+    <label for="case_id">Case <span class="required">*</span></label>
+    <select id="case_id" name="case_id" required>
+      <option value="" disabled selected>Choose a case</option>
+      <option value="fritz_v_warthen">Fritz v. Warthen — Implied warranty of habitability</option>
+      <option value="johnson_v_property_management">Johnson v. ABC Property Management — Right to cure</option>
+      <option value="texas_dept_housing_v_inclusive">Texas Dept. of Housing v. Inclusive Communities — Disparate impact</option>
+      <option value="trafficante_v_metropolitan">Trafficante v. Metropolitan Life — Standing in FHA cases</option>
+      <option value="havens_realty_v_coleman">Havens Realty Corp. v. Coleman — Steering discrimination</option>
+      <option value="bragdon_v_abbott">Bragdon v. Abbott — Disability under ADA</option>
+      <option value="olmstead_v_lc">Olmstead v. L.C. — Integration mandate</option>
+      <option value="sabal_palm_v_fischer">Sabal Palm v. Fischer — Emotional support animals</option>
+    </select>
+    <p class="record-guide__hint">Pick a case to see its citation, holding, and key quotes.</p>
+  </div>
+
+  <button type="submit" class="output-trigger output-trigger--primary">Look up case</button>
+</form>
+{% endblock %}
+
+{% block preview %}
+<div id="caseResult" class="record-guide__result" role="status" aria-live="polite">
+  <p class="cps__empty">Pick a case and click Look up. The citation, holding, and key quotes will appear here.</p>
+</div>
+{% endblock %}
+
+{% block help %}
+  {% if explanation %}
+  <p class="cps__description">{{ explanation }}</p>
+  {% endif %}
+  {% if narration %}
+  {{ process_indicator(narration) }}
+  {% endif %}
+
+  <h3 class="cps__section-title">What this needs</h3>
+  <ul class="cps__list">
+    {% for input in contract.inputs %}
+    {% set input_name = input[:-1] if input.endswith("?") else input %}
+    {% if input_name != "user_id" %}
+    <li>
+      {% if input.endswith("?") %}
+      {{ input[:-1] }} <span class="cps__hint">(optional)</span>
+      {% else %}
+      {{ input }}
+      {% endif %}
+    </li>
+    {% endif %}
+    {% endfor %}
+  </ul>
+
+  <h3 class="cps__section-title">What this gives back</h3>
+  <ul class="cps__list">
+    {% for output in contract.outputs %}
+    <li>{{ output }}</li>
+    {% endfor %}
+  </ul>
+
+  <p class="record-guide__next">
+    <a href="{{ next_step.path | default('/law-library') }}" class="output-trigger">{{ next_step.label | default('Browse the law library') }}</a>
+  </p>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function lookupCase() {
+    var form = document.getElementById('caseForm');
+    var resultDiv = document.getElementById('caseResult');
+    var caseId = form.case_id.value;
+
+    if (!caseId) {
+      resultDiv.innerHTML = '<p>Please choose a case.</p>';
+      return;
+    }
+
+    resultDiv.innerHTML = '<p>Looking it up…</p>';
+
+    fetch('/api/law-library/case-law/' + encodeURIComponent(caseId), {
+      method: 'GET',
+      credentials: 'same-origin',
+    })
+    .then(function (res) {
+      if (res.ok) {
+        return res.json().then(function (data) {
+          var c = data.case || data;
+          var name = escapeHtml(c.case_name || '');
+          var citation = escapeHtml(c.citation || '');
+          var court = escapeHtml(c.court || '');
+          var summary = escapeHtml(c.summary || '');
+          var holding = escapeHtml(c.holding || '');
+          var relevance = escapeHtml(c.relevance || '');
+          var quotes = (c.key_quotes || []).map(escapeHtml);
+
+          var html = '<h3>' + name + '</h3>';
+          if (citation) html += '<p class="record-guide__meta">' + citation + '</p>';
+          if (court) html += '<p class="record-guide__meta">' + court + '</p>';
+          if (summary) html += '<p>' + summary + '</p>';
+          if (holding) {
+            html += '<h4>Holding</h4><p>' + holding + '</p>';
+          }
+          if (relevance) {
+            html += '<h4>Why it matters</h4><p>' + relevance + '</p>';
+          }
+          if (quotes.length) {
+            html += '<h4>Key quotes</h4><ul>';
+            quotes.forEach(function (q) { html += '<li>“' + q + '”</li>'; });
+            html += '</ul>';
+          }
+          html += '<p class="record-guide__disclaimer">Semptify does not interpret the law or give legal advice.</p>';
+          resultDiv.innerHTML = html;
+        });
+      }
+      if (res.status === 401 || res.status === 403) {
+        resultDiv.innerHTML = '<p>You need to be signed in to look this up. <a href="{{ navigation.get_stage("preamble").path }}">Start here</a>.</p>';
+        return;
+      }
+      return res.text().then(function (text) {
+        resultDiv.innerHTML = '<p>Look-up failed: ' + escapeHtml(text) + '</p>';
+      });
+    })
+    .catch(function (err) {
+      resultDiv.innerHTML = '<p>Could not look it up: ' + escapeHtml(err.message) + '</p>';
+    });
+  }
+</script>
+{% endblock %}
