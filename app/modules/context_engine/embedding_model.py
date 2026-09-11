@@ -13,8 +13,6 @@ import os
 import threading
 from typing import cast
 
-from app.core.runtime_profile import get_active_profile
-
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -58,14 +56,6 @@ def get_embedding_model() -> "SentenceTransformer | None":
     global _model
     if _model is not None:
         return _model
-
-    # Honor the runtime profile: in local_dev and render_mvp the embedding model
-    # is intentionally off, so the first user request does not pay a model load
-    # or a 30s HuggingFace/network timeout.
-    if not get_active_profile().embedding_model:
-        logger.debug("Embedding model disabled by runtime profile; skipping load")
-        return None
-
     with _load_lock:
         if _model is not None:
             return _model

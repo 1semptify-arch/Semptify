@@ -4,54 +4,58 @@
 
 {% block styles %}
 <style>
-  .page-wrap { max-width: var(--max-width-5xl); margin: 0 auto; padding: var(--space-4); }
-  .page-info { margin-bottom: var(--space-6); }
-  .page-info h1 { font-size: var(--text-3xl); color: var(--text-primary); margin: 0 0 var(--space-1); }
-  .page-info p { font-size: var(--text-base); color: var(--text-secondary); margin: 0; }
+  .page-wrap { max-width: var(--space-xxl); margin: 0 auto; padding: var(--space-lg); }
 
-  .panel {
-    background: var(--zone-surface-2);
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
-    box-shadow: var(--elevation-1);
-  }
+  .page-info { margin-bottom: var(--space-lg); }
+  .page-info h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs); }
+  .page-info p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
 
-  .form-group { margin-bottom: var(--space-4); }
-  .form-group label { display: block; font-size: var(--text-sm); color: var(--text-primary); margin-bottom: var(--space-1); }
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); }
+
+  .form-group { margin-bottom: var(--space-md); }
+  .form-group label { display: block; font-size: var(--font-size-sm); color: var(--color-text-primary); margin-bottom: var(--space-xs); }
   .form-group input, .form-group select, .form-group textarea {
-    width: 100%; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md);
-    background: var(--bg-card); color: var(--text-primary);
-    border: 1px solid var(--border-color); font-size: var(--text-sm); box-sizing: border-box;
+    width: 100%; padding: var(--space-sm); border-radius: var(--radius-md);
+    background: var(--color-surface-alt); color: var(--color-text-primary);
+    border: none; font-size: var(--font-size-sm); box-sizing: border-box;
   }
   .form-group textarea { min-height: 80px; resize: vertical; }
 
-  .reaction { margin-top: var(--space-4); font-size: var(--text-sm); }
+  .btn-primary {
+    padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md);
+    background: var(--color-primary); color: var(--color-on-primary);
+    border: none; font-size: var(--font-size-sm); cursor: pointer;
+  }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .reaction { margin-top: var(--space-md); font-size: var(--font-size-sm); }
   .reaction.working { color: var(--color-warning); }
   .reaction.done { color: var(--color-success); }
-  .reaction.error { color: var(--color-error); }
 
   @media (max-width: 768px) {
-    .page-wrap { padding: var(--space-4); }
-    .panel { padding: var(--space-4); }
+    .page-wrap { padding: var(--space-md); }
+    .panel { padding: var(--space-md); }
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="page-wrap">
+  <!-- INFORMATION -->
   <div class="page-info">
     <h1>Send Document</h1>
     <p>Send a document for signature or review.</p>
   </div>
 
+  <!-- INPUT / ACTION -->
   <div class="panel">
     <div class="form-group">
       <label for="recipient">Recipient Email</label>
-      <input type="email" id="recipient" class="form-input" placeholder="recipient@example.com">
+      <input type="email" id="recipient" placeholder="recipient@example.com">
     </div>
     <div class="form-group">
       <label for="document">Select Document</label>
-      <select id="document" class="form-select">
+      <select id="document">
         <option>Lease Agreement.pdf</option>
         <option>Settlement Form.pdf</option>
         <option>Inspection Report.pdf</option>
@@ -59,13 +63,13 @@
     </div>
     <div class="form-group">
       <label for="message">Message</label>
-      <textarea id="message" class="form-textarea" placeholder="Add a note for the recipient..."></textarea>
+      <textarea id="message" placeholder="Add a note for the recipient..."></textarea>
     </div>
     <div class="form-group">
       <label for="expiry">Expiry Date</label>
-      <input type="date" id="expiry" class="form-input">
+      <input type="date" id="expiry">
     </div>
-    <button class="btn btn--primary" id="send-btn" onclick="sendDoc()">Send</button>
+    <button class="btn-primary" id="send-btn" onclick="sendDoc()">Send</button>
     <div class="reaction working" id="reaction" style="display:none;">Sending...</div>
   </div>
 </div>

@@ -3123,19 +3123,5 @@
     "updated_at": "2026-09-10T16:38:56.277277+00:00",
     "target_model": "unassigned",
     "assigned_agent": "claude"
-  },
-  {
-    "id": "design-refresh-document-delivery-2026-09-11",
-    "title": "Migrate active document delivery templates to SSOT design tokens",
-    "description": "Replace undefined/legacy CSS variables (var(--font-size-*), var(--color-text-*), var(--color-surface*), var(--space-*), var(--radius-*)) in app/templates/pages/document_delivery_send.html and app/templates/pages/document_delivery_inbox.html with canonical SSOT tokens from ssot-design-system.css. Apply borderless panels with subtle elevation on content containers, keep borders on inputs/buttons, and verify /delivery/send and /delivery/inbox render correctly.",
-    "file_path": "app/templates/pages/document_delivery_send.html;app/templates/pages/document_delivery_inbox.html",
-    "priority": "medium",
-    "status": "in_progress",
-    "category": "frontend",
-    "notes": "[2026-09-11 03:09 UTC - devin] Claiming for Wave 2 continuation: migrate document delivery send/inbox to SSOT tokens and borderless elevation.",
-    "created_at": "2026-09-11T02:18:41.111201+00:00",
-    "updated_at": "2026-09-11T03:09:07.997499+00:00",
-    "target_model": "unlimited",
-    "assigned_agent": "devin"
   }
 ]

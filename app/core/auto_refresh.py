@@ -12,7 +12,7 @@ Contract:
 """
 
 import logging
-from datetime import UTC, datetime
+from datetime import UTC
 
 from app.core.utc import utc_now
 from sqlalchemy import select
@@ -25,13 +25,6 @@ from app.core.user_id import parse_user_id
 from app.models.models import Session as SessionModel
 
 logger = logging.getLogger(__name__)
-
-# Track recent refresh failures per user so a single request does not repeatedly
-# hit the provider when a refresh token is expired or the network is down.
-# This is in-process only, which is sufficient because repeated calls within one
-# request share the same process and the same root failure.
-_refresh_failures: dict[str, datetime] = {}
-_REFRESH_COOLDOWN_SECONDS = 30
 
 
 class RefreshResult:
@@ -61,28 +54,13 @@ async def ensure_valid_token(user_id: str, db: AsyncSession | None = None) -> tu
         logger.debug(f"Token valid in cache for user {user_id[:6]}***")
         return True, cached_token, RefreshResult.SUCCESS
 
-    # Avoid hammering the provider with repeated refresh attempts in the same
-    # request or across rapid sequential calls. A recent failure means the
-    # refresh token is stale or the provider is unreachable.
-    last_failure = _refresh_failures.get(user_id)
-    if last_failure and (utc_now() - last_failure).total_seconds() < _REFRESH_COOLDOWN_SECONDS:
-        logger.debug(f"Skipping token refresh for {user_id[:6]}*** — recent failure within cooldown")
-        return False, None, RefreshResult.REFRESH_FAILED
-
     # Token not in cache or expired - try to refresh from DB
     if not db:
         factory = get_session_factory()
         async with factory() as session:
-            is_valid, token, status = await _refresh_from_db(user_id, session)
+            return await _refresh_from_db(user_id, session)
     else:
-        is_valid, token, status = await _refresh_from_db(user_id, db)
-
-    # Record recent failures so the same request does not retry repeatedly.
-    if is_valid and status == RefreshResult.SUCCESS:
-        _refresh_failures.pop(user_id, None)
-    else:
-        _refresh_failures[user_id] = utc_now()
-    return is_valid, token, status
+        return await _refresh_from_db(user_id, db)
 
 
 def _try_decrypt(
