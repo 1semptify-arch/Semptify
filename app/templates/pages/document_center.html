@@ -2,7 +2,7 @@
 {% block title %}Document Center — Semptify{% endblock %}
 {% block styles %}
 {{ super() }}
-<link rel="stylesheet" href="/static/css/document-center.css">
+<link rel="stylesheet" href="/static/css/document-center.css?v=20260911-01">
 {% endblock %}
 {% block nav_record %}active{% endblock %}
 
@@ -14,8 +14,15 @@
     </div>
     <div id="dcShell">
 
+        <!-- Mobile pane switcher (visible < 768px) -->
+        <div id="dcMobileTabs" style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); gap:0.5rem; font-size:0.8125rem;">
+            <button type="button" class="frame-btn dc-mobile-tab" data-pane="left" style="flex:1;">Vault</button>
+            <button type="button" class="frame-btn dc-mobile-tab" data-pane="center" style="flex:1;">Document</button>
+            <button type="button" class="frame-btn dc-mobile-tab" data-pane="right" style="flex:1;">Review</button>
+        </div>
+
         <!-- LEFT PANE: Vault List -->
-        <div id="dcLeft" style="background:var(--zone-surface-2); display:flex; flex-direction:column; overflow:hidden;">
+        <div id="dcLeft" class="dc-pane" data-pane="left" style="background:var(--zone-surface-2); display:flex; flex-direction:column; overflow:hidden;">
             <div style="padding:0.75rem; background:var(--zone-surface-3); display:flex; gap:0.5rem;">
                 <button id="dcUploadBtn" class="frame-btn" type="button" style="flex:1;">+ Upload</button>
             </div>
@@ -35,7 +42,7 @@
         </div>
 
         <!-- CENTER PANE: Viewer -->
-        <div id="dcCenter" style="background:var(--zone-surface-1); display:flex; flex-direction:column; overflow:hidden;">
+        <div id="dcCenter" class="dc-pane" data-pane="center" style="background:var(--zone-surface-1); display:flex; flex-direction:column; overflow:hidden;">
             <div id="dcTopBar" style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); display:flex; align-items:center; gap:0.5rem; min-height:48px;">
                 <span id="dcDocName" style="color:var(--text-muted); font-size:0.875rem; flex:1;">Select a document</span>
                 <select id="dcTypeSelect" style="background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
@@ -85,7 +92,7 @@
         </div>
 
         <!-- RIGHT PANE: Overlays -->
-        <div id="dcRight" style="background:var(--zone-surface-2); display:flex; flex-direction:column; overflow:hidden;">
+        <div id="dcRight" class="dc-pane" data-pane="right" style="background:var(--zone-surface-2); display:flex; flex-direction:column; overflow:hidden;">
             <div style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); display:flex; flex-wrap:wrap; gap:0.5rem; font-size:0.8125rem;">
                 <button class="frame-btn dc-tab" data-tab="overlays" style="flex:1; background:var(--zone-surface-1);">Overlays</button>
                 <button class="frame-btn dc-tab" data-tab="checklist" style="flex:1;">Checklist</button>
@@ -196,6 +203,24 @@
     let documentTypes = {};
     let currentTab = 'overlays';
     let fieldConfirmState = {};  // {vault_id: {field_name: 'confirmed'|'corrected'|'pending'}}
+    let activeMobilePane = 'left';
+
+    function setMobilePane(pane) {
+        if (!['left', 'center', 'right'].includes(pane)) return;
+        activeMobilePane = pane;
+        document.querySelectorAll('.dc-pane').forEach(el => {
+            el.classList.toggle('dc-pane--active', el.dataset.pane === pane);
+        });
+        document.querySelectorAll('.dc-mobile-tab').forEach(btn => {
+            if (btn.dataset.pane === pane) {
+                btn.style.background = 'var(--color-calm-100)';
+                btn.style.fontWeight = '600';
+            } else {
+                btn.style.background = '';
+                btn.style.fontWeight = '';
+            }
+        });
+    }
 
     async function loadDocumentTypes() {
         try {
@@ -423,6 +448,7 @@
         }
         loadOverlays(d.id);
         renderChecklist(d);
+        setMobilePane('center');
     }
 
     function renderImage(doc) {
@@ -1623,6 +1649,7 @@
         fd.append('file', selectedFile);
         fd.append('user_id', (document.cookie.match(/(^|; )semptify_uid=([^;]+)/) || [,'',''])[2] || 'anon');
         fd.append('username', 'tenant');
+        fd.append('storage_provider', 'local');
         try {
             const r = await fetch('/api/intake/upload/auto', {
                 method: 'POST',
@@ -1631,12 +1658,24 @@
             });
             const data = await r.json().catch(() => ({}));
             if (!r.ok) throw new Error(data.detail || data.message || 'HTTP ' + r.status);
+
+            if (data.error === 'reconnect_required' || data.error === 'token_expired' || data.error === 'storage_required') {
+                uploadStatus.innerHTML = '<span style="color:var(--color-warning-800);">' + escapeHtml(data.message || 'Storage needs reconnecting.') + '</span> <a href="/storage/reconnect?return_to=/dc" class="frame-btn" style="margin-left:0.5rem;">Reconnect</a>';
+                uploadSubmit.disabled = false;
+                uploadSubmit.textContent = 'Upload';
+                return;
+            }
+
             uploadStatus.textContent = 'Uploaded.';
             uploadModal.style.display = 'none';
             resetUpload();
             uploadSubmit.textContent = 'Upload';
             await loadDocs();
             await loadUnlocks();
+            if (data.vault_id) {
+                const uploadedDoc = allDocs.find(d => d.id === data.vault_id);
+                if (uploadedDoc) await selectDoc(uploadedDoc);
+            }
         } catch (err) {
             uploadStatus.textContent = 'Upload failed: ' + (err.message || 'unknown error');
             uploadSubmit.disabled = false;
@@ -1644,7 +1683,22 @@
         }
     });
 
+    // Mobile tab switching
+    document.querySelectorAll('.dc-mobile-tab').forEach(btn => {
+        btn.addEventListener('click', () => setMobilePane(btn.dataset.pane));
+    });
+
+    function checkMobile() {
+        const isMobile = window.innerWidth < 768;
+        const tabs = document.getElementById('dcMobileTabs');
+        if (tabs) tabs.style.display = isMobile ? 'flex' : 'none';
+        document.getElementById('dcShell').classList.toggle('dc-shell--mobile', isMobile);
+        setMobilePane(activeMobilePane);
+    }
+    window.addEventListener('resize', checkMobile);
+
     // Init
+    checkMobile();
     loadDocumentTypes().then(() => {
         loadDocs();
         loadUnlocks();
