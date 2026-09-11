@@ -79,7 +79,7 @@
     "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3\n[2026-07-28 18:06 UTC - SWE-1.7-Max] Document Center module implemented with router, register, tests, and full API.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "glm-5.2",
+    "target_model": "unlimited",
     "title": "Document Center planning",
     "updated_at": "2026-07-28T18:06:08.774880+00:00"
   },
@@ -1341,7 +1341,7 @@
     "priority": "high",
     "source": "handoff",
     "status": "resolved",
-    "target_model": "swe-1.7",
+    "target_model": "unlimited",
     "title": "Establish state-doc update discipline and handoff archive",
     "updated_at": "2026-08-15T12:59:24Z"
   },
@@ -1356,7 +1356,7 @@
     "priority": "medium",
     "source": "handoff",
     "status": "resolved",
-    "target_model": "swe-1.7",
+    "target_model": "unlimited",
     "title": "Archive downloaded handoff files to docs/handoffs/",
     "updated_at": "2026-08-15T13:46:21Z"
   },
@@ -3151,5 +3151,19 @@
     "updated_at": "2026-09-10T21:12:22.022428+00:00",
     "target_model": "unlimited",
     "assigned_agent": "orchestrator"
+  },
+  {
+    "id": "opus-loose-ends-2026-09-10",
+    "title": "Resolve Opus setup open items and close out handoff",
+    "description": "Apply resolved and deferred decisions from decisions_pending_brad, update BUILD_STATE.md, canonicalize agent/model tier names, and prepare the workspace for Opus evaluation.",
+    "file_path": "modules/app-semptify-fastapi/BUILD_STATE.md",
+    "priority": "high",
+    "status": "in_progress",
+    "category": "admin",
+    "notes": "[2026-09-11T01:38:03.133572+00:00 - devin] Claimed in-progress to continue applying Brad decisions and close the opus setup handoff.",
+    "created_at": "2026-09-11T01:38:03.133572+00:00",
+    "updated_at": "2026-09-11T01:38:03.133572+00:00",
+    "target_model": "unlimited",
+    "assigned_agent": "devin"
   }
 ]
