@@ -26,13 +26,6 @@ from app.models.models import Session as SessionModel
 
 logger = logging.getLogger(__name__)
 
-# Track recent refresh failures per user so a single request does not repeatedly
-# hit the provider when a refresh token is expired or the network is down.
-# This is in-process only, which is sufficient because repeated calls within one
-# request share the same process and the same root failure.
-_refresh_failures: dict[str, datetime] = {}
-_REFRESH_COOLDOWN_SECONDS = 30
-
 
 class RefreshResult:
     """Result of a token refresh attempt."""
@@ -60,14 +53,6 @@ async def ensure_valid_token(user_id: str, db: AsyncSession | None = None) -> tu
     if cached_token and not cached_token.is_expired():
         logger.debug(f"Token valid in cache for user {user_id[:6]}***")
         return True, cached_token, RefreshResult.SUCCESS
-
-    # Avoid hammering the provider with repeated refresh attempts in the same
-    # request or across rapid sequential calls. A recent failure means the
-    # refresh token is stale or the provider is unreachable.
-    last_failure = _refresh_failures.get(user_id)
-    if last_failure and (utc_now() - last_failure).total_seconds() < _REFRESH_COOLDOWN_SECONDS:
-        logger.debug(f"Skipping token refresh for {user_id[:6]}*** — recent failure within cooldown")
-        return False, None, RefreshResult.REFRESH_FAILED
 
     # Token not in cache or expired - try to refresh from DB
     if not db:
