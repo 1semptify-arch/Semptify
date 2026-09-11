@@ -9,7 +9,7 @@
     "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.\n[2026-07-28 04:04 UTC - SWE-1.7-Max] SSOT verification passes; no hardcoded redirect URLs remain in routers",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "SSOT pre-commit hook: fix hardcoded URL violations",
     "updated_at": "2026-07-28T04:04:37.453413+00:00"
   },
@@ -23,7 +23,7 @@
     "notes": "BUILD_STATE.md Known Broken/Pending\n[2026-07-28 04:35 UTC - SWE-1.7-Max] Sync-orchestrator hook already points to venv311/Scripts/python.exe in .pre-commit-config.yaml",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Sync-orchestrator pre-commit hook: use venv311 python",
     "updated_at": "2026-07-28T04:35:47.115743+00:00"
   },
@@ -37,7 +37,7 @@
     "notes": "BUILD_STATE.md Known Broken/Pending. git status shows M on all listed files. Multi-file task: see description for full list.\n[2026-07-28 04:55 UTC - SWE-1.7-Max] Working tree clean; listed files already committed in recent history",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review and commit uncommitted working-tree drift",
     "updated_at": "2026-07-28T04:55:44.799275+00:00"
   },
@@ -51,7 +51,7 @@
     "notes": "BUILD_STATE.md Known Broken/Pending. Prior session work.\n[2026-07-28 05:06 UTC - SWE-1.7-Max] Page Shell module is committed, registered in product manifest, endpoints active, and sample configs render correctly",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review and commit Page Shell mobile renderer (spec 12)",
     "updated_at": "2026-07-28T05:06:05.432534+00:00"
   },
@@ -65,7 +65,7 @@
     "notes": "ACTIVE_CONTEXT.md priority #2. UPL guardrail (#1) complete.\n[2026-07-28 18:06 UTC - SWE-1.7-Max] GUI Phase 1 routes (/gui, /gui/home, /gui/record, /gui/know, /gui/act) and templates exist.",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "GUI Phase 1 - Four-pillar interface (Home/Record/Know/Act)",
     "updated_at": "2026-07-28T18:06:08.310534+00:00"
   },
@@ -79,7 +79,7 @@
     "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3\n[2026-07-28 18:06 UTC - SWE-1.7-Max] Document Center module implemented with router, register, tests, and full API.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "glm-5.2",
+    "target_model": "trusted",
     "title": "Document Center planning",
     "updated_at": "2026-07-28T18:06:08.774880+00:00"
   },
@@ -93,7 +93,7 @@
     "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #4. Blocked on user review. Branch: feature/attorney-intake-packet\n[2026-07-28 19:40 UTC - devin] Attorney Intake Packet already merged from feature/attorney-intake-packet into main; endpoints live in case_builder router and UI in case_builder.html",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Attorney Intake Packet - feature/attorney-intake-packet branch",
     "updated_at": "2026-07-28T19:40:15.721960+00:00"
   },
@@ -107,7 +107,7 @@
     "notes": "FNG_TODO.md design system task\n[2026-07-28 18:12 UTC - SWE-1.7-Max] No .card--interactive:hover box-shadow remains; base.html uses transform only and ssot-design-system.css card hover has box-shadow: none.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Audit .card--interactive:hover for leftover box-shadow leaks",
     "updated_at": "2026-07-28T18:12:51.712246+00:00"
   },
@@ -123,7 +123,7 @@
     "notes": "FNG_TODO.md design system task\n[2026-07-28 18:13 UTC - SWE-1.7-Max] base.html nav uses line-icon characters (\u00e2\u0152\u201a, \u00e2\u2030\u00a1, \u00e2\u0160\u017e, \u00e2\u0153\u017d, ?), not emoji.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Replace emoji nav icons in base.html with line icons",
     "updated_at": "2026-07-28T18:13:04.550542+00:00"
   },
@@ -137,7 +137,7 @@
     "notes": "FNG_TODO.md design system task\n[2026-07-28 18:26 UTC - SWE-1.7-Max] Verified all 5 template color sets via Playwright screenshots on localhost: /home (template-1), /legal (template-2), /advocate (template-3), /tools (template-4), /library (template-5).",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Visually verify 5 template color sets render in production",
     "updated_at": "2026-07-28T18:26:02.779653+00:00"
   },
@@ -153,7 +153,7 @@
     "notes": "FNG_TODO.md design system task\n[2026-07-28 18:13 UTC - SWE-1.7-Max] ssot-design-system.css already has both @media (prefers-color-scheme: dark) and [data-theme='dark'] variable overrides.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Dark mode toggle or prefers-color-scheme fallback",
     "updated_at": "2026-07-28T18:13:24.759252+00:00"
   },
@@ -167,7 +167,7 @@
     "notes": "FNG_TODO.md tenant home rebuild\n[2026-07-28 18:09 UTC - SWE-1.7-Max] base.html sets <meta charset='UTF-8'>; tenant_home.html uses valid UTF-8 emoji characters.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Fix broken emoji encoding in tenant_home.html",
     "updated_at": "2026-07-28T18:09:47.417212+00:00"
   },
@@ -181,7 +181,7 @@
     "notes": "FNG_TODO.md tenant home rebuild\n[2026-07-28 18:09 UTC - SWE-1.7-Max] tenant_home.html uses /tenant/timeline for journal; no /tenant/journal link remains.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Fix /tenant/journal link -> should point to /tenant/timeline",
     "updated_at": "2026-07-28T18:09:47.791754+00:00"
   },
@@ -195,7 +195,7 @@
     "notes": "FNG_TODO.md tenant home rebuild\n[2026-07-28 18:09 UTC - SWE-1.7-Max] Replaced broken /tenant/documents links in tenant_home.html and tenant_help.html with /gui/record (canonical four-pillar record page).",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Fix /documents link -> non-existent route",
     "updated_at": "2026-07-28T18:09:48.123740+00:00"
   },
@@ -210,7 +210,7 @@
     "notes": "STUB_AUDIT.md Tier 1.1\n[2026-07-28 08:14 UTC - SWE-1.7-Max] Token refresh already implemented in app/core/stateless_oauth.py with RefreshResult, async provider refresh, and per-user locks. Targeted pytest passes.",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "stateless_oauth.py:239 - Token refresh not implemented",
     "updated_at": "2026-07-28T08:14:34.544394+00:00"
   },
@@ -225,7 +225,7 @@
     "notes": "STUB_AUDIT.md Tier 1.2\n[2026-07-28 08:14 UTC - SWE-1.7-Max] Ice-cube token model implemented in app/core/auto_refresh.py and wired in app/core/storage_middleware.py. In-memory token_manager cache checked first; DB load only on cache miss; async provider refresh via storage/router.py refresh_access_token. Targeted pytest passes.",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "storage_middleware.py:284 - DB-based token pre-check is TEMPORARY",
     "updated_at": "2026-07-28T08:14:47.193776+00:00"
   },
@@ -241,7 +241,7 @@
     "notes": "STUB_AUDIT.md Tier 1.3. May overlap with vault-portal.js reactive pattern.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "static/js/core/app.js - uploadToVault() is a stub",
     "updated_at": "2026-07-28T18:02:40.732678+00:00"
   },
@@ -256,7 +256,7 @@
     "notes": "STUB_AUDIT.md Tier 1.4\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "timeline.html:232 - TODO Submit to API",
     "updated_at": "2026-07-28T18:02:40.973264+00:00"
   },
@@ -270,7 +270,7 @@
     "notes": "STUB_AUDIT.md Tier 1.5\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "workspace-stage-model.js - 25-line stub",
     "updated_at": "2026-07-28T18:02:41.212265+00:00"
   },
@@ -286,7 +286,7 @@
     "notes": "STUB_AUDIT.md Tier 2.1\n[2026-07-28 16:48 UTC - SWE-1.7-Max] Graph engine is implemented and the three endpoints (graph/build, graph/visualize, graph/path) are live in app/modules/litigation_intelligence/router.py; tests pass; updated stale register.py docstring.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "litigation_intelligence/router.py - 3 endpoints return 501",
     "updated_at": "2026-07-28T16:48:04.703404+00:00"
   },
@@ -302,7 +302,7 @@
     "notes": "STUB_AUDIT.md Tier 2.2 - BLOCKED on external team\n[2026-07-28 21:20 UTC - SWE-1.7-Max] MNDESRestClient submit_exhibit/get_submission_status/get_case_exhibits already implemented with best-effort REST calls and manual-portal fallback; no NotImplementedError/TODO remains in file.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "mndes_api_client.py - 3 NotImplementedError (MNDES submit/status/exhibits)",
     "updated_at": "2026-07-28T21:20:26.984850+00:00"
   },
@@ -317,7 +317,7 @@
     "notes": "STUB_AUDIT.md Tier 2.3\n[2026-07-28 18:03 UTC - SWE-1.7-Max] detect_repeated_fees() already implemented and tested in previous session; housing_accountability fees_policy guardrail now protects it.\n[2026-07-29 03:47 UTC - SWE-1.7-Max] Re-opened for hardening pass\n[2026-07-29 03:51 UTC - SWE-1.7-Max] Hardened repeated-fee detection: canonical aliases, 35-day clusters, relative amount tolerance, instance counts; tests pass",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "housing_accountability/router.py:83 - detect_repeated_fees() placeholder",
     "updated_at": "2026-07-29T03:51:12.101647+00:00"
   },
@@ -332,7 +332,7 @@
     "notes": "STUB_AUDIT.md Tier 2.4\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "components/router.py:781 - TODO role-specific config",
     "updated_at": "2026-07-28T18:02:41.443695+00:00"
   },
@@ -347,7 +347,7 @@
     "notes": "STUB_AUDIT.md Tier 2.5\n[2026-07-28 18:07 UTC - SWE-1.7-Max] ai_classify_document already calls app.services.local_classifier.predict as the local-model integration.\n[2026-07-29 03:47 UTC - SWE-1.7-Max] Re-opened for classification hardening pass\n[2026-07-29 03:51 UTC - SWE-1.7-Max] Hardened filedored classification: local model confidence, ai_confidence in overlay payload, service tests; all pass",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "filedored_service.py:91 - TODO integrate with SWE 1.6 or local model",
     "updated_at": "2026-07-29T03:51:13.557863+00:00"
   },
@@ -362,7 +362,7 @@
     "notes": "STUB_AUDIT.md Tier 2.6\n[2026-07-28 21:21 UTC - SWE-1.7-Max] app/modules/research_module.py no longer exists; research package refactored to app/services/research_module.py. Evidence ZIP is generated via _mk_zip_bytes and caller-managed upload. No 'would upload' placeholder remains.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "research_module.py:376 - placeholder for actual cloud upload",
     "updated_at": "2026-07-28T21:21:52.325801+00:00"
   },
@@ -377,7 +377,7 @@
     "notes": "STUB_AUDIT.md Tier 3.1 - DEFER\n[2026-07-28 21:22 UTC - SWE-1.7-Max] Positronic Brain re-enabled in main.py:489 under ENABLE_HEAVY_SERVICES guard; event_history capped. No NotImplementedError/stub remains.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "main.py:370 - Positronic Brain DISABLED (memory hog)",
     "updated_at": "2026-07-28T21:22:31.598004+00:00"
   },
@@ -393,7 +393,7 @@
     "notes": "STUB_AUDIT.md Tier 3.2 - DEFER\n[2026-07-20 10:54 UTC - SWE-1.7] Distributed mesh network remains disabled intentionally (STUB_AUDIT Tier 3.2 DEFER). Re-enabling cross-instance comms would require a memory-safe redesign and is not appropriate without explicit approval.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: mesh network still DISABLED in app/main.py:579-600 (memory optimization). Status remains review pending owner decision.\n[2026-07-28 21:29 UTC - SWE-1.7-Max] Re-enabled Mesh Network in main.py under ENABLE_HEAVY_SERVICES guard; capped MeshNetwork._request_history and _collaborations to prevent unbounded memory growth; fixed ruff issues in mesh_network.py and mesh_handlers.py.\n[2026-08-24 18:37 UTC] Reverted in-progress status claimed by mistake for Bandit fix",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "main.py:470,489 - Distributed mesh network DISABLED",
     "updated_at": "2026-08-24T18:37:42.194597+00:00"
   },
@@ -409,7 +409,7 @@
     "notes": "STUB_AUDIT.md Tier 3.3 - DEFER\n[2026-07-28 21:31 UTC - SWE-1.7-Max] Made psutil optional in app/core/performance_monitor.py so performance monitoring starts cleanly when the package is absent; slim/bounded implementation already in place.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "main.py:1341,1376 - Performance monitoring DISABLED (85% memory)",
     "updated_at": "2026-07-28T21:31:19.288680+00:00"
   },
@@ -424,7 +424,7 @@
     "notes": "STUB_AUDIT.md Tier 3.4 - DEFER, needs DB role fix\n[2026-07-28 21:31 UTC - SWE-1.7-Max] OAuth state cleanup is enabled in app/modules/storage/router.py via _cleanup_expired_states, called at login and callback; removes expired DB rows and legacy in-memory OAUTH_STATES entries.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "storage/router.py:1591 - OAuth state cleanup DISABLED",
     "updated_at": "2026-07-28T21:31:50.070686+00:00"
   },
@@ -439,7 +439,7 @@
     "notes": "STUB_AUDIT.md Tier 4.1 - DEFER, safe to ship\n[2026-07-28 21:33 UTC - SWE-1.7-Max] State laws router correctly serves stub entries with stub_url and notes; data file now has 11 complete states (not just MN) and remaining stubs link to state-specific lawhelp resources. By-design stub support verified.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "state_laws/router.py:80 - Most states return stub",
     "updated_at": "2026-07-28T21:33:09.791791+00:00"
   },
@@ -453,7 +453,7 @@
     "notes": "STUB_AUDIT.md Tier 4.2 - DEFER\n[2026-07-28 21:36 UTC - SWE-1.7-Max] Wired seed_court_data.py into court_learning.get_learning_engine() so the Court Learning Engine is seeded with 200 synthetic historical cases on first use; cleaned ruff/style issues in both files.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "eviction/seed_court_data.py - Seed data TODOs",
     "updated_at": "2026-07-28T21:36:48.521856+00:00"
   },
@@ -468,7 +468,7 @@
     "notes": "STUB_AUDIT.md Tier 4.3 - DEFER\n[2026-07-28 21:37 UTC - SWE-1.7-Max] legal_filing_module.py is a functional wrapper that mounts app.modules.legal_filing.router; registered in product_manifest and compliance. No placeholder/mesh integration work remains.",
     "priority": "low",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "legal_filing_module.py:6 - Placeholder for mesh/network integration",
     "updated_at": "2026-07-28T21:37:17.433321+00:00"
   },
@@ -482,7 +482,7 @@
     "notes": "Preflight: app/models/models.py (Document/DocumentPipelineIndex), app/services/document_registry.py. Scope: add `deep_ocr_status` enum with values pending/processing/complete/failed/needs_reprocess; default pending. Do not touch: vault upload logic, certificate generation, or Intake's existing OCR call. Acceptance: field exists on the model, migrates cleanly, and defaults to pending on new document creation.\n[2026-07-28 17:59 UTC - SWE-1.7-Max] Field, enum, and migration already present; verified in models.py and alembic. No code changes needed.",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Add `deep_ocr_status` field to Document/DocumentPipelineIndex",
     "updated_at": "2026-07-28T17:59:07.192821+00:00"
   },
@@ -496,7 +496,7 @@
     "notes": "Preflight: app/modules/intake/router.py and the existing OCR call; check existing job/queue infrastructure. Scope: keep Pass 1 (raw OCR + bounding boxes) inside Light Intake unchanged; create a separate queued job that picks up documents in `deep_ocr_status=pending`, sets status to `processing`, and runs Pass 2 (logic in Ticket 4; can be a stub for this ticket). Do not touch: Intake's existing rough OCR call \u00e2\u20ac\u201d reuse its output, don't duplicate it. Acceptance: upload flow sets `deep_ocr_status` to `processing` and the queue picks up the job; Pass 2 can be a no-op.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Decouple Deep OCR into its own queued service",
     "updated_at": "2026-07-28T18:02:39.377392+00:00"
   },
@@ -510,7 +510,7 @@
     "notes": "Preflight: Ticket 2 queue implementation and the urgency field captured at Light Intake. Scope: add priority ordering to the queue consumer so urgent-flagged documents are processed first. Acceptance: two documents queued back-to-back, the urgent one flagged second, processes first.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Queue priority by urgency flag for Deep OCR",
     "updated_at": "2026-07-28T18:02:39.663272+00:00"
   },
@@ -524,7 +524,7 @@
     "notes": "Preflight: Ticket 2 queue plumbing and the tenancy domain schema/date-role categories. Scope: given raw OCR text, output structured `{raw_text, semantic_label, trigger_phrase, confidence, bounding_box}` objects; rule-based/regex for common patterns, single LLM call only for ambiguous cases. Do not touch: Pass 1 OCR or the queue plumbing. Acceptance: a test document produces correctly labeled, confidence-scored date objects with trigger phrases.\n[2026-07-28 16:34 UTC - SWE-1.7-Max] Semantic Context Engine already implemented in app/services/semantic_context_engine.py; added acceptance tests in tests/test_semantic_context_engine.py; fixed async token refresh in app/core/job_processor.py deep_ocr_handler to use app.core.auto_refresh.ensure_valid_token() instead of sync get_valid_token_for_user. Targeted pytest passes.",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Implement Semantic Context Engine (Deep OCR Pass 2)",
     "updated_at": "2026-07-28T16:34:05.094049+00:00"
   },
@@ -538,7 +538,7 @@
     "notes": "Preflight: app/services/unified_overlay_manager.py (create_overlay signature) and app/modules/document_center/router.py (what it expects to read). Scope: on Pass 2 completion, call create_overlay() with structured results and update `deep_ocr_status` to `complete` (or `failed` on error). Do not touch: UnifiedOverlayManager itself. Acceptance: Document Center right panel returns real overlay data for a fully processed document.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Wire Deep OCR output to UnifiedOverlayManager.create_overlay",
     "updated_at": "2026-07-28T18:02:39.974748+00:00"
   },
@@ -552,7 +552,7 @@
     "notes": "Preflight: app/modules/document_center/router.py right-panel logic. Scope: display pending/processing/complete/failed/needs_reprocess distinctly so the user can tell 'still processing' from 'something went wrong'. Acceptance: opening a document mid-processing shows a clear, non-alarming status message.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "priority": "high",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Document Center right panel: honest Deep OCR status display",
     "updated_at": "2026-07-28T18:02:40.235771+00:00"
   },
@@ -566,7 +566,7 @@
     "notes": "Preflight: Tickets 2, 4, and 5. Scope: new endpoint that re-queues a document for Pass 2 and resets `deep_ocr_status` to `pending`. Acceptance: calling it on a `complete` or `failed` document re-triggers Pass 2 and updates status accordingly.\n[2026-07-28 18:02 UTC - SWE-1.7-Max] Already implemented in codebase; verified via code inspection.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "On-demand Deep OCR reprocess endpoint",
     "updated_at": "2026-07-28T18:02:40.483710+00:00"
   },
@@ -580,7 +580,7 @@
     "notes": "Preflight: app/services/storage/tsa.py, app/services/vault_upload_service.py:_create_certificate, app/services/storage/legal_integrity.py. Scope: call the existing stamp_document_hash() from _create_certificate on normal vault uploads and store the TSA token with the certificate. Do not touch: DocumentRegistry ID generation or SHA-256 hashing logic. Acceptance: a normal vault upload's certificate includes a valid RFC 3161 timestamp token.\n[2026-07-28 18:06 UTC - SWE-1.7-Max] RFC 3161 TSA already wired into VaultUploadService._create_certificate; stamp_document_hash called and tsa token stored in certificate JSON.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Wire RFC 3161 TSA into standard vault certificate",
     "updated_at": "2026-07-28T18:06:48.012418+00:00"
   },
@@ -594,7 +594,7 @@
     "notes": "Preflight: ACTIVE_CONTEXT.md (Journal listed as not-yet-built) and current JournalEntry/JournalSummary in app/core/tenant_briefcase.py (auto-generated, do not conflate). Scope: new app/modules/journal/ with model, create/read endpoints, and basic UI; each entry has free text, timestamp, optional document link, and integrity treatment via the TSA path when available. Do not touch: existing auto-generated journal summary logic \u00e2\u20ac\u201d this is additive. Acceptance: a tenant can create a free-text journal entry unrelated to any document upload and retrieve it later.\n[2026-07-28 18:07 UTC - SWE-1.7-Max] Journal module with create/read/update/delete endpoints, model, register, and tests already exists.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Build Journal module for free-form tenant narrative",
     "updated_at": "2026-07-28T18:07:34.589773+00:00"
   },
@@ -608,7 +608,7 @@
     "notes": "Preflight: app/modules/rent/router.py and app/models/models.py (RentPayment). Scope: add entry types beyond payment status (fees, deposits, credits), period_covered, source (ocr_extracted/user_entered), running balance calculation, and a link field to the relevant overlay highlight when an entry originates from a document. Acceptance: a ledger entry can be created manually (no document) or linked to a highlighted amount; running balance calculates correctly across multiple entries.\n[2026-07-28 18:07 UTC - SWE-1.7-Max] Rent module expanded into full ledger with payment/fee/deposit/credit/charge entry types, running balance, period_covered, source, and overlay_link.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Expand Rent module into full Account Ledger",
     "updated_at": "2026-07-28T18:07:35.064893+00:00"
   },
@@ -622,7 +622,7 @@
     "notes": "Preflight: app/modules/calendar/router.py and the calendar_from_documents contract. Scope: wire the existing contract so confirmed deadlines and vault items appear on Calendar by default; also feed rent due dates and late-fee trigger dates from the ledger. Acceptance: uploading and confirming a document with a deadline creates a Calendar event automatically, with no manual entry required.\n[2026-07-28 18:07 UTC - SWE-1.7-Max] Calendar auto-sync service (calendar_sync.py) creates CalendarEvent rows from DocumentHub-derived dates and rent ledger; rent router calls sync on entry changes.",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Calendar: auto-populate from documents, deadlines, and ledger",
     "updated_at": "2026-07-28T18:07:35.511777+00:00"
   },
@@ -636,7 +636,7 @@
     "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding \u00e2\u20ac\u201d merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.\n[2026-07-28 18:44 UTC - SWE-1.7-Max] User chose option 3 (both marked-up and clean copies + summary in same ZIP). Starting implementation.\n[2026-07-28 19:09 UTC - devin] Implemented curated packet export endpoint and UI",
     "priority": "medium",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Unify Packet Builder across case_builder and Briefcase exports",
     "updated_at": "2026-07-28T19:09:27.790379+00:00"
   },
@@ -651,7 +651,7 @@
     "priority": "high",
     "source": "manual",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Provision Semptify Python 3.11.9 test environment",
     "updated_at": "2026-08-15T07:51:17.173372+00:00"
   },
@@ -666,7 +666,7 @@
     "priority": "high",
     "source": "manual",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Raise Semptify test coverage to the configured threshold",
     "updated_at": "2026-08-15T07:51:20.917185+00:00"
   },
@@ -681,7 +681,7 @@
     "priority": "medium",
     "source": "manual",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Static-to-template page manifest migration",
     "updated_at": "2026-08-15T08:01:45.592046+00:00"
   },
@@ -696,7 +696,7 @@
     "priority": "medium",
     "source": "manual",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Full Tier 1 reconciliation for app/core/vault_paths.py",
     "updated_at": "2026-08-15T07:28:33.699362+00:00"
   },
@@ -711,7 +711,7 @@
     "priority": "low",
     "source": "manual",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "sync-orchestrator pre-commit hook fails CI when it regenerates tracker files mid-run",
     "updated_at": "2026-08-15T07:05:41.401017+00:00"
   },
@@ -726,7 +726,7 @@
     "priority": "high",
     "source": "manual",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "guardrail-engine dependency failures in CI pre-commit block Lint",
     "updated_at": "2026-08-15T07:05:46.253461+00:00"
   },
@@ -741,7 +741,7 @@
     "priority": "high",
     "source": "manual",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Regenerate Phase C Tier 2 module-cluster reconciliation tasks from two-dot diff",
     "updated_at": "2026-08-15T04:30:54.253908+00:00"
   },
@@ -756,7 +756,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Delete app/services/court_form_generator.py after compile/test check",
     "updated_at": "2026-08-15T04:57:46.484227+00:00"
   },
@@ -771,7 +771,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Delete app/services/hud_funding_guide.py after compile/test check",
     "updated_at": "2026-08-15T04:54:05.023759+00:00"
   },
@@ -786,7 +786,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Delete app/services/document_notarization.py after test import migration",
     "updated_at": "2026-08-15T05:01:51.794073+00:00"
   },
@@ -801,7 +801,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Delete app/services/vault_engine.py after test import migration",
     "updated_at": "2026-08-15T05:09:12.157848+00:00"
   },
@@ -816,7 +816,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Migrate callers of app/services/auto_mode_orchestrator.py to new module path, then delete",
     "updated_at": "2026-08-15T05:27:46.311610+00:00"
   },
@@ -831,7 +831,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Migrate callers of app/services/event_extractor.py to new module path, then delete",
     "updated_at": "2026-08-15T05:30:30.203479+00:00"
   },
@@ -846,7 +846,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Migrate callers of app/services/proactive_tactics.py to new module path, then delete",
     "updated_at": "2026-08-15T05:32:19.000127+00:00"
   },
@@ -861,7 +861,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Migrate callers of app/services/progress_tracker.py to new module path, then delete",
     "updated_at": "2026-08-15T05:34:13.958302+00:00"
   },
@@ -876,7 +876,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "SECURITY: services/document_flow_orchestrator.py \u00e2\u20ac\u201d main preserved, pilot blocked",
     "updated_at": "2026-08-15T04:47:50.977414+00:00"
   },
@@ -891,7 +891,7 @@
     "priority": "low",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Preserve main for cosmetic diffs in cluster",
     "updated_at": "2026-08-15T04:28:25Z"
   },
@@ -906,7 +906,7 @@
     "priority": "low",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Preserve main for misc module router/register cosmetic diffs",
     "updated_at": "2026-08-15T04:28:25Z"
   },
@@ -921,7 +921,7 @@
     "priority": "low",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Preserve main for misc service/utility cosmetic diffs",
     "updated_at": "2026-08-15T04:28:25Z"
   },
@@ -936,7 +936,7 @@
     "priority": "low",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Preserve main for services/recognition/ cosmetic marker changes",
     "updated_at": "2026-08-15T04:28:25Z"
   },
@@ -951,7 +951,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review ADR-0008 wiring in module/service cluster",
     "updated_at": "2026-08-15T06:25:56.298588+00:00"
   },
@@ -966,7 +966,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/auto_mode/ and proactive-tactics migration wiring",
     "updated_at": "2026-08-15T06:25:51.983923+00:00"
   },
@@ -981,7 +981,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/context_engine/ ADR-0008 wiring (retrieval, taxonomy, router)",
     "updated_at": "2026-08-15T06:25:53.065736+00:00"
   },
@@ -996,7 +996,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/documents/ and document intake/event-extractor migration",
     "updated_at": "2026-08-15T06:25:49.348923+00:00"
   },
@@ -1011,7 +1011,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review services/eviction/ legal-output data changes",
     "updated_at": "2026-08-26T02:32:33.239832+00:00"
   },
@@ -1026,7 +1026,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/eviction_timeline/ ADR-0008 envelope and momentum wiring",
     "updated_at": "2026-08-15T06:25:47.477975+00:00"
   },
@@ -1041,7 +1041,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review funding_mgmt/funding_search ADR-0008 wiring",
     "updated_at": "2026-08-15T06:26:00.038994+00:00"
   },
@@ -1056,7 +1056,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/intake/ notarization and intake wiring",
     "updated_at": "2026-08-15T06:25:43.482571+00:00"
   },
@@ -1071,7 +1071,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review legal/money/privacy-adjacent module/service diffs",
     "updated_at": "2026-08-15T06:26:02.116107+00:00"
   },
@@ -1086,7 +1086,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/litigation_intelligence/ legal-output changes",
     "updated_at": "2026-08-15T06:31:08.142941+00:00"
   },
@@ -1101,7 +1101,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/onboarding/ ADR-0008 wiring",
     "updated_at": "2026-08-15T06:25:45.491040+00:00"
   },
@@ -1116,7 +1116,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/page_composer/ ADR-0008 wiring and page-assembly changes",
     "updated_at": "2026-08-15T06:25:42.435116+00:00"
   },
@@ -1131,7 +1131,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/page_shell/ skeleton/zone changes",
     "updated_at": "2026-08-15T06:25:54.136463+00:00"
   },
@@ -1146,7 +1146,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/example_payment_tracking.py money-adjacent change",
     "updated_at": "2026-08-15T06:26:01.313281+00:00"
   },
@@ -1161,7 +1161,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Migrate progress_tracker callers and review dashboard/progress wiring",
     "updated_at": "2026-08-15T08:09:03.273513+00:00"
   },
@@ -1176,7 +1176,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/public_exposure/ privacy-related changes",
     "updated_at": "2026-08-15T06:25:44.692023+00:00"
   },
@@ -1191,7 +1191,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/security/ router changes",
     "updated_at": "2026-08-15T08:04:59.878475+00:00"
   },
@@ -1206,7 +1206,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review security/vault/storage-adjacent diffs",
     "updated_at": "2026-08-15T06:25:55.216080+00:00"
   },
@@ -1221,7 +1221,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/tactics/ proactive-tactics migration",
     "updated_at": "2026-08-15T06:25:48.421169+00:00"
   },
@@ -1236,7 +1236,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/timeline/ ADR-0008 wiring",
     "updated_at": "2026-08-15T06:25:58.881499+00:00"
   },
@@ -1251,7 +1251,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/vault/ ADR-0008 envelope wiring",
     "updated_at": "2026-08-15T06:28:43.170893+00:00"
   },
@@ -1266,7 +1266,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/vault_engine/ service changes",
     "updated_at": "2026-08-15T06:25:50.886391+00:00"
   },
@@ -1281,7 +1281,7 @@
     "priority": "medium",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review modules/vault_installer/ changes",
     "updated_at": "2026-08-15T06:25:57.670894+00:00"
   },
@@ -1296,7 +1296,7 @@
     "priority": "high",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Review app/core/ security/auth/guard/middleware diffs",
     "updated_at": "2026-08-15T06:25:46.491660+00:00"
   },
@@ -1311,7 +1311,7 @@
     "priority": "low",
     "source": "phase_c_tier2",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Preserve main for app/core/ cosmetic arrow/comment diffs",
     "updated_at": "2026-08-15T04:28:25Z"
   },
@@ -1326,7 +1326,7 @@
     "priority": "medium",
     "source": "manual",
     "status": "resolved",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "title": "Investigate recurring Test job hang on tracker-only PRs",
     "updated_at": "2026-08-15T07:22:56.344631+00:00"
   },
@@ -1341,7 +1341,7 @@
     "priority": "high",
     "source": "handoff",
     "status": "resolved",
-    "target_model": "swe-1.7",
+    "target_model": "restricted",
     "title": "Establish state-doc update discipline and handoff archive",
     "updated_at": "2026-08-15T12:59:24Z"
   },
@@ -1356,7 +1356,7 @@
     "priority": "medium",
     "source": "handoff",
     "status": "resolved",
-    "target_model": "swe-1.7",
+    "target_model": "restricted",
     "title": "Archive downloaded handoff files to docs/handoffs/",
     "updated_at": "2026-08-15T13:46:21Z"
   },
@@ -1371,7 +1371,7 @@
     "notes": "[2026-08-16 04:28 UTC - swe-1.7] Replaced hardcoded register_tiers with SEMPTIFY_ENV-driven _LIVE_TIERS mapping; updated conftest and .env examples; py_compile and targeted pytest pass",
     "created_at": "2026-08-15T17:00:00Z",
     "updated_at": "2026-08-16T04:28:55.331573+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -1385,7 +1385,7 @@
     "notes": "",
     "created_at": "2026-08-16T04:35:00Z",
     "updated_at": "2026-08-16T06:02:31.151490+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -1399,7 +1399,7 @@
     "notes": "Deleted the 5 truly dead conceptual/placeholder registrations (vault_sync, eviction_notice_explainer, response_letter_generator, eviction_defense_content, ai_copilot). example_payment_tracking.py and legal_filing_module.py still exist and have routers, so they were restored after test failures.",
     "created_at": "2026-08-16T06:15:00Z",
     "updated_at": "2026-08-16T06:14:04.211182+00:00",
-    "target_model": "unlimited",
+    "target_model": "restricted",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -1413,7 +1413,7 @@
     "notes": "",
     "created_at": "2026-08-16T06:15:00Z",
     "updated_at": "2026-08-16T06:15:34.217984+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -1427,7 +1427,7 @@
     "notes": "Measured per-service isolated memory. Positronic Brain ~5.3 MB, Module Hub ~5.5 MB, Mesh ~5.5 MB, Event subscribers ~4.2 MB, Litigation Intelligence package ~62 MB (driven by court_scraper importing playwright at package load). Full-app worker with ENABLE_HEAVY_SERVICES=false is 208.0 MB vs true 211.6 MB (heavy services only ~3.6 MB in production context).",
     "created_at": "2026-08-16T06:15:00Z",
     "updated_at": "2026-08-16T07:28:01.815103+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -1441,7 +1441,7 @@
     "notes": "[2026-08-18 22:15 UTC - swe-1.7] Built UI Composer in-task guide preview for journal::journal_create. Live at /gui/record/journal/create. 244 module health tests passed.\n[2026-08-18 23:02 UTC - swe-1.7] IronBee DevTools installed and MCP servers configured. Rerun verified via IronBee daemon: navigation, screenshot, ARIA snapshot, fill/click, console check.\n[2026-08-19 09:40 UTC - SWE-1.7-Max] Polished journal_create in-task preview: form-first layout, user_id hidden, optional fields behind 'Add more detail' details, .gui-help-now calm override, verified with py_compile, 244 module health tests, IronBee ARIA/screenshot/functional tests.",
     "created_at": "2026-08-18T00:00:00Z",
     "updated_at": "2026-08-19T09:40:17.351603+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1455,7 +1455,7 @@
     "notes": "[2026-08-19 11:03 UTC - SWE-1.7-Max] Claimed: building KNOW-pillar law_library_get_statute in-task guide\n[2026-08-19 11:23 UTC - SWE-1.7-Max] Built KNOW-pillar in-task guide for law_library_get_statute: know_body.html, law_library_get_statute.html, route /gui/know/law-library/get-statute. Verified py_compile, 244 module health tests, IronBee DevTools navigation/ARIA/screenshot/select/click/console.",
     "created_at": "2026-08-19T00:00:00Z",
     "updated_at": "2026-08-19T11:23:57.565814+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1469,7 +1469,7 @@
     "notes": "[2026-08-19 11:49 UTC - SWE-1.7-Max] Claiming ACT-pillar eviction_defense_calculate_deadlines in-task guide.\n[2026-08-19 12:12 UTC - SWE-1.7-Max] Built ACT-pillar in-task guide for eviction_defense_calculate_deadlines: act_body.html, eviction_defense_calculate_deadlines.html, route /gui/act/eviction-defense/calculate-deadlines. Verified py_compile, 244 module health tests, IronBee DevTools navigation/ARIA/screenshot/fill/click/console for future and past dates.",
     "created_at": "2026-08-19T12:00:00Z",
     "updated_at": "2026-08-19T12:12:31.096637+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1483,7 +1483,7 @@
     "notes": "[2026-08-19 13:00 UTC - SWE-1.7-Max] Claiming real Familiarity Tapering dial for UI Composer in-task guides.\n[2026-08-19 14:09 UTC - SWE-1.7-Max] Built real Familiarity Tapering dial: app/modules/ui_composer/tapering.py, updated process_indicator macro with with-context and intensity/exposure thresholds, updated three UI Composer routes in app/main.py. Verified py_compile, 244 module health tests, IronBee/cookie reloads show tapering (4 listitems -> 0) and console clean.",
     "created_at": "2026-08-19T12:00:00Z",
     "updated_at": "2026-08-19T14:09:39.626246+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1497,7 +1497,7 @@
     "notes": "[2026-08-19 14:15 UTC - SWE-1.7-Max] Claiming Module Resolver wiring for UI Composer in-task guides.\n[2026-08-19 15:56 UTC - SWE-1.7-Max] Wired Module Resolver into UI Composer: is_function_resolved() in module_gate.py, _get_resolved_modules() now uses resolved_module_paths from context, three in-task guide routes pass situational_available, body templates show notice when not available, compose_page callers pass resolved set. Verified py_compile, 244 module health tests, IronBee pages and /tenant/library, console clean.",
     "created_at": "2026-08-19T14:15:00Z",
     "updated_at": "2026-08-19T15:56:55.643281+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1511,7 +1511,7 @@
     "notes": "[2026-08-19 16:00 UTC - SWE-1.7-Max] Claimed form-factor + Page Shell token pass.\n[2026-08-19 17:45 UTC - SWE-1.7-Max] Completed. Reused 900px desktop-poster/mobile-stacked-scroll pattern from dispute_tracker/eviction_timeline; loaded page_shell.css; applied zone/block/block-input/output-trigger tokens to record/know/act body templates; preserved tapering, resolver notice, form-first order, help CTA, details disclosure, next-step. py_compile PASS; module_health 244 passed; IronBee desktop+mobile verification PASS for all three pages; screenshots at C:\\Users\\bradc\\AppData\\Local\\Temp\\uic-verify. PageEngine facade not started.",
     "created_at": "2026-08-19T16:00:00Z",
     "updated_at": "2026-08-19T17:57:31.531912+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1525,7 +1525,7 @@
     "notes": "Ad-hoc task from user request to adapt form-generation blueprint and run Rule 60.02 fill through the app.",
     "created_at": "2026-08-20T00:00:00Z",
     "updated_at": "2026-08-20T22:20:03.695925+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "devin"
   },
   {
@@ -1539,7 +1539,7 @@
     "notes": "Handoff: Semantic Retrieval for Curated Content (ADR-0008 Layer 2, Problem A Only).\n[2026-08-20 06:36 UTC - swe-1.7] Implemented AsymmetricVector, embedding columns, singleton model, vector math, hybrid retrieval, threshold 0.45, backfill script, Alembic migration, requirements. py_compile, pilot tests, module_health pass. Runtime: model loads in Uvicorn and backfill embeds facts.",
     "created_at": "2026-08-20T05:09:11.846708+00:00",
     "updated_at": "2026-08-20T06:36:24.237720+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -1553,7 +1553,7 @@
     "notes": "Claimed by SWE-1.7-Max to unblock real-use testing of the three in-task guide pages.\n[2026-08-20 08:49 UTC - SWE-1.7-Max] Local dev tenant auth bypass implemented and verified. app/main.py POST /debug/seed-test-user now works with SQLite, sets semptify_uid cookie, and redirects to /gui/record/journal/create. End-to-end verified for all three guide pages + save/calculate/list APIs. .env created with SECRET_KEY/PORT 8001. py_compile and module_health pass.",
     "created_at": "2026-08-20T06:45:00Z",
     "updated_at": "2026-08-20T08:49:44.770282+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1567,7 +1567,7 @@
     "notes": "Claimed for read-only inventory per user request to continue reform planning. No facade or rewrite work.\n[2026-08-20 09:21 UTC - SWE-1.7-Max] Read-only inventory completed. Page Composer, Page Shell, UI Composer, callers, routes, templates, contracts, and consumers surveyed. Key findings: page_composer/page_shell contracts not loaded by contract_loader; Page Shell production-exposed via Page Composer despite dev_only manifest; capability filter no-op; case_builder get_cases_for_user missing. No code changes; no facade work.",
     "created_at": "2026-08-20T08:45:00Z",
     "updated_at": "2026-08-20T09:21:34.436196+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1581,7 +1581,7 @@
     "notes": "Claimed for prioritized Page Composer / Page Shell cleanup handoff. Files to touch: app/modules/page_composer/assembly.py, service.py, router.py; app/modules/page_shell/models.py, register.py; app/modules/case_builder/case_builder.py; app/core/contract_loader.py, product_manifest.py; docs/blueprints. No PageEngine facade.\n[2026-08-20 12:26 UTC - SWE-1.7-Max] All six gaps fixed and verified: capability filter, case builder hook, mobile CSS, manifest, contracts, blueprint.",
     "created_at": "2026-08-20T12:25:00Z",
     "updated_at": "2026-08-20T12:26:25.965407+00:00",
-    "target_model": "unlimited",
+    "target_model": "restricted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1595,7 +1595,7 @@
     "notes": "User selected option 1 (add more functions using proven pattern). Chose timeline::timeline_create_event as a simple RECORD-pillar form with a real POST /api/timeline/events endpoint. No PageEngine facade.\n[2026-08-20 14:05 UTC - SWE-1.7-Max] Built /gui/record/timeline/create-event, verified real use and mobile.",
     "created_at": "2026-08-20T12:30:00Z",
     "updated_at": "2026-08-20T14:05:23.683590+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1609,7 +1609,7 @@
     "notes": "User clarified: the workbook should cover all subject/jurisdiction/pillar combinations that need explanation, not just an example.\n[2026-08-20 14:50 UTC - SWE-1.7-Max] Generated full 56-row workbook and updated loader to summarize placeholder rows.",
     "created_at": "2026-08-20T14:45:00Z",
     "updated_at": "2026-08-20T14:50:13.862031+00:00",
-    "target_model": "unlimited",
+    "target_model": "restricted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1623,7 +1623,7 @@
     "notes": "Handoff from Brad. Do not start case_builder/CASE_DATA work until these three items are verified.\n[2026-08-20 23:07 UTC - devin] Fixed SSOT redirect, gated /debug/* endpoints, added unified_overlay_manager tests (81% coverage); SSOT, guardrail, ruff, and targeted tests pass.",
     "created_at": "2026-08-20T21:50:00Z",
     "updated_at": "2026-08-20T23:07:37.308007+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "devin"
   },
   {
@@ -1637,7 +1637,7 @@
     "notes": "Handoff from Brad. CASE_DATA overlay and case_builder Postgres JSONB migration.\n[2026-08-20 23:36 UTC - devin] Added CASE_DATA overlay, migrated case_builder to UnifiedOverlayManager, DB no longer stores case content; tests, guardrail, SSOT, ruff, py_compile, module_health all pass.",
     "created_at": "2026-08-20T23:15:00Z",
     "updated_at": "2026-08-20T23:36:51.419480+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "devin"
   },
   {
@@ -1651,7 +1651,7 @@
     "notes": "User asked to make Page Composer jurisdiction-aware and tie Law Linker into composed pages.\n[2026-08-22 06:09 UTC - SWE-1.7-Max] County code registry, Page Composer/Shell county plumbing, Law Linker jurisdiction-aware JS, backend /county-code endpoint, and server-side citation link injection all implemented. Runtime backend verification passed (county-code API, Page Composer county propagation, GUI jurisdiction script). Module health suite could not run due to environment disk-full/OSError; JS verified via static HTML fetch.\n[2026-08-22 06:12 UTC - SWE-1.7-Max] Follow-up: fixed ruff F821 in page_composer/assembly.py (govern fallback county param); full ruff check on changed Python files now passes.",
     "created_at": "2026-08-21T17:00:00Z",
     "updated_at": "2026-08-22T06:12:26.983265+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1665,7 +1665,7 @@
     "notes": "[2026-08-23 06:32 UTC - swe-1.7] Batch 1 complete: fixed crisis hotline placeholder, tool encoding, pytest module_health marker, enabled litigation_intelligence contract loading. 244 module health, 8 SSOT, guardrail pass.\n[2026-08-23 10:09 UTC - swe-1.7] Batch 1.1: reverted litigation_intelligence re-enable after handoff review; original exclusion note restored. Proceeding with Batch 2 page manifest validation.\n[2026-08-23 19:37 UTC - swe-1.7] Shipped contract_loader.py reconciliation: agent_orchestrator, document_center, portal contracts wired; litigation_intelligence left excluded per original note and gap_report KNOWN_INTENTIONAL_CONTRACT_EXCLUSIONS.\n[2026-08-24 22:06 UTC - swe-1.7-max] Doc cleanup branch: BUILD_GUIDE_SSOT, STATUS_AUDIT, STUB_AUDIT, SEMPTIFY_SYSTEM_MANIFEST; will update tools/gap_report.py to remove resolved doc gap and re-run.\n[2026-08-24 22:21 UTC - swe-1.7-max] 2026-08-24 handoff: merge PRs #111/#112, cancel local provider get_provider task, reset main, post-merge E2E verification.\n[2026-08-25 07:35 UTC - SWE-1.7-Max] Resuming 2026-08-25. Will run gap_report/guardrail, identify remaining mechanical loose ends, and fix without human-design items.\n[2026-08-25 20:49 UTC - SWE-1.7] Resuming 2026-08-25. Running gap_report/guardrail to identify remaining mechanical loose ends.\n[2026-08-25 20:58 UTC - SWE-1.7] Re-ran gap_report + guardrail 2026-08-25. Guardrail passes. No mechanical loose ends remain. Only design-decision items left: (1) two independent context-loop implementations need consolidation vs documentation, (2) flagged/orphaned modules in module_registry.yaml await Brad's decisions. Stopping per task instruction to avoid human-design items.\n[2026-08-26 00:36 UTC - SWE-1.7-Max] Shipped: GUI_FLOW navigation registry, SSOT href cleanup in 10 templates, IronBee rule update, deleted scratch files. 244 module health tests, 8 SSOT tests, guardrail pass.",
     "created_at": "2026-08-22T00:00:00Z",
     "updated_at": "2026-08-26T00:36:38.131287+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1679,7 +1679,7 @@
     "notes": "Handoff from Brad. Constraint: regex/pattern only, no ML/AI, no UI changes. Include lese.pdf as a labeled fixture. D:\\@@@@@@@safe is off-limits.\n[2026-08-24 03:16 UTC] Pass 1 classifier rebalanced; lease_02 (real lese.pdf) now classifies as LEASE; mixed_01 as MIXED_DOCUMENT; notice_01 as EVICTION_NOTICE. 47 tests pass; guardrail passes; 13 files committed.",
     "created_at": "2026-08-23T00:00:00Z",
     "updated_at": "2026-08-24T03:16:49.771772+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1693,7 +1693,7 @@
     "notes": "Handoff from Brad: three approved fixes, one commit each.\n[2026-08-23 02:46 UTC - swe-1.7] _local_dir init, size/extension validation, contract consolidation all committed; guardrail and direct VaultUploadService test pass",
     "created_at": "2026-08-23T02:36:30.696474+00:00",
     "updated_at": "2026-08-23T02:46:27.388348+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -1707,7 +1707,7 @@
     "notes": "User authorized all three remaining blockers after classifier fix. View button fix will be done first.\n[2026-08-24 04:20 UTC] Implemented event_date/received_date in models, vault service, vault router, and Record page UI. Added migration. Verified via py_compile, tests/test_documents.py (41), tests/test_document_intake.py (47), live API round-trip, and browser render of /gui/record.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T04:20:38.664839+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1721,7 +1721,7 @@
     "notes": "Dead-end fix. The unified_overlays module is RESEARCH tier and not mounted in production; use the core vault download endpoint for preview.\n[2026-08-24 03:50 UTC] View button now opens /api/vault/{id}/download?view=1 for preview. tests/test_documents.py 41 passed.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T03:50:18.334455+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1735,7 +1735,7 @@
     "notes": "Last of three blockers. Check existing OCR services, dependencies (reportlab, xhtml2pdf), and the local extraction path. Implement fallback and tests only if a supported local engine is available.\n[2026-08-24 04:35 UTC] Wired extract_with_ocr fallback in document_intake for all PDFs (was Azure-only). Added pytesseract to requirements and tesseract-ocr to Dockerfile. Added 2 regression tests using a synthetic image-only PDF and mocked Tesseract. test_document_intake 49 passed, test_documents 41 passed.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T04:35:31.786235+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1749,7 +1749,7 @@
     "notes": "Claimed to run real-document E2E after classifier/OCR improvements.\n[2026-08-24 05:24 UTC - swe-1.7] Ran docs/classification-test-fixtures/lease_02.pdf through local intake. Classified as lease (1.0). Extracted 4907 words, parties, rent, late fee, dates. Confirmed bundled-packet remains one doc type. Three-date (uploaded_at/event/received) set and sort verified.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T05:24:16.700820+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -1763,7 +1763,7 @@
     "notes": "Handoff from Load Profile System / memory assessment. Investigation-only; report findings before any token code changes.\n[2026-08-24 05:28 UTC - SWE-1.7-Max] Investigation complete. Root cause: key mismatch (SECRET_KEY used for encryption differs from decryption). LUtest1234 session currently decrypts with local .env secret, but GUbGQUTpK6 session fails with InvalidTag. Fresh GUtest1234 token with consistent key works. Failure is data/config-dependent, not all tokens. Recommend: stable SECRET_KEY enforcement and key-rotation migration path before production. Do not change token code without sign-off.\n[2026-08-26 17:50 UTC - claude-code] Re-verified 2026-08-26: config.py already fails startup on missing/weak SECRET_KEY (stable-key safeguard already in place), and auto_refresh.py already returns TOKEN_CORRUPT and forces clean reconnect on decrypt failure instead of crashing. The GUbGQUTpK6 failure was a pre-safeguard legacy token, not an active bug. Remaining gap (key-rotation re-encryption tool) is optional future infra with no current trigger -- not building speculatively. No fix task created.\n[2026-08-26 17:58 UTC - claude-code] CORRECTED 2026-08-26: traced further per Brad's prompt. storage_middleware.py::StorageRequirementMiddleware already wires TOKEN_CORRUPT into get_valid_token_or_redirect() with a calm, named message ('Your stored storage connection can't be read. Reconnecting will restore access. Your documents are safe.') and redirects to OAuth reconnect, which re-matches the user via provider_subject. Real documents live in the user's own cloud storage (Vault), not the DB, so reconnect is lossless. This is a complete, already-shipped recovery path, not a gap. No fix task needed.\n[2026-08-26] Resolved after corrected review: TOKEN_CORRUPT recovery already shipped in storage_middleware.py; no PR needed.\n[2026-08-27 - claude] Resolved. Decrypt/reconnect fix verified live and does not depend on local-provider code (which has since been removed). Remaining open item (SECRET_KEY rotation strategy) split into new task \u2014 see ad-hoc-secretkey-rotation-2026-08-27.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-27T23:33:04.197904+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude-code"
   },
   {
@@ -1777,7 +1777,7 @@
     "notes": "Documentation-only change; one commit. List any other sa.ARRAY-using migrations found during search.\n[2026-08-24 05:30 UTC - SWE-1.7-Max] Added Known Failure Registry entry #20 for sa.ARRAY-on-SQLite (module_registry and feature_flags).",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T05:30:59.887136+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1791,7 +1791,7 @@
     "notes": "Handoff from OAuth token decryption investigation. Task A.\n[2026-08-24 06:18 UTC - SWE-1.7-Max] _resolve_secret_key() now raises on missing/weak SECRET_KEY; tests get a deterministic TESTING key.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T06:18:20.187039+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1805,7 +1805,7 @@
     "notes": "Handoff from OAuth token decryption investigation. Task B.\n[2026-08-24 06:18 UTC - SWE-1.7-Max] _refresh_from_db() catches InvalidTag and returns TOKEN_CORRUPT; get_valid_token_or_redirect returns status; storage_middleware, yellow/red_access return calm reconnect_required responses.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T06:18:33.462057+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1819,7 +1819,7 @@
     "notes": "Claimed to implement regex/pattern segmentation.\n[2026-08-24 - SWE-1.7-Max] Implemented DocumentSegmenter and process_bundle; lease_02 now splits into lease/house_rules/lease_amendment/affidavit; tests pass.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T07:16:09.705807+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1833,7 +1833,7 @@
     "notes": "Handoff follow-up: security.py already maps L -> StorageProvider.LOCAL; user_id.py and storage_middleware need to agree.\n[2026-08-24 13:16 UTC] Added LOCAL to ProviderCode, mappings, and docstring in app/core/user_id.py; added tests/test_user_id.py.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T13:16:15.768914+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1847,7 +1847,7 @@
     "notes": "Handoff follow-up from Pass 1 bundle segmentation: DocumentType.HOUSE_RULES exists in document_intake.py but is not in the document center registry.\n[2026-08-24 13:17 UTC] Registered house_rules in app/core/document_types.py with fields and added tests/test_document_types.py coverage.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T13:17:00.944991+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1861,7 +1861,7 @@
     "notes": "User confirmed: every user must have OAuth storage, no local-only users.\n[2026-08-24 21:42 UTC - SWE-1.7-Max] Removed L=Local from ProviderCode, user_id mappings, security provider_map and is_valid_user_storage allowlist; updated tests/test_user_id.py to assert local IDs are rejected.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T21:42:15.180968+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1875,7 +1875,7 @@
     "notes": "Cancelled per 2026-08-24 handoff. Brad confirmed: no local storage, no exceptions, including admin accounts. Any code that still allows an L/local user to attempt an upload should be flagged as a separate gap; not fixed here.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-24T22:15:00+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1889,7 +1889,7 @@
     "notes": "[2026-08-25 01:03 UTC - Claude-Sonnet-4.5] Made 8b393a99538e idempotent and added catch-up migration 20260825_vault_review_catchup. Applied to production Neon: review_state_json now exists, alembic_version at new head. Verified with simulated broken-state DB tests and a live query reproduction. pytest tests/module_health 244 passed.",
     "created_at": "2026-08-24T00:00:00Z",
     "updated_at": "2026-08-25T01:03:43.530889+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude-sonnet-4.5"
   },
   {
@@ -1903,7 +1903,7 @@
     "notes": "Live verification: POST /api/intake/upload/auto returned 200 but Pass 2 failed with 'IntakeDocument' object has no attribute 'doc_type'.\n[2026-08-24 15:00 UTC] Fixed job_processor.py line 604 to use doc.extraction.doc_type.value instead of non-existent doc.doc_type. Verified live upload of bundle_test2.pdf: Light Intake 3 segments, Deep OCR job submitted and ran without AttributeError; overlay write failed as expected with fake Google token. test_document_intake.py 52 passed.",
     "created_at": "2026-08-24T14:52:31Z",
     "updated_at": "2026-08-24T15:00:37.797611+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1917,7 +1917,7 @@
     "notes": "Live verification: clicking View on record.html opens /api/vault/{id}/download?view=1 and returns 400 access_token required, then redirects to /help?status=down.\n[2026-08-24 15:06 UTC] Updated vault/router.py: download_document, get_certificate, delete_document, list_documents now fall back to user.access_token from yellow_access instead of requiring an explicit access_token query param. Verified via API: GET /api/vault/doc-c4f5839c9c34/download?view=1 no longer returns 400; it now returns 404 (certificate not found) because the local seeded session uses a fake Google token. Browser View still redirects to /help?status=down because the global error handler redirects HTML requests on any storage failure; with a real token the document would be found and previewed inline. test_documents.py 41 passed; py_compile clean.",
     "created_at": "2026-08-24T15:01:20Z",
     "updated_at": "2026-08-24T15:06:42.006468+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1931,7 +1931,7 @@
     "notes": "Live verification: is_valid_user_storage(LU raw/signed) returned False while is_valid_storage_user(LU signed) returned True.\n[2026-08-24 15:10 UTC] Added 'L' to the provider code allowlist in security.py::is_valid_user_storage and updated docstring. Verified: is_valid_user_storage('LUtest1234') is True; live upload with signed LUtest1234 cookie and encrypted local session returns 200 and writes to vault_index (storage_provider='local'). The downstream get_provider() does not yet support 'local' for download, so local View/Download is a separate remaining gap.",
     "created_at": "2026-08-24T15:07:02Z",
     "updated_at": "2026-08-24T15:10:30.462950+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1945,7 +1945,7 @@
     "notes": "Live verification: GET /api/dc/document-types and /api/document-types both return 404.\n[2026-08-24 15:15 UTC] Mounted app.modules.document_center.router at /api/dc in app/main.py for non-MVP builds, guarded against duplicate product-manifest mounts. Verified: GET /api/dc/document-types returns 200 and lists house_rules. test_document_types.py 10 passed; py_compile clean.",
     "created_at": "2026-08-24T15:10:47Z",
     "updated_at": "2026-08-24T15:15:33.689111+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1959,7 +1959,7 @@
     "notes": "[2026-08-24 15:16 UTC] Investigation complete. Root cause: record.html line 94 sends cookie('semptify_uid') as user_id form field; the cookie is the signed value (75 chars), not the bare user id. Server's upload_and_process already overrides the form value with the verified session identity from yellow_access and logs a warning. Fallback is safe because yellow_access rejects invalid cookies before the endpoint runs. Recommended fix: stop sending user_id from the form (or stop reading the signed cookie for it) as a cleanup task. No code changes made; findings recorded in BUILD_STATE.md.",
     "created_at": "2026-08-24T15:16:19Z",
     "updated_at": "2026-08-24T15:16:43.791185+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1973,7 +1973,7 @@
     "notes": "CI Security Scan on PR #110 reported B608 in app/core/features.py:238. now_sql is a hardcoded dialect constant, but Bandit flags the f-string.\n[2026-08-24 18:38 UTC] Refactored set_enabled to bind a Python UTC timestamp as :updated_at, removing f-string SQL",
     "created_at": "2026-08-24T18:40:00Z",
     "updated_at": "2026-08-24T18:38:45.437965+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -1987,7 +1987,7 @@
     "notes": "Created after journal_entries already existed caused alembic upgrade head to fail with DuplicateTable.\n[2026-08-25 02:35 UTC - SWE-1.7-Max] Made aaebf71fa17a, 9f96d6ec5a65, 7f002a47b44a, and 20260820_add_embedding_columns idempotent. Created vector extension and manually added canonical_value/extraction_pattern/embedding to context_facts (owned by authenticator) so neondb_owner could run the rest. Alembic upgrade head completed on semptifty_db; alembic_version at 20260825_vault_review_catchup and vault_index now has review_state_json, event_date, received_date.\n[2026-08-25 03:11 UTC - SWE-1.7-Max] Real Google Drive E2E passed all endpoints. Opened PR https://github.com/1semptify-arch/Semptify/pull/115 with idempotent migration changes and BUILD_STATE update.",
     "created_at": "2026-08-25T02:30:53.250118+00:00",
     "updated_at": "2026-08-25T03:11:50.084658+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -2001,7 +2001,7 @@
     "notes": "Handoff from Brad 2026-08-25: three sub-tasks (doc fix, investigation brief, tracker cleanup).\n[2026-08-25 05:05 UTC - SWE-1.7-Max] Doc fix, unification brief, and tracker cleanup committed on branch docs/stale-feature-flags-handoff-2026-08-25.",
     "created_at": "2026-08-25T05:05:30.496672+00:00",
     "updated_at": "2026-08-25T05:05:55.967769+00:00",
-    "target_model": "unlimited",
+    "target_model": "restricted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -2015,7 +2015,7 @@
     "notes": "Table verified present; ACTIVE_CONTEXT.md updated to describe the real remaining issue (two non-unified feature-flag systems).",
     "created_at": "2026-08-25T05:05:30.497251+00:00",
     "updated_at": "2026-08-25T05:05:30.497251+00:00",
-    "target_model": "unlimited",
+    "target_model": "restricted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -2029,7 +2029,7 @@
     "notes": "Cancelled by Brad 2026-08-25. No local storage provider will be built or supported. Existing cloud-only paths remain canonical.",
     "created_at": "2026-08-25T05:05:30.497251+00:00",
     "updated_at": "2026-08-25T05:05:30.497251+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -2043,7 +2043,7 @@
     "notes": "Implemented: feature flag, guard, checklist, PDF/ZIP export, UI, migration, contracts, tests. Guardrails pass.",
     "created_at": "2026-08-26T05:00:00+00:00",
     "updated_at": "2026-08-26T07:00:00+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7-max"
   },
   {
@@ -2057,7 +2057,7 @@
     "notes": "[2026-08-26 - swe-1.7-max] Claimed for bootstrap implementation.\n[2026-08-26 13:34 UTC - swe-1.7-max] Bootstrap complete: state file, mark_task, handoff template, usage ledger, schema, swe-executor subagent, orchestrator_dispatch skill, AGENTS.md updates, phase_c archive, first dry-run passed\n[2026-08-26 17:41 UTC - claude-code] Verified: state file, mark_task tool, handoff template, usage ledger, swe-executor subagent, orchestrator_dispatch skill, AGENTS.md updates, phase_c archive all in place and working.\n[2026-08-26] Merged to master-repo master via PR #1: https://github.com/1semptify-arch/master-repo/pull/1",
     "created_at": "2026-08-26T13:30:33.678559+00:00",
     "updated_at": "2026-08-26T17:41:58.583788+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude-code"
   },
   {
@@ -2071,7 +2071,7 @@
     "notes": "[2026-08-26 13:33 UTC - swe-1.7-max] claimed for first dry-run measurement\n[2026-08-26 13:34 UTC - swe-1.7-max] sync_orchestrator --check passed; report written\n[2026-08-26 17:42 UTC - claude-code] sync_orchestrator --check confirmed passing (0 stubs, 148 tasks, 0 missing paths). First routing-policy test successful.\n[2026-08-26] Merged to master-repo master via PR #1: https://github.com/1semptify-arch/master-repo/pull/1",
     "created_at": "2026-08-26T13:33:06.238573+00:00",
     "updated_at": "2026-08-26T17:42:00.120208+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude-code"
   },
   {
@@ -2085,7 +2085,7 @@
     "notes": "Created from Brad's decision on ad-hoc-feature-flags-unification-2026-08-25. Prefer GLM-5.2 executor while promo lasts.\n[2026-08-26 17:50 UTC - claude-code] Claude executing directly (no Devin CLI subagent available in this session).\n[2026-08-26 19:06 UTC - claude-code] Implemented Option A: 5 new Feature enum route kill-switches (all default True, no-op migration), RouteFeatureGateMiddleware replacing FeatureFlagMiddleware, /admin/api/flags now DB-backed, 7 new tests, old feature_flags.py deleted. 270 tests pass, guardrail_engine all-pass.\n[2026-08-26] Merged to Semptify main via PR #129 and master-repo master via PR #1.",
     "created_at": "2026-08-26T17:45:32.650708+00:00",
     "updated_at": "2026-08-26T19:06:34.386780+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude-code"
   },
   {
@@ -2099,7 +2099,7 @@
     "notes": "Source files in C:\\master-repo\\hand offs and temop\\. Handoff provided in chat.\n[2026-08-26 22:12 UTC - claude-code] Claude writing handoff and kicking off work directly (subagent spawn not available in this interface).",
     "created_at": "2026-08-26T22:12:13.132421+00:00",
     "updated_at": "2026-08-26T23:37:53.453883+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude-code"
   },
   {
@@ -2113,7 +2113,7 @@
     "notes": "Completed as deliverable of orchestration-003-workflow-and-cheatsheets.",
     "created_at": "2026-08-26T22:15:32.193973+00:00",
     "updated_at": "2026-08-26T22:15:32.193978+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude-code"
   },
   {
@@ -2127,7 +2127,7 @@
     "notes": "Extension of PR #3 (orchestrator/setup branch) requested by Brad.",
     "created_at": "2026-08-26T23:21:11.690673+00:00",
     "updated_at": "2026-08-26T23:37:59.690875+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude-code"
   },
   {
@@ -2169,7 +2169,7 @@
     "notes": "Live verification complete. Fixed mobile header overflow, form-row mobile fallback, added Get help now CTA. Module health 244 passed, guardrail all pass. Pre-existing /api/location/current 404 remains.",
     "created_at": "2026-08-27T00:00:00Z",
     "updated_at": "2026-09-03T12:52:14.620528+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2183,7 +2183,7 @@
     "notes": "P2-4 from MAINTENANCE_TASKLIST.md. Was todo-006; appears resolved \u2014 verify and close.",
     "created_at": "2026-08-27T05:08:52.997513+00:00",
     "updated_at": "2026-08-27T05:54:28.081015+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2239,7 +2239,7 @@
     "notes": "Restored after sync_orchestrator.py wiped module-level ad-hoc tasks 2026-08-29.",
     "created_at": "2026-08-28T00:00:00Z",
     "updated_at": "2026-08-29T11:29:37.232143+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2253,7 +2253,7 @@
     "notes": "Restored after sync_orchestrator.py wiped module-level ad-hoc tasks 2026-08-29.",
     "created_at": "2026-08-28T00:00:00Z",
     "updated_at": "2026-08-29T11:29:50.475138+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2267,7 +2267,7 @@
     "notes": "Restored after sync_orchestrator.py wiped module-level ad-hoc tasks 2026-08-29.\n[2026-08-29 11:30 UTC - claude] Code already in place; no new code changes needed.",
     "created_at": "2026-08-28T00:00:00Z",
     "updated_at": "2026-08-29T11:30:58.565230+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2295,7 +2295,7 @@
     "notes": "Restored after sync_orchestrator.py wiped module-level ad-hoc tasks 2026-08-29.",
     "created_at": "2026-08-29T00:00:00Z",
     "updated_at": "2026-08-29T00:00:00Z",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -2309,7 +2309,7 @@
     "notes": "Restored after sync_orchestrator.py wiped module-level ad-hoc tasks 2026-08-29.",
     "created_at": "2026-08-29T00:00:00Z",
     "updated_at": "2026-08-29T00:00:00Z",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -2323,7 +2323,7 @@
     "notes": "",
     "created_at": "2026-08-29T00:00:00Z",
     "updated_at": "2026-08-29T11:32:02.067867+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2337,7 +2337,7 @@
     "notes": "[2026-08-29 11:30 UTC - claude] Local adr-0008-pilot branch did not exist; deleted github-direct remote branch adr-0008-pilot and verified it is gone (origin/adr-0008-pilot remains as a separate local-source tracking branch).",
     "created_at": "2026-08-29T00:00:00Z",
     "updated_at": "2026-08-29T11:30:37.238313+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2351,7 +2351,7 @@
     "notes": "Brad approved 2026-08-29 with name change (Semptify-PI, not Semptify-Plugins) and version-tracked-inside-not-in-name.\n[2026-08-29 12:05 UTC - claude] Created https://github.com/1semptify-arch/Semptify-PI (private), cloned to sources/app-semptify-pi, landed scaffold (README, AGENTS.md, apps.yaml, pyproject.toml, .gitignore, .env.example, docs/design-spec.md, .gitkeep markers), pushed to main.",
     "created_at": "2026-08-29T00:00:00Z",
     "updated_at": "2026-08-29T12:05:13.651127+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2365,7 +2365,7 @@
     "notes": "[2026-08-29 17:25 UTC - claude] Claimed for API spec finalization and validation against mock_core\n[2026-08-30 15:25 UTC - claude] Spec committed in sources/app-semptify-pi: bbd4ff3 (publish openapi.yaml and manifest.schema.json) and 72bc716 (mock_core test double + validation script). Awaiting Brad approval before marking resolved.",
     "created_at": "2026-08-29T00:00:00Z",
     "updated_at": "2026-08-30T15:32:24.642045+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2379,7 +2379,7 @@
     "notes": "[2026-08-29 17:33 UTC - claude] Checking Render free-tier capacity before proposing subdomain\n[2026-09-02 01:49 UTC - claude] Still blocked on Render free-tier limits and Brad's confirmation. No service or DNS created.\n[2026-09-02 02:04 UTC - claude] Resuming research. Will check current Render free-tier docs for spin-down behavior, custom domain/SSL availability, request/bandwidth caps, and whether a second free service fits the 750 instance-hour limit.\n[2026-09-02 02:14 UTC - claude] Brad decided: stay on Render free tier. No real users yet, so cold starts acceptable. Cloudflare used for DNS. Next: prepare render.yaml/env list, then confirm before creating service or DNS record.\n[2026-09-02 02:16 UTC - claude] Brad decided free tier. No real users yet, so spin-downs are acceptable. Cloudflare for DNS. Prepared render.yaml, /health endpoint, BUILD_GUIDE/BLUEPRINT updates. PI pushed a059827. Awaiting final OK before creating Render service and Cloudflare CNAME.\n[2026-09-02 02:26 UTC - claude] Render service septify-pi created: https://septify-pi.onrender.com. Free Render Postgres septify-pi-db created. Semptify-PI GitHub repo made public. Build/deploy in progress. Next: set real DATABASE_URL (from Render Dashboard), SEMPIFY_PI_ENCRYPTION_KEY, and OAuth credentials in Render env vars; update OAuth redirect URIs to https://septify-pi.onrender.com/auth/{provider}/callback.\n[2026-09-02 02:46 UTC - claude] Dedicated 'septify_pi' database created in Neon. Render service fails until DATABASE_URL and SEMPIFY_PI_ENCRYPTION_KEY are set in dashboard. BUILD_GUIDE and BUILD_STATE updated. Awaiting Brad to set env vars and redeploy.",
     "created_at": "2026-08-29T00:00:00Z",
     "updated_at": "2026-09-08T03:27:24.225248+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "devin"
   },
   {
@@ -2687,7 +2687,7 @@
     "notes": "PageContract cleared to build per review decision (2026-08-31). ModuleContract remains blocked pending backfill of missing FunctionGroupContracts.\n[2026-08-31 17:52 UTC - claude] Claimed. Will write handoff, design PageContract Pydantic model, wire into Page Shell / Page Composer, and pressure-test against the three proven guide pages.\n[2026-09-01 00:20 UTC - claude] PageContract model + registry + 4 sample contracts + tests committed. PageConfig resistance found: InputBlock does not support options. Awaiting Brad decision before extending PageConfig or adjusting PageContract.\n[2026-09-02 01:00 UTC - claude] Resuming review. Will verify PageContract Pydantic model and pressure tests.\n[2026-09-02 01:04 UTC - claude] Reviewed and verified: PageContract Pydantic model py_compile PASS, guardrail all checks PASS, test_page_contract 9 passed, branch pushed to github-direct. Runtime /gui/page-contract route requires auth (SECURITY_MODE=enforced) so not re-verified live; covered by tests and prior session.",
     "created_at": "2026-08-31T17:52:37.851934+00:00",
     "updated_at": "2026-09-02T01:04:56.535355+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2701,7 +2701,7 @@
     "notes": "Follow-up to page-contract-pydantic-model-2026-08-31. Scope confirmed as schema + renderer.\n[2026-09-01 00:32 UTC - claude] Scope confirmed as schema + renderer. Will update PageConfig.InputBlock, renderer, PageContractInput options shape, and re-run tests.\n[2026-09-01 00:41 UTC - claude] PageConfig.InputBlock extended with SelectOption and new input types. Renderer updated. PageContract tests now pass for all four samples. module_health still 244. No regression.\n[2026-09-02 01:06 UTC - claude] Resuming review. Will verify PageConfig InputBlock extension, renderer, and re-run PageContract tests.\n[2026-09-02 01:07 UTC - claude] Reviewed and verified: PageConfig.InputBlock extended with SelectOption and new input types, renderer handles select/checkbox/number/datetime-local, PageContract tests 9 passed, guardrail not re-run (already passed in same branch). Branch already pushed to github-direct.",
     "created_at": "2026-09-01T00:32:14.147716+00:00",
     "updated_at": "2026-09-02T01:07:03.064529+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2841,7 +2841,7 @@
     "notes": "Spec approved as written by Brad 2026-09-07.",
     "created_at": "2026-09-07T00:00:00Z",
     "updated_at": "2026-09-07T00:00:00Z",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2855,7 +2855,7 @@
     "notes": "Brad directive 2026-09-07: strip .card border, use zone-tone + shadow tiers.\n[2026-09-08 03:06 UTC - claude] Resolved by design-refresh PR #172. ssot-design-system.css .card now sets border: none; design-refresh moved tenant-facing card families to borderless zones with elevation.",
     "created_at": "2026-09-07T21:22:33.217914+00:00",
     "updated_at": "2026-09-08T03:06:08.312599+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2897,7 +2897,7 @@
     "notes": "[2026-09-09 04:00 UTC - claude] Implemented Law Linker v2 backend, pop-out page, client-side citation marking, and Sticky Notes save. Verified on /law-library with official Minnesota Statute text. Guardrail passed. [2026-09-10 02:20 UTC - claude] Re-added to master queue after sync_orchestrator clobbered it.\n[2026-09-10 13:19 UTC - claude] Confirmed in branch mechanics-verification-2026-09-09: pop-out, citation endpoint, and sticky-note save are present. Route audit now 0 uncovered; guardrail 4/4 PASS on branch.",
     "created_at": "2026-09-09T04:00:00Z",
     "updated_at": "2026-09-10T13:19:42.689210+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2911,7 +2911,7 @@
     "notes": "Discovered during Playwright verification of legacy-pages-migrate-2026-09-08. Pages render HTTP 200, but JavaScript crashes when backend data is not present. The fix should make the client-side code handle an empty/missing response without throwing.\n[2026-09-09 07:03 UTC - devin] Claimed to fix JS guards.\n[2026-09-09 07:05 UTC - devin] Defensive guards applied; verified /auto-mode and /auto-analysis render 200 with no page JS errors when status endpoint 404s.\n[2026-09-10 13:19 UTC - claude] Confirmed in branch mechanics-verification-2026-09-09: JS guards for missing status/analysis data are present in auto_mode_panel.html and auto_analysis_summary.html. Guardrail 4/4 PASS.",
     "created_at": "2026-09-09T07:03:05.644535+00:00",
     "updated_at": "2026-09-10T13:19:42.689210+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "devin"
   },
   {
@@ -2925,7 +2925,7 @@
     "notes": "[2026-09-09 07:52 UTC - claude] Adopted SSOT tokens in public_base.html, index.html, ssot-design-system.css; fixed template header/footer selector specificity. Visual verification passed; guardrail passed. Committed 101a55f8.\n[2026-09-10 04:25 UTC - devin] Completed remaining hardcoded hex color replacement in public_base.html and index.html, replaced template body #fff/#1a1a1a with var(--text-inverse)/var(--text-primary), and converted template-N body rules to class-only (.template-N / .template-N .page-body). Added page-body to base.html <main> and adjusted public_base selectors. Guardrail passed; /, /services, /office, /law-library, /help 200. Committed 5f9c9b1e.\n[2026-09-10 09:12 UTC - claude] Replaced hardcoded colors in app/templates/public_base.html and app/templates/index.html; added --color-black token; guardrail 4/4. No remaining #hex or rgba in scope.",
     "created_at": "2026-09-09T07:48:03.949167+00:00",
     "updated_at": "2026-09-10T09:12:21.378572+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2939,7 +2939,7 @@
     "notes": "[2026-09-09 08:03 UTC - claude] Adopted SSOT in about.html, privacy.html, terms.html. Visual verification passed on all three plus guardrail. Committed 4fe6290c.\n[2026-09-09 08:06 UTC - claude] Adopted SSOT in about.html, privacy.html, terms.html, credits.html, semptify-help-standalone.html, and welcome.html. Visual verification passed on all public pages; guardrail passed. Committed 4fe6290c and 66e14683.\n[2026-09-10 03:43 UTC - devin] Further SSOT cleanup on current branch: replaced all remaining hardcoded #fff/#888/rgba black/white with SSOT tokens, fixed dead /home.html breadcrumb, aligned privacy/terms nav/drawer to public legal links and removed broken emojis. Guardrail passed, pages return 200. Committed ac04e178.\n[2026-09-10 09:12 UTC - claude] Replaced hardcoded colors in static/public/*.html; verified no remaining #hex or rgba in public static pages. Guardrail 4/4.",
     "created_at": "2026-09-09T07:58:46.621572+00:00",
     "updated_at": "2026-09-10T09:12:25.981349+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2953,7 +2953,7 @@
     "notes": "[2026-09-09 09:32 UTC - claude] Adopted SSOT in 8 static/tenant HTML files and royal.css. Added SSOT links, mapped local theme variables, replaced hardcoded colors and border radii with SSOT tokens. Guardrail passed. Committed 4fff0fe2.\n[2026-09-10 09:12 UTC - claude] Replaced hardcoded colors in static/tenant/*.html and static/css/themes/*.css; verified no remaining #hex or rgba in scope. Guardrail 4/4.",
     "created_at": "2026-09-09T09:13:49.618585+00:00",
     "updated_at": "2026-09-10T09:12:30.954659+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2967,7 +2967,7 @@
     "notes": "[2026-09-09 20:32 UTC - claude] Completed legacy CSS adoption (admin-nav, composer-shell, frame-light already clean, document-center already clean, gui-panels, manager-dashboard, vault-portal, workspace-stage-model, semptify no hex, main.css no hex). Completed admin home.html. Remaining: 16 admin static pages (~475 hex) and 4 dead role themes. Dashboard/hub/function-browser require admin auth; verification blocked without credentials.\n[2026-09-09 20:49 UTC - claude] Completed entire slice: legacy CSS files (admin-nav, composer-shell, frame-light, document-center already clean, gui-panels, main.css no hex, manager-dashboard, semptify.css no hex, vault-portal, workspace-stage-model), 4 dead role themes (ocean, forest, crimson, slate), and all 17 admin static HTML pages. Added SSOT links, replaced hex/rgb/rgba/white/black with SSOT semantic tokens including color-mix transparent variants. Verified /admin/home and /gui/know/law-library/get-statute. Guardrail passed.\n[2026-09-10 09:12 UTC - claude] Replaced hardcoded colors in legacy CSS files (admin-nav, composer-shell, manager-dashboard, components/vault-portal, workspace-stage-model, gui-panels, themes); verified no remaining #hex or rgba in scope. Guardrail 4/4.",
     "created_at": "2026-09-09T09:50:04.984370+00:00",
     "updated_at": "2026-09-10T09:12:36.009323+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -2981,7 +2981,7 @@
     "notes": "Continuation of context-workbook-starter. 12 rows, 48 prompts.\n[2026-09-10 01:53 UTC - claude] 13 rows filled with plain-language prompts. Dry-run validated 23 total ready rows, 0 validation errors on filled rows. Committed 40e6aa22 on branch orchestration/opus-setup-2026-09-09.\n[2026-09-10 13:19 UTC - claude] Re-verified: data/context_explanation_workbook.csv still contains [FILL] placeholders on this branch. Leave in review until the filled CSV is merged/verified.\n[2026-09-10 14:38 UTC - claude] Final CSV reapplied on mechanics-verification-2026-09-09; guardrail 6/6 PASS.",
     "created_at": "2026-09-10T01:52:12.963180+00:00",
     "updated_at": "2026-09-10T14:38:14.596608+00:00",
-    "target_model": "unlimited",
+    "target_model": "restricted",
     "assigned_agent": "claude"
   },
   {
@@ -2995,7 +2995,7 @@
     "notes": "10 rows, 40 prompts.\n[2026-09-10 01:53 UTC - claude] 10 rows filled. Dry-run: 33 ready, 23 placeholders. Committed 2adbcae0.\n[2026-09-10 13:19 UTC - claude] Re-verified: data/context_explanation_workbook.csv still contains [FILL] placeholders on this branch. Leave in review until the filled CSV is merged/verified.\n[2026-09-10 14:38 UTC - claude] Final CSV reapplied on mechanics-verification-2026-09-09; guardrail 6/6 PASS.",
     "created_at": "2026-09-10T01:53:16.526795+00:00",
     "updated_at": "2026-09-10T14:38:14.596608+00:00",
-    "target_model": "unlimited",
+    "target_model": "restricted",
     "assigned_agent": "claude"
   },
   {
@@ -3009,7 +3009,7 @@
     "notes": "11 rows, 44 prompts.\n[2026-09-10 01:54 UTC - claude] 11 rows filled. Dry-run: 44 ready, 12 placeholders. Committed 3e352334.\n[2026-09-10 13:19 UTC - claude] Re-verified: data/context_explanation_workbook.csv still contains [FILL] placeholders on this branch. Leave in review until the filled CSV is merged/verified.\n[2026-09-10 14:38 UTC - claude] Final CSV reapplied on mechanics-verification-2026-09-09; guardrail 6/6 PASS.",
     "created_at": "2026-09-10T01:53:53.711012+00:00",
     "updated_at": "2026-09-10T14:38:14.596608+00:00",
-    "target_model": "unlimited",
+    "target_model": "restricted",
     "assigned_agent": "claude"
   },
   {
@@ -3023,7 +3023,7 @@
     "notes": "12 rows, 48 prompts. Final workbook batch.\n[2026-09-10 01:55 UTC - claude] All 56 rows filled. Dry-run: 56 ready, 0 skipped, 0 validation errors. Committed f2b6c5d4.\n[2026-09-10 13:19 UTC - claude] Re-verified: data/context_explanation_workbook.csv still contains [FILL] placeholders on this branch. Leave in review until the filled CSV is merged/verified.\n[2026-09-10 14:38 UTC - claude] Final CSV reapplied on mechanics-verification-2026-09-09; guardrail 6/6 PASS.",
     "created_at": "2026-09-10T01:54:42.794413+00:00",
     "updated_at": "2026-09-10T14:38:14.596608+00:00",
-    "target_model": "unlimited",
+    "target_model": "restricted",
     "assigned_agent": "claude"
   },
   {
@@ -3037,7 +3037,7 @@
     "notes": "[2026-09-10 02:15 UTC - claude] Found one remaining dead /static/*.html reference after PR #178. Claimed for fix.\n[2026-09-10 02:17 UTC - claude] Fixed redirect_to to /tenant/get-help; py_compile and guardrail pass; curl verified\n[2026-09-10 13:19 UTC - claude] Re-verified: app/modules/guided_intake/router.py still returns redirect_to='/static/intake/guide.html' on this branch. The recorded fix appears to be on another branch; leave in review until merged/verified.\n[2026-09-10 14:38 UTC - claude] Reapplied verified commit(s) on mechanics-verification-2026-09-09; guardrail 6/6 PASS.",
     "created_at": "2026-09-10T02:15:00Z",
     "updated_at": "2026-09-10T14:38:14.596608+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -3051,7 +3051,7 @@
     "notes": "[2026-09-10 02:45 UTC - claude] Claimed as bucket D continuation of design-refresh Wave 2. Page has two undefined color-bg-hover/border-hover tokens.\n[2026-09-10 02:36 UTC - claude] Migrated legal.html to SSOT tokens; removed content-container borders; added elevation; guardrail all pass; /legal returns 302 (role-gated, no 500).\n[2026-09-10 13:19 UTC - claude] Re-verified: app/templates/pages/legal.html still uses legacy CSS variables (color-bg-hover, color-border-hover, color-border, color-text-primary, color-bg-card). Leave in review until the SSOT migration is merged/verified.\n[2026-09-10 14:38 UTC - claude] Reapplied verified commit(s) on mechanics-verification-2026-09-09; guardrail 6/6 PASS.",
     "created_at": "2026-09-10T02:34:58.652695+00:00",
     "updated_at": "2026-09-10T14:38:14.596608+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -3065,7 +3065,7 @@
     "notes": "[2026-09-10 02:50 UTC - claude] Brad chose 3A: add info scale and migrate both advocate pages.\n[2026-09-10 02:52 UTC - claude] Added --color-info-50 and --color-info-800 to ssot-design-system.css; migrated advocate_invite.html and advocate_client_detail.html to SSOT tokens; guardrail all pass; /advocate/invite and /advocate/clients/* return 302 (role-gated, no 500).\n[2026-09-10 13:19 UTC - claude] Re-verified: app/templates/pages/advocate_invite.html and advocate_client_detail.html still use legacy/undefined tokens. info-50/800 tokens not present in ssot-design-system.css. Leave in review until migration is merged/verified.\n[2026-09-10 14:38 UTC - claude] Reapplied verified commit(s) on mechanics-verification-2026-09-09; guardrail 6/6 PASS.",
     "created_at": "2026-09-10T02:48:21.633551+00:00",
     "updated_at": "2026-09-10T14:38:14.596608+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -3093,7 +3093,7 @@
     "notes": "Received from Brad as the next gate. Work through Tasks 1\u20139, one commit per task where code changes are made, log in BUILD_STATE.md, and report back with two signals: (1) four MVP mechanics confirmed yes/no, (2) Document Center inventory with ready/flagged status.\n[2026-09-10 06:45 UTC - claude] Tasks 1-5 verified; two small fixes committed (conftest import, timeline document date axis). Flags recorded in BUILD_STATE. Tasks 6-9 remaining.\n[2026-09-10 06:54 UTC - claude] All 9 tasks verified. Two small fixes committed. Hard flag: vault_index vs VaultItem/timeline disconnect; needs Brad decision on integration. See BUILD_STATE.md session 2026-09-10.\n[2026-09-10 07:37 UTC - claude] Hard flag (vault/timeline gap) fixed: app/modules/timeline/router.py now loads VaultIndexDB documents into unified timeline, with regression test added. test_unified_timeline passes the new test; pre-existing UI rendering test still fails. BUILD_STATE updated. Awaiting Brad review before resolved.\n[2026-09-10 08:07 UTC - claude] Tesseract 5.5.3 installed via winget to C:\\Program Files\\Tesseract-OCR and added to user PATH. Local OCR verified for image and scanned PDF (method_used=local_ocr). Remaining flag: pre-existing UI test test_tenant_timeline_renders_eviction_event (UI Composer/template). BUILD_STATE updated.\n[2026-09-10 08:42 UTC - claude] Timeline UI regression fixed: /tenant/timeline now renders Evidence label. test_unified_timeline 6/6. Guardrail 4/4. All 9 mechanics tasks verified. Handoff complete pending Brad review.\n[2026-09-10 13:19 UTC - claude] Route-ownership refactor completed in this session: public/landing/i18n, admin auth, admin ops, and debug routes moved from app/main.py into dedicated modules with FunctionGroupContracts. Route audit now 0 uncovered; guardrail 4/4 PASS. BUILD_STATE.md updated. Still awaiting Brad review for full mechanics handoff resolution.\n[2026-09-10 15:43 UTC - claude] Brad approved mechanics verification handoff. All 9 tasks verified, guardrail 6/6 PASS, route audit 0 uncovered, timeline Evidence label restored, Tesseract 5.5.3 installed.",
     "created_at": "2026-09-10T06:22:29.840887+00:00",
     "updated_at": "2026-09-10T15:43:03.685528+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   },
   {
@@ -3135,7 +3135,7 @@
     "notes": "[2026-09-11 03:09 UTC - devin] Claiming for Wave 2 continuation: migrate document delivery send/inbox to SSOT tokens and borderless elevation.\n[2026-09-11 12:57 UTC - devin] Verification complete: guardrail 7/7, module_health 1 passed, /delivery/send and /delivery/inbox render at desktop and mobile with no console warnings. PR to be created.\n[2026-09-11 13:00 UTC - devin] PR created: https://github.com/1semptify-arch/Semptify/pull/193\n[2026-09-11 15:33 UTC - claude] Merged to main via PR #193. CI all green.",
     "created_at": "2026-09-11T02:18:41.111201+00:00",
     "updated_at": "2026-09-11T15:33:50.611533+00:00",
-    "target_model": "unlimited",
+    "target_model": "trusted",
     "assigned_agent": "claude"
   }
 ]
