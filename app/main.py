@@ -3286,6 +3286,60 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             set_experience_token_cookie(response, tapering_ctx["experience_token"])
         return response
 
+    @fastapi_app.get("/gui/know/law-library/get-case", response_class=HTMLResponse)
+    async def gui_law_library_get_case_guide_page(
+        request: Request,
+        db: AsyncSession = Depends(get_db),
+    ):
+        """In-task guide preview for looking up a case (KNOW pillar)."""
+        from app.core.module_contracts import contract_registry
+        from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.tapering import set_experience_token_cookie
+
+        contract = contract_registry.get("law_library", "law_library_get_case")
+        if contract is None:
+            raise HTTPException(status_code=404, detail="Function contract not found")
+
+        narration = {
+            "state": "pending",
+            "step_label": "When you click Look up, Semptify does the following:",
+            "mode": "sync",
+            "narration": [
+                "Checks the verified Semptify case law database.",
+                "Returns the case name, citation, holding, and key quotes.",
+                "Semptify does not interpret the law or give legal advice.",
+            ],
+        }
+
+        situational_available = is_function_resolved(request, contract.module)
+        explanation_data = await get_explanation_for_guide(
+            request,
+            contract,
+            Pillar.KNOW,
+            "Look up a verified housing case to understand how courts have ruled.",
+            ["law_library", "case", "case_law", "lookup"],
+            db=db,
+        )
+        explanation = explanation_data["explanation"]
+        tapering_ctx = explanation_data["tapering_ctx"]
+
+        response = templates.TemplateResponse(
+            request,
+            "pages/law_library_get_case.html",
+            {
+                "contract": contract.to_dict(),
+                "intensity_level": tapering_ctx["intensity_level"],
+                "exposure_count": tapering_ctx["exposure_count"],
+                "situational_available": situational_available,
+                "narration": narration,
+                "explanation": explanation,
+                "next_step": {"label": "Browse the law library", "path": "/law-library"},
+            },
+        )
+        if not tapering_ctx["experience_token_saved_to_cloud"]:
+            set_experience_token_cookie(response, tapering_ctx["experience_token"])
+        return response
+
     @fastapi_app.get("/gui/act/eviction-defense/calculate-deadlines", response_class=HTMLResponse)
     async def gui_eviction_defense_calculate_deadlines_guide_page(
         request: Request,
