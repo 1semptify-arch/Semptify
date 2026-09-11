@@ -4,50 +4,47 @@
 
 {% block styles %}
 <style>
-  .page-wrap { max-width: var(--space-xxl); margin: 0 auto; padding: var(--space-lg); }
+  .page-wrap { max-width: var(--max-width-5xl); margin: 0 auto; padding: var(--space-4); }
+  .page-info { margin-bottom: var(--space-6); }
+  .page-info h1 { font-size: var(--text-3xl); color: var(--text-primary); margin: 0 0 var(--space-1); }
+  .page-info p { font-size: var(--text-base); color: var(--text-secondary); margin: 0; }
 
-  .page-info { margin-bottom: var(--space-lg); }
-  .page-info h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs); }
-  .page-info p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
-
-  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); }
-
-  .doc-item { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md); }
-  .doc-item + .doc-item { margin-top: var(--space-sm); background: var(--color-surface-alt); border-radius: var(--radius-md); }
-  .doc-info { flex: 1; }
-  .doc-subject { font-size: var(--font-size-sm); color: var(--color-text-primary); font-weight: 600; margin: 0 0 var(--space-xs); }
-  .doc-meta { font-size: var(--font-size-xs); color: var(--color-text-muted); }
-  .doc-status { font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-pill); margin-left: var(--space-sm); }
-  .doc-status.pending { background: var(--color-warning); color: var(--color-on-primary); }
-  .doc-status.signed { background: var(--color-success); color: var(--color-on-primary); }
-  .doc-status.declined { background: var(--color-error); color: var(--color-on-primary); }
-
-  .btn-primary {
-    padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-md);
-    background: var(--color-primary); color: var(--color-on-primary);
-    border: none; font-size: var(--font-size-sm); cursor: pointer;
+  .panel {
+    background: var(--zone-surface-2);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--elevation-1);
   }
 
-  .reaction { font-size: var(--font-size-sm); color: var(--color-warning); text-align: center; padding: var(--space-md); }
-  .empty-state { text-align: center; padding: var(--space-xl); font-size: var(--font-size-sm); color: var(--color-text-muted); }
+  .doc-item { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3); border-radius: var(--radius-md); background: var(--zone-surface-1); }
+  .doc-item + .doc-item { margin-top: var(--space-2); }
+  .doc-info { flex: 1; }
+  .doc-subject { font-size: var(--text-sm); color: var(--text-primary); font-weight: 600; margin: 0 0 var(--space-1); }
+  .doc-meta { font-size: var(--text-xs); color: var(--text-muted); }
+  .doc-status { font-size: var(--text-xs); padding: var(--space-1) var(--space-2); border-radius: var(--radius-pill); margin-left: var(--space-2); color: var(--text-inverse); }
+  .doc-status.pending { background: var(--color-warning); }
+  .doc-status.signed { background: var(--color-success); }
+  .doc-status.declined { background: var(--color-error); }
+
+  .reaction { font-size: var(--text-sm); color: var(--color-warning); text-align: center; padding: var(--space-4); }
+  .empty-state { text-align: center; padding: var(--space-6); font-size: var(--text-sm); color: var(--text-muted); }
 
   @media (max-width: 768px) {
-    .page-wrap { padding: var(--space-md); }
-    .panel { padding: var(--space-md); }
-    .doc-item { flex-direction: column; align-items: flex-start; gap: var(--space-sm); }
+    .page-wrap { padding: var(--space-4); }
+    .panel { padding: var(--space-4); }
+    .doc-item { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+    .doc-status { margin-left: 0; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="page-wrap">
-  <!-- INFORMATION -->
   <div class="page-info">
     <h1>Delivery Inbox</h1>
     <p>Documents sent to you for review and signature.</p>
   </div>
 
-  <!-- OUTPUT -->
   <div class="panel" id="inbox">
     <div class="reaction" id="reaction">Loading inbox...</div>
   </div>
@@ -69,7 +66,7 @@
         return;
       }
       box.innerHTML = docs.map(d =>
-        '<div class="doc-item"><div class="doc-info"><p class="doc-subject">' + d.subject + '</p><p class="doc-meta">From: ' + d.sender + ' · ' + d.date + '</p></div><span class="doc-status ' + d.status + '">' + d.status + '</span><button class="btn-primary" onclick="alert(\'Opening ' + d.subject + '\')">Open</button></div>'
+        '<div class="doc-item"><div class="doc-info"><p class="doc-subject">' + d.subject + '</p><p class="doc-meta">From: ' + d.sender + ' &middot; ' + d.date + '</p></div><span class="doc-status ' + d.status + '">' + d.status + '</span><button class="btn btn--primary btn--sm" onclick="alert(\'Opening ' + d.subject + '\')">Open</button></div>'
       ).join('');
     }, 1000);
   }
