@@ -55,11 +55,27 @@
 @media (max-width: 767px) {
   #dcShell {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(280px, auto) minmax(280px, auto);
+    grid-template-rows: auto 1fr;
+  }
+  #dcMobileTabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .dc-pane {
+    display: none !important;
+    min-height: 0;
+  }
+  .dc-pane.dc-pane--active {
+    display: flex !important;
+    min-height: 360px;
   }
   #dcLeft {
-    max-height: 360px;
+    max-height: none;
   }
+}
+
+#dcMobileTabs {
+  display: none;
 }
 
 #dcLeft,

@@ -1,3 +1,28 @@
+## Session — 2026-09-11 — Document Center mobile layout + upload wiring (claude)
+
+### Goal
+Complete the Document Center mechanics verification blockers: mobile pane switcher, upload form error handling, and auto-selection of the uploaded document.
+
+### Verification
+- `tools/guardrail_engine.py`: 7/7 PASS
+- `pytest tests/test_dc_gaps_integration.py app/modules/document_center/tests/test_dc_smoke.py`: 23 passed
+- `node tests/playwright-document-center-test.js` (local): 14/14 PASS, no page errors
+- `/dc` route returns 200 for authenticated dev user
+
+### What changed
+- `app/templates/pages/document_center.html`
+  - Added mobile pane switcher (`#dcMobileTabs`) for screens < 768px.
+  - Added `dc-pane` / `dc-pane--active` classes to left/center/right panes.
+  - Added `setMobilePane()`, `checkMobile()`, and resize listener.
+  - Upload form now sends `storage_provider=local`.
+  - Upload form handles `reconnect_required`/`token_expired`/`storage_required` responses with a non-blocking reconnect link.
+  - After a successful upload, the new document is selected and opened in the viewer.
+- `static/css/document-center.css`
+  - Base `#dcMobileTabs { display: none; }`.
+  - Mobile media query turns `#dcMobileTabs` into a flex tab bar and shows only the active `.dc-pane`.
+
+---
+
 ## Session — 2026-09-10 — 5.0 stability sweep (claude)
 
 ### Goal
