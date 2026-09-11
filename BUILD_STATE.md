@@ -1,3 +1,27 @@
+## Session — 2026-09-11 — Document delivery design-token refresh (devin)
+
+### Goal
+Migrate app/templates/pages/document_delivery_send.html and app/templates/pages/document_delivery_inbox.html to canonical SSOT design tokens and borderless panel elevation.
+
+### Verification
+- tools/guardrail_engine.py: 7/7 PASS
+- pytest tests/module_health/test_document_delivery.py -q --no-cov: 1 passed
+- /delivery/send renders 200 for an authenticated professional user at 1280px and 375px with no console warnings
+- /delivery/inbox renders 200 for an authenticated professional user at 1280px and 375px with no console warnings
+
+### What changed
+- app/templates/pages/document_delivery_send.html
+  - Replaced undefined/legacy CSS variables (--space-xxl, --font-size-*, --color-text-*, --color-surface*) with SSOT tokens.
+  - Panel now uses var(--zone-surface-2) + var(--elevation-1) (borderless, subtle depth).
+  - Inputs keep 1px solid var(--border-color) for affordance.
+  - Button uses canonical .btn.btn--primary.
+- app/templates/pages/document_delivery_inbox.html
+  - Same SSOT token migration.
+  - Document list items use var(--zone-surface-1) for row separation without card borders.
+  - Status badges use var(--text-inverse) on semantic color fills.
+
+---
+
 ## Session — 2026-09-11 — local_dev GUI 504 root cause + law-library get-case verification (claude)
 
 ### Guardrail Engine Run — 2026-09-11T13:54:52+00:00
