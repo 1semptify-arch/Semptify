@@ -1,5 +1,17 @@
 ## Session — 2026-09-10 — 5.0 stability sweep (claude)
 
+### Guardrail Engine Run — 2026-09-11T01:41:43+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 2 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Goal
 Post-ship pass over the 5.0 main branch to confirm runtime health, route availability,
 Part 3B fact quarantine, and no lingering guardrail/test failures.
@@ -13681,3 +13693,31 @@ Nothing is real until it is pushed.
 - Remaining Semptify 5.0 gaps from prior gap analysis (PageEngine facade, any remaining FunctionGroupContract coverage, user-facing contract-copy expansion for new guide pages).
 - Branch `orchestration/opus-setup-2026-09-09` needs merge into `main`.
 
+
+## Session — 2026-09-10 — Opus setup close-out (devin)
+
+### Goal
+Resolve the remaining Opus orchestration open items and update the workspace so the orchestration substrate and BUILD_STATE are coherent.
+
+### Problem → Fix → Verification → Status
+
+| # | Open item | Problem | Fix | Verification | Status |
+|---|-----------|---------|-----|--------------|--------|
+| 3 | Queue registration for Opus setup | Unclear whether the opus work should be in the orchestrator queues. | Added `opus-loose-ends-2026-09-10` to `C:\master-repo\tools\orchestrator_state.json` as `in_progress` and to `modules/app-semptify-fastapi/tools/agent_orchestrator_tasks.json` via master sync. | `sync_orchestrator.py` ran; final queue 221 tasks, 1 `in_progress` (`opus-loose-ends-2026-09-10`). | Resolved |
+| 4 | Temp-folder disposition | Seven files still sat in the ignored `hand offs and temp/` directory with no canonical home. | Brad already approved decision: 5 markdown duplicates deleted, 4 HTML prototypes archived to `C:\master-repo\archive\working\temp-prototypes-2026-09-10\`. | Directory is empty; archive contains the 4 prototypes. | Resolved |
+| 5 | `SEMPTIFY_REFERENCE_LIBRARY.md` "free" contradiction | Semptify Go described as "free" / "Free forever", violating the public-service language rule. | `modules/app-semptify-55/README.md` and `SEMPTIFY_REFERENCE_LIBRARY.md` section 19 already use the approved replacement copy ("open-source", "No paid tiers"). `app-semptify-55/AGENTS.md` still says "a free"; flagged as a residual for the module's own handoff. | Grep shows no remaining "free"/"Free forever" describing Semptify Go in the two canonical files. | Resolved (with residual) |
+| 6 | Agent/model tier routing | Semptify `agent_orchestrator_tasks.json` contained stale `glm-5.2`, `swe-1.7`, `kimi-2.7` `target_model` values and `workbook_bridge.py` emitted non-canonical names. | Updated `workbook_bridge.py` `model_for_task()` to emit only `unlimited` (with `claude` set by human/orchestrator for judgment tasks). Canonicalized 92 `target_model` entries in `_seed_orchestrator_tasks.py` to `unlimited`. | Queue now only has `unlimited` (180), `claude` (22), `unassigned` (19). | Resolved |
+| 7 | Self-approval enforcement | `mark_task_status.py` and `orchestrator_mark_task.py` could let an agent resolve its own task. | Both tools already have `PRIVILEGED_AGENTS = {"claude", "claude-code", "orchestrator"}` and self-approval guards. Added the `PRIVILEGED_AGENTS` rule and no-self-approval note to Semptify `AGENTS.md`. | `python -m py_compile` on both mark tools passed; `mark_task_status.py opus-loose-ends-2026-09-10 in_progress --agent devin` ran cleanly. | Resolved |
+| 8 | `.gitignore` typo | `hand offs and temop/` (typo) ignored, missing the real `hand offs and temp/` directory. | Fixed to `hand offs and temp/` in an earlier commit. | Git status ignores the directory. | Resolved |
+| 9 | Stale `active_subagents.json` | A 2026-08-27 `swe-executor` entry remained even though no task is in progress. | Emptied the `active` array and left a note in `C:\master-repo\tools\active_subagents.json`. | Master and Semptify queues both show 0 other `in_progress` tasks. | Resolved |
+
+### Deferred decisions
+- Canonical agent/model tier names and routing: the Opus COO Charter is now in `docs/orchestration/`. The interim canonical set (`unlimited` / `claude` / `unassigned`) has been applied; final unification of the master `AGENTS.md` and Semptify `AGENTS.md` text is deferred until the next orchestration pass.
+
+### Verification
+- `sync_orchestrator.py`: 0 stubs, 221 tasks, 0 missing paths.
+- `tools/guardrail_engine.py`: TBD (run in verification step).
+- `python -m py_compile` on `tools/workbook_bridge.py` and `tools/_seed_orchestrator_tasks.py`: PASS.
+
+### Next
+- Merge `admin/opus-loose-ends-2026-09-10` into `main` after Brad review.
