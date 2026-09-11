@@ -377,6 +377,13 @@ class NavigationRegistry:
             next_stage=None,
             requires_checkpoint=False,
         ),
+        "know_law_library_get_case": FlowStage(
+            id="know_law_library_get_case",
+            name="Know Law Library Get Case",
+            path="/gui/know/law-library/get-case",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
         "act_eviction_defense_calculate_deadlines": FlowStage(
             id="act_eviction_defense_calculate_deadlines",
             name="Act Eviction Defense Calculate Deadlines",
