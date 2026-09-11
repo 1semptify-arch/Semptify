@@ -3422,6 +3422,34 @@
     "updated_at": "2026-09-10T16:38:56.277277+00:00",
     "target_model": "unassigned",
     "assigned_agent": "claude"
+  },
+  {
+    "id": "expand-law-library-2026-09-10",
+    "title": "Expand Law Library to cover service/ESAs, vulnerable adults, commerce, accountability, and more",
+    "description": null,
+    "file_path": "app/modules/law_library/router.py",
+    "priority": "high",
+    "status": "resolved",
+    "category": "content",
+    "notes": "Brad: Law Library must cover service animals, emotional support animals, vulnerable adults, commerce, and accountability to Semptify standards.\n[2026-09-10 17:33 UTC - claude] Batch 1: added 31 statutes covering housing assistance, service/ESAs, vulnerable adults, commerce, and accountability (commit cd711d1d). Batch 2: added 10 more statutes covering commerce/lien, local enforcement, rent escrow, vulnerable adult emergency services, harassment, and Section 8 landlord obligations (commit 79cc4221). Library now 97 statutes across 21 categories.\n[2026-09-10 18:09 UTC - claude] Batch 3: added 5 more statutes, 7 case-law entries, and 5 court rules. Library now 102 statutes, 19 cases, 8 rules, 21 categories (commit 037672a6).\n[2026-09-10 18:46 UTC - claude] Batch 4: added 7 federal housing program statutes (Section 202, Section 811, McKinney-Vento, CoC, USDA 515, HOPWA, FUP). Library now 109 statutes, 19 cases, 8 rules, 21 categories (commit bec2feb3).\n[2026-09-10 18:53 UTC - claude] Batch 5: added 2 case-law entries (Minnesota v. Andersen, Baker v. Commodore Properties). Library now 109 statutes, 21 cases, 8 rules (commit 142ced21).\n[2026-09-10 18:56 UTC - claude] Batch 6: added 5 court rules (filing answer, jury trial, settlement conference, appeals, default judgment removal). Library now 109 statutes, 21 cases, 13 rules (commit b7c8a317).\n[2026-09-10 19:51 UTC - claude] Batch 7: added 5 Minnesota state remedy statutes (utility shutoff, condemnation, rent receipt, notice of sale, tenant screening). Library now 114 statutes, 21 cases, 13 rules (commit c2c0862d).\n[2026-09-10 19:58 UTC - claude] Batch 8 (final): added 5 federal housing program statutes (HUD-VASH, Shelter Plus Care, ESG, Section 236, Section 221(d)(3)). Library now 119 statutes, 21 cases, 13 rules (commit 8a18d4c1).\n[2026-09-10 20:04 UTC - claude] Runtime verified: /api/law-library/statutes returns 119, /case-law returns 21, /court-rules returns 13.\n[2026-09-10 21:12 UTC - orchestrator] Brad approved 2026-09-10. Law Library now 119 statutes / 21 cases / 13 rules, runtime verified, pushed to mechanics-verification-2026-09-09 branch.",
+    "created_at": "2026-09-10T17:25:12.948673+00:00",
+    "updated_at": "2026-09-10T21:12:17.028501+00:00",
+    "target_model": "unlimited",
+    "assigned_agent": "orchestrator"
+  },
+  {
+    "id": "wire-law-library-to-linker-and-composer-2026-09-10",
+    "title": "Wire expanded Law Library into Law Linker and Composer",
+    "description": "Update law_source_registry and law-linker.js for new citation patterns; ensure /law-library runs Law Linker; upsert Law Library entries as verified Context Engine facts for Page Composer; review law consumers.",
+    "file_path": "app/core/law_source_registry.py",
+    "priority": "high",
+    "status": "resolved",
+    "category": "integration",
+    "notes": "User approved after Law Library preview. Full wiring requested.\n[2026-09-10 21:12 UTC - orchestrator] Brad approved 2026-09-10. Wired Law Library into Law Linker, source registry, and Context Engine/Page Composer. Commit 2693f6ad.",
+    "created_at": "2026-09-10T20:42:49.012596+00:00",
+    "updated_at": "2026-09-10T21:12:22.022428+00:00",
+    "target_model": "unlimited",
+    "assigned_agent": "orchestrator"
   }
 ]
 
