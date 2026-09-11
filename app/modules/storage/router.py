@@ -291,7 +291,10 @@ async def refresh_access_token(
         return None
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        # Short timeout: token refresh should be fast. A long timeout risks blowing
+        # the request timeout when the provider is unreachable, leaving the user
+        # staring at a 504 instead of a calm "reconnect" prompt.
+        async with httpx.AsyncClient(timeout=5.0) as client:
             if provider == "google_drive":
                 response = await client.post(
                     config["token_url"],

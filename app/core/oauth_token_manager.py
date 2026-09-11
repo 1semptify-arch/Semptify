@@ -236,7 +236,7 @@ def register_google_refresh_callback():
                 "grant_type": "refresh_token",
             }
 
-            async with httpx.AsyncClient(timeout=10) as client:
+            async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.post("https://oauth2.googleapis.com/token", data=data)
 
                 if response.status_code == 200:
@@ -270,7 +270,7 @@ def register_dropbox_refresh_callback():
                 "client_secret": settings.dropbox_app_secret,
             }
 
-            async with httpx.AsyncClient(timeout=10) as client:
+            async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.post("https://api.dropboxapi.com/oauth2/token", data=data)
 
                 if response.status_code == 200:
@@ -304,7 +304,7 @@ def register_onedrive_refresh_callback():
                 "grant_type": "refresh_token",
             }
 
-            async with httpx.AsyncClient(timeout=10) as client:
+            async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.post("https://login.microsoftonline.com/common/oauth2/v2.0/token", data=data)
 
                 if response.status_code == 200:
