@@ -1,437 +1,85 @@
-{% extends "base.html" %}
+{% extends "shell_base.html" %}
 
 {% block title %}{{ page_title | default('Semptify — Protect the serenity of home') }}{% endblock %}
 {% block description %}{{ page_description | default('Semptify is a nonprofit tenant-rights platform. Document what happened, understand your rights, and keep a record an attorney can actually use — without storing your private files on our servers.') }}{% endblock %}
-{% block body_class %}template-1 page-landing{% endblock %}
-{% block main_class %}landing-main{% if landing_facts %} landing-main--with-facts{% endif %}{% endblock %}
 
-{% block styles %}
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="/portal">Browse tools</a></li>
+<li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+<li class="nav-item"><a class="nav-link" href="/help">Help &amp; legal aid</a></li>
+{% endblock %}
+
+{% block content %}
+<p class="shell-eyebrow">A nonprofit tenant-rights platform</p>
+<h1>Document what happened. Know the verified facts. Take the next step.</h1>
+<p class="shell-lede">
+    Semptify helps renters organize the paper trail between them and their
+    landlord — in their own storage, on their own terms.
+</p>
+<div class="shell-actions">
+    <a href="/preamble" class="shell-btn shell-btn--accent">Get help now</a>
+    <a href="/portal" class="shell-btn">Browse tools &amp; services first</a>
+</div>
+<p style="margin-top:1.25rem; font-size:0.95rem; color:var(--text-secondary); max-width:46ch;">
+    Takes about a minute. Nothing is shared without you choosing to share it.
+</p>
+{% endblock %}
+
+{% block extra_css %}
 <style>
-    /* Public landing — fact-forward, typography-led.
-       Replaces the "comforts of home" motif: the page reads like a verified
-       record — a typographic ledger. Facts sit in a numbered rail beside the
-       hero, not stacked under it. No cards, no shadows; zones separate by
-       background and hairline rules per ssot-design-system.css. */
-
-    body.page-landing,
-    .template-1 body.page-landing,
-    .template-1 main.landing-main,
-    main.landing-main {
-        background-color: var(--zone-bg-primary);
-        color: var(--text-inverse);
-    }
-
-    .page-landing a { color: var(--text-inverse); }
-    .page-landing a:hover,
-    .page-landing a:focus { color: var(--color-white); }
-
-    /* Transparent public topbar — a calm, minimal path to help. */
-    .landing-topbar {
-        position: relative;
-        z-index: 20;
-        background: transparent;
-        padding: var(--space-6) var(--space-8);
-    }
-
-    .landing-topbar nav {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--space-4);
-        flex-wrap: wrap;
-    }
-
-    .landing-brand {
-        font-size: var(--type-h2);
-        font-weight: 700;
-        color: var(--text-inverse);
-        text-decoration: none;
-        letter-spacing: -0.01em;
-    }
-
-    .landing-brand .mark { color: var(--color-primary-light); }
-
-    .landing-topbar__links {
-        display: flex;
-        align-items: center;
-        gap: var(--space-6);
-        flex-wrap: wrap;
-    }
-
-    .landing-topbar__links a {
-        color: var(--color-gray-300);
-        text-decoration: none;
-        font-size: var(--type-body);
-    }
-
-    .landing-topbar__links a:hover,
-    .landing-topbar__links a:focus {
-        color: var(--text-inverse);
-        text-decoration: underline;
-        text-underline-offset: 3px;
-    }
-
-    .topbar__helpline {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--space-2);
-    }
-
-    .helpline-dot {
-        width: 8px;
-        height: 8px;
-        background: var(--color-success);
-        display: inline-block;
-    }
-
-    /* Main stage: baseline-anchored asymmetric grid.
-       Without facts the hero sits alone, anchored low-left; with facts the
-       page splits into a wide hero column and a narrow facts rail separated
-       by a hairline — a ledger, not a dashboard. */
-    .landing-main {
-        position: relative;
-        display: grid;
-        grid-template-columns: 1fr;
-        min-height: 100vh;
-        min-height: 100dvh;
-        align-items: end;
-    }
-
-    @media (min-width: 900px) {
-        .landing-main--with-facts {
-            grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
-            align-items: stretch;
-        }
-        .landing-main--with-facts .landing-hero {
-            align-self: end;
-        }
-        .landing-main--with-facts .facts {
-            align-self: center;
-            border-left: 1px solid color-mix(in srgb, var(--color-white), transparent 88%);
-        }
-    }
-
-    /* Typographic field — ruled ledger lines + an oversized record mark.
-       Decorative, aria-hidden; the gentle pointer drift is progressive
-       enhancement only. */
-    .landing-ledger {
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        overflow: hidden;
-        pointer-events: none;
-    }
-
-    .landing-ledger__svg {
-        width: 100%;
-        height: 100%;
-        display: block;
-    }
-
-    /* Hero stanza: anchored to the baseline, left-aligned, off-center. */
-    .landing-hero {
-        position: relative;
-        z-index: 1;
-        padding: var(--space-8) var(--space-8) var(--space-16);
-        max-width: 60ch;
-    }
-
-    .landing-eyebrow {
-        font-size: var(--type-label);
-        font-weight: var(--type-label-weight);
-        text-transform: uppercase;
-        letter-spacing: var(--type-label-tracking);
-        color: var(--color-primary-light);
-        margin: 0 0 var(--space-4);
-    }
-
-    .landing-title {
-        font-size: clamp(2.4rem, 6.5vw, 4.6rem);
-        font-weight: 800;
-        line-height: 1.02;
-        letter-spacing: -0.02em;
-        margin: 0 0 var(--space-5);
-        color: var(--text-inverse);
-        max-width: 22ch;
-    }
-
-    .landing-title .verified {
-        color: var(--color-success);
-    }
-
-    .landing-sub {
-        font-size: clamp(1.05rem, 1.7vw, 1.25rem);
-        color: var(--color-gray-300);
-        max-width: 44ch;
-        line-height: 1.65;
-        margin: 0 0 var(--space-6);
-    }
-
-    .landing-cta-group {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-4) var(--space-6);
-        margin-bottom: var(--space-4);
-    }
-
-    .landing-cta-primary {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--space-2);
-        background: var(--color-accent);
-        color: var(--text-primary);
-        font-size: 1.1rem;
-        font-weight: 700;
-        padding: var(--space-4) var(--space-8);
-        text-decoration: none;
-        transition: background 0.15s ease;
-    }
-
-    .landing-cta-primary:hover,
-    .landing-cta-primary:focus {
-        background: var(--color-accent-hover);
-        color: var(--text-primary);
-        text-decoration: none;
-    }
-
-    .landing-cta-note {
-        font-size: var(--type-body);
-        color: var(--color-gray-300);
-        margin: 0;
-        max-width: 46ch;
-    }
-
-    .landing-cta-secondary {
-        font-size: var(--type-body);
-        color: var(--color-gray-300);
-        text-decoration: underline;
-        text-underline-offset: 3px;
-    }
-
-    .landing-cta-secondary:hover,
-    .landing-cta-secondary:focus {
-        color: var(--text-inverse);
-    }
-
-    /* Facts rail: a numbered ledger — each claim gets an index numeral and a
-       source line. Numbers are the design element, not decoration. */
-    .facts {
-        position: relative;
-        z-index: 1;
-        padding: var(--space-8) var(--space-8) var(--space-12);
-        max-width: 46ch;
-    }
-
-    .facts__heading {
-        font-size: var(--type-label);
-        font-weight: var(--type-label-weight);
-        text-transform: uppercase;
-        letter-spacing: var(--type-label-tracking);
-        color: var(--color-gray-300);
-        margin: 0 0 var(--space-2);
-    }
-
-    .facts__note {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin: 0 0 var(--space-5);
-        max-width: 38ch;
-    }
-
-    .facts__list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        counter-reset: fact;
-    }
-
-    .fact {
-        display: flex;
-        align-items: flex-start;
-        gap: var(--space-4);
-        padding: var(--space-5) 0;
-        border-top: 1px solid color-mix(in srgb, var(--color-white), transparent 88%);
-        color: var(--color-gray-200);
-        counter-increment: fact;
-    }
-
-    .fact__num {
-        flex-shrink: 0;
-        font-size: var(--type-h2);
-        font-weight: 800;
-        line-height: 1;
-        color: color-mix(in srgb, var(--color-white), transparent 72%);
-        font-variant-numeric: tabular-nums;
-        min-width: 2ch;
-    }
-
-    .fact__num::before { content: counter(fact, decimal-leading-zero); }
-
-    .fact__text {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-2);
-    }
-
-    .fact__claim {
+    .landing-facts { list-style:none; margin:0; padding:0; counter-reset:fact; }
+    .landing-facts li {
+        padding: 0.75rem 0;
+        border-top: 1px solid var(--border-default);
+        font-size: 0.95rem;
         line-height: 1.55;
-        margin: 0;
     }
-
-    .fact__source {
+    .landing-facts li::before {
+        counter-increment: fact;
+        content: counter(fact, decimal-leading-zero);
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
         color: var(--text-muted);
-        font-size: 0.85rem;
-        text-decoration: none;
+        font-variant-numeric: tabular-nums;
+        margin-bottom: 0.15rem;
     }
-
-    .fact__source:hover,
-    .fact__source:focus {
-        color: var(--text-inverse);
-        text-decoration: underline;
-    }
-
-    /* Mobile: stack, facts rail drops below the hero and loses the rail rule. */
-    @media (max-width: 899px) {
-        .landing-main { align-items: start; }
-        .landing-topbar { padding: var(--space-4); }
-        .landing-topbar__links { gap: var(--space-3); }
-        .landing-hero { padding: var(--space-8) var(--space-4) var(--space-8); }
-        .facts { padding: var(--space-6) var(--space-4) var(--space-10); }
-        .landing-title { font-size: clamp(2rem, 11vw, 2.9rem); }
-        .landing-cta-primary { width: 100%; justify-content: center; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .landing-cta-primary { transition: none; }
+    .landing-facts a {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
     }
 </style>
 {% endblock %}
 
-{% block header %}
-<header class="landing-topbar">
-    <nav aria-label="Primary">
-        <a class="landing-brand" href="/" aria-label="Semptify home">
-            <span class="mark">Semp</span>tify
-        </a>
-        <div class="landing-topbar__links">
-            <a href="/portal">Browse tools</a>
-            <a href="/about">About</a>
-            <a href="/help" class="topbar__helpline">
-                <span class="helpline-dot" aria-hidden="true"></span>
-                Help &amp; legal aid
-            </a>
-        </div>
-    </nav>
-</header>
-{% endblock %}
-
-{% block content %}
-<!-- Typographic ledger field — ruled lines and an oversized record mark,
-     replacing the comforts-of-home silhouettes. Decorative, aria-hidden. -->
-<div class="landing-ledger" aria-hidden="true">
-    <svg class="landing-ledger__svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" focusable="false">
-        <defs>
-            <linearGradient id="ledger-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="var(--zone-bg-inverse)"/>
-                <stop offset="60%" stop-color="var(--color-primary)"/>
-                <stop offset="100%" stop-color="var(--zone-bg-inverse)"/>
-            </linearGradient>
-            <radialGradient id="ledger-glow" cx="30%" cy="70%" r="60%">
-                <stop offset="0%" stop-color="var(--color-primary-light)" stop-opacity="0.14"/>
-                <stop offset="100%" stop-color="var(--zone-bg-inverse)" stop-opacity="0"/>
-            </radialGradient>
-            <pattern id="ledger-grain" width="3" height="3" patternUnits="userSpaceOnUse">
-                <rect width="3" height="3" fill="var(--color-white)" fill-opacity="0.012"/>
-            </pattern>
-            <pattern id="ledger-lines" width="40" height="28" patternUnits="userSpaceOnUse">
-                <line x1="0" y1="27.5" x2="40" y2="27.5" stroke="var(--color-primary-light)" stroke-opacity="0.05" stroke-width="1"/>
-            </pattern>
-        </defs>
-
-        <rect width="1440" height="900" fill="url(#ledger-fill)"/>
-        <rect width="1440" height="900" fill="url(#ledger-glow)"/>
-        <rect width="1440" height="900" fill="url(#ledger-grain)"/>
-        <rect width="1440" height="900" fill="url(#ledger-lines)"/>
-
-        <!-- Oversized record marks — faint paragraph glyphs and a check,
-             the vocabulary of a verified record. -->
-        <g fill="var(--color-info)" fill-opacity="0.05" font-family="Georgia, 'Times New Roman', serif" font-weight="bold">
-            <text x="1120" y="240" font-size="340">¶</text>
-            <text x="120" y="800" font-size="280">§</text>
-        </g>
-        <g stroke="var(--color-success)" stroke-opacity="0.10" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1180 640 l44 44 96 -104"/>
-        </g>
-    </svg>
-</div>
-
-<section class="landing-hero" aria-labelledby="landing-title">
-    <p class="landing-eyebrow">A nonprofit tenant-rights platform</p>
-    <h1 id="landing-title" class="landing-title">
-        Document what happened. Know the <span class="verified">verified</span> facts. Take the next step.
-    </h1>
-    <p class="landing-sub">
-        Semptify helps renters organize the paper trail between them and their landlord — in their own storage, on their own terms.
-    </p>
-    <div class="landing-cta-group">
-        <a href="/preamble" class="landing-cta-primary">Get help now</a>
-        <a href="/portal" class="landing-cta-secondary">Browse tools &amp; services first</a>
-    </div>
-    <p class="landing-cta-note">
-        Takes about a minute. Nothing is shared without you choosing to share it.
-    </p>
-</section>
-
+{% block sidebar %}
 {% if landing_facts %}
-<section class="facts" aria-labelledby="facts-heading">
-    <h2 id="facts-heading" class="facts__heading">Verified facts</h2>
-    <p class="facts__note">Every claim here is checked against a named source. If we can't verify it, we don't print it.</p>
-    <ul class="facts__list">
-        {% for fact in landing_facts %}
-        <li class="fact">
-            <span class="fact__num" aria-hidden="true"></span>
-            <span class="fact__text">
-                <p class="fact__claim">{{ fact.claim }}</p>
-                {% if fact.citation and fact.source_url %}
-                <a class="fact__source" href="{{ fact.source_url }}" target="_blank" rel="noopener">
-                    {{ fact.citation }}
-                </a>
-                {% endif %}
-            </span>
-        </li>
-        {% endfor %}
-    </ul>
-</section>
+<h2>Verified facts</h2>
+<p style="font-size:0.85rem; margin-bottom:1rem;">
+    Every claim here is checked against a named source. If we can't verify
+    it, we don't print it.
+</p>
+<ol class="landing-facts">
+    {% for fact in landing_facts %}
+    <li>
+        {{ fact.claim }}
+        {% if fact.citation and fact.source_url %}
+        <a href="{{ fact.source_url }}" target="_blank" rel="noopener">{{ fact.citation }}</a>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ol>
+{% else %}
+<h2>Start here</h2>
+<ul class="shell-list">
+    <li><a href="/preamble">Get help now</a></li>
+    <li><a href="/portal">Browse tools &amp; services</a></li>
+    <li><a href="/law-library">Know your rights</a></li>
+    <li><a href="/help">Find help near you</a></li>
+</ul>
+<p style="margin-top:1.25rem; font-size:0.85rem;">
+    No account needed. No tracking. Your documents stay in your own storage.
+</p>
 {% endif %}
-{% endblock %}
-
-{% block scripts %}
-<script>
-    // Progressive enhancement only: the ledger field drifts gently with pointer
-    // movement. Core content, navigation, and help links work with JavaScript off.
-    (function () {
-        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (reduce) {
-            document.documentElement.setAttribute("data-motion", "off");
-            return;
-        }
-        var field = document.querySelector(".landing-ledger__svg");
-        if (!field) return;
-        var ticking = false;
-        function onMove(e) {
-            if (ticking) return;
-            ticking = true;
-            window.requestAnimationFrame(function () {
-                var x = (e.clientX / window.innerWidth - 0.5) * 14;
-                var y = (e.clientY / window.innerHeight - 0.5) * 10;
-                field.style.transform = "translate(" + (-x) + "px," + (-y) + "px)";
-                ticking = false;
-            });
-        }
-        window.addEventListener("pointermove", onMove, { passive: true });
-    })();
-</script>
 {% endblock %}
