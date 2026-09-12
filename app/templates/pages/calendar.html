@@ -1,4 +1,4 @@
-{% extends "gui/base.html" %}
+{% extends "body/gui_shell.html" %}
 
 {% block title %}Calendar — Semptify{% endblock %}
 {% block nav_record %}active{% endblock %}
@@ -6,6 +6,19 @@
 {% block styles %}
 {{ super() }}
 <link rel="stylesheet" href="/static/css/frame-light.css">
+{% endblock %}
+
+{% block sidebar %}
+<h2>Your record</h2>
+<ul class="shell-list">
+    <li><a href="/gui/record">Documents &amp; vault</a></li>
+    <li><a href="/timeline">Timeline</a></li>
+    <li><a href="/comms-log">Comms log</a></li>
+    <li><a href="/gui/record/journal/create">Journal</a></li>
+</ul>
+<p style="margin-top:1.25rem; font-size:0.85rem;">
+    Deadlines, hearings, and rent dates — the dates that decide what happens next.
+</p>
 {% endblock %}
 
 {% block content %}
