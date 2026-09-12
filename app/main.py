@@ -403,9 +403,22 @@ async def lifespan(_app: FastAPI):
 
             # Check optional packages
             for pkg, desc in OPTIONAL_PACKAGES.items():
+                # libmagic crashes on Windows (python-magic-bin) — skipped by
+                # default everywhere else; honor the same opt-in here so the
+                # requirements check doesn't kill boot. SEMPTIFY_ENABLE_MAGIC=1
+                # re-enables the check.
+                if (
+                    pkg == "magic"
+                    and sys.platform == "win32"
+                    and os.environ.get("SEMPTIFY_ENABLE_MAGIC") != "1"
+                ):
+                    continue
                 try:
                     importlib.import_module(pkg)
-                except ImportError:
+                except (ImportError, OSError):
+                    # OSError: package present but its native lib can't load
+                    # (e.g. libmagic access violation) — same as absent for an
+                    # optional dependency with a mimetypes fallback.
                     missing_optional.append(f"{pkg} ({desc})")
 
             if missing_required:
