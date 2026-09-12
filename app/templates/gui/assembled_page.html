@@ -1,22 +1,70 @@
-{% extends "gui/base.html" %}
+{% extends "shell_base.html" %}
+{#
+  Assembled page — Page Composer → Page Shell pipeline on Site Shell v5.
+
+  Routes: /gui/page/{subject} and the tenant dashboard variant.
+  The page-shell poster grid fills the work zone (height 100%, not 100vh —
+  it lives inside the shell's scrollable main, not the raw viewport).
+  The rail surfaces the assembly metadata — blend, intensity, risk tier —
+  so the composition machinery is visible, per the showpiece brief.
+#}
 
 {% block title %}{{ subject|replace("_", " ")|title }} - Semptify{% endblock %}
-{% block nav_know %}active{% endblock %}
+{% block main_class %}shell-main shell-main--top{% endblock %}
 
 {% block styles %}
+{{ super() }}
 <link rel="stylesheet" href="/static/page_shell/page_shell.css">
+<style>
+/* The page-shell poster owns the work zone, not the viewport. */
+body.shell .shell-main { padding: 0; border-left: none; }
+body.shell .assembled-wrap { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+body.shell .assembled-wrap .page-shell { height: 100%; min-height: 0; flex: 1; }
+</style>
 {% endblock %}
 
 {% block content %}
-<section class="assembled-page" aria-labelledby="assembled-page-title">
-    <h1 id="assembled-page-title">{{ subject|replace("_", " ")|title }}</h1>
-    <div class="assembled-page__shell">
-        {{ shell_html|safe }}
+<div class="assembled-wrap">
+    <h1 class="sr-only" id="assembled-page-title">{{ subject|replace("_", " ")|title }}</h1>
+    {{ shell_html|safe }}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<h2>About this page</h2>
+<p class="shell-note">This page was assembled for your situation — the blocks
+   and their order were chosen by the composer, not hand-built.</p>
+<div class="shell-status">
+    {% if assembly_metadata %}
+    <div class="shell-status-row">
+        <span class="shell-status-label">Layout blend</span>
+        <span class="shell-status-value">{{ assembly_metadata.blend or "—" }}</span>
     </div>
-</section>
+    <div class="shell-status-row">
+        <span class="shell-status-label">Intensity</span>
+        <span class="shell-status-value">{{ assembly_metadata.intensity if assembly_metadata.intensity is not none else "—" }}</span>
+    </div>
+    <div class="shell-status-row">
+        <span class="shell-status-label">Risk tier</span>
+        <span class="shell-status-value">{{ assembly_metadata.risk_tier or "—" }}</span>
+    </div>
+    <div class="shell-status-row">
+        <span class="shell-status-label">Jurisdiction</span>
+        <span class="shell-status-value">{{ jurisdiction.state }}{% if jurisdiction.county %} · {{ jurisdiction.county }}{% endif %}</span>
+    </div>
+    {% endif %}
+</div>
+
+<h2 style="margin-top:2rem;">Keep going</h2>
+<ul class="shell-list">
+    <li><a href="/tenant/start">Your home</a></li>
+    <li><a href="/law-library">Law library</a></li>
+    <li><a href="/help">Find real help</a></li>
+</ul>
 {% endblock %}
 
 {% block scripts %}
+{{ super() }}
 <script>
     window.SEMPTIFY_JURISDICTION = {{ jurisdiction_json | safe }};
 </script>
