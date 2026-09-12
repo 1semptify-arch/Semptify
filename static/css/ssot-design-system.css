@@ -1756,58 +1756,125 @@ a:hover {
    until the separate mobile UI lands (task mobile-ui-separate-toolset).
    ========================================================================== */
 
+/* Liquid whole-page scaling — the root font-size tracks the viewport,
+   so every rem-based element (text, padding, bars, buttons) resizes as
+   one body instead of individual parts. Only applies on shell pages. */
+html:has(> body.shell) {
+  font-size: clamp(12.5px, 0.4vw + 10px, 17px);
+}
+
 body.shell {
   --shell-radius: 0.75rem;
   --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+
+  /* Mock-site lightness — warm paper, low saturation. Regions are
+     transparent; separation comes from whitespace and hairlines. */
+  --shell-paper: #f6f4ef;
+  --shell-ink: #1f1d1a;
+  --shell-ink-2: #5d5a55;
+  --shell-ink-3: #6b655d;
+  --shell-line: #e8e6e1;
+  --shell-sage: #6b8e6b;
+
+  /* Role accent — the only saturated color on the page, carried by the
+     header and footer chrome. Default is tenant/public sage; role
+     pages opt in with shell--<role> on <body>. */
+  --role-accent: #6b8e6b;
+  --role-deep: #4c6b4c;
+  --role-tint: #eceae0;
+
+  /* Remap the shared tokens so shell pages sit on the paper palette
+     while interior components (cards, inputs) keep their surfaces. */
+  --bg-page: var(--shell-paper);
+  --text-primary: var(--shell-ink);
+  --text-secondary: var(--shell-ink-2);
+  --text-muted: var(--shell-ink-3);
+  --bg-muted: var(--shell-line);
+  --color-accent: var(--shell-sage);
+  --border-color: var(--shell-line);
+
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(20rem, 1fr);
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas:
     "header header"
     "main side"
     "footer footer";
-  min-height: 100vh;
-  min-height: 100dvh;
-  background: var(--bg-page);
-  /* The shell fills the viewport when content is short, and scrolls as a
-     page when it runs long — never clip the footer or a long form. */
-  overflow-y: auto;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--shell-paper);
+  /* Desktop never page-scrolls: the shell is a fixed viewport tool and
+     the work zone / rail scroll internally when their content is long. */
+  overflow: hidden;
 }
+
+/* Role accents — muted companions to sage, light enough for the paper
+   frame. Each sets the accent, a deep variant for small text, and the
+   tint used for the header/footer wash. */
+body.shell--advocate { --role-accent: #7286a0; --role-deep: #4d5f74; --role-tint: #e9ebee; }
+body.shell--legal    { --role-accent: #8379a0; --role-deep: #5c5478; --role-tint: #eae8ef; }
+body.shell--agency   { --role-accent: #a3906f; --role-deep: #75644a; --role-tint: #efe9e0; }
+body.shell--developer{ --role-accent: #7d938c; --role-deep: #57695f; --role-tint: #e9ede9; }
+body.shell--admin    { --role-accent: #9a8078; --role-deep: #6d584f; --role-tint: #eee8e4; }
 
 /* --- Frame pieces ---------------------------------------------------------- */
 
+/* Header — thin bar, washed with the role color, hairline keyline. */
 body.shell .main-nav {
   grid-area: header;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--bg-muted);
+  position: static;
+  background: var(--role-tint);
+  border-bottom: 2px solid var(--role-accent);
+}
+
+body.shell .main-nav .nav-container {
+  height: 2.875rem;
+  padding: 0 3vw;
+}
+
+body.shell .main-nav .nav-brand {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--role-deep);
+}
+
+body.shell .main-nav .nav-logo {
+  font-size: 1.05rem;
+  color: var(--role-accent);
 }
 
 body.shell .main-nav .nav-link,
-body.shell .main-nav .nav-title,
-body.shell .main-nav .nav-brand {
-  color: var(--text-primary);
+body.shell .main-nav .nav-title {
+  color: var(--shell-ink);
 }
 
-/* Crisis/help pill — always reachable, sage outline (mock direction). */
+body.shell .main-nav .nav-link {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.2rem 0.5rem;
+}
+
+/* Crisis/help pill — thin outline in the role color. */
 body.shell .nav-actions .btn,
 body.shell .shell-crisis {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  padding: 0.5rem 1.25rem;
-  border: 1.5px solid var(--color-accent);
+  min-height: 2.125rem;
+  padding: 0.25rem 0.875rem;
+  border: 1px solid var(--role-accent);
   border-radius: 9999px;
   background: transparent;
-  color: var(--color-accent);
-  font-weight: 600;
+  color: var(--role-deep);
+  font-size: 0.8125rem;
+  font-weight: 500;
   text-decoration: none;
   transition: all 0.25s ease;
 }
 
 body.shell .nav-actions .btn:hover,
 body.shell .shell-crisis:hover {
-  background: var(--color-accent);
-  color: var(--bg-card);
+  background: var(--role-accent);
+  color: #ffffff;
 }
 
 body.shell .shell-main {
@@ -1816,29 +1883,118 @@ body.shell .shell-main {
   flex-direction: column;
   justify-content: safe center;
   padding: 4vh 4vw;
-  background: var(--bg-card);
-  border-left: 4px solid var(--color-accent);
-  border-radius: 0 var(--shell-radius) var(--shell-radius) 0;
+  background: transparent;
+  border-left: 2px solid var(--role-accent);
   overflow-y: auto;
 }
 
 body.shell .shell-side {
   grid-area: side;
-  align-self: start;
-  position: sticky;
-  top: 1rem;
-  max-height: calc(100vh - 2rem);
   display: flex;
   flex-direction: column;
   padding: 4vh 3vw;
-  background: var(--bg-muted);
-  border-left: 1px solid var(--bg-muted);
-  border-radius: var(--shell-radius);
+  background: transparent;
+  border-left: 1px solid var(--shell-line);
   overflow-y: auto;
 }
 
+/* Footer — thinner than the header, half-size text, same role wash. */
 body.shell .unified-footer {
   grid-area: footer;
+  background: var(--role-tint);
+  border-top: 1px solid var(--role-accent);
+}
+
+body.shell .unified-footer .footer-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  padding: 0.45rem 3vw;
+}
+
+body.shell .unified-footer .footer-disclaimer {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+body.shell .unified-footer .footer-disclaimer-icon {
+  display: none;
+}
+
+body.shell .unified-footer .footer-disclaimer-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--role-deep);
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* The long disclaimer paragraph collapses on shell pages — the title
+   carries the notice and the nav carries the "get help now" link, so
+   the footer stays a single thin line under the header's height. */
+body.shell .unified-footer .footer-disclaimer-text {
+  display: none;
+}
+
+body.shell .unified-footer .footer-nav {
+  gap: 0.9rem;
+  margin: 0;
+}
+
+body.shell .unified-footer .footer-nav a {
+  font-size: 0.6875rem;
+  color: var(--role-deep);
+}
+
+body.shell .unified-footer .footer-divider {
+  display: none;
+}
+
+body.shell .unified-footer .footer-bottom {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-left: auto;
+  text-align: left;
+}
+
+body.shell .unified-footer .footer-copyright { margin: 0; }
+body.shell .unified-footer .footer-help { margin: 0; font-size: 0.6875rem; }
+body.shell .unified-footer .footer-help form { display: inline-flex; align-items: center; gap: 0.3rem; }
+body.shell .unified-footer .footer-help label { font-size: 0.6875rem; color: var(--shell-ink-3); }
+
+body.shell .unified-footer .footer-copyright,
+body.shell .unified-footer .footer-mandates {
+  font-size: 0.6875rem;
+  color: var(--shell-ink-3);
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* The mandates line duplicates the disclaimer notice — hidden so the
+   footer holds a single thin line under the header's height. */
+body.shell .unified-footer .footer-mandates {
+  display: none;
+}
+
+body.shell .unified-footer .footer-help label { display: none; }
+
+body.shell .unified-footer .footer-help select,
+body.shell .unified-footer .footer-help button {
+  font-size: 0.6875rem;
+  padding: 0.1rem 0.3rem;
+  background: transparent;
+  border: 1px solid var(--shell-line);
+  border-radius: 0.25rem;
+  color: var(--shell-ink-2);
 }
 
 /* --- Typography ------------------------------------------------------------ */
@@ -1847,7 +2003,7 @@ body.shell h1,
 body.shell h2,
 body.shell h3 {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -1865,8 +2021,8 @@ body.shell .shell-main h2 {
 }
 
 body.shell .shell-eyebrow {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-accent);
@@ -1904,16 +2060,16 @@ body.shell .shell-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  min-width: 120px;
-  padding: 0.85rem 1.75rem;
-  border: 1.5px solid var(--bg-muted);
+  min-height: 2.5rem;
+  min-width: 7rem;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--shell-line);
   border-radius: var(--shell-radius);
   background: var(--bg-card);
   color: var(--text-primary);
   font: inherit;
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.25s ease;
@@ -1959,13 +2115,13 @@ body.shell .shell-list {
 
 body.shell .shell-list a {
   display: block;
-  padding: 0.7rem 1.25rem;
+  padding: 0.55rem 1rem;
   border-radius: var(--shell-radius);
-  background: var(--bg-card);
-  border: 1px solid var(--bg-muted);
+  background: transparent;
+  border: 1px solid var(--shell-line);
   color: var(--text-primary);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 500;
   transition: all 0.25s ease;
 }
 
@@ -1990,11 +2146,11 @@ body.shell .shell-steps {
 body.shell .shell-steps a {
   display: flex;
   align-items: baseline;
-  gap: 1rem;
-  padding: 0.85rem 1.25rem;
+  gap: 0.875rem;
+  padding: 0.625rem 1rem;
   border-radius: var(--shell-radius);
-  background: var(--bg-page);
-  border: 1px solid var(--bg-muted);
+  background: transparent;
+  border: 1px solid var(--shell-line);
   text-decoration: none;
   transition: all 0.25s ease;
 }
@@ -2007,25 +2163,19 @@ body.shell .shell-steps a:hover {
 body.shell .shell-step-num {
   font-family: var(--font-display);
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-accent);
   min-width: 1.5rem;
 }
 
 body.shell .shell-step-title {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-primary);
 }
 
 body.shell .shell-step-desc {
   color: var(--text-secondary);
   font-size: 0.9rem;
-}
-
-/* --- Slim footer inside the shell ------------------------------------------- */
-
-body.shell .unified-footer .footer-container {
-  padding: 1rem 4vw;
 }
 
 /* --- Fallback: single column under 900px ------------------------------------ */
@@ -2039,13 +2189,12 @@ body.shell .unified-footer .footer-container {
   }
   body.shell .shell-main {
     border-left: none;
-    border-top: 4px solid var(--color-accent);
-    border-radius: 0 0 var(--shell-radius) var(--shell-radius);
+    border-top: 2px solid var(--role-accent);
     overflow: visible;
   }
   body.shell .shell-side {
     border-left: none;
-    border-top: 1px solid var(--bg-muted);
+    border-top: 1px solid var(--shell-line);
     overflow: visible;
   }
   body.shell .shell-actions,
@@ -2091,7 +2240,7 @@ body.shell .shell-item:last-child { border-bottom: none; }
 
 body.shell .shell-item--icon {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-accent);
   min-width: 3rem;
   font-size: 0.9rem;
@@ -2100,7 +2249,7 @@ body.shell .shell-item--icon {
 body.shell .shell-item--main { flex: 1 1 60%; min-width: 0; }
 
 body.shell .shell-item--title {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-primary);
 }
 
@@ -2133,7 +2282,7 @@ body.shell .shell-drop {
   display: block;
   text-align: center;
   padding: 2rem 1rem;
-  border: 1.5px dashed var(--bg-muted);
+  border: 1px dashed var(--bg-muted);
   border-radius: var(--shell-radius);
   background: var(--bg-page);
   color: var(--text-secondary);
@@ -2159,10 +2308,10 @@ body.shell .shell-select {
 }
 
 body.shell .shell-btn--sm {
-  min-height: 36px;
+  min-height: 2rem;
   min-width: 0;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8125rem;
 }
 /* --- Single-column variant ---------------------------------------------------
    `shell--solo` keeps the shell chrome (header, sage-edged work zone,
@@ -2210,7 +2359,7 @@ body.shell .shell-zone + .shell-zone {
 body.shell .shell-zone-title {
   font-family: var(--font-display);
   font-size: 1.35rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 0.75rem;
 }
@@ -2229,7 +2378,7 @@ body.shell .shell-status-row {
 
 body.shell .shell-status-row:last-child { border-bottom: none; }
 body.shell .shell-status-label { color: var(--text-secondary); }
-body.shell .shell-status-value { color: var(--text-primary); font-weight: 600; text-align: right; }
+body.shell .shell-status-value { color: var(--text-primary); font-weight: 500; text-align: right; }
 body.shell .shell-status-value--warn { color: var(--color-warning, #B45309); }
 
 body.shell .shell-chips {
@@ -2241,13 +2390,13 @@ body.shell .shell-chips {
 body.shell .shell-chip {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
-  padding: 0.45rem 1rem;
-  border: 1px solid var(--bg-muted);
+  min-height: 2.125rem;
+  padding: 0.3rem 0.875rem;
+  border: 1px solid var(--shell-line);
   border-radius: 9999px;
-  background: var(--bg-card);
+  background: transparent;
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   text-decoration: none;
   transition: all 0.25s ease;
@@ -2286,7 +2435,7 @@ body.shell .shell-rows a:hover {
 }
 
 body.shell .shell-row-name {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-primary);
   font-size: 1rem;
 }
