@@ -1,3 +1,45 @@
+## Session — 2026-09-12 — 5.0 core stabilization pass (opus/devin)
+
+### Goal
+Verify the minimum stable core — public surface, onboarding entry, and tenant-role
+functions — against the running app rather than docs, and fix confirmed breakage.
+
+### Verified working (live smoke, local dev tenant + production)
+- Public: `/`, `/portal`, `/help`, `/law-library`, `/api/resources`, `/healthz` — all 200.
+- Onboarding entry: `/preamble` → 302 → `/onboarding/select-role.html`.
+- Tenant guide pages: `/gui/record/journal/create`, `/gui/know/law-library/get-statute`,
+  `/gui/know/law-library/get-case`, `/gui/act/eviction-defense/calculate-deadlines`,
+  `/gui/record/timeline/create-event`, `/dc` — all 200.
+- Functional APIs: `POST /api/journal/` (200, entry persisted), `GET /api/law-library/statutes` (200),
+  `POST /api/eviction-defense/calculate-deadlines` (200, correct deadline math).
+- `/tenant/home` → `/tenant/start` (200) — correct storage-connect continuation, not a dead end.
+- Production `semptify.org`: `/`, `/law-library`, `/help` all 200 after free-tier wake.
+
+### What changed (PR #201, branch fix/stabilization-core-2026-09-12)
+- `app/core/file_validator.py`, `app/core/preview_generator.py`, `app/services/eviction/pdf.py`
+  - python-magic-bin's bundled libmagic hangs / raises `OSError` (access violation) on win32;
+    old guards caught only `ImportError`. Now skipped on Windows by default
+    (`SEMPTIFY_ENABLE_MAGIC=1` opts back in) and `OSError` tolerated elsewhere → mimetypes fallback.
+- `app/core/storage_middleware.py`, `app/core/checkpoint_middleware.py`
+  - Added `/healthz`, `/livez`, `/api/health` to public/exempt paths. Production was 302ing
+    them to `/preamble`. `/readyz` deliberately left gated (exposes internal detail).
+
+### Verification
+- `python -m py_compile` on all 5 changed files: PASS
+- `pytest tests/test_user_id.py -q --no-cov`: 7/7 PASS
+- Direct import of the 3 magic-guarded modules on win32: clean, `MAGIC_AVAILABLE=False`
+- `is_public_path` unit check: `/healthz`, `/livez`, `/api/health` public; `/readyz` gated
+- Pre-commit sync hook: PASS on both commits
+- Pending live test: `https://semptify-jsam.onrender.com/healthz` → 200 JSON (post-merge)
+
+### Open decisions routed to Brad (not blocking core today)
+- `document_uploaded` third gate vs two-gate docs + missing `gate_routes` middleware entry (NO-TOUCH onboarding).
+- Onboarding entry point doc conflict: `/preamble` vs welcome→role-select.
+- Charter claude-tier ambiguity (orchestrator-Claude vs free-tier Claude indistinguishable to the tier guard).
+- Whether `/readyz` should be public.
+
+---
+
 ## Session — 2026-09-11 — Document delivery design-token refresh (devin)
 
 ### Goal
