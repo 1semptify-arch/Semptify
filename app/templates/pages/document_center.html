@@ -75,9 +75,9 @@
     <!-- Detail region: overlays / checklist / meaning -->
     <div class="dc-detail">
         <div class="dc-toolbar" style="min-height:0;">
-            <button class="frame-btn dc-tab" data-tab="overlays" style="flex:1; background:var(--bg-card);">Overlays</button>
-            <button class="frame-btn dc-tab" data-tab="checklist" style="flex:1;">Checklist</button>
-            <button class="frame-btn dc-tab" data-tab="meaning" style="flex:1;">Meaning</button>
+            <button class="frame-btn dc-tab" data-tab="overlays" style="background:var(--color-calm-100);">Overlays</button>
+            <button class="frame-btn dc-tab" data-tab="checklist">Checklist</button>
+            <button class="frame-btn dc-tab" data-tab="meaning">Meaning</button>
         </div>
         <div id="dcOverlayList" class="dc-detail-pane">
             <div class="frame-empty" id="dcOverlayEmpty">
@@ -1798,38 +1798,50 @@
         const pending = def.fields.filter(f => (state[f.name] !== 'confirmed' && state[f.name] !== 'corrected') && !snoozed[f.name]);
         if (!pending.length) { strip.hidden = true; return; }
         strip.hidden = false;
-        pending.forEach(f => {
-            const card = document.createElement('div');
-            card.className = 'dc-fieldcard';
-            const corrected = state[f.name + '_value'];
-            const weRead = corrected || '';
-            card.innerHTML =
-                '<div class="dc-fieldcard-label">' + escapeHtml(f.label) + (f.required ? '' : ' · optional') + '</div>' +
-                '<div class="dc-fieldcard-value">' + (weRead ? 'You set: ' + escapeHtml(weRead) : 'We look for: ' + escapeHtml(f.ocr_target || f.label)) + '</div>';
-            const actions = document.createElement('div');
-            actions.className = 'dc-fieldcard-actions';
-            const ok = document.createElement('button');
-            ok.className = 'frame-btn'; ok.style.flex = '1'; ok.style.fontSize = '0.75rem'; ok.style.padding = '0.25rem 0.4rem';
-            ok.style.background = 'var(--color-success-50)'; ok.style.color = 'var(--color-success-800)';
-            ok.textContent = 'Looks right';
-            ok.addEventListener('click', () => setFieldState(doc, f.name, 'confirmed'));
-            const fix = document.createElement('button');
-            fix.className = 'frame-btn'; fix.style.flex = '1'; fix.style.fontSize = '0.75rem'; fix.style.padding = '0.25rem 0.4rem';
-            fix.textContent = 'Fix it';
-            fix.addEventListener('click', () => promptCorrect(doc, f));
-            const later = document.createElement('button');
-            later.className = 'frame-btn'; later.style.fontSize = '0.75rem'; later.style.padding = '0.25rem 0.4rem';
-            later.title = 'Not now — stays on the checklist';
-            later.textContent = 'Not now';
-            later.addEventListener('click', () => {
-                if (!snoozedFields[doc.id]) snoozedFields[doc.id] = {};
-                snoozedFields[doc.id][f.name] = true;
-                updateGuidanceRail();
-            });
-            actions.appendChild(ok); actions.appendChild(fix); actions.appendChild(later);
-            card.appendChild(actions);
-            strip.appendChild(card);
+        // One question at a time — the current field card plus a count.
+        // The rest queue quietly; nothing crowds the document.
+        const done = def.fields.length - pending.length;
+        const counter = document.createElement('div');
+        counter.className = 'dc-fieldcard-count';
+        counter.textContent = done + ' of ' + def.fields.length + ' confirmed';
+        strip.appendChild(counter);
+        const f = pending[0];
+        const card = document.createElement('div');
+        card.className = 'dc-fieldcard';
+        const corrected = state[f.name + '_value'];
+        const weRead = corrected || '';
+        card.innerHTML =
+            '<div class="dc-fieldcard-label">' + escapeHtml(f.label) + (f.required ? '' : ' · optional') + '</div>' +
+            '<div class="dc-fieldcard-value">' + (weRead ? 'You set: ' + escapeHtml(weRead) : 'We look for: ' + escapeHtml(f.ocr_target || f.label)) + '</div>';
+        const actions = document.createElement('div');
+        actions.className = 'dc-fieldcard-actions';
+        const ok = document.createElement('button');
+        ok.className = 'frame-btn'; ok.style.flex = '1'; ok.style.fontSize = '0.75rem'; ok.style.padding = '0.25rem 0.4rem';
+        ok.style.background = 'var(--color-success-50)'; ok.style.color = 'var(--color-success-800)';
+        ok.textContent = 'Looks right';
+        ok.addEventListener('click', () => setFieldState(doc, f.name, 'confirmed'));
+        const fix = document.createElement('button');
+        fix.className = 'frame-btn'; fix.style.flex = '1'; fix.style.fontSize = '0.75rem'; fix.style.padding = '0.25rem 0.4rem';
+        fix.textContent = 'Fix it';
+        fix.addEventListener('click', () => promptCorrect(doc, f));
+        const later = document.createElement('button');
+        later.className = 'frame-btn'; later.style.fontSize = '0.75rem'; later.style.padding = '0.25rem 0.4rem';
+        later.title = 'Not now — stays on the checklist';
+        later.textContent = 'Not now';
+        later.addEventListener('click', () => {
+            if (!snoozedFields[doc.id]) snoozedFields[doc.id] = {};
+            snoozedFields[doc.id][f.name] = true;
+            updateGuidanceRail();
         });
+        actions.appendChild(ok); actions.appendChild(fix); actions.appendChild(later);
+        card.appendChild(actions);
+        strip.appendChild(card);
+        if (pending.length > 1) {
+            const more = document.createElement('div');
+            more.className = 'dc-fieldcard-more';
+            more.textContent = '+ ' + (pending.length - 1) + ' more after this';
+            strip.appendChild(more);
+        }
     }
 
     // Mobile tab switching

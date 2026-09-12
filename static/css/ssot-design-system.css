@@ -2493,33 +2493,48 @@ body.shell--dc .dc-toolbar {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  gap: 0.625rem;
+  padding: 0.75rem 1.25rem;
   background: var(--zone-surface-3);
   border-bottom: 1px solid var(--border-color);
   min-height: 48px;
 }
 
-/* Field-verify strip — the "is this right?" walk. Sits between the
-   toolbar and the document so the question rides above the evidence. */
+/* Field-verify strip — the "is this right?" walk. One question at a
+   time: a count, the current field card, and a quiet "+ n more" note.
+   Sits between the toolbar and the document so the question rides
+   above the evidence. */
 body.shell--dc .dc-fieldwalk {
   flex: none;
   display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
-  overflow-x: auto;
-  padding: 0.5rem 0.75rem;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.625rem 1rem;
   background: var(--zone-surface-2);
   border-bottom: 1px solid var(--border-color);
 }
 
 body.shell--dc .dc-fieldwalk[hidden] { display: none; }
 
+body.shell--dc .dc-fieldcard-count {
+  flex: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+body.shell--dc .dc-fieldcard-more {
+  flex: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
 body.shell--dc .dc-fieldcard {
-  flex: 0 0 auto;
-  min-width: 15rem;
-  max-width: 19rem;
-  padding: 0.5rem 0.625rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 30rem;
+  padding: 0.625rem 0.875rem;
   background: var(--bg-card);
   border-radius: var(--radius-block);
   font-size: 0.8125rem;
@@ -2571,15 +2586,19 @@ body.shell--dc .dc-detail {
 body.shell--dc .dc-detail-pane {
   flex: 1;
   overflow-y: auto;
-  padding: 0.5rem;
+  padding: 0.875rem 1.25rem;
   min-height: 0;
 }
 
-/* Guidance rail — sections share the shell zone rhythm. */
+/* Guidance rail — liquid spacing, sections separated by whitespace,
+   not rules. */
+body.shell--dc .shell-side {
+  padding: clamp(2rem, 4vh, 3.5rem) clamp(1.25rem, 2.5vw, 2.5rem);
+}
+
 body.shell--dc .dc-rail-section + .dc-rail-section {
-  border-top: 1px solid var(--bg-muted);
-  padding-top: 1.25rem;
-  margin-top: 1.25rem;
+  padding-top: 1.75rem;
+  margin-top: 1.75rem;
 }
 
 /* Task progress — where you were, where you are, where you're going.
@@ -2630,3 +2649,14 @@ body.shell--dc #dcDocList .frame-item {
    pane-switching (display:none !important) is superseded by the shell's
    own stacking. */
 body.shell--dc .dc-pane { display: flex !important; }
+
+/* Mobile: the shell goes single-column scrolling. The work surface
+   leads (it's the task); the rail follows below it. Regions size to
+   content with sensible minimums instead of the fixed desktop tool. */
+@media (max-width: 900px) {
+  body.shell--dc #dcShell.dc-work { height: auto; }
+  body.shell--dc .dc-viewer { min-height: 55vh; }
+  body.shell--dc .dc-detail { height: auto; min-height: 0; }
+  body.shell--dc .dc-detail-pane { max-height: 50vh; }
+  body.shell--dc .shell-side { position: static; }
+}
