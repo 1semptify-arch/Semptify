@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block body_class %}template-3{% endblock %}
+{% extends "shell_base.html" %}
+{% block body_class %}shell shell--solo{% endblock %}
 
 {% block title %}Invite Clients - Advocate - Semptify{% endblock %}
 
@@ -162,6 +162,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="shell-solo-col">
 <div class="advocate-invite">
     <a href="/advocate" class="back-link">← Back to Advocate Dashboard</a>
 
@@ -327,4 +328,5 @@ document.addEventListener('click', (e) => {
 
 loadCodes();
 </script>
+</div>
 {% endblock %}
