@@ -1,126 +1,105 @@
-{% extends "gui/base.html" %}
+{% extends "shell_base.html" %}
+{#
+  Document Center — Site Shell v5, flipped variant (shell--dc).
+
+  Route: /dc (storage-gated).
+  Guidance rail LEFT: goal, task progress, pertinent info about the
+  focused document, next step, vault navigation.
+  Working surface RIGHT: toolbar, field-verify strip, document viewer,
+  detail tabs (overlays / checklist / meaning). All element IDs, fetch
+  calls, and modal behavior preserved from the three-pane original.
+#}
 {% block title %}Document Center — Semptify{% endblock %}
+{% block body_class %}shell shell--dc{% endblock %}
+{% block main_class %}shell-main shell-main--top{% endblock %}
 {% block styles %}
 {{ super() }}
 <link rel="stylesheet" href="/static/css/document-center.css?v=20260911-01">
 {% endblock %}
-{% block nav_record %}active{% endblock %}
 
 {% block content %}
-<section class="frame-panel document-center" style="padding:0; overflow:hidden; background:var(--zone-surface-2);">
-    <div class="frame-panel--header" style="padding:0.75rem 1rem; background:var(--zone-surface-3);">
-        <span class="frame-panel--title">Document Center</span>
-        <span id="dcOverall" style="font-size:0.8125rem; color:var(--text-muted); margin-left:auto;"></span>
+<div id="dcShell" class="dc-work dc-pane document-center" data-pane="center">
+    <!-- Toolbar: document identity + actions -->
+    <div id="dcTopBar" class="dc-toolbar">
+        <span id="dcDocName" style="color:var(--text-muted); font-size:0.875rem; flex:1; min-width:10rem;">Select a document</span>
+        <select id="dcTypeSelect" style="background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
+            <option value="">— Type —</option>
+            <option value="lease">Lease Agreement</option>
+            <option value="notice_to_vacate">Notice to Vacate</option>
+            <option value="repair_request">Repair Request</option>
+            <option value="rent_receipt">Rent Receipt</option>
+            <option value="move_in_inspection">Move-in Inspection</option>
+            <option value="court_summons">Court Summons</option>
+            <option value="correspondence">Correspondence</option>
+            <option value="other">Other</option>
+        </select>
+        <select id="dcStatusSelect" style="background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
+            <option value="">— Status —</option>
+            <option value="new">New</option>
+            <option value="review">In Review</option>
+            <option value="verified">Verified</option>
+            <option value="mismatched">Mismatched</option>
+        </select>
+        <div id="dcTypeSuggest" style="display:none; align-items:center; gap:0.375rem; background:var(--zone-surface-2); padding:0.1875rem 0.5rem; font-size:0.75rem; border-radius:0.25rem;">
+            <span style="color:var(--color-warning-800);">◆ Semptify suggests:</span>
+            <span id="dcSuggestedType" style="color:var(--text-primary); font-weight:600;"></span>
+            <button type="button" id="dcAcceptSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem; background:var(--color-success-50); color:var(--color-success-800);">Accept</button>
+            <button type="button" id="dcDismissSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem;">✕</button>
+        </div>
+        <button id="dcDownloadBtn" class="frame-btn" type="button" style="display:none;">Download</button>
+        <button id="dcProcessBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">◆ Process now</button>
+        <button id="dcExplainBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">What does this mean?</button>
+        <button id="dcShareBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">↗ Share</button>
+        <div id="dcAnnotTools" style="display:none; gap:0.25rem; margin-left:auto;">
+            <button type="button" class="frame-btn dc-annot-tool" data-tool="highlight" style="padding:0.25rem 0.5rem; font-size:0.75rem;">▸ Highlight</button>
+            <button type="button" class="frame-btn dc-annot-tool" data-tool="note" style="padding:0.25rem 0.5rem; font-size:0.75rem;">▸ Note</button>
+            <button type="button" class="frame-btn dc-annot-tool" data-tool="reference" style="padding:0.25rem 0.5rem; font-size:0.75rem;">▸ Reference</button>
+            <button type="button" class="frame-btn dc-annot-tool" data-tool="none" style="padding:0.25rem 0.5rem; font-size:0.75rem;">✕ Cancel</button>
+        </div>
     </div>
-    <div id="dcShell">
 
-        <!-- Mobile pane switcher (visible < 768px) -->
-        <div id="dcMobileTabs" style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); gap:0.5rem; font-size:0.8125rem;">
-            <button type="button" class="frame-btn dc-mobile-tab" data-pane="left" style="flex:1;">Vault</button>
-            <button type="button" class="frame-btn dc-mobile-tab" data-pane="center" style="flex:1;">Document</button>
-            <button type="button" class="frame-btn dc-mobile-tab" data-pane="right" style="flex:1;">Review</button>
+    <!-- Field-verify strip: the "is this right?" walk rides above the evidence -->
+    <div id="dcFieldWalk" class="dc-fieldwalk" hidden></div>
+
+    <!-- The document in focus owns the body of the surface -->
+    <div id="dcViewer" class="dc-viewer">
+        <div class="frame-empty" id="dcViewerEmpty">
+            <div class="frame-empty--icon">◆</div>
+            <p>No document selected</p>
+            <p class="frame-empty--hint">Pick a file from the list on the left.</p>
         </div>
-
-        <!-- LEFT PANE: Vault List -->
-        <div id="dcLeft" class="dc-pane" data-pane="left" style="background:var(--zone-surface-2); display:flex; flex-direction:column; overflow:hidden;">
-            <div style="padding:0.75rem; background:var(--zone-surface-3); display:flex; gap:0.5rem;">
-                <button id="dcUploadBtn" class="frame-btn" type="button" style="flex:1;">+ Upload</button>
-            </div>
-            <div style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); display:flex; flex-wrap:wrap; gap:0.5rem; font-size:0.8125rem;">
-                <button class="frame-btn dc-filter" data-filter="all" style="flex:1; background:var(--zone-surface-1);">All</button>
-                <button class="frame-btn dc-filter" data-filter="new" style="flex:1;">New</button>
-                <button class="frame-btn dc-filter" data-filter="review" style="flex:1;">Review</button>
-                <button class="frame-btn dc-filter" data-filter="verified" style="flex:1;">Verified</button>
-                <button class="frame-btn dc-filter" data-filter="mismatched" style="flex:1;">Mismatched</button>
-            </div>
-            <div id="dcDocList" style="flex:1; overflow-y:auto; padding:0.25rem;">
-                <div class="frame-empty" id="dcDocEmpty">
-                    <div class="frame-empty--icon">∅</div>
-                    <p>Loading documents…</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- CENTER PANE: Viewer -->
-        <div id="dcCenter" class="dc-pane" data-pane="center" style="background:var(--zone-surface-1); display:flex; flex-direction:column; overflow:hidden;">
-            <div id="dcTopBar" style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); display:flex; align-items:center; gap:0.5rem; min-height:48px;">
-                <span id="dcDocName" style="color:var(--text-muted); font-size:0.875rem; flex:1;">Select a document</span>
-                <select id="dcTypeSelect" style="background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
-                    <option value="">— Type —</option>
-                    <option value="lease">Lease Agreement</option>
-                    <option value="notice_to_vacate">Notice to Vacate</option>
-                    <option value="repair_request">Repair Request</option>
-                    <option value="rent_receipt">Rent Receipt</option>
-                    <option value="move_in_inspection">Move-in Inspection</option>
-                    <option value="court_summons">Court Summons</option>
-                    <option value="correspondence">Correspondence</option>
-                    <option value="other">Other</option>
-                </select>
-                <select id="dcStatusSelect" style="background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
-                    <option value="">— Status —</option>
-                    <option value="new">New</option>
-                    <option value="review">In Review</option>
-                    <option value="verified">Verified</option>
-                    <option value="mismatched">Mismatched</option>
-                </select>
-                <div id="dcTypeSuggest" style="display:none; align-items:center; gap:0.375rem; background:var(--zone-surface-3); padding:0.1875rem 0.5rem; font-size:0.75rem;">
-                    <span style="color:var(--color-warning-800);">◆ Semptify suggests:</span>
-                    <span id="dcSuggestedType" style="color:var(--text-primary); font-weight:600;"></span>
-                    <button type="button" id="dcAcceptSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem; background:var(--color-success-50); color:var(--color-success-800);">Accept</button>
-                    <button type="button" id="dcDismissSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem;">✕</button>
-                </div>
-                <button id="dcDownloadBtn" class="frame-btn" type="button" style="display:none;">Download</button>
-                <button id="dcProcessBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">◆ Process now</button>
-                <button id="dcExplainBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">What does this mean?</button>
-                <button id="dcShareBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">↗ Share</button>
-                <div id="dcAnnotTools" style="display:none; gap:0.25rem; margin-left:auto;">
-                    <button type="button" class="frame-btn dc-annot-tool" data-tool="highlight" style="padding:0.25rem 0.5rem; font-size:0.75rem;">▸ Highlight</button>
-                    <button type="button" class="frame-btn dc-annot-tool" data-tool="note" style="padding:0.25rem 0.5rem; font-size:0.75rem;">▸ Note</button>
-                    <button type="button" class="frame-btn dc-annot-tool" data-tool="reference" style="padding:0.25rem 0.5rem; font-size:0.75rem;">▸ Reference</button>
-                    <button type="button" class="frame-btn dc-annot-tool" data-tool="none" style="padding:0.25rem 0.5rem; font-size:0.75rem;">✕ Cancel</button>
-                </div>
-            </div>
-            <div id="dcViewer" style="flex:1; overflow:hidden; background:var(--zone-surface-inverse); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
-                <div class="frame-empty" id="dcViewerEmpty">
-                    <div class="frame-empty--icon">◆</div>
-                    <p>No document selected</p>
-                    <p class="frame-empty--hint">Pick a file from the left panel.</p>
-                </div>
-                <div id="dcPdfContainer" style="display:none; width:100%; height:100%; overflow:auto; padding:1rem; gap:1rem; flex-direction:column; align-items:center;"></div>
-                <iframe id="dcIframeFallback" style="display:none; width:100%; height:100%; border:none;"></iframe>
-            </div>
-        </div>
-
-        <!-- RIGHT PANE: Overlays -->
-        <div id="dcRight" class="dc-pane" data-pane="right" style="background:var(--zone-surface-2); display:flex; flex-direction:column; overflow:hidden;">
-            <div style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); display:flex; flex-wrap:wrap; gap:0.5rem; font-size:0.8125rem;">
-                <button class="frame-btn dc-tab" data-tab="overlays" style="flex:1; background:var(--zone-surface-1);">Overlays</button>
-                <button class="frame-btn dc-tab" data-tab="checklist" style="flex:1;">Checklist</button>
-                <button class="frame-btn dc-tab" data-tab="meaning" style="flex:1;">Meaning</button>
-            </div>
-            <div id="dcOverlayList" style="flex:1; overflow-y:auto; padding:0.5rem;">
-                <div class="frame-empty" id="dcOverlayEmpty">
-                    <div class="frame-empty--icon">∅</div>
-                    <p>Select a document to see overlays.</p>
-                </div>
-            </div>
-            <div id="dcChecklist" style="flex:1; overflow-y:auto; padding:0.5rem; display:none;">
-                <div class="frame-empty" id="dcChecklistEmpty">
-                    <div class="frame-empty--icon">◆</div>
-                    <p>Declare a document type to see its verification checklist.</p>
-                </div>
-            </div>
-            <div id="dcMeaning" style="flex:1; overflow-y:auto; padding:0.75rem; display:none;">
-                <div class="frame-empty" id="dcMeaningEmpty">
-                    <div class="frame-empty--icon">◆</div>
-                    <p>Select a document, then press "What does this mean?" for a plain-English explanation.</p>
-                </div>
-            </div>
-            <div id="dcUnlocks" style="padding:0.5rem 0.75rem; background:var(--zone-surface-3); font-size:0.75rem; color:var(--text-muted);"></div>
-        </div>
-
+        <div id="dcPdfContainer" style="display:none; width:100%; height:100%; overflow:auto; padding:1rem; gap:1rem; flex-direction:column; align-items:center;"></div>
+        <iframe id="dcIframeFallback" style="display:none; width:100%; height:100%; border:none;"></iframe>
     </div>
-</section>
+
+    <!-- Detail region: overlays / checklist / meaning -->
+    <div class="dc-detail">
+        <div class="dc-toolbar" style="min-height:0;">
+            <button class="frame-btn dc-tab" data-tab="overlays" style="flex:1; background:var(--bg-card);">Overlays</button>
+            <button class="frame-btn dc-tab" data-tab="checklist" style="flex:1;">Checklist</button>
+            <button class="frame-btn dc-tab" data-tab="meaning" style="flex:1;">Meaning</button>
+        </div>
+        <div id="dcOverlayList" class="dc-detail-pane">
+            <div class="frame-empty" id="dcOverlayEmpty">
+                <div class="frame-empty--icon">∅</div>
+                <p>Select a document to see overlays.</p>
+            </div>
+        </div>
+        <div id="dcChecklist" class="dc-detail-pane" style="display:none;">
+            <div class="frame-empty" id="dcChecklistEmpty">
+                <div class="frame-empty--icon">◆</div>
+                <p>Declare a document type to see its verification checklist.</p>
+            </div>
+        </div>
+        <div id="dcMeaning" class="dc-detail-pane" style="display:none; padding:0.75rem;">
+            <div class="frame-empty" id="dcMeaningEmpty">
+                <div class="frame-empty--icon">◆</div>
+                <p>Select a document, then press "What does this mean?" for a plain-English explanation.</p>
+            </div>
+        </div>
+        <div id="dcUnlocks" style="flex:none; padding:0.5rem 0.75rem; background:var(--zone-surface-3); font-size:0.75rem; color:var(--text-muted);"></div>
+    </div>
+</div>
 
 <!-- Upload modal -->
 <div id="dcUploadModal" style="display:none; position:fixed; inset:0; background:color-mix(in srgb, var(--color-black), transparent 30%); z-index:100; align-items:center; justify-content:center;">
@@ -173,6 +152,53 @@
             <div id="dcShareListItems" style="font-size:0.75rem; color:var(--text-primary);"></div>
         </div>
     </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="document-center">
+<section class="dc-rail-section" aria-labelledby="dc-goal-h">
+    <h2 id="dc-goal-h" class="shell-zone-title" style="font-size:1.05rem;">The goal</h2>
+    <p id="dcGoalText" class="shell-note">Get each document on the record: scanned,
+       its key details confirmed by you, and ready to use when it matters.
+       Confirmed names, dates, and amounts are what power your deadlines
+       and next steps — you are the verifier.</p>
+</section>
+
+<section class="dc-rail-section" aria-labelledby="dc-progress-h">
+    <h2 id="dc-progress-h" class="shell-zone-title" style="font-size:1.05rem;">Where you are</h2>
+    <ol id="dcProgressList" class="dc-progress"></ol>
+</section>
+
+<section class="dc-rail-section" aria-labelledby="dc-about-h">
+    <h2 id="dc-about-h" class="shell-zone-title" style="font-size:1.05rem;">About this document</h2>
+    <div id="dcAboutDoc" class="shell-status"></div>
+</section>
+
+<section class="dc-rail-section" aria-labelledby="dc-next-h">
+    <h2 id="dc-next-h" class="shell-zone-title" style="font-size:1.05rem;">Next step</h2>
+    <p id="dcNextStep" class="shell-note">Pick a document from your vault below.</p>
+</section>
+
+<section class="dc-rail-section dc-pane" data-pane="left" aria-labelledby="dc-vault-h">
+    <h2 id="dc-vault-h" class="shell-zone-title" style="font-size:1.05rem;">Your vault</h2>
+    <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+        <button id="dcUploadBtn" class="frame-btn" type="button" style="flex:1;">+ Upload</button>
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:0.25rem; margin-bottom:0.5rem; font-size:0.75rem;">
+        <button class="frame-btn dc-filter" data-filter="all" style="flex:1; background:var(--zone-surface-1);">All</button>
+        <button class="frame-btn dc-filter" data-filter="new" style="flex:1;">New</button>
+        <button class="frame-btn dc-filter" data-filter="review" style="flex:1;">Review</button>
+        <button class="frame-btn dc-filter" data-filter="verified" style="flex:1;">Verified</button>
+        <button class="frame-btn dc-filter" data-filter="mismatched" style="flex:1;">Mismatched</button>
+    </div>
+    <div id="dcDocList" style="overflow-y:auto; max-height:16rem;"></div>
+    <div class="frame-empty" id="dcDocEmpty">
+        <div class="frame-empty--icon">∅</div>
+        <p>No documents yet.</p>
+        <p class="frame-empty--hint">Upload your first document to get started.</p>
+    </div>
+</section>
 </div>
 {% endblock %}
 
@@ -353,6 +379,7 @@
             if (!r.ok) {
                 if (r.status === 401) {
                     docEmpty.querySelector('p').textContent = 'Sign in to see your documents.';
+                    updateGuidanceRail();
                     return;
                 }
                 throw new Error('HTTP ' + r.status);
@@ -365,6 +392,7 @@
             const hint = docEmpty.querySelector('.frame-empty--hint');
             if (hint) hint.textContent = e.message;
         }
+        updateGuidanceRail();
     }
 
     function renderDocs() {
@@ -1225,6 +1253,7 @@
             empty.className = 'frame-empty';
             empty.innerHTML = '<div class="frame-empty--icon">◆</div><p>Declare a document type to see its verification checklist.</p>';
             checklist.appendChild(empty);
+            updateGuidanceRail();
             return;
         }
         const def = documentTypes[doc.document_type];
@@ -1280,6 +1309,7 @@
             verified.textContent = '● All required fields verified.';
             checklist.appendChild(verified);
         }
+        updateGuidanceRail();
     }
 
     function renderFieldRow(doc, field, state) {
@@ -1682,6 +1712,125 @@
             uploadSubmit.textContent = 'Upload';
         }
     });
+
+    // ---- Guidance rail: goal / progress / about / next-step / field walk ----
+    // Driven by real state only: doc.verification_status, documentTypes field
+    // defs, fieldConfirmState, and overlay progress. Nothing decorative.
+
+    const PROGRESS_STEPS = ['Added', 'Type set', 'Fields confirmed', 'Verified', 'Ready to use'];
+    let snoozedFields = {};  // {doc_id: {field_name: true}} — "not now" for this session
+
+    function dcFieldCounts(doc) {
+        const def = doc && doc.document_type ? documentTypes[doc.document_type] : null;
+        if (!def) return { required: [], confirmed: 0, total: 0 };
+        const state = fieldConfirmState[doc.id] || {};
+        const required = def.fields.filter(f => f.required);
+        const confirmed = required.filter(f => state[f.name] === 'confirmed' || state[f.name] === 'corrected').length;
+        return { required, confirmed, total: required.length };
+    }
+
+    function dcStepStates(doc) {
+        if (!doc) return { done: -1, fieldsDone: 0, fieldsTotal: 0 };
+        const fc = dcFieldCounts(doc);
+        const status = effectiveStatus(doc);
+        let done = 0; // Added
+        if (doc.document_type) done = 1;
+        if (fc.total && fc.confirmed >= fc.total) done = 2;
+        if (status === 'verified') done = 3;
+        if (status === 'verified' && fc.total && fc.confirmed >= fc.total) done = 4;
+        return { done, fieldsDone: fc.confirmed, fieldsTotal: fc.total };
+    }
+
+    function updateGuidanceRail() {
+        const prog = document.getElementById('dcProgressList');
+        const about = document.getElementById('dcAboutDoc');
+        const next = document.getElementById('dcNextStep');
+        if (!prog || !about || !next) return;
+        const doc = currentDoc;
+        const st = dcStepStates(doc);
+        prog.innerHTML = '';
+        PROGRESS_STEPS.forEach((label, i) => {
+            const li = document.createElement('li');
+            li.className = 'dc-step' + (i <= st.done ? ' dc-step--done' : i === st.done + 1 ? ' dc-step--current' : '');
+            li.innerHTML = '<span class="dc-step-dot">' + (i <= st.done ? '●' : i === st.done + 1 ? '◆' : '○') + '</span><span>' + label +
+                (i === 2 && st.fieldsTotal ? ' <span style="color:var(--text-muted);font-weight:400;">(' + st.fieldsDone + ' of ' + st.fieldsTotal + ')</span>' : '') + '</span>';
+            prog.appendChild(li);
+        });
+        if (!doc) {
+            about.innerHTML = '<div class="shell-status-row"><span class="shell-status-label">Status</span><span class="shell-status-value">Nothing selected</span></div>';
+            next.textContent = allDocs.length ? 'Pick a document from your vault below — it opens on the right.' : 'Upload your first document with the button below.';
+            renderFieldWalk();
+            return;
+        }
+        const b = statusBadge(effectiveStatus(doc));
+        const typeLabel = doc.document_type ? doc.document_type.replace(/_/g, ' ') : 'not set';
+        about.innerHTML =
+            '<div class="shell-status-row"><span class="shell-status-label">Type</span><span class="shell-status-value">' + escapeHtml(typeLabel) + '</span></div>' +
+            '<div class="shell-status-row"><span class="shell-status-label">Status</span><span class="shell-status-value" style="color:' + b.color + ';">' + escapeHtml(b.label) + '</span></div>' +
+            '<div class="shell-status-row"><span class="shell-status-label">Fields confirmed</span><span class="shell-status-value">' + st.fieldsDone + ' of ' + (st.fieldsTotal || '—') + '</span></div>' +
+            '<div class="shell-status-row"><span class="shell-status-label">Added</span><span class="shell-status-value">' + escapeHtml(fmtDate(doc.uploaded_at) || '—') + '</span></div>';
+        const pending = st.fieldsTotal ? (st.fieldsTotal - st.fieldsDone) : 0;
+        if (!doc.document_type) next.textContent = 'Set the document type in the toolbar — that tells Semptify which details to check.';
+        else if (pending > 0) next.textContent = 'Confirm or fix ' + pending + ' detail' + (pending === 1 ? '' : 's') + ' — the cards above the document walk you through them.';
+        else if (effectiveStatus(doc) !== 'verified') next.textContent = 'All details confirmed. Set status to Verified in the toolbar, or leave it — confirmed is enough.';
+        else next.textContent = 'Nothing needed — this document is verified and ready to use in packets and timelines.';
+        renderFieldWalk();
+    }
+
+    function renderFieldWalk() {
+        const strip = document.getElementById('dcFieldWalk');
+        if (!strip) return;
+        strip.innerHTML = '';
+        const doc = currentDoc;
+        if (!doc) { strip.hidden = true; return; }
+        const def = doc.document_type ? documentTypes[doc.document_type] : null;
+        if (!def) {
+            strip.hidden = false;
+            const card = document.createElement('div');
+            card.className = 'dc-fieldcard';
+            card.innerHTML = '<div class="dc-fieldcard-label">Verification</div><div class="dc-fieldcard-value">What kind of document is this?</div>' +
+                '<div class="shell-note" style="font-size:0.75rem;">Pick a type in the toolbar — the right checklist appears here.</div>';
+            strip.appendChild(card);
+            return;
+        }
+        const state = fieldConfirmState[doc.id] || {};
+        const snoozed = snoozedFields[doc.id] || {};
+        const pending = def.fields.filter(f => (state[f.name] !== 'confirmed' && state[f.name] !== 'corrected') && !snoozed[f.name]);
+        if (!pending.length) { strip.hidden = true; return; }
+        strip.hidden = false;
+        pending.forEach(f => {
+            const card = document.createElement('div');
+            card.className = 'dc-fieldcard';
+            const corrected = state[f.name + '_value'];
+            const weRead = corrected || '';
+            card.innerHTML =
+                '<div class="dc-fieldcard-label">' + escapeHtml(f.label) + (f.required ? '' : ' · optional') + '</div>' +
+                '<div class="dc-fieldcard-value">' + (weRead ? 'You set: ' + escapeHtml(weRead) : 'We look for: ' + escapeHtml(f.ocr_target || f.label)) + '</div>';
+            const actions = document.createElement('div');
+            actions.className = 'dc-fieldcard-actions';
+            const ok = document.createElement('button');
+            ok.className = 'frame-btn'; ok.style.flex = '1'; ok.style.fontSize = '0.75rem'; ok.style.padding = '0.25rem 0.4rem';
+            ok.style.background = 'var(--color-success-50)'; ok.style.color = 'var(--color-success-800)';
+            ok.textContent = 'Looks right';
+            ok.addEventListener('click', () => setFieldState(doc, f.name, 'confirmed'));
+            const fix = document.createElement('button');
+            fix.className = 'frame-btn'; fix.style.flex = '1'; fix.style.fontSize = '0.75rem'; fix.style.padding = '0.25rem 0.4rem';
+            fix.textContent = 'Fix it';
+            fix.addEventListener('click', () => promptCorrect(doc, f));
+            const later = document.createElement('button');
+            later.className = 'frame-btn'; later.style.fontSize = '0.75rem'; later.style.padding = '0.25rem 0.4rem';
+            later.title = 'Not now — stays on the checklist';
+            later.textContent = 'Not now';
+            later.addEventListener('click', () => {
+                if (!snoozedFields[doc.id]) snoozedFields[doc.id] = {};
+                snoozedFields[doc.id][f.name] = true;
+                updateGuidanceRail();
+            });
+            actions.appendChild(ok); actions.appendChild(fix); actions.appendChild(later);
+            card.appendChild(actions);
+            strip.appendChild(card);
+        });
+    }
 
     // Mobile tab switching
     document.querySelectorAll('.dc-mobile-tab').forEach(btn => {
