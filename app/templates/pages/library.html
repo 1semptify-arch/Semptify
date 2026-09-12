@@ -1,33 +1,39 @@
-{% extends "base.html" %}
-{% block body_class %}template-5{% endblock %}
-{% from "components/ui_macros.html" import hero, section_title, service_card, card_grid, nav_bar, ui_styles %}
-
+{% extends "shell_base.html" %}
 {% block title %}Library – Semptify{% endblock %}
 {% block description %}Legal resources, rights guides, and educational materials for tenants.{% endblock %}
 
-{% block nav %}{{ nav_bar("library") }}{% endblock %}
-
-{% block styles %}{{ ui_styles() }}
-<style>.library-page { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem; }</style>
-{% endblock %}
+{% block main_class %}shell-main shell-main--top{% endblock %}
 
 {% block content %}
-<div class="library-page">
+<p class="shell-eyebrow">Know</p>
+<h1>Library</h1>
+<p class="shell-lede">Legal resources, rights guides, and educational materials to help you understand and protect your housing rights.</p>
 
-    {{ hero("📚", "Library", "Legal resources, rights guides, and educational materials to help you understand and protect your housing rights.", "purple") }}
+<h2 class="shell-zone-title">Legal resources</h2>
+<nav class="shell-rows" aria-label="Legal resources">
+    <a href="/law-library">
+        <span class="shell-row-name">Law Library</span>
+        <div class="shell-row-desc">Browse tenant protection laws, statutes, and regulations by topic.</div>
+    </a>
+    <a href="/tenant/help">
+        <span class="shell-row-name">Tenant Rights Guide</span>
+        <div class="shell-row-desc">Plain-language guide to your rights as a tenant — leases, deposits, repairs, and more.</div>
+    </a>
+    <a href="/eviction-defense">
+        <span class="shell-row-name">Eviction Defense</span>
+        <div class="shell-row-desc">Step-by-step guides for responding to eviction notices and court filings.</div>
+    </a>
+</nav>
 
-    {{ section_title("⚖️", "Legal Resources") }}
-    {% call card_grid() %}
-        {{ service_card("/law-library", "📖", "Law Library", "Browse tenant protection laws, statutes, and regulations by topic.") }}
-        {{ service_card("/tenant/help", "🏠", "Tenant Rights Guide", "Plain-language guide to your rights as a tenant — leases, deposits, repairs, and more.") }}
-        {{ service_card("/eviction-defense", "🛡️", "Eviction Defense", "Step-by-step guides for responding to eviction notices and court filings.") }}
-    {% endcall %}
-
-    {{ section_title("📋", "Forms & Templates") }}
-    {% call card_grid() %}
-        {{ service_card("/tenant/tools/letters", "✉️", "Letter Templates", "Pre-written letters for maintenance requests, deposit demands, and lease disputes.") }}
-        {{ service_card("/zoom-court", "💻", "Zoom Court Guide", "How to prepare for and attend virtual court hearings.") }}
-    {% endcall %}
-
-</div>
+<h2 class="shell-zone-title">Forms &amp; templates</h2>
+<nav class="shell-rows" aria-label="Forms and templates">
+    <a href="/tenant/tools/letters">
+        <span class="shell-row-name">Letter Templates</span>
+        <div class="shell-row-desc">Pre-written letters for maintenance requests, deposit demands, and lease disputes.</div>
+    </a>
+    <a href="/zoom-court">
+        <span class="shell-row-name">Zoom Court Guide</span>
+        <div class="shell-row-desc">How to prepare for and attend virtual court hearings.</div>
+    </a>
+</nav>
 {% endblock %}

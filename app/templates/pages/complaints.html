@@ -1,278 +1,96 @@
-{% extends "base.html" %}
-{% block body_class %}template-1{% endblock %}
-
+{% extends "shell_base.html" %}
 {% block title %}File a Complaint - Semptify{% endblock %}
 {% block description %}Where to file housing complaints in Minnesota - HUD, local agencies, and enforcement contacts.{% endblock %}
 
-{% block nav %}<a href="/tenant/home">← Home</a><a href="/tenant/help">Help</a><a href="/law-library">Law Library</a>{% endblock %}
+{% block main_class %}shell-main shell-main--top{% endblock %}
 
 {% block styles %}
+{{ super() }}
 <style>
-.complaints-page {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem;
-}
-
-.header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.header h1 {
-    font-size: 1.75rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.header p {
-    color: var(--text-secondary);
-    font-size: 1rem;
-}
-
-.crisis-banner {
-    background: linear-gradient(135deg, color-mix(in srgb, var(--color-error), transparent 85%), color-mix(in srgb, var(--color-warning), transparent 90%));
-    border: 2px solid var(--color-error);
+.crisis-note {
+    background: color-mix(in srgb, var(--color-error), transparent 90%);
+    border-left: 4px solid var(--color-error);
     border-radius: var(--radius-block);
-    padding: 1.25rem;
-    margin-bottom: 2rem;
-    text-align: center;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0 0.5rem;
 }
-
-.crisis-banner h2 {
-    color: var(--color-error);
-    font-size: 1.125rem;
-    margin-bottom: 0.75rem;
-}
-
-.section {
-    background: var(--bg-card);
-    border: none;
-    border-radius: var(--radius-block);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--elevation-1);
-}
-
-.section h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: var(--text-primary);
-}
-
-.agency-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
-}
-
-.agency-card {
-    background: var(--bg-elevated);
-    border: none;
-    border-radius: var(--radius-input);
-    padding: 1.25rem;
-    box-shadow: var(--elevation-1);
-}
-
-.agency-card h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.agency-card p {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.75rem;
-}
-
-.agency-link {
-    display: inline-block;
-    color: var(--color-accent);
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.agency-link:hover {
-    text-decoration: underline;
-}
-
-.checklist {
-    list-style: none;
-    padding: 0;
-}
-
-.checklist li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.checklist li:last-child {
-    border-bottom: none;
-}
-
-.checklist input {
-    width: 20px;
-    height: 20px;
-    margin-top: 0.125rem;
-}
-
-.checklist label {
-    flex: 1;
-    font-size: 0.9375rem;
-    color: var(--text-primary);
-    cursor: pointer;
-}
-
-.contact-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.contact-row:last-child {
-    border-bottom: none;
-}
-
-.contact-name {
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.contact-phone {
-    color: var(--color-accent);
-    text-decoration: none;
-}
-
-.contact-phone:hover {
-    text-decoration: underline;
-}
-
-@media (max-width: 640px) {
-    .agency-grid {
-        grid-template-columns: 1fr;
-    }
-}
+.crisis-note strong { color: var(--color-error); }
+.checklist { list-style: none; padding: 0; margin: 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border-color); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { width: 18px; height: 18px; margin-top: 0.125rem; }
+.checklist label { flex: 1; font-size: 0.9375rem; color: var(--text-primary); cursor: pointer; }
+.contact-row { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border-color); }
+.contact-row:last-child { border-bottom: none; }
+.contact-phone { color: var(--color-accent); text-decoration: none; font-weight: 500; }
+.contact-phone:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="complaints-page">
+<p class="shell-eyebrow">Act</p>
+<h1>File a Housing Complaint</h1>
+<p class="shell-lede">Minnesota agencies where you can report housing violations, discrimination, and unsafe conditions.</p>
 
-    <div class="header">
-        <h1>File a Housing Complaint</h1>
-        <p>Minnesota agencies where you can report housing violations, discrimination, and unsafe conditions.</p>
-    </div>
+<div class="crisis-note" role="note">
+    <strong>Emergency?</strong> If you have no heat, no water, or an immediate
+    safety hazard, call 311 or your city's emergency line first.
+</div>
 
-    <div class="crisis-banner">
-        <h2>⚠️ Emergency?</h2>
-        <p>If you have no heat, no water, or an immediate safety hazard, call 311 or your city's emergency line first.</p>
-    </div>
+<h2 class="shell-zone-title">Federal agencies</h2>
+<nav class="shell-rows" aria-label="Federal agencies">
+    <a href="https://www.hud.gov/program_offices/fair_housing" target="_blank" rel="noopener noreferrer">
+        <span class="shell-row-name">HUD Fair Housing</span>
+        <div class="shell-row-desc">Report housing discrimination based on race, color, national origin, religion, sex, familial status, or disability. Phone: 1-800-669-9777</div>
+    </a>
+    <a href="https://www.epa.gov/lead" target="_blank" rel="noopener noreferrer">
+        <span class="shell-row-name">EPA Lead Paint</span>
+        <div class="shell-row-desc">Report lead paint hazards or disclosure violations in pre-1978 housing. Phone: 1-800-424-5323</div>
+    </a>
+</nav>
 
-    <div class="section">
-        <h2>🏛️ Federal Agencies</h2>
-        <div class="agency-grid">
-            <div class="agency-card">
-                <h3>HUD Fair Housing</h3>
-                <p>Report housing discrimination based on race, color, national origin, religion, sex, familial status, or disability.</p>
-                <a href="https://www.hud.gov/program_offices/fair_housing" target="_blank" rel="noopener noreferrer" class="agency-link">File HUD Complaint →</a>
-                <br><br>
-                <strong>Phone:</strong> 1-800-669-9777
-            </div>
-            <div class="agency-card">
-                <h3>EPA Lead Paint</h3>
-                <p>Report lead paint hazards or disclosure violations in pre-1978 housing.</p>
-                <a href="https://www.epa.gov/lead" target="_blank" rel="noopener noreferrer" class="agency-link">EPA Lead Info →</a>
-                <br><br>
-                <strong>Phone:</strong> 1-800-424-5323
-            </div>
-        </div>
-    </div>
+<h2 class="shell-zone-title">Minnesota state agencies</h2>
+<nav class="shell-rows" aria-label="Minnesota state agencies">
+    <a href="https://mn.gov/mdhr/" target="_blank" rel="noopener noreferrer">
+        <span class="shell-row-name">MN Dept. of Human Rights</span>
+        <div class="shell-row-desc">State-level housing discrimination complaints. No cost to file. Phone: 651-539-1133</div>
+    </a>
+    <a href="https://www.ag.state.mn.us/consumer/" target="_blank" rel="noopener noreferrer">
+        <span class="shell-row-name">MN Attorney General</span>
+        <div class="shell-row-desc">Consumer protection issues including landlord-tenant disputes, illegal fees, and deceptive practices. Phone: 651-296-3353</div>
+    </a>
+</nav>
 
-    <div class="section">
-        <h2>🏢 Minnesota State Agencies</h2>
-        <div class="agency-grid">
-            <div class="agency-card">
-                <h3>MN Dept. of Human Rights</h3>
-                <p>State-level housing discrimination complaints. Free to file.</p>
-                <a href="https://mn.gov/mdhr/" target="_blank" rel="noopener noreferrer" class="agency-link">File MDHR Complaint →</a>
-                <br><br>
-                <strong>Phone:</strong> 651-539-1133
-            </div>
-            <div class="agency-card">
-                <h3>MN Attorney General</h3>
-                <p>Consumer protection issues including landlord-tenant disputes, illegal fees, and deceptive practices.</p>
-                <a href="https://www.ag.state.mn.us/consumer/" target="_blank" rel="noopener noreferrer" class="agency-link">AG Consumer Help →</a>
-                <br><br>
-                <strong>Phone:</strong> 651-296-3353
-            </div>
-        </div>
-    </div>
+<h2 class="shell-zone-title">Local city agencies</h2>
+<div class="shell-panel">
+    <div class="contact-row"><span class="contact-name">Minneapolis 311</span><a href="tel:612-673-3000" class="contact-phone">612-673-3000</a></div>
+    <div class="contact-row"><span class="contact-name">Saint Paul 311</span><a href="tel:651-266-8989" class="contact-phone">651-266-8989</a></div>
+    <div class="contact-row"><span class="contact-name">Bloomington Code Enforcement</span><a href="tel:952-563-8930" class="contact-phone">952-563-8930</a></div>
+    <div class="contact-row"><span class="contact-name">Duluth Housing Inspection</span><a href="tel:218-730-5000" class="contact-phone">218-730-5000</a></div>
+    <div class="contact-row"><span class="contact-name">Rochester Code Enforcement</span><a href="tel:507-328-2900" class="contact-phone">507-328-2900</a></div>
+</div>
 
-    <div class="section">
-        <h2>🏙️ Local City Agencies</h2>
-        <div class="contact-row">
-            <span class="contact-name">Minneapolis 311</span>
-            <a href="tel:612-673-3000" class="contact-phone">612-673-3000</a>
-        </div>
-        <div class="contact-row">
-            <span class="contact-name">Saint Paul 311</span>
-            <a href="tel:651-266-8989" class="contact-phone">651-266-8989</a>
-        </div>
-        <div class="contact-row">
-            <span class="contact-name">Bloomington Code Enforcement</span>
-            <a href="tel:952-563-8930" class="contact-phone">952-563-8930</a>
-        </div>
-        <div class="contact-row">
-            <span class="contact-name">Duluth Housing Inspection</span>
-            <a href="tel:218-730-5000" class="contact-phone">218-730-5000</a>
-        </div>
-        <div class="contact-row">
-            <span class="contact-name">Rochester Code Enforcement</span>
-            <a href="tel:507-328-2900" class="contact-phone">507-328-2900</a>
-        </div>
-    </div>
+<h2 class="shell-zone-title">Complaint checklist</h2>
+<div class="shell-panel">
+    <p class="shell-note" style="margin-bottom:0.75rem;">Before filing, gather this information:</p>
+    <ul class="checklist">
+        <li><input type="checkbox" id="c1"><label for="c1">Written lease or record of tenancy</label></li>
+        <li><input type="checkbox" id="c2"><label for="c2">Photos or videos of the problem</label></li>
+        <li><input type="checkbox" id="c3"><label for="c3">Written notices sent to landlord (email, text, certified mail)</label></li>
+        <li><input type="checkbox" id="c4"><label for="c4">Dates when the problem started and when you reported it</label></li>
+        <li><input type="checkbox" id="c5"><label for="c5">Receipts for any money paid or withheld</label></li>
+        <li><input type="checkbox" id="c6"><label for="c6">Names and contact info of any witnesses</label></li>
+        <li><input type="checkbox" id="c7"><label for="c7">Copies of any previous complaints filed</label></li>
+    </ul>
+</div>
+{% endblock %}
 
-    <div class="section">
-        <h2>✅ Complaint Checklist</h2>
-        <p style="margin-bottom: 1rem; color: var(--text-secondary);">Before filing, gather this information:</p>
-        <ul class="checklist">
-            <li><input type="checkbox" id="c1"><label for="c1">Written lease or record of tenancy</label></li>
-            <li><input type="checkbox" id="c2"><label for="c2">Photos or videos of the problem</label></li>
-            <li><input type="checkbox" id="c3"><label for="c3">Written notices sent to landlord (email, text, certified mail)</label></li>
-            <li><input type="checkbox" id="c4"><label for="c4">Dates when the problem started and when you reported it</label></li>
-            <li><input type="checkbox" id="c5"><label for="c5">Receipts for any money paid or withheld</label></li>
-            <li><input type="checkbox" id="c6"><label for="c6">Names and contact info of any witnesses</label></li>
-            <li><input type="checkbox" id="c7"><label for="c7">Copies of any previous complaints filed</label></li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h2>📞 Free Legal Help</h2>
-        <div class="contact-row">
-            <span class="contact-name">HOME Line (MN Tenant Hotline)</span>
-            <a href="tel:612-728-5767" class="contact-phone">612-728-5767</a>
-        </div>
-        <div class="contact-row">
-            <span class="contact-name">Mid-Minnesota Legal Aid</span>
-            <a href="tel:612-332-1441" class="contact-phone">612-332-1441</a>
-        </div>
-        <div class="contact-row">
-            <span class="contact-name">Southern Minnesota Regional Legal Services</span>
-            <a href="tel:507-345-1710" class="contact-phone">507-345-1710</a>
-        </div>
-        <div class="contact-row">
-            <span class="contact-name">LawHelpMN.org</span>
-            <a href="https://www.lawhelpmn.org" target="_blank" rel="noopener noreferrer" class="agency-link">lawhelpmn.org →</a>
-        </div>
-    </div>
-
+{% block sidebar %}
+<h2>Free legal help</h2>
+<div class="shell-panel">
+    <div class="contact-row"><span class="contact-name">HOME Line (MN Tenant Hotline)</span><a href="tel:612-728-5767" class="contact-phone">612-728-5767</a></div>
+    <div class="contact-row"><span class="contact-name">Mid-Minnesota Legal Aid</span><a href="tel:612-332-1441" class="contact-phone">612-332-1441</a></div>
+    <div class="contact-row"><span class="contact-name">Southern MN Regional Legal Services</span><a href="tel:507-345-1710" class="contact-phone">507-345-1710</a></div>
+    <div class="contact-row"><span class="contact-name">LawHelpMN.org</span><a href="https://www.lawhelpmn.org" target="_blank" rel="noopener noreferrer" class="contact-phone">lawhelpmn.org</a></div>
 </div>
 {% endblock %}
