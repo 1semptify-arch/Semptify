@@ -1,0 +1,193 @@
+{% extends "shell_base.html" %}
+{#
+  TEMPORARY PREVIEW — tenant flagship home on Site Shell v5.
+  Route: /gui/home-preview?layout=solo|rail  (public via /gui/ prefix)
+
+  Two variants for Brad's sign-off before the real migration:
+    solo — honors the locked spec: single guided column, all zones in
+           chronological order (status → actions → capture → sections →
+           help). Shell chrome only; no right rail.
+    rail — main column keeps the guided flow (actions → capture →
+           sections); "Right now" status and crisis help move to the
+           right rail.
+
+  Context contract is identical to pages/tenant_home_next.html:
+  user_name, vault_connected, document_count, journal_count, next_deadline.
+#}
+
+{% block title %}Semptify — Home (preview){% endblock %}
+{% block body_class %}shell{% if layout == 'solo' %} shell--solo{% endif %}{% endblock %}
+
+{% block content %}
+<div class="{% if layout == 'solo' %}shell-solo-col{% endif %}">
+
+  <section class="shell-zone" aria-labelledby="th-hero">
+    <p class="shell-eyebrow">Semptify · Home</p>
+    <h1 id="th-hero">
+      {% if user_name %}Hello, {{ user_name }}.{% else %}Hello.{% endif %}
+      Here's where things stand.
+    </h1>
+    <p class="shell-lede">
+      Keep a record, know your rights, and take the next step — in order,
+      at your own pace. Nothing here is legal advice, but everything here
+      is yours.
+    </p>
+    <div class="shell-actions">
+      <a class="shell-btn shell-btn--accent" href="/tenant/get-help">Get help now</a>
+      {% if not vault_connected %}
+      <a class="shell-btn" href="/storage/providers">Connect your storage</a>
+      {% else %}
+      <a class="shell-btn" href="/tenant/capture">Record something</a>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if layout == 'solo' %}
+  <section class="shell-zone" aria-labelledby="th-status">
+    <h2 id="th-status" class="shell-zone-title">Right now</h2>
+    <div class="shell-status">
+      <div class="shell-status-row">
+        <span class="shell-status-label">Document vault</span>
+        <span class="shell-status-value">
+          {% if vault_connected %}{{ document_count }} document{{ "s" if document_count != 1 }} stored
+          {% else %}Not connected{% endif %}
+        </span>
+      </div>
+      <div class="shell-status-row">
+        <span class="shell-status-label">Next deadline</span>
+        <span class="shell-status-value{% if next_deadline and next_deadline.days_remaining is not none and next_deadline.days_remaining <= 7 %} shell-status-value--warn{% endif %}">
+          {% if next_deadline %}{{ next_deadline.title }} — {{ next_deadline.date }}
+            {% if next_deadline.days_remaining is not none %}({{ next_deadline.days_remaining }} day{{ "s" if next_deadline.days_remaining != 1 }}){% endif %}
+          {% else %}None upcoming{% endif %}
+        </span>
+      </div>
+      <div class="shell-status-row">
+        <span class="shell-status-label">Journal entries</span>
+        <span class="shell-status-value">{{ journal_count }}</span>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="shell-zone" aria-labelledby="th-actions">
+    <h2 id="th-actions" class="shell-zone-title">Start here</h2>
+    <nav aria-label="Primary actions">
+      <ol class="shell-steps">
+        <li>
+          <a href="/gui/record/journal/create">
+            <span class="shell-step-num">1</span>
+            <span>
+              <span class="shell-step-title">Write in your journal</span><br>
+              <span class="shell-step-desc">Log what happened — dated, on the record.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="/tenant/capture">
+            <span class="shell-step-num">2</span>
+            <span>
+              <span class="shell-step-title">Add a document or photo</span><br>
+              <span class="shell-step-desc">Notices, photos, letters — into your vault.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="/law-library">
+            <span class="shell-step-num">3</span>
+            <span>
+              <span class="shell-step-title">Look up a right</span><br>
+              <span class="shell-step-desc">Plain-English guides and the actual law.</span>
+            </span>
+          </a>
+        </li>
+      </ol>
+    </nav>
+  </section>
+
+  <section class="shell-zone" aria-labelledby="th-capture">
+    <h2 id="th-capture" class="shell-zone-title">Something just happened?</h2>
+    <p class="shell-note">Log it now while it's fresh — details matter later.</p>
+    <div class="shell-chips">
+      <a class="shell-chip" href="/tenant/capture?type=maintenance">Maintenance request</a>
+      <a class="shell-chip" href="/tenant/capture?type=issue">Housing issue</a>
+      <a class="shell-chip" href="/tenant/capture?type=notice">Received a notice</a>
+      <a class="shell-chip" href="/tenant/capture?type=communication">Landlord conversation</a>
+      <a class="shell-chip" href="/tenant/capture?type=payment">Payment made</a>
+    </div>
+  </section>
+
+  <section class="shell-zone" aria-labelledby="th-sections">
+    <h2 id="th-sections" class="shell-zone-title">Where everything lives</h2>
+    <nav class="shell-rows" aria-label="All sections">
+      <a href="/gui/record">
+        <span class="shell-row-name">Your record</span>
+        <div class="shell-row-desc">Vault, timeline, journal, and notes — everything you've kept.</div>
+      </a>
+      <a href="/dc">
+        <span class="shell-row-name">Read your documents</span>
+        <div class="shell-row-desc">Open any document and get a plain-English explanation.</div>
+      </a>
+      <a href="/gui/packet-builder">
+        <span class="shell-row-name">Prepare a packet</span>
+        <div class="shell-row-desc">Assemble the documents a court, agency, or advocate will ask for.</div>
+      </a>
+      <a href="/tenant/resources">
+        <span class="shell-row-name">Find help near you</span>
+        <div class="shell-row-desc">Legal aid, hotlines, and county resources for where you live.</div>
+      </a>
+      <a href="/law-library">
+        <span class="shell-row-name">Law library</span>
+        <div class="shell-row-desc">Minnesota tenant law, federal protections, and housing rules.</div>
+      </a>
+    </nav>
+  </section>
+
+  {% if layout == 'solo' %}
+  <section class="shell-zone" aria-labelledby="th-help">
+    <h2 id="th-help" class="shell-zone-title">In a crisis or can't find it</h2>
+    <div class="shell-panel">
+      <p class="shell-note">Some things can't wait for a website. If you have a court date,
+         a lockout, or a deadline in the next few days, talk to a person.</p>
+      <p class="shell-note"><a href="/help">Tenant help and hotlines</a> &nbsp;·&nbsp;
+         <a href="/tenant/get-help">Guided: figure out my next step</a></p>
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block sidebar %}
+{% if layout == 'rail' %}
+<h2>Right now</h2>
+<div class="shell-status">
+  <div class="shell-status-row">
+    <span class="shell-status-label">Document vault</span>
+    <span class="shell-status-value">
+      {% if vault_connected %}{{ document_count }} document{{ "s" if document_count != 1 }} stored
+      {% else %}Not connected{% endif %}
+    </span>
+  </div>
+  <div class="shell-status-row">
+    <span class="shell-status-label">Next deadline</span>
+    <span class="shell-status-value{% if next_deadline and next_deadline.days_remaining is not none and next_deadline.days_remaining <= 7 %} shell-status-value--warn{% endif %}">
+      {% if next_deadline %}{{ next_deadline.title }} — {{ next_deadline.date }}
+        {% if next_deadline.days_remaining is not none %}({{ next_deadline.days_remaining }} day{{ "s" if next_deadline.days_remaining != 1 }}){% endif %}
+      {% else %}None upcoming{% endif %}
+    </span>
+  </div>
+  <div class="shell-status-row">
+    <span class="shell-status-label">Journal entries</span>
+    <span class="shell-status-value">{{ journal_count }}</span>
+  </div>
+</div>
+
+<h2 style="margin-top:2rem;">In a crisis</h2>
+<div class="shell-panel">
+  <p class="shell-note">If you have a court date, a lockout, or a deadline in
+     the next few days, talk to a person.</p>
+  <p class="shell-note"><a href="/help">Tenant help and hotlines</a> &nbsp;·&nbsp;
+     <a href="/tenant/get-help">Guided next step</a></p>
+</div>
+{% endif %}
+{% endblock %}

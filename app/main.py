@@ -403,9 +403,22 @@ async def lifespan(_app: FastAPI):
 
             # Check optional packages
             for pkg, desc in OPTIONAL_PACKAGES.items():
+                # libmagic crashes on Windows (python-magic-bin) — skipped by
+                # default everywhere else; honor the same opt-in here so the
+                # requirements check doesn't kill boot. SEMPTIFY_ENABLE_MAGIC=1
+                # re-enables the check.
+                if (
+                    pkg == "magic"
+                    and sys.platform == "win32"
+                    and os.environ.get("SEMPTIFY_ENABLE_MAGIC") != "1"
+                ):
+                    continue
                 try:
                     importlib.import_module(pkg)
-                except ImportError:
+                except (ImportError, OSError):
+                    # OSError: package present but its native lib can't load
+                    # (e.g. libmagic access violation) — same as absent for an
+                    # optional dependency with a mimetypes fallback.
                     missing_optional.append(f"{pkg} ({desc})")
 
             if missing_required:
@@ -4168,6 +4181,42 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "days_remaining": briefcase.timeline.next_deadline.days_until,
             }
         return templates.TemplateResponse(request, "pages/tenant_home_next.html", context)
+
+    @fastapi_app.get("/gui/home-preview", response_class=HTMLResponse)
+    async def tenant_home_shell_preview(request: Request, layout: str = "rail"):
+        """TEMPORARY Site Shell v5 preview of the tenant flagship home.
+
+        ?layout=solo — single guided column (locked spec, no rail)
+        ?layout=rail — right rail carries status + crisis help
+
+        Preview-only route: no role guard, lives on a preview branch,
+        removed or promoted after Brad's sign-off."""
+        user_id = extract_user_id(request) or ""
+        briefcase = None
+        if user_id:
+            try:
+                briefcase = await _get_tenant_briefcase(user_id)
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Tenant briefcase load failed for %s: %s", user_id[:6] + "***", e)
+
+        context = {
+            "briefcase": briefcase,
+            "vault_connected": bool(
+                briefcase and briefcase.vault and briefcase.vault.total_documents is not None
+            ),
+            "user_name": briefcase.user_name if briefcase else None,
+            "document_count": briefcase.vault.total_documents if briefcase and briefcase.vault else 0,
+            "journal_count": briefcase.journal.total_entries if briefcase and briefcase.journal else 0,
+            "next_deadline": None,
+            "layout": "solo" if layout == "solo" else "rail",
+        }
+        if briefcase and briefcase.timeline and briefcase.timeline.next_deadline:
+            context["next_deadline"] = {
+                "title": briefcase.timeline.next_deadline.title,
+                "date": briefcase.timeline.next_deadline.date,
+                "days_remaining": briefcase.timeline.next_deadline.days_until,
+            }
+        return templates.TemplateResponse(request, "pages/tenant_home_shell_preview.html", context)
 
     @fastapi_app.get("/tenant/get-help", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/get-help/", response_class=HTMLResponse)
