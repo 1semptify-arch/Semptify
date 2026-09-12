@@ -1,0 +1,87 @@
+{% extends "shell_base.html" %}
+{#
+  Public shell — Site Shell v5 frame for the public/* website family
+  (the org "front door" pages: about, portal, donate, services, ...).
+
+  Drop-in replacement for public_base.html. Child pages keep their
+  header_title / header_tagline / header_subtitle blocks — they now
+  render at the top of the work zone instead of a separate banner —
+  and fill `page_body` instead of `content`.
+
+  The family's shared .section/.service-card/.cta-section styles are
+  preserved below so page internals render unchanged.
+#}
+
+{% block main_class %}shell-main shell-main--top{% endblock %}
+
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="/law-library">Library</a></li>
+<li class="nav-item"><a class="nav-link" href="/office">Office</a></li>
+<li class="nav-item"><a class="nav-link" href="/tools">Tools</a></li>
+<li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+{% endblock %}
+
+{% block content %}
+{% if self.header_title() %}
+<p class="shell-eyebrow">Semptify</p>
+<h1>{% block header_title %}{% endblock %}</h1>
+{% if self.header_tagline() %}
+<p class="shell-lede">{% block header_tagline %}{% endblock %}</p>
+{% endif %}
+{% if self.header_subtitle() %}
+<p class="shell-note" style="margin-bottom:1.25rem;">{% block header_subtitle %}{% endblock %}</p>
+{% endif %}
+{% endif %}
+{% block page_body %}{% endblock %}
+{% endblock %}
+
+{% block sidebar %}
+<h2>Semptify</h2>
+<ul class="shell-list">
+    <li><a href="/help">Get help now</a></li>
+    <li><a href="/law-library">Know your rights</a></li>
+    <li><a href="/portal">The portal</a></li>
+    <li><a href="/about">About the organization</a></li>
+    <li><a href="/donate">Support the work</a></li>
+</ul>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .section { margin-bottom: 2.25rem; }
+    .section-title { font-size: 1.4rem; color: var(--color-primary); margin-bottom: 0.5rem; font-weight: 600; }
+    .section-description { color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 1.05rem; }
+
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem; }
+    .service-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-block); padding: 1.5rem; display: flex; flex-direction: column; transition: box-shadow 0.2s ease, transform 0.2s ease; }
+    .service-card:hover { box-shadow: var(--elevation-2); transform: translateY(-2px); }
+    .service-card .icon { font-size: 1.75rem; margin-bottom: 0.75rem; }
+    .service-card h3 { font-size: 1.1rem; color: var(--color-primary); margin-bottom: 0.5rem; font-weight: 600; }
+    .service-card p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; flex-grow: 1; }
+    .service-card .cta-button { display: inline-block; background: var(--color-accent); color: var(--text-inverse); padding: 0.6rem 1.25rem; font-size: 0.95rem; text-decoration: none; font-weight: 500; border-radius: var(--radius-input); align-self: flex-start; }
+    .service-card .cta-button:hover { background: var(--color-accent-hover); }
+    .service-card .cta-button.secondary { background: var(--text-muted); }
+    .service-card .cta-button.secondary:hover { background: var(--text-secondary); }
+
+    .category-section { margin-bottom: 2.25rem; }
+    .category-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .category-header .category-icon { font-size: 1.5rem; }
+    .category-header h2 { font-size: 1.3rem; color: var(--color-primary); font-weight: 600; }
+    .category-description { color: var(--text-secondary); margin-bottom: 1.25rem; }
+
+    .info-banner { background: var(--color-warning-50, color-mix(in srgb, var(--color-warning), transparent 88%)); border-left: 4px solid var(--color-warm); border-radius: var(--radius-block); padding: 1.25rem 1.5rem; margin: 2rem 0; }
+    .info-banner p { color: var(--text-primary); font-style: italic; margin: 0; }
+
+    .cta-section { text-align: center; padding: 2.5rem 1.5rem; background: var(--bg-surface); border-radius: var(--radius-block); margin-top: 2rem; }
+    .cta-section h2 { font-size: 1.4rem; color: var(--color-primary); margin-bottom: 1rem; }
+    .cta-button-large { display: inline-block; background: var(--color-primary); color: var(--text-inverse); padding: 1rem 2.5rem; font-size: 1.05rem; text-decoration: none; font-weight: 500; border-radius: var(--radius-input); }
+    .cta-button-large:hover { background: var(--color-primary-light); }
+
+    @media (max-width: 640px) {
+        .services-grid { grid-template-columns: 1fr; }
+        .service-card { padding: 1.25rem; }
+    }
+</style>
+{% endblock %}
