@@ -50,6 +50,15 @@ Where the two overlap (`inputs`, `outputs`, dependencies), `module_contract.json
 
 The narrator reads each module's `narrative_events` and renders a live, plain-language sentence while the code runs. No custom narration code is written per function — the grammar reads the schema above.
 
+> **Cross-reference:** ADR-0008 (Information Orchestrator, Accepted) is the
+> governing design for narration — this Part supplies the sentence grammar;
+> ADR-0008 supplies the trigger discipline. Its hard guardrail applies here in
+> full: every narrated line must be triggered by a real backend event (WebSocket
+> `/ws`), and a line describing a step that hasn't started is a fabricated
+> status and is not permitted. Familiarity tracking for narration depth uses the
+> Experience Token in tenant-controlled storage (`.semptify/vault/
+> experience_token.json`) — never a server-side table keyed to a user ID.
+
 > **Phasing [AMENDED]:** The narrator runtime does not exist yet. Until it ships,
 > `narrative_events` in Part 1 is optional — modules may declare slots early, but
 > no build fails for omitting them. The day the narrator runtime lands, the field
