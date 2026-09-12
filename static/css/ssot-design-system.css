@@ -2059,7 +2059,12 @@ body.shell .unified-footer .footer-container {
   }
 }
 
-/* --- Shell working-surface primitives (lists, rows, inputs, drop zones) ------ */
+/* =========================================================================
+   SHELL PRIMITIVES — working-surface building blocks for pages migrated
+   to Site Shell v5. All opt-in under body.shell; nothing existing changes.
+   ========================================================================= */
+
+/* --- Working-surface primitives (panels, item rows, inputs, drop zones) ----- */
 
 body.shell .shell-panel {
   background: var(--bg-page);
@@ -2154,4 +2159,136 @@ body.shell .shell-btn--sm {
   min-width: 0;
   padding: 0.35rem 0.9rem;
   font-size: 0.85rem;
+}
+/* --- Single-column variant ---------------------------------------------------
+   `shell--solo` keeps the shell chrome (header, sage-edged work zone,
+   footer) but removes the right rail — for spec-locked single-column
+   pages like the tenant flagship guide. */
+
+body.shell--solo {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "header"
+    "main"
+    "footer";
+}
+
+body.shell--solo .shell-side { display: none; }
+
+body.shell--solo .shell-main {
+  justify-content: flex-start;
+  padding: 3rem 4vw;
+  border-radius: 0 var(--shell-radius) var(--shell-radius) 0;
+}
+
+body.shell--solo .shell-solo-col {
+  width: 100%;
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+/* Dense/long pages anchor content at the top instead of vertically
+   centering it — apply via main_class="shell-main shell-main--top". */
+body.shell .shell-main--top {
+  justify-content: flex-start;
+}
+
+/* --- Guided zones (vertical rhythm inside the work zone) ---------------------
+   Zone separators, status rows, capture chips, named link rows — used by
+   guided tenant pages (flagship home, record, task pages). */
+
+body.shell .shell-zone + .shell-zone {
+  border-top: 1px solid var(--bg-muted);
+  padding-top: 1.75rem;
+  margin-top: 1.75rem;
+}
+
+body.shell .shell-zone-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem;
+}
+
+body.shell .shell-status { margin: 0; }
+
+body.shell .shell-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--bg-muted);
+  font-size: 0.95rem;
+}
+
+body.shell .shell-status-row:last-child { border-bottom: none; }
+body.shell .shell-status-label { color: var(--text-secondary); }
+body.shell .shell-status-value { color: var(--text-primary); font-weight: 600; text-align: right; }
+body.shell .shell-status-value--warn { color: var(--color-warning, #B45309); }
+
+body.shell .shell-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+body.shell .shell-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--bg-muted);
+  border-radius: 9999px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+body.shell .shell-chip:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+body.shell .shell-note {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem;
+}
+
+/* Text link rows — destinations with a name + quiet description line
+   (flagship "Where everything lives" section). */
+body.shell .shell-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+body.shell .shell-rows a {
+  display: block;
+  padding: 0.75rem 0.25rem;
+  border-bottom: 1px solid var(--bg-muted);
+  border-radius: var(--shell-radius);
+  text-decoration: none;
+}
+
+body.shell .shell-rows a:last-child { border-bottom: none; }
+
+body.shell .shell-rows a:hover {
+  background: var(--bg-page);
+}
+
+body.shell .shell-row-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+body.shell .shell-row-desc {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 0.125rem;
 }
