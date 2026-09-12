@@ -1,76 +1,74 @@
-{% extends "gui/base.html" %}
+{% extends "shell_base.html" %}
 
 {% block title %}Act — Semptify{% endblock %}
-{% block nav_act %}active{% endblock %}
-{% block container_class %}app-posture-locked{% endblock %}
 
 {% block content %}
-<div class="gui-screen">
+<p class="shell-eyebrow">Act</p>
+<h1>What should I do?</h1>
+<p class="shell-lede">
+    Lawful next steps, in order. Semptify organizes the path — a qualified
+    attorney or legal aid office gives the advice.
+</p>
 
-    <div class="gui-screen--primary">
-        <section class="frame-panel">
-            <div class="frame-panel--header">
-                <span class="frame-panel--title">Take Action</span>
-            </div>
-            <div class="frame-panel--body">
-                <p style="color:var(--color-calm-light); font-size:0.9375rem;">
-                    Letters, complaints, deadlines, and next steps — organized, not advised.
-                </p>
-            </div>
-        </section>
+<ol class="shell-steps">
+    <li>
+        <a href="/gui/act/eviction-defense/calculate-deadlines">
+            <span class="shell-step-num">1</span>
+            <span>
+                <span class="shell-step-title">Calculate your deadlines</span><br>
+                <span class="shell-step-desc">Received a notice? Know every date that matters before you do anything else.</span>
+            </span>
+        </a>
+    </li>
+    <li>
+        <a href="/tenant/tools/letters">
+            <span class="shell-step-num">2</span>
+            <span>
+                <span class="shell-step-title">Write a letter</span><br>
+                <span class="shell-step-desc">Repair requests, deposit demands, and other template letters.</span>
+            </span>
+        </a>
+    </li>
+    <li>
+        <a href="/ui/tool/complaints">
+            <span class="shell-step-num">3</span>
+            <span>
+                <span class="shell-step-title">File a complaint</span><br>
+                <span class="shell-step-desc">Find the right housing agency for your situation.</span>
+            </span>
+        </a>
+    </li>
+    <li>
+        <a href="/ui/tool/case-builder">
+            <span class="shell-step-num">4</span>
+            <span>
+                <span class="shell-step-title">Build your case file</span><br>
+                <span class="shell-step-desc">Link documents, dates, and facts into one organized record.</span>
+            </span>
+        </a>
+    </li>
+    <li>
+        <a href="/gui/packet-builder">
+            <span class="shell-step-num">5</span>
+            <span>
+                <span class="shell-step-title">Prepare a packet</span><br>
+                <span class="shell-step-desc">Gather everything into one file for an advocate or attorney.</span>
+            </span>
+        </a>
+    </li>
+</ol>
+{% endblock %}
 
-        <section class="frame-panel">
-            <div class="frame-panel--header">
-                <span class="frame-panel--title">Action Tools</span>
-            </div>
-            <div class="frame-panel--body">
-                <div class="frame-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
-                    <a href="/tenant/tools/letters" class="frame-card" style="display:block; padding:1rem; background:var(--zone-bg-secondary); text-decoration:none;">
-                        <span style="font-size:1.25rem;">▸</span>
-                        <strong style="display:block; color:var(--color-calm-100); margin-top:0.5rem;">Letter Builder</strong>
-                        <span style="color:var(--color-calm-light); font-size:0.875rem;">Maintenance request, deposit demand, etc.</span>
-                    </a>
-                    <a href="/ui/tool/complaints" class="frame-card" style="display:block; padding:1rem; background:var(--zone-bg-secondary); text-decoration:none;">
-                        <span style="font-size:1.25rem;">▸</span>
-                        <strong style="display:block; color:var(--color-calm-100); margin-top:0.5rem;">File a Complaint</strong>
-                        <span style="color:var(--color-calm-light); font-size:0.875rem;">Find the right housing agency.</span>
-                    </a>
-                    <a href="/ui/tool/case-builder" class="frame-card" style="display:block; padding:1rem; background:var(--zone-bg-secondary); text-decoration:none;">
-                        <span style="font-size:1.25rem;">▸</span>
-                        <strong style="display:block; color:var(--color-calm-100); margin-top:0.5rem;">Case Builder</strong>
-                        <span style="color:var(--color-calm-light); font-size:0.875rem;">Add facts and link records.</span>
-                    </a>
-                    <a href="/ui/tool/plan-maker" class="frame-card" style="display:block; padding:1rem; background:var(--zone-bg-secondary); text-decoration:none;">
-                        <span style="font-size:1.25rem;">▸</span>
-                        <strong style="display:block; color:var(--color-calm-100); margin-top:0.5rem;">Action Plan</strong>
-                        <span style="color:var(--color-calm-light); font-size:0.875rem;">Prioritized steps and deadlines.</span>
-                    </a>
-                    <a href="/gui/packet-builder" class="frame-card" style="display:block; padding:1rem; background:var(--zone-bg-secondary); text-decoration:none;">
-                        <span style="font-size:1.25rem;">◆</span>
-                        <strong style="display:block; color:var(--color-calm-100); margin-top:0.5rem;">Build Packet</strong>
-                        <span style="color:var(--color-calm-light); font-size:0.875rem;">Gather documents into one download.</span>
-                    </a>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <div class="gui-screen--secondary">
-        <a href="/tenant/tools/letters" class="frame-btn frame-btn--primary">Letter Builder</a>
-        <a href="/ui/tool/complaints" class="frame-btn">File a Complaint</a>
-        <a href="/ui/tool/case-builder" class="frame-btn">Case Builder</a>
-        <a href="/gui/packet-builder" class="frame-btn">Build Packet</a>
-    </div>
-
-    <div class="gui-screen--support">
-        <section class="frame-panel">
-            <div class="frame-panel--body">
-                <p style="color:var(--color-calm-light); font-size:0.8125rem;">
-                    Semptify does not give legal advice. Talk to a qualified attorney or legal aid society.
-                </p>
-            </div>
-        </section>
-    </div>
-
-</div>
+{% block sidebar %}
+<h2>Right now</h2>
+<p>If a deadline is close or you received a court paper, start with step 1 — dates decide everything else.</p>
+<ul class="shell-list">
+    <li><a href="/tenant/get-help">Guided triage — what applies to me?</a></li>
+    <li><a href="/help">Find real help near you</a></li>
+    <li><a href="/tenant/start">Back to your home</a></li>
+</ul>
+<p style="margin-top:1.25rem; font-size:0.85rem;">
+    Semptify does not give legal advice. These tools organize your paperwork;
+    a licensed attorney advises you.
+</p>
 {% endblock %}

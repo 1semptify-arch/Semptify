@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{#
+  Shell base — asymmetrical desktop frame (Site Shell v5).
+
+  Migration target for pages moving to the new layout direction:
+  main work zone on the left, supporting rail on the right, quiet
+  header (brand + "Get help now" pill) and footer across the top/bottom.
+  Styles live in ssot-design-system.css under `body.shell` — never add
+  page-level shell CSS outside the design-system file.
+
+  Blocks pages fill:
+    title          — page title
+    content        — main work zone (left)
+    sidebar        — supporting rail (right): next steps, context, help
+    nav            — header nav links (default: none — nav lives in footer)
+    shell_footer_nav — footer quick links (default: core destinations)
+    styles/scripts — inherited from base.html as usual
+#}
+
+{% block body_class %}shell{% endblock %}
+{% block main_class %}shell-main{% endblock %}
+
+{% block styles %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block post_main %}
+<aside class="shell-side" aria-label="Supporting">
+    {% block sidebar %}
+    <h2>Next steps</h2>
+    <ul class="shell-list">
+        <li><a href="{{ navigation.get_stage('tenant_home').path if navigation else '/tenant/start' }}">Your home</a></li>
+        <li><a href="/help">Find real help</a></li>
+        <li><a href="/law-library">Know your rights</a></li>
+    </ul>
+    {% endblock %}
+</aside>
+{% endblock %}
