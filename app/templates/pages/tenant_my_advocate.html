@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block body_class %}template-1{% endblock %}
+{% extends "shell_base.html" %}
+{% block body_class %}shell shell--solo{% endblock %}
 
 {% block title %}My Advocate - Semptify{% endblock %}
 
@@ -181,6 +181,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="shell-solo-col">
 <div class="tenant-advocate-page">
     <a href="/" class="back-link">← Back to Home</a>
 
@@ -368,4 +369,5 @@ document.addEventListener('click', async (e) => {
 
 loadAdvocates();
 </script>
+</div>
 {% endblock %}

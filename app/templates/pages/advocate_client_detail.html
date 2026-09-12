@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block body_class %}template-3{% endblock %}
+{% extends "shell_base.html" %}
+{% block body_class %}shell shell--solo{% endblock %}
 
 {% block title %}Client Detail - Advocate - Semptify{% endblock %}
 
@@ -229,6 +229,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="shell-solo-col">
 <div class="advocate-client-detail">
     <a href="/advocate" class="back-link">← Back to Advocate Dashboard</a>
 
@@ -612,4 +613,5 @@ document.getElementById('btn-review-all').addEventListener('click', async () => 
 // Initial load
 loadClientDetail();
 </script>
+</div>
 {% endblock %}
