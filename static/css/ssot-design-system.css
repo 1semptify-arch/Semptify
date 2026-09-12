@@ -1814,7 +1814,7 @@ body.shell .shell-main {
   grid-area: main;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: safe center;
   padding: 4vh 4vw;
   background: var(--bg-card);
   border-left: 4px solid var(--color-accent);
@@ -1824,12 +1824,16 @@ body.shell .shell-main {
 
 body.shell .shell-side {
   grid-area: side;
+  align-self: start;
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
   display: flex;
   flex-direction: column;
-  justify-content: center;
   padding: 4vh 3vw;
   background: var(--bg-muted);
   border-left: 1px solid var(--bg-muted);
+  border-radius: var(--shell-radius);
   overflow-y: auto;
 }
 

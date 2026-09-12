@@ -1,22 +1,18 @@
-{% extends "base.html" %}
+{% extends "shell_base.html" %}
 
 {% block title %}Law Library — Semptify{% endblock %}
 {% block description %}A public, fact-only reference for Minnesota tenant law. Every card shows the official source and the date it was last verified.{% endblock %}
-{% block body_class %}template-5 app-posture-scroll{% endblock %}
-{% block main_class %}ll-main{% endblock %}
+{% block main_class %}shell-main shell-main--top{% endblock %}
 
 {% block styles %}
+{{ super() }}
 <style>
-    .ll-disclaimer { margin-top: var(--space-4); padding: var(--space-4); background: color-mix(in srgb, var(--bg-card), transparent 88%); font-size: var(--text-sm); line-height: var(--leading-relaxed); }
-    .ll-disclaimer a { color: var(--color-white); text-decoration: underline; }
-    .ll-main { width: 100%; max-width: var(--max-width-5xl); margin: 0 auto; padding: 0 var(--space-4) var(--space-8); }
-    .ll-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-6); align-items: end; }
-    .ll-help .ll-toolbar { margin-bottom: 0; }
+    .ll-disclaimer { margin-top: var(--space-3); font-size: var(--text-sm); line-height: var(--leading-relaxed); color: var(--text-secondary); }
+    .ll-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-5); align-items: end; }
     .ll-field { display: flex; flex-direction: column; gap: var(--space-1); }
-    .ll-search { flex: 1; min-width: 260px; }
-    .ll-section-title { font-size: var(--type-h2); color: var(--color-primary); margin: 0 0 var(--space-3); font-weight: var(--type-h2-weight); }
+    .ll-search { flex: 1; min-width: 220px; }
     .ll-tabs { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-4); }
-    .ll-tab { padding: var(--space-2) var(--space-3); border: 1px solid var(--border-color); background: var(--bg-card); font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--text-secondary); cursor: pointer; }
+    .ll-tab { padding: var(--space-2) var(--space-3); border: 1px solid var(--border-color); background: var(--bg-card); font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-input); }
     .ll-tab:hover:not(.ll-tab--active) { border-color: var(--color-primary-light); color: var(--color-primary); }
     .ll-tab--active { background: var(--color-primary); color: var(--text-inverse); border-color: var(--color-primary); }
     .ll-results { display: grid; gap: var(--space-4); }
@@ -33,21 +29,13 @@
     .ll-source { font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border-color); }
     .ll-source a { font-weight: var(--font-semibold); }
     .ll-verified { color: var(--text-secondary); margin-left: var(--space-2); }
-    .ll-empty { text-align: center; padding: var(--space-8); color: var(--text-secondary); }
-    .ll-help { background: var(--bg-card); border: none; border-left: 4px solid var(--color-warning); border-radius: var(--radius-block); padding: var(--space-4); margin-top: var(--space-8); box-shadow: var(--elevation-1); }
-    .ll-help p { font-size: var(--text-sm); color: var(--text-secondary); margin: 0 0 var(--space-3); }
-    .ll-librarian { background: var(--bg-card); border: none; border-radius: var(--radius-block); padding: var(--space-4); margin-top: var(--space-8); box-shadow: var(--elevation-1); }
-    .ll-librarian > p { font-size: var(--text-sm); color: var(--text-secondary); margin: 0 0 var(--space-3); }
-    .ll-chat { border: 1px solid var(--border-color); padding: var(--space-4); height: 220px; overflow-y: auto; background: var(--bg-page); margin-bottom: var(--space-3); }
+    .ll-empty { padding: var(--space-6); color: var(--text-secondary); }
+    .ll-chat { border: 1px solid var(--border-color); border-radius: var(--radius-block); padding: var(--space-3); height: 220px; overflow-y: auto; background: var(--bg-card); margin-bottom: var(--space-3); }
     .ll-msg { margin-bottom: var(--space-3); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-relaxed); }
-    .ll-msg--bot { background: var(--bg-card); border: none; border-radius: var(--radius-block); box-shadow: var(--elevation-1); }
-    .ll-msg--user { background: var(--color-primary); color: var(--text-inverse); margin-left: 10%; }
+    .ll-msg--bot { background: var(--bg-page); border-radius: var(--radius-block); }
+    .ll-msg--user { background: var(--color-primary); color: var(--text-inverse); border-radius: var(--radius-block); margin-left: 10%; }
     .ll-chat-input { display: flex; gap: var(--space-2); }
-    .ll-chat-input .form-input { flex: 1; }
-    .ll-cta { background: var(--bg-card); padding: var(--space-8) 0; text-align: center; }
-    .ll-cta p { color: var(--text-secondary); margin: 0; }
-    .ll-cta a { color: var(--color-primary); font-weight: var(--font-semibold); text-decoration: none; }
-    .ll-cta a:hover { text-decoration: underline; }
+    .ll-chat-input .form-input { flex: 1; min-width: 0; }
 
     @media (max-width: 640px) {
       .ll-toolbar { flex-direction: column; align-items: stretch; }
@@ -59,26 +47,12 @@
 </style>
 {% endblock %}
 
-{% block nav %}
-<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-<li class="nav-item"><a class="nav-link" href="/law-library">Library</a></li>
-<li class="nav-item"><a class="nav-link" href="/office">Office</a></li>
-<li class="nav-item"><a class="nav-link" href="/tools">Tools</a></li>
-<li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
-{% endblock %}
-
-{% block header %}
-{{ super() }}
-<section class="page-header">
-    <div class="container-md">
-        <h1 class="page-header__title">Law Library</h1>
-        <p class="page-header__subtitle">A public, fact-only reference for Minnesota tenant law. Every card shows the official source and the date it was last verified.</p>
-        <p class="ll-disclaimer"><strong>This is not legal advice.</strong> Laws change. Before taking action, check the official source and talk with a licensed attorney or your local legal aid office. If you need help right now, visit <a href="/help">Get help</a>.</p>
-    </div>
-</section>
-{% endblock %}
-
 {% block content %}
+<p class="shell-eyebrow">Know</p>
+<h1>Law Library</h1>
+<p class="shell-lede">A public, fact-only reference for Minnesota tenant law. Every entry shows the official source and the date it was last verified.</p>
+<p class="ll-disclaimer"><strong>This is not legal advice.</strong> Laws change. Before taking action, check the official source and talk with a licensed attorney or your local legal aid office. If you need help right now, visit <a href="/help">Get help</a>.</p>
+
 <div class="ll-toolbar" role="search" aria-label="Law library search">
     <div class="ll-field">
         <label for="state-select" class="form-label">State</label>
@@ -96,45 +70,36 @@
 
 <p id="other-state" class="ll-empty" style="display:none;">Semptify's law library is still building coverage for other states. For other states, visit <a href="/help">Get help</a> to find local resources.</p>
 
-<h2 class="ll-section-title">Browse by topic</h2>
+<h2 class="shell-zone-title">Browse by topic</h2>
 <nav id="tabs" class="ll-tabs" aria-label="Law library categories"></nav>
 
 <section id="results" class="ll-results" aria-live="polite" aria-busy="false">
     <p class="ll-empty">Choose a topic or search to see verified legal references.</p>
 </section>
+{% endblock %}
 
-<section class="ll-help" aria-labelledby="help-title">
-    <h2 class="ll-section-title" id="help-title">Find local help</h2>
-    <p>Search by city, county, or ZIP for legal aid, housing inspectors, tenant unions, and courts.</p>
-    <div class="ll-toolbar" role="search" aria-label="Find local help">
-        <div class="ll-field ll-search">
-            <label for="help-input" class="sr-only">City, county, or ZIP</label>
-            <input id="help-input" type="text" class="form-input" placeholder="City, county, or ZIP">
-        </div>
-        <button class="btn btn--secondary" type="button" onclick="findHelp()" id="help-btn">Search</button>
+{% block sidebar %}
+<h2>Find local help</h2>
+<p class="shell-note" style="margin-bottom:0.75rem;">Search by city, county, or ZIP for legal aid, housing inspectors, tenant unions, and courts.</p>
+<div class="ll-toolbar" role="search" aria-label="Find local help" style="margin-bottom:var(--space-3);">
+    <div class="ll-field ll-search">
+        <label for="help-input" class="sr-only">City, county, or ZIP</label>
+        <input id="help-input" type="text" class="form-input" placeholder="City, county, or ZIP">
     </div>
-    <div id="help-results" class="ll-results"></div>
-</section>
+    <button class="btn btn--secondary" type="button" onclick="findHelp()" id="help-btn">Search</button>
+</div>
+<div id="help-results" class="ll-results"></div>
 
-<section class="ll-librarian" aria-labelledby="librarian-title">
-    <h2 class="ll-section-title" id="librarian-title">Ask the Law Librarian</h2>
-    <p>This assistant only searches the Law Library. It cannot give legal advice. It will cite its sources.</p>
-    <div id="chat" class="ll-chat" role="log" aria-live="polite" aria-atomic="false">
-        <div class="ll-msg ll-msg--bot">I can point you to statutes, cases, and court rules in the Law Library. What would you like to find?</div>
-    </div>
-    <div class="ll-chat-input">
-        <label for="chat-input" class="sr-only">Your question</label>
-        <input id="chat-input" type="text" class="form-input" placeholder="Ask about a tenant rights topic...">
-        <button class="btn btn--primary" type="button" onclick="askLibrarian()">Ask</button>
-    </div>
-</section>
-
-<section class="ll-cta" aria-label="Get help">
-    <div class="container">
-        <h2 class="ll-section-title">Get help now</h2>
-        <p>Need help understanding your rights or next steps? <a href="/help">Get help now</a>.</p>
-    </div>
-</section>
+<h2 style="margin-top:1.75rem;">Ask the Law Librarian</h2>
+<p class="shell-note" style="margin-bottom:0.75rem;">This assistant only searches the Law Library. It cannot give legal advice. It will cite its sources.</p>
+<div id="chat" class="ll-chat" role="log" aria-live="polite" aria-atomic="false">
+    <div class="ll-msg ll-msg--bot">I can point you to statutes, cases, and court rules in the Law Library. What would you like to find?</div>
+</div>
+<div class="ll-chat-input">
+    <label for="chat-input" class="sr-only">Your question</label>
+    <input id="chat-input" type="text" class="form-input" placeholder="Ask about a tenant rights topic...">
+    <button class="btn btn--primary" type="button" onclick="askLibrarian()">Ask</button>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -242,7 +207,7 @@
         if (!statutes.length) {
           resultsEl.innerHTML = '<p class="ll-empty">No statutes found in this category yet. Try searching.</p>';
         } else {
-          resultsEl.innerHTML = `<h2 class="ll-section-title">${escapeHtml(btnLabelFor(cat))}</h2><div class="ll-results">${statutes.map(renderStatute).join('')}</div>`;
+          resultsEl.innerHTML = `<h2 class="shell-zone-title">${escapeHtml(btnLabelFor(cat))}</h2><div class="ll-results">${statutes.map(renderStatute).join('')}</div>`;
         }
       } catch (e) {
         resultsEl.innerHTML = '<p class="ll-empty">Could not load results. Please try again.</p>';
@@ -275,7 +240,7 @@
         if (!items.length) {
           resultsEl.innerHTML = '<p class="ll-empty">No matching results. Try a different term, or search for local help below.</p>';
         } else {
-          resultsEl.innerHTML = `<h2 class="ll-section-title">Search results</h2><div class="ll-results">${items.map(({type, item}) => type==='statute'?renderStatute(item):renderCase(item)).join('')}</div>`;
+          resultsEl.innerHTML = `<h2 class="shell-zone-title">Search results</h2><div class="ll-results">${items.map(({type, item}) => type==='statute'?renderStatute(item):renderCase(item)).join('')}</div>`;
         }
       } catch (e) {
         resultsEl.innerHTML = '<p class="ll-empty">Search failed. Please try again.</p>';
@@ -324,7 +289,7 @@
         if (!resources.length) {
           out.innerHTML = `<p class="ll-empty">No local listings found for <strong>${escapeHtml(area)}</strong>. <a href="/help">Get help finding a resource</a>.</p>`;
         } else {
-          out.innerHTML = `<h2 class="ll-section-title">Local resources near ${escapeHtml(area)}</h2><div class="ll-results">${resources.map(r => `
+          out.innerHTML = `<h2 class="shell-zone-title">Local resources near ${escapeHtml(area)}</h2><div class="ll-results">${resources.map(r => `
             <article class="ll-card">
               <h3>${escapeHtml(r.name)}</h3>
               <p class="ll-summary">${escapeHtml(r.description || '')}</p>
