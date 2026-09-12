@@ -26,5 +26,15 @@ Assign to SWE-1.7 (trusted tier), on a recurring cadence:
 - The legacy pages audit still has roughly 57 files pending a mount decision.
 - Two loose-end triage items are still open from the last board reconciliation pass.
 
+## Handoff Folder Sweep (standing rule)
+Brad drops new handoff files into `C:\master-repo\hand offs and temp` as a temporary staging area — it is not a permanent home for anything. As part of every reconciliation pass:
+
+1. Check `C:\master-repo\hand offs and temp` for any files that have landed there.
+2. Move each file to its correct home in the repo (see the Information Package Index for where orchestration docs belong; other file types follow their own established locations).
+3. Once a file is moved and confirmed in its correct home, remove it from the temp folder — nothing lingers there "just in case."
+4. If it's unclear where a given file belongs, flag it rather than guessing or leaving it in temp indefinitely.
+
+This keeps the staging folder clean between drops and prevents the same carry-over/blending problem this protocol already exists to solve — files sitting unmoved in a dump folder are just another form of stale, unreconciled content.
+
 ## Guardrail
 This shares infrastructure with the documentation staleness-check system already queued (alongside the OCR/semantic-reasoning beta accuracy tracker). Build them together as one system, not as two overlapping ones.

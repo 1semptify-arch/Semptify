@@ -96,11 +96,12 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 - **Fix:** Inspect the 409 response body. Only `folder_name_exists` is success. All other 409s must raise.
 - **File:** `app/services/storage/dropbox.py`
 
-### 3. Missing Parent Vault Folder (.Semptify5.0)
+### 3. Missing Parent Vault Folder (Semptify5.0)
 
-- **What happened:** Dropbox requires explicit parent folder creation before nested folders. The root `.Semptify5.0` folder was missing from `CANONICAL_VAULT_FOLDERS`.
-- **Fix:** `.Semptify5.0` must be the first entry in `CANONICAL_VAULT_FOLDERS`.
-- **File:** `app/modules/onboarding/config.py`
+- **What happened:** Dropbox requires explicit parent folder creation before nested folders. The root `Semptify5.0` folder was missing from `CANONICAL_VAULT_FOLDERS`.
+- **Fix:** `SEMPTIFY_ROOT` (`Semptify5.0`) must be the first entry in `CANONICAL_VAULT_FOLDERS`.
+- **File:** `app/core/vault_paths.py`
+- **The root folder name has NO leading dot.** `.semptify` is the hidden *system config* subfolder at `Semptify5.0/.semptify` — it is not the vault root. Do not add a leading dot to the root folder name, and do not "fix" the root to `.Semptify5.0`: that would repoint every tenant's vault path. This entry previously named the wrong folder and the wrong file; corrected 2026-09-11 against `app/core/vault_paths.py`.
 
 ### 4. Vault Verification Treating Empty Folders as Missing
 
