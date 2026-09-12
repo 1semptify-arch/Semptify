@@ -87,10 +87,16 @@ The aspirational 9-step Extended journey has been archived to `concepts/EXTENDED
 Onboarding is gate-driven, not flag-driven. Each gate unlocks the next:
 
 ```text
-[nothing] → storage_connected → vault_initialized → [onboarding complete]
+[nothing] → storage_connected → vault_initialized + document_uploaded → [onboarding complete]
 ```
 
-The `client_activated` gate was removed on 2026-05-12 — after `vault_initialized` the tenant lands directly in tenant home. See `.devin/rules/08-onboarding-gates.md`; do not reintroduce a third gate.
+- `storage_connected` — OAuth completed to the tenant's own cloud provider.
+- `vault_initialized` — marked only after the vault pipeline fully proves itself (folders, files, token backup, live write/read probe). Never marked on folder creation alone.
+- `document_uploaded` — proof-receipt gate: marked atomically with `vault_initialized` at the end of vault setup, once the first real document is deposited into the vault — written to the tenant's own cloud drive, read back, certified, registered, and placed on the timeline. The vault is the document's permanent home; this gate proves the vault can actually receive and hold it.
+
+Live gate enforcement reads `storage_connected` + `vault_initialized` via `app/core/onboarding_state.py`. Whether `document_uploaded` should also be an enforced gate — versus remaining the receipt that the vault pipeline provably worked — is an open decision for Brad (see `orchestrator_state.json` task `onboarding-third-gate-adr0002-2026-09-11`).
+
+The `client_activated` gate was removed on 2026-05-12 — do not reintroduce it. See `.devin/rules/08-onboarding-gates.md`.
 
 ### Canonical Onboarding Implementation
 
