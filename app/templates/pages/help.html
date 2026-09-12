@@ -1,96 +1,48 @@
-{% extends "gui/base.html" %}
+{% extends "body/gui_shell.html" %}
 
 {% block title %}Help — Semptify{% endblock %}
 {% block description %}What's happening to you right now? Semptify routes you to the right tool.{% endblock %}
-{% block container_class %}app-posture-locked{% endblock %}
-
-{% block styles %}
-{{ super() }}
-<link rel="stylesheet" href="/static/css/frame-light.css">
-{% endblock %}
 
 {% block content %}
-<div class="gui-screen frame-light">
+<p class="shell-eyebrow">Help</p>
+<h1>What's happening to you right now?</h1>
+<p class="shell-lede">
+    Pick the one that fits. Each one takes you to the right tool — no guessing.
+</p>
 
-    <div class="gui-screen--primary">
-        <section class="frame-panel">
-            <div class="frame-panel--body">
-                <h1 style="font-size:1.5rem; font-weight:600; margin-bottom:0.5rem;">What's happening to you right now?</h1>
-                <p style="color:var(--text-secondary); font-size:0.9375rem;">
-                    Pick the one that fits. Each one takes you to the right tool — no guessing.
-                </p>
-            </div>
-        </section>
+<h2 class="shell-zone-title" style="margin-top:1.5rem;">Choose your situation</h2>
+<nav class="shell-rows" aria-label="Situations">
+    <a href="/gui/record">
+        <span class="shell-row-name">I need to document something</span>
+        <div class="shell-row-desc">Upload a lease, notice, photo, or receipt. Build your record.</div>
+    </a>
+    <a href="/law-library">
+        <span class="shell-row-name">I have a question about the law</span>
+        <div class="shell-row-desc">Plain-language facts about eviction, repairs, deposits, and more.</div>
+    </a>
+    <a href="/gui/act">
+        <span class="shell-row-name">I need to take action</span>
+        <div class="shell-row-desc">Write a letter, file a complaint, build a case, or make a plan.</div>
+    </a>
+    <a href="/gui/home">
+        <span class="shell-row-name">I need to check my status or deadlines</span>
+        <div class="shell-row-desc">Go to your home dashboard. See what's due and what you've already done.</div>
+    </a>
+</nav>
+{% endblock %}
 
-        <section class="frame-panel">
-            <div class="frame-panel--header">
-                <span class="frame-panel--title">Choose your situation</span>
-            </div>
-            <div class="frame-panel--body">
-                <a href="/gui/record" class="frame-item" style="text-decoration:none;">
-                    <div class="frame-item--icon">◆</div>
-                    <div class="frame-item--main">
-                        <div class="frame-item--title">I need to document something</div>
-                        <div class="frame-item--meta">Upload a lease, notice, photo, or receipt. Build your record.</div>
-                    </div>
-                    <div class="frame-item--actions">
-                        <span class="frame-btn frame-btn--primary">Record →</span>
-                    </div>
-                </a>
-
-                <a href="/law-library" class="frame-item" style="text-decoration:none;">
-                    <div class="frame-item--icon">◆</div>
-                    <div class="frame-item--main">
-                        <div class="frame-item--title">I have a question about the law</div>
-                        <div class="frame-item--meta">Plain-language facts about eviction, repairs, deposits, and more.</div>
-                    </div>
-                    <div class="frame-item--actions">
-                        <span class="frame-btn frame-btn--primary">Know →</span>
-                    </div>
-                </a>
-
-                <a href="/gui/act" class="frame-item" style="text-decoration:none;">
-                    <div class="frame-item--icon">◆</div>
-                    <div class="frame-item--main">
-                        <div class="frame-item--title">I need to take action</div>
-                        <div class="frame-item--meta">Write a letter, file a complaint, build a case, or make a plan.</div>
-                    </div>
-                    <div class="frame-item--actions">
-                        <span class="frame-btn frame-btn--primary">Act →</span>
-                    </div>
-                </a>
-
-                <a href="/gui/home" class="frame-item" style="text-decoration:none;">
-                    <div class="frame-item--icon">◆</div>
-                    <div class="frame-item--main">
-                        <div class="frame-item--title">I need to check my status or deadlines</div>
-                        <div class="frame-item--meta">Go to your home dashboard. See what's due and what you've already done.</div>
-                    </div>
-                    <div class="frame-item--actions">
-                        <span class="frame-btn">Home →</span>
-                    </div>
-                </a>
-            </div>
-        </section>
-    </div>
-
-    <div class="gui-screen--secondary">
-        <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" class="frame-btn frame-btn--primary" target="_blank" rel="noopener">Find legal help near you</a>
-        <a href="/public/feedback.html" class="frame-btn">Report a problem</a>
-        <a href="/about.html" class="frame-btn">About Semptify</a>
-    </div>
-
-    <div class="gui-screen--support">
-        <section class="frame-panel">
-            <div class="frame-panel--body">
-                <p style="color:var(--text-muted); font-size:0.8125rem;">
-                    <strong>Semptify is an organizational tool, not a law firm.</strong>
-                    We can't give legal advice. For legal advice, contact a licensed attorney
-                    or your local legal aid society.
-                </p>
-            </div>
-        </section>
-    </div>
-
+{% block sidebar %}
+<h2>Real help</h2>
+<ul class="shell-list">
+    <li><a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" target="_blank" rel="noopener">Find legal help near you</a></li>
+    <li><a href="/public/feedback.html">Report a problem</a></li>
+    <li><a href="/about.html">About Semptify</a></li>
+</ul>
+<div class="shell-panel" style="margin-top:1.25rem;">
+    <p class="shell-note" style="margin:0;">
+        <strong>Semptify is an organizational tool, not a law firm.</strong>
+        We can't give legal advice. For legal advice, contact a licensed
+        attorney or your local legal aid society.
+    </p>
 </div>
 {% endblock %}
