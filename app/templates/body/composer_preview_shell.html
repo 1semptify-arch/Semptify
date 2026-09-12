@@ -1,0 +1,71 @@
+{% extends "shell_base.html" %}
+{#
+  Composer/Preview on Site Shell v5 — drop-in replacement for
+  body/composer_preview_body.html.
+
+  Same region contract, new chrome: composer + preview sit side-by-side
+  inside the left work zone (ratio via shell_ratio); the help region
+  moves into the shell's right supporting rail.
+
+  Blocks pages fill (unchanged from composer_preview_body):
+    composer, preview, help (help optional — omit to hide the rail),
+    cps_title, cps_description, cps_eyebrow, cps_controls_title,
+    cps_preview_title, cps_help_title, cps_aria_label.
+  Layout vars (unchanged): shell_ratio "3fr 2fr", shell_primary,
+  shell_mobile_order.
+
+  Migrating a page = change the extends line only.
+#}
+{% from "components/ui_composer.html" import process_indicator with context %}
+
+{% set _has_help = self.help() | trim | length > 0 %}
+{% set _eyebrow = self.cps_eyebrow() | default('', true) | trim %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/page_shell/page_shell.css">
+<link rel="stylesheet" href="/static/css/composer-shell.css">
+{% endblock %}
+
+{% block content %}
+<article class="cps cps--primary-{{ shell_primary | default('composer', true) }}"
+         style="--cps-a: {{ (shell_ratio | default('3fr 2fr', true)).split(' ')[0] }}; --cps-b: {{ (shell_ratio | default('3fr 2fr', true)).split(' ')[1] }};"
+         aria-label="{% block cps_aria_label %}{{ contract_title(contract) | default('Function') }}{% endblock %}">
+
+  <section class="cps__region cps__composer zone" aria-labelledby="cps-composer-title">
+    <div class="block">
+      {% if _eyebrow %}<p class="cps__eyebrow">{% block cps_eyebrow %}{% endblock %}</p>{% endif %}
+      <h1 class="cps__title">{% block cps_title %}{{ contract_title(contract) }}{% endblock %}</h1>
+      <p class="cps__description">{% block cps_description %}{{ contract_description(contract) }}{% endblock %}</p>
+      <h2 id="cps-composer-title" class="cps__section-title">{% block cps_controls_title %}Do it{% endblock %}</h2>
+      {% if situational_available | default(true) %}
+        {% block composer %}{% endblock %}
+      {% else %}
+        <p class="cps__situational-notice" role="note">
+          This function is not currently available for your role or location. You can still read what it does below, but you cannot use it here.
+        </p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="cps__region cps__preview zone" aria-labelledby="cps-preview-title">
+    <div class="block">
+      <h2 id="cps-preview-title" class="cps__section-title">{% block cps_preview_title %}Result{% endblock %}</h2>
+      {% block preview %}
+        <p class="cps__empty">Nothing here yet. Fill in the form and your result will appear in this space.</p>
+      {% endblock %}
+    </div>
+  </section>
+</article>
+{% endblock %}
+
+{% block sidebar %}
+{% if _has_help %}
+  <h2>{% block cps_help_title %}About this step{% endblock %}</h2>
+  <div class="shell-panel">
+    {% block help %}{% endblock %}
+  </div>
+{% else %}
+  {{ super() }}
+{% endif %}
+{% endblock %}
