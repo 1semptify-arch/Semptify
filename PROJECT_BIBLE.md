@@ -94,7 +94,7 @@ Onboarding is gate-driven, not flag-driven. Each gate unlocks the next:
 - `vault_initialized` — marked only after the vault pipeline fully proves itself (folders, files, token backup, live write/read probe). Never marked on folder creation alone.
 - `document_uploaded` — proof-receipt gate: marked atomically with `vault_initialized` at the end of vault setup, once the first real document is deposited into the vault — written to the tenant's own cloud drive, read back, certified, registered, and placed on the timeline. The vault is the document's permanent home; this gate proves the vault can actually receive and hold it.
 
-Live gate enforcement reads `storage_connected` + `vault_initialized` via `app/core/onboarding_state.py`. Whether `document_uploaded` should also be an enforced gate — versus remaining the receipt that the vault pipeline provably worked — is an open decision for Brad (see `orchestrator_state.json` task `onboarding-third-gate-adr0002-2026-09-11`).
+Live gate enforcement reads `storage_connected` + `vault_initialized` via `app/core/onboarding_state.py`. Decided 2026-09-12: `document_uploaded` stays a proof receipt, not an enforced gate — both marks are written atomically, so a marked-vault/unmarked-document state cannot occur in the normal flow.
 
 The `client_activated` gate was removed on 2026-05-12 — do not reintroduce it. See `.devin/rules/08-onboarding-gates.md`.
 
