@@ -9,15 +9,21 @@ import hashlib
 import logging
 import mimetypes
 import os
+import sys
 from typing import Any
 
-try:
-    import magic as _magic
-
-    _MAGIC_AVAILABLE = True
-except ImportError:
+# python-magic-bin's bundled libmagic hangs/crashes on Windows; opt in via SEMPTIFY_ENABLE_MAGIC.
+if sys.platform == "win32" and not os.environ.get("SEMPTIFY_ENABLE_MAGIC"):
     _magic = None
     _MAGIC_AVAILABLE = False
+else:
+    try:
+        import magic as _magic
+
+        _MAGIC_AVAILABLE = True
+    except (ImportError, OSError):
+        _magic = None
+        _MAGIC_AVAILABLE = False
 from dataclasses import dataclass
 from pathlib import Path
 

@@ -5,6 +5,8 @@ Generates court documents as PDFs using xhtml2pdf (cross-platform, no external d
 
 import io
 import logging
+import os
+import sys
 
 from app.core.utc import utc_now
 
@@ -23,13 +25,17 @@ except ImportError:
 WEASYPRINT_AVAILABLE = XHTML2PDF_AVAILABLE
 PDF_AVAILABLE = XHTML2PDF_AVAILABLE
 
-# Try python-magic for MIME detection
-try:
-    import magic  # noqa: F401
-
-    MAGIC_AVAILABLE = True
-except ImportError:
+# Try python-magic for MIME detection. The bundled libmagic in python-magic-bin
+# hangs/crashes on Windows; opt in via SEMPTIFY_ENABLE_MAGIC.
+if sys.platform == "win32" and not os.environ.get("SEMPTIFY_ENABLE_MAGIC"):
     MAGIC_AVAILABLE = False
+else:
+    try:
+        import magic  # noqa: F401
+
+        MAGIC_AVAILABLE = True
+    except (ImportError, OSError):
+        MAGIC_AVAILABLE = False
 
 
 def _generate_pdf_from_html(html_content: str, css: str = "") -> bytes:
