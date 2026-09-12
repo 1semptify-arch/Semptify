@@ -47,6 +47,9 @@ EXEMPT_PATHS = {
     "/onboarding/ssot-navigation",  # SSOT API for static file navigation
     "/onboarding-assets/",  # Static onboarding pages (storage-select, etc)
     "/health",
+    "/healthz",
+    "/livez",
+    "/api/health",
     "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)
     # Public website sub-pages (semptify.org guest portal)
     "/portal",
