@@ -32,6 +32,9 @@ PUBLIC_PATHS: set[str] = {
     "/favicon.ico",
     # Health & monitoring
     "/health",
+    "/healthz",
+    "/livez",
+    "/api/health",
     "/metrics",
     "/api/version",
     "/api/core/status",
