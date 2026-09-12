@@ -10,6 +10,7 @@ import hashlib
 import io
 import logging
 import os
+import sys
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from enum import Enum
@@ -20,13 +21,18 @@ from PIL import Image, ImageDraw, ImageFont
 
 from app.core.utc import utc_now
 
-try:
-    import magic as _magic
-
-    _MAGIC_AVAILABLE = True
-except ImportError:
+# python-magic-bin's bundled libmagic hangs/crashes on Windows; opt in via SEMPTIFY_ENABLE_MAGIC.
+if sys.platform == "win32" and not os.environ.get("SEMPTIFY_ENABLE_MAGIC"):
     _magic = None
     _MAGIC_AVAILABLE = False
+else:
+    try:
+        import magic as _magic
+
+        _MAGIC_AVAILABLE = True
+    except (ImportError, OSError):
+        _magic = None
+        _MAGIC_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
