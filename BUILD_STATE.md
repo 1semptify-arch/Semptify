@@ -13791,3 +13791,28 @@ Nothing is real until it is pushed.
 - Remaining Semptify 5.0 gaps from prior gap analysis (PageEngine facade, any remaining FunctionGroupContract coverage, user-facing contract-copy expansion for new guide pages).
 - Branch `orchestration/opus-setup-2026-09-09` needs merge into `main`.
 
+
+## Session Ship — 2026-09-11 — Tier taxonomy + orchestration doc reconciliation (devin)
+
+**Branch:** `chore/tier-taxonomy-and-doc-reconciliation` (local only; `main` is protected — needs PR)
+
+**What was shipped:**
+- `7b0b11cd` — Corrected Known Failure #3: canonical vault root is `Semptify5.0` (no leading dot); `.semptify` is the hidden system subfolder.
+- `4dd787c2` — Opus COO Charter: added Switchboard protocol section; Documentation Staleness Protocol: added handoff-folder sweep rule.
+- `cfbf12a8` — `tools/workbook_bridge.py` now emits canonical trust tiers (`trusted`/`restricted`) instead of stale `glm-5.2`/`swe-1.6`/`kimi-2.7`; `tools/agent_orchestrator_tasks.json` backfilled (219 rows, zero stale names).
+- Master repo, same effort: `orchestrator_state.json` migrated off `unlimited` (dispatchable tasks → `trusted`/`restricted`; closed records keep history); `orchestrator_mark_task.py` validates tiers, refuses restricted agents claiming `trusted` tasks, and refuses dispatch of unclassified tasks unless `--model-tier` classifies in the same call; queue deduplicated (292→290); 7 missing schema-required titles backfilled; add-task skill fixed (was emitting schema-invalid tasks); 10 findings logged to the queue; master `AGENTS.md` stale claims corrected (SWE-1.7 dispatch is live; repo has a remote); `NAMING_SSOT_DICTIONARY.md` extended with corpus domains.
+
+**Verified:**
+- `python -m py_compile` on changed tools: PASS.
+- JSON parse (UTF-8) + byte-exact round-trip on `orchestrator_state.json`: PASS.
+- Live enforcement: `glm-5.2` claiming a `trusted` task → refused (exit 2); `unlimited` write → rejected; unclassified task claim without `--model-tier` → refused; claim+classify in one call → allowed (then restored).
+- Backfill: 219 rows, 0 stale tier names; schema enum conformance verified by direct comparison.
+
+**Known broken / pending:**
+- Branch not pushed; needs PR into protected `main`.
+- `onboarding-third-gate-adr0002-2026-09-11` blocked_on_decision: third gate `document_uploaded` is a live vault-pipeline proof (write/read-back → registry → certification); earlier ADR-0002 violation claim withdrawn. No real users yet — urgency low. Awaiting Brad's call on exempting public knowledge/help routes for cookie-bearing mid-onboarding users.
+- `jsonschema` absent from `venv311` — schema validation not machine-enforced (task `jsonschema-missing-venv311-2026-09-11`).
+- `charter-claude-tier-ambiguity-2026-09-11` blocked_on_decision: "Claude (free tier)" vs `claude` in `PRIVILEGED_AGENTS` are indistinguishable by agent name.
+
+**Next session should start with:**
+- Push master + open the Semptify PR; then work `open` queue tasks or await Brad's calls on the blocked ones.
