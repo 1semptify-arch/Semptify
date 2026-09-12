@@ -1,3 +1,32 @@
+## Session — 2026-09-12 — Site Shell v5 foundation (opus/devin)
+
+### Goal
+Start the 5.0 GUI rebuild on the mock-site direction (handoffs/mock-site):
+asymmetrical desktop layout — work zone left, supporting rail right —
+clean, zones-not-cards, Playfair Display headings, crisis help always
+reachable. Desktop-first; mobile is a separate UI with its own toolset
+(queued, deferred until desktop is stable).
+
+### What shipped
+- `static/css/ssot-design-system.css` — new `body.shell` section (Site Shell v5):
+  full-viewport grid (header / main 1.6fr + side 1fr / footer), sage-edged
+  work zone, warm side rail, pill crisis CTA, numbered-step and compact-list
+  primitives, 900px single-column fallback, reduced-motion honored. All inside
+  the canonical file — no parallel stylesheet.
+- `app/templates/shell_base.html` — migration-target base template; pages opt in
+  by extending it and filling `content` + `sidebar` blocks. Header nav emptied
+  by default (nav lives in footer per mock direction); crisis pill stays.
+- `app/templates/gui/act.html` — first page migrated (proof): "What should I do?"
+  five chronological steps (deadlines → letter → complaint → case file → packet)
+  + right-rail "Right now" guidance. Verified live at /gui/act (200; ARIA tree +
+  screenshot confirm shell renders as designed).
+
+### Orchestrator
+- 10 tasks queued under the GUI rebuild program: shell foundation (done here),
+  /gui/act proof (done here), landing + tenant-home + gui-core + role + public
+  page migrations, DC viewer-right re-layout (joint session w/ Brad),
+  composer showpiece wiring, separate mobile UI.
+
 ## Session — 2026-09-12 — 5.0 core stabilization pass (opus/devin)
 
 ### Goal
