@@ -1,44 +1,56 @@
-{% extends "base.html" %}
-{% block body_class %}template-4{% endblock %}
-{% from "components/ui_macros.html" import hero, section_title, service_card, card_grid, quick_link, quick_grid, vault_cta, privacy_note, nav_bar, ui_styles %}
-
+{% extends "shell_base.html" %}
 {% block title %}Office – Semptify{% endblock %}
 {% block description %}Documents, communication, timeline, and paperwork — your complete case management center.{% endblock %}
 
-{% block nav %}{{ nav_bar("office") }}{% endblock %}
-
-{% block styles %}{{ ui_styles() }}
-<style>.office-page { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem; }</style>
-{% endblock %}
+{% block main_class %}shell-main shell-main--top{% endblock %}
 
 {% block content %}
-<div class="office-page">
+<p class="shell-eyebrow">Record</p>
+<h1>Your Office</h1>
+<p class="shell-lede">Documents, communication, timeline, and paperwork — your complete case management center.</p>
 
-    {{ hero("🏢", "Your Office", "Documents, communication, timeline, and paperwork — your complete case management center.", "blue") }}
+<h2 class="shell-zone-title">Office services</h2>
+<nav class="shell-rows" aria-label="Office services">
+    <a href="/documents">
+        <span class="shell-row-name">Document Vault</span>
+        <div class="shell-row-desc">Upload, organize, and search all your case documents. Timestamped. Stored in your cloud.</div>
+    </a>
+    <a href="/tenant/inbox">
+        <span class="shell-row-name">Communication Center</span>
+        <div class="shell-row-desc">Secure messaging with advocates, attorneys, and notifications.</div>
+    </a>
+    <a href="/timeline">
+        <span class="shell-row-name">Timeline / Journal</span>
+        <div class="shell-row-desc">Chronological record of all events. Links to documents and records.</div>
+    </a>
+    <a href="/tenant/tools/letters">
+        <span class="shell-row-name">Letter Builder</span>
+        <div class="shell-row-desc">Generate maintenance requests, deposit demands, and response letters.</div>
+    </a>
+</nav>
 
-    {{ vault_cta() }}
-
-    {{ privacy_note() }}
-
-    {{ section_title("📁", "Office Services") }}
-    {% call card_grid() %}
-        {{ service_card("/documents", "🔒", "Document Vault", "Upload, organize, and search all your case documents. Blockchain timestamped. Stored in your cloud.", featured=true, badge="ONE WAY IN") }}
-        {{ service_card("/tenant/inbox", "📨", "Communication Center", "Secure messaging with advocates, attorneys, and notifications.") }}
-        {{ service_card("/timeline", "📅", "Timeline / Journal", "Chronological record of all events. Links to documents and records.") }}
-        {{ service_card("/tenant/tools/letters", "📋", "Letter Builder", "Generate maintenance requests, deposit demands, and response letters.") }}
-    {% endcall %}
-
-    {{ section_title("⚡", "Quick Tasks") }}
-    {% call quick_grid() %}
-        {{ quick_link("/documents", "🔒", "View My Vault") }}
-        {{ quick_link("/tenant/inbox", "📥", "Check Inbox") }}
-        {{ quick_link("/timeline", "➕", "Add Event") }}
-        {{ quick_link("/tenant/journal", "📓", "Journal") }}
-        {{ quick_link("/tenant/tools/letters", "📄", "Write Letter") }}
-        {{ quick_link("/law-library", "📝", "Find a Form") }}
-    {% endcall %}
-
+<h2 class="shell-zone-title">Quick tasks</h2>
+<div class="shell-chips" role="navigation" aria-label="Quick tasks">
+    <a class="shell-chip" href="/documents">View my vault</a>
+    <a class="shell-chip" href="/tenant/inbox">Check inbox</a>
+    <a class="shell-chip" href="/timeline">Add event</a>
+    <a class="shell-chip" href="/tenant/journal">Journal</a>
+    <a class="shell-chip" href="/tenant/tools/letters">Write letter</a>
+    <a class="shell-chip" href="/law-library">Find a form</a>
 </div>
+{% endblock %}
+
+{% block sidebar %}
+<h2>Your documents stay yours</h2>
+<p style="font-size:0.85rem;">
+    Semptify never holds your files. They live in your own cloud storage —
+    we organize, you keep the keys.
+</p>
+<h2 style="margin-top:1.5rem;">Real help</h2>
+<ul class="shell-list">
+    <li><a href="/help">Get help now</a></li>
+    <li><a href="/law-library">Know your rights</a></li>
+</ul>
 {% endblock %}
 
 {% block scripts %}
