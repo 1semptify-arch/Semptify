@@ -13889,3 +13889,30 @@ Nothing is real until it is pushed.
 
 **Next session should start with:**
 - Push master + open the Semptify PR; then work `open` queue tasks or await Brad's calls on the blocked ones.
+
+
+## Session Ship — 2026-09-12 — Site Shell v5 full rollout (devin)
+
+**PRs merged:** #205 (shell + /gui/act), #206 (/gui/record), #207 (landing), #208 (Windows boot fix), #209 (shell primitives), #211 (gui family + /help), #212 (public website + hubs + law-library + rail fix), #213 (composer/preview family), #214 (tenant home solo), #215 (role pages), #216 (composer showpiece).
+
+**What was shipped:**
+- `shell_base.html` + `body/gui_shell.html` + `body/public_shell.html` + `body/composer_preview_shell.html` — the asymmetrical frame (work zone left, supporting rail right) is now the canonical chrome for all migrated families.
+- All migrated pages: `/`, `/gui/act`, `/gui/record`, `/timeline`, `/comms-log`, `/calendar`, `/help`, `/law-library`, `/library`, `/office`, `/tools`, `/complaints`, `/portal` + 10 public website pages, 8 composer/preview task pages, `/tenant/start` (solo variant — locked spec), `/advocate`, `/legal`, `/advocate/invite`, `/advocate/clients/{id}`, `/tenant/my-advocate`, `/gui/page/{subject}` assembled pages.
+- Rail fix: `.shell-side` is top-aligned, sticky, viewport-capped — previously stretched to main's height and centered content ~2300px below the fold (invisible rail on long pages).
+- Footer fix: "Report a problem" pointed at dead `/public-feedback`; now `/public/feedback.html`.
+- Composer showpiece verified end-to-end: real `assemble_page('eviction')` → `render_page_shell()` → shell-wrapped render (blend=urgent_action, intensity=90, risk=high); assembly metadata surfaced in the rail.
+- Local git submodule object store corrupted mid-session (hundreds of missing blobs, bad cache-tree) — healed by `git reset` index rebuild after verifying all work was pushed remote. No work lost.
+
+**Verified:**
+- Live HTTP 200 + `body.shell` + `shell-side` on every migrated public route.
+- Gated pages (`/tenant/*`, `/advocate`, `/legal`) verified via Jinja render harness with real i18n globals; gates still 302 unauthenticated.
+- Browser snapshots: /help, /law-library, /portal, /gui/act, /gui/record.
+
+**Known broken / pending:**
+- `dc-viewer-right-redesign-2026-09-12` — open, parked for joint session with Brad (vault list left, document viewer right).
+- `mobile-ui-separate-toolset-2026-09-12` — open, deferred; desktop shell is now fully rolled out.
+- `legal_trails.html` has no page route (module is API-only) — left unmigrated.
+- `.html` static files shadow some Jinja routes (`/about.html` serves static copy, `/about` serves the shell template) — cosmetic duplication, flagged not fixed.
+
+**Next session should start with:**
+- Document Center joint session, or the mobile toolset kickoff — Brad's call.
