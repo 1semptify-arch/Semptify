@@ -30,7 +30,9 @@ functions — against the running app rather than docs, and fix confirmed breaka
 - Direct import of the 3 magic-guarded modules on win32: clean, `MAGIC_AVAILABLE=False`
 - `is_public_path` unit check: `/healthz`, `/livez`, `/api/health` public; `/readyz` gated
 - Pre-commit sync hook: PASS on both commits
-- Pending live test: `https://semptify-jsam.onrender.com/healthz` → 200 JSON (post-merge)
+- Post-merge live test (deploy dep-daihg895efls73di5jj0, commit b3c8dcc6):
+  `semptify-jsam.onrender.com/healthz` and `semptify.org/healthz` both return
+  `{"status":"ok"}` 200 — previously 302 → `/preamble`.
 
 ### Open decisions routed to Brad (not blocking core today)
 - `document_uploaded` third gate vs two-gate docs + missing `gate_routes` middleware entry (NO-TOUCH onboarding).
