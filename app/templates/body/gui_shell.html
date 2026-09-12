@@ -1,0 +1,25 @@
+{% extends "shell_base.html" %}
+{#
+  GUI shell — Site Shell v5 frame for the gui/* page family.
+  Drop-in replacement for gui/base.html: keeps the four-link gui nav
+  (Home / Record / Library / Act) and gui-panels.css, drops the old
+  centered-900px container for the asymmetrical shell grid.
+
+  Long pages get shell-main--top (content anchors at top, not centered).
+  Child blocks nav_home / nav_record / nav_know / nav_act still work for
+  active-state marking — same names as gui/base.html.
+#}
+
+{% block main_class %}shell-main shell-main--top{% endblock %}
+
+{% block nav %}
+<li class="nav-item"><a class="nav-link {% block nav_home %}{% endblock %}" href="{{ navigation.get_stage('gui_home').path if navigation else '/tenant/start' }}">Home</a></li>
+<li class="nav-item"><a class="nav-link {% block nav_record %}{% endblock %}" href="{{ navigation.get_stage('gui_record').path if navigation else '/gui/record' }}">Record</a></li>
+<li class="nav-item"><a class="nav-link {% block nav_know %}{% endblock %}" href="{{ navigation.get_stage('law_library').path if navigation else '/law-library' }}">Library</a></li>
+<li class="nav-item"><a class="nav-link {% block nav_act %}{% endblock %}" href="{{ navigation.get_stage('gui_act').path if navigation else '/gui/act' }}">Act</a></li>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/gui-panels.css">
+{% endblock %}
