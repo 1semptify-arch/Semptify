@@ -2058,3 +2058,100 @@ body.shell .unified-footer .footer-container {
     transition: none;
   }
 }
+
+/* --- Shell working-surface primitives (lists, rows, inputs, drop zones) ------ */
+
+body.shell .shell-panel {
+  background: var(--bg-page);
+  border: 1px solid var(--bg-muted);
+  border-radius: var(--shell-radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+body.shell .shell-item {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.75rem 0.25rem;
+  border-bottom: 1px solid var(--bg-muted);
+  flex-wrap: wrap;
+}
+
+body.shell .shell-item:last-child { border-bottom: none; }
+
+body.shell .shell-item--icon {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-accent);
+  min-width: 3rem;
+  font-size: 0.9rem;
+}
+
+body.shell .shell-item--main { flex: 1 1 60%; min-width: 0; }
+
+body.shell .shell-item--title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+body.shell .shell-item--meta {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+}
+
+body.shell .shell-item--actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+body.shell .shell-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-secondary);
+}
+
+body.shell .shell-empty--icon {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--color-accent);
+  margin-bottom: 0.5rem;
+}
+
+body.shell .shell-drop {
+  display: block;
+  text-align: center;
+  padding: 2rem 1rem;
+  border: 1.5px dashed var(--bg-muted);
+  border-radius: var(--shell-radius);
+  background: var(--bg-page);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+body.shell .shell-drop:hover,
+body.shell .shell-drop:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--bg-card);
+}
+
+body.shell .shell-input,
+body.shell .shell-select {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--bg-muted);
+  border-radius: 0.375rem;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+body.shell .shell-btn--sm {
+  min-height: 36px;
+  min-width: 0;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+}
