@@ -14,7 +14,7 @@ Canonical implementation lives in `app/modules/onboarding/`.
 
 `client_activated` was removed on 2026-05-12. Do not reintroduce it.
 
-Live enforcement reads `storage_connected` + `vault_initialized` via `app/core/onboarding_state.py`. Whether `document_uploaded` should become an enforced gate versus staying a proof receipt is an open Brad decision (`orchestrator_state.json` → `onboarding-third-gate-adr0002-2026-09-11`).
+Live enforcement reads `storage_connected` + `vault_initialized` via `app/core/onboarding_state.py`. Decided 2026-09-12: `document_uploaded` stays a proof receipt, not an enforced gate — both marks are written atomically, so a marked-vault/unmarked-document state cannot occur in the normal flow.
 
 ## Activation requirements
 
