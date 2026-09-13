@@ -490,15 +490,53 @@ async def lifespan(_app: FastAPI):
                 lifespan_logger.info("   âœ… Database migrations applied")
 
             except TimeoutError:
-                lifespan_logger.warning("   âš ï¸  Migration timed out after 30s - continuing startup")
-            except Exception as e:
-                lifespan_logger.warning("   âš ï¸  Migration check failed (may be first run): %s", e)
-                # Don't fail startup - migrations can be run manually if needed
+                lifespan_logger.error(
+                    "   ❌ Migration timed out after 120s - migration may still complete in background"
+                )
+            except Exception:
+                lifespan_logger.exception("   ❌ Database migration FAILED")
 
         def verify_migrations():
-            # Migrations are optional auto-step, always return True
-            # App will work without them (though new features may fail)
-            return True
+            # Verify the applied revision matches the alembic head. A failed
+            # migration must surface here (and fail the deploy on Render,
+            # keeping the previous healthy version live) rather than boot a
+            # broken app that 500s on schema drift.
+            if not os.environ.get("RENDER"):
+                return True
+            try:
+                from sqlalchemy import create_engine, pool, text as sa_text
+                from alembic.config import Config
+                from alembic.script import ScriptDirectory
+
+                from app.core.config import get_settings
+
+                cfg = Config("alembic.ini")
+                head = ScriptDirectory.from_config(cfg).get_current_head()
+                url = get_settings().database_url
+                if "+aiosqlite" in url:
+                    url = url.replace("+aiosqlite", "")
+                elif "+asyncpg" in url:
+                    url = url.replace("+asyncpg", "+psycopg2")
+                engine = create_engine(url, poolclass=pool.NullPool)
+                try:
+                    with engine.connect() as conn:
+                        row = conn.execute(
+                            sa_text("SELECT version_num FROM alembic_version")
+                        ).fetchone()
+                finally:
+                    engine.dispose()
+                current = row[0] if row else None
+                if current != head:
+                    lifespan_logger.error(
+                        "   ❌ Schema drift: alembic_version=%s, head=%s",
+                        current,
+                        head,
+                    )
+                    return False
+                return True
+            except Exception as e:
+                lifespan_logger.error("   ❌ Migration verification error: %s", e)
+                return False
 
         await run_stage(3, TOTAL_STAGES, "Database Migrations", run_migrations, verify_migrations)
 
