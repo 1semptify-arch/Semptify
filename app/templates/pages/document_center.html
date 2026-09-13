@@ -1714,8 +1714,9 @@
             uploadSubmit.textContent = 'Upload';
             await loadDocs();
             await loadUnlocks();
-            if (data.vault_id) {
-                const uploadedDoc = allDocs.find(d => d.id === data.vault_id);
+            const newDocId = data.vault_id || data.id;
+            if (newDocId) {
+                const uploadedDoc = allDocs.find(d => d.id === newDocId);
                 if (uploadedDoc) await selectDoc(uploadedDoc);
             }
         } catch (err) {
