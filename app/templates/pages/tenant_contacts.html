@@ -1,0 +1,246 @@
+{% extends "shell_base.html" %}
+{#
+  Contacts — the people on the record. Landlords, managers, attorneys,
+  witnesses, agencies. Every call logged from Quick Capture lands on the
+  person's card here.
+
+  Route: /tenant/contacts (tenant role).
+
+  Layout: asymmetric shell — work zone left (list → selected contact's
+  history), supporting rail right (add someone, what this is for).
+  Everything is driven by /api/contacts — no demo data.
+#}
+
+{% block title %}Contacts — Semptify{% endblock %}
+{% block body_class %}shell shell--contacts{% endblock %}
+
+{% block content %}
+<div class="contacts-work">
+
+  <section class="shell-zone" aria-labelledby="ct-title">
+    <p class="shell-eyebrow">Semptify · Contacts</p>
+    <h1 id="ct-title">The people on your record.</h1>
+    <p class="shell-lede">
+      Landlords, managers, attorneys, witnesses — anyone tied to your tenancy.
+      Calls you log in Quick Capture attach to their card.
+    </p>
+  </section>
+
+  <section class="shell-zone" aria-labelledby="ct-list-title">
+    <h2 id="ct-list-title" class="shell-zone-title">Your contacts</h2>
+    <div id="contactsList" class="contacts-list">
+      <p class="contacts-empty">Loading…</p>
+    </div>
+  </section>
+
+  <section class="shell-zone" id="contactDetailZone" aria-labelledby="ct-detail-title" hidden>
+    <h2 id="ct-detail-title" class="shell-zone-title">History with <span id="detailName"></span></h2>
+    <div id="contactMeta" class="shell-status" style="margin-bottom: 1rem;"></div>
+    <div id="interactionsList" class="contacts-interactions"></div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<h2>Add someone</h2>
+<form id="addContactForm" class="contacts-add">
+  <label class="contacts-field">
+    <span>Name</span>
+    <input type="text" id="acName" required placeholder="e.g., Riverside Properties">
+  </label>
+  <label class="contacts-field">
+    <span>Who are they?</span>
+    <select id="acType">
+      <option value="landlord">Landlord</option>
+      <option value="property_manager">Property manager</option>
+      <option value="attorney">Attorney</option>
+      <option value="legal_aid">Legal aid</option>
+      <option value="agency">Agency</option>
+      <option value="witness">Witness</option>
+      <option value="other">Someone else</option>
+    </select>
+  </label>
+  <label class="contacts-field">
+    <span>Phone <em>(optional)</em></span>
+    <input type="tel" id="acPhone">
+  </label>
+  <label class="contacts-field">
+    <span>Email <em>(optional)</em></span>
+    <input type="email" id="acEmail">
+  </label>
+  <button type="submit" class="shell-btn shell-btn--accent" id="acSubmit">Add contact</button>
+  <p id="acMsg" class="contacts-msg" role="status"></p>
+</form>
+
+<h2>Why this matters</h2>
+<p class="shell-note">
+  When you log a call from <a href="/tenant/capture?type=phone_call">Quick Capture</a>,
+  it lands on the person's card — dates, direction, what was said. That's your
+  pattern-of-contact record if things ever escalate.
+</p>
+<ul class="shell-list">
+  <li><a href="/tenant/capture?type=phone_call">Log a call</a></li>
+  <li><a href="/tenant/start">Your home</a></li>
+</ul>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const listEl = document.getElementById('contactsList');
+    const detailZone = document.getElementById('contactDetailZone');
+    const detailName = document.getElementById('detailName');
+    const contactMeta = document.getElementById('contactMeta');
+    const interactionsEl = document.getElementById('interactionsList');
+    let contacts = [];
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const fmtType = (t) => (t || 'other').replace(/_/g, ' ');
+    const fmtDate = (iso) => {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        return isNaN(d) ? '—' : d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
+    };
+
+    async function loadContacts() {
+        try {
+            const r = await fetch('/api/contacts/', { credentials: 'include' });
+            if (r.status === 401) {
+                listEl.innerHTML = '<p class="contacts-empty">Your storage session needs reconnecting — <a href="/storage/reconnect?return_to=/tenant/contacts">reconnect</a> to see contacts.</p>';
+                return;
+            }
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            contacts = data.contacts || [];
+            renderList();
+        } catch (e) {
+            listEl.innerHTML = '<p class="contacts-empty">Could not load contacts. Try again in a moment.</p>';
+        }
+    }
+
+    function renderList() {
+        if (!contacts.length) {
+            listEl.innerHTML = '<p class="contacts-empty">No contacts yet. Add someone on the right, or log a call and they\'re created for you.</p>';
+            return;
+        }
+        listEl.innerHTML = '';
+        contacts.forEach(c => {
+            const row = document.createElement('button');
+            row.type = 'button';
+            row.className = 'contacts-row';
+            row.innerHTML =
+                '<span class="contacts-row-name">' + esc(c.name) + '</span>' +
+                '<span class="contacts-row-meta">' + esc(fmtType(c.contact_type)) +
+                (c.phone ? ' · ' + esc(c.phone) : '') +
+                (c.interaction_count ? ' · ' + c.interaction_count + ' logged' : ' · nothing logged yet') + '</span>';
+            row.addEventListener('click', () => selectContact(c, row));
+            listEl.appendChild(row);
+        });
+    }
+
+    async function selectContact(c, row) {
+        document.querySelectorAll('.contacts-row.is-active').forEach(el => el.classList.remove('is-active'));
+        row.classList.add('is-active');
+        detailZone.hidden = false;
+        detailName.textContent = c.name;
+        contactMeta.innerHTML =
+            '<div class="shell-status-row"><span class="shell-status-label">Type</span><span class="shell-status-value">' + esc(fmtType(c.contact_type)) + '</span></div>' +
+            (c.phone ? '<div class="shell-status-row"><span class="shell-status-label">Phone</span><span class="shell-status-value"><a href="tel:' + esc(c.phone) + '">' + esc(c.phone) + '</a></span></div>' : '') +
+            (c.email ? '<div class="shell-status-row"><span class="shell-status-label">Email</span><span class="shell-status-value"><a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a></span></div>' : '') +
+            (c.last_contact_date ? '<div class="shell-status-row"><span class="shell-status-label">Last contact</span><span class="shell-status-value">' + fmtDate(c.last_contact_date) + '</span></div>' : '');
+        interactionsEl.innerHTML = '<p class="contacts-empty">Loading history…</p>';
+        detailZone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        try {
+            const r = await fetch('/api/contacts/' + encodeURIComponent(c.id) + '/interactions', { credentials: 'include' });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const items = await r.json();
+            renderInteractions(items);
+        } catch (e) {
+            interactionsEl.innerHTML = '<p class="contacts-empty">Could not load history.</p>';
+        }
+    }
+
+    function renderInteractions(items) {
+        if (!items.length) {
+            interactionsEl.innerHTML = '<p class="contacts-empty">Nothing logged yet. <a href="/tenant/capture?type=phone_call">Log a call</a> to start the record.</p>';
+            return;
+        }
+        interactionsEl.innerHTML = '';
+        items.forEach(i => {
+            const div = document.createElement('div');
+            div.className = 'contacts-interaction';
+            const dir = i.direction === 'incoming' ? 'They → you' : 'You → them';
+            const dur = i.duration_minutes ? ' · ' + i.duration_minutes + ' min' : '';
+            div.innerHTML =
+                '<div class="contacts-interaction-head"><span>' + esc(fmtType(i.interaction_type)) + '</span>' +
+                '<span class="contacts-interaction-meta">' + fmtDate(i.interaction_date) + ' · ' + dir + dur + '</span></div>' +
+                (i.summary ? '<p class="contacts-interaction-summary">' + esc(i.summary) + '</p>' : '');
+            interactionsEl.appendChild(div);
+        });
+    }
+
+    document.getElementById('addContactForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('acSubmit');
+        const msg = document.getElementById('acMsg');
+        btn.disabled = true;
+        msg.textContent = '';
+        try {
+            const r = await fetch('/api/contacts/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    contact_type: document.getElementById('acType').value,
+                    name: document.getElementById('acName').value.trim(),
+                    phone: document.getElementById('acPhone').value.trim() || null,
+                    email: document.getElementById('acEmail').value.trim() || null,
+                    source: 'contacts_page',
+                }),
+            });
+            if (r.status === 401) {
+                msg.innerHTML = 'Session needs reconnecting — <a href="/storage/reconnect?return_to=/tenant/contacts">reconnect</a>.';
+                return;
+            }
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            msg.textContent = 'Added.';
+            e.target.reset();
+            await loadContacts();
+        } catch (err) {
+            msg.textContent = 'Could not add — try again.';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    loadContacts();
+})();
+</script>
+<style>
+.contacts-list { display: flex; flex-direction: column; }
+.contacts-row {
+    display: flex; flex-direction: column; gap: 0.125rem;
+    padding: 0.625rem 0; border: none; border-bottom: 1px solid var(--shell-line);
+    background: transparent; text-align: left; cursor: pointer;
+    font: inherit; color: inherit;
+}
+.contacts-row:hover { background: var(--role-tint); }
+.contacts-row.is-active { border-left: 2px solid var(--role-accent); padding-left: 0.625rem; }
+.contacts-row-name { font-weight: 500; }
+.contacts-row-meta { font-size: 0.8125rem; color: var(--text-secondary); }
+.contacts-empty { color: var(--text-secondary); font-size: 0.875rem; }
+.contacts-interaction { padding: 0.625rem 0; border-bottom: 1px solid var(--shell-line); }
+.contacts-interaction-head { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.875rem; }
+.contacts-interaction-meta { color: var(--text-secondary); }
+.contacts-interaction-summary { margin: 0.25rem 0 0; font-size: 0.875rem; color: var(--text-secondary); }
+.contacts-add { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; }
+.contacts-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8125rem; color: var(--text-secondary); }
+.contacts-field input, .contacts-field select {
+    padding: 0.5rem 0.625rem; font-size: 0.875rem;
+    border: 1px solid var(--shell-line); border-radius: 8px;
+    background: var(--bg-card, #fff); color: var(--text-primary); font: inherit;
+}
+.contacts-msg { font-size: 0.8125rem; color: var(--text-secondary); min-height: 1em; }
+</style>
+{% endblock %}
