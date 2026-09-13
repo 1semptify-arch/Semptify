@@ -386,22 +386,6 @@
   last_result:
     health_check: 10 route(s), no exposure issues
     test_suite: 1 passed in 1.63s
-- id: router
-  display_name: Law Library
-  category: core
-  tier: B
-  owner: brad
-  version: 1.0.0
-  module_path: app.modules.law_library.router
-  health_check: tools.module_health.check_router
-  test_suite: tests/module_health/test_router.py
-  last_verified: '2026-07-29T00:36:38.797531+00:00'
-  status: orphaned
-  last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
-  flag_reason: "dead weight \u2014 duplicate of law_library and law_library_page_router;\
-    \ registry cleanup tracked"
 - id: contacts
   display_name: Contact Manager
   category: core
@@ -1581,75 +1565,7 @@
   last_result:
     health_check: ON HOLD per Brad's standing direction
     test_suite: flagged
-  flag_reason: ON HOLD per Brad's standing direction
-- id: eviction_notice_explainer
-  display_name: Eviction Notice Explainer
-  category: advanced
-  tier: B
-  owner: brad
-  version: 1.0.0
-  module_path: app.modules.eviction_notice_explainer
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-09-08T06:37:31.303292+00:00'
-  status: orphaned
-  last_result:
-    health_check: "dead weight \u2014 no module code or product manifest entry; registry\
-      \ cleanup tracked"
-    test_suite: flagged
-  flag_reason: "dead weight \u2014 no module code or product manifest entry; registry\
-    \ cleanup tracked"
-- id: response_letter_generator
-  display_name: Response Letter Generator
-  category: advanced
-  tier: B
-  owner: brad
-  version: 1.0.0
-  module_path: app.modules.response_letter_generator
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-09-08T06:37:31.303292+00:00'
-  status: orphaned
-  last_result:
-    health_check: "dead weight \u2014 no module code or product manifest entry; registry\
-      \ cleanup tracked"
-    test_suite: flagged
-  flag_reason: "dead weight \u2014 no module code or product manifest entry; registry\
-    \ cleanup tracked"
-- id: eviction_defense_content
-  display_name: Eviction Defense Content
-  category: advanced
-  tier: B
-  owner: brad
-  version: 1.0.0
-  module_path: app.modules.eviction_defense_content
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-09-08T06:37:31.303292+00:00'
-  status: orphaned
-  last_result:
-    health_check: "dead weight \u2014 no module code or product manifest entry; registry\
-      \ cleanup tracked"
-    test_suite: flagged
-  flag_reason: "dead weight \u2014 no module code or product manifest entry; registry\
-    \ cleanup tracked"
-- id: ai_copilot
-  display_name: Ai Copilot
-  category: advanced
-  tier: B
-  owner: brad
-  version: 1.0.0
-  module_path: app.modules.ai_copilot
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-09-08T06:37:31.303292+00:00'
-  status: orphaned
-  last_result:
-    health_check: "dead weight \u2014 no module code or product manifest entry; registry\
-      \ cleanup tracked"
-    test_suite: flagged
-  flag_reason: "dead weight \u2014 no module code or product manifest entry; registry\
-    \ cleanup tracked"
+  flag_reason: DEPRECATED — ON HOLD per Brad's standing direction (marked 2026-09-13)
 - id: context_loop
   display_name: Context Loop
   category: advanced
