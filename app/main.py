@@ -57,6 +57,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -1869,7 +1870,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             logger.info(f"=== ADMIN API REQUEST: {request.method} {request.url.path} ===")
         response = await call_next(request)
         response.headers["X-Request-Id"] = request_id
+        # Static assets aren't fingerprinted, so keep the cache TTL short:
+        # repeat visits skip revalidation round-trips without risking stale CSS/JS
+        # after a deploy (1h).
+        if request.url.path.startswith(("/static/", "/assets/", "/public/")):
+            response.headers.setdefault("Cache-Control", "public, max-age=3600")
         return response
+
+    # GZip — outermost middleware so it compresses the final response body.
+    # Material on Render free tier: HTML pages ship ~50-80KB uncompressed.
+    fastapi_app.add_middleware(GZipMiddleware, minimum_size=1000)
+    logger.info("GZip compression middleware registered")
 
     # =========================================================================
     # Exception Handlers
