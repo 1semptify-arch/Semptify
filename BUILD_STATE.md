@@ -1,3 +1,30 @@
+## Session — 2026-09-13 — Donor portal: fact-checked funding presentation at /donate (devin)
+
+### What shipped
+- `app/templates/public/donate.html` is now the full funding presentation
+  (was a stub whose "Donate →" CTA dead-ended at `/preamble`).
+- Portal `donor_anonymous` service CTA `/preamble` -> `/donate`; nav
+  "Support the work" already pointed at `/donate`.
+- Donation channel = GitHub Sponsors (verified `sponsors/1semptify-arch`
+  enabled; `.github/FUNDING.yml` already wired). Removed dead-end bare-domain
+  Ko-fi/OpenCollective links and 9x `localhost:8001` Funding Forge links.
+- Fact-check fixes: 501(c)(3) claims corrected to "filing in progress"
+  (Anthropic/OpenAI/Microsoft/AWS/Google all require it — noted honestly per
+  tab); "data never touches our servers" -> "files never touch our servers"
+  (Postgres holds structured records); Semptify Go PWA marked Planned — Phase 3
+  (no manifest/SW exists); phantom module tags -> real ones (+Retaliation
+  Tracker); grant cycles updated (OpenAI 2026 closed Jul 15 -> next ~2027; AWS
+  2026 closed Jun 5 -> winners Dec 1, next ~Mar 2027; Google GenAI TBD);
+  "August 2026" -> September 2026.
+- Page is exempt from the "free"/language mandates per Brad.
+
+### Known facts
+- `/donate` is served by the portal-page loop in main.py (renders the template
+  through Jinja — file has zero `{{`/`{%` collisions).
+- CSP has no `frame-src` (falls back to default-src 'self') — the GitHub
+  sponsor iframe button would be blocked; a styled link is used instead.
+- PR #234 merged; Render deploy dep-daj55dh594qs73asft4g on 3ea2ad83.
+
 ## Session — 2026-09-13 — Prod schema repair: ownership + silent migration failure (devin)
 
 ### What happened
