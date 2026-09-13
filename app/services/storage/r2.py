@@ -18,13 +18,17 @@ from app.services.storage.base import StorageFile, StorageProvider
 
 logger = logging.getLogger("semptify.r2")
 
-try:
-    import aioboto3
+# aioboto3 is imported lazily inside _session() — it pulls in boto3/botocore
+# (~0.9s) and is only needed when R2 storage is actually used.
 
-    HAS_AIOBOTO3 = True
-except ImportError:
-    HAS_AIOBOTO3 = False
-    logger.warning("aioboto3 not installed — R2 storage unavailable. Run: pip install aioboto3")
+
+def _import_aioboto3():
+    try:
+        import aioboto3
+
+        return aioboto3
+    except ImportError:
+        return None
 
 
 class R2Provider(StorageProvider):
@@ -54,7 +58,8 @@ class R2Provider(StorageProvider):
 
     def _session(self):
         """Create a fresh aioboto3 session."""
-        if not HAS_AIOBOTO3:
+        aioboto3 = _import_aioboto3()
+        if aioboto3 is None:
             raise RuntimeError("aioboto3 is not installed. Run: pip install aioboto3")
         session = aioboto3.Session(
             aws_access_key_id=self.access_key_id,
@@ -76,7 +81,7 @@ class R2Provider(StorageProvider):
 
     async def is_connected(self) -> bool:
         """Return True if R2 bucket is reachable and credentials are valid."""
-        if not HAS_AIOBOTO3:
+        if _import_aioboto3() is None:
             return False
         try:
             async with self._client() as s3:
