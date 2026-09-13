@@ -467,12 +467,24 @@
         const fname = (d.filename || '').toLowerCase();
         const isPdf = fname.endsWith('.pdf');
         const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/.test(fname);
-        if (isPdf && window.pdfjsLib) {
-            await renderPdf(d);
-        } else if (isImage) {
-            renderImage(d);
-        } else {
-            showIframeViewer(d);
+        try {
+            if (isPdf && window.pdfjsLib) {
+                await renderPdf(d);
+            } else if (isImage) {
+                renderImage(d);
+            } else {
+                showIframeViewer(d);
+            }
+        } catch (viewErr) {
+            // A missing/unreadable file must not kill the rest of the
+            // selection flow — checklist, rail, and tools still update.
+            console.warn('Document view failed:', viewErr);
+            const viewer = document.getElementById('dcViewer');
+            const emptyEl = document.getElementById('dcViewerEmpty');
+            if (viewer && emptyEl) {
+                emptyEl.style.display = '';
+                emptyEl.innerHTML = '<div class="frame-empty--icon">◆</div><p>Could not load this file.</p><p style="font-size:0.8rem;opacity:0.7;">The record exists — the file itself could not be fetched.</p>';
+            }
         }
         loadOverlays(d.id);
         renderChecklist(d);
@@ -1730,15 +1742,22 @@
     }
 
     function dcStepStates(doc) {
-        if (!doc) return { done: -1, fieldsDone: 0, fieldsTotal: 0 };
+        // Each step is independently true — a later status (e.g. a doc marked
+        // verified before its type was set) must not mark earlier steps done.
+        // 'current' is the first step still undone.
+        if (!doc) return { steps: [false, false, false, false, false], current: -1, fieldsDone: 0, fieldsTotal: 0 };
         const fc = dcFieldCounts(doc);
         const status = effectiveStatus(doc);
-        let done = 0; // Added
-        if (doc.document_type) done = 1;
-        if (fc.total && fc.confirmed >= fc.total) done = 2;
-        if (status === 'verified') done = 3;
-        if (status === 'verified' && fc.total && fc.confirmed >= fc.total) done = 4;
-        return { done, fieldsDone: fc.confirmed, fieldsTotal: fc.total };
+        const steps = [
+            true,                                                                   // Added
+            !!doc.document_type,                                                    // Type set
+            !!doc.document_type && (fc.total === 0 || fc.confirmed >= fc.total),    // Fields confirmed
+            status === 'verified',                                                  // Verified
+            false,                                                                  // Ready to use (below)
+        ];
+        steps[4] = steps[0] && steps[1] && steps[2] && steps[3];
+        const current = steps.findIndex(s => !s);
+        return { steps, current, fieldsDone: fc.confirmed, fieldsTotal: fc.total };
     }
 
     function updateGuidanceRail() {
@@ -1751,8 +1770,9 @@
         prog.innerHTML = '';
         PROGRESS_STEPS.forEach((label, i) => {
             const li = document.createElement('li');
-            li.className = 'dc-step' + (i <= st.done ? ' dc-step--done' : i === st.done + 1 ? ' dc-step--current' : '');
-            li.innerHTML = '<span class="dc-step-dot">' + (i <= st.done ? '●' : i === st.done + 1 ? '◆' : '○') + '</span><span>' + label +
+            const done = st.steps[i], isCurrent = i === st.current;
+            li.className = 'dc-step' + (done ? ' dc-step--done' : isCurrent ? ' dc-step--current' : '');
+            li.innerHTML = '<span class="dc-step-dot">' + (done ? '●' : isCurrent ? '◆' : '○') + '</span><span>' + label +
                 (i === 2 && st.fieldsTotal ? ' <span style="color:var(--text-muted);font-weight:400;">(' + st.fieldsDone + ' of ' + st.fieldsTotal + ')</span>' : '') + '</span>';
             prog.appendChild(li);
         });
