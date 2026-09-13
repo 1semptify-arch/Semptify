@@ -1903,6 +1903,7 @@ body.shell .unified-footer {
   grid-area: footer;
   background: var(--role-tint);
   border-top: 1px solid var(--role-accent);
+  padding: 0;
 }
 
 body.shell .unified-footer .footer-container {
