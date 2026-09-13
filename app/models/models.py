@@ -424,6 +424,10 @@ class TimelineEvent(Base):
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     attached_document_ids: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array of vault doc IDs
 
+    # Structured subtypes/labels, e.g. ["repair_request"] on a protected_action
+    # or ["eviction_notice"] on an adverse_action (retaliation tracker).
+    tags: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array of strings
+
     # Importance for court
     is_evidence: Mapped[bool] = mapped_column(Boolean, default=False)
 
