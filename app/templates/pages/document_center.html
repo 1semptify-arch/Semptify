@@ -55,6 +55,7 @@
             <button type="button" class="frame-btn dc-annot-tool" data-tool="note" style="padding:0.25rem 0.5rem; font-size:0.75rem;">▸ Note</button>
             <button type="button" class="frame-btn dc-annot-tool" data-tool="reference" style="padding:0.25rem 0.5rem; font-size:0.75rem;">▸ Reference</button>
             <button type="button" class="frame-btn dc-annot-tool" data-tool="none" style="padding:0.25rem 0.5rem; font-size:0.75rem;">✕ Cancel</button>
+            <button type="button" class="frame-btn" id="dcWordBoxToggle" style="padding:0.25rem 0.5rem; font-size:0.75rem; display:none;">◆ Word highlights</button>
         </div>
     </div>
 
@@ -70,6 +71,12 @@
             <button id="dcEmptyUploadBtn" type="button" style="margin-top:0.75rem; padding:0.5rem 1rem; color:var(--zone-ink-inverse, #f4f2ec); background:transparent; border:1px solid currentColor; border-radius:8px; font:inherit; cursor:pointer;">+ Upload a document</button>
         </div>
         <div id="dcPdfContainer" style="display:none; width:100%; height:100%; overflow:auto; padding:1rem; gap:1rem; flex-direction:column; align-items:center;"></div>
+        <div id="dcImageContainer" style="display:none; width:100%; height:100%; overflow:auto; padding:1rem; position:relative; justify-content:center; align-items:flex-start;">
+            <div style="position:relative; display:inline-block;">
+                <img id="dcImageEl" style="display:block; max-width:100%; height:auto;" alt="Document" />
+                <canvas id="dcWordBoxCanvas" style="position:absolute; top:0; left:0; pointer-events:none;"></canvas>
+            </div>
+        </div>
         <iframe id="dcIframeFallback" style="display:none; width:100%; height:100%; border:none;"></iframe>
     </div>
 
@@ -552,13 +559,110 @@
         loadUserAnnotations(doc);
     }
 
+    let currentWordBoxes = [];
+    let wordBoxVisible = false;
+
     function showIframeViewer(d) {
         document.getElementById('dcViewerEmpty').style.display = 'none';
         document.getElementById('dcPdfContainer').style.display = 'none';
-        const iframe = document.getElementById('dcIframeFallback');
-        iframe.style.display = '';
-        iframe.src = '/api/dc/document/' + encodeURIComponent(d.id) + '/view';
+
+        var mime = (d.mime_type || '').toLowerCase();
+        var isImage = mime.startsWith('image/');
+
+        if (isImage) {
+            showImageViewer(d);
+        } else {
+            document.getElementById('dcImageContainer').style.display = 'none';
+            document.getElementById('dcWordBoxToggle').style.display = 'none';
+            var iframe = document.getElementById('dcIframeFallback');
+            iframe.style.display = '';
+            iframe.src = '/api/dc/document/' + encodeURIComponent(d.id) + '/view';
+        }
     }
+
+    function showImageViewer(d) {
+        var iframe = document.getElementById('dcIframeFallback');
+        var container = document.getElementById('dcImageContainer');
+        var img = document.getElementById('dcImageEl');
+        var canvas = document.getElementById('dcWordBoxCanvas');
+        var toggle = document.getElementById('dcWordBoxToggle');
+
+        iframe.style.display = 'none';
+        container.style.display = 'flex';
+        toggle.style.display = 'none';
+        currentWordBoxes = [];
+        wordBoxVisible = false;
+
+        img.onload = function() {
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            canvas.style.width = img.clientWidth + 'px';
+            canvas.style.height = img.clientHeight + 'px';
+            loadWordBoxes(d);
+        };
+        img.src = '/api/dc/document/' + encodeURIComponent(d.id) + '/view';
+    }
+
+    async function loadWordBoxes(d) {
+        var toggle = document.getElementById('dcWordBoxToggle');
+        try {
+            var resp = await fetch('/api/dc/document/' + encodeURIComponent(d.id) + '/word-boxes');
+            if (!resp.ok) { toggle.style.display = 'none'; return; }
+            var data = await resp.json();
+            if (!data.word_boxes || data.word_boxes.length === 0) {
+                toggle.style.display = 'none';
+                return;
+            }
+            currentWordBoxes = data.word_boxes;
+            toggle.style.display = '';
+            toggle.textContent = '◆ Word highlights (' + data.word_boxes.length + ')';
+            // Auto-show on first load
+            wordBoxVisible = true;
+            toggle.style.opacity = '1';
+            drawWordBoxes();
+        } catch (e) {
+            toggle.style.display = 'none';
+        }
+    }
+
+    function drawWordBoxes() {
+        var canvas = document.getElementById('dcWordBoxCanvas');
+        var img = document.getElementById('dcImageEl');
+        if (!canvas || !img || !img.naturalWidth) return;
+        var ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (!wordBoxVisible || currentWordBoxes.length === 0) return;
+
+        var scaleX = canvas.width / img.naturalWidth;
+        var scaleY = canvas.height / img.naturalHeight;
+        // Canvas is set to natural dimensions; scale boxes 1:1
+        ctx.fillStyle = 'rgba(255, 204, 0, 0.25)';
+        ctx.strokeStyle = 'rgba(255, 180, 0, 0.6)';
+        ctx.lineWidth = 1;
+        for (var i = 0; i < currentWordBoxes.length; i++) {
+            var wb = currentWordBoxes[i];
+            var b = wb.bbox;
+            if (!b) continue;
+            ctx.fillRect(b.left, b.top, b.width, b.height);
+            ctx.strokeRect(b.left, b.top, b.width, b.height);
+        }
+    }
+
+    document.getElementById('dcWordBoxToggle').addEventListener('click', function() {
+        wordBoxVisible = !wordBoxVisible;
+        this.style.opacity = wordBoxVisible ? '1' : '0.5';
+        drawWordBoxes();
+    });
+
+    // Redraw word boxes on resize so canvas CSS dimensions match the image
+    window.addEventListener('resize', function() {
+        var canvas = document.getElementById('dcWordBoxCanvas');
+        var img = document.getElementById('dcImageEl');
+        if (canvas && img && img.clientWidth > 0) {
+            canvas.style.width = img.clientWidth + 'px';
+            canvas.style.height = img.clientHeight + 'px';
+        }
+    });
 
     let currentPdfDoc = null;
     let currentExtractedText = [];
@@ -567,8 +671,12 @@
         const container = document.getElementById('dcPdfContainer');
         const empty = document.getElementById('dcViewerEmpty');
         const iframe = document.getElementById('dcIframeFallback');
+        const imgContainer = document.getElementById('dcImageContainer');
+        const toggle = document.getElementById('dcWordBoxToggle');
         empty.style.display = 'none';
         iframe.style.display = 'none';
+        imgContainer.style.display = 'none';
+        toggle.style.display = 'none';
         container.style.display = 'flex';
         container.innerHTML = '<div style="color:var(--text-muted); padding:2rem;">Loading PDF…</div>';
         try {
