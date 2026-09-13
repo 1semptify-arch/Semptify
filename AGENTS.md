@@ -202,6 +202,13 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 - **Rule:** Never call a synchronous HTTP client (`httpx.Client`, `requests`, etc.) from inside an `async def` code path in this repo. Token refresh, provider validation, and storage I/O must all be async. If you see `token_manager.refresh_token_if_needed()` or `get_valid_token_for_user()` being called from an async route/service, replace it with `auto_refresh.ensure_valid_token()` or make the caller `await` an async equivalent.
 - **Files:** `app/core/auto_refresh.py`, `app/core/oauth_token_manager.py`, `app/core/security.py` (`get_current_user`), `app/core/storage_middleware.py`.
 
+### 20. Prod Tables Owned by a Foreign Role Silently Break Migrations
+
+- **What happened:** In the production Neon database (`semptifty_db` on project `flat-block-24520481`), 14 tables and 13 sequences were owned by `authenticator` — the Neon Auth / Data API role — not `neondb_owner`. On every boot, migration `35e49b1cefed` failed with `must be owner of table context_facts`; because Alembic runs the whole pending chain in one transaction, everything rolled back and `alembic_version` stayed at `f7a1c2d3e4b5`. The startup wrapper swallowed the real error as a one-line warning and `verify_migrations()` always returned `True`, so Render marked the broken deploy "live" while `/` 500'd.
+- **Fix:** Ownership was transferred via the shared `authenticated` group role (`authenticator` is a member with `SET` but `NOINHERIT`, so `REASSIGN OWNED` fails — per-object `ALTER TABLE ... OWNER TO` after granting `CREATE ON SCHEMA public TO authenticated` works). Then `alembic upgrade head` completed and `verify_migrations` was fixed to compare `alembic_version` to the script head — schema drift now fails the deploy loudly instead of serving a broken app.
+- **Rule:** If prod logs show "Running upgrade X -> Y" on every boot with no completion and the app reports missing columns, check object ownership (`pg_tables.tableowner`), not just `alembic_version`. Objects created while connected as a non-owner role (Neon Auth `authenticator`, Data API, `neon_service`) cannot be ALTERed by `neondb_owner`; ownership must be transferred by a member of the owning role.
+- **Also:** the app's prod database is `semptifty_db` (note the typo) — NOT the default `neondb` database on the same branch, which carries a stale copy of the schema. Local `.env` Neon URLs with `channel_binding=require` may fail DNS resolution; the working pooler host is `ep-cold-surf-anjssth8-pooler.c-6.us-east-1.aws.neon.tech`.
+
 ---
 
 ## � Gap Report — run this before hunting for bugs by hand
