@@ -1,6 +1,8 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-09-05 (PII/case-data purge: real case files untracked + backed up outside repo, full GitHub history rewrite + force-push on `1semptify-arch/Semptify`, `protect-main` ruleset restored; stale docs fixed — manifest rewritten with verified snapshot (123 registrations), `MODULE_BLUEPRINT.md` created, `BLUEPRINT.md` superseded, dead `client_activated` gate reference removed from PROJECT_BIBLE, repo URLs corrected to `1semptify-arch/Semptify`)
+**Last Updated**: 2026-09-12 (Site Shell v5 rollout complete — PRs #205–#224; mobile quick-capture wired end-to-end incl. contacts/call-log/file-camera-audio upload; `/tenant/contacts` added; DC flipped to rail-left/work-right; shell lightness pass merged. See BUILD_STATE.md 2026-09-12 entries for the full ship log.)
+
+**Previous**: 2026-09-05 (PII/case-data purge: real case files untracked + backed up outside repo, full GitHub history rewrite + force-push on `1semptify-arch/Semptify`, `protect-main` ruleset restored; stale docs fixed — manifest rewritten with verified snapshot (123 registrations), `MODULE_BLUEPRINT.md` created, `BLUEPRINT.md` superseded, dead `client_activated` gate reference removed from PROJECT_BIBLE, repo URLs corrected to `1semptify-arch/Semptify`)
 
 **Previous**: 2026-08-26 (Feature-flag systems unified into the DB-backed manager; NO-TOUCH rule added for `app/modules/onboarding/`; Agent Orchestration Protocol bootstrapped and first real dispatch cycle resolved)
 
@@ -21,7 +23,12 @@
 3. ~~Repeat the pattern for one more function, different pillar, to confirm generalization.~~ DONE — `law_library_get_statute` (KNOW pillar) passed clean on first try, no polish round needed. Pattern confirmed to generalize across write/save vs. read/lookup shapes.
 4. ~~One more generalization test — ACT pillar.~~ DONE — `eviction_defense_calculate_deadlines` proved the pattern holds even with GOVERN/UPL risk-tier involvement (consequence notice + legal disclaimer on the same screen, no runtime suppression needed).
 5. ~~Build the real tapering dial, wire Module Resolver, add form-factor layout variants.~~ DONE — Familiarity Tapering (`intensity_level`/`exposure_count`) live, Module Resolver wired (non-blocking notice pattern), desktop-poster/mobile-stacked-scroll variants applied to all three templates, Page Shell CSS/token vocabulary applied for visual consistency with Concierge pages. Verified at 375px and 1280px, all checks clean.
-6. **Current step: pause point.** All three tenant-facing pillars (RECORD, KNOW, ACT) have a proven, verified, responsive, visually-consistent single-function guide page. This is a real, demoable slice of the app. The next item on the list is the PageEngine facade — but that's new infrastructure, not a repeat of a proven pattern, and it's invisible to users. Recommend pausing architecture work here rather than continuing straight into it. Decide next based on what's actually needed: more functions using this pattern, real use/demo of what exists, or the facade — in that order of likely value.
+6. ~~Current step: pause point.~~ SUPERSEDED 2026-09-12 — the guiding priority became Site Shell v5 rollout + tenant-core stabilization (see BUILD_STATE.md). PageEngine facade remains unbuilt and unscheduled.
+
+**Where things actually stand (2026-09-12):**
+- Site Shell v5 is the canonical chrome on all migrated families — asymmetric rail layout, paper background, thin role-colored header/footer, liquid root scaling, no desktop page-scroll.
+- Tenant RECORD loop is closed: Quick Capture (file/camera/audio/call-log) → contacts + timeline → visible in `/tenant/contacts`.
+- Next candidates: OCR word-box pipeline (on-image field highlights), advocate/legal live visual check (needs a role account), local-provider/yellow-access decision.
 
 ## Backlog (not urgent, tracked centrally — do not fix per-function)
 

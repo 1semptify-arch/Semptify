@@ -48,11 +48,16 @@ Find and stop it by port: `Get-NetTCPConnection -LocalPort <port> -State Listen`
 (Real occurrence 2026-09-08: an orphaned server on :8001 served pre-edit pages and produced
 false-negative verification.)
 
-Check if a dev server is running on port 8000. If yes, run the Playwright test suite:
+Check if a dev server is running (local dev normally runs on port **8001** — verify the port
+with `Get-NetTCPConnection -LocalPort 8001 -State Listen` or the port you started it on).
+If yes, run the local Playwright smoke suite:
 
-Run: `node run.js C:/tmp/playwright-test-semptify.js` in cwd `C:/Users/bradc/.agents/skills/playwright`
+Run: `node run.js semptify-local-smoke.js` in cwd `C:/Users/bradc/.agents/skills/playwright`
 
-If the test file does not exist at `/tmp/playwright-test-semptify.js`, skip this step and note it in the commit message.
+The suite targets `http://localhost:8001` by default; override with `TARGET_URL`
+(e.g. `TARGET_URL=http://localhost:8000 node run.js semptify-local-smoke.js`).
+
+If the test file does not exist at `semptify-local-smoke.js`, skip this step and note it in the commit message.
 All tests must pass before proceeding. Fix any failures first.
 
 ---
