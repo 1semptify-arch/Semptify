@@ -1,0 +1,320 @@
+{% extends "shell_base.html" %}
+{#
+  Retaliation tracker — did the landlord come after you for standing up?
+
+  Tenants log two kinds of events: protected actions (repair requests,
+  agency complaints, organizing — things the law protects) and adverse
+  actions (eviction notice, rent hike, threats — what happened after).
+  The page correlates them: proximity to a protected action is what makes
+  retaliation arguable.
+
+  Route: /tenant/retaliation (tenant role).
+  APIs:  POST /api/tenant/retaliation/log · GET /api/tenant/retaliation/analysis
+
+  Layout: work zone = the pattern (flags, pairs, chronological record);
+  rail = log forms (protected first — it precedes retaliation) + what the
+  law says. Chronological task order per the standing GUI rule.
+
+  Language is deliberately factual — dates and gaps, "suggests/may",
+  never "this IS retaliation" (UPL guardrails).
+#}
+
+{% block title %}Retaliation tracker — Semptify{% endblock %}
+{% block body_class %}shell shell--retaliation{% endblock %}
+
+{% block content %}
+<div class="retaliation-work">
+
+  <section class="shell-zone" aria-labelledby="rt-title">
+    <p class="shell-eyebrow">Semptify · Retaliation tracker</p>
+    <h1 id="rt-title">Did they come after you for standing up?</h1>
+    <p class="shell-lede">
+      When a landlord punishes a tenant for using their rights — asking for
+      repairs, calling an inspector, organizing — that can be retaliation.
+      What matters is the order and the dates. Log both sides here and the
+      pattern shows itself.
+    </p>
+    {% if presumption %}
+    <p class="shell-note" id="presumptionNote">
+      {{ presumption.label }} <span class="retaliation-statute">{{ presumption.statute }}</span>
+    </p>
+    {% else %}
+    <p class="shell-note" id="presumptionNote">
+      Many states presume retaliation when a landlord acts within roughly
+      90–180 days of a protected step — your state's exact rule may differ.
+    </p>
+    {% endif %}
+  </section>
+
+  <section class="shell-zone" id="patternZone" aria-labelledby="rt-pattern-title">
+    <h2 id="rt-pattern-title" class="shell-zone-title">The pattern so far</h2>
+    <div id="patternSummary" class="retaliation-pattern">
+      <p class="retaliation-empty">Loading…</p>
+    </div>
+  </section>
+
+  <section class="shell-zone" id="recordZone" aria-labelledby="rt-record-title">
+    <h2 id="rt-record-title" class="shell-zone-title">The record</h2>
+    <div id="recordList" class="retaliation-record">
+      <p class="retaliation-empty">Loading…</p>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<h2>Log a protected step</h2>
+<p class="shell-note" style="margin-top:-0.5rem;">
+  Something you did that the law protects — this starts the clock.
+</p>
+<form id="logProtected" class="retaliation-form" data-kind="protected">
+  <label class="retaliation-field">
+    <span>What you did</span>
+    <select name="subtype">
+      {% for key, label in protected_subtypes.items() %}
+      <option value="{{ key }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="retaliation-field">
+    <span>When</span>
+    <input type="date" name="event_date" required>
+  </label>
+  <label class="retaliation-field">
+    <span>What happened</span>
+    <textarea name="description" rows="3" required placeholder="e.g., Called the city inspector about the heat. Report #24-1883."></textarea>
+  </label>
+  <button type="submit" class="shell-btn shell-btn--accent">Log protected step</button>
+</form>
+
+<h2>Log what they did</h2>
+<p class="shell-note" style="margin-top:-0.5rem;">
+  Something the landlord did after — notice, hike, threats, shutoff.
+</p>
+<form id="logAdverse" class="retaliation-form" data-kind="adverse">
+  <label class="retaliation-field">
+    <span>What they did</span>
+    <select name="subtype">
+      {% for key, label in adverse_subtypes.items() %}
+      <option value="{{ key }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="retaliation-field">
+    <span>When</span>
+    <input type="date" name="event_date" required>
+  </label>
+  <label class="retaliation-field">
+    <span>What happened</span>
+    <textarea name="description" rows="3" required placeholder="e.g., Got a notice to vacate taped to the door."></textarea>
+  </label>
+  <button type="submit" class="shell-btn">Log adverse action</button>
+</form>
+
+<h2>Why the dates matter</h2>
+<p class="shell-note">
+  Retaliation is about sequence: you used a right, then they acted. The closer
+  together, the stronger the question — but only you can build the record that
+  shows it.
+</p>
+<ul class="shell-list">
+  <li><a href="/tenant/capture">Quick capture</a></li>
+  <li><a href="/tenant/contacts">The people on your record</a></li>
+  <li><a href="/help">Find legal aid near you</a></li>
+</ul>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const patternEl = document.getElementById('patternSummary');
+    const recordEl = document.getElementById('recordList');
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    // Event dates are user-chosen calendar dates stored as UTC midnight —
+    // render the stored date portion, not the local-timezone Date object
+    // (which would display one day early for US users).
+    const fmtDate = (iso) => {
+        if (!iso) return '—';
+        const day = String(iso).slice(0, 10);
+        const d = new Date(day + 'T12:00:00');
+        return isNaN(d) ? '—' : d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
+    };
+
+    function flagBadge(pair) {
+        if (pair.in_strong_window) {
+            return '<span class="rt-flag rt-flag--strong">Strong proximity — ' + pair.days_between + ' days apart</span>';
+        }
+        if (pair.in_presumption_window) {
+            return '<span class="rt-flag rt-flag--window">Inside the ' + pair.presumption_days + '-day presumption window — ' + pair.days_between + ' days apart</span>';
+        }
+        return '<span class="rt-flag">' + pair.days_between + ' days apart</span>';
+    }
+
+    function renderPattern(data) {
+        const parts = [];
+        parts.push('<p class="retaliation-summary-line">' + esc(data.summary || '') + '</p>');
+
+        if (data.pairs && data.pairs.length) {
+            parts.push('<div class="rt-pairs">');
+            data.pairs.forEach(p => {
+                parts.push(
+                    '<div class="rt-pair">' +
+                      '<div class="rt-pair-side"><span class="rt-kind rt-kind--protected">You</span>' +
+                        '<span class="rt-pair-what">' + esc(p.protected_event.subtype_label) + '</span>' +
+                        '<span class="rt-pair-when">' + fmtDate(p.protected_event.event_date) + '</span></div>' +
+                      '<div class="rt-pair-arrow" aria-hidden="true">→</div>' +
+                      '<div class="rt-pair-side"><span class="rt-kind rt-kind--adverse">Them</span>' +
+                        '<span class="rt-pair-what">' + esc(p.adverse_event.subtype_label) + '</span>' +
+                        '<span class="rt-pair-when">' + fmtDate(p.adverse_event.event_date) + '</span></div>' +
+                      '<div class="rt-pair-flag">' + flagBadge(p) + '</div>' +
+                    '</div>'
+                );
+            });
+            parts.push('</div>');
+        }
+
+        if (data.open_windows && data.open_windows.length) {
+            parts.push('<div class="rt-open-windows">');
+            data.open_windows.forEach(w => {
+                parts.push(
+                    '<p class="rt-open-window"><strong>' + esc(w.protected_event.subtype_label) + '</strong> ' +
+                    '(' + fmtDate(w.protected_event.event_date) + ') — ' + w.days_remaining +
+                    ' day(s) left inside the presumption window.</p>'
+                );
+            });
+            parts.push('</div>');
+        }
+
+        if (data.unmatched_adverse && data.unmatched_adverse.length) {
+            parts.push(
+                '<p class="rt-note">' + data.unmatched_adverse.length +
+                ' adverse action(s) have no earlier protected action on record. ' +
+                'If you made a request or complaint before them, log it — that link is the whole point.</p>'
+            );
+        }
+
+        patternEl.innerHTML = parts.join('');
+    }
+
+    function renderRecord(data) {
+        const all = (data.protected_events || []).concat(data.adverse_events || [])
+            .sort((a, b) => new Date(b.event_date) - new Date(a.event_date));
+        if (!all.length) {
+            recordEl.innerHTML = '<p class="retaliation-empty">Nothing on the record yet. Use the forms on the right — or log events as they happen.</p>';
+            return;
+        }
+        recordEl.innerHTML = '';
+        all.forEach(ev => {
+            const row = document.createElement('div');
+            row.className = 'rt-event';
+            row.innerHTML =
+                '<span class="rt-kind rt-kind--' + esc(ev.kind) + '">' + (ev.kind === 'protected' ? 'You' : 'Them') + '</span>' +
+                '<div class="rt-event-body">' +
+                  '<div class="rt-event-head"><span>' + esc(ev.subtype_label) + '</span>' +
+                  '<span class="rt-event-when">' + fmtDate(ev.event_date) + '</span></div>' +
+                  (ev.description ? '<p class="rt-event-desc">' + esc(ev.description) + '</p>' : '') +
+                  (ev.attached_document_ids && ev.attached_document_ids.length ?
+                    '<p class="rt-event-docs">' + ev.attached_document_ids.length + ' file(s) attached in the vault</p>' : '') +
+                '</div>';
+            recordEl.appendChild(row);
+        });
+    }
+
+    async function loadAnalysis() {
+        try {
+            const r = await fetch('/api/tenant/retaliation/analysis', { credentials: 'include' });
+            if (r.status === 401 || r.status === 302) {
+                patternEl.innerHTML = '<p class="retaliation-empty">Your session needs reconnecting — <a href="/storage/reconnect?return_to=/tenant/retaliation">reconnect</a>.</p>';
+                recordEl.innerHTML = '';
+                return;
+            }
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            renderPattern(data);
+            renderRecord(data);
+        } catch (e) {
+            patternEl.innerHTML = '<p class="retaliation-empty">Could not load the tracker right now. Try again in a moment.</p>';
+            recordEl.innerHTML = '';
+        }
+    }
+
+    document.querySelectorAll('.retaliation-form').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector('button[type=submit]');
+            btn.disabled = true;
+            try {
+                const fd = new FormData(form);
+                fd.set('kind', form.dataset.kind);
+                const r = await fetchWithCSRF('/api/tenant/retaliation/log', { method: 'POST', body: fd });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                showFlash('Logged.', 'success');
+                form.reset();
+                await loadAnalysis();
+            } catch (err) {
+                showFlash('Could not save — try again.', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    });
+
+    loadAnalysis();
+})();
+</script>
+<style>
+.retaliation-summary-line { font-size: 0.9375rem; margin: 0 0 0.5rem; }
+.retaliation-empty { color: var(--text-secondary); font-size: 0.875rem; }
+.retaliation-statute { font-size: 0.8125rem; color: var(--text-secondary); white-space: nowrap; }
+.rt-note { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.75rem; }
+.rt-open-window { font-size: 0.875rem; color: var(--text-secondary); margin: 0.25rem 0; }
+.rt-pairs { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem; }
+.rt-pair {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.75rem; align-items: center;
+    padding: 0.75rem 0; border-bottom: 1px solid var(--shell-line);
+}
+.rt-pair-side { display: flex; flex-direction: column; gap: 0.125rem; }
+.rt-pair-side:last-of-type { text-align: right; align-items: flex-end; }
+.rt-pair-what { font-weight: 500; font-size: 0.9375rem; }
+.rt-pair-when { font-size: 0.8125rem; color: var(--text-secondary); }
+.rt-pair-arrow { color: var(--text-secondary); }
+.rt-pair-flag { grid-column: 1 / -1; }
+.rt-flag {
+    display: inline-block; font-size: 0.75rem; padding: 0.125rem 0.5rem;
+    border-radius: 999px; background: var(--role-tint); color: var(--text-secondary);
+}
+.rt-flag--strong { background: var(--role-accent); color: #fff; }
+.rt-flag--window { background: color-mix(in srgb, var(--role-accent) 25%, transparent); color: var(--text-primary); }
+.rt-kind {
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.rt-kind--protected { color: var(--role-accent); }
+.rt-kind--adverse { color: var(--text-secondary); }
+.rt-event {
+    display: flex; gap: 0.75rem; padding: 0.625rem 0;
+    border-bottom: 1px solid var(--shell-line);
+}
+.rt-event-body { flex: 1; min-width: 0; }
+.rt-event-head { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.9375rem; }
+.rt-event-when { color: var(--text-secondary); font-size: 0.8125rem; white-space: nowrap; }
+.rt-event-desc { margin: 0.25rem 0 0; font-size: 0.875rem; color: var(--text-secondary); }
+.rt-event-docs { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--text-secondary); }
+.retaliation-form { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; }
+.retaliation-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8125rem; color: var(--text-secondary); }
+.retaliation-field input, .retaliation-field select, .retaliation-field textarea {
+    padding: 0.5rem 0.625rem; font-size: 0.875rem;
+    border: 1px solid var(--shell-line); border-radius: 8px;
+    background: var(--bg-card, #fff); color: var(--text-primary); font: inherit;
+}
+.retaliation-field textarea { resize: vertical; }
+@media (max-width: 900px) {
+    .rt-pair { grid-template-columns: 1fr; gap: 0.375rem; }
+    .rt-pair-arrow { display: none; }
+    .rt-pair-side:last-of-type { text-align: left; align-items: flex-start; }
+}
+</style>
+{% endblock %}
