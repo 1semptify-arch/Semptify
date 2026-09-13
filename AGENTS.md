@@ -33,6 +33,7 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 
 ### Before writing a single line of code, you MUST:
 
+0. **Read `REQUIRED_READING.md`** — The canonical reading manifest: the single source of truth for which docs to read, in what order, and which are stale. All entry points point there.
 1. **Read `BUILD_STATE.md`** — What was last shipped, what is known broken, what is pending.
 2. **Read `ACTIVE_CONTEXT.md`** — What is being worked on RIGHT NOW. Do not start something else.
 3. **Read `PROJECT_BIBLE.md`** — Canonical hierarchy, gate chain, and governance.
