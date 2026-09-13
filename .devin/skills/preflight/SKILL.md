@@ -103,7 +103,7 @@ If no FIXIT_REPORT lines found: "No pending Fix-It reports. Admin dashboard is c
 Run this to verify the app compiles:
 
 ```powershell
-cd c:\Semptify\Semptify-FastAPI; python -m py_compile app/main.py
+cd C:\master-repo\modules\app-semptify-fastapi; .\venv311\Scripts\python.exe -m py_compile app/main.py
 ```text
 
 ### Step 5: State your plan
@@ -120,7 +120,7 @@ Before editing any file, tell the user:
 Verify changed files compile:
 
 ```powershell
-cd c:\Semptify\Semptify-FastAPI; python -m py_compile app/main.py app/core/navigation.py
+cd C:\master-repo\modules\app-semptify-fastapi; .\venv311\Scripts\python.exe -m py_compile app/main.py app/core/navigation.py
 ```
 
 Then update `BUILD_STATE.md` with what changed.
