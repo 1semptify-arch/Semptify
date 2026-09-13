@@ -4293,6 +4293,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         }
         return templates.TemplateResponse(request, "pages/tenant_capture.html", context)
 
+    @fastapi_app.get("/tenant/contacts", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/contacts/", response_class=HTMLResponse)
+    async def tenant_contacts(request: Request):
+        """Contacts page — people on the record, call history, quick-add."""
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        return templates.TemplateResponse(request, "pages/tenant_contacts.html", {})
+
     @fastapi_app.post("/api/tenant/capture")
     async def tenant_capture_post(request: Request):
         """Create a timeline event from quick capture form."""

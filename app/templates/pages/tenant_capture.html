@@ -540,6 +540,12 @@ async function logCallInteraction() {
     const newName = document.getElementById('newContactName').value.trim();
     if (contactId === '__new__' || (!contactId && newName)) {
         if (!newName) return;
+        const match = [...callContact.options].find(o =>
+            o.value && o.value !== '__new__' && o.dataset.name &&
+            o.dataset.name.toLowerCase() === newName.toLowerCase());
+        if (match) contactId = match.value;
+    }
+    if ((contactId === '__new__' || !contactId) && newName) {
         const r = await fetch('/api/contacts/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
