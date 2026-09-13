@@ -1,48 +1,46 @@
-{% extends "base.html" %}
-{% block body_class %}template-1{% endblock %}
+{% extends "shell_base.html" %}
+{% block body_class %}shell shell--solo{% endblock %}
 
 {% block title %}Quick Capture - Semptify{% endblock %}
 
 {% block nav %}
-<a href="/tenant/home">← Back to Home</a>
+<li class="nav-item"><a class="nav-link" href="/tenant/start">Home</a></li>
 {% endblock %}
 
 {% block styles %}
 <style>
 .capture-container {
-    max-width: 700px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    width: 100%;
 }
 
 .capture-header {
-    text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .capture-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.375rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.375rem;
 }
 
 .capture-header p {
     color: var(--text-secondary);
+    font-size: 0.9375rem;
 }
 
 /* Type Selection */
 .type-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.625rem;
+    margin-bottom: 1.75rem;
 }
 
 .type-card {
-    background: var(--bg-card);
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-block);
-    padding: 1.25rem;
+    background: transparent;
+    border: 1px solid var(--shell-line, var(--border-color));
+    border-radius: 10px;
+    padding: 0.875rem 0.5rem;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -50,31 +48,30 @@
 
 .type-card:hover,
 .type-card.active {
-    border-color: var(--color-accent);
-    background: var(--color-gray-100);
+    border-color: var(--role-accent, var(--color-accent));
+    background: var(--role-tint, var(--color-gray-100));
 }
 
 .type-card.active {
-    box-shadow: 0 0 0 3px var(--color-calm-200);
+    box-shadow: 0 0 0 1px var(--role-accent, var(--color-accent));
 }
 
 .type-icon {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.375rem;
+    margin-bottom: 0.375rem;
 }
 
 .type-label {
     font-weight: 500;
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
 }
 
 /* Form Section */
 .form-section {
-    background: var(--bg-card);
+    background: transparent;
     border: none;
-    border-radius: var(--radius-block);
-    padding: 1.5rem;
-    box-shadow: var(--elevation-1);
+    border-top: 1px solid var(--shell-line, var(--border-color));
+    padding: 1.25rem 0 0;
 }
 
 .form-group {
@@ -92,23 +89,23 @@
 .form-group textarea,
 .form-group select {
     width: 100%;
-    padding: 0.75rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-input);
+    padding: 0.625rem 0.75rem;
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--shell-line, var(--border-color));
+    border-radius: var(--radius-input, 8px);
     color: var(--text-primary);
-    font-size: 1rem;
+    font-size: 0.9375rem;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     outline: none;
-    border-color: var(--color-accent);
+    border-color: var(--role-accent, var(--color-accent));
 }
 
 .form-group textarea {
-    min-height: 120px;
+    min-height: 110px;
     resize: vertical;
 }
 
@@ -121,45 +118,50 @@
 
 /* File Upload */
 .file-upload {
-    border: 2px dashed var(--border-color);
-    border-radius: var(--radius-block);
-    padding: 2rem;
+    border: 1px dashed var(--shell-line, var(--border-color));
+    border-radius: 10px;
+    padding: 1.5rem;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .file-upload:hover {
-    border-color: var(--color-accent);
-    background: var(--color-gray-100);
+    border-color: var(--role-accent, var(--color-accent));
+    background: var(--role-tint, var(--color-gray-100));
 }
 
 .file-upload-icon {
-    font-size: 2.5rem;
-    margin-bottom: 0.75rem;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
 }
 
 .file-upload-text {
     color: var(--text-secondary);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
 }
 
 /* Submit Button */
 .submit-btn {
     width: 100%;
-    padding: 1rem;
-    background: var(--color-accent);
+    padding: 0.75rem;
+    background: var(--role-accent, var(--color-accent));
     color: white;
     border: none;
-    border-radius: var(--radius-block);
-    font-size: 1rem;
-    font-weight: 600;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 500;
     cursor: pointer;
     transition: background 0.2s ease;
 }
 
 .submit-btn:hover {
-    background: var(--color-accent-hover);
+    background: var(--role-deep, var(--color-accent-hover));
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
 }
 
 /* Success Message */
@@ -184,14 +186,14 @@
 
 /* Urgency Banner */
 .urgency-banner {
-    background: linear-gradient(135deg, var(--color-error-50), var(--color-warning-50));
-    border: 2px solid var(--color-warning);
-    border-radius: var(--radius-block);
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
+    background: var(--color-warning-50, #fdf6ec);
+    border: 1px solid var(--color-warning);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.625rem;
 }
 
 .urgency-banner input[type="checkbox"] {
@@ -284,7 +286,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="capture-container">
+<div class="capture-container shell-solo-col">
 
     <div class="capture-header">
         <h1>What happened?</h1>
@@ -314,6 +316,10 @@
             <div class="type-card {% if capture_type == 'conversation' %}active{% endif %}" data-type="conversation">
                 <div class="type-icon">💬</div>
                 <div class="type-label">Conversation</div>
+            </div>
+            <div class="type-card {% if capture_type == 'phone_call' %}active{% endif %}" data-type="phone_call">
+                <div class="type-icon">📞</div>
+                <div class="type-label">Phone Call</div>
             </div>
             <div class="type-card {% if capture_type == 'repair' %}active{% endif %}" data-type="repair">
                 <div class="type-icon">🔧</div>
@@ -361,8 +367,33 @@
                 </div>
             </div>
 
+            <!-- Call details — shown only for Phone Call -->
+            <div id="callFields" hidden>
+                <div class="form-group">
+                    <label for="callDirection">Which way did the call go?</label>
+                    <select id="callDirection" name="call_direction">
+                        <option value="incoming">They called me</option>
+                        <option value="outgoing">I called them</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="callContact">Who was it?</label>
+                    <select id="callContact" name="call_contact_id">
+                        <option value="">Loading your contacts…</option>
+                    </select>
+                    <div id="newContactFields" hidden style="margin-top: 0.75rem;">
+                        <input type="text" id="newContactName" placeholder="Their name" style="margin-bottom: 0.5rem;">
+                        <input type="tel" id="newContactPhone" placeholder="Their phone (optional)">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="callDuration">How long? (minutes, optional)</label>
+                    <input type="number" id="callDuration" name="call_duration" min="0" placeholder="e.g., 12">
+                </div>
+            </div>
+
             <!-- Who -->
-            <div class="form-group">
+            <div class="form-group" id="whoGroup">
                 <label for="whoInvolved">Who was involved?</label>
                 <input type="text" id="whoInvolved" name="who_involved" placeholder="e.g., Property manager John, Maintenance worker">
             </div>
@@ -383,7 +414,7 @@
                         <small>or drag and drop here</small>
                     </div>
                 </div>
-                <input type="file" id="fileInput" name="files" multiple hidden>
+                <input type="file" id="fileInput" multiple hidden>
                 <div id="fileList" style="margin-top: 0.75rem;"></div>
 
                 <!-- Media Capture -->
@@ -407,16 +438,62 @@
 // Type selection
 const typeCards = document.querySelectorAll('.type-card');
 const captureTypeInput = document.getElementById('captureType');
+const callFields = document.getElementById('callFields');
+const whoGroup = document.getElementById('whoGroup');
+const whoInput = document.getElementById('whoInvolved');
+const callContact = document.getElementById('callContact');
+const newContactFields = document.getElementById('newContactFields');
+let contactsLoaded = false;
+
+function syncTypeUI() {
+    const isCall = captureTypeInput.value === 'phone_call';
+    callFields.hidden = !isCall;
+    whoGroup.hidden = isCall;
+    if (isCall && !contactsLoaded) loadContacts();
+}
 
 typeCards.forEach(card => {
     card.addEventListener('click', () => {
         typeCards.forEach(c => c.classList.remove('active'));
         card.classList.add('active');
         captureTypeInput.value = card.dataset.type;
+        syncTypeUI();
     });
 });
 
-// File upload
+// Contact picker — Contact Manager API. If it can't be reached (e.g.
+// storage session needs reconnect), fall back to a free-text name field.
+async function loadContacts() {
+    contactsLoaded = true;
+    try {
+        const r = await fetch('/api/contacts/', { credentials: 'include' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const data = await r.json();
+        callContact.innerHTML = '<option value="">Pick someone…</option>';
+        (data.contacts || []).forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.dataset.name = c.name;
+            opt.textContent = c.name + (c.contact_type ? ' (' + c.contact_type.replace(/_/g, ' ') + ')' : '');
+            callContact.appendChild(opt);
+        });
+        const newOpt = document.createElement('option');
+        newOpt.value = '__new__';
+        newOpt.textContent = '+ Someone new';
+        callContact.appendChild(newOpt);
+    } catch (err) {
+        callContact.innerHTML = '<option value="">—</option>';
+        newContactFields.hidden = false;
+        document.getElementById('newContactName').placeholder = 'Their name';
+    }
+}
+
+callContact.addEventListener('change', () => {
+    newContactFields.hidden = callContact.value !== '__new__';
+});
+
+// File upload — picked files go to the vault first (same endpoint the
+// Document Center uses), then their IDs attach to the timeline event.
 document.getElementById('fileUpload').addEventListener('click', () => {
     document.getElementById('fileInput').click();
 });
@@ -432,16 +509,93 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
     });
 });
 
+async function uploadPickedFiles(form) {
+    const files = document.getElementById('fileInput').files;
+    const uid = (document.cookie.match(/(^|; )semptify_uid=([^;]+)/) || [,'',''])[2] || '';
+    for (const file of files) {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('user_id', uid);
+        fd.append('username', 'tenant');
+        fd.append('storage_provider', 'local');
+        fd.append('description', 'Attached from quick capture');
+        const r = await fetch('/api/intake/upload/auto', { method: 'POST', body: fd, credentials: 'include' });
+        if (!r.ok) throw new Error('Upload failed: ' + file.name);
+        const data = await r.json().catch(() => ({}));
+        const docId = data.vault_id || data.id;
+        if (docId) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'attached_document_ids';
+            input.value = docId;
+            form.appendChild(input);
+        }
+    }
+}
+
+// Log the call against the contact record (new or existing). Failure here
+// must not lose the record — the timeline event is saved either way.
+async function logCallInteraction() {
+    let contactId = callContact.value;
+    const newName = document.getElementById('newContactName').value.trim();
+    if (contactId === '__new__' || (!contactId && newName)) {
+        if (!newName) return;
+        const r = await fetch('/api/contacts/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                contact_type: 'other',
+                name: newName,
+                phone: document.getElementById('newContactPhone').value.trim() || null,
+                source: 'capture_call',
+            }),
+        });
+        if (!r.ok) return;
+        contactId = (await r.json()).id;
+    }
+    if (!contactId) return;
+    const dateStr = document.getElementById('eventDate').value;
+    const timeStr = document.getElementById('eventTime').value || '00:00';
+    const dur = parseInt(document.getElementById('callDuration').value, 10);
+    await fetch(`/api/contacts/${encodeURIComponent(contactId)}/interactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+            interaction_type: 'phone_call',
+            direction: document.getElementById('callDirection').value,
+            summary: document.getElementById('whatHappened').value,
+            interaction_date: new Date(dateStr + 'T' + timeStr).toISOString(),
+            duration_minutes: Number.isFinite(dur) ? dur : null,
+        }),
+    });
+}
+
 // Set today's date
 document.getElementById('eventDate').valueAsDate = new Date();
 
 // Form submission
 document.getElementById('captureForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    const formData = new FormData(e.target);
+    const form = e.target;
+    const submitBtn = form.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving…';
 
     try {
+        await uploadPickedFiles(form);
+
+        // For a phone call, carry the contact name into who_involved so the
+        // timeline event reads naturally even if the interaction call fails.
+        if (captureTypeInput.value === 'phone_call') {
+            const sel = callContact.options[callContact.selectedIndex];
+            const name = (sel && sel.dataset.name) || document.getElementById('newContactName').value.trim();
+            if (name) whoInput.value = name;
+            try { await logCallInteraction(); } catch (err) { /* record still saves below */ }
+        }
+
+        const formData = new FormData(form);
         const response = await fetchWithCSRF('/api/tenant/capture', {
             method: 'POST',
             body: formData
@@ -449,14 +603,19 @@ document.getElementById('captureForm').addEventListener('submit', async (e) => {
 
         if (response.ok) {
             document.getElementById('successMsg').classList.add('show');
-            document.getElementById('captureForm').style.display = 'none';
+            form.style.display = 'none';
         } else {
             showFlash('Failed to save. Please try again.', 'error');
         }
     } catch (err) {
-        showFlash('Network error. Please check connection.', 'error');
+        showFlash('Something failed to save: ' + (err.message || 'network error'), 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save This Record';
     }
 });
+
+syncTypeUI();
 
 // Initialize camera / microphone capture widget
 if (typeof initMediaCapture === 'function') {

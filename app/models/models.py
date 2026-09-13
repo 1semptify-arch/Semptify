@@ -419,6 +419,11 @@ class TimelineEvent(Base):
     # Linked document (optional) - stores doc ID from file-based pipeline, not FK
     document_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
+    # Quick-capture context (who was there, where it happened, evidence docs)
+    who_involved: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    attached_document_ids: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array of vault doc IDs
+
     # Importance for court
     is_evidence: Mapped[bool] = mapped_column(Boolean, default=False)
 

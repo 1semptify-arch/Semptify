@@ -4357,6 +4357,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         type_mapping = {
             "notice": "notice",
             "conversation": "communication",
+            "phone_call": "communication",
             "repair": "maintenance",
             "harassment": "communication",
             "payment": "payment",
@@ -4365,15 +4366,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         event_type = type_mapping.get(capture_type, "other")
 
         async with get_db_session() as db:
+            from app.core.id_gen import make_id
+
             event = TimelineEvent(
+                id=make_id("tevt"),
                 user_id=user_id,
                 event_type=event_type,
-                title=f"{capture_type.title()} Event",
+                title=f"{capture_type.replace('_', ' ').title()} Event",
                 description=description,
                 event_date=event_datetime,
-                is_urgent=is_urgent,
-                who_involved=who_involved,
-                location=location,
+                urgency="high" if is_urgent else "normal",
+                who_involved=who_involved or None,
+                location=location or None,
                 is_evidence=False,
                 attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
                 created_at=utc_now(),
