@@ -13,6 +13,10 @@ from app.core.vault_paths import AUTH_FOLDER, SEMPTIFY_ROOT, TOKEN_FILE as _VAUL
 logger = logging.getLogger(__name__)
 
 
+class StorageAuthError(Exception):
+    """Provider rejected the session token (401/403) — user must reconnect."""
+
+
 @dataclass
 class StorageFile:
     """Represents a file in storage."""

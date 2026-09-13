@@ -12,7 +12,7 @@ import httpx
 
 from app.core.path_utils import normalize_cloud_path
 from app.core.utc import utc_now
-from app.services.storage.base import StorageFile, StorageProvider
+from app.services.storage.base import StorageAuthError, StorageFile, StorageProvider
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +103,10 @@ class GoogleDriveProvider(StorageProvider):
                     timeout=10.0,
                 )
 
+                if response.status_code in (401, 403):
+                    raise StorageAuthError(
+                        f"Google Drive session expired or lacks permission (HTTP {response.status_code})"
+                    )
                 if response.status_code == 200:
                     files = response.json().get("files", [])
                     if files:
@@ -173,6 +177,11 @@ class GoogleDriveProvider(StorageProvider):
                 params={"q": query, "fields": "files(id,name)"},
                 timeout=10.0,
             )
+
+            if search_response.status_code in (401, 403):
+                raise StorageAuthError(
+                    f"Google Drive session expired or lacks permission (HTTP {search_response.status_code})"
+                )
 
             existing_file_id = None
             if search_response.status_code == 200:
