@@ -1776,17 +1776,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     logger.info("Offline detection middleware registered")
 
-    # PRODUCTION SECURITY MIDDLEWARE (if enforced mode)
-    if is_production:
-        try:
-            from app.core.logging_middleware import RequestLoggingMiddleware as ProdRequestLogging
-
-            # Request logging (security audit trail)
-            fastapi_app.add_middleware(ProdRequestLogging)
-            logger.info("ðŸš€ Request logging middleware enabled (production mode)")
-        except ImportError as e:
-            logger.error("âš ï¸  Failed to load request logging middleware: %s", e)
-            logger.warning("Request logging not available - continuing without it")
+    # NOTE: request logging is registered once for all modes below
+    # (RequestLoggingMiddleware) — a duplicate prod-only registration used to
+    # double-log and double-track every production request.
 
     # Smart Gate Checkpoint (enforces welcome page for new users)
     from app.core.checkpoint_middleware import SmartCheckpointMiddleware
