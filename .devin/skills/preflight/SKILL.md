@@ -38,14 +38,17 @@ do not touch it
 
 **Before you touch a single file, you must demonstrate working knowledge of this system.** If you cannot answer these from the docs, you are not ready to write code. Go back and read until you can.
 
-Read ALL of the following — not skim, READ:
+`REQUIRED_READING.md` is the canonical manifest for what to read — Tiers 1+2 are mandatory here. In order:
 
-1. `AGENTS.md` — Full document including Known Failure Registry (all 16 items)
-2. `PROJECT_BIBLE.md` — Governance, gate chain, onboarding flow, doc hierarchy
-3. `docs/admin/MOTIVATIONS.md` — Foundational motivations, language rules, Information Integrity Standards
-4. `docs/adr/0001`–`0006` — Permanent decisions (storage, navigation, attraction, banned motivations, language, open access)
-5. `BUILD_GUIDE_SSOT.md` — Build philosophy, active features, SSOT rules
-6. `CORE_CONTEXT.md` — What Semptify IS, who it's for, what we never build
+1. `AGENTS.md` — Full document including Known Failure Registry (all items)
+2. `ACTIVE_CONTEXT.md` — Current priority; do not start something else
+3. `BUILD_STATE.md` (last 2 entries) — What shipped, what is broken, what is pending
+4. `PROJECT_BIBLE.md` — Governance, gate chain, onboarding flow, doc hierarchy
+5. `CORE_CONTEXT.md` — What Semptify IS, who it's for, what we never build
+6. `docs/admin/MOTIVATIONS.md` — Foundational motivations, language rules, Information Integrity Standards
+7. `docs/AI_TEAM_OPERATING_PROTOCOL.md` — Collaboration protocol and decision authority
+8. `docs/adr/` — all ADRs (currently 0001–0009): permanent decisions, never edited
+9. `SEMPTIFY_SYSTEM_MANIFEST.md` — Module registry; required before touching modules/routers
 
 Then **state the following out loud** before proceeding (this is your proof of comprehension):
 

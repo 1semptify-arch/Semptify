@@ -39,6 +39,8 @@ If any other file conflicts with these, the canonical file wins unless the team 
 6. `BUILD_GUIDE_SSOT.md` — Canonical build status, testing results, and known issues.
 7. `SEMPTIFY_SYSTEM_MANIFEST.md` — Canonical module registry: active modules, disabled modules, tier map, and rules for adding new modules. **Any AI must read this before touching any module or router.**
 
+`REQUIRED_READING.md` is the canonical reading manifest — it defines which of these docs (and which others) every agent or developer must read, in what order, and which are stale. When the required-reading set changes, update that file, not the scattered lists in skills/rules.
+
 ## 2. Single Build Reference
 
 All build and startup instructions must be maintained in `README.md`.

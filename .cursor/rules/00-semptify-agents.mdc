@@ -3,11 +3,14 @@ description: Semptify mandatory pre-flight and doc hierarchy for all AI assistan
 alwaysApply: true
 ---
 
-Before making any change in this repo, read in order:
+Before making any change in this repo, read `REQUIRED_READING.md` — the canonical
+reading manifest (single source of truth for what to read, in what order, and which
+docs are stale). Its Tier-1 minimum for every session, in order:
 1. `AGENTS.md` — Python 3.11.9 mandate, Known Failure Registry, module contract rules.
 2. `ACTIVE_CONTEXT.md` — current priority. Do not start something else.
 3. `BUILD_STATE.md` (last 2 entries) — what shipped, what is known broken/pending.
 4. `PROJECT_BIBLE.md` — canonical doc hierarchy: BIBLE > README > AGENTS > SECURITY > DEPLOYMENT > BUILD_GUIDE.
+5. `CORE_CONTEXT.md` — mission, banned language, Time to Real Help.
 
 Slash-command workflows for this repo are defined in `.devin/skills/*/SKILL.md` and mirrored
 as VS Code prompt files in `.github/prompts/*.prompt.md` (`/preflight`, `/ship`, `/forge`,
