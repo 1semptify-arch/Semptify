@@ -27,12 +27,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Copy requirements first for better caching.
+# Uses requirements-render-mvp.txt — the trimmed production set. The full
+# requirements.txt adds ~1.5GB of sentence-transformers/torch plus playwright
+# and dev tooling that the render_mvp profile never loads (embedding model is
+# lazy-gated off; playwright import is graceful). Revert to requirements.txt
+# if the deploy target is ever switched to the full profile.
+COPY requirements-render-mvp.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements-render-mvp.txt
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime - Minimal production image
@@ -80,6 +85,11 @@ RUN mkdir -p uploads uploads/vault logs security data data/inventory && \
 # Switch to non-root user
 USER semptify
 
+# Precompile Python bytecode so cold starts on Render's shared CPU skip
+# per-file compilation. PYTHONDONTWRITEBYTECODE only blocks writing .pyc;
+# the precompiled files are still read and used at runtime.
+RUN python -m compileall -q /app/app
+
 # Expose port (Render sets PORT env var, defaults to 8000)
 EXPOSE 8000
 
@@ -88,7 +98,11 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:${PORT}/health || exit 1
 
 # Start command - uses $PORT env var for Render compatibility
+# --proxy-headers + --forwarded-allow-ips: all Render traffic arrives via their
+# edge proxy; without these uvicorn sees http/<proxy-IP> instead of
+# https/<client-IP>. The app already trusts X-Forwarded-For manually for rate
+# limiting and jurisdiction, so this changes no security assumption.
 # Note: migrations are handled by the app's lifespan startup (Stage 3b) which
 # catches errors gracefully. Running alembic in CMD would fail the deploy on
 # partial migrations (schema drift). The app itself runs alembic on startup.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips '*'"]
