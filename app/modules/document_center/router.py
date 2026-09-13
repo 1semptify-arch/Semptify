@@ -7,6 +7,7 @@ Endpoints
 GET  /api/dc/list                          — vault docs with overlay status for left pane
 GET  /api/dc/document/{vault_id}/overlays  — real overlay progress from UnifiedOverlayManager
 GET  /api/dc/document/{vault_id}/view      — inline file stream for viewer iframe
+GET  /api/dc/document/{vault_id}/word-boxes — OCR word-level bounding boxes for on-image highlights
 GET  /api/dc/document/{vault_id}/review-state — persisted field confirmations + manual status
 POST /api/dc/document/{vault_id}/review-state — save field confirmations + manual status
 POST /api/dc/document/{vault_id}/share     — create a real share link for this document
@@ -803,6 +804,83 @@ async def dc_view_document(vault_id: str, request: Request):
     except Exception as e:
         logger.error("DC view error vault_id=%s user=%s: %s", vault_id, user_id, e, exc_info=True)
         return JSONResponse(status_code=500, content={"error": "view_failed", "detail": str(e)})
+
+
+@router.get("/document/{vault_id}/word-boxes")
+async def dc_get_word_boxes(vault_id: str, request: Request) -> JSONResponse:
+    """Return OCR word-level bounding boxes for on-image field highlights.
+
+    Runs OCR on the document content (if not already cached) and returns
+    per-word bounding boxes with text, position, confidence, and page number.
+    The document viewer renders these as transparent highlight rectangles
+    overlaid on the document image.
+    """
+    user_id = _auth(request)
+    if not user_id:
+        return JSONResponse(status_code=401, content={"error": "not_authenticated"})
+
+    try:
+        from app.services.ocr_service import extract_text_from_file
+        from app.services.vault_upload_service import get_vault_service
+
+        vault_service = get_vault_service()
+        doc = await vault_service.get_document(vault_id)
+        if not doc:
+            return JSONResponse(status_code=404, content={"error": "document_not_found"})
+        if doc.user_id != user_id:
+            return JSONResponse(status_code=403, content={"error": "access_denied"})
+
+        access_token: str | None = None
+        if doc.storage_provider != "local":
+            async with get_db_session() as db:
+                _, token_obj, _ = await ensure_valid_token(user_id, db)
+                access_token = token_obj.access_token if token_obj else None
+            if not access_token:
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "error": "storage_unavailable",
+                        "detail": "No valid storage token — please reconnect your vault storage.",
+                    },
+                )
+
+        content = await vault_service.get_document_content(vault_id, access_token)
+        if not content:
+            return JSONResponse(status_code=404, content={"error": "document_content_unavailable"})
+
+        # Only run word-box OCR on image-type documents
+        image_types = {"image/jpeg", "image/png", "image/tiff", "image/bmp", "image/gif", "image/heic"}
+        is_pdf = (doc.mime_type or "").endswith("pdf")
+        is_image = (doc.mime_type or "") in image_types
+
+        if not is_pdf and not is_image:
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "word_boxes": [],
+                    "method": "skipped",
+                    "reason": "word_boxes only available for images and scanned PDFs",
+                },
+            )
+
+        result = await extract_text_from_file(
+            file_bytes=content,
+            filename=doc.filename or "document",
+        )
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "word_boxes": [wb.to_dict() for wb in result.word_boxes],
+                "method": result.method,
+                "pages": result.pages,
+                "confidence": round(result.confidence, 3),
+                "success": result.success,
+            },
+        )
+    except Exception as e:
+        logger.error("DC word-boxes error vault_id=%s user=%s: %s", vault_id, user_id, e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "word_boxes_failed", "detail": str(e)})
 
 
 @router.get("/document/{vault_id}/explain")
