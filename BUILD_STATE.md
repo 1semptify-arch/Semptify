@@ -1,3 +1,29 @@
+## Session — 2026-09-13 (PM) — Donor portal follow-up: owner-intended claims restored (devin)
+
+### What shipped
+- PR #236 (merged, deployed `e833102c`, deploy dep-daj5hap594qs73atks5g).
+- Per Brad's direction, restored in `app/templates/public/donate.html`:
+  - "Your Data Never Touches Our Servers" — his standing promise
+    (minimal non-identifiable data only; timeline moving to user-side
+    SQLite storage; advanced modules opt-in w/ unlinkable metadata).
+  - All 9 `localhost:8001` Funding Forge links — Brad's working
+    shortcuts for finishing grant applications, not public links.
+  - Semptify Go / mobile PWA — mobile UI under active construction.
+  - Tenant Union Tools / Legislator Connect / Journalist Bridge tags —
+    modules being built, not phantom claims.
+  - 501(c)(3): kept "filing in progress" (honest — IRS letter not in
+    hand) + "approval expected within weeks" per Brad's timeline.
+- Verified live on prod: `/` `/help` `/portal` `/healthz` `/donate` all 200;
+  restored strings confirmed in served HTML.
+
+### Open items for next session
+- Dev server still running on :8001 (PID 18928) — left in place, may be
+  Brad's Funding Forge session. Kill by port if stale.
+- Stale `neondb` DB on the Neon branch still holds an old schema copy —
+  not used by the app; candidate for deletion once confirmed unused.
+- Master `orchestrator_state.json` has ~29 tasks in open/review/blocked
+  awaiting orchestrator triage — none dispatched this session.
+
 ## Session — 2026-09-13 — Donor portal: fact-checked funding presentation at /donate (devin)
 
 ### What shipped
