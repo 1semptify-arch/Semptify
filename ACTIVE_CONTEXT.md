@@ -1,6 +1,8 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-09-12 (Site Shell v5 rollout complete — PRs #205–#224; mobile quick-capture wired end-to-end incl. contacts/call-log/file-camera-audio upload; `/tenant/contacts` added; DC flipped to rail-left/work-right; shell lightness pass merged. See BUILD_STATE.md 2026-09-12 entries for the full ship log.)
+**Last Updated**: 2026-09-13 (Prod schema repair + donor portal — Neon table ownership fixed (`authenticator`→`neondb_owner`), migrations applied, deploy-time drift guard added (PR #232, KF #20); fact-checked funding presentation live at `/donate` with GitHub Sponsors (PRs #234–#236). Retaliation tracker live. See BUILD_STATE.md 2026-09-13 entries.)
+
+**Previous**: 2026-09-12 (Site Shell v5 rollout complete — PRs #205–#224; mobile quick-capture wired end-to-end incl. contacts/call-log/file-camera-audio upload; `/tenant/contacts` added; DC flipped to rail-left/work-right; shell lightness pass merged. See BUILD_STATE.md 2026-09-12 entries for the full ship log.)
 
 **Previous**: 2026-09-05 (PII/case-data purge: real case files untracked + backed up outside repo, full GitHub history rewrite + force-push on `1semptify-arch/Semptify`, `protect-main` ruleset restored; stale docs fixed — manifest rewritten with verified snapshot (123 registrations), `MODULE_BLUEPRINT.md` created, `BLUEPRINT.md` superseded, dead `client_activated` gate reference removed from PROJECT_BIBLE, repo URLs corrected to `1semptify-arch/Semptify`)
 
