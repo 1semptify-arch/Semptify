@@ -1,3 +1,26 @@
+## Session — 2026-09-13 — Render free-tier tuning (devin)
+
+### What shipped
+- **PR #228** — GZipMiddleware (outermost): HTML pages were shipping ~50-80KB
+  uncompressed; verified 6633B → 2229B (~66% smaller). 1h Cache-Control on
+  /static //assets//public (short TTL — assets aren't fingerprinted).
+- **PR #229** — Real prod image fixed: the live Render service builds
+  `./Dockerfile` (verified via Render API — NOT Dockerfile.render). Switched it
+  to `requirements-render-mvp.txt` (drops sentence-transformers/torch ~1.5GB,
+  playwright, dev tooling), added `pytesseract` to that file (OCR engine for
+  vault pipeline — was missing), `compileall` bytecode precompile at build,
+  `--proxy-headers --forwarded-allow-ips '*'` so uvicorn sees real https/client-IP.
+
+### Known facts for next session
+- Live service: `srv-d7pja7km0tmc739j6m30` (semptify-jsam.onrender.com),
+  dockerfilePath `./Dockerfile`, **autoDeploy OFF** — deploys are manual.
+- render_mvp profile keeps brain/mesh/module-hub ON — they power real tenant
+  workflows (upload → eviction-defense workflow). Do not disable to save RAM.
+- Remaining boot cost is structural: ~93 modules + 771 contracts eager-loaded.
+  Lazy module loading is a separate architectural decision.
+- Post-deploy verify: gzip header on semptify.org, watch cold-start in logs,
+  confirm an upload still OCRs (pytesseract path).
+
 ## Session — 2026-09-12 — Site Shell v5 foundation (opus/devin)
 
 ### Goal
