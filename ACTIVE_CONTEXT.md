@@ -68,7 +68,7 @@
 - **Logged, not urgent, do not fix yet:**
   - Case Builder phantom function (`get_cases_for_user` doesn't exist).
   - Page Shell manifest mismatch — registered dev/admin-only but used in production tenant routes.
-  - ~25 modules missing `FunctionGroupContract`; no contract has GUI fields yet.
+  - Contract gap closed: 142 module paths now load `FunctionGroupContract`s (corrected 2026-09-13 — this note previously claimed ~25 were missing). No contract has GUI fields yet.
 
 ## Later: Page Engine Facade (reference only, not active work)
 
