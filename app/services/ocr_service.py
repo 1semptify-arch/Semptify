@@ -18,6 +18,43 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
+class WordBox:
+    """A single word with its bounding box from OCR."""
+
+    __slots__ = ("text", "left", "top", "width", "height", "confidence", "page")
+
+    def __init__(
+        self,
+        text: str,
+        left: int,
+        top: int,
+        width: int,
+        height: int,
+        confidence: float = 0.0,
+        page: int = 0,
+    ):
+        self.text = text
+        self.left = left
+        self.top = top
+        self.width = width
+        self.height = height
+        self.confidence = confidence
+        self.page = page
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "text": self.text,
+            "bbox": {
+                "left": self.left,
+                "top": self.top,
+                "width": self.width,
+                "height": self.height,
+            },
+            "confidence": round(self.confidence, 3),
+            "page": self.page,
+        }
+
+
 class OCRResult:
     """Result of OCR processing."""
 
@@ -30,6 +67,7 @@ class OCRResult:
         words: int = 0,
         processing_time_ms: int = 0,
         metadata: dict[str, Any] | None = None,
+        word_boxes: list[WordBox] | None = None,
     ):
         self.text = text
         self.confidence = confidence
@@ -38,6 +76,7 @@ class OCRResult:
         self.words = len(text.split()) if text else 0
         self.processing_time_ms = processing_time_ms
         self.metadata = metadata or {}
+        self.word_boxes = word_boxes or []
         self.success = bool(text and len(text.strip()) > 10)
 
     def to_dict(self) -> dict[str, Any]:
@@ -50,6 +89,7 @@ class OCRResult:
             "processing_time_ms": self.processing_time_ms,
             "success": self.success,
             "metadata": self.metadata,
+            "word_boxes": [wb.to_dict() for wb in self.word_boxes],
         }
 
 
@@ -198,14 +238,36 @@ class OCRService:
             page_count = 0
             total_confidence = 0
             word_count = 0
+            word_boxes: list[WordBox] = []
 
-            for page in result.pages:
+            for page_idx, page in enumerate(result.pages):
                 page_count += 1
                 for line in page.lines:
                     text_parts.append(line.content)
                 for word in page.words:
                     word_count += 1
-                    total_confidence += word.confidence if word.confidence else 0.8
+                    conf = word.confidence if word.confidence else 0.8
+                    total_confidence += conf
+                    # Convert Azure bounding polygon to left/top/width/height
+                    polygon = getattr(word, "bounding_polygon", None) or []
+                    if polygon:
+                        xs = [p.x for p in polygon]
+                        ys = [p.y for p in polygon]
+                        left = int(min(xs))
+                        top = int(min(ys))
+                        width = int(max(xs) - min(xs))
+                        height = int(max(ys) - min(ys))
+                        word_boxes.append(
+                            WordBox(
+                                text=word.content,
+                                left=left,
+                                top=top,
+                                width=width,
+                                height=height,
+                                confidence=conf,
+                                page=page_idx,
+                            )
+                        )
 
             text = "\n".join(text_parts)
             avg_confidence = total_confidence / word_count if word_count > 0 else 0.0
@@ -219,6 +281,7 @@ class OCRService:
                     "model": "prebuilt-read",
                     "api_version": "2024-02-29-preview",
                 },
+                word_boxes=word_boxes,
             )
 
         except Exception as e:
@@ -251,14 +314,38 @@ class OCRService:
                 images = [Image.open(io.BytesIO(file_bytes))]
 
             # Extract text from all pages
-            text_parts = []
-            for _i, img in enumerate(images):
+            text_parts: list[str] = []
+            word_boxes: list[WordBox] = []
+            for page_idx, img in enumerate(images):
                 # Convert to RGB if necessary
                 if img.mode != "RGB":
                     img = img.convert("RGB")
 
-                # Get text with confidence data
-                pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
+                # Get word-level data with bounding boxes
+                data = pytesseract.image_to_data(
+                    img, output_type=pytesseract.Output.DICT
+                )
+                n_words = len(data.get("text", []))
+                for i in range(n_words):
+                    word_text = data["text"][i].strip()
+                    if not word_text:
+                        continue
+                    conf = data["conf"][i]
+                    try:
+                        conf_val = float(conf) / 100.0 if conf > 1 else float(conf)
+                    except (TypeError, ValueError):
+                        conf_val = 0.0
+                    word_boxes.append(
+                        WordBox(
+                            text=word_text,
+                            left=int(data["left"][i]),
+                            top=int(data["top"][i]),
+                            width=int(data["width"][i]),
+                            height=int(data["height"][i]),
+                            confidence=max(0.0, conf_val),
+                            page=page_idx,
+                        )
+                    )
 
                 page_text = pytesseract.image_to_string(img)
                 text_parts.append(page_text)
@@ -271,6 +358,7 @@ class OCRService:
                 method="tesseract",
                 pages=len(images),
                 metadata={"engine": "tesseract"},
+                word_boxes=word_boxes,
             )
 
         except Exception as e:
