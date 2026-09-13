@@ -12,7 +12,7 @@
 > - Active worktree: `C:\master-repo\modules\app-semptify-fastapi\`
 > - Canonical source mirror: `C:\master-repo\sources\app-semptify-fastapi\`
 
-This is the FIRST file any AI or developer must read before touching Semptify. It defines what is active, the rules for adding modules, and where the live truth lives.
+This is required reading before touching any module or router (per `REQUIRED_READING.md`, the canonical reading manifest — Tier 1 docs come first for every session). It defines what is active, the rules for adding modules, and where the live truth lives.
 
 ---
 

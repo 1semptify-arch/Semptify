@@ -11,10 +11,14 @@ Run this immediately before dispatching **any** task. One task, one preflight.
 
 ## Step 1: Read mandatory context
 
+`REQUIRED_READING.md` is the canonical reading manifest — Tiers 1+2 are mandatory before dispatch. In order:
+
 1. `AGENTS.md` — Python version, Known Failure Registry, swap protocol, module contracts.
 2. `ACTIVE_CONTEXT.md` — what is being worked on right now.
 3. `BUILD_STATE.md` — last 2 entries (what shipped, what is broken, what is pending).
-4. `CORE_CONTEXT.md` — Semptify purpose, banned language, no business-model terminology.
+4. `PROJECT_BIBLE.md` — canonical doc hierarchy and governance.
+5. `CORE_CONTEXT.md` — Semptify purpose, banned language, no business-model terminology.
+6. `SEMPTIFY_SYSTEM_MANIFEST.md` — module registry; required before touching any module or router.
 
 ## Step 2: Verify environment
 

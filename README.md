@@ -4,7 +4,7 @@ Tenant rights protection platform - rebuilt with async-first FastAPI architectur
 
 > **Empowering tenants with knowledge, organization, and legal tools**
 >
-> **Version:** 5.0.0 | **Python:** 3.11.9 (MANDATED) | **Status:** Production Ready
+> **Version:** 5.0.0 | **Python:** 3.11.9 (MANDATED) | **Status:** Live in production at [semptify.org](https://semptify.org)
 >
 > Canonical project guide: see `PROJECT_BIBLE.md` for the single source-of-truth hierarchy, build reference rules, and governance.
 
@@ -291,11 +291,11 @@ Configure `AI_PROVIDER` environment variable:
 
 ## Repository Health
 
-- **Total Files:** 350+ (Python, HTML, JS, MD)
-- **Production Modules:** 85+ active modules
+- **Total Files:** ~2,150 tracked (Python, HTML, JS, MD)
+- **Production Modules:** ~130 registered modules (122 passing registry health checks)
 - **Security:** Zero hardcoded credentials in production
-- **Documentation:** Comprehensive and up-to-date
-- **Tests:** Full test coverage for core features
+- **Documentation:** Canonical hierarchy per `PROJECT_BIBLE.md`; live status in `BUILD_STATE.md`
+- **Tests:** 246 module-health tests green (2026-09-13); behavioral coverage is thinner — treat health-suite green as "imports and routes verified," not "feature-complete"
 
 ## Running Tests
 

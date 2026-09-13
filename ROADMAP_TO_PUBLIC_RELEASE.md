@@ -1,6 +1,6 @@
 # Semptify Roadmap to Public Release
 
-**Last Updated**: 2026-06-29 PM
+**Last Updated**: 2026-09-13 (status corrections per `docs/semptify-evaluation-2026-09-13.md` in master-repo; previously 2026-06-29 PM)
 **Philosophy:** Mechanics first, GUI second. A pretty GUI on broken mechanics will fail users.
 
 ---
@@ -48,17 +48,17 @@ All 6 roles have full endpoint coverage:
 
 ## 🅿️ NEXT TO BUILD (in priority order)
 
-### 1. Phase 5b — Action Feedback Helper 🎯 CURRENT PRIORITY
+### 1. Phase 5b — Action Feedback Helper
 
 **Design doc:** `ACTION_FEEDBACK_AUDIT.md`
-**Status:** Ready to build, no blockers
+**Status:** Spec complete, zero code — `SemptifyFeedback` has no implementation as of 2026-09-13. No longer the live current priority (superseded by the Site Shell v5 rollout and tenant-core stabilization, now shipped). Awaiting Brad's decision on whether it is still wanted.
 
 Build the `SemptifyFeedback` helper and 5-tier retrofit per the audit doc.
 
 ### 2. GUI Phase 1 — Tenant Journal Restructuring
 
 **Design doc:** `GUI_PHASE1_DESIGN.md`
-**Status:** Pending
+**Status:** Partially superseded (2026-09-13) — the `journal_create` single-function page exists and passed review, and timeline/calendar have since been built under Site Shell v5. The wholesale journal/calendar/timeline restructure as specced here was not done.
 
 Per user's canonical vision (2026-06-28):
 
@@ -66,10 +66,10 @@ Per user's canonical vision (2026-06-28):
 - **CALENDAR** = total recollection viewer (graphical/media, shows everything in tenancy)
 - **TIMELINE** = interactive data query viewer (vertical mobile / horizontal desktop, color-coded, filterable)
 
-### 3. Document Center Planning
+### 3. Document Center Planning — ✅ SHIPPED
 
 **Design doc:** `docs/planning/DOCUMENT_CENTER_PLAN.md`
-**Status:** Pending
+**Status:** Shipped (2026-09-12) — rail-left/work-right layout, checklist, and mobile ergonomics merged in PRs #218/#220/#224.
 
 Design docs committed 2026-06-29:
 
@@ -78,6 +78,8 @@ Design docs committed 2026-06-29:
 ---
 
 ## 🚫 ANTI-PRIORITIES (Don't Start These)
+
+> Written 2026-06-29 against the priorities above; several of those are now shipped or superseded. Treat as guidance, not current mandate — check `ACTIVE_CONTEXT.md` for the live priority.
 
 1. New features that aren't Action Feedback, GUI Phase 1, or DC planning
 2. Refactoring unrelated to Phase 5
