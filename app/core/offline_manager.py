@@ -273,9 +273,15 @@ def remove_offline_callback(event_type: str, callback: Callable):
     offline_manager.remove_callback(event_type, callback)
 
 
+_indicators_cache: str | None = None
+
+
 def get_offline_indicators() -> str:
-    """Get HTML and JavaScript for offline indicators."""
-    return offline_manager.get_offline_html() + offline_manager.get_javascript()
+    """Get HTML and JavaScript for offline indicators (static — cached)."""
+    global _indicators_cache
+    if _indicators_cache is None:
+        _indicators_cache = offline_manager.get_offline_html() + offline_manager.get_javascript()
+    return _indicators_cache
 
 
 def is_offline() -> bool:
