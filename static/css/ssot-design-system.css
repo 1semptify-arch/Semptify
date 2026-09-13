@@ -2656,8 +2656,17 @@ body.shell--dc .dc-pane { display: flex !important; }
    content with sensible minimums instead of the fixed desktop tool. */
 @media (max-width: 900px) {
   body.shell--dc #dcShell.dc-work { height: auto; }
-  body.shell--dc .dc-viewer { min-height: 55vh; }
+  body.shell--dc .dc-viewer { min-height: 12rem; }
+  body.shell--dc .dc-viewer:has(> #dcPdfContainer[style*="display: flex"]),
+  body.shell--dc .dc-viewer:has(> #dcIframeFallback[style*="display: block"]) { min-height: 55vh; }
   body.shell--dc .dc-detail { height: auto; min-height: 0; }
   body.shell--dc .dc-detail-pane { max-height: 50vh; }
   body.shell--dc .shell-side { position: static; }
+  /* Touch targets — thumb-sized on phone. */
+  body.shell--dc .dc-toolbar .frame-btn,
+  body.shell--dc .dc-toolbar select,
+  body.shell--dc .dc-fieldcard-actions .frame-btn,
+  body.shell--dc .dc-filter,
+  body.shell--dc #dcUploadBtn { min-height: 3.25rem; }
+  body.shell--dc #dcDocList .frame-item { min-height: 3.5rem; }
 }
