@@ -1,3 +1,33 @@
+## Session — 2026-09-13 — Prod schema repair: ownership + silent migration failure (devin)
+
+### What happened
+- `/` was 500ing on prod (`column context_facts.fact_id does not exist`) while
+  `/healthz` stayed 200. Root cause was NOT a missing package — it was DB
+  ownership: 14 tables + 13 sequences in `semptifty_db` were owned by the Neon
+  Auth role `authenticator`, so `alembic upgrade` died on
+  `must be owner of table context_facts`, rolled back the whole pending chain,
+  and the startup wrapper swallowed it (`verify_migrations` always True).
+
+### What shipped / changed
+- **Prod DB repaired:** ownership moved `authenticator -> authenticated ->
+  neondb_owner` (all 63 public tables + sequences now `neondb_owner`);
+  `alembic upgrade head` applied f7a1c2d3e4b5 -> 35e49b1cefed ->
+  20260912_tl_capture -> 20260913_tl_tags. Verified: all routes 200,
+  `/tenant/retaliation` guard-redirects correctly.
+- **This PR** — `verify_migrations()` now compares live `alembic_version` to
+  script head on RENDER; drift fails the deploy (old healthy version stays
+  live) instead of booting a broken app. Migration exceptions now log at
+  ERROR with traceback. AGENTS.md gains Known Failure #20.
+
+### Known facts for next session
+- Prod DB is `semptifty_db` (typo'd name) on Neon project
+  `flat-block-24520481`, branch `br-blue-hill-annqdvu9`. NOT `neondb`
+  (stale schema copy) — 4 databases share the branch.
+- Neon Auth/Data API is provisioned but UNUSED (0 users) — `authenticator`
+  password was reset to perform the repair; safe.
+- Cloudflare dev mode was enabled (3h) + cache purged during this session.
+- Local `.env` Neon URL is stale (channel_binding=require fails DNS).
+
 ## Session — 2026-09-13 — Render free-tier tuning (devin)
 
 ### What shipped
