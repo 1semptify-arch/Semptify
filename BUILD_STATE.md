@@ -13916,3 +13916,31 @@ Nothing is real until it is pushed.
 
 **Next session should start with:**
 - Document Center joint session, or the mobile toolset kickoff — Brad's call.
+
+
+## Session Ship — 2026-09-12 (late) — Mobile capture + contacts + shell polish (devin)
+
+**PRs merged:** #218 (DC flip: rail left / work right, one-question field walk), #219 (shell lightness pass: paper bg, thin role-colored chrome, transparent regions, liquid root scaling, no desktop scroll), #220 (DC rail/checklist survive file-render failure; honest per-step progress), #221 (footer 98px→37px — padding reset), #222 (mobile quick-capture wired end-to-end), #223 (tenant contacts page + capture dedup), #224 (DC mobile ergonomics).
+
+**PR open:** #225 — `StorageAuthError` on Drive 401/403 so dead sessions stop masquerading as missing folders.
+
+**What was shipped:**
+- `/tenant/capture` was **dead since written** — called undefined `fetchWithCSRF`/`showFlash`, and `POST /api/tenant/capture` crashed on every submit (wrote `is_urgent`/`who_involved`/`location`/`attached_document_ids` which didn't exist as columns; never set `id`). Fixed: `static/js/fetch-helpers.js` added, `make_id("tevt")`, Alembic migration `20260912_add_timeline_capture_fields`.
+- Phone Call capture type → contact picker + direction + duration → `POST /api/contacts/{id}/interactions` + timeline `communication` event.
+- File picker now actually uploads: each file → `/api/intake/upload/auto` → `vault_id || id` → `attached_document_ids` on the event. Same `vault_id || id` fallback added to DC upload auto-select (local provider returns `vault_id=None`).
+- `/tenant/contacts` — new shell page (rail layout): contact list, per-contact call history, quick-add. Linked from tenant home.
+- Capture dedup fix: free-typed names match existing contacts before creating.
+- DC mobile: empty viewer 450px→~150px (55vh only when doc loaded via `:has()`), upload CTA in empty state, ~41px touch targets, layout-neutral copy.
+- Contact Manager unlocked capability verified live; `LUtest1234` → `/storage/reconnect` confirmed as intended `is_valid_storage_user` behavior.
+
+**Verified:** real signed tenant session (`GUbGQUTpK6`) — contacts 200, upload 200 (notarized, OCR queued), interaction 201, capture 200, `attached_document_ids` persisted. Contacts page live on desktop+mobile. Playwright suite: 6/6 pass (run against :8001). All CI green on merged PRs.
+
+**Known broken / pending:**
+- Local-provider users can never pass `yellow_access` (no OAuth token to validate) — Contacts/uploads unreachable for `local` accounts. Decision needed whether `local` is a real provider tier.
+- `GUQ2ODJP7b` google_drive session expired 2026-09-04 — the "Could not access folder: overlays/documents" noise was this dead token, fixed-as-symptom in #225 (now says reconnect).
+- OCR word-box coordinates for on-image field highlighting — still open (pipeline task).
+- Advocate/legal shell variants wired in CSS but not exercised live — needs a role account.
+- Orchestrator review→resolved sign-off pending on this session's tasks.
+
+**Next session should start with:**
+- Brad merges #225, then OCR word-box pipeline or advocate/legal account setup — his call.
