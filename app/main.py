@@ -4305,6 +4305,165 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
         return templates.TemplateResponse(request, "pages/tenant_contacts.html", {})
 
+    @fastapi_app.get("/tenant/retaliation", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/retaliation/", response_class=HTMLResponse)
+    async def tenant_retaliation(request: Request):
+        """Retaliation tracker — protected actions vs adverse actions over time."""
+        from app.core.module_gate import get_jurisdiction
+
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        from app.services.retaliation_tracker import (
+            ADVERSE_SUBTYPES,
+            PROTECTED_SUBTYPES,
+            presumption_window_for,
+        )
+
+        jurisdiction = get_jurisdiction(request)
+        window = presumption_window_for(jurisdiction.state if jurisdiction else None)
+        return templates.TemplateResponse(
+            request,
+            "pages/tenant_retaliation.html",
+            {
+                "protected_subtypes": PROTECTED_SUBTYPES,
+                "adverse_subtypes": ADVERSE_SUBTYPES,
+                "presumption": window,
+            },
+        )
+
+    @fastapi_app.post("/api/tenant/retaliation/log")
+    async def tenant_retaliation_log(request: Request):
+        """Log a protected action or adverse action as a timeline event."""
+        from app.core.database import get_db_session
+        from app.models.models import TimelineEvent
+        from app.services.retaliation_tracker import (
+            ADVERSE_SUBTYPES,
+            EVENT_TYPE_ADVERSE,
+            EVENT_TYPE_PROTECTED,
+            PROTECTED_SUBTYPES,
+        )
+
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+
+        user_id = extract_user_id(request)
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Authentication required")
+
+        form_data = await request.form()
+        kind = form_data.get("kind", "")
+        subtype = form_data.get("subtype", "other")
+        description = (form_data.get("description") or "").strip()
+        event_date_str = form_data.get("event_date", "")
+        event_time_str = form_data.get("event_time", "")
+        who_involved = form_data.get("who_involved", "")
+        location = form_data.get("location", "")
+
+        if kind == "protected":
+            event_type = EVENT_TYPE_PROTECTED
+            vocab = PROTECTED_SUBTYPES
+        elif kind == "adverse":
+            event_type = EVENT_TYPE_ADVERSE
+            vocab = ADVERSE_SUBTYPES
+        else:
+            raise HTTPException(status_code=400, detail="kind must be 'protected' or 'adverse'")
+
+        if subtype not in vocab:
+            subtype = "other"
+        if not description:
+            raise HTTPException(status_code=400, detail="Description is required")
+        if not event_date_str:
+            raise HTTPException(status_code=400, detail="Date is required")
+
+        try:
+            event_date = datetime.datetime.strptime(event_date_str, "%Y-%m-%d").date()
+            if event_time_str:
+                event_datetime = datetime.datetime.combine(
+                    event_date,
+                    datetime.datetime.strptime(event_time_str, "%H:%M").time(),
+                    tzinfo=datetime.UTC,
+                )
+            else:
+                event_datetime = datetime.datetime.combine(
+                    event_date, datetime.datetime.min.time(), tzinfo=datetime.UTC
+                )
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date or time format")
+
+        attached_ids: list[str] = []
+        for raw in form_data.getlist("attached_document_ids"):
+            if raw:
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, list):
+                        attached_ids.extend(str(v) for v in parsed if v)
+                    else:
+                        attached_ids.append(str(parsed))
+                except (json.JSONDecodeError, TypeError):
+                    attached_ids.append(str(raw))
+
+        async with get_db_session() as db:
+            from app.core.id_gen import make_id
+
+            event = TimelineEvent(
+                id=make_id("tevt"),
+                user_id=user_id,
+                event_type=event_type,
+                title=vocab[subtype],
+                description=description,
+                event_date=event_datetime,
+                urgency=form_data.get("urgency", "normal") if form_data.get("urgency") in ("low", "normal", "high", "critical") else "normal",
+                who_involved=who_involved or None,
+                location=location or None,
+                tags=json.dumps([subtype]),
+                is_evidence=True,
+                attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
+                created_at=utc_now(),
+            )
+            db.add(event)
+            await db.commit()
+
+        return {"success": True, "event_id": event.id}
+
+    @fastapi_app.get("/api/tenant/retaliation/analysis")
+    async def tenant_retaliation_analysis(request: Request):
+        """Correlate the user's protected/adverse timeline events."""
+        from app.core.database import get_db_session
+        from app.core.module_gate import get_jurisdiction
+        from app.models.models import TimelineEvent
+        from app.services.retaliation_tracker import (
+            EVENT_TYPE_ADVERSE,
+            EVENT_TYPE_PROTECTED,
+            correlate,
+        )
+        from sqlalchemy import select
+
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+
+        user_id = extract_user_id(request)
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Authentication required")
+
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(TimelineEvent).where(
+                    TimelineEvent.user_id == user_id,
+                    TimelineEvent.event_type.in_([EVENT_TYPE_PROTECTED, EVENT_TYPE_ADVERSE]),
+                )
+            )
+            events = list(result.scalars().all())
+
+        jurisdiction = get_jurisdiction(request)
+        return correlate(
+            events,
+            jurisdiction=jurisdiction.state if jurisdiction else None,
+            now=utc_now(),
+        )
+
     @fastapi_app.post("/api/tenant/capture")
     async def tenant_capture_post(request: Request):
         """Create a timeline event from quick capture form."""
