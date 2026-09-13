@@ -52,6 +52,10 @@ psutil>=5.9.0
 # =============================================================================
 python-magic>=0.4.27; platform_system != "Windows"
 Pillow>=10.0.0
+# OCR engine for the vault document pipeline (tesseract binary is in the
+# Docker runtime image; this is the Python wrapper). Lazy-imported, but
+# required for OCR to function in production.
+pytesseract>=0.3.10
 
 # =============================================================================
 # PDF Generation (Court Packets)
