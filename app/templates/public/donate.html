@@ -1,54 +1,3036 @@
-{% extends "body/public_shell.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Semptify — A free, open platform protecting tenant rights through knowledge, documentation, and community. Support the work and see where funding goes." />
+  <title>Support Semptify — Every Renter Deserves Peace at Home</title>
 
-{% block title %}Donate — Support Tenant Rights — Semptify{% endblock %}
-{% block description %}Semptify is no cost to tenants. Donations keep it that way. Donate anonymously — no account required.{% endblock %}
-{% block keywords %}donate tenant rights, anonymous donation, housing nonprofit, support tenants{% endblock %}
+  <!-- Google Fonts — Only External Dependency -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-{% block header_title %}💝 Donate{% endblock %}
-{% block header_tagline %}Support Tenant Rights{% endblock %}
-{% block header_subtitle %}Semptify is no cost to tenants. Donations keep it that way.{% endblock %}
+  <style>
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-{% block page_body %}
+    :root {
+      --bg:        #0d1821;
+      --card-bg:   #141f2e;
+      --card-bg2:  #1a2840;
+      --amber:     #f5a623;
+      --amber-dim: #c4841c;
+      --teal:      #00c4a7;
+      --text:      #f0ede8;
+      --muted:     #7a8fa6;
+      --green:     #52c07a;
+      --border:    rgba(245,166,35,0.18);
+      --border2:   rgba(0,196,167,0.18);
+      --shadow:    0 8px 40px rgba(0,0,0,0.45);
+      --radius:    14px;
+      --radius-sm: 8px;
+      --trans:     all 0.35s cubic-bezier(.25,.8,.25,1);
+    }
 
-<section class="section">
-    <h2 class="section-title">Why Donate?</h2>
-    <p style="color: var(--text-light);">
-        Semptify is no cost to tenants. No advertising, ever. Donations are what
-        keep the lights on, the servers running, and the tools available for the people who
-        need them most.
-    </p>
-</section>
+    html { scroll-behavior: smooth; font-size: 16px; }
 
-<section class="section">
-    <h2 class="section-title">Anonymous Donations</h2>
-    <p style="color: var(--text-light);">
-        You can donate anonymously — no account required. We don't need your name, your
-        email, or your life story. Just your support.
-    </p>
-    <div class="info-banner">
-        <p>
-            Every dollar goes to keeping Semptify available to tenants. No advertising,
-            no data selling, no strings attached.
-        </p>
-    </div>
-</section>
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
 
-<section class="section">
-    <h2 class="section-title">What Your Donation Does</h2>
-    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
-        <li><strong>No paywalls</strong> — No premium tiers, no "free for 30 days," no hidden costs.</li>
-        <li><strong>Maintains infrastructure</strong> — Servers, storage, and bandwidth cost money.</li>
-        <li><strong>Builds new tools</strong> — New features based on what tenants actually need.</li>
-        <li><strong>Supports advocacy partnerships</strong> — Helping advocacy groups help tenants.</li>
+    ::selection { background: var(--amber); color: #000; }
+
+    a { color: var(--amber); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: var(--teal); }
+
+    img, svg { display: block; }
+
+    /* ============================================================
+       TYPOGRAPHY
+    ============================================================ */
+    .font-serif   { font-family: 'Playfair Display', Georgia, serif; }
+    .font-mono    { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+
+    h1, h2, h3, h4 {
+      font-family: 'Playfair Display', Georgia, serif;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+    h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); }
+    h2 { font-size: clamp(2rem, 4vw, 3rem); }
+    h3 { font-size: clamp(1.3rem, 2.5vw, 1.75rem); }
+    h4 { font-size: 1.15rem; }
+
+    p { margin-bottom: 1rem; }
+    p:last-child { margin-bottom: 0; }
+
+    strong { font-weight: 600; color: var(--text); }
+
+    /* ============================================================
+       LAYOUT HELPERS
+    ============================================================ */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .section {
+      padding: 6rem 0;
+      position: relative;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .section-title {
+      margin-bottom: 1.25rem;
+    }
+
+    .section-subtitle {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 640px;
+      margin-bottom: 3rem;
+      line-height: 1.65;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+
+    /* ============================================================
+       CARDS
+    ============================================================ */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      transition: var(--trans);
+    }
+    .card:hover {
+      border-color: rgba(245,166,35,0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,166,35,0.15);
+    }
+
+    .card-teal {
+      border-color: var(--border2);
+    }
+    .card-teal:hover {
+      border-color: rgba(0,196,167,0.4);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,196,167,0.15);
+    }
+
+    /* ============================================================
+       BUTTONS
+    ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 2rem;
+      border-radius: 50px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--trans);
+      text-decoration: none;
+      border: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--amber);
+      color: #0d1821;
+    }
+    .btn-primary:hover {
+      background: #ffc04a;
+      color: #0d1821;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245,166,35,0.4);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1.5px solid rgba(240,237,232,0.3);
+    }
+    .btn-outline:hover {
+      border-color: var(--amber);
+      color: var(--amber);
+      transform: translateY(-2px);
+    }
+
+    .btn-teal {
+      background: var(--teal);
+      color: #0d1821;
+    }
+    .btn-teal:hover {
+      background: #00e6c4;
+      color: #0d1821;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,196,167,0.35);
+    }
+
+    .btn-sm {
+      padding: 0.55rem 1.25rem;
+      font-size: 0.85rem;
+    }
+
+    /* ============================================================
+       BADGE / TAG
+    ============================================================ */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.85rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .badge-amber { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+    .badge-teal  { background: rgba(0,196,167,0.12);  color: var(--teal);  border: 1px solid rgba(0,196,167,0.25); }
+    .badge-green { background: rgba(82,192,122,0.12); color: var(--green); border: 1px solid rgba(82,192,122,0.25); }
+
+    /* ============================================================
+       DIVIDER
+    ============================================================ */
+    .divider {
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--amber), var(--teal));
+      border-radius: 2px;
+      margin: 1.25rem 0 2rem;
+    }
+
+    /* ============================================================
+       FADE-IN ON SCROLL
+    ============================================================ */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.75s ease, transform 0.75s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: none;
+    }
+    .fade-in-delay-1 { transition-delay: 0.1s; }
+    .fade-in-delay-2 { transition-delay: 0.2s; }
+    .fade-in-delay-3 { transition-delay: 0.3s; }
+    .fade-in-delay-4 { transition-delay: 0.4s; }
+    .fade-in-delay-5 { transition-delay: 0.5s; }
+    .fade-in-delay-6 { transition-delay: 0.6s; }
+
+    /* ============================================================
+       SECTION BACKGROUNDS
+    ============================================================ */
+    .bg-alt   { background: #0f1a27; }
+    .bg-alt2  { background: #0b1520; }
+    .bg-card  { background: var(--card-bg); }
+
+    /* ============================================================
+       1. NAVIGATION
+    ============================================================ */
+    #navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 1.25rem 0;
+      background: transparent;
+      transition: background 0.4s ease, box-shadow 0.4s ease, padding 0.4s ease;
+    }
+    #navbar.scrolled {
+      background: rgba(13,24,33,0.96);
+      box-shadow: 0 2px 24px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 0.85rem 0;
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+    .nav-logo span { color: var(--amber); }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: rgba(240,237,232,0.8);
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s;
+      letter-spacing: 0.01em;
+    }
+    .nav-links a:hover { color: var(--amber); }
+    .nav-links .nav-cta {
+      background: var(--amber);
+      color: #0d1821;
+      padding: 0.5rem 1.2rem;
+      border-radius: 50px;
+      font-weight: 700;
+    }
+    .nav-links .nav-cta:hover { background: #ffc04a; color: #0d1821; }
+    .nav-toggle { display: none; cursor: pointer; }
+    .nav-toggle span { display: block; width: 24px; height: 2px; background: var(--text); margin: 5px 0; transition: 0.3s; }
+
+    /* ============================================================
+       2. HERO
+    ============================================================ */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 6rem 0 0;
+    }
+
+    /* Animated background shapes */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .floating-shape {
+      position: absolute;
+      opacity: 0.055;
+      animation: floatShape 14s ease-in-out infinite;
+      color: var(--amber);
+    }
+    .floating-shape:nth-child(1)  { top: 8%;  left: 7%;  animation-duration: 13s; animation-delay: 0s;   width: 80px; }
+    .floating-shape:nth-child(2)  { top: 20%; right: 8%; animation-duration: 16s; animation-delay: 2s;   width: 60px; }
+    .floating-shape:nth-child(3)  { top: 55%; left: 4%;  animation-duration: 12s; animation-delay: 1s;   width: 50px; }
+    .floating-shape:nth-child(4)  { top: 70%; right: 12%;animation-duration: 18s; animation-delay: 3s;   width: 70px; }
+    .floating-shape:nth-child(5)  { top: 35%; left: 18%; animation-duration: 15s; animation-delay: 0.5s; width: 45px; }
+    .floating-shape:nth-child(6)  { top: 80%; left: 30%; animation-duration: 11s; animation-delay: 4s;   width: 55px; }
+    .floating-shape:nth-child(7)  { top: 15%; left: 45%; animation-duration: 17s; animation-delay: 1.5s; width: 40px; }
+    .floating-shape:nth-child(8)  { top: 60%; right: 25%;animation-duration: 14s; animation-delay: 2.5s; width: 65px; }
+
+    @keyframes floatShape {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33%       { transform: translateY(-20px) rotate(6deg); }
+      66%       { transform: translateY(-10px) rotate(-4deg); }
+    }
+
+    /* Radial glow */
+    .hero-glow {
+      position: absolute;
+      width: 800px; height: 800px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,166,35,0.07) 0%, transparent 70%);
+      top: -200px; right: -200px;
+      pointer-events: none;
+    }
+    .hero-glow-2 {
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,196,167,0.05) 0%, transparent 70%);
+      bottom: 100px; left: -150px;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 1.5rem;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 28px; height: 2px;
+      background: var(--amber);
+      border-radius: 1px;
+    }
+
+    .hero-title {
+      font-size: clamp(3.5rem, 9vw, 7rem);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title .accent { color: var(--amber); }
+    .hero-title .accent-teal { color: var(--teal); }
+
+    .hero-tagline {
+      font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: rgba(240,237,232,0.85);
+      margin-bottom: 1.25rem;
+      font-weight: 400;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 5rem;
+    }
+
+    /* Stats bar */
+    .hero-stats {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      background: rgba(20,31,46,0.85);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    .hero-stats-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .hero-stat {
+      padding: 1.5rem 1rem;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .hero-stat:last-child { border-right: none; }
+    .hero-stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--amber);
+      display: block;
+      line-height: 1.1;
+    }
+    .hero-stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+      display: block;
+    }
+
+    /* ============================================================
+       3. THE PROBLEM
+    ============================================================ */
+    .problem-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 4rem;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--amber), var(--teal));
+    }
+    .stat-card-num {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 5vw, 4rem);
+      font-weight: 900;
+      color: var(--amber);
+      display: block;
+      line-height: 1.0;
+      margin-bottom: 0.5rem;
+    }
+    .stat-card-label {
+      font-size: 1rem;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .stat-card-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .pull-quote {
+      background: linear-gradient(135deg, rgba(245,166,35,0.08), rgba(0,196,167,0.05));
+      border-left: 4px solid var(--amber);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 2rem 2.5rem;
+      margin: 3rem 0;
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+      font-style: italic;
+      color: rgba(240,237,232,0.9);
+      line-height: 1.5;
+    }
+    .pull-quote cite {
+      display: block;
+      margin-top: 0.75rem;
+      font-style: normal;
+      font-size: 0.85rem;
+      font-family: 'Inter', sans-serif;
+      color: var(--muted);
+    }
+
+    .problem-secondary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .problem-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+    }
+    .problem-item-icon {
+      width: 44px; height: 44px;
+      background: rgba(245,166,35,0.12);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+      color: var(--amber);
+    }
+    .problem-item h4 { color: var(--amber); margin-bottom: 0.5rem; font-size: 1rem; }
+    .problem-item p  { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+    /* ============================================================
+       4. THE SOLUTION — 6 PILLARS
+    ============================================================ */
+    .pillars-intro {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+      color: rgba(240,237,232,0.85);
+      max-width: 680px;
+      margin-bottom: 3.5rem;
+      line-height: 1.55;
+      font-style: italic;
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .pillar-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      transition: var(--trans);
+      position: relative;
+      overflow: hidden;
+    }
+    .pillar-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--amber), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .pillar-card:hover {
+      border-color: rgba(245,166,35,0.35);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+    }
+    .pillar-card:hover::after { opacity: 1; }
+
+    .pillar-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--amber);
+      letter-spacing: 0.15em;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .pillar-icon {
+      width: 52px; height: 52px;
+      background: rgba(245,166,35,0.1);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--amber);
+      margin-bottom: 1.25rem;
+      transition: background 0.3s;
+    }
+    .pillar-card:hover .pillar-icon { background: rgba(245,166,35,0.2); }
+
+    .pillar-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      color: var(--text);
+    }
+    .pillar-desc {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ============================================================
+       5. PLATFORM FEATURES
+    ============================================================ */
+    .features-group {
+      margin-bottom: 4rem;
+    }
+    .features-group-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .features-group-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border2);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      transition: var(--trans);
+    }
+    .feature-card:hover {
+      border-color: rgba(0,196,167,0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+
+    .feature-icon {
+      width: 46px; height: 46px;
+      background: rgba(0,196,167,0.1);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--teal);
+      margin-bottom: 1.1rem;
+      transition: background 0.3s;
+    }
+    .feature-card:hover .feature-icon { background: rgba(0,196,167,0.2); }
+
+    .feature-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.45rem;
+    }
+    .feature-desc {
+      font-size: 0.86rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       6. PRIVACY-FIRST ARCHITECTURE
+    ============================================================ */
+    .privacy-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin: 3rem 0;
+      flex-wrap: wrap;
+    }
+    .privacy-node {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem 2.5rem;
+      text-align: center;
+      min-width: 180px;
+      transition: var(--trans);
+    }
+    .privacy-node:hover {
+      border-color: var(--amber);
+      transform: scale(1.03);
+    }
+    .privacy-node-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+    .privacy-node-title {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 1rem;
+    }
+    .privacy-node-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+    .privacy-arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .privacy-arrow svg { color: var(--amber); }
+    .privacy-arrow span {
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+    }
+
+    .privacy-benefits {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin: 3rem 0;
+    }
+    .privacy-benefit {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+    }
+    .privacy-benefit-icon {
+      font-size: 2.2rem;
+      display: block;
+      margin-bottom: 1rem;
+    }
+    .privacy-benefit h4 {
+      color: var(--amber);
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+    .privacy-benefit p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* Comparison table */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .comparison-table th {
+      padding: 1.1rem 1.5rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    .comparison-table th:first-child { color: var(--muted); background: rgba(0,0,0,0.2); }
+    .comparison-table th.col-bad  { color: #ff6b6b; background: rgba(255,107,107,0.08); }
+    .comparison-table th.col-good { color: var(--teal); background: rgba(0,196,167,0.08); }
+    .comparison-table td {
+      padding: 0.95rem 1.5rem;
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .comparison-table td:first-child { color: var(--muted); font-size: 0.85rem; }
+    .comparison-table .bad  { color: #ff6b6b; }
+    .comparison-table .good { color: var(--green); }
+
+    /* ============================================================
+       7. TECHNICAL ARCHITECTURE
+    ============================================================ */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    .stack-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      text-align: center;
+    }
+    .stack-item-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .stack-item-value {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--teal);
+    }
+
+    .module-ecosystem {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+    .module-tier {
+      margin-bottom: 2rem;
+    }
+    .module-tier:last-child { margin-bottom: 0; }
+    .module-tier-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .module-tier-title::before {
+      content: '▶';
+      font-size: 0.6rem;
+    }
+    .module-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .module-tag {
+      background: rgba(0,196,167,0.08);
+      border: 1px solid rgba(0,196,167,0.2);
+      color: var(--teal);
+      padding: 0.35rem 0.85rem;
+      border-radius: 50px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* ============================================================
+       8. IMPACT & ROADMAP
+    ============================================================ */
+    .roadmap {
+      position: relative;
+      padding-left: 2.5rem;
+    }
+    .roadmap::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--amber), var(--teal), rgba(0,196,167,0.1));
+      border-radius: 1px;
+    }
+    .roadmap-item {
+      position: relative;
+      margin-bottom: 2.5rem;
+    }
+    .roadmap-item:last-child { margin-bottom: 0; }
+    .roadmap-dot {
+      position: absolute;
+      left: -2.35rem;
+      top: 0.35rem;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--amber);
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .roadmap-dot.done   { background: var(--amber); border-color: var(--amber); }
+    .roadmap-dot.active { background: var(--teal);  border-color: var(--teal); box-shadow: 0 0 12px rgba(0,196,167,0.5); }
+    .roadmap-dot.next   { background: var(--bg); border-color: var(--muted); }
+    .roadmap-phase {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--amber);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+    .roadmap-title {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 1.1rem;
+      margin-bottom: 0.4rem;
+    }
+    .roadmap-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .who-we-serve {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+      margin-top: 3rem;
+    }
+    .serve-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem 1rem;
+      text-align: center;
+    }
+    .serve-icon { font-size: 1.8rem; display: block; margin-bottom: 0.6rem; }
+    .serve-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+
+    /* ============================================================
+       9. GRANT APPLICATIONS — TABS
+    ============================================================ */
+    #grants { padding: 6rem 0; }
+
+    .tabs-wrapper { margin-top: 3rem; }
+
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0;
+    }
+    .tab-btn {
+      padding: 0.75rem 1.4rem;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--amber);
+      border-bottom-color: var(--amber);
+    }
+
+    .tab-panel {
+      display: none;
+      animation: fadeTab 0.35s ease;
+    }
+    .tab-panel.active { display: block; }
+
+    @keyframes fadeTab {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* Application letter styles */
+    .application-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0 var(--radius) var(--radius) var(--radius);
+      padding: 3rem;
+      margin-top: 0;
+    }
+
+    .app-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .app-meta-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .app-meta-line {
+      display: flex;
+      gap: 0.5rem;
+      font-size: 0.88rem;
+    }
+    .app-meta-line .label { color: var(--muted); min-width: 60px; }
+    .app-meta-line .value { color: var(--text); font-weight: 500; }
+
+    .app-program-badge {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+    .app-program-badge .funding-amount {
+      background: rgba(245,166,35,0.12);
+      border: 1px solid rgba(245,166,35,0.3);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem 1.25rem;
+      text-align: center;
+    }
+    .app-program-badge .funding-amount .amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--amber);
+      display: block;
+    }
+    .app-program-badge .funding-amount .label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      display: block;
+      margin-top: 0.2rem;
+    }
+
+    .app-section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin: 2rem 0 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .app-section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(0,196,167,0.2);
+    }
+
+    .app-body {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: rgba(240,237,232,0.88);
+    }
+    .app-body p { margin-bottom: 1.25rem; }
+    .app-body p:last-child { margin-bottom: 0; }
+    .app-body ul {
+      padding-left: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .app-body ul li {
+      margin-bottom: 0.4rem;
+      font-size: 0.93rem;
+      color: rgba(240,237,232,0.85);
+    }
+    .app-body strong { color: var(--text); font-weight: 600; }
+
+    .app-footer {
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .deadline-box {
+      background: rgba(245,166,35,0.08);
+      border: 1px solid rgba(245,166,35,0.25);
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .deadline-box .icon { font-size: 1.4rem; flex-shrink: 0; }
+    .deadline-box .text {}
+    .deadline-box .text strong { display: block; color: var(--amber); font-size: 0.9rem; margin-bottom: 0.2rem; }
+    .deadline-box .text span { font-size: 0.82rem; color: var(--muted); }
+
+    .forge-badge {
+      background: rgba(0,196,167,0.08);
+      border: 1px solid rgba(0,196,167,0.25);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.82rem;
+      color: var(--teal);
+      margin-top: 1rem;
+    }
+    .forge-badge a { color: var(--teal); text-decoration: underline; }
+    .forge-badge a:hover { color: var(--amber); }
+
+    .checklist {
+      background: rgba(82,192,122,0.05);
+      border: 1px solid rgba(82,192,122,0.2);
+      border-radius: var(--radius-sm);
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    .checklist-title {
+      font-weight: 600;
+      color: var(--green);
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.88rem;
+      color: rgba(240,237,232,0.85);
+    }
+    .checklist-item .check {
+      color: var(--green);
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    /* Sub-tabs for Google + Foundations */
+    .sub-tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .sub-tab-btn {
+      padding: 0.5rem 1.1rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--trans);
+    }
+    .sub-tab-btn.active { background: rgba(245,166,35,0.12); border-color: rgba(245,166,35,0.4); color: var(--amber); }
+    .sub-tab-content { display: none; }
+    .sub-tab-content.active { display: block; }
+
+    /* ============================================================
+       10. SUPPORT
+    ============================================================ */
+    .support-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    .support-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+    .support-icon { font-size: 1.8rem; display: block; margin-bottom: 1rem; }
+    .support-card h3 { font-size: 1.2rem; margin-bottom: 0.6rem; color: var(--text); }
+    .support-card p { font-size: 0.9rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .support-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    /* ============================================================
+       11. FOOTER
+    ============================================================ */
+    footer {
+      background: #080f18;
+      border-top: 1px solid var(--border);
+      padding: 4rem 0 2rem;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+    .footer-brand .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    .footer-brand .logo span { color: var(--amber); }
+    .footer-brand p { font-size: 0.88rem; color: var(--muted); line-height: 1.65; max-width: 280px; }
+    .footer-col h5 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--amber);
+      margin-bottom: 1rem;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 0.55rem; }
+    .footer-col ul li a { color: var(--muted); font-size: 0.88rem; transition: color 0.2s; }
+    .footer-col ul li a:hover { color: var(--text); }
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-bottom p { font-size: 0.82rem; color: var(--muted); }
+    .footer-bottom .highlight { color: var(--text); }
+    .footer-byline {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+      max-width: 520px;
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 1024px) {
+      .grid-4       { grid-template-columns: repeat(2, 1fr); }
+      .stack-grid   { grid-template-columns: repeat(2, 1fr); }
+      .footer-top   { grid-template-columns: repeat(2, 1fr); }
+      .who-we-serve { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .section { padding: 4rem 0; }
+      h1 { font-size: 2.8rem; }
+      h2 { font-size: 2rem; }
+
+      /* Nav */
+      .nav-links { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0;
+        background: rgba(13,24,33,0.98); padding: 1.5rem; gap: 1rem; border-top: 1px solid var(--border); }
+      .nav-links.open { display: flex; }
+      .nav-toggle { display: block; }
+
+      /* Grids */
+      .grid-2, .grid-3, .grid-4,
+      .pillars-grid, .features-grid, .privacy-benefits,
+      .problem-stats, .problem-secondary, .support-grid { grid-template-columns: 1fr; }
+      .hero-stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .hero-stat:nth-child(2) { border-right: none; }
+      .hero-stat { border-bottom: 1px solid var(--border); }
+      .who-we-serve { grid-template-columns: repeat(2, 1fr); }
+      .footer-top { grid-template-columns: 1fr; gap: 2rem; }
+      .app-header { grid-template-columns: 1fr; }
+      .app-program-badge { justify-content: flex-start; }
+      .stack-grid { grid-template-columns: repeat(2, 1fr); }
+      .privacy-diagram { flex-direction: column; }
+      .privacy-arrow { flex-direction: row; transform: rotate(90deg); margin: 0 auto; }
+      .tab-bar { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 0; }
+      .application-card { padding: 1.5rem; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-stats-inner { grid-template-columns: 1fr 1fr; }
+      .hero-title { font-size: 2.5rem; }
+      .who-we-serve { grid-template-columns: repeat(2, 1fr); }
+      .btn { padding: 0.75rem 1.5rem; font-size: 0.88rem; }
+    }
+
+    /* ============================================================
+       PRINT STYLES
+    ============================================================ */
+    @media print {
+      #navbar, .hero-bg, .hero-glow, .hero-glow-2, .hero-buttons,
+      .btn, .tab-bar { display: none !important; }
+      body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+      .section { padding: 2rem 0; page-break-inside: avoid; }
+      .card, .stat-card, .pillar-card, .feature-card { border: 1px solid #ccc; break-inside: avoid; }
+      .tab-panel { display: block !important; }
+      a[href]::after { content: ' (' attr(href) ')'; font-size: 9pt; color: #555; }
+      h1, h2, h3 { color: #000; }
+      .section-label, .app-section-title, .pillar-num { color: #555; }
+      .hero-stat-num, .stat-card-num, .pillar-title, .feature-title { color: #000; }
+      .muted, .hero-sub, .feature-desc, .pillar-desc { color: #444; }
+    }
+
+    /* ============================================================
+       MISC UTILITIES
+    ============================================================ */
+    .text-amber   { color: var(--amber) !important; }
+    .text-teal    { color: var(--teal)  !important; }
+    .text-green   { color: var(--green) !important; }
+    .text-muted   { color: var(--muted) !important; }
+    .text-center  { text-align: center; }
+    .mt-1 { margin-top: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mt-3 { margin-top: 1.5rem; }
+    .mt-4 { margin-top: 2rem; }
+    .mb-2 { margin-bottom: 1rem; }
+    .mb-3 { margin-bottom: 1.5rem; }
+    .mb-4 { margin-bottom: 2rem; }
+    .block { display: block; }
+
+    .inline-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82em;
+      background: rgba(255,255,255,0.07);
+      padding: 0.15em 0.45em;
+      border-radius: 4px;
+      color: var(--teal);
+    }
+
+    /* Subtle horizontal rule */
+    hr.section-hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    /* Number counter animation target */
+    .count-num { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+
+<body>
+
+<!-- ============================================================
+     1. FIXED NAV BAR
+============================================================ -->
+<nav id="navbar" aria-label="Main navigation">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">Sempt<span>i</span>fy</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">The App</a></li>
+      <li><a href="#solution">The Platform</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#impact">Impact</a></li>
+      <li><a href="#grants">Grant Applications</a></li>
+      <li><a href="#support" class="nav-cta">Support</a></li>
     </ul>
-</section>
+  </div>
+</nav>
 
-<section class="cta-section">
-    <h2>Ready to support tenant rights?</h2>
-    <a href="/preamble" class="cta-button-large">Donate →</a>
-    <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);">
-        No cost to tenants. No advertising, ever.
+
+<!-- ============================================================
+     2. HERO
+============================================================ -->
+<section id="hero">
+  <!-- Animated background shapes -->
+  <div class="hero-bg" aria-hidden="true">
+    <!-- House -->
+    <svg class="floating-shape" viewBox="0 0 100 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,5 95,45 85,45 85,85 60,85 60,60 40,60 40,85 15,85 15,45 5,45"/>
+    </svg>
+    <!-- Key -->
+    <svg class="floating-shape" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="35" r="20" fill="none" stroke="currentColor" stroke-width="8"/>
+      <rect x="45" y="30" width="50" height="10" rx="4"/>
+      <rect x="80" y="40" width="10" height="15" rx="3"/>
+      <rect x="65" y="40" width="10" height="12" rx="3"/>
+    </svg>
+    <!-- Shield -->
+    <svg class="floating-shape" viewBox="0 0 100 110" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50,5 L90,20 L90,55 C90,78 50,105 50,105 C50,105 10,78 10,55 L10,20 Z"/>
+    </svg>
+    <!-- Document -->
+    <svg class="floating-shape" viewBox="0 0 80 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <rect x="5" y="5" width="70" height="90" rx="6" fill="none" stroke="currentColor" stroke-width="6"/>
+      <rect x="18" y="28" width="44" height="6" rx="3"/>
+      <rect x="18" y="42" width="44" height="6" rx="3"/>
+      <rect x="18" y="56" width="30" height="6" rx="3"/>
+    </svg>
+    <!-- Heart -->
+    <svg class="floating-shape" viewBox="0 0 100 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50,80 C50,80 5,52 5,28 A23,23,0,0,1,50,18 A23,23,0,0,1,95,28 C95,52 50,80 50,80 Z"/>
+    </svg>
+    <!-- Leaf -->
+    <svg class="floating-shape" viewBox="0 0 80 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40,95 C20,75 5,50 15,20 C25,5 55,5 65,20 C75,50 60,75 40,95 Z"/>
+    </svg>
+    <!-- Person silhouette -->
+    <svg class="floating-shape" viewBox="0 0 60 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="22" r="16"/>
+      <path d="M5,100 C5,70 8,55 30,55 C52,55 55,70 55,100 Z"/>
+    </svg>
+    <!-- Star / Spark -->
+    <svg class="floating-shape" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,5 61,35 93,35 68,57 79,91 50,70 21,91 32,57 7,35 39,35"/>
+    </svg>
+  </div>
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="hero-glow-2" aria-hidden="true"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Free & Open Source · semptify.org · v5.0</div>
+    <h1 class="hero-title font-serif fade-in">
+      Sempt<span class="accent">i</span>fy
+    </h1>
+    <p class="hero-tagline fade-in fade-in-delay-1">Every renter deserves peace at home.</p>
+    <p class="hero-sub fade-in fade-in-delay-2">
+      A free, open platform protecting tenant rights through knowledge, documentation, and community — built from personal experience, offered to everyone.
     </p>
+    <div class="hero-buttons fade-in fade-in-delay-3">
+      <a href="#solution" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Explore the Platform
+      </a>
+      <a href="#grants" class="btn btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        View Grant Applications
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="hero-stats fade-in fade-in-delay-4">
+    <div class="hero-stats-inner">
+      <div class="hero-stat">
+        <span class="hero-stat-num count-num" data-count="3600000" data-format="3.6M">3.6M</span>
+        <span class="hero-stat-label">eviction filings per year in the U.S.</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">90%</span>
+        <span class="hero-stat-label">of landlords have legal representation</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">&lt;10%</span>
+        <span class="hero-stat-label">of tenants have any legal help</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num count-num" data-count="17" data-suffix="+">17+</span>
+        <span class="hero-stat-label">platform modules, free forever</span>
+      </div>
+    </div>
+  </div>
 </section>
 
-{% endblock %}
+
+<!-- ============================================================
+     3. THE PROBLEM
+============================================================ -->
+<section id="problem" class="section bg-alt">
+  <div class="container">
+    <span class="section-label fade-in">The Crisis</span>
+    <h2 class="section-title fade-in fade-in-delay-1">The Housing Crisis<br>Is a Legal Crisis</h2>
+    <div class="divider fade-in fade-in-delay-2"></div>
+    <p class="section-subtitle fade-in fade-in-delay-2">
+      Millions of American renters face housing courts, illegal evictions, and habitability violations every year — alone, uninformed, and without records. The system was never built for them.
+    </p>
+
+    <div class="problem-stats">
+      <div class="stat-card fade-in fade-in-delay-1">
+        <span class="stat-card-num count-num" data-count="3.6" data-suffix="M" data-decimal="1">3.6M</span>
+        <div class="stat-card-label">Eviction Filings Per Year</div>
+        <div class="stat-card-desc">The United States sees approximately 3.6 million eviction filings annually — one every nine seconds. Most never go to trial. Most tenants have no idea what their rights are.</div>
+      </div>
+      <div class="stat-card fade-in fade-in-delay-2">
+        <span class="stat-card-num">9 in 10</span>
+        <div class="stat-card-label">Landlords Have Legal Representation</div>
+        <div class="stat-card-desc">In housing court, the power imbalance is stark. Nearly 90% of landlords show up with an attorney. They know the process. They know the paperwork. They know how to win.</div>
+      </div>
+      <div class="stat-card fade-in fade-in-delay-3">
+        <span class="stat-card-num">1 in 10</span>
+        <div class="stat-card-label">Tenants Have Legal Help</div>
+        <div class="stat-card-desc">Fewer than 10% of tenants in housing proceedings have access to a lawyer. The rest face legal proceedings — often with eviction or homelessness on the line — completely alone.</div>
+      </div>
+    </div>
+
+    <blockquote class="pull-quote fade-in">
+      "I didn't know I had rights. By the time I found out, it was too late."
+      <cite>— The experience of millions of renters who face housing court without knowledge, records, or representation</cite>
+    </blockquote>
+
+    <div class="problem-secondary">
+      <div class="problem-item fade-in fade-in-delay-1">
+        <div class="problem-item-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h4>Housing Cost Burden</h4>
+        <p>The average American now spends 30–50% or more of their income on housing. For low-income renters, that number routinely exceeds 60–70%, leaving nothing for emergencies, legal help, or advocacy.</p>
+      </div>
+      <div class="problem-item fade-in fade-in-delay-2">
+        <div class="problem-item-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+        </div>
+        <h4>Habitability Violations</h4>
+        <p>Millions of renters live in units with mold, broken heat, pest infestations, or structural hazards — and don't know how to document violations, file complaints, or legally withhold rent without risking eviction.</p>
+      </div>
+      <div class="problem-item fade-in fade-in-delay-3">
+        <div class="problem-item-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <h4>Communities Most Affected</h4>
+        <p>The burden falls disproportionately on Black, Brown, immigrant, elderly, and disabled renters — communities already navigating systemic disadvantage. Eviction is not a housing event; it's a life event with cascading consequences.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     4. THE SEMPTIFY SOLUTION
+============================================================ -->
+<section id="solution" class="section">
+  <div class="container">
+    <span class="section-label fade-in">The Solution</span>
+    <h2 class="section-title fade-in fade-in-delay-1">We Built the Tools That<br>Should Have Always Existed</h2>
+    <div class="divider fade-in fade-in-delay-2"></div>
+    <p class="pillars-intro fade-in fade-in-delay-2">
+      Semptify is non-adversarial. We don't fight landlords — we give tenants the knowledge, records, and community they need to stand with composure and clarity. Six functions. One platform. Free forever.
+    </p>
+
+    <div class="pillars-grid">
+      <!-- 1. Information -->
+      <div class="pillar-card fade-in fade-in-delay-1">
+        <span class="pillar-num">01 — INFORMATION</span>
+        <div class="pillar-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="pillar-title">Know Your Rights Before the Dispute Starts</div>
+        <p class="pillar-desc">Plain-language, state-by-state explanations of tenant rights — notice requirements, habitability standards, illegal fees, retaliation protections, and more. Accessible to everyone, not just lawyers.</p>
+      </div>
+      <!-- 2. Research -->
+      <div class="pillar-card fade-in fade-in-delay-2">
+        <span class="pillar-num">02 — RESEARCH</span>
+        <div class="pillar-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="pillar-title">Go Deeper on Your Specific Situation</div>
+        <p class="pillar-desc">Not every situation is the same. Semptify's research layer helps tenants explore the statutes, precedents, and agency rules relevant to their exact case — without needing to know where to look.</p>
+      </div>
+      <!-- 3. Documentation -->
+      <div class="pillar-card fade-in fade-in-delay-3">
+        <span class="pillar-num">03 — DOCUMENTATION</span>
+        <div class="pillar-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div class="pillar-title">A Paper Trail You Can Trust</div>
+        <p class="pillar-desc">Every communication, payment, repair request, and notice — documented, timestamped, and organized. A complete paper trail stored in your own cloud, ready if you ever need it in court or with a mediator.</p>
+      </div>
+      <!-- 4. Organize -->
+      <div class="pillar-card fade-in fade-in-delay-4">
+        <span class="pillar-num">04 — ORGANIZE</span>
+        <div class="pillar-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </div>
+        <div class="pillar-title">Scattered Texts, Photos, Receipts → Coherent Record</div>
+        <p class="pillar-desc">Most tenants have evidence — it's just scattered across phone photos, email threads, text messages, and handwritten notes. Semptify organizes everything into a coherent, chronological record that tells your story clearly.</p>
+      </div>
+      <!-- 5. Collaborate -->
+      <div class="pillar-card fade-in fade-in-delay-5">
+        <span class="pillar-num">05 — COLLABORATE</span>
+        <div class="pillar-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div class="pillar-title">Find Your Tenants Union. Build One If It Doesn't Exist.</div>
+        <p class="pillar-desc">Tenants are more powerful together. Semptify connects renters with their local tenants unions, tenant advocacy organizations, and community support networks — and provides tools for organizing where nothing yet exists.</p>
+      </div>
+      <!-- 6. Be Heard -->
+      <div class="pillar-card fade-in fade-in-delay-6">
+        <span class="pillar-num">06 — BE HEARD</span>
+        <div class="pillar-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <div class="pillar-title">File Complaints. Reach Legislators. Tell Your Story.</div>
+        <p class="pillar-desc">Semptify's Public Exposure Suite connects tenants to journalists, housing advocates, and elected officials. The Complaint Wizard guides users through HUD, state AG, and code enforcement filings — step by step, plain language, no lawyer required.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     5. PLATFORM FEATURES — FULL SHOWCASE
+============================================================ -->
+<section id="features" class="section bg-alt">
+  <div class="container">
+    <span class="section-label fade-in">Platform Features</span>
+    <h2 class="section-title fade-in fade-in-delay-1">17+ Modules,<br>Built to Matter</h2>
+    <div class="divider fade-in fade-in-delay-2"></div>
+    <p class="section-subtitle fade-in fade-in-delay-2">
+      Every feature in Semptify answers a specific, real gap in the tenant experience. From the first lease signature to the last day in court.
+    </p>
+
+    <!-- Group A: Core Tenant Tools -->
+    <div class="features-group fade-in fade-in-delay-1">
+      <div class="features-group-title">Group A — Core Tenant Tools</div>
+      <div class="features-grid">
+
+        <div class="feature-card fade-in fade-in-delay-1">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          </div>
+          <div class="feature-title">Know Your Rights Law Library</div>
+          <p class="feature-desc">State-by-state housing law in plain English. Covers notice requirements, security deposit rules, habitability standards, retaliation protections, and right-to-cure timelines. No law degree required.</p>
+        </div>
+
+        <div class="feature-card fade-in fade-in-delay-2">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="feature-title">Document Vault</div>
+          <p class="feature-desc">Your tenant document vault lives in your own Google Drive, Dropbox, or OneDrive account — not on Semptify's servers. Lease agreements, repair photos, payment receipts, notices: all organized and owned by you.</p>
+        </div>
+
+        <div class="feature-card fade-in fade-in-delay-3">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </div>
+          <div class="feature-title">Unified Timeline</div>
+          <p class="feature-desc">Every event in your tenancy — payments, notices, calls, repairs, inspections, disputes — presented as a single chronological timeline. The clearest possible picture of what happened, and when.</p>
+        </div>
+
+        <div class="feature-card fade-in fade-in-delay-1">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          </div>
+          <div class="feature-title">Case Builder</div>
+          <p class="feature-desc">Automated documentation from your records. Case Builder takes your vault contents and timeline, identifies the strongest evidence, and assembles them into a clear, coherent case narrative ready for legal or advocacy use.</p>
+        </div>
+
+        <div class="feature-card fade-in fade-in-delay-2">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.01 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          </div>
+          <div class="feature-title">Complaint Wizard</div>
+          <p class="feature-desc">Guided, step-by-step filing with HUD, state attorneys general, local housing authorities, and code enforcement agencies. The Wizard pre-fills forms from your vault data and walks you through every field in plain language.</p>
+        </div>
+
+        <div class="feature-card fade-in fade-in-delay-3">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 110 20A10 10 0 0112 2z"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <div class="feature-title">AI Copilot</div>
+          <p class="feature-desc">Powered by Azure AI and local Ollama models. The Copilot answers questions about your rights, analyzes your lease for problematic clauses, suggests documentation steps, and helps draft complaint letters — with full privacy: your documents stay in your cloud.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Group B: Advanced / Legal Tools -->
+    <div class="features-group fade-in fade-in-delay-1">
+      <div class="features-group-title">Group B — Advanced &amp; Legal Tools</div>
+      <div class="features-grid">
+
+        <div class="feature-card fade-in fade-in-delay-1">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l3 1m0 0l-3 9a5 5 0 006.83 2.22M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5 5 0 01-6.83 2.22M18 7l-6-2m0 0v14"/></svg>
+          </div>
+          <div class="feature-title">Eviction Defense Module</div>
+          <p class="feature-desc">Step-by-step guidance through the eviction process — from notice receipt to court date. Includes state-specific court procedure guides, timeline calculators, deadline tracking, and response templates drafted in plain language.</p>
+        </div>
+
+        <div class="feature-card fade-in fade-in-delay-2">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><rect x="8" y="13" width="8" height="6" rx="1"/></svg>
+          </div>
+          <div class="feature-title">Court Forms System</div>
+          <p class="feature-desc">Pre-filled legal documents drawn from your vault and timeline. Generates answers to eviction summons, motions for continuance, habitability defenses, and more — with state-specific formatting and instructions for filing pro se.</p>
+        </div>
+
+        <div class="feature-card fade-in fade-in-delay-3">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div class="feature-title">Litigation Intelligence</div>
+          <p class="feature-desc">Pattern detection across public housing court records. Identifies serial evictors, landlords with histories of retaliation or code violations, and systemic practices — giving tenants and advocates actionable intelligence to level the playing field.</p>
+        </div>
+
+        <div class="feature-card fade-in fade-in-delay-1">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="feature-title">Fraud Exposure</div>
+          <p class="feature-desc">Document and surface predatory landlord patterns: illegal fees, false security deposit claims, retaliatory lease terminations, habitability cover-ups, and discriminatory practices. Creates a documented record for regulatory and legal action.</p>
+        </div>
+
+        <div class="feature-card fade-in fade-in-delay-2">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </div>
+          <div class="feature-title">Public Exposure Suite</div>
+          <p class="feature-desc">Bridges the gap between individual tenants and systemic change. Connects tenants with housing journalists, policy advocates, and legislators. Makes individual stories part of a larger record — with privacy controls tenants control.</p>
+        </div>
+
+        <div class="feature-card fade-in fade-in-delay-3">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </div>
+          <div class="feature-title">Forensic Evidence System — FEMS</div>
+          <p class="feature-desc">Advanced evidence processing: OCR of scanned documents and photos, automatic deduplication, SMS and chat import, metadata preservation, and chain-of-custody logging. Turns a phone's camera roll into legally credible evidence.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Mobile PWA -->
+    <div class="card fade-in" style="background: linear-gradient(135deg, rgba(245,166,35,0.08), rgba(0,196,167,0.06)); border-color: rgba(245,166,35,0.25); display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+      <div style="width: 56px; height: 56px; background: rgba(245,166,35,0.15); border-radius: 14px; display:flex;align-items:center;justify-content:center; flex-shrink:0; color: var(--amber);">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:700; color: var(--text); font-size:1.1rem; margin-bottom:0.35rem;">Semptify Go — Mobile PWA <span class="badge badge-amber" style="vertical-align:middle;">Planned — Phase 3</span></div>
+        <p style="font-size:0.9rem; color:var(--muted); margin:0;">Planned: full Semptify functionality as an installable Progressive Web App. Document in the moment — photograph a notice, import texts, check your rights, or access your vault — anywhere, on any device. Offline-capable, installable, fast.</p>
+      </div>
+      <div style="margin-left:auto; flex-shrink:0;">
+        <span class="badge badge-teal">PWA</span>
+        <span class="badge badge-amber" style="margin-left:0.4rem;">Roadmap</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     6. PRIVACY-FIRST ARCHITECTURE
+============================================================ -->
+<section id="privacy" class="section">
+  <div class="container">
+    <span class="section-label fade-in">Architecture</span>
+    <h2 class="section-title fade-in fade-in-delay-1">Your Files Never<br>Touch Our Servers</h2>
+    <div class="divider fade-in fade-in-delay-2"></div>
+    <p class="section-subtitle fade-in fade-in-delay-2">
+      Semptify's storage-based authentication model is a genuine innovation in tenant-facing technology. Your cloud storage account <em>is</em> your identity. Your documents never leave your control.
+    </p>
+
+    <!-- Architecture diagram -->
+    <div class="privacy-diagram fade-in">
+      <div class="privacy-node">
+        <span class="privacy-node-icon">☁️</span>
+        <div class="privacy-node-title">Your Cloud</div>
+        <div class="privacy-node-sub">Google Drive / Dropbox / OneDrive</div>
+        <div style="margin-top:0.75rem; display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
+          <span class="badge badge-green" style="font-size:0.65rem;">OAuth 2.0</span>
+          <span class="badge badge-teal" style="font-size:0.65rem;">Your Ownership</span>
+        </div>
+      </div>
+      <div class="privacy-arrow">
+        <svg width="40" height="16" viewBox="0 0 40 16" fill="none"><path d="M0 8 L32 8 M24 2 L38 8 L24 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>Auth + Files</span>
+      </div>
+      <div class="privacy-node" style="border-color:rgba(245,166,35,0.35);">
+        <span class="privacy-node-icon">⚡</span>
+        <div class="privacy-node-title">Semptify</div>
+        <div class="privacy-node-sub">FastAPI · Logic Layer Only</div>
+        <div style="margin-top:0.75rem; display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
+          <span class="badge badge-amber" style="font-size:0.65rem;">No File Storage</span>
+          <span class="badge badge-amber" style="font-size:0.65rem;">No Passwords</span>
+        </div>
+      </div>
+      <div class="privacy-arrow">
+        <svg width="40" height="16" viewBox="0 0 40 16" fill="none"><path d="M0 8 L32 8 M24 2 L38 8 L24 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>Results Back</span>
+      </div>
+      <div class="privacy-node">
+        <span class="privacy-node-icon">🔒</span>
+        <div class="privacy-node-title">Back to Your Cloud</div>
+        <div class="privacy-node-sub">Organized · Searchable · Yours</div>
+        <div style="margin-top:0.75rem; display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
+          <span class="badge badge-green" style="font-size:0.65rem;">Zero Breach Risk</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Three benefit cards -->
+    <div class="privacy-benefits">
+      <div class="privacy-benefit fade-in fade-in-delay-1">
+        <span class="privacy-benefit-icon">🔑</span>
+        <h4>Zero Passwords</h4>
+        <p>You log in with Google, Dropbox, or Microsoft OAuth. There is no Semptify password to create, store, remember, or lose. Your cloud storage account authenticates you.</p>
+      </div>
+      <div class="privacy-benefit fade-in fade-in-delay-2">
+        <span class="privacy-benefit-icon">📁</span>
+        <h4>You Own Your Data</h4>
+        <p>Every document and file you save is written back to your own cloud account — Semptify stores no documents. The structured records that power your timeline and case tools are kept only so the tools work. If Semptify disappeared tomorrow, your files would still be exactly where you left them.</p>
+      </div>
+      <div class="privacy-benefit fade-in fade-in-delay-3">
+        <span class="privacy-benefit-icon">🌐</span>
+        <h4>Portability</h4>
+        <p>Your identity and your records travel with your cloud account. Switch devices, reinstall the app, or share access with a lawyer — your entire tenancy record comes with you, without re-registration.</p>
+      </div>
+    </div>
+
+    <!-- Comparison table -->
+    <div class="fade-in" style="overflow-x:auto;">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th class="col-bad">Traditional Tenant App</th>
+            <th class="col-good">Semptify</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Authentication</td>
+            <td class="bad">Username + password on vendor servers</td>
+            <td class="good">OAuth 2.0 via your cloud storage provider</td>
+          </tr>
+          <tr>
+            <td>Document Storage</td>
+            <td class="bad">Vendor's database — you hope they're secure</td>
+            <td class="good">Your Google Drive / Dropbox / OneDrive</td>
+          </tr>
+          <tr>
+            <td>Data Breach Risk</td>
+            <td class="bad">High — millions of records centralized</td>
+            <td class="good">Low — documents stay in your cloud; we hold only structured records</td>
+          </tr>
+          <tr>
+            <td>Data Portability</td>
+            <td class="bad">Export only (often PDF, often incomplete)</td>
+            <td class="good">Always native — already in your cloud</td>
+          </tr>
+          <tr>
+            <td>Access After Shutdown</td>
+            <td class="bad">Files may be inaccessible or deleted</td>
+            <td class="good">Files are in your cloud — always accessible</td>
+          </tr>
+          <tr>
+            <td>Privacy</td>
+            <td class="bad">Vendor analyzes and potentially monetizes</td>
+            <td class="good">Your files stay in your cloud; your data is never sold or monetized</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     7. TECHNICAL ARCHITECTURE
+============================================================ -->
+<section id="tech" class="section bg-alt">
+  <div class="container">
+    <span class="section-label fade-in">Technical</span>
+    <h2 class="section-title fade-in fade-in-delay-1">Production-Ready Mechanics.<br>Built to Scale.</h2>
+    <div class="divider fade-in fade-in-delay-2"></div>
+    <p class="section-subtitle fade-in fade-in-delay-2">
+      Semptify is not a prototype. Version 5.0 is a fully async, cloud-native architecture with 17+ modules across multiple tiers, deployed at semptify.org and open source on GitHub.
+    </p>
+
+    <!-- Stack -->
+    <div class="stack-grid fade-in">
+      <div class="stack-item">
+        <span class="stack-item-label">Backend</span>
+        <div class="stack-item-value">FastAPI + Python 3.11.9</div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-item-label">Database</span>
+        <div class="stack-item-value">PostgreSQL (Neon)</div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-item-label">Storage</span>
+        <div class="stack-item-value">Cloudflare R2</div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-item-label">Auth</span>
+        <div class="stack-item-value">OAuth 2.0 (Storage-Based)</div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-item-label">AI / Cloud</span>
+        <div class="stack-item-value">Azure AI + Ollama</div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-item-label">Architecture</span>
+        <div class="stack-item-value">Async · Event-Driven</div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-item-label">Mobile</span>
+        <div class="stack-item-value">PWA (Semptify Go — planned)</div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-item-label">Source</span>
+        <div class="stack-item-value">Open Source (GitHub)</div>
+      </div>
+    </div>
+
+    <!-- Module ecosystem -->
+    <h3 class="fade-in" style="margin-bottom:1.5rem; font-size:1.25rem;">Module Ecosystem</h3>
+    <div class="module-ecosystem fade-in fade-in-delay-1">
+      <div class="module-tier">
+        <div class="module-tier-title">CORE — Tenant Essentials</div>
+        <div class="module-tags">
+          <span class="module-tag">Document Vault</span>
+          <span class="module-tag">Unified Timeline</span>
+          <span class="module-tag">Case Builder</span>
+          <span class="module-tag">AI Copilot</span>
+          <span class="module-tag">Storage-Based Auth</span>
+          <span class="module-tag">FEMS (Forensic Evidence)</span>
+        </div>
+      </div>
+      <div class="module-tier">
+        <div class="module-tier-title">EXTENDED — Rights & Legal</div>
+        <div class="module-tags">
+          <span class="module-tag">Know Your Rights Library</span>
+          <span class="module-tag">Eviction Defense Module</span>
+          <span class="module-tag">Court Forms System</span>
+          <span class="module-tag">Complaint Wizard</span>
+          <span class="module-tag">Fraud Exposure</span>
+        </div>
+      </div>
+      <div class="module-tier">
+        <div class="module-tier-title">ADVOCATE — Community & Public</div>
+        <div class="module-tags">
+          <span class="module-tag">Litigation Intelligence</span>
+          <span class="module-tag">Public Exposure Suite</span>
+          <span class="module-tag">Retaliation Tracker</span>
+          <span class="module-tag">Advocate Portal</span>
+          <span class="module-tag">Legislator &amp; Journalist Connect (planned)</span>
+        </div>
+      </div>
+      <div class="module-tier">
+        <div class="module-tier-title">ADMIN / RESEARCH — Organizational</div>
+        <div class="module-tags">
+          <span class="module-tag">Multi-Role System</span>
+          <span class="module-tag">Legal Aid Portal</span>
+          <span class="module-tag">Research Exports</span>
+          <span class="module-tag">Reporting Dashboard</span>
+          <span class="module-tag">Funding Forge</span>
+          <span class="module-tag">Semptify Go (PWA — planned)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Open source callout -->
+    <div class="card fade-in mt-4" style="background: linear-gradient(135deg, rgba(0,196,167,0.06), rgba(245,166,35,0.04)); border-color: rgba(0,196,167,0.25); display:flex; align-items:center; gap:2rem; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px;">
+        <h4 style="color:var(--teal); margin-bottom:0.4rem;">Open Source on GitHub</h4>
+        <p style="font-size:0.9rem; color:var(--muted); margin:0;">Semptify's full codebase is publicly available. Developers, housing advocates, legal aid technologists, and researchers are welcome to contribute, audit, or build on it.</p>
+      </div>
+      <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-teal btn-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        github.com/1semptify-arch/Semptify
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     8. IMPACT & ROADMAP
+============================================================ -->
+<section id="impact" class="section">
+  <div class="container">
+    <span class="section-label fade-in">Impact &amp; Roadmap</span>
+    <h2 class="section-title fade-in fade-in-delay-1">From Crisis Coverage<br>to National Reach</h2>
+    <div class="divider fade-in fade-in-delay-2"></div>
+    <p class="section-subtitle fade-in fade-in-delay-2">
+      Version 5.0 is deployed and production-ready. With funding, Semptify scales from a powerful tool to a movement infrastructure — reaching millions of renters who have nowhere else to turn.
+    </p>
+
+    <div class="grid-2 fade-in" style="gap:3rem; align-items:start;">
+      <!-- Roadmap -->
+      <div>
+        <h3 style="margin-bottom:2rem; font-size:1.3rem;">Development Roadmap</h3>
+        <div class="roadmap">
+          <div class="roadmap-item">
+            <div class="roadmap-dot done"></div>
+            <div class="roadmap-phase">Phase 1 — Complete</div>
+            <div class="roadmap-title">Crisis Coverage Layer</div>
+            <p class="roadmap-desc">Eviction Defense Module, Document Vault, Unified Timeline, Retaliation Tracker, Case Builder, FEMS, Court Forms System, Complaint Wizard. Version 5.0 deployed at semptify.org.</p>
+          </div>
+          <div class="roadmap-item">
+            <div class="roadmap-dot active"></div>
+            <div class="roadmap-phase">Phase 2 — In Progress</div>
+            <div class="roadmap-title">Elite Information Layer</div>
+            <p class="roadmap-desc">Know Your Rights Law Library (all 50 states + DC), AI Copilot enhancements, Litigation Intelligence, Fraud Exposure documentation system, Complaint Wizard refinement.</p>
+          </div>
+          <div class="roadmap-item">
+            <div class="roadmap-dot next"></div>
+            <div class="roadmap-phase">Phase 3 — With Funding</div>
+            <div class="roadmap-title">Public Launch + Community Scale</div>
+            <p class="roadmap-desc">Marketing and user acquisition, mobile PWA (Semptify Go) public launch, tenant union organizing tools, legal aid organization partnerships, researcher data access, multi-language support.</p>
+          </div>
+          <div class="roadmap-item">
+            <div class="roadmap-dot next"></div>
+            <div class="roadmap-phase">Phase 4 — Vision</div>
+            <div class="roadmap-title">Systems Change Infrastructure</div>
+            <p class="roadmap-desc">National housing court data aggregation, policy impact reporting, legislative tool, academic research partnerships, multi-city eviction pattern analysis, and integration with legal aid case management systems.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Who we serve + impact potential -->
+      <div>
+        <h3 style="margin-bottom:2rem; font-size:1.3rem;">Impact With Funding</h3>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:2rem;">
+          <div class="stat-card" style="padding:1.5rem;">
+            <span class="stat-card-num" style="font-size:2rem;">50</span>
+            <div class="stat-card-label" style="font-size:0.85rem;">States + DC</div>
+            <div class="stat-card-desc" style="font-size:0.78rem;">Full Know Your Rights coverage for every U.S. jurisdiction</div>
+          </div>
+          <div class="stat-card" style="padding:1.5rem;">
+            <span class="stat-card-num" style="font-size:2rem;">100K+</span>
+            <div class="stat-card-label" style="font-size:0.85rem;">Projected Users (Yr 1)</div>
+            <div class="stat-card-desc" style="font-size:0.78rem;">With targeted outreach and legal aid partnerships</div>
+          </div>
+          <div class="stat-card" style="padding:1.5rem;">
+            <span class="stat-card-num" style="font-size:2rem;">200+</span>
+            <div class="stat-card-label" style="font-size:0.85rem;">Legal Aid Partners</div>
+            <div class="stat-card-desc" style="font-size:0.78rem;">Target legal aid organizations and tenant advocacy groups</div>
+          </div>
+          <div class="stat-card" style="padding:1.5rem;">
+            <span class="stat-card-num" style="font-size:2rem;">$0</span>
+            <div class="stat-card-label" style="font-size:0.85rem;">Cost to Tenants</div>
+            <div class="stat-card-desc" style="font-size:0.78rem;">Free forever — mission-critical, non-negotiable</div>
+          </div>
+        </div>
+
+        <div class="card" style="background:linear-gradient(135deg,rgba(245,166,35,0.07),rgba(0,196,167,0.05)); border-color:rgba(245,166,35,0.2);">
+          <h4 style="color:var(--amber); margin-bottom:0.75rem; font-size:1rem;">Founded from Personal Experience</h4>
+          <p style="font-size:0.9rem; color:rgba(240,237,232,0.8); line-height:1.7; margin:0;">Semptify was created by Bradley Crowe following a personal navigation of a housing dispute. The experience made clear that the gap between tenants and their rights was not a knowledge problem — it was an access and systems problem. Semptify exists to close that gap, for everyone who faces it after him.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Who we serve -->
+    <div class="mt-4 fade-in">
+      <h3 style="margin-bottom:1.5rem; font-size:1.25rem;">Who We Serve</h3>
+      <div class="who-we-serve">
+        <div class="serve-card">
+          <span class="serve-icon">🏠</span>
+          <div class="serve-title">Tenants</div>
+        </div>
+        <div class="serve-card">
+          <span class="serve-icon">✊</span>
+          <div class="serve-title">Advocates</div>
+        </div>
+        <div class="serve-card">
+          <span class="serve-icon">⚖️</span>
+          <div class="serve-title">Legal Aid</div>
+        </div>
+        <div class="serve-card">
+          <span class="serve-icon">🔬</span>
+          <div class="serve-title">Researchers</div>
+        </div>
+        <div class="serve-card">
+          <span class="serve-icon">🏛️</span>
+          <div class="serve-title">Government</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     9. GRANT APPLICATIONS
+============================================================ -->
+<section id="grants" class="section bg-alt">
+  <div class="container">
+    <span class="section-label fade-in">Funding</span>
+    <h2 class="section-title fade-in fade-in-delay-1">Grant Applications —<br>AI for Public Good</h2>
+    <div class="divider fade-in fade-in-delay-2"></div>
+    <p class="section-subtitle fade-in fade-in-delay-2">
+      Semptify is pursuing strategic grants to fund Phase 2 and Phase 3 development. Each application below is a full-length, funder-ready document. Programs researched as of September 2026 — several require verified 501(c)(3) status, and our filing is currently in progress, noted honestly on each.
+    </p>
+
+    <div class="tabs-wrapper fade-in">
+      <!-- Tab bar -->
+      <div class="tab-bar" role="tablist">
+        <button class="tab-btn active" role="tab" aria-selected="true"  data-tab="anthropic">Anthropic / Claude</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-tab="openai">OpenAI</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-tab="microsoft">Microsoft Azure</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-tab="aws">AWS Imagine</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-tab="google">Google</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" data-tab="foundations">Foundations</button>
+      </div>
+
+      <!-- ======================================================
+           TAB 1: ANTHROPIC
+      ====================================================== -->
+      <div class="tab-panel active" id="panel-anthropic" role="tabpanel">
+        <div class="application-card">
+          <div class="app-header">
+            <div class="app-meta-row">
+              <div class="app-meta-line"><span class="label">To:</span><span class="value">Anthropic Nonprofit Programs (via Goodstack)</span></div>
+              <div class="app-meta-line"><span class="label">From:</span><span class="value">Semptify · semptify.org</span></div>
+              <div class="app-meta-line"><span class="label">Date:</span><span class="value">September 2026 (Rolling — pending 501(c)(3) verification)</span></div>
+              <div class="app-meta-line"><span class="label">Re:</span><span class="value">Claude for Nonprofits — Access Request</span></div>
+              <div class="app-meta-line"><span class="label">URL:</span><span class="value"><a href="https://claude.com/solutions/nonprofits" target="_blank">claude.com/solutions/nonprofits</a></span></div>
+            </div>
+            <div class="app-program-badge">
+              <div class="funding-amount">
+                <span class="amount">75%</span>
+                <span class="label">Discount — Team &amp; Enterprise</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="app-section-title">Executive Summary</div>
+          <div class="app-body">
+            <p>Semptify is a free, open-source tenant rights protection platform serving American renters who navigate housing insecurity, eviction proceedings, and habitability disputes without legal representation. We are applying to the Claude for Nonprofits program to power our AI Copilot — the feature that directly helps tenants understand their leases, know their legal rights under state law, and take clear, documented action before a housing crisis escalates beyond their control.</p>
+            <p>We are requesting access to the Anthropic Nonprofit Team Plan at the 75% discounted rate available to verified 501(c)(3) organizations. Our use of Claude Opus and Sonnet models would power real-time, private, contextual AI guidance for tenants in some of the most stressful and consequential moments of their lives — with a technical architecture that ensures their sensitive documents never leave their own cloud storage.</p>
+          </div>
+
+          <div class="app-section-title">The Problem We Are Solving</div>
+          <div class="app-body">
+            <p>The United States sees approximately 3.6 million eviction filings every year. Behind each filing is a renter who, in the vast majority of cases, received a notice they didn't fully understand, had no organized record of their tenancy, and had no accessible pathway to the legal knowledge that might have changed the outcome. Studies consistently show that when tenants receive any form of legal assistance or guidance, eviction rates drop significantly — but fewer than 10% of tenants in housing proceedings have access to even basic legal help.</p>
+            <p>The power imbalance is stark and structurally embedded: approximately 90% of landlords in housing court are represented by attorneys, while the overwhelming majority of tenants appear alone — without documentation, without knowledge of their procedural rights, and without the clarity to advocate for themselves. This is not a matter of personal failing; it is a systemic gap in access to legal information and organized support. Semptify was built specifically to close that gap.</p>
+            <p>Beyond eviction, millions of renters live with mold, broken heating systems, pest infestations, and other habitability violations they don't know how to address legally. Millions more pay illegal fees, lose security deposits unlawfully, or face retaliation for asserting rights they didn't know they had. The core problem is not that tenant rights don't exist — it is that tenants cannot access, understand, or act on those rights without expensive professional help that most simply cannot afford.</p>
+          </div>
+
+          <div class="app-section-title">Our Use of Claude</div>
+          <div class="app-body">
+            <p>Semptify's AI Copilot, powered by Claude, would serve tenants in four specific, high-impact ways. First, <strong>lease document analysis</strong>: tenants would be able to ask natural-language questions about their lease — "Is this late fee legal in my state?" "Does this clause allow my landlord to enter without notice?" — and receive plain-language answers grounded in their specific lease language and their state's housing statutes. This alone would represent a transformative democratization of legal literacy for millions of renters.</p>
+            <p>Second, <strong>plain-language rights explanation</strong>: tenants in all 50 states and D.C. would be able to ask questions about their specific rights — notice requirements, security deposit timelines, habitability standards, retaliation protections — and receive clear, accurate, jurisdiction-specific guidance rather than generic information that may not apply to their situation.</p>
+            <p>Third, <strong>documentation guidance</strong>: when a tenant is building a case — for a complaint, for court, or simply for their own records — Claude would help them understand what documentation is most important, how to describe events accurately, and how to organize their evidence into a coherent narrative. This guidance is the difference between a tenant walking into housing court with a pile of unsorted photos and one who arrives with a clear, timestamped record.</p>
+            <p>Fourth, <strong>complaint and correspondence drafting</strong>: the Complaint Wizard guides tenants through HUD, state AG, and code enforcement filings. Claude would assist in drafting the narrative sections of these complaints — helping tenants describe their situation clearly, accurately, and in the language that regulatory bodies respond to. This dramatically lowers the barrier to formal complaint filing, which is currently one of the most intimidating steps for tenants.</p>
+            <p>On privacy: Semptify's architecture means that tenant documents never leave their own cloud storage. When a tenant asks a question that references their lease, our system passes only the anonymized, relevant text to Claude — never the full document, never any personally identifiable information. All queries are processed with strict rate-limit compliance and response caching to ensure responsible API use.</p>
+          </div>
+
+          <div class="app-section-title">Technical Implementation</div>
+          <div class="app-body">
+            <p>Semptify is built on FastAPI with Python 3.11.9, an async architecture that integrates cleanly with Anthropic's API. Our implementation plan includes: async Claude API integration with full streaming support, response caching for common rights questions to minimize API calls, jurisdiction-aware prompt engineering for state-specific accuracy, rate-limit compliance with graceful degradation to local Ollama models when API limits are reached, and a full privacy layer that ensures no tenant PII is passed in Claude requests. We are also committed to ongoing prompt red-teaming to ensure the AI Copilot never provides advice that could harm a tenant's legal position.</p>
+          </div>
+
+          <div class="app-section-title">Expected Outcomes</div>
+          <div class="app-body">
+            <p>With Claude for Nonprofits access, we project the AI Copilot will serve tens of thousands of tenants in the first year of full operation, with meaningful concentration among users in eviction proceedings and active habitability disputes — the situations where timely, accurate guidance has the highest impact. We will track and report: number of lease analyses completed, rights questions answered, complaints successfully filed with AI assistance, and user-reported outcomes (resolved disputes, successful court hearings, avoided evictions).</p>
+            <p>Our broader goal is measurable: we want to shift the information asymmetry in housing courts, one tenancy at a time. Claude is the most capable model available for the nuanced, context-sensitive work of legal information communication — which is precisely why it is the model of choice for Semptify's most critical feature.</p>
+          </div>
+
+          <div class="app-section-title">About Semptify</div>
+          <div class="app-body">
+            <p>Semptify was founded by Bradley Crowe, who navigated a personal housing dispute and emerged with a clear conviction: the tools that tenants need to protect their homes simply do not exist in accessible form. He built Semptify to change that — free, open source, and designed with the dignity and composure of tenants at its center. The platform is deployed at semptify.org, open source at github.com/1semptify-arch/Semptify, and currently at Version 5.0 with 17+ modules across its full feature set.</p>
+          </div>
+
+          <div class="app-footer">
+            <a href="https://claude.com/solutions/nonprofits" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Apply via Goodstack →</a>
+            <span class="badge badge-green">Rolling Application — Apply Now</span>
+          </div>
+          <div class="deadline-box">
+            <span class="icon">📅</span>
+            <div class="text">
+              <strong>Rolling Application — No Deadline</strong>
+              <span>Apply via Goodstack at any time. Requires verified 501(c)(3) status — Semptify's filing is in progress, so we become eligible upon approval. Covers the Claude Opus, Sonnet, and Haiku model families.</span>
+            </div>
+          </div>
+          <div class="forge-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>This opportunity is tracked in <strong>Funding Forge</strong> — Semptify's internal grant pipeline tracker.</span>
+          </div>
+        </div>
+      </div><!-- /panel-anthropic -->
+
+
+      <!-- ======================================================
+           TAB 2: OPENAI
+      ====================================================== -->
+      <div class="tab-panel" id="panel-openai" role="tabpanel">
+        <div class="application-card">
+          <div class="app-header">
+            <div class="app-meta-row">
+              <div class="app-meta-line"><span class="label">To:</span><span class="value">OpenAI People-First AI Fund Review Committee</span></div>
+              <div class="app-meta-line"><span class="label">From:</span><span class="value">Semptify · semptify.org</span></div>
+              <div class="app-meta-line"><span class="label">Date:</span><span class="value">September 2026 (Preparing for 2027 Cycle — pending 501(c)(3))</span></div>
+              <div class="app-meta-line"><span class="label">Re:</span><span class="value">Unrestricted Grant Application — Housing Justice AI Platform</span></div>
+              <div class="app-meta-line"><span class="label">URL:</span><span class="value"><a href="https://openaifoundation.org/news/2026-people-first-ai-fund" target="_blank">openaifoundation.org — People-First AI Fund</a></span></div>
+            </div>
+            <div class="app-program-badge">
+              <div class="funding-amount">
+                <span class="amount">$50M</span>
+                <span class="label">Total Fund — Unrestricted Grants</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="app-section-title">Executive Summary</div>
+          <div class="app-body">
+            <p>Semptify is a free, open-source tenant rights protection platform addressing one of the most concrete and urgent manifestations of economic inequality in America: the gap between renters and the legal knowledge, documentation systems, and community power they need to protect their homes. We are applying to the OpenAI People-First AI Fund for an unrestricted grant to fund platform development, community outreach, legal aid partnerships, and the infrastructure necessary to bring Semptify's tools to the millions of renters who need them most.</p>
+            <p>The People-First AI Fund's stated focus — economic opportunity, community organizing, and ensuring AI benefits reach everyone — is a direct description of what Semptify does. This is not a general social services request with an AI component. Semptify is fundamentally an AI-powered legal information and documentation platform, designed from the ground up to use generative AI as a leveler in a system that is currently profoundly unequal.</p>
+          </div>
+
+          <div class="app-section-title">Why the People-First AI Fund</div>
+          <div class="app-body">
+            <p>OpenAI's People-First AI Fund identifies three priority areas for its first grantmaking cycle: economic opportunity, community organizing, and ensuring AI benefits reach underserved populations. Semptify addresses all three simultaneously and directly. On economic opportunity: housing stability is the single greatest determinant of economic trajectory for low-income families. Eviction does not merely displace people — it costs them jobs, school stability, credit, and the ability to rent again. Preventing eviction through better information and documentation is, in the most direct sense, economic opportunity creation.</p>
+            <p>On community organizing: Semptify's Collaborate pillar is explicitly designed to connect tenants with their local tenants unions, build organizing capacity where none exists, and aggregate individual tenant experiences into collective evidence and action. This is community organizing at scale, powered by technology. Tenants who previously faced their landlords alone, one at a time, can now find each other, share patterns, and act together — with Semptify as the connective infrastructure.</p>
+            <p>On ensuring AI benefits reach everyone: the most sophisticated AI tools are currently deployed overwhelmingly for corporate and professional use. Semptify deploys them for the tenant in subsidized housing who just received a 3-day notice and doesn't know what it means. This is precisely the distribution of AI benefit that OpenAI's fund was designed to catalyze.</p>
+          </div>
+
+          <div class="app-section-title">The Grant Ask</div>
+          <div class="app-body">
+            <p>We are requesting an unrestricted grant from the People-First AI Fund to fund the following specific initiatives over a 12–18 month grant period:</p>
+            <ul>
+              <li><strong>Platform Development — Phase 2 Information Layer:</strong> Complete the Know Your Rights Law Library for all 50 states and DC, fully integrate the AI Copilot with GPT-4o and o3-mini for tenant rights guidance, and build the Litigation Intelligence pattern detection system. Estimated cost: $120,000.</li>
+              <li><strong>Community Outreach &amp; User Acquisition:</strong> Partnerships with community organizations, housing advocates, and social service providers in initial target cities. Digital outreach campaign targeting eviction-risk renters. Multilingual content development (Spanish, Mandarin, Vietnamese, Arabic). Estimated cost: $85,000.</li>
+              <li><strong>Legal Aid Organization Partnerships:</strong> Integration of Semptify's Case Builder and Court Forms into 20+ legal aid case management workflows. Training programs for legal aid paralegals and advocates. Research data-sharing agreements with university housing law clinics. Estimated cost: $65,000.</li>
+              <li><strong>Infrastructure, Operations &amp; Team:</strong> Engineering time for scaling and mobile PWA launch, operational costs, and a part-time community relations coordinator. Estimated cost: $80,000.</li>
+            </ul>
+            <p>Total ask: <strong>$350,000</strong> unrestricted, over 12–18 months. This grant would transition Semptify from a deployed but unfunded platform to an actively growing public resource — with a concrete, measurable pathway to 100,000+ users and meaningful reduction in the information asymmetry that makes housing court so consistently catastrophic for tenants.</p>
+          </div>
+
+          <div class="app-section-title">Implementation Plan</div>
+          <div class="app-body">
+            <p><strong>Months 1–3:</strong> Finalize the Know Your Rights Law Library for the 15 highest-eviction states. Launch AI Copilot beta with OpenAI integration. Establish first three legal aid organization partnerships. Begin multilingual content development.</p>
+            <p><strong>Months 4–6:</strong> Expand the Know Your Rights Library to all 50 states + DC. Launch Litigation Intelligence module. Begin targeted outreach in five initial metro areas with high eviction rates (Atlanta, Houston, Memphis, Las Vegas, Indianapolis — all top-10 eviction cities). Publish first public impact report.</p>
+            <p><strong>Months 7–12:</strong> Launch Semptify Go mobile PWA publicly. Scale legal aid partnerships to 20+ organizations. Begin university research data-sharing program. Expand multilingual support. Host first Semptify community training events. Evaluate and publish outcome data on eviction prevention, complaint filing success, and user-reported housing stability.</p>
+            <p>At the end of the grant period, Semptify will have: a fully complete knowledge base covering every U.S. jurisdiction, an established network of legal aid and advocacy partners, a growing user base with measurable impact data, and a demonstrated model for sustainable, mission-aligned funding that does not compromise the free-forever commitment to tenants.</p>
+          </div>
+
+          <div class="app-section-title">About Semptify &amp; Eligibility</div>
+          <div class="app-body">
+            <p>Semptify is a U.S.-based nonprofit project founded by Bradley Crowe with the mission of protecting tenant rights through accessible technology. The platform is deployed at semptify.org, open source at github.com/1semptify-arch/Semptify, and currently serves tenants navigating housing disputes. Our 501(c)(3) filing is in progress; this fund requires valid 501(c)(3) status, so we become eligible upon approval. Our operational budget and structure are designed to align with the People-First AI Fund's eligibility requirements for U.S. nonprofits working in economic opportunity and community organizing.</p>
+            <p><em>Note on the Researcher Access Program:</em> In parallel, we are applying for the OpenAI Researcher Access Program (up to $1,000 API credits, quarterly review) to support AI Copilot development during the interval before a full grant is awarded. This would allow meaningful technical progress without delay.</p>
+          </div>
+
+          <div class="app-footer">
+            <a href="https://openaifoundation.org/news/2026-people-first-ai-fund" target="_blank" rel="noopener" class="btn btn-primary btn-sm">View Fund Details →</a>
+            <span class="badge badge-amber">2026 Cycle Closed July 15 — Next Expected 2027</span>
+          </div>
+          <div class="deadline-box">
+            <span class="icon">📅</span>
+            <div class="text">
+              <strong>2026 cycle ran June 15–July 15, 2026 — now closed. Requires valid 501(c)(3) status.</strong>
+              <span>Monitor openaifoundation.org for the next-cycle announcement. Also apply to Researcher Access Program (rolling, quarterly) for immediate API credits.</span>
+            </div>
+          </div>
+          <div class="forge-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Tracked in <strong>Funding Forge</strong> — two entries: People-First AI Fund + Researcher Access Program.</span>
+          </div>
+        </div>
+      </div><!-- /panel-openai -->
+
+
+      <!-- ======================================================
+           TAB 3: MICROSOFT
+      ====================================================== -->
+      <div class="tab-panel" id="panel-microsoft" role="tabpanel">
+        <div class="application-card">
+          <div class="app-header">
+            <div class="app-meta-row">
+              <div class="app-meta-line"><span class="label">To:</span><span class="value">Microsoft for Nonprofits / Azure Nonprofit Program Team</span></div>
+              <div class="app-meta-line"><span class="label">From:</span><span class="value">Semptify · semptify.org</span></div>
+              <div class="app-meta-line"><span class="label">Date:</span><span class="value">September 2026 (Rolling — pending 501(c)(3) verification)</span></div>
+              <div class="app-meta-line"><span class="label">Re:</span><span class="value">Azure Nonprofit Credits + Azure OpenAI Service Partnership</span></div>
+              <div class="app-meta-line"><span class="label">URL:</span><span class="value"><a href="https://www.microsoft.com/en-us/nonprofits/azure" target="_blank">microsoft.com/en-us/nonprofits/azure</a></span></div>
+            </div>
+            <div class="app-program-badge">
+              <div class="funding-amount">
+                <span class="amount">$2,000</span>
+                <span class="label">Annual Azure Credits</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="app-section-title">Executive Summary</div>
+          <div class="app-body">
+            <p>Semptify is a free, open-source tenant rights platform protecting American renters through AI-powered legal guidance, organized documentation, and community tools. We are applying to the Microsoft Azure Nonprofit Credits program for our annual allotment of $2,000 in Azure credits, and we are additionally requesting consideration for an expanded partnership — specifically, access to Azure OpenAI Service at nonprofit rates — to power the core AI capabilities that make Semptify effective for its most vulnerable users.</p>
+            <p>Semptify's technical infrastructure currently runs on FastAPI + Python 3.11.9 with PostgreSQL on Neon and Cloudflare R2. Azure represents a natural expanded cloud partner — particularly given Microsoft's leadership in responsible AI deployment and the direct relevance of Azure OpenAI Service (GPT-4o, o3-mini) to Semptify's AI Copilot feature. This application is both a credits request and a partnership conversation.</p>
+          </div>
+
+          <div class="app-section-title">Mission Alignment with Microsoft's Nonprofit Vision</div>
+          <div class="app-body">
+            <p>Microsoft's nonprofit technology programs are rooted in a conviction that technology should empower every person on the planet to achieve more. Semptify embodies this directly: we are building the tools that give renters — disproportionately from communities of color, immigrant communities, and low-income households — the same quality of information and documentation capability that has historically been available only to those with access to lawyers. This is access to technology for empowerment, in one of its most concrete and high-stakes forms.</p>
+            <p>Microsoft's explicit focus on housing and economic mobility as impact areas for its philanthropic technology programs makes Semptify a natural programmatic fit. The housing stability crisis is simultaneously a technology access crisis: the same renters who lack lawyers also lack the digital tools to organize their records, understand their legal position, or navigate complaint filing systems. Azure-powered AI can close this gap in ways that were not technically possible even five years ago.</p>
+          </div>
+
+          <div class="app-section-title">Requested Credits and Specific Azure Services</div>
+          <div class="app-body">
+            <p>We are requesting the standard $2,000/year Azure Nonprofit Credits allocation. Specifically, these credits would be allocated to:</p>
+            <ul>
+              <li><strong>Azure Compute (App Service / Container Apps):</strong> Hosting for the Semptify FastAPI backend, including auto-scaling during peak usage periods (following media coverage or significant eviction events in partner cities). Estimated monthly: $80–120.</li>
+              <li><strong>Azure Database for PostgreSQL:</strong> Production database for user session management, module configuration, and non-personal operational data. Estimated monthly: $40–60.</li>
+              <li><strong>Azure Storage:</strong> Temporary processing storage for FEMS (Forensic Evidence Management System) — OCR processing and document analysis before results are written back to users' personal cloud accounts. Estimated monthly: $20–40.</li>
+              <li><strong>Azure AI Services:</strong> Computer Vision API for FEMS document OCR, and Language Services for tenant-facing content. Estimated monthly: $30–50.</li>
+            </ul>
+            <p>Beyond the standard credits, we are requesting a partnership discussion regarding <strong>Azure OpenAI Service access at nonprofit rates</strong>. The AI Copilot is the feature with the highest direct impact on tenant outcomes — and GPT-4o and o3-mini via Azure OpenAI would provide the combination of capability, privacy compliance (data residency), and scale that Semptify needs for responsible deployment to vulnerable populations. Azure's enterprise-grade privacy and compliance features are particularly important when our users may be documenting sensitive housing disputes and legal proceedings.</p>
+          </div>
+
+          <div class="app-section-title">Technical Integration Plan</div>
+          <div class="app-body">
+            <p>Semptify's async FastAPI architecture integrates cleanly with Azure services via the Azure SDK for Python. Our integration plan includes: Azure App Service or Container Apps for API hosting with auto-scaling rules; PostgreSQL Flexible Server for relational data with automated backups; Azure Blob Storage for transient FEMS processing with automatic deletion after processing (documents are never permanently stored on Semptify infrastructure); and Azure OpenAI Service with responsible AI content filtering configured for housing-specific use cases.</p>
+            <p>We are committed to Microsoft's responsible AI principles throughout our deployment: transparency with users about AI use, clear explanations of how AI guidance is generated, human review pathways for complex legal questions, and regular auditing of AI responses for accuracy and potential harm to tenant legal positions.</p>
+          </div>
+
+          <div class="app-section-title">Expected Outcomes &amp; Reporting</div>
+          <div class="app-body">
+            <p>With Azure Nonprofit Credits and partnership, Semptify will: serve tens of thousands of tenants in Year 1 with AI-powered rights guidance; reduce our infrastructure cost by an estimated $1,800–$2,400/year; and demonstrate a replicable model for how Azure's AI and cloud services can be deployed for legal access and housing justice applications. We commit to annual impact reporting including user growth, cases supported, and outcomes data, which we are happy to contribute to Microsoft's nonprofit impact portfolio.</p>
+          </div>
+
+          <div class="app-footer">
+            <a href="https://www.microsoft.com/en-us/nonprofits/azure" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Apply for Azure Credits →</a>
+            <span class="badge badge-green">Rolling Application — Annual Renewal</span>
+          </div>
+          <div class="deadline-box">
+            <span class="icon">📅</span>
+            <div class="text">
+              <strong>Rolling Application — Apply at Any Time, Annual Renewal</strong>
+              <span>Requires verified 501(c)(3) status — Semptify's filing is in progress, so we become eligible upon approval. Also explore Microsoft 365 Nonprofit and LinkedIn for Nonprofits via the same portal.</span>
+            </div>
+          </div>
+          <div class="forge-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Tracked in <strong>Funding Forge</strong> — Azure credits + Azure OpenAI partnership track.</span>
+          </div>
+        </div>
+      </div><!-- /panel-microsoft -->
+
+
+      <!-- ======================================================
+           TAB 4: AWS
+      ====================================================== -->
+      <div class="tab-panel" id="panel-aws" role="tabpanel">
+        <div class="application-card">
+          <div class="app-header">
+            <div class="app-meta-row">
+              <div class="app-meta-line"><span class="label">To:</span><span class="value">AWS Imagine Grant Program — Pathfinder Generative AI Award</span></div>
+              <div class="app-meta-line"><span class="label">From:</span><span class="value">Semptify · semptify.org</span></div>
+              <div class="app-meta-line"><span class="label">Date:</span><span class="value">September 2026 — 2026 cycle closed June 5; preparing for ~March 2027 cycle</span></div>
+              <div class="app-meta-line"><span class="label">Re:</span><span class="value">Pathfinder Generative AI Award Application — Housing Justice Platform</span></div>
+              <div class="app-meta-line"><span class="label">URL:</span><span class="value"><a href="https://aws.amazon.com/government-education/nonprofits/aws-imagine-grant-program/" target="_blank">aws.amazon.com — Imagine Grant Program</a></span></div>
+            </div>
+            <div class="app-program-badge">
+              <div class="funding-amount">
+                <span class="amount">$200K</span>
+                <span class="label">Cash + $100K AWS Credits</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="app-section-title">Executive Summary</div>
+          <div class="app-body">
+            <p>Semptify is a free, open-source tenant rights protection platform that uses generative AI to give renters in housing crisis the same quality of legal information, documentation capability, and navigational guidance that has historically been available only to those with access to attorneys. We are applying for the AWS Imagine Grant Pathfinder Generative AI Award — the most significant single funding opportunity in Semptify's current pipeline — to fund the completion and public launch of the platform's full feature set and to deploy it at scale to the millions of American renters who face housing court alone every year.</p>
+            <p>The Pathfinder Generative AI Award is designed for nonprofits that are using GenAI in transformative, mission-aligned ways to address societal challenges. Semptify is precisely this: a platform that deploys generative AI not as a productivity tool for already-advantaged organizations, but as a direct intervention in a legal access gap that has real, measurable consequences for millions of vulnerable households every year. The $200,000 cash grant and $100,000 in AWS credits would fund the most consequential phase of Semptify's development.</p>
+          </div>
+
+          <div class="app-section-title">The Societal Challenge: Legal Access in Housing</div>
+          <div class="app-body">
+            <p>The United States processes approximately 3.6 million eviction filings every year — a figure that represents millions of families, individuals, and households facing the potential loss of their home. The legal system governing evictions is structured such that approximately 90% of landlords in housing court are represented by attorneys, while fewer than 10% of tenants have any form of legal assistance. This is not an accident; it is the predictable outcome of a system that has never prioritized tenant access to legal knowledge.</p>
+            <p>The consequences of this gap extend far beyond housing. Eviction creates cascading harms: loss of employment due to address instability, disruption of children's schooling, damage to credit that makes future housing harder to secure, and severe mental health consequences for individuals and families. Research consistently shows that the outcome of housing proceedings is heavily determined by whether the tenant received any form of legal or informational assistance — and yet the infrastructure to provide that assistance at scale has never existed.</p>
+            <p>Generative AI represents the first genuinely scalable solution to this problem. The ability to provide accurate, jurisdictionally specific legal information in real time, to help tenants organize and understand their documentation, and to guide them through the procedural steps of complaint filing and court preparation — these are tasks that generative AI can now perform at a quality and cost point that makes universal access genuinely achievable for the first time. Semptify is the platform built to deploy this capability where it is most needed.</p>
+          </div>
+
+          <div class="app-section-title">Semptify's Generative AI Implementation</div>
+          <div class="app-body">
+            <p>Semptify's AI Copilot is the platform's core GenAI feature, and it is specifically designed for the complexity and stakes of tenant-facing legal information. The Copilot uses retrieval-augmented generation (RAG) against Semptify's Know Your Rights Law Library — covering all 50 states and DC — to provide jurisdictionally accurate, contextually relevant answers to tenant questions about their rights, their lease, and their legal options. This is not generic AI chat; it is a purpose-built legal information system that grounds every response in actual housing law.</p>
+            <p>With AWS Bedrock integration — funded by the Pathfinder award — Semptify would expand the AI Copilot to include: <strong>Claude 3.5 Sonnet via Bedrock</strong> for complex lease analysis and legal question answering; <strong>Amazon Titan</strong> for embeddings powering the law library search and similarity matching; <strong>AWS Comprehend</strong> for entity recognition in tenant documents (landlord names, dates, property addresses) to accelerate case building; and <strong>Amazon Textract</strong> for FEMS document OCR, replacing a currently manual-intensive process with accurate, scalable automated document processing.</p>
+            <p>The privacy architecture is critical: Semptify's storage-based authentication model means that tenant documents live in users' own Google Drive, Dropbox, or OneDrive accounts. When documents are processed through AWS Bedrock-powered features, only the processed output — not the source documents — is retained, and only temporarily. This gives tenants the full benefit of enterprise AI capabilities without the data sovereignty concerns that are otherwise a significant barrier to adoption for vulnerable populations.</p>
+          </div>
+
+          <div class="app-section-title">Budget Narrative</div>
+          <div class="app-body">
+            <p>The $200,000 cash grant would be allocated as follows:</p>
+            <ul>
+              <li><strong>Engineering &amp; Technical Development ($110,000):</strong> AWS Bedrock integration (Copilot, FEMS OCR, law library embeddings), Know Your Rights Library completion for all 50 states, Litigation Intelligence module, mobile PWA (Semptify Go) public launch, legal aid API integrations.</li>
+              <li><strong>Community Outreach &amp; Partnerships ($50,000):</strong> Outreach to renters in high-eviction cities, legal aid organization onboarding, community training events, multilingual content (Spanish, Mandarin, Vietnamese, Arabic).</li>
+              <li><strong>Operations &amp; Team ($40,000):</strong> Part-time community coordinator, legal accuracy review, platform maintenance, impact measurement and reporting.</li>
+            </ul>
+            <p>The $100,000 AWS credits would fund: Amazon Bedrock API usage for AI Copilot queries (estimated $3,000–5,000/month at scale), Amazon Textract for FEMS processing, AWS Lambda for async processing pipelines, Amazon RDS as PostgreSQL backup option, CloudFront CDN for the semptify.org deployment, and S3 for transient processing storage with auto-deletion policies.</p>
+          </div>
+
+          <div class="app-section-title">Anticipated Impact &amp; Measurable Outcomes</div>
+          <div class="app-body">
+            <p>Within 18 months of award receipt, Semptify commits to: 50,000+ active users navigating housing disputes or accessing rights information; complete Know Your Rights coverage for all 50 states and DC; 20+ formal legal aid organization integrations; 10,000+ complaints filed through the Complaint Wizard; and a published impact report documenting eviction outcomes for Semptify users versus non-users in partner jurisdictions. These are not aspirational numbers — they are grounded in current platform adoption curves and the scale of the need in the target communities.</p>
+          </div>
+
+          <div class="app-section-title">Application Checklist &amp; Timeline</div>
+          <div class="app-body">
+            <div class="checklist">
+              <div class="checklist-title">✅ Pre-Application Checklist</div>
+              <div class="checklist-item"><span class="check">◻</span><span>501(c)(3) — filing in progress (required before submission)</span></div>
+              <div class="checklist-item"><span class="check">✓</span><span>Active AWS account (or apply via TechSoup for AWS Nonprofit Credits first)</span></div>
+              <div class="checklist-item"><span class="check">✓</span><span>Organization budget documentation prepared</span></div>
+              <div class="checklist-item"><span class="check">✓</span><span>Technical architecture documentation for Bedrock integration plan</span></div>
+              <div class="checklist-item"><span class="check">✓</span><span>Impact measurement framework defined</span></div>
+              <div class="checklist-item"><span class="check">✓</span><span>Application narrative drafted (this document)</span></div>
+              <div class="checklist-item"><span class="check">◻</span><span>Submit via portal when the next cycle opens (~March 2027)</span></div>
+              <div class="checklist-item"><span class="check">◻</span><span>Confirmation of submission before the Round 1 deadline (2026 was June 5 — watch for 2027 dates)</span></div>
+            </div>
+          </div>
+
+          <div class="app-footer">
+            <a href="https://aws.amazon.com/government-education/nonprofits/aws-imagine-grant-program/" target="_blank" rel="noopener" class="btn btn-primary btn-sm">View AWS Imagine Grant →</a>
+            <span class="badge badge-amber">2026 Closed — Winners Announced December 1, 2026</span>
+          </div>
+          <div class="deadline-box">
+            <span class="icon">🚨</span>
+            <div class="text">
+              <strong>2026 cycle closed (Round 1 ended June 5). Next cycle expected ~March 2027 — requires 501(c)(3).</strong>
+              <span>This remains the highest-value single opportunity in the grant pipeline. 2026 winners announced December 1, 2026. Also apply for AWS Nonprofit Credit Program via TechSoup (rolling, up to $5,000/year) once nonprofit status is confirmed.</span>
+            </div>
+          </div>
+          <div class="forge-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>HIGH PRIORITY — Tracked in <strong>Funding Forge</strong>: Pathfinder GenAI Award + AWS Nonprofit Credit Program (TechSoup).</span>
+          </div>
+        </div>
+      </div><!-- /panel-aws -->
+
+
+      <!-- ======================================================
+           TAB 5: GOOGLE
+      ====================================================== -->
+      <div class="tab-panel" id="panel-google" role="tabpanel">
+        <div class="application-card">
+
+          <div class="sub-tab-bar" role="tablist">
+            <button class="sub-tab-btn active" data-subtab="google-nonprofits">Google for Nonprofits (Rolling)</button>
+            <button class="sub-tab-btn" data-subtab="google-genai">Google.org GenAI Accelerator</button>
+          </div>
+
+          <!-- Sub-panel A: Google for Nonprofits -->
+          <div class="sub-tab-content active" id="google-nonprofits">
+            <div class="app-header" style="margin-top:0;">
+              <div class="app-meta-row">
+                <div class="app-meta-line"><span class="label">To:</span><span class="value">Google for Nonprofits Program Team</span></div>
+                <div class="app-meta-line"><span class="label">From:</span><span class="value">Semptify · semptify.org</span></div>
+                <div class="app-meta-line"><span class="label">Date:</span><span class="value">September 2026 (Rolling — pending TechSoup nonprofit verification)</span></div>
+                <div class="app-meta-line"><span class="label">Re:</span><span class="value">Google Workspace + Ad Grants Access — Tenant Rights Platform</span></div>
+                <div class="app-meta-line"><span class="label">URL:</span><span class="value"><a href="https://www.google.com/nonprofits/" target="_blank">google.com/nonprofits</a></span></div>
+              </div>
+              <div class="app-program-badge">
+                <div class="funding-amount">
+                  <span class="amount">$10K/mo</span>
+                  <span class="label">Ad Grants + Free Workspace</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="app-section-title">Application Narrative</div>
+            <div class="app-body">
+              <p>Semptify is a free, open-source tenant rights platform protecting American renters through knowledge, documentation, and community. We are applying to Google for Nonprofits for access to Google Workspace for Nonprofits (up to 2,000 users, free) and Google Ad Grants ($10,000/month in search advertising credit), both of which align directly with Semptify's operational needs and outreach mission.</p>
+              <p>There is a natural and significant synergy between Semptify and Google's nonprofit programs that we want to highlight directly: <strong>Semptify's authentication model is built on Google Drive OAuth.</strong> When a user logs into Semptify with their Google account, their tenancy documents are stored in their own Google Drive — not on Semptify's servers. This means Google's infrastructure is literally part of Semptify's privacy architecture. Extending this relationship to include Workspace for organizational operations and Ad Grants for public outreach represents a deepening of an already-existing and purposeful technical partnership.</p>
+              <p><strong>Google Workspace for Nonprofits</strong> would support Semptify's organizational operations: team communication, document management, and the coordination of volunteer developers, housing experts, and legal reviewers who contribute to the platform. The up-to-2,000-seat free Workspace allocation provides the organizational infrastructure for a growing nonprofit without diverting mission funds.</p>
+              <p><strong>Google Ad Grants ($10,000/month)</strong> would be transformative for Semptify's ability to reach the tenants who most need its tools. Our target users are renters actively searching for information about eviction notices, tenant rights, habitability complaints, and security deposit disputes — all high-intent, high-need search queries where Semptify can provide genuine, free assistance. Ad Grants would allow us to appear at the top of search results for queries like "I got an eviction notice what do I do," "tenant rights [state]," and "how to document habitability violations" — connecting people in housing crisis directly to free resources at the moment they are searching for help.</p>
+            </div>
+
+            <div class="app-footer">
+              <a href="https://www.google.com/nonprofits/" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Apply via TechSoup Verification →</a>
+              <span class="badge badge-green">Rolling Application — Apply Now</span>
+            </div>
+            <div class="deadline-box">
+              <span class="icon">📅</span>
+              <div class="text">
+                <strong>Rolling Application — Verify Nonprofit Status via TechSoup First</strong>
+                <span>Apply for Google for Nonprofits at google.com/nonprofits. TechSoup verification is required. Process takes 1–2 weeks. Ad Grants and Workspace access activate upon approval.</span>
+              </div>
+            </div>
+            <div class="forge-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Tracked in <strong>Funding Forge</strong> — Google for Nonprofits entry.</span>
+            </div>
+          </div>
+
+          <!-- Sub-panel B: GenAI Accelerator -->
+          <div class="sub-tab-content" id="google-genai">
+            <div class="app-header" style="margin-top:0;">
+              <div class="app-meta-row">
+                <div class="app-meta-line"><span class="label">To:</span><span class="value">Google.org GenAI Accelerator — Resilient Communities</span></div>
+                <div class="app-meta-line"><span class="label">From:</span><span class="value">Semptify · semptify.org</span></div>
+                <div class="app-meta-line"><span class="label">Date:</span><span class="value">September 2026 — Preparing for Next Cycle (timing TBD)</span></div>
+                <div class="app-meta-line"><span class="label">Re:</span><span class="value">GenAI Accelerator Application — Housing Justice + Resilient Communities</span></div>
+                <div class="app-meta-line"><span class="label">URL:</span><span class="value"><a href="https://impactchallenge.withgoogle.com/genaiaccelerator" target="_blank">impactchallenge.withgoogle.com/genaiaccelerator</a></span></div>
+              </div>
+              <div class="app-program-badge">
+                <div class="funding-amount">
+                  <span class="amount">$500K–$2M+</span>
+                  <span class="label">Per Org + 6-Month Cohort</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="app-section-title">Application Narrative — GenAI Accelerator</div>
+            <div class="app-body">
+              <p>The Google.org GenAI Accelerator describes its Resilient Communities pillar as supporting organizations using generative AI to help communities navigate systemic hardship, access resources, and build long-term stability. Semptify is a direct embodiment of this mission: we deploy generative AI to give renters — disproportionately from communities of color, immigrant families, and low-income households — the tools to navigate one of the most consequential systemic challenges they face: housing instability and the legal system that governs it.</p>
+              <p>The housing crisis in America is, at its core, a knowledge and access crisis. Renters face legally complex situations — eviction proceedings, habitability violations, security deposit disputes, lease interpretation — without the information or documentation infrastructure to respond effectively. Generative AI, deployed through Semptify's purpose-built platform, addresses this directly: it makes jurisdictionally accurate legal information available in plain language, helps tenants understand and organize their documentation, and guides them through the specific procedural steps that change outcomes in housing proceedings.</p>
+              <p>Semptify requests <strong>$1.5M over the 6-month accelerator cohort and 12-month implementation period</strong> to achieve: complete national coverage of the Know Your Rights Law Library (all 50 states + DC); full deployment of the AI Copilot powered by Google's Gemini models via the Accelerator partnership; Litigation Intelligence for pattern detection in housing court records; public launch of Semptify Go mobile PWA; formal partnerships with 50+ legal aid organizations and tenant advocacy groups; and multilingual support in the five languages most common among eviction-risk renter populations in the U.S.</p>
+              <p>The Google.org Accelerator's 6-month cohort model is particularly valuable for Semptify's development stage: the intensive support, technical mentorship, and peer learning with other AI-for-social-good organizations would accelerate not just our technical capabilities but our organizational capacity to deploy and sustain them. We are at the precise stage where structured acceleration support, combined with meaningful funding, could determine whether Semptify reaches thousands of users or millions.</p>
+              <p>On technical alignment: Semptify's Google Drive OAuth integration is already the platform's primary authentication method. Building on this with Gemini API integration through the Accelerator partnership would deepen a technical relationship that benefits both the platform and the tenants it serves — with Google's AI directly powering the rights guidance and lease analysis that is Semptify's most impactful feature.</p>
+            </div>
+
+            <div class="app-footer">
+              <a href="https://impactchallenge.withgoogle.com/genaiaccelerator" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Monitor for Next Cycle →</a>
+              <span class="badge badge-amber">Next Cycle TBD — Monitoring (2025 Closed Feb 10)</span>
+            </div>
+            <div class="deadline-box">
+              <span class="icon">📅</span>
+              <div class="text">
+                <strong>2025 cycle closed February 10. Next cycle timing not yet announced.</strong>
+                <span>Monitor impactchallenge.withgoogle.com for announcement. Prepare application materials now — this is a $500K–$2M+ opportunity with a Google pro-bono support cohort.</span>
+              </div>
+            </div>
+            <div class="forge-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Tracked in <strong>Funding Forge</strong> — Google.org GenAI Accelerator entry.</span>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /panel-google -->
+
+
+      <!-- ======================================================
+           TAB 6: FOUNDATIONS
+      ====================================================== -->
+      <div class="tab-panel" id="panel-foundations" role="tabpanel">
+        <div class="application-card">
+
+          <div class="sub-tab-bar" role="tablist">
+            <button class="sub-tab-btn active" data-subtab="mozilla">Mozilla Foundation</button>
+            <button class="sub-tab-btn" data-subtab="ford">Ford Foundation</button>
+            <button class="sub-tab-btn" data-subtab="knight">Knight Foundation</button>
+          </div>
+
+          <!-- Mozilla -->
+          <div class="sub-tab-content active" id="mozilla">
+            <div class="app-header" style="margin-top:0;">
+              <div class="app-meta-row">
+                <div class="app-meta-line"><span class="label">To:</span><span class="value">Mozilla Foundation — Democracy x AI Cohort Program</span></div>
+                <div class="app-meta-line"><span class="label">From:</span><span class="value">Semptify · semptify.org</span></div>
+                <div class="app-meta-line"><span class="label">Date:</span><span class="value">Preparing for 2027 Cycle (2026 closed March 16)</span></div>
+                <div class="app-meta-line"><span class="label">Re:</span><span class="value">Democracy x AI Cohort — Tier I Grant Application ($50,000 / Tier II finalist: +$250,000)</span></div>
+                <div class="app-meta-line"><span class="label">URL:</span><span class="value"><a href="https://www.mozillafoundation.org/en/what-we-do/grantmaking/incubator/democracy-ai-cohort/" target="_blank">mozillafoundation.org — Democracy x AI</a></span></div>
+              </div>
+              <div class="app-program-badge">
+                <div class="funding-amount">
+                  <span class="amount">$50K</span>
+                  <span class="label">Tier I / +$250K Finalist</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="app-section-title">Application Narrative</div>
+            <div class="app-body">
+              <p>The Mozilla Foundation's Democracy x AI Cohort focuses on organizations working at the intersection of AI, institutional accountability, information integrity, and civil space. Semptify's work addresses all of these dimensions directly — and the intersection of all four is precisely where housing justice lives in 2026.</p>
+              <p><strong>Institutional accountability:</strong> Semptify's Litigation Intelligence module aggregates public housing court data to identify patterns of serial eviction, retaliatory filings, and code violation cover-ups. This is accountability technology in the most direct sense: it creates a public, AI-assisted record of institutional behavior that has previously been invisible because it was distributed across thousands of individual case files. Landlords who file predatory evictions one tenant at a time, knowing each tenant will appear alone and uninformed, become visible when their patterns are surfaced and documented across cases.</p>
+              <p><strong>Information integrity:</strong> Semptify's Know Your Rights Law Library and AI Copilot are explicitly designed to counter the information asymmetry that defines housing proceedings. The legal information that landlords — and their attorneys — have always had access to has been largely inaccessible to tenants, not because it doesn't exist, but because the systems to present it in accessible, actionable form have never been built for tenants. Semptify builds these systems, grounded in actual statutes and verified for jurisdictional accuracy.</p>
+              <p><strong>Civil space and democratic participation:</strong> Semptify's Be Heard pillar — connecting tenants to complaint systems, legislators, journalists, and advocates — is explicitly civic infrastructure. The ability to file a complaint with the housing authority, reach a state legislator about habitability violations, or connect with a journalist documenting predatory landlord patterns is democratic participation. Semptify makes this participation accessible to people who have historically been excluded from it by barriers of knowledge, documentation, and access.</p>
+              <p>We are requesting Tier I funding of $50,000 for a 12-month period to support the Democracy x AI dimensions of Semptify's work: completion of the Litigation Intelligence module, the Public Exposure Suite, and the legislative connection tools within the Be Heard pillar. We believe Semptify's scope and demonstrated impact position us as a strong candidate for Tier II finalist consideration and the additional $250,000 in support that entails.</p>
+            </div>
+
+            <div class="app-footer">
+              <a href="https://www.mozillafoundation.org/en/what-we-do/grantmaking/incubator/democracy-ai-cohort/" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Monitor for 2027 Cycle →</a>
+              <span class="badge badge-amber">2026 Closed March 16 — Next Cycle ~Early 2027</span>
+            </div>
+            <div class="deadline-box">
+              <span class="icon">📅</span>
+              <div class="text">
+                <strong>2026 cycle closed March 16. Next cycle expected early 2027.</strong>
+                <span>Monitor mozillafoundation.org. Begin relationship-building with Mozilla program staff now. Prepare Tier II narrative materials in advance of cycle opening.</span>
+              </div>
+            </div>
+            <div class="forge-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Tracked in <strong>Funding Forge</strong> — Mozilla Democracy x AI Cohort entry.</span>
+            </div>
+          </div>
+
+          <!-- Ford -->
+          <div class="sub-tab-content" id="ford">
+            <div class="app-header" style="margin-top:0;">
+              <div class="app-meta-row">
+                <div class="app-meta-line"><span class="label">To:</span><span class="value">Ford Foundation — Economic Justice / Housing Justice Program</span></div>
+                <div class="app-meta-line"><span class="label">From:</span><span class="value">Semptify · semptify.org</span></div>
+                <div class="app-meta-line"><span class="label">Date:</span><span class="value">Relationship-Building Phase — 2026</span></div>
+                <div class="app-meta-line"><span class="label">Re:</span><span class="value">Housing Justice Grant Strategy — Program Officer Introduction</span></div>
+                <div class="app-meta-line"><span class="label">URL:</span><span class="value"><a href="https://fordfoundation.org" target="_blank">fordfoundation.org</a></span></div>
+              </div>
+              <div class="app-program-badge">
+                <div class="funding-amount">
+                  <span class="amount">$200K–$1M</span>
+                  <span class="label">Housing Justice Grants</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="app-section-title">Strategy Narrative</div>
+            <div class="app-body">
+              <p>The Ford Foundation does not accept unsolicited proposals. All grants are initiated through program officer relationships. This document serves as Semptify's strategic preparation for Ford Foundation engagement — the narrative framework, alignment analysis, and outreach strategy that will guide our relationship-building over the next 12–18 months.</p>
+              <p><strong>Mission alignment:</strong> Ford Foundation's Economic Justice program supports organizations working to reduce inequality in economic opportunity and access. Their housing justice grantmaking — which has supported the National Housing Law Project, Urban Justice Center, and National Housing Trust — focuses on systemic change, legal access, and policy advocacy. Semptify's work is directly aligned: we are building the infrastructure that scales legal access to renters, documents patterns of predatory landlord behavior for policy use, and connects tenants to the advocacy organizations that Ford already funds.</p>
+              <p><strong>Strategic relationship-building pathway:</strong> The most effective path to Ford Foundation consideration runs through existing Ford grantees. Semptify should pursue formal partnership discussions with the National Housing Law Project and Urban Justice Center — organizations Ford already funds — with the explicit goal of building joint programs that Semptify's platform enables. A partnership with the National Housing Law Project to integrate Semptify's Know Your Rights Library with their legal resources, or with the Urban Justice Center to deploy Semptify as a case management tool for their housing clients, would position Semptify as infrastructure for the ecosystem Ford is already investing in.</p>
+              <p><strong>Program officer identification and outreach:</strong> The Ford Foundation Economic Justice program has identified housing stability, legal services access, and technology for social good as active priority areas. Research suggests the primary program contacts for housing technology grants are within the Economic Justice program team based in New York. Semptify should request introductory conversations with these contacts through the mutual connection pathway — leveraging introductions from current Ford grantees — rather than cold outreach.</p>
+              <p><strong>Narrative framing for Ford:</strong> Ford Foundation grantmaking responds most strongly to narratives of systemic change, not individual service provision. Semptify's Ford narrative should emphasize: the scale of the structural problem (3.6M evictions/year as a systemic, not individual, failure), the policy implications of Litigation Intelligence data (identifying patterns that can inform state and municipal policy), the connection between housing stability and economic mobility (Ford's core theory of change), and Semptify's role as infrastructure for the broader housing justice ecosystem rather than a standalone service.</p>
+            </div>
+
+            <div class="app-footer">
+              <a href="https://fordfoundation.org" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Ford Foundation Website →</a>
+              <span class="badge badge-amber">Invitation-Only — Relationship Building Required</span>
+            </div>
+            <div class="deadline-box">
+              <span class="icon">🤝</span>
+              <div class="text">
+                <strong>Action: Pursue introductions through National Housing Law Project &amp; Urban Justice Center</strong>
+                <span>Ford does not accept unsolicited proposals. Build relationships with program officers through existing Ford grantees. Timeline: 12–18 months to first formal consideration.</span>
+              </div>
+            </div>
+            <div class="forge-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Tracked in <strong>Funding Forge</strong> — Ford Foundation relationship-building track.</span>
+            </div>
+          </div>
+
+          <!-- Knight -->
+          <div class="sub-tab-content" id="knight">
+            <div class="app-header" style="margin-top:0;">
+              <div class="app-meta-row">
+                <div class="app-meta-line"><span class="label">To:</span><span class="value">Knight Foundation — Knight Cities Challenge</span></div>
+                <div class="app-meta-line"><span class="label">From:</span><span class="value">Semptify · semptify.org</span></div>
+                <div class="app-meta-line"><span class="label">Date:</span><span class="value">Preparing for 2027 Cycle (2026 closed April 30)</span></div>
+                <div class="app-meta-line"><span class="label">Re:</span><span class="value">Knight Cities Challenge Application — Tenant Rights Platform, Knight Cities</span></div>
+                <div class="app-meta-line"><span class="label">URL:</span><span class="value"><a href="https://knightfoundation.org" target="_blank">knightfoundation.org</a></span></div>
+              </div>
+              <div class="app-program-badge">
+                <div class="funding-amount">
+                  <span class="amount">$200K</span>
+                  <span class="label">Per Project in Knight Cities</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="app-section-title">Application Narrative</div>
+            <div class="app-body">
+              <p>The Knight Cities Challenge funds ideas that make Knight's 26 communities better places to live, work, and succeed. Semptify's application is grounded in a simple proposition: a city where renters know their rights, can organize their documentation, and can navigate housing disputes without losing their homes is a better city — more stable, more equitable, and more livable for the majority of its residents who rent.</p>
+              <p>Knight's 26 communities include several cities with disproportionately high eviction rates: Philadelphia, Detroit, Macon (GA), Akron, and Miami all appear consistently in high-eviction analyses. A city-specific Semptify deployment — with localized Know Your Rights content for that city's jurisdiction, partnerships with local legal aid organizations, and community training events for renters — would demonstrate the platform's impact in a Knight community context and provide the kind of concrete, local focus that the Cities Challenge prioritizes.</p>
+              <p><strong>The ask:</strong> Up to $200,000 for a 12-month city-specific deployment in one of Knight's high-eviction communities. The project would include: a full Semptify deployment customized for the local jurisdiction (municipal and county ordinances, local housing court procedures, local complaint agencies); formal partnership with the city's primary legal aid organization; community training events in partnership with local tenant advocates; and a robust impact measurement and public reporting program documenting eviction prevention outcomes in the target community.</p>
+              <p><strong>Why a Knight City?</strong> Knight Foundation's investment in specific communities — and its networks within those communities — makes it possible to design a Semptify deployment that goes beyond digital product launch to genuine community penetration: reaching renters through trusted community organizations, churches, schools, and social services networks that Knight's local relationships make accessible. The Cities Challenge is not just a funding mechanism; it is a community embeddedness mechanism, which is precisely what Semptify needs to reach the renters who are most at risk and least connected to digital resources.</p>
+              <p><strong>Scalability beyond the target city:</strong> A successful Knight City deployment would produce a replicable playbook for deploying Semptify in additional cities — with documented community partnership models, impact measurement frameworks, and localization processes that can be applied across Knight's full network of 26 communities and ultimately nationwide.</p>
+            </div>
+
+            <div class="app-footer">
+              <a href="https://knightfoundation.org" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Knight Foundation Website →</a>
+              <span class="badge badge-amber">2026 Closed April 30 — Next Cycle ~2027</span>
+            </div>
+            <div class="deadline-box">
+              <span class="icon">📅</span>
+              <div class="text">
+                <strong>2026 cycle closed April 30. Next cycle expected 2027.</strong>
+                <span>Knight Cities Challenge opens annually. Monitor knightfoundation.org. Research which Knight communities have highest eviction rates for targeting. Begin local legal aid organization conversations now.</span>
+              </div>
+            </div>
+            <div class="forge-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Tracked in <strong>Funding Forge</strong> — Knight Cities Challenge entry.</span>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /panel-foundations -->
+
+    </div><!-- /tabs-wrapper -->
+  </div>
+</section>
+
+
+<!-- ============================================================
+     10. HOW TO SUPPORT SEMPTIFY
+============================================================ -->
+<section id="support" class="section">
+  <div class="container">
+    <span class="section-label fade-in">Get Involved</span>
+    <h2 class="section-title fade-in fade-in-delay-1">Support Semptify</h2>
+    <div class="divider fade-in fade-in-delay-2"></div>
+    <p class="section-subtitle fade-in fade-in-delay-2">
+      Semptify runs on mission, community, and the conviction that every renter deserves tools that work. Here's how you can be part of it.
+    </p>
+
+    <div class="support-grid">
+      <!-- Donate -->
+      <div class="support-card fade-in fade-in-delay-1">
+        <span class="support-icon">❤️</span>
+        <h3>Donate</h3>
+        <p>Semptify is free for tenants, forever. But building it isn't free. Contributions of any size fund development, legal accuracy review, infrastructure, and the time it takes to do this right.</p>
+        <div class="support-links" style="align-items:center;">
+          <a href="https://github.com/sponsors/1semptify-arch" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:0.5rem;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="#ea4aaa" aria-hidden="true"><path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.346-.666a7.31 7.31 0 0 1-.118-.193c-.054-.093-.13-.22-.228-.385a13.5 13.5 0 0 1-1.095-1.854C4.548 9.548 3.5 7.46 2.55 6.25 1.649 5.098.891 4.262.614 3.801.326 3.321.25 2.962.25 2.75c0-.682.21-1.262.603-1.741C1.258.51 1.825.25 2.5.25c.59 0 1.115.207 1.544.56.236.193.447.416.627.66.088-.002.176-.005.264-.005h.002A.75.75 0 0 1 5.75 2.5c0 .053-.005.105-.015.156a8.4 8.4 0 0 1 2.265-.156 8.4 8.4 0 0 1 2.265.156A.76.76 0 0 1 10.25 2.5a.75.75 0 0 1 .813-1.035h.002c.088 0 .176.003.264.005.18-.244.391-.467.627-.66.429-.353.954-.56 1.544-.56.675 0 1.242.26 1.647.759.392.479.603 1.06.603 1.741 0 .212-.076.571-.364 1.051-.277.461-1.035 1.297-1.936 2.449-.95 1.21-1.998 3.298-3.318 5.568a13.5 13.5 0 0 1-1.095 1.854c-.098.164-.174.292-.228.385a7.3 7.3 0 0 1-.118.193Z"/></svg>
+            Sponsor on GitHub
+          </a>
+          <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-outline btn-sm">Star the Repo</a>
+        </div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:0.75rem;">GitHub Sponsors is our donation channel — one-time or monthly, no account details shared with us beyond what GitHub shows.</p>
+      </div>
+
+      <!-- Partner -->
+      <div class="support-card fade-in fade-in-delay-2">
+        <span class="support-icon">🤝</span>
+        <h3>Partner With Us</h3>
+        <p>Legal aid organizations, housing advocacy groups, universities, journalists, and government agencies — Semptify is built to work with you, not duplicate you. Let's connect.</p>
+        <div class="support-links">
+          <a href="https://semptify.org" target="_blank" rel="noopener" class="btn btn-teal btn-sm">Contact Us at semptify.org</a>
+        </div>
+      </div>
+
+      <!-- Volunteer / Contribute -->
+      <div class="support-card fade-in fade-in-delay-3">
+        <span class="support-icon">💻</span>
+        <h3>Volunteer &amp; Contribute</h3>
+        <p>Developers (Python, FastAPI, frontend), housing law experts, legal aid practitioners, translators, and UX researchers — your expertise directly improves what tenants receive. The codebase is open source and welcoming.</p>
+        <div class="support-links">
+          <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            Contribute on GitHub
+          </a>
+        </div>
+      </div>
+
+      <!-- Spread the Word -->
+      <div class="support-card fade-in fade-in-delay-4">
+        <span class="support-icon">📢</span>
+        <h3>Get the Word Out</h3>
+        <p>The most important thing you can do is make sure a renter who needs this knows it exists. Share semptify.org with tenants organizations, social workers, community groups, and anyone who works with people in housing difficulty.</p>
+        <div class="support-links">
+          <a href="https://semptify.org" target="_blank" rel="noopener" class="btn btn-primary btn-sm">semptify.org</a>
+          <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-outline btn-sm">Star on GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact / Links block -->
+    <div class="card fade-in mt-4" style="text-align:center; background:linear-gradient(135deg,rgba(245,166,35,0.07),rgba(0,196,167,0.05)); border-color:rgba(245,166,35,0.2);">
+      <h3 style="margin-bottom:0.5rem; font-size:1.3rem;">Connect &amp; Contact</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1.5rem; max-width:520px; margin-left:auto; margin-right:auto;">Questions, partnership inquiries, media requests, or just want to talk about housing justice and technology — reach us through any of these.</p>
+      <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
+        <a href="/" class="btn btn-primary btn-sm">semptify.org</a>
+        <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-outline btn-sm">GitHub</a>
+        <a href="https://github.com/sponsors/1semptify-arch" target="_blank" rel="noopener" class="btn btn-teal btn-sm">Sponsor on GitHub</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     11. FOOTER
+============================================================ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <!-- Brand -->
+      <div class="footer-brand">
+        <div class="logo">Sempt<span>i</span>fy</div>
+        <p>A free, open-source platform protecting tenant rights through knowledge, documentation, and community. Built from personal experience. Offered to everyone.</p>
+        <div style="display:flex; gap:0.5rem; margin-top:1.25rem; flex-wrap:wrap;">
+          <span class="badge badge-amber">Free Forever</span>
+          <span class="badge badge-teal">Open Source</span>
+          <span class="badge badge-green">v5.0 Deployed</span>
+        </div>
+      </div>
+
+      <!-- Platform links -->
+      <div class="footer-col">
+        <h5>Platform</h5>
+        <ul>
+          <li><a href="#solution">The Six Pillars</a></li>
+          <li><a href="#features">All Features</a></li>
+          <li><a href="#privacy">Privacy Architecture</a></li>
+          <li><a href="#tech">Technical Docs</a></li>
+          <li><a href="https://semptify.org" target="_blank" rel="noopener">semptify.org</a></li>
+        </ul>
+      </div>
+
+      <!-- Grants -->
+      <div class="footer-col">
+        <h5>Grant Applications</h5>
+        <ul>
+          <li><a href="#grants">Anthropic / Claude</a></li>
+          <li><a href="#grants">OpenAI People-First</a></li>
+          <li><a href="#grants">Microsoft Azure</a></li>
+          <li><a href="#grants">AWS Imagine Grant</a></li>
+          <li><a href="#grants">Google / Google.org</a></li>
+          <li><a href="#grants">Foundations</a></li>
+        </ul>
+      </div>
+
+      <!-- Links -->
+      <div class="footer-col">
+        <h5>Links</h5>
+        <ul>
+          <li><a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener">GitHub (Open Source)</a></li>
+          <li><a href="https://github.com/sponsors/1semptify-arch" target="_blank" rel="noopener">GitHub Sponsors</a></li>
+          <li><a href="#support">Donate</a></li>
+          <li><a href="#support">Partner</a></li>
+          <li><a href="#support">Volunteer</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-byline">
+        "Built by <span class="highlight">Bradley Crowe</span> from personal experience navigating a housing dispute.<br>For every renter who deserved better."
+      </p>
+      <p style="font-size:0.82rem; color:var(--muted); text-align:right;">
+        Open source. Free forever.<br>
+        <a href="https://semptify.org" target="_blank" rel="noopener" style="color:var(--amber);">semptify.org</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  /* ===== 1. NAV TRANSPARENCY ON SCROLL ===== */
+  const navbar = document.getElementById('navbar');
+  function handleNavScroll() {
+    if (window.scrollY > 60) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  }
+  window.addEventListener('scroll', handleNavScroll, { passive: true });
+  handleNavScroll(); // run once on load
+
+  /* ===== 2. MOBILE NAV TOGGLE ===== */
+  const navToggle = document.getElementById('navToggle');
+  const navLinks  = document.getElementById('navLinks');
+  if (navToggle && navLinks) {
+    navToggle.addEventListener('click', function() {
+      const open = navLinks.classList.toggle('open');
+      navToggle.setAttribute('aria-expanded', open.toString());
+    });
+    // Close nav on link click
+    navLinks.querySelectorAll('a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        navLinks.classList.remove('open');
+        navToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  /* ===== 3. SMOOTH SCROLL FOR NAV LINKS ===== */
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      const targetId = this.getAttribute('href');
+      if (targetId === '#') return;
+      const target = document.querySelector(targetId);
+      if (target) {
+        e.preventDefault();
+        const navH = navbar ? navbar.offsetHeight : 80;
+        const top  = target.getBoundingClientRect().top + window.scrollY - navH - 16;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      }
+    });
+  });
+
+  /* ===== 4. FADE-IN ON SCROLL (IntersectionObserver) ===== */
+  const fadeEls = document.querySelectorAll('.fade-in');
+  if ('IntersectionObserver' in window) {
+    const fadeObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          fadeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    fadeEls.forEach(function(el) {
+      fadeObserver.observe(el);
+    });
+  } else {
+    // Fallback: show all
+    fadeEls.forEach(function(el) { el.classList.add('visible'); });
+  }
+
+  /* ===== 5. COUNTER ANIMATION ===== */
+  function animateCounter(el, target, suffix, decimals) {
+    decimals = decimals || 0;
+    suffix   = suffix   || '';
+    var start     = 0;
+    var duration  = 1800;
+    var startTime = null;
+
+    function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      var elapsed  = timestamp - startTime;
+      var progress = Math.min(elapsed / duration, 1);
+      var current  = easeOut(progress) * target;
+      if (decimals > 0) {
+        el.textContent = current.toFixed(decimals) + suffix;
+      } else {
+        el.textContent = Math.round(current).toLocaleString() + suffix;
+      }
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        if (decimals > 0) {
+          el.textContent = target.toFixed(decimals) + suffix;
+        } else {
+          el.textContent = target.toLocaleString() + suffix;
+        }
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  var counterEls = document.querySelectorAll('.count-num[data-count]');
+  if ('IntersectionObserver' in window && counterEls.length) {
+    var counterObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          var el       = entry.target;
+          var count    = parseFloat(el.getAttribute('data-count'));
+          var suffix   = el.getAttribute('data-suffix') || '';
+          var decimal  = parseInt(el.getAttribute('data-decimal') || '0', 10);
+          animateCounter(el, count, suffix, decimal);
+          counterObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    counterEls.forEach(function(el) { counterObserver.observe(el); });
+  }
+
+  /* ===== 6. MAIN TABS — GRANT APPLICATIONS ===== */
+  function initTabs(tabBar, panels) {
+    if (!tabBar) return;
+    var buttons = tabBar.querySelectorAll('.tab-btn');
+    buttons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var tab = this.getAttribute('data-tab');
+
+        // Update buttons
+        buttons.forEach(function(b) {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        this.classList.add('active');
+        this.setAttribute('aria-selected', 'true');
+
+        // Update panels
+        panels.forEach(function(panel) {
+          panel.classList.remove('active');
+        });
+        var target = document.getElementById('panel-' + tab);
+        if (target) target.classList.add('active');
+      });
+    });
+  }
+
+  var mainTabBar = document.querySelector('.tab-bar');
+  var mainPanels = document.querySelectorAll('.tab-panel');
+  initTabs(mainTabBar, mainPanels);
+
+  /* ===== 7. SUB-TABS (Google + Foundations) ===== */
+  document.querySelectorAll('.sub-tab-bar').forEach(function(subBar) {
+    var subBtns     = subBar.querySelectorAll('.sub-tab-btn');
+    var parentPanel = subBar.closest('.tab-panel') || subBar.closest('.application-card');
+
+    subBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var subtabId = this.getAttribute('data-subtab');
+
+        subBtns.forEach(function(b) { b.classList.remove('active'); });
+        this.classList.add('active');
+
+        var container = btn.closest('.application-card') || btn.closest('.tab-panel');
+        if (container) {
+          container.querySelectorAll('.sub-tab-content').forEach(function(content) {
+            content.classList.remove('active');
+          });
+          var subContent = document.getElementById(subtabId);
+          if (subContent) subContent.classList.add('active');
+        }
+      });
+    });
+  });
+
+  /* ===== 8. KEYBOARD NAV ACCESSIBILITY FOR TABS ===== */
+  if (mainTabBar) {
+    mainTabBar.addEventListener('keydown', function(e) {
+      var buttons   = Array.from(mainTabBar.querySelectorAll('.tab-btn'));
+      var current   = document.activeElement;
+      var idx       = buttons.indexOf(current);
+      if (idx === -1) return;
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        buttons[(idx + 1) % buttons.length].focus();
+        buttons[(idx + 1) % buttons.length].click();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        buttons[(idx - 1 + buttons.length) % buttons.length].focus();
+        buttons[(idx - 1 + buttons.length) % buttons.length].click();
+      }
+    });
+  }
+
+})();
+</script>
+
+</body>
+</html>

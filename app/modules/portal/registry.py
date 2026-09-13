@@ -212,17 +212,17 @@ class PortalRegistry:
         # =====================================================================
         PortalService(
             id="donor_anonymous",
-            name="Anonymous Donors",
-            short_description="Support tenant rights through anonymous donation.",
+            name="Donors & Supporters",
+            short_description="Support tenant rights — see the platform, the privacy model, and the funding roadmap.",
             cta_label="Donate",
-            cta_path="/preamble",
+            cta_path="/donate",
             icon="💝",
             category="donor",
             order=10,
             requires_auth=False,
             description_long=(
                 "Semptify is free for tenants, forever. Donations keep it that way. "
-                "Donate anonymously — no account required."
+                "Donate via GitHub Sponsors — no account required."
             ),
         ),
         # =====================================================================
