@@ -14080,3 +14080,16 @@ Nothing is real until it is pushed.
 - The production footer still carries nav links (Home / Get help now / Law Library / Report a problem) — the decided design is disclaimer-only centered; separate task.
 - Gate note uses field labels ("Needs Title first") — for multi-field stages confirm wording reads well.
 - `next_step` context var on this page hardcodes `/tenant/journal` in the route (pre-existing; the template itself already uses `navigation.get_stage('tenant_journal')` — flag for a cleanup pass, not this task).
+
+
+## Session — 2026-09-14 (cont.) — Footer: legal/policy row replaces nav links (devin)
+
+**Task:** `footer-legal-row-001` — Brad's call: footer is legal/reference only; navigation lives in the header.
+
+**What shipped:**
+- `app/templates/components/footer.html` — `.footer-nav` (Home / Get help now / Law Library / Report a problem) replaced with `.footer-legal` row: Privacy · Terms · Disclaimer · About · Contact · Feedback. Feedback uses `navigation.get_stage('public_feedback')`; the other five are static `/public/*.html` pages (existing convention — they aren't FlowStages).
+- `static/css/ssot-design-system.css` — `.footer-nav` rules renamed `.footer-legal`; shell footer container now `justify-content: center`; `.footer-bottom` no longer `margin-left:auto` — the compact footer is centered full-width.
+
+**Verified live:** shell footer centered on /gui/record/journal/create and / (disclaimer · legal row · © · locale). All 6 policy links return 200. No `.footer-nav` references remain. No horizontal scroll at 375px.
+
+**Flag:** `/public/*.html` pages aren't registered FlowStages — the legal row hardcodes five static paths, matching existing convention (`tenant_help.html` already hardcodes `/public/disclaimer.html`). If these pages should move under the SSOT registry, that's a separate decision.

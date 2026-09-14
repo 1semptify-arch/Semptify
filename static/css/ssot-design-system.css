@@ -1438,8 +1438,8 @@ a:hover {
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* Navigation Links - Centered */
-.footer-nav {
+/* Legal/policy links - Centered */
+.footer-legal {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -1448,7 +1448,7 @@ a:hover {
   font-size: var(--text-base);
 }
 
-.footer-nav a {
+.footer-legal a {
   padding: var(--space-1) var(--space-2);
 }
 
@@ -1499,7 +1499,7 @@ a:hover {
     padding: var(--space-8) var(--space-4) var(--space-5);
   }
 
-  .footer-nav {
+  .footer-legal {
     gap: var(--space-4);
     font-size: var(--text-sm);
   }
@@ -1909,6 +1909,7 @@ body.shell .unified-footer {
 body.shell .unified-footer .footer-container {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 0.35rem 1.25rem;
   padding: 0.45rem 3vw;
@@ -1945,12 +1946,12 @@ body.shell .unified-footer .footer-disclaimer-text {
   display: none;
 }
 
-body.shell .unified-footer .footer-nav {
+body.shell .unified-footer .footer-legal {
   gap: 0.9rem;
   margin: 0;
 }
 
-body.shell .unified-footer .footer-nav a {
+body.shell .unified-footer .footer-legal a {
   font-size: 0.6875rem;
   color: var(--role-deep);
 }
@@ -1963,8 +1964,6 @@ body.shell .unified-footer .footer-bottom {
   display: flex;
   align-items: center;
   gap: 0.9rem;
-  margin-left: auto;
-  text-align: left;
 }
 
 body.shell .unified-footer .footer-copyright { margin: 0; }
