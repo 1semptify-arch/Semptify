@@ -14093,3 +14093,5 @@ Nothing is real until it is pushed.
 **Verified live:** shell footer centered on /gui/record/journal/create and / (disclaimer · legal row · © · locale). All 6 policy links return 200. No `.footer-nav` references remain. No horizontal scroll at 375px.
 
 **Flag:** `/public/*.html` pages aren't registered FlowStages — the legal row hardcodes five static paths, matching existing convention (`tenant_help.html` already hardcodes `/public/disclaimer.html`). If these pages should move under the SSOT registry, that's a separate decision.
+
+**Follow-on (same session):** second module staged — `eviction_defense_calculate_deadlines` declares one stage ("Enter the service date", requires `start_date`). Its in-form submit moved into the rail; live-verified: locked until date entered, gate note "Needs When were you served? first", real POST → deadlines computed, console clean. The pattern is now proven across two pillars (RECORD + ACT) with zero shell changes — contract-only rollout works as designed.

@@ -14,6 +14,10 @@
 {% set shell_ratio = "3fr 2fr" %}
 {% set shell_primary = "composer" %}
 {% set shell_mobile_order = ["composer", "preview", "help"] %}
+{# Staged nav rail: Calculate stays locked until a service date is entered. #}
+{% set fnav_label = "Eviction deadlines" %}
+{% set fnav_form_id = "deadlineForm" %}
+{% set fnav_back_stage = "gui_act" %}
 
 {% block title %}Calculate your eviction deadlines — Semptify{% endblock %}
 {% block nav_act %}active{% endblock %}
@@ -56,7 +60,6 @@
     <p><strong>This calculates dates only.</strong> It does not file anything for you or send anything to the court. If a deadline is soon or already passed, <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" target="_blank" rel="noopener noreferrer">find legal help</a> now.</p>
   </div>
 
-  <button type="submit" class="output-trigger output-trigger--primary">Calculate deadlines</button>
 </form>
 
 <div class="record-guide__legal-notice">
