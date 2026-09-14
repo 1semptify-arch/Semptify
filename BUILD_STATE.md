@@ -1,3 +1,54 @@
+## Session — 2026-09-14 — Gated fnav rail rollout + footer + ACT pillar fixes (devin)
+
+### What shipped (PR pending — branch protection requires review)
+- **Gated stage-nav rail live on all 7 guide pages.** `ContractStage` +
+  optional `stages` on `FunctionGroupContract`; reusable
+  `components/fnav.html` macro; `body.shell--fnav` 4-row grid variant in
+  `ssot-design-system.css`; `static/js/fnav.js` (versioned `?v=2` — browsers
+  cache `/static/js/` hard). Rail renders only when a contract declares
+  stages; gating uses real `required` fields, human-readable missing-field
+  notes, relocks after `form.reset()`. Pages wired: journal_create,
+  eviction-deadlines, timeline_create_event, law_library get-statute +
+  get-case, tenant_get_help (progressive multi-field gate),
+  tenant_resources (no-requirement stage — rail still renders for
+  consistency).
+- **Footer rebuilt per Brad's spec:** nav links removed (Home / Get help /
+  Law Library / Report a problem gone — they live in the header now);
+  centered legal row (Privacy · Terms · Disclaimer · About · Contact ·
+  Feedback, all verified 200); disclaimer + © line retained; compact shell
+  footer now centered full-width. All migrated pages share
+  `components/footer.html` so it applies site-wide.
+- **ACT pillar corrections:** `eviction_defense` and `complaints` moved from
+  the KNOW block to ACT in `contract_loader.py`; complaints docstring fixed
+  (had claimed KNOW).
+- **accountability_ledger module committed** (RESEARCH tier, beta): subjects
+  / patterns / political alignments; resolves
+  `EvictionTimelineEvent.subject_id` FK placeholder; alembic migration
+  included. NOTE: bundled from a parallel session's work — compiled clean,
+  endpoints not live-verified.
+- Housekeeping: gui skill mirrored to `.github/prompts/gui.prompt.md`,
+  design-token workbook doc added, task queue synced.
+
+### Verification
+- `tests/module_health`: 246 passed (post-ledger-commit).
+- `test_ssot_architecture`: PASS; contract tests 26/26; journal 8/8.
+- Playwright smoke 6/6; live-gated each of the 7 pages on :8001
+  (lock/unlock, real POST saves, relock after reset, 375px + desktop,
+  console clean, ARIA correct).
+
+### Flags for next session
+- uvicorn `--reload` stalled twice this session leaving orphaned workers
+  bound to :8001 serving stale code — if verification looks "stuck on old
+  code," kill the listener by port and restart clean (no --reload).
+- `app/main.py` still hardcodes `next_step: /tenant/journal` in the journal
+  route context — dead weight (template uses `navigation.get_stage()`);
+  cleanup task queued.
+- Render autoDeploy is OFF — merging the PR does not deploy; deploy is
+  manual from the dashboard.
+- Untracked leftovers in tree (not shipped): `legal_intel/velair_property_
+  management.md` (parallel-session research), two `audit-*.png` screenshots,
+  `.playwright-mcp/`, `openapi.json` (generated spec).
+
 ## Session — 2026-09-13 (PM) — Donor portal follow-up: owner-intended claims restored (devin)
 
 ### What shipped
