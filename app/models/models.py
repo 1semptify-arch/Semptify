@@ -2005,9 +2005,10 @@ class ComparisonEntry(Base):
 class EvictionTimelineEvent(Base):
     """Eviction-specific timeline event — structure and pointers only.
 
-    Tenant-facing, T2. `subject_id` is a placeholder with no FK while the
-    accountability_ledger boundary is deferred. The event narrative and any
-    PII content are stored in the user''s cloud overlay.
+    Tenant-facing, T2. ``subject_id`` references ``accountability_subjects``
+    (the accountability ledger) when the event can be attributed to a known
+    subject; nullable when the subject is not yet identified. The event
+    narrative and any PII content are stored in the user's cloud overlay.
     """
 
     __tablename__ = "eviction_timeline_events"
@@ -2015,8 +2016,10 @@ class EvictionTimelineEvent(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True, nullable=False)
 
-    # Placeholder subject — no FK until accountability_ledger model is decided
-    subject_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    # FK to accountability ledger subject; nullable when subject unknown
+    subject_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("accountability_subjects.id"), nullable=True, index=True
+    )
 
     event_type: Mapped[str] = mapped_column(
         String(50), index=True, nullable=False
@@ -2037,3 +2040,8 @@ class EvictionTimelineEvent(Base):
 # Import context engine models so they are registered on the shared Base.
 # This keeps Alembic autogenerate and other Base.metadata consumers in sync.
 from app.modules.context_engine.models import ContextFact, TenantStory  # noqa: F401
+from app.modules.accountability_ledger.models import (  # noqa: F401
+    AccountabilitySubject,
+    AccountabilityPattern,
+    PoliticalAlignment,
+)

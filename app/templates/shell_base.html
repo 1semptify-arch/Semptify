@@ -17,7 +17,9 @@
     styles/scripts — inherited from base.html as usual
 #}
 
-{% block body_class %}shell{% endblock %}
+{% set _fnav = self.fnav() | default('', true) | trim %}
+
+{% block body_class %}shell{% if _fnav %} shell--fnav{% endif %}{% endblock %}
 {% block main_class %}shell-main{% endblock %}
 
 {% block styles %}
@@ -26,8 +28,13 @@
 
 {% block nav %}{% endblock %}
 
+{# Function-nav rail — gated stage navigation. Pages opt in by filling the
+   `fnav` block; when it renders, body gains `shell--fnav` and the shell
+   grid grows a row between main+side and footer. #}
+{% block fnav %}{% endblock %}
+
 {% block post_main %}
-<aside class="shell-side" aria-label="Supporting">
+<aside class="shell-side" id="shell-side" aria-label="Supporting">
     {% block sidebar %}
     <h2>Next steps</h2>
     <ul class="shell-list">
@@ -37,4 +44,10 @@
     </ul>
     {% endblock %}
 </aside>
+{% if _fnav %}{{ _fnav | safe }}{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if _fnav %}<script src="/static/js/fnav.js?v=2" defer></script>{% endif %}
 {% endblock %}

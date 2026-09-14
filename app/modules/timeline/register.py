@@ -6,7 +6,7 @@ detected issues, journal entries, deadlines, and manual events. This is the
 tenant's "story of what happened" and is the home page of the tenant GUI.
 """
 
-from app.core.module_contracts import FunctionGroupContract, register_function_group
+from app.core.module_contracts import ContractStage, FunctionGroupContract, register_function_group
 
 register_function_group(
     FunctionGroupContract(
@@ -58,5 +58,13 @@ register_function_group(
         outputs=("event_id", "created_at"),
         dependencies=("app.modules.timeline.router",),
         deterministic=False,
+        stages=(
+            ContractStage(
+                id="describe_event",
+                label="Describe the event",
+                action="Save timeline event",
+                requires=("title", "event_date", "event_type"),
+            ),
+        ),
     )
 )

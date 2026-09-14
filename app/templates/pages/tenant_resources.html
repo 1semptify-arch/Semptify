@@ -13,6 +13,11 @@
   results and visually distinct, with one-tap tel: links.
 #}
 
+{# Staged nav rail: Find resources — always available (no required fields). #}
+{% set fnav_label = "Find help" %}
+{% set fnav_form_id = "rdForm" %}
+{% set fnav_back_stage = "tenant_home" %}
+
 {% block title %}Find help near you — Semptify{% endblock %}
 {% block nav_home %}nav-active{% endblock %}
 
@@ -69,7 +74,6 @@
     <label class="rd-label" for="rdLang">Language <span style="font-weight:400; color:var(--text-secondary);">(optional)</span></label>
     <input id="rdLang" class="rd-input" type="text" placeholder="es, so, hmn…">
   </div>
-  <button type="submit" class="rd-submit">{{ submit_label | default("Find resources", true) }}</button>
 </form>
 {% endblock %}
 

@@ -1,6 +1,6 @@
 """Journal module registration helper — FunctionGroupContracts."""
 
-from app.core.module_contracts import FunctionGroupContract, register_function_group
+from app.core.module_contracts import ContractStage, FunctionGroupContract, register_function_group
 
 register_function_group(
     FunctionGroupContract(
@@ -26,6 +26,14 @@ register_function_group(
         outputs=("entry_id", "entry"),
         dependencies=("app.modules.journal.router",),
         deterministic=False,
+        stages=(
+            ContractStage(
+                id="write",
+                label="Write the entry",
+                action="Save journal entry",
+                requires=("title",),
+            ),
+        ),
     )
 )
 

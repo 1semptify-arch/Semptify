@@ -40,9 +40,11 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.location.register",
     "app.modules.law_library.register",
     "app.modules.housing_accountability.register",
+    "app.modules.accountability_ledger.register",
+    "app.modules.context_engine.register",
+    # ACT pillar
     "app.modules.eviction_defense.register",
     "app.modules.complaints.register",
-    "app.modules.context_engine.register",
     # Infrastructure
     "app.modules.onboarding.register_contracts",
     "app.modules.auth.register",

@@ -6,7 +6,7 @@ it to look up specific laws; the Context Engine uses it to cite sources.
 Facts only — no interpretations, no opinions, no legal advice.
 """
 
-from app.core.module_contracts import FunctionGroupContract, register_function_group
+from app.core.module_contracts import ContractStage, FunctionGroupContract, register_function_group
 
 register_function_group(
     FunctionGroupContract(
@@ -38,6 +38,14 @@ register_function_group(
         outputs=("statute",),
         dependencies=("app.modules.law_library.router",),
         deterministic=True,
+        stages=(
+            ContractStage(
+                id="choose_statute",
+                label="Choose a statute",
+                action="Look up statute",
+                requires=("statute_id",),
+            ),
+        ),
     )
 )
 
@@ -100,6 +108,14 @@ register_function_group(
         outputs=("case",),
         dependencies=("app.modules.law_library.router",),
         deterministic=True,
+        stages=(
+            ContractStage(
+                id="choose_case",
+                label="Choose a case",
+                action="Look up case",
+                requires=("case_id",),
+            ),
+        ),
     )
 )
 
