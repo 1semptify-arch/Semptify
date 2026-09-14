@@ -1,0 +1,60 @@
+"""Accountability Ledger module registration — FunctionGroupContracts.
+
+The accountability ledger is the foundation data model for the accountability
+platform. It provides the subject registry, documented patterns, and
+political alignments that the housing_accountability pattern engine and the
+future political_tracker module reference.
+"""
+
+from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+register_function_group(
+    FunctionGroupContract(
+        module="accountability_ledger",
+        group_name="accountability_subject_lookup",
+        title="Accountability Subject Lookup (SSOT)",
+        description=(
+            "CANONICAL lookup of accountability subjects (landlords, LLCs, "
+            "judges, politicians, agencies) by type, jurisdiction, or name. "
+            "Returns the subject registry entries — public-record entity data only."
+        ),
+        inputs=("subject_type?", "jurisdiction?"),
+        outputs=("subjects", "total"),
+        dependencies=("app.modules.accountability_ledger.router",),
+        deterministic=True,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="accountability_ledger",
+        group_name="accountability_pattern_lookup",
+        title="Accountability Pattern Lookup (SSOT)",
+        description=(
+            "CANONICAL lookup of documented, evidence-backed accountability "
+            "patterns by subject, type, or jurisdiction. Every pattern ties "
+            "to public-record references — no narrative, no accusations."
+        ),
+        inputs=("subject_id?", "pattern_type?"),
+        outputs=("patterns", "total"),
+        dependencies=("app.modules.accountability_ledger.router",),
+        deterministic=True,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="accountability_ledger",
+        group_name="accountability_alignment_lookup",
+        title="Accountability Political Alignment Lookup (SSOT)",
+        description=(
+            "CANONICAL lookup of political alignments (campaign donations, "
+            "voting records, ruling patterns, public statements) for "
+            "politicians and judges. Each entry ties to a public-record source."
+        ),
+        inputs=("subject_id?", "alignment_type?"),
+        outputs=("alignments", "total"),
+        dependencies=("app.modules.accountability_ledger.router",),
+        deterministic=True,
+    )
+)

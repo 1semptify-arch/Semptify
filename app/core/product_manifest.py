@@ -791,6 +791,18 @@ _register(
     dev_notes="Depends on housing_accountability pattern matching.",
 )
 
+# Accountability Ledger — subject registry, documented patterns, political alignments
+# Foundation data model for the accountability platform (design: handoffs/accountability-platform-design-2026-09-14.md)
+_register(
+    "app.modules.accountability_ledger.router",
+    router_attr="accountability_ledger_router",
+    tags=("Accountability Ledger", "Political Tracker", "Research"),
+    tier=ProductTier.RESEARCH,
+    lifecycle="beta",
+    fees_policy=FeesPolicy.EXEMPT_ADVANCED,
+    dev_notes="Subject registry + documented patterns + political alignments. Resolves EvictionTimelineEvent.subject_id FK placeholder.",
+)
+
 # External system mappings (court cases, properties, agencies)
 _register(
     "app.modules.external_mappings.router",
