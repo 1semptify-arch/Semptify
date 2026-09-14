@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact – Semptify</title>
+  <title>Accessibility Statement – Semptify</title>
   <link rel="stylesheet" href="/static/css/ssot-design-system.css">
   <style>
     :root { --primary: var(--color-primary); --accent: var(--color-info); --text: var(--text-primary); --text-light: var(--text-secondary); --bg: var(--bg-page); }
@@ -16,20 +16,14 @@
     header nav a:hover { color: var(--text-inverse); }
     .article { max-width: 720px; margin: 0 auto; padding: 2.5rem 2rem; }
     h1 { font-size: 2rem; font-weight: 400; color: var(--primary); margin-bottom: 0.5rem; }
-    .subtitle { color: var(--text-light); margin-bottom: 2.5rem; font-size: 1.05rem; }
-    h2 { font-size: 1.1rem; color: var(--primary); margin: 0 0 0.35rem; font-weight: 600; }
-    p { color: var(--text-light); margin-bottom: 0.5rem; }
-    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin: 2rem 0; }
-    @media (max-width: 600px) { .contact-grid { grid-template-columns: 1fr; } }
-    .contact-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-block); padding: 1.5rem; }
-    .contact-card .icon { font-size: 1.75rem; margin-bottom: 0.75rem; }
-    .contact-card a { color: var(--accent); font-weight: 500; text-decoration: none; word-break: break-all; }
-    .contact-card a:hover { text-decoration: underline; }
-    .note { background: var(--color-warning-50); border-left: 4px solid var(--color-warning); padding: 1rem 1.25rem; border-radius: 0 var(--radius-block) var(--radius-block) 0; margin: 2rem 0; }
-    .note p { margin: 0; color: var(--color-warning-800); font-size: 0.95rem; }
-    footer { background: var(--primary); color: color-mix(in srgb, var(--color-white), transparent 30%); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
-    footer a { color: color-mix(in srgb, var(--color-white), transparent 30%); margin: 0 0.75rem; text-decoration: none; }
-    footer a:hover { color: var(--text-inverse); }
+    .updated { font-size: 0.85rem; color: var(--text-light); margin-bottom: 2rem; }
+    h2 { font-size: 1.2rem; color: var(--primary); margin: 2rem 0 0.75rem; font-weight: 600; }
+    p { color: var(--text-light); margin-bottom: 1.25rem; }
+    ul { margin: 0 0 1.25rem 1.5rem; color: var(--text-light); }
+    li { margin-bottom: 0.5rem; }
+    .callout { background: var(--color-warning-50); border-left: 4px solid var(--color-warning); padding: 1.25rem 1.5rem; margin: 1.5rem 0; border-radius: 0 var(--radius-block) var(--radius-block) 0; }
+    .callout p { margin: 0; color: var(--color-warning-800); font-weight: 500; }
+    a { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -39,51 +33,49 @@
     <nav>
       <a href="/public/privacy.html">Privacy</a>
       <a href="/public/terms.html">Terms</a>
-      <a href="/public/disclaimer.html">Disclaimer</a>
+      <a href="/public/contact.html">Contact</a>
     </nav>
   </header>
 
   <article class="article">
-    <h1>Contact Semptify</h1>
-    <p class="subtitle">We're a small team. We read every message.</p>
+    <h1>Accessibility Statement</h1>
+    <p class="updated">Last updated: September 2026</p>
 
-    <div class="contact-grid">
-
-      <div class="contact-card">
-        <div class="icon">👋</div>
-        <h2>General</h2>
-        <p>Questions about the app, how to use Semptify, or anything else.</p>
-        <a href="mailto:hello@semptify.org">hello@semptify.org</a>
-      </div>
-
-      <div class="contact-card">
-        <div class="icon">⚖️</div>
-        <h2>Legal</h2>
-        <p>Legal notices, copyright claims, subpoenas, or policy questions.</p>
-        <a href="mailto:legal@semptify.org">legal@semptify.org</a>
-      </div>
-
-      <div class="contact-card">
-        <div class="icon">🔒</div>
-        <h2>Privacy</h2>
-        <p>Data requests, privacy concerns, or to exercise your rights under applicable law.</p>
-        <a href="mailto:privacy@semptify.org">privacy@semptify.org</a>
-      </div>
-
-      <div class="contact-card">
-        <div class="icon">🛠️</div>
-        <h2>Technical</h2>
-        <p>Bug reports, technical issues, or problems connecting your storage.</p>
-        <a href="mailto:tech@semptify.org">tech@semptify.org</a>
-      </div>
-
+    <div class="callout">
+      <p>Semptify is built for people under stress — often on a phone, often in a hurry, sometimes with a disability. Accessibility is not a feature we add later; it is part of how the site is designed.</p>
     </div>
 
-    <div class="note">
-      <p>⚠️ We cannot provide legal advice or tell you what to do in your specific legal situation. For legal help, please contact a licensed attorney or your local legal aid society. See our <a href="/public/disclaimer.html">legal disclaimer</a>.</p>
-    </div>
+    <h2>Our Commitment</h2>
+    <p>We aim to conform to the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA across the Semptify website and application. This is an ongoing effort, not a finished claim — we test as we build and fix what we find.</p>
 
-    <p>Want to give feedback about the product? <a href="/public/feedback.html">Submit feedback here →</a></p>
+    <h2>What We Do</h2>
+    <ul>
+      <li>Semantic page structure — headings, landmarks, and lists that screen readers can navigate.</li>
+      <li>Full keyboard support — every interactive control is reachable and operable without a mouse.</li>
+      <li>Visible focus indicators — you can always see where you are on the page.</li>
+      <li>Color contrast that meets WCAG AA ratios; information is never carried by color alone.</li>
+      <li>Respect for reduced-motion settings — animations are disabled when your system asks for it.</li>
+      <li>Plain-language writing — short sentences, no jargon, honest labels.</li>
+      <li>Form fields with real labels and human-readable error messages.</li>
+    </ul>
+
+    <h2>Known Limitations</h2>
+    <p>We are a small project and some areas are still catching up:</p>
+    <ul>
+      <li>Some older pages are mid-migration to the current design system and may be less consistent.</li>
+      <li>Document previews of user-uploaded files (scans, photos) depend on the quality of the upload.</li>
+      <li>Third-party embeds (such as cloud storage pickers) are outside our direct control.</li>
+    </ul>
+
+    <h2>Tell Us When Something Blocks You</h2>
+    <p>If any part of Semptify is hard for you to use, we want to know — accessibility reports are treated as bugs, not suggestions.</p>
+    <ul>
+      <li><a href="/public/feedback.html">Send feedback</a> — describe what happened and what device/browser you use.</li>
+      <li><a href="/public/contact.html">Contact us</a> — for anything that needs a direct reply.</li>
+    </ul>
+
+    <h2>Enforcement</h2>
+    <p>If you believe your rights under the Americans with Disabilities Act or other accessibility laws have been violated, you may contact the U.S. Department of Justice or file a complaint through <a href="https://www.ada.gov" target="_blank" rel="noopener noreferrer">ada.gov</a>. We would still rather hear from you first so we can fix the problem.</p>
 
   </article>
 
