@@ -3279,7 +3279,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "situational_available": situational_available,
                 "narration": narration,
                 "explanation": explanation,
-                "next_step": {"label": "View your journal", "path": "/tenant/journal"},
             },
         )
         if not tapering_ctx["experience_token_saved_to_cloud"]:
