@@ -13,6 +13,11 @@
 {% set shell_ratio = "3fr 2fr" %}
 {% set shell_primary = "composer" %}
 {% set shell_mobile_order = ["composer", "preview", "help"] %}
+{# Staged nav rail: the forward action lives in .fnav and submits this
+   form; it stays locked until the stage's `requires` fields are filled. #}
+{% set fnav_label = "Journal entry" %}
+{% set fnav_form_id = "journalForm" %}
+{% set fnav_back_stage = "gui_record" %}
 
 {% block title %}{{ contract_title(contract) }} - Semptify{% endblock %}
 {% block nav_record %}active{% endblock %}
@@ -79,7 +84,6 @@
     </div>
   </details>
 
-  <button type="submit" class="output-trigger output-trigger--primary">Save journal entry</button>
 </form>
 {% endblock %}
 

@@ -4239,6 +4239,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "description": "Guided triage — what is happening, how urgent, and the right next step.",
             "inputs": ("primary_concern", "urgency", "urgent_date", "timeline_start", "situation"),
             "outputs": ("primary_concern", "is_urgent", "next_steps"),
+            "stages": [
+                {
+                    "id": "triage",
+                    "label": "Tell us what's happening",
+                    "action": "Find my next step",
+                    "requires": ["primaryConcern", "urgency"],
+                    "skippable": False,
+                }
+            ],
         }
 
         # IO expansion (ADR-0008): wire the Experience Token tapering dial —
@@ -4301,6 +4310,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "description": "Legal aid, hotlines, and community resources — verified listings.",
             "inputs": ("search", "category", "language"),
             "outputs": ("resources", "contact_info"),
+            "stages": [
+                {
+                    "id": "search",
+                    "label": "Search for help",
+                    "action": "Find resources",
+                    "requires": [],
+                    "skippable": False,
+                }
+            ],
         }
         return templates.TemplateResponse(
             request,

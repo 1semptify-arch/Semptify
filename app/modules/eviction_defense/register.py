@@ -6,7 +6,7 @@ analysis. Facts only — not legal advice. Tenants use this to understand their
 options and prepare documentation.
 """
 
-from app.core.module_contracts import FunctionGroupContract, register_function_group
+from app.core.module_contracts import ContractStage, FunctionGroupContract, register_function_group
 
 register_function_group(
     FunctionGroupContract(
@@ -118,6 +118,14 @@ register_function_group(
         outputs=("deadlines",),
         dependencies=("app.modules.eviction_defense.router",),
         deterministic=True,
+        stages=(
+            ContractStage(
+                id="enter_date",
+                label="Enter the service date",
+                action="Calculate deadlines",
+                requires=("start_date",),
+            ),
+        ),
     )
 )
 

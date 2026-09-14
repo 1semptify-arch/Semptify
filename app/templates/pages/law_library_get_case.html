@@ -16,6 +16,10 @@
 {% set shell_ratio = "2fr 3fr" %}
 {% set shell_primary = "preview" %}
 {% set shell_mobile_order = ["composer", "preview", "help"] %}
+{# Staged nav rail: Look up stays locked until a case is chosen. #}
+{% set fnav_label = "Case" %}
+{% set fnav_form_id = "caseForm" %}
+{% set fnav_back_stage = "law_library" %}
 
 {% block title %}{{ contract_title(contract) }} — Semptify{% endblock %}
 {% block nav_know %}active{% endblock %}
@@ -46,7 +50,7 @@
     <p class="record-guide__hint">Pick a case to see its citation, holding, and key quotes.</p>
   </div>
 
-  <button type="submit" class="output-trigger output-trigger--primary">Look up case</button>
+  {# forward action lives in the .fnav rail #}
 </form>
 {% endblock %}
 
