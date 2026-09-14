@@ -59,6 +59,21 @@
 </article>
 {% endblock %}
 
+{% block fnav %}
+{% if contract and contract.stages %}
+{% from "components/fnav.html" import fnav with context %}
+{% set _back = fnav_back_href | default('', true) %}
+{% if not _back and navigation %}
+  {% set _st = navigation.get_stage(fnav_back_stage | default('tenant_home', true)) %}
+  {% set _back = _st.path if _st else '' %}
+{% endif %}
+{{ fnav(contract.stages, current=current_stage | default(0),
+        form_id=fnav_form_id | default(''), back_href=_back,
+        module_label=fnav_label | default(''),
+        skip_href=fnav_skip_href | default('')) }}
+{% endif %}
+{% endblock %}
+
 {% block sidebar %}
 {% if _has_help %}
   <h2>{% block cps_help_title %}About this step{% endblock %}</h2>

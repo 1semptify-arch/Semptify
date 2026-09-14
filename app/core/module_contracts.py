@@ -16,6 +16,26 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
+class ContractStage:
+    """One stage of a staged function flow (gated stage navigation).
+
+    Declared on FunctionGroupContract.stages. The UI layer renders the
+    function-nav rail from these: the stage label + progress pips, a Back
+    action, quiet secondary actions, and the stage's forward action which
+    stays visibly locked until every field named in `requires` is satisfied.
+
+    This is in-task ordering, not access gating — it hides/defers actions
+    that cannot run yet, it never removes access to a function.
+    """
+
+    id: str  # stable stage id, e.g. "choose_file"
+    label: str  # shown in the rail, e.g. "Choose the file"
+    action: str  # forward-action label, e.g. "Save journal entry"
+    requires: tuple[str, ...] = ()  # form field names that must be non-empty to unlock `action`
+    skippable: bool = False  # whether a Skip action appears at this stage
+
+
+@dataclass(frozen=True)
 class FunctionGroupContract:
     """Standard contract for a function-group within a module."""
 
@@ -34,6 +54,12 @@ class FunctionGroupContract:
     allowed_routes: tuple[str, ...] = ()  # canonical route paths, e.g. "/api/disputes"
     allowed_prefixes: tuple[str, ...] = ()  # URL prefixes this group may register
 
+    # Staged function navigation (added 2026-09-14). Empty = single-stage
+    # page, no rail rendered. When set, the guide-page shell renders the
+    # .fnav rail: progress pips + only the actions valid at the current
+    # stage (back / quiet actions / the gated forward action).
+    stages: tuple[ContractStage, ...] = ()
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "module": self.module,
@@ -47,6 +73,16 @@ class FunctionGroupContract:
             "tier": self.tier,
             "allowed_routes": list(self.allowed_routes),
             "allowed_prefixes": list(self.allowed_prefixes),
+            "stages": [
+                {
+                    "id": s.id,
+                    "label": s.label,
+                    "action": s.action,
+                    "requires": list(s.requires),
+                    "skippable": s.skippable,
+                }
+                for s in self.stages
+            ],
         }
 
 

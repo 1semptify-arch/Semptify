@@ -3137,5 +3137,19 @@
     "updated_at": "2026-09-11T15:33:50.611533+00:00",
     "target_model": "trusted",
     "assigned_agent": "claude"
+  },
+  {
+    "id": "gated-stage-nav-001",
+    "title": "Contract-declared staged function-nav rail (progress pips + gated actions) for guide pages",
+    "description": "Add ContractStage + optional stages field to FunctionGroupContract; add .fnav rail component (position label, progress pips, Back, quiet actions, gated forward) to ssot-design-system.css under body.shell--fnav 4-row grid variant; components/fnav.html Jinja macro; fnav block in shell_base.html + composer_preview_shell.html; proof on journal_create guide page (Save locks until required fields valid, progressive enhancement only).",
+    "file_path": "app/core/module_contracts.py",
+    "status": "review",
+    "priority": "high",
+    "category": "feature",
+    "target_model": "claude",
+    "assigned_agent": "devin",
+    "created_at": "2026-09-14T04:06:40Z",
+    "notes": "Brad-approved direction 2026-09-14. Spec: master-repo/front end design factors brads/site design/GATED_NAV_SPEC.md. Fills the logged gap 'no contract has GUI fields yet'.\n[2026-09-14 04:39 UTC - devin] fnav rail live-verified on journal_create: gating, unlock, real POST save, relock-on-reset, mobile 375 + desktop, console clean, ssot+contract+journal+module_health tests pass",
+    "updated_at": "2026-09-14T04:39:07.339547+00:00"
   }
 ]

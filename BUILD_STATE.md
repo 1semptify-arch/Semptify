@@ -14050,3 +14050,33 @@ Nothing is real until it is pushed.
 
 **Next session should start with:**
 - Brad merges #225, then OCR word-box pipeline or advocate/legal account setup — his call.
+
+
+## Session — 2026-09-14 — Gated stage navigation (fnav) — first contract-driven rail (devin)
+
+**Task:** `gated-stage-nav-001` — move the staged/gated function-nav design from the static prototype into production, starting with journal_create.
+
+**What was shipped (uncommitted):**
+- `app/core/module_contracts.py` — new frozen `ContractStage` dataclass (`id`, `label`, `action`, `requires`, `skippable`) + optional `stages` field on `FunctionGroupContract`, serialized in `to_dict()`. Purely additive — all 771 existing contracts unaffected.
+- `app/modules/journal/register.py` — `journal_create` declares one stage "Write the entry" (requires `title`, action "Save journal entry").
+- `app/templates/components/fnav.html` — reusable Jinja macro: module label + progress pips + Back (left) + quiet actions (Need more info, Skip when stage.skippable) + gated forward submit (right, `form=` attr, `data-fnav-requires`).
+- `app/templates/shell_base.html` — `shell--fnav` body variant when a page renders the `fnav` block; rail sits between side rail and footer; `#shell-side` id added; `fnav.js?v=2` loaded only when rail present.
+- `app/templates/body/composer_preview_shell.html` — default `fnav` block: any guide page whose contract declares `stages` gets the rail automatically (page sets `fnav_label`, `fnav_form_id`, `fnav_back_stage`).
+- `app/templates/pages/journal_create_guide.html` — wired: sets fnav vars; the in-form submit button was removed so the rail's action is the only forward control.
+- `static/css/ssot-design-system.css` — `.fnav` component styles (locked/quiet/go states, pips, gate note, mobile stacking).
+- `static/js/fnav.js` — progressive enhancement: locks forward action while `requires` fields are empty, gate note names the missing fields by their labels ("Needs Title first"), relocks on form reset. Without JS the button submits normally — never a dead end.
+
+**Verified live** (fresh uvicorn on :8001, seeded test user, real session):
+- Rail renders: "Journal entry · 1 of 1" + pip, ← Back → /gui/record, Need more info → #shell-side, locked "Save journal entry →".
+- Fill title → unlocks live. Click → real `POST /api/journal/` → "Saved. Entry ID: jrn_..." → form reset → button relocks with gate note.
+- Disabled state is real `disabled` — not clickable-but-dead.
+- 375px mobile: rail stacks in document order between side rail and footer, no horizontal scroll, Save spans full width.
+- Console clean (0 errors/warnings). ARIA: `role=navigation` + `aria-label="Task steps"`, sr-only step text, `role=status` gate note, `aria-disabled` on locked button.
+- `py_compile` clean; `test_ssot_architecture.py` all pass; `test_module_contracts.py` + `test_contracts_framework.py` 26/26; journal tests 8/8.
+- Caught during verification: stale uvicorn (PID 18928, system Python, from previous day) was serving old code on :8001 — killed and restarted under venv311. Static JS is browser-cached aggressively — template now busts with `?v=2`.
+
+**Known pending / flags:**
+- Only journal_create uses stages so far. Other guide pages get the rail by declaring `stages` in their contract — no further shell changes needed.
+- The production footer still carries nav links (Home / Get help now / Law Library / Report a problem) — the decided design is disclaimer-only centered; separate task.
+- Gate note uses field labels ("Needs Title first") — for multi-field stages confirm wording reads well.
+- `next_step` context var on this page hardcodes `/tenant/journal` in the route (pre-existing; the template itself already uses `navigation.get_stage('tenant_journal')` — flag for a cleanup pass, not this task).

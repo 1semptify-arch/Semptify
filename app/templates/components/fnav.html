@@ -1,0 +1,49 @@
+{#
+  Function-nav rail — gated stage navigation, rendered from
+  FunctionGroupContract.stages (list of dicts: id, label, action,
+  requires, skippable).
+
+  Parameters:
+    stages       — contract stages (list of dicts). Required.
+    current      — index of the active stage (default 0).
+    form_id      — id of the form the forward action submits (default "").
+    back_href    — URL for the Back action (default "" = not rendered).
+    back_label   — Back label (default "Back").
+    module_label — left-edge label, e.g. "Journal entry" (default "").
+    help_anchor  — anchor for "Need more info" (default "#shell-side").
+    skip_href    — URL for Skip; rendered only when the current stage
+                   declares skippable (default "" = not rendered).
+
+  The forward button carries data-fnav-requires so static/js/fnav.js can
+  gate it on the named form fields. Without JS the button submits
+  normally — the gate is an enhancement, never a dead end.
+#}
+{% macro fnav(stages, current=0, form_id="", back_href="", back_label="Back", module_label="", help_anchor="#shell-side", skip_href="") %}
+{% set stage = stages[current] %}
+<div class="fnav" role="navigation" aria-label="Task steps">
+  <span class="fnav__pos">
+    {% if module_label %}<span class="fnav__label">{{ module_label }} · {{ current + 1 }} of {{ stages | length }}</span>{% endif %}
+    <span class="fnav__pips" aria-hidden="true">
+      {% for s in stages %}<i class="{{ 'done' if loop.index0 < current else 'now' if loop.index0 == current else '' }}"></i>{% endfor %}
+    </span>
+    <span class="sr-only">Step {{ current + 1 }} of {{ stages | length }}: {{ stage.label }}</span>
+  </span>
+
+  {% if back_href %}
+  <a class="fnav__btn fnav__btn--back" href="{{ back_href }}">← {{ back_label }}</a>
+  {% endif %}
+
+  <a class="fnav__btn fnav__btn--quiet" href="{{ help_anchor }}">Need more info</a>
+
+  {% if stage.skippable and skip_href %}
+  <a class="fnav__btn fnav__btn--quiet" href="{{ skip_href }}">Skip</a>
+  {% endif %}
+
+  <span class="fnav__gate" role="status"></span>
+  <button type="submit"
+          {% if form_id %}form="{{ form_id }}"{% endif %}
+          class="fnav__btn fnav__btn--go"
+          data-fnav-stage="{{ stage.id }}"
+          data-fnav-requires="{{ stage.requires | join(',') }}">{{ stage.action }} →</button>
+</div>
+{% endmacro %}
