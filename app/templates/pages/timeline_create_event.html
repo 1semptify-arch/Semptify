@@ -13,6 +13,10 @@
 {% set shell_ratio = "3fr 2fr" %}
 {% set shell_primary = "composer" %}
 {% set shell_mobile_order = ["composer", "preview", "help"] %}
+{# Staged nav rail: Save stays locked until title + date are filled. #}
+{% set fnav_label = "Timeline event" %}
+{% set fnav_form_id = "timelineForm" %}
+{% set fnav_back_stage = "gui_record" %}
 
 {% block title %}{{ contract_title(contract) }} - Semptify{% endblock %}
 {% block nav_record %}active{% endblock %}
@@ -87,7 +91,6 @@
     </div>
   </details>
 
-  <button type="submit" class="output-trigger output-trigger--primary">Save timeline event</button>
 </form>
 {% endblock %}
 

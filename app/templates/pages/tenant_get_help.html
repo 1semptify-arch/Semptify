@@ -14,6 +14,11 @@
   the renderer strips leading non-word characters.
 #}
 
+{# Staged nav rail: Find my next step stays locked until concern + urgency are chosen. #}
+{% set fnav_label = "Get help now" %}
+{% set fnav_form_id = "triageForm" %}
+{% set fnav_back_stage = "tenant_home" %}
+
 {% block title %}Get help now — Semptify{% endblock %}
 {% block nav_home %}nav-active{% endblock %}
 
@@ -93,7 +98,6 @@
     <textarea id="situation" placeholder="A sentence or two is plenty."></textarea>
   </div>
 
-  <button type="submit" class="triage-submit">{{ submit_label | default("Find my next step", true) }}</button>
 </form>
 {% endblock %}
 
@@ -155,7 +159,7 @@
       },
     };
 
-    const btn = form.querySelector('button[type="submit"]');
+    const btn = document.querySelector('.fnav [data-fnav-requires]') || form.querySelector('button[type="submit"]');
     if (btn) { btn.disabled = true; btn.textContent = 'Working…'; }
 
     try {
@@ -191,7 +195,7 @@
       empty.textContent = 'Something went wrong saving your answers. You can still go straight to /help for human help.';
       empty.hidden = false;
     } finally {
-      if (btn) { btn.disabled = false; btn.textContent = '{{ submit_label | default("Find my next step", true) }}'; }
+      if (btn) { btn.disabled = false; btn.textContent = '{{ submit_label | default("Find my next step", true) }} →'; }
     }
   });
 })();
