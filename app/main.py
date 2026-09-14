@@ -462,9 +462,13 @@ async def lifespan(_app: FastAPI):
             except SQLAlchemyError:
                 return False
 
-        await run_stage(3, TOTAL_STAGES, "Initialize Database", init_database, verify_database)
-
         # --- STAGE 3b: Run Database Migrations (Alembic) ---
+        # Runs BEFORE init_db()'s create_all on purpose: Alembic owns the
+        # managed schema on Render. create_all is checkfirst, so when it ran
+        # first it created new model tables and the pending migration's
+        # create_table collided — this exact race killed deploys
+        # dep-daju6q0jo6nc73fa859g and dep-dajucd95efls73acoplg (exit 3).
+        # Alembic first; create_all then harmlessly skips what it created.
         async def run_migrations():
             """Auto-run Alembic migrations on startup for Render deploys."""
             import asyncio
@@ -540,7 +544,10 @@ async def lifespan(_app: FastAPI):
 
         await run_stage(3, TOTAL_STAGES, "Database Migrations", run_migrations, verify_migrations)
 
-        # --- STAGE 3b: Initialize module_overrides schema + warm cache ---
+        # --- STAGE 3c: Initialize Database (create_all for non-managed tables) ---
+        await run_stage(3, TOTAL_STAGES, "Initialize Database", init_database, verify_database)
+
+        # --- STAGE 3d: Initialize module_overrides schema + warm cache ---
         async def init_module_overrides():
             from app.core.database import get_session_factory
             from app.core.module_overrides import ensure_schema, load_overrides
@@ -3279,7 +3286,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "situational_available": situational_available,
                 "narration": narration,
                 "explanation": explanation,
-                "next_step": {"label": "View your journal", "path": "/tenant/journal"},
             },
         )
         if not tapering_ctx["experience_token_saved_to_cloud"]:
