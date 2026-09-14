@@ -1,3 +1,37 @@
+## Session — 2026-09-14 (PM) — Deploy unblocked: migration race + branch-merge casualty (devin)
+
+### What shipped (all live on prod as of dep-dajvinlg1s2s73cbkttg / commit cd9db8cb)
+- **PRs #240–#243 merged and deployed.** The whole fnav/footer/pillars/
+  accountability-ledger/accessibility batch is live. `alembic_version`
+  = `20260914_acc_ledger`; `fk_eviction_timeline_subject` FK exists on
+  `eviction_timeline_events.subject_id` → `accountability_subjects(id)`
+  ON DELETE SET NULL. Site verified: /healthz, /, /public/accessibility.html
+  all 200.
+- **Startup order fixed (in #241):** Alembic migrations now run BEFORE
+  `init_db()`/`create_all` on Render — the original race where create_all
+  pre-created new model tables and the migration's `create_table` collided
+  (deploys dep-daju6q0jo/dajucd95e, exit 3). Local dev unchanged.
+- **Idempotent `20260914_acc_ledger` migration (in #242):** skips existing
+  tables/indexes, adds the FK only when absent — repairs prod's
+  create_all-built state.
+
+### Deploy forensics (worth remembering)
+- **Root cause #1:** create_all ran before Alembic → relation-already-exists
+  → rollback → `verify_migrations` correctly failed the deploy (exit 3).
+  The gate did its job — killed bad deploys instead of booting schema drift.
+- **Root cause #2 (sneaky):** PR #241's GitHub "Update branch" merge
+  (`cd51b6d4`) resolved the migration file AND `components/footer.html`
+  back to main's older copies — so deploy dep-dajvaip5e ran new ordering
+  with the OLD migration (same crash), and the footer lost its
+  Accessibility link. **Lesson: after a squash merge, local main diverges
+  from remote (new hashes); "Update branch" on a later PR then merges
+  same-content-different-hash commits and can silently revert files.**
+  Fix shipped as #242 (migration) + #243 (footer link), each a single-file
+  branch off current main. Local main was then reset to `github-direct/main`
+  so the trees match again — keep them in sync after every squash merge.
+- One deploy (dep-dajum0n) also timed out at ~19min with the new instance
+  never emitting a log — platform-side hang, transient.
+
 ## Session — 2026-09-14 — Gated fnav rail rollout + footer + ACT pillar fixes (devin)
 
 ### What shipped (PR pending — branch protection requires review)
