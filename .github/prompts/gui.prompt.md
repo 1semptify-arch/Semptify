@@ -1,16 +1,16 @@
 ---
-name: gui
+mode: agent
 description: Canonical procedure for any Semptify GUI/UI work — pages, templates, CSS, layout, styling. Use before building or editing any visual surface.
 ---
 
-# Skill
+<!-- Mirrors .devin/skills/gui/SKILL.md — keep both in sync when editing. -->
 
-## Semptify GUI Work — Canonical Procedure
+# Semptify GUI Work — Canonical Procedure
 
 Run this before building or editing any page, template, stylesheet, or visual component.
 Skipping it is how the design system drifts and Known Failures repeat.
 
-### Step 1: Read the canonical sources — in this order
+## Step 1: Read the canonical sources — in this order
 
 1. `docs/admin/SSOT_DESIGN_SYSTEM.md` — the design system: ONE CSS file, tokens, utilities, component classes.
 2. `GUI_VISUAL_BLUEPRINT.md` (master-repo root) — the visual blueprint.
@@ -18,14 +18,14 @@ Skipping it is how the design system drifts and Known Failures repeat.
 4. `ACTIVE_CONTEXT.md` § Core Rules — current layout doctrine (shell variants, page models, tapering).
 5. `BUILD_STATE.md` — last 2 entries (what chrome is live right now).
 
-### Step 2: Read the binding rules
+## Step 2: Read the binding rules
 
 - `.cursor/rules/01-gui-chronological-spatial.mdc` — chronological task ordering + eye-path audit. **Mandatory before marking any GUI task done.**
 - `.devin/rules/10-progressive-disclosure.md` — capability revelation / Familiarity Tapering.
 - `.devin/rules/01-product-positioning.md` — pillars + positioning language.
 - `.devin/rules/03-ssot-redirects.md` — no hardcoded URLs anywhere (Python or templates).
 
-### Step 3: Use the canonical chrome — do not invent layout
+## Step 3: Use the canonical chrome — do not invent layout
 
 Current canonical chrome is **Site Shell v5** (see BUILD_STATE.md 2026-09-12):
 
@@ -42,20 +42,20 @@ Page models (two independent, never competing):
 
 Form-factor variants: **desktop-poster vs mobile-stacked-scroll** — apply both, every page.
 
-### Step 4: Styling rules — non-negotiable
+## Step 4: Styling rules — non-negotiable
 
 - `static/css/ssot-design-system.css` is the ONLY design-system file. Use its tokens, utility classes, and component classes.
 - **No card borders.** Zone-based background separation to group controls.
 - **Do not create new CSS files or inline styles** without checking the SSOT file first — `static/design-system.css`, `static/css/main.css`, `static/css/semptify.css`, and `app/static/css/` are suspected drift; confirm what's actually linked before extending or deleting anything (Known Failure #17: never delete a referenced static asset mid-migration).
 - Themes live in `static/css/themes/` (crimson, forest, ocean, royal, slate) — extend there, not ad hoc.
 
-### Step 5: Copy rules — non-negotiable
+## Step 5: Copy rules — non-negotiable
 
 - **NEVER** "free", "account", "log in", "sign up", "subscription", "premium", "pricing", "trial" on user-facing surfaces (factual descriptions of external resources excepted).
 - North star is **Time to Real Help** — no engagement mechanics, no urgency tactics, no dark patterns. Calm CTAs ("Get help now" pattern).
 - No dead ends — every error/empty state routes toward real help.
 
-### Step 6: Verify against the running app — required
+## Step 6: Verify against the running app — required
 
 Do not mark GUI work done on code review alone.
 
@@ -65,7 +65,7 @@ Do not mark GUI work done on code review alone.
 4. **Eye-path audit**: trace top-left → down/right through the page. Every earlier-step control must sit above/left of later-step controls. If not, rearrange before submitting.
 5. Navigation changes: `python tests/test_ssot_architecture.py` must pass.
 
-### Watch for
+## Watch for
 
 - `.html` static files can shadow Jinja routes (`/about.html` vs `/about`) — check `static/` before assuming a route renders your template.
 - Contract copy is contract-shaped, not user-friendly — templates expose title/description override blocks; use them rather than editing contracts.

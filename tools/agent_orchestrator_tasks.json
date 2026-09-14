@@ -3157,11 +3157,11 @@
     "title": "Footer: remove nav links; centered disclaimer + legal/policy row + \u00a9 line",
     "description": "Per Brad: remove footer nav links (Home/Get help/Law Library/Report a problem); centered disclaimer + policy row (Privacy, Terms, Disclaimer, About, Contact, Feedback) + copyright line, centered full browser width. Applies to components/footer.html used by base.html everywhere; both full and compact shell variants.",
     "file_path": "app/templates/components/footer.html, static/css/ssot-design-system.css",
-    "status": "in_progress",
+    "status": "review",
     "created_at": "2026-09-14T07:03:14.031339+00:00",
-    "updated_at": "2026-09-14T07:03:14.031339+00:00",
+    "updated_at": "2026-09-14T07:07:46.753981+00:00",
     "target_model": "claude",
     "assigned_agent": "devin",
-    "notes": ""
+    "notes": "[2026-09-14 07:07 UTC - devin] live-verified: centered footer on shell + landing, all 6 links 200, no footer-nav refs left, no h-scroll at 375"
   }
 ]
