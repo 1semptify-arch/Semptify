@@ -1,6 +1,6 @@
 """Complaints module registration helper — FunctionGroupContracts.
 
-The complaints module is the KNOW pillar's agency layer. It helps tenants
+The complaints module is the ACT pillar's agency layer. It helps tenants
 file complaints with housing agencies by providing agency info, checklists,
 draft generation, and a wizard. Facts only — the tenant files themselves.
 """
