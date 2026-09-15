@@ -428,13 +428,13 @@ _templates = Jinja2Templates(directory=str(Path("app/templates")))
 # module_page.html extends base.html, which needs the shared i18n/navigation
 # globals that main.py installs on its own env — mirror them here so the
 # generic tool renderer doesn't 500 on 'get_locale' / '_' (KF: pre-existing).
-from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale  # noqa: E402
+from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, get_locale  # noqa: E402
 
 _templates.env.globals.update(
     {
         "get_locale": get_locale,
         "_": _jinja2_gettext,
-        "supported_locales": SUPPORTED_LOCALES,
+        "supported_locales": available_locales(),
         "navigation": navigation,
     }
 )
