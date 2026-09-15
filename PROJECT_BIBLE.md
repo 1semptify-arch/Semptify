@@ -72,13 +72,23 @@ For any question about security, privacy, or production safety, consult `SECURIT
 
 ## 4. Approved Onboarding Flow (Core 5.0)
 
-The canonical first-run onboarding flow is:
+The canonical first-run onboarding flow, verified against live code
+2026-09-15, is:
 
-1. Welcome screen (`/static/welcome.html`)
-2. Role selection (`/onboarding/select-role.html`) — Tenant only in Core
-3. **Storage connection (MANDATORY)** (`/onboarding/providers`) → OAuth → callback
-4. **Vault setup** (`/onboarding/vault-setup`) — creates folders, marks `vault_initialized` gate
-5. Tenant home (`/tenant/home`)
+1. Welcome screen (`static/public/welcome.html`, served at `/`)
+2. **`/preamble`** — the only new-vs-returning branch point
+   (`app/modules/preamble/router.py`). Earlier versions of this section
+   omitted it.
+3. Role selection (`/onboarding/select-role.html`) — Tenant only in Core
+4. **Storage connection (MANDATORY)** (`/onboarding/providers`) → OAuth → callback
+5. **Vault setup — three steps, not one:**
+   - `/onboarding/vault-setup` → `POST /api/vault/init` (folders only)
+   - `/onboarding/vault-setup/security` → `POST /api/vault/security`
+     (encrypted token backup, then system/data files)
+   - `/onboarding/vault-setup/inspect` → `POST /api/vault/verify`
+     (write/read-back probe, then the first document through the full
+     pipeline; marks `vault_initialized` + `document_uploaded`)
+6. `/onboarding/complete` → role-specific home via `route_user()`
 
 **Note:** Storage connection is mandatory for Core 5.0. There is no "skip" option.
 Documents are stored in user's cloud provider (Google Drive, Dropbox, or OneDrive).
@@ -94,9 +104,36 @@ Onboarding is gate-driven, not flag-driven. Each gate unlocks the next:
 
 - `storage_connected` — OAuth completed to the tenant's own cloud provider.
 - `vault_initialized` — marked only after the vault pipeline fully proves itself (folders, files, token backup, live write/read probe). Never marked on folder creation alone.
-- `document_uploaded` — proof-receipt gate: marked atomically with `vault_initialized` at the end of vault setup, once the first real document is deposited into the vault — written to the tenant's own cloud drive, read back, certified, registered, and placed on the timeline. The vault is the document's permanent home; this gate proves the vault can actually receive and hold it.
+- `document_uploaded` — marked at the end of vault setup, once the first real document is deposited into the vault — written to the tenant's own cloud drive, read back, certified, registered, and placed on the timeline. The vault is the document's permanent home; this gate proves the vault can actually receive and hold it.
 
-Live gate enforcement reads `storage_connected` + `vault_initialized` via `app/core/onboarding_state.py`. Decided 2026-09-12: `document_uploaded` stays a proof receipt, not an enforced gate — both marks are written atomically, so a marked-vault/unmarked-document state cannot occur in the normal flow.
+**Live enforcement — read this before changing any gate logic.**
+`app/core/onboarding_state.py` is the live enforcement path, consumed by
+`StorageRequirementMiddleware` (`app/main.py`). It reads `storage_connected`
+and `vault_initialized` only.
+
+`OnboardingGateMiddleware` (`app/modules/onboarding/middleware.py`) is
+**not registered** — `app/main.py` constructs `OnboardingConfig` with
+`enable_gate_middleware=False`, so `register_onboarding()` skips
+`add_middleware`. Its `gate_routes` dict is dead code in production.
+Changing it has no runtime effect; two prior agent sessions lost time
+"fixing" it. Any change to gate enforcement belongs in
+`app/core/onboarding_state.py`.
+
+**Correction (2026-09-15):** this section previously stated that
+`vault_initialized` and `document_uploaded` are "written atomically." That
+is **false in code.** `mark_gate()` commits inside itself
+(`app/modules/onboarding/gates.py`), and the two calls at the end of
+`POST /api/vault/verify` are two sequential commits, so a crash between
+them can leave vault-marked/document-unmarked. The consequence is bounded —
+`/onboarding/complete` and the `/onboarding/status` page both route that
+user to `/onboarding/vault-setup/inspect`, the real upload page — but the
+atomicity claim itself should not be relied on.
+
+The 2026-09-12 decision that `document_uploaded` is a passive proof receipt
+was **superseded on 2026-09-15**: Brad decided it is an enforced gate that
+completes onboarding, alongside splitting vault creation from vault
+completion. See `handoffs/onboarding-rewrite-2026-09-15.md`. Until that work
+lands, the live behaviour is as described above.
 
 The `client_activated` gate was removed on 2026-05-12 — do not reintroduce it. See `.devin/rules/08-onboarding-gates.md`.
 
