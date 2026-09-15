@@ -1,82 +1,353 @@
 {% extends "body/public_shell.html" %}
 
-{% block title %}About Semptify — Tenant Rights Organization{% endblock %}
-{% block description %}Semptify is a tenant rights organization building technology to protect and advance lawful tenant rights through documentation, education, and record-keeping.{% endblock %}
+{% block title %}About Semptify — The Cause, The Mission, The Promise{% endblock %}
+{% block description %}Semptify is a tenant rights organization building technology to protect and advance lawful tenant rights through documentation, education, and evidence preservation.{% endblock %}
 {% block keywords %}about semptify, tenant rights organization, housing advocacy, nonprofit{% endblock %}
 
-{% block header_title %}About Semptify{% endblock %}
-{% block header_tagline %}Tenant rights, documented.{% endblock %}
-{% block header_subtitle %}A tenant rights organization building technology to protect renters.{% endblock %}
+{% block header_title %}The Cause Behind Semptify{% endblock %}
+{% block header_tagline %}People facing housing problems deserve the same tools that attorneys have — at no cost, without someone profiting from their crisis.{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .promise-banner { background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)); color: var(--text-inverse); border-radius: var(--radius-block); padding: 2rem 2rem 1.75rem; margin-bottom: 2.5rem; }
+    .promise-banner h2 { color: var(--text-inverse); margin-top: 0; font-size: 1.35rem; border-bottom: 1px solid color-mix(in srgb, var(--color-white), transparent 80%); padding-bottom: 0.75rem; margin-bottom: 1.25rem; }
+    .promise-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .promise-list li { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.92rem; line-height: 1.5; }
+    .promise-list li .mark { flex-shrink: 0; margin-top: 0.05rem; font-size: 1rem; }
+    .promise-list li span { opacity: 0.93; }
+
+    .hard-no { background: var(--color-warning-50); border-radius: var(--radius-block); padding: 1.5rem; margin-bottom: 2.5rem; }
+    .hard-no h2 { color: var(--color-warning-800); margin-top: 0; font-size: 1.15rem; margin-bottom: 1rem; }
+    .hard-no-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+    .hard-no-item { background: var(--bg-card); border-radius: var(--radius-block); padding: 0.85rem 1rem; display: flex; gap: 0.6rem; align-items: flex-start; }
+    .hard-no-item .no-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .hard-no-item strong { font-size: 0.88rem; display: block; color: var(--color-warning-800); margin-bottom: 0.15rem; }
+    .hard-no-item span { font-size: 0.82rem; color: var(--color-warning-800); line-height: 1.4; }
+
+    .data-box { background: var(--color-success-50); border-radius: var(--radius-block); padding: 1.5rem; margin-bottom: 2.5rem; }
+    .data-box h2 { color: var(--color-success-800); margin-top: 0; font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .data-box p { color: var(--color-success-800); margin-bottom: 0.75rem; font-size: 0.92rem; }
+    .data-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+    .data-col h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .data-col.never h4 { color: var(--color-error); }
+    .data-col.only h4 { color: var(--color-success); }
+    .data-col ul { list-style: none; padding: 0; margin: 0; }
+    .data-col ul li { font-size: 0.85rem; padding: 0.35rem 0; border-bottom: 1px solid color-mix(in srgb, var(--color-black), transparent 94%); display: flex; gap: 0.4rem; color: var(--color-success-800); }
+    .data-col ul li:last-child { border-bottom: none; }
+
+    .funding-box { background: var(--bg-surface); border-left: 4px solid var(--color-primary); border-radius: 0 var(--radius-block) var(--radius-block) 0; padding: 1.5rem 1.75rem; margin-bottom: 2.5rem; }
+    .funding-box h2 { color: var(--color-primary); margin-top: 0; font-size: 1.15rem; margin-bottom: 0.75rem; }
+    .funding-box p { color: var(--color-primary); font-size: 0.93rem; margin-bottom: 0.6rem; }
+    .funding-box p:last-child { margin-bottom: 0; }
+
+    .org-group { margin-bottom: 1.5rem; }
+    .org-group h3 { font-size: 0.9rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.6rem; }
+    .org-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .org-chip { display: inline-block; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.35rem 0.75rem; font-size: 0.83rem; color: var(--text-secondary); text-decoration: none; }
+    .org-chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .org-chip[target="_blank"]::after { content: " ↗"; font-size: 0.7rem; opacity: 0.6; }
+    .orgs-note { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem; background: var(--bg-surface); border-radius: var(--radius-block); padding: 0.75rem 1rem; }
+
+    .stat-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
+    .stat-box { background: var(--bg-card); border-radius: var(--radius-block); padding: 1.25rem; text-align: center; }
+    .stat-box .num { font-size: 1.5rem; font-weight: 800; color: var(--color-accent); }
+    .stat-box .label { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3; }
+
+    .team-note { background: var(--bg-surface); border-radius: var(--radius-block); padding: 1.5rem; margin: 1.5rem 0 2.5rem; font-size: 0.92rem; color: var(--text-primary); }
+    .team-note strong { display: block; margin-bottom: 0.5rem; font-size: 1rem; color: var(--color-primary); }
+
+    @media (max-width: 768px) {
+        .stat-bar { grid-template-columns: 1fr 1fr; }
+        .promise-list { grid-template-columns: 1fr; }
+        .data-cols { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
 
 {% block page_body %}
 
 <section class="section">
-    <h2 class="section-title">Our Mission</h2>
-    <p style="color: var(--text-light); font-size: 1.1rem;">
-        Semptify is a tenant rights organization building technology to protect and advance
-        lawful tenant rights through documentation, education, and record-keeping.
+    <h2 class="section-title">Why This Exists</h2>
+    <p class="section-description">
+        Every year, hundreds of thousands of people face eviction, uninhabitable conditions, illegal rent increases, and landlord retaliation.
+        The legal system can help them — but only if they can organize their evidence, meet their deadlines, communicate clearly, and show up with the right documents.
     </p>
-    <p style="color: var(--text-light); margin-top: 1rem;">
-        We are on the side of tenants — always. We advocate for tenants exercising their
-        legal rights, not tenants breaking the law. Our tools help renters document their
-        tenancy, understand their rights, and protect themselves when something goes wrong.
+    <p class="section-description">
+        Most people in a housing crisis do not have a lawyer. They do not have money for one. They are often working multiple jobs, managing children, dealing with health problems, or simply overwhelmed by a system that was not designed with them in mind.
     </p>
+    <p class="section-description">
+        Semptify exists to close that gap. Not by replacing attorneys — we never claim to do that — but by giving people the same organizational tools, the same record-keeping discipline, and the same document-ready posture that a well-funded legal team would provide.
+    </p>
+    <p class="section-description">
+        <strong>When a tenant has organized evidence, a complete timeline, and records of every communication, their landlord has far fewer excuses. That is what we build for.</strong>
+    </p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Who We Serve</h2>
+    <div class="services-grid">
+        <div class="service-card">
+            <span class="icon">🏠</span>
+            <h3>Tenants</h3>
+            <p>People renting a home who need to document conditions, track rent payments, record communications, and build a clear record of their tenancy. This is our primary user and our first priority in every decision.</p>
+        </div>
+        <div class="service-card">
+            <span class="icon">🤝</span>
+            <h3>Advocates</h3>
+            <p>Housing counselors, tenant unions, and community organizers who help multiple tenants at once. Semptify helps them manage cases, deliver documents securely, and stay organized without spreadsheets.</p>
+        </div>
+        <div class="service-card">
+            <span class="icon">⚖️</span>
+            <h3>Legal Aid &amp; Attorneys</h3>
+            <p>Legal professionals working in housing law who need organized case files, evidence trails, and court-ready documents. We build to MN Supreme Court exhibit standards (MNDES ADM09-8010).</p>
+        </div>
+        <div class="service-card">
+            <span class="icon">🔬</span>
+            <h3>Researchers &amp; Policy</h3>
+            <p>Academics and policy professionals studying housing patterns. We provide aggregate, anonymized insights — never individual data — to support better housing policy.</p>
+        </div>
+    </div>
+</section>
+
+<div class="promise-banner">
+    <h2>Our Promises to You — Every One of Them Permanent</h2>
+    <ul class="promise-list">
+        <li><span class="mark">✅</span><span><strong>No cost, always.</strong> No paywalls. No subscriptions. No "basic vs premium." Core tools are always no-cost.</span></li>
+        <li><span class="mark">✅</span><span><strong>No advertising. Ever.</strong> Not banner ads. Not sponsored content. Not "partner" placements. Nothing.</span></li>
+        <li><span class="mark">✅</span><span><strong>No data sales.</strong> We do not sell, trade, license, or share your information with any third party for any commercial purpose.</span></li>
+        <li><span class="mark">✅</span><span><strong>No user tracking.</strong> We do not track how you use the app, which buttons you press, or how long you spend on a page.</span></li>
+        <li><span class="mark">✅</span><span><strong>Your documents are yours.</strong> Files live in your own cloud storage — Google Drive, Dropbox, or OneDrive. We never own them.</span></li>
+        <li><span class="mark">✅</span><span><strong>No behavioral analytics.</strong> We do not build profiles of your behavior, interests, or activity — not even anonymized ones.</span></li>
+        <li><span class="mark">✅</span><span><strong>Donation-only funding.</strong> We survive entirely on donations and grants. No investors. No growth targets. No exit strategy.</span></li>
+        <li><span class="mark">✅</span><span><strong>Open source.</strong> Anyone can inspect the code, verify our claims, or run their own instance. No black boxes.</span></li>
+    </ul>
+</div>
+
+<div class="hard-no">
+    <h2>Things We Will Never Do — These Are Not Negotiable</h2>
+    <div class="hard-no-grid">
+        <div class="hard-no-item">
+            <span class="no-icon">🚫</span>
+            <div><strong>Advertising of any kind</strong><span>No ads, no promoted results, no sponsored listings, no affiliate links. Organizations listed on this platform are listed because they help people — not because they paid us.</span></div>
+        </div>
+        <div class="hard-no-item">
+            <span class="no-icon">🚫</span>
+            <div><strong>Selling or trading user data</strong><span>Not to advertisers, not to data brokers, not to researchers, not to anyone. Your data is not our product.</span></div>
+        </div>
+        <div class="hard-no-item">
+            <span class="no-icon">🚫</span>
+            <div><strong>Tracking your behavior</strong><span>We do not record which features you use, how often you log in, what you click on, or any other behavioral signal.</span></div>
+        </div>
+        <div class="hard-no-item">
+            <span class="no-icon">🚫</span>
+            <div><strong>Profiling users</strong><span>We build no profile of who you are, your demographics, your situation, or your interests — anonymous or otherwise.</span></div>
+        </div>
+        <div class="hard-no-item">
+            <span class="no-icon">🚫</span>
+            <div><strong>Venture capital or investor funding</strong><span>Investors require returns. Returns require monetisation. Monetisation compromises the mission. We do not take investment.</span></div>
+        </div>
+        <div class="hard-no-item">
+            <span class="no-icon">🚫</span>
+            <div><strong>Paywalling rights information</strong><span>Legal rights information, law library resources, and document templates are always no-cost. We will not charge for access to information that people need to protect themselves.</span></div>
+        </div>
+        <div class="hard-no-item">
+            <span class="no-icon">🚫</span>
+            <div><strong>Victim-blaming content</strong><span>We will not produce content that softens legal facts, hedges clear tenant protections, or creates false equivalence between tenants and landlords when the law is clear.</span></div>
+        </div>
+        <div class="hard-no-item">
+            <span class="no-icon">🚫</span>
+            <div><strong>Surveillance features</strong><span>No keystroke logging, screen capture, location tracking, or any feature that monitors what users do outside of what is strictly necessary for the app to function.</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="data-box">
+    <h2>Exactly What Data We Use — And What We Do Not</h2>
+    <p>We believe you should know precisely what we collect and why. Here is the complete picture.</p>
+    <div class="data-cols">
+        <div class="data-col never">
+            <h4>We NEVER collect or keep</h4>
+            <ul>
+                <li>🚫 <span>Your document contents</span></li>
+                <li>🚫 <span>Which pages you visit or for how long</span></li>
+                <li>🚫 <span>Which buttons or features you use</span></li>
+                <li>🚫 <span>Your IP address (beyond routing)</span></li>
+                <li>🚫 <span>Your device type, browser, or OS</span></li>
+                <li>🚫 <span>Your physical location</span></li>
+                <li>🚫 <span>Your search terms inside the app</span></li>
+                <li>🚫 <span>How many times you tap anything</span></li>
+                <li>🚫 <span>Any behavioral or usage analytics</span></li>
+                <li>🚫 <span>Third-party tracking cookies</span></li>
+                <li>🚫 <span>Advertising identifiers</span></li>
+            </ul>
+        </div>
+        <div class="data-col only">
+            <h4>We ONLY keep (engineering use only)</h4>
+            <ul>
+                <li>✅ <span>Server error logs (anonymised, auto-deleted)</span></li>
+                <li>✅ <span>API response times (no user identifiers)</span></li>
+                <li>✅ <span>Crash reports (stack traces, no user data)</span></li>
+                <li>✅ <span>Rate limit counters (IP-based, ephemeral)</span></li>
+                <li>✅ <span>Session tokens (signed, stored in your browser only)</span></li>
+                <li>✅ <span>Onboarding gate state (which steps are complete)</span></li>
+            </ul>
+            <p style="font-size:0.8rem;margin-top:0.75rem;font-style:italic;">
+                Technical data is used only to keep the platform running correctly. It is never used to understand user behaviour, target content, or report to any third party.
+            </p>
+        </div>
+    </div>
+</div>
+
+<section class="section">
+    <h2 class="section-title">How Semptify Works</h2>
+    <p class="section-description">
+        When you connect to Semptify, you connect your own cloud storage account — Google Drive, Dropbox, or OneDrive. Your documents go directly into <em>your</em> storage. Semptify is the organisation layer: it helps you tag documents, build a timeline, track communications, and generate court-ready exhibits.
+    </p>
+    <p class="section-description">
+        When you leave Semptify — if you ever do — your documents are still in your account, in your folders, exactly where you put them. We do not have copies. We cannot hold your files hostage. There is no lock-in.
+    </p>
+    <div class="stat-bar">
+        <div class="stat-box"><div class="num">No Cost</div><div class="label">Forever, No Exceptions</div></div>
+        <div class="stat-box"><div class="num">$0</div><div class="label">Cost to You, Always</div></div>
+        <div class="stat-box"><div class="num">Zero</div><div class="label">Ads or Promotions</div></div>
+        <div class="stat-box"><div class="num">Yours</div><div class="label">Documents Stay With You</div></div>
+    </div>
+</section>
+
+<div class="funding-box">
+    <h2>How We Keep the Lights On</h2>
+    <p>
+        Semptify runs entirely on <strong>donations and grants</strong>. That is the whole model. No investors. No ad revenue. No data sales. No subscription tiers. No "freemium" plan waiting to lock you in.
+    </p>
+    <p>
+        If you find Semptify useful and want to support it, a donation directly funds server costs, development time, and the ongoing work of building tools for people who need them most. Every dollar goes to the mission — none of it to shareholders, none of it to growth teams, none of it to marketing.
+    </p>
+    <p>
+        If you cannot donate, that is completely fine. Using Semptify, sharing it with someone who needs it, and giving us feedback are all valuable contributions. The tool exists to be used, not to be monetised.
+    </p>
+</div>
+
+<section class="section">
+    <h2 class="section-title">Organisations &amp; Government Agencies</h2>
+    <div class="orgs-note">
+        These organisations are listed because they provide real help to people facing housing problems.
+        <strong>None of them pay to be listed here. None of them are partners in a commercial sense.
+        We do not promote, endorse, or receive anything from them.</strong>
+        We list them because knowing they exist can help someone in a difficult situation.
+    </div>
+
+    <div class="org-group">
+        <h3>Emergency &amp; Crisis Lines</h3>
+        <div class="org-chips">
+            <a class="org-chip" href="tel:211">211 — Basic Needs &amp; Crisis</a>
+            <a class="org-chip" href="tel:988">988 — Mental Health Crisis Line</a>
+            <a class="org-chip" href="tel:18007456686">HOME Line — 1-800-745-6686</a>
+        </div>
+    </div>
+
+    <div class="org-group">
+        <h3>National Housing Resources</h3>
+        <div class="org-chips">
+            <a class="org-chip" href="https://www.211.org" target="_blank" rel="noopener">211.org — Find Local Help</a>
+            <a class="org-chip" href="https://www.hud.gov" target="_blank" rel="noopener">HUD — U.S. Dept. of Housing</a>
+            <a class="org-chip" href="https://www.consumerfinance.gov/housing" target="_blank" rel="noopener">CFPB Housing Help</a>
+            <a class="org-chip" href="https://nlihc.org" target="_blank" rel="noopener">NLIHC — National Low Income Housing Coalition</a>
+            <a class="org-chip" href="https://www.lawhelp.org" target="_blank" rel="noopener">LawHelp.org — Free Legal Aid</a>
+            <a class="org-chip" href="https://www.lsc.gov" target="_blank" rel="noopener">Legal Services Corporation</a>
+        </div>
+    </div>
+
+    <div class="org-group">
+        <h3>Minnesota State &amp; Local</h3>
+        <div class="org-chips">
+            <a class="org-chip" href="https://www.mnhousing.gov" target="_blank" rel="noopener">MN Housing Finance Agency</a>
+            <a class="org-chip" href="https://www.homeline.org" target="_blank" rel="noopener">HOME Line (MN Tenant Advocacy)</a>
+            <a class="org-chip" href="https://www.lawhelpmn.org" target="_blank" rel="noopener">LawHelpMN.org</a>
+            <a class="org-chip" href="https://www.mncourts.gov/Help-Topics/Housing.aspx" target="_blank" rel="noopener">MN Courts — Housing Help</a>
+            <a class="org-chip" href="https://www.housinglink.org" target="_blank" rel="noopener">HousingLink MN</a>
+            <a class="org-chip" href="https://www.midmnlegal.org" target="_blank" rel="noopener">Mid-MN Legal Aid</a>
+            <a class="org-chip" href="https://www.smrls.org" target="_blank" rel="noopener">Southern MN Regional Legal Services</a>
+            <a class="org-chip" href="https://www.lsnm.org" target="_blank" rel="noopener">Legal Services of NE Minnesota</a>
+        </div>
+    </div>
+
+    <div class="org-group">
+        <h3>Minnesota County Emergency Contacts</h3>
+        <div class="org-chips">
+            <a class="org-chip" href="tel:6123483000">Hennepin County — 612-348-3000</a>
+            <a class="org-chip" href="tel:6512664444">Ramsey County — 651-266-4444</a>
+            <a class="org-chip" href="tel:6515545611">Dakota County — 651-554-5611</a>
+            <a class="org-chip" href="tel:7633241300">Anoka County — 763-324-1300</a>
+            <a class="org-chip" href="tel:6514306459">Washington County — 651-430-6459</a>
+            <a class="org-chip" href="tel:2187262000">St. Louis County — 218-726-2000</a>
+            <a class="org-chip" href="tel:3203438870">Stearns County — 320-343-8870</a>
+            <a class="org-chip" href="tel:5073282393">Olmsted County — 507-328-2393</a>
+        </div>
+    </div>
+
+    <div class="org-group">
+        <h3>Fair Housing &amp; Discrimination</h3>
+        <div class="org-chips">
+            <a class="org-chip" href="https://www.hud.gov/program_offices/fair_housing_equal_opp" target="_blank" rel="noopener">HUD Fair Housing</a>
+            <a class="org-chip" href="https://www.mnhousing.gov/faqs/fair-housing.jsp" target="_blank" rel="noopener">MN Fair Housing</a>
+            <a class="org-chip" href="https://www.culturalwellnessenter.org" target="_blank" rel="noopener">Cultural Wellness Center</a>
+            <a class="org-chip" href="https://www.tcfhc.org" target="_blank" rel="noopener">Twin Cities Fair Housing Council</a>
+        </div>
+    </div>
 </section>
 
 <section class="section">
     <h2 class="section-title">What We Believe</h2>
-    <p style="color: var(--text-light); margin-bottom: 1rem;">
-        We are on the side of tenants who are following the law. Most housing problems get worse
-        when there is no record. A clear, dated record protects good tenants and makes it harder
-        for anyone to twist the facts later.
-    </p>
-    <div class="info-banner">
-        <p>
-            <strong>Tenant rights fact:</strong> In Minnesota, your landlord generally must return
-            your security deposit within 21 days after you move out, with an itemized list of any
-            deductions. (Laws vary by state, so check your local rules.)
-        </p>
+    <div class="services-grid">
+        <div class="service-card">
+            <span class="icon">⚖️</span>
+            <h3>The Law Is the Law</h3>
+            <p>When the law protects a tenant, we say so clearly. We do not soften legal facts to avoid controversy. We do not hedge to create false balance.</p>
+        </div>
+        <div class="service-card">
+            <span class="icon">📋</span>
+            <h3>Evidence Integrity First</h3>
+            <p>Every feature is evaluated on whether it improves rights protection, evidence preservation, or user control. Features that optimise for engagement or growth are not our priority.</p>
+        </div>
+        <div class="service-card">
+            <span class="icon">🔒</span>
+            <h3>Privacy Is Not a Feature</h3>
+            <p>Privacy is not a selling point we can remove if business demands change. It is a structural commitment built into how the platform works.</p>
+        </div>
+        <div class="service-card">
+            <span class="icon">🧭</span>
+            <h3>Clarity Under Stress</h3>
+            <p>Our users are often scared, overwhelmed, and short on time. Clear, plain-language guidance beats impressive jargon every time.</p>
+        </div>
+        <div class="service-card">
+            <span class="icon">🌐</span>
+            <h3>Public Infrastructure</h3>
+            <p>Housing justice tools should be public goods, not proprietary products. Open source by default. Anyone can inspect, fork, or build on what we make.</p>
+        </div>
+        <div class="service-card">
+            <span class="icon">🤲</span>
+            <h3>Conviction, Not Commerce</h3>
+            <p>We are not building toward an acquisition or an IPO. We are building something that should exist and currently does not exist well enough.</p>
+        </div>
     </div>
 </section>
 
-<section class="section">
-    <h2 class="section-title">What We Do</h2>
-    <p style="color: var(--text-light); margin-bottom: 1rem;">
-        Semptify builds tools for tenants:
-    </p>
-    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
-        <li><strong>Document Organizer</strong> — Log rent payments, maintenance requests, and communications. Build a timeline of your tenancy.</li>
-        <li><strong>Law Library</strong> — Plain-language guides to tenant law in your state. Facts only, no opinions.</li>
-        <li><strong>Document Storage</strong> — Keep your lease, photos, and receipts organized in your own cloud storage. We never store your documents.</li>
-        <li><strong>Preparedness Tools</strong> — Template letters, deadline trackers, and educational resources about court procedures.</li>
-    </ul>
-</section>
+<div class="team-note">
+    <strong>Semptify is a labor of conviction.</strong>
+    This platform was built by people who believe that technology should serve those who need it most — not those who can pay the most.
+    We have no investors, no growth team, and no engagement metrics to hit.
+    We measure success by whether someone was able to protect their housing because of what we built.
+    We are sustained by grants, donations, and the effort of people who believe housing justice matters.
+    If that resonates with you, we would be grateful for your support — and even more grateful if you use the tool and share it with someone who needs it.
+</div>
 
 <section class="section">
-    <h2 class="section-title">What We Are Not</h2>
-    <div class="info-banner">
-        <p>
-            Semptify is an organizational tool and educational resource — not a law firm.
-            We can't give legal advice. For legal advice, contact a licensed attorney
-            or your local legal aid society.
-        </p>
-    </div>
-</section>
-
-<section class="section">
-    <h2 class="section-title">Our Commitments</h2>
-    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
-        <li><strong>No cost to tenants.</strong> No advertising, ever.</li>
-        <li><strong>Privacy-respecting by design.</strong> Your documents stay in your control.</li>
-        <li><strong>User-controlled storage.</strong> We never store your documents on our servers.</li>
-        <li><strong>Record-keeping over feature novelty.</strong> We build what protects tenants, not what's trendy.</li>
-        <li><strong>Calm, clear, trustworthy UX.</strong> Simple enough for a stressed tenant to use right away.</li>
-    </ul>
-</section>
-
-<section class="cta-section">
-    <h2>Ready to protect your rights?</h2>
-    <a href="/preamble" class="cta-button-large">Get Started →</a>
+    <h2 class="section-title">Contact</h2>
+    <p class="section-description">General inquiries: <a href="mailto:hello@semptify.org">hello@semptify.org</a></p>
+    <p class="section-description">Privacy questions: <a href="mailto:privacy@semptify.org">privacy@semptify.org</a></p>
+    <p class="section-description">Platform &amp; legal: <a href="mailto:legal@semptify.org">legal@semptify.org</a></p>
+    <p class="section-description">Code &amp; contributors: <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener">github.com/1semptify-arch/Semptify</a></p>
 </section>
 
 {% endblock %}

@@ -1,3 +1,44 @@
+## Session — 2026-09-15 — Public pages consolidated onto Site Shell (devin)
+
+### What changed
+- **8 static public pages migrated to shell templates.** `static/public/{about,
+  accessibility,contact,credits,disclaimer,feedback,privacy,terms}.html` deleted;
+  content ported into `app/templates/public/*.html` on `body/public_shell.html`
+  (Site Shell v5). The static copies were the "wrong colors / old layout" Brad
+  reported — they carried their own gradient-header/breadcrumb chrome.
+- **4 new registry pages** in `app/modules/portal/pages.py` (disclaimer,
+  accessibility, feedback, credits) — routes `/disclaimer`, `/accessibility`,
+  `/feedback`, `/credits` generate automatically from the existing portal loop
+  in main.py. Footer legal row now links clean routes; added Credits.
+- **No dead ends:** middleware redirects `/public/{name}.html` → `/{name}` and
+  the `/{page}.html` catch-all redirects migrated names instead of 404ing.
+  `ALLOWED_STATIC_PAGES` trimmed to `{"welcome"}` only.
+- **Kept static (deliberate):** `static/public/welcome.html` (onboarding gate
+  page — entry-point reconciliation is `blocked_on_decision` in the queue) and
+  `static/public/semptify-help-standalone.html` (emergency "always available"
+  page; `static/911/` is the canonical source per upl_guardrails).
+- **Manifest truthfulness:** `/about` + `/privacy` entries now point at
+  `app/templates/public/*.html`, `page_type="template"`; both added to
+  page_router `_SKIP_ROUTES` (portal registry loop owns them).
+- `navigation.py` `public_feedback` stage → `/feedback`; help.html +
+  tenant_help.html `/public/*.html` links repointed.
+
+### Verified
+- All 13 public routes 200 on shell; all 11 legacy `.html` URLs 302 → clean
+  routes; welcome/help-standalone still 200. Feedback form submits →
+  /api/feedback, success state shown. Desktop + 375px screenshots clean,
+  0 console errors. `tests/test_ssot_architecture.py` 8/8 pass.
+
+### Remaining (next phases)
+- ~66 app pages still extend `base.html`/`gui_shell` (old look) — batch
+  migration by pillar, RECORD first.
+- ~71 legacy static files under `static/{tenant,onboarding,admin,office,tools}`
+  still deployed — audit which are routed, delete the rest.
+- `/complaints`, `/help`, `/tools` exist in BOTH portal registry (public
+  pages) and as app pages — first-registered wins; reconcile intent later.
+
+---
+
 ## Session — 2026-09-14 (PM) — Deploy unblocked: migration race + branch-merge casualty (devin)
 
 ### What shipped (all live on prod as of dep-dajvinlg1s2s73cbkttg / commit cd9db8cb)

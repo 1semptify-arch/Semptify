@@ -433,7 +433,7 @@ class NavigationRegistry:
         "public_feedback": FlowStage(
             id="public_feedback",
             name="Public Feedback",
-            path="/public/feedback.html",
+            path="/feedback",
             next_stage=None,
             requires_checkpoint=False,
         ),

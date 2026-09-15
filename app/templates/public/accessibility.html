@@ -1,0 +1,59 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}Accessibility Statement — Semptify{% endblock %}
+{% block description %}Semptify accessibility statement. We aim for WCAG 2.1 AA across the site and application.{% endblock %}
+{% block keywords %}accessibility, WCAG, screen reader, keyboard navigation, accessible design{% endblock %}
+
+{% block header_title %}Accessibility Statement{% endblock %}
+{% block header_tagline %}Built for people under stress{% endblock %}
+{% block header_subtitle %}Last updated: September 2026{% endblock %}
+
+{% block page_body %}
+
+<div class="info-banner">
+    <p>Semptify is built for people under stress — often on a phone, often in a hurry, sometimes with a disability. Accessibility is not a feature we add later; it is part of how the site is designed.</p>
+</div>
+
+<section class="section">
+    <h2 class="section-title">Our Commitment</h2>
+    <p class="section-description">We aim to conform to the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA across the Semptify website and application. This is an ongoing effort, not a finished claim — we test as we build and fix what we find.</p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">What We Do</h2>
+    <ul style="margin-left: 1.5rem; line-height: 1.9; color: var(--text-secondary);">
+        <li>Semantic page structure — headings, landmarks, and lists that screen readers can navigate.</li>
+        <li>Full keyboard support — every interactive control is reachable and operable without a mouse.</li>
+        <li>Visible focus indicators — you can always see where you are on the page.</li>
+        <li>Color contrast that meets WCAG AA ratios; information is never carried by color alone.</li>
+        <li>Respect for reduced-motion settings — animations are disabled when your system asks for it.</li>
+        <li>Plain-language writing — short sentences, no jargon, honest labels.</li>
+        <li>Form fields with real labels and human-readable error messages.</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Known Limitations</h2>
+    <p class="section-description">We are a small project and some areas are still catching up:</p>
+    <ul style="margin-left: 1.5rem; line-height: 1.9; color: var(--text-secondary);">
+        <li>Some older pages are mid-migration to the current design system and may be less consistent.</li>
+        <li>Document previews of user-uploaded files (scans, photos) depend on the quality of the upload.</li>
+        <li>Third-party embeds (such as cloud storage pickers) are outside our direct control.</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Tell Us When Something Blocks You</h2>
+    <p class="section-description">If any part of Semptify is hard for you to use, we want to know — accessibility reports are treated as bugs, not suggestions.</p>
+    <ul style="margin-left: 1.5rem; line-height: 1.9; color: var(--text-secondary);">
+        <li><a href="/feedback">Send feedback</a> — describe what happened and what device/browser you use.</li>
+        <li><a href="/contact">Contact us</a> — for anything that needs a direct reply.</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Enforcement</h2>
+    <p class="section-description">If you believe your rights under the Americans with Disabilities Act or other accessibility laws have been violated, you may contact the U.S. Department of Justice or file a complaint through <a href="https://www.ada.gov" target="_blank" rel="noopener noreferrer">ada.gov</a>. We would still rather hear from you first so we can fix the problem.</p>
+</section>
+
+{% endblock %}

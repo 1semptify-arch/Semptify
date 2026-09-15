@@ -4,7 +4,7 @@ Public Forms Router
 Backend for the contact and feedback forms in static/public/.
 
 Endpoints:
-  POST /api/feedback   — feedback.html submits here
+  POST /api/feedback   — /feedback page submits here
   POST /api/contact    — contact form submissions (future form)
 
 Email is sent via Resend (app/services/email_service.py).
@@ -76,7 +76,7 @@ class ContactRequest(BaseModel):
 @router.post("/feedback")
 async def submit_feedback(body: FeedbackRequest):
     """
-    Receive a feedback form submission from /public/feedback.html.
+    Receive a feedback form submission from /feedback.
     Forwards to support inbox via Resend. Always returns success so
     the form UX is not broken if email is unconfigured.
     """
