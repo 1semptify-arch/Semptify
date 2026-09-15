@@ -16,8 +16,10 @@ import logging
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request, status
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+
+from app.core.ssot_guard import ssot_redirect
 
 from app.core.mndes_compliance import (
     MNDES_FILE_TYPES_VERSION,
@@ -75,8 +77,24 @@ except ImportError:
 
 
 # ============================================================================
-# Guide page (SSOT path: /mndes/guide)
+# Guide pages (SSOT paths: /mndes/guide, /mndes/compliance-guide)
+# Legal-role only for now — MNDES is filed under legal information.
 # ============================================================================
+
+_MNDES_GUIDE_ROLES = {"legal", "admin"}
+
+
+def _mndes_guide_guard(request: Request) -> RedirectResponse | None:
+    """Legal-only gate: valid storage user with a legal (or admin) role."""
+    from app.core.cookie_auth import extract_user_id
+    from app.core.user_id import get_role_from_user_id
+
+    user_id = extract_user_id(request)
+    if not user_id:
+        return ssot_redirect("/", context="mndes_guide no user cookie")
+    if (get_role_from_user_id(user_id) or "") not in _MNDES_GUIDE_ROLES:
+        return ssot_redirect("/law-library", context="mndes_guide non-legal role")
+    return None
 
 
 @router.get("/mndes/guide", response_class=HTMLResponse)
@@ -85,16 +103,19 @@ async def mndes_guide(request: Request) -> HTMLResponse:
     Serve the MNDES submission guide (step-by-step).
     SSOT path registered in navigation.COURT_FLOW['mndes_guide'].
     """
+    if redirect := _mndes_guide_guard(request):
+        return redirect
     return templates.TemplateResponse(request, "pages/mndes_guide.html")
 
 
 @router.get("/mndes/compliance-guide", response_class=HTMLResponse)
 async def mndes_compliance_guide(request: Request, role: str = "") -> HTMLResponse:
     """
-    Serve the full MNDES compliance reference guide (all roles).
+    Serve the full MNDES compliance reference guide (legal role).
     SSOT path registered in navigation.COURT_FLOW['mndes_compliance_guide'].
-    Optional ?role= query param pre-selects the relevant role tab.
     """
+    if redirect := _mndes_guide_guard(request):
+        return redirect
     return templates.TemplateResponse(request, "pages/mndes_compliance_guide.html")
 
 

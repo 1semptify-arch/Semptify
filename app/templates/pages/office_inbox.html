@@ -84,8 +84,8 @@
 <h1>Inbox</h1>
 <div class="breadcrumb">
     <div class="breadcrumb-inner">
-      <a href="/home.html">Home</a> ›
-      <a href="/office.html">Office</a> ›
+      <a href="/">Home</a> ›
+      <a href="/office">Office</a> ›
       <strong>Inbox</strong>
     </div>
   </div>
@@ -105,10 +105,10 @@
 
       <hr class="inbox-nav-divider">
       <div class="inbox-nav-title">Office</div>
-      <a href="/office/vault.html" class="inbox-nav-item">🔒 Vault</a>
-      <a href="/office/timeline.html" class="inbox-nav-item">📅 Timeline</a>
-      <a href="/office/delivery.html" class="inbox-nav-item">📬 Delivery</a>
-      <a href="/office/signer.html" class="inbox-nav-item">✍️ Signer</a>
+      <a href="/office/vault" class="inbox-nav-item">🔒 Vault</a>
+      <a href="/timeline" class="inbox-nav-item">📅 Timeline</a>
+      <a href="/office/delivery" class="inbox-nav-item">📬 Delivery</a>
+      <a href="/office/signer" class="inbox-nav-item">✍️ Signer</a>
     </nav>
 
     <!-- MESSAGE PANE -->
@@ -298,7 +298,7 @@
         sign: `<button class="msg-action primary" onclick="signDelivery('${id}')">✍️ Sign Document</button>`,
         reject: `<button class="msg-action danger" onclick="rejectDelivery('${id}')">✕ Reject</button>`,
         acknowledge: `<button class="msg-action primary" onclick="acknowledgeDelivery('${id}')">✓ Acknowledge</button>`,
-        vault: `<a href="/office/vault.html" class="msg-action secondary" style="text-decoration:none;">🔒 Save to Vault</a>`,
+        vault: `<a href="/office/vault" class="msg-action secondary" style="text-decoration:none;">🔒 Save to Vault</a>`,
         reply: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Reply — coming soon')">↩ Reply</button>`,
         message: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Message advocate')">💬 Message Advocate</button>`
       };
@@ -460,7 +460,7 @@
         sign: `<button class="msg-action primary" onclick="SemptifyFeedback.info('Signature flow — coming soon')">✍️ Sign Document</button>`,
         reject: `<button class="msg-action danger" onclick="SemptifyFeedback.info('Rejection recorded')">✕ Reject</button>`,
         acknowledge: `<button class="msg-action primary" onclick="SemptifyFeedback.success('Acknowledged.')">✓ Acknowledge</button>`,
-        vault: `<a href="/office/vault.html" class="msg-action secondary" style="text-decoration:none;">🔒 Save to Vault</a>`,
+        vault: `<a href="/office/vault" class="msg-action secondary" style="text-decoration:none;">🔒 Save to Vault</a>`,
         reply: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Reply — coming soon')">↩ Reply</button>`,
         message: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Message advocate')">💬 Message Advocate</button>`
       };
