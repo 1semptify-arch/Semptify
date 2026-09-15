@@ -15,13 +15,18 @@ Routes:
   GET  {prefix}/api/vault/status     → check user auth status
   GET  {prefix}/complete             → route to product home
   GET  {prefix}/status               → gate status check page
+  GET  {prefix}/upload               → upload-first entry step (pre-account)
+  POST {prefix}/api/upload           → hold first document pending vault creation
 """
 
 import logging
+import secrets
+import shutil
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.cookie_auth import clear_auth_cookie, set_auth_cookie, verify_user_id
@@ -95,6 +100,79 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 return ssot_redirect(navigation.get_reconnect_flow(), context="onboarding_start reconnect")
         role_stage = navigation.get_stage("role_select")
         return ssot_redirect(role_stage.path, context="onboarding_start new_user")
+
+    # ------------------------------------------------------------------
+    # Page + API: Upload-first entry — a real document before any account
+    # ------------------------------------------------------------------
+    # Upload-before-account is the intended design (Brad 2026-09-15): the
+    # welcome CTA starts here, the doc is held server-side under a pending
+    # cookie, and /api/vault/verify consumes it once OAuth+vault exist.
+    # No user_id exists yet, so no gate can be marked at this step — the
+    # document_uploaded gate is still marked by vault_verify on success.
+    PENDING_UPLOAD_ROOT = BASE_PATH / "data" / "intake" / "pending"
+    PENDING_COOKIE = "semptify_pending"
+
+    def _pending_upload_dir(token: str | None) -> Path | None:
+        if not token or not token.isalnum():
+            return None
+        d = (PENDING_UPLOAD_ROOT / token).resolve()
+        return d if d.is_relative_to(PENDING_UPLOAD_ROOT.resolve()) else None
+
+    @router.get("/upload", response_class=HTMLResponse)
+    async def upload_first_page(request: Request):
+        """Upload-first entry step — anonymous, pre-account, pre-OAuth."""
+        return HTMLResponse(content=_render_upload_page(config))
+
+    @router.post("/api/upload")
+    async def upload_first_api(request: Request):
+        """Hold the first document under a pending cookie until a vault exists."""
+        content_type = request.headers.get("content-type", "")
+        if "multipart/form-data" not in content_type:
+            raise HTTPException(status_code=400, detail="Expected a file upload")
+        form = await request.form()
+        upload = form.get("file")
+        if not upload or not getattr(upload, "filename", None):
+            raise HTTPException(status_code=400, detail="Please select a document to upload")
+        file_bytes = await upload.read()
+        if not file_bytes:
+            raise HTTPException(status_code=400, detail="The selected file appears to be empty")
+
+        token = request.cookies.get(PENDING_COOKIE) or secrets.token_hex(16)
+        pending_dir = _pending_upload_dir(token)
+        if pending_dir is None:
+            raise HTTPException(status_code=400, detail="Invalid pending token")
+        pending_dir.mkdir(parents=True, exist_ok=True)
+        safe_name = Path(upload.filename).name or "document"
+        (pending_dir / safe_name).write_bytes(file_bytes)
+        (pending_dir / "meta.txt").write_text(
+            f"filename={safe_name}\nuploaded_at={datetime.now(UTC).isoformat()}\n",
+            encoding="utf-8",
+        )
+        logger.info("Held first document '%s' for pending onboarding upload", safe_name)
+
+        role_stage = navigation.get_stage("role_select")
+        next_path = role_stage.path if role_stage else f"{config.route_prefix}/select-role.html"
+        response = JSONResponse({"ok": True, "next": next_path, "filename": safe_name})
+        response.set_cookie(
+            PENDING_COOKIE, token, max_age=7 * 24 * 3600,
+            httponly=True, samesite="lax",
+        )
+        return response
+
+    def _take_pending_upload(request: Request) -> tuple[str, bytes] | None:
+        """Return (filename, bytes) for the caller's held upload, if any."""
+        pending_dir = _pending_upload_dir(request.cookies.get(PENDING_COOKIE))
+        if not pending_dir or not pending_dir.is_dir():
+            return None
+        for f in pending_dir.iterdir():
+            if f.name != "meta.txt" and f.is_file():
+                return f.name, f.read_bytes()
+        return None
+
+    def _clear_pending_upload(request: Request) -> None:
+        pending_dir = _pending_upload_dir(request.cookies.get(PENDING_COOKIE))
+        if pending_dir and pending_dir.is_dir():
+            shutil.rmtree(pending_dir, ignore_errors=True)
 
     # ------------------------------------------------------------------
     # Page: Provider Selection
@@ -464,19 +542,29 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
 
-        # ── 1. Require a real file upload ─────────────────────────────────────
+        # ── 1. Require a real document — either posted now, or the one held ────
+        #    from the upload-first entry step (pending cookie) ────────────────
+        original_name = None
+        file_bytes = None
+        mime_type = None
         content_type = request.headers.get("content-type", "")
-        if "multipart/form-data" not in content_type:
-            return {"ok": False, "accessible": False, "error": "A document is required to complete setup"}
+        if "multipart/form-data" in content_type:
+            form = await request.form()
+            upload = form.get("file")
+            if upload and getattr(upload, "filename", None):
+                file_bytes = await upload.read()
+                original_name = Path(upload.filename).name
+                mime_type = upload.content_type or "application/octet-stream"
 
-        form = await request.form()
-        upload = form.get("file")
-        if not upload or not hasattr(upload, "filename") or not upload.filename:
-            return {"ok": False, "accessible": False, "error": "Please select a document to upload"}
-
-        file_bytes = await upload.read()
         if not file_bytes:
-            return {"ok": False, "accessible": False, "error": "The selected file appears to be empty"}
+            held = _take_pending_upload(request)
+            if held:
+                original_name, file_bytes = held
+                mime_type = "application/octet-stream"
+                logger.info("vault_verify: using held upload-first document '%s'", original_name)
+
+        if not file_bytes:
+            return {"ok": False, "accessible": False, "error": "Please select a document to upload"}
 
         # ── 2. Live probe — write a temp file, read it back, delete it ────────
         try:
@@ -512,9 +600,6 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         #   certificate → registry → overlay → timeline → event bus → mesh
         try:
             from app.services.vault_upload_service import VaultUploadService
-
-            mime_type = upload.content_type or "application/octet-stream"
-            original_name = upload.filename
 
             vault_service = VaultUploadService()
             vault_doc = await asyncio.wait_for(
@@ -596,6 +681,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         # that state re-enters vault-setup cleanly on the next request.
         await mark_gate(db, user.user_id, "document_uploaded")
         await mark_gate(db, user.user_id, "vault_initialized")
+        _clear_pending_upload(request)  # held upload-first doc consumed
 
         logger.info(
             "Final gate passed — '%s' seeded all systems for user %s",
@@ -1309,4 +1395,89 @@ a:hover {{ background: #2d5a87; }}
     <p>{message}</p>
     <a href="{action_url}">Continue</a>
 </div>
+</body></html>"""
+
+
+def _render_upload_page(config: OnboardingConfig) -> str:
+    """Upload-first entry step — the welcome CTA destination.
+
+    No account, no login, no storage connection yet: the document is held
+    server-side under a pending cookie until OAuth+vault exist to receive it.
+    Honest copy only — no urgency tactics.
+    """
+    api_path = f"{config.route_prefix}/api/upload"
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your First Document — {config.product_name}</title>
+<style>
+* {{ margin: 0; padding: 0; box-sizing: border-box; }}
+body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fdfcfa; color: #1e293b; min-height: 100vh; }}
+.header {{ background: linear-gradient(135deg, #1e3a5f, #2d5a87); color: white; padding: 2.5rem 2rem; text-align: center; }}
+.header h1 {{ font-size: 2rem; font-weight: 400; letter-spacing: -0.02em; }}
+.header .sub {{ font-size: 0.95rem; opacity: 0.8; margin-top: 0.4rem; font-style: italic; }}
+.container {{ max-width: 560px; margin: 2rem auto; padding: 0 1.5rem 3rem; }}
+.card {{ background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }}
+.card p {{ color: #475569; line-height: 1.6; margin-bottom: 1.25rem; font-size: 0.95rem; }}
+.drop {{ border: 2px dashed #cbd5e1; border-radius: 10px; padding: 2rem; text-align: center; cursor: pointer; transition: border-color 0.2s; margin-bottom: 1.25rem; }}
+.drop:hover, .drop.has-file {{ border-color: #3b82f6; }}
+.drop .big {{ font-size: 1.6rem; margin-bottom: 0.5rem; }}
+.drop .hint {{ font-size: 0.85rem; color: #64748b; }}
+.drop .name {{ font-size: 0.95rem; color: #1e3a5f; font-weight: 600; word-break: break-all; }}
+.btn {{ display: block; width: 100%; background: #1e3a5f; color: white; border: none; padding: 0.9rem; border-radius: 8px; font-size: 1rem; cursor: pointer; }}
+.btn:hover {{ background: #2d5a87; }}
+.btn:disabled {{ opacity: 0.5; cursor: not-allowed; }}
+.err {{ color: #b91c1c; font-size: 0.9rem; margin-top: 0.75rem; display: none; }}
+.note {{ font-size: 0.8rem; color: #94a3b8; margin-top: 1.25rem; line-height: 1.5; }}
+</style>
+</head><body>
+<div class="header">
+  <h1>Start with a document</h1>
+  <div class="sub">A notice, a letter, a photo of a letter — anything you're dealing with</div>
+</div>
+<div class="container">
+<div class="card">
+  <p>Upload the document you want help with. We'll keep it safe while you finish setup — no account, no sign-up, and it stays yours.</p>
+  <div class="drop" id="drop" onclick="document.getElementById('file').click()">
+    <div class="big">📄</div>
+    <div class="hint" id="hint">Click to choose a file</div>
+    <div class="name" id="name"></div>
+  </div>
+  <input type="file" id="file" style="display:none" />
+  <button class="btn" id="go" disabled onclick="send()">Continue</button>
+  <div class="err" id="err"></div>
+  <div class="note">Your document is held on our server only until you connect your own storage — then it moves into your vault, in your cloud, under your control.</div>
+</div>
+</div>
+<script>
+const fileIn = document.getElementById('file');
+const drop = document.getElementById('drop');
+const go = document.getElementById('go');
+const nameEl = document.getElementById('name');
+const err = document.getElementById('err');
+fileIn.addEventListener('change', () => {{
+  if (fileIn.files.length) {{
+    nameEl.textContent = fileIn.files[0].name;
+    document.getElementById('hint').textContent = 'Selected:';
+    drop.classList.add('has-file');
+    go.disabled = false;
+  }}
+}});
+async function send() {{
+  if (!fileIn.files.length) return;
+  go.disabled = true; go.textContent = 'Saving…'; err.style.display = 'none';
+  const fd = new FormData();
+  fd.append('file', fileIn.files[0]);
+  try {{
+    const res = await fetch('{api_path}', {{ method: 'POST', body: fd }});
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Upload failed');
+    window.location.href = data.next;
+  }} catch (e) {{
+    err.textContent = e.message;
+    err.style.display = 'block';
+    go.disabled = false; go.textContent = 'Continue';
+  }}
+}}
+</script>
 </body></html>"""
