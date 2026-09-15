@@ -64,6 +64,45 @@ Then **state the following out loud** before proceeding (this is your proof of c
 
 We do it right or we don't do it at all. There is no "figure it out as I go" here. Every lazy shortcut costs hours to fix. The history in AGENTS.md proves this. Read it. Learn it. Then work.
 
+### Step 1a: Freshness & canonicity check — NO SHALLOW SIGNALS
+
+**Finding a file that looks related is not the same as having current, complete context.** This repo has multiple parallel/legacy systems for the same concern, and `gap_report.py` / `GAPS.md` are known to lag behind actual repo state. A filename match, a single grep hit, a keyword search, or a doc's claim of "resolved" is a lead to verify, never a fact to act on.
+
+Before you rely on any file, doc claim, or search hit to justify what you're about to do:
+
+1. **Read the full file(s), not a snippet.** A grep hit or search-tool excerpt tells you a string exists somewhere — it does not tell you the surrounding logic, whether the code path is even reachable, or whether it was superseded last week. Open and read the whole file before treating it as ground truth.
+2. **Cross-check against the live repo state, not just the doc that describes it.** `BUILD_STATE.md`, `ACTIVE_CONTEXT.md`, `GAPS.md`, and `tools/gap_report.py` output all drift from reality — they are inputs to verify, not verified facts. Confirm the function/route/table/flag you're relying on actually exists and behaves as described by reading the current code, running it, or checking the schema — not by re-reading the doc that claims it.
+3. **If your task touches one of the known-duplicated/legacy areas below, identify which copy is canonical before doing anything else.** Do not read from, extend, or "fix" whichever copy you happened to find first.
+
+   | Area | Status (verify before trusting) |
+   |---|---|
+   | **Design tokens / palettes** | `template-N` classes (5 role palettes defined in `static/css/ssot-design-system.css`) are canonical per `docs/admin/DESIGN_TOKEN_WORKBOOK.md` §10.1 (decided 2026-09-14). `static/css/themes/` (5-theme crimson/forest/ocean/royal/slate switcher) is legacy and unrelated to template-N — retirement undecided (§10.3). A separate `design-system/` directory is a deprecated parallel token system — fold-or-archive undecided (§10.2). A color/token value existing in any one of the three tells you nothing about which is live on a given page — check what that page's `<body class>` and `<link>` tags actually load. |
+   | **Footers** | At least three separate implementations exist: `app/templates/components/footer.html` (Jinja component), `static/js/unified-footer-loader.js` (JS-injected loader for standalone static pages), and footer markup hardcoded inline in individual templates (`base.html`, `public_base.html`, `donate.html`, and others). Confirm which one actually renders on the specific page you're touching before editing any of them — editing the component does nothing for a page using the hardcoded or JS-injected version. |
+   | **`context_loop`** | Was forked into `app/modules/context_loop/service.py` and `app/services/context_loop.py`. `CONTEXT_LOOP_DECISION_BRIEF.md` claims this was resolved 2026-08-29 (service copy deleted, module copy canonical). Verify this yourself — confirm the file is actually gone and grep live (non-cached) source for the old import path — rather than trusting the doc's "Resolved" banner. Docs that say "resolved" can themselves go stale. |
+   | **Feature flags** | `app/core/features.py` (DB-backed, `Feature` enum, `require_feature()`) is canonical. `app/core/feature_flags.py` (in-memory, `FeatureFlagMiddleware`) was a second, independent system with its own flag namespace. Confirm current state on the filesystem and in `app/main.py` before assuming either exists or is wired up — `AGENTS.md` Known Failure #20 and parts of `ACTIVE_CONTEXT.md` still describe both as live, which may itself be stale by the time you read this. |
+   | **`gap_report.py` / `GAPS.md`** | Known to lag behind actual repo state. Any gap it reports is a hypothesis to verify against live code, never a finding to act on directly. |
+
+   This table is a starting point, not an exhaustive list — if you find another area with the same shape (multiple parallel implementations, unclear which is live), treat it the same way: identify the canonical copy before touching either.
+
+4. **State your confidence and what you did NOT check.** Your plan-of-action message (Step 5) must include a line naming what you verified against live code/config versus what you are taking on a doc's word. Example: "Verified against live code: `app/core/features.py` is imported in `app/main.py` and `app/core/feature_flags.py` no longer exists on disk. Not independently checked: whether `FeatureFlagMiddleware` behavior described in old handoffs is still needed anywhere — flagging as unconfirmed." Do not present a partial check as a complete one.
+
+### Step 1b: Hard stop on unconfirmed freshness or canonicity
+
+If, after Step 1a, you cannot confirm that:
+- the file or system you're relying on is the current canonical one, **and**
+- the claim you're building on is still true in the live code or data — not just in a doc,
+
+then **STOP AND REPORT** per the master-repo standing rule (`C:\master-repo\AGENTS.md` §"STOP AND REPORT triggers") instead of proceeding on a best guess. Say exactly what you could not confirm and what would resolve it. Do not silently pick an interpretation and move forward, and do not let "I found *a* file" substitute for "I confirmed this is *the* file."
+
+### Step 1c: Same standard for legal/statute content — Know Your Rights Library, Law Linker, state-law data
+
+A statute number, county name, or topic matching a search or filter is **not** proof that content is current, correct, or vetted — same failure mode as the code case above, applied to data instead of code. Before serving, citing, or basing any change on Know Your Rights Library content, statute lookups, Law Linker output, or `ContextExplanationEntry` rows:
+
+1. **Check `review_status` on the specific entry.** Only `VETTED` (or `vetted`) content may be presented as a settled answer. `BETA` (`beta`) entries are retrieval-eligible per ADR-0008 but require the lighter-weight beta disclosure — `BETA` is not evidence the content is correct, and most `context_explanation_workbook.csv` rows are currently `BETA` by design, not by oversight.
+2. **Confirm the underlying legal claim was checked against a primary source** (e.g. `revisor.mn.gov`, `govinfo.gov`, official court rules) within a reasonable recency window — not just that it is present in the repo. `static/data/state-laws.json` carries a single file-level `last_updated` timestamp (stale as of the last audit — see `AUDIT_KnowYourRights_InformationIntegrity.md` Finding 1) with no per-field verification date. Do not treat that file-level timestamp as proof any individual field is current.
+3. **Check whether the entry is one of the stub-only state records.** As of the last audit, only 12 of 50 states have complete `state-laws.json` data; the other 38 are stub entries (`notes` string + `stub_url`, nothing else). A match on a stub state is a placeholder, not an answer — do not present it as one. Re-verify this count yourself rather than trusting this document's number, since it too can drift.
+4. **If any of the above cannot be confirmed, fall back to the generic orientation language / "not legal advice" disclaimer and flag the entry for human review.** Never present stale, unvetted, or stub content as a verified answer, even under deadline pressure. This mirrors the Information Integrity Standards already in force (sourced, opinion labeled as opinion, freshness, no presenting AI-drafted content as verified) — this step makes them a mechanical gate on this workflow instead of a policy that's easy to skip.
+
 ### Step 2: Read current state
 
 Read these files before touching any code:
@@ -116,6 +155,7 @@ Before editing any file, tell the user:
 - What you are going to change
 - What file(s) you will touch
 - Why this will not repeat a known failure
+- The Step 1a confidence statement: what you verified against live code/config/data, and what you did NOT check and are taking on a doc's word
 
 ### Step 6: After making changes
 
@@ -127,3 +167,25 @@ cd C:\master-repo\modules\app-semptify-fastapi; .\venv311\Scripts\python.exe -m 
 ```
 
 Then update `BUILD_STATE.md` with what changed.
+
+---
+
+## Revision log
+
+**2026-09-14 — added Steps 1a/1b/1c (freshness & canonicity gate).**
+
+Problem: agents were treating "I found a file that looks related" as equivalent to "I have current, complete context." In a repo with multiple parallel/legacy systems for the same concern (design tokens, footers, `context_loop`, feature flags) and a known-stale gap tracker (`gap_report.py`), a file existing or matching a keyword search said nothing about whether it was current, canonical, or already superseded.
+
+What was previously loosened (let a shallow check pass):
+- No requirement to read a full file before relying on it — a grep hit or search snippet was treated as sufficient evidence.
+- No requirement to check live code/config against a doc's claim — `BUILD_STATE.md`, `ACTIVE_CONTEXT.md`, and `GAPS.md` were treated as ground truth even though all three are known to drift.
+- No mention anywhere in this skill of the repo's known-duplicated areas (template-N vs `themes/` vs `design-system/`, the three footer implementations, the `context_loop` fork, or the two feature-flag systems) — an agent could stumble into any one of them with no signal that a canonical-copy decision was needed first.
+- No requirement to state confidence or list what was *not* checked — a partial check could be presented as if it were complete.
+- No hard-stop instruction tied to this specific failure mode — "stop and report" existed as a general master-repo rule but nothing routed unconfirmed freshness/canonicity into it.
+- Legal/statute content (Know Your Rights Library, Law Linker, state-law data) had a separate, well-defined fact-checking bar (`AUDIT_KnowYourRights_InformationIntegrity.md`, ADR-0008's `review_status: beta | vetted`) that lived in audit docs and ADRs but was never wired into the thing agents actually run before starting work — easy to skip under deadline pressure.
+
+What now blocks it:
+- Step 1a requires reading full files, cross-checking against live state (not docs alone), and checking a named table of known-duplicated areas before proceeding on any of them.
+- Step 1b makes "cannot confirm canonicity or freshness" an explicit STOP AND REPORT trigger, not a judgment call.
+- Step 5's plan statement now requires the agent to name what it verified against live code and what it took on a doc's word, so a partial check is visible instead of implicit.
+- Step 1c applies the same standard to legal content: `review_status` must be `VETTED` before treating an entry as a real answer, state-law stub entries (38 of 50 states, per the last audit) are explicitly called out as placeholders, and unconfirmed entries must fall back to the generic disclaimer instead of being served as answers.

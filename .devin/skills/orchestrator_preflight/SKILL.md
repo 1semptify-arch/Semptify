@@ -7,6 +7,10 @@ description: Run preflight before every Agent Orchestrator task dispatch
 
 Run this immediately before dispatching **any** task. One task, one preflight.
 
+## Step 0: Freshness & canonicity gate
+
+Before dispatching any task, run the freshness & canonicity check from `.devin/skills/preflight/SKILL.md` Steps 1a–1c (mirrored in `.github/prompts/preflight.prompt.md`) against the task's own description and `file_path`. Task descriptions in `orchestrator_state.json` / `agent_orchestrator_tasks.json` are written by prior agent sessions and can themselves be stale — a task claiming a system is "resolved," "done," or pointing at a specific file is a claim to verify against live code, not a fact to dispatch on. If the task touches a known-duplicated area (template-N/`themes/`/`design-system/`, the footer implementations, `context_loop`, or the feature-flag systems — see the table in Step 1a of the preflight skill) or any Know Your Rights Library / statute content, confirm canonicity/`review_status` before dispatch, or mark the task `blocked_on_decision` instead of dispatching on a best guess.
+
 ## Step 1: Read mandatory context
 
 `REQUIRED_READING.md` is the canonical reading manifest — Tiers 1+2 are mandatory before dispatch. In order:
