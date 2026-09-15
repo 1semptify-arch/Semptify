@@ -96,7 +96,7 @@ ROLE_LANDING_PAGES = {role: meta["landing_page"] for role, meta in ROLE_METADATA
 
 # Static fallback pages if canonical role route is unavailable
 ROLE_FALLBACK_PAGES = {
-    UserRole.USER: "/static/tenant/index.html",
+    UserRole.USER: "/tenant/home",
     UserRole.ADVOCATE: "/static/advocate/index.html",
     UserRole.LEGAL: "/static/legal/index.html",
     UserRole.MANAGER: "/manager",

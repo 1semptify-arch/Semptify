@@ -1,31 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deadline Tracker – Semptify</title>
-<link rel="stylesheet" href="/static/css/ssot-design-system.css">
-  <style>
+{% extends "shell_base.html" %}
+{% block title %}Deadline Tracker — Semptify{% endblock %}
+{% block styles %}
+{{ super() }}
+<style>
     :root {
       --hdr1: var(--color-primary); --hdr2: var(--color-primary); --accent: var(--color-primary-light);
       --bg: var(--bg-page); --light: var(--bg-surface); --text: var(--text-primary); --muted: var(--text-muted);
       --border: var(--border-color); --danger: var(--color-error); --warning: var(--color-warning-800); --success: var(--color-success);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
 
-    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); position: sticky; top: 0; z-index: 100; }
-    .header-inner { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 60px; gap: 1rem; }
-    .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: var(--text-inverse); }
-    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
-    nav.core-nav a { color: color-mix(in srgb, var(--color-white), transparent 20%); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: var(--radius-lg); font-size: 0.88rem; }
-    nav.core-nav a:hover { background: color-mix(in srgb, var(--color-white), transparent 85%); color: var(--text-inverse); }
-    .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
 
-    .hero { background: linear-gradient(160deg, var(--bg-surface) 0%, var(--bg) 60%); padding: 2rem 1.5rem 1.5rem; }
-    .hero-inner { max-width: 1000px; margin: 0 auto; }
-    .hero h1 { font-size: 1.8rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.4rem; }
-    .hero p { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 580px; }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
 
@@ -90,65 +74,22 @@
     .ref-table tr:last-child td { border-bottom: none; }
     .ref-table .law { font-size: 0.75rem; color: var(--muted); }
 
-    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: color-mix(in srgb, var(--color-white), transparent 20%); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
-    footer a { color: color-mix(in srgb, var(--color-white), transparent 30%); margin: 0 0.5rem; text-decoration: none; }
 
-    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
-    .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: color-mix(in srgb, var(--color-white), transparent 15%); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); display: block; }
-    .nav-drawer a:hover { background: color-mix(in srgb, var(--color-white), transparent 90%); }
-    .drawer-backdrop { display: none; position: fixed; inset: 0; background: color-mix(in srgb, var(--color-black), transparent 50%); z-index: 998; }
-    .drawer-backdrop.open { display: block; }
 
     @media (max-width: 768px) {
-      nav.core-nav { display: none; }
-      .hamburger { display: block; }
       .form-row { grid-template-columns: 1fr 1fr; }
       .form-row .btn-add { grid-column: span 2; }
       .ref-table { font-size: 0.78rem; }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
-  <nav class="nav-drawer" id="nav-drawer">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:var(--bg-card);">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:var(--bg-card);font-size:1.5rem;cursor:pointer;">✕</button>
-    </div>
-    <a href="/tenant/home">🏠 Dashboard</a>
-    <a href="/tenant/journal">📓 Journal</a>
-    <a href="/tenant/documents">📁 Documents</a>
-    <a href="/law-library">📚 Rights</a>
-    <a href="/tenant/help">🆘 Help</a>
-  </nav>
-
-  <header>
-    <div class="header-inner">
-      <button class="hamburger" onclick="openDrawer()">☰</button>
-      <a href="/tenant/home" class="logo">Semptify</a>
-      <nav class="core-nav">
-        <a href="/tenant/home">🏠 Home</a>
-        <a href="/tenant/journal">📓 Journal</a>
-        <a href="/tenant/documents">📁 Documents</a>
-        <a href="/law-library">📚 Rights</a>
-        <a href="/tenant/help">🆘 Help</a>
-      </nav>
-    </div>
-  </header>
-
-  <div class="hero">
-    <div class="hero-inner">
-      <h1>⏰ Deadline Tracker</h1>
-      <p>Track rent due dates, court dates, response deadlines, and lease milestones. Missing a deadline can be costly — don't let it happen.</p>
-    </div>
-  </div>
-
+</style>
+{% endblock %}
+{% block content %}
+<p class="shell-eyebrow">Tools</p>
+<h1>Deadline Tracker</h1>
+<p class="shell-lede">Track rent due dates, court dates, response deadlines, and lease milestones. Missing a deadline can be costly — don't let it happen.</p>
   <div class="container">
 
     <div class="disclaimer">
-      <strong>⚖️ Not Legal Advice —</strong> Deadlines shown are based on Minnesota law as of early 2026. Always verify with an attorney or <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" style="color:var(--color-warning-800);">HOME Line</a> for your specific situation. <a href="/public/disclaimer.html" style="color:var(--color-warning-800);">Full disclaimer →</a>
+      <strong>⚖️ Not Legal Advice —</strong> Deadlines shown are based on Minnesota law as of early 2026. Always verify with an attorney or <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" style="color:var(--color-warning-800);">HOME Line</a> for your specific situation. <a href="/disclaimer" style="color:var(--color-warning-800);">Full disclaimer →</a>
     </div>
 
     <!-- Add Deadline Form -->
@@ -250,18 +191,10 @@
     </div>
 
   </div><!-- /container -->
-
-  <footer>
-    <div>
-      <a href="/tenant/home">Home</a>
-      <a href="/tenant/help">Help</a>
-      <a href="/law-library">Rights</a>
-      <a href="/public/disclaimer.html">Disclaimer</a>
-    </div>
-    <div style="margin-top:0.5rem;">Semptify · No Cost, Always · Deadlines shown are informational only</div>
-  </footer>
-
-  <script>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
     function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
     function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
 
@@ -368,45 +301,6 @@
     document.getElementById('new-date').valueAsDate = new Date();
 
     renderDeadlines();
-  </script>
-
-<footer style="background: var(--hdr1); color: var(--text-inverse); padding: 2rem 1.5rem; margin-top: 3rem;">
-  <div style="max-width: 1000px; margin: 0 auto;">
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
-      <div>
-        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">⚖️ Semptify</div>
-        <p style="font-size: 0.85rem; opacity: 0.8; line-height: 1.5; margin: 0;">
-          The Tenant's Journal. Helping renters document their tenancy, understand rights AND responsibilities, and stay organized.
-        </p>
-      </div>
-      <div>
-        <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Legal</h4>
-        <ul style="list-style: none; padding: 0; margin: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Connect</h4>
-        <ul style="list-style: none; padding: 0; margin: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: color-mix(in srgb, var(--color-white), transparent 30%); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
-        </ul>
-      </div>
-    </div>
-    <div style="background: color-mix(in srgb, var(--color-white), transparent 95%); padding: 1rem; border-radius: var(--radius-block); margin-bottom: 1.5rem;">
-      <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
-        <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
-      </p>
-    </div>
-    <div style="border-top: 1px solid color-mix(in srgb, var(--color-white), transparent 90%); padding-top: 1.5rem; text-align: center;">
-      <p style="font-size: 0.85rem; margin: 0 0 0.5rem 0; opacity: 0.8;">© 2024-2026 Semptify</p>
-      <p style="font-size: 0.8rem; margin: 0; opacity: 0.7;">No Cost, Always • No Ads • Open Source</p>
-    </div>
-  </div>
-</footer>
-
+</script>
 <script src="/static/components/feedback.js"></script>
-</body>
-</html>
+{% endblock %}
