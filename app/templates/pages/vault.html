@@ -1,18 +1,17 @@
-{% extends "base.html" %}
+{% extends "shell_base.html" %}
 
 {% block title %}Document Vault - {{ app_name }}{% endblock %}
-{% block body_class %}template-1{% endblock %}
-{% block main_class %}vault-main{% endblock %}
+{% block main_class %}{{ super() }}vault-main{% endblock %}
 
 {% block styles %}
 <link rel="stylesheet" href="/css/components/vault-portal.css">
 <style>
-    .template-1 .vault-main {
+    .vault-main {
         background: linear-gradient(135deg, var(--tone-900) 0%, var(--color-primary-dark) 100%);
         color: var(--text-inverse);
         padding: 2rem;
     }
-    .template-1 .vault-main * { margin: 0; padding: 0; box-sizing: border-box; }
+    .vault-main * { margin: 0; padding: 0; box-sizing: border-box; }
     .container { max-width: 900px; margin: 0 auto; }
     .vault-main header {
         display: flex;
