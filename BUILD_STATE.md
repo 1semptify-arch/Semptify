@@ -1,3 +1,24 @@
+## Session — 2026-09-15 — Policy: no AI surfaces, MNDES = legal-only (devin)
+
+### Decisions (Brad)
+- **No AI in the site or UI.** `/ai-helper` (route + template) removed.
+  Do not re-add AI prompt/chat surfaces without Brad's explicit OK.
+  (Note: the law-library "Ask the Law Librarian" box is keyword-matched
+  canned answers — no LLM — but it *presents* as a chat assistant.)
+- **MNDES is legal-role only for now** and lives with other legal
+  information. `/mndes/guide` + `/mndes/compliance-guide` gate to
+  legal/admin; tenants redirect to `/law-library`. Legal dashboard links
+  both guides; advocate dashboard links removed.
+- **Content standard for legal info:** factual, referenced from the
+  official source, fact-checked and verified — nothing that crosses the
+  UPL line.
+
+### Also in this commit
+- Stale `.html` links inside ported templates repointed to clean routes
+  (`/office/*`, `/`, `/help`, `/tools`, `/library`, `/privacy`).
+
+---
+
 ## Session — 2026-09-15 — Static-routed sections migrated to Site Shell (devin)
 
 ### What changed
