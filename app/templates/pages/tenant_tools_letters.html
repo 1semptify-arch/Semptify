@@ -1,33 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Template Letters – Semptify</title>
-<link rel="stylesheet" href="/static/css/ssot-design-system.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pinyon+Script&family=Great+Vibes&display=swap" rel="stylesheet">
-  <style>
+{% extends "shell_base.html" %}
+{% block title %}Template Letters — Semptify{% endblock %}
+{% block styles %}
+{{ super() }}
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pinyon+Script&family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
     :root {
       --hdr1: var(--color-primary); --hdr2: var(--color-primary); --accent: var(--color-primary-light);
       --bg: var(--bg-page); --light: var(--bg-surface); --text: var(--text-primary); --muted: var(--text-muted);
       --border: var(--border-color); --success: var(--color-success); --warning: var(--color-warning-800);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
 
-    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); position: sticky; top: 0; z-index: 100; }
-    .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 60px; gap: 1rem; }
-    .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: var(--text-inverse); }
-    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
-    nav.core-nav a { color: color-mix(in srgb, var(--color-white), transparent 20%); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: var(--radius-lg); font-size: 0.88rem; }
-    nav.core-nav a:hover { background: color-mix(in srgb, var(--color-white), transparent 85%); color: var(--text-inverse); }
-    .hamburger { display: none; background: none; border: none; color: var(--text-inverse); font-size: 1.5rem; cursor: pointer; }
 
-    .hero { background: linear-gradient(160deg, var(--bg-surface) 0%, var(--bg) 60%); padding: 2rem 1.5rem 1.5rem; }
-    .hero-inner { max-width: 1100px; margin: 0 auto; }
-    .hero h1 { font-size: 1.8rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.4rem; }
-    .hero p { color: var(--muted); font-size: 1rem; max-width: 580px; line-height: 1.6; }
 
     .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 
@@ -37,7 +20,7 @@
 
     .letter-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-block); overflow: hidden; }
     .letter-card-header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: var(--text-inverse); padding: 1.1rem 1.25rem; }
-    .letter-card-header h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .letter-card .letter-card-header h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; color: var(--text-inverse); font-family: var(--font-body, inherit); }
     .letter-card-header p { font-size: 0.8rem; opacity: 0.85; }
     .letter-card-body { padding: 1.25rem; }
     .letter-card-body p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.5; }
@@ -76,15 +59,7 @@
     .btn-autofill:disabled { background: var(--color-success); cursor: default; }
     .autofill-status { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
 
-    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: color-mix(in srgb, var(--color-white), transparent 20%); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
-    footer a { color: color-mix(in srgb, var(--color-white), transparent 30%); margin: 0 0.5rem; text-decoration: none; }
 
-    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
-    .nav-drawer.open { display: flex; }
-    .nav-drawer a { color: color-mix(in srgb, var(--color-white), transparent 15%); text-decoration: none; padding: 0.75rem 1rem; border-radius: var(--radius-block); display: block; }
-    .nav-drawer a:hover { background: color-mix(in srgb, var(--color-white), transparent 90%); }
-    .drawer-backdrop { display: none; position: fixed; inset: 0; background: color-mix(in srgb, var(--color-black), transparent 50%); z-index: 998; }
-    .drawer-backdrop.open { display: block; }
 
     /* Sign button */
     .btn-sign { background: var(--color-info); color: var(--text-inverse); border: none; }
@@ -127,7 +102,6 @@
       header, footer, .autofill-bar, .disclaimer, .btn-row, .sign-row,
       nav, .nav-drawer, .drawer-backdrop, .sig-modal-backdrop,
       .letter-card:not(.printing) { display: none !important; }
-      body { background: var(--bg-card); }
       .letter-card.printing { border: none !important; box-shadow: none !important; display: block !important; page-break-inside: avoid; }
       .letter-card-header.printing-header { background: none !important; color: var(--text-primary) !important; padding: 0 0 0.5rem !important; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
       .preview-box { display: block !important; border: none !important; background: none !important; padding: 0 !important; font-size: 11pt !important; }
@@ -135,53 +109,17 @@
       .letter-card-body > p, .form-group, .letter-card-header p { display: none !important; }
       .container { padding: 0 !important; }
       .letter-grid { display: block !important; }
-    }
     .print-sig-block { display: none; margin-top: 2rem; }
     .print-sig-block img { max-height: 60px; display: block; margin-top: 0.25rem; }
 
     @media (max-width: 768px) {
-      nav.core-nav { display: none; }
-      .hamburger { display: block; }
       .letter-grid { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
-  <nav class="nav-drawer" id="nav-drawer">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:var(--bg-card);">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:var(--bg-card);font-size:1.5rem;cursor:pointer;">✕</button>
-    </div>
-    <a href="/tenant/home">🏠 Dashboard</a>
-    <a href="/tenant/journal">📓 Journal</a>
-    <a href="/tenant/documents">📁 Documents</a>
-    <a href="/law-library">📚 Rights</a>
-    <a href="/tenant/help">🆘 Help</a>
-  </nav>
-
-  <header>
-    <div class="header-inner">
-      <button class="hamburger" onclick="openDrawer()">☰</button>
-      <a href="/tenant/home" class="logo">Semptify</a>
-      <nav class="core-nav">
-        <a href="/tenant/home">🏠 Home</a>
-        <a href="/tenant/journal">📓 Journal</a>
-        <a href="/tenant/documents">📁 Documents</a>
-        <a href="/law-library">📚 Rights</a>
-        <a href="/tenant/help">🆘 Help</a>
-      </nav>
-    </div>
-  </header>
-
-  <div class="hero">
-    <div class="hero-inner">
-      <h1>✉️ Template Letters</h1>
-      <p>Professional letters you can edit and send to your landlord. Every letter creates a paper trail that protects you.</p>
-    </div>
-  </div>
-
+</style>
+{% endblock %}
+{% block content %}
+<p class="shell-eyebrow">Tools</p>
+<h1>Template Letters</h1>
+<p class="shell-lede">Professional letters you can edit and send to your landlord. Every letter creates a paper trail that protects you.</p>
   <!-- Signature Modal -->
   <div class="sig-modal-backdrop" id="sig-modal-backdrop">
     <div class="sig-modal">
@@ -227,7 +165,7 @@
     </div>
 
     <div class="disclaimer">
-      <strong>⚖️ Not Legal Advice —</strong> These templates are starting points. Adapt them to your exact situation. For complex or high-stakes situations, contact a licensed attorney or free legal aid. <a href="/public/disclaimer.html" style="color:var(--color-warning-800);">Full disclaimer →</a>
+      <strong>⚖️ Not Legal Advice —</strong> These templates are starting points. Adapt them to your exact situation. For complex or high-stakes situations, contact a licensed attorney or free legal aid. <a href="/disclaimer" style="color:var(--color-warning-800);">Full disclaimer →</a>
     </div>
 
     <div class="letter-grid">
@@ -521,18 +459,10 @@
     </div><!-- /letter-grid -->
 
   </div><!-- /container -->
-
-  <footer>
-    <div>
-      <a href="/tenant/home">Home</a>
-      <a href="/tenant/help">Help</a>
-      <a href="/law-library">Rights</a>
-      <a href="/public/disclaimer.html">Disclaimer</a>
-    </div>
-    <div style="margin-top:0.5rem;">Semptify · No Cost, Always · Not Legal Advice</div>
-  </footer>
-
-  <script>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
     // =========================================================
     // Signature modal
     // =========================================================
@@ -959,8 +889,6 @@ ${t}
 ${a}
 `);
     }
-  </script>
-  <script src="/static/js/law-linker.js"></script>
-  <script src="/static/components/feedback.js"></script>
-</body>
-</html>
+</script>
+<script src="/static/components/feedback.js"></script>
+{% endblock %}

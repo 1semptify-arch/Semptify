@@ -4850,13 +4850,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        letters_path = BASE_PATH / "static" / "tenant" / "tools" / "letters.html"
-        static_page = _render_static_page(letters_path, inject_stage_model=True)
-        if static_page:
-            return static_page
-        tenant_home_stage = navigation.get_stage("tenant_home")
-        tenant_home_path = tenant_home_stage.path if tenant_home_stage else "/tenant/home"
-        return ssot_redirect(tenant_home_path, context="tenant_letters fallback")
+        return templates.TemplateResponse(request, "pages/tenant_tools_letters.html")
 
     @fastapi_app.get("/tenant/tools/deadlines", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/tools/deadlines/", response_class=HTMLResponse)
@@ -4865,13 +4859,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        deadlines_path = BASE_PATH / "static" / "tenant" / "tools" / "deadlines.html"
-        static_page = _render_static_page(deadlines_path, inject_stage_model=True)
-        if static_page:
-            return static_page
-        tenant_home_stage = navigation.get_stage("tenant_home")
-        tenant_home_path = tenant_home_stage.path if tenant_home_stage else "/tenant/home"
-        return ssot_redirect(tenant_home_path, context="tenant_deadlines fallback")
+        return templates.TemplateResponse(request, "pages/tenant_tools_deadlines.html")
+
+    @fastapi_app.get("/tenant/documents", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/documents/", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/documents/{doc_id}", response_class=HTMLResponse)
+    async def tenant_documents_redirect(request: Request, doc_id: str = ""):
+        """Old tenant documents page — Document Center is the canonical tool."""
+        return ssot_redirect("/dc", context="tenant documents ▸ document center")
 
     @fastapi_app.get("/ui/tool/complaints", response_class=HTMLResponse)
     @fastapi_app.get("/ui/tool/complaints/", response_class=HTMLResponse)
