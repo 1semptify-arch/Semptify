@@ -83,6 +83,9 @@ class OnboardingGateMiddleware(BaseHTTPMiddleware):
         gate_routes = {
             "storage_connected": f"{self.config.route_prefix}/providers",
             "vault_initialized": f"{self.config.route_prefix}/vault-setup",
+            # The document upload step lives inside vault-setup (step 3,
+            # /api/vault/verify) — there is no standalone upload page yet.
+            "document_uploaded": f"{self.config.route_prefix}/vault-setup",
         }
         redirect_path = gate_routes.get(incomplete, f"{self.config.route_prefix}/status")
 
