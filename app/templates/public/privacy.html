@@ -1,58 +1,110 @@
 {% extends "body/public_shell.html" %}
 
 {% block title %}Privacy Policy — Semptify{% endblock %}
-{% block description %}Semptify privacy policy. We never store your documents on our servers. Your data stays in your control.{% endblock %}
+{% block description %}Semptify privacy policy. Your data stays in your cloud storage. We never sell your data, never train AI on your documents.{% endblock %}
 {% block keywords %}privacy policy, data privacy, tenant data, document storage{% endblock %}
 
-{% block header_title %}🔒 Privacy Policy{% endblock %}
-{% block header_tagline %}Your Data Stays in Your Control{% endblock %}
-{% block header_subtitle %}We never store your documents on our servers.{% endblock %}
+{% block header_title %}Privacy Policy{% endblock %}
+{% block header_tagline %}Your data stays in your control{% endblock %}
+{% block header_subtitle %}Last updated: April 22, 2026{% endblock %}
 
 {% block page_body %}
 
-<section class="section">
-    <h2 class="section-title">Our Privacy Commitment</h2>
-    <p style="color: var(--text-light);">
-        Semptify is privacy-respecting by design. We never store your documents on our
-        servers. Your documents stay in your own cloud storage — Google Drive, Dropbox,
-        or OneDrive — under your control, under your account, under your terms.
-    </p>
-</section>
+<div class="info-banner">
+    <p><strong>Core principle:</strong> Your data stays in your cloud storage. Semptify does not own your documents, does not sell your data, and does not use your data to train AI models. We are a privacy-first platform built for people who need to protect their rights.</p>
+</div>
 
 <section class="section">
-    <h2 class="section-title">What We Store</h2>
-    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
-        <li><strong>Account metadata</strong> — Your role, storage provider, and session state.</li>
-        <li><strong>Timeline entries</strong> — Text descriptions of events (not the documents themselves).</li>
-        <li><strong>Journal entries</strong> — Your written notes and records.</li>
-        <li><strong>Verified facts</strong> — Sourced facts from our Context Engine (public law, not your data).</li>
+    <h2 class="section-title">1. What Information We Collect</h2>
+    <h3 style="font-size:1rem; color:var(--text-primary); margin-bottom:0.4rem;">1.1 Information You Provide</h3>
+    <ul style="margin-left: 1.5rem; line-height: 1.9; color: var(--text-secondary);">
+        <li>Session information: temporary browser session ID to maintain your privacy preferences and role selection during your visit</li>
+        <li>Documents you upload to your personal vault</li>
+        <li>Timeline events, messages, and case notes you create</li>
+        <li>Generated letters and checklist responses</li>
+    </ul>
+    <h3 style="font-size:1rem; color:var(--text-primary); margin:1rem 0 0.4rem;">1.2 Information Collected Automatically</h3>
+    <ul style="margin-left: 1.5rem; line-height: 1.9; color: var(--text-secondary);">
+        <li>OAuth authentication tokens (stored encrypted, used only for cloud storage access)</li>
+        <li>Basic system logs (errors, uptime) for platform reliability</li>
+        <li>No tracking pixels, no advertising cookies, no analytics scripts</li>
     </ul>
 </section>
 
 <section class="section">
-    <h2 class="section-title">What We Don't Store</h2>
-    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
-        <li><strong>Your documents</strong> — Lease, photos, receipts, communications — all in your cloud storage.</li>
-        <li><strong>Your files</strong> — PDFs, images, attachments — all in your cloud storage.</li>
-        <li><strong>Your OAuth tokens</strong> — Stored in encrypted server memory only for active sessions.</li>
+    <h2 class="section-title">2. How We Use Your Information</h2>
+    <p class="section-description">We use your information only to:</p>
+    <ol style="margin-left: 1.5rem; line-height: 1.9; color: var(--text-secondary);">
+        <li>Provide the Semptify service (vault storage, document delivery, timeline, tools)</li>
+        <li>Authenticate your cloud storage connection and secure your session</li>
+        <li>Maintain and improve platform stability</li>
+        <li>Comply with legal requirements (subpoena, court order) if applicable</li>
+    </ol>
+</section>
+
+<section class="section">
+    <h2 class="section-title">3. Where Your Data Lives</h2>
+    <div class="info-banner">
+        <p><strong>User-controlled cloud storage.</strong> Your documents are stored in your own Google Drive, Dropbox, or OneDrive, in a Semptify folder you control. You can revoke access, delete the folder, or download everything at any time. Semptify does not maintain copies of your documents on our servers except temporary cache during upload.</p>
+    </div>
+</section>
+
+<section class="section">
+    <h2 class="section-title">4. What We Do Not Do</h2>
+    <ul style="margin-left: 1.5rem; line-height: 1.9; color: var(--text-secondary);">
+        <li>We do <strong>not</strong> sell, rent, or share your personal information with advertisers</li>
+        <li>We do <strong>not</strong> use your documents to train AI models</li>
+        <li>We do <strong>not</strong> track you across the web</li>
+        <li>We do <strong>not</strong> share your data with landlords, property managers, or opposing parties</li>
+        <li>We do <strong>not</strong> run behavioral analytics or profiling</li>
     </ul>
 </section>
 
 <section class="section">
-    <h2 class="section-title">Your Rights</h2>
-    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
-        <li><strong>Access</strong> — You can access your data at any time.</li>
-        <li><strong>Deletion</strong> — You can delete your account and data at any time.</li>
-        <li><strong>Portability</strong> — Your documents are already in your cloud storage — they're portable by design.</li>
-        <li><strong>No advertising</strong> — We never sell your data. No advertising, ever.</li>
+    <h2 class="section-title">5. Blockchain Timestamping</h2>
+    <p class="section-description">When you upload documents to your vault, you may optionally generate a blockchain timestamp. This creates a cryptographic proof of existence at a point in time. The timestamp does not contain the document content — only a hash (fingerprint). This is for your evidence preservation. We cannot reverse a hash to recover your document.</p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">6. Document Delivery</h2>
+    <p class="section-description">Semptify does not facilitate document exchange between users. Documents remain in your personal cloud storage. If you choose to share documents with others (via external email, download, or third-party services), those actions occur outside Semptify.</p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">7. Data Retention</h2>
+    <ul style="margin-left: 1.5rem; line-height: 1.9; color: var(--text-secondary);">
+        <li>Your documents: retained in your cloud storage for as long as you keep them there</li>
+        <li>Session information: automatically cleared when you close your browser or disconnect storage</li>
+        <li>System logs: retained for 90 days for debugging, then purged</li>
     </ul>
 </section>
 
 <section class="section">
-    <h2 class="section-title">Contact</h2>
-    <p style="color: var(--text-light);">
-        For privacy questions or concerns: <a href="mailto:support@semptify.org" style="color: var(--accent);">support@semptify.org</a>
-    </p>
+    <h2 class="section-title">8. Your Rights</h2>
+    <p class="section-description">You have the right to:</p>
+    <ul style="margin-left: 1.5rem; line-height: 1.9; color: var(--text-secondary);">
+        <li>Access and download all your data</li>
+        <li>Clear your browser session and disconnect cloud storage at any time</li>
+        <li>Revoke cloud storage access at any time</li>
+        <li>Update your role selection or privacy preferences during your session</li>
+        <li>Export your timeline and vault index</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">9. Security</h2>
+    <p class="section-description">We use industry-standard security practices: HTTPS everywhere, encrypted OAuth tokens, access controls by role, and rate limiting. However, no system is perfectly secure. You are responsible for maintaining the security of your cloud storage account and device.</p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">10. Changes to This Policy</h2>
+    <p class="section-description">We will notify you of material changes by email and by posting an update on this page with a new "Last updated" date. We will never reduce your privacy rights without explicit consent.</p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">11. Contact</h2>
+    <p class="section-description">For privacy questions or data requests, contact us at <a href="mailto:privacy@semptify.org">privacy@semptify.org</a>.</p>
+    <p class="shell-note">This privacy policy is a living document. Semptify is built on the principle that your data belongs to you. If we ever need to change that, we will tell you plainly and give you a choice.</p>
 </section>
 
 {% endblock %}

@@ -11,7 +11,7 @@ register_function_group(
         module="public_forms",
         group_name="public_forms_feedback",
         title="Public Forms Submit Feedback (SSOT)",
-        description="CANONICAL receive a feedback form submission from /public/feedback.html. Public endpoint.",
+        description="CANONICAL receive a feedback form submission from /feedback. Public endpoint.",
         inputs=("feedback",),
         outputs=("success",),
         dependencies=("app.modules.public_forms.router",),
