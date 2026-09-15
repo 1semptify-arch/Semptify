@@ -1,0 +1,111 @@
+{% extends "shell_base.html" %}
+{% block title %}Admin Home - Semptify – Semptify Admin{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/ssot-design-system.css">
+<style>
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-sans);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .home-box {
+            background: var(--bg-card);
+            padding: 48px;
+            border-radius: var(--radius-2xl);
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: var(--elevation-2);
+        }
+        .logo {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        h1 {
+            color: var(--text-primary);
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-bottom: 32px;
+        }
+        .status {
+            background: var(--bg-surface);
+            border-left: 4px solid var(--color-success);
+            padding: 16px;
+            border-radius: var(--radius-block);
+            margin-bottom: 24px;
+            text-align: left;
+        }
+        .status-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .status-item {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin: 4px 0;
+        }
+        .signin-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: var(--color-error);
+            color: var(--text-inverse);
+            text-decoration: none;
+            border-radius: var(--radius-2xl);
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .signin-btn:hover {
+            background: var(--color-error-800);
+            transform: translateY(-2px);
+        }
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+    
+</style>
+{% endblock %}
+{% block content %}
+<div class="home-box">
+        <div class="logo">🔧</div>
+        <h1>Administrator Portal</h1>
+        <p class="subtitle">Welcome to the admin home screen</p>
+        
+        <div class="status">
+            <div class="status-title">✅ Onboarding Complete</div>
+            <div class="status-item">• Storage connected</div>
+            <div class="status-item">• Account verified</div>
+            <div class="status-item">• Ready for admin access</div>
+        </div>
+        
+        <a href="/admin/login" class="signin-btn">
+            🔐 Admin Sign In
+        </a>
+        
+        <a href="/home" class="back-link">← Back to main home</a>
+    </div>
+{% endblock %}
+{% block scripts %}
+<script>
+
+</script>
+{% endblock %}

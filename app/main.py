@@ -2469,15 +2469,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/admin/home", response_class=HTMLResponse)
     @fastapi_app.get("/admin/home.html", response_class=HTMLResponse)
-    async def admin_home_page():
+    async def admin_home_page(request: Request):
         """Admin home page - shown after onboarding, leads to admin sign in."""
-        home_path = BASE_PATH / "static" / "admin" / "home.html"
-        if home_path.exists():
-            return FileResponse(str(home_path))
-        # Fallback to login if home.html missing
-        admin_login_stage = navigation.get_stage("admin_login")
-        admin_login_path = admin_login_stage.path if admin_login_stage else "/admin/login"
-        return ssot_redirect(admin_login_path, context="admin_home missing home.html")
+        return templates.TemplateResponse(request, "pages/admin_home.html")
 
     # Admin guard - checks elevation cookie (time-limited TOTP-verified elevation)
     # Does NOT check OAuth role — elevation is separate from storage identity
@@ -2505,11 +2499,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Secret admin portal - not discoverable via public URLs."""
-        admin_dashboard_path = BASE_PATH / "static" / "admin" / "dashboard.html"
-        if admin_dashboard_path.exists():
-            content = admin_dashboard_path.read_text(encoding="utf-8")
-            return HTMLResponse(content=content)
-        return HTMLResponse(content="<h1>Not Found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_dashboard.html")
 
     # Legacy /admin/dashboard.html - 404 for non-admins (stealth mode)
     @fastapi_app.get("/admin/dashboard.html", response_class=HTMLResponse)
@@ -2518,10 +2508,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve admin dashboard HTML - ADMIN role required."""
-        dashboard_path = BASE_PATH / "static" / "admin" / "dashboard.html"
-        if dashboard_path.exists():
-            return FileResponse(str(dashboard_path))
-        return HTMLResponse(content="<h1>Not Found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_dashboard.html")
 
     @fastapi_app.get("/admin/system-health", response_class=HTMLResponse)
     @fastapi_app.get("/admin/system-health.html", response_class=HTMLResponse)
@@ -2530,10 +2517,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve the System Health & Updates page - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "system-health.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>System Health page not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_system_health.html")
 
     @fastapi_app.get("/admin/run-modules", response_class=HTMLResponse)
     @fastapi_app.get("/admin/run-modules.html", response_class=HTMLResponse)
@@ -2563,10 +2547,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve stub tile pages from the Admin Hub."""
-        page_path = BASE_PATH / "static" / "admin" / "tile_stub.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Tile page not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_tile_stub.html")
 
     @fastapi_app.get("/admin/contract-browser.html", response_class=HTMLResponse)
     async def admin_contract_browser(
@@ -2574,10 +2555,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve contract browser - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "contract-browser.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Contract Browser not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_contract_browser.html")
 
     @fastapi_app.get("/admin/function-browser.html", response_class=HTMLResponse)
     async def admin_function_browser(
@@ -2585,10 +2563,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve function browser - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "function-browser.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Function Browser not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_function_browser.html")
 
     @fastapi_app.get("/admin/page-editor.html", response_class=HTMLResponse)
     async def admin_page_editor(
@@ -2596,10 +2571,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve page editor - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "page-editor.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Page Editor not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_page_editor.html")
 
     @fastapi_app.get("/admin/review-checklist.html", response_class=HTMLResponse)
     async def admin_review_checklist(
@@ -2607,10 +2579,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve review checklist - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "review-checklist.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Review Checklist not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_review_checklist.html")
 
     @fastapi_app.get("/admin/page_shell_demo.html", response_class=HTMLResponse)
     async def admin_page_shell_demo(
@@ -2618,10 +2587,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve page shell demo - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "page_shell_demo.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Page Shell Demo not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_page_shell_demo.html")
 
     @fastapi_app.get("/admin/manual.html", response_class=HTMLResponse)
     async def admin_manual(
@@ -2629,10 +2595,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve admin manual - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "manual.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Admin Manual not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_manual.html")
 
     @fastapi_app.get("/admin/api-workbook.html", response_class=HTMLResponse)
     async def admin_api_workbook(
@@ -2640,10 +2603,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve API workbook - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "api_workbook.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>API Workbook not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_api_workbook.html")
 
     @fastapi_app.get("/admin/module-flags.html", response_class=HTMLResponse)
     async def admin_module_flags_page(
@@ -2651,10 +2611,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve Module Flag Overlay admin page - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "module_flags.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Module Flags not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_module_flags.html")
 
     @fastapi_app.get("/admin/forge.html", response_class=HTMLResponse)
     async def admin_forge_page(
@@ -2666,10 +2623,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         The Forge is the canonical module development system. Alias /admin/dev-lab.html
         kept for backward compatibility.
         """
-        page_path = BASE_PATH / "static" / "admin" / "dev_lab.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Semptify Forge not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_dev_lab.html")
 
     @fastapi_app.get("/admin/agent_orchestrator.html", response_class=HTMLResponse)
     async def admin_agent_orchestrator_page(
@@ -2677,10 +2631,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve Agent Orchestrator admin page - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "agent_orchestrator.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Agent Orchestrator not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_agent_orchestrator.html")
 
     @fastapi_app.get("/admin/script-catalog.html", response_class=HTMLResponse)
     async def admin_script_catalog_page(
@@ -2688,18 +2639,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve Script Catalog admin page - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "script_catalog.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Script Catalog not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/admin_script_catalog.html")
 
     @fastapi_app.get("/ai-helper", response_class=HTMLResponse)
     async def ai_helper_page(request: Request):
         """Serve the AI Helper page - one-click prompt + bundle for external AI consultation."""
-        page_path = BASE_PATH / "static" / "ai-helper.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>AI Helper not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/ai_helper.html")
 
     @fastapi_app.get("/admin/dev-lab.html", response_class=HTMLResponse)
     async def admin_dev_lab_page(
@@ -2808,10 +2753,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve component inventory docs - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "docs" / "component-inventory.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Component Inventory not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/docs_component_inventory.html")
 
     @fastapi_app.get("/docs/navigation-structure.html", response_class=HTMLResponse)
     async def docs_navigation_structure(
@@ -2819,10 +2761,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Serve navigation structure docs - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "docs" / "navigation-structure.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Navigation Structure not found</h1>", status_code=404)
+        return templates.TemplateResponse(request, "pages/docs_navigation_structure.html")
 
     @fastapi_app.get("/overlays/viewer", response_class=HTMLResponse)
     async def overlay_viewer_page(request: Request):
@@ -2853,17 +2792,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         preserved as a legacy file; this placeholder is the canonical /admin
         surface until the replacement is ready.
         """
-        uc_path = BASE_PATH / "static" / "admin" / "under_construction.html"
-        if uc_path.exists():
-            content = uc_path.read_text(encoding="utf-8")
-            return HTMLResponse(content=content)
-        hub_path = BASE_PATH / "static" / "admin" / "hub.html"
-        if hub_path.exists():
-            content = hub_path.read_text(encoding="utf-8")
-            return HTMLResponse(content=content)
-        admin_dashboard_stage = navigation.get_stage("admin_dashboard")
-        admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"
-        return ssot_redirect(admin_dashboard_path, context="admin_hub missing under_construction.html")
+        return templates.TemplateResponse(request, "pages/admin_under_construction.html")
 
     @fastapi_app.get("/manager", response_class=HTMLResponse)
     async def manager_portal_page(request: Request):
@@ -3068,6 +2997,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def office_page(request: Request):
         """Serve the Office â€” case management center."""
         return templates.TemplateResponse(request, "pages/office.html")
+
+    @fastapi_app.get("/office/{subpage}", response_class=HTMLResponse)
+    async def office_subpage(subpage: str, request: Request):
+        """Serve office operation pages (inbox, vault, signer, delivery)."""
+        if ".." in subpage or "/" in subpage or "\\" in subpage:
+            return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
+        if subpage in {"inbox", "vault", "signer", "delivery"}:
+            return templates.TemplateResponse(request, f"pages/office_{subpage}.html")
+        return HTMLResponse(content="<h1>404 - Office page not found</h1>", status_code=404)
 
     @fastapi_app.get("/library", response_class=HTMLResponse)
     async def library_page(request: Request):
@@ -3986,11 +3924,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/invite-advocate", response_class=HTMLResponse)
     async def invite_advocate_page():
         """Serve the invite advocate page for tenants."""
-        invite_path = BASE_PATH / "static" / "invite-advocate.html"
-        invite_fallback = _render_static_page(invite_path)
-        if invite_fallback:
-            return invite_fallback
-        return HTMLResponse(content="<h1>Invite Advocate page not found</h1>", status_code=404)
+        return ssot_redirect("/tenant/my-advocate", context="invite_advocate superseded")
 
     # =========================================================================
     # Document Delivery Pages (Professional Send Flow)
@@ -5567,6 +5501,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if ".." in subpage or "/" in subpage or "\\" in subpage:
             return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
 
+        if subpage == "dashboard":
+            return templates.TemplateResponse(request, "pages/advocate_dashboard.html")
+
         subpage_path = BASE_PATH / "static" / "advocate" / f"{subpage}.html"
         subpage_fallback = _render_static_page(subpage_path, inject_stage_model=True)
         if subpage_fallback:
@@ -5650,6 +5587,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             law_library_stage = navigation.get_stage("law_library")
             law_library_path = law_library_stage.path if law_library_stage else "/law-library"
             return ssot_redirect(law_library_path, context="legal_subpage alias redirect")
+
+        if target == "dashboard":
+            return templates.TemplateResponse(request, "pages/legal_dashboard.html")
 
         subpage_path = BASE_PATH / "static" / "legal" / f"{target}.html"
         subpage_fallback = _render_static_page(subpage_path, inject_stage_model=True)

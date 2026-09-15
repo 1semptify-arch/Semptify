@@ -1,0 +1,417 @@
+{% extends "shell_base.html" %}
+{% block title %}Semptify Component Inventory - Reusable Objects{% endblock %}
+{% block styles %}
+{{ super() }}
+<style>
+
+    .component { background: var(--color-primary-dark); border: 1px solid var(--color-calm-dark); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .component h3 { margin-top: 0; color: var(--color-success); }
+    .tag { display: inline-block; padding: 0.2rem 0.5rem; background: var(--color-calm-dark); border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem; }
+    .mobile-yes { background: var(--color-success-800); color: var(--color-calm-light); }
+    .mobile-no { background: var(--color-error-800); color: var(--color-calm-200); }
+    .mobile-partial { background: var(--color-warning-800); color: var(--color-warning); }
+    pre { background: var(--tone-900); padding: 1rem; border-radius: 4px; overflow-x: auto; }
+    .usage { background: var(--color-calm-dark); padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; }
+  
+</style>
+{% endblock %}
+{% block content %}
+<p class="shell-eyebrow">Semptify</p>
+<h1>Semptify Component Inventory</h1>
+<h1>📦 Semptify Component Inventory</h1>
+  <p>All reusable UI objects, their mobile status, and how to use them. 
+     <a href="/admin/function-browser.html" style="color: var(--color-success);">Browse functions →</a></p>
+
+  <!-- NAVIGATION COMPONENTS -->
+  <h2>🧭 Navigation Components</h2>
+  
+  <div class="component">
+    <h3>CoreNavigation</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <span class="tag">Responsive</span>
+    <span class="tag">Required on all pages</span>
+    <p>The 5-link navigation: Home | Library | Office | Tools | Help</p>
+    <div class="usage"><strong>Usage:</strong> Include in header component on every page</div>
+    <pre>&lt;nav class="core-nav"&gt;
+  &lt;a href="/home.html"&gt;Home&lt;/a&gt;
+  &lt;a href="/library.html"&gt;Library&lt;/a&gt;
+  &lt;a href="/office.html"&gt;Office&lt;/a&gt;
+  &lt;a href="/tools.html"&gt;Tools&lt;/a&gt;
+  &lt;a href="/help.html"&gt;Help&lt;/a&gt;
+&lt;/nav&gt;</pre>
+  </div>
+
+  <div class="component">
+    <h3>VaultDoorButton</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <span class="tag">Required on all pages</span>
+    <p>Orange vault button in header - opens file picker for uploads</p>
+    <div class="usage"><strong>Usage:</strong> Place in header right side, before user menu</div>
+    <pre>&lt;button class="vault-door-btn" onclick="openVaultUpload()"&gt;
+  🔒 &lt;span&gt;Vault&lt;/span&gt;
+&lt;/button&gt;</pre>
+  </div>
+
+  <div class="component">
+    <h3>RoleSwitcher</h3>
+    <span class="tag mobile-yes">Mobile: Dropdown</span>
+    <span class="tag">Admin only</span>
+    <p>Switch between roles for testing/access</p>
+    <div class="usage"><strong>Usage:</strong> Only in admin header or debug mode</div>
+  </div>
+
+  <div class="component">
+    <h3>BreadcrumbNav</h3>
+    <span class="tag mobile-partial">Mobile: Hidden</span>
+    <p>Home > Office > Vault > Upload path indicator</p>
+    <div class="usage"><strong>Usage:</strong> Below header on sub-pages (hidden on mobile)</div>
+  </div>
+
+  <!-- LAYOUT COMPONENTS -->
+  <h2>📐 Layout Components</h2>
+
+  <div class="component">
+    <h3>PageWrapper</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <span class="tag">Required</span>
+    <p>Main page container with header/body/footer structure</p>
+    <pre>&lt;div class="page-wrapper" data-theme="ocean"&gt;
+  &lt;header&gt;...&lt;/header&gt;
+  &lt;main class="page-body"&gt;...&lt;/main&gt;
+  &lt;footer&gt;...&lt;/footer&gt;
+&lt;/div&gt;</pre>
+  </div>
+
+  <div class="component">
+    <h3>ContentGrid</h3>
+    <span class="tag mobile-yes">Mobile: Stacked</span>
+    <p>Responsive grid for cards/dashboard items</p>
+    <pre>&lt;div class="content-grid"&gt;
+  &lt;div class="card"&gt;...&lt;/div&gt;
+  &lt;div class="card"&gt;...&lt;/div&gt;
+&lt;/div&gt;</pre>
+  </div>
+
+  <div class="component">
+    <h3>SplitPane</h3>
+    <span class="tag mobile-no">Mobile: Stacked</span>
+    <span class="tag">Desktop only layout</span>
+    <p>Two-column layout with resizable divider</p>
+    <div class="usage"><strong>Usage:</strong> Document viewer with sidebar, timeline with detail panel</div>
+  </div>
+
+  <div class="component">
+    <h3>ModalOverlay</h3>
+    <span class="tag mobile-yes">Mobile: Full-screen</span>
+    <p>Centered modal with backdrop</p>
+    <pre>&lt;div class="modal" id="modal-id"&gt;
+  &lt;div class="modal-backdrop"&gt;&lt;/div&gt;
+  &lt;div class="modal-content"&gt;...&lt;/div&gt;
+&lt;/div&gt;</pre>
+  </div>
+
+  <div class="component">
+    <h3>DrawerPanel</h3>
+    <span class="tag mobile-yes">Mobile: Slide-up</span>
+    <p>Side or bottom sliding panel</p>
+    <div class="usage"><strong>Usage:</strong> Mobile navigation, filter panels, detail views</div>
+  </div>
+
+  <!-- FORM COMPONENTS -->
+  <h2>📝 Form Components</h2>
+
+  <div class="component">
+    <h3>TextInput</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <p>Standard text input with label and error state</p>
+    <pre>&lt;div class="form-group"&gt;
+  &lt;label class="form-label"&gt;Label&lt;/label&gt;
+  &lt;input type="text" class="form-input" placeholder="..."&gt;
+  &lt;span class="form-error"&gt;Error message&lt;/span&gt;
+&lt;/div&gt;</pre>
+  </div>
+
+  <div class="component">
+    <h3>DatePicker</h3>
+    <span class="tag mobile-yes">Mobile: Native</span>
+    <p>Date input with calendar picker</p>
+    <div class="usage"><strong>Mobile:</strong> Uses native date picker for better UX</div>
+  </div>
+
+  <div class="component">
+    <h3>FileUploadZone</h3>
+    <span class="tag mobile-partial">Mobile: Camera/Gallery</span>
+    <p>Drag-and-drop upload area</p>
+    <div class="usage"><strong>Mobile:</strong> Tap opens camera/gallery, no drag-drop</div>
+  </div>
+
+  <div class="component">
+    <h3>DocumentTypeSelector</h3>
+    <span class="tag mobile-yes">Mobile: Dropdown</span>
+    <p>Dropdown for selecting document type in vault</p>
+  </div>
+
+  <div class="component">
+    <h3>SearchAutocomplete</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <p>Search with suggestions dropdown</p>
+  </div>
+
+  <div class="component">
+    <h3>RichTextEditor</h3>
+    <span class="tag mobile-partial">Mobile: Plain text</span>
+    <p>Text formatting editor</p>
+    <div class="usage"><strong>Mobile:</strong> Falls back to plain textarea</div>
+  </div>
+
+  <!-- DATA DISPLAY COMPONENTS -->
+  <h2>📊 Data Display Components</h2>
+
+  <div class="component">
+    <h3>Card</h3>
+    <span class="tag mobile-yes">Mobile: Full-width</span>
+    <p>Container for content with header, body, footer</p>
+    <pre>&lt;div class="card"&gt;
+  &lt;div class="card-header"&gt;...&lt;/div&gt;
+  &lt;div class="card-body"&gt;...&lt;/div&gt;
+  &lt;div class="card-footer"&gt;...&lt;/div&gt;
+&lt;/div&gt;</pre>
+  </div>
+
+  <div class="component">
+    <h3>DataTable</h3>
+    <span class="tag mobile-no">Mobile: Card list</span>
+    <p>Sortable, filterable table</p>
+    <div class="usage"><strong>Mobile:</strong> Converts to vertical card list view</div>
+  </div>
+
+  <div class="component">
+    <h3>Timeline</h3>
+    <span class="tag mobile-yes">Mobile: Vertical</span>
+    <p>Chronological event display</p>
+    <div class="usage"><strong>Mobile:</strong> Single column vertical, desktop: horizontal optional</div>
+  </div>
+
+  <div class="component">
+    <h3>DocumentPreview</h3>
+    <span class="tag mobile-partial">Mobile: Thumbnail only</span>
+    <p>PDF/image preview with zoom</p>
+    <div class="usage"><strong>Mobile:</strong> Thumbnail + download, no in-browser viewer</div>
+  </div>
+
+  <div class="component">
+    <h3>StatusBadge</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <p>Colored status indicator (pending, complete, urgent, etc)</p>
+    <pre>&lt;span class="status-badge status-urgent"&gt;Urgent&lt;/span&gt;</pre>
+  </div>
+
+  <div class="component">
+    <h3>ProgressBar</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <p>Visual progress indicator</p>
+  </div>
+
+  <!-- ACTION COMPONENTS -->
+  <h2>⚡ Action Components</h2>
+
+  <div class="component">
+    <h3>Button</h3>
+    <span class="tag mobile-yes">Mobile: Touch-optimized (44px min)</span>
+    <p>Standard button with variants</p>
+    <pre>&lt;button class="btn btn-primary"&gt;Primary&lt;/button&gt;
+&lt;button class="btn btn-secondary"&gt;Secondary&lt;/button&gt;
+&lt;button class="btn btn-ghost"&gt;Ghost&lt;/button&gt;
+&lt;button class="btn btn-danger"&gt;Danger&lt;/button&gt;</pre>
+  </div>
+
+  <div class="component">
+    <h3>ButtonGroup</h3>
+    <span class="tag mobile-yes">Mobile: Stacked or scroll</span>
+    <p>Connected button set for related actions</p>
+  </div>
+
+  <div class="component">
+    <h3>IconButton</h3>
+    <span class="tag mobile-yes">Mobile: 48px touch target</span>
+    <p>Icon-only button with tooltip</p>
+    <div class="usage"><strong>Mobile:</strong> Larger touch target, always has label or aria-label</div>
+  </div>
+
+  <div class="component">
+    <h3>DropdownMenu</h3>
+    <span class="tag mobile-yes">Mobile: Bottom sheet</span>
+    <p>Expandable menu with options</p>
+    <div class="usage"><strong>Mobile:</strong> Opens as bottom sheet instead of dropdown</div>
+  </div>
+
+  <div class="component">
+    <h3>ActionMenu (3-dot)</h3>
+    <span class="tag mobile-yes">Mobile: Bottom sheet</span>
+    <p>Context menu for item actions</p>
+  </div>
+
+  <!-- SPECIALIZED COMPONENTS -->
+  <h2>🔧 Specialized Components</h2>
+
+  <div class="component">
+    <h3>VaultUploadModal</h3>
+    <span class="tag mobile-yes">Mobile: Full-screen</span>
+    <span class="tag">Critical: Single entry point</span>
+    <p>Document upload interface with metadata capture</p>
+    <div class="usage"><strong>Context:</strong> ALL documents go through here. Mobile: camera/gallery first</div>
+  </div>
+
+  <div class="component">
+    <h3>OverlayViewer</h3>
+    <span class="tag mobile-yes">Mobile: Simplified</span>
+    <p>Display extracted document metadata (not full document)</p>
+    <div class="usage"><strong>Mobile:</strong> Key fields only, collapsible sections</div>
+  </div>
+
+  <div class="component">
+    <h3>PDFSigner</h3>
+    <span class="tag mobile-no">Mobile: Redirect to desktop</span>
+    <p>Electronic signature interface</p>
+    <div class="usage"><strong>Mobile:</strong> Show message: "Signing requires desktop. Email link to yourself?"</div>
+  </div>
+
+  <div class="component">
+    <h3>DocumentDelivery</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <p>Send documents to recipients with tracking</p>
+  </div>
+
+  <div class="component">
+    <h3>PacketBuilder</h3>
+    <span class="tag mobile-partial">Mobile: Templates only</span>
+    <p>Assemble multi-document packets</p>
+    <div class="usage"><strong>Mobile:</strong> Pre-built templates only, no custom ordering</div>
+  </div>
+
+  <div class="component">
+    <h3>DeadlineCalculator</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <p>Calculate court/legal deadlines</p>
+  </div>
+
+  <div class="component">
+    <h3>CrisisBanner</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <span class="tag">Tenant only</span>
+    <p>Emergency alert banner with hotline</p>
+    <div class="usage"><strong>Context:</strong> Shows when emergency detected in documents/timeline</div>
+  </div>
+
+  <div class="component">
+    <h3>NotificationToast</h3>
+    <span class="tag mobile-yes">Mobile: Full</span>
+    <p>Temporary notification popup</p>
+  </div>
+
+  <div class="component">
+    <h3>HelpTooltip</h3>
+    <span class="tag mobile-yes">Mobile: Modal</span>
+    <p>Contextual help info icon</p>
+    <div class="usage"><strong>Mobile:</strong> Tap opens modal instead of tooltip</div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div style="background: var(--color-calm-dark); padding: 1rem; border-radius: 8px; margin: 2rem 0;">
+  <h3 style="margin-top: 0;">🔗 Related Documentation</h3>
+  <p>
+    <a href="/docs/navigation-structure.html" style="color: var(--color-info); display: inline-block; margin-right: 1rem;">🧭 Where to position these components →</a><br><br>
+    <a href="/admin/function-browser.html" style="color: var(--color-info); display: inline-block; margin-right: 1rem;">⚙️ What functions they implement →</a><br><br>
+    <a href="/admin/theme-preview.html" style="color: var(--color-info); display: inline-block;">🎨 View color themes →</a>
+  </p>
+</div>
+
+<h2>📱 Mobile Compatibility Summary</h2>
+  
+  <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+    <thead>
+      <tr style="background: var(--color-primary-dark);">
+        <th style="padding: 0.75rem; text-align: left; border: 1px solid var(--color-calm-dark);">Component</th>
+        <th style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark);">Mobile</th>
+        <th style="padding: 0.75rem; text-align: left; border: 1px solid var(--color-calm-dark);">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Core Navigation</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-light);">✅ Full</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Hamburger menu on mobile</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Vault Upload</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-light);">✅ Full</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Camera/gallery integration</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Document Viewer</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-warning);">⚠️ Partial</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Thumbnail + download only</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">PDF Signer</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-200);">❌ No</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Desktop only - email link option</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Data Tables</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-warning);">⚠️ Partial</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Converts to card list</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Rich Text Editor</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-warning);">⚠️ Partial</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Plain text fallback</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Split Pane</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-200);">❌ No</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Stacks vertically on mobile</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Timeline</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-light);">✅ Full</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Vertical layout</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">All Forms</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-calm-light);">✅ Full</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Native inputs on mobile</td>
+      </tr>
+      <tr>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Packet Builder</td>
+        <td style="padding: 0.75rem; text-align: center; border: 1px solid var(--color-calm-dark); color: var(--color-warning);">⚠️ Partial</td>
+        <td style="padding: 0.75rem; border: 1px solid var(--color-calm-dark);">Templates only</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>🎯 Mobile-First Guidelines</h2>
+  
+  <div class="component">
+    <h3>Touch Targets</h3>
+    <p>All interactive elements must be minimum <strong>44x44px</strong> (Apple) or <strong>48x48px</strong> (Google)</p>
+  </div>
+
+  <div class="component">
+    <h3>Navigation Pattern</h3>
+    <p>Mobile: Hamburger menu with drawer panel containing 5 core links + vault button</p>
+  </div>
+
+  <div class="component">
+    <h3>Vault on Mobile</h3>
+    <p>Primary action is camera/gallery. Metadata capture simplified with smart defaults.</p>
+  </div>
+
+  <div class="component">
+    <h3>Desktop-Only Features</h3>
+    <p>When mobile user hits a desktop-only feature, show: "This feature works best on desktop. Email yourself a link to continue?"</p>
+  </div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+{% endblock %}
