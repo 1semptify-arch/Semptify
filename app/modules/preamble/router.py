@@ -51,8 +51,13 @@ async def preamble(request: Request):
     raw_cookie = str(_raw) if _raw is not None else None
 
     # ── Fast path: no cookie = definitely new user ────────────────────────────
+    # Upload-first: new users start with a document, not a form (the welcome
+    # "are you ready?" CTA design). Role select follows the upload step.
     if not raw_cookie:
-        logger.debug("Preamble: no cookie → onboarding")
+        logger.debug("Preamble: no cookie → onboarding upload-first")
+        upload_stage = navigation.get_stage("upload")
+        if upload_stage:
+            return ssot_redirect(upload_stage.path, context="preamble no cookie")
         role_stage = navigation.get_stage("role_select")
         role_path = role_stage.path if role_stage else "/onboarding/select-role.html"
         return ssot_redirect(role_path, context="preamble no cookie")
@@ -61,9 +66,9 @@ async def preamble(request: Request):
     raw_uid = verify_user_id(raw_cookie)
     if not raw_uid:
         logger.warning("Preamble: invalid cookie signature → onboarding")
-        role_stage = navigation.get_stage("role_select")
-        role_path = role_stage.path if role_stage else "/onboarding/select-role.html"
-        response = ssot_redirect(role_path, context="preamble invalid cookie")
+        upload_stage = navigation.get_stage("upload")
+        dest = upload_stage.path if upload_stage else "/onboarding/select-role.html"
+        response = ssot_redirect(dest, context="preamble invalid cookie")
         response.delete_cookie(COOKIE_USER_ID)
         return response
 
