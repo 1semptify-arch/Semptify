@@ -1,3 +1,36 @@
+## Session — 2026-09-15 — Split vault creation from completion; enforce document_uploaded gate (swe-executor)
+
+### What changed
+- `app/core/onboarding_state.py`: added `document_uploaded` as the third enforced
+  gate; `is_fully_onboarded` now requires all three gates; `next_required_gate` and
+  `next_required_path` route `document_uploaded` to `/onboarding/vault-setup/inspect`.
+- `app/core/navigation.py`: added `vault_inspect` stage for
+  `/onboarding/vault-setup/inspect`.
+- `app/modules/onboarding/router.py`:
+  - `POST /api/vault/security` now performs a live write/read/delete Semptify-owned
+    probe under `SYSTEM_FOLDER` (VAULT_FOLDER) after the token backup, and marks
+    `vault_initialized` only after the probe passes.
+  - `POST /api/vault/verify` no longer runs the probe and no longer marks
+    `vault_initialized`; it marks `document_uploaded` after the first real document
+    passes the full `VaultUploadService` pipeline.
+- `app/modules/vault_installer/routes.py`: verified the alternate install path
+  marks `vault_initialized` after `install_vault_for_user()` succeeds and
+  conditionally marks `document_uploaded` only when documents already exist.
+- `PROJECT_BIBLE.md` §4 and `.devin/rules/08-onboarding-gates.md` updated to
+  describe the three-gate chain and where each mark now lives.
+
+### Verified
+- `python -m py_compile` clean on `app/modules/onboarding/router.py`,
+  `app/core/onboarding_state.py`, `app/core/navigation.py`,
+  `app/modules/vault_installer/routes.py`, and `app/main.py`.
+- Guardrail engine: `ALL CHECKS PASSED`.
+- `pytest tests/module_health -q --no-cov`: 245/245 pass.
+- Live walk: after step 2, `vault_initialized` is set and `document_uploaded` is
+  unset; protected routes redirect to `/onboarding/vault-setup/inspect`; after step
+  3, both gates are set and the user reaches role home.
+
+---
+
 ## Session — 2026-09-15 — Onboarding rewrite reviewed; handoffs queued (devin)
 
 ### What shipped

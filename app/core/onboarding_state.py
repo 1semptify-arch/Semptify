@@ -7,7 +7,9 @@ No other code should read User.completed_groups directly for gate checks.
 
 Gates (in order):
   storage_connected  — OAuth completed, provider connected
-  vault_initialized  — Vault folders created in cloud storage, user fully activated
+  vault_initialized  — Vault folders, system files, token backup, and live
+                       write/read probe under SYSTEM_FOLDER all pass
+  document_uploaded  — First real document passed the full vault pipeline
 """
 
 import logging
@@ -26,11 +28,12 @@ class OnboardingState:
     user_id: str
     storage_connected: bool
     vault_initialized: bool
+    document_uploaded: bool
 
     @property
     def is_fully_onboarded(self) -> bool:
         """True when all mandatory onboarding gates are complete."""
-        return self.storage_connected and self.vault_initialized
+        return self.storage_connected and self.vault_initialized and self.document_uploaded
 
     @property
     def next_required_gate(self) -> str | None:
@@ -42,6 +45,8 @@ class OnboardingState:
             return "storage_connected"
         if not self.vault_initialized:
             return "vault_initialized"
+        if not self.document_uploaded:
+            return "document_uploaded"
         return None
 
     @property
@@ -61,6 +66,7 @@ class OnboardingState:
             gate_to_stage = {
                 "storage_connected": "storage_select",  # /onboarding/providers (new users)
                 "vault_initialized": "vault_setup",  # /onboarding/vault-setup
+                "document_uploaded": "vault_inspect",  # /onboarding/vault-setup/inspect
             }
             stage_id = gate_to_stage.get(gate)
             if stage_id:
@@ -74,6 +80,7 @@ class OnboardingState:
         fallbacks = {
             "storage_connected": "/onboarding/providers",
             "vault_initialized": "/onboarding/vault-setup",
+            "document_uploaded": "/onboarding/vault-setup/inspect",
         }
         return fallbacks.get(gate, "/onboarding/")
 
@@ -110,6 +117,7 @@ async def get_onboarding_state(
             user_id=user_id,
             storage_connected=False,
             vault_initialized=False,
+            document_uploaded=False,
         )
 
     completed = set(g.strip() for g in row.split(",") if g.strip())
@@ -118,6 +126,7 @@ async def get_onboarding_state(
         user_id=user_id,
         storage_connected="storage_connected" in completed,
         vault_initialized="vault_initialized" in completed,
+        document_uploaded="document_uploaded" in completed,
     )
 
 
@@ -135,4 +144,5 @@ async def get_onboarding_state_no_db(completed_groups_str: str | None, user_id: 
         user_id=user_id,
         storage_connected="storage_connected" in completed,
         vault_initialized="vault_initialized" in completed,
+        document_uploaded="document_uploaded" in completed,
     )

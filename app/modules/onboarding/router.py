@@ -11,7 +11,7 @@ Routes:
   GET  {prefix}/vault-setup/inspect  → vault inspect page (step 3: final check)
   POST {prefix}/api/vault/init       → create vault folders
   POST {prefix}/api/vault/security   → write token backup
-  POST {prefix}/api/vault/verify     → live probe + document upload → marks both final gates
+  POST {prefix}/api/vault/verify     → document upload through full pipeline → marks document_uploaded
   GET  {prefix}/api/vault/status     → check user auth status
   GET  {prefix}/complete             → route to product home
   GET  {prefix}/status               → gate status check page
@@ -456,16 +456,24 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             return {"success": False, "error": str(e), "folders_created": [], "files_created": [], "errors": [str(e)]}
 
     # ------------------------------------------------------------------
-    # API: Vault Security — Step 2: Token backup
+    # API: Vault Security — Step 2: Token backup + live system probe
     # ------------------------------------------------------------------
     @router.post("/api/vault/security")
     async def vault_security(
         user: StorageUser = Depends(green_access),
         db: AsyncSession = Depends(get_db),
     ):
-        """Step 2: Write encrypted token backup and device keys."""
-        import asyncio
+        """Step 2: Write encrypted token backup and prove the vault is writable.
 
+        A live write/read/delete probe is performed against a Semptify-owned
+        file under SYSTEM_FOLDER (VAULT_FOLDER). The vault_initialized gate is
+        marked only after the token backup and probe both pass.
+        """
+        import asyncio
+        import secrets as _secrets
+
+        from app.core.utc import utc_now
+        from app.core.vault_paths import VAULT_FOLDER
         from app.modules.vault_installer.installer import VaultInstaller
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
@@ -473,9 +481,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         results = {"success": False, "files_created": [], "errors": []}
         try:
-            logger.info("Step 2: Writing token backup + system files for user %s", user.user_id[:6] + "***")
-            # Write the critical token backup synchronously (short timeout) so
-            # the probe and subsequent steps can rely on it being present.
+            logger.info("Step 2: Writing token backup for user %s", user.user_id[:6] + "***")
             try:
                 await asyncio.wait_for(installer._create_token_backup(results), timeout=20.0)
             except TimeoutError:
@@ -483,7 +489,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 return {
                     "success": False,
                     "error": "Timed out writing token backup — please retry",
-                    "files_created": [],
+                    "files_created": results.get("files_created", []),
                     "errors": ["timeout"],
                 }
 
@@ -506,12 +512,59 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             # Fire-and-forget background task
             _task = asyncio.create_task(_create_noncritical_files(results))
 
+            # Live write/read/delete probe — proves the vault is writable using a
+            # Semptify-owned file under SYSTEM_FOLDER (VAULT_FOLDER). This must
+            # never use or overwrite the user's document folder.
+            try:
+                storage = installer.vault_client._get_storage()
+                probe_name = f"_vault_probe_{_secrets.token_hex(4)}.txt"
+                probe_bytes = f"Semptify vault probe | user={user.user_id} | ts={utc_now().isoformat()}".encode()
+                await asyncio.wait_for(
+                    storage.upload_file(
+                        file_content=probe_bytes,
+                        destination_path=VAULT_FOLDER,
+                        filename=probe_name,
+                        mime_type="text/plain",
+                    ),
+                    timeout=15.0,
+                )
+                read_back = await asyncio.wait_for(
+                    storage.download_file(f"{VAULT_FOLDER}/{probe_name}"),
+                    timeout=15.0,
+                )
+                if read_back != probe_bytes:
+                    raise ValueError("Read-back mismatch — vault storage is unreliable")
+                await asyncio.wait_for(
+                    storage.delete_file(f"{VAULT_FOLDER}/{probe_name}"),
+                    timeout=15.0,
+                )
+            except TimeoutError:
+                logger.error("Vault probe timed out for user %s", user.user_id[:6] + "***")
+                return {
+                    "success": False,
+                    "error": "Vault probe timed out — please retry",
+                    "files_created": results.get("files_created", []),
+                    "errors": ["probe_timeout"],
+                }
+            except Exception as e:
+                logger.error("Vault probe failed for user %s: %s", user.user_id[:6] + "***", str(e))
+                return {
+                    "success": False,
+                    "error": f"Vault probe failed: {str(e)}",
+                    "files_created": results.get("files_created", []),
+                    "errors": [str(e)],
+                }
+
+            # Mark vault_initialized after folders, token backup, and live probe pass.
+            await gate_ops.mark_gate(db, user.user_id, "vault_initialized")
+
             results["success"] = True
-            logger.info("Step 2 scheduled background file writes for user %s", user.user_id[:6] + "***")
+            results["vault_initialized"] = True
+            logger.info("Step 2 complete: vault_initialized marked for user %s", user.user_id[:6] + "***")
             return results
         except Exception as e:
             logger.error("Vault security error for user %s: %s", user.user_id[:6] + "***", str(e))
-            return {"success": False, "error": str(e), "files_created": [], "errors": [str(e)]}
+            return {"success": False, "error": str(e), "files_created": results.get("files_created", []), "errors": [str(e)]}
 
     # ------------------------------------------------------------------
     # API: Verify Vault
@@ -525,20 +578,17 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         """
         Step 3 final gate.
 
-        1. Live write/read-back probe — proves the vault is writable.
-        2. Routes the uploaded document through VaultUploadService (the canonical
-           full pipeline): certificate → registry → overlay → timeline extraction
+        1. Requires a real document — either posted now, or the one held from the
+           upload-first entry step (pending cookie).
+        2. Routes the document through VaultUploadService (the canonical full
+           pipeline): certificate → registry → overlay → timeline extraction
            → event bus → positronic mesh workflows.
         3. Marks the document_uploaded gate only after the pipeline succeeds.
 
+        The vault has already been initialized and proven in step 2.
         A document is REQUIRED — there is no skip path.
         """
         import asyncio
-        import secrets as _secrets
-
-        from app.core.utc import utc_now
-        from app.core.vault_paths import VAULT_DOCUMENTS, VAULT_ROOT
-        from app.sdk.vault import TENANT_VAULT, VaultClient
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
 
@@ -566,37 +616,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         if not file_bytes:
             return {"ok": False, "accessible": False, "error": "Please select a document to upload"}
 
-        # ── 2. Live probe — write a temp file, read it back, delete it ────────
-        try:
-            client = VaultClient(
-                provider=provider_name,
-                access_token=user.access_token,
-                user_id=user.user_id,
-                folder_spec=TENANT_VAULT,
-            )
-            # SDK expects relative path to VAULT_ROOT. Strip prefix.
-            subfolder = VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", "")
-            probe_name = f"_vault_probe_{_secrets.token_hex(4)}.txt"
-            probe_bytes = (f"Semptify vault probe | user={user.user_id} | ts={utc_now().isoformat()}").encode()
-            await asyncio.wait_for(
-                client.upload(subfolder=subfolder, filename=probe_name, content=probe_bytes, mime_type="text/plain"),
-                timeout=60.0,
-            )
-            read_back = await asyncio.wait_for(
-                client.download(subfolder=subfolder, filename=probe_name),
-                timeout=60.0,
-            )
-            if read_back != probe_bytes:
-                raise ValueError("Read-back mismatch — vault storage is unreliable")
-            await client.delete(subfolder=subfolder, filename=probe_name)
-        except TimeoutError:
-            logger.error("Vault probe timed out for user %s", user.user_id[:6] + "***")
-            return {"ok": False, "accessible": False, "error": "Vault probe timed out — please retry"}
-        except Exception as e:
-            logger.error("Vault probe failed for user %s: %s", user.user_id[:6] + "***", str(e))
-            return {"ok": False, "accessible": False, "error": f"Vault probe failed: {str(e)}"}
-
-        # ── 3. Full pipeline via VaultUploadService ────────────────────────────
+        # ── 2. Full pipeline via VaultUploadService ────────────────────────────
         #   certificate → registry → overlay → timeline → event bus → mesh
         try:
             from app.services.vault_upload_service import VaultUploadService
@@ -669,22 +689,13 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             logger.error("VaultUploadService failed for user %s: %s", user.user_id[:6] + "***", str(e))
             return {"ok": False, "accessible": True, "error": str(e)}
 
-        # ── 4. Mark the final onboarding gates ────────────────────────────────
-        # vault_initialized is only marked HERE — after folders, files, token
-        # backup, live write/read probe, and document pipeline all pass.
-        # Marking it earlier (e.g. after step 1) would give a false green.
-        from app.modules.onboarding.gates import mark_gate
-
-        # Mark document_uploaded first: the document physically uploaded
-        # before this point, and a crash between the two marks must leave
-        # vault_initialized (not document_uploaded) as the incomplete gate —
-        # that state re-enters vault-setup cleanly on the next request.
-        await mark_gate(db, user.user_id, "document_uploaded")
-        await mark_gate(db, user.user_id, "vault_initialized")
+        # ── 3. Mark the document_uploaded completion gate ─────────────────────
+        # The vault_initialized gate was already marked at the end of step 2.
+        await gate_ops.mark_gate(db, user.user_id, "document_uploaded")
         _clear_pending_upload(request)  # held upload-first doc consumed
 
         logger.info(
-            "Final gate passed — '%s' seeded all systems for user %s",
+            "Final gate passed — '%s' uploaded for user %s",
             original_name,
             user.user_id[:6] + "***",
         )
