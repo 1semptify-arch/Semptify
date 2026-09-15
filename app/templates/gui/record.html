@@ -98,6 +98,11 @@
     }
 
     async function loadDocs() {
+        // Skip vault fetch for anonymous visitors — no cookie means no storage
+        if (!document.cookie.includes('semptify_uid')) {
+            docEmpty.querySelector('p').textContent = 'Connect your storage to see documents.';
+            return;
+        }
         try {
             const r = await fetch('/api/vault/all?sort_by=' + encodeURIComponent(currentSort), { credentials: 'include' });
             if (!r.ok) {

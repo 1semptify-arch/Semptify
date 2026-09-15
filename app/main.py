@@ -116,10 +116,10 @@ templates.env.globals["subject_starters"] = _get_subject_starters()
 
 # Expose i18n `_()` helper, locale list, and current-locale resolver to all Jinja2
 # templates (Task 6 i18n).
-from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale, i18n
+from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, get_locale, i18n
 
 templates.env.globals["_"] = _jinja2_gettext
-templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
+templates.env.globals["supported_locales"] = available_locales()
 templates.env.globals["get_locale"] = get_locale
 
 # Central plain-language copy for contract-bearing pages (C2).
@@ -4121,6 +4121,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 logger.warning("DC template error, falling back to documents page: %s", e)
 
         return ssot_redirect(navigation.get_stage("documents").path, context="document_center_page template fallback")
+
+    @fastapi_app.get("/document-center")
+    async def document_center_alias(request: Request):
+        """Redirect /document-center alias to the canonical /dc route."""
+        return ssot_redirect("/dc", context="document-center alias")
 
     async def _get_tenant_briefcase(user_id: str, user_name: str | None = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
