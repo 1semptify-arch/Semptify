@@ -1,0 +1,295 @@
+{% extends "shell_base.html" %}
+{% block title %}Document Vault – Semptify Office{% endblock %}
+{% block styles %}
+{{ super() }}
+<style>
+
+    :root { --hdr1: var(--color-calm-800); --hdr2: var(--color-calm-dark); --accent: var(--color-calm-600); --vault: var(--color-warning); --vault2: var(--color-alarm); }
+
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, var(--vault), var(--vault2)); color: var(--text-inverse); border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: color-mix(in srgb, var(--bg-card), transparent 85%); color: var(--text-inverse); border: 1px solid color-mix(in srgb, var(--bg-card), transparent 70%); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+
+    /* BREADCRUMB */
+    .breadcrumb { background: var(--color-white); border-bottom: 1px solid var(--bg-footer); padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    /* MAIN LAYOUT */
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
+
+    /* VAULT UPLOAD ZONE */
+    .upload-zone { background: linear-gradient(135deg, var(--color-warning-50), var(--color-warning-50)); border: 2px dashed var(--vault); border-radius: 16px; padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem; }
+    .upload-zone:hover, .upload-zone.drag-over { background: linear-gradient(135deg, var(--tone-300), var(--tone-400)); border-color: var(--vault2); }
+    .upload-zone h2 { font-size: 1.3rem; color: var(--color-warning-800); margin: 0.75rem 0 0.5rem; }
+    .upload-zone p { color: var(--color-warning-800); font-size: 0.9rem; max-width: 400px; margin: 0 auto 1.25rem; line-height: 1.5; }
+    .upload-icon { font-size: 3rem; }
+    .upload-zone button { background: linear-gradient(135deg, var(--vault), var(--vault2)); color: var(--text-inverse); border: none; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; }
+    .upload-zone small { display: block; margin-top: 0.75rem; color: var(--color-warning-800); font-size: 0.78rem; opacity: 0.8; }
+
+    /* FILTERS */
+    .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+    .filter-bar input { flex: 1; min-width: 200px; padding: 0.5rem 0.75rem; border: 1px solid var(--color-calm-200); border-radius: 8px; font-size: 0.9rem; outline: none; background: var(--color-white); }
+    .filter-bar input:focus { border-color: var(--accent); }
+    .filter-btn { padding: 0.4rem 0.85rem; border: 1px solid var(--color-calm-200); border-radius: 20px; background: var(--color-white); font-size: 0.82rem; cursor: pointer; color: var(--text-secondary); white-space: nowrap; }
+    .filter-btn.active { background: var(--accent); color: var(--text-inverse); border-color: var(--accent); }
+
+    /* DOCUMENT TABLE */
+    .doc-section-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 0.5rem 0; border-top: 1px solid var(--bg-footer); margin-top: 0.5rem; margin-bottom: 0.25rem; }
+    .doc-card { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 10px; padding: 0.9rem 1rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; transition: all 0.15s; cursor: pointer; }
+    .doc-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px color-mix(in srgb, var(--color-calm-600), transparent 90%); }
+    .doc-icon { font-size: 1.75rem; flex-shrink: 0; }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .doc-meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem; }
+    .doc-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.3rem; }
+    .doc-tag { background: var(--color-gray-200); color: var(--accent); padding: 0.1rem 0.45rem; border-radius: 8px; font-size: 0.7rem; font-weight: 600; }
+    .doc-tag.verified { background: var(--color-calm-100); color: var(--color-success-800); }
+    .doc-tag.pending { background: var(--tone-300); color: var(--color-warning-800); }
+    .doc-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
+    .doc-action-btn { background: var(--bg-muted); border: none; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; color: var(--text-secondary); }
+    .doc-action-btn:hover { background: var(--color-gray-200); color: var(--accent); }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+    .empty-state p { font-size: 0.9rem; margin-top: 0.5rem; }
+
+    /* SIDEBAR */
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-card { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 12px; padding: 1.25rem; }
+    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 1rem; color: var(--color-gray-900); }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0; border-bottom: 1px solid var(--bg-muted); font-size: 0.88rem; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-value { font-weight: 700; color: var(--accent); }
+    .privacy-box { background: var(--color-calm-50); border: 1px solid var(--color-calm-100); border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: var(--color-gray-700); line-height: 1.5; }
+    .privacy-box strong { display: block; margin-bottom: 0.25rem; }
+
+
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .sidebar { order: -1; }
+  
+</style>
+{% endblock %}
+{% block content %}
+<p class="shell-eyebrow">Semptify</p>
+<h1>Document Vault</h1>
+<div class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="/home.html">Home</a> ›
+      <a href="/office.html">Office</a> ›
+      <strong>Document Vault</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <div>
+      <!-- UPLOAD ZONE -->
+      <div class="upload-zone" id="upload-zone"
+           ondragover="event.preventDefault(); this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="handleDrop(event)">
+        <div class="upload-icon">🔒</div>
+        <h2>Vault Door</h2>
+        <p>Drag &amp; drop files here, or click to select. All documents go directly to your connected cloud storage.</p>
+        <button onclick="triggerUpload()">📤 Choose Files to Upload</button>
+        <input type="file" id="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.heic" style="display:none" onchange="handleFileSelect(event)">
+        <small>PDF, Images, Word, Text · Max 50MB per file · Stored in your Google Drive or Dropbox</small>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="filter-bar">
+        <input type="text" id="doc-search" placeholder="Search documents..." oninput="filterDocs()" aria-label="Search documents">
+        <button class="filter-btn active" onclick="setFilter(this,'all')">All</button>
+        <button class="filter-btn" onclick="setFilter(this,'lease')">Lease</button>
+        <button class="filter-btn" onclick="setFilter(this,'notice')">Notices</button>
+        <button class="filter-btn" onclick="setFilter(this,'photo')">Photos</button>
+        <button class="filter-btn" onclick="setFilter(this,'correspondence')">Correspondence</button>
+        <button class="filter-btn" onclick="setFilter(this,'legal')">Legal</button>
+        <button class="filter-btn" onclick="setFilter(this,'financial')">Financial</button>
+      </div>
+
+      <!-- DOCUMENT LIST -->
+      <div id="doc-list">
+        <div class="empty-state">
+          <div style="font-size:3rem;">📂</div>
+          <strong>Your vault is empty</strong>
+          <p>Upload your first document using the Vault Door above.<br>Your files go to your cloud — we keep a searchable metadata overlay.</p>
+        </div>
+      </div>
+
+      <!-- SAMPLE DOCUMENTS (shown as demo — JS-removable) -->
+      <div id="sample-docs">
+        <div class="doc-section-title">Recent Uploads</div>
+
+        <div class="doc-card" data-category="notice" data-name="eviction-notice.pdf">
+          <span class="doc-icon">📄</span>
+          <div class="doc-info">
+            <div class="doc-name">3-Day Notice to Pay or Quit.pdf</div>
+            <div class="doc-meta">Uploaded Apr 19, 2025 · 182 KB · Google Drive</div>
+            <div class="doc-tags">
+              <span class="doc-tag">Notice</span>
+              <span class="doc-tag verified">✓ Timestamped</span>
+            </div>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-action-btn" title="View">👁 View</button>
+            <button class="doc-action-btn" title="Add to Timeline">📅</button>
+            <button class="doc-action-btn" title="Send">📤</button>
+          </div>
+        </div>
+
+        <div class="doc-card" data-category="lease" data-name="lease-agreement.pdf">
+          <span class="doc-icon">📋</span>
+          <div class="doc-info">
+            <div class="doc-name">Lease Agreement — 2024.pdf</div>
+            <div class="doc-meta">Uploaded Mar 1, 2024 · 1.2 MB · Google Drive</div>
+            <div class="doc-tags">
+              <span class="doc-tag">Lease</span>
+              <span class="doc-tag verified">✓ Timestamped</span>
+            </div>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-action-btn">👁 View</button>
+            <button class="doc-action-btn">📅</button>
+            <button class="doc-action-btn">📤</button>
+          </div>
+        </div>
+
+        <div class="doc-card" data-category="correspondence" data-name="repair-request.pdf">
+          <span class="doc-icon">✉️</span>
+          <div class="doc-info">
+            <div class="doc-name">Repair Request Letter — Heater.pdf</div>
+            <div class="doc-meta">Uploaded Jan 14, 2025 · 89 KB · Google Drive</div>
+            <div class="doc-tags">
+              <span class="doc-tag">Correspondence</span>
+              <span class="doc-tag pending">⏳ Pending</span>
+            </div>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-action-btn">👁 View</button>
+            <button class="doc-action-btn">📅</button>
+            <button class="doc-action-btn">📤</button>
+          </div>
+        </div>
+
+        <div class="doc-card" data-category="photo" data-name="mold-photo.jpg">
+          <span class="doc-icon">📷</span>
+          <div class="doc-info">
+            <div class="doc-name">Mold — Bathroom Ceiling — Jan 2025.jpg</div>
+            <div class="doc-meta">Uploaded Jan 13, 2025 · 3.4 MB · Google Drive</div>
+            <div class="doc-tags">
+              <span class="doc-tag">Photo</span>
+              <span class="doc-tag verified">✓ Timestamped</span>
+            </div>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-action-btn">👁 View</button>
+            <button class="doc-action-btn">📅</button>
+            <button class="doc-action-btn">📤</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">📊 Vault Summary</div>
+        <div class="stat-row"><span>Total Documents</span><span class="stat-value">4</span></div>
+        <div class="stat-row"><span>Timestamped</span><span class="stat-value">3</span></div>
+        <div class="stat-row"><span>Pending</span><span class="stat-value">1</span></div>
+        <div class="stat-row"><span>Storage Used</span><span class="stat-value">4.9 MB</span></div>
+        <div class="stat-row"><span>Storage Location</span><span class="stat-value">Google Drive</span></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">⚡ Quick Actions</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+          <button onclick="triggerUpload()" style="background:linear-gradient(135deg,var(--color-warning),var(--color-alarm));color:var(--text-inverse);border:none;padding:0.6rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;">📤 Upload Document</button>
+          <a href="/office/timeline.html" style="background:var(--color-gray-200);color:var(--color-calm);border:none;padding:0.6rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📅 Add Timeline Event</a>
+          <a href="/office/delivery.html" style="background:var(--bg-muted);color:var(--text-primary);border:none;padding:0.6rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📬 Send Document</a>
+        </div>
+      </div>
+
+      <div class="privacy-box">
+        <strong>🔒 Privacy Commitment</strong>
+        Your documents are stored in <em>your</em> Google Drive or Dropbox. Semptify stores only a metadata overlay (document type, key dates, parties). We never access, read, or store your full documents.
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">🏢 Office Navigation</div>
+        <div style="display:flex;flex-direction:column;gap:0.25rem;">
+          <a href="/office/vault.html" style="color:var(--color-warning);font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault ←</a>
+          <a href="/office/inbox.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
+          <a href="/office/timeline.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
+          <a href="/office/delivery.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery</a>
+          <a href="/office/signer.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    function triggerUpload() {
+      if (typeof openVaultUpload === 'function') { openVaultUpload(); return; }
+      document.getElementById('file-input').click();
+    }
+
+    function handleFileSelect(e) {
+      const files = Array.from(e.target.files);
+      if (files.length) showUploadPreview(files);
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('upload-zone').classList.remove('drag-over');
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length) showUploadPreview(files);
+    }
+
+    function showUploadPreview(files) {
+      SemptifyFeedback.info(`Ready to upload ${files.length} file(s). Connect your cloud storage to complete.`);
+    }
+
+    let currentFilter = 'all';
+
+    function setFilter(btn, cat) {
+      currentFilter = cat;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterDocs();
+    }
+
+    function filterDocs() {
+      const q = document.getElementById('doc-search').value.toLowerCase();
+      document.querySelectorAll('.doc-card').forEach(card => {
+        const matchCat = currentFilter === 'all' || (card.dataset.category || '').includes(currentFilter);
+        const matchQ = !q || card.dataset.name.toLowerCase().includes(q) || card.textContent.toLowerCase().includes(q);
+        card.style.display = (matchCat && matchQ) ? '' : 'none';
+      });
+    }
+  
+
+    // Listen for document upload notifications
+    if (window.SemptifyWebSocket) {
+      window.SemptifyWebSocket.on('document_upload', (data) => {
+        console.log('Document uploaded:', data);
+        // Could refresh document list here
+      });
+    }
+  
+</script>
+<script src="/js/core/vault-portal.js?v=20260626d"></script>
+<script src="/js/core/websocket-client.js"></script>
+<script src="/static/components/feedback.js"></script>
+{% endblock %}
