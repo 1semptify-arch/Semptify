@@ -1486,7 +1486,7 @@ def create_app() -> FastAPI:
         },
         {
             "name": "Law Library",
-            "description": "Legal research with AI librarian, statutes, case law, and deadline calculator.",
+            "description": "Legal research: verified statutes, case law, and deadline calculator with official sources.",
         },
         {
             "name": "Eviction Defense Toolkit",
