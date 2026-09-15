@@ -175,6 +175,22 @@ def get_locale(request: Any | None = None) -> str:
     return I18n().get_locale(request)
 
 
+def available_locales() -> dict[str, str]:
+    """Return only locales with real (non-stub) translations.
+
+    A catalog is considered available when its _meta.status is not "stub".
+    This filters the 14 declared SUPPORTED_LOCALES down to the languages
+    that actually have translated strings, hiding placeholder catalogs
+    from the language selector until they are translated.
+    """
+    i18n_instance = I18n()
+    return {
+        code: name
+        for code, name in SUPPORTED_LOCALES.items()
+        if i18n_instance.catalog_status(code) != "stub"
+    }
+
+
 def gettext(key: str, locale: str | None = None, request: Any | None = None, **kwargs: Any) -> str:
     return I18n().translate(key, locale=locale, request=request, **kwargs)
 

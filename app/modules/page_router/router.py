@@ -42,10 +42,10 @@ except ImportError:
     logger.warning("navigation module not available to page_router")
 
 try:
-    from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale
+    from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, get_locale
 
     templates.env.globals["_"] = _jinja2_gettext
-    templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
+    templates.env.globals["supported_locales"] = available_locales()
     templates.env.globals["get_locale"] = get_locale
 except ImportError:
     logger.warning("i18n module not available to page_router")
