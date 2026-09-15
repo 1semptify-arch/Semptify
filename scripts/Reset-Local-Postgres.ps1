@@ -3,7 +3,7 @@
 param(
     [string]$ServiceName = 'postgresql-x64-16',
     [string]$PgBinPath = 'C:\Program Files\PostgreSQL\16\bin',
-    [string]$PgDataPath = 'C:\Program Files\PostgreSQL\16\data',
+    [string]$PgDataPath = 'D:\PostgreSQL',
     [string]$PostgresUser = 'postgres',
     [string]$PostgresPassword = 'postgres',
     [string]$SemptifyUser = 'semptify',
