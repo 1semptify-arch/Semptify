@@ -14182,3 +14182,20 @@ Nothing is real until it is pushed.
 **Follow-on (same session):** second module staged — `eviction_defense_calculate_deadlines` declares one stage ("Enter the service date", requires `start_date`). Its in-form submit moved into the rail; live-verified: locked until date entered, gate note "Needs When were you served? first", real POST → deadlines computed, console clean. The pattern is now proven across two pillars (RECORD + ACT) with zero shell changes — contract-only rollout works as designed.
 
 **Rollout (same session):** all remaining guide pages staged — `timeline_create_event` (requires title/event_date/event_type), `law_library_get_statute` (statute_id), `law_library_get_case` (case_id), `tenant_get_help` inline contract (primaryConcern + urgency — progressive multi-field gating verified: gate note narrows as fields fill), `tenant_resources` (no required fields — rail still renders for consistency, always unlocked). tenant_get_help's Working… button state repointed at the rail button. Every guide page on composer_preview_shell now has the fnav rail; all in-form forward buttons removed. Verified live on all five, console clean, SSOT audit passes. Note: uvicorn --reload proved unreliable this session (stalled reloads, orphaned workers holding :8001) — restarted without --reload for verification.
+
+
+## Session — 2026-09-15 — Orchestrator hardening: preflight enforcement, intake queue, closeout, send-to-agent (devin)
+
+**Commits in this push (oldest→newest):** c9b39c54 preflight freshness/canonicity gate (Steps 1a/1b/1c + legal-content bar); 7b937ef7 legacy→master queue auto-promotion + fail-closed drift hook; fbe56c1a queue-sync docs; eab88628 Reset-Local-Postgres default path after D:\ data-dir migration; 3ac2ebf6 Velair legal_intel research profile; 3dd9a257 preflight attestation wired into claim path + stale tier/queue docs; 90f28904 `unlimited` defined as usage class with trusted/restricted sub-tiers; 82849a49 preflight "Noticed but not fixed" routes to master intake queue; 4a8b9382 free-pool dispatch order swe-executor > SWE-2.0 > GLM.
+
+**Master-repo side (pushed to master-repo.git master):** intake queue (`orchestrator_intake.py`, agent_kv-backed, exported to snapshot), task clusters (`parent_task_id`, parent-resolve hard-blocked while children non-terminal), closeout tooling (`orchestrator_closeout.py` checklist + close-cluster with notes rollup), send-to-agent dispatch endpoint + floating modal on /orchestrator, switchboard promote→intake (one intake mechanism), seq-collision fix in agent_ops_db doc saves, Windows arg-splitting fix in agent_ops_db re-exec.
+
+**Verified live:** intake log/promote/dismiss, dispatch all 3 modes via curl + modal in browser, parent-resolve refusal with open children, close-cluster rollup notes, WS updates. No Semptify app runtime code changed — smoke suite skipped (no server running, no app changes).
+
+**Known pending / flags:**
+- `task-4077eae1` (review_desk `_worker_tag` stale `unlimited` check) queued to swe-executor.
+- `dispatcher-daemon-2026-09-15` open: poller to auto-spawn agents on queued work — last manual gap in the loop.
+- `decisions_pending_brad` entries aren't removed when a task unblocks — list accumulates stale entries.
+- 28 `unassigned`-tier tasks await classification.
+
+**Next session:** Brad merges this PR; dispatcher daemon is the natural next build.
