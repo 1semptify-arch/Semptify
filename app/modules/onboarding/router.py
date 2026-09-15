@@ -590,8 +590,12 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         # Marking it earlier (e.g. after step 1) would give a false green.
         from app.modules.onboarding.gates import mark_gate
 
-        await mark_gate(db, user.user_id, "vault_initialized")
+        # Mark document_uploaded first: the document physically uploaded
+        # before this point, and a crash between the two marks must leave
+        # vault_initialized (not document_uploaded) as the incomplete gate —
+        # that state re-enters vault-setup cleanly on the next request.
         await mark_gate(db, user.user_id, "document_uploaded")
+        await mark_gate(db, user.user_id, "vault_initialized")
 
         logger.info(
             "Final gate passed — '%s' seeded all systems for user %s",
