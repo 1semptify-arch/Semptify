@@ -18,7 +18,8 @@ as VS Code prompt files in `.github/prompts/*.prompt.md` (`/preflight`, `/ship`,
 one before doing that kind of task. If you update a skill, update both copies.
 
 Before editing, claim your task in the tracker:
-- `python tools/mark_task_status.py <task_id> in_progress --agent <agent-id>`
+- Master-queue tasks (`C:\master-repo\tools\orchestrator_state.json`): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent <agent-id> --preflight` — `--preflight` is required and attests you ran the freshness/canonicity gate (`.devin/skills/preflight/SKILL.md` Steps 1a-1c).
+- Local-mirror tasks (`tools/agent_orchestrator_tasks.json`): `python tools/mark_task_status.py <task_id> in_progress --agent <agent-id>` — the mirror is promoted to master by `tools/sync_orchestrator.py`; prefer the master path when the task exists there.
 - Check that no other `in_progress` task exists for the same `file_path`.
 
 State your plan (files to touch, why it won't repeat a Known Failure) before editing.

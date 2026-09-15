@@ -117,9 +117,10 @@ Read these files before touching any code:
 
 Before writing code, claim the task in the orchestrator and avoid duplicate work:
 
-1. Run `python tools/mark_task_status.py <task_id> in_progress --agent <agent-id>`
+1. Master-queue task (`C:\master-repo\tools\orchestrator_state.json`): run `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent <agent-id> --preflight` — `--preflight` is required and attests you ran Steps 1a-1c above on this task; the claim is refused without it.
+   Local-mirror task (`tools/agent_orchestrator_tasks.json`): run `python tools/mark_task_status.py <task_id> in_progress --agent <agent-id>` — prefer the master path when the task exists in both; `tools/sync_orchestrator.py` promotes mirror-only tasks to master.
 2. Verify no other task with the same `file_path` is already `in_progress`
-3. Do NOT edit files until the task is marked `in_progress` with `assigned_agent` set
+3. Do NOT edit files until the task is marked `in_progress` with `assigned_agent`/`assigned_to` set
 
 ### Step 3: Check pending Fix-It reports from admin dashboard
 
