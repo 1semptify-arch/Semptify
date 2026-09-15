@@ -1,3 +1,23 @@
+## Session — 2026-09-15 — Donate page: all AI references removed (devin)
+
+### What changed
+- `app/templates/public/donate.html`: removed the AI Copilot feature card,
+  Azure AI + Ollama stack entry, AI Copilot module tag, AI Copilot roadmap
+  copy, and the entire "Grant Applications — AI for Public Good" section
+  (Anthropic/Claude, OpenAI, Azure, AWS, Google, Foundations tabs) plus its
+  nav/hero/footer links, tab CSS, and tab JS (~940 lines removed).
+- Grant application drafts preserved off-site at
+  `C:\master-repo\front end design factors brads\grant-applications-archive.html`
+  (outside the repo — do not re-add to the site without Brad's OK; the
+  AI-focused grant copy conflicts with the no-AI decision).
+
+### Verified
+- `/donate` → 200; zero console errors; no AI/vendor text on the rendered
+  page; all nav anchors resolve; mobile 375px stacks (6px hero-glow
+  overflow is pre-existing decorative).
+
+---
+
 ## Session — 2026-09-15 — Policy: no AI surfaces, MNDES = legal-only (devin)
 
 ### Decisions (Brad)
