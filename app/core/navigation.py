@@ -131,6 +131,13 @@ class NavigationRegistry:
             id="vault_setup",
             name="Vault Setup",
             path="/onboarding/vault-setup",
+            next_stage="vault_inspect",
+            requires_checkpoint=False,
+        ),
+        "vault_inspect": FlowStage(
+            id="vault_inspect",
+            name="Vault Inspect",
+            path="/onboarding/vault-setup/inspect",
             next_stage="dashboard",
             requires_checkpoint=False,
         ),
