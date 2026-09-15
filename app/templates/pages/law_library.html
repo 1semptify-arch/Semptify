@@ -30,19 +30,10 @@
     .ll-source a { font-weight: var(--font-semibold); }
     .ll-verified { color: var(--text-secondary); margin-left: var(--space-2); }
     .ll-empty { padding: var(--space-6); color: var(--text-secondary); }
-    .ll-chat { border: 1px solid var(--border-color); border-radius: var(--radius-block); padding: var(--space-3); height: 220px; overflow-y: auto; background: var(--bg-card); margin-bottom: var(--space-3); }
-    .ll-msg { margin-bottom: var(--space-3); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-relaxed); }
-    .ll-msg--bot { background: var(--bg-page); border-radius: var(--radius-block); }
-    .ll-msg--user { background: var(--color-primary); color: var(--text-inverse); border-radius: var(--radius-block); margin-left: 10%; }
-    .ll-chat-input { display: flex; gap: var(--space-2); }
-    .ll-chat-input .form-input { flex: 1; min-width: 0; }
-
     @media (max-width: 640px) {
       .ll-toolbar { flex-direction: column; align-items: stretch; }
       .ll-search, .ll-field .form-input, .ll-field .form-select { width: 100%; }
       .ll-toolbar .btn { width: 100%; }
-      .ll-chat-input { flex-direction: column; }
-      .ll-chat-input .btn { width: 100%; }
     }
 </style>
 {% endblock %}
@@ -90,16 +81,6 @@
 </div>
 <div id="help-results" class="ll-results"></div>
 
-<h2 style="margin-top:1.75rem;">Ask the Law Librarian</h2>
-<p class="shell-note" style="margin-bottom:0.75rem;">This assistant only searches the Law Library. It cannot give legal advice. It will cite its sources.</p>
-<div id="chat" class="ll-chat" role="log" aria-live="polite" aria-atomic="false">
-    <div class="ll-msg ll-msg--bot">I can point you to statutes, cases, and court rules in the Law Library. What would you like to find?</div>
-</div>
-<div class="ll-chat-input">
-    <label for="chat-input" class="sr-only">Your question</label>
-    <input id="chat-input" type="text" class="form-input" placeholder="Ask about a tenant rights topic...">
-    <button class="btn btn--primary" type="button" onclick="askLibrarian()">Ask</button>
-</div>
 {% endblock %}
 
 {% block scripts %}
@@ -121,7 +102,7 @@
     });
 
     document.getElementById('search-input').addEventListener('keypress', e => { if (e.key === 'Enter') searchLaw(); });
-    document.getElementById('chat-input').addEventListener('keypress', e => { if (e.key === 'Enter') askLibrarian(); });
+
 
     function setBusy(busy) {
       resultsEl.setAttribute('aria-busy', busy ? 'true' : 'false');
@@ -247,33 +228,6 @@
       } finally {
         setBusy(false);
       }
-    }
-
-    async function askLibrarian() {
-      const input = document.getElementById('chat-input');
-      const chat = document.getElementById('chat');
-      const q = input.value.trim();
-      if (!q) return;
-      chat.innerHTML += `<div class="ll-msg ll-msg--user">${escapeHtml(q)}</div>`;
-      input.value = '';
-      chat.scrollTop = chat.scrollHeight;
-      try {
-        const res = await fetch('/api/law-library/librarian/ask', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({question: q, context: 'public law library'})
-        });
-        const data = await res.json();
-        let html = `<div class="ll-msg ll-msg--bot">${escapeHtml(data.answer || 'No answer available. Please search the library or contact legal aid.')}</div>`;
-        const sources = data.sources || [];
-        if (sources.length) {
-          html += `<div class="ll-msg ll-msg--bot"><strong>Sources:</strong><ul style="margin-left:1.25rem;margin-top:0.5rem;">${sources.map(s => `<li><a href="${escapeHtml(s.url || '#')}" target="_blank" rel="noopener">${escapeHtml(s.title || s.citation || 'Source')}</a></li>`).join('')}</ul></div>`;
-        }
-        chat.innerHTML += html;
-      } catch (e) {
-        chat.innerHTML += '<div class="ll-msg ll-msg--bot">Something went wrong. You can also call your local legal aid office for help.</div>';
-      }
-      chat.scrollTop = chat.scrollHeight;
     }
 
     async function findHelp() {
