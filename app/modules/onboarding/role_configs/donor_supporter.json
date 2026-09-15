@@ -1,0 +1,11 @@
+{
+  "folder_tree": [
+    "documents",
+    "certificates"
+  ],
+  "inherits_from": null,
+  "differentiated": false,
+  "notes": "Phase 1: generic copy of tenant defaults, not yet role-differentiated",
+  "role_type": "donor_supporter",
+  "display_name": "Donor Supporter"
+}
