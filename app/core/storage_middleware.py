@@ -34,6 +34,7 @@ PUBLIC_PATHS: set[str] = {
     "/health",
     "/healthz",
     "/livez",
+    "/readyz",
     "/api/health",
     "/metrics",
     "/api/version",
