@@ -111,7 +111,29 @@ class SmartCheckpointMiddleware(BaseHTTPMiddleware):
         for exempt in EXEMPT_PATHS:
             if path == exempt or path.startswith(exempt):
                 return True
+        # Portal registry is the SSOT for public pages — a registered
+        # page must never bounce to the preamble gate.
+        if _portal_public_paths() and path.rstrip("/") in _portal_public_paths():
+            return True
         return False
+
+
+_portal_paths_cache: frozenset | None = None
+
+
+def _portal_public_paths() -> frozenset:
+    """Paths of every registered public portal page (lazy, cached)."""
+    global _portal_paths_cache
+    if _portal_paths_cache is None:
+        try:
+            from app.modules.portal.pages import portal_pages
+
+            _portal_paths_cache = frozenset(
+                p.path.rstrip("/") for p in portal_pages.PAGES if getattr(p, "path", None)
+            )
+        except Exception:  # pragma: no cover - registry must never break gating
+            _portal_paths_cache = frozenset()
+    return _portal_paths_cache
 
     def _is_protected(self, path: str) -> bool:
         """Check if path requires checkpoint."""

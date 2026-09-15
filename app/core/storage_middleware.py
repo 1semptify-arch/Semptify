@@ -170,6 +170,13 @@ def is_public_path(path: str) -> bool:
         if path.startswith(prefix):
             return True
 
+    # Portal registry is the SSOT for public pages — registered pages
+    # must never hit the storage gate.
+    from app.core.checkpoint_middleware import _portal_public_paths
+
+    if _portal_public_paths() and path.rstrip("/") in _portal_public_paths():
+        return True
+
     # Static assets (by extension)
     if path.endswith((".css", ".js", ".png", ".jpg", ".ico", ".svg", ".woff", ".woff2")):
         return True
