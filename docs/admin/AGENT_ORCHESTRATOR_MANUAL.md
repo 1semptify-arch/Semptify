@@ -25,6 +25,16 @@ The orchestrator queue is fed by **three sources**, merged by `tools/sync_orches
 
 `sync_orchestrator.py` runs all three, merges by task `id` (workbook wins on conflict), embeds the merged JSON into `tools/agent_orchestrator.html`, and writes the final `tools/agent_orchestrator_tasks.json`.
 
+## This queue is a mirror, not the canonical queue
+
+`tools/agent_orchestrator_tasks.json` (this file) is Semptify-local. The canonical, repo-wide queue that Claude/orchestrator dispatch sessions read from is `C:\master-repo\tools\orchestrator_state.json` (Postgres-backed — see the master repo's `AGENTS.md` §6). Sync between them is **not fully automatic**:
+
+- **Master → legacy** (`step_master_sync()`): pulls master's Semptify-scoped tasks into this file. Runs on a full `python tools/sync_orchestrator.py`, not on `--check` (the pre-commit hook only runs `--check`).
+- **Legacy → master** (`step_promote_legacy_to_master()`, added 2026-09-14): pushes any task that exists only in this file — and is `pending`, `review`, or `blocked_on_decision` — up into the master queue via master's own `orchestrator_add_task.py`/`orchestrator_mark_task.py`. `in_progress` legacy-only tasks are deliberately **not** auto-promoted (would need to bypass master's dispatch guards) and print a warning instead — reconcile those by hand.
+- **Drift detection**: `sync_orchestrator.py --check` (what the pre-commit hook runs) now fails the commit if any legacy `pending`/`review`/`blocked_on_decision` task is missing from master, so this can't silently reappear. If you hit that failure, run the full `python tools/sync_orchestrator.py` (not `--check`) to auto-promote, then commit.
+
+**Bottom line for agents:** claiming/updating a task with `mark_task_status.py` only writes to this local mirror. If you create a brand-new task that other sessions (outside this module) need to see, either run `python tools/sync_orchestrator.py` before ending your session, or add it directly to the master queue with `python C:\master-repo\tools\orchestrator_add_task.py` — see `.devin/skills/orchestrator_add_task/SKILL.md` at the master repo root.
+
 ## Quick start
 
 ### 1. Sync the queue (run all three sources + merge)

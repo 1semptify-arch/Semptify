@@ -53,6 +53,7 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
   ```
 - Before claiming `in_progress`, check the tracker for any existing `in_progress` entry on the same `file_path`. If one exists, resolve or reassign the existing task first.
 - Do NOT start coding while the task is still `pending` or unassigned.
+- **`mark_task_status.py` only writes to this module's local queue** (`tools/agent_orchestrator_tasks.json`), not the repo-wide master queue at `C:\master-repo\tools\orchestrator_state.json`. If you discover a brand-new task that needs to be visible outside this module (or to any Claude/orchestrator dispatch session), also add it to the master queue with `python C:\master-repo\tools\orchestrator_add_task.py` — see `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` §"This queue is a mirror, not the canonical queue" and `.devin/skills/orchestrator_add_task/SKILL.md`. `python tools/sync_orchestrator.py` (full run, not `--check`) auto-promotes any local `pending`/`review`/`blocked_on_decision` task to master before you end a session, and the pre-commit hook now fails the commit if one is missed.
 
 ### If you skip pre-flight, you will repeat a past mistake. The history proves this
 
@@ -281,20 +282,21 @@ Before ending any session, you MUST:
 
 ### Orchestrator Task Status Rule
 
-Semptify's module-level queue is still `tools/agent_orchestrator_tasks.json`, managed by `tools/mark_task_status.py`. For Semptify tasks, continue using:
+Semptify's module-level queue `tools/agent_orchestrator_tasks.json`, managed by `tools/mark_task_status.py`, is a **mirror** of the master queue (see the task claiming rule above) — `tools/sync_orchestrator.py` keeps it in sync and promotes local-only tasks. For Semptify tasks that genuinely exist only in the mirror:
 
 - Pick up: `python tools/mark_task_status.py <task_id> in_progress --agent <your-model-name>`
-- Finish: `python tools/mark_task_status.py <task_id> resolved --notes "<one-line summary>" --agent <your-model-name>`
-- Blocked: `python tools/mark_task_status.py <task_id> review --notes "<why>" --agent <your-model-name>`
+- Finish: `python tools/mark_task_status.py <task_id> resolved --notes "<one-line summary>" --agent <your-model-name>` (privileged agents only)
+- Blocked: `python tools/mark_task_status.py <task_id> blocked_on_decision --notes "<why>" --agent <your-model-name>`
 
 The **master orchestrator queue** is `C:\master-repo\tools\orchestrator_state.json`. Use it for any task with a `model_tier` or a handoff. Read it to find the next task, and use:
 
-- Pick up: `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent <your-model-name>`
+- Pick up: `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent <your-model-name> --preflight` (`--preflight` is required — it attests you ran the freshness/canonicity gate, `.devin/skills/preflight/SKILL.md` Steps 1a-1c)
 - Executor finish (swe-executor): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> review --usage '{"wall_clock_min": X, "tool_calls": Y}' --agent swe-executor`
 - Orchestrator finish (Claude): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> resolved --pr <url> --agent claude-code`
-- Blocked: `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> blocked_on_decision --blocked-reason "<why>" --agent <your-model-name>`
+- Blocked: `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> blocked_on_decision --blocked-reason "<why>" --agent <your-model-name>` (auto-surfaces to `decisions_pending_brad`)
+- Parked-for-later (already decided): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> deferred --agent <your-model-name>` (does NOT surface to Brad)
 
-Unlimited agents (swe-executor, SWE-1.7, etc.) may NOT mark a task `resolved` or `rejected`; they stop at `review` or `blocked_on_decision`. Do this every time, without being asked — it is how the queue stays accurate without a human tracking it by hand.
+Unlimited-pool executors (free/non-premium usage class — `trusted` sub-tier: swe-executor, SWE-1.7; `restricted` sub-tier: GLM-5.2) may NOT mark a task `resolved` or `rejected`; they stop at `review` or `blocked_on_decision`. Do this every time, without being asked — it is how the queue stays accurate without a human tracking it by hand. Dispatch preference inside the free pool (Brad, 2026-09-15): swe-executor → SWE-2.0 → GLM, subject to the trust boundary — `trusted` work never goes to GLM regardless of order.
 
 ---
 

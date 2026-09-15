@@ -399,6 +399,155 @@ def step_master_sync() -> int:
     )
     return len(current_data)
 
+MASTER_TOOLS_DIR = REPO_ROOT.parent.parent / "tools"
+MASTER_ADD_TASK = MASTER_TOOLS_DIR / "orchestrator_add_task.py"
+MASTER_MARK_TASK = MASTER_TOOLS_DIR / "orchestrator_mark_task.py"
+
+# Legacy statuses this step will promote, mapped to the status used to
+# *create* the master record. Only statuses that mean "something still
+# needs to happen" are promoted — resolved/rejected legacy tasks need no
+# visibility, and in_progress is intentionally skipped (see docstring below).
+_PROMOTABLE_LEGACY_STATUSES = {
+    "pending": "open",
+    "review": "review",
+    "blocked_on_decision": "blocked_on_decision",
+}
+
+
+def step_promote_legacy_to_master() -> int:
+    """Push legacy-only open/review/blocked tasks up into the master queue.
+
+    step_master_sync() above only pulls master's Semptify-scoped tasks into
+    the legacy queue — that is a one-way pull. A task created or updated
+    directly in the legacy queue (e.g. by an agent following Semptify's own
+    preflight, which only knows about mark_task_status.py) had no path back
+    to the master queue, so it was invisible to any orchestrator/Claude
+    session dispatching from orchestrator_state.json. Found live during the
+    2026-09-14 agent-orchestrator audit: two review-status tasks
+    (gated-stage-nav-001, footer-legal-row-001) sat unreviewed for hours
+    because of exactly this gap.
+
+    Deliberately does NOT try to promote in_progress: master's in_progress
+    transition is guarded (requires a classified model_tier, checks for a
+    duplicate file_path claim) and forcing a legacy in_progress task through
+    those guards automatically could misfire. In_progress legacy-only tasks
+    are left for manual reconciliation; a warning is printed so they're not
+    silently missed.
+    """
+    if not MASTER_ADD_TASK.exists() or not MASTER_MARK_TASK.exists():
+        print(f"-> skipping legacy->master promotion (master tools not found under {MASTER_TOOLS_DIR})")
+        return 0
+    if not MASTER_ORCHESTRATOR_STATE.exists():
+        print("-> skipping legacy->master promotion (master state not found)")
+        return 0
+
+    try:
+        legacy_tasks = json.loads(ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return 0
+    if not isinstance(legacy_tasks, list):
+        return 0
+
+    with MASTER_ORCHESTRATOR_STATE.open("r", encoding="utf-8") as f:
+        master_ids = {t.get("id") for t in json.load(f).get("tasks", [])}
+
+    promoted = 0
+    skipped_in_progress = []
+    for task in legacy_tasks:
+        tid = task.get("id")
+        status = task.get("status", "pending")
+        if not tid or tid in master_ids:
+            continue
+        if status == "in_progress":
+            skipped_in_progress.append(tid)
+            continue
+        if status not in _PROMOTABLE_LEGACY_STATUSES:
+            continue
+
+        create_status = _PROMOTABLE_LEGACY_STATUSES[status]
+        add_cmd = [
+            sys.executable, str(MASTER_ADD_TASK),
+            "--id", tid,
+            "--title", task.get("title") or tid,
+            "--model-tier", "unassigned",
+            "--status", "open" if create_status not in ("open", "queued", "blocked_on_decision") else create_status,
+            "--source", "legacy-queue-auto-promotion",
+            "--notes", f"Auto-promoted from Semptify-legacy agent_orchestrator_tasks.json by "
+                       f"sync_orchestrator.py (legacy status: {status!r}).",
+        ]
+        if task.get("description"):
+            add_cmd += ["--description", str(task["description"])]
+        if task.get("file_path"):
+            add_cmd += ["--file-path", str(task["file_path"])]
+        if task.get("priority") in ("high", "medium", "low"):
+            add_cmd += ["--priority", task["priority"]]
+        if task.get("category"):
+            add_cmd += ["--category", str(task["category"])]
+
+        result = subprocess.run(add_cmd, cwd=REPO_ROOT, capture_output=True, text=True)  # noqa: S603 # nosec B603
+        if result.returncode != 0:
+            print(f"-> WARNING: could not promote {tid} to master: {result.stderr.strip()}")
+            continue
+        promoted += 1
+
+        if create_status == "review":
+            mark_result = subprocess.run(  # noqa: S603 # nosec B603
+                [
+                    sys.executable, str(MASTER_MARK_TASK), tid, "review",
+                    "--agent", task.get("assigned_agent") or "sync_orchestrator",
+                    "--notes", "Status carried over from legacy queue during auto-promotion.",
+                ],
+                cwd=REPO_ROOT, capture_output=True, text=True,
+            )
+            if mark_result.returncode != 0:
+                print(f"-> WARNING: promoted {tid} but could not set status review: {mark_result.stderr.strip()}")
+
+    if promoted:
+        print(f"-> promoted {promoted} legacy-only task(s) to the master queue")
+    else:
+        print("-> no legacy-only open/review/blocked tasks to promote to master")
+    if skipped_in_progress:
+        print(
+            f"-> NOTE: {len(skipped_in_progress)} legacy-only in_progress task(s) were NOT auto-promoted "
+            f"(needs manual reconciliation): {', '.join(skipped_in_progress)}"
+        )
+    return promoted
+
+
+def verify_no_orphaned_legacy_tasks() -> int:
+    """Fail loudly if any actionable legacy task is invisible to the master queue.
+
+    Runs in both --check and full-sync mode. --check never writes, so this is
+    the enforcement that catches drift at commit time (the pre-commit hook
+    only runs --check) even when nobody remembers to run the full
+    `sync_orchestrator.py` that would auto-promote via step_promote_legacy_to_master().
+    """
+    if not MASTER_ORCHESTRATOR_STATE.exists():
+        return 0
+    try:
+        legacy_tasks = json.loads(ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return 0
+    if not isinstance(legacy_tasks, list):
+        return 0
+    with MASTER_ORCHESTRATOR_STATE.open("r", encoding="utf-8") as f:
+        master_ids = {t.get("id") for t in json.load(f).get("tasks", [])}
+
+    orphans = [
+        t.get("id") for t in legacy_tasks
+        if t.get("id") and t.get("id") not in master_ids
+        and t.get("status") in _PROMOTABLE_LEGACY_STATUSES
+    ]
+    if orphans:
+        raise SyncError(
+            f"{len(orphans)} legacy task(s) are open/review/blocked_on_decision but missing from "
+            f"the master queue (orchestrator_state.json), invisible to orchestrator dispatch: "
+            f"{', '.join(orphans)}. Run `python tools/sync_orchestrator.py` (full, not --check) "
+            "to auto-promote them, then commit the result."
+        )
+    return len(orphans)
+
+
 def print_task_summary(path: Path, label: str) -> None:
     """Print a human-readable status summary for a task JSON list."""
     try:
@@ -450,11 +599,13 @@ def main() -> int:
             merge_tasks()
             preserve_manual_fields(previous_tasks)
             step_master_sync()
+            step_promote_legacy_to_master()
             print_task_summary(ORCHESTRATOR_TASKS, "Final canonical queue")
             step_sync_registry()
 
         stub_count = verify_stub_tasks()
         task_count, missing = verify_orchestrator_tasks()
+        verify_no_orphaned_legacy_tasks()
 
         if not args.check:
             tasks_text = ORCHESTRATOR_TASKS.read_text(encoding="utf-8")

@@ -7,7 +7,14 @@ a task, instead of relying on a human to remember to update the queue.
 Usage:
     python tools/mark_task_status.py <task_id> <status> [--notes "..."] [--agent "kimi-2.7"]
 
-Valid statuses: pending, in_progress, review, resolved, rejected
+Valid statuses: pending, in_progress, review, blocked_on_decision, deferred,
+resolved, rejected
+
+blocked_on_decision vs deferred:
+    blocked_on_decision means a STOP trigger fired and Brad's input is needed —
+    it auto-surfaces to decisions_pending_brad once the task is promoted to the
+    master queue by sync_orchestrator.py. deferred is for already-decided work
+    parked for later; it does not surface to Brad.
 
 in_progress rule:
     When claiming a task (status=in_progress) you MUST also pass --agent.
@@ -37,7 +44,7 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
-VALID_STATUSES = {"pending", "in_progress", "review", "resolved", "rejected"}
+VALID_STATUSES = {"pending", "in_progress", "review", "blocked_on_decision", "deferred", "resolved", "rejected"}
 PRIVILEGED_AGENTS = {"claude", "claude-code", "orchestrator"}
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
