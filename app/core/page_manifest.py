@@ -742,8 +742,8 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
     PageManifestEntry(
         page_id="about",
         route="/about",
-        source_file="static/public/about.html",
-        page_type="static",
+        source_file="app/templates/public/about.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(CoverageStatus.COMPLETE, "PageContract registered"),
         route_guards=ObjectSetCoverage(CoverageStatus.COMPLETE, "Public access"),
         module_links=ObjectSetCoverage(CoverageStatus.NA, "Static info page"),
@@ -759,8 +759,8 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
     PageManifestEntry(
         page_id="privacy",
         route="/privacy",
-        source_file="static/public/privacy.html",
-        page_type="static",
+        source_file="app/templates/public/privacy.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(CoverageStatus.COMPLETE, "PageContract registered"),
         route_guards=ObjectSetCoverage(CoverageStatus.COMPLETE, "Public access"),
         module_links=ObjectSetCoverage(CoverageStatus.NA, "Static info page"),

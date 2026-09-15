@@ -1,0 +1,81 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}Feedback — Semptify{% endblock %}
+{% block description %}Share feedback about Semptify. Every message is read.{% endblock %}
+{% block keywords %}feedback, contact semptify, report a problem, suggestion{% endblock %}
+
+{% block header_title %}Share Your Feedback{% endblock %}
+{% block header_tagline %}Help us make Semptify better for tenants{% endblock %}
+{% block header_subtitle %}Every message is read.{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .feedback-form label { display: block; font-weight: 600; color: var(--text-primary); margin-bottom: 0.4rem; font-size: 0.95rem; }
+    .feedback-form select, .feedback-form textarea, .feedback-form input[type="email"] {
+        width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-input);
+        font-size: 0.95rem; font-family: inherit; color: var(--text-primary); background: var(--bg-card);
+        margin-bottom: 1.5rem; transition: border-color 0.15s;
+    }
+    .feedback-form select:focus, .feedback-form textarea:focus, .feedback-form input[type="email"]:focus { outline: none; border-color: var(--color-accent); }
+    .feedback-form textarea { resize: vertical; min-height: 130px; }
+    .feedback-form .btn { background: var(--color-primary); color: var(--text-inverse); border: none; padding: 0.85rem 2rem; border-radius: var(--radius-input); font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+    .feedback-form .btn:hover { background: var(--color-primary-light); }
+    .feedback-success { display: none; background: var(--color-success-50); border: 1px solid var(--color-success); border-radius: var(--radius-block); padding: 1.5rem; text-align: center; color: var(--color-success-800); margin-top: 1rem; }
+    .feedback-success h3 { margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block page_body %}
+
+<form id="feedbackForm" class="feedback-form" onsubmit="submitFeedback(event)">
+
+    <label for="type">What kind of feedback?</label>
+    <select id="type" name="type" required>
+        <option value="">— Select one —</option>
+        <option value="bug">🐛 Bug or broken feature</option>
+        <option value="missing">📋 Something I need that's missing</option>
+        <option value="confusing">😕 Something confusing or hard to use</option>
+        <option value="content">📚 Issue with rights / legal content</option>
+        <option value="positive">👍 Something that worked well</option>
+        <option value="other">💬 Other</option>
+    </select>
+
+    <label for="message">Your feedback</label>
+    <textarea id="message" name="message" placeholder="Tell us what happened, what you expected, or what would help you most..." required></textarea>
+
+    <label for="email">Your email (optional — only if you want a reply)</label>
+    <input type="email" id="email" name="email" placeholder="you@example.com">
+
+    <button type="submit" class="btn">Send Feedback</button>
+</form>
+
+<div class="feedback-success" id="successMsg">
+    <h3>✅ Thank you</h3>
+    <p>Your feedback was received. We read everything and use it to improve Semptify for tenants.</p>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    function submitFeedback(e) {
+        e.preventDefault();
+        const type = document.getElementById('type').value;
+        const message = document.getElementById('message').value;
+        const email = document.getElementById('email').value;
+
+        fetch('/api/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, message, email })
+        })
+        .catch(() => {})
+        .finally(() => {
+            document.getElementById('feedbackForm').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'block';
+        });
+    }
+</script>
+{% endblock %}

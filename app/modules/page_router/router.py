@@ -180,6 +180,8 @@ _SKIP_ROUTES = {
     "/legal",
     "/legal/",  # legal — handled in main.py
     "/help",  # help — stays static
+    "/about",  # about — served by portal pages registry loop in main.py
+    "/privacy",  # privacy — served by portal pages registry loop in main.py
     "/office",  # office — handled in main.py
     "/library",  # library — handled in main.py
     "/tools",  # tools — handled in main.py

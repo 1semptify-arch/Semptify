@@ -2068,11 +2068,31 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Static Files (for any frontend assets)
     # =========================================================================
 
+    # Redirect migrated public pages: /public/{name}.html -> /{name}
+    # The legal/policy pages moved to rendered routes via the portal registry;
+    # old bookmarked/static URLs must not dead-end.
+    _MIGRATED_PUBLIC_PAGES = frozenset(
+        {
+            "about",
+            "accessibility",
+            "contact",
+            "credits",
+            "disclaimer",
+            "feedback",
+            "privacy",
+            "terms",
+        }
+    )
+
     # Block direct HTML access from /static/ (except /static/public/ and /static/components/)
     # All authenticated pages must use rendered routes, not raw static HTML.
     @fastapi_app.middleware("http")
     async def block_static_html(request: Request, call_next):
         path = request.url.path
+        if path.startswith("/public/") and path.endswith(".html"):
+            migrated = path[len("/public/") : -len(".html")]
+            if migrated in _MIGRATED_PUBLIC_PAGES:
+                return ssot_redirect(f"/{migrated}", context=f"migrated public page /public/{migrated}.html")
         if (
             path.startswith("/static/")
             and path.endswith(".html")
@@ -5764,19 +5784,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
     # SSOT RULE: Only unauthenticated public pages are served as static HTML.
     # All authenticated pages MUST go through rendered routes with auth + gates.
-    # Allowed: welcome, terms, privacy, disclaimer, about, contact, credits
+    # Allowed: welcome (onboarding gate page — stays static pending entry-point decision)
+    # Migrated names redirect to their rendered portal-registry routes.
     # Everything else â†’ 404 (must have a proper rendered route)
     # =========================================================================
 
     ALLOWED_STATIC_PAGES = frozenset(
         {
             "welcome",
-            "terms",
-            "privacy",
-            "disclaimer",
-            "about",
-            "contact",
-            "credits",
         }
     )
 
@@ -5788,6 +5803,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """
         if ".." in page_name or "/" in page_name or "\\" in page_name:
             return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
+
+        if page_name in _MIGRATED_PUBLIC_PAGES:
+            return ssot_redirect(f"/{page_name}", context=f"migrated public page /{page_name}.html")
 
         if page_name not in ALLOWED_STATIC_PAGES:
             return JSONResponse(

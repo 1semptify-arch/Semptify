@@ -1,61 +1,61 @@
 {% extends "body/public_shell.html" %}
 
 {% block title %}Contact Semptify{% endblock %}
-{% block description %}Contact Semptify for support, partnership, press, or general inquiries.{% endblock %}
+{% block description %}Contact Semptify for support, partnership, press, or general inquiries. We read every message.{% endblock %}
 {% block keywords %}contact semptify, support, partnership, press, inquiry{% endblock %}
 
-{% block header_title %}📧 Contact Semptify{% endblock %}
-{% block header_tagline %}Get in Touch{% endblock %}
-{% block header_subtitle %}Support, partnership, press, or general inquiries.{% endblock %}
+{% block header_title %}Contact Semptify{% endblock %}
+{% block header_tagline %}We're a small team. We read every message.{% endblock %}
 
 {% block page_body %}
 
-<section class="section">
-    <h2 class="section-title">Support</h2>
-    <p style="color: var(--text-light);">
-        For help with your Semptify account, documents, or tools:
-    </p>
-    <p style="margin-top: 1rem;">
-        <a href="mailto:support@semptify.org" class="cta-button">support@semptify.org →</a>
-    </p>
-</section>
+<div class="services-grid">
+    <div class="service-card">
+        <span class="icon">👋</span>
+        <h3>General</h3>
+        <p>Questions about the app, how to use Semptify, or anything else.</p>
+        <a class="cta-button" href="mailto:hello@semptify.org">hello@semptify.org</a>
+    </div>
+    <div class="service-card">
+        <span class="icon">🛠️</span>
+        <h3>Support &amp; Technical</h3>
+        <p>Bug reports, technical issues, or problems connecting your storage.</p>
+        <a class="cta-button" href="mailto:tech@semptify.org">tech@semptify.org</a>
+    </div>
+    <div class="service-card">
+        <span class="icon">⚖️</span>
+        <h3>Legal</h3>
+        <p>Legal notices, copyright claims, subpoenas, or policy questions.</p>
+        <a class="cta-button" href="mailto:legal@semptify.org">legal@semptify.org</a>
+    </div>
+    <div class="service-card">
+        <span class="icon">🔒</span>
+        <h3>Privacy</h3>
+        <p>Data requests, privacy concerns, or to exercise your rights under applicable law.</p>
+        <a class="cta-button" href="mailto:privacy@semptify.org">privacy@semptify.org</a>
+    </div>
+    <div class="service-card">
+        <span class="icon">🤝</span>
+        <h3>Partnership</h3>
+        <p>Advocacy group partnerships, agency connections, or organizational inquiries.</p>
+        <a class="cta-button" href="mailto:partnerships@semptify.org">partnerships@semptify.org</a>
+    </div>
+    <div class="service-card">
+        <span class="icon">📰</span>
+        <h3>Press</h3>
+        <p>Press inquiries, interviews, or media requests.</p>
+        <a class="cta-button" href="mailto:press@semptify.org">press@semptify.org</a>
+    </div>
+</div>
+
+<div class="info-banner">
+    <p>⚠️ We cannot provide legal advice or tell you what to do in your specific legal situation. For legal help, please contact a licensed attorney or your local legal aid society. See our <a href="/disclaimer">legal disclaimer</a>.</p>
+</div>
 
 <section class="section">
-    <h2 class="section-title">Partnership</h2>
-    <p style="color: var(--text-light);">
-        For advocacy group partnerships, agency connections, or organizational inquiries:
-    </p>
-    <p style="margin-top: 1rem;">
-        <a href="mailto:partnerships@semptify.org" class="cta-button">partnerships@semptify.org →</a>
-    </p>
-</section>
-
-<section class="section">
-    <h2 class="section-title">Press</h2>
-    <p style="color: var(--text-light);">
-        For press inquiries, interviews, or media requests:
-    </p>
-    <p style="margin-top: 1rem;">
-        <a href="mailto:press@semptify.org" class="cta-button">press@semptify.org →</a>
-    </p>
-</section>
-
-<section class="section">
-    <h2 class="section-title">General</h2>
-    <p style="color: var(--text-light);">
-        For anything else:
-    </p>
-    <p style="margin-top: 1rem;">
-        <a href="mailto:hello@semptify.org" class="cta-button">hello@semptify.org →</a>
-    </p>
-</section>
-
-<section class="section">
-    <h2 class="section-title">Help Center</h2>
-    <p style="color: var(--text-light);">
-        Looking for answers? Check our help center for common questions and guides.
-    </p>
-    <a href="/help" class="cta-button" style="margin-top: 1rem;">Help Center →</a>
+    <h2 class="section-title">Other ways to reach us</h2>
+    <p class="section-description">Want to give feedback about the product? <a href="/feedback">Submit feedback here →</a></p>
+    <p class="section-description">Looking for answers? Check the <a href="/help">Help Center</a> for common questions and guides.</p>
 </section>
 
 {% endblock %}
