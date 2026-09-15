@@ -4122,6 +4122,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         return ssot_redirect(navigation.get_stage("documents").path, context="document_center_page template fallback")
 
+    @fastapi_app.get("/document-center")
+    async def document_center_alias(request: Request):
+        """Redirect /document-center alias to the canonical /dc route."""
+        return ssot_redirect("/dc", context="document-center alias")
+
     async def _get_tenant_briefcase(user_id: str, user_name: str | None = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
         return await get_tenant_briefcase(user_id, user_name)
