@@ -1,3 +1,56 @@
+## Session — 2026-09-15 — Static-routed sections migrated to Site Shell (devin)
+
+### What changed
+- **45 legacy static HTML files deleted; all surviving pages now render
+  `shell_base.html`.** Sections migrated: advocate + legal dashboards,
+  office (inbox/vault/signer/delivery), mndes (guide + compliance-guide),
+  docs (component-inventory + navigation-structure), ai-helper, and the
+  full admin console (17 pages: home, dashboard, system-health, tile_stub,
+  contract-browser, function-browser, page-editor, review-checklist,
+  page_shell_demo, manual, api_workbook, module_flags, dev_lab,
+  agent_orchestrator, script_catalog, under_construction, hub).
+- **New routes:** `/office/{inbox,vault,signer,delivery}` — `/office/delivery`
+  was linked from the manager dashboard but had no route (dead end fixed).
+- **Redirects:** `/invite-advocate` → `/tenant/my-advocate` (the static invite
+  page was already gone; the route 404'd).
+- **mndes router** now renders Jinja templates with the same env globals
+  pattern as page_router (navigation, i18n, subject_starters).
+- **Orphans deleted:** filedored, status, search, library, reconnect/index,
+  tools/{calculators,checklists,generators}, templates/{base,page-shell,
+  journal-refactored,component-examples}, manager/index+dashboard (shadowed
+  by the `/manager` template route), advocate/legal index (shadowed by
+  `pages/advocate.html` / `pages/legal.html`), admin/login (shadowed — the
+  login route generates its HTML inline).
+
+### Kept static (deliberate)
+- `static/components/*` — live JS/HTML fragments fetched via the `/static`
+  mount (e.g. document_center loads `components/feedback.js`).
+- `static/onboarding/*` (8 files) — NO-TOUCH onboarding module surfaces.
+- `static/overlays/viewer.html` — explicit `/overlays/viewer` route.
+- `static/public/welcome.html`, `static/public/semptify-help-standalone.html`,
+  `static/911/*` — onboarding gate + always-available emergency pages.
+- `static/tenant/*` (7 files) — owned by open PR #248 (tenant statics batch).
+
+### Verified
+- All new routes 200 with `class="shell"`; role gates intact (advocate/legal
+  → providers, admin → elevation/login); `/invite-advocate` 302 →
+  /tenant/my-advocate. Browser: mndes guide + office inbox + ai-helper +
+  admin/home render correct shell chrome, 0 unexpected console errors
+  (unauthenticated API 401/WS 403 are pre-existing). office/delivery had
+  horizontal overflow at 375px — fixed (added missing mobile media query).
+- 28 new templates Jinja-parse clean; `py_compile` clean on main.py +
+  mndes/router.py; `tests/module_health` 245/245 pass.
+
+### Remaining
+- PR #248 (tenant statics → shell) + PR #249 (public-pages middleware fix)
+  still open — merge #249 first (fixes live prod bounce), then #248.
+- After #248 merges: `static/tenant/` empties except `help.html`
+  (fatal-error fallback, keep).
+- Copy review on ported pages (inherited wording, stale `home.html`/
+  `office.html` breadcrumb links inside ported content — cosmetic).
+
+---
+
 ## Session — 2026-09-15 — Public pages consolidated onto Site Shell (devin)
 
 ### What changed

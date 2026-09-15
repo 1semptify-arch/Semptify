@@ -17,6 +17,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
 
 from app.core.mndes_compliance import (
     MNDES_FILE_TYPES_VERSION,
@@ -45,6 +46,32 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["MNDES — Court Exhibit System"])
 
 _STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
+_TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
+templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
+
+# Re-expose the same globals that main.py sets up so templates work identically
+try:
+    from app.core.navigation import navigation
+
+    templates.env.globals["navigation"] = navigation
+except ImportError:
+    logger.warning("navigation module not available to mndes router")
+
+try:
+    from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale
+
+    templates.env.globals["_"] = _jinja2_gettext
+    templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
+    templates.env.globals["get_locale"] = get_locale
+except ImportError:
+    logger.warning("i18n module not available to mndes router")
+
+try:
+    from app.core.subject_starters import get_subject_starters as _get_subject_starters
+
+    templates.env.globals["subject_starters"] = _get_subject_starters()
+except ImportError:
+    pass
 
 
 # ============================================================================
@@ -53,28 +80,22 @@ _STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
 
 
 @router.get("/mndes/guide", response_class=HTMLResponse)
-async def mndes_guide() -> FileResponse:
+async def mndes_guide(request: Request) -> HTMLResponse:
     """
     Serve the MNDES submission guide (step-by-step).
     SSOT path registered in navigation.COURT_FLOW['mndes_guide'].
     """
-    guide_path = _STATIC_DIR / "mndes" / "guide.html"
-    if guide_path.exists():
-        return FileResponse(str(guide_path))
-    return HTMLResponse("<h1>MNDES Guide not found</h1>", status_code=404)
+    return templates.TemplateResponse(request, "pages/mndes_guide.html")
 
 
 @router.get("/mndes/compliance-guide", response_class=HTMLResponse)
-async def mndes_compliance_guide(role: str = "") -> FileResponse:
+async def mndes_compliance_guide(request: Request, role: str = "") -> HTMLResponse:
     """
     Serve the full MNDES compliance reference guide (all roles).
     SSOT path registered in navigation.COURT_FLOW['mndes_compliance_guide'].
     Optional ?role= query param pre-selects the relevant role tab.
     """
-    guide_path = _STATIC_DIR / "mndes" / "compliance-guide.html"
-    if guide_path.exists():
-        return FileResponse(str(guide_path))
-    return HTMLResponse("<h1>MNDES Compliance Guide not found</h1>", status_code=404)
+    return templates.TemplateResponse(request, "pages/mndes_compliance_guide.html")
 
 
 # ============================================================================
