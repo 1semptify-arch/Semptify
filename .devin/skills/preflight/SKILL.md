@@ -32,7 +32,18 @@ build it — flag it and stop instead.
  Do not add new features.
 Do not create new markdown files. If you think something else is broken,
 list it at the end of your response under "Noticed but not fixed" —
-do not touch it
+do not touch it — and log each item to the master-repo intake queue so it
+isn't lost between sessions:
+
+```powershell
+python C:\master-repo\tools\orchestrator_intake.py log `
+  --found "<what you found>" `
+  --location "<file/module or window>" `
+  --why "<why it's out of scope for this task>" `
+  --severity low|medium|high --source <agent-id>
+```
+
+The orchestrator triages intake into real tasks or dismisses with a reason.
 
 ### Step 1: Prove you know Semptify — NO LAZY WORK
 
