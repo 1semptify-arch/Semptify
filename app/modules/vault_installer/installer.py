@@ -24,7 +24,8 @@ from app.core.vault_paths import (
     VAULT_TIMELINE,
     VAULT_TIMELINE_EVENTS_FILENAME,
 )
-from app.sdk.vault import TENANT_VAULT, VaultClient
+from app.sdk.vault import VaultClient
+from app.sdk.vault.folder_spec import VaultFolderSpec
 
 logger = logging.getLogger(__name__)
 
@@ -39,20 +40,38 @@ class VaultInstaller:
     Uses Vault SDK for storage operations (SSOT for vault management).
     """
 
-    def __init__(self, provider_name: str, access_token: str, user_id: str):
+    def __init__(
+        self,
+        provider_name: str,
+        access_token: str,
+        user_id: str,
+        folder_spec: VaultFolderSpec | None = None,
+        role_type: str | None = None,
+    ):
         self.provider_name = provider_name
         self.access_token = access_token
         self.user_id = user_id
 
+        # Resolve the folder spec from an explicit spec, an explicit role type,
+        # or the role encoded in the user_id. Onboarding passes role_type
+        # explicitly; standalone entry points rely on the user_id fallback.
+        if folder_spec is None:
+            if role_type is None:
+                from app.core.user_id import get_role_from_user_id
+
+                role_type = get_role_from_user_id(user_id)
+            from app.modules.onboarding.role_config import vault_spec_for_role
+
+            folder_spec = vault_spec_for_role(role_type)
+
         # Use Vault SDK for storage operations (SSOT).
-        # Only TENANT_VAULT folders (7 total) are created at onboarding time.
         # Filedored, overlay, and AI-classified folders are created on-demand
         # when those features are first used, not at account creation.
         self.vault_client = VaultClient(
             provider=provider_name,
             access_token=access_token,
             user_id=user_id,
-            folder_spec=TENANT_VAULT,
+            folder_spec=folder_spec,
         )
 
     async def install_vault(self) -> dict:
