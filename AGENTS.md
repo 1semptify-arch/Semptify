@@ -53,6 +53,7 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
   ```
 - Before claiming `in_progress`, check the tracker for any existing `in_progress` entry on the same `file_path`. If one exists, resolve or reassign the existing task first.
 - Do NOT start coding while the task is still `pending` or unassigned.
+- **`mark_task_status.py` only writes to this module's local queue** (`tools/agent_orchestrator_tasks.json`), not the repo-wide master queue at `C:\master-repo\tools\orchestrator_state.json`. If you discover a brand-new task that needs to be visible outside this module (or to any Claude/orchestrator dispatch session), also add it to the master queue with `python C:\master-repo\tools\orchestrator_add_task.py` — see `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` §"This queue is a mirror, not the canonical queue" and `.devin/skills/orchestrator_add_task/SKILL.md`. `python tools/sync_orchestrator.py` (full run, not `--check`) auto-promotes any local `pending`/`review`/`blocked_on_decision` task to master before you end a session, and the pre-commit hook now fails the commit if one is missed.
 
 ### If you skip pre-flight, you will repeat a past mistake. The history proves this
 
