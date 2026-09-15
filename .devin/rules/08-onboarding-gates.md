@@ -10,11 +10,20 @@ Canonical implementation lives in `app/modules/onboarding/`.
 
 1. `storage_connected` — OAuth completed to the user's cloud drive.
 2. `vault_initialized` — vault fully proven: folders, files, token backup, and a live write/read probe all pass. Marked only at the end of vault setup — never on folder creation alone.
-3. `document_uploaded` — proof-receipt gate, marked atomically with `vault_initialized` once the first real document is deposited into the vault (written to the tenant's own cloud drive, read back, certified, registered, timeline entry, event emitted). The vault is the document's permanent home — this gate proves it can receive and hold one.
+3. `document_uploaded` — marked once the first real document is deposited into the vault (written to the tenant's own cloud drive, read back, certified, registered, timeline entry, event emitted). The vault is the document's permanent home — this gate proves it can receive and hold one.
 
 `client_activated` was removed on 2026-05-12. Do not reintroduce it.
 
-Live enforcement reads `storage_connected` + `vault_initialized` via `app/core/onboarding_state.py`. Decided 2026-09-12: `document_uploaded` stays a proof receipt, not an enforced gate — both marks are written atomically, so a marked-vault/unmarked-document state cannot occur in the normal flow.
+## Where enforcement actually lives
+
+`app/core/onboarding_state.py` is the live enforcement path (consumed by `StorageRequirementMiddleware`). It reads `storage_connected` + `vault_initialized` only.
+
+`OnboardingGateMiddleware` in `app/modules/onboarding/middleware.py` is **not registered** — `app/main.py` passes `enable_gate_middleware=False`, so `register_onboarding()` skips `add_middleware`. Its `gate_routes` dict is dead code in production and editing it changes nothing at runtime. Two prior agent sessions lost time there. Gate-enforcement changes go in `app/core/onboarding_state.py`.
+
+## Corrections (2026-09-15)
+
+- This file previously said the `vault_initialized` and `document_uploaded` marks are "written atomically." **False in code:** `mark_gate()` commits inside itself (`gates.py`), so the two calls at the end of `POST /api/vault/verify` are two sequential commits. A crash between them leaves vault-marked/document-unmarked. The consequence is bounded — `/onboarding/complete` and the `/onboarding/status` page both route such a user to `/onboarding/vault-setup/inspect` — but do not rely on the atomicity claim.
+- The 2026-09-12 decision that `document_uploaded` is a passive proof receipt was **superseded 2026-09-15**: Brad decided it is an enforced gate that completes onboarding, and that vault creation gets split from vault completion so the vault no longer waits on a user document. See `handoffs/onboarding-rewrite-2026-09-15.md`. Until that lands, live behaviour is as described above.
 
 ## Activation requirements
 
