@@ -97,8 +97,8 @@
 <h1>Document Delivery</h1>
 <div class="breadcrumb">
     <div class="breadcrumb-inner">
-      <a href="/home.html">Home</a> ›
-      <a href="/office.html">Office</a> ›
+      <a href="/">Home</a> ›
+      <a href="/office">Office</a> ›
       <strong>Document Delivery</strong>
     </div>
   </div>
@@ -248,9 +248,9 @@
       <div class="sidebar-card">
         <div class="sidebar-title">⚡ Quick Actions</div>
         <div style="display:flex;flex-direction:column;gap:0.4rem;">
-          <a href="/office/vault.html" style="background:var(--color-gray-200);color:var(--color-calm);border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">🔒 Open Vault</a>
-          <a href="/office/inbox.html" style="background:var(--bg-muted);color:var(--text-primary);border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📨 Check Inbox</a>
-          <a href="/office/signer.html" style="background:var(--bg-muted);color:var(--text-primary);border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">✍️ Sign Document</a>
+          <a href="/office/vault" style="background:var(--color-gray-200);color:var(--color-calm);border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">🔒 Open Vault</a>
+          <a href="/office/inbox" style="background:var(--bg-muted);color:var(--text-primary);border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📨 Check Inbox</a>
+          <a href="/office/signer" style="background:var(--bg-muted);color:var(--text-primary);border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">✍️ Sign Document</a>
         </div>
       </div>
 
@@ -262,11 +262,11 @@
       <div class="sidebar-card">
         <div class="sidebar-title">🏢 Office Navigation</div>
         <div style="display:flex;flex-direction:column;gap:0.25rem;">
-          <a href="/office/vault.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault</a>
-          <a href="/office/inbox.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
-          <a href="/office/timeline.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
-          <a href="/office/delivery.html" style="color:var(--color-calm);font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery ←</a>
-          <a href="/office/signer.html" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer</a>
+          <a href="/office/vault" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault</a>
+          <a href="/office/inbox" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
+          <a href="/timeline" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
+          <a href="/office/delivery" style="color:var(--color-calm);font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery ←</a>
+          <a href="/office/signer" style="color:var(--text-secondary);text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer</a>
         </div>
       </div>
     </aside>
@@ -300,7 +300,7 @@
     function renderVaultDocuments() {
       const container = document.getElementById('doc-select');
       if (!vaultDocuments.length) {
-        container.innerHTML = '<p style="padding:1rem;color:var(--text-muted);">No documents in vault. <a href="/office/vault.html">Upload one</a>.</p>';
+        container.innerHTML = '<p style="padding:1rem;color:var(--text-muted);">No documents in vault. <a href="/office/vault">Upload one</a>.</p>';
         return;
       }
       container.innerHTML = vaultDocuments.map((doc, i) => `

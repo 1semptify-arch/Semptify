@@ -2641,11 +2641,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """Serve Script Catalog admin page - ADMIN role required."""
         return templates.TemplateResponse(request, "pages/admin_script_catalog.html")
 
-    @fastapi_app.get("/ai-helper", response_class=HTMLResponse)
-    async def ai_helper_page(request: Request):
-        """Serve the AI Helper page - one-click prompt + bundle for external AI consultation."""
-        return templates.TemplateResponse(request, "pages/ai_helper.html")
-
     @fastapi_app.get("/admin/dev-lab.html", response_class=HTMLResponse)
     async def admin_dev_lab_page(
         request: Request,
