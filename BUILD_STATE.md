@@ -1,3 +1,48 @@
+## Session — 2026-09-15 — Onboarding rewrite reviewed; handoffs queued (devin)
+
+### What shipped
+- Docs corrections already live on main: `PROJECT_BIBLE.md` +
+  `.devin/rules/08-onboarding-gates.md` now record that
+  `OnboardingGateMiddleware` is never registered (`enable_gate_middleware=False`),
+  `app/core/onboarding_state.py` is the live enforcement path, the gate marks
+  are NOT atomic, and the real chain runs welcome → `/preamble` → select-role →
+  providers → 3-step vault-setup → complete.
+- Master-repo (pushed `4970764..7f0e79a`): rewritten
+  `handoffs/onboarding-rewrite-2026-09-15.md`, standalone cold-start handoffs
+  `onboarding-phase-a-vault-gate-split` + `onboarding-phase-b-role-vault-resolver`,
+  Switchboard "Restart server" button (`tools/agent_switchboard/`), queue
+  reclassifications.
+
+### Decisions (Brad)
+- Upload-first stands: document precedes storage plumbing; the vault itself is
+  provable without it (probe already runs before the doc pipeline in
+  `/api/vault/verify`). Fix = move WHERE `vault_initialized` is marked, not a
+  new gate name.
+- 2026-09-12 "document_uploaded is a receipt, not a gate" is superseded for the
+  upload-first direction — final gate model under `onboarding-decision-b-*`.
+- `claude` privileged tier = all Claude-model sessions; `orchestrator` identity
+  closes tasks a claude agent can't self-approve.
+
+### Known pending / do-not-trip-on
+- `onboarding-phase-a-*` and `onboarding-phase-b-*` are `queued` (trusted) with
+  self-contained handoffs — they need `devin auth login` before the dispatcher
+  can spawn, or an IDE swe-executor dispatch.
+- Reconnect preload + welcome-CTA copy are `deferred` — explicitly parked, NOT
+  live questions.
+- Parallel session warning: a second claude session re-claimed
+  `onboarding-gate-routes-missing-entry-2026-09-11` AFTER it was rejected and
+  left uncommitted edits in `app/modules/onboarding/{middleware,router}.py`
+  (the dead-code gate_routes entry). Not shipped — left in the working tree
+  for that session to own or revert.
+- Untracked verification artifacts (`*.png`, `openapi.json`) in master-repo —
+  intentionally not committed.
+
+### Verified
+- `py_compile` clean on core files incl. onboarding; playwright smoke 6/6 on
+  :8001; switchboard restart endpoint verified end-to-end (8600 down→up).
+
+---
+
 ## Session — 2026-09-15 — Donate page: all AI references removed (devin)
 
 ### What changed
