@@ -296,7 +296,7 @@ The **master orchestrator queue** is `C:\master-repo\tools\orchestrator_state.js
 - Blocked: `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> blocked_on_decision --blocked-reason "<why>" --agent <your-model-name>` (auto-surfaces to `decisions_pending_brad`)
 - Parked-for-later (already decided): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> deferred --agent <your-model-name>` (does NOT surface to Brad)
 
-Executor-tier agents (swe-executor, SWE-1.7, GLM-5.2, etc.) may NOT mark a task `resolved` or `rejected`; they stop at `review` or `blocked_on_decision`. Do this every time, without being asked — it is how the queue stays accurate without a human tracking it by hand.
+Unlimited-pool executors (free/non-premium usage class — `trusted` sub-tier: swe-executor, SWE-1.7; `restricted` sub-tier: GLM-5.2) may NOT mark a task `resolved` or `rejected`; they stop at `review` or `blocked_on_decision`. Do this every time, without being asked — it is how the queue stays accurate without a human tracking it by hand.
 
 ---
 

@@ -45,7 +45,7 @@ Filter by `status == open`, then highest `priority`.
 - `model_tier: restricted` → GLM-5.2 / other restricted executor. Same claim path; the agent id must identify the restricted model (e.g. `glm-5.2`) — `orchestrator_mark_task.py` refuses restricted agents on `trusted` tasks.
 - `model_tier: claude` → judgment work for the Claude orchestrator. Do not pick this unless you are the Claude parent.
 - `model_tier: unassigned` → stop and let the orchestrator classify it first (`in_progress` is refused mechanically).
-- `model_tier: unlimited` → retired tier (2026-09-11); it survives only on old closed records. If you find it on an open task, reclassify it (`trusted`/`restricted`/`claude`) before dispatch — do not dispatch it as-is.
+- `model_tier: unlimited` → `unlimited` is the free/non-premium **usage class**, not a stored tier — `trusted` and `restricted` are its two sub-tiers. It was retired from the enum (2026-09-11) and survives only on old records, where it means "free pool, trust unclassified." If you find it on an open task, reclassify it (`trusted`/`restricted`/`claude`) before dispatch — do not dispatch it as-is.
 
 For legacy Semptify tasks without `model_tier`, filter by `pending` and highest priority — but prefer promoting them to master first (Step 3).
 
