@@ -34,9 +34,11 @@ from app.core.database import get_db
 from app.core.navigation import navigation
 from app.core.security import StorageUser, green_access, require_user
 from app.core.ssot_guard import ssot_redirect
+from app.core.user_id import get_role_from_user_id
 from app.core.workflow_engine import route_user
 from app.modules.onboarding import gates as gate_ops, oauth as oauth_ops
 from app.modules.onboarding.config import OnboardingConfig
+from app.modules.onboarding.role_config import vault_spec_for_role
 
 logger = logging.getLogger(__name__)
 BASE_PATH = Path(__file__).resolve().parents[3]
@@ -424,12 +426,13 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         from app.modules.vault_installer.installer import VaultInstaller
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+        role_type = get_role_from_user_id(user.user_id)
 
         if await check_gate(db, user.user_id, "vault_initialized"):
             logger.info("Vault init skipped: already initialized for user %s", user.user_id[:6] + "***")
             return {"success": True, "message": "Vault already initialized", "folders_created": []}
 
-        installer = VaultInstaller(provider_name, user.access_token, user.user_id)
+        installer = VaultInstaller(provider_name, user.access_token, user.user_id, role_type=role_type)
 
         results = {"success": False, "folders_created": [], "files_created": [], "errors": []}
         try:
@@ -469,7 +472,8 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         from app.modules.vault_installer.installer import VaultInstaller
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
-        installer = VaultInstaller(provider_name, user.access_token, user.user_id)
+        role_type = get_role_from_user_id(user.user_id)
+        installer = VaultInstaller(provider_name, user.access_token, user.user_id, role_type=role_type)
 
         results = {"success": False, "files_created": [], "errors": []}
         try:
@@ -538,9 +542,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         from app.core.utc import utc_now
         from app.core.vault_paths import VAULT_DOCUMENTS, VAULT_ROOT
-        from app.sdk.vault import TENANT_VAULT, VaultClient
+        from app.sdk.vault import VaultClient
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+        role_type = get_role_from_user_id(user.user_id)
 
         # ── 1. Require a real document — either posted now, or the one held ────
         #    from the upload-first entry step (pending cookie) ────────────────
@@ -572,7 +577,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 provider=provider_name,
                 access_token=user.access_token,
                 user_id=user.user_id,
-                folder_spec=TENANT_VAULT,
+                folder_spec=vault_spec_for_role(role_type),
             )
             # SDK expects relative path to VAULT_ROOT. Strip prefix.
             subfolder = VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", "")
@@ -724,9 +729,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         from app.core.path_utils import normalize_cloud_path
         from app.core.vault_paths import VAULT_DOCUMENTS
-        from app.sdk.vault import TENANT_VAULT, VaultClient
+        from app.sdk.vault import VaultClient
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+        role_type = get_role_from_user_id(user.user_id)
         results = {"all_systems_go": False, "checks": {}, "errors": []}
 
         # Check 1: Database connection and user record
@@ -774,7 +780,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         # Check 3: Vault folders accessible
         try:
             client = VaultClient(
-                provider=provider_name, access_token=user.access_token, user_id=user.user_id, folder_spec=TENANT_VAULT
+                provider=provider_name,
+                access_token=user.access_token,
+                user_id=user.user_id,
+                folder_spec=vault_spec_for_role(role_type),
             )
             # Try to list documents folder as a health check
             docs_path = normalize_cloud_path(VAULT_DOCUMENTS)
