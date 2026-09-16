@@ -5,12 +5,14 @@ Every user enters the application through /preamble. This router makes
 exactly one decision: where does this specific user go next?
 
 Decision logic:
-  1. No cookie          → new user  → onboarding (role select)
+  1. No cookie          → new user  → onboarding (upload-first)
   2. Invalid cookie     → stale     → clear cookie → onboarding
   3. Valid cookie
-       a. All gates done → returning user → role-specific home
-       b. Partial gates  → incomplete     → exact next required step
-       c. No gates done  → new account    → start of onboarding
+       a. Storage connects + vault opens → returning user → role home
+          (a working vault IS the proof onboarding finished — the flags
+          in completed_groups are progress markers, not the primary check)
+       b. Storage/vault won't open → onboarding at the flag-indicated step,
+          or /storage/reconnect when every flag is already marked
 
 This is the ONLY place in the codebase that branches new vs returning.
 Nothing downstream needs to make this decision again.
@@ -67,7 +69,54 @@ async def preamble(request: Request):
         response.delete_cookie(COOKIE_USER_ID)
         return response
 
-    # ── Read gate state (one DB read) ─────────────────────────────────────────
+    # ── Connect storage — the vault is the proof, not the flags ─────────────
+    # The cookie identifies the user; OAuth tokens grant vault access. If
+    # storage connects and the vault opens, onboarding is complete by
+    # definition. completed_groups is consulted only to route the failure
+    # path — a progress marker, never the primary check.
+    session = None
+    try:
+        from app.core.database import get_session_factory
+        from app.modules.storage.router import get_valid_session
+
+        factory = get_session_factory()
+        async with factory() as db:
+            session = await get_valid_session(db, raw_uid, auto_refresh=True)
+    except Exception as exc:
+        logger.error("Preamble: session lookup error for user %s: %s", raw_uid[:6] + "***", exc)
+        return _db_error_response()
+
+    if session and session.get("access_token"):
+        # Storage connects — open the vault. The probe doubles as routing
+        # input: the document list it fetches answers documents_present, so
+        # route_user never re-queries the same index.
+        db_user_id = raw_uid.split(".")[0]
+        try:
+            from app.services.vault_upload_service import VaultUploadService
+
+            docs = await VaultUploadService().get_user_documents(db_user_id)
+            documents_present = len(docs) > 0
+        except Exception as exc:
+            logger.warning(
+                "Preamble: vault open failed for user %s: %s — routing via flags",
+                raw_uid[:6] + "***",
+                exc,
+            )
+            documents_present = None
+
+        if documents_present is not None:
+            # Vault opens → home. Users whose vault opens but hasn't passed
+            # document verification are still caught downstream by
+            # StorageRequirementMiddleware → document verify step.
+            from app.core.workflow_engine import route_user
+
+            destination = await route_user(raw_uid, documents_present=documents_present)
+            logger.info("Preamble: vault open for user %s → %s", raw_uid[:6] + "***", destination)
+            return ssot_redirect(destination, context="preamble vault open")
+
+    # ── Storage didn't connect or vault won't open → onboarding ─────────────
+    # Gates are progress markers: they tell us WHERE in onboarding to drop
+    # the user. Read them only on this failure path.
     try:
         from app.core.database import get_session_factory
         from app.core.onboarding_state import get_onboarding_state
@@ -76,49 +125,41 @@ async def preamble(request: Request):
         async with factory() as db:
             state = await get_onboarding_state(raw_uid, db)
 
-            # ── Auto-repair: If user has valid OAuth but missing storage_connected gate ──
-            # This handles users who onboarded before the gate system was implemented
-            if not state.storage_connected:
-                from app.modules.storage.router import get_valid_session
+            # Auto-repair: valid session exists but the flag was never marked
+            # (users who onboarded before the gate system). Storage provably
+            # connected — mark it so routing lands on the right step.
+            if not state.storage_connected and session and session.get("access_token"):
+                from app.modules.onboarding.gates import mark_gate
 
-                session = await get_valid_session(db, raw_uid, auto_refresh=False)
-                if session and session.get("access_token"):
-                    # Valid tokens exist — auto-mark the gate to prevent repeated onboarding
-                    from app.modules.onboarding.gates import mark_gate
-
-                    await mark_gate(db, raw_uid, "storage_connected")
-                    logger.info(
-                        "Preamble: auto-repaired storage_connected gate for user %s (valid tokens found)",
-                        raw_uid[:6] + "***",
-                    )
-                    # Re-read state after auto-repair
-                    state = await get_onboarding_state(raw_uid, db)
+                await mark_gate(db, raw_uid, "storage_connected")
+                logger.info(
+                    "Preamble: auto-repaired storage_connected gate for user %s (valid session found)",
+                    raw_uid[:6] + "***",
+                )
+                state = await get_onboarding_state(raw_uid, db)
     except Exception as exc:
         logger.error("Preamble: DB error for user %s: %s", raw_uid[:6] + "***", exc)
         return _db_error_response()
 
-    # ── Route based on gate state ─────────────────────────────────────────────
-    if state.is_fully_onboarded:
-        # Returning user — send to their role-specific home
-        from app.core.workflow_engine import route_user
-
-        destination = await route_user(raw_uid)
-        logger.info("Preamble: returning user %s → %s", raw_uid[:6] + "***", destination)
-        return ssot_redirect(destination, context="preamble returning user")
-
-    # New or incomplete — send to exact next required step
+    # Route to the exact next required step — or reconnect when every gate is
+    # already marked but the vault itself won't open (dead grant, revoked
+    # access, provider outage). A returning user never re-does role select.
     next_path = state.next_required_path
     if next_path is None:
-        role_stage = navigation.get_stage("role_select")
-        next_path = role_stage.path if role_stage else "/onboarding/select-role.html"
-
-    logger.info(
-        "Preamble: user %s incomplete (gate=%s) → %s",
-        raw_uid[:6] + "***",
-        state.next_required_gate,
-        next_path,
-    )
-    return ssot_redirect(next_path, context="preamble incomplete onboarding")
+        reconnect_stage = navigation.get_stage("reconnect")
+        next_path = reconnect_stage.path if reconnect_stage else "/storage/reconnect"
+        logger.info(
+            "Preamble: user %s fully onboarded but vault won't open → reconnect",
+            raw_uid[:6] + "***",
+        )
+    else:
+        logger.info(
+            "Preamble: user %s incomplete (gate=%s) → %s",
+            raw_uid[:6] + "***",
+            state.next_required_gate,
+            next_path,
+        )
+    return ssot_redirect(next_path, context="preamble vault unavailable")
 
 
 def _db_error_response() -> HTMLResponse:
