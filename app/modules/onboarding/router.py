@@ -392,7 +392,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         vault_status_poll.js watches both gates before redirecting to /complete.
         """
         try:
+            import json as _json
+
             from app.modules.onboarding.gates import check_gate
+            from app.modules.onboarding.vault_check import get_latest_vault_check
             from app.services.vault_upload_service import VaultUploadService
 
             vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
@@ -402,12 +405,20 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             docs = await svc.get_user_documents(user.user_id)
             document_count = len(docs) if docs is not None else 0
 
+            latest = await get_latest_vault_check(db, user.user_id)
+
             return {
                 "vault_initialized": bool(vault_initialized),
                 "document_uploaded": bool(document_uploaded),
                 "document_count": document_count,
                 "storage_connected": True,
                 "provider": user.provider.value if hasattr(user.provider, "value") else str(user.provider),
+                # Test-before-active record: which state the vault is in and,
+                # on failure, which named check failed and why.
+                "vault_status": latest.status if latest else "not_started",
+                "failed_check": latest.failed_check if latest else None,
+                "failed_detail": latest.detail if latest else None,
+                "checks": _json.loads(latest.checks_json) if latest and latest.checks_json else {},
             }
         except Exception as e:
             logger.warning("vault_status error for user %s: %s", user.user_id[:6] + "***", str(e))
@@ -429,6 +440,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
         role_type = get_role_from_user_id(user.user_id)
+
+        from app.modules.onboarding.vault_check import VaultStatus, record_vault_check
+
+        await record_vault_check(db, user.user_id, VaultStatus.INITIALIZING)
 
         if await check_gate(db, user.user_id, "vault_initialized"):
             logger.info("Vault init skipped: already initialized for user %s", user.user_id[:6] + "***")
@@ -559,6 +574,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             # Folders (step 1) + token backup + probe all passed.
             await mark_gate(db, user.user_id, "vault_initialized")
 
+            from app.modules.onboarding.vault_check import VaultStatus, record_vault_check
+
+            await record_vault_check(db, user.user_id, VaultStatus.TEST_PENDING)
+
             results["success"] = True
             logger.info("Step 2 complete — vault_initialized marked for user %s", user.user_id[:6] + "***")
             return results
@@ -590,9 +609,21 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         """
         import asyncio
 
-        provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+        from app.modules.onboarding.gates import mark_gate
+        from app.modules.onboarding.vault_check import (
+            VaultStatus,
+            record_vault_check,
+            run_vault_verification,
+        )
+        from app.services.vault_upload_service import VaultUploadService
 
-        # ── 1. Require a real document — either posted now, or the one held ────
+        provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+        role_type = get_role_from_user_id(user.user_id)
+        vault_service = VaultUploadService()
+
+        await record_vault_check(db, user.user_id, VaultStatus.VERIFYING)
+
+        # ── 1. Acquire the test document — posted now, or the one held ────────
         #    from the upload-first entry step (pending cookie) ────────────────
         original_name = None
         file_bytes = None
@@ -613,105 +644,203 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 mime_type = "application/octet-stream"
                 logger.info("vault_verify: using held upload-first document '%s'", original_name)
 
-        if not file_bytes:
-            return {"ok": False, "accessible": False, "error": "Please select a document to upload"}
+        vault_doc = None
+        document_count = 0
 
-        # ── 2. Full pipeline via VaultUploadService ────────────────────────────
-        #   certificate → registry → overlay → timeline → event bus → mesh
-        try:
-            from app.services.vault_upload_service import VaultUploadService
-
-            vault_service = VaultUploadService()
-            vault_doc = await asyncio.wait_for(
-                vault_service.upload(
-                    user_id=user.user_id,
-                    filename=original_name,
-                    content=file_bytes,
-                    mime_type=mime_type,
-                    document_type=None,  # classifier will determine type
-                    description="First document — uploaded during vault setup",
-                    tags=["onboarding", "first_document"],
-                    source_module="onboarding",
-                    access_token=user.access_token,
-                    storage_provider=provider_name,
-                ),
-                timeout=110.0,
-            )
-
-            # Verify the uploaded document can be retrieved from the vault storage.
-            # This ensures stage 3 only passes when the uploaded file is actually present.
-            stored_bytes = await asyncio.wait_for(
-                vault_service.get_document_content(vault_doc.vault_id, access_token=user.access_token),
-                timeout=90.0,
-            )
-            if stored_bytes is None:
-                raise ValueError("Uploaded document could not be retrieved from vault storage")
-            if stored_bytes != file_bytes:
-                raise ValueError("Uploaded document contents do not match vault storage")
-
-            if not vault_doc.registry_id or vault_doc.integrity_status != "verified":
-                raise ValueError(
-                    "Document was stored but did not receive a registry document ID. Please retry or contact support."
+        if file_bytes:
+            # ── 2a. Fresh upload — full pipeline via VaultUploadService ───────
+            #   certificate → registry → overlay → timeline → event bus → mesh
+            try:
+                vault_doc = await asyncio.wait_for(
+                    vault_service.upload(
+                        user_id=user.user_id,
+                        filename=original_name,
+                        content=file_bytes,
+                        mime_type=mime_type,
+                        document_type=None,  # classifier will determine type
+                        description="First document — uploaded during vault setup",
+                        tags=["onboarding", "first_document"],
+                        source_module="onboarding",
+                        access_token=user.access_token,
+                        storage_provider=provider_name,
+                    ),
+                    timeout=110.0,
                 )
 
-            user_documents = await vault_service.get_user_documents(user.user_id)
-            document_count = len(user_documents)
+                # Verify the uploaded document can be retrieved from the vault storage.
+                stored_bytes = await asyncio.wait_for(
+                    vault_service.get_document_content(vault_doc.vault_id, access_token=user.access_token),
+                    timeout=90.0,
+                )
+                if stored_bytes is None:
+                    raise ValueError("Uploaded document could not be retrieved from vault storage")
+                if stored_bytes != file_bytes:
+                    raise ValueError("Uploaded document contents do not match vault storage")
 
-            # Kick off intake + flow orchestration in the background
-            # (non-blocking — onboarding completes regardless)
-            async def _run_pipeline(vault_id: str, uid: str) -> None:
-                try:
-                    from app.services.document_flow_orchestrator import DocumentFlowOrchestrator
-                    from app.services.document_intake import DocumentIntakeEngine
-
-                    engine = DocumentIntakeEngine()
-                    intake_doc = await engine.intake_document(
-                        user_id=uid,
-                        file_content=file_bytes,
-                        filename=original_name,
-                        mime_type=mime_type,
-                        vault_id=vault_id,
+                if not vault_doc.registry_id or vault_doc.integrity_status != "verified":
+                    raise ValueError(
+                        "Document was stored but did not receive a registry document ID. Please retry or contact support."
                     )
-                    await engine.process_document(intake_doc.id)
-                    orchestrator = DocumentFlowOrchestrator()
-                    await orchestrator.process_document_complete(doc_id=intake_doc.id, user_id=uid, db_session=db)
-                except Exception as pipeline_err:
-                    logger.warning("Background pipeline error for vault_doc %s: %s", vault_id, pipeline_err)
 
-            import asyncio as _asyncio
+                user_documents = await vault_service.get_user_documents(user.user_id)
+                document_count = len(user_documents)
 
-            _asyncio.create_task(_run_pipeline(vault_doc.vault_id, user.user_id))
+            except TimeoutError:
+                logger.error("VaultUploadService timed out for user %s: %s", user.user_id[:6] + "***")
+                await record_vault_check(
+                    db,
+                    user.user_id,
+                    VaultStatus.FAILED,
+                    failed_check="test_file_present",
+                    detail="Upload timed out",
+                )
+                return {"ok": False, "accessible": True, "error": "Upload timed out — please try again"}
+            except Exception as e:
+                logger.error("VaultUploadService failed for user %s: %s", user.user_id[:6] + "***", str(e))
+                await record_vault_check(
+                    db,
+                    user.user_id,
+                    VaultStatus.FAILED,
+                    failed_check="test_file_present",
+                    detail=str(e),
+                )
+                return {"ok": False, "accessible": True, "error": str(e)}
+        else:
+            # 2b. Detect-first heal — a document already in the vault IS the
+            # test file. Crash survivors, reinstalls, and pre-gate-3 accounts
+            # reach here with a document present; verify it instead of forcing
+            # a duplicate upload.
+            existing_docs = await vault_service.get_user_documents(user.user_id)
+            if not existing_docs:
+                await record_vault_check(
+                    db,
+                    user.user_id,
+                    VaultStatus.TEST_PENDING,
+                    detail="No document in vault — waiting for first upload",
+                )
+                return {"ok": False, "accessible": True, "error": "Please select a document to upload"}
+            vault_doc = existing_docs[0]
+            document_count = len(existing_docs)
+            original_name = vault_doc.filename
+            mime_type = vault_doc.mime_type or "application/octet-stream"
+            file_bytes = (
+                await vault_service.get_document_content(vault_doc.vault_id, access_token=user.access_token)
+            ) or b""
+            logger.info(
+                "vault_verify: verifying existing vault document '%s' for user %s (detect-first)",
+                original_name,
+                user.user_id[:6] + "***",
+            )
 
-        except TimeoutError:
-            logger.error("VaultUploadService timed out for user %s", user.user_id[:6] + "***")
-            return {"ok": False, "accessible": True, "error": "Upload timed out — please try again"}
-        except Exception as e:
-            logger.error("VaultUploadService failed for user %s: %s", user.user_id[:6] + "***", str(e))
-            return {"ok": False, "accessible": True, "error": str(e)}
+        # 3. Ensure the Pass-1 extraction pipeline ran for this doc
+        #    (background, non-blocking — the verifier polls its status)
+        def _ensure_pipeline() -> None:
+            try:
+                from app.services.document_intake import DocumentIntakeEngine
 
-        # ── 3. Mark the document_uploaded completion gate ───────────────────────
-        # vault_initialized was already marked at the end of step 2, after
-        # folders, token backup, and the live write/read probe all passed.
-        from app.modules.onboarding.gates import mark_gate
+                engine = DocumentIntakeEngine()
+                if any(d.vault_id == vault_doc.vault_id for d in engine.get_user_documents(user.user_id)):
+                    return
 
-        await mark_gate(db, user.user_id, "document_uploaded")
-        _clear_pending_upload(request)  # held upload-first doc consumed
+                async def _run() -> None:
+                    try:
+                        from app.services.document_flow_orchestrator import DocumentFlowOrchestrator
 
-        logger.info(
-            "Final gate passed — '%s' seeded all systems for user %s",
-            original_name,
-            user.user_id[:6] + "***",
+                        intake_doc = await engine.intake_document(
+                            user_id=user.user_id,
+                            file_content=file_bytes,
+                            filename=original_name,
+                            mime_type=mime_type,
+                            vault_id=vault_doc.vault_id,
+                        )
+                        await engine.process_document(intake_doc.id)
+                        orchestrator = DocumentFlowOrchestrator()
+                        await orchestrator.process_document_complete(
+                            doc_id=intake_doc.id, user_id=user.user_id, db_session=db
+                        )
+                    except Exception as pipeline_err:
+                        logger.warning(
+                            "Background pipeline error for vault_doc %s: %s", vault_doc.vault_id, pipeline_err
+                        )
+
+                asyncio.create_task(_run())
+            except Exception as exc:
+                logger.warning("Could not ensure intake pipeline for %s: %s", vault_doc.vault_id, exc)
+
+        _ensure_pipeline()
+
+        # 4. The gate — every check must return an explicit verdict.
+        #    active: all pass -> mark document_uploaded. failed: name the check.
+        #    verifying: still running -> caller retries (detect-first makes it
+        #    idempotent — never a duplicate upload).
+        verdict = await run_vault_verification(
+            db,
+            user.user_id,
+            access_token=user.access_token,
+            provider_name=provider_name,
+            role_type=role_type,
+            target_doc=vault_doc,
         )
+        checks = verdict["checks"]
+
+        if verdict["verdict"] == "active":
+            await mark_gate(db, user.user_id, "document_uploaded")
+            _clear_pending_upload(request)  # held upload-first doc consumed
+            await record_vault_check(db, user.user_id, VaultStatus.ACTIVE, checks=checks)
+            logger.info(
+                "Final gate passed — '%s' seeded all systems for user %s",
+                original_name,
+                user.user_id[:6] + "***",
+            )
+            return {
+                "ok": True,
+                "accessible": True,
+                "document_saved": True,
+                "document_name": original_name,
+                "vault_id": vault_doc.vault_id,
+                "document_id": vault_doc.registry_id,
+                "certified": vault_doc.is_certified,
+                "document_count": document_count,
+                "vault_status": "active",
+                "checks": checks,
+            }
+
+        if verdict["verdict"] == "failed":
+            failed_check = verdict["failed_check"]
+            detail = checks[failed_check]["detail"]
+            await record_vault_check(
+                db,
+                user.user_id,
+                VaultStatus.FAILED,
+                failed_check=failed_check,
+                detail=detail,
+                checks=checks,
+            )
+            logger.warning(
+                "Vault verification failed at check '%s' for user %s: %s",
+                failed_check,
+                user.user_id[:6] + "***",
+                detail,
+            )
+            return {
+                "ok": False,
+                "accessible": True,
+                "error": detail,
+                "failed_check": failed_check,
+                "checks": checks,
+                "vault_status": "failed",
+            }
+
+        await record_vault_check(db, user.user_id, VaultStatus.VERIFYING, checks=checks)
         return {
-            "ok": True,
+            "ok": False,
             "accessible": True,
-            "document_saved": True,
-            "document_name": original_name,
-            "vault_id": vault_doc.vault_id,
-            "document_id": vault_doc.registry_id,
-            "certified": vault_doc.is_certified,
-            "document_count": document_count,
+            "verifying": True,
+            "error": "Still verifying your vault — checks in progress",
+            "checks": checks,
+            "vault_status": "verifying",
         }
+
 
     # ------------------------------------------------------------------
     # API: System Verification — Final health check before completion
@@ -1326,7 +1455,7 @@ dropZone.addEventListener('drop', e => {{
     if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
 }});
 
-async function doUpload(file) {{
+async function doVerify(file, attempt) {{
     document.getElementById('upload-area').style.display = 'none';
     document.getElementById('saving-area').style.display = 'block';
     try {{
@@ -1336,10 +1465,17 @@ async function doUpload(file) {{
         const r = await fetch('{config.route_prefix}/api/vault/verify', {{method:'POST', body: fd}});
         const data = await r.json();
         if (!r.ok || !data.ok) {{
+            if (data.verifying && attempt < 8) {{
+                // A check is still running — wait and re-verify. The server
+                // detects the existing document; this never re-uploads.
+                await new Promise(res => setTimeout(res, 4000));
+                return doVerify(null, attempt + 1);
+            }}
             dot('check', 'error');
             document.getElementById('saving-area').style.display = 'none';
             document.getElementById('upload-area').style.display = 'block';
-            showError(data.error || 'Could not reach your vault \u2014 please try again');
+            const label = data.failed_check ? data.failed_check.replace(/_/g, ' ') : null;
+            showError((label ? label + ': ' : '') + (data.error || 'Could not reach your vault — please try again'));
             return;
         }}
         dot('check', 'done');
@@ -1359,7 +1495,19 @@ async function doUpload(file) {{
     }}
 }}
 
-uploadBtn.addEventListener('click', () => {{ if (chosenFile) doUpload(chosenFile); }});
+uploadBtn.addEventListener('click', () => {{ if (chosenFile) doVerify(chosenFile, 0); }});
+
+// Self-heal: if a document is already in the vault (setup interrupted earlier,
+// or a pre-existing account), verify it instead of asking for another upload.
+(async function detectExisting() {{
+    try {{
+        const r = await fetch('{config.route_prefix}/api/vault/status', {{credentials:'include'}});
+        const s = await r.json();
+        if (s.document_count > 0 && !s.document_uploaded) {{
+            doVerify(null, 0);
+        }}
+    }} catch(e) {{ /* fall through to the normal upload UI */ }}
+}})();
 """
     return _vault_step_shell(
         config.product_name,
