@@ -2037,6 +2037,39 @@ class EvictionTimelineEvent(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
 
 
+class VaultCheck(Base):
+    """
+    Per-attempt vault verification record (test-before-active gate).
+
+    User.completed_groups stays the durable progress marks; this table records
+    *why* a vault is or isn't active — one row per verification attempt with
+    the status, which named check failed, and a plain-language detail.
+    Latest row per user = current vault state.
+
+    Design: handoffs/onboarding-gate-timeline-blueprint-2026-09-15.md §7.
+    """
+
+    __tablename__ = "vault_checks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(128), index=True, nullable=False)
+
+    # not_started, initializing, test_pending, verifying, active, failed
+    status: Mapped[str] = mapped_column(String(20), index=True, nullable=False)
+
+    # Which named check failed (token_usable, folder_tree, test_file_present,
+    # extraction_ran, overlay_created) — never an opaque boolean.
+    failed_check: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
+    # Plain-language detail shown to the user.
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # JSON: per-item results {check_name: {status, detail}}.
+    checks_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
+
+
 # Import context engine models so they are registered on the shared Base.
 # This keeps Alembic autogenerate and other Base.metadata consumers in sync.
 from app.modules.context_engine.models import ContextFact, TenantStory  # noqa: F401
