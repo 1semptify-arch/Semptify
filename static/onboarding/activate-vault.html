@@ -301,6 +301,11 @@
                     // Redirect to tenant home when ready
                     window.location.href = '/tenant/home';
                   },
+                  onFailed: (s) => {
+                    const el = document.getElementById('finalizing-msg');
+                    const check = s.failed_check ? s.failed_check.replace(/_/g, ' ') : 'verification';
+                    if (el) el.textContent = `Setup check failed — ${check}: ${s.failed_detail || 'please retry the test upload'}`;
+                  },
                   onError: (e) => {
                     const el = document.getElementById('finalizing-msg');
                     if (el) el.textContent = 'Finalizing failed to complete; please refresh to check status.';

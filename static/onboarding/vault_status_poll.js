@@ -12,6 +12,7 @@ export async function pollVaultStatus({
   timeout = 60000,
   onPending = () => {},
   onComplete = () => {},
+  onFailed = (s) => { console.error('vault verification failed', s.failed_check, s.failed_detail); },
   onError = (e) => { console.error('vault poll error', e); }
 } = {}) {
   const start = Date.now();
@@ -20,6 +21,12 @@ export async function pollVaultStatus({
       const s = await fetchVaultStatus();
       if (s.vault_initialized && s.document_uploaded) {
         onComplete(s);
+        return s;
+      }
+      // Test-before-active gate: a failed verification names the check —
+      // stop polling and surface it instead of spinning until timeout.
+      if (s.vault_status === 'failed') {
+        onFailed(s);
         return s;
       }
       onPending(s);
