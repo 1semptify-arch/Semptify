@@ -63,6 +63,20 @@ VAULT_TIMELINE_EVENTS_FILE = normalize_cloud_path(f"{VAULT_TIMELINE}/{VAULT_TIME
 VAULT_SCRATCHPAD = normalize_cloud_path(f"{VAULT_ROOT}/scratchpad")
 VAULT_SCRATCHPAD_FILE = normalize_cloud_path(f"{VAULT_SCRATCHPAD}/notepad.json")
 
+# =============================================================================
+# Role-specific folders (direct children of Vault/)
+# =============================================================================
+# Canonical leaf names for per-role vault trees. role_configs/{role}.json
+# folder_tree entries resolve through these constants only — never raw paths.
+VAULT_CLIENT_FILES = normalize_cloud_path(f"{VAULT_ROOT}/client_files")
+VAULT_CASE_NOTES = normalize_cloud_path(f"{VAULT_ROOT}/case_notes")
+VAULT_LEGAL_FILINGS = normalize_cloud_path(f"{VAULT_ROOT}/legal_filings")
+VAULT_COURT_EXHIBITS = normalize_cloud_path(f"{VAULT_ROOT}/court_exhibits")
+VAULT_CASE_FILES = normalize_cloud_path(f"{VAULT_ROOT}/case_files")
+VAULT_DISCOVERY = normalize_cloud_path(f"{VAULT_ROOT}/discovery")
+VAULT_RESEARCH = normalize_cloud_path(f"{VAULT_ROOT}/research")
+VAULT_DOSSIERS = normalize_cloud_path(f"{VAULT_ROOT}/dossiers")
+
 VAULT_OVERLAYS = normalize_cloud_path(f"{VAULT_ROOT}/overlays")
 VAULT_OVERLAY_REGISTRY = normalize_cloud_path(f"{VAULT_OVERLAYS}/registry.json")
 VAULT_OVERLAY_DOCUMENTS = normalize_cloud_path(f"{VAULT_OVERLAYS}/documents")

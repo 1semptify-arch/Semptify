@@ -54,7 +54,6 @@ PUBLIC_PATHS: set[str] = {
     "/onboarding/role-select",
     "/onboarding/providers",
     "/onboarding/connect",
-    "/onboarding/upload",
     "/onboarding/activate",
     "/onboarding/verify-vault",
     "/onboarding/status",

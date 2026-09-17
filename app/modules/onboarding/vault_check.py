@@ -193,7 +193,7 @@ async def run_vault_verification(
 
             spec = vault_spec_for_role(role_type)
             missing = []
-            for folder in spec.all_folders():
+            for folder in spec.all_folders:
                 try:
                     # Empty list is a valid existing folder (Known Failure #4);
                     # only an exception means missing/inaccessible.
@@ -203,7 +203,7 @@ async def run_vault_verification(
             if missing:
                 results["folder_tree"] = _fail(f"Missing folders: {', '.join(missing[:5])}")
             else:
-                results["folder_tree"] = _ok(f"{len(spec.all_folders())} folders confirmed in cloud")
+                results["folder_tree"] = _ok(f"{len(spec.all_folders)} folders confirmed in cloud")
         except Exception as exc:
             results["folder_tree"] = _fail(f"Folder check error: {exc}")
 

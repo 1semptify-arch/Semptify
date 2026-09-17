@@ -1,3 +1,19 @@
+## Session — 2026-09-16 — Canonical onboarding rebuild spec published (devin)
+
+- New canonical doc: `handoffs/onboarding-full-rebuild-spec-2026-09-16.md`.
+  It **supersedes** `handoffs/onboarding-rewrite-2026-09-15.md` (banner added
+  at top of that file) and is the single source for onboarding work going
+  forward. Pointers updated in `PROJECT_BIBLE.md` and
+  `.devin/rules/08-onboarding-gates.md`.
+- Direction change vs the old spec: upload-first / pending-document mechanics
+  are **removed entirely** (`/onboarding/upload`, `semptify_pending`,
+  `data/intake/pending/`). One upload moment only — Phase 5, after the vault
+  is initiated. `document_uploaded` becomes a one-way-valve enforced final
+  gate; role gate lists drive from `role_configs/{role_type}.json`.
+- Implementation queued in master orchestrator: `onboarding-full-rebuild-2026-09-16`
+  (tier `trusted` — touches the NO-TOUCH onboarding module under explicit
+  spec authorization).
+
 ## Session — 2026-09-15 — Onboarding rewrite reviewed; handoffs queued (devin)
 
 ### What shipped

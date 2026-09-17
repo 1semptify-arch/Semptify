@@ -1,0 +1,13 @@
+{
+  "folder_tree": [
+    "documents",
+    "client_files",
+    "case_notes",
+    "legal_filings"
+  ],
+  "inherits_from": null,
+  "differentiated": true,
+  "notes": "Advocate vault: documents plus client files, case notes, and legal filings",
+  "role_type": "advocate",
+  "display_name": "Advocate"
+}

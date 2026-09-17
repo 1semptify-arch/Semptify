@@ -478,7 +478,28 @@ async def reset_user_gates(
     """
     Reset onboarding gates for a user.
     Use with caution - forces user to re-complete onboarding steps.
+
+    Terminal gates (document_uploaded) are a one-way valve — attempting to
+    reset one fails the whole request loudly (409), no partial reset.
     """
+    from app.modules.onboarding.gates import TERMINAL_GATES
+
+    terminal_requested = sorted(set(gates) & TERMINAL_GATES)
+    if terminal_requested:
+        logger.error(
+            f"GATE_RESET REFUSED: Admin {admin_user.user_id} attempted to reset "
+            f"terminal gates {terminal_requested} for user {user_id}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "error": "terminal_gate",
+                "message": f"Cannot reset terminal gate(s): {', '.join(terminal_requested)}. "
+                "document_uploaded is a one-way valve — it can never be unset once marked.",
+                "terminal_gates": terminal_requested,
+            },
+        )
+
     logger.warning(f"GATE_RESET: Admin {admin_user.user_id} resetting gates {gates} for user {user_id}")
 
     # Import gate functions

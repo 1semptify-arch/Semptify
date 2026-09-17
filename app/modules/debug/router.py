@@ -193,7 +193,7 @@ async def debug_seed_test_user(request: Request):
                         "updated_at = :now "
                         "WHERE id = :uid"
                     ),
-                    {"uid": "GUbGQUTpK6", "groups": "storage_connected,vault_initialized", "now": now},
+                    {"uid": "GUbGQUTpK6", "groups": "storage_connected,vault_initialized,document_uploaded", "now": now},
                 )
                 info["action"] = "updated"
             else:
@@ -208,7 +208,7 @@ async def debug_seed_test_user(request: Request):
                     {
                         "uid": "GUbGQUTpK6",
                         "sid": "test-storage-user-id",
-                        "groups": "storage_connected,vault_initialized",
+                        "groups": "storage_connected,vault_initialized,document_uploaded",
                         "now1": now,
                         "now2": now,
                     },
