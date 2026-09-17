@@ -502,31 +502,28 @@ async def reset_user_gates(
 
     logger.warning(f"GATE_RESET: Admin {admin_user.user_id} resetting gates {gates} for user {user_id}")
 
-    # Import gate functions
-    from app.modules.onboarding.gates import get_user_gates
+    # Route every removal through unmark_gate — the canonical writer owns the
+    # terminal-gate valve. The 409 above is a friendly pre-check; unmark_gate
+    # is the structural guard (raises ValueError on any terminal gate).
+    from app.modules.onboarding.gates import get_user_gates, unmark_gate
 
     # Get current gates before reset
     current_gates = await get_user_gates(db, user_id)
 
-    # Reset requested gates by removing them from completed_groups
-    # Note: Gates are stored as comma-separated values in User.completed_groups
     from sqlalchemy import select
 
     from app.models.models import User
 
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-
-    if not user:
+    result = await db.execute(select(User.id).where(User.id == user_id))
+    if result.scalar_one_or_none() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {user_id} not found")
 
-    # Remove the specified gates from completed_groups
-    existing_gates = {g.strip() for g in (user.completed_groups or "").split(",") if g.strip()}
-    removed_gates = existing_gates.intersection(set(gates))
-    remaining_gates = existing_gates - set(gates)
+    removed_gates: set[str] = set()
+    for gate in set(gates):
+        if await unmark_gate(db, user_id, gate):
+            removed_gates.add(gate)
 
-    user.completed_groups = ",".join(sorted(remaining_gates)) if remaining_gates else None
-    await db.commit()
+    remaining_gates = current_gates - removed_gates
 
     # Log the action
     await _log_admin_action(

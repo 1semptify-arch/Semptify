@@ -35,7 +35,7 @@ from app.core.vault_paths import SYSTEM_FOLDER
 from app.core.workflow_engine import route_user
 from app.modules.onboarding import gates as gate_ops, oauth as oauth_ops
 from app.modules.onboarding.config import OnboardingConfig
-from app.modules.onboarding.role_config import gates_for_role, vault_spec_for_role
+from app.modules.onboarding.role_config import vault_spec_for_role
 
 logger = logging.getLogger(__name__)
 
@@ -935,15 +935,16 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             role_stage = navigation.get_stage("role_select")
             return ssot_redirect(role_stage.path, context="onboarding_complete bad cookie")
 
-        # All gates for the user's role must pass in order — base three plus
-        # any role-added gates from role_configs/{role}.json.
-        role = get_role_from_user_id(raw_uid) or "tenant"
+        # Onboarding is identical for every role — the canonical gate list
+        # comes from config.gates (START → internal vault flag → FINALE).
+        # Roles never add checkpoints; role customization lives on the
+        # role's landing page, not in onboarding.
         gate_redirects = {
             "storage_connected": f"{config.route_prefix}/providers",
             "vault_initialized": f"{config.route_prefix}/vault-setup",
             "document_uploaded": f"{config.route_prefix}/vault-setup/inspect",
         }
-        for gate in gates_for_role(role):
+        for gate in config.gates:
             if not await check_gate(db, raw_uid, gate):
                 dest = gate_redirects.get(gate, f"{config.route_prefix}/status")
                 return ssot_redirect(dest, context=f"onboarding_complete {gate}_missing")
@@ -969,8 +970,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         if not raw_uid:
             return ssot_redirect(f"{config.route_prefix}/", context="status bad cookie")
 
-        role = get_role_from_user_id(raw_uid) or "tenant"
-        incomplete = await gate_ops.get_first_incomplete_gate(db, raw_uid, gates_for_role(role))
+        incomplete = await gate_ops.get_first_incomplete_gate(db, raw_uid, config.gates)
         if incomplete is None:
             # Role-based redirect after onboarding completion
             from app.core.user_id import parse_user_id
@@ -1051,6 +1051,9 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans
 .role-name {{ font-size: 1.05rem; font-weight: 600; color: #1e3a5f; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; }}
 .role-desc {{ font-size: 0.875rem; color: #64748b; line-height: 1.4; }}
 .badge {{ font-size: 0.65rem; font-weight: 600; background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; padding: 0.15rem 0.5rem; border-radius: 99px; letter-spacing: 0.04em; text-transform: uppercase; }}
+.returning {{ text-align: center; margin-top: 1.5rem; }}
+.returning a {{ color: #64748b; font-size: 0.85rem; text-decoration: none; }}
+.returning a:hover {{ color: #1e3a5f; text-decoration: underline; }}
 </style>
 </head><body>
 <div class="header">
@@ -1059,6 +1062,7 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans
 </div>
 <div class="container">
 {role_cards}
+<div class="returning"><a href="/storage/reconnect">Set up before? Reconnect to your storage &rarr;</a></div>
 </div>
 <script src="/js/unified-footer-loader.js"></script>
 </body></html>"""
@@ -1099,6 +1103,9 @@ body {{ font-family: Georgia, serif; background: #fdfcfa; color: #1e293b; min-he
 .provider-name {{ font-size: 1.05rem; font-weight: 600; color: #1e3a5f; }}
 .provider-desc {{ font-size: 0.85rem; color: #64748b; }}
 .trust {{ margin-top: 2rem; padding: 1.25rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 0.9rem; color: #166534; }}
+.returning {{ text-align: center; margin-top: 1.5rem; }}
+.returning a {{ color: #64748b; font-size: 0.85rem; text-decoration: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}
+.returning a:hover {{ color: #1e3a5f; text-decoration: underline; }}
 </style></head><body>
 <div class="header">
     <h1>Let's Set Up Your Storage</h1>
@@ -1110,6 +1117,7 @@ body {{ font-family: Georgia, serif; background: #fdfcfa; color: #1e293b; min-he
         <strong>Your privacy is protected.</strong> {config.product_name} stores documents in your personal
         cloud storage. We never have access to your files. You can disconnect at any time.
     </div>
+    <div class="returning"><a href="/storage/reconnect">Set up before? Reconnect to your storage &rarr;</a></div>
 </div>
 <script>
 function selectProvider(provider) {{

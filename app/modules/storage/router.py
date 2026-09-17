@@ -660,23 +660,6 @@ async def get_user_by_provider_subject(
     return result.scalars().first()
 
 
-async def _mark_group_complete(db: AsyncSession, user_id: str, group_name: str) -> None:
-    """
-    Permanently record that a ProcessGroup's exit criteria have been met.
-    Written once. Read by middleware to skip cloud re-verification.
-    Never removed — serial gating ensures this is written only when truly complete.
-    """
-    user = await get_user_from_db(db, user_id)
-    if not user:
-        return
-    existing = user.completed_groups or ""
-    groups = set(g for g in existing.split(",") if g)
-    if group_name not in groups:
-        groups.add(group_name)
-        user.completed_groups = ",".join(sorted(groups))
-        await db.commit()
-
-
 async def create_or_update_user(
     db: AsyncSession,
     user_id: str,
@@ -1940,7 +1923,10 @@ async def oauth_callback(
 
         # Permanently record that storage authentication is complete.
         # This is the ProcessGroup exit gate: session saved + user row written = storage connected.
-        await _mark_group_complete(db, user_id, "storage_connected")
+        # Canonical gate writer — single source for all gate writes.
+        from app.modules.onboarding.gates import mark_gate as _mark_gate
+
+        await _mark_gate(db, user_id, "storage_connected")
 
         # Seed capability defaults for this user if not already seeded.
         # Safe to call on every login — only inserts missing rows.
@@ -1970,40 +1956,15 @@ async def oauth_callback(
             ),
         )
 
-        # Check if vault has been initialized by reading completed_groups from DB.
-        # This is the ONLY reliable way to know — not new/returning status.
-        db_user = await get_user_from_db(db, user_id)
-        completed_groups = set((db_user.completed_groups or "").split(",")) if db_user else set()
-        completed_groups.discard("")
-        vault_initialized = "vault_initialized" in completed_groups
+        # Check the vault flag via the canonical reader — never read
+        # completed_groups directly. Vault creation itself is owned by the
+        # /onboarding/vault-setup three-step flow (folders → security wiring →
+        # mandatory first document) so every build gets vault_checks audit rows
+        # and the live write/read probe. A user who connected storage outside
+        # onboarding is routed there below.
+        from app.modules.onboarding.gates import check_gate as _check_gate
 
-        # Create vault folders server-side if not yet initialized.
-        if not vault_initialized:
-            try:
-                from app.modules.onboarding.config import OnboardingConfig as _OBConfig
-                from app.modules.onboarding.vault import init_vault
-
-                _ob_config = _OBConfig(
-                    product_name="Semptify Tenant Rights",
-                    allowed_roles=["tenant"],
-                    allowed_providers=["google_drive", "dropbox", "onedrive"],
-                    on_complete_redirect="/home",
-                )
-                vault_result = await init_vault(
-                    db=db,
-                    user_id=user_id,
-                    provider_name=provider,
-                    access_token=access_token,
-                    config=_ob_config,
-                )
-                if vault_result.get("ok"):
-                    vault_initialized = True
-                else:
-                    logger.warning(
-                        "Vault creation failed for user %s: %s", user_id[:6] + "***", vault_result.get("message")
-                    )
-            except Exception as vault_exc:
-                logger.error("Vault creation crashed for user %s: %s", user_id[:6] + "***", vault_exc, exc_info=True)
+        vault_initialized = await _check_gate(db, user_id, "vault_initialized")
 
         # Determine landing page.
         return_to = state_data.get("return_to")

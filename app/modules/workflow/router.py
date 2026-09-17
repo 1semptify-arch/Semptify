@@ -781,10 +781,14 @@ async def get_case_state(request: Request) -> CaseStateResponse:
     Called by home.html to supply data-backed inputs to the next-step card
     instead of relying on client-side heuristics.
     """
+    # Verify the signed cookie — the raw cookie value is "<user_id>.<hmac>" and
+    # must not be used for DB lookups or gate checks directly.
+    from app.core.cookie_auth import verify_user_id
+
     _uid_raw = request.cookies.get("semptify_uid", "")
-    user_id = str(_uid_raw) if _uid_raw is not None else ""
+    user_id = verify_user_id(str(_uid_raw) if _uid_raw is not None else "") or ""
     role = _ROLE_MAP.get(user_id[1:2].upper(), "user") if len(user_id) >= 2 else "user"
-    storage_connected = user_id[:1].upper() in {"G", "D", "O"} if user_id else False
+    storage_connected = False
 
     now_utc = utc_now()
     doc_count = 0
@@ -796,6 +800,12 @@ async def get_case_state(request: Request) -> CaseStateResponse:
 
     try:
         async with get_db_session() as db:
+            # Canonical gate state — single reader for onboarding flags.
+            from app.core.onboarding_state import get_onboarding_state
+
+            _ob_state = await get_onboarding_state(user_id, db)
+            storage_connected = _ob_state.storage_connected
+
             # Documents stored in DocumentPipelineIndex by pipeline
             doc_count = len(
                 (await db.execute(select(DocumentPipelineIndex.doc_id).where(DocumentPipelineIndex.user_id == user_id)))

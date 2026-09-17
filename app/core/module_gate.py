@@ -284,14 +284,20 @@ class ModuleGateMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
     def _extract_gates(self, request: Request) -> set[str]:
-        """Extract user's gates from request state (set by onboarding middleware)."""
+        """Extract user's externally-meaningful gates from request state.
+
+        Only the two boundary gates are exposed to module gating: START
+        (storage_connected) and FINALE (document_uploaded). vault_initialized
+        is an internal progress flag inside the vault-build flow — modules
+        must never gate on it (spec: onboarding-full-rebuild-spec-2026-09-17).
+        """
         gates: set[str] = set()
         if hasattr(request.state, "onboarding_state"):
             state = request.state.onboarding_state
-            if state and hasattr(state, "storage_connected") and state.storage_connected:
+            if state and getattr(state, "storage_connected", False):
                 gates.add("storage_connected")
-            if state and hasattr(state, "vault_initialized") and state.vault_initialized:
-                gates.add("vault_initialized")
+            if state and getattr(state, "document_uploaded", False):
+                gates.add("document_uploaded")
         return gates
 
     def _extract_role(self, request: Request) -> UserRole:
