@@ -2851,6 +2851,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         manager_path = manager_stage.path if manager_stage else "/manager"
         return ssot_redirect(manager_path, context="manager_dashboard redirect to portal")
 
+    @fastapi_app.get("/manager/home", response_class=HTMLResponse)
+    async def manager_home_page(request: Request):
+        """Redirect legacy /manager/home to the canonical manager portal."""
+        manager_stage = navigation.get_stage("manager_portal")
+        manager_path = manager_stage.path if manager_stage else "/manager"
+        return ssot_redirect(manager_path, context="manager_home redirect to portal")
+
     @fastapi_app.get("/api/manager/dashboard-stats")
     async def manager_dashboard_stats(request: Request):
         """API endpoint for manager dashboard statistics (auto-refresh)."""
