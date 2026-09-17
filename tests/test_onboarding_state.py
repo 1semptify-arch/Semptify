@@ -17,6 +17,7 @@ class TestOnboardingState:
             user_id="u1",
             storage_connected=True,
             vault_initialized=True,
+            document_uploaded=True,
         )
         assert state.is_fully_onboarded is True
         assert state.next_required_gate is None
@@ -26,6 +27,7 @@ class TestOnboardingState:
             user_id="u1",
             storage_connected=False,
             vault_initialized=False,
+            document_uploaded=False,
         )
         assert state.is_fully_onboarded is False
         assert state.next_required_gate == "storage_connected"
@@ -35,36 +37,67 @@ class TestOnboardingState:
             user_id="u1",
             storage_connected=True,
             vault_initialized=False,
+            document_uploaded=False,
         )
         assert state.is_fully_onboarded is False
         assert state.next_required_gate == "vault_initialized"
+
+    def test_vault_done_document_pending(self):
+        """Vault built but FINALE not reached — next step is the mandatory upload."""
+        state = OnboardingState(
+            user_id="u1",
+            storage_connected=True,
+            vault_initialized=True,
+            document_uploaded=False,
+        )
+        assert state.is_fully_onboarded is False
+        assert state.next_required_gate == "document_uploaded"
+        path = state.next_required_path
+        assert path is not None
+        assert "inspect" in path or "vault-setup" in path
 
     def test_vault_done_storage_pending(self):
         state = OnboardingState(
             user_id="u1",
             storage_connected=False,
             vault_initialized=True,
+            document_uploaded=False,
         )
         assert state.is_fully_onboarded is False
         assert state.next_required_gate == "storage_connected"
 
+    def test_document_only_not_fully_onboarded(self):
+        """FINALE flag alone never counts as onboarded — gates are serial."""
+        state = OnboardingState(
+            user_id="u1",
+            storage_connected=True,
+            vault_initialized=False,
+            document_uploaded=True,
+        )
+        assert state.is_fully_onboarded is False
+        assert state.next_required_gate == "vault_initialized"
+
     def test_frozen(self):
-        state = OnboardingState(user_id="u1", storage_connected=True, vault_initialized=True)
+        state = OnboardingState(
+            user_id="u1", storage_connected=True, vault_initialized=True, document_uploaded=True
+        )
         with pytest.raises(AttributeError):
             state.storage_connected = False  # type: ignore[misc]
 
     def test_next_required_path_none_when_fully_onboarded(self):
-        state = OnboardingState(user_id="u1", storage_connected=True, vault_initialized=True)
+        state = OnboardingState(
+            user_id="u1", storage_connected=True, vault_initialized=True, document_uploaded=True
+        )
         assert state.next_required_path is None
 
     def test_next_required_path_storage_fallback(self):
-        state = OnboardingState(user_id="u1", storage_connected=False, vault_initialized=False)
+        state = OnboardingState(user_id="u1", storage_connected=False, vault_initialized=False, document_uploaded=False)
         path = state.next_required_path
         assert path is not None
         assert isinstance(path, str)
 
     def test_next_required_path_vault_fallback(self):
-        state = OnboardingState(user_id="u1", storage_connected=True, vault_initialized=False)
+        state = OnboardingState(user_id="u1", storage_connected=True, vault_initialized=False, document_uploaded=False)
         path = state.next_required_path
         assert path is not None
         assert isinstance(path, str)
@@ -80,39 +113,51 @@ class TestGetOnboardingStateNoDb:
         assert state.user_id == "u1"
         assert state.storage_connected is False
         assert state.vault_initialized is False
+        assert state.document_uploaded is False
 
     @pytest.mark.asyncio
     async def test_empty_string(self):
         state = await get_onboarding_state_no_db("", "u1")
         assert state.storage_connected is False
         assert state.vault_initialized is False
+        assert state.document_uploaded is False
 
     @pytest.mark.asyncio
     async def test_storage_connected_only(self):
         state = await get_onboarding_state_no_db("storage_connected", "u1")
         assert state.storage_connected is True
         assert state.vault_initialized is False
+        assert state.document_uploaded is False
 
     @pytest.mark.asyncio
-    async def test_both_gates(self):
-        state = await get_onboarding_state_no_db("storage_connected,vault_initialized", "u1")
+    async def test_all_three_gates(self):
+        state = await get_onboarding_state_no_db(
+            "storage_connected,vault_initialized,document_uploaded", "u1"
+        )
         assert state.storage_connected is True
         assert state.vault_initialized is True
+        assert state.document_uploaded is True
+        assert state.is_fully_onboarded is True
 
     @pytest.mark.asyncio
     async def test_whitespace_handling(self):
         state = await get_onboarding_state_no_db(" storage_connected , vault_initialized ", "u1")
         assert state.storage_connected is True
         assert state.vault_initialized is True
+        assert state.document_uploaded is False
 
     @pytest.mark.asyncio
     async def test_extra_gates_ignored(self):
-        state = await get_onboarding_state_no_db("storage_connected,vault_initialized,extra_gate", "u1")
+        state = await get_onboarding_state_no_db(
+            "storage_connected,vault_initialized,document_uploaded,extra_gate", "u1"
+        )
         assert state.storage_connected is True
         assert state.vault_initialized is True
+        assert state.document_uploaded is True
 
     @pytest.mark.asyncio
     async def test_vault_only(self):
         state = await get_onboarding_state_no_db("vault_initialized", "u1")
         assert state.storage_connected is False
         assert state.vault_initialized is True
+        assert state.document_uploaded is False
