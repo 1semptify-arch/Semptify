@@ -1,4 +1,61 @@
+## Session — 2026-09-17 — Onboarding rebuild v2: START/FINALE gates + returning-user path (devin)
+
+### What shipped
+- Commit `78f72322` — full audit-driven rebuild per
+  `handoffs/onboarding-full-rebuild-spec-2026-09-17` (supersedes the 9/16 spec).
+- **Step-1 audit:** no external module functionally gates on `vault_initialized`
+  — collapsed external gate surface to START (`storage_connected`) / FINALE
+  (`document_uploaded`); vault flag is internal to the vault-build flow.
+- `storage/router.py`: deleted duplicate gate writer; OAuth callback uses
+  `mark_gate`/`check_gate`; removed inline `init_vault` (single canonical
+  vault-build path = 3-step vault-setup with `vault_checks` rows).
+- `workflow/router.py` `case-state`: was using the **signed** cookie as
+  user_id → all DB queries returned 0 rows; now verifies cookie + reads
+  canonical `get_onboarding_state` (was an ID-prefix heuristic).
+- `module_gate.py`: emits boundary gates only. `admin_console`: gate reset
+  routes through `unmark_gate` (structural terminal valve). Removed dead
+  `gates_for_role` mechanism — roles add no onboarding checkpoints.
+- Returning-user gap closed: "Set up before? Reconnect" links on role-select
+  + providers → `/storage/reconnect`; provider-identity match at callback +
+  Rehome.html already self-heal the no-cookie path.
+- `tests/test_onboarding_state.py` repaired (was already red on 2-gate
+  constructors) + FINALE ordering coverage.
+
+### Verified
+- py_compile all touched files; 51 targeted tests pass (--no-cov);
+  guardrail_engine ALL PASS; Playwright smoke 6/6 on :8001.
+- Live checks (fresh uvicorn): entry pages render reconnect link; no-cookie
+  `/onboarding/start` `/preamble` `/complete` → role-select; seeded fully-gated
+  user → `/complete` → `/tenant/start`, `/preamble` → `/storage/reconnect`.
+
+### Known pending / do-not-trip-on
+- **PR required** — main is branch-protected; `78f72322` ships via PR
+  (branch `onboarding-rebuild-v2-2026-09-17`), not yet merged.
+- Pre-existing env failure: `test_vault_manager_sequence.py`
+  `test_initialize_vault_marks_failed_when_token_verification_fails`
+  (MasterToken decrypt, `app/sdk/vault/encryption.py`) — untouched by this diff.
+- `data/intake/pending/` leftover dir from removed upload-first machinery —
+  on-disk artifact only, not committed.
+- Orphaned uvicorn child was serving pre-edit code on :8001 — killed and
+  restarted fresh this session (ship skill trap; PID 4028 spawn of dead 14044).
+- Master task `onboarding-full-rebuild-v2-2026-09-17` is `review` — Brad
+  reviews/merges the PR, then bump the master-repo gitlink.
+
+---
+
 ## Session — 2026-09-16 — Canonical onboarding rebuild spec published (devin)
+
+### Guardrail Engine Run — 2026-09-17T14:55:04+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 2 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 - New canonical doc: `handoffs/onboarding-full-rebuild-spec-2026-09-16.md`.
   It **supersedes** `handoffs/onboarding-rewrite-2026-09-15.md` (banner added
