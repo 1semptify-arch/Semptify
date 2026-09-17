@@ -101,7 +101,22 @@ OAUTH_CONFIGS = {
 
 OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
-ALLOWED_ROLES = {"user", "tenant", "manager", "advocate", "legal", "judge", "admin"}
+ALLOWED_ROLES = {
+    "user",
+    "tenant",
+    "manager",
+    "advocate",
+    "legal",
+    "judge",
+    "admin",
+    # role_configs/{key}.json keys — each config key is a real role
+    "multi_client_advocate",
+    "donor_supporter",
+    "researcher",
+    "research",
+    "agency",
+    "developer",
+}
 
 # In-memory session cache for transitional compatibility (primary sessions are in DB)
 SESSIONS: dict = {}

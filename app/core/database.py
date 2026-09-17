@@ -84,9 +84,20 @@ def get_engine():
                 "pool_size": 5,  # Base connections
                 "max_overflow": 10,  # Extra connections under load
                 "pool_timeout": 30,  # Seconds to wait for connection
-                "pool_recycle": 1800,  # Recycle connections after 30 min
+                # Neon drops idle connections at ~300s; recycle below that so the
+                # pool proactively replaces connections before the server kills
+                # them (Render cold-start bursts post-deploy left startup-warmed
+                # connections dead by the first request).
+                "pool_recycle": 280,
                 "pool_pre_ping": True,  # Verify connections before use
-                "connect_args": {"ssl": False if is_localhost else True},
+                "connect_args": {
+                    "ssl": False if is_localhost else True,
+                    # asyncpg timeouts: without these a suspended/unreachable
+                    # Postgres can hang pre-ping and queries indefinitely.
+                    "timeout": 10,  # connect timeout
+                    "command_timeout": 30,  # per-statement timeout
+                    "server_settings": {"application_name": "semptify_fastapi"},
+                },
             }
 
         _engine = create_async_engine(

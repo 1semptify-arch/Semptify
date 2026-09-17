@@ -1,0 +1,11 @@
+{
+  "folder_tree": [
+    "documents",
+    "research"
+  ],
+  "inherits_from": null,
+  "differentiated": true,
+  "notes": "Developer vault: documents plus a research workspace for platform technical work",
+  "role_type": "developer",
+  "display_name": "Developer"
+}

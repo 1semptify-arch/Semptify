@@ -5,13 +5,15 @@ Status: Accepted
 
 ## Decision
 
-Vault storage is split across pluggable providers (Dropbox, Google Drive, OneDrive) behind a unified provider interface in `app/services/storage`, with path resolution centralized in `app/core/vault_paths.py` and cross-cutting concerns (token refresh, provider selection) handled by `app/core/storage_middleware.py` and `app/core/oauth_token_manager.py`. The canonical vault root folder `.Semptify5.0` is the first entry in `CANONICAL_VAULT_FOLDERS` and must be created explicitly before any nested folder.
+Vault storage is split across pluggable providers (Dropbox, Google Drive, OneDrive) behind a unified provider interface in `app/services/storage`, with path resolution centralized in `app/core/vault_paths.py` and cross-cutting concerns (token refresh, provider selection) handled by `app/core/storage_middleware.py` and `app/core/oauth_token_manager.py`. The canonical vault root folder `Semptify5.0` is the first entry in `CANONICAL_VAULT_FOLDERS` and must be created explicitly before any nested folder.
+
+> **Errata (2026-09-17):** This ADR originally named the root `.Semptify5.0` — wrong. The root has **no leading dot**. `.semptify` is the hidden *system config* subfolder at `Semptify5.0/.semptify`, not the vault root. See `app/core/vault_paths.py` and AGENTS.md Known Failure #3 (corrected 2026-09-11).
 
 ## Why
 
 Tenants arrive with different existing cloud storage. Forcing a single provider would block adoption. A provider-agnostic interface lets onboarding route to whichever provider the tenant authorized, while keeping the vault folder structure identical across providers.
 
-The `.Semptify5.0` parent-first rule is a hard constraint of the Dropbox API (and good practice generally): nested folder creation fails if the parent does not exist. This was learned the hard way — see Known Failure #3 in `AGENTS.md`.
+The `Semptify5.0` parent-first rule is a hard constraint of the Dropbox API (and good practice generally): nested folder creation fails if the parent does not exist. This was learned the hard way — see Known Failure #3 in `AGENTS.md`.
 
 ## Consequences
 

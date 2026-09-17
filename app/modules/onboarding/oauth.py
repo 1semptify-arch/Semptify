@@ -25,7 +25,21 @@ from app.modules.onboarding.gates import mark_gate
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_ROLES = {"tenant", "advocate", "legal", "admin", "manager", "user"}
+ALLOWED_ROLES = {
+    "tenant",
+    "advocate",
+    "legal",
+    "admin",
+    "manager",
+    "user",
+    # role_configs/{key}.json keys — each config key is a real role
+    "multi_client_advocate",
+    "donor_supporter",
+    "researcher",
+    "research",
+    "agency",
+    "developer",
+}
 
 
 # ============================================================================

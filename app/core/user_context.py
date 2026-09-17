@@ -49,6 +49,12 @@ class UserRole(str, Enum):
     ADVOCATE = "advocate"  # Tenant advocate: help multiple users
     LEGAL = "legal"  # Legal role: attorneys, judges, clerks, paralegals (sub-roles via legal_sub_role)
     JUDGE = "judge"  # DEPRECATED — merged into LEGAL as sub_role='judge'. Kept for backward compat only.
+    # role_configs/{key}.json is the config driver — every config key is a real role.
+    MULTI_CLIENT_ADVOCATE = "multi_client_advocate"  # Multi-client advocate: per-client caseload across programs
+    DONOR_SUPPORTER = "donor_supporter"  # Donor/supporter: funds or champions the work, limited visibility
+    RESEARCHER = "researcher"  # Researcher: aggregate/anonymized data study (config: researcher.json)
+    AGENCY = "agency"  # Agency staff: coordinates cases/referrals across an organization
+    DEVELOPER = "developer"  # Platform developer: technical workspace role
 
 
 # =============================================================================
@@ -285,6 +291,46 @@ ROLE_DEFINITIONS = {
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",  # Full complexity
         "landing_page": "/admin/home",
+        "icon": "▸",
+    },
+    UserRole.MULTI_CLIENT_ADVOCATE: {
+        "display_name": "Multi-Client Advocate",
+        "purpose": "Advocate managing a caseload of clients across programs — per-client files, case notes, and filings.",
+        "default_landing_process": "B4 - Professional Review Workspace",
+        "ui_mode": "desktop",
+        "landing_page": "/advocate/home",
+        "icon": "▸",
+    },
+    UserRole.DONOR_SUPPORTER: {
+        "display_name": "Donor Supporter",
+        "purpose": "Supporter who funds or champions the work — limited, non-case visibility.",
+        "default_landing_process": "B1 - Orientation",
+        "ui_mode": "responsive",
+        "landing_page": "/donor/home",
+        "icon": "○",
+    },
+    UserRole.RESEARCHER: {
+        "display_name": "Researcher",
+        "purpose": "Researcher working with aggregate/anonymized housing data — research workspace and dossiers.",
+        "default_landing_process": "B4 - Professional Review Workspace",
+        "ui_mode": "desktop",
+        "landing_page": "/research/home",
+        "icon": "▸",
+    },
+    UserRole.AGENCY: {
+        "display_name": "Agency",
+        "purpose": "Agency staff coordinating cases, referrals, and client files across an organization.",
+        "default_landing_process": "B4 - Professional Review Workspace",
+        "ui_mode": "desktop",
+        "landing_page": "/agency/home",
+        "icon": "●",
+    },
+    UserRole.DEVELOPER: {
+        "display_name": "Developer",
+        "purpose": "Platform developer — technical workspace for building and maintaining Semptify itself.",
+        "default_landing_process": "B4 - Professional Review Workspace",
+        "ui_mode": "desktop",
+        "landing_page": "/developer/home",
         "icon": "▸",
     },
 }
