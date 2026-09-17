@@ -1,11 +1,13 @@
 {
   "folder_tree": [
     "documents",
-    "certificates"
+    "client_files",
+    "case_notes",
+    "legal_filings"
   ],
   "inherits_from": null,
-  "differentiated": false,
-  "notes": "Phase 1: generic copy of tenant defaults, not yet role-differentiated",
+  "differentiated": true,
+  "notes": "Multi-client advocate vault: documents plus per-client files, case notes, and legal filings",
   "role_type": "multi_client_advocate",
   "display_name": "Multi-Client Advocate"
 }
