@@ -144,9 +144,6 @@ class NavigationRegistry:
         "dashboard": FlowStage(
             id="dashboard", name="Home", path="/onboarding/complete", next_stage=None, requires_checkpoint=False
         ),
-        "upload": FlowStage(
-            id="upload", name="Document Upload", path="/onboarding/upload", next_stage="role_select", requires_checkpoint=True
-        ),
         # Flagship cutover (Phase C): the canonical tenant home is /tenant/start.
         "tenant_home": FlowStage(
             id="tenant_home", name="Tenant Home", path="/tenant/start", next_stage=None, requires_checkpoint=False
