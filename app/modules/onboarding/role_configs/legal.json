@@ -1,11 +1,13 @@
 {
   "folder_tree": [
     "documents",
-    "certificates"
+    "court_exhibits",
+    "case_files",
+    "discovery"
   ],
   "inherits_from": null,
-  "differentiated": false,
-  "notes": "Phase 1: generic copy of tenant defaults, not yet role-differentiated",
+  "differentiated": true,
+  "notes": "Legal vault: documents plus court exhibits, case files, and discovery",
   "role_type": "legal",
   "display_name": "Legal"
 }

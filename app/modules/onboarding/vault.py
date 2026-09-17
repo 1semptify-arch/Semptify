@@ -95,18 +95,21 @@ async def verify_vault(
     Called by the vault-setup page after init.
     Returns: {"ok": True/False, "accessible": bool, "details": list}
     """
-    from app.sdk.vault import TENANT_VAULT, VaultClient
+    from app.sdk.vault import VaultClient
 
     try:
-        # Use Vault SDK health check.
-        # Only verify TENANT_VAULT folders — those are the only ones created at
-        # onboarding. Filedored/overlay/AI folders are on-demand and will not
-        # exist yet, so checking them would always report failure.
+        # Use Vault SDK health check against the role's own folder spec —
+        # those are the folders created at onboarding. Filedored/overlay/AI
+        # folders are on-demand and will not exist yet, so checking them
+        # would always report failure.
+        from app.core.user_id import get_role_from_user_id
+        from app.modules.onboarding.role_config import vault_spec_for_role
+
         vault_client = VaultClient(
             provider=provider_name,
             access_token=access_token,
             user_id=user_id,
-            folder_spec=TENANT_VAULT,
+            folder_spec=vault_spec_for_role(get_role_from_user_id(user_id)),
         )
 
         health = await vault_client.health_check()

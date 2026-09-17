@@ -1,16 +1,16 @@
 """Role-based vault configuration loader.
 
-Resolution order:
-  1. Check the existing specs in app/sdk/vault/folder_spec.py (the SSOT).
-     Roles with a built-in spec (tenant, advocate, legal, research, admin)
-     return that spec directly — no JSON needed.
-  2. Fall back to JSON role configs under role_configs/ for roles without
-     a built-in spec (donor_supporter, etc.). Each JSON leaf name resolves
-     through app/core/vault_paths.py constants.
-  3. Unknown roles fall back to tenant.
+Resolution order (per handoffs/onboarding-full-rebuild-spec-2026-09-16.md —
+the JSON role configs are the driver, not a hardcoded tree):
+  1. `role_configs/{role_type}.json` — the authoritative per-role config.
+     Each folder_tree leaf name resolves through app/core/vault_paths.py
+     constants.
+  2. Built-in specs in app/sdk/vault/folder_spec.py — fallback ONLY for
+     roles with no JSON file (e.g. advocate until advocate.json exists).
+  3. tenant.json — final fallback for unknown roles.
 
-This keeps folder_spec.py as the SSOT for roles that already have specs,
-and uses JSON only for roles that don't — avoiding duplication.
+This makes the per-role JSON configs the single point of change: adding or
+reshaping a role's vault requires editing JSON, never Python.
 """
 
 import inspect
@@ -94,24 +94,8 @@ def _load_json_config(role_type: str) -> dict:
     return config
 
 
-def vault_spec_for_role(role_type: str | None) -> VaultFolderSpec:
-    """Return a VaultFolderSpec for the given role.
-
-    Resolution order:
-      1. Built-in specs in folder_spec.py (tenant, advocate, legal, research, admin).
-      2. JSON config under role_configs/ for roles without a built-in spec.
-      3. Tenant fallback for unknown roles.
-
-    A corrupt JSON config or an unresolvable folder_tree leaf raises a
-    clear error.
-    """
-    normalized = (role_type or "tenant").lower().strip()
-
-    # 1. Check built-in specs first (the SSOT in folder_spec.py).
-    if normalized in _BUILTIN_SPECS:
-        return _BUILTIN_SPECS[normalized]
-
-    # 2. Fall back to JSON config for roles without a built-in spec.
+def _spec_from_config(normalized: str) -> VaultFolderSpec:
+    """Build a VaultFolderSpec from a role JSON config's folder_tree."""
     config = _load_json_config(normalized)
     declared_role = config.get("role_type", normalized)
 
@@ -137,4 +121,58 @@ def vault_spec_for_role(role_type: str | None) -> VaultFolderSpec:
     return BASE_VAULT.extend(resolved)
 
 
-__all__ = ["vault_spec_for_role"]
+def vault_spec_for_role(role_type: str | None) -> VaultFolderSpec:
+    """Return a VaultFolderSpec for the given role.
+
+    Resolution order:
+      1. role_configs/{role}.json — the driver (per-role config, no code edit).
+      2. Built-in spec in folder_spec.py — only for roles with no JSON file.
+      3. tenant.json — final fallback for unknown roles.
+
+    A corrupt JSON config or an unresolvable folder_tree leaf raises a
+    clear error.
+    """
+    normalized = (role_type or "tenant").lower().strip()
+
+    # 1. JSON config is authoritative when it exists.
+    if (_CONFIG_DIR / f"{normalized}.json").is_file():
+        return _spec_from_config(normalized)
+
+    # 2. Built-in spec fallback — only for roles that never got a JSON config.
+    if normalized in _BUILTIN_SPECS:
+        logger.info(
+            "No role_configs/%s.json — using built-in folder_spec fallback", normalized
+        )
+        return _BUILTIN_SPECS[normalized]
+
+    # 3. Unknown role — tenant.json fallback (inside _load_json_config too,
+    #    but explicit here keeps intent obvious).
+    logger.warning("Role %r has no JSON config or built-in spec; using tenant", normalized)
+    return _spec_from_config("tenant")
+
+
+# Default ordered gate list — used when a role config has no "gates" field.
+# Extensible per role: role_configs/{role}.json may declare its own "gates"
+# list (spec: handoffs/onboarding-full-rebuild-spec-2026-09-16.md).
+DEFAULT_GATES = ["storage_connected", "vault_initialized", "document_uploaded"]
+
+
+def gates_for_role(role_type: str | None) -> list[str]:
+    """Ordered onboarding gate list for the role.
+
+    Reads role_configs/{role}.json "gates" when present; otherwise returns
+    the default three gates. A corrupt config falls back to the defaults —
+    gate routing must never crash on a config error.
+    """
+    normalized = (role_type or "tenant").lower().strip()
+    try:
+        config = _load_json_config(normalized)
+    except ValueError:
+        return list(DEFAULT_GATES)
+    gates = config.get("gates")
+    if isinstance(gates, list) and gates and all(isinstance(g, str) for g in gates):
+        return gates
+    return list(DEFAULT_GATES)
+
+
+__all__ = ["vault_spec_for_role", "gates_for_role", "DEFAULT_GATES"]

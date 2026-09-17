@@ -23,7 +23,7 @@ Canonical implementation lives in `app/modules/onboarding/`.
 ## Corrections (2026-09-15)
 
 - This file previously said the `vault_initialized` and `document_uploaded` marks are "written atomically." **False in code:** `mark_gate()` commits inside itself (`gates.py`), so the two calls at the end of `POST /api/vault/verify` are two sequential commits. A crash between them leaves vault-marked/document-unmarked. The consequence is bounded — `/onboarding/complete` and the `/onboarding/status` page both route such a user to `/onboarding/vault-setup/inspect` — but do not rely on the atomicity claim.
-- The 2026-09-12 decision that `document_uploaded` is a passive proof receipt was **superseded 2026-09-15**: Brad decided it is an enforced gate that completes onboarding, and that vault creation gets split from vault completion so the vault no longer waits on a user document. See `handoffs/onboarding-rewrite-2026-09-15.md`. Until that lands, live behaviour is as described above.
+- The 2026-09-12 decision that `document_uploaded` is a passive proof receipt was **superseded 2026-09-15**: Brad decided it is an enforced gate that completes onboarding, and that vault creation gets split from vault completion so the vault no longer waits on a user document. See `handoffs/onboarding-full-rebuild-spec-2026-09-16.md` — the canonical onboarding spec (supersedes `onboarding-rewrite-2026-09-15.md`, including removal of the upload-first/pending-doc mechanics). Until that lands, live behaviour is as described above.
 
 ## Activation requirements
 

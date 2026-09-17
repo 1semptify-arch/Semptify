@@ -132,8 +132,11 @@ atomicity claim itself should not be relied on.
 The 2026-09-12 decision that `document_uploaded` is a passive proof receipt
 was **superseded on 2026-09-15**: Brad decided it is an enforced gate that
 completes onboarding, alongside splitting vault creation from vault
-completion. See `handoffs/onboarding-rewrite-2026-09-15.md`. Until that work
-lands, the live behaviour is as described above.
+completion. The canonical onboarding spec is now
+`handoffs/onboarding-full-rebuild-spec-2026-09-16.md` (supersedes
+`onboarding-rewrite-2026-09-15.md` and removes the upload-first/pending-doc
+mechanics). Until that work lands, the live behaviour is as described
+above.
 
 The `client_activated` gate was removed on 2026-05-12 — do not reintroduce it. See `.devin/rules/08-onboarding-gates.md`.
 
