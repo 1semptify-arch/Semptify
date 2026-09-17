@@ -22,3 +22,12 @@ description: Product positioning and GUI pillars for Semptify
 - **KNOW** — Library of verified facts, rights guides, context engine. Facts only, no opinions.
 
 Everything else (advocate, manager, admin, legal) is secondary. The tenant GUI should be brutally simple: a timeline of everything that's happened, and a library of facts.
+
+## Cost framing — banned
+
+Do not promote Semptify by reference to cost. No "no cost", "free", "$0",
+"no subscription/premium tier" slogans, stats, or selling points on public
+surfaces — Semptify is not a business model and is not sold on being free
+(Brad, 2026-09-17). Factual FAQ answers and nonprofit funding transparency
+(donate page, about-page funding section, ethics refusals such as "no VC
+funding / no paywalling") are allowed; promotional cost framing is not.
