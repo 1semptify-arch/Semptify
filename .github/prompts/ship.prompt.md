@@ -147,6 +147,27 @@ separate direct-to-main commit (it will also be blocked by branch protection).
 
 ---
 
+### Step 8.5 — After a PR merges: bump the master-repo submodule gitlink
+
+When work reached `main` through a PR (Step 6 branch-protection path), the superproject at
+`C:\master-repo` still points `modules/app-semptify-fastapi` at the pre-merge commit. Once the
+PR is merged, bring the superproject gitlink current:
+
+1. In `<repo_root>`: `git fetch <github-remote-name>` (or the local mirror), then
+   `git checkout main` and `git pull --ff-only` so the working checkout sits on the merged commit.
+   If GitHub squash-merged, local `main` will diverge — verify `git diff <local-main> origin/main`
+   is empty, then `git reset --hard origin/main`.
+2. In `C:\master-repo`: `git status` — `modules/app-semptify-fastapi` shows as
+   `modified: ... (new commits)`. Stage exactly that path:
+   `git add modules/app-semptify-fastapi`.
+3. Commit the gitlink bump:
+   `git commit -m "chore: bump app-semptify-fastapi gitlink to <merged-sha> (PR #<n>)"`.
+4. Do NOT commit unrelated master-repo changes in the same commit — one task per commit.
+
+Skip this step only if nothing merged to `main` this session.
+
+---
+
 ### Step 9 — Final confirmation
 
 Tell the user the session is complete with:
