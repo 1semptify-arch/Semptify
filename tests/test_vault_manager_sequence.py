@@ -1,7 +1,6 @@
 import json
 
 import pytest
-from cryptography.exceptions import InvalidTag
 
 from app.services.storage.vault_manager import (
     PROVISIONING_FILE,
@@ -67,7 +66,10 @@ async def test_initialize_vault_marks_failed_when_token_verification_fails():
     storage = CorruptBackupStorageProvider()
     manager = VaultManager(storage, "GUabc12345", "http://localhost:8000")
 
-    with pytest.raises(InvalidTag):
+    # decrypt_token tries every valid key version and raises ValueError when
+    # all fail (corrupt backup) — InvalidTag is wrapped inside it since the
+    # keyring-history change (app/sdk/vault/encryption.py).
+    with pytest.raises(ValueError, match="decrypt failed"):
         await manager.initialize_vault(
             provider_name="google_drive",
             access_token="access-token",
