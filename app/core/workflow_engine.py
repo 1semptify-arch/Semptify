@@ -82,8 +82,10 @@ PROCESS_ROUTES: dict[ProcessCode, str] = {
 ROLE_SPECIFIC_ROUTES: dict[UserRole, str] = {
     UserRole.LEGAL: _nav_path("legal_home", "/legal/home"),
     UserRole.ADMIN: _nav_path("admin_home", "/admin/home"),
-    UserRole.MANAGER: _nav_path("manager_home", "/manager/home"),
+    UserRole.MANAGER: _nav_path("manager_portal", "/manager"),
     UserRole.ADVOCATE: _nav_path("advocate_home", "/advocate/home"),
+    UserRole.MULTI_CLIENT_ADVOCATE: _nav_path("advocate_home", "/advocate/home"),
+    UserRole.JUDGE: _nav_path("legal_home", "/legal/home"),
 }
 
 

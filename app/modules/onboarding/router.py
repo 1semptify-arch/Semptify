@@ -999,15 +999,20 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
 
 def _render_role_selection_page(config: OnboardingConfig) -> str:
-    """Render role selection page — all 5 roles, non-tenant marked Coming Soon."""
+    """Render role selection page — every role runs the same onboarding.
+
+    All roles share START->FINALE (storage -> vault -> first document) and
+    the same default vault config/folders. Role-specific tooling customizes
+    at the role's home page, not during onboarding.
+    """
     providers_path = f"{config.route_prefix}/providers"
 
     roles = [
         ("tenant", "🏠", "Tenant", "I'm renting a home and need to protect my rights", True),
-        ("manager", "�", "Worker / Manager", "I work with multiple clients across housing cases", False),
-        ("advocate", "⚖️", "Housing Advocate", "I help tenants navigate housing law", False),
-        ("legal", "📋", "Legal Professional", "I'm an attorney or paralegal working housing cases", False),
-        ("admin", "🛡️", "Administrator", "Platform administration and oversight", False),
+        ("manager", "👥", "Worker / Manager", "I work with multiple clients across housing cases", True),
+        ("advocate", "⚖️", "Housing Advocate", "I help tenants navigate housing law", True),
+        ("legal", "📋", "Legal Professional", "I'm an attorney or paralegal working housing cases", True),
+        ("admin", "🛡️", "Administrator", "Platform administration and oversight", True),
     ]
 
     role_cards = ""

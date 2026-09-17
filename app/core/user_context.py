@@ -264,7 +264,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Multi-client housing support professional coordinating client cases across nonprofit, charity, and agency programs.",
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",
-        "landing_page": "/manager/home",
+        "landing_page": "/manager",
         "icon": "●",
     },
     UserRole.LEGAL: {
@@ -282,7 +282,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Judicial officer with case oversight, evidence review, and decision recording capabilities.",
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",  # Full complexity
-        "landing_page": "/judge/home",
+        "landing_page": "/legal/home",
         "icon": "●",
     },
     UserRole.ADMIN: {
@@ -306,7 +306,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Supporter who funds or champions the work — limited, non-case visibility.",
         "default_landing_process": "B1 - Orientation",
         "ui_mode": "responsive",
-        "landing_page": "/donor/home",
+        "landing_page": "/office",
         "icon": "○",
     },
     UserRole.RESEARCHER: {
@@ -314,7 +314,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Researcher working with aggregate/anonymized housing data — research workspace and dossiers.",
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",
-        "landing_page": "/research/home",
+        "landing_page": "/office",
         "icon": "▸",
     },
     UserRole.AGENCY: {
@@ -322,7 +322,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Agency staff coordinating cases, referrals, and client files across an organization.",
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",
-        "landing_page": "/agency/home",
+        "landing_page": "/office",
         "icon": "●",
     },
     UserRole.DEVELOPER: {
@@ -330,7 +330,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Platform developer — technical workspace for building and maintaining Semptify itself.",
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",
-        "landing_page": "/developer/home",
+        "landing_page": "/office",
         "icon": "▸",
     },
 }
