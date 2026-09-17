@@ -60,6 +60,11 @@ class RoleCode(str, Enum):
     ADVOCATE = "V"  # V for adVocate since A is Admin
     LEGAL = "L"
     JUDGE = "J"
+    MULTI_CLIENT_ADVOCATE = "C"  # C for multi-Client advocate
+    DONOR_SUPPORTER = "S"  # S for Supporter
+    RESEARCHER = "R"
+    AGENCY = "Y"  # Y for agencY since A is Admin
+    DEVELOPER = "P"  # P for Platform developer
 
 
 # Mappings for conversion
@@ -86,6 +91,12 @@ ROLE_TO_CODE = {
     "advocate": RoleCode.ADVOCATE,
     "legal": RoleCode.LEGAL,
     "judge": RoleCode.JUDGE,
+    "multi_client_advocate": RoleCode.MULTI_CLIENT_ADVOCATE,
+    "donor_supporter": RoleCode.DONOR_SUPPORTER,
+    "researcher": RoleCode.RESEARCHER,
+    "research": RoleCode.RESEARCHER,  # Legacy alias — config key was research.json
+    "agency": RoleCode.AGENCY,
+    "developer": RoleCode.DEVELOPER,
 }
 
 CODE_TO_ROLE = {
@@ -95,12 +106,22 @@ CODE_TO_ROLE = {
     RoleCode.ADVOCATE: "advocate",
     RoleCode.LEGAL: "legal",
     RoleCode.JUDGE: "judge",
+    RoleCode.MULTI_CLIENT_ADVOCATE: "multi_client_advocate",
+    RoleCode.DONOR_SUPPORTER: "donor_supporter",
+    RoleCode.RESEARCHER: "researcher",
+    RoleCode.AGENCY: "agency",
+    RoleCode.DEVELOPER: "developer",
     "A": "admin",
     "M": "manager",
     "U": "tenant",  # 'U' decodes to tenant
     "V": "advocate",
     "L": "legal",
     "J": "judge",
+    "C": "multi_client_advocate",
+    "S": "donor_supporter",
+    "R": "researcher",
+    "Y": "agency",
+    "P": "developer",
 }
 
 

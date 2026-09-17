@@ -1,0 +1,13 @@
+{
+  "folder_tree": [
+    "documents",
+    "client_files",
+    "case_notes",
+    "legal_filings"
+  ],
+  "inherits_from": null,
+  "differentiated": true,
+  "notes": "Manager vault: multi-client caseload tree (same shape as multi_client_advocate)",
+  "role_type": "manager",
+  "display_name": "Case Manager"
+}
