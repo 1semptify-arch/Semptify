@@ -44,7 +44,8 @@ _BUILTIN_SPECS: dict[str, VaultFolderSpec] = {
     "advocate": ADVOCATE_VAULT,
     "multi_client_advocate": ADVOCATE_VAULT,
     "legal": LEGAL_VAULT,
-    "research": RESEARCH_VAULT,
+    "judge": LEGAL_VAULT,  # deprecated role merged into legal (sub_role='judge')
+    "research": RESEARCH_VAULT,  # legacy key — canonical config is researcher.json
 }
 
 # Build a leaf-name -> full canonical path mapping for every direct child of

@@ -1,0 +1,12 @@
+{
+  "folder_tree": [
+    "documents",
+    "case_files",
+    "client_files"
+  ],
+  "inherits_from": null,
+  "differentiated": true,
+  "notes": "Agency vault: documents plus case files and client files for org-level coordination",
+  "role_type": "agency",
+  "display_name": "Agency"
+}
