@@ -6,9 +6,12 @@ All middleware and routing logic must defer to this module.
 No other code should read User.completed_groups directly for gate checks.
 
 Gates (in order):
-  storage_connected  — OAuth completed, provider connected
-  vault_initialized  — Vault folders, token backup, and live write/read probe pass
-  document_uploaded  — First real document through the full vault pipeline
+  storage_connected  — START: OAuth completed, provider connected
+  vault_initialized  — internal progress flag: vault folders, token backup,
+                       and live write/read probe pass. Tracked here for
+                       resume/routing only — not a gate for other modules.
+  document_uploaded  — FINALE: first real document through the full vault
+                       pipeline. One-way valve, never unset.
 """
 
 import logging

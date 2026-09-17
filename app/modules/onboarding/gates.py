@@ -3,6 +3,16 @@ Gate system — serial gating for onboarding progress.
 
 Gates are stored as comma-separated values in User.completed_groups.
 Each gate must be passed in order. A gate is never removed once set.
+
+Model (onboarding-full-rebuild-spec-2026-09-17): two boundary gates bracket
+the whole flow — START (storage_connected: role + provider chosen, OAuth done)
+and FINALE (document_uploaded: one-way valve, terminal). vault_initialized is
+an internal progress flag inside the vault-build flow — it lives here because
+completed_groups is the durable progress store, but code outside onboarding
+must never treat it as a feature gate.
+
+This module is intentionally generic (mark/check/unmark on named gates) so
+other Semptify modules can reuse the same start/finale pattern later.
 """
 
 import logging
