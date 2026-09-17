@@ -152,28 +152,4 @@ def vault_spec_for_role(role_type: str | None) -> VaultFolderSpec:
     return _spec_from_config("tenant")
 
 
-# Default ordered gate list — used when a role config has no "gates" field.
-# Extensible per role: role_configs/{role}.json may declare its own "gates"
-# list (spec: handoffs/onboarding-full-rebuild-spec-2026-09-16.md).
-DEFAULT_GATES = ["storage_connected", "vault_initialized", "document_uploaded"]
-
-
-def gates_for_role(role_type: str | None) -> list[str]:
-    """Ordered onboarding gate list for the role.
-
-    Reads role_configs/{role}.json "gates" when present; otherwise returns
-    the default three gates. A corrupt config falls back to the defaults —
-    gate routing must never crash on a config error.
-    """
-    normalized = (role_type or "tenant").lower().strip()
-    try:
-        config = _load_json_config(normalized)
-    except ValueError:
-        return list(DEFAULT_GATES)
-    gates = config.get("gates")
-    if isinstance(gates, list) and gates and all(isinstance(g, str) for g in gates):
-        return gates
-    return list(DEFAULT_GATES)
-
-
-__all__ = ["vault_spec_for_role", "gates_for_role", "DEFAULT_GATES"]
+__all__ = ["vault_spec_for_role"]
