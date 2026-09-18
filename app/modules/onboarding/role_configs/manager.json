@@ -9,5 +9,52 @@
   "differentiated": true,
   "notes": "Manager vault: multi-client caseload tree (same shape as multi_client_advocate)",
   "role_type": "manager",
-  "display_name": "Case Manager"
+  "display_name": "Case Manager",
+  "surfacing": {
+    "intro": "Coordinate the caseload — staff, clients, and program deadlines.",
+    "sections": [
+      {
+        "title": "Manager dashboard",
+        "href": "/manager/dashboard",
+        "why": "Caseload status across your team."
+      },
+      {
+        "title": "Document center",
+        "href": "/dc",
+        "why": "Client files and program paperwork."
+      },
+      {
+        "title": "Law library",
+        "href": "/law-library",
+        "why": "Statute text when questions come up."
+      },
+      {
+        "title": "Get help now",
+        "href": "/help",
+        "why": "Legal aid and referral contacts."
+      }
+    ],
+    "tools": [
+      {
+        "label": "Send Doc",
+        "href": "/office/delivery",
+        "why": "Deliver a document to a client or office."
+      },
+      {
+        "label": "Manager dashboard",
+        "href": "/manager/dashboard",
+        "why": "Caseload status across your team."
+      },
+      {
+        "label": "Document center",
+        "href": "/dc",
+        "why": "Client files and program paperwork."
+      },
+      {
+        "label": "Get help",
+        "href": "/help",
+        "why": "Legal aid and referral contacts."
+      }
+    ]
+  }
 }

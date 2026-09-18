@@ -7,5 +7,27 @@
   "differentiated": true,
   "notes": "Researcher vault: research workspace and dossiers (no documents folder). Canonical config key is 'researcher'; 'research' resolves via built-in RESEARCH_VAULT fallback.",
   "role_type": "researcher",
-  "display_name": "Researcher"
+  "display_name": "Researcher",
+  "surfacing": {
+    "intro": "Aggregate, anonymized data study — no individual case access.",
+    "sections": [
+      {
+        "title": "Office",
+        "href": "/office",
+        "why": "Study materials and contacts."
+      },
+      {
+        "title": "Get help now",
+        "href": "/help",
+        "why": "Program contacts."
+      }
+    ],
+    "tools": [
+      {
+        "label": "Office",
+        "href": "/office",
+        "why": "Study workspace."
+      }
+    ]
+  }
 }

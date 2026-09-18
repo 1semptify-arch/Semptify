@@ -14538,3 +14538,27 @@ Nothing is real until it is pushed.
 **Remaining:** ~11 composer/gui pages already on shells; `gui/base.html` family (2 pages: sticky_notes, law_linker_popout) untouched — separate family decision. Static-routed sections (admin/tenant/office/etc.) are the next big migration. Merge order: #246 then #247.
 
 **Follow-on (same session, PR #248 `gui/tenant-statics-shell`):** tenant static section migrated — `tools/letters` + `tools/deadlines` ported to shell templates (old gradient chrome stripped, content/JS kept), `/tenant/documents{,/id}` now 302s to `/dc` (was a meta-refresh stub; deep links 400'd before), 5 shadowed `static/tenant/*` files deleted, `tenant/help.html` kept as `/help` fatal-error fallback, role_ui USER fallback repointed to `/tenant/home`. Verified live: body.shell at 1280/375px, letter generator works, 0 console errors. Specificity gotcha logged: page rules must beat `body.shell h3` (0,1,2) — single-class+element selectors lose.
+
+## Session — 2026-09-18 — Bundled content delivery fix (devin)
+
+**Shipped:** PR #278 merged → `5913501f`, deployed live (`dep-damh1c2d0e5s73fdqh5g`).
+
+**What:** `.dockerignore` excludes `data/` — curated content never reached the image. Drew the boundary correctly:
+- Bundled content → `app/data/` (explanation workbooks 68 rows, `laws.json`, `composer_resources.json`)
+- Seeded-mutable stores → bundled seed hydrates writable `data/` copy on first use (law_engine, resource pool)
+- `context_explanation_entries` lazy idempotent DB seed on first read (skips non-empty table)
+- Runtime artifacts untracked: synthetic case files removed from git; `.gitignore` covers `data/legal_filings/`, `data/laws/`, `data/composer_resources.json`
+
+**Bugs found + fixed:** `resource_intake` `DEFAULT_POOL_PATH` (parent³ → `app/data/`, always empty pool); `legal_filing` `DATA_DIR` same bug (case files written *inside* the bundle + committed).
+
+**Verified live on semptify.org:** `/guide/eviction` renders all 4 workbook pillar texts verbatim (seed fired on empty prod table), `/guide/harassment` + `/guide/deposit` 200, `/eviction-defense` 200, landing picker renders. Guardrail ALL PASS, smoke 6/6, CI green.
+
+**Known pending / flags:**
+- `app/services/legal_filing_service.py` is dead duplicate code (nothing imports it).
+- All 68 seed rows are `review_status=BETA` — fine for the guide path (no VETTED filter) but a review pass is needed before calling the layer "vetted".
+- `retrieve_explanations` (semantic path) still needs the embedding model, which isn't on the Render image — direct `get_explanation_entries` works without it.
+- `data/eviction_training/` = dev-time reference (no runtime refs); `explanation_workbook_{template,example,starter}.csv` = authoring aids — both correctly stay out of the image.
+- Orchestrator task `bundled-content-delivery` at `review` — needs Brad/orchestrator resolve (self-approval guard).
+- 2 skipped tests in `tests/test_legal_filing.py` have stale skip reasons (cite old `app/data/` path); service now reads root `data/` where C001/C002 fixtures exist.
+
+**Next session:** Phase 3 mobile, or unskip the legal_filing seed tests with a fixture.

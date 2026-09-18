@@ -9,5 +9,52 @@
   "differentiated": true,
   "notes": "Advocate vault: documents plus client files, case notes, and legal filings",
   "role_type": "advocate",
-  "display_name": "Advocate"
+  "display_name": "Advocate",
+  "surfacing": {
+    "intro": "Your caseload, client records, and shared filings in one place.",
+    "sections": [
+      {
+        "title": "Caseload dashboard",
+        "href": "/advocate/dashboard",
+        "why": "Every client you are supporting."
+      },
+      {
+        "title": "Invite a tenant",
+        "href": "/advocate/invite",
+        "why": "Bring a tenant's record into your workspace."
+      },
+      {
+        "title": "Document center",
+        "href": "/dc",
+        "why": "Shared filings and client documents."
+      },
+      {
+        "title": "Law library",
+        "href": "/law-library",
+        "why": "Statute text to check before advising."
+      },
+      {
+        "title": "Get help now",
+        "href": "/help",
+        "why": "Legal aid and referral contacts."
+      }
+    ],
+    "tools": [
+      {
+        "label": "Client dashboard",
+        "href": "/advocate/dashboard",
+        "why": "See who needs attention first."
+      },
+      {
+        "label": "Invite a tenant",
+        "href": "/advocate/invite",
+        "why": "Connect to a tenant's record securely."
+      },
+      {
+        "label": "Document center",
+        "href": "/dc",
+        "why": "Everything shared with you, organized."
+      }
+    ]
+  }
 }
