@@ -1,0 +1,157 @@
+{
+  "module_name": "Law Library",
+  "layout": "app/modules/law_library/ — 10 registered function groups (law_library_list_statutes, law_library_get_statute, law_library_list_court_rules, law_library_get_court_rule, law_library_list_case_law, law_library_get_case, law_library_links, law_library_categories, law_library_quick_reference, law_library_county_code). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "a",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "c",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "case_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "category",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "county",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "e",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "h",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "r",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "rule_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "s",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "search",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "state",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "statute_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "topic",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "a",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "c",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "category",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "county",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "e",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "h",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "r",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "rule_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "s",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "search",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "state",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "statute_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "topic",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (case, cases, categories, court_rule, court_rules, jurisdiction, key_cases, key_laws…) via the module's routes/services.",
+  "output_where": "app.modules.law_library function outputs",
+  "output_why": "Serves the Law Library functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list of statutes in the law library. Supports filtering by category and full-text search in title and summary. Returns statute summaries with citation and category. CANONICAL detailed view of a single statute. Returns full text, citation, category, and related cases. Used by the statute detail view. CANONICAL list of court rules. Supports filtering by category. Returns rule summaries with citation and jurisdiction. CANONICAL detailed view of a single court rule. Returns full text, citation, and related procedures. CANONICAL list of case law precedents. Supports full-text search in case name and summary. Returns case summaries with citation and holding. CANONICAL detailed view of a single case. Returns full case text, citation, holding, and related statutes. CANONICAL index of every law, case, and court rule with its URL. Used by the tenant UI to render quick-link cards. Returns a flat list of all references with their type and title. CANONICAL list of all categories in the law library. Used by the tenant UI to render category navigation. CANONICAL quick reference for a specific topic. Returns a summary of key laws, rules, and cases for the topic. Used by the tenant UI's quick-reference cards. CANONICAL county code of ordinances URL for a given state and county. Used by the Law Linker to resolve county-level citations to the user's jurisdiction. Returns the official Municode or equivalent URL.",
+  "process_context": "Derived record. Invoked via the law_library module's registered routes and dependencies.",
+  "narrative_events": []
+}

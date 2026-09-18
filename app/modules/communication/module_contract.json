@@ -1,0 +1,218 @@
+{
+  "module_name": "Communication",
+  "layout": "app/modules/communication/ — 15 registered function groups (communication_list_conversations, communication_create_conversation, communication_get_conversation, communication_send_message, communication_mark_message_read, communication_mark_conversation_read, communication_reject_document, communication_fill_and_sign, communication_upload_attachment, communication_delivery_conversation, communication_typing_indicator, conversation_create, message_send, conversations_list, document_fill_sign). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "access_token",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "before_message_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "content",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "conversation_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "creator_role",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "delivery_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "field_values",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "file",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "initial_message",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "is_typing",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "message_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "reason",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "recipient",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "request",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "sender_role",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "signature_data",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "signature_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "storage",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "access_token",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "before_message_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "content",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "conversation_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "creator_role",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "delivery_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "field_values",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "file",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "initial_message",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "is_typing",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "message_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "reason",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "recipient",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "sender_role",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "signature_data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "signature_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "storage",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (attachment_id, conversation, conversation_id, conversations, filename, has_more, message_id, messages…) via the module's routes/services.",
+  "output_where": "app.modules.communication function outputs",
+  "output_why": "Serves the Communication functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list of conversations for the current user. Returns conversation summaries with last message, unread count, and participant info. CANONICAL create a new conversation. The user specifies the recipient and initial message. Returns the new conversation. CANONICAL get a single conversation with message thread. Supports pagination via before_message_id. Returns messages in chronological order. CANONICAL send a message in a conversation. Returns the new message with ID and timestamp. CANONICAL mark a single message as read. Updates the read receipt for the message. CANONICAL mark all messages in a conversation as read. Updates the unread count to zero. CANONICAL reject a document delivered through the communication channel. The recipient provides a reason for rejection. CANONICAL fill and sign a document delivered through the communication channel. Supports typed, drawn, and digital signatures. CANONICAL upload a file attachment to a conversation. The file is stored in the sender's vault and linked to the conversation. CANONICAL get the conversation associated with a document delivery. Returns the conversation thread for the delivery. CANONICAL send a typing indicator for a conversation. Notifies the other participant that the user is typing. CANONICAL conversation creation via CommunicationService.create_conversation(). Stores conversation as COMMUNICATION overlay in user's cloud storage. No other service may create conversation overlays directly. CANONICAL message send via CommunicationService.send_message(). Stores message as COMMUNICATION overlay. Appends to existing conversation thread. CANONICAL conversation list via CommunicationService.get_conversations(). Returns ConversationListResponse with summaries and unread counts. CANONICAL document fill+sign via CommunicationService.fill_and_sign_document(). Fills form fields, applies signature, stores result as overlay.",
+  "process_context": "Derived record. Invoked via the communication module's registered routes and dependencies.",
+  "narrative_events": [
+    {
+      "verb": "saved",
+      "object": "the new conversation",
+      "context_clause": "because the tenant opened a channel with someone involved"
+    },
+    {
+      "verb": "sent",
+      "object": "the message",
+      "context_clause": "because the tenant wrote in a conversation"
+    }
+  ]
+}

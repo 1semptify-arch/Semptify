@@ -1,0 +1,267 @@
+{
+  "module_name": "Storage",
+  "layout": "app/modules/storage/ — 27 registered function groups (storage_session_status, storage_entry, storage_status, storage_session_info, storage_connect, storage_oauth_initiate, storage_oauth_callback, storage_providers_list, storage_providers_json, storage_rehome, storage_user_lookup, storage_session_restore, storage_prepare_reconnect, storage_switch_role, storage_logout, storage_logout_reset, storage_regenerate_rehome, storage_integrity_hash, storage_integrity_proof, storage_integrity_verify, storage_integrity_timestamp, storage_certificate_generate, storage_certificate_html, storage_certificate_verify, storage_function_token_issue, storage_function_token_verify, storage_validate_token). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "_",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "action",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "certificate_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "code",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "content",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "d",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "document_name",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "e",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "f",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "i",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "m",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "p",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "proof_data",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "provider",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "refresh",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "role",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "s",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "semptify_session",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "semptify_uid",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "state",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "t",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "token",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "u",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "y",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "_",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "action",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "certificate_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "code",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "content",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "d",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document_name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "e",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "f",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "i",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "m",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "p",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "proof_data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "provider",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "refresh",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "role",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "s",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "semptify_session",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "semptify_uid",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "state",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "t",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "token",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "u",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "y",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (authenticated, certificate, certificate_id, connected, expires_at, found, has_storage, hash…) via the module's routes/services.",
+  "output_where": "app.modules.storage function outputs",
+  "output_why": "Serves the Storage functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL session status check. Returns whether the user has a valid session, storage provider, and vault. Used by UI gates. CANONICAL storage entry point. Redirects to the appropriate page based on the user's state: no cookie → welcome, no storage → providers, has storage → home. CANONICAL storage connection status. Returns provider, connected status, and token validity. Used by the storage status widget. CANONICAL session information. Returns user_id, role, provider, and session metadata. Used by the frontend for user context. CANONICAL initiate OAuth flow for a storage provider. Redirects to the provider's authorization page. CANONICAL OAuth initiation for a specific provider. Builds the auth URL with correct scopes and state, redirects to provider. CANONICAL OAuth callback handler. Exchanges the auth code for tokens, stores them, creates/updates the user record, and redirects to the next step (vault setup or home). CANONICAL list of available storage providers. Returns provider names, display info, and OAuth URLs. Used by the provider selection page. CANONICAL JSON list of storage providers. Returns provider codes and metadata as JSON for API consumers. CANONICAL device rehoming. Allows a user to move their account to a new device by re-issuing the user cookie and syncing the session. CANONICAL user lookup by user_id. Returns the user record if found. Used for session restoration and device sync. CANONICAL session restoration. Restores a user's session from a user_id, re-issuing the auth cookie. Used for cross-device sync. CANONICAL prepare for storage reconnection. Clears the expired token and prepares the user for a fresh OAuth flow without losing their vault or data. CANONICAL role switching. Changes the user's role and re-issues the auth cookie with the new role. Used by the role switcher UI. CANONICAL logout. Clears the auth cookie, revokes the session, and redirects to the welcome page. CANONICAL GET logout reset. Clears a stale semptify_uid cookie and redirects to provider selection. Used when the cookie is corrupt or expired. CANONICAL regenerate rehome token. Issues a new rehome token for the user, allowing them to rehome to a new device. CANONICAL document content hashing. Returns SHA-256 hash of the provided content for integrity verification. CANONICAL create a cryptographic proof for document content. Returns the proof data with hash, timestamp, and action. CANONICAL verify document integrity against a proof. Returns whether the content matches the proof and the proof is valid. CANONICAL current legal timestamp with cryptographic proof. Returns the current UTC timestamp and a proof of issuance. CANONICAL generate a SEMPTIFY certificate for a document. Returns the certificate with ID, hash, timestamp, and signer info. CANONICAL generate a certificate as HTML for display. Returns the certificate rendered as HTML for the tenant to view/print. CANONICAL verify a SEMPTIFY certificate by ID. Returns whether the certificate is valid and its metadata. CANONICAL issue a function-scoped token for a user. Allows limited-scope access to specific APIs without full session. CANONICAL verify a function-scoped token. Returns whether the token is valid and its associated user_id. CANONICAL validate the user's storage token and refresh if expired. Returns whether the token is valid and the provider.",
+  "process_context": "Derived record. Invoked via the storage module's registered routes and dependencies.",
+  "narrative_events": []
+}

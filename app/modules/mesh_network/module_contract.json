@@ -1,0 +1,15 @@
+{
+  "module_name": "Mesh Network",
+  "layout": "app/modules/mesh_network/ — 11 registered function groups (mesh_network_network_status, mesh_network_network_graph, mesh_network_network_modules, mesh_network_call_module, mesh_network_call_many_modules, mesh_network_start_collaboration, mesh_network_broadcast_event, mesh_network_ask_mesh, mesh_network_quick_case_summary, mesh_network_quick_deadline_check, mesh_network_quick_build_defense). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.mesh_network function outputs",
+  "output_why": "Serves the Mesh Network functions declared in its FunctionGroupContracts.",
+  "process_description": "Get mesh network status including all modules and statistics. Get the module dependency graph for visualization. List all connected modules and their capabilities. POST /network/call POST /network/call-many POST /network/collaborate POST /network/broadcast POST /network/ask Quick endpoint: Get a complete case summary from all relevant modules. Quick endpoint: Check all deadlines across all modules. Quick endpoint: Collaborative defense building.",
+  "process_context": "Derived record. Invoked via the mesh_network module's registered routes and dependencies.",
+  "narrative_events": []
+}

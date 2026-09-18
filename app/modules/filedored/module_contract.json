@@ -1,0 +1,117 @@
+{
+  "module_name": "Filedored",
+  "layout": "app/modules/filedored/ — 7 registered function groups (document_process, folders_ensure, filedored_process_documents, filedored_check_folders, filedored_browse_folder, filedored_folders, filedored_health_check). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "content",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "enable_ai",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "filename",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "folder_path",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "overlay_manager",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "sha256_hash",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "storage_provider",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "vault_client",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "vault_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "content",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "enable_ai",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "filename",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "folder_path",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "overlay_manager",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "sha256_hash",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "storage_provider",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "vault_client",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "vault_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (ai_label?, folders_created, folders_failed, overlay_path, result, status) via the module's routes/services.",
+  "output_where": "app.modules.filedored function outputs",
+  "output_why": "Serves the Filedored functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL document sorting/classification via process_uploaded_document(). Creates FILEDORED overlay with filedored_path in payload. Caller MUST pass a constructed UnifiedOverlayManager (no lazy init). AI classification is optional (enable_ai flag). FORBIDDEN: vault_id/user_id/overlay_path/overlay_data on CreateOverlayRequest. CANONICAL folder creation via ensure_filedored_folders() and ensure_filedored_folder(). Base folders created upfront; AI subdirectories lazy-created on demand. Redis flag (30-day TTL) prevents redundant API calls. POST /process POST /folders/status GET /browse/{folder:path} GET /folders Health check for filedored module.",
+  "process_context": "Derived record. Invoked via the filedored module's registered routes and dependencies.",
+  "narrative_events": []
+}

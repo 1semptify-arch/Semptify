@@ -55,6 +55,7 @@ from fastapi.responses import JSONResponse, Response
 from app.core.auto_refresh import ensure_valid_token
 from app.core.cookie_auth import verify_user_id
 from app.core.database import get_db_session
+from app.core.event_bus import EventType, event_bus
 from app.core.id_gen import make_id
 from app.core.overlay_types import OverlayType
 from app.core.user_id import COOKIE_USER_ID
@@ -1063,6 +1064,17 @@ async def dc_set_document_type(vault_id: str, request: Request) -> JSONResponse:
             "yes" if access_token else "no",
         )
 
+        if document_type:
+            event_bus.publish_sync(
+                EventType.DOCUMENT_TYPE_CONFIRMED,
+                {
+                    "user_id": user_id,
+                    "vault_id": vault_id,
+                    "document_type": document_type,
+                    "narrator": {"module": "app.modules.document_center", "slot": 3},
+                },
+            )
+
         return JSONResponse(
             {
                 "ok": True,
@@ -1155,6 +1167,20 @@ async def dc_post_review_state(vault_id: str, request: Request) -> JSONResponse:
 
         await vault_service.index.update(vault_id, review_state_json=json.dumps(review_state))
         updated_doc = await vault_service.get_document(vault_id)
+
+        event_bus.publish_sync(
+            EventType.REVIEW_STATE_SAVED,
+            {
+                "user_id": user_id,
+                "vault_id": vault_id,
+                "manual_status": review_state.get("manual_status"),
+                "narrator": {
+                    "module": "app.modules.document_center",
+                    "slot": 5 if review_state.get("manual_status") == "mismatched" else 4,
+                },
+            },
+        )
+
         return JSONResponse(
             {
                 "ok": True,
@@ -1223,6 +1249,17 @@ async def dc_share_document(vault_id: str, request: Request) -> JSONResponse:
 
         share_url = f"/api/dc/shared/{share_token}"
         logger.info("DC share: vault_id=%s owner=%s recipient=%s scope=%s", vault_id, user_id, recipient, scope)
+
+        event_bus.publish_sync(
+            EventType.SHARE_LINK_SENT,
+            {
+                "user_id": user_id,
+                "vault_id": vault_id,
+                "scope": scope,
+                "narrator": {"module": "app.modules.document_center", "slot": 6},
+            },
+        )
+
         return JSONResponse(
             {
                 "ok": True,

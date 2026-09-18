@@ -1,0 +1,77 @@
+{
+  "module_name": "Ui Composer",
+  "layout": "app/modules/ui_composer/ — 3 registered function groups (page_compose, fragment_render, process_status). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "component_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "context",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "data",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "page_intent",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "workflow_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "component_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "context",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "page_intent",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "workflow_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (components, data, page_title, pillar, progress_pct, state, step_label, type) via the module's routes/services.",
+  "output_where": "app.modules.ui_composer function outputs",
+  "output_why": "Serves the Ui Composer functions declared in its FunctionGroupContracts.",
+  "process_description": "Compose a full page as a list of components based on user context and page intent. Returns {page_title, pillar, components:[{type, data}]}. Valid intents: landing, timeline, library, documents, tools, workflow_step. Does NOT render HTML — returns structured data for the generic template. Render a single component as a fragment dict {type, data} for HTMX swaps. Valid component types are defined in COMPONENT_TYPES. Does NOT render HTML — returns the fragment data for the router to render. Get the current status of a workflow for the process indicator. Returns {step_label, state, progress_pct}. Reads from the Positronic Mesh if available; falls back to a generic running state.",
+  "process_context": "Derived record. Invoked via the ui_composer module's registered routes and dependencies.",
+  "narrative_events": []
+}

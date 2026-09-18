@@ -1,0 +1,27 @@
+{
+  "module_name": "Correspondence",
+  "layout": "app/modules/correspondence/ — 4 registered function groups (correspondence_health, correspondence_templates_list, correspondence_logs_list, correspondence_send). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "message",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "message",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (logs, send_result, status, templates) via the module's routes/services.",
+  "output_where": "/api/admin/correspondence/health, /api/admin/correspondence/logs, /api/admin/correspondence/send, /api/admin/correspondence/templates (prefixes: /api/admin/correspondence)",
+  "output_why": "Serves the Correspondence functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL health check for the Correspondence hub tile. CANONICAL list of correspondence templates. No PII. CANONICAL list of correspondence send logs. CANONICAL send a Semptify-originated correspondence. Currently a stub (501) until the data model and T2 handling are designed.",
+  "process_context": "Derived record. Invoked via the correspondence module's registered routes and dependencies.",
+  "narrative_events": []
+}

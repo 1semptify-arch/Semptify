@@ -1,0 +1,15 @@
+{
+  "module_name": "Fraud Exposure",
+  "layout": "app/modules/fraud_exposure/ — 8 registered function groups (fraud_exposure_fraud_health_check, fraud_exposure_analyze_fraud, fraud_exposure_fraud_report, fraud_exposure_check_fraud_pattern, fraud_exposure_statute_of_limitations, fraud_exposure_whistleblower_info, fraud_exposure_fraud_patterns, fraud_exposure_reporting_agencies). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.fraud_exposure function outputs",
+  "output_why": "Serves the Fraud Exposure functions declared in its FunctionGroupContracts.",
+  "process_description": "Health check for fraud exposure service POST /analyze GET /report/{report_id} POST /check-pattern GET /statute-of-limitations GET /whistleblower-info GET /patterns GET /agencies",
+  "process_context": "Derived record. Invoked via the fraud_exposure module's registered routes and dependencies.",
+  "narrative_events": []
+}

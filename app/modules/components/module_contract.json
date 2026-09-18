@@ -1,0 +1,15 @@
+{
+  "module_name": "Components",
+  "layout": "app/modules/components/ — 15 registered function groups (components_handle_capture_upload, components_handle_capture_input, components_handle_capture_voice, components_handle_understand_timeline, components_handle_understand_rights, components_handle_understand_risk, components_handle_plan_action, components_handle_plan_deadline, components_handle_tenant_emergency, components_handle_advocate_handoff, components_handle_legal_review, components_handle_admin_maintenance, components_workspace_stage, components_next_step, components_component_config). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.components function outputs",
+  "output_why": "Serves the Components functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /capture/upload POST /capture/input POST /capture/voice POST /understand/timeline POST /understand/rights POST /understand/risk POST /plan/action POST /plan/deadline POST /tenant/emergency-action POST /advocate/handoff-client POST /legal/start-review POST /admin/system-maintenance GET /workspace-stage GET /next-step GET /config/{role}",
+  "process_context": "Derived record. Invoked via the components module's registered routes and dependencies.",
+  "narrative_events": []
+}

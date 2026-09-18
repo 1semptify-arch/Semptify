@@ -1,0 +1,107 @@
+{
+  "module_name": "Litigation Intelligence",
+  "layout": "app/modules/litigation_intelligence/ — 17 registered function groups (litigation_intelligence_scrape_court, litigation_intelligence_scrape_filings, litigation_intelligence_normalize_entity, litigation_intelligence_normalize_entities, litigation_intelligence_analyze_case, litigation_intelligence_get, litigation_intelligence_graph_build, litigation_intelligence_graph_visualize, litigation_intelligence_graph_path, litigation_intelligence_report_generate, litigation_intelligence_report_get, litigation_intelligence_report_export, litigation_intelligence_task_schedule, litigation_intelligence_tasks_list, litigation_intelligence_task_remove, litigation_intelligence_statistics, litigation_intelligence_health). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "case_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "case_number",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "format",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "report_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "request",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "source_entity",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "target_entity",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "task_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "case_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_number",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "format",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "report_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "source_entity",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "target_entity",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "task_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (analysis, export, filings, graph, intelligence, normalized, path, report…) via the module's routes/services.",
+  "output_where": "app.modules.litigation_intelligence function outputs",
+  "output_why": "Serves the Litigation Intelligence functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL scrape court system for case data. CANONICAL scrape specific case filings by case number. CANONICAL normalize an entity name. CANONICAL normalize multiple entity names at once. CANONICAL analyze a case for intelligence patterns. CANONICAL get stored intelligence report for a case. CANONICAL build entity relationship graph. CANONICAL generate graph visualization. CANONICAL find shortest path between two entities in the graph. CANONICAL generate litigation intelligence report. CANONICAL get a generated report by ID. CANONICAL export a generated report in specified format. CANONICAL schedule a new litigation intelligence task. CANONICAL get all scheduled tasks. CANONICAL remove a scheduled task by ID. CANONICAL get comprehensive litigation intelligence statistics. CANONICAL health check for litigation intelligence system.",
+  "process_context": "Derived record. Invoked via the litigation_intelligence module's registered routes and dependencies.",
+  "narrative_events": []
+}

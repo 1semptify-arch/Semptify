@@ -1,0 +1,15 @@
+{
+  "module_name": "Inventory",
+  "layout": "app/modules/inventory/ — 8 registered function groups (inventory_backup, inventory_snapshot, inventory_inventory_items, inventory_get_inventory_item, inventory_inventory_summary, inventory_rotate_inventory, inventory_delete_inventory_item, inventory_health). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.inventory function outputs",
+  "output_why": "Serves the Inventory functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /backup POST /snapshot Get inventory items with optional filters. Get specific inventory item. Get inventory summary. Manually trigger inventory rotation. Delete an inventory item. Health check for inventory system.",
+  "process_context": "Derived record. Invoked via the inventory module's registered routes and dependencies.",
+  "narrative_events": []
+}

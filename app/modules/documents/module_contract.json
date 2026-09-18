@@ -1,0 +1,83 @@
+{
+  "module_name": "Documents",
+  "layout": "app/modules/documents/ — 17 registered function groups (documents_process, documents_upload_simple, documents_list, documents_get, documents_reprocess, documents_intelligence, documents_urgent, documents_text, documents_update_category, documents_train_correct, documents_train_stats, documents_view, documents_thumbnail, documents_export, documents_timeline, documents_summary, documents_auto_timeline). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "category",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "corrected_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "doc_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "file",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "category",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "corrected_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "doc_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "file",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (accuracy, amounts, by_type, category, confirmed, content, content_type, corrected…) via the module's routes/services.",
+  "output_where": "app.modules.documents function outputs",
+  "output_why": "Serves the Documents functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL unified document processing. Takes a file from the vault, classifies it, extracts text/dates/amounts/parties, detects issues, and returns a unified response with all extracted intelligence. This is the main pipeline that turns a raw file into structured evidence. CANONICAL simple upload endpoint. Accepts a single file, stores it, processes it, and returns the document record. Lighter than the full unified process — used for quick captures. CANONICAL list of all processed documents for a user. Returns full document records with classification, extraction status, and metadata. Used by the tenant documents page. CANONICAL detailed view of a single document. Returns full metadata, extraction results, intelligence analysis, and processing status. Used by the document detail view. CANONICAL reprocessing of an existing document. Re-runs classification and extraction on an already-stored file. Used when extraction models improve or a document was partially processed. CANONICAL intelligence analysis for a document. Returns extracted dates, amounts, parties, issues, deadlines, and suggested actions. Used by the document detail view's intelligence panel. CANONICAL list of urgent documents requiring attention. Based on issue severity, upcoming deadlines, and document type. Used by the tenant dashboard's urgent section. CANONICAL retrieval of the full extracted text for a document. Returns the text content extracted during processing. Used for document viewing and search. CANONICAL update of a document's category. Tenant can correct the auto-classification. The correction feeds back into training stats. CANONICAL submit a classification correction for training. The tenant confirms or corrects the auto-classification, which improves future classification for all users. CANONICAL training statistics. Returns counts of confirmed vs corrected classifications, learned patterns, and model accuracy metrics. Admin-only view for model improvement tracking. CANONICAL in-browser view of a document. Returns a viewable representation (HTML/PDF/image) for the tenant document viewer. CANONICAL thumbnail image for a document. Used in document grids, sidebar lists, and timeline entries for visual identification. CANONICAL export of all documents as a downloadable archive. GDPR-compliant data export. Includes all files, metadata, and certificates in a zip. CANONICAL timeline of document events for a user. Returns events sorted by date — uploads, processing, classification corrections, and detected issues. Used by the tenant timeline page. CANONICAL summary of a user's document portfolio. Returns counts by type, total size, urgent count, and recent activity. Used by the tenant dashboard. CANONICAL auto-populate timeline from a document's extracted dates. Takes dates found in the document and creates timeline events for each. Saves the tenant from manually entering dates.",
+  "process_context": "Derived record. Invoked via the documents module's registered routes and dependencies.",
+  "narrative_events": [
+    {
+      "verb": "saved",
+      "object": "the uploaded document",
+      "context_clause": "because the tenant added it to their record"
+    },
+    {
+      "verb": "confirmed",
+      "object": "what kind of document it is",
+      "context_clause": "after the document was read and classified"
+    },
+    {
+      "verb": "found",
+      "object": "dated events inside the document",
+      "context_clause": "because the extraction pass pulled them out for the timeline"
+    }
+  ]
+}

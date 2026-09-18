@@ -1,0 +1,217 @@
+{
+  "module_name": "Case Builder",
+  "layout": "app/modules/case_builder/ — 34 registered function groups (case_builder_info, case_builder_cases_list, case_builder_case_get, case_builder_case_create, case_builder_case_update, case_builder_case_delete, case_builder_validate_freshness, case_builder_validate_minnesota, case_builder_validate_court_forms, case_builder_freshness_recommendations, case_builder_intake_complaint, case_builder_timeline_get, case_builder_timeline_add, case_builder_timeline_delete, case_builder_evidence_get, case_builder_evidence_add, case_builder_counterclaims_get, case_builder_counterclaim_add, case_builder_motions_get, case_builder_motion_add, case_builder_deadlines_get, case_builder_deadline_add, case_builder_deadline_complete, case_builder_defenses_get, case_builder_defense_add, case_builder_templates_defenses, case_builder_intake_packet_export, case_builder_intake_packet_export_pdf, case_builder_intake_packet_export_zip, case_builder_curated_packet_export, case_builder_fca_readiness_get, case_builder_fca_readiness_update, case_builder_fca_readiness_pdf, case_builder_fca_readiness_zip). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "case",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "case_data",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "case_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "claim",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "deadline",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "deadline_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "defense",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "document_ids",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "event",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "event_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "evidence",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "include_clean",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "include_marked",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "include_summary",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "intake",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "motion",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "overlay_types",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "readiness_checklist",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "updates",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "case",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "claim",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "deadline",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "deadline_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "defense",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document_ids",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "event",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "event_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "evidence",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "include_clean",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "include_marked",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "include_summary",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "intake",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "motion",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "overlay_types",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "readiness_checklist",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "updates",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (case, case_id, cases, count, counterclaim_id, counterclaims, deadline, deadline_id…) via the module's routes/services.",
+  "output_where": "app.modules.case_builder function outputs",
+  "output_why": "Serves the Case Builder functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL case builder module information. Returns version and capabilities. CANONICAL list all cases for the authenticated user with computed status and progress. CANONICAL get a specific case by ID. Returns full case details. CANONICAL create a new case for the authenticated user. CANONICAL update a case belonging to the authenticated user. CANONICAL delete a case belonging to the authenticated user. CANONICAL validate case legal accuracy and freshness. Returns issues and recommendations. CANONICAL validate Minnesota-specific legal requirements for a case. CANONICAL validate that case data is complete for court form generation. CANONICAL get recommendations for improving case legal freshness. CANONICAL create a case from a complaint document. Simple intake flow. CANONICAL get all timeline events for a case. CANONICAL add a timeline event to a case. CANONICAL delete a timeline event from a case. CANONICAL get all evidence for a case. CANONICAL add evidence to a case. CANONICAL get all counterclaims for a case. CANONICAL add a counterclaim to a case. CANONICAL get all motions for a case. CANONICAL add a motion to a case. CANONICAL get all deadlines for a case. CANONICAL add a deadline to a case. CANONICAL mark a deadline as complete for a case. CANONICAL get all defense strategies for a case. CANONICAL add a defense strategy to a case. CANONICAL list of available defense templates. Returns defense types and descriptions. CANONICAL export a streamlined, chronological, evidence-labeled intake packet for first-time attorney review. Facts and dates only. Distinct from court_packet module export (which is court-filing-ready). Returns: case identification, chronological timeline, evidence index, pending deadlines. No recommendations, no editorializing. CANONICAL download the intake packet as a formatted PDF. Facts and dates only — no recommendations or editorializing. CANONICAL download the intake packet as a ZIP containing the JSON packet, a formatted PDF, and a plain-text evidence index. Facts and dates only — no recommendations or editorializing. CANONICAL export a curated packet ZIP from case evidence. Produces clean/ original copies, marked/ copies with highlight/note/footnote annotations appended, and a summary/ report. Overlay types are configurable; document_ids can be supplied or inferred from case evidence. CANONICAL get the federal case readiness checklist and summary for a case. Issue-spotting only — no determination that a claim exists or is viable. Requires the FCA_READINESS feature flag. CANONICAL save the federal case readiness checklist for a case. Stores checklist in user cloud storage (CASE_DATA overlay) and a non-PII score in the DB. CANONICAL download the federal case readiness packet as a PDF for attorney review. Facts and dates only — no legal conclusions or recommendations. CANONICAL download the federal case readiness packet as a ZIP containing a PDF and a JSON summary for attorney review.",
+  "process_context": "Derived record. Invoked via the case_builder module's registered routes and dependencies.",
+  "narrative_events": []
+}

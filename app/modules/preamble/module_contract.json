@@ -1,0 +1,15 @@
+{
+  "module_name": "Preamble",
+  "layout": "app/modules/preamble/ — 1 registered function groups (preamble_preamble). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.preamble function outputs",
+  "output_why": "Serves the Preamble functions declared in its FunctionGroupContracts.",
+  "process_description": "Single entry point — routes every user to exactly where they need to go.",
+  "process_context": "Derived record. Invoked via the preamble module's registered routes and dependencies.",
+  "narrative_events": []
+}

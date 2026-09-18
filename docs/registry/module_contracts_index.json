@@ -2,6 +2,330 @@
   "version": "1",
   "entries": [
     {
+      "module_path": "app.modules.accountability_ledger",
+      "contract_path": "app/modules/accountability_ledger/module_contract.json",
+      "module_name": "Accountability Ledger",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.actions",
+      "contract_path": "app/modules/actions/module_contract.json",
+      "module_name": "Actions",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.admin_api",
+      "contract_path": "app/modules/admin_api/module_contract.json",
+      "module_name": "Admin Api",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.admin_auth",
+      "contract_path": "app/modules/admin_auth/module_contract.json",
+      "module_name": "Admin Auth",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.admin_console",
+      "contract_path": "app/modules/admin_console/module_contract.json",
+      "module_name": "Admin Console",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.advanced",
+      "contract_path": "app/modules/advanced/module_contract.json",
+      "module_name": "Advanced",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.advocate",
+      "contract_path": "app/modules/advocate/module_contract.json",
+      "module_name": "Advocate",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.agent_orchestrator",
+      "contract_path": "app/modules/agent_orchestrator/module_contract.json",
+      "module_name": "Agent Orchestrator",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.analytics",
+      "contract_path": "app/modules/analytics/module_contract.json",
+      "module_name": "Analytics",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.auth",
+      "contract_path": "app/modules/auth/module_contract.json",
+      "module_name": "Auth",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.auto_mode",
+      "contract_path": "app/modules/auto_mode/module_contract.json",
+      "module_name": "Auto Mode",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.batch",
+      "contract_path": "app/modules/batch/module_contract.json",
+      "module_name": "Batch",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.brain",
+      "contract_path": "app/modules/brain/module_contract.json",
+      "module_name": "Brain",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.briefcase",
+      "contract_path": "app/modules/briefcase/module_contract.json",
+      "module_name": "Briefcase",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.calendar",
+      "contract_path": "app/modules/calendar/module_contract.json",
+      "module_name": "Calendar",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 3
+    },
+    {
+      "module_path": "app.modules.campaign",
+      "contract_path": "app/modules/campaign/module_contract.json",
+      "module_name": "Campaign",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.capabilities",
+      "contract_path": "app/modules/capabilities/module_contract.json",
+      "module_name": "Capabilities",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.case_builder",
+      "contract_path": "app/modules/case_builder/module_contract.json",
+      "module_name": "Case Builder",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.cloud_sync",
+      "contract_path": "app/modules/cloud_sync/module_contract.json",
+      "module_name": "Cloud Sync",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.communication",
+      "contract_path": "app/modules/communication/module_contract.json",
+      "module_name": "Communication",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 2
+    },
+    {
+      "module_path": "app.modules.complaints",
+      "contract_path": "app/modules/complaints/module_contract.json",
+      "module_name": "Complaints",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.components",
+      "contract_path": "app/modules/components/module_contract.json",
+      "module_name": "Components",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.contacts",
+      "contract_path": "app/modules/contacts/module_contract.json",
+      "module_name": "Contacts",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.context_engine",
+      "contract_path": "app/modules/context_engine/module_contract.json",
+      "module_name": "Context Engine",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.context_loop",
+      "contract_path": "app/modules/context_loop/module_contract.json",
+      "module_name": "Context Loop",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.core_system",
+      "contract_path": "app/modules/core_system/module_contract.json",
+      "module_name": "Core System",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.correspondence",
+      "contract_path": "app/modules/correspondence/module_contract.json",
+      "module_name": "Correspondence",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.court_forms",
+      "contract_path": "app/modules/court_forms/module_contract.json",
+      "module_name": "Court Forms",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.court_packet",
+      "contract_path": "app/modules/court_packet/module_contract.json",
+      "module_name": "Court Packet",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.crawler",
+      "contract_path": "app/modules/crawler/module_contract.json",
+      "module_name": "Crawler",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.dashboard",
+      "contract_path": "app/modules/dashboard/module_contract.json",
+      "module_name": "Dashboard",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.data_freshness",
+      "contract_path": "app/modules/data_freshness/module_contract.json",
+      "module_name": "Data Freshness",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.debug",
+      "contract_path": "app/modules/debug/module_contract.json",
+      "module_name": "Debug",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.dev_lab",
+      "contract_path": "app/modules/dev_lab/module_contract.json",
+      "module_name": "Dev Lab",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.development",
+      "contract_path": "app/modules/development/module_contract.json",
+      "module_name": "Development",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.dispute_tracker",
+      "contract_path": "app/modules/dispute_tracker/module_contract.json",
+      "module_name": "Dispute Tracker",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
       "module_path": "app.modules.document_center",
       "contract_path": "app/modules/document_center/module_contract.json",
       "module_name": "Document Center",
@@ -11,6 +335,555 @@
       "narrative_event_count": 8
     },
     {
+      "module_path": "app.modules.document_converter",
+      "contract_path": "app/modules/document_converter/module_contract.json",
+      "module_name": "Document Converter",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.document_delivery",
+      "contract_path": "app/modules/document_delivery/module_contract.json",
+      "module_name": "Document Delivery",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.documentation",
+      "contract_path": "app/modules/documentation/module_contract.json",
+      "module_name": "Documentation",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.documents",
+      "contract_path": "app/modules/documents/module_contract.json",
+      "module_name": "Documents",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 3
+    },
+    {
+      "module_path": "app.modules.emotion",
+      "contract_path": "app/modules/emotion/module_contract.json",
+      "module_name": "Emotion",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.enterprise_dashboard",
+      "contract_path": "app/modules/enterprise_dashboard/module_contract.json",
+      "module_name": "Enterprise Dashboard",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.eviction_defense",
+      "contract_path": "app/modules/eviction_defense/module_contract.json",
+      "module_name": "Eviction Defense",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 2
+    },
+    {
+      "module_path": "app.modules.eviction_timeline",
+      "contract_path": "app/modules/eviction_timeline/module_contract.json",
+      "module_name": "Eviction Timeline",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 1
+    },
+    {
+      "module_path": "app.modules.export_import",
+      "contract_path": "app/modules/export_import/module_contract.json",
+      "module_name": "Export Import",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.external_mappings",
+      "contract_path": "app/modules/external_mappings/module_contract.json",
+      "module_name": "External Mappings",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.extraction",
+      "contract_path": "app/modules/extraction/module_contract.json",
+      "module_name": "Extraction",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.fems",
+      "contract_path": "app/modules/fems/module_contract.json",
+      "module_name": "Fems",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.filedored",
+      "contract_path": "app/modules/filedored/module_contract.json",
+      "module_name": "Filedored",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.form_data",
+      "contract_path": "app/modules/form_data/module_contract.json",
+      "module_name": "Form Data",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.fraud_exposure",
+      "contract_path": "app/modules/fraud_exposure/module_contract.json",
+      "module_name": "Fraud Exposure",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.free_api",
+      "contract_path": "app/modules/free_api/module_contract.json",
+      "module_name": "Free Api",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.functionx",
+      "contract_path": "app/modules/functionx/module_contract.json",
+      "module_name": "Functionx",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.funding_mgmt",
+      "contract_path": "app/modules/funding_mgmt/module_contract.json",
+      "module_name": "Funding Mgmt",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.funding_search",
+      "contract_path": "app/modules/funding_search/module_contract.json",
+      "module_name": "Funding Search",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.guided_intake",
+      "contract_path": "app/modules/guided_intake/module_contract.json",
+      "module_name": "Guided Intake",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.health",
+      "contract_path": "app/modules/health/module_contract.json",
+      "module_name": "Health",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.housing_accountability",
+      "contract_path": "app/modules/housing_accountability/module_contract.json",
+      "module_name": "Housing Accountability",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.hud_funding",
+      "contract_path": "app/modules/hud_funding/module_contract.json",
+      "module_name": "Hud Funding",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.intake",
+      "contract_path": "app/modules/intake/module_contract.json",
+      "module_name": "Intake",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.inventory",
+      "contract_path": "app/modules/inventory/module_contract.json",
+      "module_name": "Inventory",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.invite_codes",
+      "contract_path": "app/modules/invite_codes/module_contract.json",
+      "module_name": "Invite Codes",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.journal",
+      "contract_path": "app/modules/journal/module_contract.json",
+      "module_name": "Journal",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 2
+    },
+    {
+      "module_path": "app.modules.law_library",
+      "contract_path": "app/modules/law_library/module_contract.json",
+      "module_name": "Law Library",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.law_linker",
+      "contract_path": "app/modules/law_linker/module_contract.json",
+      "module_name": "Law Linker",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.legal",
+      "contract_path": "app/modules/legal/module_contract.json",
+      "module_name": "Legal",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.legal_analysis",
+      "contract_path": "app/modules/legal_analysis/module_contract.json",
+      "module_name": "Legal Analysis",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.legal_filing",
+      "contract_path": "app/modules/legal_filing/module_contract.json",
+      "module_name": "Legal Filing",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.legal_trails",
+      "contract_path": "app/modules/legal_trails/module_contract.json",
+      "module_name": "Legal Trails",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.litigation_intelligence",
+      "contract_path": "app/modules/litigation_intelligence/module_contract.json",
+      "module_name": "Litigation Intelligence",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.location",
+      "contract_path": "app/modules/location/module_contract.json",
+      "module_name": "Location",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.manager",
+      "contract_path": "app/modules/manager/module_contract.json",
+      "module_name": "Manager",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.mesh_network",
+      "contract_path": "app/modules/mesh_network/module_contract.json",
+      "module_name": "Mesh Network",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.mndes",
+      "contract_path": "app/modules/mndes/module_contract.json",
+      "module_name": "Mndes",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.module_hub",
+      "contract_path": "app/modules/module_hub/module_contract.json",
+      "module_name": "Module Hub",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.packet_builder",
+      "contract_path": "app/modules/packet_builder/module_contract.json",
+      "module_name": "Packet Builder",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.page_composer",
+      "contract_path": "app/modules/page_composer/module_contract.json",
+      "module_name": "Page Composer",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.page_editor",
+      "contract_path": "app/modules/page_editor/module_contract.json",
+      "module_name": "Page Editor",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.page_index",
+      "contract_path": "app/modules/page_index/module_contract.json",
+      "module_name": "Page Index",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.page_router",
+      "contract_path": "app/modules/page_router/module_contract.json",
+      "module_name": "Page Router",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.page_shell",
+      "contract_path": "app/modules/page_shell/module_contract.json",
+      "module_name": "Page Shell",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.pdf_tools",
+      "contract_path": "app/modules/pdf_tools/module_contract.json",
+      "module_name": "Pdf Tools",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.plan_maker",
+      "contract_path": "app/modules/plan_maker/module_contract.json",
+      "module_name": "Plan Maker",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.plugins",
+      "contract_path": "app/modules/plugins/module_contract.json",
+      "module_name": "Plugins",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.portal",
+      "contract_path": "app/modules/portal/module_contract.json",
+      "module_name": "Portal",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.positronic_mesh",
+      "contract_path": "app/modules/positronic_mesh/module_contract.json",
+      "module_name": "Positronic Mesh",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.preamble",
+      "contract_path": "app/modules/preamble/module_contract.json",
+      "module_name": "Preamble",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.preview",
+      "contract_path": "app/modules/preview/module_contract.json",
+      "module_name": "Preview",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.progress",
+      "contract_path": "app/modules/progress/module_contract.json",
+      "module_name": "Progress",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.public_exposure",
+      "contract_path": "app/modules/public_exposure/module_contract.json",
+      "module_name": "Public Exposure",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.public_forms",
+      "contract_path": "app/modules/public_forms/module_contract.json",
+      "module_name": "Public Forms",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.public_surface",
+      "contract_path": "app/modules/public_surface/module_contract.json",
+      "module_name": "Public Surface",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.recognition",
+      "contract_path": "app/modules/recognition/module_contract.json",
+      "module_name": "Recognition",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.registry",
+      "contract_path": "app/modules/registry/module_contract.json",
+      "module_name": "Registry",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.rent",
+      "contract_path": "app/modules/rent/module_contract.json",
+      "module_name": "Rent",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.research",
+      "contract_path": "app/modules/research/module_contract.json",
+      "module_name": "Research",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.resource_directory",
+      "contract_path": "app/modules/resource_directory/module_contract.json",
+      "module_name": "Resource Directory",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 2
+    },
+    {
       "module_path": "app.modules.resource_intake",
       "contract_path": "app/modules/resource_intake/module_contract.json",
       "module_name": "Resource Intake & Integrity Engine",
@@ -18,6 +891,276 @@
       "has_preview_state": true,
       "has_review_state": true,
       "narrative_event_count": 3
+    },
+    {
+      "module_path": "app.modules.risc",
+      "contract_path": "app/modules/risc/module_contract.json",
+      "module_name": "Risc",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.role_ui",
+      "contract_path": "app/modules/role_ui/module_contract.json",
+      "module_name": "Role Ui",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.role_upgrade",
+      "contract_path": "app/modules/role_upgrade/module_contract.json",
+      "module_name": "Role Upgrade",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.run_modules",
+      "contract_path": "app/modules/run_modules/module_contract.json",
+      "module_name": "Run Modules",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.search",
+      "contract_path": "app/modules/search/module_contract.json",
+      "module_name": "Search",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.security",
+      "contract_path": "app/modules/security/module_contract.json",
+      "module_name": "Security",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.setup",
+      "contract_path": "app/modules/setup/module_contract.json",
+      "module_name": "Setup",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.state_laws",
+      "contract_path": "app/modules/state_laws/module_contract.json",
+      "module_name": "State Laws",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.sticky_notes",
+      "contract_path": "app/modules/sticky_notes/module_contract.json",
+      "module_name": "Sticky Notes",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 1
+    },
+    {
+      "module_path": "app.modules.storage",
+      "contract_path": "app/modules/storage/module_contract.json",
+      "module_name": "Storage",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.system_health",
+      "contract_path": "app/modules/system_health/module_contract.json",
+      "module_name": "System Health",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.tactics",
+      "contract_path": "app/modules/tactics/module_contract.json",
+      "module_name": "Tactics",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.tenancy_hub",
+      "contract_path": "app/modules/tenancy_hub/module_contract.json",
+      "module_name": "Tenancy Hub",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.tenant_feed",
+      "contract_path": "app/modules/tenant_feed/module_contract.json",
+      "module_name": "Tenant Feed",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.testing",
+      "contract_path": "app/modules/testing/module_contract.json",
+      "module_name": "Testing",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.timeline",
+      "contract_path": "app/modules/timeline/module_contract.json",
+      "module_name": "Timeline",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 3
+    },
+    {
+      "module_path": "app.modules.tools_api",
+      "contract_path": "app/modules/tools_api/module_contract.json",
+      "module_name": "Tools Api",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.ui_composer",
+      "contract_path": "app/modules/ui_composer/module_contract.json",
+      "module_name": "Ui Composer",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.unified_overlays",
+      "contract_path": "app/modules/unified_overlays/module_contract.json",
+      "module_name": "Unified Overlays",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.user",
+      "contract_path": "app/modules/user/module_contract.json",
+      "module_name": "User",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.user_concerns",
+      "contract_path": "app/modules/user_concerns/module_contract.json",
+      "module_name": "User Concerns",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.vault",
+      "contract_path": "app/modules/vault/module_contract.json",
+      "module_name": "Vault",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.vault_engine",
+      "contract_path": "app/modules/vault_engine/module_contract.json",
+      "module_name": "Vault Engine",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.vault_installer",
+      "contract_path": "app/modules/vault_installer/module_contract.json",
+      "module_name": "Vault Installer",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.voice",
+      "contract_path": "app/modules/voice/module_contract.json",
+      "module_name": "Voice",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.websocket",
+      "contract_path": "app/modules/websocket/module_contract.json",
+      "module_name": "Websocket",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.workflow",
+      "contract_path": "app/modules/workflow/module_contract.json",
+      "module_name": "Workflow",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.workflow_validator",
+      "contract_path": "app/modules/workflow_validator/module_contract.json",
+      "module_name": "Workflow Validator",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.zoom_court",
+      "contract_path": "app/modules/zoom_court/module_contract.json",
+      "module_name": "Zoom Court",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.zoom_court_prep",
+      "contract_path": "app/modules/zoom_court_prep/module_contract.json",
+      "module_name": "Zoom Court Prep",
+      "output_type": "other",
+      "has_preview_state": false,
+      "has_review_state": false,
+      "narrative_event_count": 0
     }
   ]
 }

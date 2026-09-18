@@ -1,0 +1,47 @@
+{
+  "module_name": "Capabilities",
+  "layout": "app/modules/capabilities/ — 6 registered function groups (capabilities_list, capabilities_grant, capabilities_revoke, capabilities_overlay_get, capabilities_overlay_attach, capabilities_overlay_detach). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "module_name",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "overlay_module",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "module_name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "overlay_module",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (capabilities, overlays, success) via the module's routes/services.",
+  "output_where": "app.modules.capabilities function outputs",
+  "output_why": "Serves the Capabilities functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list all capabilities for a user. Returns enabled modules and overlays. CANONICAL grant a module to a user. Admin-only. Adds the module to the user's enabled list. CANONICAL revoke a module from a user. Admin-only. Removes the module from the user's enabled list. CANONICAL get overlay modules attached to a user. Returns list of overlay module names. CANONICAL attach an overlay module to a user. Admin-only. Adds the overlay to the user. CANONICAL detach an overlay module from a user. Admin-only. Removes the overlay from the user.",
+  "process_context": "Derived record. Invoked via the capabilities module's registered routes and dependencies.",
+  "narrative_events": []
+}

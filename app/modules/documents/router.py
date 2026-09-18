@@ -681,6 +681,7 @@ async def process_document(
             "law_refs_count": len(doc.law_references) if doc.law_references else 0,
             "is_duplicate": is_duplicate,
             "urgency_level": urgency_level,
+            "narrator": {"module": "app.modules.documents", "slot": 0},
         },
     )
 
@@ -693,6 +694,7 @@ async def process_document(
                 "registry_id": registry_id,
                 "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
                 "ready_for_extraction": True,
+                "narrator": {"module": "app.modules.documents", "slot": 1},
             },
         )
 

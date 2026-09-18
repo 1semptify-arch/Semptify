@@ -1,0 +1,87 @@
+{
+  "module_name": "Housing Accountability",
+  "layout": "app/modules/housing_accountability/ — 7 registered function groups (accountability_detect_patterns, accountability_oversight_packet, accountability_coalition_build, accountability_evidence_intake, accountability_public_records_search, accountability_press_release, accountability_dashboard). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "agency",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "documents",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "evidence",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "jurisdiction",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "patterns",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "query",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "agency",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "documents",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "evidence",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "jurisdiction",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "patterns",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "query",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (action_summary, coalitions, download_url, format, linked_patterns, packet, packets, patterns…) via the module's routes/services.",
+  "output_where": "app.modules.housing_accountability function outputs",
+  "output_why": "Serves the Housing Accountability functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL detection of housing violation patterns from a tenant's documents. Analyzes uploaded documents for repeated violations (repeated fees, repeated entry without notice, etc.). Returns detected patterns with severity and evidence references. CANONICAL generation of an oversight packet for regulatory submission. Assembles detected patterns, evidence, and timeline into a formatted packet for agencies. The tenant downloads and submits it themselves. CANONICAL build a coalition action for community organizing. Creates an anonymized summary of violations for sharing with tenant rights groups. No PII, no addresses, no names. CANONICAL process evidence intake for housing cases. Accepts evidence descriptions and documents, categorizes them, and links them to detected patterns. CANONICAL search of public records for housing cases. Searches court records, property records, and code violations. Returns publicly available facts only. CANONICAL build a press release for housing rights advocacy. Creates an anonymized, fact-based press release from detected patterns. No PII. Tenant reviews and edits before publishing. CANONICAL dashboard view of housing accountability data. Returns detected patterns, oversight packets, and coalition actions for the user. Used by the accountability dashboard page.",
+  "process_context": "Derived record. Invoked via the housing_accountability module's registered routes and dependencies.",
+  "narrative_events": []
+}

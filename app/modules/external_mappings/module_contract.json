@@ -1,0 +1,167 @@
+{
+  "module_name": "External Mappings",
+  "layout": "app/modules/external_mappings/ — 11 registered function groups (external_mappings_mapping_create, external_mappings_list, external_mappings_get, external_mappings_update_status, external_mappings_court_case_create, external_mappings_court_cases_list, external_mappings_property_create, external_mappings_properties_list, external_mappings_agency_create, external_mappings_agencies_list, external_mappings_search). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "agency",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "agency_code",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "case",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "case_status",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "case_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "complaint_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "county",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "is_primary",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "mapping",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "mapping_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "mapping_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "property",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "query",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "status",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "agency",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "agency_code",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_status",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "complaint_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "county",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "is_primary",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "mapping",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "mapping_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "mapping_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "property",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "query",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "status",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (agencies, court_cases, mapping, mapping_id, mappings, properties, results, success) via the module's routes/services.",
+  "output_where": "app.modules.external_mappings function outputs",
+  "output_why": "Serves the External Mappings functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL create a new external mapping for a Semptify entity. CANONICAL list user's external mappings with optional type and status filters. CANONICAL get a specific external mapping by ID. CANONICAL update the status of an external mapping. CANONICAL create a court case external mapping. CANONICAL list court case mappings with optional case_type and case_status filters. CANONICAL create a property external mapping. CANONICAL list property mappings with optional county and is_primary filters. CANONICAL create an agency external mapping. CANONICAL list agency mappings with optional agency_code and complaint_type filters. CANONICAL search across all external mappings by query with optional type filter.",
+  "process_context": "Derived record. Invoked via the external_mappings module's registered routes and dependencies.",
+  "narrative_events": []
+}

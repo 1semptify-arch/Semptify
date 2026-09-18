@@ -1,0 +1,37 @@
+{
+  "module_name": "Guided Intake",
+  "layout": "app/modules/guided_intake/ — 3 registered function groups (guided_intake_save, guided_intake_summary, guided_intake_status). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "data",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (intake_id, progress, status, summary) via the module's routes/services.",
+  "output_where": "app.modules.guided_intake function outputs",
+  "output_why": "Serves the Guided Intake functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL save intake information. Returns the intake summary with ID. CANONICAL get the intake summary for the current user. Returns the saved intake data. CANONICAL get the intake status for the current user. Returns whether intake is complete.",
+  "process_context": "Derived record. Invoked via the guided_intake module's registered routes and dependencies.",
+  "narrative_events": []
+}

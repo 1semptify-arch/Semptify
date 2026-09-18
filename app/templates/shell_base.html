@@ -28,6 +28,17 @@
 
 {% block nav %}{% endblock %}
 
+{# Live narration strip (ADR-0008 / Build Contract Part 2): a single calm
+   status line between header and work zone. The WebSocket client pushes
+   contract-declared narration lines here; it stays empty and invisible
+   until a real backend event narrates. role=status + aria-live=polite so
+   assistive tech hears it without interrupting. #}
+{% block pre_main %}
+<div id="narration-strip" class="narration-strip" role="status" aria-live="polite"></div>
+<script src="/static/js/core/websocket-client.js?v=2" defer></script>
+<script src="/static/js/narration-strip.js" defer></script>
+{% endblock %}
+
 {# Function-nav rail — gated stage navigation. Pages opt in by filling the
    `fnav` block; when it renders, body gains `shell--fnav` and the shell
    grid grows a row between main+side and footer. #}

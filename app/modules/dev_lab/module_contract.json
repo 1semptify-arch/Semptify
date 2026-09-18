@@ -1,0 +1,167 @@
+{
+  "module_name": "Dev Lab",
+  "layout": "app/modules/dev_lab/ — 12 registered function groups (dev_modules_list, dev_module_status, dev_module_promote, dev_module_test, ideas_list, ideas_submit, ideas_promote, dev_lab_dev_modules, dev_lab_dev_module, dev_lab_module_status, dev_lab_promote_module, dev_lab_run_module_tests). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "action",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "admin_user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "idea_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "module_name",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "module_path",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "name",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "notes",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "origin",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "origin_filter",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "status_filter",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "target_lifecycle",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "target_role",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "target_tier",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "test_path",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "action",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "admin_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "description",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "idea_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "module_name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "module_path",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "notes",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "origin",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "origin_filter",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "status_filter",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "target_lifecycle",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "target_role",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "target_tier",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "test_path",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (action, current_lifecycle, errors, exit_code, failed, idea_id, ideas, lifecycle_order…) via the module's routes/services.",
+  "output_where": "app.modules.dev_lab function outputs",
+  "output_why": "Serves the Dev Lab functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list of all dev_only/preview/experimental modules. GET /dev/lab. Stealth admin guard enforced. CANONICAL maturity checklist status for a module. GET /dev/lab/{module_path}/status. Returns checklist requirements for each lifecycle stage. CANONICAL promote a module to the next lifecycle stage. POST /dev/lab/{module_path}/promote. Sets runtime override and invalidates resolver caches. CANONICAL run a module's test suite via pytest. POST /dev/lab/{module_path}/test. Returns pass/fail/error counts and stdout/stderr. CANONICAL list of submitted dev ideas. GET /dev/lab/ideas. CANONICAL submit a new dev idea. POST /dev/lab/ideas. CANONICAL promote an idea to a dev module. POST /dev/lab/ideas/{id}/promote. GET GET /{module_path:path} GET /{module_path:path}/status POST /{module_path:path}/promote POST /{module_path:path}/test",
+  "process_context": "Derived record. Invoked via the dev_lab module's registered routes and dependencies.",
+  "narrative_events": []
+}

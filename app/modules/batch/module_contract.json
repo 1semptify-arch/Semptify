@@ -1,0 +1,15 @@
+{
+  "module_name": "Batch",
+  "layout": "app/modules/batch/ — 11 registered function groups (batch_create_batch_operation_endpoint, batch_start_batch_operation_endpoint, batch_cancel_batch_operation_endpoint, batch_get_batch_operation_endpoint, batch_user_batch_operations_endpoint, batch_batch_statistics_endpoint, batch_prepare_batch_upload, batch_execute_batch_upload, batch_prepare_batch_delete, batch_prepare_batch_export, batch_supported_operations). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.batch function outputs",
+  "output_why": "Serves the Batch functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /create POST /{operation_id}/start POST /{operation_id}/cancel GET /{operation_id} GET / GET /statistics POST /upload/prepare POST /upload/execute/{operation_id} POST /delete/prepare POST /export/prepare Get list of supported batch operations.",
+  "process_context": "Derived record. Invoked via the batch module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,15 @@
+{
+  "module_name": "Recognition",
+  "layout": "app/modules/recognition/ — 10 registered function groups (recognition_analyze_text, recognition_analyze_file, recognition_quick_classify, recognition_analyze_handwriting_endpoint, recognition_verify_signature, recognition_forgery_types, recognition_batch_analyze, recognition_document_types, recognition_entity_types, recognition_health). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.recognition function outputs",
+  "output_why": "Serves the Recognition functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /analyze POST /analyze-file POST /quick-classify POST /handwriting/analyze POST /signature/verify 📋 Get all detectable forgery types. POST /batch 📋 Get all supported document types. 🏷️ Get all entity types the engine can extract. 💚 Health check for the recognition engine.",
+  "process_context": "Derived record. Invoked via the recognition module's registered routes and dependencies.",
+  "narrative_events": []
+}

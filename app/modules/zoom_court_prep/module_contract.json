@@ -1,0 +1,15 @@
+{
+  "module_name": "Zoom Court Prep",
+  "layout": "app/modules/zoom_court_prep/ — 1 registered function groups (zoom_court_prep_status). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.zoom_court_prep function outputs",
+  "output_why": "Serves the Zoom Court Prep functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /api/zoom-court-prep/status",
+  "process_context": "Derived record. Invoked via the zoom_court_prep module's registered routes and dependencies.",
+  "narrative_events": []
+}

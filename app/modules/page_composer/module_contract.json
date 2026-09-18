@@ -1,0 +1,87 @@
+{
+  "module_name": "Page Composer",
+  "layout": "app/modules/page_composer/ — 2 registered function groups (page_compose, page_assemble). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "fact_limit",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "intent",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "jurisdiction",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "story_limit",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "subject",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_context",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "fact_limit",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "intent",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "jurisdiction",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "story_limit",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "subject",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_context",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (components, govern_report, metadata, page, page_config) via the module's routes/services.",
+  "output_where": "app.modules.page_composer function outputs",
+  "output_why": "Serves the Page Composer functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL compose a unified page view for a subject + jurisdiction. Pulls verified facts from Context Engine cache, published tenant stories, and the user's case data from Case Builder (if available). All facts include source URLs — no hallucination. Does NOT gather new facts; use context_engine.context_refresh for that. Deterministically assemble a PageConfig from user context, subject/intent, and jurisdiction. Applies blend selection, block gathering, GOVERN floor and override rules, and emits a legacy UI Composer component list.",
+  "process_context": "Derived record. Invoked via the page_composer module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,15 @@
+{
+  "module_name": "Workflow Validator",
+  "layout": "app/modules/workflow_validator/ — 2 registered function groups (workflow_validator_validator_dashboard, workflow_validator_test_routing). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.workflow_validator function outputs",
+  "output_why": "Serves the Workflow Validator functions declared in its FunctionGroupContracts.",
+  "process_description": "GET / API endpoint to test specific routing scenarios.",
+  "process_context": "Derived record. Invoked via the workflow_validator module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,15 @@
+{
+  "module_name": "Positronic Mesh",
+  "layout": "app/modules/positronic_mesh/ — 13 registered function groups (positronic_mesh_mesh_status, positronic_mesh_available_workflows, positronic_mesh_connected_modules, positronic_mesh_start_workflow, positronic_mesh_workflow_status, positronic_mesh_provide_workflow_input, positronic_mesh_user_workflows, positronic_mesh_quick_start_eviction, positronic_mesh_quick_start_lease_analysis, positronic_mesh_quick_start_court_prep, positronic_mesh_quick_sync_modules, positronic_mesh_invoke_module_action, positronic_mesh_module_actions). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.positronic_mesh function outputs",
+  "output_why": "Serves the Positronic Mesh functions declared in its FunctionGroupContracts.",
+  "process_description": "Get the overall Positronic Mesh status Get list of available workflow types Get all modules connected to the mesh POST /mesh/workflow/start GET /mesh/workflow/{workflow_id} POST /mesh/workflow/{workflow_id}/input GET /mesh/workflows POST /mesh/quick/eviction POST /mesh/quick/lease-analysis POST /mesh/quick/court-prep POST /mesh/quick/sync POST /mesh/invoke Get available actions for a specific module",
+  "process_context": "Derived record. Invoked via the positronic_mesh module's registered routes and dependencies.",
+  "narrative_events": []
+}

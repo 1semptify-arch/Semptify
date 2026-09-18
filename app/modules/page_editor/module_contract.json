@@ -1,0 +1,67 @@
+{
+  "module_name": "Page Editor",
+  "layout": "app/modules/page_editor/ — 6 registered function groups (page_editor_list_files, page_editor_get_file, page_editor_save_file, page_editor_preview_file, page_editor_search_files, page_editor_page). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "content",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "path",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "q",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "content",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "path",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "q",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (content, files, path, preview, redirect, results, saved) via the module's routes/services.",
+  "output_where": "app.modules.page_editor function outputs",
+  "output_why": "Serves the Page Editor functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list of editable files in the project. Returns file paths, types, and sizes. Admin-only. CANONICAL get a file's content by path. Returns the file content as text. Admin-only. CANONICAL save a file's content. Writes the new content to the file at the given path. Admin-only. CANONICAL preview a file with proposed changes. Returns a preview of how the file would look after saving. Admin-only. CANONICAL search across editable files. Returns matching files and line numbers. Admin-only. CANONICAL redirect to the page editor UI. Admin-only.",
+  "process_context": "Derived record. Invoked via the page_editor module's registered routes and dependencies.",
+  "narrative_events": []
+}

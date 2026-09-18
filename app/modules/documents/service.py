@@ -222,6 +222,7 @@ class EventExtractor:
                             "earliest": events[0].date.isoformat() if events else None,
                             "latest": events[-1].date.isoformat() if events else None,
                         },
+                        "narrator": {"module": "app.modules.documents", "slot": 2},
                     },
                     source="event_extractor",
                 )

@@ -1,0 +1,147 @@
+{
+  "module_name": "Admin Console",
+  "layout": "app/modules/admin_console/ — 9 registered function groups (user_list, user_detail, impersonate_start, impersonate_stop, system_status, module_flags_list, module_flags_set, module_flags_delete, module_flags_preview). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "admin_user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "disabled",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "feature_flag",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "gates",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "jurisdiction",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "lifecycle",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "limit",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "module_path",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "notes",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "offset",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "role",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "search",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "admin_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "disabled",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "feature_flag",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "gates",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "jurisdiction",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "lifecycle",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "limit",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "module_path",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "notes",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "offset",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "role",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "search",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (by_tier, capabilities, gates, impersonating, jurisdiction, limit, module_path, modules…) via the module's routes/services.",
+  "output_where": "app.modules.admin_console function outputs",
+  "output_why": "Serves the Admin Console functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL admin user listing via GET /api/users. Stealth admin guard returns 404 (not 403) to hide endpoint existence. Supports pagination (limit, offset) and search. CANONICAL admin user detail via GET /api/users/{user_id}. Stealth guard enforced. CANONICAL admin impersonation via POST /api/users/{user_id}/impersonate. Admin becomes user for testing. Audit logged. CANONICAL stop impersonation via POST /api/users/{user_id}/stop-impersonation. Audit logged. CANONICAL system status via GET /api/system/status. Returns active sessions, metrics, modules, tiers, navigation info. CANONICAL list of all modules with declared flags and runtime overrides. GET /admin/api/module-flags. Stealth admin guard enforced. CANONICAL set/update a runtime override for a module. POST /admin/api/module-flags/{module_path}. Override fields: lifecycle, feature_flag, disabled, notes. Invalidates resolver caches on success. CANONICAL remove a runtime override, reverting to MANIFEST declaration. DELETE /admin/api/module-flags/{module_path}. Invalidates resolver caches on success. CANONICAL preview what modules a user with the given context would see. POST /admin/api/module-flags/preview. Inputs: role, jurisdiction, gates. Returns module visibility by tier.",
+  "process_context": "Derived record. Invoked via the admin_console module's registered routes and dependencies.",
+  "narrative_events": []
+}

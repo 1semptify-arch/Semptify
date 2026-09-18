@@ -1,12 +1,8 @@
 page,file,overall,ease_use,friendliness,understanding,navigation,direction,info_value,words,actions,flags,jargon,dead_links,missing_files,extends,review
-mndes_compliance_guide.html,pages/mndes_compliance_guide.html,3.2,3,3,5,3,2,3,2392,15,,"affidavit, ssot, json",5,,True,yes
 index.html,onboarding/index.html,3.5,5,5,3,3,3,2,5,0,,,0,,False,yes
-admin_dashboard.html,pages/admin_dashboard.html,3.7,3,4,5,3,2,5,350,59,,orchestrator,5,,True,yes
-legal_dashboard.html,pages/legal_dashboard.html,3.7,3,4,5,3,2,5,299,10,,,2,,True,yes
 office_delivery.html,pages/office_delivery.html,3.7,3,5,5,5,2,2,298,12,placeholder: coming soon,,0,,True,yes
-donate.html,public/donate.html,3.7,5,1,5,5,2,4,2121,16,"cost-framing: $0, free forever; business-posture: powerful","backend, frontend, repo",0,,False,no
 admin_contract_browser.html,pages/admin_contract_browser.html,3.8,5,3,4,5,4,2,50,5,placeholder: coming soon,json,0,,True,yes
-welcome.html,pages/welcome.html,3.8,4,4,5,4,2,4,146,14,,ssot,1,,True,yes
+donate.html,public/donate.html,3.8,5,2,5,5,2,4,2120,16,cost-framing: never pay,"backend, frontend, repo",0,,False,no
 activate-vault.html,onboarding/activate-vault.html,3.8,5,5,3,3,5,2,22,1,,,0,,False,no
 role-select.html,onboarding/role-select.html,3.8,5,4,5,4,3,2,82,0,placeholder: coming soon,,0,,False,no
 action_plan.html,pages/action_plan.html,4.0,3,4,5,5,2,5,229,14,,repo,0,,True,yes
@@ -20,6 +16,7 @@ focus.html,pages/focus.html,4.0,5,5,5,4,3,2,37,0,,,0,,True,yes
 hearing_prep.html,pages/hearing_prep.html,4.0,3,5,5,4,3,4,49,0,,,0,,True,yes
 journey.html,pages/journey.html,4.0,5,5,5,4,3,2,15,0,,,0,,True,yes
 manager_dashboard.html,pages/manager_dashboard.html,4.0,5,3,5,5,2,4,117,11,,repo,0,,True,yes
+mndes_compliance_guide.html,pages/mndes_compliance_guide.html,4.0,5,4,5,5,2,3,2394,14,,affidavit,0,,True,yes
 about.html,public/about.html,4.0,5,3,5,5,2,4,1609,29,cost-framing: no subscription,repo,0,,True,yes
 credits.html,public/credits.html,4.0,5,3,5,5,2,4,741,34,cost-framing: free of charge,repo,0,,True,yes
 admin_function_browser.html,pages/admin_function_browser.html,4.2,5,4,5,5,2,4,97,12,,,0,,True,yes
@@ -38,9 +35,11 @@ office_inbox.html,pages/office_inbox.html,4.2,3,5,5,3,4,5,165,6,,,4,,True,yes
 pdf_tools.html,pages/pdf_tools.html,4.2,4,5,5,4,5,2,33,1,,,1,,True,yes
 tenant_inbox.html,pages/tenant_inbox.html,4.2,5,4,5,5,2,4,41,10,,,0,,True,yes
 timeline.html,pages/timeline.html,4.2,3,5,4,5,4,4,93,8,,,0,,True,yes
+welcome.html,pages/welcome.html,4.2,5,4,5,5,2,4,143,14,,ssot,0,,True,yes
 contact.html,public/contact.html,4.2,5,3,5,5,2,5,169,9,,"subpoena, repo",0,,True,yes
 help.html,tenant/help.html,4.2,5,4,5,5,2,4,1689,65,cost-framing: no cost,,0,,False,no
 admin.html,pages/admin.html,4.3,5,5,5,5,2,4,43,11,,,0,,True,yes
+admin_dashboard.html,pages/admin_dashboard.html,4.3,5,4,5,5,2,5,350,64,,orchestrator,0,,True,yes
 admin_home.html,pages/admin_home.html,4.3,5,4,5,5,5,2,39,2,,,0,,True,yes
 admin_hub.html,pages/admin_hub.html,4.3,5,5,5,4,5,2,26,1,,,0,,True,yes
 advocate.html,pages/advocate.html,4.3,5,5,5,5,2,4,74,12,,,0,,True,yes
@@ -56,6 +55,7 @@ document_viewer.html,pages/document_viewer.html,4.3,5,5,5,4,5,2,28,3,,,0,,True,y
 eviction_answer.html,pages/eviction_answer.html,4.3,3,5,5,4,5,4,47,1,,,0,,True,yes
 law_library_get_statute.html,pages/law_library_get_statute.html,4.3,5,5,4,5,3,4,78,0,,,0,,True,yes
 legal.html,pages/legal.html,4.3,5,5,5,5,2,4,58,11,,,0,,True,yes
+legal_dashboard.html,pages/legal_dashboard.html,4.3,5,4,5,5,2,5,299,12,,,0,,True,yes
 office_signer.html,pages/office_signer.html,4.3,5,4,5,5,2,5,293,12,,,0,,True,yes
 research.html,pages/research.html,4.3,5,5,5,4,3,4,67,0,,,0,,True,yes
 research_module.html,pages/research_module.html,4.3,5,5,5,4,5,2,30,1,,,0,,True,yes

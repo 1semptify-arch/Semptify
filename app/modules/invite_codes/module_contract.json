@@ -1,0 +1,77 @@
+{
+  "module_name": "Invite Codes",
+  "layout": "app/modules/invite_codes/ — 6 registered function groups (invite_codes_validate, invite_codes_redeem, invite_codes_create, invite_codes_list, invite_codes_delete, invite_codes_stats). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "code",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "expires_at",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "manager_user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "max_uses",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "organization_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "code",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "expires_at",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "manager_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "max_uses",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "organization_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (code, codes, organization_id, organization_id?, stats, success, valid) via the module's routes/services.",
+  "output_where": "app.modules.invite_codes function outputs",
+  "output_why": "Serves the Invite Codes functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL validate an invite code during onboarding. Returns whether the code is valid and active. CANONICAL redeem an invite code. Marks the code as used and links the user to the organization. CANONICAL create a new invite code. Manager/admin only. Returns the new code. CANONICAL list all invite codes for the current user's organization. Manager/admin only. CANONICAL deactivate an invite code. Manager/admin only. Marks the code as inactive. CANONICAL get detailed statistics about a specific invite code. Manager/admin only.",
+  "process_context": "Derived record. Invoked via the invite_codes module's registered routes and dependencies.",
+  "narrative_events": []
+}

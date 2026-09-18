@@ -1,0 +1,47 @@
+{
+  "module_name": "Vault Installer",
+  "layout": "app/modules/vault_installer/ — 4 registered function groups (vault_installer_debug, vault_installer_install, vault_installer_status, vault_installer_quick_install). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "access_token",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "provider",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "access_token",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "provider",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (debug_info, install_result, status) via the module's routes/services.",
+  "output_where": "/api/vault-installer/debug, /api/vault-installer/install, /api/vault-installer/quick-install, /api/vault-installer/status (prefixes: /api/vault-installer)",
+  "output_why": "Serves the Vault Installer functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL debug info for the vault installer (auth required). CANONICAL install and activate the tenant's vault. CANONICAL vault installation status for the current user. CANONICAL one-step vault install using a provider + access token.",
+  "process_context": "Derived record. Invoked via the vault_installer module's registered routes and dependencies.",
+  "narrative_events": []
+}

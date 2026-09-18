@@ -259,7 +259,7 @@ test_notice.txt
 bsimpotrrttd/
 staticbac/
 ./DOCUMENTS/
-DOCUMENTS/
+/DOCUMENTS/
 MASTER_INDEX.md
 
 # Loose test files in root (proper tests live in tests/ dirs)
@@ -298,7 +298,8 @@ data/cases/
 data/case_outputs/
 data/converted_documents/
 data/court_cases/
-DOCUMENTS/
+/DOCUMENTS/
+data/documents/
 r22.pdf
 test_mcro.py
 scripts/add_sample_docs.py

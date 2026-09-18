@@ -1,0 +1,67 @@
+{
+  "module_name": "Search",
+  "layout": "app/modules/search/ — 7 registered function groups (search_global, search_advanced, search_suggestions, search_statistics, search_index_document, search_remove_from_index, search_quick). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "document_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "limit",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "q",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "search_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "document_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "limit",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "q",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "search_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (document_count, document_id, index_stats, indexed, removed, results, suggestions, total) via the module's routes/services.",
+  "output_where": "app.modules.search function outputs",
+  "output_why": "Serves the Search functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL global search across all of the tenant's documents. Returns results grouped by category (documents, timeline, contacts). Used by the tenant search bar. CANONICAL advanced search with type filtering. Supports full_text, metadata, content, and hybrid search modes. Used by the advanced search page. CANONICAL search suggestions for autocomplete. Returns partial matches as the user types. Used by the search bar's typeahead. CANONICAL search index statistics. Returns index size, document count, and last indexed timestamp. Admin-only. CANONICAL index a document for search. Called after document processing to add the document's text and metadata to the search index. CANONICAL remove a document from the search index. Called when a document is deleted from the vault. CANONICAL quick search for lightweight queries. Returns top results without full ranking. Used by the sidebar search.",
+  "process_context": "Derived record. Invoked via the search module's registered routes and dependencies.",
+  "narrative_events": []
+}

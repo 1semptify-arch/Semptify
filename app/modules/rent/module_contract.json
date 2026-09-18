@@ -1,0 +1,157 @@
+{
+  "module_name": "Rent",
+  "layout": "app/modules/rent/ — 5 registered function groups (rent_ledger_create, rent_ledger_list, rent_ledger_get, rent_ledger_update, rent_ledger_delete). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "amount",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "due_date",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "entry_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "notes",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "overlay_link",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "payment_date",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "payment_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "payment_method",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "period_covered",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "receipt_document_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "source",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "status",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "updates",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "amount",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "due_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "entry_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "notes",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "overlay_link",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "payment_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "payment_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "payment_method",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "period_covered",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "receipt_document_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "source",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "status",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "updates",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (deleted, payment, payment_id, payments) via the module's routes/services.",
+  "output_where": "app.modules.rent function outputs",
+  "output_why": "Serves the Rent functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL create a rent ledger entry. Supports payments, fees, deposits, credits, and charges. Amount is in dollars (input), stored as cents (DB). Computes and returns the running balance after the entry. CANONICAL list rent ledger entries for the tenant. Returns entries sorted newest first with running balance for each. Used by the rent ledger page. CANONICAL get a single rent ledger entry by ID. Returns full details including entry type, source, overlay link, and running balance. Ownership enforced. CANONICAL update a rent ledger entry. The tenant can edit amount, date, entry type, source, status, method, or overlay link. Running balance is recomputed on save. CANONICAL delete a rent ledger entry. Ownership enforced.",
+  "process_context": "Derived record. Invoked via the rent module's registered routes and dependencies.",
+  "narrative_events": []
+}

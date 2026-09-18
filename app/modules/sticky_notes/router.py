@@ -19,6 +19,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from app.core.capabilities import require_capability
+from app.core.event_bus import EventType, event_bus
 from app.core.security import yellow_access
 from app.core.user_context import UserContext
 from app.modules.sticky_notes import service as sticky_notes_service
@@ -92,6 +93,14 @@ async def create_note(
         user=user,
         text=request.text,
         source=request.source,
+    )
+    event_bus.publish_sync(
+        EventType.STICKY_NOTE_CREATED,
+        {
+            "user_id": user.get_effective_user_id(),
+            "note_id": overlay.overlay_id,
+            "narrator": {"module": "app.modules.sticky_notes", "slot": 0},
+        },
     )
     return _overlay_to_response(overlay)
 

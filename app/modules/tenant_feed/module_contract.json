@@ -1,0 +1,37 @@
+{
+  "module_name": "Tenant Feed",
+  "layout": "app/modules/tenant_feed/ — 1 registered function groups (feed_aggregate). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "type_filter",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "type_filter",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (items, total_count) via the module's routes/services.",
+  "output_where": "app.modules.tenant_feed function outputs",
+  "output_why": "Serves the Tenant Feed functions declared in its FunctionGroupContracts.",
+  "process_description": "Merge timeline events + documents + journal + deadlines + letters into a single chronological feed (newest first). Filterable by type. All sources are existing endpoints — this is pure aggregation, no new storage. Returns a list of feed item dicts: {type, title, subtitle, timestamp_iso, timestamp_label, icon, link, metadata}.",
+  "process_context": "Derived record. Invoked via the tenant_feed module's registered routes and dependencies.",
+  "narrative_events": []
+}

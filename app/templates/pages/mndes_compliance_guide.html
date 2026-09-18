@@ -61,11 +61,11 @@
       <a class="toc-link" href="#lifecycle">Exhibit Lifecycle</a>
       <div class="toc-divider"></div>
       <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:0.3rem 0.5rem;">By Role</div>
-      <a class="toc-link role" href="#" onclick="switchRole('tenant');return false;">Tenant / Self-Rep</a>
-      <a class="toc-link role" href="#" onclick="switchRole('advocate');return false;">Advocate</a>
-      <a class="toc-link role" href="#" onclick="switchRole('legal');return false;">Legal / Attorney</a>
-      <a class="toc-link role" href="#" onclick="switchRole('manager');return false;">Case Manager</a>
-      <a class="toc-link role" href="#" onclick="switchRole('admin');return false;">Admin / Judge Staff</a>
+      <a class="toc-link role" href="#roleTabs" onclick="switchRole('tenant');">Tenant / Self-Rep</a>
+      <a class="toc-link role" href="#roleTabs" onclick="switchRole('advocate');">Advocate</a>
+      <a class="toc-link role" href="#roleTabs" onclick="switchRole('legal');">Legal / Attorney</a>
+      <a class="toc-link role" href="#roleTabs" onclick="switchRole('manager');">Case Manager</a>
+      <a class="toc-link role" href="#roleTabs" onclick="switchRole('admin');">Admin / Judge Staff</a>
       <div class="toc-divider"></div>
       <a class="toc-link" href="#checklist">Pre-Submission Checklist</a>
       <a class="toc-link" href="#support">Support &amp; Contacts</a>
@@ -331,7 +331,7 @@
           <li><span class="req-icon">🔧</span><div><strong>Sealed case block.</strong> Any package creation request for a sealed case returns a 422 with instructions to contact court administration at 651-377-7180.</div></li>
           <li><span class="req-icon">🔧</span><div><strong>File types version.</strong> The current list version is <code>2025-01</code>. When the State Court Administrator updates the official list, update <code>MNDES_ACCEPTABLE_TYPES</code> in <code>app/core/mndes_compliance.py</code> and bump <code>MNDES_FILE_TYPES_VERSION</code>.</div></li>
           <li><span class="req-icon">🔧</span><div><strong>No public API to MNDES.</strong> Semptify cannot submit directly to MNDES. <code>ManualPortalClient</code> in <code>mndes_api_client.py</code> returns portal instructions. Swap to <code>MNDESRestClient</code> when MN courts release an API.</div></li>
-          <li><span class="req-icon">🔧</span><div><strong>Navigation SSOT.</strong> All MNDES paths (<code>/mndes/guide</code>, <code>/api/mndes/*</code>) are registered in <code>NavigationRegistry.COURT_FLOW</code>. Never hardcode these paths in templates or routers.</div></li>
+          <li><span class="req-icon">🔧</span><div><strong>Navigation is centrally managed.</strong> All MNDES page and API paths live in one navigation registry, so every Semptify page points to the same place when court processes change.</div></li>
         </ul>
       </div>
       <div class="card">
@@ -413,7 +413,6 @@
     <div class="actions-bar">
       <a class="btn btn-primary" href="https://mndigitalexhibitsystem.courts.state.mn.us" target="_blank" rel="noopener">Open MNDES Portal</a>
       <a class="btn btn-secondary" href="/mndes/guide">Step-by-Step Submission Guide</a>
-      <a class="btn btn-secondary" href="/api/mndes/acceptable-file-types" target="_blank">File Types JSON</a>
       <button class="btn btn-secondary" onclick="window.print()">Print This Guide</button>
     </div>
 

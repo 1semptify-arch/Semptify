@@ -1,0 +1,15 @@
+{
+  "module_name": "Actions",
+  "layout": "app/modules/actions/ — 9 registered function groups (actions_action_plan, actions_action_plan_with_context, actions_quick_wins, actions_actions_by_category, actions_all_actions, actions_current_capacity, actions_self_care_suggestions, actions_encouragement, actions_next_action). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.actions function outputs",
+  "output_why": "Serves the Actions functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /plan POST /plan Get a list of quick win actions - low time, low effort, immediate benefit. Get all actions in a specific category. Get all available actions in the system. GET /capacity Get self-care action suggestions. GET /encouragement Get just the single most important next action.",
+  "process_context": "Derived record. Invoked via the actions module's registered routes and dependencies.",
+  "narrative_events": []
+}

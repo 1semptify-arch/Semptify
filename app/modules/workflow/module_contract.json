@@ -1,0 +1,15 @@
+{
+  "module_name": "Workflow",
+  "layout": "app/modules/workflow/ — 10 registered function groups (workflow_route_decision, workflow_advance_workflow, workflow_next_step, workflow_case_state, workflow_process_groups, workflow_contracts, workflow_page_contract, workflow_contract_health, workflow_module_contracts, workflow_help_telemetry_summary). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.workflow function outputs",
+  "output_why": "Serves the Workflow functions declared in its FunctionGroupContracts.",
+  "process_description": "Return a deterministic routing decision for the given role + storage state. Gate-based transition endpoint. Determine the single best deterministic next step from current case state. Derive real case-state signals from persisted artifacts. Return all 8 process groups, optionally filtered by role. Return all registered page contracts (summary view). Return the full page contract for a specific page. Run the contract validation suite and return a health report. Return all registered function-group (module) contracts. Aggregate help-related click telemetry from the positronic brain event history.",
+  "process_context": "Derived record. Invoked via the workflow module's registered routes and dependencies.",
+  "narrative_events": []
+}

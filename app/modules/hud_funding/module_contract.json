@@ -1,0 +1,15 @@
+{
+  "module_name": "Hud Funding",
+  "layout": "app/modules/hud_funding/ — 17 registered function groups (hud_funding_all_programs, hud_funding_program_details, hud_funding_program_summary, hud_funding_search_programs, hud_funding_tax_credit_programs, hud_funding_voucher_programs, hud_funding_grant_programs, hud_funding_landlord_requirements, hud_funding_landlord_eligibility, hud_funding_all_landlord_obligations, hud_funding_tenant_recourse, hud_funding_tax_breaks, hud_funding_tax_break, hud_funding_check_tenant_eligibility, hud_funding_check_property_programs, hud_funding_compare_programs, hud_funding_quick_reference). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.hud_funding function outputs",
+  "output_why": "Serves the Hud Funding functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /programs GET /programs/{program_id} GET /programs/{program_id}/summary GET /search GET /tax-credits GET /voucher-programs GET /grants GET /programs/{program_id}/landlord-requirements GET /programs/{program_id}/landlord-eligibility GET /all-landlord-obligations GET /programs/{program_id}/tenant-recourse GET /tax-breaks GET /tax-breaks/{tax_break_id} POST /check-eligibility GET /check-property GET /compare 📚 Quick reference guide for understanding HUD programs.",
+  "process_context": "Derived record. Invoked via the hud_funding module's registered routes and dependencies.",
+  "narrative_events": []
+}

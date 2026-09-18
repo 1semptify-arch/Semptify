@@ -1,0 +1,167 @@
+{
+  "module_name": "Analytics",
+  "layout": "app/modules/analytics/ — 11 registered function groups (analytics_track_event, analytics_track_pageview, analytics_track_document_upload, analytics_metrics, analytics_realtime_metrics, analytics_user_metrics, analytics_recent_events, analytics_export_json, analytics_export_csv, analytics_statistics, analytics_dashboard). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "a",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "d",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "days",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "doc_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "document_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "event_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "hours",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "limit",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "page",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "period",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "properties",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "referrer",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "s",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "y",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "a",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "d",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "days",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "doc_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "event_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "hours",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "limit",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "page",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "period",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "properties",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "referrer",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "s",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "y",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (active_users, csv, data, event_id, events, events_per_minute, metrics, pageviews…) via the module's routes/services.",
+  "output_where": "app.modules.analytics function outputs",
+  "output_why": "Serves the Analytics functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL track a custom event. Accepts event type, properties, and user context. Used by the frontend for event tracking. CANONICAL track a page view. Records the page URL, referrer, and user context. Used by the frontend for pageview tracking. CANONICAL track a document upload event. Records the document ID, type, and upload context. Called after successful upload. CANONICAL aggregated metrics for a time period. Returns event counts, pageview counts, and document upload counts. Admin-only. Used by the analytics dashboard. CANONICAL realtime metrics. Returns current active users, events in the last minute, and pageviews in the last minute. Admin-only. CANONICAL metrics for a specific user. Returns event count, pageview count, and document upload count for the user over a given time range. Admin-only. CANONICAL list of recent events. Supports filtering by event type and limit. Admin-only. Used by the analytics events viewer. CANONICAL export analytics data as JSON. Returns events and metrics for the given time range. Admin-only. CANONICAL export analytics data as CSV. Returns events and metrics for the given time range in CSV format. Admin-only. CANONICAL analytics statistics summary. Returns total events, total users, total pageviews, and total uploads. Admin-only. CANONICAL analytics dashboard summary. Returns aggregated metrics, recent events, and top pages. Admin-only. Used by the admin analytics dashboard page.",
+  "process_context": "Derived record. Invoked via the analytics module's registered routes and dependencies.",
+  "narrative_events": []
+}

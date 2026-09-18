@@ -1,0 +1,93 @@
+{
+  "module_name": "Eviction Timeline",
+  "layout": "app/modules/eviction_timeline/ — 5 registered function groups (eviction_timeline_module, eviction_timeline_list, eviction_timeline_create, eviction_timeline_momentum_checkpoint, eviction_timeline_envelope). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "event",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "event_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "next_phase",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "request",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "subject_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "trigger",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "event",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "event_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "next_phase",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "subject_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "trigger",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (count, event, event_id, events, experience_token_snapshot, health, message, page_envelope…) via the module's routes/services.",
+  "output_where": "/api/eviction-timeline/, /api/eviction-timeline/envelope, /api/eviction-timeline/events, /api/eviction-timeline/health, /api/eviction-timeline/momentum-checkpoint (prefixes: /api/eviction-timeline)",
+  "output_why": "Serves the Eviction Timeline functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL module metadata. Returns health and capabilities. T2 module — timeline events reference tenant case context; filing-linked fields may need T3 later. CANONICAL list eviction timeline events for a subject/user. Returns event metadata; document content stays in cloud overlays. CANONICAL add an eviction timeline event. Stores structure and pointers only; narrative content and filings are cloud overlays. CANONICAL warm, honest milestone message for eviction-timeline phase transitions. Uses the tenant's Experience Token intensity level. Never urgency- or fear-based. CANONICAL ADR-0008 §2.1/2.6 wiring for the Eviction Timeline page. Returns the Page Envelope with resolved page actions for this tenant.",
+  "process_context": "Derived record. Invoked via the eviction_timeline module's registered routes and dependencies.",
+  "narrative_events": [
+    {
+      "verb": "saved",
+      "object": "the timeline event",
+      "context_clause": "because the tenant recorded a step in the eviction process"
+    }
+  ]
+}

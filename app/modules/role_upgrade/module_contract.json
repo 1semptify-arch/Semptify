@@ -1,0 +1,15 @@
+{
+  "module_name": "Role Upgrade",
+  "layout": "app/modules/role_upgrade/ — 5 registered function groups (role_upgrade_available_roles, role_upgrade_role_requirements, role_upgrade_request_role_upgrade, role_upgrade_my_role, role_upgrade_trusted_organizations). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.role_upgrade function outputs",
+  "output_why": "Serves the Role Upgrade functions declared in its FunctionGroupContracts.",
+  "process_description": "Get all available roles and their requirements. Get detailed requirements for a specific role. POST /upgrade GET /my-role Get list of trusted organizations whose email domains auto-verify.",
+  "process_context": "Derived record. Invoked via the role_upgrade module's registered routes and dependencies.",
+  "narrative_events": []
+}

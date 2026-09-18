@@ -1,0 +1,127 @@
+{
+  "module_name": "Legal",
+  "layout": "app/modules/legal/ — 5 registered function groups (legal_workspace_list, legal_workspace_create, legal_court_filing_create, legal_discovery_track, legal_exhibit_number). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "court",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "discovery_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "evidence_item_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "filing_date",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "filing_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "legal_user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "matter_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "served_date",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "tenant_user_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "title",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "court",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "description",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "discovery_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "evidence_item_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "filing_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "filing_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "legal_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "matter_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "served_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "tenant_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "title",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (discovery_id, exhibit_id, exhibit_number, filing_id, matter_id, matters) via the module's routes/services.",
+  "output_where": "app.modules.legal function outputs",
+  "output_why": "Serves the Legal functions declared in its FunctionGroupContracts.",
+  "process_description": "Returns all legal matters (workspaces) for the current legal user. Creates a new legal matter (workspace) with optional linked tenant. Creates a court filing record (docket entry) for a matter. Creates or updates a discovery request/response record for a matter. Assigns the next sequential exhibit number for a matter and records exhibit metadata.",
+  "process_context": "Derived record. Invoked via the legal module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,47 @@
+{
+  "module_name": "Public Forms",
+  "layout": "app/modules/public_forms/ — 3 registered function groups (public_forms_feedback, public_forms_tenant_autofill, public_forms_contact). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "contact",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "feedback",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "request",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "contact",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "feedback",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (autofill_data, success) via the module's routes/services.",
+  "output_where": "app.modules.public_forms function outputs",
+  "output_why": "Serves the Public Forms functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL receive a feedback form submission from /feedback. Public endpoint. CANONICAL autofill a public form for a tenant. Returns tenant data for form pre-population. CANONICAL receive a contact form submission. Public endpoint.",
+  "process_context": "Derived record. Invoked via the public_forms module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,107 @@
+{
+  "module_name": "Advocate",
+  "layout": "app/modules/advocate/ — 12 registered function groups (advocate_clients_list, advocate_client_detail, advocate_case_queue, advocate_intake, advocate_client_timeline, advocate_annotate_document, advocate_list_overlays, advocate_delete_annotation, advocate_invite_codes, tenant_link_advocate, tenant_list_advocates, tenant_revoke_advocate). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "advocate_user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "client_user_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "document_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "metadata",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "notes",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "overlay_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "overlay_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "payload",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "tenant_user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "advocate_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "client_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "metadata",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "notes",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "overlay_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "overlay_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "payload",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "tenant_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (advocates, client, clients, codes, count, document_id, events, message…) via the module's routes/services.",
+  "output_where": "app.modules.advocate function outputs",
+  "output_why": "Serves the Advocate functions declared in its FunctionGroupContracts.",
+  "process_description": "Returns all clients linked to the current advocate via UserRelationship.ADVOCACY. Returns a single client's profile, document count, and timeline event count. Returns urgent and pending cases across all linked clients, sorted by urgency and recency. Creates an ADVOCACY UserRelationship between advocate and a new or existing tenant user. Returns merged timeline events across all linked clients, sorted by date descending. CANONICAL advocate annotation creation. Creates an overlay (NOTE, HIGHLIGHT, FOOTNOTE, or TRACKED_EDIT) on a client's document. Overlay is stored in the TENANT's cloud storage with created_by = advocate's user_id. Uses UnifiedOverlayManager.create_overlay() with real CreateOverlayRequest fields: overlay_type, document_id, vault_path, payload, metadata, ephemeral. FORBIDDEN fields: vault_id, user_id, overlay_path, overlay_data. CANONICAL overlay query for advocate document review. Returns all overlays on a client's document (by any creator). Uses UnifiedOverlayManager.get_overlays() with document_id filter. NO get_overlays_by_type or get_overlays_by_path methods. CANONICAL overlay deletion for advocate annotations. Only the overlay's creator (the advocate) can delete it. Uses UnifiedOverlayManager.delete_overlay(overlay_id). Original vault document is NEVER touched. CANONICAL invite code listing for advocates. Advocates cannot create codes (only managers/admins can via /api/invite-codes/create). Advocates view codes from their organization via TEAM_MEMBER relationship to their manager. Codes are filtered to active, non-expired, with remaining uses. CANONICAL tenant-initiated case sharing. Tenant enters advocate's user_id to create an ADVOCACY relationship (from=advocate, to=tenant). Verifies target user has advocate role. Idempotent: reactivates if relationship already exists but inactive. NO advocate role check on caller. CANONICAL tenant query of their linked advocates. Returns all active ADVOCACY relationships where current user is the tenant (to_user_id). Includes initiated_by metadata so tenant knows who started the link. CANONICAL tenant revocation of advocate access. Deactivates the ADVOCACY relationship. Advocate can no longer see tenant's data. Can be reactivated later via tenant_link_advocate. NO deletion of relationship record (preserved for audit).",
+  "process_context": "Derived record. Invoked via the advocate module's registered routes and dependencies.",
+  "narrative_events": []
+}

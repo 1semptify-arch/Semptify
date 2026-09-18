@@ -1,0 +1,143 @@
+{
+  "module_name": "Timeline",
+  "layout": "app/modules/timeline/ — 4 registered function groups (timeline_unified_view, timeline_date_range, timeline_create_event, timeline_chronology). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "date",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "db_session",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "end_date",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "events",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "severity",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "source",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "sources",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "start_date",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "title",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "db_session",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "description",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "end_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "events",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "severity",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "source",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "sources",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "start_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "title",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (chronology_items, created_at, date_range, earliest_date, event_id, events, latest_date, span_days…) via the module's routes/services.",
+  "output_where": "app.modules.timeline function outputs",
+  "output_why": "Serves the Timeline functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL unified timeline view. Assembles events from all sources (documents, journal, deadlines, issues, manual entries) into a single chronological list with filtering by date range, source, and severity. This is the primary view for the tenant timeline page. CANONICAL date range metadata for the user's timeline. Returns the earliest and latest event dates, plus the span in days. Used by the timeline UI for navigation and default view. CANONICAL manual creation of a timeline event. The tenant can add events that aren't from documents — conversations, phone calls, visits, observations. Each event has a date, title, description, and optional severity. Build deterministic timeline chronology from cloud events and indexed document metadata.",
+  "process_context": "Derived record. Invoked via the timeline module's registered routes and dependencies.",
+  "narrative_events": [
+    {
+      "verb": "saved",
+      "object": "the timeline event",
+      "context_clause": "because the tenant added it to their record"
+    },
+    {
+      "verb": "saved",
+      "object": "the deadline on the timeline",
+      "context_clause": "because the tenant marked a date that cannot be missed"
+    },
+    {
+      "verb": "saved",
+      "object": "the event as evidence",
+      "context_clause": "because the tenant marked it as proof of what happened"
+    }
+  ]
+}

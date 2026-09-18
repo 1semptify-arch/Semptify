@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from app.core.database import get_db_session
+from app.core.event_bus import EventType, event_bus
 from app.core.id_gen import make_id
 from app.core.security import can_access, require_user
 from app.core.user_context import UserContext
@@ -180,6 +181,20 @@ async def create_entry(
     async with get_db_session() as db:
         db.add(entry)
         await db.commit()
+
+    event_bus.publish_sync(
+        EventType.JOURNAL_ENTRY_CREATED,
+        {
+            "user_id": user.get_effective_user_id(),
+            "entry_id": entry.id,
+            "entry_type": entry_type,
+            "is_urgent": entry.is_urgent,
+            "narrator": {
+                "module": "app.modules.journal",
+                "slot": 1 if entry.is_urgent else 0,
+            },
+        },
+    )
 
     return _to_response(entry)
 

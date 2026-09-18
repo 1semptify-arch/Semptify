@@ -17,6 +17,7 @@ from sqlalchemy import func, select
 
 from app.core.admin_gating import require_admin_network
 from app.core.database import get_db_session
+from app.core.event_bus import EventType, event_bus
 from app.core.id_gen import make_id
 from app.core.utc import utc_now
 from app.models.models import Resource as ResourceModel
@@ -94,6 +95,23 @@ async def list_resources(
             if language.lower() not in {lang.lower() for lang in langs}:
                 continue
         filtered.append(_model_to_response(resource))
+
+    # Narrate only deliberate searches — a bare unfiltered list is page load,
+    # not a search act.
+    if category or service_area or language:
+        event_bus.publish_sync(
+            EventType.RESOURCE_SEARCHED,
+            {
+                "category": category,
+                "service_area": service_area,
+                "language": language,
+                "results_count": len(filtered),
+                "narrator": {
+                    "module": "app.modules.resource_directory",
+                    "slot": 0 if filtered else 1,
+                },
+            },
+        )
 
     return ResourceListResponse(resources=filtered, total=len(filtered))
 

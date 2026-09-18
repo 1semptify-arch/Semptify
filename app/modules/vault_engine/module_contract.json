@@ -1,0 +1,15 @@
+{
+  "module_name": "Vault Engine",
+  "layout": "app/modules/vault_engine/ — 11 registered function groups (vault_engine_check_access, vault_engine_read_resource, vault_engine_write_resource, vault_engine_resource, vault_engine_share_resource, vault_engine_unshare_resource, vault_engine_resources, vault_engine_audit_log, vault_engine_stats, vault_engine_resource_types, vault_engine_access_levels). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.vault_engine function outputs",
+  "output_why": "Serves the Vault Engine functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /check-access POST /read POST /write POST /delete POST /share POST /unshare GET /list GET /audit GET /stats List all valid resource types. List all valid access levels.",
+  "process_context": "Derived record. Invoked via the vault_engine module's registered routes and dependencies.",
+  "narrative_events": []
+}

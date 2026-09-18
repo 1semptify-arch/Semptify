@@ -1,0 +1,15 @@
+{
+  "module_name": "Testing",
+  "layout": "app/modules/testing/ — 11 registered function groups (testing_create_test_suite_endpoint, testing_get_test_suite_endpoint, testing_test_suites, testing_run_test_suite_endpoint, testing_test_run_endpoint, testing_test_results_endpoint, testing_test_statistics_endpoint, testing_pipeline_endpoint, testing_run_pipeline_endpoint, testing_pipeline_run_endpoint, testing_pipeline_statistics_endpoint). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.testing function outputs",
+  "output_why": "Serves the Testing functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /suites GET /suites/{suite_id} GET /suites POST /run GET /run/{run_id} GET /run/{run_id}/results GET /statistics POST /pipeline/create POST /pipeline/{pipeline_id}/run GET /pipeline/run/{run_id} GET /pipeline/statistics",
+  "process_context": "Derived record. Invoked via the testing module's registered routes and dependencies.",
+  "narrative_events": []
+}
