@@ -1,5 +1,17 @@
 ## Session — 2026-09-18 — Frontend assembly cluster: narrator runtime → tenant-path voice → on-screen strip (devin)
 
+### Guardrail Engine Run — 2026-09-18T06:19:14+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### What shipped (PR #273, branch `frontend-assembly-cluster`, 7 commits)
 - `34d4eb5f` — `app/core/narrator.py` + event_bus WS hook: renders contract-declared `narrative_events` in approved grammar; static `NARRATION_MESSAGES` wins where both exist; failures return `None` (WS push never breaks). `humanize_actor` bug fixed (was "The document Center").
 - `9ad25713` — `document_center.html` inline script → `static/js/document_center.js` (2,001 → 218 lines).
