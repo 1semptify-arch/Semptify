@@ -158,7 +158,7 @@ def register_stateless_routes(app: FastAPI):
         landing_facts = await get_verified_landing_facts()
         ctx = {"year": utc_now().year, "landing_facts": landing_facts}
         try:
-            guides_path = BASE_PATH / "data" / "situation_guides.json"
+            guides_path = BASE_PATH / "app" / "data" / "situation_guides.json"
             ctx["situation_guides"] = json.loads(guides_path.read_text(encoding="utf-8"))
         except Exception:  # noqa: S110
             # Picker is optional chrome — landing still works without it
@@ -3955,7 +3955,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """Load situation guide content from the dedicated data file (cached)."""
         nonlocal _situation_guides_cache
         if _situation_guides_cache is None:
-            guide_path = BASE_PATH / "data" / "situation_guides.json"
+            guide_path = BASE_PATH / "app" / "data" / "situation_guides.json"
             try:
                 _situation_guides_cache = json.loads(guide_path.read_text(encoding="utf-8"))
             except Exception as e:  # pylint: disable=broad-exception-caught
