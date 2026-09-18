@@ -16,7 +16,6 @@ from typing import Any
 from app.core.id_gen import make_id
 from app.core.overlay_types import OverlayType
 from app.core.utc import utc_now
-from app.models.models import Incident
 from app.models.unified_overlay_models import CreateOverlayRequest
 from app.services.unified_overlay_manager import get_unified_overlay_manager
 from app.services.vault_upload_service import get_vault_service
@@ -76,31 +75,22 @@ async def _get_overlay_manager(user_id: str) -> Any:
 
 
 async def _load_case(case_id: str, user_id: str) -> dict[str, Any] | None:
-    """Load a case from the DB, enforcing user ownership."""
+    """Load a case from the user's vault, enforcing user ownership."""
     try:
         case_id_int = int(case_id)
     except ValueError:
         return None
 
     try:
-        from sqlalchemy import select
+        from app.services.incident_store import get_incident_for_user_id
 
-        from app.core.database import get_db_session
-
-        async with get_db_session() as session:
-            row = await session.execute(
-                select(Incident).where(
-                    Incident.incident_id == case_id_int,
-                    Incident.user_id == user_id,
-                )
-            )
-            incident = row.scalar_one_or_none()
-            if not incident:
-                return None
-            data = dict(incident.incident_metadata or {})
-            data["case_id"] = str(incident.incident_id)
-            data["user_id"] = incident.user_id
-            return data
+        incident = await get_incident_for_user_id(user_id, case_id_int)
+        if not incident:
+            return None
+        data = dict(incident.incident_metadata or {})
+        data["case_id"] = str(incident.incident_id)
+        data["user_id"] = user_id
+        return data
     except Exception as exc:
         logger.error("Failed to load case %s: %s", case_id, exc)
         return None

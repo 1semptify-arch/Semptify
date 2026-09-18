@@ -144,41 +144,31 @@ def _fetch_timeline_events(user_id: str) -> list[dict[str, Any]]:
     try:
         import asyncio
 
-        from sqlalchemy import select
-
-        from app.core.database import get_db_session
-        from app.models.models import TimelineEvent
+        from app.services.timeline_store import list_events_for_user_id
 
         async def _query() -> list[dict[str, Any]]:
             results: list[dict[str, Any]] = []
-            async with get_db_session() as db:
-                stmt = (
-                    select(TimelineEvent)
-                    .where(TimelineEvent.user_id == user_id)
-                    .order_by(TimelineEvent.event_date.desc())
-                    .limit(50)
+            rows = (await list_events_for_user_id(user_id))[:50]
+            for event in rows:
+                ts_data = _format_timestamp(event.event_date or event.created_at)
+                item = _empty_item()
+                item.update(
+                    {
+                        "type": "timeline_event",
+                        "title": event.title or "Timeline event",
+                        "subtitle": event.description or "",
+                        "timestamp_iso": ts_data["timestamp_iso"],
+                        "timestamp_label": ts_data["timestamp_label"],
+                        "icon": "•",
+                        "link": "/tenant/timeline",
+                        "metadata": {
+                            "event_id": event.id,
+                            "event_type": event.event_type,
+                            "is_urgent": event.is_urgent if hasattr(event, "is_urgent") else False,
+                        },
+                    }
                 )
-                rows = (await db.execute(stmt)).scalars().all()
-                for event in rows:
-                    ts_data = _format_timestamp(event.event_date or event.created_at)
-                    item = _empty_item()
-                    item.update(
-                        {
-                            "type": "timeline_event",
-                            "title": event.title or "Timeline event",
-                            "subtitle": event.description or "",
-                            "timestamp_iso": ts_data["timestamp_iso"],
-                            "timestamp_label": ts_data["timestamp_label"],
-                            "icon": "•",
-                            "link": "/tenant/timeline",
-                            "metadata": {
-                                "event_id": event.id,
-                                "event_type": event.event_type,
-                                "is_urgent": event.is_urgent if hasattr(event, "is_urgent") else False,
-                            },
-                        }
-                    )
-                    results.append(item)
+                results.append(item)
             return results
 
         try:
@@ -213,7 +203,7 @@ async def aggregate_feed_async(
     if not type_filter or type_filter == "timeline_event":
         items.extend(await _fetch_timeline_events_async(user_id))
     if not type_filter or type_filter == "journal":
-        items.extend(_fetch_journal_entries(user_id))
+        items.extend(await _fetch_journal_entries(user_id))
     if not type_filter or type_filter == "deadline":
         items.extend(_fetch_deadlines(user_id))
     if not type_filter or type_filter == "letter":
@@ -262,13 +252,11 @@ async def _fetch_documents_async(user_id: str) -> list[dict[str, Any]]:
 
 
 async def _fetch_timeline_events_async(user_id: str) -> list[dict[str, Any]]:
-    """Async fetch of timeline events from TimelineEvent and EvictionTimelineEvent."""
+    """Async fetch of timeline events: TIMELINE_EVENT + EVICTION_TIMELINE_EVENT overlays (vault)."""
     items: list[dict[str, Any]] = []
     try:
-        from sqlalchemy import select
-
-        from app.core.database import get_db_session
-        from app.models.models import EvictionTimelineEvent, TimelineEvent
+        from app.services.eviction_timeline_store import list_events_for_user_id as _list_eviction_events
+        from app.services.timeline_store import list_events_for_user_id
 
         def _format_eviction_title(event_type: str) -> str:
             return event_type.replace("_", " ").title()
@@ -279,97 +267,85 @@ async def _fetch_timeline_events_async(user_id: str) -> list[dict[str, Any]]:
             is_deadline = any(k in et for k in ("deadline", "due", "response", "appeal"))
             return is_evidence, is_deadline
 
-        async with get_db_session() as db:
-            stmt = (
-                select(TimelineEvent)
-                .where(TimelineEvent.user_id == user_id)
-                .order_by(TimelineEvent.event_date.desc())
-                .limit(50)
+        rows = (await list_events_for_user_id(user_id))[:50]
+        for event in rows:
+            ts_data = _format_timestamp(event.event_date or event.created_at)
+            item = _empty_item()
+            item.update(
+                {
+                    "type": "timeline_event",
+                    "title": event.title or "Timeline event",
+                    "subtitle": event.description or "",
+                    "timestamp_iso": ts_data["timestamp_iso"],
+                    "timestamp_label": ts_data["timestamp_label"],
+                    "icon": "•",
+                    "link": "/tenant/timeline",
+                    "is_evidence": bool(getattr(event, "is_evidence", False)),
+                    "is_deadline": bool(getattr(event, "is_deadline", False)),
+                    "metadata": {
+                        "event_id": event.id,
+                        "event_type": event.event_type,
+                        "is_urgent": bool(getattr(event, "is_urgent", False)),
+                    },
+                }
             )
-            rows = (await db.execute(stmt)).scalars().all()
-            for event in rows:
-                ts_data = _format_timestamp(event.event_date or event.created_at)
-                item = _empty_item()
-                item.update(
-                    {
-                        "type": "timeline_event",
-                        "title": event.title or "Timeline event",
-                        "subtitle": event.description or "",
-                        "timestamp_iso": ts_data["timestamp_iso"],
-                        "timestamp_label": ts_data["timestamp_label"],
-                        "icon": "•",
-                        "link": "/tenant/timeline",
-                        "is_evidence": bool(getattr(event, "is_evidence", False)),
-                        "is_deadline": bool(getattr(event, "is_deadline", False)),
-                        "metadata": {
-                            "event_id": event.id,
-                            "event_type": event.event_type,
-                            "is_urgent": bool(getattr(event, "is_urgent", False)),
-                        },
-                    }
-                )
-                items.append(item)
+            items.append(item)
 
-            eviction_stmt = (
-                select(EvictionTimelineEvent)
-                .where(EvictionTimelineEvent.user_id == user_id)
-                .order_by(EvictionTimelineEvent.event_date.desc())
-                .limit(50)
+        eviction_rows = (await _list_eviction_events(user_id))[:50]
+        for event in eviction_rows:
+            ts_data = _format_timestamp(event.event_date or event.created_at)
+            title = _format_eviction_title(event.event_type)
+            is_evidence, is_deadline = _classify_eviction(event.event_type)
+            item = _empty_item()
+            item.update(
+                {
+                    "type": "timeline_event",
+                    "title": title,
+                    "subtitle": (event.source or "manual").title(),
+                    "timestamp_iso": ts_data["timestamp_iso"],
+                    "timestamp_label": ts_data["timestamp_label"],
+                    "icon": "▸" if is_evidence else "•",
+                    "link": "/tenant/timeline",
+                    "is_evidence": is_evidence,
+                    "is_deadline": is_deadline,
+                    "metadata": {
+                        "event_id": event.id,
+                        "event_type": event.event_type,
+                        "source_document_id": event.source_document_id,
+                        "content_overlay_id": event.content_overlay_id,
+                        "jurisdiction": event.jurisdiction,
+                        "subject_id": event.subject_id,
+                    },
+                }
             )
-            eviction_rows = (await db.execute(eviction_stmt)).scalars().all()
-            for event in eviction_rows:
-                ts_data = _format_timestamp(event.event_date or event.created_at)
-                title = _format_eviction_title(event.event_type)
-                is_evidence, is_deadline = _classify_eviction(event.event_type)
-                item = _empty_item()
-                item.update(
-                    {
-                        "type": "timeline_event",
-                        "title": title,
-                        "subtitle": (event.source or "manual").title(),
-                        "timestamp_iso": ts_data["timestamp_iso"],
-                        "timestamp_label": ts_data["timestamp_label"],
-                        "icon": "▸" if is_evidence else "•",
-                        "link": "/tenant/timeline",
-                        "is_evidence": is_evidence,
-                        "is_deadline": is_deadline,
-                        "metadata": {
-                            "event_id": event.id,
-                            "event_type": event.event_type,
-                            "source_document_id": event.source_document_id,
-                            "content_overlay_id": event.content_overlay_id,
-                            "jurisdiction": event.jurisdiction,
-                            "subject_id": event.subject_id,
-                        },
-                    }
-                )
-                items.append(item)
+            items.append(item)
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.warning("Feed: timeline async fetch failed for %s: %s", user_id, e)
     return items
 
 
-def _fetch_journal_entries(user_id: str) -> list[dict[str, Any]]:
-    """Fetch journal entries for the user."""
+async def _fetch_journal_entries(user_id: str) -> list[dict[str, Any]]:
+    """Fetch journal entries for the user (vault-overlay backed)."""
     items: list[dict[str, Any]] = []
     try:
-        from app.modules.journal.service import list_journal_entries
+        from app.modules.journal.service import list_entries_for_user_id
 
-        entries = list_journal_entries(user_id) if callable(list_journal_entries) else []
+        entries, _total = await list_entries_for_user_id(user_id, limit=50)
         for entry in entries:
-            ts_data = _format_timestamp(entry.get("created_at") or entry.get("timestamp"))
+            payload = entry.payload
+            ts_data = _format_timestamp(payload.get("occurred_at") or entry.created_at)
             item = _empty_item()
             item.update(
                 {
                     "type": "journal",
-                    "title": entry.get("title") or "Journal entry",
-                    "subtitle": (entry.get("body") or "")[:120],
+                    "title": payload.get("title") or "Journal entry",
+                    "subtitle": (payload.get("content") or "")[:120],
                     "timestamp_iso": ts_data["timestamp_iso"],
                     "timestamp_label": ts_data["timestamp_label"],
                     "icon": "📝",
                     "link": "/tenant/journal",
                     "metadata": {
-                        "entry_id": entry.get("id"),
+                        "entry_id": entry.overlay_id,
                     },
                 }
             )
@@ -380,6 +356,23 @@ def _fetch_journal_entries(user_id: str) -> list[dict[str, Any]]:
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.warning("Feed: journal fetch failed for %s: %s", user_id, e)
     return items
+
+
+def _fetch_journal_entries_sync(user_id: str) -> list[dict[str, Any]]:
+    """Sync-path fetch for the legacy aggregate_feed().
+
+    Journal entries live in the user's cloud vault (Unified Overlay System)
+    and require async provider access. When no event loop is running we drive
+    the async fetch to completion; inside a running loop we defer to
+    aggregate_feed_async() — same convention as _fetch_documents.
+    """
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            return []  # Async path handled in aggregate_feed_async
+        return loop.run_until_complete(_fetch_journal_entries(user_id))
+    except RuntimeError:
+        return asyncio.run(_fetch_journal_entries(user_id))
 
 
 def _fetch_deadlines(user_id: str) -> list[dict[str, Any]]:
@@ -475,7 +468,7 @@ def aggregate_feed(
     if not type_filter or type_filter == "timeline_event":
         items.extend(_fetch_timeline_events(user_id))
     if not type_filter or type_filter == "journal":
-        items.extend(_fetch_journal_entries(user_id))
+        items.extend(_fetch_journal_entries_sync(user_id))
     if not type_filter or type_filter == "deadline":
         items.extend(_fetch_deadlines(user_id))
     if not type_filter or type_filter == "letter":

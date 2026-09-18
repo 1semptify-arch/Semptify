@@ -7,8 +7,9 @@ voicemail transcripts, and call logs into the tenant's record.
 Design principles:
 - File-based import into the user's own connected storage only — no live OAuth.
 - Asymmetric redaction is mandatory before any text is stored or embedded.
-- Third-party contacts are extracted and upserted to ThirdPartyContact for
-  downstream matching (e.g., call logs, redaction allowlist).
+- Third-party contacts are extracted and upserted as THIRD_PARTY_CONTACT
+  overlays in the user's vault for downstream matching (e.g., call logs,
+  redaction allowlist).
 - Voicemail audio is transcribed then discarded unless the user explicitly
   opts to keep the raw audio as evidence.
 - Imported communications become `TimelineEvent` rows with `event_type='communication'`.
@@ -28,12 +29,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from xml.etree import ElementTree as ET
 
-from sqlalchemy import select
-
 from app.core.id_gen import make_id
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 from app.core.utc import utc_now
-from app.models.models import ThirdPartyContact, TimelineEvent
 from app.services.redaction_service import redact_text_for_user
 
 if TYPE_CHECKING:
@@ -358,11 +356,11 @@ async def extract_and_upsert_contacts(
     communications: list[dict],
     user_email: str | None = None,
     user_phone: str | None = None,
-) -> list[ThirdPartyContact]:
+) -> list:
     """
     Scan communication metadata/bodies for third-party contact info and upsert
-    into the ThirdPartyContact table. Skip anything that matches the user's own
-    supplied email/phone.
+    as THIRD_PARTY_CONTACT overlays in the user's vault. Skip anything that
+    matches the user's own supplied email/phone.
     """
     candidates: dict[str, dict] = {}
     user_emails = {user_email.lower()} if user_email else set()
@@ -435,49 +433,23 @@ async def extract_and_upsert_contacts(
                         },
                     )
 
-    upserted: list[ThirdPartyContact] = []
-    for key, data in candidates.items():
-        # Try to find an existing contact by email or phone for this user.
-        existing = None
-        if data["email"]:
-            result = await db.execute(
-                select(ThirdPartyContact).where(
-                    ThirdPartyContact.user_id == user_id,
-                    ThirdPartyContact.email == data["email"],
-                    ThirdPartyContact.is_active == True,  # noqa: E712
-                )
-            )
-            existing = result.scalar_one_or_none()
-        if not existing and data["phone"]:
-            result = await db.execute(
-                select(ThirdPartyContact).where(
-                    ThirdPartyContact.user_id == user_id,
-                    ThirdPartyContact.phone == data["phone"],
-                    ThirdPartyContact.is_active == True,  # noqa: E712
-                )
-            )
-            existing = result.scalar_one_or_none()
+    from app.core.user_context import build_context_for_user_id
+    from app.services.third_party_contact_store import upsert_contact
 
-        if existing:
-            # Only enrich if empty.
-            if not existing.name and data["name"]:
-                existing.name = data["name"]
-            existing.updated_at = utc_now()
-            upserted.append(existing)
-        else:
-            contact = ThirdPartyContact(
-                id=make_id("tpc"),
-                user_id=user_id,
-                entity_type=data["entity_type"],
-                name=data["name"],
-                email=data["email"],
-                phone=data["phone"],
-                source=data["source"],
-                created_at=utc_now(),
-                updated_at=utc_now(),
-            )
-            db.add(contact)
-            upserted.append(contact)
+    user = await build_context_for_user_id(user_id)
+    upserted: list = []
+    for key, data in candidates.items():
+        # Upsert by email or phone — the store dedupes among active contacts
+        # and enriches an empty name on match, same as the legacy query path.
+        contact = await upsert_contact(
+            user,
+            name=data["name"],
+            email=data["email"],
+            phone=data["phone"],
+            entity_type=data["entity_type"],
+            source=data["source"],
+        )
+        upserted.append(contact)
 
     await db.commit()
     return upserted
@@ -556,7 +528,10 @@ async def import_communications(
 
     [c.email for c in contacts if c.email] + [c.phone for c in contacts if c.phone]
 
-    timeline_events: list[TimelineEvent] = []
+    from app.services.timeline_store import create_event
+
+    user = await build_context_for_user_id(user_id)
+    timeline_events: list = []
     for comm in communications:
         raw_body = comm.get("body", "")
         redacted_body = await redact_text_for_user(
@@ -573,20 +548,15 @@ async def import_communications(
         if not title or title == "Communication":
             title = f"{comm.get('source', 'communication').replace('_', ' ').title()}"
 
-        event = TimelineEvent(
-            id=make_id("evt"),
-            user_id=user_id,
+        event = await create_event(
+            user,
             event_type="communication",
             title=title,
             description=redacted_body,
             event_date=comm.get("date") or utc_now(),
             is_evidence=True,
-            created_at=utc_now(),
         )
-        db.add(event)
         timeline_events.append(event)
-
-    await db.commit()
 
     return {
         "filename": filename,
@@ -641,7 +611,7 @@ register_function_group(
         description=(
             "Import email (.eml/.mbox), SMS (CSV/XML), call logs (CSV), and "
             "voicemail audio into the tenant timeline. Parses third-party "
-            "contacts, upserts them to ThirdPartyContact, and redacts the "
+            "contacts, upserts them to the vault as overlays, and redacts the "
             "authenticating user's identifying info before storage."
         ),
         inputs=(
@@ -658,8 +628,8 @@ register_function_group(
         outputs=("summary",),
         dependencies=(
             "app.services.redaction_service",
-            "app.models.models.ThirdPartyContact",
-            "app.models.models.TimelineEvent",
+            "app.services.third_party_contact_store",
+            "app.services.timeline_store",
         ),
         deterministic=False,
     )

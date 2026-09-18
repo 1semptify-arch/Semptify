@@ -26,17 +26,15 @@ from typing import Any
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from sqlalchemy import delete, select
 
 from app.core.auto_refresh import ensure_valid_token
-from app.core.database import get_db_session
 from app.core.document_hub import get_document_hub
 from app.core.overlay_types import OverlayType
 from app.core.security import StorageUser, yellow_access
+from app.core.user_context import build_context_for_user_id
 from app.core.user_id import get_provider_from_user_id
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_OVERLAY_DOCUMENTS
-from app.models.models import Incident
 from app.models.unified_overlay_models import CaseDataPayload, CreateOverlayRequest
 from app.modules.case_builder.fca_guard import require_fca_readiness
 from app.modules.case_builder.fca_packet_export import build_fca_readiness_pdf, build_fca_readiness_zip
@@ -551,118 +549,115 @@ def _build_case_data_payload(case_data: dict[str, Any]) -> CaseDataPayload:
     )
 
 
+async def _get_incident_overlay(user_id: str, case_id: str):
+    """Resolve the user's INCIDENT overlay for a case id (int payload id)."""
+    from app.services.incident_store import get_incident_overlay
+
+    user = await build_context_for_user_id(user_id)
+    return user, await get_incident_overlay(user, int(case_id))
+
+
 async def load_case(case_id: str, user_id: str) -> dict | None:
-    """Load case from user's cloud storage, enforcing DB ownership."""
-    async with get_db_session() as session:
-        row = await session.execute(
-            select(Incident).where(
-                Incident.incident_id == int(case_id),
-                Incident.user_id == user_id,
-            )
+    """Load case from user's cloud storage, enforcing ownership."""
+    user, incident = await _get_incident_overlay(user_id, case_id)
+    if not incident:
+        return None
+    p = incident.payload
+
+    # Primary path: read CASE_DATA overlay from user's cloud storage
+    case_overlay_id = p.get("case_overlay_id")
+    if case_overlay_id:
+        manager = await _get_case_overlay_manager(user_id)
+        overlay = await manager.get_overlay(case_overlay_id)
+        if overlay and overlay.created_by == user.get_effective_user_id():
+            data = dict(overlay.payload or {})
+            data["case_id"] = str(p.get("incident_id"))
+            data["user_id"] = user_id
+            data["status"] = p.get("status")
+            data["created_at"] = overlay.created_at.isoformat()
+            data["updated_at"] = overlay.updated_at.isoformat()
+            return data
+        logger.warning(
+            "CASE_DATA overlay %s for incident %s could not be loaded; falling back to legacy metadata.",
+            case_overlay_id,
+            p.get("incident_id"),
         )
-        incident = row.scalar_one_or_none()
-        if not incident:
-            return None
 
-        # Primary path: read CASE_DATA overlay from user's cloud storage
-        if incident.case_overlay_id:
-            manager = await _get_case_overlay_manager(user_id, session)
-            overlay = await manager.get_overlay(incident.case_overlay_id)
-            if overlay and overlay.created_by == user_id:
-                data = dict(overlay.payload or {})
-                data["case_id"] = str(incident.incident_id)
-                data["user_id"] = incident.user_id
-                data["status"] = incident.status
-                data["created_at"] = overlay.created_at.isoformat()
-                data["updated_at"] = overlay.updated_at.isoformat()
-                return data
-            logger.warning(
-                "CASE_DATA overlay %s for incident %s could not be loaded; falling back to legacy metadata.",
-                incident.case_overlay_id,
-                incident.incident_id,
-            )
-
-        # Fallback for legacy rows that still have incident_metadata
-        data = dict(incident.incident_metadata or {})
-        data["case_id"] = str(incident.incident_id)
-        data["user_id"] = incident.user_id
-        data["status"] = incident.status
-        data["created_at"] = incident.created_at.isoformat()
-        data["updated_at"] = incident.updated_at.isoformat()
-        return data
+    # Fallback for legacy rows that still have incident_metadata
+    data = dict(p.get("incident_metadata") or {})
+    data["case_id"] = str(p.get("incident_id"))
+    data["user_id"] = user_id
+    data["status"] = p.get("status")
+    data["created_at"] = p.get("created_at")
+    data["updated_at"] = p.get("updated_at")
+    return data
 
 
 async def save_case(case_id: str, case_data: dict, user_id: str) -> None:
     """Persist case content to a CASE_DATA overlay in the user's cloud storage.
 
-    The Incident row is updated with the overlay pointer and non-PII structure
-    only. No narrative, names, addresses, or case numbers land in Postgres.
+    The incident overlay is updated with the case_overlay_id pointer and
+    non-PII structure only.
     """
+    from app.services.incident_store import update_incident
+
     payload = _build_case_data_payload(case_data)
-    async with get_db_session() as session:
-        row = await session.execute(
-            select(Incident).where(
-                Incident.incident_id == int(case_id),
-                Incident.user_id == user_id,
+    user, incident = await _get_incident_overlay(user_id, case_id)
+    if not incident:
+        raise ValueError(f"Case {case_id} not found for user")
+
+    manager = await _get_case_overlay_manager(user_id)
+    case_overlay_id = incident.payload.get("case_overlay_id")
+
+    if case_overlay_id:
+        overlay = await manager.get_overlay(case_overlay_id)
+        if overlay and overlay.created_by == user.get_effective_user_id():
+            await manager.update_overlay(
+                case_overlay_id,
+                payload=payload.model_dump(),
+            )
+        else:
+            # Overlay missing or ownership mismatch — create a new one
+            case_overlay_id = None
+
+    if not case_overlay_id:
+        response = await manager.create_overlay(
+            CreateOverlayRequest(
+                overlay_type=OverlayType.CASE_DATA,
+                document_id=case_id,
+                vault_path=VAULT_OVERLAY_DOCUMENTS,
+                payload=payload.model_dump(),
+                metadata={"source": "case_builder", "version": "1.0"},
             )
         )
-        incident = row.scalar_one_or_none()
-        if not incident:
-            raise ValueError(f"Case {case_id} not found for user")
+        if not response.success or not response.overlay_id:
+            raise RuntimeError(f"Failed to create CASE_DATA overlay: {response.message}")
+        case_overlay_id = response.overlay_id
 
-        manager = await _get_case_overlay_manager(user_id, session)
+    # Pointer + status + non-PII tags only
+    from app.modules.case_builder.fca_service import calculate_readiness_score
 
-        if incident.case_overlay_id:
-            overlay = await manager.get_overlay(incident.case_overlay_id)
-            if overlay and overlay.created_by == user_id:
-                await manager.update_overlay(
-                    incident.case_overlay_id,
-                    payload=payload.model_dump(),
-                )
-            else:
-                # Overlay missing or ownership mismatch — create a new one
-                incident.case_overlay_id = None
-
-        if not incident.case_overlay_id:
-            response = await manager.create_overlay(
-                CreateOverlayRequest(
-                    overlay_type=OverlayType.CASE_DATA,
-                    document_id=case_id,
-                    vault_path=VAULT_OVERLAY_DOCUMENTS,
-                    payload=payload.model_dump(),
-                    metadata={"source": "case_builder", "version": "1.0"},
-                )
-            )
-            if not response.success or not response.overlay_id:
-                raise RuntimeError(f"Failed to create CASE_DATA overlay: {response.message}")
-            incident.case_overlay_id = response.overlay_id
-
-        # DB row: pointer + status + non-PII tags only
-        incident.status = case_data.get("status", incident.status)
-        incident.incident_type = payload.flag_category or incident.incident_type
-        incident.title = f"Case: {payload.flag_category or 'uncategorized'}"
-        incident.incident_metadata = {}
-
-        # Update FCA readiness score from the overlay checklist (non-PII summary)
-        from app.modules.case_builder.fca_service import calculate_readiness_score
-
-        score = calculate_readiness_score(payload.readiness_checklist)
-        incident.fca_readiness_score = score if payload.readiness_checklist else None
-        incident.fca_readiness_updated_at = utc_now() if payload.readiness_checklist else None
-
-        await session.commit()
+    score = calculate_readiness_score(payload.readiness_checklist)
+    await update_incident(
+        user,
+        int(case_id),
+        case_overlay_id=case_overlay_id,
+        status=case_data.get("status", incident.payload.get("status")),
+        incident_type=payload.flag_category or incident.payload.get("incident_type"),
+        title=f"Case: {payload.flag_category or 'uncategorized'}",
+        incident_metadata={},
+        fca_readiness_score=score if payload.readiness_checklist else None,
+        fca_readiness_updated_at=utc_now() if payload.readiness_checklist else None,
+    )
 
 
 async def verify_case_ownership(case_id: str, user_id: str) -> bool:
     """Return True if case exists and belongs to user."""
-    async with get_db_session() as session:
-        row = await session.execute(
-            select(Incident.incident_id).where(
-                Incident.incident_id == int(case_id),
-                Incident.user_id == user_id,
-            )
-        )
-        return row.scalar_one_or_none() is not None
+    try:
+        _, incident = await _get_incident_overlay(user_id, case_id)
+        return incident is not None
+    except (TypeError, ValueError):
+        return False
 
 
 # =============================================================================
@@ -1007,20 +1002,18 @@ async def case_builder_info():
 @router.get("/cases")
 async def list_cases(user: StorageUser = Depends(yellow_access)):
     """List all cases for the authenticated user with computed status and progress."""
+    from app.services.incident_store import list_incidents_for_user_id
+
     user_id = user.user_id
     cases = []
 
-    async with get_db_session() as session:
-        rows = await session.execute(
-            select(Incident).where(Incident.user_id == user_id).order_by(Incident.updated_at.desc())
-        )
-        incidents = rows.scalars().all()
+    incidents = await list_incidents_for_user_id(user_id)
 
     for incident in incidents:
         case = dict(incident.incident_metadata or {})
         case["case_id"] = str(incident.incident_id)
         case["status"] = incident.status
-        case["updated_at"] = incident.updated_at.isoformat()
+        case["updated_at"] = incident.updated_at.isoformat() if incident.updated_at else None
 
         status = case.get("status", "draft") or "draft"
 
@@ -1219,17 +1212,16 @@ async def create_case(case: CaseCreate, user: StorageUser = Depends(yellow_acces
         "legal_accuracy_score": freshness_validation.get("freshness_score", 100.0),
     }
 
-    async with get_db_session() as session:
-        incident = Incident(
-            user_id=user_id,
-            title="New case",
-            status="draft",
-            incident_type=case.case_type,
-            incident_metadata={},
-        )
-        session.add(incident)
-        await session.commit()
-        await session.refresh(incident)
+    from app.services.incident_store import create_incident
+
+    ctx = await build_context_for_user_id(user_id)
+    incident = await create_incident(
+        ctx,
+        title="New case",
+        status="draft",
+        incident_type=case.case_type,
+        incident_metadata={},
+    )
     case_id = str(incident.incident_id)
     complete_case_data["case_id"] = case_id
 
@@ -1491,17 +1483,16 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
             }
         )
 
-    async with get_db_session() as session:
-        incident = Incident(
-            user_id=user_id,
-            title=intake.case_number or "Complaint Intake",
-            status="active",
-            incident_type=f"eviction_defense_{intake.complaint_type}",
-            incident_metadata=case_data,
-        )
-        session.add(incident)
-        await session.commit()
-        await session.refresh(incident)
+    from app.services.incident_store import create_incident
+
+    ctx = await build_context_for_user_id(user_id)
+    incident = await create_incident(
+        ctx,
+        title=intake.case_number or "Complaint Intake",
+        status="active",
+        incident_type=f"eviction_defense_{intake.complaint_type}",
+        incident_metadata=case_data,
+    )
     case_data["case_id"] = str(incident.incident_id)
 
     # Validate Minnesota-specific requirements
@@ -1543,17 +1534,13 @@ async def update_case(case_id: str, updates: dict[str, Any] = Body(...), user: S
 @router.delete("/cases/{case_id}")
 async def delete_case(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Delete a case belonging to the authenticated user."""
+    from app.services.incident_store import delete_incident
+
     user_id = user.user_id
     if not await verify_case_ownership(case_id, user_id):
         raise HTTPException(status_code=404, detail="Case not found")
-    async with get_db_session() as session:
-        await session.execute(
-            delete(Incident).where(
-                Incident.incident_id == int(case_id),
-                Incident.user_id == user_id,
-            )
-        )
-        await session.commit()
+    ctx = await build_context_for_user_id(user_id)
+    await delete_incident(ctx, int(case_id))
     return {"success": True, "message": f"Case {case_id} deleted"}
 
 

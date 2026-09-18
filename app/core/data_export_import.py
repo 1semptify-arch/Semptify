@@ -292,105 +292,100 @@ class DataExportImportManager:
     async def _export_timeline(self, user_id: str, filters: dict[str, Any]) -> dict[str, Any]:
         """Export user timeline events."""
         try:
-            from sqlalchemy import select
+            from app.services.timeline_store import list_events_for_user_id
 
-            from app.core.database import get_db_session
-            from app.models.models import TimelineEvent as TimelineEventModel
+            events = await list_events_for_user_id(user_id)
 
-            async with get_db_session() as session:
-                # Build query with filters
-                query = select(TimelineEventModel).where(TimelineEventModel.user_id == user_id)
+            # Apply filters
+            if "date_from" in filters:
+                date_from = datetime.fromisoformat(filters["date_from"])
+                events = [e for e in events if e.event_date and e.event_date >= date_from]
 
-                # Apply filters
-                if "date_from" in filters:
-                    date_from = datetime.fromisoformat(filters["date_from"])
-                    query = query.where(TimelineEventModel.event_date >= date_from)
+            if "date_to" in filters:
+                date_to = datetime.fromisoformat(filters["date_to"])
+                events = [e for e in events if e.event_date and e.event_date <= date_to]
 
-                if "date_to" in filters:
-                    date_to = datetime.fromisoformat(filters["date_to"])
-                    query = query.where(TimelineEventModel.event_date <= date_to)
+            if "event_types" in filters:
+                event_types = set(filters["event_types"])
+                events = [e for e in events if e.event_type in event_types]
 
-                if "event_types" in filters:
-                    event_types = filters["event_types"]
-                    query = query.where(TimelineEventModel.event_type.in_(event_types))
+            # Convert to export format
+            export_events = []
+            for event in events:
+                export_events.append(
+                    {
+                        "id": event.id,
+                        "title": event.title,
+                        "description": event.description,
+                        "event_type": event.event_type,
+                        "event_date": event.event_date.isoformat() if event.event_date else None,
+                        "created_at": event.created_at.isoformat() if event.created_at else None,
+                        "is_evidence": event.is_evidence,
+                        "metadata": {"location": event.location, "people_present": event.who_involved},
+                    }
+                )
 
-                result = await session.execute(query)
-                events = result.scalars().all()
-
-                # Convert to export format
-                export_events = []
-                for event in events:
-                    export_events.append(
-                        {
-                            "id": event.id,
-                            "title": event.title,
-                            "description": event.description,
-                            "event_type": event.event_type,
-                            "event_date": event.event_date.isoformat() if event.event_date else None,
-                            "created_at": event.created_at.isoformat() if event.created_at else None,
-                            "is_evidence": event.is_evidence,
-                            "metadata": {"location": event.location, "people_present": event.people_present},
-                        }
-                    )
-
-                return {
-                    "export_type": "timeline",
-                    "user_id": user_id,
-                    "exported_at": utc_now().isoformat(),
-                    "events": export_events,
-                    "total_count": len(export_events),
-                    "filters": filters,
-                }
+            return {
+                "export_type": "timeline",
+                "user_id": user_id,
+                "exported_at": utc_now().isoformat(),
+                "events": export_events,
+                "total_count": len(export_events),
+                "filters": filters,
+            }
 
         except Exception as e:
             logger.error(f"Timeline export failed: {e}")
             return {"events": [], "error": str(e)}
 
     async def _export_contacts(self, user_id: str, filters: dict[str, Any]) -> dict[str, Any]:
-        """Export user contacts."""
+        """Export user contacts (vault overlays)."""
         try:
-            from sqlalchemy import select
+            from app.modules.contacts.service import list_contacts_for_user_id
 
-            from app.core.database import get_db_session
-            from app.models.models import Contact as ContactModel
+            contact_overlays, _total = await list_contacts_for_user_id(user_id, active_only=False)
 
-            async with get_db_session() as session:
-                query = select(ContactModel).where(ContactModel.user_id == user_id)
+            # Apply filters
+            if "contact_types" in filters:
+                contact_types = filters["contact_types"]
+                contact_overlays = [
+                    o for o in contact_overlays if o.payload.get("role") in contact_types
+                ]
 
-                # Apply filters
-                if "contact_types" in filters:
-                    contact_types = filters["contact_types"]
-                    query = query.where(ContactModel.role.in_(contact_types))
+            # Convert to export format
+            export_contacts = []
+            for contact in contact_overlays:
+                p = contact.payload
+                addr_parts = [
+                    p.get("address_line1"),
+                    p.get("address_line2"),
+                    p.get("city"),
+                    p.get("state"),
+                    p.get("zip_code"),
+                ]
+                export_contacts.append(
+                    {
+                        "id": contact.overlay_id,
+                        "name": p.get("name"),
+                        "role": p.get("role"),
+                        "organization": p.get("organization"),
+                        "phone": p.get("phone"),
+                        "email": p.get("email"),
+                        "address": ", ".join(part for part in addr_parts if part) or None,
+                        "notes": p.get("notes"),
+                        "created_at": p.get("created_at") or contact.created_at.isoformat(),
+                        "updated_at": p.get("updated_at") or (contact.updated_at.isoformat() if contact.updated_at else None),
+                    }
+                )
 
-                result = await session.execute(query)
-                contacts = result.scalars().all()
-
-                # Convert to export format
-                export_contacts = []
-                for contact in contacts:
-                    export_contacts.append(
-                        {
-                            "id": contact.id,
-                            "name": contact.name,
-                            "role": contact.role,
-                            "organization": contact.organization,
-                            "phone": contact.phone,
-                            "email": contact.email,
-                            "address": contact.address,
-                            "notes": contact.notes,
-                            "created_at": contact.created_at.isoformat() if contact.created_at else None,
-                            "updated_at": contact.updated_at.isoformat() if contact.updated_at else None,
-                        }
-                    )
-
-                return {
-                    "export_type": "contacts",
-                    "user_id": user_id,
-                    "exported_at": utc_now().isoformat(),
-                    "contacts": export_contacts,
-                    "total_count": len(export_contacts),
-                    "filters": filters,
-                }
+            return {
+                "export_type": "contacts",
+                "user_id": user_id,
+                "exported_at": utc_now().isoformat(),
+                "contacts": export_contacts,
+                "total_count": len(export_contacts),
+                "filters": filters,
+            }
 
         except Exception as e:
             logger.error(f"Contacts export failed: {e}")

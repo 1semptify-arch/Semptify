@@ -16,7 +16,7 @@ from sqlalchemy import select
 from app.core.database import get_db_session
 from app.core.event_bus import EventType, event_bus
 from app.core.utc import utc_now
-from app.models.models import Document, TimelineEvent
+from app.models.models import Document
 
 logger = logging.getLogger(__name__)
 
@@ -182,26 +182,19 @@ class FormDataService:
                     await self._extract_legal_data(doc)
 
     async def _load_from_timeline(self):
-        """Load timeline events"""
-        async with get_db_session() as session:
-            query = (
-                select(TimelineEvent)
-                .where(TimelineEvent.user_id == self.user_id)
-                .order_by(TimelineEvent.event_date.desc())
-            )
-            result = await session.execute(query)
-            events = result.scalars().all()
+        """Load timeline events from the tenant's vault."""
+        from app.services.timeline_store import list_events_for_user_id
 
-            for event in events:
-                event_data = {
-                    "id": event.id,
-                    "type": event.event_type,
-                    "title": event.title,
-                    "date": event.event_date.isoformat() if event.event_date else "",
-                    "description": event.description or "",
-                    "is_evidence": event.is_evidence,
-                }
-                self.form_data.timeline_events.append(event_data)
+        for event in await list_events_for_user_id(self.user_id):
+            event_data = {
+                "id": event.id,
+                "type": event.event_type,
+                "title": event.title,
+                "date": event.event_date.isoformat() if event.event_date else "",
+                "description": event.description or "",
+                "is_evidence": event.is_evidence,
+            }
+            self.form_data.timeline_events.append(event_data)
 
     async def _extract_case_info(self):
         """Extract case information from documents and timeline"""

@@ -54,7 +54,7 @@ from app.core.vault_paths import (
     VAULT_CERTIFICATES,
     VAULT_DOCUMENTS,
 )
-from app.models.models import Incident, VaultIndexDB, VaultItem
+from app.models.models import VaultIndexDB, VaultItem
 from app.modules.vault.envelopes import (
     get_vault_upload_page,
     vault_document_to_object_envelope,
@@ -1536,12 +1536,13 @@ class IncidentResponse(BaseModel):
 @router.post("/incidents", response_model=IncidentResponse, status_code=201)
 async def create_incident(
     request: IncidentCreateRequest,
-    db: AsyncSession = Depends(get_db),
     user: StorageUser = Depends(yellow_access),
 ):
     """Create a new incident/case for organizing related evidence."""
-    incident = Incident(
-        user_id=user.user_id,
+    from app.services import incident_store
+
+    incident = await incident_store.create_incident(
+        user,
         title=request.title,
         description=request.description,
         start_date=request.start_date,
@@ -1551,10 +1552,8 @@ async def create_incident(
         incident_metadata=request.incident_metadata,
         status="active",
     )
-
-    db.add(incident)
-    await db.flush()
-    await db.refresh(incident)
+    if not incident:
+        raise HTTPException(status_code=500, detail="Failed to create incident")
 
     return IncidentResponse.model_validate(incident)
 
@@ -1567,20 +1566,13 @@ async def list_incidents(
     user: StorageUser = Depends(yellow_access),
 ):
     """List all incidents for the user."""
-    query = select(Incident).where(Incident.user_id == user.user_id)
+    from app.services import incident_store
 
-    if status:
-        query = query.where(Incident.status == status)
-    if incident_type:
-        query = query.where(Incident.incident_type == incident_type)
-
-    query = query.order_by(Incident.created_at.desc())
-
-    result = await db.execute(query)
-    incidents = result.scalars().all()
+    incidents = await incident_store.list_incidents(user, status=status, incident_type=incident_type)
 
     response_incidents = []
     for incident in incidents:
+        # VaultItem.related_incident_id stays in the DB (Phase 2 index table)
         count_result = await db.execute(
             select(func.count()).select_from(VaultItem).where(VaultItem.related_incident_id == incident.incident_id)
         )
@@ -1600,13 +1592,9 @@ async def get_incident(
     user: StorageUser = Depends(yellow_access),
 ):
     """Get a single incident with item count."""
-    result = await db.execute(
-        select(Incident).where(
-            Incident.incident_id == incident_id,
-            Incident.user_id == user.user_id,
-        )
-    )
-    incident = result.scalar_one_or_none()
+    from app.services import incident_store
+
+    incident = await incident_store.get_incident(user, incident_id)
 
     if not incident:
         raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
@@ -1628,13 +1616,9 @@ async def get_incident_items(
     user: StorageUser = Depends(yellow_access),
 ):
     """Get all vault items linked to a specific incident."""
-    result = await db.execute(
-        select(Incident).where(
-            Incident.incident_id == incident_id,
-            Incident.user_id == user.user_id,
-        )
-    )
-    if not result.scalar_one_or_none():
+    from app.services import incident_store
+
+    if not await incident_store.get_incident(user, incident_id):
         raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
 
     items_result = await db.execute(

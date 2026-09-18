@@ -29,7 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now
-from app.models.models import CalendarEvent, Document, RentPayment, TimelineEvent, User
+from app.models.models import Document, User
 
 # =============================================================================
 # Minnesota Court Compliance Rules
@@ -409,11 +409,11 @@ class EvictionCaseBuilder:
             calendar = await self._get_calendar_events(session, user_id)
             self._update_from_calendar(case, calendar)
 
-            # 5. Get rent payment history
+            # 5. Get rent payment history (vault overlays)
             payments = await self._get_rent_payments(session, user_id)
             case.rent_history = self._build_rent_history(payments)
-            case.total_paid = sum(p.amount for p in payments if p.status == "paid")
-            case.total_owed = sum(p.amount for p in payments if p.status in ["late", "missed"])
+            case.total_paid = sum(p.get("amount") or 0 for p in payments if p.get("status") == "paid")
+            case.total_owed = sum(p.get("amount") or 0 for p in payments if p.get("status") in ["late", "missed"])
 
             # 6. Analyze applicable defenses
             case.defenses = self._analyze_defenses(case)
@@ -638,14 +638,14 @@ class EvictionCaseBuilder:
             )
         return None
 
-    async def _get_timeline_events(self, session: AsyncSession, user_id: str) -> list[TimelineEvent]:
-        """Get timeline events for user."""
-        result = await session.execute(
-            select(TimelineEvent).where(TimelineEvent.user_id == user_id).order_by(TimelineEvent.event_date.asc())
-        )
-        return list(result.scalars().all())
+    async def _get_timeline_events(self, session: AsyncSession, user_id: str) -> list:
+        """Get timeline events for user (vault overlays), oldest first."""
+        _ = session
+        from app.services.timeline_store import list_events_for_user_id
 
-    def _build_timeline(self, events: list[TimelineEvent], documents: list[Document]) -> list[TimelineEntry]:
+        return list(reversed(await list_events_for_user_id(user_id)))
+
+    def _build_timeline(self, events: list, documents: list[Document]) -> list[TimelineEntry]:
         """Build timeline for court narrative."""
         timeline = []
         {d.id: d for d in documents}
@@ -667,41 +667,46 @@ class EvictionCaseBuilder:
 
         return timeline
 
-    async def _get_calendar_events(self, session: AsyncSession, user_id: str) -> list[CalendarEvent]:
-        """Get calendar events for user."""
-        result = await session.execute(
-            select(CalendarEvent).where(CalendarEvent.user_id == user_id).order_by(CalendarEvent.start_datetime.asc())
-        )
-        return list(result.scalars().all())
+    async def _get_calendar_events(self, session: AsyncSession, user_id: str) -> list[dict]:
+        """Get calendar events from the tenant's vault (overlay payloads)."""
+        _ = session
+        from app.modules.calendar.service import list_events_for_user_id
 
-    def _update_from_calendar(self, case: EvictionCase, calendar: list[CalendarEvent]) -> None:
+        overlays, _total = await list_events_for_user_id(user_id)
+        return [o.payload for o in overlays]
+
+    def _update_from_calendar(self, case: EvictionCase, calendar: list[dict]) -> None:
         """Update case with calendar information."""
+        from app.services.calendar_sync import _parse_datetime
+
         for event in calendar:
-            if event.event_type == "hearing":
+            if event.get("event_type") == "hearing":
+                court_date = _parse_datetime(event.get("start_datetime"))
                 if case.notice:
-                    case.notice.court_date = event.start_datetime
+                    case.notice.court_date = court_date
                 else:
                     case.notice = EvictionNoticeInfo(
                         notice_type="unknown",
-                        court_date=event.start_datetime,
+                        court_date=court_date,
                     )
 
-    async def _get_rent_payments(self, session: AsyncSession, user_id: str) -> list[RentPayment]:
-        """Get rent payment history."""
-        result = await session.execute(
-            select(RentPayment).where(RentPayment.user_id == user_id).order_by(RentPayment.payment_date.desc())
-        )
-        return list(result.scalars().all())
+    async def _get_rent_payments(self, session: AsyncSession, user_id: str) -> list[dict]:
+        """Get rent payment history from the tenant's vault (overlay payloads)."""
+        _ = session
+        from app.modules.rent.service import list_entries_for_user_id
 
-    def _build_rent_history(self, payments: list[RentPayment]) -> list[dict]:
+        overlays, _total = await list_entries_for_user_id(user_id)
+        return [o.payload for o in overlays]
+
+    def _build_rent_history(self, payments: list[dict]) -> list[dict]:
         """Build rent history summary."""
         return [
             {
-                "date": p.payment_date.isoformat(),
-                "amount": p.amount,
-                "status": p.status,
-                "method": p.payment_method,
-                "confirmation": p.confirmation_number,
+                "date": p.get("payment_date"),
+                "amount": p.get("amount"),
+                "status": p.get("status"),
+                "method": p.get("payment_method"),
+                "confirmation": p.get("confirmation_number"),
             }
             for p in payments
         ]

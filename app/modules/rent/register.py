@@ -15,7 +15,8 @@ register_function_group(
         description=(
             "CANONICAL create a rent ledger entry. Supports payments, fees, "
             "deposits, credits, and charges. Amount is in dollars (input), stored "
-            "as cents (DB). Computes and returns the running balance after the entry."
+            "as cents in the tenant's vault ledger overlay. Computes and returns "
+            "the running balance after the entry."
         ),
         inputs=(
             "user_id",
@@ -32,7 +33,7 @@ register_function_group(
             "notes?",
         ),
         outputs=("payment_id", "payment"),
-        dependencies=("app.modules.rent.router", "app.models.models.RentPayment"),
+        dependencies=("app.modules.rent.router", "app.modules.rent.service"),
         deterministic=False,
     )
 )

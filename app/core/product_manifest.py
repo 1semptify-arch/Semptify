@@ -455,8 +455,9 @@ _register(
     tier=ProductTier.CORE,
     dev_notes=(
         "Full rent account ledger: payments, fees, deposits, credits, charges. "
-        "Amounts stored in cents; running balance computed per user. Entries can be "
-        "user-entered or OCR-extracted and linked to overlay highlights."
+        "Amounts stored in cents; running balance computed per user. Vault-persisted "
+        "via RENT_LEDGER_ENTRY overlays (legacy rent_payments rows migrate on first read). "
+        "Entries can be user-entered or OCR-extracted and linked to overlay highlights."
     ),
     log_message="Rent ledger router active — full account ledger endpoints enabled",
 )
@@ -552,7 +553,7 @@ _register(
     tags=("Journal",),
     tier=ProductTier.CORE,
     lifecycle="beta",
-    dev_notes="Free-form tenant journal — contemporaneous notes, conversations, incidents, repair requests. DB-backed JournalEntry model. Surfaces in tenant briefcase.",
+    dev_notes="Free-form tenant journal — contemporaneous notes, conversations, incidents, repair requests. Vault-persisted via JOURNAL_ENTRY overlays (legacy journal_entries rows migrate on first read). Surfaces in tenant briefcase.",
     log_message="Journal router connected at /api/journal",
 )
 _register("app.modules.public_forms.router", tags=("Public Forms",), tier=ProductTier.CORE)
@@ -757,7 +758,7 @@ _register(
     tags=("Case Builder",),
     tier=ProductTier.EXTENDED,
     upl_risk_tier=UPLRiskTier.MEDIUM,
-    dev_notes="Canonical case-builder module. Legacy app/modules/case_builder.py standalone file removed — it was shadowed by this package.",
+    dev_notes="Canonical case-builder module. Legacy app/modules/case_builder.py standalone file removed — it was shadowed by this package. Case/incident records vault-persisted as INCIDENT overlays (integer incident_id preserved in payload; legacy rows migrate on first read).",
 )
 _register("app.modules.progress.router", tags=("Progress Tracker",), tier=ProductTier.EXTENDED)
 _register("app.modules.actions.router", tags=("Smart Actions",), tier=ProductTier.EXTENDED)
@@ -770,7 +771,7 @@ _register(
     tags=("Complaint Wizard",),
     tier=ProductTier.EXTENDED,
     log_message="Complaint Filing Wizard loaded - Regulatory accountability tools active",
-    dev_notes="Canonical complaint-filing wizard. Legacy app/modules/complaint_wizard_module.py standalone (Mesh SDK, DISABLED in main.py) removed — shadowed by this router.",
+    dev_notes="Canonical complaint-filing wizard. Legacy app/modules/complaint_wizard_module.py standalone (Mesh SDK, DISABLED in main.py) removed — shadowed by this router. Drafts/filings vault-persisted as COMPLAINT overlays (legacy complaints rows migrate on first read).",
 )
 _register(
     "app.modules.housing_accountability.router",
@@ -821,7 +822,7 @@ _register(
     tier=ProductTier.EXTENDED,
     lifecycle="beta",
     fees_policy=FeesPolicy.TENANT_NO_FEES,
-    dev_notes="Greenfield tenant-facing module for property-management disputes and fee/term comparison tracking. T2 data sensitivity (descriptions, parties, dates).",
+    dev_notes="Greenfield tenant-facing module for property-management disputes and fee/term comparison tracking. T2 data sensitivity (descriptions, parties, dates). Records vault-persisted as DISPUTE_RECORD/COMPARISON_ENTRY overlays (legacy rows migrate on first read).",
     log_message="Dispute Tracker router connected at /api/dispute-tracker",
 )
 
@@ -1116,7 +1117,7 @@ _register(
     tags=("Calendar",),
     tier=ProductTier.DEV,
     lifecycle="beta",
-    dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly→monthly→weekly→daily→hourly drill-down.",
+    dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly→monthly→weekly→daily→hourly drill-down. Events vault-persisted as CALENDAR_EVENT overlays (legacy calendar_events rows migrate on first read).",
 )
 
 # Sticky Notes — per-user scratch-pad (overlay-based, no certified document)

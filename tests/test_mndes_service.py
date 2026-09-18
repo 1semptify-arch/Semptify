@@ -3,7 +3,7 @@ MNDES Exhibit Service Unit Tests
 ================================
 
 Tests for the Minnesota Digital Exhibit System service.
-Covers package creation, attestations, compliance checks, and database persistence.
+Covers package creation, attestations, compliance checks, and vault persistence.
 """
 
 from datetime import UTC, datetime
@@ -17,8 +17,7 @@ from app.models.mndes_exhibit import (
     MNDESPackageCreateRequest,
     MNDESSubmissionConfirmRequest,
 )
-from app.models.models import MNDESExhibitPackageDB
-from app.services.mndes_exhibit_service import MNDESExhibitService
+from app.modules.mndes.service import MNDESExhibitService
 
 
 @pytest.fixture
@@ -71,7 +70,7 @@ class TestPackageCreation:
     @pytest.mark.asyncio
     async def test_create_package_success(self, service, create_request, sample_vault_docs):
         """Test successful package creation."""
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock) as mock_save:
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock) as mock_save:
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
@@ -93,7 +92,7 @@ class TestPackageCreation:
         # Remove one vault doc from the list
         incomplete_docs = [{"vault_id": "vault_doc_001", "filename": "lease.pdf", "file_size_bytes": 1024}]
 
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,  # Asks for 3 docs
                 vault_docs=incomplete_docs,  # Only provides 1
@@ -108,8 +107,8 @@ class TestPackageCreation:
         """Test that sealed cases generate warnings."""
         create_request.is_sealed_case = True
 
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
-            with patch("app.services.mndes_exhibit_service.logger") as mock_logger:
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock):
+            with patch("app.modules.mndes.service.logger") as mock_logger:
                 await service.create_package(
                     request=create_request,
                     vault_docs=sample_vault_docs,
@@ -126,7 +125,7 @@ class TestAttestations:
     @pytest.mark.asyncio
     async def test_apply_attestations_success(self, service, create_request, sample_vault_docs):
         """Test successful attestation application."""
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock):
             # Create package first
             package = await service.create_package(
                 request=create_request,
@@ -146,7 +145,7 @@ class TestAttestations:
                     attested_by="John Doe",
                 )
 
-                updated_package = await service.apply_attestations(attestation_request)
+                updated_package = await service.apply_attestations(attestation_request, "user_123")
 
                 assert updated_package.checklist_complete is True
                 assert updated_package.exhibits[0].user_attested_no_sexual_content is True
@@ -154,7 +153,7 @@ class TestAttestations:
     @pytest.mark.asyncio
     async def test_apply_attestations_incomplete(self, service, create_request, sample_vault_docs):
         """Test attestation with incomplete checklist."""
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
@@ -171,7 +170,7 @@ class TestAttestations:
                     attests_semptify_not_mndes=True,
                 )
 
-                updated_package = await service.apply_attestations(attestation_request)
+                updated_package = await service.apply_attestations(attestation_request, "user_123")
 
                 assert updated_package.checklist_complete is False
 
@@ -189,7 +188,7 @@ class TestAttestations:
             )
 
             with pytest.raises(ValueError, match="Package nonexistent_package not found"):
-                await service.apply_attestations(attestation_request)
+                await service.apply_attestations(attestation_request, "user_123")
 
 
 class TestSubmissionConfirmation:
@@ -198,7 +197,7 @@ class TestSubmissionConfirmation:
     @pytest.mark.asyncio
     async def test_confirm_submission_success(self, service, create_request, sample_vault_docs):
         """Test successful submission confirmation."""
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
@@ -213,7 +212,7 @@ class TestSubmissionConfirmation:
                     submitted_at=datetime.now(UTC),
                 )
 
-                updated_package = await service.confirm_submission(confirm_request)
+                updated_package = await service.confirm_submission(confirm_request, "user_123")
 
                 assert updated_package.mndes_submission_started is True
                 assert updated_package.exhibits[0].mndes_submitted_by_user is True
@@ -222,7 +221,7 @@ class TestSubmissionConfirmation:
     @pytest.mark.asyncio
     async def test_confirm_submission_all_exhibits(self, service, create_request, sample_vault_docs):
         """Test that submission_complete is set when all exhibits are submitted."""
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
@@ -237,7 +236,7 @@ class TestSubmissionConfirmation:
                         exhibit_id=exhibit.exhibit_id,
                         mndes_tracking_number=f"MN{i + 1:09d}",
                     )
-                    package = await service.confirm_submission(confirm_request)
+                    package = await service.confirm_submission(confirm_request, "user_123")
 
             assert package.mndes_submission_complete is True
 
@@ -248,7 +247,7 @@ class TestComplianceSummary:
     @pytest.mark.asyncio
     async def test_get_compliance_summary(self, service, create_request, sample_vault_docs):
         """Test compliance summary generation."""
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
@@ -256,7 +255,7 @@ class TestComplianceSummary:
             )
 
             with patch.object(service, "get_package", new_callable=AsyncMock, return_value=package):
-                summary = await service.get_compliance_summary(package.package_id)
+                summary = await service.get_compliance_summary(package.package_id, "user_123")
 
                 assert summary.total_files == 3
                 assert summary.all_clear is not None  # Could be True or False depending on validation
@@ -268,7 +267,7 @@ class TestComplianceSummary:
         """Test compliance summary for non-existent package."""
         with patch.object(service, "get_package", new_callable=AsyncMock, return_value=None):
             with pytest.raises(ValueError, match="Package not_found not found"):
-                await service.get_compliance_summary("not_found")
+                await service.get_compliance_summary("not_found", "user_123")
 
 
 class TestSubmissionChecklist:
@@ -277,7 +276,7 @@ class TestSubmissionChecklist:
     @pytest.mark.asyncio
     async def test_get_submission_checklist(self, service, create_request, sample_vault_docs):
         """Test submission checklist generation."""
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
@@ -285,7 +284,7 @@ class TestSubmissionChecklist:
             )
 
             with patch.object(service, "get_package", new_callable=AsyncMock, return_value=package):
-                checklist = await service.get_submission_checklist(package.package_id)
+                checklist = await service.get_submission_checklist(package.package_id, "user_123")
 
                 assert checklist["package_id"] == package.package_id
                 assert checklist["mn_case_number"] == package.mn_case_number
@@ -299,42 +298,41 @@ class TestSubmissionChecklist:
         """Test checklist for non-existent package."""
         with patch.object(service, "get_package", new_callable=AsyncMock, return_value=None):
             with pytest.raises(ValueError, match="Package not_found not found"):
-                await service.get_submission_checklist("not_found")
+                await service.get_submission_checklist("not_found", "user_123")
 
 
-class TestDatabasePersistence:
-    """Test database persistence functionality."""
+class TestVaultPersistence:
+    """Test vault payload persistence functionality."""
 
     @pytest.mark.asyncio
     async def test_package_to_db_model_conversion(self, service, create_request, sample_vault_docs):
-        """Test conversion from Pydantic model to DB model."""
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
+        """Test conversion from Pydantic model to vault payload."""
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
                 user_id="user_123",
             )
 
-            db_model = service._package_to_db_model(package)
+            payload = service._package_to_payload(package)
 
-            assert isinstance(db_model, MNDESExhibitPackageDB)
-            assert db_model.package_id == package.package_id
-            assert db_model.user_id == package.user_id
-            assert db_model.mn_case_number == package.mn_case_number
-            assert db_model.exhibits_json is not None
+            assert payload["package_id"] == package.package_id
+            assert payload["user_id"] == package.user_id
+            assert payload["mn_case_number"] == package.mn_case_number
+            assert payload["exhibits_json"] is not None
 
     @pytest.mark.asyncio
     async def test_package_from_db_model_conversion(self, service, create_request, sample_vault_docs):
-        """Test conversion from DB model to Pydantic model."""
-        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
+        """Test conversion from vault payload to Pydantic model."""
+        with patch.object(service, "_save_package_to_vault", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
                 user_id="user_123",
             )
 
-            db_model = service._package_to_db_model(package)
-            reconstructed = service._package_from_db_model(db_model)
+            payload = service._package_to_payload(package)
+            reconstructed = service._package_from_payload(payload)
 
             assert reconstructed.package_id == package.package_id
             assert reconstructed.user_id == package.user_id
@@ -374,28 +372,30 @@ class TestDefaultExhibitName:
 @pytest.mark.integration
 @pytest.mark.asyncio
 class TestMNDESIntegration:
-    """Integration tests with actual database."""
+    """Integration tests with actual vault/DB backend."""
 
     async def test_full_package_lifecycle(self, service, create_request, sample_vault_docs):
-        """Test complete package lifecycle with real DB."""
-        # This test requires a real database connection
-        # Skip if no DB available
-        try:
-            from app.core.database import get_db_session
+        """Test complete package lifecycle with the vault store."""
+        saved: dict = {}
 
-            async with get_db_session() as session:
-                pass  # Just test connection
-        except Exception:
-            pytest.skip("Database not available for integration tests")
+        async def _fake_save(pkg):
+            saved[pkg.package_id] = pkg
 
-        # Create package
-        package = await service.create_package(
-            request=create_request,
-            vault_docs=sample_vault_docs,
-            user_id="user_123",
-        )
+        async def _fake_get(package_id, user_id):
+            return saved.get(package_id)
 
-        # Verify saved to DB
-        retrieved = await service.get_package(package.package_id)
-        assert retrieved is not None
-        assert retrieved.mn_case_number == package.mn_case_number
+        with (
+            patch.object(service, "_save_package_to_vault", side_effect=_fake_save),
+            patch.object(service, "_get_package_from_vault", side_effect=_fake_get),
+            patch.object(service, "_migrate_legacy_packages", new_callable=AsyncMock, return_value=0),
+            patch.object(service, "_get_package_from_db", new_callable=AsyncMock, return_value=None),
+        ):
+            package = await service.create_package(
+                request=create_request,
+                vault_docs=sample_vault_docs,
+                user_id="user_123",
+            )
+
+            retrieved = await service.get_package(package.package_id, "user_123")
+            assert retrieved is not None
+            assert retrieved.mn_case_number == package.mn_case_number

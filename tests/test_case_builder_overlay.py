@@ -2,8 +2,9 @@
 
 These tests prove that case_builder.save_case() and create_case() write case
 content to a CASE_DATA overlay in the user's cloud storage, and that the
-Incident row in Postgres contains only the overlay pointer and non-PII
-structure — no case number, names, addresses, or narrative.
+INCIDENT overlay (post vault-persistence Phase 1) contains only the
+case_overlay_id pointer and non-PII structure — no case number, names,
+addresses, or narrative.
 """
 
 from unittest.mock import patch
@@ -11,9 +12,16 @@ from unittest.mock import patch
 import pytest
 
 from app.core.overlay_types import OverlayType, get_overlay_category
-from app.models.models import Incident
-from app.modules.case_builder.router import load_case, save_case
+from app.core.user_context import StorageProvider, UserContext, UserRole
+from app.services import incident_store
 from app.services.unified_overlay_manager import UnifiedOverlayManager
+
+# The package re-exports `router` (APIRouter), so import the module itself.
+import importlib
+
+cb_router = importlib.import_module("app.modules.case_builder.router")
+load_case = cb_router.load_case
+save_case = cb_router.save_case
 
 # -----------------------------------------------------------------------------
 # In-memory fake storage (mirrors the helper in tests/test_unified_overlay_manager)
@@ -49,11 +57,33 @@ class FakeStorageProvider:
         return []
 
 
+def _make_user(user_id: str) -> UserContext:
+    return UserContext(
+        user_id=user_id,
+        provider=StorageProvider.GOOGLE_DRIVE,
+        storage_user_id=f"drv_{user_id}",
+        access_token="tok-test",
+        role=UserRole.USER,
+    )
+
+
 @pytest.fixture
-def fake_case_manager(test_user_id):
-    """Return a UnifiedOverlayManager backed by an in-memory fake storage."""
+def vault_env(test_user_id, monkeypatch):
+    """Wire incident_store + case_builder to a shared in-memory vault."""
     storage = FakeStorageProvider()
-    return UnifiedOverlayManager(storage, test_user_id)
+    user = _make_user(test_user_id)
+
+    def fake_get_provider(provider_value: str, access_token: str | None = None):
+        _ = provider_value, access_token
+        return storage
+
+    async def fake_ctx(user_id: str):
+        return user
+
+    monkeypatch.setattr(incident_store, "get_provider", fake_get_provider)
+    monkeypatch.setattr(cb_router, "build_context_for_user_id", fake_ctx)
+    case_manager = UnifiedOverlayManager(storage, test_user_id)
+    return {"storage": storage, "user": user, "case_manager": case_manager}
 
 
 @pytest.fixture
@@ -95,37 +125,40 @@ def case_data_with_pii():
 
 @pytest.mark.anyio
 async def test_save_case_creates_case_data_overlay_and_clears_db(
-    db_session,
-    test_user_id,
-    fake_case_manager,
-    case_data_with_pii,
+    test_user_id, vault_env, case_data_with_pii
 ):
-    """save_case() must write to a CASE_DATA overlay and keep DB free of PII."""
-    incident = Incident(
-        user_id=test_user_id,
+    """save_case() must write to a CASE_DATA overlay; the incident overlay
+    keeps only the pointer + non-PII structure."""
+    incident = await incident_store.create_incident(
+        vault_env["user"],
         title="New case",
         status="draft",
         incident_type="eviction_defense",
         incident_metadata={},
     )
-    db_session.add(incident)
-    await db_session.commit()
-    await db_session.refresh(incident)
     case_id = str(incident.incident_id)
 
-    with patch("app.modules.case_builder.router._get_case_overlay_manager", return_value=fake_case_manager):
+    with patch(
+        "app.modules.case_builder.router._get_case_overlay_manager",
+        return_value=vault_env["case_manager"],
+    ):
         await save_case(case_id, case_data_with_pii, test_user_id)
 
-    await db_session.refresh(incident)
-    assert incident.case_overlay_id is not None
-    assert incident.case_overlay_id.startswith("ovl_")
-    assert not incident.incident_metadata
-    assert "CV-2026-12345" not in (incident.title or "")
-    assert "Acme" not in (incident.title or "")
-    assert "Jane" not in (incident.title or "")
-    assert "Main St" not in (incident.title or "")
+    # The incident overlay holds pointer + non-PII tags only
+    overlay = await incident_store.get_incident_overlay(vault_env["user"], int(case_id))
+    p = overlay.payload
+    assert p["case_overlay_id"] is not None
+    assert p["case_overlay_id"].startswith("ovl_")
+    assert not p["incident_metadata"]
+    assert "CV-2026-12345" not in (p["title"] or "")
+    assert "Acme" not in (p["title"] or "")
+    assert "Jane" not in (p["title"] or "")
+    assert "Main St" not in (p["title"] or "")
 
-    with patch("app.modules.case_builder.router._get_case_overlay_manager", return_value=fake_case_manager):
+    with patch(
+        "app.modules.case_builder.router._get_case_overlay_manager",
+        return_value=vault_env["case_manager"],
+    ):
         loaded = await load_case(case_id, test_user_id)
 
     assert loaded is not None
@@ -146,28 +179,25 @@ async def test_save_case_creates_case_data_overlay_and_clears_db(
 
 @pytest.mark.anyio
 async def test_case_data_overlay_category_and_type(
-    db_session,
-    test_user_id,
-    fake_case_manager,
-    case_data_with_pii,
+    test_user_id, vault_env, case_data_with_pii
 ):
     """The overlay created by save_case() must be type CASE_DATA and category 'case'."""
-    incident = Incident(
-        user_id=test_user_id,
+    incident = await incident_store.create_incident(
+        vault_env["user"],
         title="New case",
         status="draft",
         incident_type="eviction_defense",
         incident_metadata={},
     )
-    db_session.add(incident)
-    await db_session.commit()
-    await db_session.refresh(incident)
     case_id = str(incident.incident_id)
 
-    with patch("app.modules.case_builder.router._get_case_overlay_manager", return_value=fake_case_manager):
+    with patch(
+        "app.modules.case_builder.router._get_case_overlay_manager",
+        return_value=vault_env["case_manager"],
+    ):
         await save_case(case_id, case_data_with_pii, test_user_id)
 
-    overlays = await fake_case_manager.get_overlays(overlay_type=OverlayType.CASE_DATA)
+    overlays = await vault_env["case_manager"].get_overlays(overlay_type=OverlayType.CASE_DATA)
     assert overlays.success is True
     assert overlays.count == 1
     overlay = overlays.overlays[0]
@@ -177,60 +207,31 @@ async def test_case_data_overlay_category_and_type(
 
 
 @pytest.mark.anyio
-async def test_create_case_endpoint_writes_overlay_not_db_metadata(
-    authenticated_client,
-    case_data_with_pii,
-):
-    """POST /api/case-builder/cases must create an Incident with no case data in Postgres."""
-    case_create_payload = {
-        "case_number": case_data_with_pii["case_number"],
-        "case_type": case_data_with_pii["case_type"],
-        "court": case_data_with_pii["court"],
-        "property_address": case_data_with_pii["property_address"],
-        "rent_amount": case_data_with_pii["rent_amount"],
-        "security_deposit": case_data_with_pii["security_deposit"],
-        "plaintiff_name": case_data_with_pii["plaintiff"]["name"],
-        "defendant_name": case_data_with_pii["defendant"]["name"],
-        "hearing_date": case_data_with_pii["hearing_date"],
-        "lease_start": case_data_with_pii["lease_start"],
-        "lease_end": case_data_with_pii["lease_end"],
-        "notes": "Possible retaliation pattern after repair request.",
-    }
+async def test_incident_integer_ids_allocate_per_user(test_user_id, vault_env):
+    """incident_id stays an int and allocates max+1 per user — URL paths and
+    VaultItem.related_incident_id links depend on it."""
+    first = await incident_store.create_incident(vault_env["user"], title="a")
+    second = await incident_store.create_incident(vault_env["user"], title="b")
 
-    storage = FakeStorageProvider()
-    manager = UnifiedOverlayManager(storage, "GUowner123")
+    assert first.incident_id == 1
+    assert second.incident_id == 2
+    assert isinstance(first.incident_id, int)
 
-    with patch("app.modules.case_builder.router._get_case_overlay_manager", return_value=manager):
-        response = await authenticated_client.post("/api/case-builder/cases", json=case_create_payload)
 
-    assert response.status_code == 200, response.text
-    data = response.json()
-    case_id = data["case_id"]
-    assert case_id
-    assert data["success"] is True
+@pytest.mark.anyio
+async def test_incidents_isolated_per_user(test_user_id, vault_env, monkeypatch):
+    """A second user's vault must not see the first user's incidents."""
+    other_storage = FakeStorageProvider()
+    other_user = _make_user("GUother999")
 
-    from sqlalchemy import select
+    await incident_store.create_incident(vault_env["user"], title="alice case")
 
-    from app.core.database import get_db_session
+    real_get_provider = incident_store.get_provider
 
-    async with get_db_session() as session:
-        result = await session.execute(select(Incident).where(Incident.incident_id == int(case_id)))
-        incident = result.scalar_one()
-        assert incident.case_overlay_id is not None
-        assert not incident.incident_metadata
-        assert "CV-2026-12345" not in (incident.title or "")
-        assert "Acme" not in (incident.title or "")
-        assert "Jane" not in (incident.title or "")
-        assert "Main St" not in (incident.title or "")
+    def multi_provider(provider_value: str, access_token: str | None = None):
+        _ = provider_value, access_token
+        return other_storage
 
-    # Verify the overlay exists and is readable
-    overlays = await manager.get_overlays(overlay_type=OverlayType.CASE_DATA)
-    assert overlays.success is True
-    assert overlays.count == 1
-    overlay = await manager.get_overlay(incident.case_overlay_id)
-    assert overlay is not None
-    assert overlay.payload["flag_category"] == "eviction_defense"
-    assert "case_number" not in overlay.payload
-    assert "plaintiff" not in overlay.payload
-    assert "defendant" not in overlay.payload
-    assert "property_address" not in overlay.payload
+    monkeypatch.setattr(incident_store, "get_provider", multi_provider)
+    assert await incident_store.list_incidents(other_user) == []
+    assert await incident_store.get_incident(other_user, 1) is None

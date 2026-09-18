@@ -14,15 +14,12 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
-from app.core.id_gen import make_id
 from app.core.security import can_access, require_user
 from app.core.user_context import UserContext
-from app.core.utc import utc_now
-from app.models.models import RentPayment
+from app.models.unified_overlay_models import UnifiedOverlay
+from app.modules.rent import service
 from app.services.calendar_sync import sync_calendar_for_user
 
 VALID_ENTRY_TYPES = {"payment", "fee", "deposit", "credit", "charge"}
@@ -121,11 +118,6 @@ def _parse_date(date_str: str | None) -> datetime | None:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.") from exc
 
 
-def _format_date(dt: datetime | None) -> str | None:
-    """Format a datetime as YYYY-MM-DD."""
-    return dt.strftime("%Y-%m-%d") if dt else None
-
-
 def _validate_entry_type(entry_type: str | None) -> str:
     """Validate and normalize an entry type."""
     if not entry_type:
@@ -165,41 +157,42 @@ def _validate_status(status: str | None) -> str | None:
     return value
 
 
-async def _fetch_all_ledger_entries(db: AsyncSession, user_id: str) -> list[RentPayment]:
-    """Fetch all ledger entries for a user, oldest first."""
-    result = await db.execute(
-        select(RentPayment)
-        .where(RentPayment.user_id == user_id)
-        .order_by(RentPayment.payment_date.asc(), RentPayment.id.asc())
-    )
-    return list(result.scalars().all())
-
-
-def _compute_running_balances(entries: list[RentPayment]) -> dict[str, int]:
+def _compute_running_balances(entries: list[UnifiedOverlay]) -> dict[str, int]:
     """Compute running balance in cents after each entry in chronological order."""
     balance = 0
     balances: dict[str, int] = {}
     for entry in entries:
-        balance += _entry_sign(entry.entry_type) * entry.amount
-        balances[entry.id] = balance
+        p = entry.payload
+        balance += _entry_sign(p.get("entry_type") or "payment") * int(p.get("amount") or 0)
+        balances[entry.overlay_id] = balance
     return balances
 
 
-def _to_response(entry: RentPayment, running_balance_cents: int) -> RentPaymentResponse:
-    """Convert a RentPayment row to a response model."""
+def _format_date(value) -> str | None:
+    """Format an ISO date/datetime string (or datetime) as YYYY-MM-DD."""
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value.strftime("%Y-%m-%d")
+    return str(value)[:10]
+
+
+def _to_response(entry: UnifiedOverlay, running_balance_cents: int) -> RentPaymentResponse:
+    """Convert a ledger overlay to a response model."""
+    p = entry.payload
     return RentPaymentResponse(
-        payment_id=entry.id,
-        entry_type=entry.entry_type,
-        amount=entry.amount / 100.0,
-        payment_date=_format_date(entry.payment_date) or "",
-        due_date=_format_date(entry.due_date),
-        period_covered=entry.period_covered,
-        status=entry.status,
-        payment_method=entry.payment_method,
-        source=entry.source,
-        receipt_document_id=entry.receipt_document_id,
-        overlay_link=entry.overlay_link,
-        notes=entry.notes,
+        payment_id=entry.overlay_id,
+        entry_type=p.get("entry_type") or "payment",
+        amount=(p.get("amount") or 0) / 100.0,
+        payment_date=_format_date(p.get("payment_date")) or "",
+        due_date=_format_date(p.get("due_date")),
+        period_covered=p.get("period_covered"),
+        status=p.get("status"),
+        payment_method=p.get("payment_method"),
+        source=p.get("source") or "user_entered",
+        receipt_document_id=p.get("receipt_document_id"),
+        overlay_link=p.get("overlay_link"),
+        notes=p.get("notes"),
         running_balance=running_balance_cents / 100.0,
         created_at=entry.created_at.isoformat() if entry.created_at else "",
         updated_at=entry.updated_at.isoformat() if entry.updated_at else None,
@@ -222,13 +215,12 @@ async def create_payment(
         raise HTTPException(status_code=400, detail="payment_date is required")
     due_dt = _parse_date(body.due_date)
 
-    payment = RentPayment(
-        id=make_id("rnt"),
-        user_id=user.get_effective_user_id(),
+    payment = await service.create_entry(
+        user,
         entry_type=entry_type,
-        amount=_to_cents(body.amount),
-        payment_date=payment_dt,
-        due_date=due_dt,
+        amount_cents=_to_cents(body.amount),
+        payment_date=payment_dt.isoformat(),
+        due_date=due_dt.isoformat() if due_dt else None,
         period_covered=body.period_covered,
         status=status,
         payment_method=body.payment_method,
@@ -236,13 +228,7 @@ async def create_payment(
         receipt_document_id=body.receipt_document_id,
         overlay_link=body.overlay_link,
         notes=body.notes,
-        created_at=utc_now(),
-        updated_at=utc_now(),
     )
-
-    async with get_db_session() as db:
-        db.add(payment)
-        await db.commit()
 
     # Auto-sync calendar with rent due dates and late-fee triggers.
     try:
@@ -252,12 +238,11 @@ async def create_payment(
 
         logging.getLogger(__name__).warning("Calendar sync failed after rent payment create: %s", sync_exc)
 
-    async with get_db_session() as db:
-        all_entries = await _fetch_all_ledger_entries(db, user.get_effective_user_id())
-        balances = _compute_running_balances(all_entries)
-        balance_cents = balances.get(payment.id, 0)
+    all_entries, _total = await service.list_entries(user)
+    balances = _compute_running_balances(all_entries)
+    balance_cents = balances.get(payment.overlay_id, 0)
 
-    return {"success": True, "payment_id": payment.id, "payment": _to_response(payment, balance_cents)}
+    return {"success": True, "payment_id": payment.overlay_id, "payment": _to_response(payment, balance_cents)}
 
 
 @router.get("/payments")
@@ -266,15 +251,14 @@ async def list_payments(
 ):
     """List all rent ledger entries for the current user, newest first, with running balances."""
     await _validate_access(user, user.get_effective_user_id())
-    async with get_db_session() as db:
-        all_entries = await _fetch_all_ledger_entries(db, user.get_effective_user_id())
-        balances = _compute_running_balances(all_entries)
-        sorted_entries = sorted(
-            all_entries,
-            key=lambda p: (p.payment_date or datetime.min, p.id),
-            reverse=True,
-        )
-        payments = [_to_response(p, balances[p.id]) for p in sorted_entries]
+    all_entries, _total = await service.list_entries(user)
+    balances = _compute_running_balances(all_entries)
+    sorted_entries = sorted(
+        all_entries,
+        key=lambda p: (p.payload.get("payment_date") or "", p.payload.get("id") or p.overlay_id),
+        reverse=True,
+    )
+    payments = [_to_response(p, balances[p.overlay_id]) for p in sorted_entries]
 
     return {"payments": payments}
 
@@ -286,22 +270,13 @@ async def get_payment(
 ):
     """Get a single rent ledger entry by ID with its running balance."""
     await _validate_access(user, user.get_effective_user_id())
-    async with get_db_session() as db:
-        result = await db.execute(
-            select(RentPayment).where(
-                RentPayment.id == payment_id,
-                RentPayment.user_id == user.get_effective_user_id(),
-            )
-        )
-        payment = result.scalar_one_or_none()
-
+    payment = await service.get_entry(user, payment_id)
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
 
-    async with get_db_session() as db:
-        all_entries = await _fetch_all_ledger_entries(db, user.get_effective_user_id())
-        balances = _compute_running_balances(all_entries)
-        balance_cents = balances.get(payment.id, 0)
+    all_entries, _total = await service.list_entries(user)
+    balances = _compute_running_balances(all_entries)
+    balance_cents = balances.get(payment.overlay_id, 0)
 
     return {"payment": _to_response(payment, balance_cents)}
 
@@ -314,46 +289,38 @@ async def update_payment(
 ):
     """Update a rent ledger entry."""
     await _validate_access(user, user.get_effective_user_id())
-    async with get_db_session() as db:
-        result = await db.execute(
-            select(RentPayment).where(
-                RentPayment.id == payment_id,
-                RentPayment.user_id == user.get_effective_user_id(),
-            )
-        )
-        payment = result.scalar_one_or_none()
 
-        if not payment:
-            raise HTTPException(status_code=404, detail="Payment not found")
+    fields: dict = {}
+    if body.entry_type is not None:
+        fields["entry_type"] = _validate_entry_type(body.entry_type)
+    if body.amount is not None:
+        fields["amount"] = _to_cents(body.amount)
+    if body.payment_date is not None:
+        payment_dt = _parse_date(body.payment_date)
+        if not payment_dt:
+            raise HTTPException(status_code=400, detail="payment_date is required")
+        fields["payment_date"] = payment_dt.isoformat()
+    if body.due_date is not None:
+        due_dt = _parse_date(body.due_date)
+        fields["due_date"] = due_dt.isoformat() if due_dt else None
+    if body.period_covered is not None:
+        fields["period_covered"] = body.period_covered
+    if body.status is not None:
+        fields["status"] = _validate_status(body.status)
+    if body.payment_method is not None:
+        fields["payment_method"] = body.payment_method
+    if body.source is not None:
+        fields["source"] = _validate_source(body.source)
+    if body.receipt_document_id is not None:
+        fields["receipt_document_id"] = body.receipt_document_id
+    if body.overlay_link is not None:
+        fields["overlay_link"] = body.overlay_link
+    if body.notes is not None:
+        fields["notes"] = body.notes
 
-        if body.entry_type is not None:
-            payment.entry_type = _validate_entry_type(body.entry_type)
-        if body.amount is not None:
-            payment.amount = _to_cents(body.amount)
-        if body.payment_date is not None:
-            payment_dt = _parse_date(body.payment_date)
-            if not payment_dt:
-                raise HTTPException(status_code=400, detail="payment_date is required")
-            payment.payment_date = payment_dt
-        if body.due_date is not None:
-            payment.due_date = _parse_date(body.due_date)
-        if body.period_covered is not None:
-            payment.period_covered = body.period_covered
-        if body.status is not None:
-            payment.status = _validate_status(body.status)
-        if body.payment_method is not None:
-            payment.payment_method = body.payment_method
-        if body.source is not None:
-            payment.source = _validate_source(body.source)
-        if body.receipt_document_id is not None:
-            payment.receipt_document_id = body.receipt_document_id
-        if body.overlay_link is not None:
-            payment.overlay_link = body.overlay_link
-        if body.notes is not None:
-            payment.notes = body.notes
-
-        payment.updated_at = utc_now()
-        await db.commit()
+    payment = await service.update_entry(user, payment_id, fields)
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
 
     # Auto-sync calendar with updated rent dates.
     try:
@@ -363,10 +330,9 @@ async def update_payment(
 
         logging.getLogger(__name__).warning("Calendar sync failed after rent payment update: %s", sync_exc)
 
-    async with get_db_session() as db:
-        all_entries = await _fetch_all_ledger_entries(db, user.get_effective_user_id())
-        balances = _compute_running_balances(all_entries)
-        balance_cents = balances.get(payment.id, 0)
+    all_entries, _total = await service.list_entries(user)
+    balances = _compute_running_balances(all_entries)
+    balance_cents = balances.get(payment.overlay_id, 0)
 
     return {"success": True, "payment": _to_response(payment, balance_cents)}
 
@@ -378,20 +344,9 @@ async def delete_payment(
 ):
     """Delete a rent ledger entry."""
     await _validate_access(user, user.get_effective_user_id())
-    async with get_db_session() as db:
-        result = await db.execute(
-            select(RentPayment).where(
-                RentPayment.id == payment_id,
-                RentPayment.user_id == user.get_effective_user_id(),
-            )
-        )
-        payment = result.scalar_one_or_none()
-
-        if not payment:
-            raise HTTPException(status_code=404, detail="Payment not found")
-
-        await db.delete(payment)
-        await db.commit()
+    deleted = await service.delete_entry(user, payment_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Payment not found")
 
     # Auto-sync calendar after ledger deletion to remove orphaned rent events.
     try:

@@ -28,10 +28,10 @@ from app.core.utc import utc_now
 from app.models.models import (
     Document,
     RelationshipType,
-    TimelineEvent,
     User,
     UserRelationship,
 )
+from app.services.timeline_store import count_events_for_user_id, list_events_for_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ async def advocate_dashboard(request: Request):
             if not tenant:
                 continue
             doc_count = db.query(Document).filter_by(user_id=tenant.id).count()
-            event_count = db.query(TimelineEvent).filter_by(user_id=tenant.id).count()
+            event_count = await count_events_for_user_id(tenant.id)
             total_docs += doc_count
             total_events += event_count
 
@@ -187,7 +187,7 @@ async def list_clients(request: Request):
             if not tenant:
                 continue
             doc_count = db.query(Document).filter_by(user_id=tenant.id).count()
-            event_count = db.query(TimelineEvent).filter_by(user_id=tenant.id).count()
+            event_count = await count_events_for_user_id(tenant.id)
             clients.append(
                 {
                     "user_id": tenant.id,
@@ -214,14 +214,12 @@ async def client_detail(client_id: str, request: Request):
             raise HTTPException(status_code=404, detail="Client not found")
 
         doc_count = db.query(Document).filter_by(user_id=tenant.id).count()
-        event_count = db.query(TimelineEvent).filter_by(user_id=tenant.id).count()
-        recent_events = (
-            db.query(TimelineEvent)
-            .filter_by(user_id=tenant.id)
-            .order_by(TimelineEvent.created_at.desc())
-            .limit(5)
-            .all()
-        )
+        event_count = await count_events_for_user_id(tenant.id)
+        recent_events = sorted(
+            await list_events_for_user_id(tenant.id),
+            key=lambda e: e.created_at or utc_now(),
+            reverse=True,
+        )[:5]
 
         return {
             "client": {
@@ -261,13 +259,11 @@ async def case_queue(request: Request):
 
         client_ids = [r.to_user_id for r in rels]
         # Get recent events across all clients
-        events = (
-            db.query(TimelineEvent)
-            .filter(TimelineEvent.user_id.in_(client_ids))
-            .order_by(TimelineEvent.created_at.desc())
-            .limit(50)
-            .all()
-        )
+        events = []
+        for cid in client_ids:
+            events.extend(await list_events_for_user_id(cid))
+        events.sort(key=lambda e: e.created_at or utc_now(), reverse=True)
+        events = events[:50]
 
         queue = []
         for e in events:
@@ -350,25 +346,17 @@ async def merged_timeline(request: Request, client_id: str | None = None):
     with get_db_session() as db:
         if client_id:
             _check_client_link(db, user_id, client_id)
-            events = (
-                db.query(TimelineEvent)
-                .filter_by(user_id=client_id)
-                .order_by(TimelineEvent.created_at.desc())
-                .limit(100)
-                .all()
-            )
+            events = await list_events_for_user_id(client_id)
         else:
             rels = _get_clients_for_advocate(db, user_id)
             if not rels:
                 return {"events": [], "count": 0}
             client_ids = [r.to_user_id for r in rels]
-            events = (
-                db.query(TimelineEvent)
-                .filter(TimelineEvent.user_id.in_(client_ids))
-                .order_by(TimelineEvent.created_at.desc())
-                .limit(100)
-                .all()
-            )
+            events = []
+            for cid in client_ids:
+                events.extend(await list_events_for_user_id(cid))
+        events.sort(key=lambda e: e.created_at or utc_now(), reverse=True)
+        events = events[:100]
 
         return {
             "events": [

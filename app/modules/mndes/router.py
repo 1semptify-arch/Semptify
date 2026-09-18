@@ -314,7 +314,7 @@ async def create_exhibit_package(
     ]
 
     try:
-        package = mndes_exhibit_service.create_package(request, vault_docs, user_id)
+        package = await mndes_exhibit_service.create_package(request, vault_docs, user_id)
     except Exception as exc:
         logger.error("Failed to create MNDES package: %s", exc)
         raise HTTPException(status_code=500, detail="Failed to create exhibit package")
@@ -323,34 +323,43 @@ async def create_exhibit_package(
 
 
 @router.get("/api/mndes/package/{package_id}")
-async def get_exhibit_package(package_id: str) -> JSONResponse:
+async def get_exhibit_package(package_id: str, req: Request) -> JSONResponse:
     """Retrieve an exhibit package and its compliance status."""
-    package = mndes_exhibit_service.get_package(package_id)
+    user_id = _extract_user_id(req)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    package = await mndes_exhibit_service.get_package(package_id, user_id)
     if not package:
         raise HTTPException(status_code=404, detail="Package not found")
     return JSONResponse(package.dict())
 
 
 @router.get("/api/mndes/package/{package_id}/checklist")
-async def get_submission_checklist(package_id: str) -> JSONResponse:
+async def get_submission_checklist(package_id: str, req: Request) -> JSONResponse:
     """
     Return the pre-submission checklist for an exhibit package.
 
     Covers all Order ADM09-8010 requirements the user must satisfy
     before uploading to the MNDES portal.
     """
+    user_id = _extract_user_id(req)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
     try:
-        checklist = mndes_exhibit_service.get_submission_checklist(package_id)
+        checklist = await mndes_exhibit_service.get_submission_checklist(package_id, user_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
     return JSONResponse(checklist)
 
 
 @router.get("/api/mndes/package/{package_id}/compliance")
-async def get_package_compliance(package_id: str) -> JSONResponse:
+async def get_package_compliance(package_id: str, req: Request) -> JSONResponse:
     """Return compliance summary for a package."""
+    user_id = _extract_user_id(req)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
     try:
-        summary = mndes_exhibit_service.get_compliance_summary(package_id)
+        summary = await mndes_exhibit_service.get_compliance_summary(package_id, user_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
     return JSONResponse(summary.dict())
@@ -362,7 +371,7 @@ async def get_package_compliance(package_id: str) -> JSONResponse:
 
 
 @router.post("/api/mndes/package/attest")
-async def apply_attestations(request: MNDESAttestationRequest) -> JSONResponse:
+async def apply_attestations(request: MNDESAttestationRequest, req: Request) -> JSONResponse:
     """
     Record user attestations required before MNDES submission.
 
@@ -373,8 +382,11 @@ async def apply_attestations(request: MNDESAttestationRequest) -> JSONResponse:
     - Court will not return digital exhibits
     - Semptify ≠ MNDES submission
     """
+    user_id = _extract_user_id(req)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
     try:
-        package = mndes_exhibit_service.apply_attestations(request)
+        package = await mndes_exhibit_service.apply_attestations(request, user_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
 
@@ -398,15 +410,18 @@ async def apply_attestations(request: MNDESAttestationRequest) -> JSONResponse:
 
 
 @router.post("/api/mndes/package/confirm-submission")
-async def confirm_submission(request: MNDESSubmissionConfirmRequest) -> JSONResponse:
+async def confirm_submission(request: MNDESSubmissionConfirmRequest, req: Request) -> JSONResponse:
     """
     User confirms they completed manual upload at the MNDES portal.
 
     Records the MNDES tracking number assigned by the portal.
     This is the final step in the Semptify-MNDES workflow.
     """
+    user_id = _extract_user_id(req)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
     try:
-        package = mndes_exhibit_service.confirm_submission(request)
+        package = await mndes_exhibit_service.confirm_submission(request, user_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
 

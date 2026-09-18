@@ -30,13 +30,13 @@ Review State (2026-07-25):
   and the "Verified"/"Mismatched" filters are meaningful.
 
 Sharing (2026-07-25):
-  The Share verb creates a `DocumentShare` row with a token and scope. Shared
-  access is gated by that token and requires an authenticated recipient.
+  The Share verb creates a DOCUMENT_SHARE overlay in the owner's cloud vault
+  with a token and scope (app.services.document_share_store). Shared access is
+  gated by that owner-scoped token and requires an authenticated recipient.
 """
 
 import json
 import logging
-import secrets
 from typing import Any
 
 from fastapi import APIRouter, Request
@@ -56,11 +56,9 @@ from app.core.auto_refresh import ensure_valid_token
 from app.core.cookie_auth import verify_user_id
 from app.core.database import get_db_session
 from app.core.event_bus import EventType, event_bus
-from app.core.id_gen import make_id
 from app.core.overlay_types import OverlayType
 from app.core.user_id import COOKIE_USER_ID
 from app.core.utc import utc_now
-from app.models.models import DocumentShare
 
 logger = logging.getLogger(__name__)
 
@@ -1232,22 +1230,17 @@ async def dc_share_document(vault_id: str, request: Request) -> JSONResponse:
         if doc.user_id != user_id:
             return JSONResponse(status_code=403, content={"error": "access_denied"})
 
-        share_token = secrets.token_urlsafe(32)
-        share = DocumentShare(
-            id=make_id("share"),
-            owner_user_id=user_id,
-            vault_id=vault_id,
-            recipient_identifier=recipient,
-            scope=scope,
-            message=message,
-            share_token=share_token,
-            created_at=utc_now(),
-        )
-        async with get_db_session() as db:
-            db.add(share)
-            await db.commit()
+        from app.core.user_context import build_context_for_user_id
+        from app.services.document_share_store import create_share
 
-        share_url = f"/api/dc/shared/{share_token}"
+        user = await build_context_for_user_id(user_id)
+        if not user:
+            return JSONResponse(status_code=503, content={"error": "storage_unavailable"})
+        share = await create_share(user, vault_id=vault_id, recipient=recipient, scope=scope, message=message)
+        if not share:
+            return JSONResponse(status_code=500, content={"error": "share_failed"})
+
+        share_url = f"/api/dc/shared/{share.share_token}"
         logger.info("DC share: vault_id=%s owner=%s recipient=%s scope=%s", vault_id, user_id, recipient, scope)
 
         event_bus.publish_sync(
@@ -1264,7 +1257,7 @@ async def dc_share_document(vault_id: str, request: Request) -> JSONResponse:
             {
                 "ok": True,
                 "vault_id": vault_id,
-                "share_token": share_token,
+                "share_token": share.share_token,
                 "share_url": share_url,
                 "scope": scope,
                 "recipient": recipient,
@@ -1293,16 +1286,13 @@ async def dc_list_shares(vault_id: str, request: Request) -> JSONResponse:
         if doc.user_id != user_id:
             return JSONResponse(status_code=403, content={"error": "access_denied"})
 
-        from sqlalchemy import select
+        from app.core.user_context import build_context_for_user_id
+        from app.services.document_share_store import list_shares
 
-        async with get_db_session() as db:
-            result = await db.execute(
-                select(DocumentShare).where(
-                    DocumentShare.vault_id == vault_id,
-                    DocumentShare.owner_user_id == user_id,
-                )
-            )
-            shares = result.scalars().all()
+        user = await build_context_for_user_id(user_id)
+        if not user:
+            return JSONResponse(status_code=503, content={"error": "storage_unavailable"})
+        shares = await list_shares(user, vault_id=vault_id)
 
         return JSONResponse(
             {
@@ -1341,11 +1331,9 @@ async def dc_shared_document(share_token: str, request: Request) -> JSONResponse
         return JSONResponse(status_code=401, content={"error": "not_authenticated"})
 
     try:
-        from sqlalchemy import select
+        from app.services.document_share_store import record_share_access, resolve_share
 
-        async with get_db_session() as db:
-            result = await db.execute(select(DocumentShare).where(DocumentShare.share_token == share_token))
-            share = result.scalar_one_or_none()
+        share = await resolve_share(share_token)
 
         if not share:
             return JSONResponse(status_code=404, content={"error": "share_not_found"})
@@ -1353,11 +1341,7 @@ async def dc_shared_document(share_token: str, request: Request) -> JSONResponse
             return JSONResponse(status_code=410, content={"error": "share_expired"})
 
         # Update access metrics
-        async with get_db_session() as db:
-            share = await db.merge(share)
-            share.access_count += 1
-            share.accessed_at = utc_now()
-            await db.commit()
+        await record_share_access(share_token)
 
         return JSONResponse(
             {
@@ -1383,11 +1367,9 @@ async def dc_shared_document_content(share_token: str, request: Request):
         return JSONResponse(status_code=401, content={"error": "not_authenticated"})
 
     try:
-        from sqlalchemy import select
+        from app.services.document_share_store import resolve_share
 
-        async with get_db_session() as db:
-            result = await db.execute(select(DocumentShare).where(DocumentShare.share_token == share_token))
-            share = result.scalar_one_or_none()
+        share = await resolve_share(share_token)
 
         if not share:
             return JSONResponse(status_code=404, content={"error": "share_not_found"})

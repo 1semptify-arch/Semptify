@@ -2,7 +2,8 @@
 Semptify 5.0 - Complaint Filing Wizard Service
 Guides users through filing complaints with regulatory agencies.
 Supports evidence attachment and tracks filing status.
-Now with DATABASE PERSISTENCE for drafts.
+Drafts persist as COMPLAINT overlays in the tenant's cloud vault
+(vault-persistence Phase 1 — legacy `complaints` rows migrate on first read).
 """
 
 import json
@@ -11,11 +12,12 @@ from datetime import datetime
 from enum import StrEnum
 
 from pydantic import BaseModel
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.id_gen import make_id
+from app.core.overlay_types import OverlayType
 from app.core.utc import utc_now
+from app.core.vault_paths import VAULT_RECORDS_FILE
+from app.models.unified_overlay_models import CreateOverlayRequest
 
 logger = logging.getLogger(__name__)
 
@@ -438,209 +440,333 @@ class ComplaintWizardService:
         return [r[1] for r in recommendations]
 
     # =========================================================================
-    # DATABASE METHODS (Async)
+    # VAULT METHODS (Async — COMPLAINT overlays in the tenant's cloud vault)
     # =========================================================================
 
-    async def create_draft_db(
-        self, db: AsyncSession, user_id: str, agency_id: str, subject: str = "", complaint_type: str = "general"
-    ) -> ComplaintDraft:
-        """Create a new complaint draft and persist to database."""
-        from app.models.models import Complaint as ComplaintModel
-
-        draft_id = make_id("cmp")
-        now = utc_now()
-
-        # Create database record
-        db_complaint = ComplaintModel(
-            id=draft_id,
-            user_id=user_id,
-            agency_id=agency_id,
-            complaint_type=complaint_type,
-            status=ComplaintStatus.DRAFT.value,
-            subject=subject,
-            summary="",
-            detailed_description="",
-            target_type="landlord",
-            created_at=now,
-            updated_at=now,
-        )
-        db.add(db_complaint)
-        await db.commit()
-        await db.refresh(db_complaint)
-
-        # Create pydantic model for response
-        draft = ComplaintDraft(
-            id=draft_id, user_id=user_id, agency_id=agency_id, subject=subject, created_at=now, updated_at=now
-        )
-        self._cache[draft_id] = draft
-        logger.info("📝 Created complaint draft %s... for user %s...", draft_id[:8], user_id[:8])
-        return draft
-
-    async def get_draft_db(self, db: AsyncSession, draft_id: str) -> ComplaintDraft | None:
-        """Get a draft from database by ID."""
-        from app.models.models import Complaint as ComplaintModel
-
-        result = await db.execute(select(ComplaintModel).where(ComplaintModel.id == draft_id))
-        db_complaint = result.scalar_one_or_none()
-        if not db_complaint:
-            return None
-
-        return self._db_to_draft(db_complaint)
-
-    async def get_user_drafts_db(self, db: AsyncSession, user_id: str) -> list[ComplaintDraft]:
-        """Get all drafts for a user from database."""
-        from app.models.models import Complaint as ComplaintModel
-
-        result = await db.execute(
-            select(ComplaintModel).where(ComplaintModel.user_id == user_id).order_by(ComplaintModel.updated_at.desc())
-        )
-        db_complaints = result.scalars().all()
-        return [self._db_to_draft(c) for c in db_complaints]
-
-    async def update_draft_db(self, db: AsyncSession, draft_id: str, **updates) -> ComplaintDraft | None:
-        """Update a draft in database."""
-        from app.models.models import Complaint as ComplaintModel
-
-        result = await db.execute(select(ComplaintModel).where(ComplaintModel.id == draft_id))
-        db_complaint = result.scalar_one_or_none()
-        if not db_complaint:
-            return None
-
-        # Map pydantic field names to DB column names
-        field_mapping = {
+    @staticmethod
+    def _draft_field_to_payload(key: str) -> str:
+        """Map ComplaintDraft field names to the payload's model-column names."""
+        return {
             "description": "detailed_description",
             "respondent_name": "target_name",
             "respondent_company": "target_company",
             "respondent_address": "target_address",
             "respondent_phone": "target_phone",
+            "filed_date": "filing_date",
+        }.get(key, key)
+
+    @staticmethod
+    def _records_anchor(user) -> str:
+        """Per-user document_id anchor for complaint overlays."""
+        return f"complaints:{user.get_effective_user_id()}"
+
+    async def _get_manager(self, user):
+        """Per-user overlay manager; effective id so impersonation writes
+        records that belong to the tenant."""
+        from app.services.storage import get_provider
+        from app.services.unified_overlay_manager import get_unified_overlay_manager
+
+        storage = get_provider(user.provider.value, access_token=user.access_token)
+        return await get_unified_overlay_manager(storage, user.get_effective_user_id())
+
+    async def _list_overlays(self, user) -> list:
+        manager = await self._get_manager(user)
+        response = await manager.get_overlays(
+            document_id=self._records_anchor(user),
+            overlay_type=OverlayType.COMPLAINT,
+        )
+        if not response.success:
+            logger.warning("Complaint overlay list failed for user %s: %s", user.user_id[:8], response.message)
+            return []
+        return [o for o in response.overlays if self._owns(o, user)]
+
+    @staticmethod
+    def _owns(overlay, user) -> bool:
+        return overlay.created_by == user.get_effective_user_id()
+
+    async def _resolve_overlay(self, user, draft_id: str):
+        """Resolve a draft by overlay_id or its stored payload id (cmp_* / legacy)."""
+        overlays = await self._list_overlays(user)
+        for o in overlays:
+            if o.overlay_id == draft_id or o.payload.get("id") == draft_id:
+                return o
+        return None
+
+    async def create_draft_vault(
+        self, user, agency_id: str, subject: str = "", complaint_type: str = "general"
+    ) -> ComplaintDraft:
+        """Create a new complaint draft persisted to the user's cloud vault."""
+        draft_id = make_id("cmp")
+        now = utc_now()
+
+        manager = await self._get_manager(user)
+        response = await manager.create_overlay(
+            CreateOverlayRequest(
+                overlay_type=OverlayType.COMPLAINT,
+                document_id=self._records_anchor(user),
+                vault_path=VAULT_RECORDS_FILE,
+                payload={
+                    "id": draft_id,
+                    "agency_id": agency_id,
+                    "complaint_type": complaint_type,
+                    "status": ComplaintStatus.DRAFT.value,
+                    "subject": subject,
+                    "summary": "",
+                    "detailed_description": "",
+                    "target_type": "landlord",
+                    "created_at": now.isoformat(),
+                    "updated_at": now.isoformat(),
+                },
+                metadata={"complaint_type": complaint_type, "scope": "complaints"},
+            )
+        )
+        if not response.success:
+            raise RuntimeError(f"Failed to persist complaint draft: {response.message}")
+
+        draft = ComplaintDraft(
+            id=draft_id, user_id=user.user_id, agency_id=agency_id, subject=subject, created_at=now, updated_at=now
+        )
+        self._cache[draft_id] = draft
+        logger.info("📝 Created complaint draft %s... for user %s...", draft_id[:8], user.user_id[:8])
+        return draft
+
+    async def get_draft_vault(self, user, draft_id: str) -> ComplaintDraft | None:
+        """Get a draft from the user's vault by overlay or draft ID."""
+        overlay = await self._resolve_overlay(user, draft_id)
+        if not overlay:
+            return None
+        return self._overlay_to_draft(overlay, user.user_id)
+
+    async def get_user_drafts_vault(self, user) -> list[ComplaintDraft]:
+        """Get all drafts for a user from their vault (legacy rows migrate first)."""
+        await self.migrate_legacy_complaints(user)
+        overlays = await self._list_overlays(user)
+        overlays.sort(key=lambda o: o.payload.get("updated_at") or "", reverse=True)
+        return [self._overlay_to_draft(o, user.user_id) for o in overlays]
+
+    async def update_draft_vault(self, user, draft_id: str, **updates) -> ComplaintDraft | None:
+        """Update a draft in the user's vault."""
+        overlay = await self._resolve_overlay(user, draft_id)
+        if not overlay:
+            return None
+
+        allowed = {
+            "id", "agency_id", "complaint_type", "status", "subject", "summary",
+            "detailed_description", "incident_dates", "damages_claimed",
+            "relief_sought", "target_type", "target_name", "target_company",
+            "target_address", "target_phone", "attached_document_ids",
+            "timeline_included", "filed_with", "filing_date", "case_number",
+            "confirmation_number", "notes",
         }
 
         for key, value in updates.items():
-            db_key = field_mapping.get(key, key)
+            payload_key = self._draft_field_to_payload(key)
+            if payload_key in allowed:
+                if isinstance(value, datetime):
+                    value = value.isoformat()
+                overlay.payload[payload_key] = value
 
-            # Handle JSON array fields
-            if (
-                key == "incident_dates"
-                and isinstance(value, list)
-                or key == "attached_document_ids"
-                and isinstance(value, list)
-            ):
-                value = json.dumps(value)
+        overlay.payload["updated_at"] = utc_now().isoformat()
+        manager = await self._get_manager(user)
+        await manager.update_overlay(overlay.overlay_id, overlay.payload)
+        return self._overlay_to_draft(overlay, user.user_id)
 
-            if hasattr(db_complaint, db_key):
-                setattr(db_complaint, db_key, value)
-
-        db_complaint.updated_at = utc_now()
-        await db.commit()
-        await db.refresh(db_complaint)
-
-        return self._db_to_draft(db_complaint)
-
-    async def attach_documents_db(
-        self, db: AsyncSession, draft_id: str, document_ids: list[str]
-    ) -> ComplaintDraft | None:
-        """Attach documents to a draft in database."""
-        from app.models.models import Complaint as ComplaintModel
-
-        result = await db.execute(select(ComplaintModel).where(ComplaintModel.id == draft_id))
-        db_complaint = result.scalar_one_or_none()
-        if not db_complaint:
+    async def attach_documents_vault(self, user, draft_id: str, document_ids: list[str]) -> ComplaintDraft | None:
+        """Attach documents to a draft in the user's vault."""
+        overlay = await self._resolve_overlay(user, draft_id)
+        if not overlay:
             return None
 
-        # Get existing document IDs
-        existing = []
-        if db_complaint.attached_document_ids:
-            try:
-                existing = json.loads(db_complaint.attached_document_ids)
-            except json.JSONDecodeError:
-                existing = []
-
-        # Add new document IDs
+        existing = overlay.payload.get("attached_document_ids") or []
         existing.extend(document_ids)
-        db_complaint.attached_document_ids = json.dumps(existing)
-        db_complaint.updated_at = utc_now()
-        await db.commit()
-        await db.refresh(db_complaint)
+        overlay.payload["attached_document_ids"] = existing
+        overlay.payload["updated_at"] = utc_now().isoformat()
+
+        manager = await self._get_manager(user)
+        await manager.update_overlay(overlay.overlay_id, overlay.payload)
 
         logger.info("📎 Attached %s documents to complaint %s...", len(document_ids), draft_id[:8])
-        return self._db_to_draft(db_complaint)
+        return self._overlay_to_draft(overlay, user.user_id)
 
-    async def mark_as_filed_db(
-        self, db: AsyncSession, draft_id: str, confirmation_number: str | None = None
+    async def mark_as_filed_vault(
+        self, user, draft_id: str, confirmation_number: str | None = None
     ) -> ComplaintDraft | None:
-        """Mark a complaint as filed in database."""
-        from app.models.models import Complaint as ComplaintModel
-
-        result = await db.execute(select(ComplaintModel).where(ComplaintModel.id == draft_id))
-        db_complaint = result.scalar_one_or_none()
-        if not db_complaint:
+        """Mark a complaint as filed in the user's vault."""
+        overlay = await self._resolve_overlay(user, draft_id)
+        if not overlay:
             return None
 
-        agency = self.get_agency(db_complaint.agency_id)
+        agency = self.get_agency(overlay.payload.get("agency_id"))
 
-        db_complaint.status = ComplaintStatus.FILED.value
-        db_complaint.filing_date = utc_now()
-        db_complaint.confirmation_number = confirmation_number
-        db_complaint.filed_with = agency.name if agency else db_complaint.agency_id
-        db_complaint.updated_at = utc_now()
-        await db.commit()
-        await db.refresh(db_complaint)
+        overlay.payload["status"] = ComplaintStatus.FILED.value
+        overlay.payload["filing_date"] = utc_now().isoformat()
+        overlay.payload["confirmation_number"] = confirmation_number
+        overlay.payload["filed_with"] = agency.name if agency else overlay.payload.get("agency_id")
+        overlay.payload["updated_at"] = utc_now().isoformat()
+
+        manager = await self._get_manager(user)
+        await manager.update_overlay(overlay.overlay_id, overlay.payload)
 
         logger.info("✅ Complaint %s... marked as FILED with %s", draft_id[:8], agency.name if agency else "agency")
-        return self._db_to_draft(db_complaint)
+        return self._overlay_to_draft(overlay, user.user_id)
 
-    async def delete_draft_db(self, db: AsyncSession, draft_id: str) -> bool:
-        """Delete a draft from database."""
-        from app.models.models import Complaint as ComplaintModel
-
-        result = await db.execute(select(ComplaintModel).where(ComplaintModel.id == draft_id))
-        db_complaint = result.scalar_one_or_none()
-        if not db_complaint:
+    async def delete_draft_vault(self, user, draft_id: str) -> bool:
+        """Delete a draft from the user's vault."""
+        overlay = await self._resolve_overlay(user, draft_id)
+        if not overlay:
             return False
 
-        await db.delete(db_complaint)
-        await db.commit()
+        manager = await self._get_manager(user)
+        await manager.delete_overlay(overlay.overlay_id)
         logger.info("🗑️ Deleted complaint draft %s...", draft_id[:8])
         return True
 
-    def _db_to_draft(self, db_complaint) -> ComplaintDraft:
-        """Convert database model to Pydantic ComplaintDraft."""
-        # Parse JSON array fields
-        incident_dates = []
-        if db_complaint.incident_dates:
+    async def migrate_legacy_complaints(self, user, limit: int = 25) -> int:
+        """One-shot bounded import of legacy `complaints` rows into vault overlays.
+
+        Non-destructive (rows stay until the table-drop phase) and idempotent
+        via payload["legacy_id"]. Returns the number imported this call.
+        """
+        try:
+            from sqlalchemy import select
+
+            from app.core.database import get_db_session
+            from app.models.models import Complaint as ComplaintModel
+        except Exception:
+            return 0
+
+        overlays = await self._list_overlays(user)
+        migrated = {o.payload.get("legacy_id") for o in overlays if o.payload.get("legacy_id")}
+        imported = 0
+
+        try:
+            async with get_db_session() as db:
+                result = await db.execute(
+                    select(ComplaintModel)
+                    .where(ComplaintModel.user_id == user.user_id)
+                    .order_by(ComplaintModel.created_at)
+                    .limit(limit + len(migrated))
+                )
+                rows = result.scalars().all()
+        except Exception:
+            return 0
+
+        manager = await self._get_manager(user)
+        for row in rows:
+            if imported >= limit:
+                break
+            if row.id in migrated:
+                continue
+
+            incident_dates = []
+            if row.incident_dates:
+                try:
+                    incident_dates = json.loads(row.incident_dates)
+                except (json.JSONDecodeError, TypeError):
+                    incident_dates = []
+
+            attached_docs = []
+            if row.attached_document_ids:
+                try:
+                    attached_docs = json.loads(row.attached_document_ids)
+                except (json.JSONDecodeError, TypeError):
+                    attached_docs = []
+
+            await manager.create_overlay(
+                CreateOverlayRequest(
+                    overlay_type=OverlayType.COMPLAINT,
+                    document_id=self._records_anchor(user),
+                    vault_path=VAULT_RECORDS_FILE,
+                    payload={
+                        "id": row.id,
+                    "agency_id": row.agency_id,
+                    "complaint_type": row.complaint_type,
+                    "status": row.status,
+                    "subject": row.subject or "",
+                    "summary": row.summary or "",
+                    "detailed_description": row.detailed_description or "",
+                    "incident_dates": incident_dates,
+                    "damages_claimed": row.damages_claimed,
+                    "relief_sought": row.relief_sought or "",
+                    "target_type": row.target_type or "landlord",
+                    "target_name": row.target_name,
+                    "target_company": row.target_company,
+                    "target_address": row.target_address,
+                    "target_phone": row.target_phone,
+                    "attached_document_ids": attached_docs,
+                    "timeline_included": bool(row.timeline_included),
+                    "filed_with": row.filed_with,
+                    "filing_date": row.filing_date.isoformat() if row.filing_date else None,
+                    "case_number": row.case_number,
+                    "confirmation_number": row.confirmation_number,
+                    "notes": row.notes,
+                    "created_at": row.created_at.isoformat() if row.created_at else None,
+                    "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+                        "legacy_id": row.id,
+                        "migrated_from": "complaints",
+                    },
+                    metadata={"complaint_type": row.complaint_type, "scope": "complaints"},
+                )
+            )
+            migrated.add(row.id)
+            imported += 1
+
+        return imported
+
+    def _overlay_to_draft(self, overlay, user_id: str) -> ComplaintDraft:
+        """Convert a COMPLAINT overlay to a Pydantic ComplaintDraft."""
+        p = overlay.payload
+
+        def _parse_dt(value):
+            if not value:
+                return None
+            if isinstance(value, datetime):
+                return value
             try:
-                incident_dates = json.loads(db_complaint.incident_dates)
-            except json.JSONDecodeError:
+                return datetime.fromisoformat(str(value))
+            except ValueError:
+                return None
+
+        incident_dates = p.get("incident_dates") or []
+        if isinstance(incident_dates, str):
+            try:
+                incident_dates = json.loads(incident_dates)
+            except (json.JSONDecodeError, TypeError):
                 incident_dates = []
 
-        attached_docs = []
-        if db_complaint.attached_document_ids:
+        attached_docs = p.get("attached_document_ids") or []
+        if isinstance(attached_docs, str):
             try:
-                attached_docs = json.loads(db_complaint.attached_document_ids)
-            except json.JSONDecodeError:
+                attached_docs = json.loads(attached_docs)
+            except (json.JSONDecodeError, TypeError):
                 attached_docs = []
 
+        try:
+            status = ComplaintStatus(p.get("status") or ComplaintStatus.DRAFT.value)
+        except ValueError:
+            status = ComplaintStatus.DRAFT
+
         return ComplaintDraft(
-            id=db_complaint.id,
-            user_id=db_complaint.user_id,
-            agency_id=db_complaint.agency_id,
-            status=ComplaintStatus(db_complaint.status),
-            created_at=db_complaint.created_at,
-            updated_at=db_complaint.updated_at,
-            subject=db_complaint.subject or "",
-            description=db_complaint.detailed_description or "",
+            id=p.get("id") or overlay.overlay_id,
+            user_id=user_id,
+            agency_id=p.get("agency_id") or "",
+            status=status,
+            created_at=_parse_dt(p.get("created_at")) or overlay.created_at,
+            updated_at=_parse_dt(p.get("updated_at")) or overlay.updated_at,
+            subject=p.get("subject") or "",
+            description=p.get("detailed_description") or "",
             incident_dates=incident_dates,
-            damages_claimed=db_complaint.damages_claimed,
-            relief_sought=db_complaint.relief_sought or "",
+            damages_claimed=p.get("damages_claimed"),
+            relief_sought=p.get("relief_sought") or "",
             attached_document_ids=attached_docs,
-            timeline_included=db_complaint.timeline_included or False,
-            respondent_name=db_complaint.target_name or "",
-            respondent_company=db_complaint.target_company or "",
-            respondent_address=db_complaint.target_address or "",
-            respondent_phone=db_complaint.target_phone or "",
-            filed_date=db_complaint.filing_date,
-            confirmation_number=db_complaint.confirmation_number or "",
-            notes=db_complaint.notes or "",
+            timeline_included=bool(p.get("timeline_included")),
+            respondent_name=p.get("target_name") or "",
+            respondent_company=p.get("target_company") or "",
+            respondent_address=p.get("target_address") or "",
+            respondent_phone=p.get("target_phone") or "",
+            filed_date=_parse_dt(p.get("filing_date")),
+            confirmation_number=p.get("confirmation_number") or "",
+            notes=p.get("notes") or "",
         )
 
     # =========================================================================
@@ -648,7 +774,7 @@ class ComplaintWizardService:
     # =========================================================================
 
     def create_draft(self, user_id: str, agency_id: str, subject: str = "") -> ComplaintDraft:
-        """Create a new complaint draft (in-memory, use create_draft_db for persistence)."""
+        """Create a new complaint draft (in-memory, use create_draft_vault for persistence)."""
         draft_id = make_id("cmp")
         now = utc_now()
 
