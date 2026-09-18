@@ -90,8 +90,28 @@ class LawEngine:
         self._laws: dict[str, LawReference] = {}
         self._cross_refs: list[CrossReference] = []
 
+        self._hydrate_from_bundle()
         self._load_data()
         self._seed_base_laws()
+
+    def _hydrate_from_bundle(self):
+        """Copy the bundled laws seed into the runtime store on first use.
+
+        The runtime store (data/laws/) is deploy-local and writable — the
+        bundled seed (app/data/laws/) ships with the image. If the runtime
+        file is missing (fresh container, wiped volume), hydrate it so the
+        enriched content survives instead of silently falling back to the
+        minimal hardcoded base laws.
+        """
+        laws_file = self.data_dir / "laws.json"
+        if laws_file.exists():
+            return
+        seed = Path(__file__).resolve().parent.parent / "data" / "laws" / "laws.json"
+        if seed.exists():
+            try:
+                laws_file.write_text(seed.read_text(encoding="utf-8"), encoding="utf-8")
+            except OSError as exc:
+                logger.warning("Could not hydrate laws seed from %s: %s", seed, exc)
 
     def _load_data(self):
         """Load laws and cross-references from disk."""

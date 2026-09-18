@@ -100,7 +100,9 @@ uploads/
 data/documents/
 data/intake/
 data/vault_storage/
-data/legal_filings/cases/
+data/legal_filings/
+data/laws/
+data/composer_resources.json
 data/inventory/
 data/.setup_complete
 data/vault_index/
