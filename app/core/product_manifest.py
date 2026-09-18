@@ -552,7 +552,7 @@ _register(
     tags=("Journal",),
     tier=ProductTier.CORE,
     lifecycle="beta",
-    dev_notes="Free-form tenant journal — contemporaneous notes, conversations, incidents, repair requests. DB-backed JournalEntry model. Surfaces in tenant briefcase.",
+    dev_notes="Free-form tenant journal — contemporaneous notes, conversations, incidents, repair requests. Vault-persisted via JOURNAL_ENTRY overlays (legacy journal_entries rows migrate on first read). Surfaces in tenant briefcase.",
     log_message="Journal router connected at /api/journal",
 )
 _register("app.modules.public_forms.router", tags=("Public Forms",), tier=ProductTier.CORE)

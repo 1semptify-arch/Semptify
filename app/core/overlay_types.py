@@ -111,6 +111,12 @@ class OverlayType(str, Enum):
     DUPLICATE_DETECTION = "duplicate_detection"
     """Cross-vault duplicate identification and tracking."""
 
+    # ==========================================================================
+    # 8. TENANT RECORDS (vault-persistence migration)
+    # ==========================================================================
+    JOURNAL_ENTRY = "journal_entry"
+    """Free-form tenant journal record (note, conversation, incident, repair request)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -161,6 +167,10 @@ CASE_OVERLAYS: set[OverlayType] = {
     OverlayType.CASE_DATA,
 }
 
+RECORD_OVERLAYS: set[OverlayType] = {
+    OverlayType.JOURNAL_ENTRY,
+}
+
 # All overlay types (for validation)
 ALL_OVERLAY_TYPES: set[OverlayType] = set(OverlayType)
 
@@ -183,4 +193,6 @@ def get_overlay_category(overlay_type: OverlayType) -> str:
         return "identity"
     if overlay_type in CASE_OVERLAYS:
         return "case"
+    if overlay_type in RECORD_OVERLAYS:
+        return "record"
     return "unknown"

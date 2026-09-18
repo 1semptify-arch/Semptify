@@ -63,6 +63,12 @@ VAULT_TIMELINE_EVENTS_FILE = normalize_cloud_path(f"{VAULT_TIMELINE}/{VAULT_TIME
 VAULT_SCRATCHPAD = normalize_cloud_path(f"{VAULT_ROOT}/scratchpad")
 VAULT_SCRATCHPAD_FILE = normalize_cloud_path(f"{VAULT_SCRATCHPAD}/notepad.json")
 
+# Per-user journal anchor for JOURNAL_ENTRY overlays. Not a certified vault
+# document; it provides the document_id/vault_path anchor required by
+# UnifiedOverlay while entry content lives in the overlays themselves.
+VAULT_JOURNAL = normalize_cloud_path(f"{VAULT_ROOT}/journal")
+VAULT_JOURNAL_FILE = normalize_cloud_path(f"{VAULT_JOURNAL}/journal.json")
+
 # =============================================================================
 # Role-specific folders (direct children of Vault/)
 # =============================================================================

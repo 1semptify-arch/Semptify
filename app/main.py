@@ -4748,53 +4748,46 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         if user_id:
             try:
-                from sqlalchemy import select
+                from app.modules.journal.service import list_entries_for_user_id
 
-                from app.core.database import get_db_session
-                from app.models.models import JournalEntry
-
-                async with get_db_session() as db:
-                    result = await db.execute(
-                        select(JournalEntry)
-                        .where(JournalEntry.user_id == user_id)
-                        .order_by(JournalEntry.occurred_at.desc())
-                    )
-                    rows = result.scalars().all()
-                    total_entries = len(rows)
-                    now = utc_now()
-                    this_month = now.month
-                    this_year = now.year
-                    first_entry_date = None
-                    for row in rows:
-                        if row.is_urgent:
-                            urgent_count += 1
-                        if (
-                            row.occurred_at
-                            and row.occurred_at.month == this_month
-                            and row.occurred_at.year == this_year
-                        ):
-                            entries_this_month += 1
-                        if row.occurred_at and (first_entry_date is None or row.occurred_at < first_entry_date):
-                            first_entry_date = row.occurred_at
-                        entries.append(
-                            {
-                                "id": row.id,
-                                "entry_type": row.entry_type,
-                                "description": row.content or "",
-                                "created_at": row.occurred_at.isoformat() if row.occurred_at else "",
-                                "is_urgent": row.is_urgent,
-                                "has_attachments": bool(row.document_link),
-                                "attachment_count": 1 if row.document_link else 0,
-                                "who_involved": row.involved_party,
-                                "location": None,
-                            }
-                        )
-                    if first_entry_date:
+                overlays, total_entries = await list_entries_for_user_id(user_id, limit=500)
+                now = utc_now()
+                this_month = now.month
+                this_year = now.year
+                first_entry_date = None
+                for overlay in overlays:
+                    p = overlay.payload
+                    occurred = None
+                    if p.get("occurred_at"):
                         try:
-                            delta = now - first_entry_date
-                            days_since_start = max(0, delta.days)
-                        except TypeError:
-                            days_since_start = 0
+                            occurred = datetime.datetime.fromisoformat(str(p["occurred_at"]).replace("Z", "+00:00"))
+                        except ValueError:
+                            occurred = None
+                    if p.get("is_urgent"):
+                        urgent_count += 1
+                    if occurred and occurred.month == this_month and occurred.year == this_year:
+                        entries_this_month += 1
+                    if occurred and (first_entry_date is None or occurred < first_entry_date):
+                        first_entry_date = occurred
+                    entries.append(
+                        {
+                            "id": overlay.overlay_id,
+                            "entry_type": p.get("entry_type") or "note",
+                            "description": p.get("content") or "",
+                            "created_at": p.get("occurred_at") or "",
+                            "is_urgent": bool(p.get("is_urgent")),
+                            "has_attachments": bool(p.get("document_link")),
+                            "attachment_count": 1 if p.get("document_link") else 0,
+                            "who_involved": p.get("involved_party"),
+                            "location": None,
+                        }
+                    )
+                if first_entry_date:
+                    try:
+                        delta = now - first_entry_date
+                        days_since_start = max(0, delta.days)
+                    except TypeError:
+                        days_since_start = 0
             except Exception as e:
                 logger.warning("Journal page load failed for user=%s: %s", user_id, e)
 

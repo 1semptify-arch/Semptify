@@ -1,3 +1,44 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: journal records → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T11:31:33+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-18T11:30:57+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 1)
+- `journal_entries` is the first tenant record type moved off the server DB into the tenant's own cloud vault — entries now persist as `JOURNAL_ENTRY` overlays (new `RECORD_OVERLAYS` category) anchored to `document_id="journal:{user_id}"` at `VAULT_JOURNAL_FILE` (`Semptify5.0/Vault/journal/journal.json`), via `UnifiedOverlayManager` — the proven sticky_notes pattern.
+- New `app/modules/journal/service.py` — full CRUD + `list_entries_for_user_id()` (rebuilds a minimal UserContext from bare user_id via `parse_user_id` + `ensure_valid_token`, for feed/briefcase/page readers that never had a session context) + `migrate_legacy_entries()` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call bound for Known Failure #5, no-ops when DB unreachable).
+- Rewired readers off the DB: journal router (all 6 endpoints), `/tenant/journal` page in main.py, `tenant_briefcase._load_journal_summary`, `tenant_feed` journal fetch (now async; sync `aggregate_feed` path defers like `_fetch_documents`). No DB writes remain for journal.
+- Access control preserved: `_validate_access`/`can_access` impersonation rules + creator-only `_owns()` enforcement; entry lookup accepts both `ovl_*` and legacy `jrn_*` ids.
+
+### Verified
+- py_compile clean on all 9 changed files; journal tests 13/13 (8 smoke + 5 new vault functional: round-trip, per-user isolation, legacy-id resolution, filters, migration no-op); overlay manager 12/12; module_health 245/245; guardrail engine all-PASS (stub_check initially flagged the sync-path `return []` — fixed into a real event-loop-aware fetch).
+
+### Next session
+- Phase 1 continues: `rent_payments` → `Vault/ledger/` next, then `calendar_events`, `contacts`. Same recipe — vault path constant + overlay type + per-user anchor + service + reader rewiring + legacy backfill shim. Handoff `handoffs/vault-persistence-migration.md` tracks per-table status.
+- Not done / not claimed: `journal_entries` table still exists for legacy reads (drop is a later Alembic phase); zero-persistence claim stays NEEDS-CONFIRMATION in manuals until all tenant tables migrate.
+
+---
+
 ## Session — 2026-09-18 — Situation guides: ungated what-happened counter-playbook (devin)
 
 ### Guardrail Engine Run — 2026-09-18T10:09:50+00:00
@@ -14562,3 +14603,35 @@ Nothing is real until it is pushed.
 - 2 skipped tests in `tests/test_legal_filing.py` have stale skip reasons (cite old `app/data/` path); service now reads root `data/` where C001/C002 fixtures exist.
 
 **Next session:** Phase 3 mobile, or unskip the legal_filing seed tests with a fixture.
+
+
+---
+
+## 2026-09-17 — Role landing surfacing (PR #279 → e9c8e012, deployed live)
+
+**Shipped:** Config-driven role landing surfacing — `surfacing` block in all 10
+`role_configs/*.json` (intro, ordered sections, tools with why-lines), new loader
+`app/core/role_surfacing.py` (aliases `user`→`tenant`, `judge`→`legal`; never raises),
+wired into tenant/advocate/legal/manager landings with hardcoded fallback preserved.
+`tests/test_role_surfacing.py` validates every config href against registered routes.
+
+**Fixed en route:** 3 dead manager links (`/manager/bulk-upload`, `/manager/staff`,
+`/manager/reports`) — pre-existing on the live dashboard, repointed to real routes.
+Wider dead-link cluster on that page logged to intake `intake-551381d2`.
+
+**Verified:** local 4/4 tests, guardrail ALL PASS, JSON+Jinja valid, loader exercised
+end-to-end. Prod: deploy `dep-damhqpe1egvs73cafs00` live on `e9c8e012`; public pages
+200; role pages correctly gate to picker/landing when unauthenticated (signed
+`semptify_uid` required — can't be forged; dashboard eyeball check needs a real
+onboarded session).
+
+**Collision note:** during post-merge `git reset --hard` to sync local main, an active
+swe-executor session (i18n catalog fill, session lock held) lost its uncommitted edits
+to `overlay_types.py`, `vault_paths.py`, `journal/router.py`, and 12 translation JSONs.
+Session lock was not checked before resetting — agent appears live and is re-writing
+(`journal/router.py` re-modified post-reset; untracked `journal/service.py` survived).
+Its commit-time diffs may look confusing; verify its final diff before its PR merges.
+
+**Next:** eyeball gated role dashboards on prod with a real session; intake-551381d2
+triage; duplicate `app/services/legal_filing_service.py` cleanup; BETA→VETTED content
+review.

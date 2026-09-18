@@ -213,7 +213,7 @@ async def aggregate_feed_async(
     if not type_filter or type_filter == "timeline_event":
         items.extend(await _fetch_timeline_events_async(user_id))
     if not type_filter or type_filter == "journal":
-        items.extend(_fetch_journal_entries(user_id))
+        items.extend(await _fetch_journal_entries(user_id))
     if not type_filter or type_filter == "deadline":
         items.extend(_fetch_deadlines(user_id))
     if not type_filter or type_filter == "letter":
@@ -349,27 +349,28 @@ async def _fetch_timeline_events_async(user_id: str) -> list[dict[str, Any]]:
     return items
 
 
-def _fetch_journal_entries(user_id: str) -> list[dict[str, Any]]:
-    """Fetch journal entries for the user."""
+async def _fetch_journal_entries(user_id: str) -> list[dict[str, Any]]:
+    """Fetch journal entries for the user (vault-overlay backed)."""
     items: list[dict[str, Any]] = []
     try:
-        from app.modules.journal.service import list_journal_entries
+        from app.modules.journal.service import list_entries_for_user_id
 
-        entries = list_journal_entries(user_id) if callable(list_journal_entries) else []
+        entries, _total = await list_entries_for_user_id(user_id, limit=50)
         for entry in entries:
-            ts_data = _format_timestamp(entry.get("created_at") or entry.get("timestamp"))
+            payload = entry.payload
+            ts_data = _format_timestamp(payload.get("occurred_at") or entry.created_at)
             item = _empty_item()
             item.update(
                 {
                     "type": "journal",
-                    "title": entry.get("title") or "Journal entry",
-                    "subtitle": (entry.get("body") or "")[:120],
+                    "title": payload.get("title") or "Journal entry",
+                    "subtitle": (payload.get("content") or "")[:120],
                     "timestamp_iso": ts_data["timestamp_iso"],
                     "timestamp_label": ts_data["timestamp_label"],
                     "icon": "📝",
                     "link": "/tenant/journal",
                     "metadata": {
-                        "entry_id": entry.get("id"),
+                        "entry_id": entry.overlay_id,
                     },
                 }
             )
@@ -380,6 +381,23 @@ def _fetch_journal_entries(user_id: str) -> list[dict[str, Any]]:
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.warning("Feed: journal fetch failed for %s: %s", user_id, e)
     return items
+
+
+def _fetch_journal_entries_sync(user_id: str) -> list[dict[str, Any]]:
+    """Sync-path fetch for the legacy aggregate_feed().
+
+    Journal entries live in the user's cloud vault (Unified Overlay System)
+    and require async provider access. When no event loop is running we drive
+    the async fetch to completion; inside a running loop we defer to
+    aggregate_feed_async() — same convention as _fetch_documents.
+    """
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            return []  # Async path handled in aggregate_feed_async
+        return loop.run_until_complete(_fetch_journal_entries(user_id))
+    except RuntimeError:
+        return asyncio.run(_fetch_journal_entries(user_id))
 
 
 def _fetch_deadlines(user_id: str) -> list[dict[str, Any]]:
@@ -475,7 +493,7 @@ def aggregate_feed(
     if not type_filter or type_filter == "timeline_event":
         items.extend(_fetch_timeline_events(user_id))
     if not type_filter or type_filter == "journal":
-        items.extend(_fetch_journal_entries(user_id))
+        items.extend(_fetch_journal_entries_sync(user_id))
     if not type_filter or type_filter == "deadline":
         items.extend(_fetch_deadlines(user_id))
     if not type_filter or type_filter == "letter":

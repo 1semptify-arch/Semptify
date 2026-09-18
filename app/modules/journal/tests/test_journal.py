@@ -79,27 +79,33 @@ def test_journal_create_request_validation():
 
 def test_journal_to_response_handles_document_link():
     """_to_response returns document_link when present."""
-    from datetime import datetime
-    from unittest.mock import MagicMock
-
+    from app.core.overlay_types import OverlayType
     from app.modules.journal.router import _to_response
+    from app.modules.journal.service import get_journal_anchor_id, get_journal_vault_path
+    from app.models.unified_overlay_models import UnifiedOverlay
 
-    entry = MagicMock()
-    entry.id = "jrn_abc123"
-    entry.entry_type = "conversation"
-    entry.title = "Called landlord"
-    entry.content = "Landlord said repairs next week."
-    entry.occurred_at = datetime(2026, 7, 19, 12, 0, 0, tzinfo=UTC)
-    entry.is_urgent = True
-    entry.involved_party = "landlord"
-    entry.tags = "repair,landlord"
-    entry.document_link = "doc_xyz789"
-    entry.source = "manual"
-    entry.created_at = datetime(2026, 7, 19, 12, 0, 0, tzinfo=UTC)
-    entry.updated_at = datetime(2026, 7, 19, 12, 0, 0, tzinfo=UTC)
+    entry = UnifiedOverlay(
+        overlay_id="ovl_abc123",
+        overlay_type=OverlayType.JOURNAL_ENTRY,
+        document_id=get_journal_anchor_id("GUtestuser1"),
+        vault_path=get_journal_vault_path(),
+        created_by="GUtestuser1",
+        payload={
+            "id": "jrn_abc123",
+            "entry_type": "conversation",
+            "title": "Called landlord",
+            "content": "Landlord said repairs next week.",
+            "occurred_at": "2026-07-19T12:00:00+00:00",
+            "is_urgent": True,
+            "involved_party": "landlord",
+            "tags": "repair,landlord",
+            "document_link": "doc_xyz789",
+            "source": "manual",
+        },
+    )
 
     result = _to_response(entry)
-    assert result.id == "jrn_abc123"
+    assert result.id == "ovl_abc123"
     assert result.document_link == "doc_xyz789"
     assert result.is_urgent is True
     assert result.tags == ["repair", "landlord"]

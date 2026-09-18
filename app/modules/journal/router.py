@@ -14,15 +14,14 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select
 
 from app.core.database import get_db_session
 from app.core.event_bus import EventType, event_bus
-from app.core.id_gen import make_id
 from app.core.security import can_access, require_user
 from app.core.user_context import UserContext
 from app.core.utc import utc_now
-from app.models.models import JournalEntry as JournalEntryModel
+from app.models.unified_overlay_models import UnifiedOverlay
+from app.modules.journal import service
 
 
 async def _validate_access(user: UserContext, target_user_id: str) -> None:
@@ -127,19 +126,20 @@ class JournalSummaryResponse(BaseModel):
     recent_entries: list[JournalEntryResponse]
 
 
-def _to_response(entry: JournalEntryModel) -> JournalEntryResponse:
-    """Convert a JournalEntry model row to a response model."""
+def _to_response(entry: UnifiedOverlay) -> JournalEntryResponse:
+    """Convert a journal overlay to a response model."""
+    p = entry.payload
     return JournalEntryResponse(
-        id=entry.id,
-        entry_type=entry.entry_type,
-        title=entry.title,
-        content=entry.content,
-        occurred_at=entry.occurred_at.isoformat() if entry.occurred_at else "",
-        is_urgent=entry.is_urgent or False,
-        involved_party=entry.involved_party,
-        tags=_tags_from_str(entry.tags),
-        document_link=entry.document_link,
-        source=entry.source or "manual",
+        id=entry.overlay_id,
+        entry_type=p.get("entry_type") or "note",
+        title=p.get("title") or "",
+        content=p.get("content"),
+        occurred_at=p.get("occurred_at") or "",
+        is_urgent=bool(p.get("is_urgent")),
+        involved_party=p.get("involved_party"),
+        tags=_tags_from_str(p.get("tags")),
+        document_link=p.get("document_link"),
+        source=p.get("source") or "manual",
         created_at=entry.created_at.isoformat() if entry.created_at else "",
         updated_at=entry.updated_at.isoformat() if entry.updated_at else "",
     )
@@ -162,9 +162,8 @@ async def create_entry(
 
     occurred_at = _parse_iso(body.occurred_at) or utc_now()
 
-    entry = JournalEntryModel(
-        id=make_id("jrn"),
-        user_id=user.get_effective_user_id(),
+    entry = await service.create_entry(
+        user,
         entry_type=entry_type,
         title=body.title.strip(),
         content=body.content,
@@ -174,24 +173,18 @@ async def create_entry(
         tags=_tags_to_str(body.tags),
         document_link=body.document_link,
         source="manual",
-        created_at=utc_now(),
-        updated_at=utc_now(),
     )
-
-    async with get_db_session() as db:
-        db.add(entry)
-        await db.commit()
 
     event_bus.publish_sync(
         EventType.JOURNAL_ENTRY_CREATED,
         {
             "user_id": user.get_effective_user_id(),
-            "entry_id": entry.id,
+            "entry_id": entry.overlay_id,
             "entry_type": entry_type,
-            "is_urgent": entry.is_urgent,
+            "is_urgent": body.is_urgent,
             "narrator": {
                 "module": "app.modules.journal",
-                "slot": 1 if entry.is_urgent else 0,
+                "slot": 1 if body.is_urgent else 0,
             },
         },
     )
@@ -209,21 +202,13 @@ async def list_entries(
 ):
     """List journal entries for the current user, newest first."""
     await _validate_access(user, user.get_effective_user_id())
-    async with get_db_session() as db:
-        query = select(JournalEntryModel).where(JournalEntryModel.user_id == user.get_effective_user_id())
-        if entry_type:
-            query = query.where(JournalEntryModel.entry_type == entry_type.lower().strip())
-        if is_urgent is not None:
-            query = query.where(JournalEntryModel.is_urgent == is_urgent)
-        query = query.order_by(JournalEntryModel.occurred_at.desc()).offset(skip).limit(limit)
-        result = await db.execute(query)
-        entries = list(result.scalars().all())
-
-        total_result = await db.execute(
-            select(JournalEntryModel).where(JournalEntryModel.user_id == user.get_effective_user_id())
-        )
-        total = len(list(total_result.scalars().all()))
-
+    entries, total = await service.list_entries(
+        user,
+        entry_type=entry_type.lower().strip() if entry_type else None,
+        is_urgent=is_urgent,
+        skip=skip,
+        limit=limit,
+    )
     return JournalListResponse(entries=[_to_response(e) for e in entries], total=total)
 
 
@@ -233,17 +218,11 @@ async def get_summary(
 ):
     """Return a brief dashboard summary of journal entries."""
     await _validate_access(user, user.get_effective_user_id())
-    async with get_db_session() as db:
-        result = await db.execute(
-            select(JournalEntryModel)
-            .where(JournalEntryModel.user_id == user.get_effective_user_id())
-            .order_by(JournalEntryModel.occurred_at.desc())
-        )
-        entries = list(result.scalars().all())
+    entries, total = await service.list_entries(user, limit=200)
 
     return JournalSummaryResponse(
-        total_entries=len(entries),
-        urgent_entries=sum(1 for e in entries if e.is_urgent),
+        total_entries=total,
+        urgent_entries=sum(1 for e in entries if e.payload.get("is_urgent")),
         recent_entries=[_to_response(e) for e in entries[:5]],
     )
 
@@ -255,15 +234,7 @@ async def get_entry(
 ):
     """Get a single journal entry by ID."""
     await _validate_access(user, user.get_effective_user_id())
-    async with get_db_session() as db:
-        result = await db.execute(
-            select(JournalEntryModel).where(
-                JournalEntryModel.id == entry_id,
-                JournalEntryModel.user_id == user.get_effective_user_id(),
-            )
-        )
-        entry = result.scalar_one_or_none()
-
+    entry = await service.get_entry(user, entry_id)
     if not entry:
         raise HTTPException(status_code=404, detail="Journal entry not found")
 
@@ -278,43 +249,36 @@ async def update_entry(
 ):
     """Update a journal entry."""
     await _validate_access(user, user.get_effective_user_id())
-    async with get_db_session() as db:
-        result = await db.execute(
-            select(JournalEntryModel).where(
-                JournalEntryModel.id == entry_id,
-                JournalEntryModel.user_id == user.get_effective_user_id(),
+
+    fields: dict = {}
+    if body.entry_type is not None:
+        entry_type = body.entry_type.lower().strip()
+        if entry_type not in VALID_ENTRY_TYPES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid entry_type. Must be one of: {', '.join(sorted(VALID_ENTRY_TYPES))}",
             )
-        )
-        entry = result.scalar_one_or_none()
+        fields["entry_type"] = entry_type
+    if body.title is not None:
+        fields["title"] = body.title.strip()
+    if body.content is not None:
+        fields["content"] = body.content
+    if body.occurred_at is not None:
+        parsed = _parse_iso(body.occurred_at)
+        if parsed:
+            fields["occurred_at"] = parsed.isoformat()
+    if body.is_urgent is not None:
+        fields["is_urgent"] = body.is_urgent
+    if body.involved_party is not None:
+        fields["involved_party"] = body.involved_party
+    if body.tags is not None:
+        fields["tags"] = _tags_to_str(body.tags)
+    if body.document_link is not None:
+        fields["document_link"] = body.document_link
 
-        if not entry:
-            raise HTTPException(status_code=404, detail="Journal entry not found")
-
-        if body.entry_type is not None:
-            entry_type = body.entry_type.lower().strip()
-            if entry_type not in VALID_ENTRY_TYPES:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Invalid entry_type. Must be one of: {', '.join(sorted(VALID_ENTRY_TYPES))}",
-                )
-            entry.entry_type = entry_type
-        if body.title is not None:
-            entry.title = body.title.strip()
-        if body.content is not None:
-            entry.content = body.content
-        if body.occurred_at is not None:
-            entry.occurred_at = _parse_iso(body.occurred_at) or entry.occurred_at
-        if body.is_urgent is not None:
-            entry.is_urgent = body.is_urgent
-        if body.involved_party is not None:
-            entry.involved_party = body.involved_party
-        if body.tags is not None:
-            entry.tags = _tags_to_str(body.tags)
-        if body.document_link is not None:
-            entry.document_link = body.document_link
-        entry.updated_at = utc_now()
-
-        await db.commit()
+    entry = await service.update_entry(user, entry_id, fields)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Journal entry not found")
 
     return _to_response(entry)
 
@@ -326,19 +290,8 @@ async def delete_entry(
 ):
     """Delete a journal entry."""
     await _validate_access(user, user.get_effective_user_id())
-    async with get_db_session() as db:
-        result = await db.execute(
-            select(JournalEntryModel).where(
-                JournalEntryModel.id == entry_id,
-                JournalEntryModel.user_id == user.get_effective_user_id(),
-            )
-        )
-        entry = result.scalar_one_or_none()
-
-        if not entry:
-            raise HTTPException(status_code=404, detail="Journal entry not found")
-
-        await db.delete(entry)
-        await db.commit()
+    deleted = await service.delete_entry(user, entry_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Journal entry not found")
 
     return {"success": True, "deleted": entry_id}
