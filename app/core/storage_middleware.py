@@ -125,6 +125,18 @@ PUBLIC_PATHS: set[str] = {
     "/contact",
     "/privacy",
     "/terms",
+    # Situation guides — ungated "what happened?" entry pages
+    "/guide",
+    # Eviction defense — read-only reference toolkit (page + stateless lookups;
+    # user-data endpoints under /from-documents/, /analyze, /quick-status stay gated)
+    "/eviction-defense",
+    "/api/eviction-defense/forms",
+    "/api/eviction-defense/motions",
+    "/api/eviction-defense/procedures",
+    "/api/eviction-defense/counterclaims",
+    "/api/eviction-defense/statistics",
+    "/api/eviction-defense/defenses",
+    "/api/eviction-defense/calculate-deadlines",
     # Public landing facts and cron endpoints
     "/api/landing/facts",
     "/api/data-freshness/cron/verify-landing-claims",
@@ -146,6 +158,12 @@ PUBLIC_PREFIXES = (
     "/static/",  # All static files are public (HTML, CSS, JS)
     "/public/",  # Policy pages: privacy, terms, disclaimer, contact, feedback
     "/gui/",  # GUI nav shell sub-paths (home, record, know, act) — public like /gui
+    "/guide/",  # Situation guides — all slugs public
+    "/api/eviction-defense/forms/",  # Reference-detail lookups (e.g. /forms/{id})
+    "/api/eviction-defense/motions/",
+    "/api/eviction-defense/procedures/",
+    "/api/eviction-defense/counterclaims/",
+    "/api/eviction-defense/case-checklist/",
     "/onboarding/",  # All onboarding sub-routes public — new users have no cookie yet
     "/onboarding-assets/",  # Onboarding static files
     "/api/vault-installer/",  # Vault installer — auth checked by route

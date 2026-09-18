@@ -14,11 +14,13 @@
     "tools": [
       {"label": "Check your deadlines", "href": "/gui/act/eviction-defense/calculate-deadlines", "why": "Enter the date you were served — see what the clock looks like."},
       {"label": "Eviction defense toolkit", "href": "/eviction-defense", "why": "Notices, defenses, forms, and procedures in one place."},
-      {"label": "Add it to your timeline", "href": "/timeline", "why": "The date you were served is the first entry in your record."},
-      {"label": "Save the notice", "href": "/dc", "why": "Keep the original document safe with your other papers."}
+      {"label": "See how timeline recording works", "href": "/gui/record/timeline/create-event", "why": "The date you were served is the first entry in your record."},
+      {"label": "Know your rights", "href": "/law-library", "why": "The statutes behind notice periods and deadlines."}
     ],
     "workspace_tools": [
       {"label": "Deadline tracker", "href": "/tenant/tools/deadlines", "why": "Keeps every upcoming date in one place."},
+      {"label": "Your timeline", "href": "/timeline", "why": "The service date and every event after it, in order."},
+      {"label": "Document center", "href": "/dc", "why": "The notice saved where the landlord can't reach it."},
       {"label": "Your journal", "href": "/tenant/journal", "why": "Dated notes about what happened, kept privately in your storage."}
     ],
     "primary_cta": {"label": "Get legal help with this notice", "href": "/help"}
@@ -36,14 +38,16 @@
       "Look up the repair obligations that apply where you live before withholding rent or paying for repairs yourself — those steps have rules."
     ],
     "tools": [
-      {"label": "Log the request", "href": "/comms-log", "why": "Record what you asked, when, and what they said back."},
-      {"label": "Add it to your timeline", "href": "/timeline", "why": "The day you reported it anchors everything after."},
+      {"label": "See how journal recording works", "href": "/gui/record/journal/create", "why": "A dated note about the problem and every response."},
+      {"label": "See how timeline recording works", "href": "/gui/record/timeline/create-event", "why": "The day you reported it anchors everything after."},
       {"label": "Know your rights", "href": "/law-library", "why": "Look up repair and habitability rules for your state."},
-      {"label": "Save the photos and letters", "href": "/dc", "why": "Keep evidence where the landlord can't reach it."}
+      {"label": "Find help near you", "href": "/help", "why": "Tenant advocates handle repair disputes every day."}
     ],
     "workspace_tools": [
+      {"label": "Communication log", "href": "/comms-log", "why": "Record what you asked, when, and what they said back."},
       {"label": "Letter tools", "href": "/tenant/tools/letters", "why": "Draft a written repair request that says the right things."},
-      {"label": "Your journal", "href": "/tenant/journal", "why": "Dated notes about the problem and every response."}
+      {"label": "Your journal", "href": "/tenant/journal", "why": "Dated notes about the problem and every response."},
+      {"label": "Document center", "href": "/dc", "why": "Photos and letters kept where the landlord can't reach them."}
     ],
     "primary_cta": {"label": "Look up repair rights", "href": "/law-library"}
   },
@@ -60,14 +64,16 @@
       "Check the deadline your state gives landlords to return or itemize a deposit — missing it can change what they owe."
     ],
     "tools": [
-      {"label": "Add it to your timeline", "href": "/timeline", "why": "Move-out date, key return, and the itemization deadline — in order."},
-      {"label": "Save the records", "href": "/dc", "why": "Photos, checklist, lease, and the statement in one place."},
-      {"label": "Log the messages", "href": "/comms-log", "why": "Every ask and every answer, dated."},
-      {"label": "Know your rights", "href": "/law-library", "why": "Deposit deadlines and penalties differ by state."}
+      {"label": "See how timeline recording works", "href": "/gui/record/timeline/create-event", "why": "Move-out date, key return, and the itemization deadline — in order."},
+      {"label": "See how journal recording works", "href": "/gui/record/journal/create", "why": "The story of the deposit in dated entries."},
+      {"label": "Know your rights", "href": "/law-library", "why": "Deposit deadlines and penalties differ by state."},
+      {"label": "Find help near you", "href": "/help", "why": "Legal aid handles deposit claims routinely."}
     ],
     "workspace_tools": [
+      {"label": "Document center", "href": "/dc", "why": "Photos, checklist, lease, and the statement in one place."},
+      {"label": "Communication log", "href": "/comms-log", "why": "Every ask and every answer, dated."},
       {"label": "Letter tools", "href": "/tenant/tools/letters", "why": "A written demand that cites the deadline."},
-      {"label": "Your journal", "href": "/tenant/journal", "why": "The story of the deposit in dated entries."}
+      {"label": "Your timeline", "href": "/timeline", "why": "The dates in order — move-out, keys, itemization due."}
     ],
     "primary_cta": {"label": "Look up deposit rules", "href": "/law-library"}
   },
@@ -84,14 +90,16 @@
       "Keep doing everything you're required to do — pay rent on time, follow the lease — so the record stays clean on your side."
     ],
     "tools": [
-      {"label": "Build the timeline", "href": "/timeline", "why": "Protected action, then adverse action — the order is the argument."},
-      {"label": "Log every contact", "href": "/comms-log", "why": "Calls, texts, and visits, dated."},
-      {"label": "Save the notices", "href": "/dc", "why": "The rent increase or warning notice is itself evidence."},
-      {"label": "Know your rights", "href": "/law-library", "why": "Retaliation protections vary by state."}
+      {"label": "See how timeline recording works", "href": "/gui/record/timeline/create-event", "why": "Protected action, then adverse action — the order is the argument."},
+      {"label": "See how journal recording works", "href": "/gui/record/journal/create", "why": "Dated private notes about each incident."},
+      {"label": "Know your rights", "href": "/law-library", "why": "Retaliation protections vary by state."},
+      {"label": "Find help near you", "href": "/help", "why": "Advocates can read the sequence with you."}
     ],
     "workspace_tools": [
       {"label": "Retaliation tracker", "href": "/tenant/retaliation", "why": "Maps protected actions against adverse actions over time."},
-      {"label": "Your journal", "href": "/tenant/journal", "why": "Dated private notes about each incident."}
+      {"label": "Your timeline", "href": "/timeline", "why": "The protected act and the response, side by side."},
+      {"label": "Communication log", "href": "/comms-log", "why": "Calls, texts, and visits, dated."},
+      {"label": "Document center", "href": "/dc", "why": "The rent increase or warning notice is itself evidence."}
     ],
     "primary_cta": {"label": "Get help from a tenant advocate", "href": "/help"}
   },
@@ -108,13 +116,16 @@
       "If they left a note or notice, keep it — even a bad-faith notice is evidence."
     ],
     "tools": [
-      {"label": "Add it to your timeline", "href": "/timeline", "why": "Each entry is a dated event; a pattern needs all of them."},
-      {"label": "Log the messages", "href": "/comms-log", "why": "What they said about coming by, in their own words."},
-      {"label": "Check your lease", "href": "/law-library", "why": "Entry rules and notice requirements, plus state law."}
+      {"label": "See how timeline recording works", "href": "/gui/record/timeline/create-event", "why": "Each entry is a dated event; a pattern needs all of them."},
+      {"label": "See how journal recording works", "href": "/gui/record/journal/create", "why": "A dated private log of every unannounced visit."},
+      {"label": "Know your rights", "href": "/law-library", "why": "Entry rules and notice requirements, plus state law."},
+      {"label": "Find help near you", "href": "/help", "why": "If entries continue, an advocate can help you respond in writing."}
     ],
     "workspace_tools": [
+      {"label": "Communication log", "href": "/comms-log", "why": "What they said about coming by, in their own words."},
       {"label": "Your journal", "href": "/tenant/journal", "why": "A dated private log of every unannounced visit."},
-      {"label": "Letter tools", "href": "/tenant/tools/letters", "why": "Put the landlord on notice — in writing — that entry requires notice."}
+      {"label": "Letter tools", "href": "/tenant/tools/letters", "why": "Put the landlord on notice — in writing — that entry requires notice."},
+      {"label": "Your timeline", "href": "/timeline", "why": "Every entry as a dated event."}
     ],
     "primary_cta": {"label": "Look up entry rules", "href": "/law-library"}
   },
@@ -131,12 +142,14 @@
       "Tell someone you trust what's happening, so you're not carrying it alone."
     ],
     "tools": [
-      {"label": "Log every contact", "href": "/comms-log", "why": "Each call, text, or visit — dated and described."},
-      {"label": "Add it to your timeline", "href": "/timeline", "why": "The pattern is the point; the timeline shows it."},
-      {"label": "Save the messages", "href": "/dc", "why": "Keep threats and harassment where they can't be taken or deleted."},
-      {"label": "Find help now", "href": "/help", "why": "Crisis lines, tenant advocates, and legal aid."}
+      {"label": "Find help now", "href": "/help", "why": "Crisis lines, tenant advocates, and legal aid."},
+      {"label": "See how journal recording works", "href": "/gui/record/journal/create", "why": "Dated private notes about each incident."},
+      {"label": "See how timeline recording works", "href": "/gui/record/timeline/create-event", "why": "The pattern is the point; the timeline shows it."},
+      {"label": "Know your rights", "href": "/law-library", "why": "Harassment and quiet-enjoyment rules."}
     ],
     "workspace_tools": [
+      {"label": "Communication log", "href": "/comms-log", "why": "Each call, text, or visit — dated and described."},
+      {"label": "Document center", "href": "/dc", "why": "Keep threats and harassment where they can't be taken or deleted."},
       {"label": "Retaliation tracker", "href": "/tenant/retaliation", "why": "If the harassment started after you asserted a right, that sequence matters."},
       {"label": "Your journal", "href": "/tenant/journal", "why": "Dated private notes about each incident."}
     ],
@@ -155,14 +168,16 @@
       "If the increase follows a repair request or complaint, note that sequence — it can matter."
     ],
     "tools": [
-      {"label": "Add it to your timeline", "href": "/timeline", "why": "When you got the notice versus when your lease ends."},
-      {"label": "Save the notice", "href": "/dc", "why": "The notice and your lease side by side."},
+      {"label": "See how timeline recording works", "href": "/gui/record/timeline/create-event", "why": "When you got the notice versus when your lease ends."},
+      {"label": "See how journal recording works", "href": "/gui/record/journal/create", "why": "Dated notes on the notice and every conversation."},
       {"label": "Know your rights", "href": "/law-library", "why": "Notice periods and any local rent rules."},
-      {"label": "Log the messages", "href": "/comms-log", "why": "What was said about the increase, dated."}
+      {"label": "Find help near you", "href": "/help", "why": "Some increases can be challenged — ask first."}
     ],
     "workspace_tools": [
+      {"label": "Document center", "href": "/dc", "why": "The notice and your lease side by side."},
+      {"label": "Communication log", "href": "/comms-log", "why": "What was said about the increase, dated."},
       {"label": "Retaliation tracker", "href": "/tenant/retaliation", "why": "An increase right after a complaint can be retaliation."},
-      {"label": "Your journal", "href": "/tenant/journal", "why": "Dated notes on the notice and every conversation."}
+      {"label": "Your timeline", "href": "/timeline", "why": "Notice date and lease-end date in order."}
     ],
     "primary_cta": {"label": "Look up rent increase rules", "href": "/law-library"}
   }
