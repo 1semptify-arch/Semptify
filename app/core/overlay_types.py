@@ -153,6 +153,9 @@ class OverlayType(str, Enum):
     PATTERN_RECORD = "pattern_record"
     """Derived housing-accountability pattern detection record (risk score + pattern JSON)."""
 
+    DOCUMENT_SHARE = "document_share"
+    """Owner-granted document share link (recipient, scope, token) — lives in the owner's vault."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -217,6 +220,7 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.EVICTION_TIMELINE_EVENT,
     OverlayType.TIMELINE_EVENT,
     OverlayType.PATTERN_RECORD,
+    OverlayType.DOCUMENT_SHARE,
 }
 
 # All overlay types (for validation)

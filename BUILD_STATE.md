@@ -1,4 +1,58 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: document shares → owner cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T15:15:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 11 — document shares, cross-user case solved)
+- `document_shares` moved off the server DB into the **owner's** cloud vault — grants persist as `DOCUMENT_SHARE` overlays anchored to `document_id="shares:{user_id}"` at `VAULT_RECORDS_FILE`. A share is the owner's data (their grant); the recipient only sees the token-gated view.
+- **Cross-user resolution without a server index:** new share tokens are owner-scoped — `{effective_user_id}:{urlsafe32}` — so `/api/dc/shared/{token}` resolves the owning vault directly (`rsplit(":",1)` → `build_context_for_user_id` → vault read). `owner_user_id` was already returned to recipients in the shared-document response, so embedding it exposes nothing new and URL shape is unchanged.
+- New `app/services/document_share_store.py` — `create_share`, `list_shares`, `resolve_share` (no caller context needed), `record_share_access`, `migrate_legacy_shares` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call; tokens rewritten to owner-scoped form, bare old token kept in `payload.legacy_token`).
+- **Legacy bare-token links keep working** — `resolve_share` falls back to a read-only query on the legacy table for tokens without an owner prefix, and converges state by importing the row into the owner's vault on first access. The fallback disappears with the Alembic drop phase.
+- Consumers rewired: `document_center/router.py` all 4 share endpoints (create, list, shared metadata + access metrics, shared content stream). `ensure_valid_token` for content streaming unchanged (identity layer, Phase 3).
+- `module_contract.json` updated — stale `DocumentShare row` claims now describe vault overlays.
+- `tests/test_document_share_vault.py` — 7 functional tests (roundtrip, per-user isolation, owner-scoped token resolution, access-count increments, legacy bare-token resolve+converge, idempotent bounded migration, no-DB safety).
+
+### Verification (this slice)
+- `python -m py_compile` clean on all changed files; `tests/test_document_share_vault.py` — 7 passed; `tests/module_health/test_document_center.py` — passed.
+- Guardrail engine — all checks PASS (run above; first run caught stub-shaped `pass` bodies in the test fakes — fixed with real counting implementations).
+
+### Remaining (Phase 1 in progress)
+- `external_mappings`/`court_case_mappings`/`property_mappings`/`agency_mappings` → `Vault/external/`; `fems_*` (6 tables — own sub-phase); `mndes_*` (2 — legal role). Then Phase 2 STOP-AND-REPORT (index-table decision). See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: pattern records → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T14:46:13+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-18T14:43:57+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
 
 ### Guardrail Engine Run — 2026-09-18T14:50:00+00:00
 
