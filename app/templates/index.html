@@ -16,6 +16,16 @@
     Semptify helps renters organize the paper trail between them and their
     landlord — in their own storage, on their own terms.
 </p>
+{% if situation_guides %}
+<section class="landing-situations" aria-label="What happened?">
+    <h2 class="landing-situations-title">What happened?</h2>
+    <ul class="landing-situations-list">
+        {% for slug, guide in situation_guides.items() %}
+        <li><a href="/guide/{{ slug }}">{{ guide.button }}</a></li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
 <div class="shell-actions">
     <a href="/preamble" class="shell-btn shell-btn--accent">Get help now</a>
     <a href="/portal" class="shell-btn">Browse tools &amp; services first</a>
@@ -50,6 +60,21 @@
         color: var(--text-secondary);
         margin-top: 0.25rem;
     }
+    .landing-situations { margin: 1.75rem 0; }
+    .landing-situations-title { margin-bottom: 0.5rem; }
+    .landing-situations-list {
+        list-style: none; margin: 0; padding: 0;
+        display: grid; gap: 0;
+    }
+    .landing-situations-list a {
+        display: block;
+        padding: 0.7rem 0;
+        border-top: 1px solid var(--border-default);
+        font-size: 1rem; font-weight: 600;
+        line-height: 1.4;
+    }
+    .landing-situations-list li:last-child a { border-bottom: 1px solid var(--border-default); }
+    .landing-situations-list a:hover { color: var(--accent, #2b6cb0); }
 </style>
 {% endblock %}
 

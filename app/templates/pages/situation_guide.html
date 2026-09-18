@@ -1,0 +1,130 @@
+{% extends "shell_base.html" %}
+
+{% block title %}{{ guide.title }} — Semptify{% endblock %}
+{% block description %}Step-by-step starting point for tenants: {{ guide.title|lower }}. What to record now, the verified facts that apply, and where to get real help.{% endblock %}
+
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="/">What happened?</a></li>
+<li class="nav-item"><a class="nav-link" href="/law-library">Know your rights</a></li>
+<li class="nav-item"><a class="nav-link" href="/help">Help &amp; legal aid</a></li>
+{% endblock %}
+
+{% block content %}
+<p class="shell-eyebrow">Your situation</p>
+<h1>{{ guide.title }}</h1>
+<p class="shell-lede">{{ guide.intro }}</p>
+
+<section class="guide-section">
+    <h2>First — do this now</h2>
+    <ol class="guide-steps">
+        {% for step in guide.now_steps %}
+        <li>{{ step }}</li>
+        {% endfor %}
+    </ol>
+</section>
+
+<section class="guide-section">
+    <h2>Build the record</h2>
+    {% if pillars.RECORD %}<p>{{ pillars.RECORD }}</p>{% endif %}
+    <ul class="guide-tools">
+        {% for tool in guide.tools %}
+        <li>
+            <a href="{{ tool.href }}">{{ tool.label }}</a>
+            <span class="guide-tool-why">{{ tool.why }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section class="guide-section">
+    <h2>Know the facts</h2>
+    {% if pillars.KNOW %}<p>{{ pillars.KNOW }}</p>{% endif %}
+    <p>
+        Laws differ by state and situation. The
+        <a href="/law-library">law library</a> has the referenced material, and
+        <a href="/help">legal aid</a> can tell you how it applies to you.
+    </p>
+</section>
+
+<section class="guide-section">
+    <h2>If it goes further</h2>
+    {% if pillars.GOVERN %}<p>{{ pillars.GOVERN }}</p>{% endif %}
+    <div class="shell-actions">
+        <a href="{{ guide.primary_cta.href }}" class="shell-btn shell-btn--accent">{{ guide.primary_cta.label }}</a>
+        <a href="/help" class="shell-btn">Find help near you</a>
+    </div>
+</section>
+
+<section class="guide-section guide-section--quiet">
+    <h2>With your own workspace</h2>
+    {% if pillars.ACT %}<p>{{ pillars.ACT }}</p>{% endif %}
+    <p>
+        Connect your own storage and these tools open — everything stays in your
+        accounts, not on our servers.
+    </p>
+    <ul class="guide-tools">
+        {% for tool in guide.workspace_tools %}
+        <li>
+            <a href="{{ tool.href }}">{{ tool.label }}</a>
+            <span class="guide-tool-why">{{ tool.why }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    <p style="margin-top:1rem;">
+        <a href="/preamble" class="shell-btn">Set up your workspace</a>
+    </p>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .guide-section { margin-top: 2.25rem; }
+    .guide-section h2 { margin-bottom: 0.75rem; }
+    .guide-steps {
+        margin: 0; padding-left: 1.4rem;
+        display: grid; gap: 0.55rem;
+        font-size: 1rem; line-height: 1.55;
+    }
+    .guide-tools {
+        list-style: none; margin: 1rem 0 0; padding: 0;
+        display: grid; gap: 0.75rem;
+    }
+    .guide-tools li {
+        padding: 0.7rem 0;
+        border-top: 1px solid var(--border-default);
+        line-height: 1.5;
+    }
+    .guide-tools a { font-weight: 600; display: inline-block; }
+    .guide-tool-why {
+        display: block; margin-top: 0.15rem;
+        font-size: 0.88rem; color: var(--text-secondary);
+    }
+    .guide-section--quiet {
+        background: var(--bg-muted);
+        margin-left: -1.5rem; margin-right: -1.5rem;
+        padding: 1.5rem;
+        border-radius: var(--radius-md, 8px);
+    }
+    .guide-section--quiet .guide-tools li { border-top-color: var(--border-default); }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+<h2>Other situations</h2>
+<ul class="shell-list">
+    {% for slug, other in all_guides.items() %}
+    {% if slug != guide_slug %}
+    <li><a href="/guide/{{ slug }}">{{ other.button }}</a></li>
+    {% endif %}
+    {% endfor %}
+</ul>
+<h2 style="margin-top:2rem;">Get help</h2>
+<ul class="shell-list">
+    <li><a href="/help">Legal aid &amp; crisis lines</a></li>
+    <li><a href="/portal">Browse all tools</a></li>
+</ul>
+<p style="margin-top:1.25rem; font-size:0.85rem;">
+    Guides are general information, checked against named sources — not legal
+    advice for your specific case.
+</p>
+{% endblock %}
