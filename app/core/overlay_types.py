@@ -156,6 +156,18 @@ class OverlayType(str, Enum):
     DOCUMENT_SHARE = "document_share"
     """Owner-granted document share link (recipient, scope, token) — lives in the owner's vault."""
 
+    EXTERNAL_MAPPING = "external_mapping"
+    """Bridge between a tenant record and an external system ID (court, parcel, agency)."""
+
+    COURT_CASE_MAPPING = "court_case_mapping"
+    """Court case reference with legal detail (case number, parties, dates, status)."""
+
+    PROPERTY_MAPPING = "property_mapping"
+    """Property parcel/address reference (county, tax ID, primary-residence flag)."""
+
+    AGENCY_MAPPING = "agency_mapping"
+    """Agency complaint reference (agency code, complaint number, status, outcome)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -221,6 +233,10 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.TIMELINE_EVENT,
     OverlayType.PATTERN_RECORD,
     OverlayType.DOCUMENT_SHARE,
+    OverlayType.EXTERNAL_MAPPING,
+    OverlayType.COURT_CASE_MAPPING,
+    OverlayType.PROPERTY_MAPPING,
+    OverlayType.AGENCY_MAPPING,
 }
 
 # All overlay types (for validation)

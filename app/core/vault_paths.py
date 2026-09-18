@@ -96,6 +96,12 @@ VAULT_RECORDS_FILE = normalize_cloud_path(f"{VAULT_RECORDS}/records.json")
 VAULT_DERIVED = normalize_cloud_path(f"{VAULT_ROOT}/derived")
 VAULT_DERIVED_FILE = normalize_cloud_path(f"{VAULT_DERIVED}/derived.json")
 
+# Per-user external-mappings anchor for EXTERNAL_MAPPING / COURT_CASE_MAPPING /
+# PROPERTY_MAPPING / AGENCY_MAPPING overlays — bridges between the tenant's
+# records and external system references (court cases, parcels, agencies).
+VAULT_EXTERNAL = normalize_cloud_path(f"{VAULT_ROOT}/external")
+VAULT_EXTERNAL_FILE = normalize_cloud_path(f"{VAULT_EXTERNAL}/mappings.json")
+
 # =============================================================================
 # Role-specific folders (direct children of Vault/)
 # =============================================================================

@@ -1,3 +1,31 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: external mappings → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T15:45:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 12 — external mappings, 4 tables)
+- `external_mappings`, `court_case_mappings`, `property_mappings`, `agency_mappings` moved off the server DB into the tenant's cloud vault — records persist as `EXTERNAL_MAPPING` / `COURT_CASE_MAPPING` / `PROPERTY_MAPPING` / `AGENCY_MAPPING` overlays anchored to `document_id="mappings:{user_id}"` at the new `VAULT_EXTERNAL_FILE` (`Vault/external/mappings.json`).
+- New `app/services/external_mapping_store.py` — full CRUD + dedupe finders per kind + `update_mapping_status` + cross-kind substring `search` (ilike('%q%') semantics in Python) + `migrate_legacy_mappings` covering all four tables (non-destructive, idempotent via `payload.legacy_id`+`legacy_table`, bounded 25 rows/call). Integer PKs preserved per kind (`record_id`, max+1) — `/mapping/{id}` paths keep resolving. `to_dict()` response shapes preserved including the legacy `septify_*` key spelling.
+- `external_mappings/router.py` fully rewired — all 11 endpoints (general create/list/get/status, court-case create/list + companion general mapping, property create/list + companion, agency create/list + companion, cross-kind search); `db` deps and all SQLAlchemy removed.
+- Latent-bug family fixed — this module was effectively dead code: every endpoint used `current_user.id` (nonexistent on `UserContext` — field is `user_id`); `get_user_mappings`/`update_mapping_status` called sync-style on an `AsyncSession` (never awaited — would fail/no-op); `create_mapping`'s un-awaited `commit()` silently lost the companion general mappings created alongside court/property/agency rows.
+- `tests/test_external_mapping_vault.py` — 6 functional tests (CRUD + status update, all-four-kinds + per-kind int ids + isolation, list filters, cross-kind search, idempotent 4-table migration, no-DB safety).
+
+### Verification (this slice)
+- `python -m py_compile` clean on all changed files; `tests/test_external_mapping_vault.py` — 6 passed; `tests/module_health/test_external_mappings_mappings_router.py` — passed.
+- Guardrail engine — all checks PASS (run above).
+
+### Remaining (Phase 1 in progress)
+- `fems_*` (6 tables — own sub-phase); `mndes_exhibit_packages`/`mndes_exhibit_items` (legal role). Then Phase 2 STOP-AND-REPORT (index-table decision). See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: document shares → owner cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T15:15:00+00:00
