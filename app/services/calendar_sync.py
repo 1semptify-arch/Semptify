@@ -1,17 +1,19 @@
-"""Calendar sync service — auto-populate CalendarEvent rows from documents and rent ledger."""
+"""Calendar sync service — auto-populate CALENDAR_EVENT overlays from documents and rent ledger.
+
+Post vault-persistence-migration: generated events are written to the user's
+cloud vault via app.modules.calendar.service (same store as manual events).
+The ``db`` parameter is retained for signature compatibility with existing
+callers but no longer used for calendar writes.
+"""
 
 import logging
 from datetime import UTC, date, datetime, time
 from typing import Any
 
-from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db_session
 from app.core.document_hub import get_document_hub
-from app.core.id_gen import make_id
 from app.core.utc import utc_now
-from app.models.models import CalendarEvent as CalendarEventModel
 
 logger = logging.getLogger(__name__)
 
@@ -57,35 +59,14 @@ def _rent_link_key(entry_type: str, payment_id: str) -> str:
     return f"rent:{entry_type}:{payment_id}"
 
 
-async def _existing_auto_keys(db: AsyncSession, user_id: str) -> set[str]:
-    """Return the set of linked_record_id values already stored for auto sources."""
-    result = await db.execute(
-        select(CalendarEventModel.linked_record_id).where(
-            CalendarEventModel.user_id == user_id,
-            CalendarEventModel.source.in_(AUTO_SOURCES),
-            CalendarEventModel.linked_record_id.is_not(None),
-        )
-    )
-    return {row[0] for row in result.fetchall() if row[0]}
-
-
-async def _clear_auto_events(db: AsyncSession, user_id: str) -> None:
-    """Remove prior auto-synced calendar events for a user."""
-    await db.execute(
-        delete(CalendarEventModel).where(
-            CalendarEventModel.user_id == user_id,
-            CalendarEventModel.source.in_(AUTO_SOURCES),
-        )
-    )
-
-
 async def _sync_document_events(
-    db: AsyncSession,
     user_id: str,
     existing: set[str],
     overwrite: bool,
 ) -> tuple[list[str], int]:
-    """Create CalendarEvent rows from DocumentHub-derived dates."""
+    """Create CALENDAR_EVENT overlays from DocumentHub-derived dates."""
+    from app.modules.calendar.service import create_event_for_user_id
+
     hub = get_document_hub()
     # Force a refresh so newly-processed documents are included.
     hub.get_case_data(user_id, force_refresh=True)
@@ -101,36 +82,33 @@ async def _sync_document_events(
         if not overwrite and link_key in existing:
             skipped += 1
             continue
-        event_id = make_id("cal")
-        db.add(
-            CalendarEventModel(
-                id=event_id,
-                user_id=user_id,
-                title=event.get("title", "Document event"),
-                description=event.get("description") or "Auto-synced from documents",
-                start_datetime=start,
-                end_datetime=None,
-                all_day=True,
-                event_type=event.get("type", "deadline"),
-                is_critical=event.get("critical", False),
-                reminder_days=7 if event.get("critical") else 3,
-                source="document_extraction",
-                linked_record_id=link_key,
-                created_at=utc_now(),
-                updated_at=utc_now(),
-            )
+        event_id = await create_event_for_user_id(
+            user_id,
+            title=event.get("title", "Document event"),
+            description=event.get("description") or "Auto-synced from documents",
+            start_datetime=start,
+            end_datetime=None,
+            all_day=True,
+            event_type=event.get("type", "deadline"),
+            is_critical=event.get("critical", False),
+            reminder_days=7 if event.get("critical") else 3,
+            source="document_extraction",
+            linked_record_id=link_key,
         )
-        created_ids.append(event_id)
+        if event_id:
+            created_ids.append(event_id)
+        else:
+            skipped += 1
     return created_ids, skipped
 
 
 async def _sync_rent_events(
-    db: AsyncSession,
     user_id: str,
     existing: set[str],
     overwrite: bool,
 ) -> tuple[list[str], int]:
-    """Create CalendarEvent rows from the rent ledger (vault overlays)."""
+    """Create CALENDAR_EVENT overlays from the rent ledger (vault overlays)."""
+    from app.modules.calendar.service import create_event_for_user_id
     from app.modules.rent.service import list_entries_for_user_id
 
     overlays, _total = await list_entries_for_user_id(user_id)
@@ -152,26 +130,23 @@ async def _sync_rent_events(
                 skipped += 1
             else:
                 is_critical = p.get("status") in {"late", "missed"} or due_date < utc_now()
-                event_id = make_id("cal")
-                db.add(
-                    CalendarEventModel(
-                        id=event_id,
-                        user_id=user_id,
-                        title=f"Rent due — {base_period or due_date.strftime('%Y-%m')}",
-                        description="Auto-synced from rent ledger",
-                        start_datetime=due_date,
-                        end_datetime=None,
-                        all_day=True,
-                        event_type="rent_due",
-                        is_critical=is_critical,
-                        reminder_days=3,
-                        source="rent_ledger",
-                        linked_record_id=link_key,
-                        created_at=utc_now(),
-                        updated_at=utc_now(),
-                    )
+                event_id = await create_event_for_user_id(
+                    user_id,
+                    title=f"Rent due — {base_period or due_date.strftime('%Y-%m')}",
+                    description="Auto-synced from rent ledger",
+                    start_datetime=due_date,
+                    end_datetime=None,
+                    all_day=True,
+                    event_type="rent_due",
+                    is_critical=is_critical,
+                    reminder_days=3,
+                    source="rent_ledger",
+                    linked_record_id=link_key,
                 )
-                created_ids.append(event_id)
+                if event_id:
+                    created_ids.append(event_id)
+                else:
+                    skipped += 1
 
         # Late-fee / charge trigger date
         if entry_type in {"fee", "charge"} and (due_date or payment_date):
@@ -180,27 +155,24 @@ async def _sync_rent_events(
             if not overwrite and link_key in existing:
                 skipped += 1
             else:
-                event_id = make_id("cal")
                 label = "Late fee" if entry_type == "fee" else "Charge"
-                db.add(
-                    CalendarEventModel(
-                        id=event_id,
-                        user_id=user_id,
-                        title=f"{label} — {base_period or trigger_date.strftime('%Y-%m')}",
-                        description="Auto-synced from rent ledger",
-                        start_datetime=trigger_date,
-                        end_datetime=None,
-                        all_day=True,
-                        event_type="late_fee",
-                        is_critical=True,
-                        reminder_days=1,
-                        source="rent_ledger",
-                        linked_record_id=link_key,
-                        created_at=utc_now(),
-                        updated_at=utc_now(),
-                    )
+                event_id = await create_event_for_user_id(
+                    user_id,
+                    title=f"{label} — {base_period or trigger_date.strftime('%Y-%m')}",
+                    description="Auto-synced from rent ledger",
+                    start_datetime=trigger_date,
+                    end_datetime=None,
+                    all_day=True,
+                    event_type="late_fee",
+                    is_critical=True,
+                    reminder_days=1,
+                    source="rent_ledger",
+                    linked_record_id=link_key,
                 )
-                created_ids.append(event_id)
+                if event_id:
+                    created_ids.append(event_id)
+                else:
+                    skipped += 1
 
     return created_ids, skipped
 
@@ -219,22 +191,21 @@ async def sync_calendar_for_user(
 
     When ``overwrite`` is True, existing auto-synced events are cleared and
     recreated. When False, only events with a new ``linked_record_id`` are added.
+
+    ``db`` is accepted for backward compatibility with pre-migration callers;
+    calendar writes now go to the user's cloud vault, not the database.
     """
-    if db is None:
-        async with get_db_session() as session:
-            return await sync_calendar_for_user(user_id, session, overwrite)
+    _ = db  # legacy signature compatibility — vault path needs no session
+    from app.modules.calendar.service import delete_source_events, existing_link_keys
 
     existing: set[str] = set()
     if overwrite:
-        await _clear_auto_events(db, user_id)
+        await delete_source_events(user_id, AUTO_SOURCES)
     else:
-        existing = await _existing_auto_keys(db, user_id)
+        existing = await existing_link_keys(user_id, AUTO_SOURCES)
 
-    doc_ids, doc_skipped = await _sync_document_events(db, user_id, existing, overwrite)
-    rent_ids, rent_skipped = await _sync_rent_events(db, user_id, existing, overwrite)
-
-    if doc_ids or rent_ids or overwrite:
-        await db.commit()
+    doc_ids, doc_skipped = await _sync_document_events(user_id, existing, overwrite)
+    rent_ids, rent_skipped = await _sync_rent_events(user_id, existing, overwrite)
 
     return {
         "success": True,

@@ -879,7 +879,7 @@ async def build_press_release(request: PressBuilderRequest, current_user=Depends
 @accountability_router.get("/dashboard")
 async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """Unified dashboard summary using real database data."""
-    from app.models.models import CalendarEvent, Complaint, Document, Incident, TimelineEvent, VaultItem
+    from app.models.models import Complaint, Document, Incident, TimelineEvent, VaultItem
 
     user_id = current_user.user_id if current_user else "anonymous"
 
@@ -889,14 +889,10 @@ async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession
     )
     timeline_count = timeline_result.scalar() or 0
 
-    # Count upcoming calendar events
-    calendar_result = await db.execute(
-        select(func.count())
-        .select_from(CalendarEvent)
-        .where(CalendarEvent.user_id == user_id)
-        .where(CalendarEvent.start_datetime >= utc_now())
-    )
-    upcoming_count = calendar_result.scalar() or 0
+    # Count upcoming calendar events (vault overlays)
+    from app.modules.calendar.service import list_events_for_user_id
+
+    _upcoming, upcoming_count = await list_events_for_user_id(user_id, start=utc_now())
 
     # Count complaints
     complaint_result = await db.execute(select(func.count()).select_from(Complaint).where(Complaint.user_id == user_id))

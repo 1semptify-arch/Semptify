@@ -1,3 +1,33 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: calendar events → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T13:05:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 3)
+- `calendar_events` moved off the server DB into the tenant's cloud vault — events persist as `CALENDAR_EVENT` overlays anchored to `document_id="calendar:{user_id}"` at `VAULT_CALENDAR_FILE` (`Semptify5.0/Vault/calendar/calendar.json`).
+- New `app/modules/calendar/service.py` — same recipe: CRUD + `list_events_for_user_id()` + `migrate_legacy_events()` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call) + auto-sync helpers (`existing_link_keys`, `delete_source_events`, `create_event_for_user_id`) so calendar_sync can refresh generated events inside the vault. Datetimes stored as ISO strings in payloads.
+- `calendar_sync.py` rewritten — generated events (document_extraction + rent_ledger sources) now write vault overlays instead of `CalendarEvent` rows. Same link-key idempotency, same overwrite/skip semantics; `db` param retained for caller compatibility.
+- Rewired 8 consumers: calendar router (all CRUD + upcoming + deadline-summary + notify + sync-documents count), `case_builder` (payload dicts; court_date parsed back to datetime), `timeline._load_db_calendar_events` (vault read, same TimelineItems), `workflow` signals (hearing count + nearest critical), `components` deadline widget, `housing_accountability` dashboard count.
+- `setup._create_deadline_events` → vault creates — also fixed a latent bug: it passed `CalendarEvent(event_date=...)` which was never a model column (would TypeError on every case-info save).
+
+### Verified
+- py_compile clean on all 15 changed files; calendar tests 14/14 (6 smoke + 8 new vault functional incl. auto-sync helper coverage); module tests 44/44; case-builder 75/75; module_health 245/245; guardrail engine all-PASS.
+
+### Next session
+- Phase 1 continues: `contacts`, `complaints`, then the remaining record tables per `handoffs/vault-persistence-migration.md`.
+- Not done: `calendar_events` table still exists for legacy reads (drop is a later Alembic phase); zero-persistence claim stays NEEDS-CONFIRMATION until all tenant tables migrate.
+
+---
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: rent ledger → user cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T12:15:00+00:00

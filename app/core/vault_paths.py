@@ -74,6 +74,11 @@ VAULT_JOURNAL_FILE = normalize_cloud_path(f"{VAULT_JOURNAL}/journal.json")
 VAULT_LEDGER = normalize_cloud_path(f"{VAULT_ROOT}/ledger")
 VAULT_LEDGER_FILE = normalize_cloud_path(f"{VAULT_LEDGER}/ledger.json")
 
+# Per-user calendar anchor for CALENDAR_EVENT overlays (deadlines, hearings,
+# reminders, appointments — manual and auto-synced alike).
+VAULT_CALENDAR = normalize_cloud_path(f"{VAULT_ROOT}/calendar")
+VAULT_CALENDAR_FILE = normalize_cloud_path(f"{VAULT_CALENDAR}/calendar.json")
+
 # =============================================================================
 # Role-specific folders (direct children of Vault/)
 # =============================================================================

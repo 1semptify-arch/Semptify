@@ -29,7 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now
-from app.models.models import CalendarEvent, Document, TimelineEvent, User
+from app.models.models import Document, TimelineEvent, User
 
 # =============================================================================
 # Minnesota Court Compliance Rules
@@ -667,23 +667,27 @@ class EvictionCaseBuilder:
 
         return timeline
 
-    async def _get_calendar_events(self, session: AsyncSession, user_id: str) -> list[CalendarEvent]:
-        """Get calendar events for user."""
-        result = await session.execute(
-            select(CalendarEvent).where(CalendarEvent.user_id == user_id).order_by(CalendarEvent.start_datetime.asc())
-        )
-        return list(result.scalars().all())
+    async def _get_calendar_events(self, session: AsyncSession, user_id: str) -> list[dict]:
+        """Get calendar events from the tenant's vault (overlay payloads)."""
+        _ = session
+        from app.modules.calendar.service import list_events_for_user_id
 
-    def _update_from_calendar(self, case: EvictionCase, calendar: list[CalendarEvent]) -> None:
+        overlays, _total = await list_events_for_user_id(user_id)
+        return [o.payload for o in overlays]
+
+    def _update_from_calendar(self, case: EvictionCase, calendar: list[dict]) -> None:
         """Update case with calendar information."""
+        from app.services.calendar_sync import _parse_datetime
+
         for event in calendar:
-            if event.event_type == "hearing":
+            if event.get("event_type") == "hearing":
+                court_date = _parse_datetime(event.get("start_datetime"))
                 if case.notice:
-                    case.notice.court_date = event.start_datetime
+                    case.notice.court_date = court_date
                 else:
                     case.notice = EvictionNoticeInfo(
                         notice_type="unknown",
-                        court_date=event.start_datetime,
+                        court_date=court_date,
                     )
 
     async def _get_rent_payments(self, session: AsyncSession, user_id: str) -> list[dict]:

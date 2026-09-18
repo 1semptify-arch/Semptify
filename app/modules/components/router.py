@@ -509,25 +509,21 @@ async def handle_plan_deadline(
             try:
                 from datetime import timedelta
 
-                from sqlalchemy import select as _select
-
-                from app.core.database import get_db_session
-                from app.models.models import CalendarEvent as CalendarEventModel
+                from app.modules.calendar.service import list_events_for_user_id
 
                 now = utc_now()
-                async with get_db_session() as _db:
-                    q = await _db.execute(
-                        _select(CalendarEventModel)
-                        .where(CalendarEventModel.user_id == user_id)
-                        .where(CalendarEventModel.start_datetime >= now)
-                        .where(CalendarEventModel.start_datetime <= now + timedelta(days=30))
-                        .order_by(CalendarEventModel.start_datetime.asc())
-                        .limit(5)
-                    )
-                    upcoming = [
-                        {"id": e.id, "title": e.title, "date": e.start_datetime.isoformat(), "critical": e.is_critical}
-                        for e in q.scalars().all()
-                    ]
+                overlays, _total = await list_events_for_user_id(
+                    user_id, start=now, end=now + timedelta(days=30)
+                )
+                upcoming = [
+                    {
+                        "id": o.overlay_id,
+                        "title": o.payload.get("title") or "",
+                        "date": o.payload.get("start_datetime"),
+                        "critical": bool(o.payload.get("is_critical")),
+                    }
+                    for o in overlays[:5]
+                ]
             except Exception as e:
                 logger.warning(f"Optional calendar query for deadlines failed: {e}")
 

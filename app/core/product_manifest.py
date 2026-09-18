@@ -1117,7 +1117,7 @@ _register(
     tags=("Calendar",),
     tier=ProductTier.DEV,
     lifecycle="beta",
-    dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly→monthly→weekly→daily→hourly drill-down.",
+    dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly→monthly→weekly→daily→hourly drill-down. Events vault-persisted as CALENDAR_EVENT overlays (legacy calendar_events rows migrate on first read).",
 )
 
 # Sticky Notes — per-user scratch-pad (overlay-based, no certified document)

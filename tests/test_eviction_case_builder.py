@@ -61,16 +61,16 @@ def make_timeline_event(**kwargs):
 
 
 def make_calendar_event(**kwargs):
-    """Build a lightweight fake CalendarEvent."""
+    """Build a fake calendar overlay payload dict."""
     defaults = {
         "id": "cal_1",
         "user_id": "user_1",
         "event_type": "hearing",
         "title": "Hearing",
-        "start_datetime": utc_now() + timedelta(days=7),
+        "start_datetime": (utc_now() + timedelta(days=7)).isoformat(),
     }
     defaults.update(kwargs)
-    return SimpleNamespace(**defaults)
+    return defaults
 
 
 def make_rent_payment(**kwargs):

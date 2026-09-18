@@ -43,7 +43,6 @@ from app.core.security import StorageUser, green_access
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
 from app.models.models import (
-    CalendarEvent as CalendarEventModel,
     Document as DocumentModel,
     EvictionTimelineEvent,
     TimelineEvent as TimelineEventModel,
@@ -709,29 +708,33 @@ async def _load_db_calendar_events(
     end_date: datetime | None,
     date_axis: DateAxis,
 ) -> list[TimelineItem]:
-    """Load calendar events (deadlines, hearings)."""
-    query = select(CalendarEventModel).where(CalendarEventModel.user_id == user_id)
+    """Load calendar events (deadlines, hearings) from the tenant's vault."""
+    _ = session  # vault path needs no DB session
+    from app.modules.calendar.service import list_events_for_user_id
+    from app.services.calendar_sync import _parse_datetime as _parse_cal_dt
 
-    # Date filtering
-    if date_axis == DateAxis.EVENT_TIME:
-        filter_col = CalendarEventModel.start_datetime
-    else:
-        filter_col = CalendarEventModel.created_at
+    overlays, _total = await list_events_for_user_id(user_id)
 
-    if start_date:
-        query = query.where(filter_col >= start_date)
-    if end_date:
-        query = query.where(filter_col <= end_date)
+    def _axis_dt(payload: dict) -> datetime | None:
+        if date_axis == DateAxis.EVENT_TIME:
+            return _parse_cal_dt(payload.get("start_datetime"))
+        return _parse_cal_dt(payload.get("created_at")) or utc_now()
 
-    query = query.order_by(filter_col.desc())
-
-    result = await session.execute(query)
-    events = result.scalars().all()
+    events = []
+    for o in overlays:
+        axis_dt = _axis_dt(o.payload)
+        if start_date and (axis_dt is None or axis_dt < start_date):
+            continue
+        if end_date and (axis_dt is None or axis_dt > end_date):
+            continue
+        events.append(o)
+    events.sort(key=lambda o: _axis_dt(o.payload) or utc_now(), reverse=True)
 
     items = []
     for evt in events:
-        event_dt = evt.start_datetime
-        entry_dt = evt.created_at or utc_now()
+        p = evt.payload
+        event_dt = _parse_cal_dt(p.get("start_datetime"))
+        entry_dt = _parse_cal_dt(p.get("created_at")) or evt.created_at or utc_now()
 
         # Choose display date
         if date_axis == DateAxis.EVENT_TIME:
@@ -739,31 +742,31 @@ async def _load_db_calendar_events(
         else:
             display_dt = entry_dt
 
-        urgency = Urgency.CRITICAL if evt.is_critical else Urgency.HIGH
+        urgency = Urgency.CRITICAL if p.get("is_critical") else Urgency.HIGH
 
-        icon, color = _get_icon_and_color(ItemType.CALENDAR_EVENT, evt.event_type, False, urgency)
+        icon, color = _get_icon_and_color(ItemType.CALENDAR_EVENT, p.get("event_type"), False, urgency)
 
         items.append(
             TimelineItem(
-                id=evt.id,
+                id=evt.overlay_id,
                 item_type=ItemType.CALENDAR_EVENT,
-                title=evt.title,
-                description=evt.description,
+                title=p.get("title") or "",
+                description=p.get("description"),
                 date_display=_format_date(display_dt) or "",
                 event_date=_format_date(event_dt),
                 record_date=_format_date(event_dt),
                 entry_date=_format_date(entry_dt) or "",
                 is_evidence=True,  # Court dates are always evidence
-                is_deadline=evt.event_type == "deadline",
+                is_deadline=p.get("event_type") == "deadline",
                 urgency=urgency,
-                item_subtype=evt.event_type,
+                item_subtype=p.get("event_type"),
                 icon=icon,
                 color=color,
                 source="calendar",
                 metadata={
-                    "all_day": evt.all_day,
-                    "end_datetime": _format_date(evt.end_datetime),
-                    "reminder_days": evt.reminder_days,
+                    "all_day": bool(p.get("all_day")),
+                    "end_datetime": p.get("end_datetime"),
+                    "reminder_days": p.get("reminder_days"),
                 },
             )
         )

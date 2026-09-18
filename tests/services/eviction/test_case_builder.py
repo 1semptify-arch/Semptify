@@ -397,23 +397,23 @@ def test_update_from_calendar_sets_court_date(builder):
     """_update_from_calendar sets notice.court_date from a hearing event."""
     notice = EvictionNoticeInfo(notice_type="nonpayment")
     case = EvictionCase(user_id="u1", notice=notice)
-    hearing = SimpleNamespace(event_type="hearing", start_datetime=datetime(2025, 12, 15, 9, 0, tzinfo=UTC))
+    hearing = {"event_type": "hearing", "start_datetime": "2025-12-15T09:00:00+00:00"}
 
     builder._update_from_calendar(case, [hearing])
 
-    assert case.notice.court_date == hearing.start_datetime
+    assert case.notice.court_date == datetime(2025, 12, 15, 9, 0, tzinfo=UTC)
 
 
 def test_update_from_calendar_creates_notice_when_missing(builder):
     """_update_from_calendar creates a notice if the case has none."""
     case = EvictionCase(user_id="u1")
-    hearing = SimpleNamespace(event_type="hearing", start_datetime=datetime(2025, 12, 15, 9, 0, tzinfo=UTC))
+    hearing = {"event_type": "hearing", "start_datetime": "2025-12-15T09:00:00+00:00"}
 
     builder._update_from_calendar(case, [hearing])
 
     assert case.notice is not None
     assert case.notice.notice_type == "unknown"
-    assert case.notice.court_date == hearing.start_datetime
+    assert case.notice.court_date == datetime(2025, 12, 15, 9, 0, tzinfo=UTC)
 
 
 def test_build_rent_history(builder):
@@ -707,16 +707,36 @@ async def test_get_timeline_events(builder):
 
 
 @pytest.mark.anyio
-async def test_get_calendar_events(builder):
-    """_get_calendar_events returns ordered calendar events."""
-    events = [SimpleNamespace(id="c1"), SimpleNamespace(id="c2")]
-    result = MagicMock()
-    result.scalars.return_value.all.return_value = events
-    session = AsyncMock()
-    session.execute.return_value = result
+async def test_get_calendar_events(builder, monkeypatch):
+    """_get_calendar_events returns overlay payloads from the vault calendar."""
+    from app.core.overlay_types import OverlayType
+    from app.models.unified_overlay_models import UnifiedOverlay
 
-    found = await builder._get_calendar_events(session, "GUtest1234")
-    assert found == events
+    overlays = [
+        UnifiedOverlay(
+            overlay_id="ovl_c1",
+            overlay_type=OverlayType.CALENDAR_EVENT,
+            document_id="calendar:GUtest1234",
+            vault_path="Semptify5.0/Vault/calendar/calendar.json",
+            created_by="GUtest1234",
+            payload={"id": "c1"},
+        ),
+        UnifiedOverlay(
+            overlay_id="ovl_c2",
+            overlay_type=OverlayType.CALENDAR_EVENT,
+            document_id="calendar:GUtest1234",
+            vault_path="Semptify5.0/Vault/calendar/calendar.json",
+            created_by="GUtest1234",
+            payload={"id": "c2"},
+        ),
+    ]
+    monkeypatch.setattr(
+        "app.modules.calendar.service.list_events_for_user_id",
+        AsyncMock(return_value=(overlays, 2)),
+    )
+
+    found = await builder._get_calendar_events(AsyncMock(), "GUtest1234")
+    assert found == [{"id": "c1"}, {"id": "c2"}]
 
 
 @pytest.mark.anyio
@@ -821,13 +841,12 @@ async def test_build_case_integration(monkeypatch, fixed_now):
         event_date=fixed_now,
         document_id="d4",
     )
-    hearing_event = SimpleNamespace(
-        id="c1",
-        user_id="GUtest1234",
-        event_type="hearing",
-        title="Court Hearing",
-        start_datetime=datetime(2025, 12, 15, 9, 0, tzinfo=UTC),
-    )
+    hearing_event = {
+        "id": "c1",
+        "event_type": "hearing",
+        "title": "Court Hearing",
+        "start_datetime": "2025-12-15T09:00:00+00:00",
+    }
     paid_payment = {
         "id": "p1",
         "payment_date": fixed_now.isoformat(),
@@ -855,16 +874,12 @@ async def test_build_case_integration(monkeypatch, fixed_now):
     timeline_result = MagicMock()
     timeline_result.scalars.return_value.all.return_value = [timeline_event]
 
-    calendar_result = MagicMock()
-    calendar_result.scalars.return_value.all.return_value = [hearing_event]
-
     mock_session = AsyncMock()
     mock_session.execute = AsyncMock(
         side_effect=[
             user_result,
             all_docs_result,
             timeline_result,
-            calendar_result,
         ]
     )
 
@@ -891,6 +906,21 @@ async def test_build_case_integration(monkeypatch, fixed_now):
     monkeypatch.setattr(
         "app.modules.rent.service.list_entries_for_user_id",
         AsyncMock(return_value=(rent_overlays, len(rent_overlays))),
+    )
+
+    cal_overlays = [
+        UnifiedOverlay(
+            overlay_id="ovl_c1",
+            overlay_type=OverlayType.CALENDAR_EVENT,
+            document_id="calendar:GUtest1234",
+            vault_path="Semptify5.0/Vault/calendar/calendar.json",
+            created_by="GUtest1234",
+            payload=hearing_event,
+        )
+    ]
+    monkeypatch.setattr(
+        "app.modules.calendar.service.list_events_for_user_id",
+        AsyncMock(return_value=(cal_overlays, 1)),
     )
 
     builder = EvictionCaseBuilder()

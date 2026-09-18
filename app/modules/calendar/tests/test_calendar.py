@@ -52,25 +52,32 @@ def test_calendar_contracts_registered():
 
 def test_model_to_response_includes_source_and_links():
     """_model_to_response surfaces source, linked_record_id, and updated_at."""
-    from datetime import datetime
-    from unittest.mock import MagicMock
-
+    from app.core.overlay_types import OverlayType
+    from app.models.unified_overlay_models import UnifiedOverlay
     from app.modules.calendar.router import _model_to_response
 
-    event = MagicMock()
-    event.id = "cal_abc123"
-    event.title = "Court Hearing"
-    event.description = "Hearing at 9am"
-    event.start_datetime = datetime(2026, 8, 1, 9, 0, 0, tzinfo=UTC)
-    event.end_datetime = None
-    event.all_day = False
-    event.event_type = "hearing"
-    event.is_critical = True
-    event.reminder_days = 1
-    event.source = "document_extraction"
-    event.linked_record_id = "hearing:user_1"
-    event.created_at = datetime(2026, 7, 20, 10, 0, 0, tzinfo=UTC)
-    event.updated_at = datetime(2026, 7, 20, 10, 0, 0, tzinfo=UTC)
+    event = UnifiedOverlay(
+        overlay_id="ovl_cal_abc123",
+        overlay_type=OverlayType.CALENDAR_EVENT,
+        document_id="calendar:user_1",
+        vault_path="Semptify5.0/Vault/calendar/calendar.json",
+        created_by="user_1",
+        payload={
+            "id": "cal_abc123",
+            "title": "Court Hearing",
+            "description": "Hearing at 9am",
+            "start_datetime": "2026-08-01T09:00:00+00:00",
+            "end_datetime": None,
+            "all_day": False,
+            "event_type": "hearing",
+            "is_critical": True,
+            "reminder_days": 1,
+            "source": "document_extraction",
+            "linked_record_id": "hearing:user_1",
+            "created_at": "2026-07-20T10:00:00+00:00",
+            "updated_at": "2026-07-20T10:00:00+00:00",
+        },
+    )
 
     result = _model_to_response(event)
     assert result.source == "document_extraction"
@@ -150,10 +157,12 @@ async def test_sync_calendar_for_user_creates_auto_events():
         },
     )
 
-    db = AsyncMock()
-    db.add = MagicMock()
-    db.execute = AsyncMock()
-    db.commit = AsyncMock()
+    created_ids = []
+
+    async def _fake_create(user_id, **fields):
+        oid = f"ovl_{len(created_ids):03d}"
+        created_ids.append((oid, fields))
+        return oid
 
     with (
         patch("app.services.calendar_sync.get_document_hub", return_value=hub),
@@ -161,11 +170,24 @@ async def test_sync_calendar_for_user_creates_auto_events():
             "app.modules.rent.service.list_entries_for_user_id",
             new=AsyncMock(return_value=([payment_overlay], 1)),
         ),
+        patch(
+            "app.modules.calendar.service.create_event_for_user_id",
+            new=_fake_create,
+        ),
+        patch(
+            "app.modules.calendar.service.delete_source_events",
+            new=AsyncMock(return_value=0),
+        ),
+        patch(
+            "app.modules.calendar.service.existing_link_keys",
+            new=AsyncMock(return_value=set()),
+        ),
     ):
-        result = await sync_calendar_for_user("user_1", db=db)
+        result = await sync_calendar_for_user("user_1")
 
     assert result["document_events"] == 2
     assert result["rent_events"] == 1
     assert result["total"] == 3
     assert len(result["synced_event_ids"]) == 3
-    db.commit.assert_awaited()
+    sources = {fields["source"] for _oid, fields in created_ids}
+    assert sources == {"document_extraction", "rent_ledger"}

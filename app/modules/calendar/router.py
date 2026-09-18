@@ -1,8 +1,10 @@
 """
-Calendar Router (Database-backed)
+Calendar Router (vault-backed)
 Scheduling, deadlines, and reminders.
 
-Now integrated with DocumentHub for auto-syncing dates from uploaded documents.
+Events persist as CALENDAR_EVENT overlays in the tenant's own cloud vault
+(vault-persistence-migration, Phase 1) — no server DB rows. Still integrated
+with DocumentHub for auto-syncing dates from uploaded documents.
 """
 
 import logging
@@ -10,15 +12,14 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import and_, func, select
 
-from app.core.database import get_db_session
 from app.core.document_hub import get_document_hub
 from app.core.event_bus import EventType, event_bus
-from app.core.id_gen import make_id
 from app.core.security import StorageUser, yellow_access
 from app.core.utc import utc_now
-from app.models.models import CalendarEvent as CalendarEventModel
+from app.models.unified_overlay_models import UnifiedOverlay
+from app.modules.calendar import service
+from app.services.calendar_sync import _parse_datetime as _parse_dt
 from app.services.calendar_sync import sync_calendar_for_user
 
 logger = logging.getLogger(__name__)
@@ -115,22 +116,23 @@ def _parse_datetime(dt_str: str) -> datetime:
         raise HTTPException(status_code=422, detail=f"Invalid datetime format: {dt_str}")
 
 
-def _model_to_response(event: CalendarEventModel) -> CalendarEventResponse:
-    """Convert database model to response schema."""
+def _model_to_response(event: UnifiedOverlay) -> CalendarEventResponse:
+    """Convert a CALENDAR_EVENT overlay to the response schema."""
+    p = event.payload
     return CalendarEventResponse(
-        id=event.id,
-        title=event.title,
-        description=event.description,
-        start_datetime=event.start_datetime.isoformat() if event.start_datetime else "",
-        end_datetime=event.end_datetime.isoformat() if event.end_datetime else None,
-        all_day=event.all_day or False,
-        event_type=event.event_type or "reminder",
-        is_critical=event.is_critical or False,
-        reminder_days=event.reminder_days,
-        source=event.source,
-        linked_record_id=event.linked_record_id,
-        created_at=event.created_at.isoformat() if event.created_at else "",
-        updated_at=event.updated_at.isoformat() if event.updated_at else None,
+        id=event.overlay_id,
+        title=p.get("title") or "",
+        description=p.get("description"),
+        start_datetime=p.get("start_datetime") or "",
+        end_datetime=p.get("end_datetime"),
+        all_day=bool(p.get("all_day")),
+        event_type=p.get("event_type") or "reminder",
+        is_critical=bool(p.get("is_critical")),
+        reminder_days=p.get("reminder_days"),
+        source=p.get("source"),
+        linked_record_id=p.get("linked_record_id"),
+        created_at=p.get("created_at") or (event.created_at.isoformat() if event.created_at else ""),
+        updated_at=p.get("updated_at") or (event.updated_at.isoformat() if event.updated_at else None),
     )
 
 
@@ -164,68 +166,61 @@ async def create_event(
     start_dt = _parse_datetime(event.start_datetime)
     end_dt = _parse_datetime(event.end_datetime) if event.end_datetime else None
 
-    async with get_db_session() as session:
-        db_event = CalendarEventModel(
-            id=make_id("cal"),
-            user_id=user.user_id,
-            title=event.title,
-            description=event.description,
-            start_datetime=start_dt,
-            end_datetime=end_dt,
-            all_day=event.all_day,
-            event_type=event.event_type,
-            is_critical=event.is_critical,
-            reminder_days=event.reminder_days,
-            source="manual",
-            created_at=utc_now(),
-            updated_at=utc_now(),
+    overlay = await service.create_event(
+        user,
+        title=event.title,
+        description=event.description,
+        start_datetime=start_dt,
+        end_datetime=end_dt,
+        all_day=event.all_day,
+        event_type=event.event_type,
+        is_critical=event.is_critical,
+        reminder_days=event.reminder_days,
+        source="manual",
+    )
+
+    # Emit brain event for calendar update
+    try:
+        from app.services.positronic_brain import BrainEvent, EventType as BrainEventType, ModuleType, get_brain
+
+        brain = get_brain()
+        event_type_brain = (
+            BrainEventType.CALENDAR_HEARING_SCHEDULED
+            if event.event_type == "hearing"
+            else BrainEventType.CALENDAR_DEADLINE_APPROACHING
         )
-        session.add(db_event)
-        await session.commit()
-        await session.refresh(db_event)
-
-        # Emit brain event for calendar update
-        try:
-            from app.services.positronic_brain import BrainEvent, EventType as BrainEventType, ModuleType, get_brain
-
-            brain = get_brain()
-            event_type_brain = (
-                BrainEventType.CALENDAR_HEARING_SCHEDULED
-                if event.event_type == "hearing"
-                else BrainEventType.CALENDAR_DEADLINE_APPROACHING
-            )
-            await brain.emit(
-                BrainEvent(
-                    event_type=event_type_brain,
-                    source_module=ModuleType.CALENDAR,
-                    data={
-                        "event_id": db_event.id,
-                        "title": db_event.title,
-                        "event_type": db_event.event_type,
-                        "start_datetime": db_event.start_datetime.isoformat() if db_event.start_datetime else None,
-                        "is_critical": db_event.is_critical,
-                    },
-                    user_id=user.user_id,
-                )
-            )
-        except Exception:
-            logger.debug("Brain emit failed (optional)", exc_info=True)
-
-        event_bus.publish_sync(
-            EventType.HEARING_SCHEDULED if event.event_type == "hearing" else EventType.DEADLINE_ADDED,
-            {
-                "user_id": user.user_id,
-                "event_id": db_event.id,
-                "event_type": db_event.event_type,
-                "is_critical": db_event.is_critical,
-                "narrator": {
-                    "module": "app.modules.calendar",
-                    "slot": 1 if event.event_type == "hearing" else (2 if event.event_type == "deadline" else 0),
+        await brain.emit(
+            BrainEvent(
+                event_type=event_type_brain,
+                source_module=ModuleType.CALENDAR,
+                data={
+                    "event_id": overlay.overlay_id,
+                    "title": event.title,
+                    "event_type": event.event_type,
+                    "start_datetime": start_dt.isoformat() if start_dt else None,
+                    "is_critical": event.is_critical,
                 },
-            },
+                user_id=user.user_id,
+            )
         )
+    except Exception:
+        logger.debug("Brain emit failed (optional)", exc_info=True)
 
-        return _model_to_response(db_event)
+    event_bus.publish_sync(
+        EventType.HEARING_SCHEDULED if event.event_type == "hearing" else EventType.DEADLINE_ADDED,
+        {
+            "user_id": user.user_id,
+            "event_id": overlay.overlay_id,
+            "event_type": event.event_type,
+            "is_critical": event.is_critical,
+            "narrator": {
+                "module": "app.modules.calendar",
+                "slot": 1 if event.event_type == "hearing" else (2 if event.event_type == "deadline" else 0),
+            },
+        },
+    )
+
+    return _model_to_response(overlay)
 
 
 @router.get("/", response_model=CalendarListResponse)
@@ -239,33 +234,17 @@ async def list_events(
     """
     List calendar events, optionally filtered by date range and type.
     """
-    async with get_db_session() as session:
-        query = select(CalendarEventModel).where(CalendarEventModel.user_id == user.user_id)
-
-        if start:
-            start_dt = _parse_datetime(start)
-            query = query.where(CalendarEventModel.start_datetime >= start_dt)
-
-        if end:
-            end_dt = _parse_datetime(end)
-            query = query.where(CalendarEventModel.start_datetime <= end_dt)
-
-        if event_type:
-            query = query.where(CalendarEventModel.event_type == event_type)
-
-        if critical_only:
-            query = query.where(CalendarEventModel.is_critical.is_(True))
-
-        # Sort by start datetime
-        query = query.order_by(CalendarEventModel.start_datetime.asc())
-
-        result = await session.execute(query)
-        events = result.scalars().all()
-
-        return CalendarListResponse(
-            events=[_model_to_response(e) for e in events],
-            total=len(events),
-        )
+    events, total = await service.list_events(
+        user,
+        start=_parse_datetime(start) if start else None,
+        end=_parse_datetime(end) if end else None,
+        event_type=event_type,
+        critical_only=critical_only,
+    )
+    return CalendarListResponse(
+        events=[_model_to_response(e) for e in events],
+        total=total,
+    )
 
 
 @router.get("/upcoming", response_model=UpcomingDeadlinesResponse)
@@ -281,42 +260,23 @@ async def upcoming_deadlines(
     now = utc_now()
     cutoff = now + timedelta(days=days)
 
-    async with get_db_session() as session:
-        query = (
-            select(CalendarEventModel)
-            .where(
-                and_(
-                    CalendarEventModel.user_id == user.user_id,
-                    CalendarEventModel.start_datetime >= now,
-                    CalendarEventModel.start_datetime <= cutoff,
-                )
-            )
-            .order_by(CalendarEventModel.start_datetime.asc())
-        )
+    upcoming, _total = await service.list_events(user, start=now, end=cutoff)
 
-        result = await session.execute(query)
-        upcoming = result.scalars().all()
+    # Separate critical events
+    critical = [e for e in upcoming if e.payload.get("is_critical")]
 
-        # Separate critical events
-        critical = [e for e in upcoming if e.is_critical]
+    # Calculate days to next critical
+    days_to_next = None
+    if critical:
+        next_critical_date = _parse_dt(critical[0].payload.get("start_datetime"))
+        if next_critical_date:
+            days_to_next = (next_critical_date.replace(tzinfo=None) - now.replace(tzinfo=None)).days
 
-        # Calculate days to next critical
-        days_to_next = None
-        if critical:
-            next_critical_date = critical[0].start_datetime
-            # Normalize timezone for comparison
-            if next_critical_date.tzinfo is None:
-                next_critical_date = next_critical_date.replace(tzinfo=UTC)
-            # Compare using naive datetimes to avoid issues
-            now_naive = now.replace(tzinfo=None)
-            next_naive = next_critical_date.replace(tzinfo=None)
-            days_to_next = (next_naive - now_naive).days
-
-        return UpcomingDeadlinesResponse(
-            critical=[_model_to_response(e) for e in critical],
-            upcoming=[_model_to_response(e) for e in upcoming[:10]],
-            days_to_next_critical=days_to_next,
-        )
+    return UpcomingDeadlinesResponse(
+        critical=[_model_to_response(e) for e in critical],
+        upcoming=[_model_to_response(e) for e in upcoming[:10]],
+        days_to_next_critical=days_to_next,
+    )
 
 
 @router.get("/{event_id}", response_model=CalendarEventResponse)
@@ -325,17 +285,10 @@ async def get_event(
     user: StorageUser = Depends(yellow_access),
 ):
     """Get a specific calendar event."""
-    async with get_db_session() as session:
-        query = select(CalendarEventModel).where(
-            and_(CalendarEventModel.id == event_id, CalendarEventModel.user_id == user.user_id)
-        )
-        result = await session.execute(query)
-        event = result.scalar_one_or_none()
-
-        if not event:
-            raise HTTPException(status_code=404, detail="Event not found")
-
-        return _model_to_response(event)
+    overlay = await service.get_event(user, event_id)
+    if overlay is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return _model_to_response(overlay)
 
 
 @router.patch("/{event_id}", response_model=CalendarEventResponse)
@@ -345,30 +298,18 @@ async def update_event(
     user: StorageUser = Depends(yellow_access),
 ):
     """Update a calendar event."""
-    async with get_db_session() as session:
-        query = select(CalendarEventModel).where(
-            and_(CalendarEventModel.id == event_id, CalendarEventModel.user_id == user.user_id)
-        )
-        result = await session.execute(query)
-        event = result.scalar_one_or_none()
+    update_data = updates.model_dump(exclude_unset=True)
 
-        if not event:
-            raise HTTPException(status_code=404, detail="Event not found")
+    # Parse datetime fields if provided
+    if "start_datetime" in update_data and update_data["start_datetime"]:
+        update_data["start_datetime"] = _parse_datetime(update_data["start_datetime"])
+    if "end_datetime" in update_data and update_data["end_datetime"]:
+        update_data["end_datetime"] = _parse_datetime(update_data["end_datetime"])
 
-        update_data = updates.model_dump(exclude_unset=True)
-
-        # Parse datetime fields if provided
-        if "start_datetime" in update_data and update_data["start_datetime"]:
-            update_data["start_datetime"] = _parse_datetime(update_data["start_datetime"])
-        if "end_datetime" in update_data and update_data["end_datetime"]:
-            update_data["end_datetime"] = _parse_datetime(update_data["end_datetime"])
-
-        for field, value in update_data.items():
-            setattr(event, field, value)
-
-        await session.commit()
-        await session.refresh(event)
-        return _model_to_response(event)
+    overlay = await service.update_event(user, event_id, update_data)
+    if overlay is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return _model_to_response(overlay)
 
 
 @router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -377,18 +318,8 @@ async def delete_event(
     user: StorageUser = Depends(yellow_access),
 ):
     """Delete a calendar event."""
-    async with get_db_session() as session:
-        query = select(CalendarEventModel).where(
-            and_(CalendarEventModel.id == event_id, CalendarEventModel.user_id == user.user_id)
-        )
-        result = await session.execute(query)
-        event = result.scalar_one_or_none()
-
-        if not event:
-            raise HTTPException(status_code=404, detail="Event not found")
-
-        await session.delete(event)
-        await session.commit()
+    if not await service.delete_event(user, event_id):
+        raise HTTPException(status_code=404, detail="Event not found")
 
 
 # =============================================================================
@@ -476,14 +407,8 @@ async def sync_document_events(
     Existing auto-synced events are refreshed by default; pass overwrite=false
     to skip events that have already been synced.
     """
-    result = await sync_calendar_for_user(user.user_id, overwrite=overwrite)
-
-    async with get_db_session() as session:
-        count_query = (
-            select(func.count()).select_from(CalendarEventModel).where(CalendarEventModel.user_id == user.user_id)
-        )
-        total_result = await session.execute(count_query)
-        total = total_result.scalar() or 0
+    result = await sync_calendar_for_user(user.get_effective_user_id(), overwrite=overwrite)
+    _events, total = await service.list_events(user)
 
     return SyncResult(
         synced=result["total"],
@@ -516,37 +441,27 @@ async def get_deadline_summary(
     cutoff = now + timedelta(days=30)
 
     calendar_deadlines = []
-    async with get_db_session() as session:
-        query = (
-            select(CalendarEventModel)
-            .where(
-                and_(
-                    CalendarEventModel.user_id == user.user_id,
-                    CalendarEventModel.start_datetime >= now,
-                    CalendarEventModel.start_datetime <= cutoff,
-                    CalendarEventModel.event_type.in_(["deadline", "hearing"]),
-                )
-            )
-            .order_by(CalendarEventModel.start_datetime.asc())
+    range_events, _total = await service.list_events(user, start=now, end=cutoff)
+    for e in range_events:
+        p = e.payload
+        if p.get("event_type") not in ("deadline", "hearing"):
+            continue
+        start_dt = _parse_dt(p.get("start_datetime"))
+        if not start_dt:
+            continue
+        days_until = (start_dt.replace(tzinfo=None) - now.replace(tzinfo=None)).days
+        calendar_deadlines.append(
+            {
+                "id": e.overlay_id,
+                "title": p.get("title") or "",
+                "date": p.get("start_datetime"),
+                "days_until": days_until,
+                "is_critical": bool(p.get("is_critical")),
+                "type": p.get("event_type"),
+                "urgency": "critical" if days_until <= 3 else "high" if days_until <= 7 else "medium",
+                "source": "calendar",
+            }
         )
-
-        result = await session.execute(query)
-        events = result.scalars().all()
-
-        for e in events:
-            days_until = (e.start_datetime.replace(tzinfo=None) - now.replace(tzinfo=None)).days
-            calendar_deadlines.append(
-                {
-                    "id": e.id,
-                    "title": e.title,
-                    "date": e.start_datetime.isoformat(),
-                    "days_until": days_until,
-                    "is_critical": e.is_critical,
-                    "type": e.event_type,
-                    "urgency": "critical" if days_until <= 3 else "high" if days_until <= 7 else "medium",
-                    "source": "calendar",
-                }
-            )
 
     return {
         "answer_deadline": {
@@ -582,35 +497,25 @@ async def send_deadline_notifications(
     """
     from app.core.event_bus import send_notification
 
-    async with get_db_session() as session:
-        # Get upcoming critical events
-        cutoff_date = utc_now() + timedelta(days=days_ahead)
-
-        query = (
-            select(CalendarEventModel)
-            .where(
-                and_(
-                    CalendarEventModel.user_id == user.user_id,
-                    CalendarEventModel.is_critical.is_(True),
-                    CalendarEventModel.start_datetime <= cutoff_date,
-                    CalendarEventModel.start_datetime >= utc_now(),
-                )
-            )
-            .order_by(CalendarEventModel.start_datetime.asc())
-        )
-
-        result = await session.execute(query)
-        upcoming_events = result.scalars().all()
+    # Get upcoming critical events
+    cutoff_date = utc_now() + timedelta(days=days_ahead)
+    upcoming_events, _total = await service.list_events(
+        user, start=utc_now(), end=cutoff_date, critical_only=True
+    )
 
     notifications_sent = 0
 
     for event in upcoming_events:
-        days_until = (event.start_datetime - utc_now()).days
+        p = event.payload
+        start_dt = _parse_dt(p.get("start_datetime"))
+        if not start_dt:
+            continue
+        days_until = (start_dt - utc_now()).days
 
         # Send in-app notification
         await send_notification(
-            title=f"Upcoming Deadline: {event.title}",
-            message=f"You have a critical deadline in {days_until} days: {event.description or event.title}",
+            title=f"Upcoming Deadline: {p.get('title')}",
+            message=f"You have a critical deadline in {days_until} days: {p.get('description') or p.get('title')}",
             level="warning",
             user_id=user.user_id,
         )
