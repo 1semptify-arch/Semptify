@@ -63,6 +63,45 @@ VAULT_TIMELINE_EVENTS_FILE = normalize_cloud_path(f"{VAULT_TIMELINE}/{VAULT_TIME
 VAULT_SCRATCHPAD = normalize_cloud_path(f"{VAULT_ROOT}/scratchpad")
 VAULT_SCRATCHPAD_FILE = normalize_cloud_path(f"{VAULT_SCRATCHPAD}/notepad.json")
 
+# Per-user journal anchor for JOURNAL_ENTRY overlays. Not a certified vault
+# document; it provides the document_id/vault_path anchor required by
+# UnifiedOverlay while entry content lives in the overlays themselves.
+VAULT_JOURNAL = normalize_cloud_path(f"{VAULT_ROOT}/journal")
+VAULT_JOURNAL_FILE = normalize_cloud_path(f"{VAULT_JOURNAL}/journal.json")
+
+# Per-user ledger anchor for RENT_LEDGER_ENTRY overlays (rent payments, fees,
+# deposits, credits, charges with running balance).
+VAULT_LEDGER = normalize_cloud_path(f"{VAULT_ROOT}/ledger")
+VAULT_LEDGER_FILE = normalize_cloud_path(f"{VAULT_LEDGER}/ledger.json")
+
+# Per-user calendar anchor for CALENDAR_EVENT overlays (deadlines, hearings,
+# reminders, appointments — manual and auto-synced alike).
+VAULT_CALENDAR = normalize_cloud_path(f"{VAULT_ROOT}/calendar")
+VAULT_CALENDAR_FILE = normalize_cloud_path(f"{VAULT_CALENDAR}/calendar.json")
+
+# Per-user contacts anchor for CONTACT + CONTACT_INTERACTION overlays
+# (landlords, attorneys, witnesses, agencies + the interaction log).
+VAULT_CONTACTS = normalize_cloud_path(f"{VAULT_ROOT}/contacts")
+VAULT_CONTACTS_FILE = normalize_cloud_path(f"{VAULT_CONTACTS}/contacts.json")
+
+# Per-user records anchor for tenant record overlays that don't warrant their
+# own folder yet (complaint wizard drafts/filings first; witness statements,
+# incidents, dispute records join this file in later migration slices).
+VAULT_RECORDS = normalize_cloud_path(f"{VAULT_ROOT}/records")
+VAULT_RECORDS_FILE = normalize_cloud_path(f"{VAULT_RECORDS}/records.json")
+
+# Per-user derived-data anchor for computed tenant artifacts (pattern detection
+# records first). Derived means regenerated from vault documents — still
+# tenant-owned, so it lives in the user's cloud, not the server DB.
+VAULT_DERIVED = normalize_cloud_path(f"{VAULT_ROOT}/derived")
+VAULT_DERIVED_FILE = normalize_cloud_path(f"{VAULT_DERIVED}/derived.json")
+
+# Per-user external-mappings anchor for EXTERNAL_MAPPING / COURT_CASE_MAPPING /
+# PROPERTY_MAPPING / AGENCY_MAPPING overlays — bridges between the tenant's
+# records and external system references (court cases, parcels, agencies).
+VAULT_EXTERNAL = normalize_cloud_path(f"{VAULT_ROOT}/external")
+VAULT_EXTERNAL_FILE = normalize_cloud_path(f"{VAULT_EXTERNAL}/mappings.json")
+
 # =============================================================================
 # Role-specific folders (direct children of Vault/)
 # =============================================================================
@@ -72,6 +111,7 @@ VAULT_CLIENT_FILES = normalize_cloud_path(f"{VAULT_ROOT}/client_files")
 VAULT_CASE_NOTES = normalize_cloud_path(f"{VAULT_ROOT}/case_notes")
 VAULT_LEGAL_FILINGS = normalize_cloud_path(f"{VAULT_ROOT}/legal_filings")
 VAULT_COURT_EXHIBITS = normalize_cloud_path(f"{VAULT_ROOT}/court_exhibits")
+VAULT_COURT_EXHIBITS_FILE = normalize_cloud_path(f"{VAULT_COURT_EXHIBITS}/packages.json")
 VAULT_CASE_FILES = normalize_cloud_path(f"{VAULT_ROOT}/case_files")
 VAULT_DISCOVERY = normalize_cloud_path(f"{VAULT_ROOT}/discovery")
 VAULT_RESEARCH = normalize_cloud_path(f"{VAULT_ROOT}/research")

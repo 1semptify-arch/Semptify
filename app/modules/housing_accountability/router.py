@@ -685,13 +685,12 @@ async def detect_patterns(
         # Generate pattern summary
         pattern_summary = pattern_service.generate_pattern_summary(analysis_data)
 
-        # Save pattern record if persistence is enabled
+        # Save pattern record to the tenant's vault if persistence is enabled
         try:
-            from app.models.pattern_record import save_pattern_record
+            from app.services.pattern_store import save_pattern_record
 
-            saved_record = save_pattern_record(
-                db=db,
-                user_id=current_user.id,
+            saved_record = await save_pattern_record(
+                current_user,
                 analysis_type=request.analysis_type,
                 pattern_data=pattern_summary,
                 data_sources={
@@ -703,7 +702,7 @@ async def detect_patterns(
             if saved_record:
                 pattern_summary["record_id"] = saved_record.id
         except ImportError:
-            # Pattern record model not available - continue without persistence
+            # Pattern store not available - continue without persistence
             pass
         except Exception as e:
             # Log error but don't fail the request
@@ -876,49 +875,58 @@ async def build_press_release(request: PressBuilderRequest, current_user=Depends
 # =============================================================================
 
 
+async def _count_complaints(user_id: str) -> int:
+    """Count a user's complaint drafts/filings from their cloud vault.
+
+    Returns 0 when the user has no resolvable vault context (e.g. anonymous)
+    instead of breaking the dashboard.
+    """
+    try:
+        from app.core.user_context import build_context_for_user_id
+        from app.services.complaint_wizard import complaint_wizard
+
+        user = await build_context_for_user_id(user_id)
+        drafts = await complaint_wizard.get_user_drafts_vault(user)
+        return len(drafts)
+    except Exception:
+        return 0
+
+
 @accountability_router.get("/dashboard")
 async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """Unified dashboard summary using real database data."""
-    from app.models.models import CalendarEvent, Complaint, Document, Incident, TimelineEvent, VaultItem
+    from app.models.models import Document, VaultItem
+    from app.services.timeline_store import list_events_for_user_id as _list_timeline_events
 
     user_id = current_user.user_id if current_user else "anonymous"
 
-    # Count timeline events
-    timeline_result = await db.execute(
-        select(func.count()).select_from(TimelineEvent).where(TimelineEvent.user_id == user_id)
-    )
-    timeline_count = timeline_result.scalar() or 0
+    # Timeline events (vault overlays)
+    all_timeline_events = await _list_timeline_events(user_id)
+    timeline_count = len(all_timeline_events)
 
-    # Count upcoming calendar events
-    calendar_result = await db.execute(
-        select(func.count())
-        .select_from(CalendarEvent)
-        .where(CalendarEvent.user_id == user_id)
-        .where(CalendarEvent.start_datetime >= utc_now())
-    )
-    upcoming_count = calendar_result.scalar() or 0
+    # Count upcoming calendar events (vault overlays)
+    from app.modules.calendar.service import list_events_for_user_id
 
-    # Count complaints
-    complaint_result = await db.execute(select(func.count()).select_from(Complaint).where(Complaint.user_id == user_id))
-    complaint_count = complaint_result.scalar() or 0
+    _upcoming, upcoming_count = await list_events_for_user_id(user_id, start=utc_now())
+
+    # Count complaints (vault overlays)
+    complaint_count = await _count_complaints(user_id)
 
     # Count vault items (evidence)
     vault_result = await db.execute(select(func.count()).select_from(VaultItem).where(VaultItem.user_id == user_id))
     vault_count = vault_result.scalar() or 0
 
-    # Count incidents
-    incident_result = await db.execute(select(func.count()).select_from(Incident).where(Incident.user_id == user_id))
-    incident_count = incident_result.scalar() or 0
+    # Count incidents (vault overlays)
+    from app.services.incident_store import count_incidents_for_user_id
+
+    incident_count = await count_incidents_for_user_id(user_id)
 
     # Count documents
     doc_result = await db.execute(select(func.count()).select_from(Document).where(Document.user_id == user_id))
     doc_count = doc_result.scalar() or 0
 
-    # Recent timeline events
-    recent_events = await db.execute(
-        select(TimelineEvent).where(TimelineEvent.user_id == user_id).order_by(TimelineEvent.event_date.desc()).limit(5)
-    )
-    events = recent_events.scalars().all()
+    # Recent timeline events (already sorted newest event_date first)
+    events = all_timeline_events[:5]
 
     return JSONResponse(
         content={
@@ -936,7 +944,7 @@ async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession
                     "id": e.id,
                     "type": e.event_type,
                     "date": e.event_date.isoformat() if e.event_date else None,
-                    "status": e.status.value if e.status else None,
+                    "status": e.event_status,
                 }
                 for e in events
             ],
@@ -948,24 +956,22 @@ async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession
 @accountability_router.get("/analyst")
 async def get_analyst(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """AI Case Analyst — rule-based risk assessment from database."""
-    from app.models.models import Complaint, Incident, TimelineEvent, VaultItem
+    from app.models.models import VaultItem
+    from app.services.timeline_store import count_events_for_user_id
 
     user_id = current_user.user_id if current_user else "anonymous"
 
     # Gather counts
-    timeline_result = await db.execute(
-        select(func.count()).select_from(TimelineEvent).where(TimelineEvent.user_id == user_id)
-    )
-    timeline_count = timeline_result.scalar() or 0
+    timeline_count = await count_events_for_user_id(user_id)
 
-    complaint_result = await db.execute(select(func.count()).select_from(Complaint).where(Complaint.user_id == user_id))
-    complaint_count = complaint_result.scalar() or 0
+    complaint_count = await _count_complaints(user_id)
 
     vault_result = await db.execute(select(func.count()).select_from(VaultItem).where(VaultItem.user_id == user_id))
     vault_count = vault_result.scalar() or 0
 
-    incident_result = await db.execute(select(func.count()).select_from(Incident).where(Incident.user_id == user_id))
-    incident_count = incident_result.scalar() or 0
+    from app.services.incident_store import count_incidents_for_user_id
+
+    incident_count = await count_incidents_for_user_id(user_id)
 
     # Risk scoring
     risk_score = 0

@@ -709,3 +709,45 @@ async def get_user_context(
         "gates": [],
         "permissions": list(get_permissions(UserRole.USER)),
     }
+
+
+async def build_context_for_user_id(user_id: str) -> UserContext | None:
+    """Rebuild a minimal UserContext from a bare user_id.
+
+    Cross-module readers (tenant feed, briefcase, dashboard stats, sync jobs)
+    often only carry the user_id, not a request session. Provider/role codes
+    are embedded in the id itself; the access token comes from the session
+    store via ensure_valid_token (same path as get_current_user).
+
+    Returns None when the id is unparseable or no valid token can be produced.
+    """
+    from app.core.auto_refresh import ensure_valid_token
+    from app.core.user_id import parse_user_id
+
+    provider_name, role_name, _unique = parse_user_id(user_id)
+    if not provider_name:
+        return None
+    try:
+        provider = StorageProvider(provider_name)
+    except ValueError:
+        return None
+    try:
+        role = UserRole(role_name) if role_name else UserRole.USER
+    except ValueError:
+        role = UserRole.USER
+
+    try:
+        is_valid, token, _status = await ensure_valid_token(user_id)
+    except Exception:
+        logger.warning("Token resolution failed for %s***", user_id[:6])
+        return None
+    if not is_valid or token is None:
+        return None
+
+    return UserContext(
+        user_id=user_id,
+        provider=provider,
+        storage_user_id=user_id,
+        access_token=token.access_token,
+        role=role,
+    )

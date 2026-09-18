@@ -7,12 +7,11 @@ NOW WITH DATABASE PERSISTENCE.
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
 from app.core.request_utils import get_request_user_id
 from app.core.security import get_optional_user_id, sanitize_user_input
 from app.core.utc import utc_now
+from app.core.user_context import build_context_for_user_id
 from app.services.complaint_wizard import (
     AgencyType,
     ComplaintDraft,
@@ -212,36 +211,40 @@ async def create_draft(
     request_body: CreateDraftRequest,
     request: Request,
     user_id: str | None = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db),
 ) -> ComplaintDraft:
-    """Create a new complaint draft (persisted to database)."""
+    """Create a new complaint draft (persisted to the tenant's cloud vault)."""
     # Get user_id from session or fallback
     uid = get_user_id_from_request(request, user_id)
+    user = await build_context_for_user_id(uid)
 
     # Verify agency exists
     agency = complaint_wizard.get_agency(request_body.agency_id)
     if not agency:
         raise HTTPException(status_code=404, detail="Agency not found")
 
-    draft = await complaint_wizard.create_draft_db(
-        db=db, user_id=uid, agency_id=request_body.agency_id, subject=sanitize_user_input(request_body.subject)
+    return await complaint_wizard.create_draft_vault(
+        user, agency_id=request_body.agency_id, subject=sanitize_user_input(request_body.subject)
     )
-    return draft
 
 
 @router.get("/drafts")
 async def list_drafts(
-    request: Request, user_id: str | None = Depends(get_optional_user_id), db: AsyncSession = Depends(get_db)
+    request: Request, user_id: str | None = Depends(get_optional_user_id)
 ) -> list[ComplaintDraft]:
-    """List all drafts for a user (from database)."""
+    """List all drafts for a user (from their cloud vault)."""
     uid = get_user_id_from_request(request, user_id)
-    return await complaint_wizard.get_user_drafts_db(db, uid)
+    user = await build_context_for_user_id(uid)
+    return await complaint_wizard.get_user_drafts_vault(user)
 
 
 @router.get("/drafts/{draft_id}")
-async def get_draft(draft_id: str, db: AsyncSession = Depends(get_db)) -> ComplaintDraft:
-    """Get a specific draft (from database)."""
-    draft = await complaint_wizard.get_draft_db(db, draft_id)
+async def get_draft(
+    draft_id: str, request: Request, user_id: str | None = Depends(get_optional_user_id)
+) -> ComplaintDraft:
+    """Get a specific draft (from the tenant's cloud vault)."""
+    uid = get_user_id_from_request(request, user_id)
+    user = await build_context_for_user_id(uid)
+    draft = await complaint_wizard.get_draft_vault(user, draft_id)
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
     return draft
@@ -249,20 +252,27 @@ async def get_draft(draft_id: str, db: AsyncSession = Depends(get_db)) -> Compla
 
 @router.patch("/drafts/{draft_id}")
 async def update_draft(
-    draft_id: str, request: UpdateDraftRequest, db: AsyncSession = Depends(get_db)
+    draft_id: str, request: UpdateDraftRequest, http_request: Request,
+    user_id: str | None = Depends(get_optional_user_id),
 ) -> ComplaintDraft:
-    """Update a complaint draft (in database)."""
+    """Update a complaint draft (in the tenant's cloud vault)."""
+    uid = get_user_id_from_request(http_request, user_id)
+    user = await build_context_for_user_id(uid)
     updates = request.model_dump(exclude_none=True)
-    draft = await complaint_wizard.update_draft_db(db, draft_id, **updates)
+    draft = await complaint_wizard.update_draft_vault(user, draft_id, **updates)
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
     return draft
 
 
 @router.delete("/drafts/{draft_id}")
-async def delete_draft(draft_id: str, db: AsyncSession = Depends(get_db)) -> dict:
-    """Delete a complaint draft (from database)."""
-    success = await complaint_wizard.delete_draft_db(db, draft_id)
+async def delete_draft(
+    draft_id: str, request: Request, user_id: str | None = Depends(get_optional_user_id)
+) -> dict:
+    """Delete a complaint draft (from the tenant's cloud vault)."""
+    uid = get_user_id_from_request(request, user_id)
+    user = await build_context_for_user_id(uid)
+    success = await complaint_wizard.delete_draft_vault(user, draft_id)
     if not success:
         raise HTTPException(status_code=404, detail="Draft not found")
     return {"status": "deleted", "draft_id": draft_id}
@@ -270,19 +280,26 @@ async def delete_draft(draft_id: str, db: AsyncSession = Depends(get_db)) -> dic
 
 @router.post("/drafts/{draft_id}/documents")
 async def attach_documents(
-    draft_id: str, request: AttachDocumentsRequest, db: AsyncSession = Depends(get_db)
+    draft_id: str, request: AttachDocumentsRequest, http_request: Request,
+    user_id: str | None = Depends(get_optional_user_id),
 ) -> ComplaintDraft:
-    """Attach documents to a draft (in database)."""
-    draft = await complaint_wizard.attach_documents_db(db, draft_id, request.document_ids)
+    """Attach documents to a draft (in the tenant's cloud vault)."""
+    uid = get_user_id_from_request(http_request, user_id)
+    user = await build_context_for_user_id(uid)
+    draft = await complaint_wizard.attach_documents_vault(user, draft_id, request.document_ids)
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
     return draft
 
 
 @router.get("/drafts/{draft_id}/preview")
-async def preview_complaint(draft_id: str, db: AsyncSession = Depends(get_db)) -> dict:
+async def preview_complaint(
+    draft_id: str, request: Request, user_id: str | None = Depends(get_optional_user_id)
+) -> dict:
     """Preview the formatted complaint text."""
-    draft = await complaint_wizard.get_draft_db(db, draft_id)
+    uid = get_user_id_from_request(request, user_id)
+    user = await build_context_for_user_id(uid)
+    draft = await complaint_wizard.get_draft_vault(user, draft_id)
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
 
@@ -302,13 +319,16 @@ async def preview_complaint(draft_id: str, db: AsyncSession = Depends(get_db)) -
 @router.get("/drafts/{draft_id}/export")
 async def export_complaint(
     draft_id: str,
+    request: Request,
+    user_id: str | None = Depends(get_optional_user_id),
     format: str = Query("text", description="Export format: text, html, or pdf"),
-    db: AsyncSession = Depends(get_db),
 ):
     """Export complaint as text, HTML, or attempt PDF."""
     from fastapi.responses import HTMLResponse, PlainTextResponse
 
-    draft = await complaint_wizard.get_draft_db(db, draft_id)
+    uid = get_user_id_from_request(request, user_id)
+    user = await build_context_for_user_id(uid)
+    draft = await complaint_wizard.get_draft_vault(user, draft_id)
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
 
@@ -344,10 +364,13 @@ async def export_complaint(
 
 @router.post("/drafts/{draft_id}/file")
 async def mark_complaint_filed(
-    draft_id: str, request: MarkFiledRequest, db: AsyncSession = Depends(get_db)
+    draft_id: str, request: MarkFiledRequest, http_request: Request,
+    user_id: str | None = Depends(get_optional_user_id),
 ) -> ComplaintDraft:
-    """Mark a complaint as filed (in database)."""
-    draft = await complaint_wizard.mark_as_filed_db(db, draft_id, confirmation_number=request.confirmation_number)
+    """Mark a complaint as filed (in the tenant's cloud vault)."""
+    uid = get_user_id_from_request(http_request, user_id)
+    user = await build_context_for_user_id(uid)
+    draft = await complaint_wizard.mark_as_filed_vault(user, draft_id, confirmation_number=request.confirmation_number)
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
     return draft
@@ -514,7 +537,7 @@ class SubmitComplaintRequest(BaseModel):
 
 
 @router.post("/submit")
-async def submit_complaint(request: SubmitComplaintRequest, _db: AsyncSession = Depends(get_db)) -> dict:
+async def submit_complaint(request: SubmitComplaintRequest) -> dict:
     """Submit a complaint to an agency."""
     # Validate agency exists
     agency = complaint_wizard.get_agency(request.agency_id)

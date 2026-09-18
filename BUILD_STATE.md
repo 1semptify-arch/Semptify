@@ -1,3 +1,445 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: MNDES exhibit packages → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T16:10:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 13 — mndes_exhibit_packages)
+- `mndes_exhibit_packages` moved off the server DB into the owner's cloud vault — packages persist as `MNDES_PACKAGE` overlays anchored to `document_id="mndes:{user_id}"` at the new `VAULT_COURT_EXHIBITS_FILE` (`Vault/court_exhibits/packages.json`). Legacy rows import on first read (bounded 25/call, idempotent via `payload.package_id`) and on direct package access (import-on-access, ownership-checked).
+- `app/modules/mndes/service.py` — `_save_package_to_db`/`_get_package_from_db` replaced with `_save_package_to_vault` (upsert by package_id) / `_get_package_from_vault` + `_migrate_legacy_packages`; `_package_to_db_model`/`_package_from_db_model` became payload converters. `get_package`/`apply_attestations`/`confirm_submission`/`get_compliance_summary`/`get_submission_checklist` now take `user_id` (router supplies it via `_extract_user_id`).
+- `app/modules/mndes/router.py` — 4 endpoints that had **no auth at all** now extract `user_id` and 401 without it (packages were readable by anyone holding an ID — fixed, not just migrated). `create_package` kept its existing auth.
+- `mndes_exhibit_items` — dead table, never written anywhere (Alembic drop only, no readers to rewire).
+- `app/services/mndes_exhibit_service.py` — near-duplicate stale copy collapsed into a re-export shim of `app.modules.mndes.service` (removes the drift that hid every bug below).
+- Latent-bug family fixed — the entire MNDES API was broken at runtime: **every router call to the async service was un-awaited** (returned coroutines → `.dict()` AttributeError → 500 on create/get/checklist/compliance/attest/confirm); `ex.dict()` in `exhibits_json` serialization crashed `json.dumps` on datetimes (→ `model_dump(mode="json")`); `submitted_at` was written as a bool into a datetime column; `get_package` had no user filter (cross-user read possible by ID alone — now vault-scoped + ownership-guarded).
+- `tests/test_mndes_vault.py` — 6 functional tests (create/get round trip, attestation persistence, submission status, per-user isolation, bounded+idempotent legacy migration, import-on-access + cross-user guard). `tests/test_mndes_service.py` repointed from the stale duplicate to the live implementation + vault methods (25 total pass).
+
+### Verification (this slice)
+- `python -m py_compile` clean on all changed files; `tests/test_mndes_vault.py` — 6 passed; `tests/test_mndes_service.py` — 19 passed; `tests/module_health/test_mndes.py` — passed.
+- Guardrail engine — all checks PASS (run above).
+
+### Phase 1 status
+- **Complete.** All genuinely tenant-owned tables migrated. `fems_*` (6 tables) classified as global operator/forensic data — no `user_id`, global dedupe by design, local-disk inbox/quarantine, admin-only router → flagged for Brad's design decision (stays server-side or gets its own operator storage; not a tenant-vault target).
+- Next: Phase 2 STOP-AND-REPORT (index-table decision — `documents`, `document_pipeline_index`, `vault_*` index tables). See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
+## Session — 2026-09-18 — Vault persistence Phase 1: external mappings → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T15:45:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 12 — external mappings, 4 tables)
+- `external_mappings`, `court_case_mappings`, `property_mappings`, `agency_mappings` moved off the server DB into the tenant's cloud vault — records persist as `EXTERNAL_MAPPING` / `COURT_CASE_MAPPING` / `PROPERTY_MAPPING` / `AGENCY_MAPPING` overlays anchored to `document_id="mappings:{user_id}"` at the new `VAULT_EXTERNAL_FILE` (`Vault/external/mappings.json`).
+- New `app/services/external_mapping_store.py` — full CRUD + dedupe finders per kind + `update_mapping_status` + cross-kind substring `search` (ilike('%q%') semantics in Python) + `migrate_legacy_mappings` covering all four tables (non-destructive, idempotent via `payload.legacy_id`+`legacy_table`, bounded 25 rows/call). Integer PKs preserved per kind (`record_id`, max+1) — `/mapping/{id}` paths keep resolving. `to_dict()` response shapes preserved including the legacy `septify_*` key spelling.
+- `external_mappings/router.py` fully rewired — all 11 endpoints (general create/list/get/status, court-case create/list + companion general mapping, property create/list + companion, agency create/list + companion, cross-kind search); `db` deps and all SQLAlchemy removed.
+- Latent-bug family fixed — this module was effectively dead code: every endpoint used `current_user.id` (nonexistent on `UserContext` — field is `user_id`); `get_user_mappings`/`update_mapping_status` called sync-style on an `AsyncSession` (never awaited — would fail/no-op); `create_mapping`'s un-awaited `commit()` silently lost the companion general mappings created alongside court/property/agency rows.
+- `tests/test_external_mapping_vault.py` — 6 functional tests (CRUD + status update, all-four-kinds + per-kind int ids + isolation, list filters, cross-kind search, idempotent 4-table migration, no-DB safety).
+
+### Verification (this slice)
+- `python -m py_compile` clean on all changed files; `tests/test_external_mapping_vault.py` — 6 passed; `tests/module_health/test_external_mappings_mappings_router.py` — passed.
+- Guardrail engine — all checks PASS (run above).
+
+### Remaining (Phase 1 in progress)
+- `fems_*` (6 tables — own sub-phase); `mndes_exhibit_packages`/`mndes_exhibit_items` (legal role). Then Phase 2 STOP-AND-REPORT (index-table decision). See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
+## Session — 2026-09-18 — Vault persistence Phase 1: document shares → owner cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T15:15:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 11 — document shares, cross-user case solved)
+- `document_shares` moved off the server DB into the **owner's** cloud vault — grants persist as `DOCUMENT_SHARE` overlays anchored to `document_id="shares:{user_id}"` at `VAULT_RECORDS_FILE`. A share is the owner's data (their grant); the recipient only sees the token-gated view.
+- **Cross-user resolution without a server index:** new share tokens are owner-scoped — `{effective_user_id}:{urlsafe32}` — so `/api/dc/shared/{token}` resolves the owning vault directly (`rsplit(":",1)` → `build_context_for_user_id` → vault read). `owner_user_id` was already returned to recipients in the shared-document response, so embedding it exposes nothing new and URL shape is unchanged.
+- New `app/services/document_share_store.py` — `create_share`, `list_shares`, `resolve_share` (no caller context needed), `record_share_access`, `migrate_legacy_shares` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call; tokens rewritten to owner-scoped form, bare old token kept in `payload.legacy_token`).
+- **Legacy bare-token links keep working** — `resolve_share` falls back to a read-only query on the legacy table for tokens without an owner prefix, and converges state by importing the row into the owner's vault on first access. The fallback disappears with the Alembic drop phase.
+- Consumers rewired: `document_center/router.py` all 4 share endpoints (create, list, shared metadata + access metrics, shared content stream). `ensure_valid_token` for content streaming unchanged (identity layer, Phase 3).
+- `module_contract.json` updated — stale `DocumentShare row` claims now describe vault overlays.
+- `tests/test_document_share_vault.py` — 7 functional tests (roundtrip, per-user isolation, owner-scoped token resolution, access-count increments, legacy bare-token resolve+converge, idempotent bounded migration, no-DB safety).
+
+### Verification (this slice)
+- `python -m py_compile` clean on all changed files; `tests/test_document_share_vault.py` — 7 passed; `tests/module_health/test_document_center.py` — passed.
+- Guardrail engine — all checks PASS (run above; first run caught stub-shaped `pass` bodies in the test fakes — fixed with real counting implementations).
+
+### Remaining (Phase 1 in progress)
+- `external_mappings`/`court_case_mappings`/`property_mappings`/`agency_mappings` → `Vault/external/`; `fems_*` (6 tables — own sub-phase); `mndes_*` (2 — legal role). Then Phase 2 STOP-AND-REPORT (index-table decision). See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
+## Session — 2026-09-18 — Vault persistence Phase 1: pattern records → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T14:46:13+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-18T14:43:57+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-09-18T14:50:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 10 — pattern records)
+- `pattern_records` moved off the server DB into the tenant's cloud vault — records persist as `PATTERN_RECORD` overlays anchored to `document_id="patterns:{user_id}"` at the new `VAULT_DERIVED_FILE` (`Vault/derived/derived.json` — derived tenant artifacts live in the tenant's cloud, not the server).
+- New `app/services/pattern_store.py` — `save_pattern_record`, `get_pattern_history`, `get_pattern_record`, `mark_pattern_reviewed`, `get_pattern_trends`, `get_pattern_stats`, `migrate_legacy_records` (non-destructive, idempotent via `payload.legacy_id`, bounded 25 rows/call). Integer record ids preserved (`max+1` per user) — `/record/{id}` URLs keep resolving. Env gate `ENABLE_PATTERN_PERSISTENCE` retained — all functions return empty/None when disabled, matching legacy semantics.
+- Consumers rewired: `housing_accountability/router.py` `/patterns/detect` save site, all 6 `pattern_history.py` endpoints (`db` deps removed — `current_user` UserContext passed straight through).
+- Three latent bugs fixed (all masked by the env gate): `pattern_history.py` passed an `AsyncSession` to the sync `get_pattern_history`/`get_pattern_trends` helpers (never awaited — would fail at runtime); `current_user.id` used a nonexistent UserContext attribute (field is `user_id`); `save_pattern_record(db=db, ...)` used a kwarg the legacy signature didn't accept (`db_session`) — silently swallowed by the broad `except`.
+- `tests/test_pattern_store_vault.py` — 7 functional tests (roundtrip, per-user int-id allocation + isolation, review marking, trends/stats, disabled-gate empties, idempotent bounded migration, no-DB safety).
+
+### Verification (this slice)
+- `python -m py_compile` clean on all 7 changed files; `tests/test_pattern_store_vault.py` — 7 passed; `tests/module_health/test_pattern_history.py` + `test_housing_accountability_accountability_router.py` — 2 passed.
+- Guardrail engine — all checks PASS (run above).
+
+### Remaining (Phase 1 in progress)
+- Reclassified this slice: `context_facts` (shared admin-gathered public cache), `context_explanation_entries` (admin-curated content, like `resources`), `tenant_stories` (anonymized + published cross-user content) → "stays in DB" — not per-tenant private data. `document_annotations`, `fraud_analysis_results`, `witness_statements`, `certified_mail` → verified dead tables (Alembic drop only).
+- Still server-persisted: `document_shares`, `external_mappings`/`court_case_mappings`/`property_mappings`/`agency_mappings`, `fems_*` (6), `mndes_*` (2). See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
+## Session — 2026-09-18 — Vault persistence Phase 1: timeline events → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T14:20:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 9 — timeline events, largest slice)
+- `timeline_events` moved off the server DB into the tenant's cloud vault — events persist as `TIMELINE_EVENT` overlays via the new shared store `app/services/timeline_store.py` (full CRUD + `list/count_events_for_user_id` convenience readers via `build_context_for_user_id`; `migrate_legacy_events` non-destructive, idempotent via `payload.legacy_id`, bounded 25 rows/call, safe no-op without DB).
+- ~20 consumers rewired — zero ORM reads/writes remain for `TimelineEvent` outside the bounded migration helper: `timeline/router.py` (unified loader, date-range calc, manual create), `tenant_feed/service.py` (sync + async feed paths), `intake_service` (communication-import writer), `event_subscribers` (DOCUMENT_ADDED writer), `tenant_briefcase`, `main.py` (retaliation writer, correlate reader, quick-capture), `setup/router`, `document_flow_orchestrator`, `documents/router` (dedupe checks + auto-timeline writers — one vault fetch per endpoint, not per document), `data_export_import`, `advocate/router`, `manager/router`, `housing_accountability`, `search/router`, `workflow/router`, `form_data`, `eviction/case_builder`.
+- Latent bugs fixed along the way (fields that never existed on the model and would have raised at runtime): `document_flow_orchestrator` wrote `importance`/`auto_generated`; `housing_accountability` read `e.status.value` (field is `event_status`); `data_export_import` read `event.people_present` (field is `who_involved`).
+- `tests/test_timeline_vault.py` — 6 functional tests (create/list/get roundtrip, per-user isolation, sorting, idempotent bounded migration, no-DB safety).
+
+### Verification (this slice)
+- `python -m py_compile` clean on all 20 changed files.
+- `tests/test_timeline_vault.py` — 6 passed; `test_unified_timeline.py` + `test_eviction_case_builder.py` + `test_eviction_timeline_vault.py` + touched module-health (intake, tenant_feed, eviction_timeline) — 52 passed; touched-module health sweep (timeline, workflow, search, documents, setup, housing_accountability, manager, advocate, export_import) — 9 passed.
+- Full `tests/module_health` — 245 passed.
+- Guardrail engine — all checks PASS (run above).
+
+### Remaining (Phase 1 in progress)
+- `document_annotations`, `tenant_stories`, `context_facts`/`context_explanation_entries`/`pattern_records`/`fraud_analysis_results` (derived group), `document_shares`, `external_mappings` group, `fems_*` (6), `mndes_*` (2) — still server-persisted. `witness_statements`/`certified_mail` verified dead tables (no consumers — drop in Alembic phase). Legacy tables retained until the Alembic drop phase. See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+- Flag (pre-existing, unrelated): `advocate/router.py` calls `with get_db_session()` on an `@asynccontextmanager` — broken at runtime independent of this migration; its remaining `User`/`Document`/`UserRelationship` queries still need DB (Phase 3 decision).
+
+## Session — 2026-09-18 — Vault persistence Phase 1: eviction timeline events → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T13:57:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 8b — eviction timeline)
+- `eviction_timeline_events` moved off the server DB into the tenant's cloud vault — events persist as `EVICTION_TIMELINE_EVENT` overlays anchored to `document_id="eviction_timeline:{user_id}"` at the canonical `VAULT_TIMELINE_EVENTS_FILE` (vault_path is an anchor pointer; overlay JSONs live under `Vault/overlays/` — no collision with the raw `events.json` cloud-event schema).
+- New `app/services/eviction_timeline_store.py` — create/list (newest event_date first), `list_events_for_user_id` via `build_context_for_user_id`, `migrate_legacy_events` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call, safe no-op without DB). `subject_id` + `content_overlay_id` pointers carried through unchanged.
+- Consumers rewired: `eviction_timeline/router.py` (page list + create event — `db` deps removed), `timeline/router.py` unified merge (`_load_db_eviction_timeline_events` reads the vault store, Python-side date-axis filter/sort — same pattern as the calendar loader), `tenant_feed/service.py` feed aggregation.
+- `tests/test_unified_timeline.py` rewritten — ORM seeding replaced with an autouse fixture patching `eviction_timeline_store.list_events_for_user_id` with in-memory views; all mapping/filter/render assertions preserved end-to-end.
+
+### Verification (this slice)
+- `python -m py_compile` clean on all changed files; `tests/test_eviction_timeline_vault.py` — 5 passed (roundtrip, per-user isolation, sort order, idempotent migration, no-DB safety); `tests/test_unified_timeline.py` — 6 passed.
+- `tests/module_health/test_eviction_timeline.py` + `test_tenant_feed.py` — pass. `test_information_orchestrator_pilot.py::test_layer_2_retrieval_matches_object_envelope` fails identically on the clean tree — missing embedding model, pre-existing/environmental.
+- Guardrail engine — all checks PASS (run above).
+
+### Remaining (Phase 1 in progress)
+- `timeline_events` (intake imports + timeline router + feed + briefcase), `document_annotations`, `comparison_entries` leftovers, `tenant_stories`, `context_facts`, derived-data group, `document_shares`, `external_mappings` group, `fems_*`, `mndes_*` — still server-persisted. Legacy tables retained until the Alembic drop phase. See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
+## Session — 2026-09-18 — Vault persistence Phase 1: third-party contacts → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T13:36:40+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 8a — third-party contacts)
+- `third_party_contacts` moved off the server DB into the tenant's cloud vault — records persist as `THIRD_PARTY_CONTACT` overlays anchored to `document_id="third_party:{user_id}"` at `VAULT_CONTACTS_FILE`.
+- New `app/services/third_party_contact_store.py` — shared store: `upsert_contact` (dedupe by email/phone among active contacts, enrich empty name on match — mirrors legacy upsert semantics), `list_active` / `list_active_for_user_id` (case-linked contacts ordered first, matching legacy allowlist ordering), `migrate_legacy_contacts` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call).
+- `intake_service.extract_and_upsert_contacts` now builds a `UserContext` via `build_context_for_user_id` and writes overlays — zero DB writes for third-party contacts (`db` param retained for caller compatibility).
+- `redaction_service.build_allowlist_for_user` now reads active contacts via `list_active_for_user_id` — no SQLAlchemy path remains; `db` param retained for caller compatibility. Contract dependency updated to the store.
+- `OverlayType.THIRD_PARTY_CONTACT` added to `RECORD_OVERLAYS`.
+
+### Verification (this slice)
+- `python -m py_compile` clean on all changed files; `tests/test_third_party_contacts_vault.py` — 6 passed (upsert dedupe by email/phone, per-user isolation, active filtering, idempotent bounded legacy migration via faked DB session, safe no-op without DB).
+- `tests/module_health/test_intake.py`, `test_guided_intake.py`, `test_contacts.py`, `app/modules/contacts/tests/test_contacts_vault.py` — 11 passed.
+- Full `tests/module_health` — 245 passed.
+- Guardrail engine — all checks PASS (run above).
+
+### Remaining (Phase 1 in progress)
+- `eviction_timeline_events` (pointer rows; PII content already overlay-backed), `timeline_events` (intake imports + timeline router), plus Phase 2/3 tables — still server-persisted. Legacy tables retained until the Alembic drop phase. See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
+## Session — 2026-09-18 — Vault persistence Phase 1: incidents → user cloud vault (devin)
+
+### What shipped (vault-persistence-migration, Phase 1 slice 7 — the big one)
+- `incidents` moved off the server DB into the tenant's cloud vault — records persist as `INCIDENT` overlays anchored to `document_id="incidents:{user_id}"` at `VAULT_RECORDS_FILE`. **Integer `incident_id` preserved** in payload (allocated max+1 per user) — URL paths (`int(case_id)`) and `VaultItem.related_incident_id` FK links keep working.
+- New `app/services/incident_store.py` — shared store (used by vault router, case_builder, packet_builder, housing_accountability): create/list/get/update/delete, `get_incident_overlay` for pointer-field writers, `*_for_user_id` variants via `build_context_for_user_id`, `count_incidents_for_user_id`, `migrate_legacy_incidents` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call, preserves original int PKs).
+- Rewired 5 consumers:
+  - `vault/router.py` — all 4 incident endpoints (VaultItem item-counts stay DB — Phase 2 index table)
+  - `case_builder/router.py` — `load_case`/`save_case`/`verify_case_ownership`/`list_cases`/both creates/`delete_case`; CASE_DATA overlay pointer now lives in the incident overlay payload instead of a DB column
+  - `case_builder/case_builder.py` — `get_cases_for_user` → vault list
+  - `packet_builder/service.py` — `_load_case` → `get_incident_for_user_id`
+  - `housing_accountability` — both incident counts → `count_incidents_for_user_id`
+- Rewrote `tests/test_case_builder_overlay.py` — was bound to ORM rows; now exercises the vault path end-to-end (pointer-only payload, PII exclusion, int id allocation, per-user isolation). Note: `app.modules.case_builder.router` resolves to the APIRouter object (package re-export shadows the module) — tests patch via `importlib.import_module`.
+
+### Verified
+- py_compile clean on all 8 changed files; case-builder suites 76 passed/9 skipped; module_health pending full run; guardrail engine all-PASS.
+
+### Next session
+- Phase 1 continues: `third_party_contacts`, `eviction_timeline_events`, then derived-data + external-mappings groups per `handoffs/vault-persistence-migration.md`.
+- Not done: `incidents` table still exists for legacy reads; `witness_statements`/`certified_mail` confirmed dead (drop w/ Alembic); zero-persistence claim stays NEEDS-CONFIRMATION.
+
+---
+
+## Session — 2026-09-18 — Vault persistence Phase 1: disputes → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T13:23:04+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 6)
+- `dispute_records` + `comparison_entries` moved off the server DB into the tenant's cloud vault — records persist as `DISPUTE_RECORD` / `COMPARISON_ENTRY` overlays anchored to `document_id="disputes:{user_id}"` at `VAULT_RECORDS_FILE` (shared records file). Comparisons link to their parent dispute via `payload.dispute_record_id` — `dis_*`/`cmp_*` ids preserved.
+- New `app/modules/dispute_tracker/service.py` — create/list for both types, `SimpleNamespace` view objects matching the template contract (attribute access; `effective_date` parsed to datetime for `strftime`), and `migrate_legacy_disputes()` (non-destructive, idempotent, 25 rows/call, both tables).
+- Router fully rewired — zero `get_db`/`select`/`models` references; template unchanged (view objects carry the same attribute surface).
+- Dead tables noted: `witness_statements` and `certified_mail` have zero code consumers anywhere — nothing to rewire; they drop with the Alembic phase.
+
+### Verified
+- py_compile clean; dispute vault tests 5/5 (round-trip, linkage, isolation, sort, safe migration no-op); module_health test_dispute_tracker 1/1; guardrail engine all-PASS.
+
+### Next session
+- Phase 1 continues: `incidents` (bigger — case_builder + housing_accountability + packet_builder + vault router), `third_party_contacts`, `eviction_timeline_events`.
+- Not done: `dispute_records`/`comparison_entries` tables still exist for legacy reads; zero-persistence claim stays NEEDS-CONFIRMATION.
+
+---
+
+## Session — 2026-09-18 — Vault persistence Phase 1: complaints → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T13:03:17+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 5)
+- `complaints` moved off the server DB into the tenant's cloud vault — drafts/filings persist as `COMPLAINT` overlays anchored to `document_id="complaints:{user_id}"` at `VAULT_RECORDS_FILE` (`Semptify5.0/Vault/records/records.json`, shared records file for this group).
+- `complaint_wizard.py` `*_db` methods replaced with `*_vault` equivalents — same `ComplaintDraft` response shapes, ownership via effective user id, payload `id` preserves `cmp_*` draft ids so existing links keep resolving.
+- `migrate_legacy_complaints()` — non-destructive, idempotent via `payload.legacy_id`, 25 rows/call, runs on first `get_user_drafts_vault`.
+- Rewired all 10 router endpoints (`db` dep → `build_context_for_user_id`) and both housing_accountability complaint counts (via `_count_complaints` helper — returns 0 for unresolvable contexts instead of breaking the dashboard).
+- Contract fix caught by tests: `get_unified_overlay_manager` takes `(storage_provider, user_id)` only — document_id/vault_path live on `CreateOverlayRequest`, not the factory (Known Failure #16 shape).
+
+### Verified
+- py_compile clean; complaint vault tests 6/6 (round-trip, isolation, sort order, attach+file, payload-id resolution, safe migration no-op); module_health test_complaints 1/1.
+
+### Next session
+- Phase 1 continues: `witness_statements`, `incidents`, `dispute_records`, `certified_mail` → same `records.json` (each its own overlay type), then `third_party_contacts`, `eviction_timeline_events`.
+- Not done: `complaints` table still exists for legacy reads; zero-persistence claim stays NEEDS-CONFIRMATION.
+
+---
+
+## Session — 2026-09-18 — Vault persistence Phase 1: contacts → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T14:40:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 4)
+- `contacts` + `contact_interactions` moved off the server DB into the tenant's cloud vault — records persist as `CONTACT` / `CONTACT_INTERACTION` overlays anchored to `document_id="contacts:{user_id}"` at `VAULT_CONTACTS_FILE` (`Semptify5.0/Vault/contacts/contacts.json`). Interactions link to their contact via `payload.contact_id`.
+- New `app/modules/contacts/service.py` — contact CRUD + interaction log (stamps `interaction_count`/`last_contact_date` on the contact, matching legacy semantics), `list_contacts_for_user_id()`, `create_contact_for_user_id()`, `find_contact_by_name_type()` (for dedup during extraction import), and `migrate_legacy_contacts()` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call, imports both tables).
+- Rewired the whole contacts router (12 endpoints: list/create/get/update/delete, star, interactions, extraction-import, quick-add landlord/witness, for-forms) — zero `get_db` references remain.
+- Rewired 4 external consumers: `data_export_import` (also fixed latent `contact.address` AttributeError — not a model field; now reads `address_line1`/`address_line2` from payloads), `public_forms` Layer-2 autofill, `search` (4-field match on payloads), `document_flow_orchestrator` (writes with name+type dedup via `find_contact_by_name_type`).
+- Bug found+fixed by the new tests: `_to_iso` was stringifying every payload field — `is_active=False` became `"False"` (truthy → inactive contacts leaked through `active_only` filter). Now only datetimes are converted; bools/ints/lists pass through. Verified journal/rent/calendar services never had this pattern.
+
+### Verified
+- py_compile clean on all changed files; contacts tests 8/8 (new vault functional: round-trip, per-user isolation, filters/search, legacy-id resolution, interaction log + stamps, dedup helpers, safe migration no-op); module_health 245/245; guardrail engine all-PASS.
+
+### Next session
+- Phase 1 continues: `complaints`, then the remaining record tables per `handoffs/vault-persistence-migration.md`.
+- Not done: `contacts`/`contact_interactions` tables still exist for legacy reads (drop is a later Alembic phase); zero-persistence claim stays NEEDS-CONFIRMATION until all tenant tables migrate.
+
+---
+
+## Session — 2026-09-18 — Vault persistence Phase 1: calendar events → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T13:05:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 3)
+- `calendar_events` moved off the server DB into the tenant's cloud vault — events persist as `CALENDAR_EVENT` overlays anchored to `document_id="calendar:{user_id}"` at `VAULT_CALENDAR_FILE` (`Semptify5.0/Vault/calendar/calendar.json`).
+- New `app/modules/calendar/service.py` — same recipe: CRUD + `list_events_for_user_id()` + `migrate_legacy_events()` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call) + auto-sync helpers (`existing_link_keys`, `delete_source_events`, `create_event_for_user_id`) so calendar_sync can refresh generated events inside the vault. Datetimes stored as ISO strings in payloads.
+- `calendar_sync.py` rewritten — generated events (document_extraction + rent_ledger sources) now write vault overlays instead of `CalendarEvent` rows. Same link-key idempotency, same overwrite/skip semantics; `db` param retained for caller compatibility.
+- Rewired 8 consumers: calendar router (all CRUD + upcoming + deadline-summary + notify + sync-documents count), `case_builder` (payload dicts; court_date parsed back to datetime), `timeline._load_db_calendar_events` (vault read, same TimelineItems), `workflow` signals (hearing count + nearest critical), `components` deadline widget, `housing_accountability` dashboard count.
+- `setup._create_deadline_events` → vault creates — also fixed a latent bug: it passed `CalendarEvent(event_date=...)` which was never a model column (would TypeError on every case-info save).
+
+### Verified
+- py_compile clean on all 15 changed files; calendar tests 14/14 (6 smoke + 8 new vault functional incl. auto-sync helper coverage); module tests 44/44; case-builder 75/75; module_health 245/245; guardrail engine all-PASS.
+
+### Next session
+- Phase 1 continues: `contacts`, `complaints`, then the remaining record tables per `handoffs/vault-persistence-migration.md`.
+- Not done: `calendar_events` table still exists for legacy reads (drop is a later Alembic phase); zero-persistence claim stays NEEDS-CONFIRMATION until all tenant tables migrate.
+
+---
+
+## Session — 2026-09-18 — Vault persistence Phase 1: rent ledger → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T12:15:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 2)
+- `rent_payments` moved off the server DB into the tenant's cloud vault — entries persist as `RENT_LEDGER_ENTRY` overlays anchored to `document_id="ledger:{user_id}"` at `VAULT_LEDGER_FILE` (`Semptify5.0/Vault/ledger/ledger.json`). `CALENDAR_EVENT` overlay type also registered for the next slice.
+- New `app/modules/rent/service.py` — same recipe as journal: CRUD + `list_entries_for_user_id()` + `migrate_legacy_entries()` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call bound, no-ops when DB unreachable). Amounts stay in cents; chronological ordering preserved for running-balance.
+- Rewired: rent router (all 5 endpoints, response shapes unchanged), `calendar_sync._sync_rent_events` (now derives rent due/late-fee/charge events from overlays — its CalendarEvent writes stay on DB until the calendar slice), `eviction/case_builder._get_rent_payments` + `_build_rent_history` + totals (consume payload dicts).
+- Canonical `build_context_for_user_id()` promoted to `app/core/user_context.py` (parse_user_id + ensure_valid_token → minimal UserContext); journal service delegates to it. Every migrated record type reuses it.
+- `rent/register.py` + `product_manifest.py` updated — no more "stored as cents (DB)" claims.
+
+### Verified
+- py_compile clean on all 15 changed files; module tests 31/31 (journal 13 + rent 11 incl. 5 new vault functional + calendar 7); case-builder suites 108/108 across both files; module_health 245/245; guardrail engine all-PASS.
+
+### Next session
+- Phase 1 continues: `calendar_events` next (coupled — calendar_sync already reads rent overlays, its event writes still hit the DB), then `contacts`, `complaints`. Same recipe.
+- Not done: `rent_payments`/`journal_entries` tables still exist for legacy reads (drop is a later Alembic phase); zero-persistence claim stays NEEDS-CONFIRMATION until all tenant tables migrate.
+
+---
+
+## Session — 2026-09-18 — Vault persistence Phase 1: journal records → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T11:31:33+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-09-18T11:30:57+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 1)
+- `journal_entries` is the first tenant record type moved off the server DB into the tenant's own cloud vault — entries now persist as `JOURNAL_ENTRY` overlays (new `RECORD_OVERLAYS` category) anchored to `document_id="journal:{user_id}"` at `VAULT_JOURNAL_FILE` (`Semptify5.0/Vault/journal/journal.json`), via `UnifiedOverlayManager` — the proven sticky_notes pattern.
+- New `app/modules/journal/service.py` — full CRUD + `list_entries_for_user_id()` (rebuilds a minimal UserContext from bare user_id via `parse_user_id` + `ensure_valid_token`, for feed/briefcase/page readers that never had a session context) + `migrate_legacy_entries()` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call bound for Known Failure #5, no-ops when DB unreachable).
+- Rewired readers off the DB: journal router (all 6 endpoints), `/tenant/journal` page in main.py, `tenant_briefcase._load_journal_summary`, `tenant_feed` journal fetch (now async; sync `aggregate_feed` path defers like `_fetch_documents`). No DB writes remain for journal.
+- Access control preserved: `_validate_access`/`can_access` impersonation rules + creator-only `_owns()` enforcement; entry lookup accepts both `ovl_*` and legacy `jrn_*` ids.
+
+### Verified
+- py_compile clean on all 9 changed files; journal tests 13/13 (8 smoke + 5 new vault functional: round-trip, per-user isolation, legacy-id resolution, filters, migration no-op); overlay manager 12/12; module_health 245/245; guardrail engine all-PASS (stub_check initially flagged the sync-path `return []` — fixed into a real event-loop-aware fetch).
+
+### Next session
+- Phase 1 continues: `rent_payments` → `Vault/ledger/` next, then `calendar_events`, `contacts`. Same recipe — vault path constant + overlay type + per-user anchor + service + reader rewiring + legacy backfill shim. Handoff `handoffs/vault-persistence-migration.md` tracks per-table status.
+- Not done / not claimed: `journal_entries` table still exists for legacy reads (drop is a later Alembic phase); zero-persistence claim stays NEEDS-CONFIRMATION in manuals until all tenant tables migrate.
+
+---
+
 ## Session — 2026-09-18 — Situation guides: ungated what-happened counter-playbook (devin)
 
 ### Guardrail Engine Run — 2026-09-18T10:09:50+00:00
@@ -14562,3 +15004,35 @@ Nothing is real until it is pushed.
 - 2 skipped tests in `tests/test_legal_filing.py` have stale skip reasons (cite old `app/data/` path); service now reads root `data/` where C001/C002 fixtures exist.
 
 **Next session:** Phase 3 mobile, or unskip the legal_filing seed tests with a fixture.
+
+
+---
+
+## 2026-09-17 — Role landing surfacing (PR #279 → e9c8e012, deployed live)
+
+**Shipped:** Config-driven role landing surfacing — `surfacing` block in all 10
+`role_configs/*.json` (intro, ordered sections, tools with why-lines), new loader
+`app/core/role_surfacing.py` (aliases `user`→`tenant`, `judge`→`legal`; never raises),
+wired into tenant/advocate/legal/manager landings with hardcoded fallback preserved.
+`tests/test_role_surfacing.py` validates every config href against registered routes.
+
+**Fixed en route:** 3 dead manager links (`/manager/bulk-upload`, `/manager/staff`,
+`/manager/reports`) — pre-existing on the live dashboard, repointed to real routes.
+Wider dead-link cluster on that page logged to intake `intake-551381d2`.
+
+**Verified:** local 4/4 tests, guardrail ALL PASS, JSON+Jinja valid, loader exercised
+end-to-end. Prod: deploy `dep-damhqpe1egvs73cafs00` live on `e9c8e012`; public pages
+200; role pages correctly gate to picker/landing when unauthenticated (signed
+`semptify_uid` required — can't be forged; dashboard eyeball check needs a real
+onboarded session).
+
+**Collision note:** during post-merge `git reset --hard` to sync local main, an active
+swe-executor session (i18n catalog fill, session lock held) lost its uncommitted edits
+to `overlay_types.py`, `vault_paths.py`, `journal/router.py`, and 12 translation JSONs.
+Session lock was not checked before resetting — agent appears live and is re-writing
+(`journal/router.py` re-modified post-reset; untracked `journal/service.py` survived).
+Its commit-time diffs may look confusing; verify its final diff before its PR merges.
+
+**Next:** eyeball gated role dashboards on prod with a real session; intake-551381d2
+triage; duplicate `app/services/legal_filing_service.py` cleanup; BETA→VETTED content
+review.

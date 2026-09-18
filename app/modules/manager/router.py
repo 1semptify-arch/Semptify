@@ -31,10 +31,10 @@ from app.core.utc import utc_now
 from app.models.models import (
     Document,
     RelationshipType,
-    TimelineEvent,
     User,
     UserRelationship,
 )
+from app.services.timeline_store import count_events_for_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +218,7 @@ async def bulk_export(body: BulkExportRequest, request: Request):
                 rows.append({"tenant_id": tid, "error": "not_found"})
                 continue
             doc_count = db.query(Document).filter_by(user_id=tid).count()
-            event_count = db.query(TimelineEvent).filter_by(user_id=tid).count()
+            event_count = await count_events_for_user_id(tid)
             rows.append(
                 {
                     "tenant_id": tid,
@@ -275,7 +275,9 @@ async def case_report(request: Request):
             return {"report": {"total_cases": 0, "by_status": {}, "by_intensity": {}}}
 
         total_docs = db.query(Document).filter(Document.user_id.in_(user_ids)).count()
-        total_events = db.query(TimelineEvent).filter(TimelineEvent.user_id.in_(user_ids)).count()
+        total_events = 0
+        for uid in user_ids:
+            total_events += await count_events_for_user_id(uid)
 
         # Group by role
         users = db.query(User).filter(User.id.in_(user_ids)).all()

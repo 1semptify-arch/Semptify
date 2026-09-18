@@ -3,6 +3,9 @@ External Mappings API - Manage connections to external systems
 
 Provides endpoints to create, read, update, and manage mappings between
 Semptify internal IDs and external system references (court cases, properties, agencies).
+
+Mappings live in the tenant's own cloud vault (mapping overlays under
+Vault/external/) via app.services.external_mapping_store — not the server DB.
 """
 
 import logging
@@ -10,26 +13,11 @@ from datetime import datetime
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from sqlalchemy import and_, or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
 from app.core.security import get_current_user
-from app.core.utc import utc_now
+from app.services import external_mapping_store as store
 
 logger = logging.getLogger(__name__)
-
-# Import mapping models and functions
-from app.models.external_mappings import (
-    AgencyMapping,
-    CourtCaseMapping,
-    ExternalMapping,
-    PropertyMapping,
-    create_mapping,
-    find_by_external_id,
-    get_user_mappings,
-    update_mapping_status,
-)
 
 # Initialize router
 mappings_router = APIRouter(prefix="/api/external-mappings", tags=["External Mappings"])
@@ -116,20 +104,19 @@ class AgencyCreate(BaseModel):
 
 
 @mappings_router.post("/mapping")
-async def create_external_mapping(
-    mapping: MappingCreate, current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def create_external_mapping(mapping: MappingCreate, current_user=Depends(get_current_user)):
     """Create a new external mapping."""
     try:
         # Check for duplicates
-        existing = await find_by_external_id(db, mapping.external_system, mapping.external_id, mapping.mapping_type)
-        if existing and existing.user_id == current_user.id:
+        existing = await store.find_by_external_id(
+            current_user, mapping.external_system, mapping.external_id, mapping.mapping_type
+        )
+        if existing:
             raise HTTPException(status_code=409, detail="Mapping already exists for this external ID")
 
         # Create mapping
-        new_mapping = create_mapping(
-            db=db,
-            user_id=current_user.id,
+        new_mapping = await store.create_mapping(
+            current_user,
             mapping_type=mapping.mapping_type,
             external_system=mapping.external_system,
             external_id=mapping.external_id,
@@ -155,11 +142,10 @@ async def list_user_mappings(
     mapping_type: str | None = Query(None, description="Filter by mapping type"),
     status: str = Query("active", description="Filter by status"),
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     """List all mappings for the current user."""
     try:
-        mappings = get_user_mappings(db, current_user.id, mapping_type, status)
+        mappings = await store.list_mappings(current_user, mapping_type, status)
 
         return JSONResponse(
             content={
@@ -177,17 +163,10 @@ async def list_user_mappings(
 
 
 @mappings_router.get("/mapping/{mapping_id}")
-async def get_mapping_detail(
-    mapping_id: int, current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def get_mapping_detail(mapping_id: int, current_user=Depends(get_current_user)):
     """Get detailed information about a specific mapping."""
     try:
-        result = await db.execute(
-            select(ExternalMapping).where(
-                and_(ExternalMapping.id == mapping_id, ExternalMapping.user_id == current_user.id)
-            )
-        )
-        mapping = result.scalar_one_or_none()
+        mapping = await store.get_mapping(current_user, mapping_id)
 
         if not mapping:
             raise HTTPException(status_code=404, detail="Mapping not found")
@@ -207,30 +186,13 @@ async def update_mapping(
     status: str = Body(..., embed=True),
     verification_source: str | None = Body(None, embed=True),
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     """Update mapping status and verification."""
     try:
-        # Verify ownership
-        result = await db.execute(
-            select(ExternalMapping).where(
-                and_(ExternalMapping.id == mapping_id, ExternalMapping.user_id == current_user.id)
-            )
-        )
-        mapping = result.scalar_one_or_none()
+        updated_mapping = await store.update_mapping_status(current_user, mapping_id, status, verification_source)
 
-        if not mapping:
+        if not updated_mapping:
             raise HTTPException(status_code=404, detail="Mapping not found")
-
-        # Update status
-        success = update_mapping_status(db, mapping_id, status, verification_source)
-
-        if not success:
-            raise HTTPException(status_code=500, detail="Failed to update mapping")
-
-        # Get updated mapping
-        updated_result = await db.execute(select(ExternalMapping).where(ExternalMapping.id == mapping_id))
-        updated_mapping = updated_result.scalar_one()
 
         return JSONResponse(
             content={
@@ -253,27 +215,16 @@ async def update_mapping(
 
 
 @mappings_router.post("/court-case")
-async def create_court_case_mapping(
-    case: CourtCaseCreate, current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def create_court_case_mapping(case: CourtCaseCreate, current_user=Depends(get_current_user)):
     """Create a court case mapping with detailed legal information."""
     try:
         # Check for duplicates
-        existing = await db.execute(
-            select(CourtCaseMapping).where(
-                and_(
-                    CourtCaseMapping.user_id == current_user.id,
-                    CourtCaseMapping.case_number == case.case_number,
-                    CourtCaseMapping.court_system == case.court_system,
-                )
-            )
-        )
-        if existing.scalar_one_or_none():
+        if await store.find_court_case(current_user, case.case_number, case.court_system):
             raise HTTPException(status_code=409, detail="Court case mapping already exists")
 
         # Create court case mapping
-        court_case = CourtCaseMapping(
-            user_id=current_user.id,
+        court_case = await store.create_court_case(
+            current_user,
             court_system=case.court_system,
             case_number=case.case_number,
             case_type=case.case_type,
@@ -291,17 +242,11 @@ async def create_court_case_mapping(
             document_filing_url=case.document_filing_url,
             semptify_complaint_id=case.septify_complaint_id,
             semptify_timeline_event_ids=case.septify_timeline_event_ids,
-            created_at=utc_now(),
-            updated_at=utc_now(),
         )
 
-        db.add(court_case)
-        await db.commit()
-
         # Also create a general mapping
-        create_mapping(
-            db=db,
-            user_id=current_user.id,
+        await store.create_mapping(
+            current_user,
             mapping_type="court_case",
             external_system=case.court_system,
             external_id=case.case_number,
@@ -318,7 +263,6 @@ async def create_court_case_mapping(
     except HTTPException:
         raise
     except Exception:
-        await db.rollback()
         logger.exception("Failed to create court case mapping")
         raise HTTPException(status_code=500, detail="Failed to create court case mapping")
 
@@ -328,19 +272,10 @@ async def list_court_cases(
     case_type: str | None = Query(None, description="Filter by case type"),
     case_status: str | None = Query(None, description="Filter by case status"),
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     """List court case mappings for the current user."""
     try:
-        query = select(CourtCaseMapping).where(CourtCaseMapping.user_id == current_user.id)
-
-        if case_type:
-            query = query.where(CourtCaseMapping.case_type == case_type)
-        if case_status:
-            query = query.where(CourtCaseMapping.case_status == case_status)
-
-        result = await db.execute(query.order_by(CourtCaseMapping.created_at.desc()))
-        cases = result.scalars().all()
+        cases = await store.list_court_cases(current_user, case_type, case_status)
 
         return JSONResponse(
             content={
@@ -363,27 +298,16 @@ async def list_court_cases(
 
 
 @mappings_router.post("/property")
-async def create_property_mapping(
-    property: PropertyCreate, current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def create_property_mapping(property: PropertyCreate, current_user=Depends(get_current_user)):
     """Create a property mapping with parcel and address details."""
     try:
         # Check for duplicates
-        existing = await db.execute(
-            select(PropertyMapping).where(
-                and_(
-                    PropertyMapping.user_id == current_user.id,
-                    PropertyMapping.parcel_id == property.parcel_id,
-                    PropertyMapping.county == property.county,
-                )
-            )
-        )
-        if existing.scalar_one_or_none():
+        if await store.find_property(current_user, property.parcel_id, property.county):
             raise HTTPException(status_code=409, detail="Property mapping already exists")
 
         # Create property mapping
-        prop_mapping = PropertyMapping(
-            user_id=current_user.id,
+        prop_mapping = await store.create_property(
+            current_user,
             parcel_id=property.parcel_id,
             county=property.county,
             municipality=property.municipality,
@@ -399,17 +323,11 @@ async def create_property_mapping(
             gis_map_url=property.gis_map_url,
             semptify_lease_doc_id=property.septify_lease_doc_id,
             is_primary_residence=property.is_primary_residence,
-            created_at=utc_now(),
-            updated_at=utc_now(),
         )
 
-        db.add(prop_mapping)
-        await db.commit()
-
         # Also create a general mapping
-        create_mapping(
-            db=db,
-            user_id=current_user.id,
+        await store.create_mapping(
+            current_user,
             mapping_type="property",
             external_system=f"{property.county}_county",
             external_id=property.parcel_id,
@@ -426,7 +344,6 @@ async def create_property_mapping(
     except HTTPException:
         raise
     except Exception:
-        await db.rollback()
         logger.exception("Failed to create property mapping")
         raise HTTPException(status_code=500, detail="Failed to create property mapping")
 
@@ -436,19 +353,10 @@ async def list_properties(
     county: str | None = Query(None, description="Filter by county"),
     is_primary: bool | None = Query(None, description="Filter by primary residence"),
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     """List property mappings for the current user."""
     try:
-        query = select(PropertyMapping).where(PropertyMapping.user_id == current_user.id)
-
-        if county:
-            query = query.where(PropertyMapping.county == county)
-        if is_primary is not None:
-            query = query.where(PropertyMapping.is_primary_residence == is_primary)
-
-        result = await db.execute(query.order_by(PropertyMapping.created_at.desc()))
-        properties = result.scalars().all()
+        properties = await store.list_properties(current_user, county, is_primary)
 
         return JSONResponse(
             content={
@@ -471,27 +379,16 @@ async def list_properties(
 
 
 @mappings_router.post("/agency")
-async def create_agency_mapping(
-    agency: AgencyCreate, current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def create_agency_mapping(agency: AgencyCreate, current_user=Depends(get_current_user)):
     """Create an agency complaint mapping."""
     try:
         # Check for duplicates
-        existing = await db.execute(
-            select(AgencyMapping).where(
-                and_(
-                    AgencyMapping.user_id == current_user.id,
-                    AgencyMapping.agency_code == agency.agency_code,
-                    AgencyMapping.complaint_number == agency.complaint_number,
-                )
-            )
-        )
-        if existing.scalar_one_or_none():
+        if await store.find_agency_mapping(current_user, agency.agency_code, agency.complaint_number):
             raise HTTPException(status_code=409, detail="Agency mapping already exists")
 
         # Create agency mapping
-        agency_mapping = AgencyMapping(
-            user_id=current_user.id,
+        agency_mapping = await store.create_agency_mapping(
+            current_user,
             agency_code=agency.agency_code,
             agency_name=agency.agency_name,
             complaint_number=agency.complaint_number,
@@ -502,17 +399,11 @@ async def create_agency_mapping(
             tracking_url=agency.tracking_url,
             semptify_complaint_id=agency.septify_complaint_id,
             semptify_document_ids=agency.septify_document_ids,
-            created_at=utc_now(),
-            updated_at=utc_now(),
         )
 
-        db.add(agency_mapping)
-        await db.commit()
-
         # Also create a general mapping
-        create_mapping(
-            db=db,
-            user_id=current_user.id,
+        await store.create_mapping(
+            current_user,
             mapping_type="agency",
             external_system=agency.agency_code,
             external_id=agency.complaint_number,
@@ -529,7 +420,6 @@ async def create_agency_mapping(
     except HTTPException:
         raise
     except Exception:
-        await db.rollback()
         logger.exception("Failed to create agency mapping")
         raise HTTPException(status_code=500, detail="Failed to create agency mapping")
 
@@ -539,19 +429,10 @@ async def list_agency_mappings(
     agency_code: str | None = Query(None, description="Filter by agency code"),
     complaint_type: str | None = Query(None, description="Filter by complaint type"),
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     """List agency mappings for the current user."""
     try:
-        query = select(AgencyMapping).where(AgencyMapping.user_id == current_user.id)
-
-        if agency_code:
-            query = query.where(AgencyMapping.agency_code == agency_code)
-        if complaint_type:
-            query = query.where(AgencyMapping.complaint_type == complaint_type)
-
-        result = await db.execute(query.order_by(AgencyMapping.created_at.desc()))
-        agencies = result.scalars().all()
+        agencies = await store.list_agency_mappings(current_user, agency_code, complaint_type)
 
         return JSONResponse(
             content={
@@ -578,80 +459,17 @@ async def search_mappings(
     query: str = Query(..., description="Search query"),
     mapping_type: str | None = Query(None, description="Filter by mapping type"),
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     """Search mappings by external ID, display name, or description."""
     try:
-        # Search in general mappings
-        general_query = select(ExternalMapping).where(
-            and_(
-                ExternalMapping.user_id == current_user.id,
-                or_(
-                    ExternalMapping.external_id.ilike(f"%{query}%"),
-                    ExternalMapping.display_name.ilike(f"%{query}%"),
-                    ExternalMapping.description.ilike(f"%{query}%"),
-                ),
-            )
-        )
-
-        if mapping_type:
-            general_query = general_query.where(ExternalMapping.mapping_type == mapping_type)
-
-        general_result = await db.execute(general_query)
-        general_mappings = general_result.scalars().all()
-
-        # Search in court cases
-        court_query = select(CourtCaseMapping).where(
-            and_(
-                CourtCaseMapping.user_id == current_user.id,
-                or_(
-                    CourtCaseMapping.case_number.ilike(f"%{query}%"),
-                    CourtCaseMapping.case_title.ilike(f"%{query}%"),
-                    CourtCaseMapping.plaintiff.ilike(f"%{query}%"),
-                    CourtCaseMapping.defendant.ilike(f"%{query}%"),
-                ),
-            )
-        )
-
-        court_result = await db.execute(court_query)
-        court_cases = court_result.scalars().all()
-
-        # Search in properties
-        prop_query = select(PropertyMapping).where(
-            and_(
-                PropertyMapping.user_id == current_user.id,
-                or_(
-                    PropertyMapping.parcel_id.ilike(f"%{query}%"),
-                    PropertyMapping.street_address.ilike(f"%{query}%"),
-                    PropertyMapping.city.ilike(f"%{query}%"),
-                ),
-            )
-        )
-
-        prop_result = await db.execute(prop_query)
-        properties = prop_result.scalars().all()
-
-        # Search in agencies
-        agency_query = select(AgencyMapping).where(
-            and_(
-                AgencyMapping.user_id == current_user.id,
-                or_(AgencyMapping.complaint_number.ilike(f"%{query}%"), AgencyMapping.agency_name.ilike(f"%{query}%")),
-            )
-        )
-
-        agency_result = await db.execute(agency_query)
-        agencies = agency_result.scalars().all()
+        results = await store.search(current_user, query, mapping_type)
+        total = sum(len(v) for v in results.values())
 
         return JSONResponse(
             content={
                 "success": True,
-                "results": {
-                    "general_mappings": [m.to_dict() for m in general_mappings],
-                    "court_cases": [c.to_dict() for c in court_cases],
-                    "properties": [p.to_dict() for p in properties],
-                    "agencies": [a.to_dict() for a in agencies],
-                },
-                "total_matches": len(general_mappings) + len(court_cases) + len(properties) + len(agencies),
+                "results": {kind: [v.to_dict() for v in views] for kind, views in results.items()},
+                "total_matches": total,
                 "search_query": query,
                 "filter_type": mapping_type,
             }

@@ -1,37 +1,26 @@
 """Dispute Tracker router — list, add, and compare disputes.
 
-T2 tenant-facing module. PII content is stored in cloud overlays; this router
-only handles structure/pointers.
+T2 tenant-facing module. Records persist as DISPUTE_RECORD / COMPARISON_ENTRY
+overlays in the tenant's cloud vault (vault-persistence Phase 1 — legacy
+dispute_records / comparison_entries rows migrate on first read).
 """
 
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
-from sqlalchemy import select
 
-from app.core.database import get_db
-from app.core.id_gen import make_id
 from app.core.navigation import navigation
 from app.core.security import UserContext, require_tier
 from app.core.ssot_guard import ssot_redirect
-from app.core.utc import utc_now
-from app.models.models import ComparisonEntry, DisputeRecord
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.modules.dispute_tracker import service
 
 router = APIRouter(
     tags=["Dispute Tracker"],
 )
-
-
-def _user_id(user: UserContext | None) -> str | None:
-    return user.user_id if user else None
 
 
 @router.get("/health", dependencies=[Depends(require_tier("T2"))])
@@ -44,29 +33,16 @@ async def dispute_tracker_health() -> dict[str, Any]:
 async def dispute_tracker_page(
     request: Request,
     user: UserContext = Depends(require_tier("T2")),
-    db: AsyncSession = Depends(get_db),
 ) -> Any:
     """Render the dispute tracker page (add dispute, list, add comparison)."""
     from app.main import templates
-
-    result = await db.execute(
-        select(DisputeRecord).where(DisputeRecord.user_id == _user_id(user)).order_by(DisputeRecord.created_at.desc())
-    )
-    disputes = result.scalars().all()
-
-    cmp_result = await db.execute(
-        select(ComparisonEntry)
-        .where(ComparisonEntry.user_id == _user_id(user))
-        .order_by(ComparisonEntry.created_at.desc())
-    )
-    comparisons = cmp_result.scalars().all()
 
     return templates.TemplateResponse(
         request,
         "pages/dispute_tracker.html",
         {
-            "disputes": disputes,
-            "comparisons": comparisons,
+            "disputes": await service.list_disputes(user),
+            "comparisons": await service.list_comparisons(user),
             "user": user,
         },
     )
@@ -76,7 +52,6 @@ async def dispute_tracker_page(
 async def create_dispute(
     request: Request,
     user: UserContext = Depends(require_tier("T2")),
-    db: AsyncSession = Depends(get_db),
     dispute_type: str = Form(...),
     landlord_entity: str = Form(""),
     property_name: str = Form(""),
@@ -84,19 +59,14 @@ async def create_dispute(
     jurisdiction: str = Form("MN"),
 ) -> Any:
     """Create a new dispute record and redirect back to the page."""
-    record = DisputeRecord(
-        id=make_id("dis"),
-        user_id=_user_id(user),
+    await service.create_dispute(
+        user,
         dispute_type=dispute_type,
         landlord_entity=landlord_entity or None,
         property_name=property_name or None,
         status=status,
         jurisdiction=jurisdiction,
-        created_at=utc_now().replace(tzinfo=None),
-        updated_at=utc_now().replace(tzinfo=None),
     )
-    db.add(record)
-    await db.commit()
     return ssot_redirect(navigation.get_stage("dispute_tracker_home").path, context="create dispute")
 
 
@@ -104,7 +74,6 @@ async def create_dispute(
 async def create_comparison(
     request: Request,
     user: UserContext = Depends(require_tier("T2")),
-    db: AsyncSession = Depends(get_db),
     dispute_record_id: str = Form(...),
     comparison_type: str = Form(...),
     fee_type: str = Form(""),
@@ -116,8 +85,7 @@ async def create_comparison(
     amount_cents = None
     if amount:
         try:
-            dollars = float(amount)
-            amount_cents = int(round(dollars * 100))
+            amount_cents = int(round(float(amount) * 100))
         except ValueError:
             amount_cents = None
 
@@ -128,18 +96,13 @@ async def create_comparison(
         except ValueError:
             eff_date = None
 
-    entry = ComparisonEntry(
-        id=make_id("cmp"),
+    await service.create_comparison(
+        user,
         dispute_record_id=dispute_record_id,
-        user_id=_user_id(user),
         comparison_type=comparison_type,
         fee_type=fee_type or None,
         amount_cents=amount_cents,
         period=period or None,
         effective_date=eff_date,
-        created_at=utc_now().replace(tzinfo=None),
-        updated_at=utc_now().replace(tzinfo=None),
     )
-    db.add(entry)
-    await db.commit()
     return ssot_redirect(navigation.get_stage("dispute_tracker_home").path, context="create comparison")

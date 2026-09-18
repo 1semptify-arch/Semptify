@@ -52,25 +52,32 @@ def test_calendar_contracts_registered():
 
 def test_model_to_response_includes_source_and_links():
     """_model_to_response surfaces source, linked_record_id, and updated_at."""
-    from datetime import datetime
-    from unittest.mock import MagicMock
-
+    from app.core.overlay_types import OverlayType
+    from app.models.unified_overlay_models import UnifiedOverlay
     from app.modules.calendar.router import _model_to_response
 
-    event = MagicMock()
-    event.id = "cal_abc123"
-    event.title = "Court Hearing"
-    event.description = "Hearing at 9am"
-    event.start_datetime = datetime(2026, 8, 1, 9, 0, 0, tzinfo=UTC)
-    event.end_datetime = None
-    event.all_day = False
-    event.event_type = "hearing"
-    event.is_critical = True
-    event.reminder_days = 1
-    event.source = "document_extraction"
-    event.linked_record_id = "hearing:user_1"
-    event.created_at = datetime(2026, 7, 20, 10, 0, 0, tzinfo=UTC)
-    event.updated_at = datetime(2026, 7, 20, 10, 0, 0, tzinfo=UTC)
+    event = UnifiedOverlay(
+        overlay_id="ovl_cal_abc123",
+        overlay_type=OverlayType.CALENDAR_EVENT,
+        document_id="calendar:user_1",
+        vault_path="Semptify5.0/Vault/calendar/calendar.json",
+        created_by="user_1",
+        payload={
+            "id": "cal_abc123",
+            "title": "Court Hearing",
+            "description": "Hearing at 9am",
+            "start_datetime": "2026-08-01T09:00:00+00:00",
+            "end_datetime": None,
+            "all_day": False,
+            "event_type": "hearing",
+            "is_critical": True,
+            "reminder_days": 1,
+            "source": "document_extraction",
+            "linked_record_id": "hearing:user_1",
+            "created_at": "2026-07-20T10:00:00+00:00",
+            "updated_at": "2026-07-20T10:00:00+00:00",
+        },
+    )
 
     result = _model_to_response(event)
     assert result.source == "document_extraction"
@@ -130,39 +137,57 @@ async def test_sync_calendar_for_user_creates_auto_events():
         ]
     )
 
-    # Mock a single rent payment with a due date.
-    payment = MagicMock()
-    payment.id = "rnt_001"
-    payment.user_id = "user_1"
-    payment.entry_type = "payment"
-    payment.due_date = datetime(2026, 8, 1, 0, 0, 0, tzinfo=UTC)
-    payment.payment_date = datetime(2026, 8, 5, 0, 0, 0, tzinfo=UTC)
-    payment.period_covered = "2026-08"
-    payment.status = "paid"
+    # Mock a single rent ledger overlay with a due date.
+    from app.core.overlay_types import OverlayType
+    from app.models.unified_overlay_models import UnifiedOverlay
 
-    scalars = MagicMock()
-    scalars.all = MagicMock(return_value=[payment])
+    payment_overlay = UnifiedOverlay(
+        overlay_id="ovl_rnt001",
+        overlay_type=OverlayType.RENT_LEDGER_ENTRY,
+        document_id="ledger:user_1",
+        vault_path="Semptify5.0/Vault/ledger/ledger.json",
+        created_by="user_1",
+        payload={
+            "id": "rnt_001",
+            "entry_type": "payment",
+            "due_date": "2026-08-01T00:00:00+00:00",
+            "payment_date": "2026-08-05T00:00:00+00:00",
+            "period_covered": "2026-08",
+            "status": "paid",
+        },
+    )
 
-    execute_result = MagicMock()
-    execute_result.scalars = MagicMock(return_value=scalars)
+    created_ids = []
 
-    from unittest.mock import MagicMock
-
-    db = AsyncMock()
-    db.add = MagicMock()
-    db.execute = AsyncMock(return_value=execute_result)
-    db.commit = AsyncMock()
+    async def _fake_create(user_id, **fields):
+        oid = f"ovl_{len(created_ids):03d}"
+        created_ids.append((oid, fields))
+        return oid
 
     with (
         patch("app.services.calendar_sync.get_document_hub", return_value=hub),
-        patch("app.services.calendar_sync.select") as mock_select,
+        patch(
+            "app.modules.rent.service.list_entries_for_user_id",
+            new=AsyncMock(return_value=([payment_overlay], 1)),
+        ),
+        patch(
+            "app.modules.calendar.service.create_event_for_user_id",
+            new=_fake_create,
+        ),
+        patch(
+            "app.modules.calendar.service.delete_source_events",
+            new=AsyncMock(return_value=0),
+        ),
+        patch(
+            "app.modules.calendar.service.existing_link_keys",
+            new=AsyncMock(return_value=set()),
+        ),
     ):
-        # The first call to select is for existing keys/clear; second for RentPayment.
-        mock_select.return_value.where.return_value.where.return_value = MagicMock()
-        result = await sync_calendar_for_user("user_1", db=db)
+        result = await sync_calendar_for_user("user_1")
 
     assert result["document_events"] == 2
     assert result["rent_events"] == 1
     assert result["total"] == 3
     assert len(result["synced_event_ids"]) == 3
-    db.commit.assert_awaited()
+    sources = {fields["source"] for _oid, fields in created_ids}
+    assert sources == {"document_extraction", "rent_ledger"}

@@ -32,7 +32,7 @@ from app.core.process_registry import PROCESS_GROUPS, get_groups_for_role
 from app.core.user_context import UserRole
 from app.core.utc import utc_now
 from app.core.workflow_engine import ProcessCode, evaluate_from_params
-from app.models.models import CalendarEvent as CalendarEventModel, DocumentPipelineIndex, TimelineEvent
+from app.models.models import DocumentPipelineIndex
 from app.services.positronic_brain import get_brain
 from app.services.storage import get_provider
 from app.services.timeline_extraction import TimelineStore
@@ -812,57 +812,40 @@ async def get_case_state(request: Request) -> CaseStateResponse:
                 .scalars()
                 .all()
             )
-
-            timeline_count = len(
-                (await db.execute(select(TimelineEvent.id).where(TimelineEvent.user_id == user_id))).scalars().all()
-            )
-
-            hearing_count = len(
-                (
-                    await db.execute(
-                        select(CalendarEventModel.id).where(
-                            and_(
-                                CalendarEventModel.user_id == user_id,
-                                CalendarEventModel.event_type == "hearing",
-                                CalendarEventModel.start_datetime > now_utc,
-                            )
-                        )
-                    )
-                )
-                .scalars()
-                .all()
-            )
-
-            critical_dates = (
-                (
-                    await db.execute(
-                        select(CalendarEventModel.start_datetime).where(
-                            and_(
-                                CalendarEventModel.user_id == user_id,
-                                CalendarEventModel.is_critical.is_(True),
-                                CalendarEventModel.start_datetime > now_utc,
-                            )
-                        )
-                    )
-                )
-                .scalars()
-                .all()
-            )
-
-            if critical_dates:
-                nearest_critical = min(critical_dates)
-                nearest_critical_days = max(0, (nearest_critical - now_utc).days)
-
-            timeline_rows = (
-                await db.execute(
-                    select(TimelineEvent.urgency, TimelineEvent.is_deadline).where(TimelineEvent.user_id == user_id)
-                )
-            ).all()
-
-            timeline_urgencies = [row[0] for row in timeline_rows if row[0]]
-            has_deadline = any(bool(row[1]) for row in timeline_rows)
     except SQLAlchemyError:
         pass  # DB unavailable; file-based signals still returned
+
+    # Timeline signals come from the tenant's vault overlays, not the DB.
+    try:
+        from app.services.timeline_store import list_events_for_user_id as _list_timeline_events
+
+        _tl_events = await _list_timeline_events(user_id)
+        timeline_count = len(_tl_events)
+        timeline_urgencies = [e.urgency for e in _tl_events if e.urgency]
+        has_deadline = any(e.is_deadline for e in _tl_events)
+    except Exception:
+        pass  # Vault unavailable; other signals still returned
+
+    # Calendar signals now come from the tenant's vault overlays, not the DB.
+    try:
+        from app.modules.calendar.service import list_events_for_user_id
+        from app.services.calendar_sync import _parse_datetime as _parse_cal_dt
+
+        cal_overlays, _total = await list_events_for_user_id(user_id)
+        critical_dates = []
+        for _o in cal_overlays:
+            _p = _o.payload
+            _start = _parse_cal_dt(_p.get("start_datetime"))
+            if _start is None or _start <= now_utc:
+                continue
+            if _p.get("event_type") == "hearing":
+                hearing_count += 1
+            if _p.get("is_critical"):
+                critical_dates.append(_start)
+        if critical_dates:
+            nearest_critical_days = max(0, (min(critical_dates) - now_utc).days)
+    except Exception:
+        pass  # Vault unavailable; other signals still returned
 
     cloud_timeline_events = await _load_timeline_events_from_cloud(user_id)
     if cloud_timeline_events is not None:

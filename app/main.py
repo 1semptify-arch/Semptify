@@ -4443,8 +4443,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.post("/api/tenant/retaliation/log")
     async def tenant_retaliation_log(request: Request):
         """Log a protected action or adverse action as a timeline event."""
-        from app.core.database import get_db_session
-        from app.models.models import TimelineEvent
         from app.services.retaliation_tracker import (
             ADVERSE_SUBTYPES,
             EVENT_TYPE_ADVERSE,
@@ -4512,41 +4510,36 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 except (json.JSONDecodeError, TypeError):
                     attached_ids.append(str(raw))
 
-        async with get_db_session() as db:
-            from app.core.id_gen import make_id
+        from app.core.user_context import build_context_for_user_id
+        from app.services.timeline_store import create_event
 
-            event = TimelineEvent(
-                id=make_id("tevt"),
-                user_id=user_id,
-                event_type=event_type,
-                title=vocab[subtype],
-                description=description,
-                event_date=event_datetime,
-                urgency=form_data.get("urgency", "normal") if form_data.get("urgency") in ("low", "normal", "high", "critical") else "normal",
-                who_involved=who_involved or None,
-                location=location or None,
-                tags=json.dumps([subtype]),
-                is_evidence=True,
-                attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
-                created_at=utc_now(),
-            )
-            db.add(event)
-            await db.commit()
+        user = await build_context_for_user_id(user_id)
+        event = await create_event(
+            user,
+            event_type=event_type,
+            title=vocab[subtype],
+            description=description,
+            event_date=event_datetime,
+            urgency=form_data.get("urgency", "normal") if form_data.get("urgency") in ("low", "normal", "high", "critical") else "normal",
+            who_involved=who_involved or None,
+            location=location or None,
+            tags=json.dumps([subtype]),
+            is_evidence=True,
+            attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
+        )
 
         return {"success": True, "event_id": event.id}
 
     @fastapi_app.get("/api/tenant/retaliation/analysis")
     async def tenant_retaliation_analysis(request: Request):
         """Correlate the user's protected/adverse timeline events."""
-        from app.core.database import get_db_session
         from app.core.module_gate import get_jurisdiction
-        from app.models.models import TimelineEvent
         from app.services.retaliation_tracker import (
             EVENT_TYPE_ADVERSE,
             EVENT_TYPE_PROTECTED,
             correlate,
         )
-        from sqlalchemy import select
+        from app.services.timeline_store import list_events_for_user_id
 
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
@@ -4556,14 +4549,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if not user_id:
             raise HTTPException(status_code=401, detail="Authentication required")
 
-        async with get_db_session() as db:
-            result = await db.execute(
-                select(TimelineEvent).where(
-                    TimelineEvent.user_id == user_id,
-                    TimelineEvent.event_type.in_([EVENT_TYPE_PROTECTED, EVENT_TYPE_ADVERSE]),
-                )
-            )
-            events = list(result.scalars().all())
+        events = [
+            e
+            for e in await list_events_for_user_id(user_id)
+            if e.event_type in (EVENT_TYPE_PROTECTED, EVENT_TYPE_ADVERSE)
+        ]
 
         jurisdiction = get_jurisdiction(request)
         return correlate(
@@ -4575,8 +4565,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.post("/api/tenant/capture")
     async def tenant_capture_post(request: Request):
         """Create a timeline event from quick capture form."""
-        from app.core.database import get_db_session
-        from app.models.models import TimelineEvent
 
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
@@ -4644,25 +4632,22 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         }
         event_type = type_mapping.get(capture_type, "other")
 
-        async with get_db_session() as db:
-            from app.core.id_gen import make_id
+        from app.core.user_context import build_context_for_user_id
+        from app.services.timeline_store import create_event
 
-            event = TimelineEvent(
-                id=make_id("tevt"),
-                user_id=user_id,
-                event_type=event_type,
-                title=f"{capture_type.replace('_', ' ').title()} Event",
-                description=description,
-                event_date=event_datetime,
-                urgency="high" if is_urgent else "normal",
-                who_involved=who_involved or None,
-                location=location or None,
-                is_evidence=False,
-                attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
-                created_at=utc_now(),
-            )
-            db.add(event)
-            await db.commit()
+        user = await build_context_for_user_id(user_id)
+        event = await create_event(
+            user,
+            event_type=event_type,
+            title=f"{capture_type.replace('_', ' ').title()} Event",
+            description=description,
+            event_date=event_datetime,
+            urgency="high" if is_urgent else "normal",
+            who_involved=who_involved or None,
+            location=location or None,
+            is_evidence=False,
+            attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
+        )
 
         return {"success": True, "event_id": event.id}
 
@@ -4748,53 +4733,46 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         if user_id:
             try:
-                from sqlalchemy import select
+                from app.modules.journal.service import list_entries_for_user_id
 
-                from app.core.database import get_db_session
-                from app.models.models import JournalEntry
-
-                async with get_db_session() as db:
-                    result = await db.execute(
-                        select(JournalEntry)
-                        .where(JournalEntry.user_id == user_id)
-                        .order_by(JournalEntry.occurred_at.desc())
-                    )
-                    rows = result.scalars().all()
-                    total_entries = len(rows)
-                    now = utc_now()
-                    this_month = now.month
-                    this_year = now.year
-                    first_entry_date = None
-                    for row in rows:
-                        if row.is_urgent:
-                            urgent_count += 1
-                        if (
-                            row.occurred_at
-                            and row.occurred_at.month == this_month
-                            and row.occurred_at.year == this_year
-                        ):
-                            entries_this_month += 1
-                        if row.occurred_at and (first_entry_date is None or row.occurred_at < first_entry_date):
-                            first_entry_date = row.occurred_at
-                        entries.append(
-                            {
-                                "id": row.id,
-                                "entry_type": row.entry_type,
-                                "description": row.content or "",
-                                "created_at": row.occurred_at.isoformat() if row.occurred_at else "",
-                                "is_urgent": row.is_urgent,
-                                "has_attachments": bool(row.document_link),
-                                "attachment_count": 1 if row.document_link else 0,
-                                "who_involved": row.involved_party,
-                                "location": None,
-                            }
-                        )
-                    if first_entry_date:
+                overlays, total_entries = await list_entries_for_user_id(user_id, limit=500)
+                now = utc_now()
+                this_month = now.month
+                this_year = now.year
+                first_entry_date = None
+                for overlay in overlays:
+                    p = overlay.payload
+                    occurred = None
+                    if p.get("occurred_at"):
                         try:
-                            delta = now - first_entry_date
-                            days_since_start = max(0, delta.days)
-                        except TypeError:
-                            days_since_start = 0
+                            occurred = datetime.datetime.fromisoformat(str(p["occurred_at"]).replace("Z", "+00:00"))
+                        except ValueError:
+                            occurred = None
+                    if p.get("is_urgent"):
+                        urgent_count += 1
+                    if occurred and occurred.month == this_month and occurred.year == this_year:
+                        entries_this_month += 1
+                    if occurred and (first_entry_date is None or occurred < first_entry_date):
+                        first_entry_date = occurred
+                    entries.append(
+                        {
+                            "id": overlay.overlay_id,
+                            "entry_type": p.get("entry_type") or "note",
+                            "description": p.get("content") or "",
+                            "created_at": p.get("occurred_at") or "",
+                            "is_urgent": bool(p.get("is_urgent")),
+                            "has_attachments": bool(p.get("document_link")),
+                            "attachment_count": 1 if p.get("document_link") else 0,
+                            "who_involved": p.get("involved_party"),
+                            "location": None,
+                        }
+                    )
+                if first_entry_date:
+                    try:
+                        delta = now - first_entry_date
+                        days_since_start = max(0, delta.days)
+                    except TypeError:
+                        days_since_start = 0
             except Exception as e:
                 logger.warning("Journal page load failed for user=%s: %s", user_id, e)
 

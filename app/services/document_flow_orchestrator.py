@@ -12,8 +12,6 @@ This orchestrator connects all existing services into a seamless flow.
 import logging
 from typing import Any
 
-from sqlalchemy import text
-
 from app.core.event_bus import EventType as BusEventType, event_bus
 from app.modules.auto_mode.service import AutoModeOrchestrator
 from app.services.document_intake import DocumentIntakeEngine, IntakeDocument
@@ -221,25 +219,24 @@ class DocumentFlowOrchestrator:
         doc_id: str,
         db_session: Any,
     ) -> list[str]:
-        """Create contacts from extracted party information."""
+        """Create contacts from extracted party information (vault overlays)."""
+        _ = db_session  # vault path needs no DB session
         created = []
 
         try:
-            from app.core.id_gen import make_id
-            from app.models.models import Contact
+            from app.modules.contacts.service import (
+                create_contact_for_user_id,
+                find_contact_by_name_type,
+            )
 
             # Extract landlord if present
             landlord_name = form_data.get("landlord_name") or form_data.get("plaintiff_name")
             if landlord_name:
                 # Check if already exists
-                existing = await db_session.execute(
-                    text("SELECT id FROM contacts WHERE user_id=:user_id AND name=:name AND contact_type='landlord'"),
-                    {"user_id": user_id, "name": landlord_name},
-                )
-                if not existing.scalar_one_or_none():
-                    contact = Contact(
-                        id=make_id("con"),
-                        user_id=user_id,
+                existing = await find_contact_by_name_type(user_id, landlord_name, "landlord")
+                if existing is None:
+                    contact = await create_contact_for_user_id(
+                        user_id,
                         contact_type="landlord",
                         role="opposing_party",
                         name=landlord_name,
@@ -249,20 +246,16 @@ class DocumentFlowOrchestrator:
                         source="extracted",
                         source_document_id=doc_id,
                     )
-                    db_session.add(contact)
-                    created.append(f"landlord:{landlord_name}")
+                    if contact is not None:
+                        created.append(f"landlord:{landlord_name}")
 
             # Extract attorney if present
             attorney_name = form_data.get("plaintiff_attorney") or form_data.get("attorney_name")
             if attorney_name:
-                existing = await db_session.execute(
-                    text("SELECT id FROM contacts WHERE user_id=:user_id AND name=:name AND contact_type='attorney'"),
-                    {"user_id": user_id, "name": attorney_name},
-                )
-                if not existing.scalar_one_or_none():
-                    contact = Contact(
-                        id=make_id("con"),
-                        user_id=user_id,
+                existing = await find_contact_by_name_type(user_id, attorney_name, "attorney")
+                if existing is None:
+                    contact = await create_contact_for_user_id(
+                        user_id,
                         contact_type="attorney",
                         role="opposing_counsel",
                         name=attorney_name,
@@ -270,11 +263,8 @@ class DocumentFlowOrchestrator:
                         source="extracted",
                         source_document_id=doc_id,
                     )
-                    db_session.add(contact)
-                    created.append(f"attorney:{attorney_name}")
-
-            if created:
-                await db_session.commit()
+                    if contact is not None:
+                        created.append(f"attorney:{attorney_name}")
 
         except Exception as e:
             logger.error(f"Error creating contacts: {e}")
@@ -288,34 +278,31 @@ class DocumentFlowOrchestrator:
         doc_id: str,
         db_session: Any,
     ) -> int:
-        """Create timeline events in database."""
+        """Create timeline events in the tenant's vault."""
         created_count = 0
 
         try:
-            from app.core.id_gen import make_id
-            from app.models.models import TimelineEvent
+            from app.core.user_context import build_context_for_user_id
+            from app.services.timeline_store import create_event
 
+            user = await build_context_for_user_id(user_id)
             for event in events:
                 if not event.date:
                     continue
 
-                timeline_event = TimelineEvent(
-                    id=make_id("evt"),
-                    user_id=user_id,
+                await create_event(
+                    user,
+                    event_type=event.event_type,
                     title=event.title or event.event_type,
                     description=event.description,
                     event_date=event.date,
-                    event_type=event.event_type,
-                    source_document_id=doc_id,
+                    document_id=doc_id,
                     importance=event.importance or "medium",
                     auto_generated=True,
                 )
-                db_session.add(timeline_event)
                 created_count += 1
 
             if created_count > 0:
-                await db_session.commit()
-
                 # Publish event
                 await event_bus.publish(
                     BusEventType.TIMELINE_UPDATED,

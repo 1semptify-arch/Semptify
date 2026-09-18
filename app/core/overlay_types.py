@@ -111,6 +111,66 @@ class OverlayType(str, Enum):
     DUPLICATE_DETECTION = "duplicate_detection"
     """Cross-vault duplicate identification and tracking."""
 
+    # ==========================================================================
+    # 8. TENANT RECORDS (vault-persistence migration)
+    # ==========================================================================
+    JOURNAL_ENTRY = "journal_entry"
+    """Free-form tenant journal record (note, conversation, incident, repair request)."""
+
+    RENT_LEDGER_ENTRY = "rent_ledger_entry"
+    """Rent ledger record — payment, fee, deposit, credit, or charge with running balance."""
+
+    CALENDAR_EVENT = "calendar_event"
+    """Tenant calendar event or deadline (manual or auto-synced)."""
+
+    CONTACT = "contact"
+    """Case-related contact — landlord, attorney, witness, inspector, agency."""
+
+    CONTACT_INTERACTION = "contact_interaction"
+    """Logged interaction with a contact (call, email, meeting, court appearance)."""
+
+    COMPLAINT = "complaint"
+    """Formal complaint draft/filing record for a regulatory agency (complaint wizard)."""
+
+    DISPUTE_RECORD = "dispute_record"
+    """Property-management dispute record (fees, lease violation, retaliation, habitability)."""
+
+    COMPARISON_ENTRY = "comparison_entry"
+    """Fee/term comparison entry attached to a dispute record (amounts in cents)."""
+
+    INCIDENT = "incident"
+    """Incident/case grouping record — organizes related evidence, timeline events, activities."""
+
+    THIRD_PARTY_CONTACT = "third_party_contact"
+    """Third-party contact extracted from communication imports (landlord, agency, attorney)."""
+
+    EVICTION_TIMELINE_EVENT = "eviction_timeline_event"
+    """Eviction-specific timeline event — structure + pointers; narrative PII stays in content overlays."""
+
+    TIMELINE_EVENT = "timeline_event"
+    """Tenant timeline event (notices, payments, maintenance, communications, court, captures)."""
+
+    PATTERN_RECORD = "pattern_record"
+    """Derived housing-accountability pattern detection record (risk score + pattern JSON)."""
+
+    DOCUMENT_SHARE = "document_share"
+    """Owner-granted document share link (recipient, scope, token) — lives in the owner's vault."""
+
+    EXTERNAL_MAPPING = "external_mapping"
+    """Bridge between a tenant record and an external system ID (court, parcel, agency)."""
+
+    COURT_CASE_MAPPING = "court_case_mapping"
+    """Court case reference with legal detail (case number, parties, dates, status)."""
+
+    PROPERTY_MAPPING = "property_mapping"
+    """Property parcel/address reference (county, tax ID, primary-residence flag)."""
+
+    AGENCY_MAPPING = "agency_mapping"
+    """Agency complaint reference (agency code, complaint number, status, outcome)."""
+
+    MNDES_PACKAGE = "mndes_package"
+    """MNDES exhibit package (case number, exhibits, attestations, submission state)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -161,6 +221,28 @@ CASE_OVERLAYS: set[OverlayType] = {
     OverlayType.CASE_DATA,
 }
 
+RECORD_OVERLAYS: set[OverlayType] = {
+    OverlayType.JOURNAL_ENTRY,
+    OverlayType.RENT_LEDGER_ENTRY,
+    OverlayType.CALENDAR_EVENT,
+    OverlayType.CONTACT,
+    OverlayType.CONTACT_INTERACTION,
+    OverlayType.COMPLAINT,
+    OverlayType.DISPUTE_RECORD,
+    OverlayType.COMPARISON_ENTRY,
+    OverlayType.INCIDENT,
+    OverlayType.THIRD_PARTY_CONTACT,
+    OverlayType.EVICTION_TIMELINE_EVENT,
+    OverlayType.TIMELINE_EVENT,
+    OverlayType.PATTERN_RECORD,
+    OverlayType.DOCUMENT_SHARE,
+    OverlayType.EXTERNAL_MAPPING,
+    OverlayType.COURT_CASE_MAPPING,
+    OverlayType.PROPERTY_MAPPING,
+    OverlayType.AGENCY_MAPPING,
+    OverlayType.MNDES_PACKAGE,
+}
+
 # All overlay types (for validation)
 ALL_OVERLAY_TYPES: set[OverlayType] = set(OverlayType)
 
@@ -183,4 +265,6 @@ def get_overlay_category(overlay_type: OverlayType) -> str:
         return "identity"
     if overlay_type in CASE_OVERLAYS:
         return "case"
+    if overlay_type in RECORD_OVERLAYS:
+        return "record"
     return "unknown"

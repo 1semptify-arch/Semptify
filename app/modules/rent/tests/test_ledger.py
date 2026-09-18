@@ -25,21 +25,26 @@ def test_compute_running_balances_empty():
 
 
 def test_compute_running_balances_order():
-    from unittest.mock import MagicMock
-
+    from app.core.overlay_types import OverlayType
     from app.modules.rent.router import _compute_running_balances
+    from app.modules.rent.service import get_ledger_anchor_id, get_ledger_vault_path
+    from app.models.unified_overlay_models import UnifiedOverlay
 
-    e1 = MagicMock()
-    e1.id = "rnt_001"
-    e1.entry_type = "payment"
-    e1.amount = 1000
-    e2 = MagicMock()
-    e2.id = "rnt_002"
-    e2.entry_type = "fee"
-    e2.amount = 200
+    def _entry(overlay_id: str, entry_type: str, amount: int) -> UnifiedOverlay:
+        return UnifiedOverlay(
+            overlay_id=overlay_id,
+            overlay_type=OverlayType.RENT_LEDGER_ENTRY,
+            document_id=get_ledger_anchor_id("GUtestuser1"),
+            vault_path=get_ledger_vault_path(),
+            created_by="GUtestuser1",
+            payload={"id": f"rnt_{overlay_id}", "entry_type": entry_type, "amount": amount},
+        )
+
+    e1 = _entry("ovl_001", "payment", 1000)
+    e2 = _entry("ovl_002", "fee", 200)
     result = _compute_running_balances([e1, e2])
-    assert result["rnt_001"] == 1000
-    assert result["rnt_002"] == 800
+    assert result["ovl_001"] == 1000
+    assert result["ovl_002"] == 800
 
 
 def test_rent_ledger_create_validation():

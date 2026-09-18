@@ -3,6 +3,9 @@ Pattern History API - Optional endpoints for pattern persistence and trend analy
 
 These endpoints provide historical tracking of housing accountability patterns
 when ENABLE_PATTERN_PERSISTENCE=true is set in the environment.
+
+Pattern records live in the tenant's own cloud vault (PATTERN_RECORD overlays
+under Vault/derived/) — not the server database.
 """
 
 import logging
@@ -10,28 +13,26 @@ from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
 from app.core.security import get_current_user
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
-# Import pattern record model and functions
+# Import pattern store (vault-backed)
 try:
-    from app.models.pattern_record import (
-        PatternRecord,
+    from app.services.pattern_store import (
         get_pattern_history,
+        get_pattern_record,
+        get_pattern_stats,
         get_pattern_trends,
         is_pattern_persistence_enabled,
+        mark_pattern_reviewed,
     )
 
     PATTERN_PERSISTENCE_AVAILABLE = True
 except ImportError:
     PATTERN_PERSISTENCE_AVAILABLE = False
-    PatternRecord = None
 
 # Initialize router
 pattern_history_router = APIRouter(prefix="/api/housing-accountability/patterns", tags=["Pattern History"])
@@ -42,7 +43,6 @@ async def get_pattern_history_endpoint(
     limit: int = Query(50, ge=1, le=200, description="Maximum number of records to return"),
     days: int | None = Query(None, ge=1, le=365, description="Filter to last N days"),
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     """
     Get pattern detection history for the current user.
@@ -62,7 +62,7 @@ async def get_pattern_history_endpoint(
 
     try:
         # Get base history
-        records = get_pattern_history(db, current_user.id, limit)
+        records = await get_pattern_history(current_user, limit)
 
         # Filter by days if specified
         if days and records:
@@ -92,7 +92,6 @@ async def get_pattern_history_endpoint(
 async def get_pattern_trends_endpoint(
     days: int = Query(30, ge=1, le=365, description="Analysis period in days"),
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
     """
     Get pattern trend analysis over time.
@@ -111,7 +110,7 @@ async def get_pattern_trends_endpoint(
         )
 
     try:
-        trends = get_pattern_trends(db, current_user.id, days)
+        trends = await get_pattern_trends(current_user, days)
 
         return JSONResponse(
             content={"success": True, "trends": trends, "persistence_enabled": True, "analysis_period_days": days}
@@ -124,9 +123,7 @@ async def get_pattern_trends_endpoint(
 
 
 @pattern_history_router.get("/record/{record_id}")
-async def get_pattern_record_detail(
-    record_id: int, current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)
-):
+async def get_pattern_record_detail(record_id: int, current_user=Depends(get_current_user)):
     """
     Get detailed information about a specific pattern record.
 
@@ -136,10 +133,7 @@ async def get_pattern_record_detail(
         raise HTTPException(status_code=404, detail="Pattern persistence is disabled")
 
     try:
-        result = await db.execute(
-            select(PatternRecord).where(and_(PatternRecord.id == record_id, PatternRecord.user_id == current_user.id))
-        )
-        record = result.scalar_one_or_none()
+        record = await get_pattern_record(current_user, record_id)
 
         if not record:
             raise HTTPException(status_code=404, detail="Pattern record not found")
@@ -156,7 +150,7 @@ async def get_pattern_record_detail(
 
 @pattern_history_router.post("/record/{record_id}/review")
 async def mark_pattern_record_reviewed(
-    record_id: int, notes: str | None = None, current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    record_id: int, notes: str | None = None, current_user=Depends(get_current_user)
 ):
     """
     Mark a pattern record as human-reviewed and add notes.
@@ -167,20 +161,10 @@ async def mark_pattern_record_reviewed(
         raise HTTPException(status_code=404, detail="Pattern persistence is disabled")
 
     try:
-        result = await db.execute(
-            select(PatternRecord).where(and_(PatternRecord.id == record_id, PatternRecord.user_id == current_user.id))
-        )
-        record = result.scalar_one_or_none()
+        record = await mark_pattern_reviewed(current_user, record_id, notes)
 
         if not record:
             raise HTTPException(status_code=404, detail="Pattern record not found")
-
-        # Update record
-        record.reviewed = True
-        if notes:
-            record.notes = notes
-
-        await db.commit()
 
         return JSONResponse(
             content={"success": True, "message": "Pattern record marked as reviewed", "record": record.to_dict()}
@@ -189,14 +173,13 @@ async def mark_pattern_record_reviewed(
     except HTTPException:
         raise
     except Exception as e:
-        await db.rollback()
         logger.error(f"Failed to mark pattern record {record_id} as reviewed: {e}")
         logger.exception("Failed to update pattern record")
         raise HTTPException(status_code=500, detail="Failed to update pattern record")
 
 
 @pattern_history_router.get("/stats")
-async def get_pattern_statistics(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def get_pattern_statistics(current_user=Depends(get_current_user)):
     """
     Get pattern detection statistics for the current user.
 
@@ -213,54 +196,12 @@ async def get_pattern_statistics(current_user=Depends(get_current_user), db: Asy
         )
 
     try:
-        # Get total count
-        total_result = await db.execute(select(PatternRecord.id).where(PatternRecord.user_id == current_user.id))
-        total_count = len(total_result.scalars().all())
-
-        if total_count == 0:
-            return JSONResponse(
-                content={
-                    "success": True,
-                    "stats": {
-                        "total_analyses": 0,
-                        "average_risk_score": 0,
-                        "most_common_risk_level": "none",
-                        "pattern_types": [],
-                        "recent_analyses": [],
-                    },
-                    "persistence_enabled": True,
-                }
-            )
-
-        # Get risk level distribution
-        risk_result = await db.execute(select(PatternRecord.risk_level).where(PatternRecord.user_id == current_user.id))
-        risk_levels = [row[0] for row in risk_result.all()]
-
-        # Get average risk score
-        avg_result = await db.execute(select(PatternRecord.risk_score).where(PatternRecord.user_id == current_user.id))
-        risk_scores = [row[0] for row in avg_result.all()]
-        avg_risk = sum(risk_scores) / len(risk_scores) if risk_scores else 0
-
-        # Get recent analyses
-        recent_records = get_pattern_history(db, current_user.id, 5)
-        recent_data = [record.to_dict() for record in recent_records]
-
-        # Calculate most common risk level
-        risk_counts = {}
-        for level in risk_levels:
-            risk_counts[level] = risk_counts.get(level, 0) + 1
-        most_common = max(risk_counts.items(), key=lambda x: x[1])[0] if risk_counts else "none"
+        stats = await get_pattern_stats(current_user)
 
         return JSONResponse(
             content={
                 "success": True,
-                "stats": {
-                    "total_analyses": total_count,
-                    "average_risk_score": round(avg_risk, 2),
-                    "most_common_risk_level": most_common,
-                    "risk_level_distribution": risk_counts,
-                    "recent_analyses": recent_data,
-                },
+                "stats": stats,
                 "persistence_enabled": True,
             }
         )

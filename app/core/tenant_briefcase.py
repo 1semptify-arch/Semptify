@@ -613,32 +613,23 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
                 )
             )
 
-    # Load real timeline events from DB
+    # Load real timeline events from the tenant's vault
     try:
-        from sqlalchemy import select as _sel
+        from app.services.timeline_store import list_events_for_user_id
 
-        from app.core.database import get_db_session
-        from app.models.models import TimelineEvent as TimelineEventModel
-
-        async with get_db_session() as _db:
-            result = await _db.execute(
-                _sel(TimelineEventModel)
-                .where(TimelineEventModel.user_id == user_id)
-                .order_by(TimelineEventModel.event_date.asc())
-            )
-            for te in result.scalars().all():
-                date_val = te.event_date.isoformat() if te.event_date else None
-                events.append(
-                    TimelineEvent(
-                        id=str(te.id),
-                        event_type=te.event_type or "event",
-                        title=te.title or te.event_type or "Event",
-                        date=date_val,
-                        icon="◆",
-                    )
+        for te in reversed(await list_events_for_user_id(user_id)):
+            date_val = te.event_date.isoformat() if te.event_date else None
+            events.append(
+                TimelineEvent(
+                    id=str(te.id),
+                    event_type=te.event_type or "event",
+                    title=te.title or te.event_type or "Event",
+                    date=date_val,
+                    icon="◆",
                 )
+            )
     except Exception as _e:
-        logger.warning("Timeline DB load failed: %s", _e)
+        logger.warning("Timeline vault load failed: %s", _e)
 
     # Find next deadline
     today = utc_now().date()
@@ -681,39 +672,32 @@ async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSum
     """Load journal entries from the Journal module and from vault documents."""
     entries: list[JournalEntry] = []
 
-    # Free-form journal entries (DB-backed)
+    # Free-form journal entries (vault-overlay backed)
     try:
-        from sqlalchemy import select
+        from app.modules.journal.service import list_entries_for_user_id
 
-        from app.core.database import get_db_session
-        from app.models.models import JournalEntry as JournalEntryModel
-
-        async with get_db_session() as db:
-            result = await db.execute(
-                select(JournalEntryModel)
-                .where(JournalEntryModel.user_id == user_id)
-                .order_by(JournalEntryModel.occurred_at.desc())
-            )
-            db_entries = list(result.scalars().all())
-            for entry in db_entries:
-                description = entry.title or "Journal entry"
-                if entry.content:
-                    description = f"{description}: {entry.content[:100]}{'…' if len(entry.content) > 100 else ''}"
-                has_attachments = bool(entry.document_link)
-                entries.append(
-                    JournalEntry(
-                        id=entry.id,
-                        entry_type=entry.entry_type,
-                        description=description,
-                        created_at=entry.occurred_at.isoformat() if entry.occurred_at else "",
-                        is_urgent=entry.is_urgent or False,
-                        has_attachments=has_attachments,
-                        attachment_count=1 if has_attachments else 0,
-                        icon=_journal_icon(entry.entry_type),
-                    )
+        overlays, _total = await list_entries_for_user_id(user_id, limit=200)
+        for overlay in overlays:
+            payload = overlay.payload
+            description = payload.get("title") or "Journal entry"
+            content = payload.get("content") or ""
+            if content:
+                description = f"{description}: {content[:100]}{'…' if len(content) > 100 else ''}"
+            has_attachments = bool(payload.get("document_link"))
+            entries.append(
+                JournalEntry(
+                    id=overlay.overlay_id,
+                    entry_type=payload.get("entry_type") or "note",
+                    description=description,
+                    created_at=payload.get("occurred_at") or "",
+                    is_urgent=bool(payload.get("is_urgent")),
+                    has_attachments=has_attachments,
+                    attachment_count=1 if has_attachments else 0,
+                    icon=_journal_icon(payload.get("entry_type") or "note"),
                 )
+            )
     except Exception as _e:
-        logger.warning("Journal DB load failed: %s", _e)
+        logger.warning("Journal vault load failed: %s", _e)
 
     # Also include recent vault uploads as journal-style activity
     try:

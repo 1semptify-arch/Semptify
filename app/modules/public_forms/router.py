@@ -194,37 +194,34 @@ async def load_tenant_autofill(user_id: str) -> dict:
         logger.debug("autofill: cloud vault unavailable for %s: %s", user_id[:8], exc)
 
     # -------------------------------------------------------------------------
-    # Layer 2: DB Contact table — landlord only (no PII, fills any cloud gaps)
+    # Layer 2: Vault contacts — landlord only (no PII, fills any cloud gaps)
     # -------------------------------------------------------------------------
     if not result["landlord_name"] or not result["property_address"]:
         try:
-            from sqlalchemy import select
+            from app.modules.contacts.service import list_contacts_for_user_id
 
-            from app.core.database import get_db_session
-            from app.models.models import Contact
-
-            async with get_db_session() as db:
-                contact_result = await db.execute(
-                    select(Contact)
-                    .where(Contact.user_id == user_id, Contact.contact_type == "landlord")
-                    .order_by(Contact.created_at.desc())
-                )
-                landlord = contact_result.scalars().first()
-                if landlord:
-                    if landlord.name and not result["landlord_name"]:
-                        result["landlord_name"] = landlord.name
-                    if not result["property_address"]:
-                        addr_parts = [
-                            landlord.address_line1,
-                            landlord.city,
-                            landlord.state,
-                            landlord.zip_code,
-                        ]
-                        addr = ", ".join(p for p in addr_parts if p)
-                        if addr:
-                            result["property_address"] = addr
+            landlord_overlays, _total = await list_contacts_for_user_id(
+                user_id, contact_type="landlord"
+            )
+            landlord = (
+                max(landlord_overlays, key=lambda o: o.created_at) if landlord_overlays else None
+            )
+            if landlord:
+                p = landlord.payload
+                if p.get("name") and not result["landlord_name"]:
+                    result["landlord_name"] = p.get("name")
+                if not result["property_address"]:
+                    addr_parts = [
+                        p.get("address_line1"),
+                        p.get("city"),
+                        p.get("state"),
+                        p.get("zip_code"),
+                    ]
+                    addr = ", ".join(part for part in addr_parts if part)
+                    if addr:
+                        result["property_address"] = addr
         except Exception as exc:
-            logger.warning("autofill: DB fallback error for %s: %s", user_id[:8], exc)
+            logger.warning("autofill: vault contacts fallback error for %s: %s", user_id[:8], exc)
 
     # -------------------------------------------------------------------------
     # Layer 3: TenantBriefcase — user_name only (last resort for tenant name)

@@ -730,8 +730,8 @@ async def _process_document(
     extracted["case_numbers"] = cases
 
     # Create timeline event based on document type
-    from app.core.database import get_db_session
-    from app.models.models import TimelineEvent
+    from app.core.user_context import build_context_for_user_id
+    from app.services.timeline_store import create_event
 
     event_title = {
         "summons": "Summons Received",
@@ -743,17 +743,15 @@ async def _process_document(
         "photo": "Photo Evidence",
     }.get(doc_type, f"Document: {filename}")
 
-    async with get_db_session() as session:
-        event = TimelineEvent(
-            user_id=user_id,
-            event_type="document",
-            title=event_title,
-            description=f"Uploaded: {filename}",
-            document_id=doc_id,
-            is_evidence=doc_type in ["summons", "complaint", "notice", "lease", "payment", "photo"],
-        )
-        session.add(event)
-        await session.commit()
+    user = await build_context_for_user_id(user_id)
+    await create_event(
+        user,
+        event_type="document",
+        title=event_title,
+        description=f"Uploaded: {filename}",
+        document_id=doc_id,
+        is_evidence=doc_type in ["summons", "complaint", "notice", "lease", "payment", "photo"],
+    )
 
     # Update Form Data Hub with extracted data
     from app.services.form_data import get_form_data_service
@@ -789,9 +787,9 @@ async def _create_deadline_events(
     case_info: CaseInfo,
     answer_deadline: str | None,
 ):
-    """Create calendar events for case deadlines."""
-    from app.core.database import get_db_session
-    from app.models.models import CalendarEvent
+    """Create calendar events for case deadlines (tenant's vault overlays)."""
+    from app.modules.calendar.service import create_event_for_user_id, list_events_for_user_id
+    from app.services.calendar_sync import _parse_datetime as _parse_cal_dt
 
     events_to_create = []
 
@@ -820,26 +818,24 @@ async def _create_deadline_events(
             }
         )
 
-    # Create events in database
-    async with get_db_session() as session:
-        for event_data in events_to_create:
-            # Check if event already exists
-            result = await session.execute(
-                select(CalendarEvent).where(
-                    CalendarEvent.user_id == user_id,
-                    CalendarEvent.title == event_data["title"],
-                )
-            )
-            existing = result.scalar_one_or_none()
+    # Create events in the tenant's vault, skipping titles already present
+    existing_overlays, _total = await list_events_for_user_id(user_id)
+    existing_titles = {o.payload.get("title") for o in existing_overlays}
 
-            if not existing:
-                event = CalendarEvent(
-                    user_id=user_id,
-                    title=event_data["title"],
-                    description=event_data["description"],
-                    event_date=datetime.strptime(event_data["event_date"], "%Y-%m-%d"),
-                    event_type=event_data["event_type"],
-                )
-                session.add(event)
-
-        await session.commit()
+    for event_data in events_to_create:
+        if event_data["title"] in existing_titles:
+            continue
+        start_dt = _parse_cal_dt(event_data["event_date"])
+        if start_dt is None:
+            continue
+        await create_event_for_user_id(
+            user_id,
+            title=event_data["title"],
+            description=event_data["description"],
+            start_datetime=start_dt,
+            all_day=True,
+            event_type=event_data["event_type"],
+            is_critical=event_data["is_critical"],
+            reminder_days=1,
+            source="manual",
+        )
