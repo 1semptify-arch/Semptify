@@ -6,6 +6,10 @@
 (function() {
   'use strict';
 
+  // Guard: the shell loads this on every page; pages that also load it
+  // directly must not open a second connection.
+  if (window.SemptifyWebSocket) return;
+
   const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/events`;
   const RECONNECT_DELAY = 3000;
   const MAX_RECONNECT_ATTEMPTS = 5;
@@ -100,6 +104,15 @@
     // System alerts
     if (msg.type === 'system_alert') {
       showNotification('System', msg.data.message || 'System alert', msg.data.level || 'info');
+    }
+
+    // Contract-driven narration (ADR-0008 / Build Contract Part 2): the
+    // payload's narration field is a plain-language line rendered from the
+    // emitting module's approved contract — surface it to the strip.
+    if (msg.narration) {
+      window.dispatchEvent(new CustomEvent('semptify:narration', {
+        detail: { text: msg.narration, eventType: msg.type, timestamp: msg.timestamp }
+      }));
     }
 
     // Emit to registered handlers
