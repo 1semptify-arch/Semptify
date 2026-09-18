@@ -132,6 +132,12 @@ class OverlayType(str, Enum):
     COMPLAINT = "complaint"
     """Formal complaint draft/filing record for a regulatory agency (complaint wizard)."""
 
+    DISPUTE_RECORD = "dispute_record"
+    """Property-management dispute record (fees, lease violation, retaliation, habitability)."""
+
+    COMPARISON_ENTRY = "comparison_entry"
+    """Fee/term comparison entry attached to a dispute record (amounts in cents)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -189,6 +195,8 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.CONTACT,
     OverlayType.CONTACT_INTERACTION,
     OverlayType.COMPLAINT,
+    OverlayType.DISPUTE_RECORD,
+    OverlayType.COMPARISON_ENTRY,
 }
 
 # All overlay types (for validation)

@@ -822,7 +822,7 @@ _register(
     tier=ProductTier.EXTENDED,
     lifecycle="beta",
     fees_policy=FeesPolicy.TENANT_NO_FEES,
-    dev_notes="Greenfield tenant-facing module for property-management disputes and fee/term comparison tracking. T2 data sensitivity (descriptions, parties, dates).",
+    dev_notes="Greenfield tenant-facing module for property-management disputes and fee/term comparison tracking. T2 data sensitivity (descriptions, parties, dates). Records vault-persisted as DISPUTE_RECORD/COMPARISON_ENTRY overlays (legacy rows migrate on first read).",
     log_message="Dispute Tracker router connected at /api/dispute-tracker",
 )
 

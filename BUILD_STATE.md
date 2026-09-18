@@ -1,3 +1,20 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: disputes → user cloud vault (devin)
+
+### What shipped (vault-persistence-migration, Phase 1 slice 6)
+- `dispute_records` + `comparison_entries` moved off the server DB into the tenant's cloud vault — records persist as `DISPUTE_RECORD` / `COMPARISON_ENTRY` overlays anchored to `document_id="disputes:{user_id}"` at `VAULT_RECORDS_FILE` (shared records file). Comparisons link to their parent dispute via `payload.dispute_record_id` — `dis_*`/`cmp_*` ids preserved.
+- New `app/modules/dispute_tracker/service.py` — create/list for both types, `SimpleNamespace` view objects matching the template contract (attribute access; `effective_date` parsed to datetime for `strftime`), and `migrate_legacy_disputes()` (non-destructive, idempotent, 25 rows/call, both tables).
+- Router fully rewired — zero `get_db`/`select`/`models` references; template unchanged (view objects carry the same attribute surface).
+- Dead tables noted: `witness_statements` and `certified_mail` have zero code consumers anywhere — nothing to rewire; they drop with the Alembic phase.
+
+### Verified
+- py_compile clean; dispute vault tests 5/5 (round-trip, linkage, isolation, sort, safe migration no-op); module_health test_dispute_tracker 1/1; guardrail engine all-PASS.
+
+### Next session
+- Phase 1 continues: `incidents` (bigger — case_builder + housing_accountability + packet_builder + vault router), `third_party_contacts`, `eviction_timeline_events`.
+- Not done: `dispute_records`/`comparison_entries` tables still exist for legacy reads; zero-persistence claim stays NEEDS-CONFIRMATION.
+
+---
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: complaints → user cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T13:03:17+00:00
