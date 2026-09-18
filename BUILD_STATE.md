@@ -1,3 +1,32 @@
+## Session — 2026-09-18 — Frontend assembly cluster: narrator runtime → tenant-path voice → on-screen strip (devin)
+
+### What shipped (PR #273, branch `frontend-assembly-cluster`, 7 commits)
+- `34d4eb5f` — `app/core/narrator.py` + event_bus WS hook: renders contract-declared `narrative_events` in approved grammar; static `NARRATION_MESSAGES` wins where both exist; failures return `None` (WS push never breaks). `humanize_actor` bug fixed (was "The document Center").
+- `9ad25713` — `document_center.html` inline script → `static/js/document_center.js` (2,001 → 218 lines).
+- `7f97f0e7` — `tools/derive_module_contracts.py` + 127 `module_contract.json` files from FunctionGroupContracts; index regenerated; onboarding permanently excluded.
+- `e108b147` — UX worst-pages pass: dead links → real routes, `a`→`button`, banned copy out, raw-JSON controls out (mndes 3.2→4.0, welcome 3.8→4.2, dashboards 3.7→4.3, donate 3.7→3.8).
+- `192c29b4` — tenant-path voice: `data["narrator"]={module,slot}` emits at real success points in 10 modules (journal, timeline, sticky_notes, calendar, eviction_timeline, eviction_defense, resource_directory, communication, documents, document_center) + contract `narrative_events` slots + 9 new fine-grained EventTypes. ADR-0008 preserved — narration only after a real step completes.
+- `760d07fe` — gitignore fix: anchored `DOCUMENTS/` patterns to repo root; `documents/module_contract.json` committable for the first time (intake-2bad6751 closed; `data/documents/` still protected).
+- `1eb07c8c` — `#narration-strip` polite ARIA live region in `shell_base.html` `pre_main` (all 112 shell pages) + `semptify:narration` CustomEvent bridge in `websocket-client.js` + `narration-strip.js` + calm-50 zone CSS (`:empty` hidden, reduced-motion respected).
+
+### Verified
+- py_compile all touched files; `test_narrator` 8/8; `module_health` 245/245; `test_security_isolation_gates` 7/7 + `test_action_router_gates` 8/8; Playwright smoke 6/6; 129 contracts load via registry.
+- Live: strip + scripts render on `/dc` and `/calendar`; e2e Event→WS payload narration confirmed.
+- semptify.org reachable (Render free plan sleeps ~15min idle → cold visitors wait ~15-60s; keep-alive decision pending Brad).
+
+### Known pending / do-not-trip-on
+- **PR #273 open, not merged** — branch protection; Brad reviews/merges.
+- Browser-side visual pass on the strip pending (no browser tools connected this session; markup-render verified only).
+- `gui/base.html` pages don't get the strip (separate base; migration target anyway).
+- `welcome.html` still shows dev instrumentation (contract coverage grid) — design call pending.
+- Only 11 of 129 contracts carry `narrative_events` — remaining 118 intentionally unfilled (tenant-path scope).
+- `role-landing-surfacing` blocked on Brad's dual-SSOT call; `i18n-real-catalogs` needs paid translation decision.
+
+### Next session
+- After PR #273 merges: bump master-repo gitlink (ship step 8.5). Then Phase 2 of usability plan: "what happened?" triage picker on landing. Phase 0 keep-alive + Phase 3 mobile awaiting Brad's calls.
+
+---
+
 ## Session — 2026-09-17 — Onboarding rebuild v2: START/FINALE gates + returning-user path (devin)
 
 ### What shipped
