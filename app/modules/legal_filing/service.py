@@ -6,7 +6,10 @@ from app.models.legal_filing_models import LegalCase
 
 logger = logging.getLogger(__name__)
 
-DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "legal_filings"
+# Runtime case store — root data/ (gitignored/dockerignored), NOT app/data/.
+# parent³ resolved to app/data/legal_filings, which bundled runtime case files
+# into the image and let them be committed. parent⁴ = repo root.
+DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data" / "legal_filings"
 EVIDENCE_DIR = DATA_DIR / "evidence"
 EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
 

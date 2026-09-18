@@ -8,7 +8,9 @@ stage. Entries are global/curated, never keyed to a single tenant.
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime
+from pathlib import Path
 
 from sqlalchemy import DateTime, Index, Integer, String, Text, select
 from sqlalchemy.orm import Mapped, mapped_column
@@ -19,6 +21,8 @@ from app.core.id_gen import make_id
 from app.core.utc import utc_now
 from app.modules.context_engine.embedding_model import EMBEDDING_DIMENSIONS, embed_text
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS
+
+logger = logging.getLogger(__name__)
 
 
 class ContextExplanationEntry(Base):
@@ -195,6 +199,61 @@ async def create_explanation_entry(
     return entry
 
 
+# Bundled seed workbooks — ship with the image under app/data/ (the runtime
+# data/ dir is gitignored/dockerignored). Hydrate the entries table on first
+# read so a fresh container or wiped database doesn't silently serve nothing.
+SEED_WORKBOOKS = (
+    Path(__file__).resolve().parent.parent.parent / "data" / "context_explanation_workbook.csv",
+    Path(__file__).resolve().parent.parent.parent / "data" / "context_explanation_wave2_starter.csv",
+    Path(__file__).resolve().parent.parent.parent / "data" / "explanation_workbook_wave_a_extension.csv",
+)
+
+_SEED_CHECKED = False
+
+
+async def ensure_explanation_entries_seeded() -> None:
+    """Seed context_explanation_entries from bundled workbooks when empty.
+
+    Idempotent and process-cached: if the table already has any rows, does
+    nothing (manual loads via tools/load_explanation_workbook.py still work
+    and are never overwritten). Best-effort — a bad CSV row is skipped, and
+    the whole seed fails soft so reads still work.
+    """
+    global _SEED_CHECKED
+    if _SEED_CHECKED:
+        return
+    _SEED_CHECKED = True
+    try:
+        async with get_db_session() as db:
+            existing = (await db.execute(select(ContextExplanationEntry.id).limit(1))).first()
+        if existing:
+            return
+
+        import csv
+
+        for workbook in SEED_WORKBOOKS:
+            if not workbook.exists():
+                continue
+            with open(workbook, newline="", encoding="utf-8") as f:
+                for row in csv.DictReader(f):
+                    try:
+                        await create_explanation_entry(
+                            subject=row["subject"].strip(),
+                            jurisdiction=(row.get("jurisdiction") or "MN").strip(),
+                            upl_risk_tier=row["upl_risk_tier"].strip(),
+                            pillar=row["pillar"].strip(),
+                            review_status=row["review_status"].strip(),
+                            variant_trust=row.get("variant_trust", ""),
+                            variant_mechanics=row.get("variant_mechanics", ""),
+                            variant_reinforcement=row.get("variant_reinforcement", ""),
+                            variant_minimal=row.get("variant_minimal", ""),
+                        )
+                    except Exception as exc:  # bad row — skip, keep seeding
+                        logger.warning("Seed row skipped (%s:%s): %s", workbook.name, row.get("subject"), exc)
+    except Exception as exc:
+        logger.warning("Explanation-entry seeding failed (reads still work): %s", exc)
+
+
 async def get_explanation_entries(
     subject: str | None = None,
     jurisdiction: str = "MN",
@@ -209,6 +268,8 @@ async def get_explanation_entries(
         _validate_pillar(pillar)
     if review_status is not None:
         _validate_review_status(review_status)
+
+    await ensure_explanation_entries_seeded()
 
     async with get_db_session() as db:
         stmt = select(ContextExplanationEntry).where(
