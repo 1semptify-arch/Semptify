@@ -26,7 +26,6 @@ from app.core.database import get_db_session
 from app.core.search_engine import SearchOperator, SearchType, get_search_engine
 from app.core.security import StorageUser, green_access
 from app.models.models import (
-    Contact as ContactModel,
     Document as DocumentModel,
     TimelineEvent as TimelineEventModel,
 )
@@ -368,41 +367,35 @@ async def global_search(
         except Exception as e:
             logger.warning(f"Timeline search error: {e}")
 
-        # Search Contacts
+        # Search Contacts (vault overlays)
         try:
-            contact_query = (
-                select(ContactModel)
-                .where(
-                    ContactModel.user_id == user.user_id,
-                    or_(
-                        ContactModel.name.ilike(f"%{q}%"),
-                        ContactModel.role.ilike(f"%{q}%"),
-                        ContactModel.organization.ilike(f"%{q}%"),
-                        ContactModel.notes.ilike(f"%{q}%"),
-                    ),
-                )
-                .limit(limit)
-            )
+            from app.modules.contacts.service import list_contacts_for_user_id
 
-            result = await session.execute(contact_query)
-            contacts = result.scalars().all()
+            contact_overlays, _total = await list_contacts_for_user_id(user.user_id)
 
-            for contact in contacts:
-                searchable = f"{contact.name or ''} {contact.role or ''} {contact.organization or ''}"
+            needle = q.lower()
+            for contact in contact_overlays[:limit]:
+                p = contact.payload
+                if not any(
+                    needle in (p.get(field) or "").lower()
+                    for field in ("name", "role", "organization", "notes")
+                ):
+                    continue
+                searchable = f"{p.get('name') or ''} {p.get('role') or ''} {p.get('organization') or ''}"
                 score = _score_match(searchable, q)
 
                 response.contacts.append(
                     SearchResult(
-                        id=contact.id,
+                        id=contact.overlay_id,
                         type="contact",
-                        title=contact.name or "Contact",
-                        snippet=f"{contact.role or ''} - {contact.organization or ''}".strip(" -"),
+                        title=p.get("name") or "Contact",
+                        snippet=f"{p.get('role') or ''} - {p.get('organization') or ''}".strip(" -"),
                         url="/help",
                         score=score,
                         metadata={
-                            "role": contact.role,
-                            "phone": contact.phone,
-                            "email": contact.email,
+                            "role": p.get("role"),
+                            "phone": p.get("phone"),
+                            "email": p.get("email"),
                         },
                     )
                 )

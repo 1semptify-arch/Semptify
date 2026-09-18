@@ -23,15 +23,12 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.capabilities import require_capability
-from app.core.database import get_db
-from app.core.id_gen import make_id
 from app.core.security import StorageUser, yellow_access
-from app.core.utc import utc_now
-from app.models.models import Contact, ContactInteraction
+from app.models.unified_overlay_models import UnifiedOverlay
+from app.modules.contacts import service
+from app.services.calendar_sync import _parse_datetime as _parse_dt
 
 logger = logging.getLogger(__name__)
 
@@ -195,34 +192,54 @@ class ExtractedContactsRequest(BaseModel):
 # =============================================================================
 
 
-def contact_to_response(contact: Contact) -> ContactResponse:
-    """Convert Contact model to response."""
+def contact_to_response(contact: UnifiedOverlay) -> ContactResponse:
+    """Convert a CONTACT overlay to the response schema."""
+    p = contact.payload
     return ContactResponse(
-        id=contact.id,
-        contact_type=contact.contact_type,
-        role=contact.role,
-        name=contact.name,
-        organization=contact.organization,
-        title=contact.title,
-        phone=contact.phone,
-        phone_alt=contact.phone_alt,
-        email=contact.email,
-        fax=contact.fax,
-        address_line1=contact.address_line1,
-        address_line2=contact.address_line2,
-        city=contact.city,
-        state=contact.state,
-        zip_code=contact.zip_code,
-        website=contact.website,
-        notes=contact.notes,
-        tags=contact.tags,
-        source=contact.source,
-        last_contact_date=contact.last_contact_date,
-        interaction_count=contact.interaction_count,
-        is_active=contact.is_active,
-        is_starred=contact.is_starred,
-        created_at=contact.created_at,
-        updated_at=contact.updated_at,
+        id=contact.overlay_id,
+        contact_type=p.get("contact_type") or "other",
+        role=p.get("role"),
+        name=p.get("name") or "",
+        organization=p.get("organization"),
+        title=p.get("title"),
+        phone=p.get("phone"),
+        phone_alt=p.get("phone_alt"),
+        email=p.get("email"),
+        fax=p.get("fax"),
+        address_line1=p.get("address_line1"),
+        address_line2=p.get("address_line2"),
+        city=p.get("city"),
+        state=p.get("state"),
+        zip_code=p.get("zip_code"),
+        website=p.get("website"),
+        notes=p.get("notes"),
+        tags=p.get("tags"),
+        source=p.get("source"),
+        last_contact_date=_parse_dt(p.get("last_contact_date")),
+        interaction_count=int(p.get("interaction_count") or 0),
+        is_active=bool(p.get("is_active")),
+        is_starred=bool(p.get("is_starred")),
+        created_at=_parse_dt(p.get("created_at")) or contact.created_at,
+        updated_at=_parse_dt(p.get("updated_at")) or contact.updated_at or contact.created_at,
+    )
+
+
+def _interaction_to_response(i: UnifiedOverlay) -> InteractionResponse:
+    """Convert a CONTACT_INTERACTION overlay to the response schema."""
+    p = i.payload
+    return InteractionResponse(
+        id=i.overlay_id,
+        contact_id=p.get("contact_id") or "",
+        interaction_type=p.get("interaction_type") or "note",
+        direction=p.get("direction") or "outgoing",
+        subject=p.get("subject"),
+        summary=p.get("summary"),
+        interaction_date=_parse_dt(p.get("interaction_date")) or i.created_at,
+        duration_minutes=p.get("duration_minutes"),
+        follow_up_needed=bool(p.get("follow_up_needed")),
+        follow_up_date=_parse_dt(p.get("follow_up_date")),
+        follow_up_notes=p.get("follow_up_notes"),
+        created_at=i.created_at,
     )
 
 
@@ -265,46 +282,30 @@ async def list_contacts(
     starred_only: bool = Query(False, description="Show only starred contacts"),
     active_only: bool = Query(True, description="Show only active contacts"),
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """
     List all contacts for the current user.
 
     Filter by type, role, or search by name/organization.
     """
-    query = select(Contact).where(Contact.user_id == user.user_id)
-
-    if contact_type:
-        query = query.where(Contact.contact_type == contact_type)
-    if role:
-        query = query.where(Contact.role == role)
-    if starred_only:
-        query = query.where(Contact.is_starred)
-    if active_only:
-        query = query.where(Contact.is_active)
-    if search:
-        search_pattern = f"%{search}%"
-        query = query.where(
-            or_(
-                Contact.name.ilike(search_pattern),
-                Contact.organization.ilike(search_pattern),
-                Contact.email.ilike(search_pattern),
-            )
-        )
-
-    query = query.order_by(Contact.is_starred.desc(), Contact.name)
-
-    result = await db.execute(query)
-    contacts = result.scalars().all()
+    contacts, total = await service.list_contacts(
+        user,
+        contact_type=contact_type,
+        role=role,
+        starred_only=starred_only,
+        active_only=active_only,
+        search=search,
+    )
 
     # Count by type
     type_counts = {}
     for c in contacts:
-        type_counts[c.contact_type] = type_counts.get(c.contact_type, 0) + 1
+        ct = c.payload.get("contact_type") or "other"
+        type_counts[ct] = type_counts.get(ct, 0) + 1
 
     return ContactsListResponse(
         contacts=[contact_to_response(c) for c in contacts],
-        total=len(contacts),
+        total=total,
         by_type=type_counts,
     )
 
@@ -313,59 +314,22 @@ async def list_contacts(
 async def create_contact(
     data: ContactCreate,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """Create a new contact."""
-    contact = Contact(
-        id=make_id("con"),
-        user_id=user.user_id,
-        contact_type=data.contact_type,
-        role=data.role,
-        name=data.name,
-        organization=data.organization,
-        title=data.title,
-        phone=data.phone,
-        phone_alt=data.phone_alt,
-        email=data.email,
-        fax=data.fax,
-        address_line1=data.address_line1,
-        address_line2=data.address_line2,
-        city=data.city,
-        state=data.state,
-        zip_code=data.zip_code,
-        website=data.website,
-        notes=data.notes,
-        tags=data.tags,
-        source=data.source or "manual",
-        source_document_id=data.source_document_id,
-    )
-
-    db.add(contact)
-    await db.commit()
-    await db.refresh(contact)
-
-    return contact_to_response(contact)
+    overlay = await service.create_contact(user, **data.model_dump())
+    return contact_to_response(overlay)
 
 
 @router.get("/{contact_id}", response_model=ContactResponse)
 async def get_contact(
     contact_id: str,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """Get a specific contact by ID."""
-    result = await db.execute(
-        select(Contact).where(
-            Contact.id == contact_id,
-            Contact.user_id == user.user_id,
-        )
-    )
-    contact = result.scalar_one_or_none()
-
-    if not contact:
+    overlay = await service.get_contact(user, contact_id)
+    if overlay is None:
         raise HTTPException(status_code=404, detail="Contact not found")
-
-    return contact_to_response(contact)
+    return contact_to_response(overlay)
 
 
 @router.put("/{contact_id}", response_model=ContactResponse)
@@ -373,53 +337,22 @@ async def update_contact(
     contact_id: str,
     data: ContactUpdate,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """Update an existing contact."""
-    result = await db.execute(
-        select(Contact).where(
-            Contact.id == contact_id,
-            Contact.user_id == user.user_id,
-        )
-    )
-    contact = result.scalar_one_or_none()
-
-    if not contact:
+    overlay = await service.update_contact(user, contact_id, data.model_dump(exclude_unset=True))
+    if overlay is None:
         raise HTTPException(status_code=404, detail="Contact not found")
-
-    # Update fields
-    update_data = data.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(contact, field, value)
-
-    contact.updated_at = utc_now()
-    await db.commit()
-    await db.refresh(contact)
-
-    return contact_to_response(contact)
+    return contact_to_response(overlay)
 
 
 @router.delete("/{contact_id}")
 async def delete_contact(
     contact_id: str,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """Delete a contact."""
-    result = await db.execute(
-        select(Contact).where(
-            Contact.id == contact_id,
-            Contact.user_id == user.user_id,
-        )
-    )
-    contact = result.scalar_one_or_none()
-
-    if not contact:
+    if not await service.delete_contact(user, contact_id):
         raise HTTPException(status_code=404, detail="Contact not found")
-
-    await db.delete(contact)
-    await db.commit()
-
     return {"status": "deleted", "id": contact_id}
 
 
@@ -427,24 +360,17 @@ async def delete_contact(
 async def toggle_star(
     contact_id: str,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """Toggle starred status for a contact."""
-    result = await db.execute(
-        select(Contact).where(
-            Contact.id == contact_id,
-            Contact.user_id == user.user_id,
-        )
-    )
-    contact = result.scalar_one_or_none()
-
-    if not contact:
+    overlay = await service.get_contact(user, contact_id)
+    if overlay is None:
         raise HTTPException(status_code=404, detail="Contact not found")
 
-    contact.is_starred = not contact.is_starred
-    await db.commit()
-
-    return {"status": "success", "is_starred": contact.is_starred}
+    new_value = not overlay.payload.get("is_starred")
+    updated = await service.update_contact(user, contact_id, {"is_starred": new_value})
+    if updated is None:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    return {"status": "success", "is_starred": new_value}
 
 
 # =============================================================================
@@ -456,43 +382,13 @@ async def toggle_star(
 async def list_interactions(
     contact_id: str,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """List all interactions with a contact."""
-    # Verify contact exists and belongs to user
-    contact_result = await db.execute(
-        select(Contact).where(
-            Contact.id == contact_id,
-            Contact.user_id == user.user_id,
-        )
-    )
-    if not contact_result.scalar_one_or_none():
+    if await service.get_contact(user, contact_id) is None:
         raise HTTPException(status_code=404, detail="Contact not found")
 
-    result = await db.execute(
-        select(ContactInteraction)
-        .where(ContactInteraction.contact_id == contact_id)
-        .order_by(ContactInteraction.interaction_date.desc())
-    )
-    interactions = result.scalars().all()
-
-    return [
-        InteractionResponse(
-            id=i.id,
-            contact_id=i.contact_id,
-            interaction_type=i.interaction_type,
-            direction=i.direction,
-            subject=i.subject,
-            summary=i.summary,
-            interaction_date=i.interaction_date,
-            duration_minutes=i.duration_minutes,
-            follow_up_needed=i.follow_up_needed,
-            follow_up_date=i.follow_up_date,
-            follow_up_notes=i.follow_up_notes,
-            created_at=i.created_at,
-        )
-        for i in interactions
-    ]
+    interactions = await service.list_interactions(user, contact_id)
+    return [_interaction_to_response(i) for i in interactions]
 
 
 @router.post("/{contact_id}/interactions", response_model=InteractionResponse, status_code=status.HTTP_201_CREATED)
@@ -500,26 +396,13 @@ async def log_interaction(
     contact_id: str,
     data: InteractionCreate,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """Log an interaction with a contact."""
-    # Verify contact exists and belongs to user
-    contact_result = await db.execute(
-        select(Contact).where(
-            Contact.id == contact_id,
-            Contact.user_id == user.user_id,
-        )
-    )
-    contact = contact_result.scalar_one_or_none()
-    if not contact:
-        raise HTTPException(status_code=404, detail="Contact not found")
-
     import json
 
-    interaction = ContactInteraction(
-        id=make_id("con"),
-        user_id=user.user_id,
-        contact_id=contact_id,
+    overlay = await service.create_interaction(
+        user,
+        contact_id,
         interaction_type=data.interaction_type,
         direction=data.direction,
         subject=data.subject,
@@ -531,30 +414,10 @@ async def log_interaction(
         follow_up_date=data.follow_up_date,
         follow_up_notes=data.follow_up_notes,
     )
+    if overlay is None:
+        raise HTTPException(status_code=404, detail="Contact not found")
 
-    db.add(interaction)
-
-    # Update contact's last interaction date and count
-    contact.last_contact_date = data.interaction_date
-    contact.interaction_count += 1
-
-    await db.commit()
-    await db.refresh(interaction)
-
-    return InteractionResponse(
-        id=interaction.id,
-        contact_id=interaction.contact_id,
-        interaction_type=interaction.interaction_type,
-        direction=interaction.direction,
-        subject=interaction.subject,
-        summary=interaction.summary,
-        interaction_date=interaction.interaction_date,
-        duration_minutes=interaction.duration_minutes,
-        follow_up_needed=interaction.follow_up_needed,
-        follow_up_date=interaction.follow_up_date,
-        follow_up_notes=interaction.follow_up_notes,
-        created_at=interaction.created_at,
-    )
+    return _interaction_to_response(overlay)
 
 
 # =============================================================================
@@ -566,7 +429,6 @@ async def log_interaction(
 async def import_from_extraction(
     data: ExtractedContactsRequest,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """
     Import contacts from extracted form data.
@@ -580,9 +442,8 @@ async def import_from_extraction(
     if data.landlord_name:
         addr = parse_address(data.landlord_address) if data.landlord_address else {}
 
-        landlord = Contact(
-            id=make_id("con"),
-            user_id=user.user_id,
+        await service.create_contact(
+            user,
             contact_type="landlord",
             role="opposing_party",
             name=data.landlord_name,
@@ -595,16 +456,14 @@ async def import_from_extraction(
             source="extracted",
             source_document_id=data.source_document_id,
         )
-        db.add(landlord)
         created.append({"type": "landlord", "name": data.landlord_name})
 
     # Import attorney if provided
     if data.attorney_name:
         addr = parse_address(data.attorney_address) if data.attorney_address else {}
 
-        attorney = Contact(
-            id=make_id("con"),
-            user_id=user.user_id,
+        await service.create_contact(
+            user,
             contact_type="attorney",
             role="opposing_counsel",
             name=data.attorney_name,
@@ -617,10 +476,7 @@ async def import_from_extraction(
             source="extracted",
             source_document_id=data.source_document_id,
         )
-        db.add(attorney)
         created.append({"type": "attorney", "name": data.attorney_name})
-
-    await db.commit()
 
     return {
         "status": "success",
@@ -641,14 +497,12 @@ async def quick_add_landlord(
     email: str | None = None,
     address: str | None = None,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """Quick add a landlord contact."""
     addr = parse_address(address) if address else {}
 
-    contact = Contact(
-        id=make_id("con"),
-        user_id=user.user_id,
+    overlay = await service.create_contact(
+        user,
         contact_type="landlord",
         role="opposing_party",
         name=name,
@@ -661,11 +515,7 @@ async def quick_add_landlord(
         source="manual",
     )
 
-    db.add(contact)
-    await db.commit()
-    await db.refresh(contact)
-
-    return contact_to_response(contact)
+    return contact_to_response(overlay)
 
 
 @router.post("/quick-add/witness", response_model=ContactResponse)
@@ -676,12 +526,10 @@ async def quick_add_witness(
     email: str | None = None,
     notes: str | None = None,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """Quick add a witness contact."""
-    contact = Contact(
-        id=make_id("con"),
-        user_id=user.user_id,
+    overlay = await service.create_contact(
+        user,
         contact_type="witness",
         role="my_witness",
         name=name,
@@ -692,11 +540,7 @@ async def quick_add_witness(
         source="manual",
     )
 
-    db.add(contact)
-    await db.commit()
-    await db.refresh(contact)
-
-    return contact_to_response(contact)
+    return contact_to_response(overlay)
 
 
 # =============================================================================
@@ -707,34 +551,35 @@ async def quick_add_witness(
 @router.get("/for-forms")
 async def get_contacts_for_forms(
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
 ):
     """
     Get contacts formatted for form filling.
 
     Returns contacts in a structure that matches court form fields.
     """
-    result = await db.execute(
-        select(Contact).where(
-            Contact.user_id == user.user_id,
-            Contact.is_active,
-        )
-    )
-    contacts = result.scalars().all()
+    contacts, _total = await service.list_contacts(user, active_only=True)
 
     # Organize by role for form filling
-    landlord = next((c for c in contacts if c.contact_type == "landlord"), None)
-    attorney = next((c for c in contacts if c.contact_type == "attorney" and c.role == "opposing_counsel"), None)
+    landlord = next((c for c in contacts if c.payload.get("contact_type") == "landlord"), None)
+    attorney = next(
+        (
+            c
+            for c in contacts
+            if c.payload.get("contact_type") == "attorney" and c.payload.get("role") == "opposing_counsel"
+        ),
+        None,
+    )
 
     def format_contact(c):
         if not c:
             return None
+        p = c.payload
         return {
-            "name": c.name,
-            "organization": c.organization,
-            "address": f"{c.address_line1 or ''}, {c.city or ''}, {c.state or ''} {c.zip_code or ''}".strip(", "),
-            "phone": c.phone,
-            "email": c.email,
+            "name": p.get("name"),
+            "organization": p.get("organization"),
+            "address": f"{p.get('address_line1') or ''}, {p.get('city') or ''}, {p.get('state') or ''} {p.get('zip_code') or ''}".strip(", "),
+            "phone": p.get("phone"),
+            "email": p.get("email"),
         }
 
     return {
@@ -742,12 +587,12 @@ async def get_contacts_for_forms(
         "opposing_counsel": format_contact(attorney),
         "witnesses": [
             {
-                "name": c.name,
-                "relationship": c.title,
-                "contact": c.phone or c.email,
+                "name": c.payload.get("name"),
+                "relationship": c.payload.get("title"),
+                "contact": c.payload.get("phone") or c.payload.get("email"),
             }
             for c in contacts
-            if c.contact_type == "witness"
+            if c.payload.get("contact_type") == "witness"
         ],
         "all_contacts": [contact_to_response(c) for c in contacts],
     }

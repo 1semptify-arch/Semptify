@@ -79,6 +79,11 @@ VAULT_LEDGER_FILE = normalize_cloud_path(f"{VAULT_LEDGER}/ledger.json")
 VAULT_CALENDAR = normalize_cloud_path(f"{VAULT_ROOT}/calendar")
 VAULT_CALENDAR_FILE = normalize_cloud_path(f"{VAULT_CALENDAR}/calendar.json")
 
+# Per-user contacts anchor for CONTACT + CONTACT_INTERACTION overlays
+# (landlords, attorneys, witnesses, agencies + the interaction log).
+VAULT_CONTACTS = normalize_cloud_path(f"{VAULT_ROOT}/contacts")
+VAULT_CONTACTS_FILE = normalize_cloud_path(f"{VAULT_CONTACTS}/contacts.json")
+
 # =============================================================================
 # Role-specific folders (direct children of Vault/)
 # =============================================================================

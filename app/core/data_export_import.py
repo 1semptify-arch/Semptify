@@ -347,50 +347,53 @@ class DataExportImportManager:
             return {"events": [], "error": str(e)}
 
     async def _export_contacts(self, user_id: str, filters: dict[str, Any]) -> dict[str, Any]:
-        """Export user contacts."""
+        """Export user contacts (vault overlays)."""
         try:
-            from sqlalchemy import select
+            from app.modules.contacts.service import list_contacts_for_user_id
 
-            from app.core.database import get_db_session
-            from app.models.models import Contact as ContactModel
+            contact_overlays, _total = await list_contacts_for_user_id(user_id, active_only=False)
 
-            async with get_db_session() as session:
-                query = select(ContactModel).where(ContactModel.user_id == user_id)
+            # Apply filters
+            if "contact_types" in filters:
+                contact_types = filters["contact_types"]
+                contact_overlays = [
+                    o for o in contact_overlays if o.payload.get("role") in contact_types
+                ]
 
-                # Apply filters
-                if "contact_types" in filters:
-                    contact_types = filters["contact_types"]
-                    query = query.where(ContactModel.role.in_(contact_types))
+            # Convert to export format
+            export_contacts = []
+            for contact in contact_overlays:
+                p = contact.payload
+                addr_parts = [
+                    p.get("address_line1"),
+                    p.get("address_line2"),
+                    p.get("city"),
+                    p.get("state"),
+                    p.get("zip_code"),
+                ]
+                export_contacts.append(
+                    {
+                        "id": contact.overlay_id,
+                        "name": p.get("name"),
+                        "role": p.get("role"),
+                        "organization": p.get("organization"),
+                        "phone": p.get("phone"),
+                        "email": p.get("email"),
+                        "address": ", ".join(part for part in addr_parts if part) or None,
+                        "notes": p.get("notes"),
+                        "created_at": p.get("created_at") or contact.created_at.isoformat(),
+                        "updated_at": p.get("updated_at") or (contact.updated_at.isoformat() if contact.updated_at else None),
+                    }
+                )
 
-                result = await session.execute(query)
-                contacts = result.scalars().all()
-
-                # Convert to export format
-                export_contacts = []
-                for contact in contacts:
-                    export_contacts.append(
-                        {
-                            "id": contact.id,
-                            "name": contact.name,
-                            "role": contact.role,
-                            "organization": contact.organization,
-                            "phone": contact.phone,
-                            "email": contact.email,
-                            "address": contact.address,
-                            "notes": contact.notes,
-                            "created_at": contact.created_at.isoformat() if contact.created_at else None,
-                            "updated_at": contact.updated_at.isoformat() if contact.updated_at else None,
-                        }
-                    )
-
-                return {
-                    "export_type": "contacts",
-                    "user_id": user_id,
-                    "exported_at": utc_now().isoformat(),
-                    "contacts": export_contacts,
-                    "total_count": len(export_contacts),
-                    "filters": filters,
-                }
+            return {
+                "export_type": "contacts",
+                "user_id": user_id,
+                "exported_at": utc_now().isoformat(),
+                "contacts": export_contacts,
+                "total_count": len(export_contacts),
+                "filters": filters,
+            }
 
         except Exception as e:
             logger.error(f"Contacts export failed: {e}")

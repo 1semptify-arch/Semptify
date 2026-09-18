@@ -123,6 +123,12 @@ class OverlayType(str, Enum):
     CALENDAR_EVENT = "calendar_event"
     """Tenant calendar event or deadline (manual or auto-synced)."""
 
+    CONTACT = "contact"
+    """Case-related contact — landlord, attorney, witness, inspector, agency."""
+
+    CONTACT_INTERACTION = "contact_interaction"
+    """Logged interaction with a contact (call, email, meeting, court appearance)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -177,6 +183,8 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.JOURNAL_ENTRY,
     OverlayType.RENT_LEDGER_ENTRY,
     OverlayType.CALENDAR_EVENT,
+    OverlayType.CONTACT,
+    OverlayType.CONTACT_INTERACTION,
 }
 
 # All overlay types (for validation)

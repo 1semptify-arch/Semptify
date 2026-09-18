@@ -1,3 +1,33 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: contacts → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T14:40:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 4)
+- `contacts` + `contact_interactions` moved off the server DB into the tenant's cloud vault — records persist as `CONTACT` / `CONTACT_INTERACTION` overlays anchored to `document_id="contacts:{user_id}"` at `VAULT_CONTACTS_FILE` (`Semptify5.0/Vault/contacts/contacts.json`). Interactions link to their contact via `payload.contact_id`.
+- New `app/modules/contacts/service.py` — contact CRUD + interaction log (stamps `interaction_count`/`last_contact_date` on the contact, matching legacy semantics), `list_contacts_for_user_id()`, `create_contact_for_user_id()`, `find_contact_by_name_type()` (for dedup during extraction import), and `migrate_legacy_contacts()` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call, imports both tables).
+- Rewired the whole contacts router (12 endpoints: list/create/get/update/delete, star, interactions, extraction-import, quick-add landlord/witness, for-forms) — zero `get_db` references remain.
+- Rewired 4 external consumers: `data_export_import` (also fixed latent `contact.address` AttributeError — not a model field; now reads `address_line1`/`address_line2` from payloads), `public_forms` Layer-2 autofill, `search` (4-field match on payloads), `document_flow_orchestrator` (writes with name+type dedup via `find_contact_by_name_type`).
+- Bug found+fixed by the new tests: `_to_iso` was stringifying every payload field — `is_active=False` became `"False"` (truthy → inactive contacts leaked through `active_only` filter). Now only datetimes are converted; bools/ints/lists pass through. Verified journal/rent/calendar services never had this pattern.
+
+### Verified
+- py_compile clean on all changed files; contacts tests 8/8 (new vault functional: round-trip, per-user isolation, filters/search, legacy-id resolution, interaction log + stamps, dedup helpers, safe migration no-op); module_health 245/245; guardrail engine all-PASS.
+
+### Next session
+- Phase 1 continues: `complaints`, then the remaining record tables per `handoffs/vault-persistence-migration.md`.
+- Not done: `contacts`/`contact_interactions` tables still exist for legacy reads (drop is a later Alembic phase); zero-persistence claim stays NEEDS-CONFIRMATION until all tenant tables migrate.
+
+---
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: calendar events → user cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T13:05:00+00:00
