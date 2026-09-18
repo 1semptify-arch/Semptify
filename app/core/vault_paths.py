@@ -84,6 +84,12 @@ VAULT_CALENDAR_FILE = normalize_cloud_path(f"{VAULT_CALENDAR}/calendar.json")
 VAULT_CONTACTS = normalize_cloud_path(f"{VAULT_ROOT}/contacts")
 VAULT_CONTACTS_FILE = normalize_cloud_path(f"{VAULT_CONTACTS}/contacts.json")
 
+# Per-user records anchor for tenant record overlays that don't warrant their
+# own folder yet (complaint wizard drafts/filings first; witness statements,
+# incidents, dispute records join this file in later migration slices).
+VAULT_RECORDS = normalize_cloud_path(f"{VAULT_ROOT}/records")
+VAULT_RECORDS_FILE = normalize_cloud_path(f"{VAULT_RECORDS}/records.json")
+
 # =============================================================================
 # Role-specific folders (direct children of Vault/)
 # =============================================================================

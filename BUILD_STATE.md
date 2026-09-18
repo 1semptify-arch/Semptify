@@ -1,3 +1,33 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: complaints → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T13:03:17+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 5)
+- `complaints` moved off the server DB into the tenant's cloud vault — drafts/filings persist as `COMPLAINT` overlays anchored to `document_id="complaints:{user_id}"` at `VAULT_RECORDS_FILE` (`Semptify5.0/Vault/records/records.json`, shared records file for this group).
+- `complaint_wizard.py` `*_db` methods replaced with `*_vault` equivalents — same `ComplaintDraft` response shapes, ownership via effective user id, payload `id` preserves `cmp_*` draft ids so existing links keep resolving.
+- `migrate_legacy_complaints()` — non-destructive, idempotent via `payload.legacy_id`, 25 rows/call, runs on first `get_user_drafts_vault`.
+- Rewired all 10 router endpoints (`db` dep → `build_context_for_user_id`) and both housing_accountability complaint counts (via `_count_complaints` helper — returns 0 for unresolvable contexts instead of breaking the dashboard).
+- Contract fix caught by tests: `get_unified_overlay_manager` takes `(storage_provider, user_id)` only — document_id/vault_path live on `CreateOverlayRequest`, not the factory (Known Failure #16 shape).
+
+### Verified
+- py_compile clean; complaint vault tests 6/6 (round-trip, isolation, sort order, attach+file, payload-id resolution, safe migration no-op); module_health test_complaints 1/1.
+
+### Next session
+- Phase 1 continues: `witness_statements`, `incidents`, `dispute_records`, `certified_mail` → same `records.json` (each its own overlay type), then `third_party_contacts`, `eviction_timeline_events`.
+- Not done: `complaints` table still exists for legacy reads; zero-persistence claim stays NEEDS-CONFIRMATION.
+
+---
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: contacts → user cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T14:40:00+00:00

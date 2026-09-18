@@ -129,6 +129,9 @@ class OverlayType(str, Enum):
     CONTACT_INTERACTION = "contact_interaction"
     """Logged interaction with a contact (call, email, meeting, court appearance)."""
 
+    COMPLAINT = "complaint"
+    """Formal complaint draft/filing record for a regulatory agency (complaint wizard)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -185,6 +188,7 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.CALENDAR_EVENT,
     OverlayType.CONTACT,
     OverlayType.CONTACT_INTERACTION,
+    OverlayType.COMPLAINT,
 }
 
 # All overlay types (for validation)

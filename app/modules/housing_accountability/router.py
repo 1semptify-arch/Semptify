@@ -876,10 +876,27 @@ async def build_press_release(request: PressBuilderRequest, current_user=Depends
 # =============================================================================
 
 
+async def _count_complaints(user_id: str) -> int:
+    """Count a user's complaint drafts/filings from their cloud vault.
+
+    Returns 0 when the user has no resolvable vault context (e.g. anonymous)
+    instead of breaking the dashboard.
+    """
+    try:
+        from app.core.user_context import build_context_for_user_id
+        from app.services.complaint_wizard import complaint_wizard
+
+        user = await build_context_for_user_id(user_id)
+        drafts = await complaint_wizard.get_user_drafts_vault(user)
+        return len(drafts)
+    except Exception:
+        return 0
+
+
 @accountability_router.get("/dashboard")
 async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """Unified dashboard summary using real database data."""
-    from app.models.models import Complaint, Document, Incident, TimelineEvent, VaultItem
+    from app.models.models import Document, Incident, TimelineEvent, VaultItem
 
     user_id = current_user.user_id if current_user else "anonymous"
 
@@ -894,9 +911,8 @@ async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession
 
     _upcoming, upcoming_count = await list_events_for_user_id(user_id, start=utc_now())
 
-    # Count complaints
-    complaint_result = await db.execute(select(func.count()).select_from(Complaint).where(Complaint.user_id == user_id))
-    complaint_count = complaint_result.scalar() or 0
+    # Count complaints (vault overlays)
+    complaint_count = await _count_complaints(user_id)
 
     # Count vault items (evidence)
     vault_result = await db.execute(select(func.count()).select_from(VaultItem).where(VaultItem.user_id == user_id))
@@ -944,7 +960,7 @@ async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession
 @accountability_router.get("/analyst")
 async def get_analyst(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """AI Case Analyst — rule-based risk assessment from database."""
-    from app.models.models import Complaint, Incident, TimelineEvent, VaultItem
+    from app.models.models import Incident, TimelineEvent, VaultItem
 
     user_id = current_user.user_id if current_user else "anonymous"
 
@@ -954,8 +970,7 @@ async def get_analyst(current_user=Depends(get_current_user), db: AsyncSession =
     )
     timeline_count = timeline_result.scalar() or 0
 
-    complaint_result = await db.execute(select(func.count()).select_from(Complaint).where(Complaint.user_id == user_id))
-    complaint_count = complaint_result.scalar() or 0
+    complaint_count = await _count_complaints(user_id)
 
     vault_result = await db.execute(select(func.count()).select_from(VaultItem).where(VaultItem.user_id == user_id))
     vault_count = vault_result.scalar() or 0

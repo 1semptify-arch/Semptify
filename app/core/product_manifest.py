@@ -771,7 +771,7 @@ _register(
     tags=("Complaint Wizard",),
     tier=ProductTier.EXTENDED,
     log_message="Complaint Filing Wizard loaded - Regulatory accountability tools active",
-    dev_notes="Canonical complaint-filing wizard. Legacy app/modules/complaint_wizard_module.py standalone (Mesh SDK, DISABLED in main.py) removed — shadowed by this router.",
+    dev_notes="Canonical complaint-filing wizard. Legacy app/modules/complaint_wizard_module.py standalone (Mesh SDK, DISABLED in main.py) removed — shadowed by this router. Drafts/filings vault-persisted as COMPLAINT overlays (legacy complaints rows migrate on first read).",
 )
 _register(
     "app.modules.housing_accountability.router",
