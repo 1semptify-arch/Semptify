@@ -13,7 +13,8 @@ Design:
 
 The service does NOT store any user PII. Callers supply the user's contact
 clues at runtime (for example, from an OAuth profile or the importing source);
-third-party allowlist entries are read from the ThirdPartyContact table.
+third-party allowlist entries are read from THIRD_PARTY_CONTACT overlays in
+the user's vault (legacy ``third_party_contacts`` rows migrate on first read).
 """
 
 from __future__ import annotations
@@ -22,10 +23,7 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-
 from app.core.module_contracts import FunctionGroupContract, register_function_group
-from app.models.models import ThirdPartyContact
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -207,7 +205,7 @@ class RedactionService:
 
 
 # =============================================================================
-# Allowlist loading from ThirdPartyContact table
+# Allowlist loading from third-party contact vault overlays
 # =============================================================================
 
 
@@ -223,28 +221,9 @@ async def build_allowlist_for_user(
     first; the query still falls back to all user contacts because imported
     communications often involve parties across cases.
     """
-    from app.core.database import get_db_session
+    from app.services.third_party_contact_store import list_active_for_user_id
 
-    close_session = db is None
-    session = db
-    try:
-        if session is None:
-            cm = get_db_session()
-            session = await cm.__aenter__()
-
-        stmt = select(ThirdPartyContact).where(
-            ThirdPartyContact.user_id == user_id,
-            ThirdPartyContact.is_active == True,  # noqa: E712
-        )
-        if case_record_id:
-            stmt = stmt.where(
-                (ThirdPartyContact.case_record_id == case_record_id) | (ThirdPartyContact.case_record_id.is_(None))
-            )
-        result = await session.execute(stmt)
-        contacts = result.scalars().all()
-    finally:
-        if close_session and session is not None:
-            await session.close()
+    contacts = await list_active_for_user_id(user_id, case_record_id=case_record_id)
 
     allowlist: set[str] = set()
     for contact in contacts:
@@ -355,7 +334,7 @@ register_function_group(
             "db?",
         ),
         outputs=("redacted_text",),
-        dependencies=("app.services.redaction_service", "app.models.models.ThirdPartyContact"),
+        dependencies=("app.services.redaction_service", "app.services.third_party_contact_store"),
         deterministic=True,
     )
 )

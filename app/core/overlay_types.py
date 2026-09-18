@@ -141,6 +141,9 @@ class OverlayType(str, Enum):
     INCIDENT = "incident"
     """Incident/case grouping record — organizes related evidence, timeline events, activities."""
 
+    THIRD_PARTY_CONTACT = "third_party_contact"
+    """Third-party contact extracted from communication imports (landlord, agency, attorney)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -201,6 +204,7 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.DISPUTE_RECORD,
     OverlayType.COMPARISON_ENTRY,
     OverlayType.INCIDENT,
+    OverlayType.THIRD_PARTY_CONTACT,
 }
 
 # All overlay types (for validation)

@@ -1,3 +1,33 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: third-party contacts → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T13:36:40+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 8a — third-party contacts)
+- `third_party_contacts` moved off the server DB into the tenant's cloud vault — records persist as `THIRD_PARTY_CONTACT` overlays anchored to `document_id="third_party:{user_id}"` at `VAULT_CONTACTS_FILE`.
+- New `app/services/third_party_contact_store.py` — shared store: `upsert_contact` (dedupe by email/phone among active contacts, enrich empty name on match — mirrors legacy upsert semantics), `list_active` / `list_active_for_user_id` (case-linked contacts ordered first, matching legacy allowlist ordering), `migrate_legacy_contacts` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call).
+- `intake_service.extract_and_upsert_contacts` now builds a `UserContext` via `build_context_for_user_id` and writes overlays — zero DB writes for third-party contacts (`db` param retained for caller compatibility).
+- `redaction_service.build_allowlist_for_user` now reads active contacts via `list_active_for_user_id` — no SQLAlchemy path remains; `db` param retained for caller compatibility. Contract dependency updated to the store.
+- `OverlayType.THIRD_PARTY_CONTACT` added to `RECORD_OVERLAYS`.
+
+### Verification (this slice)
+- `python -m py_compile` clean on all changed files; `tests/test_third_party_contacts_vault.py` — 6 passed (upsert dedupe by email/phone, per-user isolation, active filtering, idempotent bounded legacy migration via faked DB session, safe no-op without DB).
+- `tests/module_health/test_intake.py`, `test_guided_intake.py`, `test_contacts.py`, `app/modules/contacts/tests/test_contacts_vault.py` — 11 passed.
+- Full `tests/module_health` — 245 passed.
+- Guardrail engine — all checks PASS (run above).
+
+### Remaining (Phase 1 in progress)
+- `eviction_timeline_events` (pointer rows; PII content already overlay-backed), `timeline_events` (intake imports + timeline router), plus Phase 2/3 tables — still server-persisted. Legacy tables retained until the Alembic drop phase. See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: incidents → user cloud vault (devin)
 
 ### What shipped (vault-persistence-migration, Phase 1 slice 7 — the big one)
