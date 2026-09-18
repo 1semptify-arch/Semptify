@@ -11,11 +11,6 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import select
-
-from app.core.database import get_db_session
-from app.models.models import Incident
-
 logger = logging.getLogger(__name__)
 
 
@@ -43,13 +38,9 @@ async def get_cases_for_user(
     Returns:
         A list of `UserCase` records ordered by `updated_at` descending.
     """
-    async with get_db_session() as session:
-        result = await session.execute(
-            select(Incident)
-            .where(Incident.user_id == user_id)
-            .order_by(Incident.updated_at.desc())
-        )
-        incidents = list(result.scalars().all())
+    from app.services.incident_store import list_incidents_for_user_id
+
+    incidents = await list_incidents_for_user_id(user_id)
 
     cases: list[UserCase] = []
     for inc in incidents:
@@ -73,7 +64,7 @@ async def get_cases_for_user(
     return cases
 
 
-def _incident_matches_subject(inc: Incident, subject: str) -> bool:
+def _incident_matches_subject(inc, subject: str) -> bool:
     if inc.incident_type == subject:
         return True
     meta = inc.incident_metadata or {}

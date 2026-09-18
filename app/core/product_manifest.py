@@ -758,7 +758,7 @@ _register(
     tags=("Case Builder",),
     tier=ProductTier.EXTENDED,
     upl_risk_tier=UPLRiskTier.MEDIUM,
-    dev_notes="Canonical case-builder module. Legacy app/modules/case_builder.py standalone file removed — it was shadowed by this package.",
+    dev_notes="Canonical case-builder module. Legacy app/modules/case_builder.py standalone file removed — it was shadowed by this package. Case/incident records vault-persisted as INCIDENT overlays (integer incident_id preserved in payload; legacy rows migrate on first read).",
 )
 _register("app.modules.progress.router", tags=("Progress Tracker",), tier=ProductTier.EXTENDED)
 _register("app.modules.actions.router", tags=("Smart Actions",), tier=ProductTier.EXTENDED)

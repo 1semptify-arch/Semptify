@@ -138,6 +138,9 @@ class OverlayType(str, Enum):
     COMPARISON_ENTRY = "comparison_entry"
     """Fee/term comparison entry attached to a dispute record (amounts in cents)."""
 
+    INCIDENT = "incident"
+    """Incident/case grouping record — organizes related evidence, timeline events, activities."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -197,6 +200,7 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.COMPLAINT,
     OverlayType.DISPUTE_RECORD,
     OverlayType.COMPARISON_ENTRY,
+    OverlayType.INCIDENT,
 }
 
 # All overlay types (for validation)

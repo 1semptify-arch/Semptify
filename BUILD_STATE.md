@@ -1,4 +1,38 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: incidents → user cloud vault (devin)
+
+### What shipped (vault-persistence-migration, Phase 1 slice 7 — the big one)
+- `incidents` moved off the server DB into the tenant's cloud vault — records persist as `INCIDENT` overlays anchored to `document_id="incidents:{user_id}"` at `VAULT_RECORDS_FILE`. **Integer `incident_id` preserved** in payload (allocated max+1 per user) — URL paths (`int(case_id)`) and `VaultItem.related_incident_id` FK links keep working.
+- New `app/services/incident_store.py` — shared store (used by vault router, case_builder, packet_builder, housing_accountability): create/list/get/update/delete, `get_incident_overlay` for pointer-field writers, `*_for_user_id` variants via `build_context_for_user_id`, `count_incidents_for_user_id`, `migrate_legacy_incidents` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call, preserves original int PKs).
+- Rewired 5 consumers:
+  - `vault/router.py` — all 4 incident endpoints (VaultItem item-counts stay DB — Phase 2 index table)
+  - `case_builder/router.py` — `load_case`/`save_case`/`verify_case_ownership`/`list_cases`/both creates/`delete_case`; CASE_DATA overlay pointer now lives in the incident overlay payload instead of a DB column
+  - `case_builder/case_builder.py` — `get_cases_for_user` → vault list
+  - `packet_builder/service.py` — `_load_case` → `get_incident_for_user_id`
+  - `housing_accountability` — both incident counts → `count_incidents_for_user_id`
+- Rewrote `tests/test_case_builder_overlay.py` — was bound to ORM rows; now exercises the vault path end-to-end (pointer-only payload, PII exclusion, int id allocation, per-user isolation). Note: `app.modules.case_builder.router` resolves to the APIRouter object (package re-export shadows the module) — tests patch via `importlib.import_module`.
+
+### Verified
+- py_compile clean on all 8 changed files; case-builder suites 76 passed/9 skipped; module_health pending full run; guardrail engine all-PASS.
+
+### Next session
+- Phase 1 continues: `third_party_contacts`, `eviction_timeline_events`, then derived-data + external-mappings groups per `handoffs/vault-persistence-migration.md`.
+- Not done: `incidents` table still exists for legacy reads; `witness_statements`/`certified_mail` confirmed dead (drop w/ Alembic); zero-persistence claim stays NEEDS-CONFIRMATION.
+
+---
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: disputes → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T13:23:04+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### What shipped (vault-persistence-migration, Phase 1 slice 6)
 - `dispute_records` + `comparison_entries` moved off the server DB into the tenant's cloud vault — records persist as `DISPUTE_RECORD` / `COMPARISON_ENTRY` overlays anchored to `document_id="disputes:{user_id}"` at `VAULT_RECORDS_FILE` (shared records file). Comparisons link to their parent dispute via `payload.dispute_record_id` — `dis_*`/`cmp_*` ids preserved.

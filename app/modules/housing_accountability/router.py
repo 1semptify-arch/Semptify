@@ -896,7 +896,7 @@ async def _count_complaints(user_id: str) -> int:
 @accountability_router.get("/dashboard")
 async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """Unified dashboard summary using real database data."""
-    from app.models.models import Document, Incident, TimelineEvent, VaultItem
+    from app.models.models import Document, TimelineEvent, VaultItem
 
     user_id = current_user.user_id if current_user else "anonymous"
 
@@ -918,9 +918,10 @@ async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession
     vault_result = await db.execute(select(func.count()).select_from(VaultItem).where(VaultItem.user_id == user_id))
     vault_count = vault_result.scalar() or 0
 
-    # Count incidents
-    incident_result = await db.execute(select(func.count()).select_from(Incident).where(Incident.user_id == user_id))
-    incident_count = incident_result.scalar() or 0
+    # Count incidents (vault overlays)
+    from app.services.incident_store import count_incidents_for_user_id
+
+    incident_count = await count_incidents_for_user_id(user_id)
 
     # Count documents
     doc_result = await db.execute(select(func.count()).select_from(Document).where(Document.user_id == user_id))
@@ -960,7 +961,7 @@ async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession
 @accountability_router.get("/analyst")
 async def get_analyst(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """AI Case Analyst — rule-based risk assessment from database."""
-    from app.models.models import Incident, TimelineEvent, VaultItem
+    from app.models.models import TimelineEvent, VaultItem
 
     user_id = current_user.user_id if current_user else "anonymous"
 
@@ -975,8 +976,9 @@ async def get_analyst(current_user=Depends(get_current_user), db: AsyncSession =
     vault_result = await db.execute(select(func.count()).select_from(VaultItem).where(VaultItem.user_id == user_id))
     vault_count = vault_result.scalar() or 0
 
-    incident_result = await db.execute(select(func.count()).select_from(Incident).where(Incident.user_id == user_id))
-    incident_count = incident_result.scalar() or 0
+    from app.services.incident_store import count_incidents_for_user_id
+
+    incident_count = await count_incidents_for_user_id(user_id)
 
     # Risk scoring
     risk_score = 0
