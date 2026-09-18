@@ -7,6 +7,7 @@
 
 ### Verification
 - `GET /components/footer` → 200, notice present; `GET /` → notice in server-rendered footer; `/public/welcome.html` → JS-injected footer shows the notice verbatim; desktop + 375px screenshots clean; no layout issues.
+- Ship: direct push to main blocked by branch protection → PR `ai-disclosure-footer`. Deploys on merge.
 
 ## Session — 2026-09-18 — Vault persistence Phase 1: MNDES exhibit packages → user cloud vault (devin)
 
