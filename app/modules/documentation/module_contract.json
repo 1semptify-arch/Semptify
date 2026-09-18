@@ -1,0 +1,57 @@
+{
+  "module_name": "Documentation",
+  "layout": "app/modules/documentation/ — 13 registered function groups (documentation_openapi, documentation_postman, documentation_swagger, documentation_redoc, documentation_portal, documentation_reference, documentation_module_reference, documentation_examples, documentation_example, documentation_sdks, documentation_support, documentation_changelog, documentation_statistics). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "category",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "example_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "language",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "module_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "category",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "example_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "language",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "module_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (changelog, collection, example, examples, html, reference, resources, sdks…) via the module's routes/services.",
+  "output_where": "app.modules.documentation function outputs",
+  "output_why": "Serves the Documentation functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL OpenAPI 3.0 specification. Returns the full API spec as JSON. Admin-only. CANONICAL Postman collection. Returns the API as a Postman collection for import into Postman. Admin-only. CANONICAL Swagger UI. Returns an HTML page with interactive API documentation. Admin-only. CANONICAL ReDoc UI. Returns an HTML page with ReDoc interactive API documentation. Admin-only. CANONICAL developer portal. Returns an HTML page with links to all documentation resources. Admin-only. CANONICAL API reference documentation. Returns a structured reference of all endpoints, schemas, and examples. CANONICAL API reference for a specific module. Returns the endpoints, schemas, and examples for the given module. CANONICAL code examples. Returns example code for using the API, filterable by language and category. CANONICAL single code example by ID. Returns the full example with code and explanation. CANONICAL list of available SDKs and tools. Returns SDK names, languages, download links, and documentation links. CANONICAL support resources. Returns links to docs, community, and contact info for support. CANONICAL API changelog and version history. Returns all changes organized by version. CANONICAL documentation statistics and usage metrics. Returns page views, downloads, and SDK usage. Admin-only.",
+  "process_context": "Derived record. Invoked via the documentation module's registered routes and dependencies.",
+  "narrative_events": []
+}

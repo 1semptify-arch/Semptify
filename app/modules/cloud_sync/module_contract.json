@@ -1,0 +1,15 @@
+{
+  "module_name": "Cloud Sync",
+  "layout": "app/modules/cloud_sync/ — 19 registered function groups (cloud_sync_sync_status, cloud_sync_full_sync, cloud_sync_get_profile, cloud_sync_update_profile, cloud_sync_get_case, cloud_sync_update_case, cloud_sync_timeline, cloud_sync_add_timeline_event, cloud_sync_calendar, cloud_sync_add_calendar_event, cloud_sync_export_all_data, cloud_sync_import_all_data, cloud_sync_documents, cloud_sync_vault_index, cloud_sync_get_vault_document, cloud_sync_vault_document_content, cloud_sync_patch_vault_document, cloud_sync_upload_document_to_cloud, cloud_sync_check_storage_connection). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.cloud_sync function outputs",
+  "output_why": "Serves the Cloud Sync functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /status POST /full GET /profile PUT /profile GET /case PUT /case GET /timeline POST /timeline GET /calendar POST /calendar GET /export POST /import GET /documents GET /vault/index GET /vault/document/{document_id} GET /vault/document/{document_id}/content PATCH /vault/document/{document_id} POST /documents/upload GET /check",
+  "process_context": "Derived record. Invoked via the cloud_sync module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,237 @@
+{
+  "module_name": "Legal Trails",
+  "layout": "app/modules/legal_trails/ — 22 registered function groups (legal_trails_overview, legal_trails_violation_add, legal_trails_violations_list, legal_trails_violation_get, legal_trails_eviction_threat_add, legal_trails_eviction_threats_list, legal_trails_late_fee_add, legal_trails_late_fees_list, legal_trails_late_fee_calculate, legal_trails_broker_oversight_add, legal_trails_broker_oversight_list, legal_trails_broker_oversight_get, legal_trails_broker_link_violation, legal_trails_claim_create, legal_trails_claims_list, legal_trails_claim_get, legal_trails_claim_status_update, legal_trails_filing_windows, legal_trails_generate_retaliation_complaint, legal_trails_generate_license_complaint, legal_trails_generate_hud_complaint, legal_trails_mn_attorneys). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "a",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "broker",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "broker_name",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "claim",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "claim_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "days_late",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "details",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "fee",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "license_number",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "perpetrator",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "property_address",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "rent_amount",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "s",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "status",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "t",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "tenant_name",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "threat",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "u",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "violation",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "violation_date",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "violation_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "violation_type",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "a",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "broker",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "broker_name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "claim",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "claim_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "days_late",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "details",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "fee",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "license_number",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "perpetrator",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "property_address",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "rent_amount",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "s",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "status",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "t",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "tenant_name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "threat",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "u",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "violation",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "violation_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "violation_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "violation_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (attorneys, broker, brokers, calculation, claim, claim_id, claims, complaint…) via the module's routes/services.",
+  "output_where": "app.modules.legal_trails function outputs",
+  "output_why": "Serves the Legal Trails functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL overview of all legal trails. Returns summary counts for each category. CANONICAL log a new violation. Creates a violation record with type, perpetrator, and date. CANONICAL list violations with optional filters. Returns violations sorted by date. CANONICAL get a specific violation by ID. Returns full violation details. CANONICAL log an eviction threat. Creates a record of the threat with date and details. CANONICAL list all eviction threats. Returns threats sorted by date. CANONICAL log a late fee violation. Records the overcharge amount and details. CANONICAL list all late fee violations. Returns violations with total overcharged amount. CANONICAL calculate the legal maximum late fee for a given rent amount and days late. CANONICAL add a broker to track for oversight accountability. CANONICAL list all brokers being tracked for oversight. CANONICAL get broker oversight details by broker name. CANONICAL link a violation to a broker's oversight record. CANONICAL create a formal legal claim. Returns the new claim with ID. CANONICAL list all legal claims with optional status filter. CANONICAL get a specific legal claim by ID. CANONICAL update the status of a legal claim. CANONICAL calculate filing windows for a violation date. Returns deadlines for each claim type. CANONICAL generate a retaliation complaint from tenant and property info. CANONICAL generate a license complaint against a broker. CANONICAL generate a HUD complaint from tenant and property info. CANONICAL list of Minnesota tenant rights attorneys.",
+  "process_context": "Derived record. Invoked via the legal_trails module's registered routes and dependencies.",
+  "narrative_events": []
+}

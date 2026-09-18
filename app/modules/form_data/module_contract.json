@@ -1,0 +1,15 @@
+{
+  "module_name": "Form Data",
+  "layout": "app/modules/form_data/ — 15 registered function groups (form_data_form_data, form_data_extracted_data, form_data_case_summary, form_data_case_info, form_data_answer_form_data, form_data_motion_form_data, form_data_counterclaim_form_data, form_data_add_defense, form_data_remove_defense, form_data_selected_defenses, form_data_add_counterclaim, form_data_counterclaims, form_data_case_documents, form_data_case_timeline, form_data_refresh_form_data). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.form_data function outputs",
+  "output_why": "Serves the Form Data functions declared in its FunctionGroupContracts.",
+  "process_description": "GET / GET /extracted GET /summary PUT /case GET /forms/answer GET /forms/motion/{motion_type} GET /forms/counterclaim POST /defenses/add POST /defenses/remove GET /defenses POST /counterclaims/add GET /counterclaims GET /documents GET /timeline POST /refresh",
+  "process_context": "Derived record. Invoked via the form_data module's registered routes and dependencies.",
+  "narrative_events": []
+}

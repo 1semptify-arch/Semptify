@@ -1,0 +1,15 @@
+{
+  "module_name": "Data Freshness",
+  "layout": "app/modules/data_freshness/ — 10 registered function groups (data_freshness_freshness_status, data_freshness_freshness_report, data_freshness_refresh_data, data_freshness_refresh_stale_data, data_freshness_freshness_alerts, data_freshness_acknowledge_alert, data_freshness_freshness_rules, data_freshness_daily_refresh_cron, data_freshness_hourly_deadlines_cron, data_freshness_health_check). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.data_freshness function outputs",
+  "output_why": "Serves the Data Freshness functions declared in its FunctionGroupContracts.",
+  "process_description": "Get overall freshness status of all data types. Get comprehensive freshness report. Manually trigger refresh for specific data type. Refresh all stale data up to specified priority. Get freshness alerts. Acknowledge a freshness alert. Get all freshness rules. Daily cron job for data freshness (Render compatible). Hourly cron job for deadline updates (Render compatible). Health check for data freshness system.",
+  "process_context": "Derived record. Invoked via the data_freshness module's registered routes and dependencies.",
+  "narrative_events": []
+}

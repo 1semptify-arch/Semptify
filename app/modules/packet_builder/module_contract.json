@@ -1,0 +1,127 @@
+{
+  "module_name": "Packet Builder",
+  "layout": "app/modules/packet_builder/ — 3 registered function groups (packet_builder_build, packet_builder_get, packet_builder_download). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "case_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "folder_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "format",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "include_footnotes",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "include_highlights",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "include_notes",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "mode",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "name",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "packet_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "vault_ids",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "case_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "folder_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "format",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "include_footnotes",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "include_highlights",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "include_notes",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "mode",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "packet_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "vault_ids",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (content, created_at, documents, download_url, filename, item_count, media_type, mode…) via the module's routes/services.",
+  "output_where": "app.modules.packet_builder function outputs",
+  "output_why": "Serves the Packet Builder functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL build a curated document packet. Accepts vault_ids, case_id, or folder_id. Returns packet_id, item_count, and download_url. CANONICAL retrieve packet metadata by packet_id. CANONICAL download packet as zip or pdf.",
+  "process_context": "Derived record. Invoked via the packet_builder module's registered routes and dependencies.",
+  "narrative_events": []
+}

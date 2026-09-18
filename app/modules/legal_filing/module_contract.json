@@ -1,0 +1,15 @@
+{
+  "module_name": "Legal Filing",
+  "layout": "app/modules/legal_filing/ — 5 registered function groups (legal_filing_cases, legal_filing_get_case, legal_filing_create_case, legal_filing_add_evidence, legal_filing_evidence). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.legal_filing function outputs",
+  "output_why": "Serves the Legal Filing functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /cases GET /cases/{case_id} POST /cases POST /cases/{case_id}/evidence GET /cases/{case_id}/evidence",
+  "process_context": "Derived record. Invoked via the legal_filing module's registered routes and dependencies.",
+  "narrative_events": []
+}

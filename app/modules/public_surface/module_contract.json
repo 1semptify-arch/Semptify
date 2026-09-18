@@ -1,0 +1,27 @@
+{
+  "module_name": "Public Surface",
+  "layout": "app/modules/public_surface/ — 1 registered function groups (landing_and_i18n). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "locale",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "locale",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (facts, locale) via the module's routes/services.",
+  "output_where": "/api/i18n/locale, /api/i18n/set-locale, /api/landing/facts (prefixes: /api/i18n, /api/landing)",
+  "output_why": "Serves the Public Surface functions declared in its FunctionGroupContracts.",
+  "process_description": "Public, stateless endpoints for the landing page and locale. GET /api/landing/facts returns verified, non-expired public facts. GET /api/i18n/locale and POST /api/i18n/set-locale expose/change the user's locale preference. No storage session required.",
+  "process_context": "Derived record. Invoked via the public_surface module's registered routes and dependencies.",
+  "narrative_events": []
+}

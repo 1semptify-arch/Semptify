@@ -1,0 +1,15 @@
+{
+  "module_name": "Auto Mode",
+  "layout": "app/modules/auto_mode/ — 7 registered function groups (auto_mode_auto_mode_status, auto_mode_toggle_auto_mode, auto_mode_auto_mode_config, auto_mode_available_features, auto_mode_analysis_summary, auto_mode_run_analysis_on_document, auto_mode_run_batch_analysis). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.auto_mode function outputs",
+  "output_why": "Serves the Auto Mode functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /status POST /toggle POST /config GET /features GET /analysis/{doc_id} POST /run-analysis/{doc_id} POST /batch-analysis",
+  "process_context": "Derived record. Invoked via the auto_mode module's registered routes and dependencies.",
+  "narrative_events": []
+}

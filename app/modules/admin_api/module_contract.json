@@ -1,0 +1,27 @@
+{
+  "module_name": "Admin Api",
+  "layout": "app/modules/admin_api/ — 1 registered function groups (admin_operations). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "level",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "level",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "/admin/api/logs/level, /admin/api/verify (prefixes: /admin/api)",
+  "output_why": "Serves the Admin Api functions declared in its FunctionGroupContracts.",
+  "process_description": "Elevated admin maintenance endpoints under /admin/api. PUT /admin/api/logs/level sets the runtime log level. POST /admin/api/verify runs registry sync and verification. Both require a valid admin elevation cookie.",
+  "process_context": "Derived record. Invoked via the admin_api module's registered routes and dependencies.",
+  "narrative_events": []
+}

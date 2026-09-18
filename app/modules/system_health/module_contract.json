@@ -1,0 +1,15 @@
+{
+  "module_name": "System Health",
+  "layout": "app/modules/system_health/ — 3 registered function groups (system_health_status, system_health_registry, system_health_verify). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (registry_summary, status, verify_result) via the module's routes/services.",
+  "output_where": "/api/admin/system/health, /api/admin/system/registry, /api/admin/system/verify (prefixes: /api/admin/system)",
+  "output_why": "Serves the System Health functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL system health summary for the admin hub tile. CANONICAL module registry summary (module counts and status). CANONICAL trigger a system verification pass.",
+  "process_context": "Derived record. Invoked via the system_health module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,15 @@
+{
+  "module_name": "Tactics",
+  "layout": "app/modules/tactics/ — 7 registered function groups (tactics_recommendations, tactics_analyze_case, tactics_evidence_checklist, tactics_pre_hearing_timeline, tactics_check_retaliation, tactics_check_habitability, tactics_check_service_timeline). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.tactics function outputs",
+  "output_why": "Serves the Tactics functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /recommendations POST /analyze GET /evidence-checklist GET /pre-hearing-timeline POST /check-retaliation POST /check-habitability GET /service-check",
+  "process_context": "Derived record. Invoked via the tactics module's registered routes and dependencies.",
+  "narrative_events": []
+}

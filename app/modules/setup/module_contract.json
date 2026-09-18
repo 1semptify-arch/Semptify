@@ -1,0 +1,15 @@
+{
+  "module_name": "Setup",
+  "layout": "app/modules/setup/ — 15 registered function groups (setup_check_setup_needed, setup_skip_setup, setup_reset_setup, setup_setup_status, setup_save_profile, setup_profile, setup_save_case_info, setup_case_info, setup_configure_storage, setup_storage_config, setup_upload_document, setup_uploaded_documents, setup_process_all_documents, setup_complete_setup, setup_setup_summary). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.setup function outputs",
+  "output_why": "Serves the Setup functions declared in its FunctionGroupContracts.",
+  "process_description": "Public endpoint - no auth required. Skip setup wizard (for development/demo mode). POST /reset GET /status POST /profile GET /profile POST /case GET /case POST /storage GET /storage POST /documents/upload GET /documents POST /documents/process POST /complete GET /summary",
+  "process_context": "Derived record. Invoked via the setup module's registered routes and dependencies.",
+  "narrative_events": []
+}

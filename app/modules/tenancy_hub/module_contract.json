@@ -1,0 +1,237 @@
+{
+  "module_name": "Tenancy Hub",
+  "layout": "app/modules/tenancy_hub/ — 26 registered function groups (tenancy_hub_case_create, tenancy_hub_cases_list, tenancy_hub_case_get, tenancy_hub_case_summary, tenancy_hub_party_add, tenancy_hub_parties_list, tenancy_hub_property_set, tenancy_hub_property_get, tenancy_hub_lease_set, tenancy_hub_lease_get, tenancy_hub_payment_add, tenancy_hub_payments_list, tenancy_hub_document_add, tenancy_hub_documents_list, tenancy_hub_event_add, tenancy_hub_timeline_get, tenancy_hub_deadlines_get, tenancy_hub_issue_add, tenancy_hub_issues_list, tenancy_hub_legal_case_add, tenancy_hub_legal_cases_list, tenancy_hub_case_search, tenancy_hub_cross_reference, tenancy_hub_context_pack, tenancy_hub_enums, tenancy_hub_context_types). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "case_data",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "case_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "category",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "context_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "document",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "end_date",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "entity_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "entity_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "event",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "include_completed",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "issue",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "lease",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "legal_case",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "party",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "payment",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "payment_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "property",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "query",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "role",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "start_date",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "status",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "case_data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "category",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "context_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "end_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "entity_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "entity_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "event",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "include_completed",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "issue",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "lease",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "legal_case",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "party",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "payment",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "payment_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "property",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "query",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "role",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "start_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "status",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (case, case_id, cases, context_types, deadlines, document_id, documents, enums…) via the module's routes/services.",
+  "output_where": "app.modules.tenancy_hub function outputs",
+  "output_why": "Serves the Tenancy Hub functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL create a new tenancy case. Returns the new case with ID. CANONICAL list all tenancy cases for a user. Returns cases sorted by date. CANONICAL get a tenancy case by ID. Returns full case details. CANONICAL get a summary of a tenancy case. Returns a condensed view with key info. CANONICAL add a party to a tenancy case. Party can be landlord, tenant, witness, etc. CANONICAL list all parties in a tenancy case. Supports filtering by role. CANONICAL set the property for a tenancy case. Includes address, unit, and property details. CANONICAL get the property for a tenancy case. CANONICAL set the lease terms for a tenancy case. Includes rent, deposit, term, etc. CANONICAL get the lease terms for a tenancy case. CANONICAL add a payment record to a tenancy case. Includes amount, date, and type. CANONICAL list payments in a tenancy case. Supports filtering by payment type. CANONICAL add a document to a tenancy case. Links an existing vault document to the case. CANONICAL list documents in a tenancy case. Supports filtering by category. CANONICAL add an event to a tenancy case timeline. CANONICAL get the timeline for a tenancy case. Supports date range filtering. CANONICAL get deadlines for a tenancy case. Supports including completed deadlines. CANONICAL add an issue to a tenancy case. Issues track problems and their resolution. CANONICAL list issues in a tenancy case. Supports filtering by status. CANONICAL add a legal case to a tenancy case. Links a court case to the tenancy case. CANONICAL list all legal cases in a tenancy case. Supports filtering by status. CANONICAL search across all entities in a tenancy case. Returns matching parties, documents, events, etc. CANONICAL get all entities that reference the given entity in a tenancy case. CANONICAL get a context-specific pack of information for a tenancy case. Used for exports and summaries. CANONICAL list of all available enum values for the tenancy hub (party roles, issue statuses, etc.). CANONICAL list of available context pack types for the tenancy hub.",
+  "process_context": "Derived record. Invoked via the tenancy_hub module's registered routes and dependencies.",
+  "narrative_events": []
+}

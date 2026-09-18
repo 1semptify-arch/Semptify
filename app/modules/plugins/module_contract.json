@@ -1,0 +1,15 @@
+{
+  "module_name": "Plugins",
+  "layout": "app/modules/plugins/ — 7 registered function groups (plugins_plugins, plugins_plugin, plugins_load_plugin, plugins_unload_plugin, plugins_execute_plugin_action, plugins_browse_marketplace, plugins_plugin_system_health). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.plugins function outputs",
+  "output_why": "Serves the Plugins functions declared in its FunctionGroupContracts.",
+  "process_description": "GET / GET /{plugin_name} POST /{plugin_name}/load POST /{plugin_name}/unload POST /{plugin_name}/action/{action_name} GET /marketplace/browse Get plugin system health status.",
+  "process_context": "Derived record. Invoked via the plugins module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,15 @@
+{
+  "module_name": "Fems",
+  "layout": "app/modules/fems/ — 10 registered function groups (fems_health, fems_stats, fems_upload_file, fems_search, fems_documents, fems_document, fems_phones, fems_quarantine, fems_cases, fems_case). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.fems function outputs",
+  "output_why": "Serves the Fems functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /health GET /stats POST /upload GET /search GET /documents GET /documents/{doc_id} GET /phones GET /quarantine GET /cases POST /cases",
+  "process_context": "Derived record. Invoked via the fems module's registered routes and dependencies.",
+  "narrative_events": []
+}

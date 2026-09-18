@@ -1,0 +1,15 @@
+{
+  "module_name": "Funding Mgmt",
+  "layout": "app/modules/funding_mgmt/ — 2 registered function groups (funding_mgmt_funding_dashboard, funding_mgmt_funding_prospectus). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.funding_mgmt function outputs",
+  "output_why": "Serves the Funding Mgmt functions declared in its FunctionGroupContracts.",
+  "process_description": "Main funding management dashboard. Display the ID System Funding Prospectus.",
+  "process_context": "Derived record. Invoked via the funding_mgmt module's registered routes and dependencies.",
+  "narrative_events": []
+}

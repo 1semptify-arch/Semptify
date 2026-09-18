@@ -1,0 +1,117 @@
+{
+  "module_name": "Legal Analysis",
+  "layout": "app/modules/legal_analysis/ — 14 registered function groups (legal_analysis_classify_evidence, legal_analysis_classify_evidence_batch, legal_analysis_check_consistency, legal_analysis_corroboration, legal_analysis_corroboration_multi, legal_analysis_timeline, legal_analysis_assess_merit, legal_analysis_assess_merit_from_case, legal_analysis_hearsay, legal_analysis_binding_status, legal_analysis_quick_check, legal_analysis_evidence_types, legal_analysis_legal_statuses, legal_analysis_mn_eviction_requirements). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "case_data",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "case_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "claim",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "claims",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "document",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "documents",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "events",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "evidence_items",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "jurisdiction",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "perspective",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "case_data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "claim",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "claims",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "documents",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "events",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "evidence_items",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "jurisdiction",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "perspective",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (assessment, binding_statuses, classifications, compliance_issues, confidence, conflicts, corroboration_score, evidence_type…) via the module's routes/services.",
+  "output_where": "app.modules.legal_analysis function outputs",
+  "output_why": "Serves the Legal Analysis functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL classify a document for legal purposes. Returns evidence type and legal status. CANONICAL classify multiple documents at once. Returns evidence types and legal statuses for each. CANONICAL check consistency across multiple documents and events. Returns inconsistencies and conflicts. CANONICAL analyze how well evidence supports a specific claim. Returns corroboration score and supporting evidence. CANONICAL analyze how well evidence supports multiple claims. Returns corroboration scores for each claim. CANONICAL analyze timeline for legal compliance. Returns timeline gaps, conflicts, and compliance issues. CANONICAL comprehensive assessment of legal merit. Returns merit score, strengths, and weaknesses. CANONICAL assess legal merit from an existing case. Returns merit score from the case's evidence and timeline. CANONICAL analyze documents for hearsay content. Returns hearsay flags and explanations. CANONICAL analyze which documents are legally binding. Returns binding status for each document. CANONICAL quick legal health check for a case. Returns a summary of legal strengths and risks. CANONICAL list of all evidence type classifications. Returns evidence types and descriptions. CANONICAL list of all document legal status classifications. Returns statuses and descriptions. CANONICAL Minnesota eviction notice requirements. Returns notice periods and statutory requirements.",
+  "process_context": "Derived record. Invoked via the legal_analysis module's registered routes and dependencies.",
+  "narrative_events": []
+}

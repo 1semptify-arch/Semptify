@@ -1,0 +1,107 @@
+{
+  "module_name": "Pdf Tools",
+  "layout": "app/modules/pdf_tools/ — 14 registered function groups (pdf_tools_test, pdf_tools_upload, pdf_tools_info, pdf_tools_page_image, pdf_tools_page_base64, pdf_tools_page_text, pdf_tools_all_text, pdf_tools_extract_pages, pdf_tools_extract_pages_base64, pdf_tools_delete, pdf_tools_thumbnails, pdf_tools_split, pdf_tools_merge, pdf_tools_rotate). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "file",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "files",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "max_width",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "page_num",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "pages",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "pages_per_file",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "pdf_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "rotation",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "zoom",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "file",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "files",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "max_width",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "page_num",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "pages",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "pages_per_file",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "pdf_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "rotation",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "zoom",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (base64, filename, image, info, merged_pdf, page_count, pdf, pdf_id…) via the module's routes/services.",
+  "output_where": "app.modules.pdf_tools function outputs",
+  "output_why": "Serves the Pdf Tools functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL test endpoint. Returns pymupdf version to verify PDF tools are available. CANONICAL upload a PDF for processing. Returns a pdf_id for use with other endpoints. CANONICAL get info about an uploaded PDF. Returns page count, metadata, and file size. CANONICAL get a page as a PNG image. Returns the rendered page at the specified zoom level. CANONICAL get a page as base64-encoded PNG. Returns the rendered page for web display. CANONICAL extract text from a specific page. Returns the text content of the page. CANONICAL extract text from all pages. Returns the full text content of the PDF. CANONICAL extract specific pages as a new PDF. Returns the extracted pages as a PDF file. CANONICAL extract specific pages as base64-encoded PDF. Returns the extracted pages for web display. CANONICAL delete an uploaded PDF from cache. Removes the PDF and all associated data. CANONICAL get thumbnails of all pages. Returns thumbnail images for quick navigation. CANONICAL split a PDF into multiple files. Returns split PDFs with the specified pages per file. CANONICAL merge multiple PDFs into one. Returns the merged PDF file. CANONICAL rotate specific pages in a PDF. Returns the modified PDF with rotated pages.",
+  "process_context": "Derived record. Invoked via the pdf_tools module's registered routes and dependencies.",
+  "narrative_events": []
+}

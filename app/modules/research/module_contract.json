@@ -1,0 +1,15 @@
+{
+  "module_name": "Research",
+  "layout": "app/modules/research/ — 18 registered function groups (research_health_check, research_property, research_property_profile, research_property_summary, research_property_fraud_flags, research_download_evidence_zip, research_checkpoint, research_assessor_data_query, research_create_assessor_data, research_get_assessor_data, research_recorder_data, research_ucc_filings, research_dispatch_calls, research_news_mentions, research_sos_entity, research_bankruptcy_cases, research_insurance_info, research_data_sources). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.research function outputs",
+  "output_why": "Serves the Research functions declared in its FunctionGroupContracts.",
+  "process_description": "Health check for research module POST /property/{property_id} GET /property/{property_id} GET /property/{property_id}/summary GET /property/{property_id}/fraud-flags GET /property/{property_id}/download GET /checkpoint/{checkpoint_id} GET /assessor POST /assessor GET /assessor/{property_id} GET /recorder/{property_id} GET /ucc GET /dispatch GET /news GET /sos GET /bankruptcy GET /insurance GET /sources",
+  "process_context": "Derived record. Invoked via the research module's registered routes and dependencies.",
+  "narrative_events": []
+}

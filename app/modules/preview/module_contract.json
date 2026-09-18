@@ -1,0 +1,67 @@
+{
+  "module_name": "Preview",
+  "layout": "app/modules/preview/ — 9 registered function groups (preview_generate, preview_serve, preview_text, preview_info, preview_cache_clear, preview_statistics, preview_batch_generate, preview_supported_formats, preview_cache_clear_all). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "cache_key",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "document_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "document_ids",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "preview_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "cache_key",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document_ids",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "preview_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (cache_key, cache_keys, cleared, content, content_type, failed, formats, info…) via the module's routes/services.",
+  "output_where": "app.modules.preview function outputs",
+  "output_why": "Serves the Preview functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL generate a preview for a document. Returns a cache_key that can be used to serve the preview. Supports thumbnail and full-page preview types. CANONICAL serve a generated preview by cache_key. Returns the preview content (image, HTML, or text). CANONICAL get a text preview of a document. Returns the extracted text content for the document. CANONICAL get preview metadata for a document. Returns preview availability, cache status, and supported preview types. CANONICAL clear the preview cache for a specific document. Forces regeneration on next preview request. CANONICAL preview cache statistics. Returns cache size, hit rate, and document count. Admin-only. CANONICAL batch-generate previews for multiple documents. Returns cache_keys for all successfully generated previews. CANONICAL list of supported document formats for preview. Returns format codes and descriptions. CANONICAL clear all preview cache. Admin-only. Removes all cached previews, forcing regeneration.",
+  "process_context": "Derived record. Invoked via the preview module's registered routes and dependencies.",
+  "narrative_events": []
+}

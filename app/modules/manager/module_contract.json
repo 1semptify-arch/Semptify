@@ -1,0 +1,77 @@
+{
+  "module_name": "Manager",
+  "layout": "app/modules/manager/ — 5 registered function groups (manager_assign_case, manager_bulk_export, manager_reports_cases, manager_reports_staff, manager_update_staff_role). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "advocate_user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "manager_user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "new_role",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "staff_user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "tenant_user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "tenant_user_ids",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "advocate_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "manager_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "new_role",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "staff_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "tenant_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "tenant_user_ids",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (export_data, format, relationship_id, report, success) via the module's routes/services.",
+  "output_where": "app.modules.manager function outputs",
+  "output_why": "Serves the Manager functions declared in its FunctionGroupContracts.",
+  "process_description": "Assigns an advocate to a tenant case via UserRelationship.ADVOCACY. Exports case summary data for a set of tenant user_ids as JSON (or CSV via accept header). Generates an aggregate report of all cases in the manager's organization. Generates per-staff productivity metrics (cases handled, docs reviewed, events created). Updates a staff member's default_role. Manager can set advocate or user roles only.",
+  "process_context": "Derived record. Invoked via the manager module's registered routes and dependencies.",
+  "narrative_events": []
+}

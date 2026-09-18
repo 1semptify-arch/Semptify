@@ -1,0 +1,15 @@
+{
+  "module_name": "Mndes",
+  "layout": "app/modules/mndes/ — 12 registered function groups (mndes_guide, mndes_compliance_guide, mndes_acceptable_file_types, mndes_validate_file, mndes_validate_vault_files, mndes_create_exhibit_package, mndes_get_exhibit_package, mndes_submission_checklist, mndes_package_compliance, mndes_apply_attestations, mndes_confirm_submission, mndes_submission_guide). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.mndes function outputs",
+  "output_why": "Serves the Mndes functions declared in its FunctionGroupContracts.",
+  "process_description": "Serve the MNDES submission guide (step-by-step). Serve the full MNDES compliance reference guide (all roles). Return the current MNDES Acceptable File Types List. Validate a single filename for MNDES compliance. Validate a batch of vault files for MNDES compliance. Build an MNDES exhibit package for a court case. Retrieve an exhibit package and its compliance status. Return the pre-submission checklist for an exhibit package. Return compliance summary for a package. Record user attestations required before MNDES submission. User confirms they completed manual upload at the MNDES portal. Return structured step-by-step instructions for submitting exhibits to MNDES.",
+  "process_context": "Derived record. Invoked via the mndes module's registered routes and dependencies.",
+  "narrative_events": []
+}

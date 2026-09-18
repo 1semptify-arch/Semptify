@@ -1,0 +1,15 @@
+{
+  "module_name": "Enterprise Dashboard",
+  "layout": "app/modules/enterprise_dashboard/ — 13 registered function groups (enterprise_dashboard_dashboard_stats, enterprise_dashboard_recent_activity, enterprise_dashboard_case_progress, enterprise_dashboard_recent_documents, enterprise_dashboard_quick_actions, enterprise_dashboard_ai_insights, enterprise_dashboard_analytics, enterprise_dashboard_notifications, enterprise_dashboard_mark_notification_read, enterprise_dashboard_global_search, enterprise_dashboard_export_dashboard_report, enterprise_dashboard_get_dashboard_preferences, enterprise_dashboard_update_dashboard_preferences). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.enterprise_dashboard function outputs",
+  "output_why": "Serves the Enterprise Dashboard functions declared in its FunctionGroupContracts.",
+  "process_description": "Get comprehensive dashboard statistics. Get recent activity timeline. Get case preparation progress metrics. Get recently uploaded/modified documents. Get personalized quick actions based on case status. Get AI-powered insights and recommendations. Get detailed analytics for charts and visualizations. Get user notifications. Mark a notification as read. Global search across all resources. Export comprehensive dashboard report. Get user's dashboard preferences. Update user's dashboard preferences.",
+  "process_context": "Derived record. Invoked via the enterprise_dashboard module's registered routes and dependencies.",
+  "narrative_events": []
+}

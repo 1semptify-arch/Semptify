@@ -1,0 +1,15 @@
+{
+  "module_name": "Brain",
+  "layout": "app/modules/brain/ — 11 registered function groups (brain_brain_status, brain_modules, brain_get_state, brain_update_state, brain_recent_events, brain_emit_event, brain_trigger_workflow, brain_workflows, brain_workflow, brain_think, brain_sync_all). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.brain function outputs",
+  "output_why": "Serves the Brain functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /status GET /modules GET /state PUT /state GET /events POST /events POST /workflow GET /workflows GET /workflows/{workflow_id} POST /think POST /sync",
+  "process_context": "Derived record. Invoked via the brain module's registered routes and dependencies.",
+  "narrative_events": []
+}

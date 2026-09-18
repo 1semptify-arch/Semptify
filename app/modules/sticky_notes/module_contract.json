@@ -1,0 +1,47 @@
+{
+  "module_name": "Sticky Notes",
+  "layout": "app/modules/sticky_notes/ — 5 registered function groups (sticky_notes_create, sticky_notes_list, sticky_notes_update, sticky_notes_delete, sticky_notes_page). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "note_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "source",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "text",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "note_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "source",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "text",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (html, note, notes, ok) via the module's routes/services.",
+  "output_where": "/api/sticky-notes, /api/sticky-notes/{note_id}, /record/notes (prefixes: /api/sticky-notes, /record/notes)",
+  "output_why": "Serves the Sticky Notes functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL create a new sticky note in the user's scratch-pad. Accepts text and an optional source reference. CANONICAL list all sticky notes for the current user, newest first. CANONICAL update the text of an existing sticky note by ID. CANONICAL delete a sticky note by ID. CANONICAL render the tenant notepad page at /record/notes.",
+  "process_context": "Derived record. Invoked via the sticky_notes module's registered routes and dependencies.",
+  "narrative_events": []
+}

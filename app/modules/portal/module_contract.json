@@ -1,0 +1,37 @@
+{
+  "module_name": "Portal",
+  "layout": "app/modules/portal/ — 1 registered function groups (portal_services). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "category",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "service_id",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "category",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "service_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (categories, services) via the module's routes/services.",
+  "output_where": "app.modules.portal function outputs",
+  "output_why": "Serves the Portal functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list of services on the semptify.org guest portal. Returns the public services catalog grouped by category. Each service is a self-contained entry (name, description, CTA, path). New services are added to the registry — no rewriting the portal page. Does NOT handle onboarding; use the module onboarding system for that.",
+  "process_context": "Derived record. Invoked via the portal module's registered routes and dependencies.",
+  "narrative_events": []
+}

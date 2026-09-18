@@ -1,0 +1,15 @@
+{
+  "module_name": "Registry",
+  "layout": "app/modules/registry/ — 21 registered function groups (registry_register_document, registry_get_document, registry_documents, registry_delete_document, registry_clear_all_documents, registry_duplicates, registry_custody_chain, registry_verify_document, registry_integrity_status, registry_document_hash, registry_flag_document, registry_associate_case, registry_flagged_documents, registry_quarantined_documents, registry_registry_stats, registry_document_statuses, registry_integrity_statuses, registry_forgery_indicators, registry_custody_actions, registry_case_documents, registry_cases). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.registry function outputs",
+  "output_why": "Serves the Registry functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /register GET /documents/{doc_id} GET /documents DELETE /documents/{doc_id} DELETE /documents GET /documents/{doc_id}/duplicates GET /documents/{doc_id}/custody POST /documents/{doc_id}/verify Get the current integrity status of a document. Get the stored hashes for a document (for external verification). Flag a document for review (suspected forgery, alteration, etc.). Associate a document with a case number. Get all documents flagged for review. Get all quarantined documents (high forgery risk). Get registry statistics. Get all document statuses. Get all integrity statuses. Get all forgery indicators. Get all custody actions. Get all documents for a specific case. List all cases with document counts.",
+  "process_context": "Derived record. Invoked via the registry module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,137 @@
+{
+  "module_name": "Calendar",
+  "layout": "app/modules/calendar/ — 10 registered function groups (calendar_create_event, calendar_list_events, calendar_upcoming_deadlines, calendar_get_event, calendar_update_event, calendar_delete_event, calendar_from_documents, calendar_sync_documents, calendar_deadline_summary, calendar_notify_deadlines). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "date",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "days",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "days_ahead",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "description",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "end",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "event_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "event_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "overwrite",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "start",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "title",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "updates",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "days",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "days_ahead",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "description",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "end",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "event_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "event_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "overwrite",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "start",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "title",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "updates",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (deadlines, documents_analyzed, event, event_id, events, notified, overdue, status…) via the module's routes/services.",
+  "output_where": "app.modules.calendar function outputs",
+  "output_why": "Serves the Calendar functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL create a calendar event. The tenant adds a court date, deadline, meeting, or other event with title, date, and description. CANONICAL list of calendar events in a date range. Returns events sorted by date. Used by the calendar view. CANONICAL upcoming deadlines within a look-ahead window (default 30 days, max 90). Returns deadlines sorted by date. Used by the tenant dashboard's deadlines section. CANONICAL get a single calendar event by ID. Returns full event details. CANONICAL update a calendar event. The tenant can edit title, date, description, or event type. CANONICAL delete a calendar event. Removes the event from the calendar. CANONICAL list of events extracted from the tenant's documents. Returns dates found in documents that can be synced to the calendar. CANONICAL sync events from documents to the calendar. Creates calendar events from dates extracted from documents. Optionally overwrites existing events with the same title. CANONICAL summary of upcoming deadlines. Returns counts by urgency (overdue, this week, this month). Used by the tenant dashboard's deadline summary widget. CANONICAL send deadline notifications. Triggers notifications for deadlines within the specified window (default 7 days).",
+  "process_context": "Derived record. Invoked via the calendar module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,97 @@
+{
+  "module_name": "Core System",
+  "layout": "app/modules/core_system/ — 10 registered function groups (core_system_health_check, core_system_status, core_system_config_get, core_system_config_update, core_system_session_create, core_system_session_validate, core_system_session_destroy, core_system_log_add, core_system_logs_get, core_system_statistics). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "config",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "level",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "limit",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "log_entry",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "module",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "session_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "session_request",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "config",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "level",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "limit",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "log_entry",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "module",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "session_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "session_request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (config, logs, session_id, statistics, status, success, valid) via the module's routes/services.",
+  "output_where": "app.modules.core_system function outputs",
+  "output_why": "Serves the Core System functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL health check endpoint for core system. CANONICAL get detailed system status. CANONICAL get system configuration (safe, non-sensitive). CANONICAL update system configuration. CANONICAL create a new user session. CANONICAL validate a user session by ID. CANONICAL destroy a user session by ID. CANONICAL add a system log entry. CANONICAL get system logs with optional level, module, and limit filters. CANONICAL get system statistics.",
+  "process_context": "Derived record. Invoked via the core_system module's registered routes and dependencies.",
+  "narrative_events": []
+}

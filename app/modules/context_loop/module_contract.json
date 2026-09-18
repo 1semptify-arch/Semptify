@@ -1,0 +1,15 @@
+{
+  "module_name": "Context Loop",
+  "layout": "app/modules/context_loop/ — 11 registered function groups (context_loop_state, context_loop_intensity, context_loop_context, context_loop_emit_event, context_loop_process_document, context_loop_report_issue, context_loop_add_deadline, context_loop_record_action, context_loop_predictions, context_loop_events, context_loop_loop_health). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.context_loop function outputs",
+  "output_why": "Serves the Context Loop functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /state GET /intensity GET /context POST /event POST /document POST /issue POST /deadline POST /action GET /predictions GET /events Check context loop health.",
+  "process_context": "Derived record. Invoked via the context_loop module's registered routes and dependencies.",
+  "narrative_events": []
+}

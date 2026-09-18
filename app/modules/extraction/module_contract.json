@@ -1,0 +1,15 @@
+{
+  "module_name": "Extraction",
+  "layout": "app/modules/extraction/ — 6 registered function groups (extraction_extract_form_fields, extraction_extract_from_vault_documents, extraction_review_items, extraction_confirm_extracted_fields, extraction_apply_extraction_to_forms, extraction_field_definitions). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.extraction function outputs",
+  "output_why": "Serves the Extraction functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /extract POST /extract-from-vault GET /review-items POST /confirm POST /apply-to-forms Get definitions and help text for all form fields.",
+  "process_context": "Derived record. Invoked via the extraction module's registered routes and dependencies.",
+  "narrative_events": []
+}

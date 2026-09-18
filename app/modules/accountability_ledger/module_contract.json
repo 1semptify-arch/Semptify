@@ -1,0 +1,67 @@
+{
+  "module_name": "Accountability Ledger",
+  "layout": "app/modules/accountability_ledger/ — 3 registered function groups (accountability_subject_lookup, accountability_pattern_lookup, accountability_alignment_lookup). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "alignment_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "jurisdiction",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "pattern_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "subject_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "subject_type",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "alignment_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "jurisdiction",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "pattern_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "subject_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "subject_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (alignments, patterns, subjects, total) via the module's routes/services.",
+  "output_where": "app.modules.accountability_ledger function outputs",
+  "output_why": "Serves the Accountability Ledger functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL lookup of accountability subjects (landlords, LLCs, judges, politicians, agencies) by type, jurisdiction, or name. Returns the subject registry entries — public-record entity data only. CANONICAL lookup of documented, evidence-backed accountability patterns by subject, type, or jurisdiction. Every pattern ties to public-record references — no narrative, no accusations. CANONICAL lookup of political alignments (campaign donations, voting records, ruling patterns, public statements) for politicians and judges. Each entry ties to a public-record source.",
+  "process_context": "Derived record. Invoked via the accountability_ledger module's registered routes and dependencies.",
+  "narrative_events": []
+}

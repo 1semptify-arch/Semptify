@@ -1,0 +1,57 @@
+{
+  "module_name": "Role Ui",
+  "layout": "app/modules/role_ui/ — 7 registered function groups (role_ui_route, role_ui_role_info, role_ui_available_roles, role_ui_features, role_ui_navigation, role_ui_tool_page, role_ui_track_pageview). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "module_name",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "request",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "role",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "module_name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "role",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (description, display_name, features, html, menu, permissions, redirect, role…) via the module's routes/services.",
+  "output_where": "app.modules.role_ui function outputs",
+  "output_why": "Serves the Role Ui functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL post-auth redirect. Reads the user's role from the cookie and redirects to the role-appropriate landing page. This is the single source of truth for post-login routing. CANONICAL role information for the current user. Returns role code, display name, description, and permissions. Used by the frontend for role display. CANONICAL list of all available roles with metadata. Used by the role selection page during onboarding. CANONICAL feature flags for the current user's role. Returns which features are enabled for the user based on their role and any admin overrides. CANONICAL navigation menu for the current user's role. Returns the menu structure with links, labels, and icons. Used by the frontend to render the nav. CANONICAL tool page for a specific module. Returns the HTML page for the given module name, scoped to the user's role. CANONICAL pageview tracking stub. Accepts pageview pings silently. Full analytics enabled in ADMIN tier.",
+  "process_context": "Derived record. Invoked via the role_ui module's registered routes and dependencies.",
+  "narrative_events": []
+}

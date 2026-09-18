@@ -1,0 +1,187 @@
+{
+  "module_name": "Vault",
+  "layout": "app/modules/vault/ — 16 registered function groups (vault_upload, vault_folders, vault_list_documents, vault_download_document, vault_get_certificate, vault_delete_document, vault_init, vault_verify, vault_status, vault_sidebar_files, vault_sidebar_upload, vault_sidebar_stats, vault_sidebar_search, vault_upload_envelope, vault_ingestion, vault_search). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "access_token",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "document_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "document_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "event_time",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "file",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "files",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "item_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "metadata",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "provider",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "query",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "record_time",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "request",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "search_criteria",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "tags",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "timeline_mode",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "access_token",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "description",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "event_time",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "file",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "files",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "item_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "metadata",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "provider",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "query",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "record_time",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "search_criteria",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "tags",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "timeline_mode",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (CANONICAL_VAULT_FOLDERS, audit_log_id, by_type, certificate_id, certified_at, document_id, documents, errors…) via the module's routes/services.",
+  "output_where": "app.modules.vault function outputs",
+  "output_why": "Serves the Vault functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL internal/service upload endpoint. Stores a document in the user's cloud storage with SHA-256 hash, certificate, and metadata. Called by VaultUploadService — NOT directly from the tenant UI. UI uploads must go through /api/intake/upload/auto. All vault folder paths come from app/core/vault_paths.py. NEVER hardcode Semptify5.0/ paths. NEVER duplicate these constants. CANONICAL list of documents in the user's vault. Supports filtering by document_type. Returns document summaries with id, filename, type, size, and timestamps. Used by the tenant documents page. CANONICAL download of a specific document by ID from the user's cloud storage. Returns the file stream with correct content-type. Used by the tenant documents page for file retrieval. CANONICAL retrieval of a document's chain-of-custody certificate. Returns the SEMPTIFY certificate with SHA-256, upload timestamp, storage path, and version. Used for evidence integrity verification. CANONICAL deletion of a document from the user's vault. Tenant-only. Removes the file and its certificate from cloud storage. Legal/advocate roles cannot delete (read-only vault access). CANONICAL creation of the Semptify vault folder structure in the user's cloud storage. Called during onboarding after storage OAuth. Creates .Semptify5.0/ root and all canonical subfolders. CANONICAL verification that the vault folder structure is accessible in the user's cloud storage. Returns per-folder status. Empty folders are valid (only failure is inaccessible/missing). CANONICAL lightweight check that the user is authenticated and has a storage provider configured. Used by UI gates and onboarding flow. CANONICAL list of recent files for the persistent vault sidebar. Returns a compact list for display in the side panel on any tenant page. CANONICAL quick upload from the persistent sidebar. Accepts multiple files, stores them in the vault, returns per-file status. This is the 'Add Record' button on every tenant page. CANONICAL vault statistics for sidebar display. Returns counts by document type, total size, and last upload timestamp. CANONICAL search across the user's vault documents. Searches filename, document_type, description, and tags. Returns matching summaries. CANONICAL ADR-0008 §2.1/2.6 wiring for the Vault upload page. Returns the Page Envelope with resolved page actions and, on upload, an Object Envelope for the created document. Ingest evidence into unified vault with data contract enforcement and three-timestamp model. Deep search, timeline queries, and filtering for unified vault with JSONB GIN index support.",
+  "process_context": "Derived record. Invoked via the vault module's registered routes and dependencies.",
+  "narrative_events": []
+}

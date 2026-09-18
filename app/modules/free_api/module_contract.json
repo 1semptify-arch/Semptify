@@ -1,0 +1,107 @@
+{
+  "module_name": "Free Api",
+  "layout": "app/modules/free_api/ — 11 registered function groups (free_api_property_parcel, free_api_property_address, free_api_landlord_business, free_api_landlord_owner, free_api_court_evictions, free_api_court_federal, free_api_violations_city, free_api_violations_environment, free_api_inspections_hud, free_api_inspections_local, free_api_statutes). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "address",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "city",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "county",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "facility",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "name",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "parcel_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "property_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "query",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "section",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "address",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "city",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "county",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "facility",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "parcel_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "property_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "query",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "section",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (businesses, cases, evictions, inspection, inspections, owner, parcel, property…) via the module's routes/services.",
+  "output_where": "app.modules.free_api function outputs",
+  "output_why": "Serves the Free Api functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL lookup parcel by county and parcel ID. Returns property parcel data. CANONICAL lookup property by county and address. Returns property data. CANONICAL search MN Secretary of State business records. Returns business filings. CANONICAL lookup property owner via HUD/county records. Returns owner info. CANONICAL search MN court eviction records by party name. Returns eviction cases. CANONICAL search federal court cases via CourtListener. Returns federal cases. CANONICAL lookup city inspection violations for an address. Returns violations. CANONICAL lookup EPA/MPCA environmental violations. Returns violations for the facility. CANONICAL lookup HUD REAC inspection scores. Returns inspection scores for the property. CANONICAL lookup local inspection records. Returns inspection history for the address. CANONICAL retrieve MN statute text by section number. Returns the statute text.",
+  "process_context": "Derived record. Invoked via the free_api module's registered routes and dependencies.",
+  "narrative_events": []
+}

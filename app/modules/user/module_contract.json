@@ -1,0 +1,47 @@
+{
+  "module_name": "User",
+  "layout": "app/modules/user/ — 2 registered function groups (user_act_as_start, user_act_as_stop). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "admin_user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "reason",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "target_user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "admin_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "reason",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "target_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (act_as_user_id, success) via the module's routes/services.",
+  "output_where": "app.modules.user function outputs",
+  "output_why": "Serves the User functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL start acting as another user. Admin/manager can impersonate a tenant or advocate for support purposes. Sets the act_as_user_id in the session. CANONICAL stop acting as another user. Clears the act_as_user_id from the session and returns to the admin's own identity.",
+  "process_context": "Derived record. Invoked via the user module's registered routes and dependencies.",
+  "narrative_events": []
+}

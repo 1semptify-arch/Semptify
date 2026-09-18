@@ -1,0 +1,217 @@
+{
+  "module_name": "Eviction Defense",
+  "layout": "app/modules/eviction_defense/ — 14 registered function groups (eviction_defense_list_forms, eviction_defense_get_form, eviction_defense_list_motions, eviction_defense_list_procedures, eviction_defense_list_counterclaims, eviction_defense_list_defenses, eviction_defense_calculate_deadlines, eviction_defense_case_checklist, eviction_defense_analyze, eviction_defense_quick_status, eviction_defense_from_documents_defenses, eviction_defense_from_documents_counterclaims, eviction_defense_from_documents_deadlines, eviction_defense_from_documents_analysis). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "_",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "a",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "c",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "case_data",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "case_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "category",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "e",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "form_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "g",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "i",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "m",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "n",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "o",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "p",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "r",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "stage",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "start_date",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "t",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "y",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "_",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "a",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "c",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "category",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "e",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "form_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "g",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "i",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "m",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "n",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "o",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "p",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "r",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "stage",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "start_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "t",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "y",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (available_defenses, case_stage, checklist, counterclaims, deadlines, defenses, form, forms…) via the module's routes/services.",
+  "output_where": "app.modules.eviction_defense function outputs",
+  "output_why": "Serves the Eviction Defense functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list of eviction defense forms. Supports filtering by category and case stage. Returns form templates with instructions. CANONICAL detailed view of a single eviction defense form. Returns the form template, fields, and filing instructions. CANONICAL list of eviction defense motions. Supports filtering by motion type. Returns motion templates with requirements. CANONICAL list of eviction defense procedures. Supports filtering by category. Returns step-by-step procedure guides. CANONICAL list of counterclaim templates. Returns all available counterclaims a tenant may raise in an eviction case. CANONICAL list of all available eviction defenses with explanations. Returns defense names, descriptions, and when they apply. Facts only — not a recommendation to use a specific defense. CANONICAL calculation of eviction case deadlines from a start date and case type. Returns all deadlines with dates and descriptions. CANONICAL checklist for an eviction case at a given stage. Returns the list of steps, documents, and deadlines for the stage. CANONICAL analysis of an eviction case based on the tenant's documents. Returns suggested defenses, counterclaims, and deadlines based on what was found in uploaded documents. Facts only — not legal advice. CANONICAL quick status for dashboard display. Returns counts of available defenses, upcoming deadlines, and case stage. Used by the tenant dashboard's eviction defense section. CANONICAL defense recommendations based on uploaded documents. Analyzes the tenant's documents and returns defenses that may apply based on detected issues. Facts only — not legal advice. CANONICAL counterclaim recommendations based on uploaded documents. Analyzes the tenant's documents and returns counterclaims that may apply. Facts only — not legal advice. CANONICAL deadlines calculated from uploaded documents. Returns all deadlines found in the tenant's documents, sorted by date. CANONICAL comprehensive eviction defense analysis based on uploaded documents. Returns defenses, counterclaims, deadlines, and suggested actions in one call. Facts only — not legal advice.",
+  "process_context": "Derived record. Invoked via the eviction_defense module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,15 @@
+{
+  "module_name": "Zoom Court",
+  "layout": "app/modules/zoom_court/ — 3 registered function groups (zoom_court_status, zoom_court_tech_checklist, zoom_court_etiquette_rules). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.zoom_court function outputs",
+  "output_why": "Serves the Zoom Court functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /api/zoom-court/status Technical checklist for virtual court hearings. Etiquette rules for virtual court hearings.",
+  "process_context": "Derived record. Invoked via the zoom_court module's registered routes and dependencies.",
+  "narrative_events": []
+}

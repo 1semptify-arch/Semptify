@@ -1,0 +1,187 @@
+{
+  "module_name": "Context Engine",
+  "layout": "app/modules/context_engine/ — 7 registered function groups (context_query, context_refresh, story_submit, story_moderate, explanation_entry, explanation_retrieval, familiarity_tapering). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "admin_user_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "body",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "exposure_count",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "jurisdiction",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "limit",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "object_envelope",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "outcome",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "pillar",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "publish",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "query",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "retrieval_result",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "review_status",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "story_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "subject",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "submitted_by",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "title",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "upl_risk_tier",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "admin_user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "body",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "exposure_count",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "jurisdiction",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "limit",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "object_envelope",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "outcome",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "pillar",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "publish",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "query",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "retrieval_result",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "review_status",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "story_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "subject",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "submitted_by",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "title",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "upl_risk_tier",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (entry, entry_id, facts, is_published, new_count, retrieval_results, story_id, variant_text) via the module's routes/services.",
+  "output_where": "app.modules.context_engine function outputs",
+  "output_why": "Serves the Context Engine functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL query for cached context facts by subject + jurisdiction. Returns verified facts with source URLs — no hallucination. Does NOT gather new facts; use context_refresh for that. CANONICAL gather fresh facts from external sources for a subject. Admin only. Writes results into context_facts cache. Repurposes free_api_pack.py fetchers. Every fact has a source URL. CANONICAL submit a tenant story. Anonymized by default. Pending moderation — not published until admin reviews. Story frame: avoided_court is the hero, not 'I won'. CANONICAL moderate a tenant story. Admin only. Optionally edits title/body, then publishes or unpublishes. Sets moderated_by + moderated_at. CANONICAL curated Layer 1 explanation store. Admin create/update/delete; authenticated read. Each entry has subject, jurisdiction, UPL risk tier, pillar, review_status, and four variant slots (trust, mechanics, reinforcement, minimal). CANONICAL Layer 2 metadata-match retrieval. Ranks Layer 1 explanation entries against an Object Envelope using subject_tags, jurisdiction, pillar, and review_status. Returns only results above the configured confidence threshold. CANONICAL explanation variant selection by exposure count. 1st exposure returns the full mechanics variant, 2nd/3rd return trust and reinforcement, 4th+ returns minimal.",
+  "process_context": "Derived record. Invoked via the context_engine module's registered routes and dependencies.",
+  "narrative_events": []
+}

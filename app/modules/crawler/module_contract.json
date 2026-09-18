@@ -1,0 +1,15 @@
+{
+  "module_name": "Crawler",
+  "layout": "app/modules/crawler/ — 12 registered function groups (crawler_sources, crawler_source, crawler_crawl_url, crawler_search, crawler_search_statutes, crawler_search_business, crawler_search_property, crawler_search_legal_aid, crawler_statute, crawler_tenant_rights_statutes, crawler_ethics_policy, crawler_clear_cache). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.crawler function outputs",
+  "output_why": "Serves the Crawler functions declared in its FunctionGroupContracts.",
+  "process_description": "List all available data sources. Get details about a specific source. Crawl a single URL. GET /search GET /search/statutes GET /search/business GET /search/property GET /search/legal-aid GET /statute/{chapter} Get all key Minnesota tenant rights statutes. Get the crawler's ethics policy. Clear the crawler cache.",
+  "process_context": "Derived record. Invoked via the crawler module's registered routes and dependencies.",
+  "narrative_events": []
+}

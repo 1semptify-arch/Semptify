@@ -1,0 +1,15 @@
+{
+  "module_name": "Page Index",
+  "layout": "app/modules/page_index/ — 4 registered function groups (page_index_scan_html_pages, page_index_scan_fastapi_pages, page_index_page_stats, page_index_search_pages). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.page_index function outputs",
+  "output_why": "Serves the Page Index functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /scan Scan only the Semptify-FastAPI static folder for HTML pages. GET /stats GET /search",
+  "process_context": "Derived record. Invoked via the page_index module's registered routes and dependencies.",
+  "narrative_events": []
+}

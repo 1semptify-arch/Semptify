@@ -1,0 +1,15 @@
+{
+  "module_name": "Functionx",
+  "layout": "app/modules/functionx/ — 5 registered function groups (functionx_health, functionx_create_action_set, functionx_action_sets, functionx_get_action_set, functionx_execute_action_set). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.functionx function outputs",
+  "output_why": "Serves the Functionx functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /health POST /sets GET /sets GET /sets/{set_id} POST /sets/{set_id}/execute",
+  "process_context": "Derived record. Invoked via the functionx module's registered routes and dependencies.",
+  "narrative_events": []
+}
