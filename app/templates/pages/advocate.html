@@ -52,6 +52,20 @@
     </nav>
 </section>
 
+{% if surfacing and surfacing.sections %}
+<section class="shell-zone" aria-labelledby="adv-surfacing">
+    <h2 id="adv-surfacing" class="shell-zone-title">Where everything lives</h2>
+    <nav class="shell-rows" aria-label="Advocate destinations">
+        {% for s in surfacing.sections %}
+        <a href="{{ s.href }}">
+            <span class="shell-row-name">{{ s.title }}</span>
+            <div class="shell-row-desc">{{ s.why }}</div>
+        </a>
+        {% endfor %}
+    </nav>
+</section>
+{% endif %}
+
 <section class="shell-zone" aria-labelledby="adv-clients">
     <h2 id="adv-clients" class="shell-zone-title">Active clients</h2>
     <div class="shell-panel" id="clients-list">
@@ -96,9 +110,15 @@
 
 <h2 style="margin-top:2rem;">Tools</h2>
 <ul class="shell-list">
+    {% if surfacing and surfacing.tools %}
+    {% for t in surfacing.tools %}
+    <li><a href="{{ t.href }}" title="{{ t.why }}">{{ t.label }}</a></li>
+    {% endfor %}
+    {% else %}
     <li><a href="/documents">Documents</a></li>
     <li><a href="/timeline">Timeline</a></li>
     <li><a href="/law-library">Law library</a></li>
+    {% endif %}
 </ul>
 {% endblock %}
 

@@ -114,9 +114,31 @@
     </div>
   </section>
 
+  {% if surfacing and surfacing.tools %}
+  <section class="shell-zone" aria-labelledby="th-tools">
+    <h2 id="th-tools" class="shell-zone-title">Your tools</h2>
+    <nav class="shell-rows" aria-label="Tenant tools">
+      {% for t in surfacing.tools %}
+      <a href="{{ t.href }}">
+        <span class="shell-row-name">{{ t.label }}</span>
+        <div class="shell-row-desc">{{ t.why }}</div>
+      </a>
+      {% endfor %}
+    </nav>
+  </section>
+  {% endif %}
+
   <section class="shell-zone" aria-labelledby="th-sections">
     <h2 id="th-sections" class="shell-zone-title">Where everything lives</h2>
     <nav class="shell-rows" aria-label="All sections">
+      {% if surfacing and surfacing.sections %}
+      {% for s in surfacing.sections %}
+      <a href="{{ s.href }}">
+        <span class="shell-row-name">{{ s.title }}</span>
+        <div class="shell-row-desc">{{ s.why }}</div>
+      </a>
+      {% endfor %}
+      {% else %}
       <a href="/gui/record">
         <span class="shell-row-name">Your record</span>
         <div class="shell-row-desc">Vault, timeline, journal, and notes — everything you've kept.</div>
@@ -145,6 +167,7 @@
         <span class="shell-row-name">Law library</span>
         <div class="shell-row-desc">Minnesota tenant law, federal protections, and housing rules.</div>
       </a>
+      {% endif %}
     </nav>
   </section>
 

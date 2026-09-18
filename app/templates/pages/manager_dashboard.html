@@ -120,24 +120,49 @@
                         <h2 class="section-title">⚡ Quick Actions</h2>
                     </div>
                     <div class="quick-actions">
+                        {% if surfacing and surfacing.tools %}
+                        {% for t in surfacing.tools %}
+                        <a href="{{ t.href }}" class="quick-action-btn" title="{{ t.why }}">
+                            <span class="quick-action-icon">▸</span>
+                            <span class="quick-action-label">{{ t.label }}</span>
+                        </a>
+                        {% endfor %}
+                        {% else %}
                         <a href="/office/delivery" class="quick-action-btn">
                             <span class="quick-action-icon">📤</span>
                             <span class="quick-action-label">Send Doc</span>
                         </a>
-                        <a href="/manager/bulk-upload" class="quick-action-btn">
-                            <span class="quick-action-icon">📁</span>
-                            <span class="quick-action-label">Bulk Upload</span>
+                        <a href="/manager/dashboard" class="quick-action-btn">
+                            <span class="quick-action-icon">�</span>
+                            <span class="quick-action-label">Dashboard</span>
                         </a>
-                        <a href="/manager/staff" class="quick-action-btn">
-                            <span class="quick-action-icon">👥</span>
-                            <span class="quick-action-label">Manage Staff</span>
+                        <a href="/dc" class="quick-action-btn">
+                            <span class="quick-action-icon">�</span>
+                            <span class="quick-action-label">Documents</span>
                         </a>
-                        <a href="/manager/reports" class="quick-action-btn">
-                            <span class="quick-action-icon">📊</span>
-                            <span class="quick-action-label">Reports</span>
+                        <a href="/help" class="quick-action-btn">
+                            <span class="quick-action-icon">▸</span>
+                            <span class="quick-action-label">Get help</span>
                         </a>
+                        {% endif %}
                     </div>
                 </section>
+
+                {% if surfacing and surfacing.sections %}
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">▸ Where everything lives</h2>
+                    </div>
+                    <div class="quick-actions">
+                        {% for s in surfacing.sections %}
+                        <a href="{{ s.href }}" class="quick-action-btn" title="{{ s.why }}">
+                            <span class="quick-action-icon">▸</span>
+                            <span class="quick-action-label">{{ s.title }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
 
                 <!-- Staff Online -->
                 <section class="section-card">

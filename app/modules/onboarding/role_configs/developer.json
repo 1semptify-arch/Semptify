@@ -7,5 +7,27 @@
   "differentiated": true,
   "notes": "Developer vault: documents plus a research workspace for platform technical work",
   "role_type": "developer",
-  "display_name": "Developer"
+  "display_name": "Developer",
+  "surfacing": {
+    "intro": "Technical workspace and platform tools.",
+    "sections": [
+      {
+        "title": "Office",
+        "href": "/office",
+        "why": "Organizational pages."
+      },
+      {
+        "title": "Admin dashboard",
+        "href": "/admin",
+        "why": "System status."
+      }
+    ],
+    "tools": [
+      {
+        "label": "Office",
+        "href": "/office",
+        "why": "Workspace pages."
+      }
+    ]
+  }
 }
