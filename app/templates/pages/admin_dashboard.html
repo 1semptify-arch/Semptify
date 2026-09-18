@@ -32,6 +32,8 @@
     .card-icon{font-size:1.4rem}
     .card-body{font-size:0.88rem;color:var(--text-primary);line-height:1.6}
     .card-action{display:inline-block;margin-top:0.75rem;color:var(--accent);font-weight:600;font-size:0.85rem;text-decoration:none}
+    button.card-action{background:none;border:none;padding:0;cursor:pointer;font-family:inherit}
+    button.btn-block{cursor:pointer;font-family:inherit}
     .metric-row{display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid var(--border-color);font-size:0.88rem}
     .metric-row:last-child{border-bottom:none}
     .metric-stat{font-size:1.5rem;font-weight:800;color:var(--accent);flex-shrink:0;min-width:48px;text-align:right}
@@ -156,7 +158,7 @@
             </div>
           </div>
           <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-            <a href="#" onclick="showAnalyticsDetails(); return false;" class="card-action" style="flex:1;text-align:center">Full analytics →</a>
+            <button type="button" onclick="showAnalyticsDetails()" class="card-action" style="flex:1;text-align:center">Full analytics →</button>
             <button onclick="testPlatformMetrics()" class="btn btn--secondary btn--sm" style="flex:1">🧪 Test</button>
           </div>
         </div>
@@ -190,7 +192,7 @@
             </div>
           </div>
           <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-            <a href="#" onclick="searchUsers(); return false;" class="card-action" style="flex:1;text-align:center">User management →</a>
+            <button type="button" onclick="searchUsers()" class="card-action" style="flex:1;text-align:center">User management →</button>
             <button onclick="testUserBreakdown()" class="btn btn--secondary btn--sm" style="flex:1">🧪 Test</button>
           </div>
         </div>
@@ -204,7 +206,7 @@
             <p style="color:var(--text-secondary);font-style:italic">Loading...</p>
           </div>
           <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-            <a href="#" onclick="loadAuditLog(50); return false;" class="card-action" style="flex:1;text-align:center">Activity log →</a>
+            <button type="button" onclick="loadAuditLog(50)" class="card-action" style="flex:1;text-align:center">Activity log →</button>
             <button onclick="testRecentActivity()" class="btn btn--secondary btn--sm" style="flex:1">🧪 Test</button>
           </div>
         </div>
@@ -245,7 +247,7 @@
             </div>
           </div>
           <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-            <a href="#" class="card-action" style="flex:1;text-align:center">Security dashboard →</a>
+            <a href="/admin/system-health" class="card-action" style="flex:1;text-align:center">Security dashboard →</a>
             <button onclick="testSecurityMetrics()" class="btn btn--secondary btn--sm" style="flex:1">🧪 Test</button>
           </div>
         </div>
@@ -277,7 +279,7 @@
         <a href="/admin/module-flags.html" class="btn-block">🚩 Module Flags</a>
         <a href="/admin/forge.html" class="btn-block">⚒️ Semptify Forge</a>
         <a href="/admin/agent_orchestrator.html" class="btn-block">🤖 Agent Orchestrator</a>
-        <a href="#" class="btn-block" style="background:linear-gradient(135deg,var(--color-success),var(--color-success));color:var(--text-inverse);border:none" onclick="openTaskQueue();return false;">📋 Task Queue (Workbook)</a>
+        <button type="button" class="btn-block" style="background:linear-gradient(135deg,var(--color-success),var(--color-success));color:var(--text-inverse);border:none" onclick="openTaskQueue()">📋 Task Queue (Workbook)</button>
         <a href="/docs/component-inventory.html" class="btn-block">📦 Component Inventory</a>
         <a href="/docs/navigation-structure.html" class="btn-block">🧭 Navigation Structure</a>
         <a href="/mndes/compliance-guide?role=admin" class="btn-block">🏛️ MNDES Compliance</a>

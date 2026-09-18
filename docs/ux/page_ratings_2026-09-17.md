@@ -5,14 +5,10 @@ review=yes means Jinja/JS composition makes the source score unreliable — eye-
 
 | Score | Page | EU | UF | Und | Nav | Dir | IV | Flags |
 |---|---|---|---|---|---|---|---|---|
-| 3.2 | `pages/mndes_compliance_guide.html` | 3 | 3 | 5 | 3 | 2 | 3 | — |
 | 3.5 | `onboarding/index.html` | 5 | 5 | 3 | 3 | 3 | 2 | — |
-| 3.7 | `pages/admin_dashboard.html` | 3 | 4 | 5 | 3 | 2 | 5 | — |
-| 3.7 | `pages/legal_dashboard.html` | 3 | 4 | 5 | 3 | 2 | 5 | — |
 | 3.7 | `pages/office_delivery.html` | 3 | 5 | 5 | 5 | 2 | 2 | placeholder: coming soon |
-| 3.7 | `public/donate.html` | 5 | 1 | 5 | 5 | 2 | 4 | cost-framing: $0, free forever; business-posture: powerful |
 | 3.8 | `pages/admin_contract_browser.html` | 5 | 3 | 4 | 5 | 4 | 2 | placeholder: coming soon |
-| 3.8 | `pages/welcome.html` | 4 | 4 | 5 | 4 | 2 | 4 | — |
+| 3.8 | `public/donate.html` | 5 | 2 | 5 | 5 | 2 | 4 | cost-framing: never pay |
 | 3.8 | `onboarding/activate-vault.html` | 5 | 5 | 3 | 3 | 5 | 2 | — |
 | 3.8 | `onboarding/role-select.html` | 5 | 4 | 5 | 4 | 3 | 2 | placeholder: coming soon |
 | 4.0 | `pages/action_plan.html` | 3 | 4 | 5 | 5 | 2 | 5 | — |
@@ -26,6 +22,7 @@ review=yes means Jinja/JS composition makes the source score unreliable — eye-
 | 4.0 | `pages/hearing_prep.html` | 3 | 5 | 5 | 4 | 3 | 4 | — |
 | 4.0 | `pages/journey.html` | 5 | 5 | 5 | 4 | 3 | 2 | — |
 | 4.0 | `pages/manager_dashboard.html` | 5 | 3 | 5 | 5 | 2 | 4 | — |
+| 4.0 | `pages/mndes_compliance_guide.html` | 5 | 4 | 5 | 5 | 2 | 3 | — |
 | 4.0 | `public/about.html` | 5 | 3 | 5 | 5 | 2 | 4 | cost-framing: no subscription |
 | 4.0 | `public/credits.html` | 5 | 3 | 5 | 5 | 2 | 4 | cost-framing: free of charge |
 | 4.2 | `pages/admin_function_browser.html` | 5 | 4 | 5 | 5 | 2 | 4 | — |
@@ -44,9 +41,11 @@ review=yes means Jinja/JS composition makes the source score unreliable — eye-
 | 4.2 | `pages/pdf_tools.html` | 4 | 5 | 5 | 4 | 5 | 2 | — |
 | 4.2 | `pages/tenant_inbox.html` | 5 | 4 | 5 | 5 | 2 | 4 | — |
 | 4.2 | `pages/timeline.html` | 3 | 5 | 4 | 5 | 4 | 4 | — |
+| 4.2 | `pages/welcome.html` | 5 | 4 | 5 | 5 | 2 | 4 | — |
 | 4.2 | `public/contact.html` | 5 | 3 | 5 | 5 | 2 | 5 | — |
 | 4.2 | `tenant/help.html` | 5 | 4 | 5 | 5 | 2 | 4 | cost-framing: no cost |
 | 4.3 | `pages/admin.html` | 5 | 5 | 5 | 5 | 2 | 4 | — |
+| 4.3 | `pages/admin_dashboard.html` | 5 | 4 | 5 | 5 | 2 | 5 | — |
 | 4.3 | `pages/admin_home.html` | 5 | 4 | 5 | 5 | 5 | 2 | — |
 | 4.3 | `pages/admin_hub.html` | 5 | 5 | 5 | 4 | 5 | 2 | — |
 | 4.3 | `pages/advocate.html` | 5 | 5 | 5 | 5 | 2 | 4 | — |
@@ -62,6 +61,7 @@ review=yes means Jinja/JS composition makes the source score unreliable — eye-
 | 4.3 | `pages/eviction_answer.html` | 3 | 5 | 5 | 4 | 5 | 4 | — |
 | 4.3 | `pages/law_library_get_statute.html` | 5 | 5 | 4 | 5 | 3 | 4 | — |
 | 4.3 | `pages/legal.html` | 5 | 5 | 5 | 5 | 2 | 4 | — |
+| 4.3 | `pages/legal_dashboard.html` | 5 | 4 | 5 | 5 | 2 | 5 | — |
 | 4.3 | `pages/office_signer.html` | 5 | 4 | 5 | 5 | 2 | 5 | — |
 | 4.3 | `pages/research.html` | 5 | 5 | 5 | 4 | 3 | 4 | — |
 | 4.3 | `pages/research_module.html` | 5 | 5 | 5 | 4 | 5 | 2 | — |
