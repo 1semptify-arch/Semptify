@@ -90,6 +90,12 @@ VAULT_CONTACTS_FILE = normalize_cloud_path(f"{VAULT_CONTACTS}/contacts.json")
 VAULT_RECORDS = normalize_cloud_path(f"{VAULT_ROOT}/records")
 VAULT_RECORDS_FILE = normalize_cloud_path(f"{VAULT_RECORDS}/records.json")
 
+# Per-user derived-data anchor for computed tenant artifacts (pattern detection
+# records first). Derived means regenerated from vault documents — still
+# tenant-owned, so it lives in the user's cloud, not the server DB.
+VAULT_DERIVED = normalize_cloud_path(f"{VAULT_ROOT}/derived")
+VAULT_DERIVED_FILE = normalize_cloud_path(f"{VAULT_DERIVED}/derived.json")
+
 # =============================================================================
 # Role-specific folders (direct children of Vault/)
 # =============================================================================

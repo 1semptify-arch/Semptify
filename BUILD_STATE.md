@@ -1,3 +1,32 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: pattern records → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T14:50:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 10 — pattern records)
+- `pattern_records` moved off the server DB into the tenant's cloud vault — records persist as `PATTERN_RECORD` overlays anchored to `document_id="patterns:{user_id}"` at the new `VAULT_DERIVED_FILE` (`Vault/derived/derived.json` — derived tenant artifacts live in the tenant's cloud, not the server).
+- New `app/services/pattern_store.py` — `save_pattern_record`, `get_pattern_history`, `get_pattern_record`, `mark_pattern_reviewed`, `get_pattern_trends`, `get_pattern_stats`, `migrate_legacy_records` (non-destructive, idempotent via `payload.legacy_id`, bounded 25 rows/call). Integer record ids preserved (`max+1` per user) — `/record/{id}` URLs keep resolving. Env gate `ENABLE_PATTERN_PERSISTENCE` retained — all functions return empty/None when disabled, matching legacy semantics.
+- Consumers rewired: `housing_accountability/router.py` `/patterns/detect` save site, all 6 `pattern_history.py` endpoints (`db` deps removed — `current_user` UserContext passed straight through).
+- Three latent bugs fixed (all masked by the env gate): `pattern_history.py` passed an `AsyncSession` to the sync `get_pattern_history`/`get_pattern_trends` helpers (never awaited — would fail at runtime); `current_user.id` used a nonexistent UserContext attribute (field is `user_id`); `save_pattern_record(db=db, ...)` used a kwarg the legacy signature didn't accept (`db_session`) — silently swallowed by the broad `except`.
+- `tests/test_pattern_store_vault.py` — 7 functional tests (roundtrip, per-user int-id allocation + isolation, review marking, trends/stats, disabled-gate empties, idempotent bounded migration, no-DB safety).
+
+### Verification (this slice)
+- `python -m py_compile` clean on all 7 changed files; `tests/test_pattern_store_vault.py` — 7 passed; `tests/module_health/test_pattern_history.py` + `test_housing_accountability_accountability_router.py` — 2 passed.
+- Guardrail engine — all checks PASS (run above).
+
+### Remaining (Phase 1 in progress)
+- Reclassified this slice: `context_facts` (shared admin-gathered public cache), `context_explanation_entries` (admin-curated content, like `resources`), `tenant_stories` (anonymized + published cross-user content) → "stays in DB" — not per-tenant private data. `document_annotations`, `fraud_analysis_results`, `witness_statements`, `certified_mail` → verified dead tables (Alembic drop only).
+- Still server-persisted: `document_shares`, `external_mappings`/`court_case_mappings`/`property_mappings`/`agency_mappings`, `fems_*` (6), `mndes_*` (2). See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: timeline events → user cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T14:20:00+00:00

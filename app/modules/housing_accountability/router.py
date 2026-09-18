@@ -685,13 +685,12 @@ async def detect_patterns(
         # Generate pattern summary
         pattern_summary = pattern_service.generate_pattern_summary(analysis_data)
 
-        # Save pattern record if persistence is enabled
+        # Save pattern record to the tenant's vault if persistence is enabled
         try:
-            from app.models.pattern_record import save_pattern_record
+            from app.services.pattern_store import save_pattern_record
 
-            saved_record = save_pattern_record(
-                db=db,
-                user_id=current_user.id,
+            saved_record = await save_pattern_record(
+                current_user,
                 analysis_type=request.analysis_type,
                 pattern_data=pattern_summary,
                 data_sources={
@@ -703,7 +702,7 @@ async def detect_patterns(
             if saved_record:
                 pattern_summary["record_id"] = saved_record.id
         except ImportError:
-            # Pattern record model not available - continue without persistence
+            # Pattern store not available - continue without persistence
             pass
         except Exception as e:
             # Log error but don't fail the request

@@ -13,9 +13,9 @@ import os
 from .manifest import MANIFEST
 from .router import accountability_router as router
 
-# Only import pattern_history (and its PatternRecord model) when persistence
-# is explicitly enabled — prevents create_all() from attempting to create
-# pattern_records table on Neon/restricted DB users.
+# Only import pattern_history (and the pattern vault store) when persistence
+# is explicitly enabled — pattern records are PATTERN_RECORD overlays under
+# Vault/derived/ in the tenant's own cloud, not the server database.
 if os.getenv("ENABLE_PATTERN_PERSISTENCE", "false").lower() == "true":
     from .pattern_history import pattern_history_router
 else:

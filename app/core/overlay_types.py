@@ -150,6 +150,9 @@ class OverlayType(str, Enum):
     TIMELINE_EVENT = "timeline_event"
     """Tenant timeline event (notices, payments, maintenance, communications, court, captures)."""
 
+    PATTERN_RECORD = "pattern_record"
+    """Derived housing-accountability pattern detection record (risk score + pattern JSON)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -213,6 +216,7 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.THIRD_PARTY_CONTACT,
     OverlayType.EVICTION_TIMELINE_EVENT,
     OverlayType.TIMELINE_EVENT,
+    OverlayType.PATTERN_RECORD,
 }
 
 # All overlay types (for validation)
