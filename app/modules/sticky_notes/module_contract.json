@@ -43,5 +43,11 @@
   "output_why": "Serves the Sticky Notes functions declared in its FunctionGroupContracts.",
   "process_description": "CANONICAL create a new sticky note in the user's scratch-pad. Accepts text and an optional source reference. CANONICAL list all sticky notes for the current user, newest first. CANONICAL update the text of an existing sticky note by ID. CANONICAL delete a sticky note by ID. CANONICAL render the tenant notepad page at /record/notes.",
   "process_context": "Derived record. Invoked via the sticky_notes module's registered routes and dependencies.",
-  "narrative_events": []
+  "narrative_events": [
+    {
+      "verb": "saved",
+      "object": "the quick note",
+      "context_clause": "because the tenant jotted something down before it could be forgotten"
+    }
+  ]
 }

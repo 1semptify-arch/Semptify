@@ -133,5 +133,21 @@
   "output_why": "Serves the Calendar functions declared in its FunctionGroupContracts.",
   "process_description": "CANONICAL create a calendar event. The tenant adds a court date, deadline, meeting, or other event with title, date, and description. CANONICAL list of calendar events in a date range. Returns events sorted by date. Used by the calendar view. CANONICAL upcoming deadlines within a look-ahead window (default 30 days, max 90). Returns deadlines sorted by date. Used by the tenant dashboard's deadlines section. CANONICAL get a single calendar event by ID. Returns full event details. CANONICAL update a calendar event. The tenant can edit title, date, description, or event type. CANONICAL delete a calendar event. Removes the event from the calendar. CANONICAL list of events extracted from the tenant's documents. Returns dates found in documents that can be synced to the calendar. CANONICAL sync events from documents to the calendar. Creates calendar events from dates extracted from documents. Optionally overwrites existing events with the same title. CANONICAL summary of upcoming deadlines. Returns counts by urgency (overdue, this week, this month). Used by the tenant dashboard's deadline summary widget. CANONICAL send deadline notifications. Triggers notifications for deadlines within the specified window (default 7 days).",
   "process_context": "Derived record. Invoked via the calendar module's registered routes and dependencies.",
-  "narrative_events": []
+  "narrative_events": [
+    {
+      "verb": "saved",
+      "object": "the calendar entry",
+      "context_clause": "because the tenant added a date to keep track of"
+    },
+    {
+      "verb": "saved",
+      "object": "the court date",
+      "context_clause": "because the tenant entered when they must appear"
+    },
+    {
+      "verb": "saved",
+      "object": "the deadline",
+      "context_clause": "because the tenant marked a date they cannot miss"
+    }
+  ]
 }

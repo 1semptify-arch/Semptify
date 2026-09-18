@@ -203,5 +203,16 @@
   "output_why": "Serves the Communication functions declared in its FunctionGroupContracts.",
   "process_description": "CANONICAL list of conversations for the current user. Returns conversation summaries with last message, unread count, and participant info. CANONICAL create a new conversation. The user specifies the recipient and initial message. Returns the new conversation. CANONICAL get a single conversation with message thread. Supports pagination via before_message_id. Returns messages in chronological order. CANONICAL send a message in a conversation. Returns the new message with ID and timestamp. CANONICAL mark a single message as read. Updates the read receipt for the message. CANONICAL mark all messages in a conversation as read. Updates the unread count to zero. CANONICAL reject a document delivered through the communication channel. The recipient provides a reason for rejection. CANONICAL fill and sign a document delivered through the communication channel. Supports typed, drawn, and digital signatures. CANONICAL upload a file attachment to a conversation. The file is stored in the sender's vault and linked to the conversation. CANONICAL get the conversation associated with a document delivery. Returns the conversation thread for the delivery. CANONICAL send a typing indicator for a conversation. Notifies the other participant that the user is typing. CANONICAL conversation creation via CommunicationService.create_conversation(). Stores conversation as COMMUNICATION overlay in user's cloud storage. No other service may create conversation overlays directly. CANONICAL message send via CommunicationService.send_message(). Stores message as COMMUNICATION overlay. Appends to existing conversation thread. CANONICAL conversation list via CommunicationService.get_conversations(). Returns ConversationListResponse with summaries and unread counts. CANONICAL document fill+sign via CommunicationService.fill_and_sign_document(). Fills form fields, applies signature, stores result as overlay.",
   "process_context": "Derived record. Invoked via the communication module's registered routes and dependencies.",
-  "narrative_events": []
+  "narrative_events": [
+    {
+      "verb": "saved",
+      "object": "the new conversation",
+      "context_clause": "because the tenant opened a channel with someone involved"
+    },
+    {
+      "verb": "sent",
+      "object": "the message",
+      "context_clause": "because the tenant wrote in a conversation"
+    }
+  ]
 }

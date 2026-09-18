@@ -213,5 +213,16 @@
   "output_why": "Serves the Eviction Defense functions declared in its FunctionGroupContracts.",
   "process_description": "CANONICAL list of eviction defense forms. Supports filtering by category and case stage. Returns form templates with instructions. CANONICAL detailed view of a single eviction defense form. Returns the form template, fields, and filing instructions. CANONICAL list of eviction defense motions. Supports filtering by motion type. Returns motion templates with requirements. CANONICAL list of eviction defense procedures. Supports filtering by category. Returns step-by-step procedure guides. CANONICAL list of counterclaim templates. Returns all available counterclaims a tenant may raise in an eviction case. CANONICAL list of all available eviction defenses with explanations. Returns defense names, descriptions, and when they apply. Facts only — not a recommendation to use a specific defense. CANONICAL calculation of eviction case deadlines from a start date and case type. Returns all deadlines with dates and descriptions. CANONICAL checklist for an eviction case at a given stage. Returns the list of steps, documents, and deadlines for the stage. CANONICAL analysis of an eviction case based on the tenant's documents. Returns suggested defenses, counterclaims, and deadlines based on what was found in uploaded documents. Facts only — not legal advice. CANONICAL quick status for dashboard display. Returns counts of available defenses, upcoming deadlines, and case stage. Used by the tenant dashboard's eviction defense section. CANONICAL defense recommendations based on uploaded documents. Analyzes the tenant's documents and returns defenses that may apply based on detected issues. Facts only — not legal advice. CANONICAL counterclaim recommendations based on uploaded documents. Analyzes the tenant's documents and returns counterclaims that may apply. Facts only — not legal advice. CANONICAL deadlines calculated from uploaded documents. Returns all deadlines found in the tenant's documents, sorted by date. CANONICAL comprehensive eviction defense analysis based on uploaded documents. Returns defenses, counterclaims, deadlines, and suggested actions in one call. Facts only — not legal advice.",
   "process_context": "Derived record. Invoked via the eviction_defense module's registered routes and dependencies.",
-  "narrative_events": []
+  "narrative_events": [
+    {
+      "verb": "found",
+      "object": "the deadlines that apply",
+      "context_clause": "because the tenant entered the date they were served"
+    },
+    {
+      "verb": "flagged",
+      "object": "a deadline that has already passed",
+      "context_clause": "because the answer window closed before today"
+    }
+  ]
 }

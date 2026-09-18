@@ -83,5 +83,11 @@
   "output_why": "Serves the Eviction Timeline functions declared in its FunctionGroupContracts.",
   "process_description": "CANONICAL module metadata. Returns health and capabilities. T2 module — timeline events reference tenant case context; filing-linked fields may need T3 later. CANONICAL list eviction timeline events for a subject/user. Returns event metadata; document content stays in cloud overlays. CANONICAL add an eviction timeline event. Stores structure and pointers only; narrative content and filings are cloud overlays. CANONICAL warm, honest milestone message for eviction-timeline phase transitions. Uses the tenant's Experience Token intensity level. Never urgency- or fear-based. CANONICAL ADR-0008 §2.1/2.6 wiring for the Eviction Timeline page. Returns the Page Envelope with resolved page actions for this tenant.",
   "process_context": "Derived record. Invoked via the eviction_timeline module's registered routes and dependencies.",
-  "narrative_events": []
+  "narrative_events": [
+    {
+      "verb": "saved",
+      "object": "the timeline event",
+      "context_clause": "because the tenant recorded a step in the eviction process"
+    }
+  ]
 }

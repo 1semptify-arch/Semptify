@@ -143,5 +143,16 @@
   "output_why": "Serves the Journal functions declared in its FunctionGroupContracts.",
   "process_description": "CANONICAL create a free-form journal entry. Tenants log conversations, incidents, repair requests, and notes with a title, content, timestamp, and optional tags. CANONICAL list of journal entries for a user. Returns entries sorted by occurrence time, newest first, with optional filters and pagination. CANONICAL get a single journal entry by ID. Enforces ownership. CANONICAL update a journal entry. Enforces ownership. CANONICAL delete a journal entry. Enforces ownership. CANONICAL dashboard summary of journal entries. Returns total count, urgent count, and the most recent entries.",
   "process_context": "Derived record. Invoked via the journal module's registered routes and dependencies.",
-  "narrative_events": []
+  "narrative_events": [
+    {
+      "verb": "saved",
+      "object": "the entry",
+      "context_clause": "because the tenant recorded what happened"
+    },
+    {
+      "verb": "flagged",
+      "object": "the entry as urgent",
+      "context_clause": "because the tenant marked it as needing attention soon"
+    }
+  ]
 }

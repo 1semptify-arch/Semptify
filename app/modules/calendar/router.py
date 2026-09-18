@@ -14,6 +14,7 @@ from sqlalchemy import and_, func, select
 
 from app.core.database import get_db_session
 from app.core.document_hub import get_document_hub
+from app.core.event_bus import EventType, event_bus
 from app.core.id_gen import make_id
 from app.core.security import StorageUser, yellow_access
 from app.core.utc import utc_now
@@ -209,6 +210,20 @@ async def create_event(
             )
         except Exception:
             logger.debug("Brain emit failed (optional)", exc_info=True)
+
+        event_bus.publish_sync(
+            EventType.HEARING_SCHEDULED if event.event_type == "hearing" else EventType.DEADLINE_ADDED,
+            {
+                "user_id": user.user_id,
+                "event_id": db_event.id,
+                "event_type": db_event.event_type,
+                "is_critical": db_event.is_critical,
+                "narrator": {
+                    "module": "app.modules.calendar",
+                    "slot": 1 if event.event_type == "hearing" else (2 if event.event_type == "deadline" else 0),
+                },
+            },
+        )
 
         return _model_to_response(db_event)
 

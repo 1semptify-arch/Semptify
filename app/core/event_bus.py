@@ -97,6 +97,17 @@ class EventType(str, Enum):
     OVERLAY_BUILD_STARTED = "overlay_build_started"
     OVERLAY_BUILD_COMPLETED = "overlay_build_completed"
 
+    # Tenant-path narration events (contract-declared narrative_events)
+    JOURNAL_ENTRY_CREATED = "journal_entry_created"
+    STICKY_NOTE_CREATED = "sticky_note_created"
+    CONVERSATION_STARTED = "conversation_started"
+    MESSAGE_SENT = "message_sent"
+    RESOURCE_SEARCHED = "resource_searched"
+    DEADLINE_CALCULATED = "deadline_calculated"
+    DOCUMENT_TYPE_CONFIRMED = "document_type_confirmed"
+    REVIEW_STATE_SAVED = "review_state_saved"
+    SHARE_LINK_SENT = "share_link_sent"
+
 
 # Narration strings for ADR-0008 §2.3 Live Event-Driven Narration.
 # These are injected at the WebSocket boundary only; they do not alter the
