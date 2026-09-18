@@ -1565,7 +1565,7 @@
   last_result:
     health_check: ON HOLD per Brad's standing direction
     test_suite: flagged
-  flag_reason: DEPRECATED — ON HOLD per Brad's standing direction (marked 2026-09-13)
+  flag_reason: "DEPRECATED \u2014 ON HOLD per Brad's standing direction (marked 2026-09-13)"
 - id: context_loop
   display_name: Context Loop
   category: advanced
@@ -1821,6 +1821,17 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.law_linker.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
+- id: accountability_ledger_accountability_ledger_router
+  display_name: Accountability Ledger / Political Tracker / Research
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.accountability_ledger.router
   health_check: TODO
   test_suite: TODO
   last_verified: null
