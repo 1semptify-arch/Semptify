@@ -1,3 +1,14 @@
+## Session — 2026-09-18 — Canonical AI-use disclosure added to unified footer (devin)
+
+### What shipped (task `ai-disclosure-footer`)
+- `app/templates/components/footer.html` — added the approved AI-Assisted Content Notice verbatim (SEMPTIFY_REFERENCE_LIBRARY.md §14, footer version) to `footer-bottom` after the mandates line, reusing `.footer-help` (no new CSS).
+- Coverage: this partial is the single live footer — included server-side by `base.html` (all Jinja pages) and served at `/components/footer` for `unified-footer-loader.js` injection (standalone pages like `static/public/welcome.html`).
+- Master queue unreachable (local Postgres down) — task tracked in the module mirror `tools/agent_orchestrator_tasks.json`; promote via `tools/sync_orchestrator.py` when Postgres is back.
+
+### Verification
+- `GET /components/footer` → 200, notice present; `GET /` → notice in server-rendered footer; `/public/welcome.html` → JS-injected footer shows the notice verbatim; desktop + 375px screenshots clean; no layout issues.
+- Ship: direct push to main blocked by branch protection → PR `ai-disclosure-footer`. Deploys on merge.
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: MNDES exhibit packages → user cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T16:10:00+00:00
