@@ -56,5 +56,17 @@
         "why": "Everything shared, organized by matter."
       }
     ]
+  },
+  "record_device_type": false,
+  "privacy": {
+    "visibility": "privileged_workspace",
+    "logging": "standard",
+    "linking": "consent_required",
+    "notes": "Privileged work product stays in the legal vault; client access is consent-gated."
+  },
+  "wording": {
+    "setup": {
+      "lede": "Your workspace documents live in your own storage — nothing is kept here. Add one real document so we can confirm everything works end to end. When it finishes, this page becomes your home."
+    }
   }
 }

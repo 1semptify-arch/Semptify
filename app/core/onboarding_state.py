@@ -5,13 +5,22 @@ This is THE one place that reads onboarding gate state from the database.
 All middleware and routing logic must defer to this module.
 No other code should read User.completed_groups directly for gate checks.
 
-Gates (in order):
+Gates (durable boundary marks — START and FINALE only):
   storage_connected  — START: OAuth completed, provider connected
-  vault_initialized  — internal progress flag: vault folders, token backup,
-                       and live write/read probe pass. Tracked here for
-                       resume/routing only — not a gate for other modules.
   document_uploaded  — FINALE: first real document through the full vault
                        pipeline. One-way valve, never unset.
+
+Internal progress (not a gate):
+  vault_initialized  — internal progress flag: vault folders, token backup,
+                       and live write/read probe pass. Written during the
+                       role-home setup flow and read by the setup component
+                       to resume mid-flow. Never part of is_fully_onboarded
+                       and never a routing requirement — setup happens at
+                       the role home page, not in onboarding.
+
+Per the 2026-09-18 Onboarding → Role-Home handoff: onboarding ends at
+OAuth (START); everything after that lives at the role home page until
+the test-document upload completes (FINALE).
 """
 
 import logging
@@ -34,27 +43,49 @@ class OnboardingState:
 
     @property
     def is_fully_onboarded(self) -> bool:
-        """True when all mandatory onboarding gates are complete."""
-        return self.storage_connected and self.vault_initialized and self.document_uploaded
+        """True when both durable boundary gates are complete (START + FINALE).
+
+        vault_initialized is deliberately NOT part of this composite — it is
+        internal setup-resume state owned by the role-home flow, not a gate.
+        """
+        return self.storage_connected and self.document_uploaded
 
     @property
     def next_required_gate(self) -> str | None:
         """
-        Returns the name of the first incomplete gate, or None if all done.
+        Returns the name of the first incomplete durable gate, or None if done.
         This is the single routing decision point for all middleware.
+
+        Only START and FINALE are routing gates. vault_initialized never
+        appears here — internal progress is resumed by the role-home setup
+        component, not by routing.
         """
         if not self.storage_connected:
             return "storage_connected"
-        if not self.vault_initialized:
-            return "vault_initialized"
         if not self.document_uploaded:
             return "document_uploaded"
         return None
 
     @property
+    def home_path(self) -> str:
+        """The user's role-home landing surface — resolved from user_id role."""
+        try:
+            from app.core.navigation import navigation
+            from app.core.user_id import get_role_from_user_id
+
+            return navigation.get_role_home(get_role_from_user_id(self.user_id))
+        except Exception as exc:
+            logger.warning("Role-home lookup failed for user %s: %s", self.user_id[:6] + "***", exc)
+            return "/tenant/start"
+
+    @property
     def next_required_path(self) -> str | None:
         """
-        Returns the SSOT path for the next required onboarding step.
+        Returns the SSOT path for the next required step.
+
+        No storage_connected → storage provider selection (still onboarding).
+        Anything else incomplete → the user's role home, where install,
+        verify, and the mandatory test upload (FINALE) all live now.
         Uses navigation registry — no hardcoded paths.
         Returns None if fully onboarded.
         """
@@ -62,29 +93,19 @@ class OnboardingState:
         if gate is None:
             return None
 
-        try:
-            from app.core.navigation import navigation
+        if gate == "storage_connected":
+            try:
+                from app.core.navigation import navigation
 
-            gate_to_stage = {
-                "storage_connected": "storage_select",  # /onboarding/providers (new users)
-                "vault_initialized": "vault_setup",  # /onboarding/vault-setup
-                "document_uploaded": "vault_inspect",  # /onboarding/vault-setup/inspect
-            }
-            stage_id = gate_to_stage.get(gate)
-            if stage_id:
-                stage = navigation.get_stage(stage_id)
+                stage = navigation.get_stage("storage_select")
                 if stage:
                     return stage.path
-        except Exception as exc:
-            logger.warning("Navigation lookup failed for gate %s: %s", gate, exc)
+            except Exception as exc:
+                logger.warning("Navigation lookup failed for gate %s: %s", gate, exc)
+            return "/onboarding/providers"
 
-        # Fallback paths (only used if navigation registry is unavailable)
-        fallbacks = {
-            "storage_connected": "/onboarding/providers",
-            "vault_initialized": "/onboarding/vault-setup",
-            "document_uploaded": "/onboarding/vault-setup/inspect",
-        }
-        return fallbacks.get(gate, "/onboarding/")
+        # document_uploaded (or any post-START incompleteness) → role home
+        return self.home_path
 
 
 async def get_onboarding_state(

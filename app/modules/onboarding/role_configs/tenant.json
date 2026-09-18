@@ -69,5 +69,15 @@
         "why": "Put a request to your landlord in writing."
       }
     ]
+  },
+  "record_device_type": false,
+  "privacy": {
+    "visibility": "owner_only",
+    "logging": "strict_stateless",
+    "linking": "consent_required",
+    "notes": "Tenant logging stays strict and stateless; advocate/staff links only by explicit consent."
+  },
+  "wording": {
+    "setup": {}
   }
 }

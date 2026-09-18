@@ -1,0 +1,59 @@
+{#
+  Shared first-run vault setup — rendered inside every role home while the
+  document_uploaded FINALE gate is unset.
+
+  Drives the existing /onboarding/api/vault/* endpoints via
+  /static/js/vault_setup_flow.js. Server-side vault_checks rows are the
+  resume point — a user can leave and continue on any device.
+
+  Layout: single column, strict chronological order (build folders →
+  secure connection → first document), per the standing
+  chronological/spatial GUI rule. shell-* classes only — no page CSS.
+
+  Optional context: setup_wording (dict from role config wording.setup —
+  keys: title, lede, step_folders, step_secure, step_upload, drop_label,
+  submit_label, done_text). Missing keys fall back to the defaults below.
+#}
+{% set w = setup_wording or {} %}
+<section class="shell-zone" data-vault-setup aria-labelledby="vs-title">
+  <p class="shell-eyebrow">Finish setting up</p>
+  <h1 id="vs-title">{{ w.get('title', 'One more step: your first document.') }}</h1>
+  <p class="shell-lede">{{ w.get('lede', 'Your documents live in your own storage — nothing is kept here. Add one real document so we can confirm everything works end to end. When it finishes, this page becomes your home.') }}</p>
+
+  <div class="shell-status" aria-label="Setup progress">
+    <div class="shell-status-row" data-vs-step="folders">
+      <span class="shell-status-label">1 · {{ w.get('step_folders', 'Build your vault folders') }}</span>
+      <span class="shell-status-value" data-vs-state>Waiting</span>
+    </div>
+    <div class="shell-status-row" data-vs-step="secure">
+      <span class="shell-status-label">2 · {{ w.get('step_secure', 'Secure the connection') }}</span>
+      <span class="shell-status-value" data-vs-state>Waiting</span>
+    </div>
+    <div class="shell-status-row" data-vs-step="upload">
+      <span class="shell-status-label">3 · {{ w.get('step_upload', 'Add your first document') }}</span>
+      <span class="shell-status-value" data-vs-state>Waiting</span>
+    </div>
+  </div>
+
+  <p class="shell-note" data-vs-busy-text aria-live="polite"></p>
+
+  <div data-vs-upload hidden>
+    <label class="shell-drop" for="vs-file" data-vs-drop>
+      <span data-vs-drop-label>{{ w.get('drop_label', 'Choose a document — a notice, letter, photo, or PDF.') }}</span>
+    </label>
+    <input type="file" id="vs-file" data-vs-file hidden>
+    <p class="shell-note">It stays in your storage — Semptify never keeps a copy. This upload proves the whole path works.</p>
+    <div class="shell-actions">
+      <button type="button" class="shell-btn shell-btn--accent" data-vs-submit disabled>{{ w.get('submit_label', 'Verify my vault') }}</button>
+    </div>
+  </div>
+
+  <div class="shell-panel" data-vs-error hidden>
+    <p class="shell-note" data-vs-error-text></p>
+    <div class="shell-actions">
+      <button type="button" class="shell-btn" data-vs-retry>Try again</button>
+      <a class="shell-btn" href="/help">Get help</a>
+    </div>
+  </div>
+</section>
+<script src="/static/js/vault_setup_flow.js" defer></script>

@@ -1,19 +1,24 @@
 """
 Onboarding Router — all page and API routes for the onboarding flow.
 
+Onboarding is the fast, generic entry: role selection + storage OAuth.
+After OAuth the user lands on their role home page, which owns vault
+install, verification, overlay/Document Center setup, and the mandatory
+test upload (FINALE). See: Onboarding → Role-Home handoff, 2026-09-18.
+
 Routes:
   GET  {prefix}/                     → entry point (role selection)
   GET  {prefix}/providers            → storage provider selection
   GET  {prefix}/auth/{provider}      → initiate OAuth (onboarding-specific)
-  GET  {prefix}/callback/{provider}  → OAuth callback (onboarding-specific)
-  GET  {prefix}/vault-setup          → vault setup page (step 1: build folders)
-  GET  {prefix}/vault-setup/security → vault security page (step 2: token backup)
-  GET  {prefix}/vault-setup/inspect  → vault inspect page (step 3: final check)
-  POST {prefix}/api/vault/init       → create vault folders
-  POST {prefix}/api/vault/security   → write token backup
-  POST {prefix}/api/vault/verify     → live probe + document upload → marks both final gates
+  GET  {prefix}/callback/{provider}  → OAuth callback → role home
+  GET  {prefix}/vault-setup          → legacy redirect → role home
+  GET  {prefix}/vault-setup/security → legacy redirect → role home
+  GET  {prefix}/vault-setup/inspect  → legacy redirect → role home
+  POST {prefix}/api/vault/init       → create vault folders (called from role home)
+  POST {prefix}/api/vault/security   → write token backup (called from role home)
+  POST {prefix}/api/vault/verify     → test upload → marks FINALE (called from role home)
   GET  {prefix}/api/vault/status     → check user auth status
-  GET  {prefix}/complete             → route to product home
+  GET  {prefix}/complete             → route to role home
   GET  {prefix}/status               → gate status check page
 """
 
@@ -187,8 +192,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         1. Exchanges code for tokens
         2. Creates or finds user
         3. Saves session + caches token
-        4. Marks storage_connected gate
-        5. ALWAYS routes to vault-setup (onboarding callback = vault needed)
+        4. Marks storage_connected gate (START)
+        5. ALWAYS routes to the user's role home — install/verify/test-upload
+           live there now (Onboarding → Role-Home handoff, 2026-09-18)
         """
         try:
             logger.info("OAuth callback started: provider=%s state=%s", provider, state[:8] + "***")
@@ -222,11 +228,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
             logger.info("OAuth callback: user_id=%s vault_initialized=%s", user_id[:6] + "***", vault_initialized)
 
-            # Determine landing — always route to selected role's home page
-            if vault_initialized:
-                landing = await route_user(user_id)
-            else:
-                landing = f"{config.route_prefix}/vault-setup"
+            # Always land on the selected role's home page. The home page
+            # renders its own setup flow when FINALE (document_uploaded) is
+            # not yet marked — onboarding no longer owns vault setup.
+            landing = await route_user(user_id)
 
             logger.info(
                 "Onboarding callback complete: user=%s vault=%s → %s",
@@ -267,37 +272,40 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             )
 
     # ------------------------------------------------------------------
-    # Page: Vault Setup — Step 1: Build Folders
+    # Legacy pages: Vault Setup steps 1–3 — superseded by role-home setup
     # ------------------------------------------------------------------
+    # The install → security → verify flow now lives on the user's role home
+    # page (Onboarding → Role-Home handoff, 2026-09-18). These routes stay as
+    # compatibility redirects so bookmarks and in-flight links land on the
+    # home page's setup mode instead of 404ing. The APIs they called
+    # (/api/vault/*) are unchanged — the home-page setup component uses them.
+    async def _redirect_to_role_home(semptify_uid: str | None, context: str):
+        """Shared redirect: valid cookie → role home; no cookie → role select."""
+        if not semptify_uid:
+            role_stage = navigation.get_stage("role_select")
+            return ssot_redirect(role_stage.path, context=f"{context} no cookie")
+        raw_uid = verify_user_id(semptify_uid)
+        if not raw_uid:
+            role_stage = navigation.get_stage("role_select")
+            response = ssot_redirect(role_stage.path, context=f"{context} bad cookie")
+            clear_auth_cookie(response)
+            return response
+        return ssot_redirect(await route_user(raw_uid), context=context)
+
     @router.get("/vault-setup", response_class=HTMLResponse)
     async def vault_setup_page(semptify_uid: str | None = Cookie(None)):
-        """Step 1: Create vault folders."""
-        if not semptify_uid:
-            role_stage = navigation.get_stage("role_select")
-            return ssot_redirect(role_stage.path, context="vault_setup no cookie")
-        return HTMLResponse(content=_render_vault_step1(config))
+        """Legacy step 1 — redirect to role home (hosts setup mode now)."""
+        return await _redirect_to_role_home(semptify_uid, "vault_setup legacy redirect")
 
-    # ------------------------------------------------------------------
-    # Page: Vault Setup — Step 2: Security Wiring
-    # ------------------------------------------------------------------
     @router.get("/vault-setup/security", response_class=HTMLResponse)
     async def vault_security_page(semptify_uid: str | None = Cookie(None)):
-        """Step 2: Write token backup and security files."""
-        if not semptify_uid:
-            role_stage = navigation.get_stage("role_select")
-            return ssot_redirect(role_stage.path, context="vault_security no cookie")
-        return HTMLResponse(content=_render_vault_step2(config))
+        """Legacy step 2 — redirect to role home (hosts setup mode now)."""
+        return await _redirect_to_role_home(semptify_uid, "vault_security legacy redirect")
 
-    # ------------------------------------------------------------------
-    # Page: Vault Setup — Step 3: Final Inspection
-    # ------------------------------------------------------------------
     @router.get("/vault-setup/inspect", response_class=HTMLResponse)
     async def vault_inspect_page(semptify_uid: str | None = Cookie(None)):
-        """Step 3: Verify vault is fully operational."""
-        if not semptify_uid:
-            role_stage = navigation.get_stage("role_select")
-            return ssot_redirect(role_stage.path, context="vault_inspect no cookie")
-        return HTMLResponse(content=_render_vault_step3(config))
+        """Legacy step 3 — redirect to role home (hosts setup mode now)."""
+        return await _redirect_to_role_home(semptify_uid, "vault_inspect legacy redirect")
 
     # ------------------------------------------------------------------
     # API: Vault Status — single source, used by vault_status_poll.js
@@ -939,15 +947,16 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         # comes from config.gates (START → internal vault flag → FINALE).
         # Roles never add checkpoints; role customization lives on the
         # role's landing page, not in onboarding.
-        gate_redirects = {
-            "storage_connected": f"{config.route_prefix}/providers",
-            "vault_initialized": f"{config.route_prefix}/vault-setup",
-            "document_uploaded": f"{config.route_prefix}/vault-setup/inspect",
-        }
+        # Post-START incompleteness routes to the role home — the setup flow
+        # (install, verify, test upload) lives there now, not in onboarding.
         for gate in config.gates:
             if not await check_gate(db, raw_uid, gate):
-                dest = gate_redirects.get(gate, f"{config.route_prefix}/status")
-                return ssot_redirect(dest, context=f"onboarding_complete {gate}_missing")
+                if gate == "storage_connected":
+                    dest = f"{config.route_prefix}/providers"
+                    return ssot_redirect(dest, context=f"onboarding_complete {gate}_missing")
+                return ssot_redirect(
+                    await route_user(raw_uid), context=f"onboarding_complete {gate}_missing → role home"
+                )
 
         # All gates passed - route to role-specific homepage
         destination = await route_user(raw_uid)
@@ -972,13 +981,8 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         incomplete = await gate_ops.get_first_incomplete_gate(db, raw_uid, config.gates)
         if incomplete is None:
-            # Role-based redirect after onboarding completion
-            from app.core.user_id import parse_user_id
-
-            _, role, _ = parse_user_id(raw_uid)
-            if role == "admin":
-                return ssot_redirect(navigation.get_stage("admin_dashboard").path, context="status all gates done admin")
-            return ssot_redirect(config.on_complete_redirect, context="status all gates done")
+            # All gates marked → the role's own home page (SSOT routing).
+            return ssot_redirect(await route_user(raw_uid), context="status all gates done → role home")
 
         return HTMLResponse(content=_render_status_page(config, incomplete))
 

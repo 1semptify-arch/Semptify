@@ -33,6 +33,8 @@ class TestOnboardingState:
         assert state.next_required_gate == "storage_connected"
 
     def test_storage_done_vault_pending(self):
+        """START done, vault not built — vault_initialized is internal resume
+        state, not a routing gate. Next required gate is FINALE."""
         state = OnboardingState(
             user_id="u1",
             storage_connected=True,
@@ -40,10 +42,11 @@ class TestOnboardingState:
             document_uploaded=False,
         )
         assert state.is_fully_onboarded is False
-        assert state.next_required_gate == "vault_initialized"
+        assert state.next_required_gate == "document_uploaded"
 
     def test_vault_done_document_pending(self):
-        """Vault built but FINALE not reached — next step is the mandatory upload."""
+        """Vault built but FINALE not reached — next step is the mandatory
+        upload, and it lives at the role home, not a vault-setup page."""
         state = OnboardingState(
             user_id="u1",
             storage_connected=True,
@@ -54,7 +57,8 @@ class TestOnboardingState:
         assert state.next_required_gate == "document_uploaded"
         path = state.next_required_path
         assert path is not None
-        assert "inspect" in path or "vault-setup" in path
+        assert path == state.home_path
+        assert "vault-setup" not in path and "inspect" not in path
 
     def test_vault_done_storage_pending(self):
         state = OnboardingState(
@@ -67,15 +71,27 @@ class TestOnboardingState:
         assert state.next_required_gate == "storage_connected"
 
     def test_document_only_not_fully_onboarded(self):
-        """FINALE flag alone never counts as onboarded — gates are serial."""
+        """FINALE without START never counts as onboarded — gates stay serial."""
+        state = OnboardingState(
+            user_id="u1",
+            storage_connected=False,
+            vault_initialized=False,
+            document_uploaded=True,
+        )
+        assert state.is_fully_onboarded is False
+        assert state.next_required_gate == "storage_connected"
+
+    def test_start_and_finale_without_vault_flag(self):
+        """START + FINALE is fully onboarded even if vault_initialized was
+        never written — the internal flag is resume state, not a gate."""
         state = OnboardingState(
             user_id="u1",
             storage_connected=True,
             vault_initialized=False,
             document_uploaded=True,
         )
-        assert state.is_fully_onboarded is False
-        assert state.next_required_gate == "vault_initialized"
+        assert state.is_fully_onboarded is True
+        assert state.next_required_gate is None
 
     def test_frozen(self):
         state = OnboardingState(

@@ -1,3 +1,40 @@
+## Session — 2026-09-18 — Onboarding → Role-Home Handoff implemented (devin)
+
+### What shipped (plan: `handoffs/onboarding-role-home-impl-plan-2026-09-18.md`)
+
+**Routing/state (Phase 1)**
+- `app/core/navigation.py` — added home FlowStages for every role + `ROLE_HOME_STAGES` (single role→home registry, all 10 roles + `user`/`judge`/`research` aliases) + `get_role_home()` resolver.
+- `app/core/workflow_engine.py` — `ROLE_SPECIFIC_ROUTES` now consumes the registry and covers all roles.
+- `app/core/onboarding_state.py` — gates collapsed to START+FINALE: `is_fully_onboarded = storage_connected AND document_uploaded`; `vault_initialized` stays written but is internal resume state only. Added `home_path`; `next_required_path` routes post-START incomplete users to their role home instead of vault-setup pages.
+- `app/core/storage_middleware.py` — role-home pass-through (normalized path compare) so a home can't redirect-loop on itself; all other incomplete protected paths → providers (pre-START) or role home (post-START). Enforcement remains `enforce=is_production`.
+- `app/modules/onboarding/router.py` — OAuth callback lands via `route_user()`; the three legacy `/onboarding/vault-setup*` pages now redirect to the role home; `/onboarding/complete` sends post-START incomplete users home. Setup APIs `/onboarding/api/vault/*` unchanged in place (per Brad's decision).
+- `app/modules/preamble/router.py` — docstring/comments corrected to the START/FINALE model (routing logic already correct).
+
+**Shared setup experience (Phase 2)**
+- `app/templates/components/vault_setup_flow.html` — reusable setup component (shell-* classes only, no new CSS): chronological steps (build folders → secure connection → first document), upload zone, retry-on-error, `/help` escape. Per-role copy via `setup_wording` (role JSON `wording.setup`).
+- `app/static/js/vault_setup_flow.js` — drives the existing APIs: `GET /status` → `POST /init` → `POST /security` → `POST /verify`; resumes from server-side `vault_checks` state (cross-device), detect-first heal when a document already exists, 401 → `/storage/reconnect?return_to=…`, `verifying` poll with retry cap, reloads on FINALE.
+- `app/templates/pages/role_home_setup.html` — the shared pre-FINALE home page (shell--solo) all roles render in setup mode.
+- `app/templates/pages/role_home_shared.html` — shared normal-mode home (hero → sections → tools → help, fed by the role's `surfacing` block).
+- `app/main.py` — `_needs_vault_setup`, `_role_setup_page`, `_role_home_or_setup` helpers; setup-mode branch wired into `/tenant/start`, `/advocate/home` (+`multi_client_advocate`), `/legal/home` (+`judge`), `/manager`, `/admin/home` (admin-role only — elevation gateway untouched for others). **New routes**: `/researcher/home`, `/agency/home`, `/developer/home`, `/donor/home` (+trailing-slash variants). `/office` no longer the fallback for these roles.
+- `app/core/role_surfacing.py` — added `get_role_display_name` + `get_role_wording` accessors.
+
+**Role config (Phase 3)**
+- All 10 `role_configs/*.json` gained `record_device_type: false` (explicit default pending the deferred device-recording decision), a `privacy` block (visibility/logging/linking per the mandate sets), and `wording.setup` copy overrides.
+- `VaultCheck.device_type` deliberately NOT added — a nullable column needs a migration (ORM INSERTs would break on existing DBs) and no recording policy exists yet. Deferred with the policy decision.
+
+### Verification
+- `py_compile` clean on all changed files; `node --check` clean on the JS.
+- `tests/test_onboarding_state.py` — updated to the START+FINALE contract, 18 passed (single-file coverage gate expected to fail, whole-suite metric).
+- `tests/test_ssot_architecture.py` — 8 passed.
+- Live server (:8001, venv311): minted real signed cookies + DB rows for synthetic tenant/researcher users (removed after). Verified: pre-FINALE `/tenant/start` and `/researcher/home` render setup mode (researcher shows its own `wording.setup` copy); post-FINALE renders normal homes (zero `data-vault-setup`); role-mismatch redirects to the correct role home; legacy `/onboarding/vault-setup` → role home; `/api/vault/status` returns gate JSON (401 unauthenticated); JS serves at `/static/js/` and `/js/`.
+- **Not verified**: real OAuth round-trip (needs live provider credentials) and browser-level rendering (IronBee MCP not enabled in this session — verified at HTTP/template level instead). Full end-to-end browser pass recommended on Render after merge.
+
+### Flags for Brad
+- `/admin/home` shows setup only to admin-role users; the legacy elevation-gateway template is untouched — admin's real portal stays `/admin/dashboard`.
+- `manager_portal_page` gate check uses `extract_user_id` (verified id), not the raw cookie — fixed during implementation.
+- Setup APIs stayed at `/onboarding/api/vault/*` per your decision; the duplicate `/api/vault-installer/*` surface remains flagged for future align-or-deprecate.
+- Pre-existing banned-word violations in untouched onboarding/provider copy ("Free", "Account verified") logged as known issues, not fixed here (out of scope).
+
 ## Session — 2026-09-18 — Canonical AI-use disclosure added to unified footer (devin)
 
 ### What shipped (task `ai-disclosure-footer`)

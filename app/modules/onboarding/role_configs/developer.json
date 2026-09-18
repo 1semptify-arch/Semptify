@@ -29,5 +29,17 @@
         "why": "Workspace pages."
       }
     ]
+  },
+  "record_device_type": false,
+  "privacy": {
+    "visibility": "technical_workspace",
+    "logging": "standard",
+    "linking": "internal",
+    "notes": "Technical workspace; no tenant content through this vault."
+  },
+  "wording": {
+    "setup": {
+      "lede": "Your workspace documents live in your own storage — nothing is kept here. Add one real document so we can confirm everything works end to end."
+    }
   }
 }
