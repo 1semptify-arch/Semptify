@@ -1,3 +1,34 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: MNDES exhibit packages → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T16:10:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 13 — mndes_exhibit_packages)
+- `mndes_exhibit_packages` moved off the server DB into the owner's cloud vault — packages persist as `MNDES_PACKAGE` overlays anchored to `document_id="mndes:{user_id}"` at the new `VAULT_COURT_EXHIBITS_FILE` (`Vault/court_exhibits/packages.json`). Legacy rows import on first read (bounded 25/call, idempotent via `payload.package_id`) and on direct package access (import-on-access, ownership-checked).
+- `app/modules/mndes/service.py` — `_save_package_to_db`/`_get_package_from_db` replaced with `_save_package_to_vault` (upsert by package_id) / `_get_package_from_vault` + `_migrate_legacy_packages`; `_package_to_db_model`/`_package_from_db_model` became payload converters. `get_package`/`apply_attestations`/`confirm_submission`/`get_compliance_summary`/`get_submission_checklist` now take `user_id` (router supplies it via `_extract_user_id`).
+- `app/modules/mndes/router.py` — 4 endpoints that had **no auth at all** now extract `user_id` and 401 without it (packages were readable by anyone holding an ID — fixed, not just migrated). `create_package` kept its existing auth.
+- `mndes_exhibit_items` — dead table, never written anywhere (Alembic drop only, no readers to rewire).
+- `app/services/mndes_exhibit_service.py` — near-duplicate stale copy collapsed into a re-export shim of `app.modules.mndes.service` (removes the drift that hid every bug below).
+- Latent-bug family fixed — the entire MNDES API was broken at runtime: **every router call to the async service was un-awaited** (returned coroutines → `.dict()` AttributeError → 500 on create/get/checklist/compliance/attest/confirm); `ex.dict()` in `exhibits_json` serialization crashed `json.dumps` on datetimes (→ `model_dump(mode="json")`); `submitted_at` was written as a bool into a datetime column; `get_package` had no user filter (cross-user read possible by ID alone — now vault-scoped + ownership-guarded).
+- `tests/test_mndes_vault.py` — 6 functional tests (create/get round trip, attestation persistence, submission status, per-user isolation, bounded+idempotent legacy migration, import-on-access + cross-user guard). `tests/test_mndes_service.py` repointed from the stale duplicate to the live implementation + vault methods (25 total pass).
+
+### Verification (this slice)
+- `python -m py_compile` clean on all changed files; `tests/test_mndes_vault.py` — 6 passed; `tests/test_mndes_service.py` — 19 passed; `tests/module_health/test_mndes.py` — passed.
+- Guardrail engine — all checks PASS (run above).
+
+### Phase 1 status
+- **Complete.** All genuinely tenant-owned tables migrated. `fems_*` (6 tables) classified as global operator/forensic data — no `user_id`, global dedupe by design, local-disk inbox/quarantine, admin-only router → flagged for Brad's design decision (stays server-side or gets its own operator storage; not a tenant-vault target).
+- Next: Phase 2 STOP-AND-REPORT (index-table decision — `documents`, `document_pipeline_index`, `vault_*` index tables). See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: external mappings → user cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T15:45:00+00:00

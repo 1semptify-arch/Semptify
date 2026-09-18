@@ -12,9 +12,11 @@ Order ADM09-8010 compliance is enforced at every step:
 - Jury-room eligibility tagging for audio/video
 - Full audit trail via audit_logger
 
-Database Persistence:
-- Uses MNDESExhibitPackageDB and MNDESExhibitItemDB for persistence
-- Replaces legacy in-memory _packages dict (lost on restart)
+Vault Persistence:
+- Packages persist as MNDES_PACKAGE overlays in the owner's cloud vault
+  (VAULT_COURT_EXHIBITS_FILE) — tenant data lives in the tenant's storage.
+- Legacy mndes_exhibit_packages rows import on first read (bounded, idempotent).
+- mndes_exhibit_items was never written (dead table — Alembic drop only).
 """
 
 from __future__ import annotations
@@ -28,7 +30,10 @@ from app.core.mndes_compliance import (
     MNDES_USER_WARNINGS,
     mndes_validator,
 )
+from app.core.overlay_types import OverlayType
+from app.core.user_context import build_context_for_user_id
 from app.core.utc import utc_now
+from app.core.vault_paths import VAULT_COURT_EXHIBITS_FILE
 from app.models.mndes_exhibit import (
     MNDESAttestationRequest,
     MNDESCaseType,
@@ -41,14 +46,17 @@ from app.models.mndes_exhibit import (
     MNDESSubmissionConfirmRequest,
 )
 from app.models.models import MNDESExhibitPackageDB
+from app.models.unified_overlay_models import CreateOverlayRequest
+from app.services.storage import get_provider
+from app.services.unified_overlay_manager import get_unified_overlay_manager
 
 logger = logging.getLogger(__name__)
 
 # ============================================================================
-# Legacy in-memory store (DEPRECATED - use database instead)
+# Legacy in-memory store (DEPRECATED - use vault instead)
 # ============================================================================
 # NOTE: This dict is kept for backward compatibility during migration.
-# New code should use MNDESExhibitPackageDB via _save_package_to_db() and _get_package_from_db()
+# New code should use vault overlays via _save_package_to_vault() / get_package()
 _packages: dict[str, MNDESExhibitPackage] = {}
 
 
@@ -66,66 +74,191 @@ class MNDESExhibitService:
         package = await service.create_package(request, vault_index, user_id)
     """
 
-    def _package_to_db_model(self, package: MNDESExhibitPackage) -> MNDESExhibitPackageDB:
-        """Convert Pydantic package model to DB model."""
-        return MNDESExhibitPackageDB(
-            package_id=package.package_id,
-            user_id=package.user_id,
-            mn_case_number=package.mn_case_number,
-            case_type=package.case_type.value if package.case_type else "eviction",
-            case_caption=package.case_caption,
-            package_name=f"Package for {package.mn_case_number}",
-            description=None,
-            exhibits_json=json.dumps([ex.dict() for ex in package.exhibits]),
-            requires_attestation=True,
-            attestation_provided=package.checklist_complete,
-            attestation_date=package.updated_at if package.checklist_complete else None,
-            attested_by=None,
-            status="draft"
+    # ------------------------------------------------------------------
+    # Vault persistence (tenant cloud vault via Unified Overlay)
+    # ------------------------------------------------------------------
+    # Packages persist as MNDES_PACKAGE overlays anchored to
+    # `document_id="mndes:{user_id}"` at VAULT_COURT_EXHIBITS_FILE. Legacy
+    # `mndes_exhibit_packages` rows migrate on first read: non-destructive,
+    # idempotent via payload["package_id"], bounded at 25 rows/call.
+    # `mndes_exhibit_items` was never written (dead table — Alembic drop only).
+
+    def _package_to_payload(self, package: MNDESExhibitPackage) -> dict:
+        """Convert Pydantic package model to an overlay payload dict."""
+        return {
+            "package_id": package.package_id,
+            "user_id": package.user_id,
+            "mn_case_number": package.mn_case_number,
+            "case_type": package.case_type.value if package.case_type else "eviction",
+            "case_caption": package.case_caption,
+            "package_name": f"Package for {package.mn_case_number}",
+            "description": None,
+            "exhibits_json": json.dumps([ex.model_dump(mode="json") for ex in package.exhibits]),
+            "requires_attestation": True,
+            "attestation_provided": package.checklist_complete,
+            "attestation_date": (package.updated_at if package.checklist_complete else None),
+            "attested_by": None,
+            "status": "draft"
             if not package.mndes_submission_started
             else ("submitted" if package.mndes_submission_complete else "ready"),
-            is_sealed_case=package.is_sealed_case or False,
-            submitted_at=package.mndes_submission_started,
-            confirmation_number=None,
-            created_at=package.created_at or utc_now(),
-            updated_at=package.updated_at or utc_now(),
-        )
+            "is_sealed_case": package.is_sealed_case or False,
+            "submitted_at": package.mndes_submission_started,
+            "confirmation_number": None,
+            "created_at": package.created_at or utc_now(),
+            "updated_at": package.updated_at or utc_now(),
+        }
 
-    def _package_from_db_model(self, db_package: MNDESExhibitPackageDB) -> MNDESExhibitPackage:
-        """Convert DB model to Pydantic package model."""
-        exhibits_data = json.loads(db_package.exhibits_json) if db_package.exhibits_json else []
+    def _package_from_payload(self, payload: dict) -> MNDESExhibitPackage:
+        """Convert an overlay payload (or legacy DB column values) to a package."""
+        exhibits_data = json.loads(payload["exhibits_json"]) if payload.get("exhibits_json") else []
         exhibits = [MNDESExhibit(**ex) for ex in exhibits_data]
 
+        def _dt(value):
+            if value is None or isinstance(value, bool):
+                return None
+            if isinstance(value, str):
+                try:
+                    from datetime import datetime
+
+                    return datetime.fromisoformat(value)
+                except ValueError:
+                    return None
+            return value
+
         return MNDESExhibitPackage(
-            package_id=db_package.package_id,
-            user_id=db_package.user_id,
-            mn_case_number=db_package.mn_case_number,
-            case_type=MNDESCaseType(db_package.case_type) if db_package.case_type else MNDESCaseType.EVICTION,
-            case_caption=db_package.case_caption,
+            package_id=payload["package_id"],
+            user_id=payload["user_id"],
+            mn_case_number=payload["mn_case_number"],
+            case_type=MNDESCaseType(payload["case_type"]) if payload.get("case_type") else MNDESCaseType.EVICTION,
+            case_caption=payload.get("case_caption"),
             exhibits=exhibits,
             has_no_contact_order=False,  # Stored at exhibit level
-            is_sealed_case=db_package.is_sealed_case,
-            checklist_complete=db_package.attestation_provided,
-            mndes_submission_started=db_package.submitted_at is not None,
-            mndes_submission_complete=db_package.status == "submitted",
-            created_at=db_package.created_at,
-            updated_at=db_package.updated_at,
+            is_sealed_case=payload.get("is_sealed_case"),
+            checklist_complete=payload.get("attestation_provided") or False,
+            mndes_submission_started=payload.get("submitted_at") is not None,
+            mndes_submission_complete=payload.get("status") == "submitted",
+            created_at=_dt(payload.get("created_at")),
+            updated_at=_dt(payload.get("updated_at")),
         )
 
-    async def _save_package_to_db(self, package: MNDESExhibitPackage) -> None:
-        """Save package to database."""
+    async def _vault_manager(self, user_id: str):
+        """Overlay manager for the package owner's vault."""
+        user = await build_context_for_user_id(user_id)
+        if user is None:
+            return None, None
+        storage = get_provider(user.provider.value, access_token=user.access_token)
+        effective_id = user.get_effective_user_id()
+        return await get_unified_overlay_manager(storage, effective_id), effective_id
+
+    def _anchor(self, effective_id: str) -> str:
+        return f"mndes:{effective_id}"
+
+    async def _save_package_to_vault(self, package: MNDESExhibitPackage) -> None:
+        """Upsert the package overlay in the owner's cloud vault."""
+        manager, effective_id = await self._vault_manager(package.user_id)
+        if manager is None:
+            raise RuntimeError(f"No vault context for user {package.user_id[:8]}")
+        payload = {
+            k: (v.isoformat() if hasattr(v, "isoformat") else v)
+            for k, v in self._package_to_payload(package).items()
+        }
+        anchor = self._anchor(effective_id)
+        response = await manager.get_overlays(document_id=anchor, overlay_type=OverlayType.MNDES_PACKAGE)
+        existing = None
+        if response.success:
+            existing = next((o for o in response.overlays if o.payload.get("package_id") == package.package_id), None)
+        if existing:
+            await manager.update_overlay(existing.overlay_id, payload=payload)
+        else:
+            await manager.create_overlay(
+                CreateOverlayRequest(
+                    overlay_type=OverlayType.MNDES_PACKAGE,
+                    document_id=anchor,
+                    vault_path=VAULT_COURT_EXHIBITS_FILE,
+                    payload=payload,
+                    metadata={"mn_case_number": package.mn_case_number, "scope": "mndes"},
+                )
+            )
+        logger.debug("Package %s saved to vault", package.package_id)
+
+    async def _get_package_from_vault(self, package_id: str, user_id: str) -> MNDESExhibitPackage | None:
+        """Read a package overlay from the owner's cloud vault."""
+        manager, effective_id = await self._vault_manager(user_id)
+        if manager is None:
+            return None
+        response = await manager.get_overlays(
+            document_id=self._anchor(effective_id), overlay_type=OverlayType.MNDES_PACKAGE
+        )
+        if not response.success:
+            return None
+        overlay = next((o for o in response.overlays if o.payload.get("package_id") == package_id), None)
+        return self._package_from_payload(overlay.payload) if overlay else None
+
+    async def _migrate_legacy_packages(self, user_id: str, limit: int = 25) -> int:
+        """Bounded import of legacy `mndes_exhibit_packages` rows into the
+        owner's vault. Non-destructive, idempotent via payload["package_id"]."""
+        manager, effective_id = await self._vault_manager(user_id)
+        if manager is None:
+            return 0
+        imported = 0
         try:
+            response = await manager.get_overlays(
+                document_id=self._anchor(effective_id), overlay_type=OverlayType.MNDES_PACKAGE
+            )
+            migrated = (
+                {o.payload.get("package_id") for o in response.overlays} if response.success else set()
+            )
+            from sqlalchemy import select
+
             async with get_db_session() as session:
-                db_model = self._package_to_db_model(package)
-                await session.merge(db_model)
-                await session.commit()
-                logger.debug("Package %s saved to DB", package.package_id)
-        except Exception as e:
-            logger.error("Failed to save package %s to DB: %s", package.package_id, e)
-            raise
+                result = await session.execute(
+                    select(MNDESExhibitPackageDB)
+                    .where(MNDESExhibitPackageDB.user_id == user_id)
+                    .order_by(MNDESExhibitPackageDB.created_at)
+                    .limit(limit)
+                )
+                for row in result.scalars().all():
+                    if imported >= limit or row.package_id in migrated:
+                        continue
+                    payload = {
+                        "package_id": row.package_id,
+                        "user_id": row.user_id,
+                        "mn_case_number": row.mn_case_number,
+                        "case_type": row.case_type,
+                        "case_caption": row.case_caption,
+                        "package_name": row.package_name,
+                        "description": row.description,
+                        "exhibits_json": row.exhibits_json,
+                        "requires_attestation": row.requires_attestation,
+                        "attestation_provided": row.attestation_provided,
+                        "attestation_date": row.attestation_date.isoformat() if row.attestation_date else None,
+                        "attested_by": row.attested_by,
+                        "status": row.status,
+                        "is_sealed_case": row.is_sealed_case,
+                        "submitted_at": row.submitted_at.isoformat() if row.submitted_at else None,
+                        "confirmation_number": row.confirmation_number,
+                        "created_at": row.created_at.isoformat() if row.created_at else None,
+                        "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+                        "legacy_id": row.package_id,
+                        "migrated_from": "mndes_exhibit_packages",
+                    }
+                    await manager.create_overlay(
+                        CreateOverlayRequest(
+                            overlay_type=OverlayType.MNDES_PACKAGE,
+                            document_id=self._anchor(effective_id),
+                            vault_path=VAULT_COURT_EXHIBITS_FILE,
+                            payload=payload,
+                            metadata={"mn_case_number": row.mn_case_number, "scope": "mndes"},
+                        )
+                    )
+                    migrated.add(row.package_id)
+                    imported += 1
+        except Exception:
+            logger.exception("Legacy MNDES package migration failed for user %s", user_id[:8])
+        return imported
 
     async def _get_package_from_db(self, package_id: str) -> MNDESExhibitPackage | None:
-        """Get package from database."""
+        """Legacy DB read — import-on-access fallback only."""
         try:
             from sqlalchemy import select
 
@@ -135,10 +268,12 @@ class MNDESExhibitService:
                 )
                 db_package = result.scalar_one_or_none()
                 if db_package:
-                    return self._package_from_db_model(db_package)
+                    return self._package_from_payload(
+                        {c.name: getattr(db_package, c.name) for c in db_package.__table__.columns}
+                    )
                 return None
         except Exception as e:
-            logger.error("Failed to get package %s from DB: %s", package_id, e)
+            logger.error("Failed to get package %s from legacy DB: %s", package_id, e)
             return None
 
     async def create_package(
@@ -222,8 +357,8 @@ class MNDESExhibitService:
         )
         package = self._recalculate_package_summary(package)
 
-        # Save to database (primary) and in-memory (backward compat)
-        await self._save_package_to_db(package)
+        # Save to the owner's vault (primary) and in-memory (backward compat)
+        await self._save_package_to_vault(package)
         _packages[package.package_id] = package
 
         logger.info(
@@ -235,11 +370,19 @@ class MNDESExhibitService:
         )
         return package
 
-    async def get_package(self, package_id: str) -> MNDESExhibitPackage | None:
-        """Get package from database (falls back to in-memory for legacy)."""
-        # Try database first
+    async def get_package(self, package_id: str, user_id: str) -> MNDESExhibitPackage | None:
+        """Get package from the owner's vault (imports legacy DB rows on access)."""
+        await self._migrate_legacy_packages(user_id)
+        package = await self._get_package_from_vault(package_id, user_id)
+        if package:
+            return package
+        # Legacy DB fallback — import into the owner's vault on first access
         db_package = await self._get_package_from_db(package_id)
-        if db_package:
+        if db_package and db_package.user_id == user_id:
+            try:
+                await self._save_package_to_vault(db_package)
+            except Exception:
+                logger.exception("Failed to import legacy package %s to vault", package_id)
             return db_package
         # Fall back to in-memory for backward compatibility
         return _packages.get(package_id)
@@ -247,13 +390,14 @@ class MNDESExhibitService:
     async def apply_attestations(
         self,
         request: MNDESAttestationRequest,
+        user_id: str,
     ) -> MNDESExhibitPackage:
         """
         Apply user attestations to all exhibits in a package.
         Required before submission per Order §10 (no sexual content/nudity)
         and general compliance requirements.
         """
-        package = await self.get_package(request.package_id)
+        package = await self.get_package(request.package_id, user_id)
         if not package:
             raise ValueError(f"Package {request.package_id} not found")
 
@@ -283,8 +427,8 @@ class MNDESExhibitService:
             }
         )
 
-        # Save to database (primary) and in-memory (backward compat)
-        await self._save_package_to_db(package)
+        # Save to the owner's vault (primary) and in-memory (backward compat)
+        await self._save_package_to_vault(package)
         _packages[package.package_id] = package
 
         logger.info("MNDES attestations applied to package %s", package.package_id)
@@ -293,12 +437,13 @@ class MNDESExhibitService:
     async def confirm_submission(
         self,
         request: MNDESSubmissionConfirmRequest,
+        user_id: str,
     ) -> MNDESExhibitPackage:
         """
         User confirms they completed manual upload at the MNDES portal.
         Records the MNDES tracking number for the exhibit.
         """
-        package = await self.get_package(request.package_id)
+        package = await self.get_package(request.package_id, user_id)
         if not package:
             raise ValueError(f"Package {request.package_id} not found")
 
@@ -326,8 +471,8 @@ class MNDESExhibitService:
             }
         )
 
-        # Save to database (primary) and in-memory (backward compat)
-        await self._save_package_to_db(package)
+        # Save to the owner's vault (primary) and in-memory (backward compat)
+        await self._save_package_to_vault(package)
         _packages[package.package_id] = package
 
         logger.info(
@@ -338,18 +483,18 @@ class MNDESExhibitService:
         )
         return package
 
-    async def get_compliance_summary(self, package_id: str) -> MNDESComplianceSummary:
+    async def get_compliance_summary(self, package_id: str, user_id: str) -> MNDESComplianceSummary:
         """Return compliance summary for a package."""
-        package = await self.get_package(package_id)
+        package = await self.get_package(package_id, user_id)
         if not package:
             raise ValueError(f"Package {package_id} not found")
         return self._build_compliance_summary(package.exhibits)
 
-    async def get_submission_checklist(self, package_id: str) -> dict:
+    async def get_submission_checklist(self, package_id: str, user_id: str) -> dict:
         """
         Return a structured checklist for the user to complete before submitting to MNDES.
         """
-        package = await self.get_package(package_id)
+        package = await self.get_package(package_id, user_id)
         if not package:
             raise ValueError(f"Package {package_id} not found")
 

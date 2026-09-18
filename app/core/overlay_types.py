@@ -168,6 +168,9 @@ class OverlayType(str, Enum):
     AGENCY_MAPPING = "agency_mapping"
     """Agency complaint reference (agency code, complaint number, status, outcome)."""
 
+    MNDES_PACKAGE = "mndes_package"
+    """MNDES exhibit package (case number, exhibits, attestations, submission state)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -237,6 +240,7 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.COURT_CASE_MAPPING,
     OverlayType.PROPERTY_MAPPING,
     OverlayType.AGENCY_MAPPING,
+    OverlayType.MNDES_PACKAGE,
 }
 
 # All overlay types (for validation)
