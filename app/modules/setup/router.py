@@ -730,8 +730,8 @@ async def _process_document(
     extracted["case_numbers"] = cases
 
     # Create timeline event based on document type
-    from app.core.database import get_db_session
-    from app.models.models import TimelineEvent
+    from app.core.user_context import build_context_for_user_id
+    from app.services.timeline_store import create_event
 
     event_title = {
         "summons": "Summons Received",
@@ -743,17 +743,15 @@ async def _process_document(
         "photo": "Photo Evidence",
     }.get(doc_type, f"Document: {filename}")
 
-    async with get_db_session() as session:
-        event = TimelineEvent(
-            user_id=user_id,
-            event_type="document",
-            title=event_title,
-            description=f"Uploaded: {filename}",
-            document_id=doc_id,
-            is_evidence=doc_type in ["summons", "complaint", "notice", "lease", "payment", "photo"],
-        )
-        session.add(event)
-        await session.commit()
+    user = await build_context_for_user_id(user_id)
+    await create_event(
+        user,
+        event_type="document",
+        title=event_title,
+        description=f"Uploaded: {filename}",
+        document_id=doc_id,
+        is_evidence=doc_type in ["summons", "complaint", "notice", "lease", "payment", "photo"],
+    )
 
     # Update Form Data Hub with extracted data
     from app.services.form_data import get_form_data_service

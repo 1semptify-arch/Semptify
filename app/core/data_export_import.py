@@ -292,55 +292,47 @@ class DataExportImportManager:
     async def _export_timeline(self, user_id: str, filters: dict[str, Any]) -> dict[str, Any]:
         """Export user timeline events."""
         try:
-            from sqlalchemy import select
+            from app.services.timeline_store import list_events_for_user_id
 
-            from app.core.database import get_db_session
-            from app.models.models import TimelineEvent as TimelineEventModel
+            events = await list_events_for_user_id(user_id)
 
-            async with get_db_session() as session:
-                # Build query with filters
-                query = select(TimelineEventModel).where(TimelineEventModel.user_id == user_id)
+            # Apply filters
+            if "date_from" in filters:
+                date_from = datetime.fromisoformat(filters["date_from"])
+                events = [e for e in events if e.event_date and e.event_date >= date_from]
 
-                # Apply filters
-                if "date_from" in filters:
-                    date_from = datetime.fromisoformat(filters["date_from"])
-                    query = query.where(TimelineEventModel.event_date >= date_from)
+            if "date_to" in filters:
+                date_to = datetime.fromisoformat(filters["date_to"])
+                events = [e for e in events if e.event_date and e.event_date <= date_to]
 
-                if "date_to" in filters:
-                    date_to = datetime.fromisoformat(filters["date_to"])
-                    query = query.where(TimelineEventModel.event_date <= date_to)
+            if "event_types" in filters:
+                event_types = set(filters["event_types"])
+                events = [e for e in events if e.event_type in event_types]
 
-                if "event_types" in filters:
-                    event_types = filters["event_types"]
-                    query = query.where(TimelineEventModel.event_type.in_(event_types))
+            # Convert to export format
+            export_events = []
+            for event in events:
+                export_events.append(
+                    {
+                        "id": event.id,
+                        "title": event.title,
+                        "description": event.description,
+                        "event_type": event.event_type,
+                        "event_date": event.event_date.isoformat() if event.event_date else None,
+                        "created_at": event.created_at.isoformat() if event.created_at else None,
+                        "is_evidence": event.is_evidence,
+                        "metadata": {"location": event.location, "people_present": event.who_involved},
+                    }
+                )
 
-                result = await session.execute(query)
-                events = result.scalars().all()
-
-                # Convert to export format
-                export_events = []
-                for event in events:
-                    export_events.append(
-                        {
-                            "id": event.id,
-                            "title": event.title,
-                            "description": event.description,
-                            "event_type": event.event_type,
-                            "event_date": event.event_date.isoformat() if event.event_date else None,
-                            "created_at": event.created_at.isoformat() if event.created_at else None,
-                            "is_evidence": event.is_evidence,
-                            "metadata": {"location": event.location, "people_present": event.people_present},
-                        }
-                    )
-
-                return {
-                    "export_type": "timeline",
-                    "user_id": user_id,
-                    "exported_at": utc_now().isoformat(),
-                    "events": export_events,
-                    "total_count": len(export_events),
-                    "filters": filters,
-                }
+            return {
+                "export_type": "timeline",
+                "user_id": user_id,
+                "exported_at": utc_now().isoformat(),
+                "events": export_events,
+                "total_count": len(export_events),
+                "filters": filters,
+            }
 
         except Exception as e:
             logger.error(f"Timeline export failed: {e}")

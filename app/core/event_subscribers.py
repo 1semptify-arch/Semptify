@@ -31,27 +31,19 @@ async def _on_document_added(event: Any) -> None:
             logger.warning("_on_document_added: no user_id in event data, skipping")
             return
 
-        from app.core.database import get_db_session
-        from app.core.id_gen import make_id
+        from app.core.user_context import build_context_for_user_id
         from app.core.utc import utc_now
-        from app.models.models import TimelineEvent
+        from app.services.timeline_store import create_event
 
-        async with get_db_session() as session:
-            evt = TimelineEvent(
-                id=make_id("tevt"),
-                user_id=user_id,
-                event_type="document_uploaded",
-                title=f"Document uploaded: {filename}",
-                description=f"vault_id={vault_id}" if vault_id else None,
-                event_date=utc_now(),
-                urgency="normal",
-                is_deadline=False,
-                is_evidence=False,
-                document_id=vault_id or None,
-                source_extraction_id=None,
-            )
-            session.add(evt)
-            await session.commit()
+        user = await build_context_for_user_id(user_id)
+        await create_event(
+            user,
+            event_type="document_uploaded",
+            title=f"Document uploaded: {filename}",
+            description=f"vault_id={vault_id}" if vault_id else None,
+            event_date=utc_now(),
+            document_id=vault_id or None,
+        )
 
         logger.info("Timeline event created for document upload: %s (user=%s)", filename, user_id)
 

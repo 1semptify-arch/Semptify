@@ -29,7 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now
-from app.models.models import Document, TimelineEvent, User
+from app.models.models import Document, User
 
 # =============================================================================
 # Minnesota Court Compliance Rules
@@ -638,14 +638,14 @@ class EvictionCaseBuilder:
             )
         return None
 
-    async def _get_timeline_events(self, session: AsyncSession, user_id: str) -> list[TimelineEvent]:
-        """Get timeline events for user."""
-        result = await session.execute(
-            select(TimelineEvent).where(TimelineEvent.user_id == user_id).order_by(TimelineEvent.event_date.asc())
-        )
-        return list(result.scalars().all())
+    async def _get_timeline_events(self, session: AsyncSession, user_id: str) -> list:
+        """Get timeline events for user (vault overlays), oldest first."""
+        _ = session
+        from app.services.timeline_store import list_events_for_user_id
 
-    def _build_timeline(self, events: list[TimelineEvent], documents: list[Document]) -> list[TimelineEntry]:
+        return list(reversed(await list_events_for_user_id(user_id)))
+
+    def _build_timeline(self, events: list, documents: list[Document]) -> list[TimelineEntry]:
         """Build timeline for court narrative."""
         timeline = []
         {d.id: d for d in documents}

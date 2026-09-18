@@ -147,6 +147,9 @@ class OverlayType(str, Enum):
     EVICTION_TIMELINE_EVENT = "eviction_timeline_event"
     """Eviction-specific timeline event — structure + pointers; narrative PII stays in content overlays."""
 
+    TIMELINE_EVENT = "timeline_event"
+    """Tenant timeline event (notices, payments, maintenance, communications, court, captures)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -209,6 +212,7 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.INCIDENT,
     OverlayType.THIRD_PARTY_CONTACT,
     OverlayType.EVICTION_TIMELINE_EVENT,
+    OverlayType.TIMELINE_EVENT,
 }
 
 # All overlay types (for validation)

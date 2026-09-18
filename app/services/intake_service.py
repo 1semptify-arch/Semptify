@@ -29,12 +29,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from xml.etree import ElementTree as ET
 
-from sqlalchemy import select
-
 from app.core.id_gen import make_id
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 from app.core.utc import utc_now
-from app.models.models import TimelineEvent
 from app.services.redaction_service import redact_text_for_user
 
 if TYPE_CHECKING:
@@ -531,7 +528,10 @@ async def import_communications(
 
     [c.email for c in contacts if c.email] + [c.phone for c in contacts if c.phone]
 
-    timeline_events: list[TimelineEvent] = []
+    from app.services.timeline_store import create_event
+
+    user = await build_context_for_user_id(user_id)
+    timeline_events: list = []
     for comm in communications:
         raw_body = comm.get("body", "")
         redacted_body = await redact_text_for_user(
@@ -548,20 +548,15 @@ async def import_communications(
         if not title or title == "Communication":
             title = f"{comm.get('source', 'communication').replace('_', ' ').title()}"
 
-        event = TimelineEvent(
-            id=make_id("evt"),
-            user_id=user_id,
+        event = await create_event(
+            user,
             event_type="communication",
             title=title,
             description=redacted_body,
             event_date=comm.get("date") or utc_now(),
             is_evidence=True,
-            created_at=utc_now(),
         )
-        db.add(event)
         timeline_events.append(event)
-
-    await db.commit()
 
     return {
         "filename": filename,
@@ -634,7 +629,7 @@ register_function_group(
         dependencies=(
             "app.services.redaction_service",
             "app.services.third_party_contact_store",
-            "app.models.models.TimelineEvent",
+            "app.services.timeline_store",
         ),
         deterministic=False,
     )

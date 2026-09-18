@@ -32,7 +32,7 @@ from app.core.process_registry import PROCESS_GROUPS, get_groups_for_role
 from app.core.user_context import UserRole
 from app.core.utc import utc_now
 from app.core.workflow_engine import ProcessCode, evaluate_from_params
-from app.models.models import DocumentPipelineIndex, TimelineEvent
+from app.models.models import DocumentPipelineIndex
 from app.services.positronic_brain import get_brain
 from app.services.storage import get_provider
 from app.services.timeline_extraction import TimelineStore
@@ -812,21 +812,19 @@ async def get_case_state(request: Request) -> CaseStateResponse:
                 .scalars()
                 .all()
             )
-
-            timeline_count = len(
-                (await db.execute(select(TimelineEvent.id).where(TimelineEvent.user_id == user_id))).scalars().all()
-            )
-
-            timeline_rows = (
-                await db.execute(
-                    select(TimelineEvent.urgency, TimelineEvent.is_deadline).where(TimelineEvent.user_id == user_id)
-                )
-            ).all()
-
-            timeline_urgencies = [row[0] for row in timeline_rows if row[0]]
-            has_deadline = any(bool(row[1]) for row in timeline_rows)
     except SQLAlchemyError:
         pass  # DB unavailable; file-based signals still returned
+
+    # Timeline signals come from the tenant's vault overlays, not the DB.
+    try:
+        from app.services.timeline_store import list_events_for_user_id as _list_timeline_events
+
+        _tl_events = await _list_timeline_events(user_id)
+        timeline_count = len(_tl_events)
+        timeline_urgencies = [e.urgency for e in _tl_events if e.urgency]
+        has_deadline = any(e.is_deadline for e in _tl_events)
+    except Exception:
+        pass  # Vault unavailable; other signals still returned
 
     # Calendar signals now come from the tenant's vault overlays, not the DB.
     try:

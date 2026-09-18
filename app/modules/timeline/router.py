@@ -44,7 +44,6 @@ from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
 from app.models.models import (
     Document as DocumentModel,
-    TimelineEvent as TimelineEventModel,
     VaultIndexDB,
     VaultItem,
 )
@@ -535,28 +534,25 @@ async def _load_db_timeline_events(
     date_axis: DateAxis,
     evidence_only: bool,
 ) -> list[TimelineItem]:
-    """Load manual timeline events from database."""
-    query = select(TimelineEventModel).where(TimelineEventModel.user_id == user_id)
+    """Load manual timeline events from the tenant's vault."""
+    _ = session  # vault path needs no DB session
+    from app.services.timeline_store import list_events_for_user_id
 
-    # Filter by evidence
-    if evidence_only:
-        query = query.where(TimelineEventModel.is_evidence)
+    all_events = await list_events_for_user_id(user_id)
 
-    # Date filtering
-    if date_axis == DateAxis.EVENT_TIME:
-        filter_col = TimelineEventModel.event_date
-    else:
-        filter_col = TimelineEventModel.created_at
+    def _axis_dt(evt) -> datetime | None:
+        if date_axis == DateAxis.EVENT_TIME:
+            return evt.event_date
+        return evt.created_at or utc_now()
 
-    if start_date:
-        query = query.where(filter_col >= start_date)
-    if end_date:
-        query = query.where(filter_col <= end_date)
-
-    query = query.order_by(filter_col.desc())
-
-    result = await session.execute(query)
-    events = result.scalars().all()
+    events = [
+        evt
+        for evt in all_events
+        if (not evidence_only or evt.is_evidence)
+        and (start_date is None or (_axis_dt(evt) is not None and _axis_dt(evt) >= start_date))
+        and (end_date is None or (_axis_dt(evt) is not None and _axis_dt(evt) <= end_date))
+    ]
+    events.sort(key=lambda evt: _axis_dt(evt) or utc_now(), reverse=True)
 
     items = []
     for evt in events:
@@ -1005,13 +1001,13 @@ async def get_date_range_info(
         )
         doc_min, doc_max = doc_result.first() or (None, None)
 
-        # Timeline events
-        evt_result = await session.execute(
-            select(func.min(TimelineEventModel.event_date), func.max(TimelineEventModel.event_date)).where(
-                TimelineEventModel.user_id == user.user_id
-            )
-        )
-        evt_min, evt_max = evt_result.first() or (None, None)
+        # Timeline events (vault overlays)
+        from app.services.timeline_store import list_events_for_user_id
+
+        _tl_events = await list_events_for_user_id(user.user_id)
+        _tl_dates = [e.event_date for e in _tl_events if e.event_date]
+        evt_min = min(_tl_dates) if _tl_dates else None
+        evt_max = max(_tl_dates) if _tl_dates else None
 
         # Vault items (all three timestamps)
         vault_result = await session.execute(
@@ -1087,12 +1083,12 @@ async def create_timeline_event(
                 detail="event_date_end must be on or after event_date",
             )
 
-    event_id = make_id("evt")
     now = utc_now()
 
-    event = TimelineEventModel(
-        id=event_id,
-        user_id=user.user_id,
+    from app.services.timeline_store import create_event
+
+    event = await create_event(
+        user,
         event_type=body.event_type,
         title=body.title,
         description=body.description,
@@ -1101,12 +1097,8 @@ async def create_timeline_event(
         urgency=body.urgency,
         is_deadline=body.is_deadline,
         is_evidence=body.is_evidence,
-        created_at=now,
     )
-
-    async with get_db_session() as session:
-        session.add(event)
-        await session.commit()
+    event_id = event.id
 
     event_bus.publish_sync(
         EventType.TIMELINE_EVENT_ADDED,

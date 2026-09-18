@@ -1755,12 +1755,7 @@ async def auto_populate_timeline(
 
     """
 
-    from sqlalchemy import and_, select
-
-    from app.core.database import get_db_session
-    from app.core.id_gen import make_id
-    from app.core.utc import utc_now
-    from app.models.models import TimelineEvent as TimelineEventModel
+    from app.services.timeline_store import create_event, list_events
 
     from .service import get_event_extractor
 
@@ -1793,58 +1788,45 @@ async def auto_populate_timeline(
 
     created_events = []
 
-    async with get_db_session() as session:
-        for event in events:
-            # Check if similar event already exists (same date, type, doc)
+    existing_events = await list_events(user)
+    for event in events:
+        # Check if similar event already exists (same date, type, doc)
 
-            if not request.include_existing:
-                existing_query = select(TimelineEventModel).where(
-                    and_(
-                        TimelineEventModel.user_id == user.user_id,
-                        TimelineEventModel.document_id == doc_id,
-                        TimelineEventModel.event_date == event.date,
-                        TimelineEventModel.event_type == event.event_type,
-                    )
-                )
+        if not request.include_existing:
+            if any(
+                e.document_id == doc_id and e.event_date == event.date and e.event_type == event.event_type
+                for e in existing_events
+            ):
+                events_skipped += 1
 
-                existing = await session.execute(existing_query)
+                continue
 
-                if existing.scalar_one_or_none():
-                    events_skipped += 1
+        # Create timeline event
 
-                    continue
+        db_event = await create_event(
+            user,
+            event_type=event.event_type,
+            title=f"{event.title} ({doc.filename})",
+            description=event.description,
+            event_date=event.date,
+            document_id=doc_id,
+            is_evidence=event.is_deadline,  # Mark deadlines as evidence
+        )
+        existing_events.append(db_event)
 
-            # Create timeline event
+        events_created += 1
 
-            db_event = TimelineEventModel(
-                id=make_id("evt"),
-                user_id=user.user_id,
-                event_type=event.event_type,
-                title=f"{event.title} ({doc.filename})",
-                description=event.description,
-                event_date=event.date,
-                document_id=doc_id,
-                is_evidence=event.is_deadline,  # Mark deadlines as evidence
-                created_at=utc_now(),
-            )
-
-            session.add(db_event)
-
-            events_created += 1
-
-            created_events.append(
-                {
-                    "id": db_event.id,
-                    "date": event.date.isoformat(),
-                    "event_type": event.event_type,
-                    "title": db_event.title,
-                    "description": event.description,
-                    "is_deadline": event.is_deadline,
-                    "confidence": event.confidence,
-                }
-            )
-
-        await session.commit()
+        created_events.append(
+            {
+                "id": db_event.id,
+                "date": event.date.isoformat(),
+                "event_type": event.event_type,
+                "title": db_event.title,
+                "description": event.description,
+                "is_deadline": event.is_deadline,
+                "confidence": event.confidence,
+            }
+        )
 
     return AutoTimelineResponse(
         doc_id=doc_id, events_created=events_created, events_skipped=events_skipped, events=created_events
@@ -1867,12 +1849,7 @@ async def auto_timeline_all_documents(
 
     """
 
-    from sqlalchemy import and_, select
-
-    from app.core.database import get_db_session
-    from app.core.id_gen import make_id
-    from app.core.utc import utc_now
-    from app.models.models import TimelineEvent as TimelineEventModel
+    from app.services.timeline_store import create_event, list_events
 
     from .service import get_event_extractor
 
@@ -1895,52 +1872,39 @@ async def auto_timeline_all_documents(
 
     docs_processed = 0
 
-    async with get_db_session() as session:
-        for doc in docs:
-            events = extractor.extract_events(
-                text=doc.full_text, doc_type=doc.doc_type.value if doc.doc_type else "unknown"
+    existing_events = await list_events(user)
+    for doc in docs:
+        events = extractor.extract_events(
+            text=doc.full_text, doc_type=doc.doc_type.value if doc.doc_type else "unknown"
+        )
+
+        events = [e for e in events if e.confidence >= min_confidence]
+
+        for event in events:
+            # Check for existing
+
+            if any(
+                e.document_id == doc.id and e.event_date == event.date and e.event_type == event.event_type
+                for e in existing_events
+            ):
+                total_skipped += 1
+
+                continue
+
+            db_event = await create_event(
+                user,
+                event_type=event.event_type,
+                title=f"{event.title} ({doc.filename})",
+                description=event.description,
+                event_date=event.date,
+                document_id=doc.id,
+                is_evidence=event.is_deadline,
             )
+            existing_events.append(db_event)
 
-            events = [e for e in events if e.confidence >= min_confidence]
+            total_created += 1
 
-            for event in events:
-                # Check for existing
-
-                existing_query = select(TimelineEventModel).where(
-                    and_(
-                        TimelineEventModel.user_id == user.user_id,
-                        TimelineEventModel.document_id == doc.id,
-                        TimelineEventModel.event_date == event.date,
-                        TimelineEventModel.event_type == event.event_type,
-                    )
-                )
-
-                existing = await session.execute(existing_query)
-
-                if existing.scalar_one_or_none():
-                    total_skipped += 1
-
-                    continue
-
-                db_event = TimelineEventModel(
-                    id=make_id("evt"),
-                    user_id=user.user_id,
-                    event_type=event.event_type,
-                    title=f"{event.title} ({doc.filename})",
-                    description=event.description,
-                    event_date=event.date,
-                    document_id=doc.id,
-                    is_evidence=event.is_deadline,
-                    created_at=utc_now(),
-                )
-
-                session.add(db_event)
-
-                total_created += 1
-
-            docs_processed += 1
-
-        await session.commit()
+        docs_processed += 1
 
     return {
         "message": "Timeline populated from all documents",

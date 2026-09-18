@@ -1,3 +1,33 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: timeline events → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T14:20:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 9 — timeline events, largest slice)
+- `timeline_events` moved off the server DB into the tenant's cloud vault — events persist as `TIMELINE_EVENT` overlays via the new shared store `app/services/timeline_store.py` (full CRUD + `list/count_events_for_user_id` convenience readers via `build_context_for_user_id`; `migrate_legacy_events` non-destructive, idempotent via `payload.legacy_id`, bounded 25 rows/call, safe no-op without DB).
+- ~20 consumers rewired — zero ORM reads/writes remain for `TimelineEvent` outside the bounded migration helper: `timeline/router.py` (unified loader, date-range calc, manual create), `tenant_feed/service.py` (sync + async feed paths), `intake_service` (communication-import writer), `event_subscribers` (DOCUMENT_ADDED writer), `tenant_briefcase`, `main.py` (retaliation writer, correlate reader, quick-capture), `setup/router`, `document_flow_orchestrator`, `documents/router` (dedupe checks + auto-timeline writers — one vault fetch per endpoint, not per document), `data_export_import`, `advocate/router`, `manager/router`, `housing_accountability`, `search/router`, `workflow/router`, `form_data`, `eviction/case_builder`.
+- Latent bugs fixed along the way (fields that never existed on the model and would have raised at runtime): `document_flow_orchestrator` wrote `importance`/`auto_generated`; `housing_accountability` read `e.status.value` (field is `event_status`); `data_export_import` read `event.people_present` (field is `who_involved`).
+- `tests/test_timeline_vault.py` — 6 functional tests (create/list/get roundtrip, per-user isolation, sorting, idempotent bounded migration, no-DB safety).
+
+### Verification (this slice)
+- `python -m py_compile` clean on all 20 changed files.
+- `tests/test_timeline_vault.py` — 6 passed; `test_unified_timeline.py` + `test_eviction_case_builder.py` + `test_eviction_timeline_vault.py` + touched module-health (intake, tenant_feed, eviction_timeline) — 52 passed; touched-module health sweep (timeline, workflow, search, documents, setup, housing_accountability, manager, advocate, export_import) — 9 passed.
+- Full `tests/module_health` — 245 passed.
+- Guardrail engine — all checks PASS (run above).
+
+### Remaining (Phase 1 in progress)
+- `document_annotations`, `tenant_stories`, `context_facts`/`context_explanation_entries`/`pattern_records`/`fraud_analysis_results` (derived group), `document_shares`, `external_mappings` group, `fems_*` (6), `mndes_*` (2) — still server-persisted. `witness_statements`/`certified_mail` verified dead tables (no consumers — drop in Alembic phase). Legacy tables retained until the Alembic drop phase. See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+- Flag (pre-existing, unrelated): `advocate/router.py` calls `with get_db_session()` on an `@asynccontextmanager` — broken at runtime independent of this migration; its remaining `User`/`Document`/`UserRelationship` queries still need DB (Phase 3 decision).
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: eviction timeline events → user cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T13:57:00+00:00

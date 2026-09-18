@@ -896,15 +896,14 @@ async def _count_complaints(user_id: str) -> int:
 @accountability_router.get("/dashboard")
 async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """Unified dashboard summary using real database data."""
-    from app.models.models import Document, TimelineEvent, VaultItem
+    from app.models.models import Document, VaultItem
+    from app.services.timeline_store import list_events_for_user_id as _list_timeline_events
 
     user_id = current_user.user_id if current_user else "anonymous"
 
-    # Count timeline events
-    timeline_result = await db.execute(
-        select(func.count()).select_from(TimelineEvent).where(TimelineEvent.user_id == user_id)
-    )
-    timeline_count = timeline_result.scalar() or 0
+    # Timeline events (vault overlays)
+    all_timeline_events = await _list_timeline_events(user_id)
+    timeline_count = len(all_timeline_events)
 
     # Count upcoming calendar events (vault overlays)
     from app.modules.calendar.service import list_events_for_user_id
@@ -927,11 +926,8 @@ async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession
     doc_result = await db.execute(select(func.count()).select_from(Document).where(Document.user_id == user_id))
     doc_count = doc_result.scalar() or 0
 
-    # Recent timeline events
-    recent_events = await db.execute(
-        select(TimelineEvent).where(TimelineEvent.user_id == user_id).order_by(TimelineEvent.event_date.desc()).limit(5)
-    )
-    events = recent_events.scalars().all()
+    # Recent timeline events (already sorted newest event_date first)
+    events = all_timeline_events[:5]
 
     return JSONResponse(
         content={
@@ -949,7 +945,7 @@ async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession
                     "id": e.id,
                     "type": e.event_type,
                     "date": e.event_date.isoformat() if e.event_date else None,
-                    "status": e.status.value if e.status else None,
+                    "status": e.event_status,
                 }
                 for e in events
             ],
@@ -961,15 +957,13 @@ async def get_dashboard(current_user=Depends(get_current_user), db: AsyncSession
 @accountability_router.get("/analyst")
 async def get_analyst(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """AI Case Analyst — rule-based risk assessment from database."""
-    from app.models.models import TimelineEvent, VaultItem
+    from app.models.models import VaultItem
+    from app.services.timeline_store import count_events_for_user_id
 
     user_id = current_user.user_id if current_user else "anonymous"
 
     # Gather counts
-    timeline_result = await db.execute(
-        select(func.count()).select_from(TimelineEvent).where(TimelineEvent.user_id == user_id)
-    )
-    timeline_count = timeline_result.scalar() or 0
+    timeline_count = await count_events_for_user_id(user_id)
 
     complaint_count = await _count_complaints(user_id)
 

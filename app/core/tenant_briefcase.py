@@ -613,32 +613,23 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
                 )
             )
 
-    # Load real timeline events from DB
+    # Load real timeline events from the tenant's vault
     try:
-        from sqlalchemy import select as _sel
+        from app.services.timeline_store import list_events_for_user_id
 
-        from app.core.database import get_db_session
-        from app.models.models import TimelineEvent as TimelineEventModel
-
-        async with get_db_session() as _db:
-            result = await _db.execute(
-                _sel(TimelineEventModel)
-                .where(TimelineEventModel.user_id == user_id)
-                .order_by(TimelineEventModel.event_date.asc())
-            )
-            for te in result.scalars().all():
-                date_val = te.event_date.isoformat() if te.event_date else None
-                events.append(
-                    TimelineEvent(
-                        id=str(te.id),
-                        event_type=te.event_type or "event",
-                        title=te.title or te.event_type or "Event",
-                        date=date_val,
-                        icon="◆",
-                    )
+        for te in reversed(await list_events_for_user_id(user_id)):
+            date_val = te.event_date.isoformat() if te.event_date else None
+            events.append(
+                TimelineEvent(
+                    id=str(te.id),
+                    event_type=te.event_type or "event",
+                    title=te.title or te.event_type or "Event",
+                    date=date_val,
+                    icon="◆",
                 )
+            )
     except Exception as _e:
-        logger.warning("Timeline DB load failed: %s", _e)
+        logger.warning("Timeline vault load failed: %s", _e)
 
     # Find next deadline
     today = utc_now().date()

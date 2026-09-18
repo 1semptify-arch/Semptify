@@ -27,7 +27,6 @@ from app.core.search_engine import SearchOperator, SearchType, get_search_engine
 from app.core.security import StorageUser, green_access
 from app.models.models import (
     Document as DocumentModel,
-    TimelineEvent as TimelineEventModel,
 )
 
 logger = logging.getLogger(__name__)
@@ -330,20 +329,14 @@ async def global_search(
     # =========================================================================
     async with get_db_session() as session:
         try:
-            timeline_query = (
-                select(TimelineEventModel)
-                .where(
-                    TimelineEventModel.user_id == user.user_id,
-                    or_(
-                        TimelineEventModel.title.ilike(f"%{q}%"),
-                        TimelineEventModel.description.ilike(f"%{q}%"),
-                    ),
-                )
-                .limit(limit)
-            )
+            from app.services.timeline_store import list_events_for_user_id
 
-            result = await session.execute(timeline_query)
-            events = result.scalars().all()
+            q_lower = q.lower()
+            events = [
+                e
+                for e in await list_events_for_user_id(user.user_id)
+                if q_lower in (e.title or "").lower() or q_lower in (e.description or "").lower()
+            ][:limit]
 
             for event in events:
                 searchable = f"{event.title or ''} {event.description or ''}"

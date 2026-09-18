@@ -4443,8 +4443,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.post("/api/tenant/retaliation/log")
     async def tenant_retaliation_log(request: Request):
         """Log a protected action or adverse action as a timeline event."""
-        from app.core.database import get_db_session
-        from app.models.models import TimelineEvent
         from app.services.retaliation_tracker import (
             ADVERSE_SUBTYPES,
             EVENT_TYPE_ADVERSE,
@@ -4512,41 +4510,36 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 except (json.JSONDecodeError, TypeError):
                     attached_ids.append(str(raw))
 
-        async with get_db_session() as db:
-            from app.core.id_gen import make_id
+        from app.core.user_context import build_context_for_user_id
+        from app.services.timeline_store import create_event
 
-            event = TimelineEvent(
-                id=make_id("tevt"),
-                user_id=user_id,
-                event_type=event_type,
-                title=vocab[subtype],
-                description=description,
-                event_date=event_datetime,
-                urgency=form_data.get("urgency", "normal") if form_data.get("urgency") in ("low", "normal", "high", "critical") else "normal",
-                who_involved=who_involved or None,
-                location=location or None,
-                tags=json.dumps([subtype]),
-                is_evidence=True,
-                attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
-                created_at=utc_now(),
-            )
-            db.add(event)
-            await db.commit()
+        user = await build_context_for_user_id(user_id)
+        event = await create_event(
+            user,
+            event_type=event_type,
+            title=vocab[subtype],
+            description=description,
+            event_date=event_datetime,
+            urgency=form_data.get("urgency", "normal") if form_data.get("urgency") in ("low", "normal", "high", "critical") else "normal",
+            who_involved=who_involved or None,
+            location=location or None,
+            tags=json.dumps([subtype]),
+            is_evidence=True,
+            attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
+        )
 
         return {"success": True, "event_id": event.id}
 
     @fastapi_app.get("/api/tenant/retaliation/analysis")
     async def tenant_retaliation_analysis(request: Request):
         """Correlate the user's protected/adverse timeline events."""
-        from app.core.database import get_db_session
         from app.core.module_gate import get_jurisdiction
-        from app.models.models import TimelineEvent
         from app.services.retaliation_tracker import (
             EVENT_TYPE_ADVERSE,
             EVENT_TYPE_PROTECTED,
             correlate,
         )
-        from sqlalchemy import select
+        from app.services.timeline_store import list_events_for_user_id
 
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
@@ -4556,14 +4549,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if not user_id:
             raise HTTPException(status_code=401, detail="Authentication required")
 
-        async with get_db_session() as db:
-            result = await db.execute(
-                select(TimelineEvent).where(
-                    TimelineEvent.user_id == user_id,
-                    TimelineEvent.event_type.in_([EVENT_TYPE_PROTECTED, EVENT_TYPE_ADVERSE]),
-                )
-            )
-            events = list(result.scalars().all())
+        events = [
+            e
+            for e in await list_events_for_user_id(user_id)
+            if e.event_type in (EVENT_TYPE_PROTECTED, EVENT_TYPE_ADVERSE)
+        ]
 
         jurisdiction = get_jurisdiction(request)
         return correlate(
@@ -4575,8 +4565,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.post("/api/tenant/capture")
     async def tenant_capture_post(request: Request):
         """Create a timeline event from quick capture form."""
-        from app.core.database import get_db_session
-        from app.models.models import TimelineEvent
 
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
@@ -4644,25 +4632,22 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         }
         event_type = type_mapping.get(capture_type, "other")
 
-        async with get_db_session() as db:
-            from app.core.id_gen import make_id
+        from app.core.user_context import build_context_for_user_id
+        from app.services.timeline_store import create_event
 
-            event = TimelineEvent(
-                id=make_id("tevt"),
-                user_id=user_id,
-                event_type=event_type,
-                title=f"{capture_type.replace('_', ' ').title()} Event",
-                description=description,
-                event_date=event_datetime,
-                urgency="high" if is_urgent else "normal",
-                who_involved=who_involved or None,
-                location=location or None,
-                is_evidence=False,
-                attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
-                created_at=utc_now(),
-            )
-            db.add(event)
-            await db.commit()
+        user = await build_context_for_user_id(user_id)
+        event = await create_event(
+            user,
+            event_type=event_type,
+            title=f"{capture_type.replace('_', ' ').title()} Event",
+            description=description,
+            event_date=event_datetime,
+            urgency="high" if is_urgent else "normal",
+            who_involved=who_involved or None,
+            location=location or None,
+            is_evidence=False,
+            attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
+        )
 
         return {"success": True, "event_id": event.id}
 

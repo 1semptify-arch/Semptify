@@ -278,34 +278,31 @@ class DocumentFlowOrchestrator:
         doc_id: str,
         db_session: Any,
     ) -> int:
-        """Create timeline events in database."""
+        """Create timeline events in the tenant's vault."""
         created_count = 0
 
         try:
-            from app.core.id_gen import make_id
-            from app.models.models import TimelineEvent
+            from app.core.user_context import build_context_for_user_id
+            from app.services.timeline_store import create_event
 
+            user = await build_context_for_user_id(user_id)
             for event in events:
                 if not event.date:
                     continue
 
-                timeline_event = TimelineEvent(
-                    id=make_id("evt"),
-                    user_id=user_id,
+                await create_event(
+                    user,
+                    event_type=event.event_type,
                     title=event.title or event.event_type,
                     description=event.description,
                     event_date=event.date,
-                    event_type=event.event_type,
-                    source_document_id=doc_id,
+                    document_id=doc_id,
                     importance=event.importance or "medium",
                     auto_generated=True,
                 )
-                db_session.add(timeline_event)
                 created_count += 1
 
             if created_count > 0:
-                await db_session.commit()
-
                 # Publish event
                 await event_bus.publish(
                     BusEventType.TIMELINE_UPDATED,
