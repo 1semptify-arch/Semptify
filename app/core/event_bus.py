@@ -280,6 +280,17 @@ class EventBus:
         # maintain its own mapping. The underlying Event object is unchanged.
         payload = event.to_dict()
         narration = NARRATION_MESSAGES.get(event.type)
+        if not narration:
+            # Contract-driven narration (SEMPTIFY_BUILD_CONTRACT Part 2): an
+            # event may carry a narrator slot reference in data["narrator"] —
+            # {"module": <module_package>, "slot": <index>} — resolved against
+            # the module's module_contract.json so the text always comes from
+            # the approved contract, not a freeform publish string.
+            narrator_ref = event.data.get("narrator") if isinstance(event.data, dict) else None
+            if isinstance(narrator_ref, dict):
+                from app.core.narrator import resolve_narration
+
+                narration = resolve_narration(narrator_ref.get("module"), narrator_ref.get("slot"))
         if narration:
             payload["narration"] = narration
         message = json.dumps(payload)
