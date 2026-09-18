@@ -1,0 +1,15 @@
+{
+  "module_name": "Risc",
+  "layout": "app/modules/risc/ — 2 registered function groups (risc_webhook, risc_webhook_verify). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.risc function outputs",
+  "output_why": "Serves the Risc functions declared in its FunctionGroupContracts.",
+  "process_description": "Receive Google Cross-Account Protection Security Event Tokens. Google verification GET request — returns 200 to confirm endpoint ownership.",
+  "process_context": "Derived record. Invoked via the risc module's registered routes and dependencies.",
+  "narrative_events": []
+}

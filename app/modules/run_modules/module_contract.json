@@ -1,0 +1,27 @@
+{
+  "module_name": "Run Modules",
+  "layout": "app/modules/run_modules/ — 2 registered function groups (run_modules_list, run_modules_run). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "module_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "module_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (modules, run_result) via the module's routes/services.",
+  "output_where": "/api/admin/run/modules, /api/admin/run/modules/{module_id} (prefixes: /api/admin/run)",
+  "output_why": "Serves the Run Modules functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list of runnable module health checks. CANONICAL run a module health check by module_id.",
+  "process_context": "Derived record. Invoked via the run_modules module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,27 @@
+{
+  "module_name": "Auth",
+  "layout": "app/modules/auth/ — 2 registered function groups (auth_status, auth_register_info). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "semptify_uid",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "semptify_uid",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (authenticated, info, provider, role, user_id) via the module's routes/services.",
+  "output_where": "app.modules.auth function outputs",
+  "output_why": "Serves the Auth functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL authentication status check. Returns whether the user is authenticated, their user_id, role, and provider. Used by the frontend to determine if the user is logged in. CANONICAL registration info endpoint. Returns information about how to register a new account. Used by the registration page.",
+  "process_context": "Derived record. Invoked via the auth module's registered routes and dependencies.",
+  "narrative_events": []
+}

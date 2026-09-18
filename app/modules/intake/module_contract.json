@@ -1,0 +1,87 @@
+{
+  "module_name": "Intake",
+  "layout": "app/modules/intake/ — 19 registered function groups (intake_upload, intake_upload_auto, intake_upload_batch, intake_process_vault, intake_process, intake_status, intake_list_documents, intake_get_document, intake_get_issues, intake_get_dates, intake_get_amounts, intake_get_parties, intake_get_text, intake_critical_issues, intake_upcoming_deadlines, intake_summary, intake_verify_notarization, intake_chain_of_custody, intake_enums). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "days",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "doc_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "file",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "files",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "notarization_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "status",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "days",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "doc_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "file",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "files",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "notarization_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "status",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (amounts, by_status, chain, critical_issues, dates, deadlines, doc_id, document…) via the module's routes/services.",
+  "output_where": "app.modules.intake function outputs",
+  "output_why": "Serves the Intake functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL single-file upload endpoint. Accepts a file, stores it, and queues it for processing. Returns the document ID and status. This is the primary upload endpoint for the tenant UI. CANONICAL upload-and-process endpoint. Accepts a file, stores it, processes it immediately (classify, extract, detect issues), and returns the full result. This is the 'Add Record' button's backend. CANONICAL batch upload endpoint. Accepts multiple files at once, stores and processes each, returns per-file results. Used when the tenant drops a folder of documents. CANONICAL process a document already in the vault. Re-runs the intake pipeline on an existing vault file. Used when a file was uploaded via sidebar but not yet processed. CANONICAL processing of an uploaded document. Runs classification, extraction, and issue detection. Returns the processed document. CANONICAL status check for a processing document. Returns current status (queued, processing, completed, failed) and progress info. CANONICAL list of intake documents for a user. Supports filtering by status. Returns document summaries with processing status. CANONICAL retrieval of a specific intake document with all extraction results. Returns the full document record. CANONICAL list of detected issues for a document. Returns issues with severity, description, and suggested actions. CANONICAL list of dates extracted from a document. Returns dates with context (what the date refers to) and confidence. CANONICAL list of monetary amounts extracted from a document. Returns amounts with context (fees, rent, deposits, charges). CANONICAL list of parties extracted from a document. Returns parties with role (landlord, tenant, witness, agency) and contact info. CANONICAL full extracted text for a document. Returns the text content extracted during processing. CANONICAL list of all CRITICAL issues across all of a user's documents. Used by the tenant dashboard's critical alerts section. CANONICAL list of upcoming deadlines extracted from documents. Returns deadlines within the next N days (default 14). Used by the tenant dashboard's deadlines section. CANONICAL summary of all intake documents for a user. Returns counts by status, total issues, critical issues, and upcoming deadlines. Used by the tenant dashboard. CANONICAL verification of a notarization ID. Returns whether the notarization is valid, the notary's info, and the document it covers. CANONICAL chain of custody retrieval for a notarized document. Returns the full custody chain from upload to notarization. CANONICAL enumeration values for document types, intake statuses, issue severities, and supported languages. Used by the frontend to populate dropdowns and filters.",
+  "process_context": "Derived record. Invoked via the intake module's registered routes and dependencies.",
+  "narrative_events": []
+}

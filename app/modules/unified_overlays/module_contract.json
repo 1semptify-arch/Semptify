@@ -1,0 +1,15 @@
+{
+  "module_name": "Unified Overlays",
+  "layout": "app/modules/unified_overlays/ — 9 registered function groups (unified_overlays_health_check, unified_overlays_create_overlay, unified_overlays_overlays, unified_overlays_get_overlay, unified_overlays_patch_overlay, unified_overlays_delete_overlay, unified_overlays_compose_document_view, unified_overlays_add_highlight, unified_overlays_add_note). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.unified_overlays function outputs",
+  "output_why": "Serves the Unified Overlays functions declared in its FunctionGroupContracts.",
+  "process_description": "Health check endpoint. POST /create GET /list GET /{overlay_id} PATCH /{overlay_id} DELETE /{overlay_id} POST /compose-view POST /annotations/highlight POST /annotations/note",
+  "process_context": "Derived record. Invoked via the unified_overlays module's registered routes and dependencies.",
+  "narrative_events": []
+}

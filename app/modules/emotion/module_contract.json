@@ -1,0 +1,15 @@
+{
+  "module_name": "Emotion",
+  "layout": "app/modules/emotion/ — 8 registered function groups (emotion_emotional_state, emotion_record_trigger, emotion_dashboard_configuration, emotion_ui_settings, emotion_suggested_action, emotion_available_triggers, emotion_simulate_emotional_scenario, emotion_emotional_history). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.emotion function outputs",
+  "output_why": "Serves the Emotion functions declared in its FunctionGroupContracts.",
+  "process_description": "Get current emotional state for user. POST /trigger Get full adaptive dashboard configuration. Get UI adaptation settings only. Get the emotionally-appropriate next action for user. List all available emotional triggers. POST /simulate-scenario GET /history",
+  "process_context": "Derived record. Invoked via the emotion module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,15 @@
+{
+  "module_name": "Funding Search",
+  "layout": "app/modules/funding_search/ — 11 registered function groups (funding_search_funding_programs, funding_search_program_details, funding_search_search_funding_records, funding_search_search_by_address, funding_search_search_by_company, funding_search_search_by_broker, funding_search_funding_record, funding_search_funding_statistics, funding_search_check_eligibility, funding_search_data_sources, funding_search_health). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.funding_search function outputs",
+  "output_why": "Serves the Funding Search functions declared in its FunctionGroupContracts.",
+  "process_description": "List all available funding programs with details Get detailed information about a specific funding program POST /search GET /search/address GET /search/company GET /search/broker GET /record/{record_id} GET /statistics GET /eligibility-check List authoritative data sources for funding research Health check for funding search service",
+  "process_context": "Derived record. Invoked via the funding_search module's registered routes and dependencies.",
+  "narrative_events": []
+}

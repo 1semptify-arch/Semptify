@@ -1,0 +1,37 @@
+{
+  "module_name": "Court Packet",
+  "layout": "app/modules/court_packet/ — 8 registered function groups (court_packet_status, court_packet_documents, court_packet_evidence, court_packet_legal_documents, court_packet_timeline, court_packet_checklist, court_packet_generate, court_packet_preview). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "include_highlights",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "include_highlights",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (checklist, contents, documents, evidence, filename, legal_documents, packet, preview…) via the module's routes/services.",
+  "output_where": "app.modules.court_packet function outputs",
+  "output_why": "Serves the Court Packet functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL get current court packet status and contents summary. Returns what's included and what's missing. CANONICAL get all documents available for the court packet. Returns categorized documents. CANONICAL get all evidence documents for the court packet. Returns evidence categorized by type. CANONICAL get all legal documents for the court packet (notices, filings, etc.). CANONICAL get aggregated timeline events from all processed documents for the court packet. CANONICAL get checklist of recommended items for the court packet. Returns what's included and what's missing. CANONICAL generate the complete court packet. Returns the generated packet as a PDF or zip. CANONICAL preview what would be included in the court packet. Returns a preview without generating the final packet.",
+  "process_context": "Derived record. Invoked via the court_packet module's registered routes and dependencies.",
+  "narrative_events": []
+}

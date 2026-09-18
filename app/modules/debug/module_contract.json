@@ -1,0 +1,27 @@
+{
+  "module_name": "Debug",
+  "layout": "app/modules/debug/ — 1 registered function groups (debug_maintenance). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "request",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "/debug/add-legal-columns, /debug/force-migrate, /debug/seed-test-user, /debug/stamp-alembic-head (prefixes: /debug)",
+  "output_why": "Serves the Debug functions declared in its FunctionGroupContracts.",
+  "process_description": "Dev-only maintenance endpoints gated by SECURITY_MODE=open. Force-migrate alembic, add legal columns, stamp alembic head, and seed a local test user. All routes return 404 when security mode is not open.",
+  "process_context": "Derived record. Invoked via the debug module's registered routes and dependencies.",
+  "narrative_events": []
+}

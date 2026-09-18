@@ -1,0 +1,127 @@
+{
+  "module_name": "Court Forms",
+  "layout": "app/modules/court_forms/ — 17 registered function groups (form_generate, form_autofill, court_forms_list_types, court_forms_list_defenses, court_forms_generate, court_forms_generate_html, court_forms_download, court_forms_preview, court_forms_quick_answer, court_forms_autofill, court_forms_generate_from_documents, court_forms_document_data_preview, court_forms_library_list, court_forms_library_get, court_forms_library_render, court_forms_library_save, court_forms_library_packet). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "case_data",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "case_number",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "defendant_name",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "defenses",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "field_values",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "filename",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "form_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "form_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "items",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "output_format",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "case_data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "case_number",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "defendant_name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "defenses",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "field_values",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "filename",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "form_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "form_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "items",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "output_format",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (autofill_data, case_data, content, defenses, extracted_data, fields_used, filename, form_autofills…) via the module's routes/services.",
+  "output_where": "app.modules.court_forms function outputs",
+  "output_why": "Serves the Court Forms functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL form generation via POST /api/court-forms/generate. Creates FORM_FILL overlay in user's vault with filled form data. Uses oauth_token_manager + services.storage.get_provider pattern (NOT storage_factory). Required CreateOverlayRequest fields: overlay_type, document_id, vault_path, payload, metadata. CANONICAL auto-fill via GET /api/court-forms/autofill/{form_type}. Extracts data from uploaded documents to pre-fill court forms. Returns field mappings for form pre-population. CANONICAL list of available court form types. Returns form codes, titles, and descriptions. Used by the form selection UI. CANONICAL list of available defense types for Answer forms. Returns defense codes, titles, and descriptions. CANONICAL generate a court form PDF from tenant input. Returns the generated PDF as base64 or a download URL. CANONICAL generate a court form as HTML for preview. Returns the form rendered as HTML for the tenant to review before generating the PDF. CANONICAL download a generated court form as PDF. Returns the PDF file for download. CANONICAL preview a court form with data without generating the final PDF. Returns a preview for the tenant to review. CANONICAL quick-generate an Answer form with minimal input. Used by the tenant dashboard's quick-action feature. CANONICAL autofill a court form from uploaded documents. Extracts case number, parties, and facts from the tenant's documents to pre-populate the form. CANONICAL generate a complete court form from extracted document data. Combines autofill and generation in one step. CANONICAL preview the data extracted from documents that would be used to autofill a court form. Used by the form generation UI. CANONICAL list of Minnesota civil and housing court forms from the JSON library. Returns form_id, title, category, case_type, and related forms. CANONICAL get a single form definition from the JSON library, including all required_fields and court_rules. CANONICAL render a library form as HTML, text, or base64 PDF from confirmed field values. CANONICAL generate a library form PDF and save it to the user's connected vault. Creates a FORM_FILL overlay attached to the generated PDF. CANONICAL render multiple library forms and merge them into a single PDF packet. Returns the packet as base64 PDF.",
+  "process_context": "Derived record. Invoked via the court_forms module's registered routes and dependencies.",
+  "narrative_events": []
+}

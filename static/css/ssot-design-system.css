@@ -2830,3 +2830,30 @@ body.shell .fnav {
 @media (prefers-reduced-motion: reduce) {
   .fnav__btn { transition: none; }
 }
+
+/* ---------------------------------------------------------------------------
+   Live narration strip (ADR-0008 / Build Contract Part 2)
+   One calm status line between the header and the work zone. Invisible
+   while empty; fades in when a contract-declared narration line arrives.
+   Zone separation via background tint — no border.
+--------------------------------------------------------------------------- */
+.narration-strip {
+  padding: 0.5rem 4vw;
+  background: var(--color-calm-50);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+.narration-strip:empty {
+  display: none;
+}
+.narration-strip--fresh {
+  animation: narration-strip-in 400ms ease-out;
+}
+@keyframes narration-strip-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .narration-strip--fresh { animation: none; }
+}

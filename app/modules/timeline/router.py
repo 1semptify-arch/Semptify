@@ -37,6 +37,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.capabilities import require_capability
 from app.core.database import get_db_session
+from app.core.event_bus import EventType, event_bus
 from app.core.id_gen import make_id
 from app.core.security import StorageUser, green_access
 from app.core.utc import utc_now
@@ -1107,6 +1108,21 @@ async def create_timeline_event(
     async with get_db_session() as session:
         session.add(event)
         await session.commit()
+
+    event_bus.publish_sync(
+        EventType.TIMELINE_EVENT_ADDED,
+        {
+            "user_id": user.user_id,
+            "event_id": event_id,
+            "event_type": body.event_type,
+            "is_deadline": body.is_deadline,
+            "is_evidence": body.is_evidence,
+            "narrator": {
+                "module": "app.modules.timeline",
+                "slot": 2 if body.is_evidence else (1 if body.is_deadline else 0),
+            },
+        },
+    )
 
     return TimelineEventResponse(
         id=event_id,

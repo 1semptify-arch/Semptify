@@ -1,0 +1,107 @@
+{
+  "module_name": "Security",
+  "layout": "app/modules/security/ — 15 registered function groups (security_2fa_setup, security_2fa_verify, security_2fa_enable, security_2fa_disable, security_2fa_status, security_2fa_regenerate_codes, security_2fa_methods, security_session_create, security_session_validate, security_session_revoke, security_session_revoke_all, security_sessions_list, security_status, security_events, security_recommendations). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "code",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "device_info",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "except_session_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "limit",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "method",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "reason",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "session_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "severity",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "code",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "device_info",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "except_session_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "limit",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "method",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "reason",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "session_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "severity",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (active_sessions, backup_codes, backup_codes_available, disabled, enabled, events, expires_at, method…) via the module's routes/services.",
+  "output_where": "app.modules.security function outputs",
+  "output_why": "Serves the Security functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL setup two-factor authentication. Generates a TOTP secret and QR code for the user to scan with their authenticator. CANONICAL verify a 2FA code during setup. Confirms the user has correctly configured their authenticator before enabling. CANONICAL enable 2FA after successful verification. Activates 2FA requirement for the user's account. CANONICAL disable 2FA. Removes the 2FA requirement from the user's account. Requires the user's password or a valid 2FA code. CANONICAL 2FA status check. Returns whether 2FA is enabled, the method, and whether backup codes are available. CANONICAL regenerate backup codes for 2FA. Issues a new set of one-time backup codes. Previous codes are invalidated. CANONICAL list of supported 2FA methods. Returns the available methods (totp, sms, email) for the frontend to display. CANONICAL create a secure session. Issues a session token with device info and expiration. Used after login. CANONICAL validate a session. Returns whether the session is valid, expired, or revoked. CANONICAL revoke a specific session. Used when the user logs out from a specific device or when a session is compromised. CANONICAL revoke all sessions for the user. Used when the user suspects their account is compromised. Optionally keeps one session active. CANONICAL list of active sessions for the user. Returns session metadata (device, location, last active) for the session manager. CANONICAL security status for the user. Returns 2FA status, active session count, and recent security events. Used by the security settings page. CANONICAL list of security events for the user. Returns login attempts, 2FA changes, session revocations, and other security-relevant events. Supports filtering by severity. CANONICAL security recommendations for the user. Returns suggestions like 'enable 2FA', 'revoke old sessions', etc. Used by the security settings page.",
+  "process_context": "Derived record. Invoked via the security module's registered routes and dependencies.",
+  "narrative_events": []
+}

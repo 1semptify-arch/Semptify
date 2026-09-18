@@ -1,0 +1,37 @@
+{
+  "module_name": "Dashboard",
+  "layout": "app/modules/dashboard/ — 5 registered function groups (dashboard_unified, dashboard_refresh, dashboard_status_bar, dashboard_greeting, dashboard_quick_stats). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "context",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "context",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (contacts, days_active, deadlines, document_count, documents, encouragement?, greeting, next_deadline…) via the module's routes/services.",
+  "output_where": "app.modules.dashboard function outputs",
+  "output_why": "Serves the Dashboard functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL unified dashboard data in a single call. Assembles document summary, timeline events, upcoming deadlines, urgent issues, and contacts into one response. Used by the tenant dashboard page. CANONICAL refresh dashboard with specific context. Called after a document upload or other action to refresh the affected sections. Returns only the sections that changed. CANONICAL minimal status bar data for quick updates. Returns unread counts, urgent count, and next deadline. Used by the persistent status bar. CANONICAL personalized greeting based on time of day and the user's emotional state. Returns a greeting string and optional encouragement message. CANONICAL quick stats for display widgets. Returns document count, timeline event count, days active, and vault size. Used by the tenant dashboard's stats widgets.",
+  "process_context": "Derived record. Invoked via the dashboard module's registered routes and dependencies.",
+  "narrative_events": []
+}

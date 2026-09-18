@@ -1,0 +1,97 @@
+{
+  "module_name": "Plan Maker",
+  "layout": "app/modules/plan_maker/ — 8 registered function groups (plan_maker_plan_create, plan_maker_plan_view, plan_maker_plan_export, plan_maker_entity_add, plan_maker_evidence_add, plan_maker_step_add, plan_maker_step_complete, plan_maker_default_steps). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "entity",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "evidence",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "format",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "plan_data",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "plan_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "step",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "step_index",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "entity",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "evidence",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "format",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "plan_data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "plan_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "step",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "step_index",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (content, filename, plan, plan_id, steps) via the module's routes/services.",
+  "output_where": "app.modules.plan_maker function outputs",
+  "output_why": "Serves the Plan Maker functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL create a new accountability plan. Returns the new plan with ID. CANONICAL view a plan from submitted state. Returns the plan details. CANONICAL export a plan as Markdown or JSON. Returns the exported content. CANONICAL add an entity (organization, person) to the plan. CANONICAL add an evidence item to the plan. CANONICAL add a next step / action item to the plan. CANONICAL mark a step as complete in the plan. CANONICAL get the default next-step templates pre-populated when creating a new plan.",
+  "process_context": "Derived record. Invoked via the plan_maker module's registered routes and dependencies.",
+  "narrative_events": []
+}

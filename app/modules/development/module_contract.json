@@ -1,0 +1,15 @@
+{
+  "module_name": "Development",
+  "layout": "app/modules/development/ — 5 registered function groups (development_run_crawl, development_crawl_report, development_run_analysis, development_dev_health, development_dev_metrics). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.development function outputs",
+  "output_why": "Serves the Development functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /crawl GET /crawl/report POST /analyze Get development tools health status. GET /metrics",
+  "process_context": "Derived record. Invoked via the development module's registered routes and dependencies.",
+  "narrative_events": []
+}

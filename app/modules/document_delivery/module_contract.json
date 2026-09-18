@@ -1,0 +1,97 @@
+{
+  "module_name": "Document Delivery",
+  "layout": "app/modules/document_delivery/ — 9 registered function groups (document_delivery_health, document_delivery_inbox_page, document_delivery_send, document_delivery_inbox, document_delivery_outbox, document_delivery_get, document_delivery_mark_viewed, document_delivery_sign, document_delivery_reject). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "access_token",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "delivery_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "document_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "reason",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "recipient_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "request",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "signature_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "access_token",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "delivery_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "reason",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "recipient_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "signature_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (deliveries, delivery, delivery_id, html, signed_document, status, success) via the module's routes/services.",
+  "output_where": "app.modules.document_delivery function outputs",
+  "output_why": "Serves the Document Delivery functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL health check endpoint for the document delivery module. CANONICAL serve the tenant document delivery inbox page. Returns HTML. CANONICAL send a document from a professional to a tenant. Creates a delivery record. CANONICAL get the tenant's delivery inbox. Returns all deliveries sent to the tenant. CANONICAL get the professional's delivery outbox. Returns all deliveries sent by the professional. CANONICAL get a specific delivery by ID. Returns full delivery details including document. CANONICAL mark a delivery as viewed. Updates the read receipt for the delivery. CANONICAL sign a delivered document. Tenant applies a signature to the document. CANONICAL reject a delivered document. Tenant provides a reason for rejection.",
+  "process_context": "Derived record. Invoked via the document_delivery module's registered routes and dependencies.",
+  "narrative_events": []
+}

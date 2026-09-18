@@ -1,0 +1,37 @@
+{
+  "module_name": "Voice",
+  "layout": "app/modules/voice/ — 1 registered function groups (voice_transcribe). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "audio",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "audio",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (transcript) via the module's routes/services.",
+  "output_where": "/api/voice/transcribe (prefixes: /api/voice)",
+  "output_why": "Serves the Voice functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL server-side transcription fallback for voice input. Used only when the Web Speech API is unavailable.",
+  "process_context": "Derived record. Invoked via the voice module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
+from app.core.event_bus import EventType, event_bus
 from app.core.id_gen import make_id
 from app.core.security import StorageUser, yellow_access
 from app.core.user_id import get_role_from_user_id
@@ -124,7 +125,15 @@ async def create_conversation(
 
     role = _get_participant_role(_get_user_role(user))
 
-    return await service.create_conversation(request, role, user.user_id)
+    response = await service.create_conversation(request, role, user.user_id)
+    event_bus.publish_sync(
+        EventType.CONVERSATION_STARTED,
+        {
+            "user_id": user.user_id,
+            "narrator": {"module": "app.modules.communication", "slot": 0},
+        },
+    )
+    return response
 
 
 @router.get("/conversations/{conversation_id}", response_model=MessageThreadResponse)
@@ -189,7 +198,16 @@ async def send_message(
         reply_to_message_id=reply_to_message_id,
     )
 
-    return await service.send_message(request, role, user.user_id)
+    response = await service.send_message(request, role, user.user_id)
+    event_bus.publish_sync(
+        EventType.MESSAGE_SENT,
+        {
+            "user_id": user.user_id,
+            "conversation_id": conversation_id,
+            "narrator": {"module": "app.modules.communication", "slot": 1},
+        },
+    )
+    return response
 
 
 @router.post("/conversations/{conversation_id}/messages/{message_id}/read")

@@ -1,0 +1,47 @@
+{
+  "module_name": "Agent Orchestrator",
+  "layout": "app/modules/agent_orchestrator/ — 4 registered function groups (agent_orchestrator_tasks, agent_orchestrator_create_task, agent_orchestrator_batch_create, agent_orchestrator_models). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "target_model",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "tasks[]",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "title",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "target_model",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "tasks[]",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "title",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (created, models, task, tasks, total) via the module's routes/services.",
+  "output_where": "app.modules.agent_orchestrator function outputs",
+  "output_why": "Serves the Agent Orchestrator functions declared in its FunctionGroupContracts.",
+  "process_description": "GET /api/agent-orchestrator/tasks POST /api/agent-orchestrator/tasks POST /api/agent-orchestrator/batch GET /api/agent-orchestrator/models",
+  "process_context": "Derived record. Invoked via the agent_orchestrator module's registered routes and dependencies.",
+  "narrative_events": []
+}

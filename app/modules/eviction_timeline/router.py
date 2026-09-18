@@ -14,6 +14,7 @@ from sqlalchemy import select
 
 from app.core.context_envelope import EncounterContext
 from app.core.database import get_db
+from app.core.event_bus import EventType, event_bus
 from app.core.id_gen import make_id
 from app.core.navigation import navigation
 from app.core.security import UserContext, require_tier
@@ -103,6 +104,18 @@ async def create_eviction_event(
     )
     db.add(event)
     await db.commit()
+
+    event_bus.publish_sync(
+        EventType.TIMELINE_EVENT_ADDED,
+        {
+            "user_id": _user_id(user),
+            "event_id": event.id,
+            "event_type": event_type,
+            "jurisdiction": jurisdiction,
+            "narrator": {"module": "app.modules.eviction_timeline", "slot": 0},
+        },
+    )
+
     return ssot_redirect(navigation.get_stage("eviction_timeline_home").path, context="create eviction timeline event")
 
 

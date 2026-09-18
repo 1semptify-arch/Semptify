@@ -1,0 +1,37 @@
+{
+  "module_name": "Page Shell",
+  "layout": "app/modules/page_shell/ — 2 registered function groups (render_page, load_page_config). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "page_config",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "raw_config",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "page_config",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "raw_config",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (govern_report, html, page_config) via the module's routes/services.",
+  "output_where": "app.modules.page_shell function outputs",
+  "output_why": "Serves the Page Shell functions declared in its FunctionGroupContracts.",
+  "process_description": "Render a validated PageConfig to HTML. Returns a single .page-shell grid with four zones (RECORD, KNOW, ACT, GOVERN). Does not fetch data, pick blends, or compute intensity — pure data-driven renderer. Validate a raw dict and apply GOVERN floor/override rules. Returns a validated PageConfig and a GOVERN report.",
+  "process_context": "Derived record. Invoked via the page_shell module's registered routes and dependencies.",
+  "narrative_events": []
+}

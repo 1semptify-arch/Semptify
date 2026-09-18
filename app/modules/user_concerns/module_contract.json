@@ -1,0 +1,37 @@
+{
+  "module_name": "User Concerns",
+  "layout": "app/modules/user_concerns/ — 5 registered function groups (user_concerns_health, user_concerns_list, user_concerns_summary, user_concerns_flag, user_concerns_resolve). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "concern",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "concern_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "concern",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "concern_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (concerns, flag_result, resolve_result, status, summary) via the module's routes/services.",
+  "output_where": "/api/admin/user-concerns/concerns, /api/admin/user-concerns/flag, /api/admin/user-concerns/health, /api/admin/user-concerns/resolve, /api/admin/user-concerns/summary (prefixes: /api/admin/user-concerns)",
+  "output_why": "Serves the User Concerns functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL health check for the User Concerns hub tile. CANONICAL list of flagged user concerns in the support queue. CANONICAL aggregate counts for the support queue. CANONICAL flag a user concern for review. Currently a stub (501) until the T2 data model is designed. CANONICAL resolve a flagged user concern. Currently a stub (501) until the T2 data model is designed.",
+  "process_context": "Derived record. Invoked via the user_concerns module's registered routes and dependencies.",
+  "narrative_events": []
+}

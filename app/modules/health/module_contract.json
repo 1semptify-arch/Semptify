@@ -1,0 +1,15 @@
+{
+  "module_name": "Health",
+  "layout": "app/modules/health/ — 6 registered function groups (health_liveness, health_readiness, health_metrics, health_metrics_json, health_system_dashboard, health_api_summary). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (checks, html, metrics, status, summary, timestamp) via the module's routes/services.",
+  "output_where": "app.modules.health function outputs",
+  "output_why": "Serves the Health functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL liveness probe. Returns 200 if the app process is running. Used by Kubernetes/Render liveness checks. CANONICAL readiness probe. Returns 200 if the app is ready to serve traffic (database connected, migrations applied). Used by Kubernetes/Render readiness checks. CANONICAL Prometheus-compatible metrics endpoint. Returns app metrics in Prometheus text format. Used by monitoring systems. CANONICAL JSON metrics endpoint for non-Prometheus consumers. Returns the same metrics as the Prometheus endpoint but as JSON. CANONICAL visual system dashboard. Returns an HTML page showing all system capabilities and health status. Admin-only. CANONICAL JSON summary of all API capabilities. Returns a programmatic summary of all endpoints and their status. Used for API discovery.",
+  "process_context": "Derived record. Invoked via the health module's registered routes and dependencies.",
+  "narrative_events": []
+}

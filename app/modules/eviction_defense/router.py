@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from app.core.document_hub import get_document_hub
+from app.core.event_bus import EventType, event_bus
 from app.core.security import StorageUser, yellow_access
 from app.core.utc import utc_now
 from app.services.form_data import get_form_data_service
@@ -944,6 +945,19 @@ async def calculate_deadlines(request: DeadlineCalculation):
         deadlines["warnings"].append("⚠️ ANSWER DEADLINE HAS PASSED - File immediately!")
     elif (answer_date - today).days <= 2:
         deadlines["warnings"].append("⚠️ Answer due in " + str((answer_date - today).days) + " days!")
+
+    event_bus.publish_sync(
+        EventType.DEADLINE_CALCULATED,
+        {
+            "service_date": service.isoformat(),
+            "answer_due": deadlines["answer_due"],
+            "answer_deadline_passed": today > answer_date,
+            "narrator": {
+                "module": "app.modules.eviction_defense",
+                "slot": 1 if today > answer_date else 0,
+            },
+        },
+    )
 
     return deadlines
 

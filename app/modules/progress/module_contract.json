@@ -1,0 +1,15 @@
+{
+  "module_name": "Progress",
+  "layout": "app/modules/progress/ — 12 registered function groups (progress_progress, progress_case_readiness, progress_all_milestones, progress_next_milestones, progress_complete_milestone, progress_skip_milestone, progress_points, progress_stats, progress_increment_stat, progress_setup_case, progress_journey_overview, progress_achievements). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.progress function outputs",
+  "output_why": "Serves the Progress functions declared in its FunctionGroupContracts.",
+  "process_description": "GET / GET /readiness GET /milestones GET /milestones/next POST /milestones/complete POST /milestones/skip/{milestone_id} GET /points GET /stats POST /stat/{stat} POST /setup GET /journey GET /achievements",
+  "process_context": "Derived record. Invoked via the progress module's registered routes and dependencies.",
+  "narrative_events": []
+}

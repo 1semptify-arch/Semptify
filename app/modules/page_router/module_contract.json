@@ -1,0 +1,27 @@
+{
+  "module_name": "Page Router",
+  "layout": "app/modules/page_router/ — 1 registered function groups (serve_manifest_page). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "request",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (html_or_redirect) via the module's routes/services.",
+  "output_where": "app.modules.page_router function outputs",
+  "output_why": "Serves the Page Router functions declared in its FunctionGroupContracts.",
+  "process_description": "Serve a template page declared in the page manifest. Applies the PAGE_CONTRACTS guard (user cookie, valid storage session, role membership) before rendering; redirects via SSOT navigation on denial. Renders the Jinja2 template with standard context (page_id, page_title, contract, user info); falls back to a placeholder page when the template file does not exist yet. Routes are generated dynamically from PAGE_MANIFEST at import time — routes already owned by dedicated handlers are skipped.",
+  "process_context": "Derived record. Invoked via the page_router module's registered routes and dependencies.",
+  "narrative_events": []
+}

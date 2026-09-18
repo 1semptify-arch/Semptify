@@ -1,0 +1,37 @@
+{
+  "module_name": "Advanced",
+  "layout": "app/modules/advanced/ — 7 registered function groups (advanced_health, advanced_tools_list, advanced_build_status, advanced_guardrail_run, advanced_orchestrator_sync, advanced_verify, advanced_cost_guard). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "fees",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "module_id",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "fees",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "module_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (build_status, detected_patterns, guardrail_result, status, sync_result, tools, verify_result) via the module's routes/services.",
+  "output_where": "/api/admin/advanced/build, /api/admin/advanced/cost-guard/detect-repeated-fees, /api/admin/advanced/guardrail, /api/admin/advanced/health, /api/admin/advanced/sync-orchestrator, /api/admin/advanced/tools, /api/admin/advanced/verify (prefixes: /api/admin/advanced)",
+  "output_why": "Serves the Advanced functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL health check for the Advanced hub tile. CANONICAL list of available advanced/dev tools. CANONICAL Build Orchestrator status for the Advanced tile. CANONICAL trigger a guardrail-engine run from the Advanced tile. CANONICAL trigger an orchestrator task sync from the Advanced tile. CANONICAL verify a single module by module_id from the Advanced tile. CANONICAL detect repeated-fee patterns from fee metadata. Counting only, no identity data.",
+  "process_context": "Derived record. Invoked via the advanced module's registered routes and dependencies.",
+  "narrative_events": []
+}

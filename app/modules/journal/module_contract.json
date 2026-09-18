@@ -1,0 +1,158 @@
+{
+  "module_name": "Journal",
+  "layout": "app/modules/journal/ — 6 registered function groups (journal_create, journal_list, journal_get, journal_update, journal_delete, journal_summary). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "content",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "document_link",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "entry_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "entry_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "involved_party",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "is_urgent",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "limit",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "occurred_at",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "skip",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "tags",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "title",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "updates",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "content",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "document_link",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "entry_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "entry_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "involved_party",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "is_urgent",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "limit",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "occurred_at",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "skip",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "tags",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "title",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "updates",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (deleted, entries, entry, entry_id, recent_entries, total, total_entries, urgent_entries) via the module's routes/services.",
+  "output_where": "app.modules.journal function outputs",
+  "output_why": "Serves the Journal functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL create a free-form journal entry. Tenants log conversations, incidents, repair requests, and notes with a title, content, timestamp, and optional tags. CANONICAL list of journal entries for a user. Returns entries sorted by occurrence time, newest first, with optional filters and pagination. CANONICAL get a single journal entry by ID. Enforces ownership. CANONICAL update a journal entry. Enforces ownership. CANONICAL delete a journal entry. Enforces ownership. CANONICAL dashboard summary of journal entries. Returns total count, urgent count, and the most recent entries.",
+  "process_context": "Derived record. Invoked via the journal module's registered routes and dependencies.",
+  "narrative_events": [
+    {
+      "verb": "saved",
+      "object": "the entry",
+      "context_clause": "because the tenant recorded what happened"
+    },
+    {
+      "verb": "flagged",
+      "object": "the entry as urgent",
+      "context_clause": "because the tenant marked it as needing attention soon"
+    }
+  ]
+}

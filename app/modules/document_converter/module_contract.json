@@ -1,0 +1,137 @@
+{
+  "module_name": "Document Converter",
+  "layout": "app/modules/document_converter/ — 8 registered function groups (document_converter_to_docx, document_converter_to_html, document_converter_to_both, document_converter_file, document_converter_from_path, document_converter_download, document_converter_list, document_converter_cleanup). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "_",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "a",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "d",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "file",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "file_path",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "filename",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "l",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "markdown",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "o",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "output_format",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "s",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "y",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "_",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "a",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "d",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "file",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "file_path",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "filename",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "l",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "markdown",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "o",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "output_format",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "s",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "y",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (cleaned, converted, documents, docx, file, filename, html) via the module's routes/services.",
+  "output_where": "app.modules.document_converter function outputs",
+  "output_why": "Serves the Document Converter functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL convert markdown text to Microsoft Word (.docx) format. Returns the converted file. CANONICAL convert markdown text to interactive HTML. Returns the converted HTML. CANONICAL convert markdown text to both DOCX and HTML. Returns both converted files. CANONICAL convert an uploaded markdown file to DOCX/HTML. Returns the converted file(s). CANONICAL convert a markdown file from a server path. Returns the converted file(s). CANONICAL download a converted document by filename. Returns the file for download. CANONICAL list all converted documents. Returns filenames and metadata. CANONICAL clean up converted documents older than specified days. Admin-only.",
+  "process_context": "Derived record. Invoked via the document_converter module's registered routes and dependencies.",
+  "narrative_events": []
+}

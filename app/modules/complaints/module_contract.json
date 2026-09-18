@@ -1,0 +1,207 @@
+{
+  "module_name": "Complaints",
+  "layout": "app/modules/complaints/ — 16 registered function groups (complaints_list_agencies, complaints_get_agency, complaints_recommend_agencies, complaints_agency_checklist, complaints_create_draft, complaints_list_drafts, complaints_get_draft, complaints_update_draft, complaints_delete_draft, complaints_preview, complaints_export, complaints_mark_filed, complaints_quick_start, complaints_wizard_start, complaints_wizard_get, complaints_submit). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "_",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "a",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "agency_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "c",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "draft_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "e",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "filed_date",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "format",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "g",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "jurisdiction",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "keywords",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "n",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "p",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "session_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "situation",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "t",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "updates",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "y",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "_",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "a",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "agency_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "c",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "draft_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "e",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "filed_date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "format",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "g",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "jurisdiction",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "keywords",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "n",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "p",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "session_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "situation",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "t",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "updates",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "y",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (agencies, agency, checklist, current_step, draft, draft_id, drafts, file_stream…) via the module's routes/services.",
+  "output_where": "app.modules.complaints function outputs",
+  "output_why": "Serves the Complaints functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list of housing agencies. Supports filtering by agency type. Returns agency names, types, jurisdictions, and contact info. CANONICAL details for a specific agency. Returns full agency info including filing methods, contact info, and jurisdiction. CANONICAL agency recommendations based on the tenant's situation. Takes keywords describing the situation and returns agencies that handle those issues. Facts only — not a recommendation to file. CANONICAL filing checklist for a specific agency. Returns the list of required documents, forms, and steps for filing with that agency. CANONICAL create a complaint draft. The tenant provides their situation details, and the system generates a formatted draft. The tenant reviews and edits before filing. CANONICAL list of complaint drafts for a user. Returns all drafts with status (draft, filed, archived). CANONICAL retrieval of a specific complaint draft. Returns the full draft text and metadata. CANONICAL update of a complaint draft. The tenant can edit the draft text, add details, or attach documents. CANONICAL deletion of a complaint draft. Removes the draft and all associated data. CANONICAL preview of a complaint draft as it would appear when filed. Returns formatted HTML or text for review. CANONICAL export of a complaint draft in a specific format (text, html, pdf). The tenant downloads and files it themselves. CANONICAL mark a complaint draft as filed. The tenant indicates they have filed the complaint with the agency. Updates the draft status and records the filing date. CANONICAL quick start guide for filing complaints. Returns the basic steps and first agencies to consider. Used by the tenant UI's complaints getting-started card. CANONICAL start a new complaint wizard session. The wizard walks the tenant through the complaint filing process step by step. CANONICAL get the current state of a complaint wizard session. Returns the current step, completed steps, and remaining steps. CANONICAL submit a completed complaint. Finalizes the wizard session, creates a draft, and marks it ready for the tenant to file. Does NOT file on the tenant's behalf.",
+  "process_context": "Derived record. Invoked via the complaints module's registered routes and dependencies.",
+  "narrative_events": []
+}

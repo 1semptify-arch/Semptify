@@ -1,0 +1,98 @@
+{
+  "module_name": "Resource Directory",
+  "layout": "app/modules/resource_directory/ — 7 registered function groups (resource_list, resource_get, resource_create, resource_update, resource_delete, resource_import, resource_stale_list). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "category",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "csv_data",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "days",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "query",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "resource",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "resource_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "state",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "category",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "csv_data",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "days",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "query",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "resource",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "resource_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "state",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (deleted, errors, imported, resource, resources, skipped, stale_resources, total) via the module's routes/services.",
+  "output_where": "/admin/resources, /admin/resources/import, /admin/resources/stale, /admin/resources/{resource_id}, /api/resources, /api/resources/{resource_id} (prefixes: /admin/resources, /api/resources)",
+  "output_why": "Serves the Resource Directory functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL public list of community resources with category/state filters. No tenant data. CANONICAL public read of a single resource by ID. CANONICAL admin create of a community resource listing. CANONICAL admin update of a community resource listing. CANONICAL admin delete of a community resource listing. CANONICAL admin bulk CSV import of community resources. CANONICAL list of resources whose last_verified exceeds the staleness window. Feeds the weekly review.",
+  "process_context": "Derived record. Invoked via the resource_directory module's registered routes and dependencies.",
+  "narrative_events": [
+    {
+      "verb": "found",
+      "object": "resources that match the search",
+      "context_clause": "because the tenant searched for help in their area"
+    },
+    {
+      "verb": "did not find",
+      "object": "resources matching that search",
+      "context_clause": "because nothing in the directory fits those filters yet"
+    }
+  ]
+}

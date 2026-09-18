@@ -1,0 +1,15 @@
+{
+  "module_name": "Module Hub",
+  "layout": "app/modules/module_hub/ — 21 registered function groups (module_hub_hub_status, module_hub_modules, module_hub_function_group_contracts, module_hub_function_group_contract_health, module_hub_user_packs, module_hub_pending_packs, module_hub_pack, module_hub_complete_pack, module_hub_user_data, module_hub_make_data_request, module_hub_comm_log, module_hub_case_info, module_hub_lease_data, module_hub_landlord_info, module_hub_property_info, module_hub_deadlines, module_hub_user_context, module_hub_mesh_status, module_hub_set_mesh_mode, module_hub_deferral_status, module_hub_retry_deferred_actions). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.module_hub function outputs",
+  "output_why": "Serves the Module Hub functions declared in its FunctionGroupContracts.",
+  "process_description": "Get the status of the module hub List all registered modules List all registered standardized function-group contracts. Validate function-group contracts for plug-and-play readiness. GET /packs GET /packs/pending GET /packs/{pack_id} POST /packs/{pack_id}/complete GET /data POST /request GET /log GET /case-info GET /lease-data GET /landlord-info GET /property-info GET /deadlines GET /context Get current Positronic Mesh status including mode and deferrals. Switch mesh operating mode ('lean' or 'full'). Get status of deferred actions queue. Retry all deferred actions (only works in full mode).",
+  "process_context": "Derived record. Invoked via the module_hub module's registered routes and dependencies.",
+  "narrative_events": []
+}

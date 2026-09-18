@@ -1,0 +1,15 @@
+{
+  "module_name": "Websocket",
+  "layout": "app/modules/websocket/ — 4 registered function groups (websocket_websocket_status, websocket_user_connections, websocket_send_notification_to_user, websocket_broadcast_notification). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.websocket function outputs",
+  "output_why": "Serves the Websocket functions declared in its FunctionGroupContracts.",
+  "process_description": "Get enhanced WebSocket connection status Get WebSocket connections for a specific user Send a notification to a specific user via WebSocket Broadcast a notification to all connected users",
+  "process_context": "Derived record. Invoked via the websocket module's registered routes and dependencies.",
+  "narrative_events": []
+}

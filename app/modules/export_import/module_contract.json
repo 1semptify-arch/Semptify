@@ -1,0 +1,15 @@
+{
+  "module_name": "Export Import",
+  "layout": "app/modules/export_import/ — 12 registered function groups (export_import_export_request_endpoint, export_import_process_export_endpoint, export_import_export_status_endpoint, export_import_download_export_endpoint, export_import_user_exports_endpoint, export_import_export_endpoint, export_import_prepare_import_endpoint, export_import_upload_import_file_endpoint, export_import_process_import_endpoint, export_import_export_statistics_endpoint, export_import_supported_formats_endpoint, export_import_cleanup_exports_endpoint). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.export_import function outputs",
+  "output_why": "Serves the Export Import functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /export/request POST /export/{export_id}/process GET /export/{export_id} GET /export/{export_id}/download GET /exports DELETE /export/{export_id} POST /import/prepare POST /import/upload/{import_id} POST /import/{import_id}/process GET /export/statistics Get list of supported export and import formats. POST /cleanup",
+  "process_context": "Derived record. Invoked via the export_import module's registered routes and dependencies.",
+  "narrative_events": []
+}

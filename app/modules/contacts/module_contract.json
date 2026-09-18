@@ -1,0 +1,157 @@
+{
+  "module_name": "Contacts",
+  "layout": "app/modules/contacts/ — 13 registered function groups (contacts_list, contacts_create, contacts_get, contacts_update, contacts_delete, contacts_toggle_star, contacts_list_interactions, contacts_log_interaction, contacts_import_from_extraction, contacts_quick_add_landlord, contacts_quick_add_witness, contacts_for_forms, contacts_types). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "address",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "contact_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "contact_type",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "date",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "description",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "email",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "extracted_contacts",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "interaction_type",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "name",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "phone",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "relationship",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "role",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "updates",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "address",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "contact_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "contact_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "date",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "description",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "email",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "extracted_contacts",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "interaction_type",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "name",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "phone",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "relationship",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "role",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "updates",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "user_id",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (contact, contact_id, contacts, imported, interaction_id, interactions, roles, starred…) via the module's routes/services.",
+  "output_where": "app.modules.contacts function outputs",
+  "output_why": "Serves the Contacts functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list of contacts for the current user. Supports filtering by contact_type and role. Returns contact summaries. CANONICAL create a new contact. The tenant adds a landlord, witness, neighbor, or other party with contact info. CANONICAL get a single contact by ID. Returns full contact info including interactions log. CANONICAL update a contact. The tenant can edit name, phone, email, address, or notes. CANONICAL delete a contact. Removes the contact and all associated interactions. CANONICAL star or unstar a contact. Starred contacts appear at the top of the contacts list. CANONICAL list of interactions with a contact. Returns logged calls, emails, meetings, and other interactions. CANONICAL log an interaction with a contact. The tenant records a call, email, meeting, or other interaction with the contact. CANONICAL import contacts from document extraction results. Takes parties extracted from a document and creates contacts from them. Avoids manual entry. CANONICAL quick-add a landlord contact. Simplified form with just name, phone, and email. Used by the tenant dashboard's quick-add feature. CANONICAL quick-add a witness contact. Simplified form with name and relationship. Used by the tenant dashboard's quick-add. CANONICAL list of contacts formatted for form autofill. Returns contacts in a simplified structure for populating form fields. CANONICAL list of available contact types and roles. Used by the frontend to populate contact type dropdowns.",
+  "process_context": "Derived record. Invoked via the contacts module's registered routes and dependencies.",
+  "narrative_events": []
+}

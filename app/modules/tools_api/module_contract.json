@@ -1,0 +1,15 @@
+{
+  "module_name": "Tools Api",
+  "layout": "app/modules/tools_api/ — 3 registered function groups (tools_api_save_letter, tools_api_save_checklist, tools_api_save_calculation). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.tools_api function outputs",
+  "output_why": "Serves the Tools Api functions declared in its FunctionGroupContracts.",
+  "process_description": "POST /save-letter POST /save-checklist POST /save-calculation",
+  "process_context": "Derived record. Invoked via the tools_api module's registered routes and dependencies.",
+  "narrative_events": []
+}

@@ -1,0 +1,15 @@
+{
+  "module_name": "Public Exposure",
+  "layout": "app/modules/public_exposure/ — 10 registered function groups (public_exposure_exposure_health_check, public_exposure_generate_press_release, public_exposure_press_release, public_exposure_press_release_text, public_exposure_generate_media_kit, public_exposure_media_kit, public_exposure_media_outlets, public_exposure_supported_languages, public_exposure_release_types, public_exposure_generate_social_posts). Derived record: page layout not yet described.",
+  "inputs": [],
+  "input_audit": [],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
+  "output_where": "app.modules.public_exposure function outputs",
+  "output_why": "Serves the Public Exposure functions declared in its FunctionGroupContracts.",
+  "process_description": "Health check for public exposure service POST /press-release GET /press-release/{release_id} GET /press-release/{release_id}/text POST /media-kit GET /media-kit/{kit_id} GET /media-outlets GET /languages GET /release-types POST /generate-social-posts",
+  "process_context": "Derived record. Invoked via the public_exposure module's registered routes and dependencies.",
+  "narrative_events": []
+}

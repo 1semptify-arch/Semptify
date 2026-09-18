@@ -1,0 +1,57 @@
+{
+  "module_name": "State Laws",
+  "layout": "app/modules/state_laws/ — 4 registered function groups (state_laws_list, state_laws_get, state_laws_nearby, state_laws_detect). Derived record: page layout not yet described.",
+  "inputs": [
+    {
+      "name": "lat",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "lon",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "request",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "state_code",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "lat",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "lon",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "request",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    },
+    {
+      "input_name": "state_code",
+      "source": "other",
+      "note": "Derived from FunctionGroupContract; real input source not yet recorded."
+    }
+  ],
+  "preview_state": null,
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "Registered function groups return named outputs (confidence, eviction_procedure, landlord_obligations, name, security_deposit_limit, state_code, states, tenant_rights) via the module's routes/services.",
+  "output_where": "app.modules.state_laws function outputs",
+  "output_why": "Serves the State Laws functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL list of all states with basic housing law information. Returns state code, name, and summary of tenant protections. Used by the state selector in the tenant UI. CANONICAL detailed housing law information for a specific state. Returns full state details including security deposit limits, eviction procedures, tenant rights, and landlord obligations. Used by the tenant rights page. CANONICAL find nearby states by latitude/longitude. Returns states sorted by distance with their housing law summaries. Used when the tenant's location is detected via IP. CANONICAL detect the user's likely state based on IP geolocation. Returns the detected state code and confidence. Used to auto-select the state on first visit.",
+  "process_context": "Derived record. Invoked via the state_laws module's registered routes and dependencies.",
+  "narrative_events": []
+}
