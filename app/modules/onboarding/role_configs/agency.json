@@ -8,5 +8,27 @@
   "differentiated": true,
   "notes": "Agency vault: documents plus case files and client files for org-level coordination",
   "role_type": "agency",
-  "display_name": "Agency"
+  "display_name": "Agency",
+  "surfacing": {
+    "intro": "Referrals, coordination, and program contacts.",
+    "sections": [
+      {
+        "title": "Office",
+        "href": "/office",
+        "why": "Organizational pages and contacts."
+      },
+      {
+        "title": "Get help now",
+        "href": "/help",
+        "why": "Legal aid and referral contacts."
+      }
+    ],
+    "tools": [
+      {
+        "label": "Office",
+        "href": "/office",
+        "why": "Program contacts and coordination."
+      }
+    ]
+  }
 }

@@ -7,5 +7,27 @@
   "differentiated": false,
   "notes": "Phase 1: generic copy of tenant defaults, not yet role-differentiated",
   "role_type": "donor_supporter",
-  "display_name": "Donor Supporter"
+  "display_name": "Donor Supporter",
+  "surfacing": {
+    "intro": "Follow the work your support makes possible.",
+    "sections": [
+      {
+        "title": "Office",
+        "href": "/office",
+        "why": "Impact reports and updates."
+      },
+      {
+        "title": "Get help now",
+        "href": "/help",
+        "why": "Questions about the project."
+      }
+    ],
+    "tools": [
+      {
+        "label": "Office",
+        "href": "/office",
+        "why": "Reports and updates."
+      }
+    ]
+  }
 }

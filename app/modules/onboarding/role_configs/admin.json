@@ -7,5 +7,37 @@
   "differentiated": false,
   "notes": "Phase 1: generic copy of tenant defaults, not yet role-differentiated",
   "role_type": "admin",
-  "display_name": "Admin"
+  "display_name": "Admin",
+  "surfacing": {
+    "intro": "System health, configuration, and support tools.",
+    "sections": [
+      {
+        "title": "Admin dashboard",
+        "href": "/admin",
+        "why": "System status and operations."
+      },
+      {
+        "title": "Correspondence",
+        "href": "/admin/correspondence",
+        "why": "Support messages and replies."
+      },
+      {
+        "title": "Office",
+        "href": "/office",
+        "why": "Organizational pages and reports."
+      }
+    ],
+    "tools": [
+      {
+        "label": "Admin dashboard",
+        "href": "/admin",
+        "why": "Operations overview."
+      },
+      {
+        "label": "Correspondence",
+        "href": "/admin/correspondence",
+        "why": "Answer support requests."
+      }
+    ]
+  }
 }

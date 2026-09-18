@@ -7,5 +7,67 @@
   "differentiated": false,
   "notes": "Phase 1: generic copy of tenant defaults, not yet role-differentiated",
   "role_type": "tenant",
-  "display_name": "Tenant"
+  "display_name": "Tenant",
+  "surfacing": {
+    "intro": "Pick up where you left off — your record, your documents, your next step.",
+    "sections": [
+      {
+        "title": "Your record",
+        "href": "/gui/record",
+        "why": "Vault, timeline, journal, and notes — everything you've kept."
+      },
+      {
+        "title": "Read your documents",
+        "href": "/dc",
+        "why": "Open any document and get a plain-English explanation."
+      },
+      {
+        "title": "Prepare a packet",
+        "href": "/gui/packet-builder",
+        "why": "Assemble the documents a court, agency, or advocate will ask for."
+      },
+      {
+        "title": "People on your record",
+        "href": "/tenant/contacts",
+        "why": "Landlords, attorneys, witnesses — and every call you've logged."
+      },
+      {
+        "title": "Retaliation tracker",
+        "href": "/tenant/retaliation",
+        "why": "Log what you did and what they did after — the dates are the evidence."
+      },
+      {
+        "title": "Find help near you",
+        "href": "/tenant/resources",
+        "why": "Legal aid, hotlines, and county resources for where you live."
+      },
+      {
+        "title": "Law library",
+        "href": "/law-library",
+        "why": "Minnesota tenant law, federal protections, and housing rules."
+      }
+    ],
+    "tools": [
+      {
+        "label": "Journal",
+        "href": "/tenant/journal",
+        "why": "Write down what happened, while it is fresh."
+      },
+      {
+        "label": "Quick capture",
+        "href": "/tenant/capture",
+        "why": "Photograph a notice or damage into your record."
+      },
+      {
+        "label": "Deadline tracker",
+        "href": "/tenant/tools/deadlines",
+        "why": "Every upcoming date in one place."
+      },
+      {
+        "label": "Letter tools",
+        "href": "/tenant/tools/letters",
+        "why": "Put a request to your landlord in writing."
+      }
+    ]
+  }
 }

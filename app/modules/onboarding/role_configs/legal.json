@@ -9,5 +9,52 @@
   "differentiated": true,
   "notes": "Legal vault: documents plus court exhibits, case files, and discovery",
   "role_type": "legal",
-  "display_name": "Legal"
+  "display_name": "Legal",
+  "surfacing": {
+    "intro": "Review the record, check the law, prepare what the court needs.",
+    "sections": [
+      {
+        "title": "Legal dashboard",
+        "href": "/legal/dashboard",
+        "why": "Cases shared with you for review."
+      },
+      {
+        "title": "Legal research",
+        "href": "/legal-research",
+        "why": "Statutes and case law in one search."
+      },
+      {
+        "title": "Law library",
+        "href": "/law-library",
+        "why": "The referenced statute text."
+      },
+      {
+        "title": "Document center",
+        "href": "/dc",
+        "why": "Filings, exhibits, and shared evidence."
+      },
+      {
+        "title": "Get help now",
+        "href": "/help",
+        "why": "Legal aid and referral contacts."
+      }
+    ],
+    "tools": [
+      {
+        "label": "Legal dashboard",
+        "href": "/legal/dashboard",
+        "why": "What needs review today."
+      },
+      {
+        "label": "Legal research",
+        "href": "/legal-research",
+        "why": "Primary sources, not summaries."
+      },
+      {
+        "label": "Document center",
+        "href": "/dc",
+        "why": "Everything shared, organized by matter."
+      }
+    ]
+  }
 }

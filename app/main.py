@@ -82,6 +82,7 @@ from app.core.runtime_profile import log_active_profile
 from app.core.security import UserContext, green_access
 from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
+from app.core.role_surfacing import get_role_surfacing
 from app.modules.case_builder.fca_guard import require_fca_readiness
 from app.modules.context_engine.retrieval import retrieve_explanations, select_tapered_variant
 from app.modules.ui_composer.explanation import get_explanation_for_guide
@@ -2840,7 +2841,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         manager_template_path = BASE_PATH / "app" / "templates" / "pages" / "manager_dashboard.html"
         if manager_template_path.exists():
             try:
-                return templates.TemplateResponse(request, "pages/manager_dashboard.html")
+                return templates.TemplateResponse(
+                    request,
+                    "pages/manager_dashboard.html",
+                    {"surfacing": get_role_surfacing("manager")},
+                )
             except Exception as e:
                 logger.warning("Manager dashboard template error, falling back to static: %s", e)
 
@@ -4252,6 +4257,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 logger.warning("Tenant briefcase load failed for %s: %s", user_id[:6] + "***", e)
 
         context = {
+            "surfacing": get_role_surfacing("tenant"),
             "briefcase": briefcase,
             "vault_connected": bool(
                 briefcase and briefcase.vault and briefcase.vault.total_documents is not None
@@ -5530,7 +5536,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         advocate_template_path = BASE_PATH / "app" / "templates" / "pages" / "advocate.html"
         if advocate_template_path.exists():
             try:
-                return templates.TemplateResponse(request, "pages/advocate.html")
+                return templates.TemplateResponse(
+                    request,
+                    "pages/advocate.html",
+                    {"surfacing": get_role_surfacing("advocate")},
+                )
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Advocate template error, falling back to static: %s", e)
 
@@ -5638,7 +5648,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         legal_template_path = BASE_PATH / "app" / "templates" / "pages" / "legal.html"
         if legal_template_path.exists():
             try:
-                return templates.TemplateResponse(request, "pages/legal.html")
+                return templates.TemplateResponse(
+                    request,
+                    "pages/legal.html",
+                    {"surfacing": get_role_surfacing("legal")},
+                )
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Legal template error, falling back to static: %s", e)
 
