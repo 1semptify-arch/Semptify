@@ -144,6 +144,9 @@ class OverlayType(str, Enum):
     THIRD_PARTY_CONTACT = "third_party_contact"
     """Third-party contact extracted from communication imports (landlord, agency, attorney)."""
 
+    EVICTION_TIMELINE_EVENT = "eviction_timeline_event"
+    """Eviction-specific timeline event — structure + pointers; narrative PII stays in content overlays."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -205,6 +208,7 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.COMPARISON_ENTRY,
     OverlayType.INCIDENT,
     OverlayType.THIRD_PARTY_CONTACT,
+    OverlayType.EVICTION_TIMELINE_EVENT,
 }
 
 # All overlay types (for validation)

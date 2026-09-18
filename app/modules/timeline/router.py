@@ -44,7 +44,6 @@ from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
 from app.models.models import (
     Document as DocumentModel,
-    EvictionTimelineEvent,
     TimelineEvent as TimelineEventModel,
     VaultIndexDB,
     VaultItem,
@@ -614,26 +613,23 @@ async def _load_db_eviction_timeline_events(
     evidence_only: bool,
 ) -> list[TimelineItem]:
     """Load eviction timeline events into the unified timeline."""
-    query = select(EvictionTimelineEvent).where(EvictionTimelineEvent.user_id == user_id)
+    _ = session  # vault path needs no DB session
+    from app.services.eviction_timeline_store import list_events_for_user_id
 
-    if evidence_only:
-        # Evidence is determined by keyword classification; filter after fetch.
-        pass
+    events = await list_events_for_user_id(user_id)
 
-    if date_axis == DateAxis.EVENT_TIME:
-        filter_col = EvictionTimelineEvent.event_date
-    else:
-        filter_col = EvictionTimelineEvent.created_at
+    def _axis_dt(evt) -> datetime | None:
+        if date_axis == DateAxis.EVENT_TIME:
+            return evt.event_date
+        return evt.created_at or utc_now()
 
-    if start_date:
-        query = query.where(filter_col >= start_date)
-    if end_date:
-        query = query.where(filter_col <= end_date)
-
-    query = query.order_by(filter_col.desc())
-
-    result = await session.execute(query)
-    events = result.scalars().all()
+    events = [
+        evt
+        for evt in events
+        if (start_date is None or (_axis_dt(evt) is not None and _axis_dt(evt) >= start_date))
+        and (end_date is None or (_axis_dt(evt) is not None and _axis_dt(evt) <= end_date))
+    ]
+    events.sort(key=lambda evt: _axis_dt(evt) or utc_now(), reverse=True)
 
     items = []
     for evt in events:

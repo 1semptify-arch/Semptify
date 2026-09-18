@@ -1,3 +1,31 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: eviction timeline events → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T13:57:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 8b — eviction timeline)
+- `eviction_timeline_events` moved off the server DB into the tenant's cloud vault — events persist as `EVICTION_TIMELINE_EVENT` overlays anchored to `document_id="eviction_timeline:{user_id}"` at the canonical `VAULT_TIMELINE_EVENTS_FILE` (vault_path is an anchor pointer; overlay JSONs live under `Vault/overlays/` — no collision with the raw `events.json` cloud-event schema).
+- New `app/services/eviction_timeline_store.py` — create/list (newest event_date first), `list_events_for_user_id` via `build_context_for_user_id`, `migrate_legacy_events` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call, safe no-op without DB). `subject_id` + `content_overlay_id` pointers carried through unchanged.
+- Consumers rewired: `eviction_timeline/router.py` (page list + create event — `db` deps removed), `timeline/router.py` unified merge (`_load_db_eviction_timeline_events` reads the vault store, Python-side date-axis filter/sort — same pattern as the calendar loader), `tenant_feed/service.py` feed aggregation.
+- `tests/test_unified_timeline.py` rewritten — ORM seeding replaced with an autouse fixture patching `eviction_timeline_store.list_events_for_user_id` with in-memory views; all mapping/filter/render assertions preserved end-to-end.
+
+### Verification (this slice)
+- `python -m py_compile` clean on all changed files; `tests/test_eviction_timeline_vault.py` — 5 passed (roundtrip, per-user isolation, sort order, idempotent migration, no-DB safety); `tests/test_unified_timeline.py` — 6 passed.
+- `tests/module_health/test_eviction_timeline.py` + `test_tenant_feed.py` — pass. `test_information_orchestrator_pilot.py::test_layer_2_retrieval_matches_object_envelope` fails identically on the clean tree — missing embedding model, pre-existing/environmental.
+- Guardrail engine — all checks PASS (run above).
+
+### Remaining (Phase 1 in progress)
+- `timeline_events` (intake imports + timeline router + feed + briefcase), `document_annotations`, `comparison_entries` leftovers, `tenant_stories`, `context_facts`, derived-data group, `document_shares`, `external_mappings` group, `fems_*`, `mndes_*` — still server-persisted. Legacy tables retained until the Alembic drop phase. See `C:\master-repo\handoffs\vault-persistence-migration.md`.
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: third-party contacts → user cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T13:36:40+00:00

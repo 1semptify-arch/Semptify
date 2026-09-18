@@ -262,13 +262,13 @@ async def _fetch_documents_async(user_id: str) -> list[dict[str, Any]]:
 
 
 async def _fetch_timeline_events_async(user_id: str) -> list[dict[str, Any]]:
-    """Async fetch of timeline events from TimelineEvent and EvictionTimelineEvent."""
+    """Async fetch of timeline events: TimelineEvent rows (DB) + eviction timeline overlays (vault)."""
     items: list[dict[str, Any]] = []
     try:
         from sqlalchemy import select
 
         from app.core.database import get_db_session
-        from app.models.models import EvictionTimelineEvent, TimelineEvent
+        from app.models.models import TimelineEvent
 
         def _format_eviction_title(event_type: str) -> str:
             return event_type.replace("_", " ").title()
@@ -310,13 +310,9 @@ async def _fetch_timeline_events_async(user_id: str) -> list[dict[str, Any]]:
                 )
                 items.append(item)
 
-            eviction_stmt = (
-                select(EvictionTimelineEvent)
-                .where(EvictionTimelineEvent.user_id == user_id)
-                .order_by(EvictionTimelineEvent.event_date.desc())
-                .limit(50)
-            )
-            eviction_rows = (await db.execute(eviction_stmt)).scalars().all()
+            from app.services.eviction_timeline_store import list_events_for_user_id
+
+            eviction_rows = (await list_events_for_user_id(user_id))[:50]
             for event in eviction_rows:
                 ts_data = _format_timestamp(event.event_date or event.created_at)
                 title = _format_eviction_title(event.event_type)

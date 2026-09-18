@@ -6,26 +6,20 @@ T2 tenant-facing module. `subject_id` is a placeholder with no FK.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse
-from sqlalchemy import select
 
 from app.core.context_envelope import EncounterContext
-from app.core.database import get_db
 from app.core.event_bus import EventType, event_bus
-from app.core.id_gen import make_id
 from app.core.navigation import navigation
 from app.core.security import UserContext, require_tier
 from app.core.ssot_guard import ssot_redirect
 from app.core.utc import utc_now
-from app.models.models import EvictionTimelineEvent
 from app.modules.eviction_timeline.envelopes import get_eviction_timeline_page
 from app.services.emotion_engine import get_momentum_checkpoint
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
+from app.services.eviction_timeline_store import create_event, list_events
 
 
 router = APIRouter(
@@ -47,17 +41,11 @@ async def eviction_timeline_health() -> dict[str, Any]:
 async def eviction_timeline_page(
     request: Request,
     user: UserContext = Depends(require_tier("T2")),
-    db: AsyncSession = Depends(get_db),
 ) -> Any:
     """Render the eviction timeline page (add event + list)."""
     from app.main import templates
 
-    result = await db.execute(
-        select(EvictionTimelineEvent)
-        .where(EvictionTimelineEvent.user_id == _user_id(user))
-        .order_by(EvictionTimelineEvent.event_date.desc())
-    )
-    events = result.scalars().all()
+    events = await list_events(user)
 
     return templates.TemplateResponse(
         request,
@@ -73,7 +61,6 @@ async def eviction_timeline_page(
 async def create_eviction_event(
     request: Request,
     user: UserContext = Depends(require_tier("T2")),
-    db: AsyncSession = Depends(get_db),
     subject_id: str = Form(""),
     event_type: str = Form(...),
     event_date: str = Form(...),
@@ -91,19 +78,14 @@ async def create_eviction_event(
     if parsed_date is None:
         parsed_date = utc_now()
 
-    event = EvictionTimelineEvent(
-        id=make_id("ete"),
-        user_id=_user_id(user),
-        subject_id=subject_id or None,
+    event = await create_event(
+        user,
         event_type=event_type,
         event_date=parsed_date,
         source=source,
+        subject_id=subject_id or None,
         jurisdiction=jurisdiction,
-        created_at=utc_now().replace(tzinfo=None),
-        updated_at=utc_now().replace(tzinfo=None),
     )
-    db.add(event)
-    await db.commit()
 
     event_bus.publish_sync(
         EventType.TIMELINE_EVENT_ADDED,
