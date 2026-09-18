@@ -1,3 +1,22 @@
+## Session — 2026-09-18 — Situation guides: ungated what-happened counter-playbook (devin)
+
+### What shipped (PR #274, branch `situation-guides`, 1 commit)
+- `93d683f2` — `/guide/{situation}` ungated routes + `data/situation_guides.json` (7 situations: eviction, repairs, deposit, retaliation, entry, harassment, rent) + `pages/situation_guide.html` (chronological: do this now → record → facts → if it goes further → workspace upgrade) + "What happened?" picker on the landing page. Pillar body text comes from reviewed `context_explanation` entries (variant_mechanics), not hand-written copy.
+
+### Also this session
+- Cloudflare Worker `semptify-keepalive` deployed — cron `*/10 * * * *` pings /healthz; Render free tier stays warm ($0). semptify.org now answers in ~0.5s.
+- PR #273 merged → deployed live (`8d5e220a`); master-repo gitlink bumped (`fb4bfe1`).
+- Guardrail CI failure root-caused: stale `module_contracts_index.json` (narrative_event_count); committed regen in `99384861`. Engine's BUILD_STATE write already skips under CI — no structural fix needed.
+
+### Verified
+- Live on :8001: `/guide/eviction` 200 (all 5 sections + MN pillar text), `/guide/bogus` 302→/, picker lists all 7, Playwright smoke 6/6. PR #274 CI all green.
+
+### Next session
+- Brad merges #274 → trigger Render deploy → spot-check a guide on semptify.org → bump gitlink.
+- Roadmap: Phase 3 mobile stacked-scroll; Phase 4 honest surface (welcome dev grid, languages call). Open decisions: i18n (12/14 empty), role-metadata SSOT.
+
+---
+
 ## Session — 2026-09-18 — Frontend assembly cluster: narrator runtime → tenant-path voice → on-screen strip (devin)
 
 ### Guardrail Engine Run — 2026-09-18T06:19:14+00:00
