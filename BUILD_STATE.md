@@ -74,7 +74,7 @@ All checks passed.
 - Guardrail engine — all checks PASS (run above).
 
 ### Phase 1 status
-- **Complete.** All genuinely tenant-owned tables migrated. `fems_*` (6 tables) classified as global operator/forensic data — no `user_id`, global dedupe by design, local-disk inbox/quarantine, admin-only router → flagged for Brad's design decision (stays server-side or gets its own operator storage; not a tenant-vault target).
+- **Complete.** All genuinely tenant-owned tables migrated. `fems_*` (6 tables) — **DECIDED (Brad, 2026-09-18): stays server-side.** Operator forensic workbench under a different mandate tier — not allowed on the tenant role, never a tenant-vault target (no `user_id`, global dedupe by design, local-disk inbox/quarantine, admin-only router).
 - Next: Phase 2 STOP-AND-REPORT (index-table decision — `documents`, `document_pipeline_index`, `vault_*` index tables). See `C:\master-repo\handoffs\vault-persistence-migration.md`.
 
 ## Session — 2026-09-18 — Vault persistence Phase 1: external mappings → user cloud vault (devin)
