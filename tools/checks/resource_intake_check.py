@@ -27,13 +27,13 @@ def run(repo_root: Path) -> CheckResult:
     """Validate the compiled Information Composer resource pool."""
     from app.modules.resource_intake.engine import ResourceIntakeEngine
 
-    pool_path = repo_root / "data" / "composer_resources.json"
+    pool_path = repo_root / "app" / "data" / "composer_resources.json"
     if not pool_path.exists():
         return CheckResult(
             name="resource_intake_check",
             passed=False,
-            summary="Information Composer resource pool is missing.",
-            details="Expected data/composer_resources.json to exist.",
+            summary="Information Composer resource pool seed is missing.",
+            details="Expected app/data/composer_resources.json to exist (bundled seed; data/ is the runtime copy).",
         )
 
     engine = ResourceIntakeEngine(pool_path=pool_path)

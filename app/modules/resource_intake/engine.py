@@ -24,7 +24,13 @@ from app.modules.resource_intake.schemas import (
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_POOL_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "composer_resources.json"
+# Runtime pool — deploy-local writable store (data/ is gitignored at runtime
+# and dockerignored in the image; writes land here, not on the bundled seed).
+DEFAULT_POOL_PATH = Path(__file__).resolve().parent.parent.parent.parent / "data" / "composer_resources.json"
+# Bundled seed shipped with the image — hydrates the runtime pool on first use.
+# (The original DEFAULT_POOL_PATH used parent³ and pointed at app/data/, which
+# held nothing — the loader always returned an empty pool. Pre-existing bug.)
+SEED_POOL_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "composer_resources.json"
 
 
 def _default_pool_path() -> Path:
@@ -34,6 +40,15 @@ def _default_pool_path() -> Path:
 def load_composer_resource_pool(pool_path: Path | None = None) -> ResourcePool:
     """Load the compiled Information Composer resource pool."""
     pool_path = pool_path or _default_pool_path()
+    if not pool_path.exists() and pool_path == DEFAULT_POOL_PATH:
+        # Runtime pool missing (fresh container, wiped volume) — hydrate from
+        # the bundled seed so the compiled pool survives deploys.
+        try:
+            if SEED_POOL_PATH.exists():
+                pool_path.parent.mkdir(parents=True, exist_ok=True)
+                pool_path.write_text(SEED_POOL_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+        except OSError:
+            pass
     if not pool_path.exists():
         return ResourcePool()
     try:
