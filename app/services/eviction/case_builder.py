@@ -29,7 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now
-from app.models.models import CalendarEvent, Document, RentPayment, TimelineEvent, User
+from app.models.models import CalendarEvent, Document, TimelineEvent, User
 
 # =============================================================================
 # Minnesota Court Compliance Rules
@@ -409,11 +409,11 @@ class EvictionCaseBuilder:
             calendar = await self._get_calendar_events(session, user_id)
             self._update_from_calendar(case, calendar)
 
-            # 5. Get rent payment history
+            # 5. Get rent payment history (vault overlays)
             payments = await self._get_rent_payments(session, user_id)
             case.rent_history = self._build_rent_history(payments)
-            case.total_paid = sum(p.amount for p in payments if p.status == "paid")
-            case.total_owed = sum(p.amount for p in payments if p.status in ["late", "missed"])
+            case.total_paid = sum(p.get("amount") or 0 for p in payments if p.get("status") == "paid")
+            case.total_owed = sum(p.get("amount") or 0 for p in payments if p.get("status") in ["late", "missed"])
 
             # 6. Analyze applicable defenses
             case.defenses = self._analyze_defenses(case)
@@ -686,22 +686,23 @@ class EvictionCaseBuilder:
                         court_date=event.start_datetime,
                     )
 
-    async def _get_rent_payments(self, session: AsyncSession, user_id: str) -> list[RentPayment]:
-        """Get rent payment history."""
-        result = await session.execute(
-            select(RentPayment).where(RentPayment.user_id == user_id).order_by(RentPayment.payment_date.desc())
-        )
-        return list(result.scalars().all())
+    async def _get_rent_payments(self, session: AsyncSession, user_id: str) -> list[dict]:
+        """Get rent payment history from the tenant's vault (overlay payloads)."""
+        _ = session
+        from app.modules.rent.service import list_entries_for_user_id
 
-    def _build_rent_history(self, payments: list[RentPayment]) -> list[dict]:
+        overlays, _total = await list_entries_for_user_id(user_id)
+        return [o.payload for o in overlays]
+
+    def _build_rent_history(self, payments: list[dict]) -> list[dict]:
         """Build rent history summary."""
         return [
             {
-                "date": p.payment_date.isoformat(),
-                "amount": p.amount,
-                "status": p.status,
-                "method": p.payment_method,
-                "confirmation": p.confirmation_number,
+                "date": p.get("payment_date"),
+                "amount": p.get("amount"),
+                "status": p.get("status"),
+                "method": p.get("payment_method"),
+                "confirmation": p.get("confirmation_number"),
             }
             for p in payments
         ]

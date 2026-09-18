@@ -69,6 +69,11 @@ VAULT_SCRATCHPAD_FILE = normalize_cloud_path(f"{VAULT_SCRATCHPAD}/notepad.json")
 VAULT_JOURNAL = normalize_cloud_path(f"{VAULT_ROOT}/journal")
 VAULT_JOURNAL_FILE = normalize_cloud_path(f"{VAULT_JOURNAL}/journal.json")
 
+# Per-user ledger anchor for RENT_LEDGER_ENTRY overlays (rent payments, fees,
+# deposits, credits, charges with running balance).
+VAULT_LEDGER = normalize_cloud_path(f"{VAULT_ROOT}/ledger")
+VAULT_LEDGER_FILE = normalize_cloud_path(f"{VAULT_LEDGER}/ledger.json")
+
 # =============================================================================
 # Role-specific folders (direct children of Vault/)
 # =============================================================================

@@ -117,6 +117,12 @@ class OverlayType(str, Enum):
     JOURNAL_ENTRY = "journal_entry"
     """Free-form tenant journal record (note, conversation, incident, repair request)."""
 
+    RENT_LEDGER_ENTRY = "rent_ledger_entry"
+    """Rent ledger record — payment, fee, deposit, credit, or charge with running balance."""
+
+    CALENDAR_EVENT = "calendar_event"
+    """Tenant calendar event or deadline (manual or auto-synced)."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -169,6 +175,8 @@ CASE_OVERLAYS: set[OverlayType] = {
 
 RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.JOURNAL_ENTRY,
+    OverlayType.RENT_LEDGER_ENTRY,
+    OverlayType.CALENDAR_EVENT,
 }
 
 # All overlay types (for validation)

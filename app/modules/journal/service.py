@@ -19,7 +19,7 @@ from sqlalchemy import select
 from app.core.database import get_db_session
 from app.core.id_gen import make_id
 from app.core.overlay_types import OverlayType
-from app.core.user_context import StorageProvider, UserContext, UserRole
+from app.core.user_context import UserContext
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_JOURNAL_FILE
 from app.models.models import JournalEntry as JournalEntryModel
@@ -113,43 +113,11 @@ async def create_entry(
 
 
 async def _context_for_user_id(user_id: str) -> UserContext | None:
-    """Rebuild a minimal UserContext from a bare user_id.
+    """Rebuild a minimal UserContext from a bare user_id — delegates to the
+    canonical implementation in user_context (shared by all vault stores)."""
+    from app.core.user_context import build_context_for_user_id
 
-    Cross-module readers (tenant feed, briefcase, dashboard stats) only carry
-    the user_id. Provider/role codes are embedded in the id itself; the access
-    token comes from the session store via ensure_valid_token. Returns None
-    when the id is unparseable or no valid token can be produced.
-    """
-    from app.core.auto_refresh import ensure_valid_token
-    from app.core.user_id import parse_user_id
-
-    provider_name, role_name, _unique = parse_user_id(user_id)
-    if not provider_name:
-        return None
-    try:
-        provider = StorageProvider(provider_name)
-    except ValueError:
-        return None
-    try:
-        role = UserRole(role_name) if role_name else UserRole.USER
-    except ValueError:
-        role = UserRole.USER
-
-    try:
-        is_valid, token, _status = await ensure_valid_token(user_id)
-    except Exception as e:
-        logger.warning("Token resolution failed for %s***: %s", user_id[:6], e)
-        return None
-    if not is_valid or token is None:
-        return None
-
-    return UserContext(
-        user_id=user_id,
-        provider=provider,
-        storage_user_id=user_id,
-        access_token=token.access_token,
-        role=role,
-    )
+    return await build_context_for_user_id(user_id)
 
 
 async def list_entries_for_user_id(

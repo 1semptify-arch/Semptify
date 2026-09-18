@@ -11,7 +11,7 @@ from app.core.database import get_db_session
 from app.core.document_hub import get_document_hub
 from app.core.id_gen import make_id
 from app.core.utc import utc_now
-from app.models.models import CalendarEvent as CalendarEventModel, RentPayment
+from app.models.models import CalendarEvent as CalendarEventModel
 
 logger = logging.getLogger(__name__)
 
@@ -130,30 +130,36 @@ async def _sync_rent_events(
     existing: set[str],
     overwrite: bool,
 ) -> tuple[list[str], int]:
-    """Create CalendarEvent rows from the rent ledger."""
-    result = await db.execute(select(RentPayment).where(RentPayment.user_id == user_id))
-    payments = result.scalars().all()
+    """Create CalendarEvent rows from the rent ledger (vault overlays)."""
+    from app.modules.rent.service import list_entries_for_user_id
+
+    overlays, _total = await list_entries_for_user_id(user_id)
     created_ids: list[str] = []
     skipped = 0
 
-    for payment in payments:
-        base_period = payment.period_covered or (payment.due_date.strftime("%Y-%m") if payment.due_date else None)
+    for overlay in overlays:
+        p = overlay.payload
+        payment_id = p.get("id") or overlay.overlay_id
+        due_date = _parse_datetime(p.get("due_date"))
+        payment_date = _parse_datetime(p.get("payment_date"))
+        entry_type = p.get("entry_type") or "payment"
+        base_period = p.get("period_covered") or (due_date.strftime("%Y-%m") if due_date else None)
 
         # Rent due date from the ledger
-        if payment.due_date:
-            link_key = _rent_link_key("due", payment.id)
+        if due_date:
+            link_key = _rent_link_key("due", payment_id)
             if not overwrite and link_key in existing:
                 skipped += 1
             else:
-                is_critical = payment.status in {"late", "missed"} or payment.due_date < utc_now()
+                is_critical = p.get("status") in {"late", "missed"} or due_date < utc_now()
                 event_id = make_id("cal")
                 db.add(
                     CalendarEventModel(
                         id=event_id,
                         user_id=user_id,
-                        title=f"Rent due — {base_period or payment.due_date.strftime('%Y-%m')}",
+                        title=f"Rent due — {base_period or due_date.strftime('%Y-%m')}",
                         description="Auto-synced from rent ledger",
-                        start_datetime=payment.due_date,
+                        start_datetime=due_date,
                         end_datetime=None,
                         all_day=True,
                         event_type="rent_due",
@@ -168,14 +174,14 @@ async def _sync_rent_events(
                 created_ids.append(event_id)
 
         # Late-fee / charge trigger date
-        if payment.entry_type in {"fee", "charge"} and (payment.due_date or payment.payment_date):
-            trigger_date = payment.due_date or payment.payment_date
-            link_key = _rent_link_key(payment.entry_type, payment.id)
+        if entry_type in {"fee", "charge"} and (due_date or payment_date):
+            trigger_date = due_date or payment_date
+            link_key = _rent_link_key(entry_type, payment_id)
             if not overwrite and link_key in existing:
                 skipped += 1
             else:
                 event_id = make_id("cal")
-                label = "Late fee" if payment.entry_type == "fee" else "Charge"
+                label = "Late fee" if entry_type == "fee" else "Charge"
                 db.add(
                     CalendarEventModel(
                         id=event_id,

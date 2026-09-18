@@ -417,21 +417,21 @@ def test_update_from_calendar_creates_notice_when_missing(builder):
 
 
 def test_build_rent_history(builder):
-    """_build_rent_history converts RentPayment objects to dicts."""
+    """_build_rent_history converts rent ledger overlay payloads to dicts."""
     payments = [
-        SimpleNamespace(
-            payment_date=datetime(2025, 11, 1, tzinfo=UTC),
-            amount=100000,
-            status="paid",
-            payment_method="check",
-            confirmation_number="C1",
-        ),
+        {
+            "payment_date": "2025-11-01T00:00:00+00:00",
+            "amount": 100000,
+            "status": "paid",
+            "payment_method": "check",
+            "confirmation_number": "C1",
+        },
     ]
     history = builder._build_rent_history(payments)
 
     assert history == [
         {
-            "date": payments[0].payment_date.isoformat(),
+            "date": "2025-11-01T00:00:00+00:00",
             "amount": 100000,
             "status": "paid",
             "method": "check",
@@ -720,16 +720,38 @@ async def test_get_calendar_events(builder):
 
 
 @pytest.mark.anyio
-async def test_get_rent_payments(builder):
-    """_get_rent_payments returns ordered payment records."""
-    payments = [SimpleNamespace(id="p1"), SimpleNamespace(id="p2")]
-    result = MagicMock()
-    result.scalars.return_value.all.return_value = payments
-    session = AsyncMock()
-    session.execute.return_value = result
+async def test_get_rent_payments(builder, monkeypatch):
+    """_get_rent_payments returns overlay payloads from the vault ledger."""
+    from app.core.overlay_types import OverlayType
+    from app.models.unified_overlay_models import UnifiedOverlay
 
-    found = await builder._get_rent_payments(session, "GUtest1234")
-    assert found == payments
+    overlays = [
+        UnifiedOverlay(
+            overlay_id="ovl_p1",
+            overlay_type=OverlayType.RENT_LEDGER_ENTRY,
+            document_id="ledger:GUtest1234",
+            vault_path="Semptify5.0/Vault/ledger/ledger.json",
+            created_by="GUtest1234",
+            payload={"id": "p1"},
+        ),
+        UnifiedOverlay(
+            overlay_id="ovl_p2",
+            overlay_type=OverlayType.RENT_LEDGER_ENTRY,
+            document_id="ledger:GUtest1234",
+            vault_path="Semptify5.0/Vault/ledger/ledger.json",
+            created_by="GUtest1234",
+            payload={"id": "p2"},
+        ),
+    ]
+    from unittest.mock import AsyncMock as _AM
+
+    monkeypatch.setattr(
+        "app.modules.rent.service.list_entries_for_user_id",
+        _AM(return_value=(overlays, 2)),
+    )
+
+    found = await builder._get_rent_payments(AsyncMock(), "GUtest1234")
+    assert found == [{"id": "p1"}, {"id": "p2"}]
 
 
 # =============================================================================
@@ -806,24 +828,22 @@ async def test_build_case_integration(monkeypatch, fixed_now):
         title="Court Hearing",
         start_datetime=datetime(2025, 12, 15, 9, 0, tzinfo=UTC),
     )
-    paid_payment = SimpleNamespace(
-        id="p1",
-        user_id="GUtest1234",
-        payment_date=fixed_now,
-        amount=100000,
-        status="paid",
-        payment_method="check",
-        confirmation_number="C1",
-    )
-    missed_payment = SimpleNamespace(
-        id="p2",
-        user_id="GUtest1234",
-        payment_date=fixed_now,
-        amount=50000,
-        status="missed",
-        payment_method=None,
-        confirmation_number=None,
-    )
+    paid_payment = {
+        "id": "p1",
+        "payment_date": fixed_now.isoformat(),
+        "amount": 100000,
+        "status": "paid",
+        "payment_method": "check",
+        "confirmation_number": "C1",
+    }
+    missed_payment = {
+        "id": "p2",
+        "payment_date": fixed_now.isoformat(),
+        "amount": 50000,
+        "status": "missed",
+        "payment_method": None,
+        "confirmation_number": None,
+    }
 
     user_result = MagicMock()
     user_result.scalar_one_or_none.return_value = user
@@ -838,9 +858,6 @@ async def test_build_case_integration(monkeypatch, fixed_now):
     calendar_result = MagicMock()
     calendar_result.scalars.return_value.all.return_value = [hearing_event]
 
-    payments_result = MagicMock()
-    payments_result.scalars.return_value.all.return_value = [paid_payment, missed_payment]
-
     mock_session = AsyncMock()
     mock_session.execute = AsyncMock(
         side_effect=[
@@ -848,7 +865,6 @@ async def test_build_case_integration(monkeypatch, fixed_now):
             all_docs_result,
             timeline_result,
             calendar_result,
-            payments_result,
         ]
     )
 
@@ -857,6 +873,25 @@ async def test_build_case_integration(monkeypatch, fixed_now):
         yield mock_session
 
     monkeypatch.setattr(case_builder, "get_db_session", mock_get_db_session)
+
+    from app.core.overlay_types import OverlayType
+    from app.models.unified_overlay_models import UnifiedOverlay
+
+    rent_overlays = [
+        UnifiedOverlay(
+            overlay_id=f"ovl_{p['id']}",
+            overlay_type=OverlayType.RENT_LEDGER_ENTRY,
+            document_id="ledger:GUtest1234",
+            vault_path="Semptify5.0/Vault/ledger/ledger.json",
+            created_by="GUtest1234",
+            payload=p,
+        )
+        for p in (paid_payment, missed_payment)
+    ]
+    monkeypatch.setattr(
+        "app.modules.rent.service.list_entries_for_user_id",
+        AsyncMock(return_value=(rent_overlays, len(rent_overlays))),
+    )
 
     builder = EvictionCaseBuilder()
     case = await builder.build_case("GUtest1234", language="en")

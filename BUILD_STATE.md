@@ -1,3 +1,33 @@
+## Session — 2026-09-18 — Vault persistence Phase 1: rent ledger → user cloud vault (devin)
+
+### Guardrail Engine Run — 2026-09-18T12:15:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What shipped (vault-persistence-migration, Phase 1 slice 2)
+- `rent_payments` moved off the server DB into the tenant's cloud vault — entries persist as `RENT_LEDGER_ENTRY` overlays anchored to `document_id="ledger:{user_id}"` at `VAULT_LEDGER_FILE` (`Semptify5.0/Vault/ledger/ledger.json`). `CALENDAR_EVENT` overlay type also registered for the next slice.
+- New `app/modules/rent/service.py` — same recipe as journal: CRUD + `list_entries_for_user_id()` + `migrate_legacy_entries()` (non-destructive, idempotent via `payload.legacy_id`, 25 rows/call bound, no-ops when DB unreachable). Amounts stay in cents; chronological ordering preserved for running-balance.
+- Rewired: rent router (all 5 endpoints, response shapes unchanged), `calendar_sync._sync_rent_events` (now derives rent due/late-fee/charge events from overlays — its CalendarEvent writes stay on DB until the calendar slice), `eviction/case_builder._get_rent_payments` + `_build_rent_history` + totals (consume payload dicts).
+- Canonical `build_context_for_user_id()` promoted to `app/core/user_context.py` (parse_user_id + ensure_valid_token → minimal UserContext); journal service delegates to it. Every migrated record type reuses it.
+- `rent/register.py` + `product_manifest.py` updated — no more "stored as cents (DB)" claims.
+
+### Verified
+- py_compile clean on all 15 changed files; module tests 31/31 (journal 13 + rent 11 incl. 5 new vault functional + calendar 7); case-builder suites 108/108 across both files; module_health 245/245; guardrail engine all-PASS.
+
+### Next session
+- Phase 1 continues: `calendar_events` next (coupled — calendar_sync already reads rent overlays, its event writes still hit the DB), then `contacts`, `complaints`. Same recipe.
+- Not done: `rent_payments`/`journal_entries` tables still exist for legacy reads (drop is a later Alembic phase); zero-persistence claim stays NEEDS-CONFIRMATION until all tenant tables migrate.
+
+---
+
 ## Session — 2026-09-18 — Vault persistence Phase 1: journal records → user cloud vault (devin)
 
 ### Guardrail Engine Run — 2026-09-18T11:31:33+00:00

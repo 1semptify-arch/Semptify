@@ -130,35 +130,38 @@ async def test_sync_calendar_for_user_creates_auto_events():
         ]
     )
 
-    # Mock a single rent payment with a due date.
-    payment = MagicMock()
-    payment.id = "rnt_001"
-    payment.user_id = "user_1"
-    payment.entry_type = "payment"
-    payment.due_date = datetime(2026, 8, 1, 0, 0, 0, tzinfo=UTC)
-    payment.payment_date = datetime(2026, 8, 5, 0, 0, 0, tzinfo=UTC)
-    payment.period_covered = "2026-08"
-    payment.status = "paid"
+    # Mock a single rent ledger overlay with a due date.
+    from app.core.overlay_types import OverlayType
+    from app.models.unified_overlay_models import UnifiedOverlay
 
-    scalars = MagicMock()
-    scalars.all = MagicMock(return_value=[payment])
-
-    execute_result = MagicMock()
-    execute_result.scalars = MagicMock(return_value=scalars)
-
-    from unittest.mock import MagicMock
+    payment_overlay = UnifiedOverlay(
+        overlay_id="ovl_rnt001",
+        overlay_type=OverlayType.RENT_LEDGER_ENTRY,
+        document_id="ledger:user_1",
+        vault_path="Semptify5.0/Vault/ledger/ledger.json",
+        created_by="user_1",
+        payload={
+            "id": "rnt_001",
+            "entry_type": "payment",
+            "due_date": "2026-08-01T00:00:00+00:00",
+            "payment_date": "2026-08-05T00:00:00+00:00",
+            "period_covered": "2026-08",
+            "status": "paid",
+        },
+    )
 
     db = AsyncMock()
     db.add = MagicMock()
-    db.execute = AsyncMock(return_value=execute_result)
+    db.execute = AsyncMock()
     db.commit = AsyncMock()
 
     with (
         patch("app.services.calendar_sync.get_document_hub", return_value=hub),
-        patch("app.services.calendar_sync.select") as mock_select,
+        patch(
+            "app.modules.rent.service.list_entries_for_user_id",
+            new=AsyncMock(return_value=([payment_overlay], 1)),
+        ),
     ):
-        # The first call to select is for existing keys/clear; second for RentPayment.
-        mock_select.return_value.where.return_value.where.return_value = MagicMock()
         result = await sync_calendar_for_user("user_1", db=db)
 
     assert result["document_events"] == 2

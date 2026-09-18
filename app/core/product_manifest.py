@@ -455,8 +455,9 @@ _register(
     tier=ProductTier.CORE,
     dev_notes=(
         "Full rent account ledger: payments, fees, deposits, credits, charges. "
-        "Amounts stored in cents; running balance computed per user. Entries can be "
-        "user-entered or OCR-extracted and linked to overlay highlights."
+        "Amounts stored in cents; running balance computed per user. Vault-persisted "
+        "via RENT_LEDGER_ENTRY overlays (legacy rent_payments rows migrate on first read). "
+        "Entries can be user-entered or OCR-extracted and linked to overlay highlights."
     ),
     log_message="Rent ledger router active — full account ledger endpoints enabled",
 )
