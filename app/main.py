@@ -157,6 +157,12 @@ def register_stateless_routes(app: FastAPI):
 
         landing_facts = await get_verified_landing_facts()
         ctx = {"year": utc_now().year, "landing_facts": landing_facts}
+        try:
+            guides_path = BASE_PATH / "data" / "situation_guides.json"
+            ctx["situation_guides"] = json.loads(guides_path.read_text(encoding="utf-8"))
+        except Exception:  # noqa: S110
+            # Picker is optional chrome — landing still works without it
+            pass
         return templates.TemplateResponse(request, "index.html", ctx)
 
     @app.get("/components/footer", response_class=HTMLResponse, include_in_schema=False)
@@ -3938,6 +3944,68 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def invite_advocate_page():
         """Serve the invite advocate page for tenants."""
         return ssot_redirect("/tenant/my-advocate", context="invite_advocate superseded")
+
+    # =========================================================================
+    # Situation Guides (ungated "what happened?" counter-playbook pages)
+    # =========================================================================
+
+    _situation_guides_cache: dict | None = None
+
+    def _load_situation_guides() -> dict:
+        """Load situation guide content from the dedicated data file (cached)."""
+        nonlocal _situation_guides_cache
+        if _situation_guides_cache is None:
+            guide_path = BASE_PATH / "data" / "situation_guides.json"
+            try:
+                _situation_guides_cache = json.loads(guide_path.read_text(encoding="utf-8"))
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Situation guides load failed: %s", e)
+                _situation_guides_cache = {}
+        return _situation_guides_cache
+
+    async def _guide_pillar_explanations(subject: str) -> dict[str, str]:
+        """Pull the reviewed pillar explanations for a guide's subject.
+
+        Uses the fullest variant (variant_mechanics): guide readers are
+        first-time visitors — tapering applies to returning users only.
+        Returns {} on any failure; the guide still renders steps and tools.
+        """
+        try:
+            from app.modules.context_engine.explanation_entries import get_explanation_entries
+
+            entries = await get_explanation_entries(subject=subject, pillar=None, limit=8)
+            return {
+                entry.pillar: entry.variant_mechanics
+                for entry in entries
+                if entry.pillar in {"RECORD", "KNOW", "ACT", "GOVERN"} and entry.variant_mechanics
+            }
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.warning("Guide pillar lookup failed for %s: %s", subject, e)
+            return {}
+
+    @fastapi_app.get("/guide", response_class=HTMLResponse)
+    async def situation_guide_index():
+        """Guide index — send people to the landing picker, which lists every guide."""
+        return ssot_redirect("/", context="situation_guide index")
+
+    @fastapi_app.get("/guide/{situation}", response_class=HTMLResponse)
+    async def situation_guide_page(request: Request, situation: str):
+        """Ungated situation guide — what to do now, what to record, where to get help."""
+        all_guides = _load_situation_guides()
+        guide = all_guides.get(situation)
+        if guide is None:
+            return ssot_redirect("/", context=f"situation_guide unknown slug: {situation}")
+        pillars = await _guide_pillar_explanations(guide["subject"])
+        return templates.TemplateResponse(
+            request,
+            "pages/situation_guide.html",
+            {
+                "guide": guide,
+                "guide_slug": situation,
+                "all_guides": all_guides,
+                "pillars": pillars,
+            },
+        )
 
     # =========================================================================
     # Document Delivery Pages (Professional Send Flow)
