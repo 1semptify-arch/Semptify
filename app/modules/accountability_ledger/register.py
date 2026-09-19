@@ -22,6 +22,12 @@ register_function_group(
         outputs=("subjects", "total"),
         dependencies=("app.modules.accountability_ledger.router",),
         deterministic=True,
+        tier="T1",
+        allowed_routes=(
+            "/api/accountability-ledger/subjects",
+            "/api/accountability-ledger/subjects/{subject_id}",
+        ),
+        allowed_prefixes=("/api/accountability-ledger",),
     )
 )
 
@@ -39,6 +45,11 @@ register_function_group(
         outputs=("patterns", "total"),
         dependencies=("app.modules.accountability_ledger.router",),
         deterministic=True,
+        tier="T1",
+        allowed_routes=(
+            "/api/accountability-ledger/patterns",
+        ),
+        allowed_prefixes=("/api/accountability-ledger",),
     )
 )
 
@@ -56,6 +67,11 @@ register_function_group(
         outputs=("alignments", "total"),
         dependencies=("app.modules.accountability_ledger.router",),
         deterministic=True,
+        tier="T1",
+        allowed_routes=(
+            "/api/accountability-ledger/alignments",
+        ),
+        allowed_prefixes=("/api/accountability-ledger",),
     )
 )
 
@@ -79,6 +95,7 @@ register_function_group(
         tier="T1",
         allowed_routes=(
             "/api/accountability-ledger/requests",
+            "/api/accountability-ledger/requests/{request_id}",
         ),
         allowed_prefixes=("/api/accountability-ledger",),
     )

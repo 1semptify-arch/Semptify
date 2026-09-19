@@ -350,3 +350,8 @@ def _docket_to_dict(d: IntelDocket) -> dict[str, Any]:
         "document_url": d.document_url,
         "created_at": d.created_at.isoformat() if d.created_at else None,
     }
+
+
+# Conventional name for the contract-route guardrail, which looks for a
+# literal `router` attribute on the module (manifest router_attr unchanged).
+router = legal_intel_router
