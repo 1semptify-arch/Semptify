@@ -20,6 +20,7 @@ from sqlalchemy import (
     Integer,
     String,
     DateTime,
+    Text,
 )
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import Mapped, mapped_column
@@ -112,3 +113,48 @@ class PoliticalAlignment(Base):
 
 
 __all__ = ["AccountabilitySubject", "AccountabilityPattern", "PoliticalAlignment"]
+
+
+class PublicRecordsRequest(Base):
+    """A tracked public-records request (FOIA / Data Practices Act / Sunshine).
+
+    Ported workflow from app-pmas — file a request with an agency, record the
+    statutory deadline, and track the lifecycle: submitted → acknowledged →
+    fulfilled / denied / withdrawn. ``overdue`` is computed on read, never
+    stored — an open request past its deadline reports overdue.
+
+    Operator workbench data (advocate/researcher tier), not tenant documents.
+    ``subject_id`` optionally links the target agency to a registered
+    accountability subject.
+    """
+
+    __tablename__ = "accountability_record_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    agency_target: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    records_requested: Mapped[str] = mapped_column(Text, nullable=False)
+    date_submitted: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    deadline_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    status: Mapped[str] = mapped_column(
+        String(20), index=True, nullable=False, default="submitted"
+    )  # submitted / acknowledged / fulfilled / denied / withdrawn
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    subject_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("accountability_subjects.id"), index=True, nullable=True
+    )
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
+
+    OPEN_STATUSES = ("submitted", "acknowledged")
+
+    def effective_status(self, now: datetime | None = None) -> str:
+        """Status as of ``now`` — open requests past deadline report overdue."""
+        deadline = self.deadline_date
+        if self.status in self.OPEN_STATUSES and deadline:
+            now = now or utc_now()
+            if deadline.tzinfo is None:
+                deadline = deadline.replace(tzinfo=now.tzinfo)
+            if deadline < now:
+                return "overdue"
+        return self.status

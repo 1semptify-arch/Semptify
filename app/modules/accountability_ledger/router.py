@@ -26,6 +26,7 @@ from app.modules.accountability_ledger.models import (
     AccountabilityPattern,
     AccountabilitySubject,
     PoliticalAlignment,
+    PublicRecordsRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -260,4 +261,138 @@ def _alignment_to_dict(a: PoliticalAlignment) -> dict[str, Any]:
         "date": a.date.isoformat() if a.date else None,
         "description": a.description,
         "created_at": a.created_at.isoformat() if a.created_at else None,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Public records requests (FOIA / Data Practices / Sunshine tracking)
+#
+# Ported workflow from app-pmas: file a request, record the statutory
+# deadline, track the lifecycle. ``overdue`` is computed on read — an open
+# request (submitted/acknowledged) past its deadline reports overdue without
+# mutating the stored status.
+# ---------------------------------------------------------------------------
+
+_OPEN_REQUEST_STATUSES = ("submitted", "acknowledged")
+_REQUEST_STATUSES = _OPEN_REQUEST_STATUSES + ("fulfilled", "denied", "withdrawn")
+
+
+class RecordRequestCreate(BaseModel):
+    agency_target: str = Field(..., min_length=1, description="Agency the request went to")
+    records_requested: str = Field(..., min_length=1, description="What records were asked for")
+    date_submitted: datetime | None = None
+    deadline_date: datetime | None = None
+    subject_id: str | None = Field(None, description="Optional accountability_subjects.id for the agency")
+    notes: str | None = None
+
+
+class RecordRequestUpdate(BaseModel):
+    status: str | None = Field(None, description="submitted/acknowledged/fulfilled/denied/withdrawn")
+    deadline_date: datetime | None = None
+    notes: str | None = None
+    records_requested: str | None = None
+
+
+@accountability_ledger_router.get("/requests")
+async def list_record_requests(
+    status: str | None = Query(None, description="Filter by stored or effective status (incl. overdue)"),
+    agency_target: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """List tracked public-records requests, newest first.
+
+    ``effective_status`` reports ``overdue`` for open requests past their
+    deadline. Filtering by ``status=overdue`` matches on the effective value.
+    """
+    stmt = select(PublicRecordsRequest).order_by(PublicRecordsRequest.created_at.desc())
+    if agency_target:
+        stmt = stmt.where(PublicRecordsRequest.agency_target == agency_target)
+    if status and status != "overdue":
+        stmt = stmt.where(PublicRecordsRequest.status == status)
+    result = await db.execute(stmt)
+    rows = result.scalars().all()
+
+    now = utc_now()
+    items = [_request_to_dict(r, now) for r in rows]
+    if status == "overdue":
+        items = [i for i in items if i["effective_status"] == "overdue"]
+    return {"requests": items, "total": len(items)}
+
+
+@accountability_ledger_router.post("/requests")
+async def create_record_request(body: RecordRequestCreate, db: AsyncSession = Depends(get_db)):
+    """Log a new public-records request with its statutory deadline."""
+    if body.subject_id:
+        subject = await db.get(AccountabilitySubject, body.subject_id)
+        if not subject:
+            raise HTTPException(status_code=404, detail="Subject not found")
+    req = PublicRecordsRequest(
+        id=str(uuid.uuid4()),
+        agency_target=body.agency_target,
+        records_requested=body.records_requested,
+        date_submitted=body.date_submitted or utc_now(),
+        deadline_date=body.deadline_date,
+        status="submitted",
+        notes=body.notes,
+        subject_id=body.subject_id,
+    )
+    db.add(req)
+    await db.commit()
+    await db.refresh(req)
+    return _request_to_dict(req)
+
+
+@accountability_ledger_router.get("/requests/{request_id}")
+async def get_record_request(request_id: str, db: AsyncSession = Depends(get_db)):
+    """Get one tracked request, with its effective (overdue-aware) status."""
+    req = await db.get(PublicRecordsRequest, request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    return _request_to_dict(req)
+
+
+@accountability_ledger_router.patch("/requests/{request_id}")
+async def update_record_request(
+    request_id: str,
+    body: RecordRequestUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    """Advance a request's status or correct its details.
+
+    ``overdue`` is not a settable status — it derives from the deadline.
+    """
+    req = await db.get(PublicRecordsRequest, request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    if body.status is not None:
+        if body.status not in _REQUEST_STATUSES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown status '{body.status}'. Valid: {list(_REQUEST_STATUSES)}",
+            )
+        req.status = body.status
+    if body.deadline_date is not None:
+        req.deadline_date = body.deadline_date
+    if body.notes is not None:
+        req.notes = body.notes
+    if body.records_requested is not None:
+        req.records_requested = body.records_requested
+    await db.commit()
+    await db.refresh(req)
+    return _request_to_dict(req)
+
+
+def _request_to_dict(r: PublicRecordsRequest, now: datetime | None = None) -> dict[str, Any]:
+    return {
+        "id": r.id,
+        "agency_target": r.agency_target,
+        "records_requested": r.records_requested,
+        "date_submitted": r.date_submitted.isoformat() if r.date_submitted else None,
+        "deadline_date": r.deadline_date.isoformat() if r.deadline_date else None,
+        "status": r.status,
+        "effective_status": r.effective_status(now),
+        "is_overdue": r.effective_status(now) == "overdue",
+        "notes": r.notes,
+        "subject_id": r.subject_id,
+        "created_at": r.created_at.isoformat() if r.created_at else None,
     }
