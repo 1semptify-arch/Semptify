@@ -1,0 +1,25 @@
+{
+  "module": "dashboard",
+  "display_name": "Dashboard",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Dashboard: the numbers behind it",
+      "brief": "How a single at-a-glance view reduces missed deadlines; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Dashboard: what it does and how to use it",
+      "brief": "What the Dashboard shows — documents, deadlines, urgent issues, and next steps in one place. Example: 'answer due in 3 days' pinned at the top.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

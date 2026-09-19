@@ -1,0 +1,25 @@
+{
+  "module": "legal_trails",
+  "display_name": "Legal Trails",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Legal Trails: the numbers behind it",
+      "brief": "How legal topics connect — statute → remedy → filing; source: module docs.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Legal Trails: what it does and how to use it",
+      "brief": "What Legal Trails does — guided paths through a legal topic showing each step's authority. Example: the habitability trail from the repair request to the escrow filing.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

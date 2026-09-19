@@ -1,0 +1,25 @@
+{
+  "module": "state_laws",
+  "display_name": "State Laws",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "State Laws: the numbers behind it",
+      "brief": "How landlord-tenant remedies differ state to state — escrow vs. repair-deduct vs. no self-help; source: the verified 50-state dataset.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "State Laws: what it does and how to use it",
+      "brief": "What State Laws shows — the tenant's own state's deposit deadline, notice period, and repair remedies with citations. Example: a Minnesota tenant sees rent escrow, not repair-and-deduct.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

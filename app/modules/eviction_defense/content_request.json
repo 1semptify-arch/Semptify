@@ -1,0 +1,25 @@
+{
+  "module": "eviction_defense",
+  "display_name": "Eviction Defense",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Eviction Defense: the numbers behind it",
+      "brief": "Eviction filing volumes and self-representation rates; the share of tenants who default by missing deadlines; source: state court statistics / Eviction Lab.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Eviction Defense: what it does and how to use it",
+      "brief": "What Eviction Defense is — the forms and steps for responding to an eviction filing. Example: tenant files an answer asserting the landlord skipped the required notice.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    }
+  ]
+}

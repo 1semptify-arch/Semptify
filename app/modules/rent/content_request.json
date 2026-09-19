@@ -1,0 +1,25 @@
+{
+  "module": "rent",
+  "display_name": "Rent & Payments",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Rent & Payments: the numbers behind it",
+      "brief": "Rent-payment records and their role in disputes; escrow vs. withholding varies by state; source: state statutes.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Rent & Payments: what it does and how to use it",
+      "brief": "What the Rent tools do — track payments and, where the law allows, escrow arrangements. Example: payment history exported for a dispute.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "module": "search",
+  "display_name": "Search",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Search: the numbers behind it",
+      "brief": "Why search across the whole library matters for a tenant who doesn't know the right term; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Search: what it does and how to use it",
+      "brief": "What Search does — finds statutes, guides, and the tenant's own records from one box. Example: 'heat' finds the habitability statute and the tenant's journal entries.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

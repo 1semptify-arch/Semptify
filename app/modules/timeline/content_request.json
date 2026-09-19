@@ -1,0 +1,25 @@
+{
+  "module": "timeline",
+  "display_name": "Timeline",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Timeline: the numbers behind it",
+      "brief": "Why a chronological record matters — dates establish notice periods and cure windows; source: housing-law practice guides.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Timeline: what it does and how to use it",
+      "brief": "What the Timeline does — automatically builds a dated sequence of events from the tenant's documents and journal. Example: the notice, the repair request, and the filing all appear in order.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

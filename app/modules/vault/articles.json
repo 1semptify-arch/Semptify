@@ -1,0 +1,28 @@
+{
+  "module": "vault",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "The Vault: the numbers behind keeping your own records",
+      "body": "Most housing disputes come down to what can be shown, not what was said. Legal-aid organizations consistently advise tenants to keep their own dated copies of notices, letters, photos, and payment records — because a landlord's file and a tenant's memory are not the same thing. In eviction cases, a large share of tenants lose not on the merits but by missing a deadline or arriving without the document that proves their side. Semptify's answer is that the records live in the tenant's own cloud storage — Dropbox or Google Drive — not on Semptify's servers. That means the tenant keeps everything even if they stop using Semptify, and a copy of a notice or a photo can't disappear from the tenant's own account. Nothing about this guarantees an outcome; it simply means the tenant's side of the record exists, in one place, under their control.",
+      "sources": [
+        {"label": "LawHelpMN — keeping records for housing issues", "url": "https://www.lawhelpmn.org"},
+        {"label": "Princeton Eviction Lab — national eviction data", "url": "https://evictionlab.org"}
+      ],
+      "voice_gate": "passed",
+      "review_status": "BETA"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "The Vault: what it does and how to use it",
+      "body": "The Vault is the tenant's own cloud folder — a Dropbox or Google Drive account they already have or set up — where Semptify puts everything it saves for them. Semptify does not hold the files; it organizes them into folders the tenant owns.\n\nUsing it looks like this: a tenant photographs a water leak, uploads it, and the image lands in their own drive inside the vault folder. A landlord's text message saved as a screenshot goes in beside it. When the tenant later needs to show what happened and when, the files are already dated and in one place — theirs.\n\nThe practical effect: the tenant can share a folder with an advocate, download everything at any time, or stop using Semptify entirely and keep every file. The vault belongs to the tenant, not the platform.",
+      "sources": [
+        {"label": "Semptify vault documentation", "url": "https://github.com/1semptify-arch/Semptify"}
+      ],
+      "voice_gate": "passed",
+      "review_status": "BETA"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "subject": "evidence",
+  "display_name": "Evidence",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Evidence: the numbers behind it",
+      "brief": "What makes a record useful in a housing dispute — dated, contemporaneous, source-attached; source: legal-aid guidance.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Evidence: what it does and how to use it",
+      "brief": "How to build a usable record — photos with dates, saved texts, logged calls. Example: timestamped photos of a leak.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

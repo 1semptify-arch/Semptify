@@ -1,0 +1,25 @@
+{
+  "module": "communication",
+  "display_name": "Communication",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Communication: the numbers behind it",
+      "brief": "Keeping a record of conversations with landlords/advocates; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Communication: what it does and how to use it",
+      "brief": "What Communication does — the tenant's message history with advocates and contacts in one place. Example: the advocate's advice thread stays attached to the case.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

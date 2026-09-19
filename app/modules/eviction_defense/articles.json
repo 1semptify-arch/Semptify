@@ -1,0 +1,29 @@
+{
+  "module": "eviction_defense",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Eviction defense: the numbers behind answering a filing",
+      "body": "Eviction cases move fast and most tenants face them alone. Research on eviction courts has consistently found that the large majority of landlords appear with legal representation while the large majority of tenants appear with none — and that a significant share of cases end in default judgment because the tenant never filed an answer or missed the hearing. The deadlines are short: in many states a tenant has days, not weeks, to respond once a filing is served. What changes outcomes is rarely complicated: filing a response on time and showing up with organized records. An unanswered filing usually means losing by default — no judge ever hears the tenant's side. This is general information about how eviction cases work, not legal advice about a specific case. For guidance on an actual filing, contact a legal-aid office in your state — the Resource Directory lists them.",
+      "sources": [
+        {"label": "Princeton Eviction Lab — eviction research and data", "url": "https://evictionlab.org"},
+        {"label": "National Center for State Courts — self-representation research", "url": "https://www.ncsc.org"},
+        {"label": "LawHelpMN — eviction answer and defense", "url": "https://www.lawhelpmn.org"}
+      ],
+      "voice_gate": "passed",
+      "review_status": "BETA"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Eviction Defense: what it does and how to use it",
+      "body": "Eviction Defense is the part of Semptify for responding after an eviction filing arrives. It holds the forms for answering and the steps for getting organized before the hearing.\n\nUsing it looks like this: a tenant is served with an unlawful-detainer filing. The module shows the answer deadline, provides the response form for their situation, and fills it from information the tenant has already saved — names, dates, the lease. The tenant reviews the draft, and the finished form goes into their own vault alongside the notice that started the case.\n\nThe point is sequencing: answer on time, bring the record, know the hearing date. Semptify provides information and organization — it is not a lawyer and cannot say what defense applies to a specific case. For case-specific help, contact a licensed attorney or your local legal-aid office through the Resource Directory.",
+      "sources": [
+        {"label": "LawHelpMN — responding to an eviction", "url": "https://www.lawhelpmn.org"}
+      ],
+      "voice_gate": "passed",
+      "review_status": "BETA"
+    }
+  ]
+}
