@@ -2612,7 +2612,7 @@
           "rent_withholding": false,
           "rent_escrow": true,
           "termination": true,
-          "notes": "Limited repair-and-deduct for code violations in cities that adopted the statute (RSMo 441.234 — capped; verify your city). Rent escrow available in municipalities that enacted the escrow law (RSMo 441.570 et seq.). No statewide self-help withholding."
+          "notes": "Repair-and-deduct is statewide (RSMo 441.234) but conditioned: tenant must have lived there 6 consecutive months with all rent paid; the condition must violate a local housing/building code; cost less than $300 or half the periodic rent (whichever is greater, capped at one month's rent); 14-day written notice. Rent escrow exists only in municipalities that adopted it (RSMo 441.570 et seq.). No unilateral withholding."
         },
         "emergency_repairs": "Report in writing immediately; contact local code enforcement"
       }
@@ -2932,7 +2932,7 @@
           "repair_deduct": true,
           "rent_withholding": false,
           "termination": true,
-          "notes": "Repair-and-deduct allowed for essential repairs after notice (25 Del.C. 5307 — capped; verify current limits). Termination for habitability failures (5302/5303)."
+          "notes": "Repair-and-deduct after written notice (30 days to remedy or 10 days to start corrective measures): deduct up to the lesser of $400 or half a month's rent (25 Del.C. 5307). Tenant must be current on rent. Termination for habitability failures (5302/5303)."
         },
         "emergency_repairs": "Report in writing immediately; timelines vary by severity"
       },
@@ -3004,7 +3004,7 @@
           "repair_deduct": true,
           "rent_withholding": false,
           "termination": true,
-          "notes": "Repair-and-deduct allowed for essential repairs after notice, up to $500 (HRS 521-64). Termination for habitability failures."
+          "notes": "Repair-and-deduct for health/safety violations after notice to landlord: deduct up to $1,000 or one month's rent, whichever is greater (HRS 521-64). Termination available for habitability failures."
         },
         "emergency_repairs": "Report in writing immediately; timelines vary by severity"
       },
@@ -3261,7 +3261,7 @@
           "repair_deduct": true,
           "rent_withholding": false,
           "termination": true,
-          "notes": "URLTA areas: repair-and-deduct for minor repairs up to half a month's rent after notice (383.635); essential-services remedies (383.640). In non-URLTA areas, lease/common law governs — verify coverage first."
+          "notes": "URLTA areas only: repair-and-deduct for health/safety defects costing less than $100 or half a month's rent, whichever is greater — 14 days' written notice required (KRS 383.635). No unilateral withholding. Non-URLTA areas: common-law remedies only."
         },
         "emergency_repairs": "Report in writing immediately; timelines vary by severity"
       },
@@ -3559,7 +3559,7 @@
           "repair_deduct": true,
           "rent_withholding": false,
           "termination": true,
-          "notes": "Limited repair-and-deduct for essential repairs after notice (Miss. Code 89-8-15). Habitability coverage is narrower than most states — verify what your lease and local code require."
+          "notes": "Repair and reimburse: after 30 days' written notice, tenant may repair and deduct up to one month's rent — must be current on rent, once per 6 months (Miss. Code 89-8-15). No unilateral withholding."
         },
         "emergency_repairs": "Report in writing immediately; timelines vary by severity"
       },
@@ -3631,7 +3631,7 @@
           "repair_deduct": true,
           "rent_withholding": false,
           "termination": true,
-          "notes": "Repair-and-deduct allowed for essential services and minor repairs after notice (70-24-406 et seq.). Termination for habitability failures."
+          "notes": "Repair-and-deduct for conditions affecting health/safety after notice and a reasonable time — capped at one month's rent (MCA 70-24-406). Termination after 14-day cure notice (30 days to terminate). No unilateral withholding."
         },
         "emergency_repairs": "Report in writing immediately; timelines vary by severity"
       },
@@ -4017,7 +4017,7 @@
       },
       "security_deposit": {
         "limit": "No statutory cap",
-        "return_deadline": "45 days after termination (41 O.S. 115)",
+        "return_deadline": "45 days after termination and the tenant's written demand (41 O.S. 115)",
         "notes": ""
       },
       "repairs": {
@@ -4032,7 +4032,7 @@
           "repair_deduct": true,
           "rent_withholding": false,
           "termination": true,
-          "notes": "Repair-and-deduct allowed for repairs affecting health/safety after notice — capped amount (41 O.S. 121). Termination for material noncompliance."
+          "notes": "Repair-and-deduct for health/safety defects after 14 days' written notice, up to one month's rent (41 O.S. 121, as amended 2022). Termination for material noncompliance after notice and cure."
         },
         "emergency_repairs": "Report in writing immediately; timelines vary by severity"
       },
@@ -4100,7 +4100,7 @@
           "repair_deduct": true,
           "rent_withholding": false,
           "termination": true,
-          "notes": "Limited repair-and-deduct for minor repairs after notice (34-18-30 — capped at a small amount). Termination for habitability failures."
+          "notes": "Self-help repair-and-deduct for minor repairs: up to $500 per year after 20 days' written notice (R.I. Gen. Laws 34-18-30). Termination for habitability failures."
         },
         "emergency_repairs": "Report in writing immediately; timelines vary by severity"
       },
@@ -4251,7 +4251,8 @@
           "repair_deduct": true,
           "rent_withholding": false,
           "termination": true,
-          "notes": "Repair-and-deduct allowed for necessary repairs after notice (SDCL 43-32-9 — use with care and keep receipts). Termination for material breach."
+          "notes": "Repair-and-deduct after notice and a reasonable time (SDCL 43-32-9). If repairs exceed one month's rent, the tenant may withhold rent into a separate bank account dedicated to repairs, with written evidence to the landlord. Tenant may also vacate and be discharged from further rent.",
+          "rent_escrow": true
         },
         "emergency_repairs": "Report in writing immediately"
       }
@@ -4494,7 +4495,7 @@
       },
       "security_deposit": {
         "limit": "No statutory cap",
-        "return_deadline": "60 days, or 45 days after a new tenant occupies, whichever is earlier (37-6A-2)",
+        "return_deadline": "60 days after termination (30 days for subsidized housing); +15 days if third-party repairs needed (37-6A-1/37-6A-2)",
         "notes": ""
       },
       "repairs": {
@@ -4619,6 +4620,55 @@
         }
       ],
       "notes": ""
+    },
+    "IN": {
+      "code": "IN",
+      "name": "Indiana",
+      "status": "complete",
+      "stub_url": "https://iga.in.gov/laws/2024/ic/titles/32",
+      "notice_requirements": {
+        "nonpayment": "10-day notice to pay or quit for nonpayment (IC 32-31-1-6)",
+        "lease_violation": "Notice requirements follow the lease and IC 32-31; verify the lease terms and current statute"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "45 days after termination and delivery of possession, with itemized list of damages (IC 32-31-3-12/32-31-3-14)"
+      },
+      "landlord_entry": {
+        "notice_required": "Reasonable written or oral notice; entry only at reasonable times (IC 32-31-5-6)"
+      },
+      "eviction": {
+        "key_protection": "Eviction requires court process; landlord may not use self-help lockout or utility shutoff (IC 32-31-5-5)."
+      },
+      "sources": [
+        {
+          "label": "IC 32-31-8-5 — landlord obligations",
+          "url": "https://law.justia.com/codes/indiana/title-32/article-31/chapter-8/section-32-31-8-5/"
+        },
+        {
+          "label": "IC 32-31-8-6 — tenant enforcement action",
+          "url": "https://law.justia.com/codes/indiana/title-32/article-31/chapter-8/section-32-31-8-6/"
+        },
+        {
+          "label": "IC 32-31-3-12 — security deposit return",
+          "url": "https://codes.findlaw.com/in/title-32-property/in-code-sect-32-31-3-12/"
+        }
+      ],
+      "notes": "Crisis-tier fields verified against Indiana Code Title 32, art. 31.",
+      "repairs": {
+        "landlord_duties": [
+          "Deliver premises safe, clean, and habitable; comply with health and housing codes (IC 32-31-8-5)",
+          "Maintain electrical, plumbing, sanitary, and heating systems in good and safe working condition (IC 32-31-8-5)"
+        ],
+        "warranty_of_habitability": "IC 32-31-8-5 — statutory duty to deliver and maintain habitable premises",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "rent_escrow": false,
+          "termination": true,
+          "notes": "No self-help repair-deduct or withholding statute. Remedy is a court action after notice and reasonable time to repair — actual/consequential damages, injunctive relief, attorney's fees (IC 32-31-8-6)."
+        }
+      }
     }
   }
 }
