@@ -1,7 +1,29 @@
 {
   "_meta": {
     "locale": "ti",
-    "status": "stub",
-    "note": "Tigrinya catalog — translations fall back to English until human review."
-  }
+    "status": "machine",
+    "note": "Tigrinya catalog — machine translation pending human review. Plain-language, action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "ናይ ንቕሓት መሰል መሳርሒታት — ብሕትውና ቀዳማይ፣ ብዘይ ኣካውንት፣ ብዘይ ምዝገባ",
+  "action.get_help": "ሕጂ ሓገዝ ርኸብ",
+  "action.continue": "ቀጽል",
+  "action.back": "ተመለስ",
+  "action.save": "ኣቐምጥ",
+  "action.cancel": "ሰርዝ",
+  "action.close": "ዕጸው",
+  "nav.record": "መዝግብ",
+  "nav.know": "ፍለጥ",
+  "nav.act": "ተግበር",
+  "nav.govern": "መሓድር",
+  "welcome.title": "Semptify — ቶሎ ኣዘጋጋሚ",
+  "welcome.lead": "ኣካውንት የለን። መዝገብ የለን። ኩሉ ኣሰሳ ኣብ ብራውዘርካ የካይድ።",
+  "welcome.cta": "ጀምር",
+  "help.headline": "ሕጂ እንታይ ይኸውንካ ኣሎ?",
+  "footer.upl": "Semptify ናይ ጠበቓ ቤት ጽሕፈት ኣይኮነትን ሕጋዊ ምኽሪ ኣይህብን።",
+  "footer.privacy": "ፖሊሲ ብሕትውና",
+  "footer.terms": "ውልታት ኣጠቓቕማ",
+  "footer.report": "ጸገም ሓቢር",
+  "language.label": "ቋንቋ",
+  "language.selector.aria": "ዝትደልዮ ቋንቋ ምረጽ"
 }

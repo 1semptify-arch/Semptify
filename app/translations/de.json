@@ -1,7 +1,29 @@
 {
   "_meta": {
     "locale": "de",
-    "status": "stub",
-    "note": "German catalog — translations fall back to English until human review."
-  }
+    "status": "machine",
+    "note": "German catalog — machine translation pending human review. Plain-language, action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "Werkzeuge für Mieterrechte — Datenschutz zuerst, ohne Konto, ohne Protokolle",
+  "action.get_help": "Jetzt Hilfe holen",
+  "action.continue": "Weiter",
+  "action.back": "Zurück",
+  "action.save": "Speichern",
+  "action.cancel": "Abbrechen",
+  "action.close": "Schließen",
+  "nav.record": "Erfassen",
+  "nav.know": "Wissen",
+  "nav.act": "Handeln",
+  "nav.govern": "Steuern",
+  "welcome.title": "Semptify — Direkt-Composer",
+  "welcome.lead": "Keine Konten. Keine Protokolle. Die gesamte Navigation läuft in Ihrem Browser.",
+  "welcome.cta": "Loslegen",
+  "help.headline": "Was passiert gerade bei Ihnen?",
+  "footer.upl": "Semptify ist keine Anwaltskanzlei und erteilt keine Rechtsberatung.",
+  "footer.privacy": "Datenschutzerklärung",
+  "footer.terms": "Nutzungsbedingungen",
+  "footer.report": "Problem melden",
+  "language.label": "Sprache",
+  "language.selector.aria": "Wählen Sie Ihre bevorzugte Sprache"
 }

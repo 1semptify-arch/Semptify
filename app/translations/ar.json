@@ -1,7 +1,29 @@
 {
   "_meta": {
     "locale": "ar",
-    "status": "stub",
-    "note": "Arabic catalog — translations fall back to English until human review."
-  }
+    "status": "machine",
+    "note": "Arabic catalog — machine translation pending human review. Plain-language, action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "أدوات حقوق المستأجر — الخصوصية أولاً، بلا حسابات، بلا سجلات",
+  "action.get_help": "احصل على المساعدة الآن",
+  "action.continue": "متابعة",
+  "action.back": "رجوع",
+  "action.save": "حفظ",
+  "action.cancel": "إلغاء",
+  "action.close": "إغلاق",
+  "nav.record": "سجّل",
+  "nav.know": "اعرف",
+  "nav.act": "تصرف",
+  "nav.govern": "أدر",
+  "welcome.title": "Semptify — المُنشئ الفوري",
+  "welcome.lead": "لا حسابات. لا سجلات. كل التنقل يحدث داخل متصفحك.",
+  "welcome.cta": "ابدأ",
+  "help.headline": "ما الذي يحدث لك الآن؟",
+  "footer.upl": "Semptify ليست مكتب محاماة ولا تقدم استشارات قانونية.",
+  "footer.privacy": "سياسة الخصوصية",
+  "footer.terms": "شروط الاستخدام",
+  "footer.report": "الإبلاغ عن مشكلة",
+  "language.label": "اللغة",
+  "language.selector.aria": "اختر لغتك المفضلة"
 }
