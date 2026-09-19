@@ -804,6 +804,18 @@ _register(
     dev_notes="Subject registry + documented patterns + political alignments. Resolves EvictionTimelineEvent.subject_id FK placeholder.",
 )
 
+# Legal Intel — entity/attorney/shell-LLC lookups + cross-entity court patterns
+# Ported from app-legal-intel (models + intel + pattern engine; crawlers not ported).
+_register(
+    "app.modules.legal_intel.router",
+    router_attr="legal_intel_router",
+    tags=("Legal Intel", "Accountability", "Research"),
+    tier=ProductTier.RESEARCH,
+    lifecycle="beta",
+    fees_policy=FeesPolicy.EXEMPT_ADVANCED,
+    dev_notes="'Who owns this LLC' intel: entities, attorneys, cases, dockets, shell-LLC clusters. Complements accountability_ledger.",
+)
+
 # External system mappings (court cases, properties, agencies)
 _register(
     "app.modules.external_mappings.router",
