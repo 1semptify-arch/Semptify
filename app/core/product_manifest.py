@@ -1238,9 +1238,9 @@ _register(
     "app.modules.document_center.router",
     prefix="/api/dc",
     tags=("Document Center",),
-    tier=ProductTier.DEV,
+    tier=ProductTier.CORE,
     lifecycle="stable",
-    requires_role=("admin",),
+    requires_role=(),
     dev_notes=(
         "Document Center — 3-pane GUI (left: vault list, center: viewer, right: overlays). "
         "✅ Slice 1: HTML shell. "
@@ -1255,7 +1255,7 @@ _register(
         "OCR excerpt cap 200ch; items list cap 10. "
         "Forge: 28/28 smoke tests. 5 contracts. Promoted beta → stable 2026-06-28."
     ),
-    log_message="Document Center router connected at /api/dc (stable — admin only)",
+    log_message="Document Center router connected at /api/dc (stable — tenant workhorse)",
 )
 
 
@@ -1293,6 +1293,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.dispute_tracker.router",
         "app.modules.sticky_notes.router",
         "app.modules.law_linker.router",
+        "app.modules.document_center.router",
     ],
     "advocate": [
         # Everything tenant gets
@@ -1324,6 +1325,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.communication.router",
         "app.modules.invite_codes.router",
         "app.modules.advocate.router",
+        "app.modules.document_center.router",
     ],
     "manager": [
         "app.modules.documents.router",
