@@ -117,13 +117,34 @@ async def status(db: AsyncSession, user_id: str) -> dict:
             steps[name] = "todo"
             if next_step is None:
                 next_step = name
-    provisioned = await check_gate(db, user_id, PROVISIONED_GATE)
+    # "provisioned" means every step is genuinely done — pending steps keep
+    # it false so the narrative resumes when their tasks land. The banner's
+    # question is narrower: is there a runnable step right now?
+    provisioned = all(s == "done" for s in steps.values())
+    if provisioned:
+        await mark_gate(db, user_id, PROVISIONED_GATE)
     return {
         "applicable": True,
         "provisioned": provisioned,
         "steps": steps,
         "next_step": next_step,
     }
+
+
+async def needs_run(db: AsyncSession, user_id: str | None) -> bool:
+    """True when FINALE passed and a runnable step remains (state == todo).
+
+    Pending steps do NOT count — the banner settles when nothing runnable
+    is left and reappears on its own when a pending step gets implemented
+    (its gate is unset, so it reads todo). Never raises.
+    """
+    if not user_id:
+        return False
+    try:
+        s = await status(db, user_id)
+        return bool(s.get("applicable") and s.get("next_step"))
+    except Exception:  # pylint: disable=broad-exception-caught
+        return False
 
 
 async def run_step(db: AsyncSession, user: UserContext, step: str) -> dict:
@@ -140,10 +161,8 @@ async def run_step(db: AsyncSession, user: UserContext, step: str) -> dict:
 
 
 async def _maybe_mark_provisioned(db: AsyncSession, user_id: str) -> None:
-    """Mark vault_provisioned once every implemented step is done."""
+    """Mark vault_provisioned once every step — pending included — is done."""
     for name, gate in _STEP_GATES.items():
-        if name in _PENDING_STEPS:
-            continue
         if not await check_gate(db, user_id, gate):
             return
     await mark_gate(db, user_id, PROVISIONED_GATE)
