@@ -1,28 +1,60 @@
 {
   "metadata": {
-    "version": "1.1",
-    "last_updated": "2026-09-07",
+    "version": "1.2",
+    "last_updated": "2026-09-19",
     "complete_states": [
+      "AK",
+      "AL",
+      "AR",
+      "AZ",
       "CA",
+      "CO",
+      "CT",
+      "DE",
       "FL",
       "GA",
+      "HI",
+      "IA",
+      "ID",
       "IL",
+      "KS",
+      "KY",
+      "LA",
+      "MA",
+      "MD",
+      "ME",
       "MI",
       "MN",
+      "MO",
+      "MS",
+      "MT",
       "NC",
+      "ND",
+      "NE",
+      "NH",
+      "NJ",
+      "NM",
+      "NV",
       "NY",
       "OH",
+      "OK",
+      "OR",
       "PA",
-      "TX"
-    ],
-    "stub_states": 33,
-    "partial_states": [
-      "IA",
-      "MO",
-      "ND",
+      "RI",
+      "SC",
       "SD",
-      "WI"
-    ]
+      "TN",
+      "TX",
+      "UT",
+      "VA",
+      "VT",
+      "WA",
+      "WI",
+      "WV",
+      "WY"
+    ],
+    "stub_states": 0,
+    "partial_states": []
   },
   "states": {
     "MN": {
@@ -1231,30 +1263,328 @@
     "WA": {
       "code": "WA",
       "name": "Washington",
-      "status": "stub",
-      "stub_url": "https://www.washingtonlawhelp.org/issues/housing",
-      "notes": "Washington recently strengthened tenant protections including just cause eviction."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Residential Landlord-Tenant Act — RCW 59.18",
+        "statute_url": "https://app.leg.wa.gov/rcw/default.aspx?cite=59.18",
+        "summary": "Washington strengthened tenant protections: statewide just-cause eviction (RCW 59.18.650), source-of-income protection, and long notice periods for rent increases."
+      },
+      "notice_requirements": {
+        "nonpayment": "14-day pay-or-vacate notice for nonpayment (RCW 59.12.030(3))"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "30 days after termination, with itemized deductions (RCW 59.18.280)",
+        "interest_required": false,
+        "notes": "Deposit must be held in a trust account; checklist required at move-in."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "RCW 59.18.060 — landlord must maintain premises fit for human habitation and comply with codes",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "rent_escrow": true,
+          "termination": true,
+          "notes": "Repair-and-deduct allowed for landlord's statutory duties after notice — capped at two months' rent total per period (RCW 59.18.100). Rent escrow available through the court (RCW 59.18.115). Termination allowed after notice and cure period (RCW 59.18.090)."
+        },
+        "emergency_repairs": "Emergency repairs: remedies under RCW 59.18.090/100 after notice"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "48 hours (24 hours to show the unit)",
+        "notes": "RCW 59.18.150 — entry at reasonable times only; tenant may not unreasonably withhold consent."
+      },
+      "eviction": {
+        "key_protections": [
+          "Just cause required to end tenancy (RCW 59.18.650)",
+          "14-day nonpayment notice",
+          "Retaliation prohibited (RCW 59.18.240)",
+          "Self-help eviction illegal"
+        ],
+        "notes": "Washington is one of the stronger tenant-protection states."
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "protected_classes_add": [
+          "Source of income (RCW 59.18.255)",
+          "Veteran/military status"
+        ],
+        "complaint_agency": "Washington State Human Rights Commission",
+        "complaint_url": "https://www.hum.wa.gov/"
+      },
+      "legal_aid": [
+        {
+          "name": "Northwest Justice Project / CLEAR",
+          "url": "https://nwjustice.org",
+          "phone": "1-888-201-1014"
+        },
+        {
+          "name": "WashingtonLawHelp.org",
+          "url": "https://www.washingtonlawhelp.org/issues/housing"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Washington Attorney General — Landlord/Tenant",
+          "url": "https://www.atg.wa.gov/landlord-tenant"
+        }
+      ],
+      "sources": [
+        {
+          "label": "RCW 59.18 — RLTA",
+          "url": "https://app.leg.wa.gov/rcw/default.aspx?cite=59.18"
+        },
+        {
+          "label": "WashingtonLawHelp — housing",
+          "url": "https://www.washingtonlawhelp.org/issues/housing"
+        }
+      ],
+      "notes": "Just-cause eviction and rent-increase notice rules are among the strongest in the country.",
+      "stub_url": "https://www.washingtonlawhelp.org/issues/housing"
     },
     "MA": {
       "code": "MA",
       "name": "Massachusetts",
-      "status": "stub",
-      "stub_url": "https://www.masslegalhelp.org/housing",
-      "notes": "Strong tenant protections including rent control in some cities."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "MGL c.186, c.111; State Sanitary Code 105 CMR 410",
+        "statute_url": "https://malegislature.gov/Laws/GeneralLaws/PartII/TitleI/Chapter186",
+        "summary": "Massachusetts is one of the most tenant-protective states: strict security-deposit rules with treble damages, a strong sanitary code, and statutory withholding/repair rights."
+      },
+      "notice_requirements": {
+        "nonpayment": "14-day notice to quit for nonpayment (MGL c.186 §11)"
+      },
+      "security_deposit": {
+        "limit": "1 month's rent (MGL c.186 §15B)",
+        "return_deadline": "30 days after termination; itemized deductions required",
+        "interest_required": true,
+        "notes": "Strictest deposit law in the country — violations can mean treble damages plus attorney fees."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "State Sanitary Code (105 CMR 410) sets detailed habitability standards; implied warranty recognized",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": true,
+          "termination": true,
+          "notes": "Rent withholding allowed for sanitary-code violations after notice (MGL c.111 §127L — report to the local board of health first). Repair-and-deduct allowed up to four months' rent under the same section. Strong abatement defenses."
+        },
+        "emergency_repairs": "Sanitary code violations: report to local board of health, then withhold/deduct per c.111 §127L"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statewide statute — lease governs",
+        "notes": "Entry rights come from the lease; unreasonable entry may still violate the covenant of quiet enjoyment (MGL c.186 §14)."
+      },
+      "eviction": {
+        "key_protections": [
+          "No self-help eviction — court process required (MGL c.186 §14)",
+          "Retaliation presumed if eviction follows complaint within 6 months (c.186 §18)",
+          "Treble damages for deposit violations"
+        ],
+        "notes": "Courts apply the sanitary code aggressively."
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {},
+      "legal_aid": [
+        {
+          "name": "MassLegalHelp",
+          "url": "https://www.masslegalhelp.org/housing"
+        },
+        {
+          "name": "Massachusetts Law Reform Institute",
+          "url": "https://www.mlri.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Mass.gov — Tenant Rights",
+          "url": "https://www.mass.gov/guides/tenant-rights"
+        },
+        {
+          "name": "AG consumer protection",
+          "url": "https://www.mass.gov/consumer-protection"
+        }
+      ],
+      "sources": [
+        {
+          "label": "MGL c.186 §15B — deposits",
+          "url": "https://malegislature.gov/Laws/GeneralLaws/PartII/TitleI/Chapter186/Section15B"
+        },
+        {
+          "label": "MGL c.111 §127L — withholding/repair",
+          "url": "https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXVI/Chapter111/Section127L"
+        }
+      ],
+      "notes": "",
+      "stub_url": "https://www.masslegalhelp.org/housing"
     },
     "OR": {
       "code": "OR",
       "name": "Oregon",
-      "status": "stub",
-      "stub_url": "https://www.oregonlawhelp.org/issues/housing",
-      "notes": "Statewide rent control and just cause eviction protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Oregon Residential Landlord and Tenant Act — ORS ch. 90",
+        "statute_url": "https://www.oregonlegislature.gov/bills_laws/ors/ors090.html",
+        "summary": "Oregon has statewide rent stabilization (first in the nation) and just-cause-style eviction limits after the first year."
+      },
+      "notice_requirements": {
+        "nonpayment": "Nonpayment: 144-hour notice on day 5, or 72-hour notice on day 8 (ORS 90.394)"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "31 days after termination, with itemized accounting (ORS 90.300)",
+        "interest_required": false,
+        "notes": "Prepaid rent and deposits strictly regulated."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "ORS 90.320 — landlord must maintain habitable premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "For essential-service failures (heat, water, plumbing), tenant may procure the service or substitute housing and deduct the cost (ORS 90.365). Termination for habitability failures after notice and cure period (ORS 90.360). No general unilateral withholding — claims go through court."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours",
+        "notes": "ORS 90.322 — entry at reasonable times; emergencies excepted."
+      },
+      "eviction": {
+        "key_protections": [
+          "No-cause termination limited after first year (ORS 90.427)",
+          "Rent increases capped statewide (ORS 90.323/600)",
+          "Retaliation prohibited (ORS 90.385)",
+          "Self-help eviction illegal (ORS 90.375)"
+        ],
+        "notes": "Statewide rent cap = CPI + 7%, updated annually."
+      },
+      "rent_control": {
+        "statewide": true,
+        "notes": "Statewide cap: annual increase limited to CPI + 7% (SB 608 / ORS 90.600); applies to most rentals over 15 years old"
+      },
+      "discrimination": {
+        "complaint_agency": "Oregon Bureau of Labor and Industries (BOLI)",
+        "complaint_url": "https://www.oregon.gov/boli"
+      },
+      "legal_aid": [
+        {
+          "name": "Oregon Law Center / Legal Aid Services of Oregon",
+          "url": "https://oregonlawhelp.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Oregon DOJ — consumer protection",
+          "url": "https://www.doj.state.or.us/consumer-protection/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "ORS ch. 90 — residential tenancies",
+          "url": "https://www.oregonlegislature.gov/bills_laws/ors/ors090.html"
+        }
+      ],
+      "notes": "",
+      "stub_url": "https://oregonlawhelp.org"
     },
     "CO": {
       "code": "CO",
       "name": "Colorado",
-      "status": "stub",
-      "stub_url": "https://www.coloradolegalservices.org/issues/housing",
-      "notes": "Colorado recently enacted statewide just cause eviction and mobile home protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "CRS 38-12 (Residential Premises); CRS 13-40 (eviction)",
+        "statute_url": "https://leg.colorado.gov/agencies/office-legislative-legal-services/colorado-revised-statutes",
+        "summary": "Colorado added a statutory warranty of habitability (2008) and expanded it substantially in 2024."
+      },
+      "notice_requirements": {
+        "nonpayment": "10-day demand for compliance or possession for nonpayment (CRS 13-40-104)"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "1 month, or up to 60 days if the lease says so (CRS 38-12-103)",
+        "interest_required": false,
+        "notes": "Wrongful withholding can mean treble damages plus attorney fees (38-12-103(3))."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "CRS 38-12-503 — statutory warranty of habitability",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Warranty of habitability: CRS 38-12-503/505. Remedies include termination after notice, injunctive relief, and damages/rent abatement (38-12-507). The 2024 Safe Housing law expanded remedies — verify current statute before acting."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute — lease governs",
+        "notes": "Entry rules come from the lease."
+      },
+      "eviction": {
+        "key_protections": [
+          "10-day nonpayment demand (extended from 3 days in 2023)",
+          "Statutory warranty of habitability",
+          "Self-help eviction illegal"
+        ],
+        "notes": "2024 legislation (SB24-094) added stronger habitability remedies — check current text."
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {},
+      "legal_aid": [
+        {
+          "name": "Colorado Legal Services",
+          "url": "https://www.coloradolegalservices.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Colorado Attorney General",
+          "url": "https://coag.gov/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "CRS 38-12 — landlord/tenant",
+          "url": "https://leg.colorado.gov/agencies/office-legislative-legal-services/colorado-revised-statutes"
+        }
+      ],
+      "notes": "",
+      "stub_url": "https://www.coloradolegalservices.org"
     },
     "MI": {
       "code": "MI",
@@ -1952,28 +2282,236 @@
     "AZ": {
       "code": "AZ",
       "name": "Arizona",
-      "status": "stub",
-      "stub_url": "https://www.azlawhelp.org/issues/housing",
-      "notes": "Arizona prohibits rent control statewide. Landlord-friendly laws."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Arizona Residential Landlord and Tenant Act — ARS 33-1301 et seq.",
+        "statute_url": "https://www.azleg.gov/arsDetail/?title=33",
+        "summary": "Arizona follows the URLTA model: repair-and-deduct for minor defects, essential-services remedies, and short notice periods."
+      },
+      "notice_requirements": {
+        "nonpayment": "5-day notice to pay or quit for nonpayment (ARS 33-1368(B))"
+      },
+      "security_deposit": {
+        "limit": "1.5 months' rent (ARS 33-1321)",
+        "return_deadline": "14 business days after termination and demand, with itemized deductions",
+        "interest_required": false,
+        "notes": "Wrongful withholding can mean twice the amount wrongfully withheld."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "ARS 33-1324 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Self-help repair-and-deduct for minor defects: up to $300 or half a month's rent, whichever is greater, after notice (ARS 33-1363). Essential-services failure (heat, water, AC): procure the service or substitute housing and deduct (ARS 33-1364)."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "2 days",
+        "notes": "ARS 33-1343 — reasonable times, 2-day notice; emergencies excepted."
+      },
+      "eviction": {
+        "key_protections": [
+          "5-day nonpayment notice",
+          "Retaliation prohibited (33-1381)",
+          "Self-help eviction illegal (33-1374)"
+        ],
+        "notes": "URLTA-based; remedies are statutory and relatively clear."
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {},
+      "legal_aid": [
+        {
+          "name": "Community Legal Services (Phoenix area)",
+          "url": "https://clsaz.org"
+        },
+        {
+          "name": "AZLawHelp.org",
+          "url": "https://www.azlawhelp.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Arizona Attorney General — consumer",
+          "url": "https://www.azag.gov/consumer"
+        }
+      ],
+      "sources": [
+        {
+          "label": "ARS Title 33 ch. 10",
+          "url": "https://www.azleg.gov/arsDetail/?title=33"
+        }
+      ],
+      "notes": "",
+      "stub_url": "https://www.azlawhelp.org"
     },
     "VA": {
       "code": "VA",
       "name": "Virginia",
-      "status": "stub",
-      "stub_url": "https://www.valegalaid.org/issues/housing",
-      "notes": "Virginia made significant tenant protection updates in recent years."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Virginia Residential Landlord and Tenant Act — §55.1-1200 et seq.",
+        "statute_url": "https://law.lis.virginia.gov/vacode/title55.1/subtitleII/chapter12/",
+        "summary": "Virginia's VRLTA covers most residential rentals; rent escrow (tenant assertion) is the repair remedy. Source-of-income protections apply to larger landlords."
+      },
+      "notice_requirements": {
+        "nonpayment": "5-day notice to pay or quit for nonpayment (§55.1-1245)"
+      },
+      "security_deposit": {
+        "limit": "2 months' rent (§55.1-1226)",
+        "return_deadline": "45 days after termination, with itemized deductions",
+        "interest_required": false,
+        "notes": "Damages and interest may be owed for wrongful withholding."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "§55.1-1220 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "rent_escrow": true,
+          "termination": true,
+          "notes": "Repair remedy is a tenant assertion: after notice, the tenant files in general district court and deposits rent into the court escrow (§55.1-1244). No unilateral self-help withholding or deduct."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "72 hours",
+        "notes": "§55.1-1229(A) — 72-hour notice for routine entry; emergencies excepted."
+      },
+      "eviction": {
+        "key_protections": [
+          "5-day nonpayment notice",
+          "Rent escrow via tenant assertion",
+          "Source-of-income protections for larger landlords"
+        ],
+        "notes": "VRLTA applies to most rentals; some small landlords fall under the older common-law chapter."
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {},
+      "legal_aid": [
+        {
+          "name": "VaLegalAid.org",
+          "url": "https://www.valegalaid.org"
+        },
+        {
+          "name": "Legal Services of Northern Virginia",
+          "url": "https://www.lsnv.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Virginia AG — consumer protection",
+          "url": "https://www.oag.state.va.us/consumer-protection/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "VRLTA — §55.1-1200",
+          "url": "https://law.lis.virginia.gov/vacode/title55.1/subtitleII/chapter12/"
+        }
+      ],
+      "notes": "",
+      "stub_url": "https://www.valegalaid.org"
     },
     "NJ": {
       "code": "NJ",
       "name": "New Jersey",
-      "status": "stub",
-      "stub_url": "https://www.lsnjlawhotline.org/housing",
-      "notes": "Many NJ cities have rent control. Strong anti-eviction protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Anti-Eviction Act N.J.S.A. 2A:18-61.1; deposits 46:8-19 et seq.",
+        "statute_url": "https://lis.njleg.state.nj.us/",
+        "summary": "New Jersey is one of the strongest tenant states: eviction only for statutory good cause, and habitability remedies recognized in case law."
+      },
+      "notice_requirements": {
+        "nonpayment": "Nonpayment: landlord may file without a pre-suit notice; habitual late payment requires a notice to cease then a 1-month notice to quit (2A:18-61.1)"
+      },
+      "security_deposit": {
+        "limit": "1.5 months' rent (N.J.S.A. 46:8-21.2)",
+        "return_deadline": "30 days after termination (5 days if displaced by fire/flood/condemnation)",
+        "interest_required": true,
+        "notes": "Interest or earnings must be paid annually."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "Case-law implied warranty of habitability (Marini v. Ireland, 56 N.J. 130)",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": true,
+          "termination": true,
+          "notes": "Implied warranty of habitability recognized by case law (Marini v. Ireland, 1970): rent abatement and repair-and-deduct are court-recognized remedies — use with care and get advice first."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute — reasonable notice expected",
+        "notes": "Entry rules come from the lease and reasonableness."
+      },
+      "eviction": {
+        "key_protections": [
+          "Eviction only for statutory good cause (Anti-Eviction Act)",
+          "Retaliation prohibited",
+          "Deposit interest required"
+        ],
+        "notes": "Good-cause protection is the defining feature of NJ law."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "Over 100 municipalities have rent-control ordinances",
+        "notes": "No statewide cap; check local ordinance"
+      },
+      "discrimination": {},
+      "legal_aid": [
+        {
+          "name": "Legal Services of New Jersey / LSNJLAW",
+          "url": "https://www.lsnjlaw.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "NJ Division of Consumer Affairs",
+          "url": "https://www.njconsumeraffairs.gov/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "N.J.S.A. 2A:18-61.1 — good cause",
+          "url": "https://lis.njleg.state.nj.us/"
+        }
+      ],
+      "notes": "",
+      "stub_url": "https://www.lsnjlaw.org"
     },
     "WI": {
       "code": "WI",
       "name": "Wisconsin",
-      "status": "partial",
+      "status": "complete",
       "stub_url": "https://core.tenantresourcecenter.org/wisconsin",
       "notice_requirements": {
         "nonpayment": "5-day written pay-or-vacate notice for month-to-month or lease of 1 year or less (Wis. Stat. 704.17(1p)(a) and (2)(a)). Tenant can stop the eviction by paying rent within that window.",
@@ -2008,12 +2546,26 @@
           "url": "https://core.tenantresourcecenter.org/wisconsin"
         }
       ],
-      "notes": "Crisis-tier fields only — verified against Wis. Stat. and ATCP 2026-09-07."
+      "notes": "Crisis-tier fields only — verified against Wis. Stat. and ATCP 2026-09-07.",
+      "repairs": {
+        "landlord_duties": [
+          "Maintain premises per Wis. Stat. 704.07",
+          "Keep unit fit and comply with codes"
+        ],
+        "warranty_of_habitability": "Wis. Stat. 704.07 — landlord must keep premises in reasonable repair and fit for use",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "No repair-deduct or self-help withholding. If the unit becomes untenantable, tenant may move out and rent abates (704.07(4)); habitability claims run through court — get advice before withholding."
+        },
+        "emergency_repairs": "Report in writing immediately; DATCP handles rental-practice complaints"
+      }
     },
     "MO": {
       "code": "MO",
       "name": "Missouri",
-      "status": "partial",
+      "status": "complete",
       "stub_url": "https://www.mobar.org/attorneysearch/",
       "notice_requirements": {
         "nonpayment": "No formal notice-to-pay period required before filing a rent-and-possession action; landlord may file as soon as rent is past due, after a demand for payment (RSMo 535.010, 535.020)",
@@ -2048,61 +2600,521 @@
           "url": "https://www.mobar.org/attorneysearch/"
         }
       ],
-      "notes": "Crisis-tier fields only — verified against RSMo 2026-09-07. Missouri Bar is a referral, not legal aid; replace with a Missouri legal-aid URL when known."
+      "notes": "Crisis-tier fields only — verified against RSMo 2026-09-07. Missouri Bar is a referral, not legal aid; replace with a Missouri legal-aid URL when known.",
+      "repairs": {
+        "landlord_duties": [
+          "Maintain premises per lease and local codes",
+          "Keep unit fit for use"
+        ],
+        "warranty_of_habitability": "No statewide habitability statute; duties come from lease, local codes, and common law",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "rent_escrow": true,
+          "termination": true,
+          "notes": "Limited repair-and-deduct for code violations in cities that adopted the statute (RSMo 441.234 — capped; verify your city). Rent escrow available in municipalities that enacted the escrow law (RSMo 441.570 et seq.). No statewide self-help withholding."
+        },
+        "emergency_repairs": "Report in writing immediately; contact local code enforcement"
+      }
     },
     "AL": {
       "code": "AL",
       "name": "Alabama",
-      "status": "stub",
-      "stub_url": "https://www.alabamalegalhelp.org/housing",
-      "notes": "Alabama has limited tenant protections. Check local ordinances."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Ala. Code 35-9A (URLTA, since 2007)",
+        "statute_url": "https://alisondb.legislature.state.al.us/alison/CodeOfAlabama/1975/coatoc.htm",
+        "summary": "Alabama landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "7-day notice to pay or vacate (35-9A-421)"
+      },
+      "security_deposit": {
+        "limit": "1 month's rent",
+        "return_deadline": "60 days after termination (35-9A-201(b))",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "35-9A-204 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "No repair-and-deduct or self-help withholding. Termination for material noncompliance after notice and cure period (35-9A-401); damages via court."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "2 days' notice (35-9A-303)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "7-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Services Alabama",
+          "url": "https://legalservicesalabama.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Alabama consumer protection",
+          "url": "https://www.alabamaag.gov/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Ala. Code 35-9A (URLTA, since 2007)",
+          "url": "https://alisondb.legislature.state.al.us/alison/CodeOfAlabama/1975/coatoc.htm"
+        }
+      ],
+      "notes": ""
     },
     "AK": {
       "code": "AK",
       "name": "Alaska",
-      "status": "stub",
-      "stub_url": "https://alaskalegalhelp.org/housing",
-      "notes": "Alaska has unique landlord-tenant law due to remote locations."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "AS 34.03 (Uniform Residential Landlord and Tenant Act)",
+        "statute_url": "https://www.akleg.gov/basis/statutes.asp#34.03",
+        "summary": "Alaska landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "7-day notice to pay or quit (AS 34.03.220)"
+      },
+      "security_deposit": {
+        "limit": "2 months' rent",
+        "return_deadline": "14 days if no deductions; 30 days with itemized deductions (AS 34.03.070)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "AS 34.03.100 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Repair-and-deduct allowed for essential services after notice (AS 34.03.180); termination available for material noncompliance."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours' notice (AS 34.03.140)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "7-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Alaska Legal Services Corporation",
+          "url": "https://www.alsc-law.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Alaska consumer protection",
+          "url": "https://law.alaska.gov/department/civil/consumer.html"
+        }
+      ],
+      "sources": [
+        {
+          "label": "AS 34.03 (Uniform Residential Landlord and Tenant Act)",
+          "url": "https://www.akleg.gov/basis/statutes.asp#34.03"
+        }
+      ],
+      "notes": ""
     },
     "AR": {
       "code": "AR",
       "name": "Arkansas",
-      "status": "stub",
-      "stub_url": "https://arkansaslegal.org/housing",
-      "notes": "Arkansas is very landlord-friendly. Limited tenant protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "A.C.A. Title 18 (18-17 residential)",
+        "statute_url": "https://www.arkleg.state.ar.us/ArkansasLaw",
+        "summary": "Arkansas landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "3-day notice; failure-to-vacate can carry criminal exposure (18-16-101)"
+      },
+      "security_deposit": {
+        "limit": "2 months' rent (only if landlord has 25+ units or uses a manager)",
+        "return_deadline": "60 days (18-16-306)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "18-17-502 — limited habitability duties for post-2021 leases",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "2021 law (Act 1052) added basic habitability duties for leases entered on/after Nov. 1, 2021 (18-17-502). No repair-and-deduct or withholding — remedies are narrow; get legal help."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute — lease governs",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "Unique criminal failure-to-vacate statute; habitability coverage is new and narrow"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid of Arkansas",
+          "url": "https://arlegalaid.org"
+        },
+        {
+          "name": "Center for Arkansas Legal Services",
+          "url": "https://arkansaslegal.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Arkansas consumer protection",
+          "url": "https://www.arkansasag.gov/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "A.C.A. Title 18 (18-17 residential)",
+          "url": "https://www.arkleg.state.ar.us/ArkansasLaw"
+        }
+      ],
+      "notes": ""
     },
     "CT": {
       "code": "CT",
       "name": "Connecticut",
-      "status": "stub",
-      "stub_url": "https://www.ctlegal.org/housing",
-      "notes": "Connecticut has fair housing protections and some rent control."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "CGS Title 47a — Landlord and Tenant",
+        "statute_url": "https://www.cga.ct.gov/current/pub/chap_830.htm",
+        "summary": "Connecticut has detailed deposit rules and a court-escrow repair process run through the local housing authority."
+      },
+      "notice_requirements": {
+        "nonpayment": "3-day notice to quit possession for nonpayment (CGS 47a-23)"
+      },
+      "security_deposit": {
+        "limit": "2 months' rent (1 month if tenant is 62+) (CGS 47a-21)",
+        "return_deadline": "30 days after termination or 15 days after receiving forwarding address, whichever is later",
+        "interest_required": true,
+        "notes": "Annual interest at the rate set by the Banking Commissioner."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "CGS 47a-7 — landlord must maintain premises in habitable condition",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "rent_escrow": true,
+          "termination": true,
+          "notes": "Repair remedy: complain to the local housing authority, then a court may order rent paid into escrow (CGS 47a-14a et seq.). No unilateral withholding or deduct."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "Reasonable notice",
+        "notes": "CGS 47a-16 — entry at reasonable times with reasonable notice; emergencies excepted."
+      },
+      "eviction": {
+        "key_protections": [
+          "Court-escrow repair process",
+          "Deposit interest required",
+          "Retaliation prohibited (47a-20)"
+        ],
+        "notes": "Housing-escrow process is unusual — a city agency is involved before court."
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {},
+      "legal_aid": [
+        {
+          "name": "Statewide Legal Services of Connecticut",
+          "url": "https://ctlegal.org"
+        },
+        {
+          "name": "CTLawHelp.org",
+          "url": "https://ctlawhelp.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "CT Dept. of Consumer Protection",
+          "url": "https://portal.ct.gov/dcp"
+        }
+      ],
+      "sources": [
+        {
+          "label": "CGS ch. 830 — landlord and tenant",
+          "url": "https://www.cga.ct.gov/current/pub/chap_830.htm"
+        }
+      ],
+      "notes": "",
+      "stub_url": "https://ctlawhelp.org"
     },
     "DE": {
       "code": "DE",
       "name": "Delaware",
-      "status": "stub",
-      "stub_url": "https://www.delegalhelp.org/housing",
-      "notes": "Delaware has anti-discrimination laws and some local tenant protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "25 Del.C. Part III (Residential Landlord-Tenant Code)",
+        "statute_url": "https://delcode.delaware.gov/title25/",
+        "summary": "Delaware landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "5-day notice to pay or quit (25 Del.C. 5502)"
+      },
+      "security_deposit": {
+        "limit": "1 month's rent",
+        "return_deadline": "20 days after termination (5514)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "25 Del.C. 5301-5305 — habitability duties",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Repair-and-deduct allowed for essential repairs after notice (25 Del.C. 5307 — capped; verify current limits). Termination for habitability failures (5302/5303)."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "Reasonable notice required (5510)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "5-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Services Corporation of Delaware",
+          "url": "https://www.lscd.com"
+        },
+        {
+          "name": "Community Legal Aid Society (CLASI)",
+          "url": "https://www.declasi.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Delaware consumer protection",
+          "url": "https://attorneygeneral.delaware.gov/fraud/cpu/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "25 Del.C. Part III (Residential Landlord-Tenant Code)",
+          "url": "https://delcode.delaware.gov/title25/"
+        }
+      ],
+      "notes": ""
     },
     "HI": {
       "code": "HI",
       "name": "Hawaii",
-      "status": "stub",
-      "stub_url": "https://www.hawaiilegalhelp.org/housing",
-      "notes": "Hawaii has rent control in some counties and strong eviction protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "HRS ch. 521 (Residential Landlord-Tenant Code)",
+        "statute_url": "https://www.capitol.hawaii.gov/hrscurrent/Vol12_Ch0501-0588/HRS0521/",
+        "summary": "Hawaii landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "5-day notice to pay or quit (521-68)"
+      },
+      "security_deposit": {
+        "limit": "1 month's rent",
+        "return_deadline": "14 days after termination (521-44)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "HRS 521-42 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Repair-and-deduct allowed for essential repairs after notice, up to $500 (HRS 521-64). Termination for habitability failures."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "2 days' notice (521-53)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "5-day nonpayment notice; landlord must mitigate damages"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid Society of Hawaii",
+          "url": "https://www.legalaidhawaii.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Hawaii consumer protection",
+          "url": "https://cca.hawaii.gov/ocp/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "HRS ch. 521 (Residential Landlord-Tenant Code)",
+          "url": "https://www.capitol.hawaii.gov/hrscurrent/Vol12_Ch0501-0588/HRS0521/"
+        }
+      ],
+      "notes": ""
     },
     "ID": {
       "code": "ID",
       "name": "Idaho",
-      "status": "stub",
-      "stub_url": "https://www.idaholegalaid.org/housing",
-      "notes": "Idaho is landlord-friendly. No rent control."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Idaho Code Title 6 (55-208 deposits; 6-303 eviction)",
+        "statute_url": "https://legislature.idaho.gov/statutesrules/idstat/",
+        "summary": "Idaho landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "3-day notice to pay or quit (6-303)"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "21 days, or up to 30 days if the lease says so (6-321)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "None by statute — lease and code enforcement govern",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "No statutory warranty of habitability and no repair-deduct/withholding statute. Remedies are lease-based; verify terms and get legal help."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute — lease governs",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "3-day nonpayment notice; few statutory protections"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Idaho Legal Aid Services",
+          "url": "https://www.idaholegalaid.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Idaho consumer protection",
+          "url": "https://www.ag.idaho.gov/consumer-protection/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Idaho Code Title 6 (55-208 deposits; 6-303 eviction)",
+          "url": "https://legislature.idaho.gov/statutesrules/idstat/"
+        }
+      ],
+      "notes": ""
     },
     "IA": {
       "code": "IA",
       "name": "Iowa",
-      "status": "partial",
+      "status": "complete",
       "stub_url": "https://www.iowalegalaid.org/issues/housing",
       "notice_requirements": {
         "nonpayment": "3-day written notice to pay rent or the landlord may terminate the rental agreement (Iowa Code 562A.27(2))",
@@ -2136,89 +3148,812 @@
           "url": "https://www.iowalegalaid.org/issues/housing"
         }
       ],
-      "notes": "Crisis-tier fields only — verified against Iowa Code 2026-09-07."
+      "notes": "Crisis-tier fields only — verified against Iowa Code 2026-09-07.",
+      "repairs": {
+        "landlord_duties": [
+          "Maintain premises per Iowa Code 562A.15",
+          "Keep unit fit and comply with codes"
+        ],
+        "warranty_of_habitability": "Iowa Code 562A.15 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Essential-services failure: tenant may procure the service and deduct the reasonable cost (562A.24). Termination for material noncompliance after notice and cure (562A.21). No unilateral withholding."
+        },
+        "emergency_repairs": "Essential-service failures: deduct remedy after notice (562A.24)"
+      }
     },
     "KS": {
       "code": "KS",
       "name": "Kansas",
-      "status": "stub",
-      "stub_url": "https://www.kansaslegalservices.org/housing",
-      "notes": "Kansas is generally landlord-friendly."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "K.S.A. 58-2540 et seq. (URLTA)",
+        "statute_url": "https://www.ksrevisor.org/statutes/ksa_ch58.html",
+        "summary": "Kansas landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "3-day notice to pay or quit (58-2564)"
+      },
+      "security_deposit": {
+        "limit": "1 month's rent (1.5 if furnished/with pets)",
+        "return_deadline": "30 days (58-2550)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "58-2553 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Essential-services failure: tenant may procure the service and deduct the reasonable cost (58-2561). Termination for material noncompliance after notice (58-2559)."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "Reasonable notice (58-2557)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "3-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Kansas Legal Services",
+          "url": "https://www.kansaslegalservices.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Kansas consumer protection",
+          "url": "https://www.ag.ks.gov/consumer-protection"
+        }
+      ],
+      "sources": [
+        {
+          "label": "K.S.A. 58-2540 et seq. (URLTA)",
+          "url": "https://www.ksrevisor.org/statutes/ksa_ch58.html"
+        }
+      ],
+      "notes": ""
     },
     "KY": {
       "code": "KY",
       "name": "Kentucky",
-      "status": "stub",
-      "stub_url": "https://www.kyjustice.org/housing",
-      "notes": "Kentucky has fair housing laws and some local protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "KRS ch. 383 (URLTA — applies ONLY in adopting cities/counties)",
+        "statute_url": "https://legislature.ky.gov/Law/Statutes",
+        "summary": "Kentucky landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "7-day notice to pay or quit in URLTA areas (383.660); common-law elsewhere"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "30-60 days depending on whether tenant disputes deductions (383.580)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "383.595 — landlord must maintain fit premises (URLTA areas only)",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "URLTA areas: repair-and-deduct for minor repairs up to half a month's rent after notice (383.635); essential-services remedies (383.640). In non-URLTA areas, lease/common law governs — verify coverage first."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "2 days' notice in URLTA areas (383.615)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "URLTA applies only where adopted — Louisville, Lexington, and ~20 other jurisdictions"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid Society (Louisville)",
+          "url": "https://yourlegalaid.org"
+        },
+        {
+          "name": "Kentucky Legal Aid",
+          "url": "https://klaid.org"
+        },
+        {
+          "name": "AppalReD Legal Aid",
+          "url": "https://www.ardfky.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Kentucky consumer protection",
+          "url": "https://ag.ky.gov/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "KRS ch. 383 (URLTA — applies ONLY in adopting cities/counties)",
+          "url": "https://legislature.ky.gov/Law/Statutes"
+        }
+      ],
+      "notes": ""
     },
     "LA": {
       "code": "LA",
       "name": "Louisiana",
-      "status": "stub",
-      "stub_url": "https://louisianalawhelp.org/housing",
-      "notes": "Louisiana follows civil law (not common law). Unique landlord-tenant rules."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Louisiana Civil Code arts. 2668-2729",
+        "statute_url": "https://legis.la.gov/legis/law.aspx?d=110540",
+        "summary": "Louisiana landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "5-day notice to vacate (CCP art. 4701)"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "1 month after termination (R.S. 9:3251)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "Civ. Code art. 2692 — lessor must maintain the thing suitable for its intended use",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Repair-and-deduct allowed: if landlord fails to make necessary repairs after notice, tenant may make them and deduct the cost (Civ. Code art. 2694). No withholding statute."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute — lease governs",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "5-day nonpayment notice; civil-code remedies differ from most states"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Southeast Louisiana Legal Services",
+          "url": "https://www.slls.org"
+        },
+        {
+          "name": "Acadiana Legal Service Corporation",
+          "url": "https://www.la-law.org"
+        },
+        {
+          "name": "LouisianaLawHelp.org",
+          "url": "https://louisianalawhelp.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Louisiana consumer protection",
+          "url": "https://www.ag.state.la.us/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Louisiana Civil Code arts. 2668-2729",
+          "url": "https://legis.la.gov/legis/law.aspx?d=110540"
+        }
+      ],
+      "notes": ""
     },
     "ME": {
       "code": "ME",
       "name": "Maine",
-      "status": "stub",
-      "stub_url": "https://www.pine Tree Legal Assistance (ptla.org) - Maine",
-      "notes": "Maine has strong tenant protections including notice requirements."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "14 M.R.S. §6001 et seq.",
+        "statute_url": "https://legislature.maine.gov/statutes/14/title14ch709sec0.html",
+        "summary": "Maine landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "7-day notice to quit for nonpayment (14 M.R.S. 6002)"
+      },
+      "security_deposit": {
+        "limit": "2 months' rent",
+        "return_deadline": "30 days (or 21 days for at-will) (§6033)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "14 M.R.S. 6021 — implied warranty of fitness for human habitation",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Repair-and-deduct allowed for habitability violations after notice — capped amount, use with care (14 M.R.S. 6026). Termination for serious habitability failures (§6021)."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours' notice (§6025)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "7-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Pine Tree Legal Assistance",
+          "url": "https://www.ptla.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Maine consumer protection",
+          "url": "https://www.maine.gov/ag/consumer/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "14 M.R.S. §6001 et seq.",
+          "url": "https://legislature.maine.gov/statutes/14/title14ch709sec0.html"
+        }
+      ],
+      "notes": ""
     },
     "MD": {
       "code": "MD",
       "name": "Maryland",
-      "status": "stub",
-      "stub_url": "https://www.mlsprogram.org/housing",
-      "notes": "Maryland has statewide eviction protections and some local rent control."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Real Property §8 (Landlord and Tenant)",
+        "statute_url": "https://mgaleg.maryland.gov/mgawebsite/Laws/Statutes",
+        "summary": "Maryland's repair remedy is rent escrow into court — no pre-filing notice is required for nonpayment, but tenants can redeem by paying up to judgment."
+      },
+      "notice_requirements": {
+        "nonpayment": "Nonpayment: no pre-filing notice required — landlord may file failure-to-pay immediately; tenant may stop the eviction by paying all rent due before judgment (RP §8-401)"
+      },
+      "security_deposit": {
+        "limit": "2 months' rent (RP §8-203)",
+        "return_deadline": "45 days after termination, with itemized deductions",
+        "interest_required": true,
+        "notes": "Wrongful withholding can mean up to treble damages plus attorney fees."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "RP §8-211 — serious defects; local housing codes apply",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "rent_escrow": true,
+          "termination": true,
+          "notes": "Rent escrow action (RP §8-211): after notice of a serious defect, tenant petitions the district court and pays rent into the court escrow. No self-help deduct or withholding."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute — lease governs",
+        "notes": "Entry rules come from the lease."
+      },
+      "eviction": {
+        "key_protections": [
+          "Rent escrow statute for serious defects",
+          "Right of redemption — pay up to judgment",
+          "Retaliation prohibited (RP §8-208.1)"
+        ],
+        "notes": "Some counties (e.g., Baltimore City, Montgomery) add their own protections."
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {},
+      "legal_aid": [
+        {
+          "name": "Maryland Legal Aid",
+          "url": "https://www.mdlab.org"
+        },
+        {
+          "name": "People's Law Library of Maryland",
+          "url": "https://www.peoples-law.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Maryland Attorney General — consumer",
+          "url": "https://www.marylandattorneygeneral.gov/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "RP §8-211 — rent escrow",
+          "url": "https://mgaleg.maryland.gov/mgawebsite/Laws/Statutes"
+        }
+      ],
+      "notes": "",
+      "stub_url": "https://www.peoples-law.org"
     },
     "MS": {
       "code": "MS",
       "name": "Mississippi",
-      "status": "stub",
-      "stub_url": "https://www.mslegalhelp.org/housing",
-      "notes": "Mississippi has limited tenant protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Miss. Code 89-7/89-8 (Residential Landlord and Tenant Act)",
+        "statute_url": "https://www.lexisnexis.com/hottopics/mscode/",
+        "summary": "Mississippi landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "3-day notice for nonpayment (89-7-27)"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "45 days after termination (89-8-21)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "89-8-23 — landlord duties to maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Limited repair-and-deduct for essential repairs after notice (Miss. Code 89-8-15). Habitability coverage is narrower than most states — verify what your lease and local code require."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute — lease governs",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "3-day nonpayment notice; few statutory protections"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Mississippi Center for Legal Services",
+          "url": "https://www.mscenterforlegalservices.org"
+        },
+        {
+          "name": "North Mississippi Rural Legal Services",
+          "url": "https://www.nmrls.com"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Mississippi consumer protection",
+          "url": "https://www.lawhelp.org"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Miss. Code 89-7/89-8 (Residential Landlord and Tenant Act)",
+          "url": "https://www.lexisnexis.com/hottopics/mscode/"
+        }
+      ],
+      "notes": ""
     },
     "MT": {
       "code": "MT",
       "name": "Montana",
-      "status": "stub",
-      "stub_url": "https://www.montanalegalhelp.org/housing",
-      "notes": "Montana is landlord-friendly. No rent control."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "MCA Title 70 ch. 24 (URLTA)",
+        "statute_url": "https://leg.mt.gov/bills/mca/title_0700/chapter_0240/",
+        "summary": "Montana landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "3-day notice to pay or quit (70-24-422)"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "30 days; 10 days if no deductions (70-25-202)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "70-24-303 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Repair-and-deduct allowed for essential services and minor repairs after notice (70-24-406 et seq.). Termination for habitability failures."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours' notice (70-24-312)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "3-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Montana Legal Services Association",
+          "url": "https://www.mtlsa.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Montana consumer protection",
+          "url": "https://dojmt.gov/consumer/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "MCA Title 70 ch. 24 (URLTA)",
+          "url": "https://leg.mt.gov/bills/mca/title_0700/chapter_0240/"
+        }
+      ],
+      "notes": ""
     },
     "NE": {
       "code": "NE",
       "name": "Nebraska",
-      "status": "stub",
-      "stub_url": "https://www.nelegalaid.org/housing",
-      "notes": "Nebraska has fair housing protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Neb. Rev. Stat. 76-1401 et seq. (URLTA)",
+        "statute_url": "https://nebraskalegislature.gov/laws/browse-statutes.php",
+        "summary": "Nebraska landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "7-day notice to pay or quit (76-1431)"
+      },
+      "security_deposit": {
+        "limit": "1 month's rent (+ pet deposit)",
+        "return_deadline": "14 days after termination (76-1416)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "76-1419 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Essential-services failure: procure the service and deduct the cost (76-1427). Termination for material noncompliance after notice and cure (76-1431)."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "1 day's notice (76-1423)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "7-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid of Nebraska",
+          "url": "https://www.legalaidofnebraska.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Nebraska consumer protection",
+          "url": "https://ago.nebraska.gov/consumer-protection"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Neb. Rev. Stat. 76-1401 et seq. (URLTA)",
+          "url": "https://nebraskalegislature.gov/laws/browse-statutes.php"
+        }
+      ],
+      "notes": ""
     },
     "NV": {
       "code": "NV",
       "name": "Nevada",
-      "status": "stub",
-      "stub_url": "https://www.nevadalegalhelp.org/housing",
-      "notes": "Nevada recently strengthened tenant protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "NRS ch. 118A",
+        "statute_url": "https://www.leg.state.nv.us/nrs/NRS-118A.html",
+        "summary": "Nevada landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "7-day pay-or-quit notice for nonpayment (NRS 40.253)"
+      },
+      "security_deposit": {
+        "limit": "3 months' rent",
+        "return_deadline": "30 days after termination (118A.242)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "NRS 118A.290 — landlord must maintain habitable unit",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": true,
+          "termination": true,
+          "notes": "Essential-services failure: tenant may withhold rent or procure the service and deduct (118A.355-380, after notice). Repair-and-deduct for minor repairs after notice (118A.360)."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours' notice (118A.330)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "7-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid Center of Southern Nevada",
+          "url": "https://www.lacsn.org"
+        },
+        {
+          "name": "Nevada Legal Services",
+          "url": "https://nevadalegalservices.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Nevada consumer protection",
+          "url": "https://ag.nv.gov/About/Consumer_Protection/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "NRS ch. 118A",
+          "url": "https://www.leg.state.nv.us/nrs/NRS-118A.html"
+        }
+      ],
+      "notes": ""
     },
     "NH": {
       "code": "NH",
       "name": "New Hampshire",
-      "status": "stub",
-      "stub_url": "https://www.nhlegalaid.org/housing",
-      "notes": "New Hampshire has fair housing laws and some local protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "RSA 540 and 540-A",
+        "statute_url": "https://www.gencourt.state.nh.us/rsa/html/LV/540-A/540-A-mrg.htm",
+        "summary": "New Hampshire landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "7-day notice for nonpayment (RSA 540:3)"
+      },
+      "security_deposit": {
+        "limit": "1 month's rent or $100, whichever is greater",
+        "return_deadline": "30 days (540-A:7)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "RSA 48-A:14 — minimum housing standards",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Habitability standards come from the housing code (RSA 48-A). Remedies run through court; limited withholding defenses exist — get legal advice before withholding."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "Adequate notice required (540-A:3(V))",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "7-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "New Hampshire Legal Assistance / 603 Legal Aid",
+          "url": "https://nhlegalaid.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "New Hampshire consumer protection",
+          "url": "https://www.doj.nh.gov/consumer/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "RSA 540 and 540-A",
+          "url": "https://www.gencourt.state.nh.us/rsa/html/LV/540-A/540-A-mrg.htm"
+        }
+      ],
+      "notes": ""
     },
     "NM": {
       "code": "NM",
       "name": "New Mexico",
-      "status": "stub",
-      "stub_url": "https://www.nmlegalaid.org/housing",
-      "notes": "New Mexico has anti-discrimination and habitability protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "NMSA 47-8 (Uniform Owner-Resident Relations Act)",
+        "statute_url": "https://nmonesource.com/nmos/nmsa/en/nav_date.do",
+        "summary": "New Mexico landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "3-day notice to pay or quit (47-8-33(D))"
+      },
+      "security_deposit": {
+        "limit": "1 month's rent for leases under 1 year",
+        "return_deadline": "30 days (47-8-18)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "47-8-20 — landlord must maintain habitable premises",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": true,
+          "termination": true,
+          "notes": "Rent abatement authorized for habitability failures after notice (47-8-29); essential-services remedies (47-8-30). Termination available. No unilateral deduct."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours' notice (47-8-24)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "3-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "New Mexico Legal Aid",
+          "url": "https://www.newmexicolegalaid.org"
+        },
+        {
+          "name": "Law Access New Mexico",
+          "url": "https://www.lawaccess.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "New Mexico consumer protection",
+          "url": "https://www.nmag.gov/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "NMSA 47-8 (Uniform Owner-Resident Relations Act)",
+          "url": "https://nmonesource.com/nmos/nmsa/en/nav_date.do"
+        }
+      ],
+      "notes": ""
     },
     "ND": {
       "code": "ND",
       "name": "North Dakota",
-      "status": "partial",
+      "status": "complete",
       "stub_url": "https://www.ndcourts.gov/legal-self-help",
       "notice_requirements": {
         "nonpayment": "3-day notice of intention to evict; if nonpayment is the only ground, tenant has 3 days to pay in full or move out (NDCC 47-32-01, 47-32-02; ND Courts eviction forms)",
@@ -2252,33 +3987,230 @@
           "url": "https://www.ndcourts.gov/legal-self-help"
         }
       ],
-      "notes": "Crisis-tier fields only — verified against NDCC and ND Courts 2026-09-07."
+      "notes": "Crisis-tier fields only — verified against NDCC and ND Courts 2026-09-07.",
+      "repairs": {
+        "landlord_duties": [
+          "Maintain premises per NDCC 47-16-13.1 et seq.",
+          "Keep unit fit for use"
+        ],
+        "warranty_of_habitability": "NDCC 47-16-13.1 et seq. — landlord duties to maintain the premises",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Remedies include termination for breach and court relief under NDCC 47-16-13.x; no self-help withholding — verify current statute before acting."
+        },
+        "emergency_repairs": "Report in writing immediately"
+      }
     },
     "OK": {
       "code": "OK",
       "name": "Oklahoma",
-      "status": "stub",
-      "stub_url": "https://www.oklegalconnect.org/housing",
-      "notes": "Oklahoma is landlord-friendly. No rent control."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "41 O.S. §101 et seq. (URLTA)",
+        "statute_url": "https://oksenate.gov/publications/statutes",
+        "summary": "Oklahoma landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "5-day notice to pay or quit (41 O.S. 131)"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "45 days after termination (41 O.S. 115)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "41 O.S. 118 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Repair-and-deduct allowed for repairs affecting health/safety after notice — capped amount (41 O.S. 121). Termination for material noncompliance."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "1 day's notice (41 O.S. 128)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "5-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid Services of Oklahoma",
+          "url": "https://www.legalaidok.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Oklahoma consumer protection",
+          "url": "https://www.oag.ok.gov/consumer-protection"
+        }
+      ],
+      "sources": [
+        {
+          "label": "41 O.S. §101 et seq. (URLTA)",
+          "url": "https://oksenate.gov/publications/statutes"
+        }
+      ],
+      "notes": ""
     },
     "RI": {
       "code": "RI",
       "name": "Rhode Island",
-      "status": "stub",
-      "stub_url": "https://www.rilegalservices.org/housing",
-      "notes": "Rhode Island has strong anti-discrimination laws."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "R.I. Gen. Laws ch. 34-18 (URLTA)",
+        "statute_url": "http://webserver.rilin.state.ri.us/Statutes/TITLE34/34-18/INDEX.HTM",
+        "summary": "Rhode Island landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "5-day notice to pay or quit (34-18-35)"
+      },
+      "security_deposit": {
+        "limit": "1 month's rent",
+        "return_deadline": "20 days after termination (34-18-19)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "34-18-22 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Limited repair-and-deduct for minor repairs after notice (34-18-30 — capped at a small amount). Termination for habitability failures."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "2 days' notice (34-18-26)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "5-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Rhode Island Legal Services",
+          "url": "https://www.rils.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Rhode Island consumer protection",
+          "url": "https://riag.ri.gov/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "R.I. Gen. Laws ch. 34-18 (URLTA)",
+          "url": "http://webserver.rilin.state.ri.us/Statutes/TITLE34/34-18/INDEX.HTM"
+        }
+      ],
+      "notes": ""
     },
     "SC": {
       "code": "SC",
       "name": "South Carolina",
-      "status": "stub",
-      "stub_url": "https://www.sclegal.org/housing",
-      "notes": "South Carolina is landlord-friendly."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "S.C. Code 27-40 (URLTA)",
+        "statute_url": "https://www.scstatehouse.gov/code/t27c040.php",
+        "summary": "South Carolina landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "5-day notice for nonpayment (27-40-710)"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "30 days after termination (27-40-410)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "27-40-440 — landlord must maintain fit premises",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "No repair-deduct or self-help withholding. For essential-services failures tenant may terminate and recover damages (27-40-640); remedies run through magistrate court."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "Entry rules per lease; statute requires reasonableness (27-40-530)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "5-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "South Carolina Legal Services",
+          "url": "https://sclegal.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "South Carolina consumer protection",
+          "url": "https://www.scag.gov/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "S.C. Code 27-40 (URLTA)",
+          "url": "https://www.scstatehouse.gov/code/t27c040.php"
+        }
+      ],
+      "notes": ""
     },
     "SD": {
       "code": "SD",
       "name": "South Dakota",
-      "status": "partial",
+      "status": "complete",
       "stub_url": "https://ujslawhelp.sd.gov/LegalTopics/For-Landlords-and-Tenants.aspx",
       "notice_requirements": {
         "nonpayment": "No notice to quit required since July 1, 2024; a landlord may file an eviction action after rent is 3 days late (SDCL 21-16-1(4); SB 90 repealed SDCL 21-16-2)",
@@ -2308,42 +4240,385 @@
           "url": "https://ujslawhelp.sd.gov/LegalTopics/For-Landlords-and-Tenants.aspx"
         }
       ],
-      "notes": "Crisis-tier fields only — verified against SDCL and SD Courts 2026-09-07. Nonpayment notice requirement was removed by SB 90 in 2024."
+      "notes": "Crisis-tier fields only — verified against SDCL and SD Courts 2026-09-07. Nonpayment notice requirement was removed by SB 90 in 2024.",
+      "repairs": {
+        "landlord_duties": [
+          "Maintain premises per SDCL 43-32-8",
+          "Keep unit fit for use"
+        ],
+        "warranty_of_habitability": "SDCL 43-32-8 — landlord must keep premises in reasonable repair and fit for use",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Repair-and-deduct allowed for necessary repairs after notice (SDCL 43-32-9 — use with care and keep receipts). Termination for material breach."
+        },
+        "emergency_repairs": "Report in writing immediately"
+      }
     },
     "TN": {
       "code": "TN",
       "name": "Tennessee",
-      "status": "stub",
-      "stub_url": "https://www.tnlegalhelp.org/housing",
-      "notes": "Tennessee is landlord-friendly. No rent control."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Tenn. Code 66-28 (URLTA — applies in counties over ~75,000 population)",
+        "statute_url": "https://law.justia.com/codes/tennessee/title-66/chapter-28/",
+        "summary": "Tennessee landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "14-day notice in URLTA counties (66-28-505); lease/common-law elsewhere"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "No fixed return deadline; itemized damage statement required (66-28-301)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "66-28-304 — landlord must maintain fit premises (URLTA counties)",
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "URLTA counties: essential-services failure — procure and deduct reasonable cost (66-28-502). Termination for material noncompliance. Coverage depends on county — verify first."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute in URLTA for routine entry — lease governs",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "URLTA applies only in larger counties; outside them, common-law rules"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid Society of Middle Tennessee",
+          "url": "https://las.org"
+        },
+        {
+          "name": "West Tennessee Legal Services",
+          "url": "https://wtls.org"
+        },
+        {
+          "name": "Legal Aid of East Tennessee",
+          "url": "https://laet.org"
+        },
+        {
+          "name": "Memphis Area Legal Services",
+          "url": "https://malsi.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Tennessee consumer protection",
+          "url": "https://www.tn.gov/attorneygeneral.html"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Tenn. Code 66-28 (URLTA — applies in counties over ~75,000 population)",
+          "url": "https://law.justia.com/codes/tennessee/title-66/chapter-28/"
+        }
+      ],
+      "notes": ""
     },
     "UT": {
       "code": "UT",
       "name": "Utah",
-      "status": "stub",
-      "stub_url": "https://www.utahlegalservices.org/housing",
-      "notes": "Utah is landlord-friendly. Salt Lake City has some protections."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Utah Code 57-17 (deposits), 57-22 (Fit Premises Act)",
+        "statute_url": "https://le.utah.gov/xcode/Title57/Chapter22/",
+        "summary": "Utah landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "3-day notice to pay or quit (78B-6-802)"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "30 days, or 15 days after tenant gives forwarding address, whichever is later (57-17-3)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "57-22 — fit premises standards",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Fit Premises Act (57-22): after notice of a deficient condition and a cure period, tenant may terminate and/or seek abatement — court remedies, not self-help deduct or withholding."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute — lease governs",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "3-day nonpayment notice; fit-premises remedies run through notice + court"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Utah Legal Services",
+          "url": "https://www.utahlegalservices.org"
+        },
+        {
+          "name": "Utah Courts self-help",
+          "url": "https://www.utcourts.gov/selfhelp/"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Utah consumer protection",
+          "url": "https://attorneygeneral.utah.gov/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Utah Code 57-17 (deposits), 57-22 (Fit Premises Act)",
+          "url": "https://le.utah.gov/xcode/Title57/Chapter22/"
+        }
+      ],
+      "notes": ""
     },
     "VT": {
       "code": "VT",
       "name": "Vermont",
-      "status": "stub",
-      "stub_url": "https://www.vtlegalaid.org/housing",
-      "notes": "Vermont has strong tenant protections and some rent control."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "9 V.S.A. ch. 137",
+        "statute_url": "https://legislature.vermont.gov/statutes/chapter/09/137",
+        "summary": "Vermont landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "14-day notice for nonpayment (9 V.S.A. 4467a)"
+      },
+      "security_deposit": {
+        "limit": "No statewide cap (Burlington and Barre have local caps)",
+        "return_deadline": "14 days after termination (4461)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "9 V.S.A. 4457 — warranty of habitability",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": true,
+          "termination": true,
+          "notes": "Statutory warranty of habitability (9 V.S.A. 4457); rent withholding recognized for habitability failures after notice (4458). Remedies also include termination and damages — get advice before withholding."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "48 hours' notice (4460)",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "14-day nonpayment notice; self-help eviction illegal"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Vermont Legal Aid",
+          "url": "https://www.vtlegalaid.org"
+        },
+        {
+          "name": "VTLawHelp.org",
+          "url": "https://vtlawhelp.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Vermont consumer protection",
+          "url": "https://ago.vermont.gov/cap/"
+        }
+      ],
+      "sources": [
+        {
+          "label": "9 V.S.A. ch. 137",
+          "url": "https://legislature.vermont.gov/statutes/chapter/09/137"
+        }
+      ],
+      "notes": ""
     },
     "WV": {
       "code": "WV",
       "name": "West Virginia",
-      "status": "stub",
-      "stub_url": "https://www.wvlegalhelp.org/housing",
-      "notes": "West Virginia is landlord-friendly."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "W.Va. Code 37-6 / 37-6A / 55-3A",
+        "statute_url": "https://code.wvlegislature.gov/37-6A-2/",
+        "summary": "West Virginia landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "No statutory pre-filing notice for nonpayment — landlord may file under 55-3A-1"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "60 days, or 45 days after a new tenant occupies, whichever is earlier (37-6A-2)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "Common law and local codes — no statewide habitability statute",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "No repair-deduct or withholding statute. Habitability duties come from code/common law — remedies through court; get legal help."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute — lease governs",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "Landlord may file immediately for nonpayment; few procedural buffers"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid of West Virginia",
+          "url": "https://www.lawv.net"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "West Virginia consumer protection",
+          "url": "https://ago.wv.gov/consumerprotection"
+        }
+      ],
+      "sources": [
+        {
+          "label": "W.Va. Code 37-6 / 37-6A / 55-3A",
+          "url": "https://code.wvlegislature.gov/37-6A-2/"
+        }
+      ],
+      "notes": ""
     },
     "WY": {
       "code": "WY",
       "name": "Wyoming",
-      "status": "stub",
-      "stub_url": "https://www.wyominglegalaid.org/housing",
-      "notes": "Wyoming is landlord-friendly. No rent control."
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Wyo. Stat. 1-21 (Forcible Entry / rental)",
+        "statute_url": "https://wyoleg.gov/statutes/compress/title01.pdf",
+        "summary": "Wyoming landlord-tenant law — key rules below; verify current statute text before acting."
+      },
+      "notice_requirements": {
+        "nonpayment": "3-day notice to pay or quit (1-21-1002)"
+      },
+      "security_deposit": {
+        "limit": "No statutory cap",
+        "return_deadline": "30 days, or 15 days after receiving forwarding address, whichever is later (1-21-1208)",
+        "notes": ""
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Keep unit weatherproof and structurally sound",
+          "Provide running water/hot water",
+          "Comply with applicable building/housing codes"
+        ],
+        "warranty_of_habitability": "1-21-1201-1202 — limited habitability duties",
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Limited statutory habitability (1-21-1202); no repair-deduct or withholding. Remedies through court; verify current statute."
+        },
+        "emergency_repairs": "Report in writing immediately; timelines vary by severity"
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No statute — lease governs",
+        "notes": ""
+      },
+      "eviction": {
+        "key_protection": "3-day nonpayment notice; few statutory protections"
+      },
+      "rent_control": {
+        "statewide": false,
+        "notes": "No statewide rent control"
+      },
+      "discrimination": {
+        "notes": "Federal Fair Housing Act applies; state/local law may add protected classes."
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid of Wyoming",
+          "url": "https://www.lawyoming.org"
+        },
+        {
+          "name": "Equal Justice Wyoming",
+          "url": "https://equaljustice.wy.gov"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Wyoming consumer protection",
+          "url": "https://ag.wyo.gov/law-office-division/consumer-protection-and-antitrust-unit"
+        }
+      ],
+      "sources": [
+        {
+          "label": "Wyo. Stat. 1-21 (Forcible Entry / rental)",
+          "url": "https://wyoleg.gov/statutes/compress/title01.pdf"
+        }
+      ],
+      "notes": ""
     }
   }
 }
