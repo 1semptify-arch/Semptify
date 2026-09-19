@@ -438,6 +438,13 @@ class NavigationRegistry:
         "tenant_documents": FlowStage(
             id="tenant_documents", name="Documents", path="/tenant/documents", next_stage=None, requires_checkpoint=False
         ),
+        "document_center": FlowStage(
+            id="document_center",
+            name="Document Center",
+            path="/dc",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
         "tenant_tools_letters": FlowStage(
             id="tenant_tools_letters",
             name="Tenant Tools Letters",

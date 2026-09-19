@@ -4304,6 +4304,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/dc", response_class=HTMLResponse)
     async def document_center_page(request: Request):
         """Serve the Document Center GUI page (RECORD pillar — 3-pane viewer)."""
+        guard_redirect = await _guard_role_page(
+            request, {"tenant", "advocate", "multi_client_advocate", "legal", "admin"}
+        )
+        if guard_redirect:
+            return guard_redirect
         dc_template_path = BASE_PATH / "app" / "templates" / "pages" / "document_center.html"
         if dc_template_path.exists():
             try:
@@ -4316,7 +4321,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/document-center")
     async def document_center_alias(request: Request):
         """Redirect /document-center alias to the canonical /dc route."""
-        return ssot_redirect("/dc", context="document-center alias")
+        dc_stage = navigation.get_stage("document_center")
+        return ssot_redirect(dc_stage.path, context="document-center alias")
 
     async def _get_tenant_briefcase(user_id: str, user_name: str | None = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
