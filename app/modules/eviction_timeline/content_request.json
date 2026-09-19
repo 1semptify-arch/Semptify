@@ -1,0 +1,25 @@
+{
+  "module": "eviction_timeline",
+  "display_name": "Eviction Timeline",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Eviction Timeline: the numbers behind it",
+      "brief": "How fast eviction cases move — the compressed deadlines tenants face; source: state unlawful-detainer statutes.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Eviction Timeline: what it does and how to use it",
+      "brief": "What Eviction Timeline does — maps an eviction case's real deadlines onto the tenant's calendar. Example: 'hearing in 7 days' shows as a countdown.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    }
+  ]
+}

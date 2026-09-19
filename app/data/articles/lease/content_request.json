@@ -1,0 +1,25 @@
+{
+  "subject": "lease",
+  "display_name": "Lease",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Lease: the numbers behind it",
+      "brief": "What lease terms actually bind a tenant and which clauses are unenforceable; source: state landlord-tenant acts.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Lease: what it does and how to use it",
+      "brief": "How to read a lease — the clauses that matter (term, notice, fees, entry) and the ones a court may not enforce. Example: an illegal no-guest clause.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

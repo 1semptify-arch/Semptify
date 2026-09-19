@@ -1,0 +1,25 @@
+{
+  "module": "journal",
+  "display_name": "Journal",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Journal: the numbers behind it",
+      "brief": "Why contemporaneous notes matter in disputes — records made at the time carry more weight than memory; source: legal-aid record-keeping guidance.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Journal: what it does and how to use it",
+      "brief": "What the Journal is — free-form dated notes about conversations, incidents, and requests. Example: after a call with the landlord, the tenant logs what was said while it's fresh.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

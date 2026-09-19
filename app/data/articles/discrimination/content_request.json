@@ -1,0 +1,25 @@
+{
+  "subject": "discrimination",
+  "display_name": "Discrimination",
+  "pillar": "govern",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Discrimination: the numbers behind it",
+      "brief": "Fair-housing enforcement — protected classes, complaint volumes, where to file; source: HUD/FHAP data.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Discrimination: what it does and how to use it",
+      "brief": "What housing discrimination looks like and where a complaint goes — HUD, state agencies. Example: different terms offered to a family with kids.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    }
+  ]
+}

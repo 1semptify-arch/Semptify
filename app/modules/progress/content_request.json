@@ -1,0 +1,25 @@
+{
+  "module": "progress",
+  "display_name": "Progress",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Progress: the numbers behind it",
+      "brief": "Why visible milestones keep a multi-week legal process from stalling; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Progress: what it does and how to use it",
+      "brief": "What Progress shows — milestones and readiness for the tenant's current process. Example: 'case packet 80% ready.'",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

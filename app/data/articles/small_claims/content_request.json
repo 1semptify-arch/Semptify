@@ -1,0 +1,25 @@
+{
+  "subject": "small_claims",
+  "display_name": "Small Claims",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Small Claims: the numbers behind it",
+      "brief": "Small-claims limits and what housing disputes fit (deposit recovery is the classic); source: state court rules.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Small Claims: what it does and how to use it",
+      "brief": "How small-claims court works for a tenant — the filing fee, the limit, what to bring. Example: suing for an unreturned deposit.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

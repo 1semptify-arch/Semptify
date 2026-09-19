@@ -1,0 +1,25 @@
+{
+  "module": "export_import",
+  "display_name": "Export & Import",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Export & Import: the numbers behind it",
+      "brief": "Data portability for tenants — why keeping your own copy matters; source: data-portability principles.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Export & Import: what it does and how to use it",
+      "brief": "What Export/Import does — download all your Semptify data or move it. Example: tenant exports their full vault index and timeline as files they keep.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

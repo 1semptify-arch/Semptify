@@ -1,0 +1,25 @@
+{
+  "subject": "eviction",
+  "display_name": "Eviction",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Eviction: the numbers behind it",
+      "brief": "Eviction filing volumes, self-representation rates, default-judgment share from missed deadlines; source: Eviction Lab + state court stats.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Eviction: what it does and how to use it",
+      "brief": "What a tenant can do when an eviction filing arrives — the answer deadline, what the court looks at, where help is. Example path: notice → answer → hearing.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "subject": "journal",
+  "display_name": "Journal",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Journal: the numbers behind it",
+      "brief": "Why contemporaneous notes carry weight in disputes; source: record-keeping guidance.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Journal: what it does and how to use it",
+      "brief": "How to use the journal — log conversations and incidents as they happen. Example: logging a landlord call right after it ends.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

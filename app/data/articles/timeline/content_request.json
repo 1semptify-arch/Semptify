@@ -1,0 +1,25 @@
+{
+  "subject": "timeline",
+  "display_name": "Timeline",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Timeline: the numbers behind it",
+      "brief": "Why chronology decides housing disputes — notice dates, cure windows, deadlines; source: practice guides.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Timeline: what it does and how to use it",
+      "brief": "How the timeline builds itself from the tenant's documents and why it matters. Example: proving a repair request came before the eviction notice.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

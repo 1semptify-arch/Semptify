@@ -1,0 +1,25 @@
+{
+  "module": "portal",
+  "display_name": "Public Portal",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Public Portal: the numbers behind it",
+      "brief": "What public no-login services exist and why they're offered before any account; source: portal catalog.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Public Portal: what it does and how to use it",
+      "brief": "What the Portal is — the public services page at semptify.org for people who haven't set up a vault. Example: look up state law without signing in.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}
