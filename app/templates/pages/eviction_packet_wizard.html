@@ -1,0 +1,204 @@
+{#
+  Guided eviction defense packet wizard — ported flow from
+  app-dakota-eviction (flow only, no county data).
+
+  Walks a tenant through the full defense sequence in strict
+  chronological order: case basics → deadlines → Answer →
+  Counterclaim (optional) → Motions (optional) → hearing prep →
+  complete packet download. Each step's controls unlock when the step
+  before finishes — the whole path is visible up front so the tenant
+  can see what is coming.
+
+  Drives existing APIs only — no new backend surface:
+    POST /api/eviction-defense/calculate-deadlines
+    GET  /api/forms/defenses
+    GET  /api/eviction-defense/counterclaims
+    POST /api/forms/generate
+    GET  /api/eviction-defense/case-checklist/pretrial
+    POST /api/forms/library/packet
+
+  Layout: shell--solo single column, shell-* classes only.
+#}
+{% extends "shell_base.html" %}
+
+{% block title %}Semptify — Build your defense packet{% endblock %}
+
+{% block body_class %}shell shell--solo{% endblock %}
+
+{% block content %}
+<section class="shell-zone" aria-labelledby="pw-title">
+  <p class="shell-eyebrow">Eviction defense</p>
+  <h1 id="pw-title">Build your defense packet, step by step.</h1>
+  <p class="shell-lede">Answer a few questions and this page puts together the documents most tenants file — an Answer, and if you want them, a counterclaim and motions. Everything saves to your own storage; nothing is kept here.</p>
+  <p class="shell-note">This is educational information, not legal advice. For advice about your situation, talk with a licensed attorney or your local legal aid office.</p>
+
+  <div class="shell-status" aria-label="Packet progress">
+    <div class="shell-status-row" data-pw-step="basics">
+      <span class="shell-status-label">1 · Your case</span>
+      <span class="shell-status-value" data-pw-state>Waiting</span>
+    </div>
+    <div class="shell-status-row" data-pw-step="deadlines">
+      <span class="shell-status-label">2 · Your deadlines</span>
+      <span class="shell-status-value" data-pw-state>Waiting</span>
+    </div>
+    <div class="shell-status-row" data-pw-step="answer">
+      <span class="shell-status-label">3 · Your Answer</span>
+      <span class="shell-status-value" data-pw-state>Waiting</span>
+    </div>
+    <div class="shell-status-row" data-pw-step="counterclaim">
+      <span class="shell-status-label">4 · Counterclaim (optional)</span>
+      <span class="shell-status-value" data-pw-state>Waiting</span>
+    </div>
+    <div class="shell-status-row" data-pw-step="motions">
+      <span class="shell-status-label">5 · Motions (optional)</span>
+      <span class="shell-status-value" data-pw-state>Waiting</span>
+    </div>
+    <div class="shell-status-row" data-pw-step="hearing">
+      <span class="shell-status-label">6 · Get ready for court</span>
+      <span class="shell-status-value" data-pw-state>Waiting</span>
+    </div>
+    <div class="shell-status-row" data-pw-step="packet">
+      <span class="shell-status-label">7 · Download everything</span>
+      <span class="shell-status-value" data-pw-state>Waiting</span>
+    </div>
+  </div>
+
+  <p class="shell-note" data-pw-busy aria-live="polite"></p>
+  <p class="shell-note" data-pw-error aria-live="assertive" hidden></p>
+</section>
+
+{# ---- Step 1 · Case basics ---- #}
+<section class="shell-zone" data-pw-zone="basics" aria-labelledby="pw-basics-title">
+  <h2 id="pw-basics-title">1 · Your case</h2>
+  <p class="shell-note">These details fill in the caption at the top of every document, so you only type them once.</p>
+  <div class="shell-grid">
+    <label class="shell-field">Your full name (the defendant)
+      <input class="shell-input" data-pw-field="tenant_name" type="text" autocomplete="name" />
+    </label>
+    <label class="shell-field">Landlord or company name (the plaintiff)
+      <input class="shell-input" data-pw-field="landlord_name" type="text" />
+    </label>
+    <label class="shell-field">County where the case was filed
+      <input class="shell-input" data-pw-field="county" type="text" />
+    </label>
+    <label class="shell-field">Case number, if you have one
+      <input class="shell-input" data-pw-field="case_number" type="text" />
+    </label>
+    <label class="shell-field">Rental address
+      <input class="shell-input" data-pw-field="address" type="text" />
+    </label>
+    <label class="shell-field">Date you were served the eviction papers
+      <input class="shell-input" data-pw-field="service_date" type="date" />
+    </label>
+    <label class="shell-field">Hearing date, if one is set
+      <input class="shell-input" data-pw-field="hearing_date" type="date" />
+    </label>
+  </div>
+  <button type="button" class="shell-btn" data-pw-action="basics">Save and see my deadlines</button>
+</section>
+
+{# ---- Step 2 · Deadlines ---- #}
+<section class="shell-zone" data-pw-zone="deadlines" aria-labelledby="pw-deadlines-title">
+  <h2 id="pw-deadlines-title">2 · Your deadlines</h2>
+  <div data-pw-deadlines hidden>
+    <ul class="shell-list" data-pw-deadline-list></ul>
+    <p class="shell-note" data-pw-deadline-warn hidden></p>
+    <button type="button" class="shell-btn" data-pw-action="deadlines-done">Continue to my Answer</button>
+  </div>
+  <p class="shell-note" data-pw-deadlines-waiting>Save your case details above to see the dates that matter.</p>
+</section>
+
+{# ---- Step 3 · Answer ---- #}
+<section class="shell-zone" data-pw-zone="answer" aria-labelledby="pw-answer-title">
+  <h2 id="pw-answer-title">3 · Your Answer</h2>
+  <p class="shell-note">The Answer is the document that tells the court your side. Pick every defense that might apply — a wrong choice costs nothing here, leaving one out can.</p>
+  <div data-pw-answer-body hidden>
+    <fieldset class="shell-fieldset">
+      <legend class="shell-note">Defenses that may apply</legend>
+      <div class="shell-list" data-pw-defense-list></div>
+    </fieldset>
+    <label class="shell-field">Anything else the court should know
+      <textarea class="shell-input" data-pw-field="defense_details" rows="4"></textarea>
+    </label>
+    <button type="button" class="shell-btn" data-pw-action="answer">Put together my Answer</button>
+    <p class="shell-note" data-pw-answer-result hidden></p>
+  </div>
+  <p class="shell-note" data-pw-answer-waiting>Finish your deadlines above to unlock this step.</p>
+</section>
+
+{# ---- Step 4 · Counterclaim (optional) ---- #}
+<section class="shell-zone" data-pw-zone="counterclaim" aria-labelledby="pw-cc-title">
+  <h2 id="pw-cc-title">4 · Counterclaim (optional)</h2>
+  <p class="shell-note">If your landlord owes you — repairs never made, a deposit withheld, illegal fees — you can ask for it back in the same case. Skip this if it does not apply.</p>
+  <div data-pw-cc-body hidden>
+    <fieldset class="shell-fieldset">
+      <legend class="shell-note">Claims that may apply</legend>
+      <div class="shell-list" data-pw-claim-list></div>
+    </fieldset>
+    <label class="shell-field">What happened, in your own words
+      <textarea class="shell-input" data-pw-field="claim_details" rows="4"></textarea>
+    </label>
+    <div class="shell-actions">
+      <button type="button" class="shell-btn" data-pw-action="counterclaim">Put together my counterclaim</button>
+      <button type="button" class="shell-btn shell-btn--quiet" data-pw-action="counterclaim-skip">Skip — nothing to claim</button>
+    </div>
+    <p class="shell-note" data-pw-cc-result hidden></p>
+  </div>
+  <p class="shell-note" data-pw-cc-waiting>Finish your Answer above to unlock this step.</p>
+</section>
+
+{# ---- Step 5 · Motions (optional) ---- #}
+<section class="shell-zone" data-pw-zone="motions" aria-labelledby="pw-motions-title">
+  <h2 id="pw-motions-title">5 · Motions (optional)</h2>
+  <p class="shell-note">Motions ask the court for something specific — more time, a dismissal, or a hearing. Skip anything you do not need.</p>
+  <div data-pw-motions-body hidden>
+    <fieldset class="shell-fieldset">
+      <legend class="shell-note">Motions to include</legend>
+      <div class="shell-list" data-pw-motion-list>
+        <label class="shell-check"><input type="checkbox" value="motion_to_dismiss" /> <span>Motion to Dismiss — the case has a legal defect</span></label>
+        <label class="shell-check"><input type="checkbox" value="motion_for_continuance" /> <span>Motion for Continuance — more time before the hearing</span></label>
+        <label class="shell-check"><input type="checkbox" value="request_for_hearing" /> <span>Request for Hearing — ask the court to hear your side</span></label>
+      </div>
+    </fieldset>
+    <label class="shell-field">Why you are asking (grounds)
+      <textarea class="shell-input" data-pw-field="motion_grounds" rows="3"></textarea>
+    </label>
+    <div class="shell-actions">
+      <button type="button" class="shell-btn" data-pw-action="motions">Put together my motions</button>
+      <button type="button" class="shell-btn shell-btn--quiet" data-pw-action="motions-skip">Skip — no motions needed</button>
+    </div>
+    <p class="shell-note" data-pw-motions-result hidden></p>
+  </div>
+  <p class="shell-note" data-pw-motions-waiting>Finish the step above to unlock this step.</p>
+</section>
+
+{# ---- Step 6 · Hearing prep ---- #}
+<section class="shell-zone" data-pw-zone="hearing" aria-labelledby="pw-hearing-title">
+  <h2 id="pw-hearing-title">6 · Get ready for court</h2>
+  <p class="shell-note">What to bring and what to expect, based on where your case stands.</p>
+  <div data-pw-hearing-body hidden>
+    <ul class="shell-list" data-pw-checklist></ul>
+    <button type="button" class="shell-btn" data-pw-action="hearing-done">I have my checklist</button>
+  </div>
+  <p class="shell-note" data-pw-hearing-waiting>Finish the step above to unlock this step.</p>
+</section>
+
+{# ---- Step 7 · Complete packet ---- #}
+<section class="shell-zone" data-pw-zone="packet" aria-labelledby="pw-packet-title">
+  <h2 id="pw-packet-title">7 · Download everything</h2>
+  <p class="shell-note">One file with every document you made above, ready to print and file. Each document is also saved in your storage.</p>
+  <div data-pw-packet-body hidden>
+    <ul class="shell-list" data-pw-doc-list></ul>
+    <button type="button" class="shell-btn" data-pw-action="packet">Download my complete packet</button>
+    <p class="shell-note" data-pw-packet-result hidden></p>
+    <p class="shell-note">Done here? <a href="/tenant/start">Go back home</a>.</p>
+  </div>
+  <p class="shell-note" data-pw-packet-waiting>Finish the step above to unlock this step.</p>
+</section>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/eviction_packet_wizard.js" defer></script>
+{% endblock %}

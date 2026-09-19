@@ -22,6 +22,12 @@ register_function_group(
         outputs=("subjects", "total"),
         dependencies=("app.modules.accountability_ledger.router",),
         deterministic=True,
+        tier="T1",
+        allowed_routes=(
+            "/api/accountability-ledger/subjects",
+            "/api/accountability-ledger/subjects/{subject_id}",
+        ),
+        allowed_prefixes=("/api/accountability-ledger",),
     )
 )
 
@@ -39,6 +45,11 @@ register_function_group(
         outputs=("patterns", "total"),
         dependencies=("app.modules.accountability_ledger.router",),
         deterministic=True,
+        tier="T1",
+        allowed_routes=(
+            "/api/accountability-ledger/patterns",
+        ),
+        allowed_prefixes=("/api/accountability-ledger",),
     )
 )
 
@@ -56,5 +67,36 @@ register_function_group(
         outputs=("alignments", "total"),
         dependencies=("app.modules.accountability_ledger.router",),
         deterministic=True,
+        tier="T1",
+        allowed_routes=(
+            "/api/accountability-ledger/alignments",
+        ),
+        allowed_prefixes=("/api/accountability-ledger",),
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="accountability_ledger",
+        group_name="accountability_record_requests",
+        title="Accountability Public-Records Request Tracking (SSOT)",
+        description=(
+            "CANONICAL FOIA / Data Practices / Sunshine request tracker "
+            "(workflow ported from app-pmas). File a request against an "
+            "agency, record the statutory deadline, and track the lifecycle "
+            "submitted -> acknowledged -> fulfilled/denied/withdrawn; "
+            "overdue is computed on read, never stored. Operator workbench "
+            "data — not tenant documents."
+        ),
+        inputs=("agency_target", "records_requested", "deadline_date?", "subject_id?"),
+        outputs=("requests", "effective_status"),
+        dependencies=("app.modules.accountability_ledger.router",),
+        deterministic=True,
+        tier="T1",
+        allowed_routes=(
+            "/api/accountability-ledger/requests",
+            "/api/accountability-ledger/requests/{request_id}",
+        ),
+        allowed_prefixes=("/api/accountability-ledger",),
     )
 )

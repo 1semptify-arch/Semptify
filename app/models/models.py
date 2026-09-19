@@ -2077,4 +2077,12 @@ from app.modules.accountability_ledger.models import (  # noqa: F401
     AccountabilitySubject,
     AccountabilityPattern,
     PoliticalAlignment,
+    PublicRecordsRequest,
+)
+from app.modules.legal_intel.models import (  # noqa: F401
+    IntelAttorney,
+    IntelCase,
+    IntelDocket,
+    IntelEntity,
+    IntelRelationship,
 )
