@@ -1,0 +1,12 @@
+{# Post-FINALE provisioning banner — informational only, never blocks.
+   Shows once while the vault working set installs; disappears when done.
+   Included by role-home templates when needs_provisioning is true. #}
+<section class="shell-zone" id="prov-banner" aria-label="Workspace setup">
+  <div class="shell-panel">
+    <p class="shell-note" id="prov-status-text">
+      Setting up your workspace — this runs quietly in the background.
+      You can keep using this page while it works.
+    </p>
+  </div>
+</section>
+<script src="/static/js/vault_provisioning.js" defer></script>

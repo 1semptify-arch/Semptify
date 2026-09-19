@@ -1841,3 +1841,41 @@ async def vault_upload_envelope(
             intensity_level=updated_token.intensity_level,
         ).model_dump(mode="json"),
     }
+
+
+# =============================================================================
+# Post-onboarding vault provisioning (intake-vault-provisioning)
+# Runs after FINALE — never inside onboarding. Chunked: one step per call
+# behind Cloudflare (KF#5).
+# =============================================================================
+
+
+@router.get("/provision/status")
+async def provision_status(
+    user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
+):
+    """Provisioning status — cheap gate-flag read, no cloud call."""
+    from app.services import vault_provisioning
+
+    return await vault_provisioning.status(db, user.user_id)
+
+
+@router.post("/provision/run/{step}")
+async def provision_run(
+    step: str,
+    user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
+):
+    """Run one provisioning step. Idempotent; one step per call."""
+    from app.modules.onboarding.gates import check_gate
+    from app.services import vault_provisioning
+
+    if step not in vault_provisioning.PROVISION_STEPS:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="unknown_step")
+    if not await check_gate(db, user.user_id, vault_provisioning.FINALE_GATE):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="provisioning requires completed onboarding",
+        )
+    return await vault_provisioning.run_step(db, user, step)
