@@ -233,8 +233,8 @@ async def get_legal_trails_overview():
                 "url": "https://www.revisor.mn.gov/statutes/cite/504B.285",
             },
             "MN 504B.161": {
-                "title": "Tenant Remedies",
-                "summary": "Tenant rights to repair and deduct, rent escrow",
+                "title": "Covenants of Habitability",
+                "summary": "Landlords must keep rentals fit and in reasonable repair; remedies go through a rent escrow action",
                 "url": "https://www.revisor.mn.gov/statutes/cite/504B.161",
             },
         },

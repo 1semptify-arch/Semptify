@@ -118,7 +118,7 @@ MINNESOTA_TENANT_LAWS = {
         "key_points": [
             "14-day notice required for nonpayment of rent",
             "30-day notice for lease violations",
-            "Tenant may withhold rent for habitability issues",
+            "Tenant may file a rent escrow case for habitability issues — the court holds the rent",
             "Security deposit must be returned within 21 days",
             "Retaliation by landlord is prohibited",
         ],
@@ -171,9 +171,8 @@ MINNESOTA_TENANT_LAWS = {
         "summary": "Landlord's duty to maintain fit and habitable premises.",
         "key_points": [
             "Landlord must maintain fit and habitable conditions",
-            "Tenant may withhold rent for serious violations",
-            "Rent escrow available through court",
-            "Tenant can make repairs and deduct cost (limits apply)",
+            "Tenant may file a rent escrow case for serious violations — the court holds the rent",
+            "Court can order repairs, reduce rent, or end the lease",
             "Cannot waive habitability in lease",
         ],
         "full_text": "The landlord or other person responsible for the residential building...",

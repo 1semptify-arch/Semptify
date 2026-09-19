@@ -111,9 +111,9 @@ MINNESOTA_LAW_ENTRIES = [
     {
         "id": "504b-155",
         "title": "Minnesota Statute 504B.155 - Tenant Remedies",
-        "content": "Rent escrow, repair and deduct, lease termination for habitability issues. Relief through housing court.",
+        "content": "Rent escrow and lease termination for habitability issues. Relief through housing court.",
         "url": "/law-library",
-        "keywords": ["remedies", "escrow", "repair", "deduct", "termination", "relief"],
+        "keywords": ["remedies", "escrow", "repair", "termination", "relief"],
     },
     {
         "id": "minn-ag-rights",
