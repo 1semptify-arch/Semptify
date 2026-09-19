@@ -245,3 +245,32 @@ register_function_group(
         deterministic=False,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="eviction_defense",
+        group_name="eviction_defense_packet_wizard",
+        title="Eviction Defense Packet Wizard (SSOT)",
+        description=(
+            "CANONICAL guided defense-packet flow (ported from "
+            "app-dakota-eviction — flow only, no county data). Walks the "
+            "tenant through case basics, deadline calculation, Answer, "
+            "optional counterclaim and motions, hearing prep, and a merged "
+            "packet download. The page itself is a conductor — all document "
+            "generation runs through court_forms/eviction_defense APIs, "
+            "which enforce their own access gates. Facts only — not legal "
+            "advice."
+        ),
+        inputs=("semptify_uid?",),
+        outputs=("page",),
+        dependencies=(
+            "app.modules.eviction_defense.router",
+            "app.modules.court_forms.router",
+            "app.main",
+        ),
+        deterministic=True,
+        tier="T2",
+        allowed_routes=("/eviction-defense/wizard",),
+        allowed_prefixes=("/eviction-defense",),
+    )
+)
