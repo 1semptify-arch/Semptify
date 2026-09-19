@@ -4174,6 +4174,124 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         except Exception:  # pylint: disable=broad-exception-caught
             return False
 
+    def _tenant_path_steps(
+        vault_connected: bool,
+        document_count: int,
+        journal_count: int,
+        next_deadline: dict | None,
+    ) -> list[dict]:
+        """The marked path for the tenant home — deterministic and chronological.
+
+        Every step carries a state: 'done', 'now', or 'later'. Exactly one
+        step is 'now' — the first incomplete action — and it carries the
+        page's primary call to action. If all concrete steps are done, a
+        steady-state 'keep your record current' step becomes 'now' so the
+        path never dead-ends. An urgent deadline (<= 7 days) overrides and
+        becomes 'now' — Time to Real Help beats routine order.
+        """
+        steps = [
+            {
+                "done": vault_connected,
+                "label": "Your storage is connected" if vault_connected else "Connect your storage",
+                "detail": (
+                    "Everything you save stays in your own vault."
+                    if vault_connected
+                    else "Link your storage so your documents have a safe home."
+                ),
+                "href": "/storage/providers",
+                "cta": "Connect storage",
+            },
+            {
+                "done": document_count > 0,
+                "label": (
+                    "Your documents are saved"
+                    if document_count > 0
+                    else "Save your first document"
+                ),
+                "detail": (
+                    f"{document_count} document{'s' if document_count != 1 else ''} in your vault."
+                    if document_count > 0
+                    else "Notices, letters, photos — they matter later."
+                ),
+                "href": "/tenant/capture",
+                "cta": "Add a document",
+            },
+            {
+                "done": journal_count > 0,
+                "label": (
+                    "What happened is on the record"
+                    if journal_count > 0
+                    else "Record what happened"
+                ),
+                "detail": (
+                    f"{journal_count} journal entr{'ies' if journal_count != 1 else 'y'} — dated, in your own words."
+                    if journal_count > 0
+                    else "Write it down while it's fresh — dates and details matter later."
+                ),
+                "href": "/gui/record/journal/create",
+                "cta": "Write in your journal",
+            },
+        ]
+        for step in steps:
+            step["state"] = "done" if step.pop("done") else "later"
+
+        if all(s["state"] == "done" for s in steps):
+            steps.append(
+                {
+                    "state": "later",
+                    "label": "Keep your record current",
+                    "detail": "New notice, conversation, or payment — log it as it happens.",
+                    "href": "/tenant/capture",
+                    "cta": "Record something",
+                }
+            )
+
+        # Reference steps — always available, always later in the path.
+        steps.extend(
+            [
+                {
+                    "state": "later",
+                    "label": "Know your rights",
+                    "detail": "Plain-English guides and the actual law.",
+                    "href": "/law-library",
+                },
+                {
+                    "state": "later",
+                    "label": "Get help when you need it",
+                    "detail": "Guided help, hotlines, and legal aid near you.",
+                    "href": "/tenant/get-help",
+                },
+            ]
+        )
+
+        # Exactly one 'now': the first step that isn't done. Deadline wins.
+        urgent = (
+            next_deadline
+            and next_deadline.get("days_remaining") is not None
+            and next_deadline["days_remaining"] <= 7
+        )
+        if urgent:
+            days = next_deadline["days_remaining"]
+            steps.insert(
+                0,
+                {
+                    "state": "now",
+                    "label": f"A deadline is coming — {next_deadline['title']}",
+                    "detail": (
+                        f"{next_deadline['date']} — {days} day{'s' if days != 1 else ''} away. "
+                        "Talk to a person before it passes."
+                    ),
+                    "href": "/tenant/get-help",
+                    "cta": "Get help now",
+                },
+            )
+        else:
+            for step in steps:
+                if step["state"] != "done":
+                    step["state"] = "now"
+                    break
+        return steps
+
     def _role_setup_page(request: Request, role_key: str):
         """Render the shared first-run setup page for a role home (pre-FINALE)."""
         from app.core.role_surfacing import get_role_display_name, get_role_wording
@@ -4382,6 +4500,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "date": briefcase.timeline.next_deadline.date,
                 "days_remaining": briefcase.timeline.next_deadline.days_until,
             }
+        context["path_steps"] = _tenant_path_steps(
+            context["vault_connected"],
+            context["document_count"],
+            context["journal_count"],
+            context["next_deadline"],
+        )
         return templates.TemplateResponse(request, "pages/tenant_home_next.html", context)
 
     @fastapi_app.get("/tenant/get-help", response_class=HTMLResponse)

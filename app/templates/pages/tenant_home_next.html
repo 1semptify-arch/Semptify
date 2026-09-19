@@ -71,40 +71,9 @@
     </div>
   </section>
 
-  <section class="shell-zone" aria-labelledby="th-actions">
-    <h2 id="th-actions" class="shell-zone-title">Start here</h2>
-    <nav aria-label="Primary actions">
-      <ol class="shell-steps">
-        <li>
-          <a href="/gui/record/journal/create">
-            <span class="shell-step-num">1</span>
-            <span>
-              <span class="shell-step-title">Write in your journal</span><br>
-              <span class="shell-step-desc">Log what happened — dated, on the record.</span>
-            </span>
-          </a>
-        </li>
-        <li>
-          <a href="/tenant/capture">
-            <span class="shell-step-num">2</span>
-            <span>
-              <span class="shell-step-title">Add a document or photo</span><br>
-              <span class="shell-step-desc">Notices, photos, letters — into your vault.</span>
-            </span>
-          </a>
-        </li>
-        <li>
-          <a href="/law-library">
-            <span class="shell-step-num">3</span>
-            <span>
-              <span class="shell-step-title">Look up a right</span><br>
-              <span class="shell-step-desc">Plain-English guides and the actual law.</span>
-            </span>
-          </a>
-        </li>
-      </ol>
-    </nav>
-  </section>
+  {% if path_steps %}
+    {% include "components/next_step_path.html" %}
+  {% endif %}
 
   <section class="shell-zone" aria-labelledby="th-capture">
     <h2 id="th-capture" class="shell-zone-title">Something just happened?</h2>
@@ -189,3 +158,7 @@
 {% endblock %}
 
 {% block sidebar %}{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/path-activity.js" defer></script>
+{% endblock %}

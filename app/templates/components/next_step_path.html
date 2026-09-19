@@ -1,0 +1,52 @@
+{#
+  Next-step path — the tenant home's marked way forward.
+
+  Contract:
+    Inputs:  path_steps — list of {state, label, detail, href, cta?}
+             computed by _tenant_path_steps() in app/main.py.
+             Exactly one step has state 'now' and carries the primary CTA.
+    Outputs: none — all steps link onward; no dead ends.
+    Order:   chronological — done steps first, the 'now' step is the one
+             thing to do next, 'later' steps follow below it.
+
+  The activity line at the top is driven by live backend events:
+  path-activity.js listens for 'semptify:narration' / 'semptify:notification'
+  CustomEvents dispatched by the shared core/websocket-client.js
+  (connected to /ws/events). No fabricated progress — the line only moves
+  when the server says something real.
+#}
+<section class="shell-zone" aria-labelledby="th-path">
+  <h2 id="th-path" class="shell-zone-title">Your path</h2>
+  <p class="shell-activity">
+    <span class="shell-activity-dot" id="path-activity-dot" aria-hidden="true"></span>
+    <span id="path-activity-text">Semptify is listening — updates appear here as they happen.</span>
+  </p>
+  <nav aria-label="Your next steps">
+    <ol class="shell-path">
+      {% for s in path_steps %}
+      <li>
+        {% if s.state == 'now' %}
+        <div class="shell-path-step shell-path-step--now">
+          <span class="shell-path-marker" aria-hidden="true">{{ loop.index }}</span>
+          <span class="shell-path-body">
+            <span class="shell-path-label">{{ s.label }}</span>
+            <span class="shell-path-detail">{{ s.detail }}</span>
+          </span>
+          <a class="shell-btn shell-btn--accent shell-path-cta" href="{{ s.href }}">{{ s.cta }}</a>
+        </div>
+        {% else %}
+        <a class="shell-path-step shell-path-step--{{ s.state }}" href="{{ s.href }}">
+          <span class="shell-path-marker" aria-hidden="true">
+            {% if s.state == 'done' %}&#10003;{% else %}{{ loop.index }}{% endif %}
+          </span>
+          <span class="shell-path-body">
+            <span class="shell-path-label">{{ s.label }}</span>
+            <span class="shell-path-detail">{{ s.detail }}</span>
+          </span>
+        </a>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </nav>
+</section>
