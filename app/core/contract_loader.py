@@ -184,6 +184,8 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     # Local AI: dormant dev-tier module (no MANIFEST entry, not wired in
     # main.py) — contracts load only when all product tiers are enabled.
     "app.modules.local_ai.register",
+    # Legal Intel: entity/attorney/shell-LLC intelligence (RESEARCH tier).
+    "app.modules.legal_intel.register",
     # Services with contracts
     "app.services.unified_overlay_manager",
     "app.services.communication_service",

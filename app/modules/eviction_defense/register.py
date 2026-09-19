@@ -21,6 +21,11 @@ register_function_group(
         outputs=("forms", "total"),
         dependencies=("app.modules.eviction_defense.router",),
         deterministic=True,
+        allowed_routes=(
+            "/api/eviction-defense/forms",
+            "/api/eviction-defense/forms/{form_id}",
+        ),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -37,6 +42,8 @@ register_function_group(
         outputs=("form",),
         dependencies=("app.modules.eviction_defense.router",),
         deterministic=True,
+        allowed_routes=("/api/eviction-defense/forms/{form_id}",),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -53,6 +60,11 @@ register_function_group(
         outputs=("motions", "total"),
         dependencies=("app.modules.eviction_defense.router",),
         deterministic=True,
+        allowed_routes=(
+            "/api/eviction-defense/motions",
+            "/api/eviction-defense/motions/{motion_id}",
+        ),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -69,6 +81,11 @@ register_function_group(
         outputs=("procedures", "total"),
         dependencies=("app.modules.eviction_defense.router",),
         deterministic=True,
+        allowed_routes=(
+            "/api/eviction-defense/procedures",
+            "/api/eviction-defense/procedures/{procedure_id}",
+        ),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -85,6 +102,11 @@ register_function_group(
         outputs=("counterclaims",),
         dependencies=("app.modules.eviction_defense.router",),
         deterministic=True,
+        allowed_routes=(
+            "/api/eviction-defense/counterclaims",
+            "/api/eviction-defense/counterclaims/{claim_id}",
+        ),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -102,6 +124,8 @@ register_function_group(
         outputs=("defenses",),
         dependencies=("app.modules.eviction_defense.router",),
         deterministic=True,
+        allowed_routes=("/api/eviction-defense/defenses",),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -118,6 +142,8 @@ register_function_group(
         outputs=("deadlines",),
         dependencies=("app.modules.eviction_defense.router",),
         deterministic=True,
+        allowed_routes=("/api/eviction-defense/calculate-deadlines",),
+        allowed_prefixes=("/api/eviction-defense",),
         stages=(
             ContractStage(
                 id="enter_date",
@@ -142,6 +168,8 @@ register_function_group(
         outputs=("checklist",),
         dependencies=("app.modules.eviction_defense.router",),
         deterministic=True,
+        allowed_routes=("/api/eviction-defense/case-checklist/{stage}",),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -159,6 +187,8 @@ register_function_group(
         outputs=("defenses", "counterclaims", "deadlines", "suggested_actions"),
         dependencies=("app.modules.eviction_defense.router", "app.modules.documents.router"),
         deterministic=False,
+        allowed_routes=("/api/eviction-defense/analyze",),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -176,6 +206,11 @@ register_function_group(
         outputs=("available_defenses", "upcoming_deadlines", "case_stage"),
         dependencies=("app.modules.eviction_defense.router",),
         deterministic=True,
+        allowed_routes=(
+            "/api/eviction-defense/quick-status",
+            "/api/eviction-defense/statistics",
+        ),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -193,6 +228,8 @@ register_function_group(
         outputs=("defenses",),
         dependencies=("app.modules.eviction_defense.router", "app.modules.documents.router"),
         deterministic=False,
+        allowed_routes=("/api/eviction-defense/from-documents/defenses",),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -210,6 +247,8 @@ register_function_group(
         outputs=("counterclaims",),
         dependencies=("app.modules.eviction_defense.router", "app.modules.documents.router"),
         deterministic=False,
+        allowed_routes=("/api/eviction-defense/from-documents/counterclaims",),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -226,6 +265,8 @@ register_function_group(
         outputs=("deadlines",),
         dependencies=("app.modules.eviction_defense.router", "app.modules.documents.router"),
         deterministic=False,
+        allowed_routes=("/api/eviction-defense/from-documents/deadlines",),
+        allowed_prefixes=("/api/eviction-defense",),
     )
 )
 
@@ -243,5 +284,35 @@ register_function_group(
         outputs=("defenses", "counterclaims", "deadlines", "suggested_actions"),
         dependencies=("app.modules.eviction_defense.router", "app.modules.documents.router"),
         deterministic=False,
+        allowed_routes=("/api/eviction-defense/from-documents/analysis",),
+        allowed_prefixes=("/api/eviction-defense",),
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="eviction_defense",
+        group_name="eviction_defense_packet_wizard",
+        title="Eviction Defense Packet Wizard (SSOT)",
+        description=(
+            "CANONICAL guided defense-packet flow (ported from "
+            "app-dakota-eviction — flow only, no county data). Walks the "
+            "tenant through case basics, deadline calculation, Answer, "
+            "optional counterclaim and motions, hearing prep, and a merged "
+            "packet download. The page itself is a conductor — all document "
+            "generation runs through court_forms/eviction_defense APIs, "
+            "which enforce their own access gates. Facts only — not legal "
+            "advice."
+        ),
+        inputs=("semptify_uid?",),
+        outputs=("page",),
+        dependencies=(
+            "app.modules.eviction_defense.router",
+            "app.modules.court_forms.router",
+            "app.main",
+        ),
+        deterministic=True,
+        allowed_routes=("/eviction-defense/wizard",),
+        allowed_prefixes=("/eviction-defense",),
     )
 )

@@ -997,6 +997,7 @@ def generate_eviction_defense_html() -> str:
             <a href="/documents">ðŸ“„ Documents</a>
             <a href="/timeline">ðŸ“… Timeline</a>
             <a href="/law-library">ðŸ“š Law Library</a>
+            <a href="/eviction-defense/wizard">Packet Wizard</a>
             <a href="/zoom-court">ðŸ’» Zoom Court</a>
         </nav>
     </header>
@@ -3942,6 +3943,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def eviction_defense_page():
         """Serve the eviction defense toolkit page."""
         return HTMLResponse(content=_inject_workspace_stage_model(generate_eviction_defense_html()))
+
+    @fastapi_app.get("/eviction-defense/wizard", response_class=HTMLResponse)
+    async def eviction_defense_wizard_page(request: Request):
+        """Guided defense-packet wizard (ported flow from app-dakota-eviction).
+
+        Walks the tenant through deadlines → Answer → counterclaim →
+        motions → hearing prep → complete packet, driving the existing
+        court_forms / eviction_defense APIs. Form generation itself is
+        access-gated server-side; this page is the conductor.
+        """
+        return templates.TemplateResponse(request, "pages/eviction_packet_wizard.html", {})
 
     # =========================================================================
     # Zoom Court Page
