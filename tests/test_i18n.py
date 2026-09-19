@@ -7,6 +7,14 @@ import pytest
 from app.core.i18n import SUPPORTED_LOCALES, I18n, _jinja2_gettext, get_locale, gettext, ngettext
 
 
+@pytest.fixture(autouse=True)
+def _reset_i18n_singleton():
+    """Keep the process-wide I18n singleton clean between tests."""
+    I18n._instance = None
+    yield
+    I18n._instance = None
+
+
 class _FakeRequest:
     """Minimal request stand-in for locale detection tests."""
 

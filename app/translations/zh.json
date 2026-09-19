@@ -1,7 +1,29 @@
 {
   "_meta": {
     "locale": "zh",
-    "status": "stub",
-    "note": "Mandarin catalog — translations fall back to English until human review."
-  }
+    "status": "machine",
+    "note": "Mandarin catalog — machine translation pending human review. Plain-language, action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "租客权益工具 — 隐私优先、无账户、零日志",
+  "action.get_help": "立即获取帮助",
+  "action.continue": "继续",
+  "action.back": "返回",
+  "action.save": "保存",
+  "action.cancel": "取消",
+  "action.close": "关闭",
+  "nav.record": "记录",
+  "nav.know": "了解",
+  "nav.act": "行动",
+  "nav.govern": "治理",
+  "welcome.title": "Semptify — 即时组合器",
+  "welcome.lead": "无需账户。不记日志。所有界面导航都在您的浏览器中完成。",
+  "welcome.cta": "开始使用",
+  "help.headline": "您现在遇到了什么情况?",
+  "footer.upl": "Semptify 不是律师事务所,不提供法律建议。",
+  "footer.privacy": "隐私政策",
+  "footer.terms": "使用条款",
+  "footer.report": "报告问题",
+  "language.label": "语言",
+  "language.selector.aria": "选择您的首选语言"
 }

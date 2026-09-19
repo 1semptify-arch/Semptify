@@ -1,7 +1,29 @@
 {
   "_meta": {
     "locale": "am",
-    "status": "stub",
-    "note": "Amharic catalog — translations fall back to English until human review."
-  }
+    "status": "machine",
+    "note": "Amharic catalog — machine translation pending human review. Plain-language, action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "የተከራይ መብት መሳሪያዎች — ግላዊነት በመጀመሪያ፣ ምንም መለያ የለም፣ ምንም መዝገብ የለም",
+  "action.get_help": "አሁን እርዳታ ያግኙ",
+  "action.continue": "ቀጥል",
+  "action.back": "ተመለስ",
+  "action.save": "አስቀምጥ",
+  "action.cancel": "ሰርዝ",
+  "action.close": "ዝጋ",
+  "nav.record": "መዝግብ",
+  "nav.know": "እወቅ",
+  "nav.act": "ተግበር",
+  "nav.govern": "አስተዳድር",
+  "welcome.title": "Semptify — ፈጣን አዘጋጅ",
+  "welcome.lead": "ምንም መለያ የለም። ምንም መዝገብ የለም። ሁሉም አሰሳ በእርስዎ አሳሽ ውስጥ ይከናወናል።",
+  "welcome.cta": "ጀምር",
+  "help.headline": "አሁን ምን እየሆነብዎት ነው?",
+  "footer.upl": "Semptify የጠበቃ ቢሮ አይደለም እና የሕግ ምክር አይሰጥም።",
+  "footer.privacy": "የግላዊነት ፖሊሲ",
+  "footer.terms": "የአጠቃቀም ውሎች",
+  "footer.report": "ችግር ሪፖርት ያድርጉ",
+  "language.label": "ቋንቋ",
+  "language.selector.aria": "የሚመርጡትን ቋንቋ ይምረጡ"
 }

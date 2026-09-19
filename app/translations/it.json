@@ -1,7 +1,29 @@
 {
   "_meta": {
     "locale": "it",
-    "status": "stub",
-    "note": "Italian catalog — translations fall back to English until human review."
-  }
+    "status": "machine",
+    "note": "Italian catalog — machine translation pending human review. Plain-language, action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "Strumenti per i diritti degli inquilini — privacy al primo posto, senza account, zero registri",
+  "action.get_help": "Ottieni aiuto ora",
+  "action.continue": "Continua",
+  "action.back": "Indietro",
+  "action.save": "Salva",
+  "action.cancel": "Annulla",
+  "action.close": "Chiudi",
+  "nav.record": "Registra",
+  "nav.know": "Conosci",
+  "nav.act": "Agisci",
+  "nav.govern": "Governa",
+  "welcome.title": "Semptify — Compositore istantaneo",
+  "welcome.lead": "Nessun account. Nessun registro. Tutta la navigazione avviene nel tuo browser.",
+  "welcome.cta": "Inizia",
+  "help.headline": "Cosa ti sta succedendo in questo momento?",
+  "footer.upl": "Semptify non è uno studio legale e non fornisce consulenza legale.",
+  "footer.privacy": "Informativa sulla privacy",
+  "footer.terms": "Termini di utilizzo",
+  "footer.report": "Segnala un problema",
+  "language.label": "Lingua",
+  "language.selector.aria": "Scegli la tua lingua preferita"
 }

@@ -1,7 +1,29 @@
 {
   "_meta": {
     "locale": "hmn",
-    "status": "stub",
-    "note": "Hmong catalog — translations fall back to English until human review."
-  }
+    "status": "machine",
+    "note": "Hmong catalog — machine translation pending human review. Plain-language, action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "Cov cuab yeej txoj cai neeg xauj tsev — kev ntiag tug ua ntej, tsis muaj account, tsis muaj ntaub ntawv",
+  "action.get_help": "Tau kev pab tam sim no",
+  "action.continue": "Txuas ntxiv",
+  "action.back": "Rov qab",
+  "action.save": "Khaws cia",
+  "action.cancel": "Tshem",
+  "action.close": "Kaw",
+  "nav.record": "Sau ntawv",
+  "nav.know": "Paub",
+  "nav.act": "Ua",
+  "nav.govern": "Tswj",
+  "welcome.title": "Semptify — Tus Sau Ntaub Ntawv Tam Sim No",
+  "welcome.lead": "Tsis muaj account. Tsis muaj ntaub ntawv cia. Txhua qhov kev mus rau ntawv tshwm sim hauv koj lub browser.",
+  "welcome.cta": "Pib",
+  "help.headline": "Dab tsi tab tom tshwm sim rau koj tam sim no?",
+  "footer.upl": "Semptify tsis yog lub tuam txhab kws lij choj thiab tsis muab kev pab txog kev cai.",
+  "footer.privacy": "Txoj Cai Ntiag Tug",
+  "footer.terms": "Cov Cai Siv",
+  "footer.report": "Tshaj tawm teeb meem",
+  "language.label": "Lus",
+  "language.selector.aria": "Xaiv koj hom lus uas koj nyiam"
 }

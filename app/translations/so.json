@@ -1,7 +1,29 @@
 {
   "_meta": {
     "locale": "so",
-    "status": "stub",
-    "note": "Somali catalog — translations fall back to English until human review."
-  }
+    "status": "machine",
+    "note": "Somali catalog — machine translation pending human review. Plain-language, action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "Qalabka xuquuqda kireystaha — asturnaanta horta, xisaab la'aan, diiwaan la'aan",
+  "action.get_help": "Caawimo hadda hel",
+  "action.continue": "Sii wad",
+  "action.back": "Dib u noqo",
+  "action.save": "Kayd",
+  "action.cancel": "Jooji",
+  "action.close": "Xir",
+  "nav.record": "Diiwaangeli",
+  "nav.know": "Ogow",
+  "nav.act": "Ficil",
+  "nav.govern": "Maamul",
+  "welcome.title": "Semptify — Sameeyaha Degdegga ah",
+  "welcome.lead": "Xisaab ma jirto. Diiwaan ma jirto. Dhammaan socodka bogagga wuxuu ku dhacaa biraawsarkaaga.",
+  "welcome.cta": "Bilow",
+  "help.headline": "Maxaa kuu dhacaya hadda?",
+  "footer.upl": "Semptify ma aha xafiis qareen mana bixiso talo sharci.",
+  "footer.privacy": "Qarsoodiga Asturnaanta",
+  "footer.terms": "Shuruudaha Isticmaalka",
+  "footer.report": "Soo sheeg dhibaato",
+  "language.label": "Luqadda",
+  "language.selector.aria": "Dooro luqadda aad doorbidto"
 }
