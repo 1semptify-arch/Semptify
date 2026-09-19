@@ -1,7 +1,29 @@
 {
   "_meta": {
     "locale": "fr",
-    "status": "stub",
-    "note": "French catalog — translations fall back to English until human review."
-  }
+    "status": "machine",
+    "note": "French catalog — machine translation pending human review. Plain-language, action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "Outils pour les droits des locataires — confidentialité d'abord, sans compte, zéro journal",
+  "action.get_help": "Obtenir de l'aide maintenant",
+  "action.continue": "Continuer",
+  "action.back": "Retour",
+  "action.save": "Enregistrer",
+  "action.cancel": "Annuler",
+  "action.close": "Fermer",
+  "nav.record": "Enregistrer",
+  "nav.know": "Connaître",
+  "nav.act": "Agir",
+  "nav.govern": "Gouverner",
+  "welcome.title": "Semptify — Compositeur à la volée",
+  "welcome.lead": "Pas de comptes. Pas de journaux. Toute la navigation se fait dans votre navigateur.",
+  "welcome.cta": "Commencer",
+  "help.headline": "Que vous arrive-t-il en ce moment ?",
+  "footer.upl": "Semptify n'est pas un cabinet d'avocats et ne fournit pas de conseils juridiques.",
+  "footer.privacy": "Politique de confidentialité",
+  "footer.terms": "Conditions d'utilisation",
+  "footer.report": "Signaler un problème",
+  "language.label": "Langue",
+  "language.selector.aria": "Choisissez votre langue préférée"
 }

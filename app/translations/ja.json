@@ -1,7 +1,29 @@
 {
   "_meta": {
     "locale": "ja",
-    "status": "stub",
-    "note": "Japanese catalog — translations fall back to English until human review."
-  }
+    "status": "machine",
+    "note": "Japanese catalog — machine translation pending human review. Plain-language, action-first."
+  },
+  "brand.name": "Semptify",
+  "brand.tagline": "借主の権利ツール — プライバシー第一、アカウント不要、ログなし",
+  "action.get_help": "今すぐ助けを求める",
+  "action.continue": "続ける",
+  "action.back": "戻る",
+  "action.save": "保存",
+  "action.cancel": "キャンセル",
+  "action.close": "閉じる",
+  "nav.record": "記録",
+  "nav.know": "知る",
+  "nav.act": "行動",
+  "nav.govern": "管理",
+  "welcome.title": "Semptify — オンザフライ・コンポーザー",
+  "welcome.lead": "アカウント不要。ログなし。すべての画面遷移はブラウザ内で行われます。",
+  "welcome.cta": "はじめる",
+  "help.headline": "今、あなたに何が起きていますか?",
+  "footer.upl": "Semptify は法律事務所ではなく、法的助言を提供しません。",
+  "footer.privacy": "プライバシーポリシー",
+  "footer.terms": "利用規約",
+  "footer.report": "問題を報告",
+  "language.label": "言語",
+  "language.selector.aria": "ご希望の言語を選択してください"
 }
