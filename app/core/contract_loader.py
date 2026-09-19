@@ -181,6 +181,9 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.litigation_intelligence.register",
     # Resource Intake & Integrity Engine (build-time contract for Composer resources)
     "app.modules.resource_intake.register",
+    # Local AI: dormant dev-tier module (no MANIFEST entry, not wired in
+    # main.py) — contracts load only when all product tiers are enabled.
+    "app.modules.local_ai.register",
     # Services with contracts
     "app.services.unified_overlay_manager",
     "app.services.communication_service",
