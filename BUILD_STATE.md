@@ -15115,3 +15115,26 @@ Its commit-time diffs may look confusing; verify its final diff before its PR me
 **Next:** eyeball gated role dashboards on prod with a real session; intake-551381d2
 triage; duplicate `app/services/legal_filing_service.py` cleanup; BETA→VETTED content
 review.
+
+## 2026-09-19 — Remedy-claim sweep Phase 2-3 (devin)
+
+Per-state tenant_remedies verified against actual state law for all 11 complete
+states in `static/data/state-laws.json`. Fixed: MN (repair_deduct/withholding
+false -> rent_escrow true per §504B.385; Cold Weather Rule corrected to
+Oct 1-Apr 30 per §216B.097), CA (§1942 twice/12mo limit), NY (RPAPL Art. 7-A
+cite), FL (§83.201 cite), IL (765 ILCS 742/5 cite + lesser-of cap direction),
+PA/MI (withholding overstated -> defense/escrow framing), OH (§5321.07 escrow),
+NC/GA (hedged termination; added GA Safe at Home Act §44-7-13(b)). TX verified
+correct unchanged.
+
+**Root-cause bug fixed:** `state_laws/router.py` DATA_PATH was one directory
+level short since the module migration — `/api/states/*` returned "State laws
+data file not found" for every state. Now `../../../static/`.
+
+Runtime `data/laws/laws.json` habitability entry synced to corrected seed
+(gitignored deploy-local store — fix is on-disk only).
+
+Tests: `pytest tests/module_health -q` — 245 passed. Commits `e0fbc87d`,
+`da9f1235` on main awaiting PR (branch-protected). Onboarding line 1147 wrong
+claim remains live — Brad ruled leave it (NO-TOUCH). Report:
+`handoffs/remedy-claim-sweep-2026-09-19.md` in master-repo.
