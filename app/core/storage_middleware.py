@@ -433,6 +433,17 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
 
                 # ── Onboarding incomplete ─────────────────────────────────────
                 if not ob_state.is_fully_onboarded:
+                    # Role-home pass-through: the user's own home page hosts
+                    # the setup flow (install → verify → test upload). It must
+                    # stay reachable between START and FINALE or the user can
+                    # never finish setup. Cookie + token checks already ran
+                    # above, so the page is still auth-protected — it is just
+                    # not FINALE-gated. Compare on normalized paths so a
+                    # trailing slash doesn't reintroduce a redirect loop.
+                    _home = ob_state.home_path
+                    if path.rstrip("/") == _home.rstrip("/"):
+                        return await call_next(request)
+
                     _loop_raw = request.cookies.get(REDIRECT_LOOP_COOKIE, "0")
                     loop_count_str = str(_loop_raw) if _loop_raw is not None else "0"
                     try:
@@ -461,6 +472,14 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
 
                     loop_count += 1
 
+                    # Send user to the exact next required step — no START
+                    # gate → provider selection; anything else incomplete →
+                    # their role home, where the setup flow now lives.
+                    next_path = ob_state.next_required_path
+                    if next_path is None:
+                        onboarding_start_stage = navigation.get_stage("onboarding_start")
+                        next_path = onboarding_start_stage.path if onboarding_start_stage else "/onboarding/start"
+
                     if path.startswith("/api/"):
                         return JSONResponse(
                             status_code=401,
@@ -468,15 +487,9 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                                 "error": "onboarding_incomplete",
                                 "message": "Please complete onboarding to continue",
                                 "action": "redirect",
-                                "redirect_url": ob_state.next_required_path or "/onboarding/",
+                                "redirect_url": next_path,
                             },
                         )
-
-                    # Send user to the exact next required step (not just /onboarding/start)
-                    next_path = ob_state.next_required_path
-                    if next_path is None:
-                        onboarding_start_stage = navigation.get_stage("onboarding_start")
-                        next_path = onboarding_start_stage.path if onboarding_start_stage else "/onboarding/start"
 
                     response = ssot_redirect(next_path, context="storage_middleware incomplete onboarding")
                     response.set_cookie(

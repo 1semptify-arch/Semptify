@@ -39,5 +39,17 @@
         "why": "Answer support requests."
       }
     ]
+  },
+  "record_device_type": false,
+  "privacy": {
+    "visibility": "staff_only",
+    "logging": "audit",
+    "linking": "internal",
+    "notes": "Admin actions are audit-logged; no tenant content access through this vault."
+  },
+  "wording": {
+    "setup": {
+      "lede": "Your workspace documents live in your own storage — nothing is kept here. Add one real document so we can confirm everything works end to end."
+    }
   }
 }

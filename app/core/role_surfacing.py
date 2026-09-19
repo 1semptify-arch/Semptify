@@ -53,3 +53,27 @@ def get_role_surfacing(role_key: str | None) -> dict | None:
     key = _KEY_ALIASES.get(key, key)
     surfacing = _load_config(key).get("surfacing")
     return surfacing if isinstance(surfacing, dict) else None
+
+
+def get_role_display_name(role_key: str | None) -> str | None:
+    """Return the config's display_name for a role, or None. Never raises."""
+    if not role_key:
+        return None
+    key = str(role_key).strip().lower()
+    key = _KEY_ALIASES.get(key, key)
+    name = _load_config(key).get("display_name")
+    return name if isinstance(name, str) and name else None
+
+
+def get_role_wording(role_key: str | None) -> dict | None:
+    """Return the role's `wording` block (role-specific language), or None.
+
+    The setup component reads wording.setup for per-role copy overrides;
+    absent keys fall back to the shared defaults. Never raises.
+    """
+    if not role_key:
+        return None
+    key = str(role_key).strip().lower()
+    key = _KEY_ALIASES.get(key, key)
+    wording = _load_config(key).get("wording")
+    return wording if isinstance(wording, dict) else None

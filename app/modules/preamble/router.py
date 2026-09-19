@@ -8,10 +8,12 @@ Decision logic:
   1. No cookie          → new user  → onboarding (role selection)
   2. Invalid cookie     → stale     → clear cookie → onboarding
   3. Valid cookie
-       a. Storage connects + vault opens → returning user → role home
-          (a working vault IS the proof onboarding finished — the flags
-          in completed_groups are progress markers, not the primary check)
-       b. Storage/vault won't open → onboarding at the flag-indicated step,
+       a. Storage connects + vault opens → role home via route_user()
+          (the home page decides what to show: normal mode when FINALE
+          — document_uploaded — is marked, setup mode when it isn't.
+          The completed_groups flags are the durable boundary marks.)
+       b. Storage/vault won't open → flag-indicated step: provider
+          selection when START is missing, role home for anything else,
           or /storage/reconnect when every flag is already marked
 
 This is the ONLY place in the codebase that branches new vs returning.
@@ -70,11 +72,12 @@ async def preamble(request: Request):
         response.delete_cookie(COOKIE_USER_ID)
         return response
 
-    # ── Connect storage — the vault is the proof, not the flags ─────────────
+    # ── Connect storage — vault opens → role home, flags route failure ─────
     # The cookie identifies the user; OAuth tokens grant vault access. If
-    # storage connects and the vault opens, onboarding is complete by
-    # definition. completed_groups is consulted only to route the failure
-    # path — a progress marker, never the primary check.
+    # storage connects and the vault opens, the user goes to their role home —
+    # the home page itself decides setup mode vs normal mode from the FINALE
+    # flag. completed_groups is consulted only to route the failure path —
+    # a progress marker, never the primary check.
     session = None
     try:
         from app.core.database import get_session_factory
@@ -107,8 +110,8 @@ async def preamble(request: Request):
 
         if documents_present is not None:
             # Vault opens → home. Users whose vault opens but hasn't passed
-            # document verification are still caught downstream by
-            # StorageRequirementMiddleware → document verify step.
+            # the FINALE test-upload land on their home in setup mode — the
+            # home page resumes install/verify there, not back in onboarding.
             from app.core.workflow_engine import route_user
 
             destination = await route_user(raw_uid, documents_present=documents_present)
