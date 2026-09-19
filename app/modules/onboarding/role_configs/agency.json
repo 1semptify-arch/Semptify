@@ -30,5 +30,17 @@
         "why": "Program contacts and coordination."
       }
     ]
+  },
+  "record_device_type": false,
+  "privacy": {
+    "visibility": "program_referrals",
+    "logging": "standard",
+    "linking": "consent_required",
+    "notes": "Referral coordination is consent-gated per tenant."
+  },
+  "wording": {
+    "setup": {
+      "lede": "Your program files live in your own storage — nothing is kept here. Add one real document so we can confirm everything works end to end. When it finishes, this page becomes your workspace."
+    }
   }
 }

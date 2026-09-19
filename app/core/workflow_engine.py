@@ -77,15 +77,11 @@ PROCESS_ROUTES: dict[ProcessCode, str] = {
     ProcessCode.B4: _office_item.path if _office_item else "/office",
 }
 
-# Role-specific portal routes — resolved from navigation registry.
-# Each role lands on their /role/home rendered page after onboarding or reconnect.
+# Role-specific portal routes — resolved from the navigation registry's
+# ROLE_HOME map (the single role→home SSOT). Every configured role has a
+# dedicated home page; roles with aliases resolve to the same surface.
 ROLE_SPECIFIC_ROUTES: dict[UserRole, str] = {
-    UserRole.LEGAL: _nav_path("legal_home", "/legal/home"),
-    UserRole.ADMIN: _nav_path("admin_home", "/admin/home"),
-    UserRole.MANAGER: _nav_path("manager_portal", "/manager"),
-    UserRole.ADVOCATE: _nav_path("advocate_home", "/advocate/home"),
-    UserRole.MULTI_CLIENT_ADVOCATE: _nav_path("advocate_home", "/advocate/home"),
-    UserRole.JUDGE: _nav_path("legal_home", "/legal/home"),
+    role: navigation.get_role_home(role.value) for role in UserRole
 }
 
 

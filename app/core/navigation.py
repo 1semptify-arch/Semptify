@@ -160,6 +160,30 @@ class NavigationRegistry:
         "manager_portal": FlowStage(
             id="manager_portal", name="Manager Portal", path="/manager", next_stage=None, requires_checkpoint=False
         ),
+        # --- Role home pages (SSOT landing surfaces) ---
+        # Every configured role lands on its own home page after OAuth and on
+        # return. ROLE_HOME_STAGES below maps role keys to these stage IDs.
+        "advocate_home": FlowStage(
+            id="advocate_home", name="Advocate Home", path="/advocate/home", next_stage=None, requires_checkpoint=False
+        ),
+        "legal_home": FlowStage(
+            id="legal_home", name="Legal Home", path="/legal/home", next_stage=None, requires_checkpoint=False
+        ),
+        "admin_home": FlowStage(
+            id="admin_home", name="Admin Home", path="/admin/home", next_stage=None, requires_checkpoint=False
+        ),
+        "researcher_home": FlowStage(
+            id="researcher_home", name="Researcher Home", path="/researcher/home", next_stage=None, requires_checkpoint=False
+        ),
+        "agency_home": FlowStage(
+            id="agency_home", name="Agency Home", path="/agency/home", next_stage=None, requires_checkpoint=False
+        ),
+        "developer_home": FlowStage(
+            id="developer_home", name="Developer Home", path="/developer/home", next_stage=None, requires_checkpoint=False
+        ),
+        "donor_home": FlowStage(
+            id="donor_home", name="Donor Home", path="/donor/home", next_stage=None, requires_checkpoint=False
+        ),
         "law_library": FlowStage(
             id="law_library", name="Law Library", path="/law-library", next_stage=None, requires_checkpoint=False
         ),
@@ -443,6 +467,27 @@ class NavigationRegistry:
         ),
     }
 
+    # --- Role → Home Map (SSOT) ---
+    # Single canonical landing surface per role. Consumed by route_user(),
+    # onboarding_state, preamble, the OAuth callback, and storage middleware.
+    # Values are stage IDs resolved via get_stage() — paths live in the
+    # FlowStage definitions above, never duplicated here.
+    ROLE_HOME_STAGES: ClassVar[dict[str, str]] = {
+        "tenant": "tenant_home_page",
+        "user": "tenant_home_page",  # legacy alias for tenant
+        "advocate": "advocate_home",
+        "multi_client_advocate": "advocate_home",
+        "legal": "legal_home",
+        "judge": "legal_home",  # deprecated role merged into legal
+        "admin": "admin_home",
+        "manager": "manager_portal",
+        "researcher": "researcher_home",
+        "research": "researcher_home",  # legacy alias — config key was research.json
+        "agency": "agency_home",
+        "developer": "developer_home",
+        "donor_supporter": "donor_home",
+    }
+
     # --- Main Navigation (SSOT) ---
     # The 5 base navigation links present on EVERY page:
     # Home, Library, Office, Tools, Help
@@ -465,6 +510,18 @@ class NavigationRegistry:
     def get_reconnect_flow(cls) -> str:
         """Entry point for returning users — SSOT."""
         return "/storage/reconnect"
+
+    @classmethod
+    def get_role_home(cls, role: str | None) -> str:
+        """Canonical home path for a role key — the single role→home SSOT.
+
+        Accepts role keys from user_id codes, UserRole values, or config keys.
+        Unknown/empty roles fall back to the tenant home.
+        """
+        key = (role or "").strip().lower()
+        stage_id = cls.ROLE_HOME_STAGES.get(key, "tenant_home_page")
+        stage = cls.get_stage(stage_id)
+        return stage.path if stage else "/tenant/start"
 
     @classmethod
     def get_stage(cls, stage_id: str) -> FlowStage | None:

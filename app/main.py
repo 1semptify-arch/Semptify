@@ -2487,8 +2487,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/admin/home", response_class=HTMLResponse)
     @fastapi_app.get("/admin/home.html", response_class=HTMLResponse)
-    async def admin_home_page(request: Request):
-        """Admin home page - shown after onboarding, leads to admin sign in."""
+    async def admin_home_page(request: Request, db: AsyncSession = Depends(get_db)):
+        """Admin home page - shown after onboarding, leads to admin sign in.
+
+        Pre-FINALE admin-role users get the shared first-run setup instead;
+        the elevation gateway returns once document_uploaded is set."""
+        from app.core.user_id import get_role_from_user_id
+
+        user_id = extract_user_id(request)
+        if user_id and get_role_from_user_id(user_id) == "admin" and await _needs_vault_setup(db, user_id):
+            return _role_setup_page(request, "admin")
         return templates.TemplateResponse(request, "pages/admin_home.html")
 
     # Admin guard - checks elevation cookie (time-limited TOTP-verified elevation)
@@ -2808,7 +2816,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return templates.TemplateResponse(request, "pages/admin_under_construction.html")
 
     @fastapi_app.get("/manager", response_class=HTMLResponse)
-    async def manager_portal_page(request: Request):
+    async def manager_portal_page(request: Request, db: AsyncSession = Depends(get_db)):
         """Serve the manager portal for case workers and counselors."""
         from app.core.storage_middleware import is_valid_storage_user
         from app.core.user_context import get_role_from_user_id
@@ -2827,6 +2835,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             root_stage = navigation.get_stage("root")
             root_path = root_stage.path if root_stage else "/"
             return ssot_redirect(root_path, context="manager_portal role mismatch")
+
+        if await _needs_vault_setup(db, extract_user_id(request) or ""):
+            return _role_setup_page(request, "manager")
 
         # Telemetry
         try:
@@ -4115,6 +4126,66 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             # Guards not available, allow through
             return None
 
+    # =========================================================================
+    # Role-home setup mode (Onboarding → Role-Home Handoff, 2026-09-18)
+    # =========================================================================
+
+    async def _needs_vault_setup(db: AsyncSession, user_id: str | None) -> bool:
+        """True when a valid user hasn't completed FINALE (document_uploaded).
+
+        Gates live in onboarding (storage_connected START → document_uploaded
+        FINALE; vault_initialized is internal resume state only). Never raises —
+        a gate-read failure shows the normal home rather than blocking it.
+        """
+        if not user_id:
+            return False
+        try:
+            from app.modules.onboarding.gates import check_gate
+
+            return not await check_gate(db, user_id, "document_uploaded")
+        except Exception:  # pylint: disable=broad-exception-caught
+            return False
+
+    def _role_setup_page(request: Request, role_key: str):
+        """Render the shared first-run setup page for a role home (pre-FINALE)."""
+        from app.core.role_surfacing import get_role_display_name, get_role_wording
+
+        wording = get_role_wording(role_key) or {}
+        return templates.TemplateResponse(
+            request,
+            "pages/role_home_setup.html",
+            {
+                "role": role_key,
+                "role_label": get_role_display_name(role_key) or role_key.replace("_", " ").title(),
+                "setup_wording": wording.get("setup"),
+                "surfacing": get_role_surfacing(role_key),
+            },
+        )
+
+    async def _role_home_or_setup(
+        request: Request,
+        db: AsyncSession,
+        role_key: str,
+        allowed_roles: set[str],
+        normal_template: str,
+        extra_context: dict | None = None,
+    ):
+        """Shared role-home dispatch: guard → setup mode (pre-FINALE) or normal home."""
+        guard_redirect = await _guard_role_page(request, allowed_roles)
+        if guard_redirect:
+            return guard_redirect
+        user_id = extract_user_id(request) or ""
+        if await _needs_vault_setup(db, user_id):
+            return _role_setup_page(request, role_key)
+        context = {
+            "role": role_key,
+            "role_label": role_key.replace("_", " ").title(),
+            "surfacing": get_role_surfacing(role_key),
+        }
+        if extra_context:
+            context.update(extra_context)
+        return templates.TemplateResponse(request, normal_template, context)
+
     def _render_static_page(path: Path, inject_stage_model: bool = False) -> HTMLResponse | None:
         """Read a static HTML page and optionally inject stage-model assets/markup."""
         if not path.exists():
@@ -4239,7 +4310,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/tenant/start", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/start/", response_class=HTMLResponse)
-    async def tenant_home_next(request: Request):
+    async def tenant_home_next(request: Request, db: AsyncSession = Depends(get_db)):
         """Tenant flagship home — the canonical tenant landing page.
 
         Phase C cutover: /home and /tenant/home redirect here; the legacy
@@ -4249,6 +4320,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
 
         user_id = extract_user_id(request) or ""
+        if await _needs_vault_setup(db, user_id):
+            return _role_setup_page(request, "tenant")
         briefcase = None
         if user_id:
             try:
@@ -5594,11 +5667,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/advocate/home", response_class=HTMLResponse)
     @fastapi_app.get("/advocate/home/", response_class=HTMLResponse)
-    async def advocate_home(request: Request):
+    async def advocate_home(request: Request, db: AsyncSession = Depends(get_db)):
         """Serve the advocate home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = await _guard_role_page(request, {"advocate"})
+        guard_redirect = await _guard_role_page(request, {"advocate", "multi_client_advocate"})
         if guard_redirect:
             return guard_redirect
+
+        user_id = extract_user_id(request) or ""
+        if await _needs_vault_setup(db, user_id):
+            return _role_setup_page(request, "advocate")
 
         # Try advocate home template first, then fall back to main advocate template
         advocate_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_home.html"
@@ -5685,11 +5762,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/legal/home", response_class=HTMLResponse)
     @fastapi_app.get("/legal/home/", response_class=HTMLResponse)
-    async def legal_home(request: Request):
+    async def legal_home(request: Request, db: AsyncSession = Depends(get_db)):
         """Serve the legal home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = await _guard_role_page(request, {"legal"})
+        guard_redirect = await _guard_role_page(request, {"legal", "judge"})
         if guard_redirect:
             return guard_redirect
+
+        user_id = extract_user_id(request) or ""
+        if await _needs_vault_setup(db, user_id):
+            return _role_setup_page(request, "legal")
 
         # Try legal home template first, then fall back to main legal template
         legal_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "legal_home.html"
@@ -5701,6 +5782,45 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         # Fallback to main legal page
         return await legal_page(request)
+
+    # =========================================================================
+    # Role Homes — Researcher / Agency / Developer / Donor
+    # (Onboarding → Role-Home Handoff, 2026-09-18: every role gets a real home.
+    #  Pre-FINALE the home renders the shared setup page; post-FINALE the
+    #  shared normal-mode template fed by the role's surfacing block.)
+    # =========================================================================
+
+    @fastapi_app.get("/researcher/home", response_class=HTMLResponse)
+    @fastapi_app.get("/researcher/home/", response_class=HTMLResponse)
+    async def researcher_home(request: Request, db: AsyncSession = Depends(get_db)):
+        """Researcher home — aggregate/anonymized study workspace."""
+        return await _role_home_or_setup(
+            request, db, "researcher", {"researcher", "research"}, "pages/role_home_shared.html"
+        )
+
+    @fastapi_app.get("/agency/home", response_class=HTMLResponse)
+    @fastapi_app.get("/agency/home/", response_class=HTMLResponse)
+    async def agency_home(request: Request, db: AsyncSession = Depends(get_db)):
+        """Agency home — referrals, coordination, and program contacts."""
+        return await _role_home_or_setup(
+            request, db, "agency", {"agency"}, "pages/role_home_shared.html"
+        )
+
+    @fastapi_app.get("/developer/home", response_class=HTMLResponse)
+    @fastapi_app.get("/developer/home/", response_class=HTMLResponse)
+    async def developer_home(request: Request, db: AsyncSession = Depends(get_db)):
+        """Developer home — technical workspace and platform tools."""
+        return await _role_home_or_setup(
+            request, db, "developer", {"developer"}, "pages/role_home_shared.html"
+        )
+
+    @fastapi_app.get("/donor/home", response_class=HTMLResponse)
+    @fastapi_app.get("/donor/home/", response_class=HTMLResponse)
+    async def donor_home(request: Request, db: AsyncSession = Depends(get_db)):
+        """Donor/supporter home — follow the work their support makes possible."""
+        return await _role_home_or_setup(
+            request, db, "donor_supporter", {"donor_supporter"}, "pages/role_home_shared.html"
+        )
 
     # =========================================================================
     # Onboarding Support Pages

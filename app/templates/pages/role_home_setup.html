@@ -1,0 +1,22 @@
+{% extends "shell_base.html" %}
+{#
+  Role home — SETUP mode (Onboarding → Role-Home Handoff, 2026-09-18).
+
+  Rendered by every role-home route while the document_uploaded FINALE
+  gate is unset. The page IS the setup flow: progressive disclosure —
+  role tools surface only after the vault is proven end to end.
+
+  Context: role (canonical key), role_label, setup_wording (optional),
+  surfacing (optional).
+#}
+
+{% block title %}Semptify — Finish setting up{% endblock %}
+{% block body_class %}shell shell--solo{% endblock %}
+
+{% block content %}
+<div class="shell-solo-col">
+  {% include "components/vault_setup_flow.html" %}
+</div>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}

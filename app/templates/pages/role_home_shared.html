@@ -1,0 +1,70 @@
+{% extends "shell_base.html" %}
+{#
+  Shared role home — NORMAL mode (post-FINALE) for roles without their own
+  home template: researcher, agency, developer, donor_supporter.
+
+  Single guided column (shell--solo), same pattern as the tenant flagship:
+  hero → sections → tools → help, in that order. Content comes from the
+  role's surfacing block (role_configs/<role>.json via get_role_surfacing).
+
+  Context: role (canonical key), role_label, surfacing, user_name (opt).
+#}
+
+{% block title %}Semptify — {{ role_label | default('Home') }}{% endblock %}
+{% block body_class %}shell shell--solo{% endblock %}
+
+{% block content %}
+<div class="shell-solo-col">
+
+  <section class="shell-zone" aria-labelledby="rh-hero">
+    <p class="shell-eyebrow">Semptify · {{ role_label | default('Home') }}</p>
+    <h1 id="rh-hero">
+      {% if user_name %}Hello, {{ user_name }}.{% else %}Hello.{% endif %}
+      Here's your workspace.
+    </h1>
+    {% if surfacing and surfacing.intro %}
+    <p class="shell-lede">{{ surfacing.intro }}</p>
+    {% endif %}
+  </section>
+
+  {% if surfacing and surfacing.sections %}
+  <section class="shell-zone" aria-labelledby="rh-sections">
+    <h2 id="rh-sections" class="shell-zone-title">Where everything lives</h2>
+    <nav class="shell-rows" aria-label="Sections">
+      {% for s in surfacing.sections %}
+      <a href="{{ s.href }}">
+        <span class="shell-row-name">{{ s.title }}</span>
+        <div class="shell-row-desc">{{ s.why }}</div>
+      </a>
+      {% endfor %}
+    </nav>
+  </section>
+  {% endif %}
+
+  {% if surfacing and surfacing.tools %}
+  <section class="shell-zone" aria-labelledby="rh-tools">
+    <h2 id="rh-tools" class="shell-zone-title">Your tools</h2>
+    <nav class="shell-rows" aria-label="Tools">
+      {% for t in surfacing.tools %}
+      <a href="{{ t.href }}">
+        <span class="shell-row-name">{{ t.label }}</span>
+        <div class="shell-row-desc">{{ t.why }}</div>
+      </a>
+      {% endfor %}
+    </nav>
+  </section>
+  {% endif %}
+
+  <section class="shell-zone" aria-labelledby="rh-help">
+    <h2 id="rh-help" class="shell-zone-title">Can't find something?</h2>
+    <div class="shell-panel">
+      <p class="shell-note">If you need a person rather than a page, the help
+         directory has program contacts and hotlines.</p>
+      <p class="shell-note"><a href="/help">Help and contacts</a></p>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
