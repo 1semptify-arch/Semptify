@@ -1,0 +1,25 @@
+{
+  "module": "packet_builder",
+  "display_name": "Packet Builder",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Packet Builder: the numbers behind it",
+      "brief": "How a curated document packet helps in court/agency filings; source: legal-aid guidance on evidence organization.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Packet Builder: what it does and how to use it",
+      "brief": "What Packet Builder does — assemble selected vault documents into one organized packet for a filing or a meeting with an advocate. Example: gather all rent receipts + the repair photos into one PDF packet.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

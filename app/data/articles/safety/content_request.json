@@ -1,0 +1,25 @@
+{
+  "subject": "safety",
+  "display_name": "Safety",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Safety: the numbers behind it",
+      "brief": "Housing safety conditions and the inspection/complaint systems that address them; source: code-enforcement data.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Safety: what it does and how to use it",
+      "brief": "What to do about unsafe conditions — document, report to the right agency, track the complaint. Example: broken lock → inspector → follow-up.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "module": "correspondence",
+  "display_name": "Correspondence",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Correspondence: the numbers behind it",
+      "brief": "Why written landlord communication matters — notices must often be in writing to count; source: statute notice requirements.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Correspondence: what it does and how to use it",
+      "brief": "What Correspondence does — helps the tenant write and send landlord letters (repair requests, notices) with the right content. Example: a repair-request letter citing the duty-to-maintain statute.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "subject": "court_prep",
+  "display_name": "Court Prep",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Court Prep: the numbers behind it",
+      "brief": "What happens at a housing-court hearing and how self-represented tenants fare; source: court self-help materials.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Court Prep: what it does and how to use it",
+      "brief": "How to prepare for a hearing — the packet, the order of events, what to bring. Example: an answer filed, documents organized, hearing day checklist.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    }
+  ]
+}

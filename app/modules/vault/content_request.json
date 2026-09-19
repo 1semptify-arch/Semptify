@@ -1,0 +1,25 @@
+{
+  "module": "vault",
+  "display_name": "Vault",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Vault: the numbers behind it",
+      "brief": "Why tenant-owned cloud storage matters: how document loss affects renters in disputes; source: legal-aid guidance on record-keeping + eviction-defense outcomes.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Vault: what it does and how to use it",
+      "brief": "What the Vault is — the tenant's own cloud folder (Dropbox/Google Drive) where Semptify stores their documents, not on Semptify servers. Example: tenant uploads a photo of a leak + the landlord's text, both land in their own drive.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

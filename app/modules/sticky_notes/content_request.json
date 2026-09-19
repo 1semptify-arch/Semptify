@@ -1,0 +1,25 @@
+{
+  "module": "sticky_notes",
+  "display_name": "Sticky Notes",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Sticky Notes: the numbers behind it",
+      "brief": "Lightweight annotations for documents; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Sticky Notes: what it does and how to use it",
+      "brief": "What Sticky Notes are — quick notes attached to a document or page. Example: mark a lease clause to ask an advocate about.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

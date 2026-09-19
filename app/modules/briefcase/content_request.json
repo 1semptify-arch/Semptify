@@ -1,0 +1,25 @@
+{
+  "module": "briefcase",
+  "display_name": "Briefcase",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Briefcase: the numbers behind it",
+      "brief": "Why organizing documents into folders matters before a dispute; source: legal-aid self-help guidance.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Briefcase: what it does and how to use it",
+      "brief": "What the Briefcase is — the tenant's own folder structure inside the vault for organizing documents by issue. Example: all repair-request documents in one folder.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

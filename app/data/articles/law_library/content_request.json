@@ -1,0 +1,25 @@
+{
+  "subject": "law_library",
+  "display_name": "Law Library",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Law Library: the numbers behind it",
+      "brief": "What a jurisdiction-aware official-source library covers; source: library scope.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Law Library: what it does and how to use it",
+      "brief": "How to use the Law Library — pick a state, read the statute with its source link. Example: the MN escrow statute.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

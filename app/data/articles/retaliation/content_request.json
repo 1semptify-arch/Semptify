@@ -1,0 +1,25 @@
+{
+  "subject": "retaliation",
+  "display_name": "Retaliation",
+  "pillar": "govern",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Retaliation: the numbers behind it",
+      "brief": "What retaliation protections exist — the presumption windows after a tenant complains; source: state retaliation statutes.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Retaliation: what it does and how to use it",
+      "brief": "How retaliation protections work — reporting a code violation then a rent raise or eviction attempt shortly after. Example: MN's presumption period.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    }
+  ]
+}

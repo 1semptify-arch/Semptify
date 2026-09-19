@@ -1,0 +1,25 @@
+{
+  "module": "advocate",
+  "display_name": "Advocate",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Advocate: the numbers behind it",
+      "brief": "How advocates multiply a tenant's capacity — the role of non-lawyer advocates; source: tenant-advocacy programs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Advocate: what it does and how to use it",
+      "brief": "What the Advocate tools do — let a helper see the tenant's linked cases and documents. Example: a HOME Line counselor reviews the tenant's timeline.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "subject": "deposit",
+  "display_name": "Deposit",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Deposit: the numbers behind it",
+      "brief": "Security-deposit rules by state — caps, return deadlines, itemization; source: verified 50-state dataset.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Deposit: what it does and how to use it",
+      "brief": "How to get a deposit back — move-out condition photos, forwarding address, the return deadline. Example: MN's 21-day rule.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

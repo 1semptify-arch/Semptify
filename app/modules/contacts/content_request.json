@@ -1,0 +1,25 @@
+{
+  "module": "contacts",
+  "display_name": "Contacts",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Contacts: the numbers behind it",
+      "brief": "Why keeping advocate/agency contact info with case records matters; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Contacts: what it does and how to use it",
+      "brief": "What Contacts is — the tenant's saved contacts for landlords, advocates, agencies. Example: the housing inspector's number stored next to the complaint.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

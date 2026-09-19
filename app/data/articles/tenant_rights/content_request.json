@@ -1,0 +1,25 @@
+{
+  "subject": "tenant_rights",
+  "display_name": "Tenant Rights",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Tenant Rights: the numbers behind it",
+      "brief": "The baseline rights every US tenant has — habitability, notice, due process — and where they vary; source: state-law dataset.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Tenant Rights: what it does and how to use it",
+      "brief": "An overview of the rights a tenant holds and how to find their state's specifics. Example: entry-notice rules differ by state.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

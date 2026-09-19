@@ -1,0 +1,25 @@
+{
+  "module": "mndes",
+  "display_name": "MN DES Guide",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "MN DES Guide: the numbers behind it",
+      "brief": "What Minnesota's DEED/DES reporting requires; source: state guidance.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "MN DES Guide: what it does and how to use it",
+      "brief": "What the MNDES guide covers — step-by-step submission help for Minnesota's program. Example: the compliance checklist for a submission.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

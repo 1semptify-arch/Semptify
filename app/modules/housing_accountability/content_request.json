@@ -1,0 +1,25 @@
+{
+  "module": "housing_accountability",
+  "display_name": "Housing Accountability",
+  "pillar": "govern",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Housing Accountability: the numbers behind it",
+      "brief": "Pattern detection across a tenant's documents — repeated violations matter; source: module docs.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Housing Accountability: what it does and how to use it",
+      "brief": "What Housing Accountability does — scans the tenant's documents for repeated landlord violations. Example: three ignored repair requests flagged as a pattern.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

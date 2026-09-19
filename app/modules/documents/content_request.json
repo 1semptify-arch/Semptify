@@ -1,0 +1,25 @@
+{
+  "module": "documents",
+  "display_name": "Documents",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Documents: the numbers behind it",
+      "brief": "How document classification works; what metadata (dates, amounts, parties) gets extracted; source: OCR/document-processing documentation.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Documents: what it does and how to use it",
+      "brief": "What the Documents pipeline does — upload a file, it classifies it (notice, lease, letter), pulls out dates/amounts/parties. Example: a scanned eviction notice gets its deadline extracted automatically.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

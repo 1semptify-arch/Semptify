@@ -1,0 +1,25 @@
+{
+  "module": "public_forms",
+  "display_name": "Public Forms",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Public Forms: the numbers behind it",
+      "brief": "Public feedback and autofill forms; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Public Forms: what it does and how to use it",
+      "brief": "What Public Forms does — open forms anyone can use (feedback, autofill help). Example: a tenant autofills a repair letter from a public form.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

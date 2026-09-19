@@ -1,0 +1,25 @@
+{
+  "module": "resource_directory",
+  "display_name": "Resource Directory",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Resource Directory: the numbers behind it",
+      "brief": "The role of legal aid and tenant organizations — most tenants qualify for free help; source: LSC/justice-gap data.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Resource Directory: what it does and how to use it",
+      "brief": "What the Resource Directory is — the list of legal-aid offices, tenant groups, and agencies by jurisdiction. Example: a Minneapolis tenant finds LawHelpMN and HOME Line.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "module": "plan_maker",
+  "display_name": "Plan Maker",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Plan Maker: the numbers behind it",
+      "brief": "How a written plan helps tenants sequence legal steps in the right order; source: housing self-help guidance.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Plan Maker: what it does and how to use it",
+      "brief": "What Plan Maker does — turns a situation into an ordered list of steps with deadlines. Example: 'repair request → 14-day wait → escrow filing' becomes a plan.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}
