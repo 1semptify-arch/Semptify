@@ -82,6 +82,15 @@ COPY --chown=semptify:semptify . .
 RUN mkdir -p uploads uploads/vault logs security data data/inventory && \
     chown -R semptify:semptify uploads logs security data data
 
+# Bake the embedding model weights into the image. fastembed's ONNX build
+# of all-MiniLM-L6-v2 (~90MB) downloads at build time into a shared cache
+# the non-root user can read; LOCAL_FILES_ONLY stops any runtime egress —
+# if the weights are ever missing, load fails fast instead of fetching.
+ENV EMBEDDING_CACHE_DIR=/opt/fastembed-cache \
+    EMBEDDING_MODEL_LOCAL_FILES_ONLY=true
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding('sentence-transformers/all-MiniLM-L6-v2', cache_dir='/opt/fastembed-cache')" && \
+    chown -R semptify:semptify /opt/fastembed-cache
+
 # Switch to non-root user
 USER semptify
 
