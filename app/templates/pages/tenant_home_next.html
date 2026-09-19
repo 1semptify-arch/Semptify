@@ -42,6 +42,10 @@
     </div>
   </section>
 
+  {% if needs_provisioning %}
+    {% include "components/provisioning_status.html" %}
+  {% endif %}
+
   <section class="shell-zone" aria-labelledby="th-status">
     <h2 id="th-status" class="shell-zone-title">Right now</h2>
     <div class="shell-status">

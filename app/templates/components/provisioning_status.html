@@ -1,0 +1,17 @@
+{# Post-FINALE provisioning banner — narrated, informational, never blocks.
+   Tells the tenant what Semptify is doing while it does it; disappears
+   when nothing runnable remains and returns if a later step lands. #}
+<section class="shell-zone" id="prov-banner" aria-label="Workspace setup">
+  <div class="shell-panel">
+    <p class="shell-note" id="prov-status-text">
+      Semptify is preparing your workspace in the background.
+      You can keep using this page while it works.
+    </p>
+    <p class="shell-note" id="prov-retry-note" hidden>
+      That step didn't finish — nothing was lost. We'll pick it up next
+      time you're here, or you can
+      <button type="button" class="shell-btn" id="prov-retry-btn">try again now</button>.
+    </p>
+  </div>
+</section>
+<script src="/static/js/vault_provisioning.js" defer></script>

@@ -4158,6 +4158,22 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         except Exception:  # pylint: disable=broad-exception-caught
             return False
 
+    async def _needs_provisioning(db: AsyncSession, user_id: str | None) -> bool:
+        """True when FINALE passed and a runnable provisioning step remains.
+
+        Post-onboarding: folders/configs finish installing at the role home,
+        chunked and resumable. Pending (not-yet-built) steps don't count —
+        the banner settles when nothing runnable is left and returns on its
+        own when a queued step lands. Never raises — a read failure hides
+        the banner rather than blocking the home.
+        """
+        try:
+            from app.services.vault_provisioning import needs_run
+
+            return await needs_run(db, user_id)
+        except Exception:  # pylint: disable=broad-exception-caught
+            return False
+
     def _role_setup_page(request: Request, role_key: str):
         """Render the shared first-run setup page for a role home (pre-FINALE)."""
         from app.core.role_surfacing import get_role_display_name, get_role_wording
@@ -4193,6 +4209,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "role": role_key,
             "role_label": role_key.replace("_", " ").title(),
             "surfacing": get_role_surfacing(role_key),
+            "needs_provisioning": await _needs_provisioning(db, user_id),
         }
         if extra_context:
             context.update(extra_context)
@@ -4344,6 +4361,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         context = {
             "surfacing": get_role_surfacing("tenant"),
             "briefcase": briefcase,
+            "needs_provisioning": await _needs_provisioning(db, user_id),
             "vault_connected": bool(
                 briefcase and briefcase.vault and briefcase.vault.total_documents is not None
             ),

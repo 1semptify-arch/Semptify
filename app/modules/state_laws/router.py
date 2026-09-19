@@ -23,7 +23,7 @@ router = APIRouter(
 )
 
 # Load state laws data
-DATA_PATH = os.path.join(os.path.dirname(__file__), "../../static/data/state-laws.json")
+DATA_PATH = os.path.join(os.path.dirname(__file__), "../../../static/data/state-laws.json")
 _state_laws_cache = None
 
 
