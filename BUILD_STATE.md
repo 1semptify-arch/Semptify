@@ -1,29 +1,5 @@
 ## Session — 2026-09-18 — Three donor ports shipped (devin): Dakota wizard, PMAS FOIA, legal-intel
 
-### Guardrail Engine Run — 2026-09-19T02:57:09+00:00
-
-- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
-- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
-- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
-- **manifest_sync_check**: PASS — Sync orchestrator passed.
-- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
-- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
-- **stub_check**: PASS — No stubs found.
-
-All checks passed.
-
-### Guardrail Engine Run — 2026-09-19T02:49:52+00:00
-
-- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
-- **contract_route_check**: FAIL — 33 contract/route conformance failure(s).
-- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
-- **manifest_sync_check**: PASS — Sync orchestrator passed.
-- **module_contract_check**: PASS — 129 module_contract.json file(s) validated; registry index is up to date.
-- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
-- **stub_check**: PASS — No stubs found.
-
-One or more checks failed — see console output.
-
 ### What shipped
 
 **1. Guided eviction-defense packet wizard** (`port-dakota-packet-wizard` → review, commit `4e647409`)
