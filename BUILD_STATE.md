@@ -15138,3 +15138,21 @@ Tests: `pytest tests/module_health -q` — 245 passed. Commits `e0fbc87d`,
 `da9f1235` on main awaiting PR (branch-protected). Onboarding line 1147 wrong
 claim remains live — Brad ruled leave it (NO-TOUCH). Report:
 `handoffs/remedy-claim-sweep-2026-09-19.md` in master-repo.
+
+## Session — 2026-09-19 — Post-FINALE vault provisioning engine (devin)
+
+**Shipped (PR #292, pending merge):** Steps 1a+1b of `intake-vault-provisioning`.
+- `app/services/vault_provisioning.py` — chunked step registry
+  (folders → vault_db → configs), idempotent/resumable, one step per call
+  behind Cloudflare. Progress in `User.completed_groups` `prov_*` gates.
+- Folders step = full working set (~35 dirs: canonical tree + 8 data-anchor
+  dirs + role product folders, deduped). `role_configs/*.json` untouched.
+- `/api/vault/provision/status` + `/provision/run/{step}` on vault router
+  (yellow_access, FINALE-gated).
+- Non-blocking banner + staged JS on tenant home (ADR-0003); all role homes
+  via `_role_home_or_setup`. Onboarding: zero files touched.
+
+**Verified:** py_compile clean, Jinja valid, JS syntax OK, engine smoke test
+on in-memory SQLite (status transitions, pre-FINALE guard, pending steps,
+step ordering). Live provider folder-creation untested — needs a real
+onboarded session.
