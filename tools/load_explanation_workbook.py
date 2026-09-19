@@ -2,9 +2,9 @@
 """Load a context-explanation workbook CSV into context_explanation_entries.
 
 Usage:
-    python tools/load_explanation_workbook.py data/explanation_workbook_example.csv
-    python tools/load_explanation_workbook.py data/explanation_workbook.csv --dry-run
-    python tools/load_explanation_workbook.py data/explanation_workbook.csv --jurisdiction MN
+    python tools/load_explanation_workbook.py app/data/context_explanation_workbook.csv
+    python tools/load_explanation_workbook.py app/data/context_explanation_workbook.csv --dry-run
+    python tools/load_explanation_workbook.py app/data/context_explanation_workbook.csv --jurisdiction MN
 
 The CSV must have headers:
     subject,jurisdiction,upl_risk_tier,pillar,review_status,
