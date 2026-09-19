@@ -1,4 +1,35 @@
-## Session — 2026-09-18 — Onboarding → Role-Home Handoff implemented (devin)
+## Session — 2026-09-18 — Three donor ports shipped (devin): Dakota wizard, PMAS FOIA, legal-intel
+
+### What shipped
+
+**1. Guided eviction-defense packet wizard** (`port-dakota-packet-wizard` → review, commit `4e647409`)
+- `app/templates/pages/eviction_packet_wizard.html` + `static/js/eviction_packet_wizard.js` — one guided `shell--solo` page, 7 chronological zones: case basics → deadlines → Answer → counterclaim → motions → hearing prep → complete packet. Each step unlocks the next; every failure keeps retry live.
+- `app/main.py` — page route `/eviction-defense/wizard`; linked from `/tools` and `/eviction-defense`.
+- **Zero new backend surface** — wizard conducts existing APIs (`POST /api/eviction-defense/calculate-deadlines`, `GET /api/forms/defenses`, `/api/forms/counterclaims`, `POST /api/forms/generate`, `GET /api/eviction-defense/case-checklist/{stage}`, `POST /api/forms/library/packet` merged PDF). Dakota's standalone PDF/ZIP machinery deliberately not ported — flagship's auto-fill-from-vault pipeline is strictly better.
+- Contract `eviction_defense_packet_wizard` (T2) in `eviction_defense/register.py`.
+
+**2. Public-records request tracking** (`port-pmas-foia-case-status` → review, commit `e70dd1cb`)
+- `app/modules/accountability_ledger/models.py` — `PublicRecordsRequest` model (agency, subject, status lifecycle, due date, `effective_status` with overdue computation; naive/aware datetime normalization for SQLite).
+- Router endpoints: create/list/update/delete requests under the ledger API. RESEARCH tier (dev/all-tiers mode).
+
+**3. Legal-intel entity/attorney lookup** (`port-legal-intel-entity-lookup` → review, commit `4fdd7dd3`)
+- New module `app/modules/legal_intel/` — models (`IntelEntity`, `IntelAttorney`, `IntelCase`, `IntelDocket`, `IntelRelationship`; string ids, shared `Base`, `selectinload` relationships), pattern engine (default/settlement rates, time-to-first-motion, opposing-entity/attorney/court distributions, shell-LLC cluster detection via shared registered agents + addresses), router under `/api/legal-intel` (ingest CRUD + attorney by-bar + entity by-name + pattern summaries + `/intel/clusters/shell-llcs`).
+- Registered: `product_manifest` (RESEARCH tier, beta), `contract_loader`, `models.py` import; 2 FunctionGroupContracts (`legal_intel_entity_lookup`, `legal_intel_pattern_analysis`). `module_contract.json` + `manifest.py` + `register.py` per module conventions.
+- **Crawlers intentionally not ported** — data-source/scraping decision pending.
+
+### Verification
+- Dakota wizard: live-verified on :8001 — page 200, defenses/counterclaims/deadlines/checklist APIs return real data (MN statute citations), generate/packet correctly 401 anonymous, JS renders zones in order, checklist `task` field rendered. `generate`/`packet` need a live provider token — real PDF generation untestable without OAuth (same wall as `task-d6bc14a1`).
+- PMAS FOIA: live-verified — create → `effective_status`; past-deadline `submitted` → `overdue`/`is_overdue`; update → `acknowledged`; invalid status → structured error. Test rows deleted. Fixed naive/aware datetime comparison for SQLite.
+- Legal-intel: live-verified — full ingest → pattern → cluster pipeline (synthetic case: default_rate 1.0, 9-day time-to-first-motion, CT Corp shared-agent cluster of 2 LLCs detected). Test rows deleted.
+- Contracts: 1182 loaded, 0 failed, validate pass. Module health: 245/245. All changed files `py_compile` clean.
+
+### Flags for Brad
+- All three tasks sit at `review` in the master queue — closeout is yours/orchestrator's.
+- `generate`/`packet` real-PDF path still needs a live OAuth session to verify end-to-end.
+- Legal-intel crawlers (MCRO/SOS/CourtListener/PlainSite) were scoped out — porting them is a data-source + ToS decision, not a mechanical port.
+- Legal-intel is informational pattern data only — it does not make legal determinations.
+
+
 
 ### What shipped (plan: `handoffs/onboarding-role-home-impl-plan-2026-09-18.md`)
 
