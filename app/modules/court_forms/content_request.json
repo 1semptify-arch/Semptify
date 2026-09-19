@@ -1,0 +1,25 @@
+{
+  "module": "court_forms",
+  "display_name": "Court Forms",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Court Forms: the numbers behind it",
+      "brief": "How many tenants face filings without a lawyer; the role of correct forms; source: court self-representation statistics (e.g., NCSC/state court data).",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Court Forms: what it does and how to use it",
+      "brief": "What Court Forms does — fills official court forms from the tenant's saved information into a document in their vault. Example: an answer form pre-filled with the tenant's details.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "module": "dispute_tracker",
+  "display_name": "Dispute Tracker",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Dispute Tracker: the numbers behind it",
+      "brief": "How tracking an open dispute prevents missed steps; source: module docs.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Dispute Tracker: what it does and how to use it",
+      "brief": "What Dispute Tracker does — follows an active dispute (repair, deposit, notice) through its stages. Example: shows a deposit dispute at 'demand letter sent, 21 days remain.'",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "module": "law_library",
+  "display_name": "Law Library",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Law Library: the numbers behind it",
+      "brief": "What jurisdiction-aware legal information covers vs. what it can't do (UPL boundary); source: library scope docs.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Law Library: what it does and how to use it",
+      "brief": "What the Law Library is — official-source-only statutes and rules, filtered to the tenant's state. Example: looking up the exact repair remedy for Minnesota.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

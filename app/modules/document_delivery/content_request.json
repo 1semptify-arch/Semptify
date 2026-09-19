@@ -1,0 +1,25 @@
+{
+  "module": "document_delivery",
+  "display_name": "Document Delivery",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Document Delivery: the numbers behind it",
+      "brief": "How tenants receive documents (notices from court, landlord letters) into Semptify; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Document Delivery: what it does and how to use it",
+      "brief": "What Document Delivery does — an inbox for documents sent to the tenant. Example: a court notice arrives and shows up in the tenant's delivery inbox.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

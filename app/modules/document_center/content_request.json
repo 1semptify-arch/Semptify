@@ -1,0 +1,25 @@
+{
+  "module": "document_center",
+  "display_name": "Document Center",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Document Center: the numbers behind it",
+      "brief": "How in-browser document viewing + field overlays work for tenants; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Document Center: what it does and how to use it",
+      "brief": "What the Document Center is — view a vault document with extracted fields highlighted on the page. Example: open a lease, see the rent amount and dates marked.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "module": "intake",
+  "display_name": "Intake",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Intake: the numbers behind it",
+      "brief": "First-file upload — the starting point of a tenant's record; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Intake: what it does and how to use it",
+      "brief": "What Intake does — the first step where a document gets uploaded and queued for processing. Example: drop the notice photo here to start.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

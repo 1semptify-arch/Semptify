@@ -1,0 +1,25 @@
+{
+  "module": "guided_intake",
+  "display_name": "Guided Intake",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Guided Intake: the numbers behind it",
+      "brief": "Why structured intake beats a blank page — it captures the details agencies ask for; source: intake-design practice.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Guided Intake: what it does and how to use it",
+      "brief": "What Guided Intake does — walks the tenant through the facts step by step instead of handing them a form. Example: it asks 'when did you first tell the landlord?' and files the answer.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

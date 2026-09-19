@@ -1,0 +1,25 @@
+{
+  "subject": "rent",
+  "display_name": "Rent",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Rent: the numbers behind it",
+      "brief": "Rent-payment records, late fees, and the escrow-vs-withholding difference; source: state statutes.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Rent: what it does and how to use it",
+      "brief": "How to keep clean payment records and what to do when rent becomes disputed. Example: escrow deposit with the court.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

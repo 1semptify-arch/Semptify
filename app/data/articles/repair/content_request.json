@@ -1,0 +1,25 @@
+{
+  "subject": "repair",
+  "display_name": "Repair",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Repair: the numbers behind it",
+      "brief": "How habitability repair duties work and how remedies differ by state (escrow/deduct/court only); source: state-law dataset.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Repair: what it does and how to use it",
+      "brief": "How to request a repair properly — written notice, cure period, then the state-specific remedy. Example: a Minnesota tenant files rent escrow after the 14-day cure.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

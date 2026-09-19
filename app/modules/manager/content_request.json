@@ -1,0 +1,25 @@
+{
+  "module": "manager",
+  "display_name": "Manager",
+  "pillar": "govern",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Manager: the numbers behind it",
+      "brief": "How caseworker/manager oversight works for multi-tenant programs; source: module docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Manager: what it does and how to use it",
+      "brief": "What Manager does — assigns advocates and reviews case summaries for a program. Example: a legal-aid supervisor assigns an advocate to a filing.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "module": "zoom_court_prep",
+  "display_name": "Remote Court Prep",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Remote Court Prep: the numbers behind it",
+      "brief": "The growth of remote hearings since 2020 and what tenants need for them; source: court remote-hearing guidance.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Remote Court Prep: what it does and how to use it",
+      "brief": "What Zoom Court Prep does — checklists and steps for appearing by video. Example: test the link, have the packet open, know where to sit.",
+      "upl_risk_tier": "high",
+      "status": "requested"
+    }
+  ]
+}

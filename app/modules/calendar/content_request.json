@@ -1,0 +1,25 @@
+{
+  "module": "calendar",
+  "display_name": "Calendar",
+  "pillar": "record",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Calendar: the numbers behind it",
+      "brief": "Why deadline tracking prevents the most common tenant losses — missed cure and response windows; source: court self-help materials.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Calendar: what it does and how to use it",
+      "brief": "What the Calendar is — the tenant's own deadline and event tracker (court dates, response windows, inspection appointments). Example: the answer deadline appears on the calendar the day the notice is scanned.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

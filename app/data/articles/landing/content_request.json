@@ -1,0 +1,25 @@
+{
+  "subject": "landing",
+  "display_name": "Landing",
+  "pillar": "know",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Landing: the numbers behind it",
+      "brief": "What Semptify is and isn't — a public utility for tenants, not a law firm; source: project docs.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Landing: what it does and how to use it",
+      "brief": "How to start — set up the vault, upload a first document, see the organized record. Example: first visit walkthrough.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

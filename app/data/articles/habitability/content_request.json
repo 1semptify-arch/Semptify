@@ -1,0 +1,25 @@
+{
+  "subject": "habitability",
+  "display_name": "Habitability",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Habitability: the numbers behind it",
+      "brief": "What 'fit and habitable' legally means — heat, water, plumbing, codes; source: state habitability statutes.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Habitability: what it does and how to use it",
+      "brief": "How a habitability claim works — document the condition, written notice, the remedy the state provides. Example: no heat in January in MN.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}

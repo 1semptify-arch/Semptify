@@ -1,0 +1,25 @@
+{
+  "module": "case_builder",
+  "display_name": "Case Builder",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Case Builder: the numbers behind it",
+      "brief": "How organized case data changes outcomes — documentation is the core of most housing disputes; source: legal-aid guidance.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Case Builder: what it does and how to use it",
+      "brief": "What Case Builder does — groups the tenant's documents, events, and notes into a case around one issue. Example: everything about the broken heater becomes one case.",
+      "upl_risk_tier": "low",
+      "status": "requested"
+    }
+  ]
+}

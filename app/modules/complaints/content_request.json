@@ -1,0 +1,25 @@
+{
+  "module": "complaints",
+  "display_name": "Complaints",
+  "pillar": "act",
+  "requested_at": "2026-09-19",
+  "status": "requested",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Complaints: the numbers behind it",
+      "brief": "Which agencies handle which housing complaints — code enforcement vs. AG vs. HUD; source: agency jurisdictions.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Complaints: what it does and how to use it",
+      "brief": "What Complaints does — points the tenant to the right agency and tracks the complaint. Example: a no-heat complaint routed to the city inspector.",
+      "upl_risk_tier": "medium",
+      "status": "requested"
+    }
+  ]
+}
