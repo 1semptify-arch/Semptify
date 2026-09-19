@@ -12,10 +12,94 @@ import logging
 
 from fastapi import FastAPI
 
+from app.core.module_contracts import FunctionGroupContract, register_function_group
 from app.modules.local_ai.config import LocalAIConfig
 from app.modules.local_ai.router import create_router
 
 logger = logging.getLogger(__name__)
+
+# FunctionGroupContracts for the local AI module.
+#
+# This module is generic dev-tier tooling: each Semptify product supplies its
+# own LocalAIConfig (including route_prefix, default "/local-ai"). It is not
+# wired into app.main and has no MANIFEST entry, so these contracts load only
+# when all product tiers are enabled (development).
+
+register_function_group(
+    FunctionGroupContract(
+        module="local_ai",
+        group_name="local_ai_health",
+        title="Local AI Health (SSOT)",
+        description=(
+            "CANONICAL health check for the configured local AI backend "
+            "(Ollama, LM Studio, etc.). Reports reachability and model status."
+        ),
+        inputs=(),
+        outputs=("status",),
+        dependencies=("app.modules.local_ai.router",),
+        deterministic=True,
+        tier="T0",
+        allowed_routes=("/local-ai/health",),
+        allowed_prefixes=("/local-ai",),
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="local_ai",
+        group_name="local_ai_chat",
+        title="Local AI Chat (SSOT)",
+        description=(
+            "CANONICAL chat completion against the configured local model. "
+            "Request content is caller-supplied and may carry tenant PII."
+        ),
+        inputs=("messages", "options?"),
+        outputs=("response",),
+        dependencies=("app.modules.local_ai.router",),
+        deterministic=False,
+        tier="T2",
+        allowed_routes=("/local-ai/chat",),
+        allowed_prefixes=("/local-ai",),
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="local_ai",
+        group_name="local_ai_analyze",
+        title="Local AI Analyze (SSOT)",
+        description=(
+            "CANONICAL text analysis endpoint. Runs the configured local model "
+            "over caller-supplied text, which may contain tenant PII."
+        ),
+        inputs=("text", "analysis_type?"),
+        outputs=("analysis",),
+        dependencies=("app.modules.local_ai.router",),
+        deterministic=False,
+        tier="T2",
+        allowed_routes=("/local-ai/analyze",),
+        allowed_prefixes=("/local-ai",),
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="local_ai",
+        group_name="local_ai_summarize",
+        title="Local AI Summarize (SSOT)",
+        description=(
+            "CANONICAL summarization endpoint. Condenses caller-supplied text "
+            "via the configured local model; input may contain tenant PII."
+        ),
+        inputs=("text", "max_length?"),
+        outputs=("summary",),
+        dependencies=("app.modules.local_ai.router",),
+        deterministic=False,
+        tier="T2",
+        allowed_routes=("/local-ai/summarize",),
+        allowed_prefixes=("/local-ai",),
+    )
+)
 
 
 def register_local_ai(app: FastAPI, config: LocalAIConfig) -> None:
