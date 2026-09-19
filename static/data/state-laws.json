@@ -67,16 +67,17 @@
           "Provide garbage removal",
           "Provide running water/hot water",
           "Keep unit weatherproof",
-          "Exterminate pests in multi-unit buildings"
+          "Exterminate pests on the premises (Minn. Stat. §504B.161)"
         ],
         "tenant_remedies": {
-          "repair_deduct": true,
-          "rent_withholding": true,
+          "repair_deduct": false,
+          "rent_withholding": false,
           "termination": true,
-          "notes": "Tenant must give 14 days notice for repairs. Amount deducted cannot exceed $500 or one month's rent."
+          "notes": "Minnesota's remedy is a rent escrow action: after written notice and a 14-day cure period, the tenant deposits rent with the court administrator, which holds it while the repair dispute is decided (Minn. Stat. §504B.385). Simply withholding rent is barred while a case is pending (§504B.385 subd. 1(d)).",
+          "rent_escrow": true
         },
         "emergency_repairs": "24-72 hours depending on severity",
-        "cold_weather_rule": "Nov 1 - Apr 15: Utility shutoffs prohibited for non-payment if tenant establishes payment plan with utility"
+        "cold_weather_rule": "Oct 1 - Apr 30: utilities may not disconnect a primary heat source if the customer makes and keeps a payment plan (Minn. Stat. §216B.097)"
       },
       "landlord_entry": {
         "notice_required": true,
@@ -255,7 +256,7 @@
           "rent_withholding": true,
           "repair_deduct": true,
           "termination": true,
-          "notes": "Tenant must give landlord reasonable notice (typically 30 days) before deducting. Repair-and-deduct limited to 1 month's rent."
+          "notes": "Repair-and-deduct is allowed for habitability defects (Civ. Code §1942): after notice and a reasonable time (30 days is presumed reasonable), the tenant may repair and deduct up to one month's rent, no more than twice in any 12-month period. Rent withholding is available only for serious habitability failures and carries risk."
         }
       },
       "landlord_entry": {
@@ -427,7 +428,7 @@
           "rent_withholding": true,
           "repair_deduct": false,
           "termination": true,
-          "hp_action": "Tenant can file HP Action in Housing Court for repairs (CPLR Article 7-A)"
+          "hp_action": "Tenant can file an HP Action in Housing Court for repairs (RPAPL Article 7-A)"
         }
       },
       "landlord_entry": {
@@ -767,7 +768,7 @@
           "rent_withholding": true,
           "repair_deduct": false,
           "termination": true,
-          "notes": "Tenant must give landlord 7 days' written notice. If landlord fails to repair, tenant can: withhold rent (FL Stat §83.60), terminate lease, or sue for damages. Tenant must allow landlord access for repairs."
+          "notes": "Tenant must give landlord 7 days' written notice. If landlord fails to repair, tenant can: withhold rent (FL Stat §83.201), terminate lease, or sue for damages. In an eviction, rent must be deposited into the court registry (FL Stat §83.60). Tenant must allow landlord access for repairs."
         }
       },
       "landlord_entry": {
@@ -924,13 +925,13 @@
           "Keep unit weatherproof",
           "Exterminate pests in multi-unit buildings"
         ],
-        "emergency_repairs": "14 days to remedy after written notice (765 ILCS 755/2 — Residential Tenant's Right to Repair Act)",
+        "emergency_repairs": "14 days to remedy after written notice (765 ILCS 742/5 — Residential Tenants' Right to Repair Act)",
         "warranty_of_habitability": "Implied warranty under Illinois common law (case law: Glasoe v. Trinkle, 2008); Chicago RLTO §5-12-070",
         "tenant_remedies": {
           "rent_withholding": true,
           "repair_deduct": true,
           "termination": true,
-          "notes": "Tenant must give landlord 14 days' written notice. If landlord fails to repair, tenant can: repair-and-deduct (up to $500 or half month's rent, whichever is greater), terminate lease, or sue for damages. Chicago RLTO provides additional remedies."
+          "notes": "Tenant must give landlord 14 days' written notice. If landlord fails to repair, tenant can: repair-and-deduct (up to the lesser of $500 or half a month's rent, 765 ILCS 742/5), terminate lease, or sue for damages. Chicago RLTO provides additional remedies, including limited rent withholding."
         }
       },
       "landlord_entry": {
@@ -1103,9 +1104,9 @@
         ],
         "tenant_remedies": {
           "repair_deduct": false,
-          "rent_withholding": true,
+          "rent_withholding": false,
           "termination": true,
-          "notes": "Tenant can withhold rent if landlord fails to make essential repairs after written notice. Repair-and-deduct is not explicitly authorized by statute but is sometimes permitted by courts."
+          "notes": "Pennsylvania has no statewide rent-withholding or repair-and-deduct statute. Habitability is a defense (implied warranty of habitability, Pugh v. Holmes), and some cities (e.g., Philadelphia) run rent-escrow programs for code violations. Get advice before withholding rent."
         },
         "emergency_repairs": "Varies by severity; typically 24-72 hours for heating/hot water",
         "cold_weather_rule": "No statewide cold weather rule, but utilities must follow PA Public Utility Commission winter shutoff protections for low-income households"
@@ -1302,9 +1303,9 @@
         ],
         "tenant_remedies": {
           "repair_deduct": false,
-          "rent_withholding": true,
+          "rent_withholding": false,
           "termination": true,
-          "notes": "Tenant can withhold rent if landlord fails to make essential repairs after reasonable notice. Repair-and-deduct not explicitly authorized by statute but sometimes permitted by courts."
+          "notes": "Michigan suspends rent into an escrow account when a rental's certificate of compliance is withheld or suspended for code violations (MCL 125.530), and a court may authorize a tenant to correct a violation and deduct the cost (MCL 125.534). The statewide covenant of habitability (MCL 554.139) supports rent-abatement defenses. There is no unilateral self-help withholding."
         },
         "emergency_repairs": "Varies by severity; typically 24-72 hours for heating/hot water",
         "cold_weather_rule": "No statewide cold weather rule, but Michigan utilities must follow MPSC winter shutoff protections for low-income households (Nov 1 - Mar 31)"
@@ -1452,7 +1453,11 @@
         "return_deadline": "30 days after lease ends and tenant provides forwarding address",
         "itemized_required": true,
         "interest_required": false,
-        "withholding_allowed": ["Unpaid rent", "Damage beyond normal wear", "Other lease violations"],
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Damage beyond normal wear",
+          "Other lease violations"
+        ],
         "notes": "Landlord must send itemized list within 30 days. Tenant has 7 days to dispute."
       },
       "rent_control": {
@@ -1461,49 +1466,136 @@
         "notes": "State law preempts local rent control."
       },
       "repairs": {
-        "landlord_duties": ["Maintain electrical/plumbing/heating", "Provide garbage removal", "Provide running water/hot water", "Keep unit weatherproof", "Comply with housing codes", "Exterminate pests in multi-unit buildings"],
-        "tenant_remedies": {"repair_deduct": false, "rent_withholding": true, "termination": true, "notes": "Tenant can withhold rent after written notice for essential repairs."},
+        "landlord_duties": [
+          "Maintain electrical/plumbing/heating",
+          "Provide garbage removal",
+          "Provide running water/hot water",
+          "Keep unit weatherproof",
+          "Comply with housing codes",
+          "Exterminate pests in multi-unit buildings"
+        ],
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "Ohio's remedy is rent escrow: after written notice and a reasonable time (up to 30 days), a tenant current on rent deposits rent with the clerk of the municipal or county court, which holds it while the dispute is decided (Ohio Rev. Code §5321.07).",
+          "rent_escrow": true
+        },
         "emergency_repairs": "24-72 hours for heating/hot water",
         "cold_weather_rule": "No statewide rule; PUCO winter shutoff protections for low-income (Nov 1 - Apr 15)"
       },
       "landlord_entry": {
         "notice_required": true,
         "notice_period": "24 hours (reasonable notice)",
-        "allowed_reasons": ["Emergency", "Inspection (limited)", "Repairs/maintenance", "Showing to prospective tenants/buyers"],
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection (limited)",
+          "Repairs/maintenance",
+          "Showing to prospective tenants/buyers"
+        ],
         "tenant_rights": "Tenant can refuse entry without proper notice."
       },
       "eviction": {
         "court": "Municipal Court or County Court; Court of Appeals for appeals",
         "timeline": "Typically 3-4 weeks from filing to judgment; 5-10 days for writ",
-        "tenant_defenses": ["Retaliation", "Discrimination", "Landlord failed to maintain unit", "Improper notice", "Rent paid but not credited"],
+        "tenant_defenses": [
+          "Retaliation",
+          "Discrimination",
+          "Landlord failed to maintain unit",
+          "Improper notice",
+          "Rent paid but not credited"
+        ],
         "expungement": "Eviction records generally not expunged in OH",
         "self_help_illegal": true,
         "lockout_prohibited": true,
         "utility_shutoff_prohibited": true
       },
       "discrimination": {
-        "protected_classes": ["Race", "Color", "Religion", "National origin", "Sex", "Familial status", "Disability", "Age", "Ancestry", "Military status"],
+        "protected_classes": [
+          "Race",
+          "Color",
+          "Religion",
+          "National origin",
+          "Sex",
+          "Familial status",
+          "Disability",
+          "Age",
+          "Ancestry",
+          "Military status"
+        ],
         "familial_status": "Cannot refuse to rent to families with children",
         "disability_accommodations": "Reasonable accommodations/modifications required",
         "complaint_agency": "Ohio Civil Rights Commission",
         "complaint_url": "https://crc.ohio.gov/"
       },
       "legal_aid": [
-        {"name": "Ohio State Legal Services Association (OSLSA)", "phone": "800-589-5888", "url": "https://www.oslsa.org", "services": "Statewide legal aid referral and housing assistance", "counties": "Statewide"},
-        {"name": "The Legal Aid Society of Cleveland", "phone": "216-861-5500", "url": "https://lasclev.org", "counties": "Cuyahoga, Ashtabula, Geauga, Lake, Lorain, Portage"},
-        {"name": "Legal Aid Society of Greater Cincinnati", "phone": "513-241-9400", "toll_free": "800-582-2617", "url": "https://www.lascinti.org", "counties": "Hamilton, Clermont, Brown, Butler, Clinton"},
-        {"name": "Ohio Poverty Law Center", "phone": "614-221-7201", "url": "https://www.ohiopovertylaw.org", "services": "Statewide support for local legal aid programs", "counties": "Statewide"},
-        {"name": "Community Legal Aid Services (Columbus)", "phone": "614-224-8370", "toll_free": "888-831-1721", "url": "https://www.columbuslegalaid.org", "counties": "Central OH"}
+        {
+          "name": "Ohio State Legal Services Association (OSLSA)",
+          "phone": "800-589-5888",
+          "url": "https://www.oslsa.org",
+          "services": "Statewide legal aid referral and housing assistance",
+          "counties": "Statewide"
+        },
+        {
+          "name": "The Legal Aid Society of Cleveland",
+          "phone": "216-861-5500",
+          "url": "https://lasclev.org",
+          "counties": "Cuyahoga, Ashtabula, Geauga, Lake, Lorain, Portage"
+        },
+        {
+          "name": "Legal Aid Society of Greater Cincinnati",
+          "phone": "513-241-9400",
+          "toll_free": "800-582-2617",
+          "url": "https://www.lascinti.org",
+          "counties": "Hamilton, Clermont, Brown, Butler, Clinton"
+        },
+        {
+          "name": "Ohio Poverty Law Center",
+          "phone": "614-221-7201",
+          "url": "https://www.ohiopovertylaw.org",
+          "services": "Statewide support for local legal aid programs",
+          "counties": "Statewide"
+        },
+        {
+          "name": "Community Legal Aid Services (Columbus)",
+          "phone": "614-224-8370",
+          "toll_free": "888-831-1721",
+          "url": "https://www.columbuslegalaid.org",
+          "counties": "Central OH"
+        }
       ],
       "government_resources": [
-        {"name": "Ohio Attorney General - Landlord/Tenant", "url": "https://www.ohioattorneygeneral.gov/individuals/landlord-tenant", "phone": "800-282-0515"},
-        {"name": "Ohio Housing Finance Agency", "url": "https://www.ohiohome.org", "services": "Affordable housing programs, rental assistance"},
-        {"name": "Ohio Civil Rights Commission", "url": "https://crc.ohio.gov/", "phone": "888-278-7101", "services": "Discrimination complaints"}
+        {
+          "name": "Ohio Attorney General - Landlord/Tenant",
+          "url": "https://www.ohioattorneygeneral.gov/individuals/landlord-tenant",
+          "phone": "800-282-0515"
+        },
+        {
+          "name": "Ohio Housing Finance Agency",
+          "url": "https://www.ohiohome.org",
+          "services": "Affordable housing programs, rental assistance"
+        },
+        {
+          "name": "Ohio Civil Rights Commission",
+          "url": "https://crc.ohio.gov/",
+          "phone": "888-278-7101",
+          "services": "Discrimination complaints"
+        }
       ],
       "forms_templates": [
-        {"name": "Repair Request Letter (OH)", "url": "/library/forms/repair-request-oh.html", "description": "OH-specific repair request with statutory citations"},
-        {"name": "Security Deposit Demand Letter", "url": "/library/forms/deposit-demand-oh.html"},
-        {"name": "Notice to Vacate (OH)", "url": "/library/forms/notice-to-vacate-oh.html"}
+        {
+          "name": "Repair Request Letter (OH)",
+          "url": "/library/forms/repair-request-oh.html",
+          "description": "OH-specific repair request with statutory citations"
+        },
+        {
+          "name": "Security Deposit Demand Letter",
+          "url": "/library/forms/deposit-demand-oh.html"
+        },
+        {
+          "name": "Notice to Vacate (OH)",
+          "url": "/library/forms/notice-to-vacate-oh.html"
+        }
       ],
       "special_programs": {
         "rental_assistance": "Ohio Development Services Agency emergency rental assistance (when funded)",
@@ -1535,7 +1627,11 @@
         "return_deadline": "30 days after lease ends and tenant provides forwarding address",
         "itemized_required": true,
         "interest_required": false,
-        "withholding_allowed": ["Unpaid rent", "Damage beyond normal wear", "Other lease violations"],
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Damage beyond normal wear",
+          "Other lease violations"
+        ],
         "notes": "Landlord must send itemized list within 30 days. Tenant has 7 days to dispute. NC has strict procedural requirements."
       },
       "rent_control": {
@@ -1544,49 +1640,134 @@
         "notes": "State law preempts local rent control. Tenant can challenge unconscionable rent increases in court."
       },
       "repairs": {
-        "landlord_duties": ["Maintain electrical/plumbing/heating", "Provide garbage removal where required", "Provide running water/hot water", "Keep unit weatherproof", "Comply with housing codes", "Exterminate pests in multi-unit buildings"],
-        "tenant_remedies": {"repair_deduct": false, "rent_withholding": false, "termination": true, "notes": "NC does not explicitly authorize rent withholding or repair-and-deduct. Tenant can terminate lease if landlord fails to repair after written notice."},
+        "landlord_duties": [
+          "Maintain electrical/plumbing/heating",
+          "Provide garbage removal where required",
+          "Provide running water/hot water",
+          "Keep unit weatherproof",
+          "Comply with housing codes",
+          "Exterminate pests in multi-unit buildings"
+        ],
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "NC does not authorize rent withholding or repair-and-deduct. Tenants may sue for damages or rent abatement; serious habitability failures may support lease termination as constructive eviction — get legal advice first."
+        },
         "emergency_repairs": "Varies by severity; typically 24-72 hours for heating/hot water",
         "cold_weather_rule": "No statewide cold weather rule; NC Utilities Commission winter shutoff protections for low-income households"
       },
       "landlord_entry": {
         "notice_required": true,
         "notice_period": "24 hours (reasonable notice)",
-        "allowed_reasons": ["Emergency", "Inspection (limited)", "Repairs/maintenance", "Showing to prospective tenants/buyers"],
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection (limited)",
+          "Repairs/maintenance",
+          "Showing to prospective tenants/buyers"
+        ],
         "tenant_rights": "Tenant can refuse entry without proper notice. Repeated unauthorized entry may constitute harassment."
       },
       "eviction": {
         "court": "Magistrate's Court (initial filing); District Court for appeals",
         "timeline": "Typically 2-3 weeks from filing to judgment; 10 days for writ of possession",
-        "tenant_defenses": ["Retaliation", "Discrimination", "Landlord failed to maintain unit", "Improper notice", "Rent paid but not credited"],
+        "tenant_defenses": [
+          "Retaliation",
+          "Discrimination",
+          "Landlord failed to maintain unit",
+          "Improper notice",
+          "Rent paid but not credited"
+        ],
         "expungement": "Eviction records generally not expunged in NC; limited exceptions",
         "self_help_illegal": true,
         "lockout_prohibited": true,
         "utility_shutoff_prohibited": true
       },
       "discrimination": {
-        "protected_classes": ["Race", "Color", "Religion", "National origin", "Sex", "Familial status", "Disability", "Age", "Handicap"],
+        "protected_classes": [
+          "Race",
+          "Color",
+          "Religion",
+          "National origin",
+          "Sex",
+          "Familial status",
+          "Disability",
+          "Age",
+          "Handicap"
+        ],
         "familial_status": "Cannot refuse to rent to families with children",
         "disability_accommodations": "Reasonable accommodations/modifications required",
         "complaint_agency": "North Carolina Human Relations Commission",
         "complaint_url": "https://www.doa.nc.gov/about/divisions/human-relations"
       },
       "legal_aid": [
-        {"name": "Legal Aid of North Carolina", "phone": "866-219-5262", "url": "https://www.legalaidnc.org", "services": "Statewide legal aid for low-income residents", "counties": "Statewide"},
-        {"name": "Charlotte Center for Legal Advocacy", "phone": "704-376-1600", "toll_free": "800-438-1254", "url": "https://www.charlottelegaladvocacy.org", "counties": "Mecklenburg and surrounding"},
-        {"name": "Pisgah Legal Services", "phone": "828-253-0406", "toll_free": "800-489-6154", "url": "https://www.pisgahlegal.org", "counties": "Western NC"},
-        {"name": "North Carolina Equal Access to Justice Commission", "phone": "919-835-1050", "url": "https://www.ncequalaccess.org", "services": "Statewide support for legal aid programs", "counties": "Statewide"},
-        {"name": "Durham Legal Aid", "phone": "919-688-6396", "url": "https://www.legalaidnc.org", "counties": "Durham"}
+        {
+          "name": "Legal Aid of North Carolina",
+          "phone": "866-219-5262",
+          "url": "https://www.legalaidnc.org",
+          "services": "Statewide legal aid for low-income residents",
+          "counties": "Statewide"
+        },
+        {
+          "name": "Charlotte Center for Legal Advocacy",
+          "phone": "704-376-1600",
+          "toll_free": "800-438-1254",
+          "url": "https://www.charlottelegaladvocacy.org",
+          "counties": "Mecklenburg and surrounding"
+        },
+        {
+          "name": "Pisgah Legal Services",
+          "phone": "828-253-0406",
+          "toll_free": "800-489-6154",
+          "url": "https://www.pisgahlegal.org",
+          "counties": "Western NC"
+        },
+        {
+          "name": "North Carolina Equal Access to Justice Commission",
+          "phone": "919-835-1050",
+          "url": "https://www.ncequalaccess.org",
+          "services": "Statewide support for legal aid programs",
+          "counties": "Statewide"
+        },
+        {
+          "name": "Durham Legal Aid",
+          "phone": "919-688-6396",
+          "url": "https://www.legalaidnc.org",
+          "counties": "Durham"
+        }
       ],
       "government_resources": [
-        {"name": "North Carolina Attorney General - Consumer Protection", "url": "https://www.ncdoj.gov/protecting-consumers/", "phone": "877-566-7226"},
-        {"name": "North Carolina Housing Finance Agency", "url": "https://www.nchfa.com", "services": "Affordable housing programs, rental assistance"},
-        {"name": "North Carolina Human Relations Commission", "url": "https://www.doa.nc.gov/about/divisions/human-relations", "phone": "984-224-2481", "services": "Discrimination complaints"}
+        {
+          "name": "North Carolina Attorney General - Consumer Protection",
+          "url": "https://www.ncdoj.gov/protecting-consumers/",
+          "phone": "877-566-7226"
+        },
+        {
+          "name": "North Carolina Housing Finance Agency",
+          "url": "https://www.nchfa.com",
+          "services": "Affordable housing programs, rental assistance"
+        },
+        {
+          "name": "North Carolina Human Relations Commission",
+          "url": "https://www.doa.nc.gov/about/divisions/human-relations",
+          "phone": "984-224-2481",
+          "services": "Discrimination complaints"
+        }
       ],
       "forms_templates": [
-        {"name": "Repair Request Letter (NC)", "url": "/library/forms/repair-request-nc.html", "description": "NC-specific repair request with statutory citations"},
-        {"name": "Security Deposit Demand Letter", "url": "/library/forms/deposit-demand-nc.html"},
-        {"name": "Notice to Vacate (NC)", "url": "/library/forms/notice-to-vacate-nc.html"}
+        {
+          "name": "Repair Request Letter (NC)",
+          "url": "/library/forms/repair-request-nc.html",
+          "description": "NC-specific repair request with statutory citations"
+        },
+        {
+          "name": "Security Deposit Demand Letter",
+          "url": "/library/forms/deposit-demand-nc.html"
+        },
+        {
+          "name": "Notice to Vacate (NC)",
+          "url": "/library/forms/notice-to-vacate-nc.html"
+        }
       ],
       "special_programs": {
         "rental_assistance": "NC Housing Finance Agency emergency rental assistance (when funded)",
@@ -1618,7 +1799,11 @@
         "return_deadline": "30 days after lease ends and tenant provides forwarding address",
         "itemized_required": true,
         "interest_required": false,
-        "withholding_allowed": ["Unpaid rent", "Damage beyond normal wear", "Other lease violations"],
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Damage beyond normal wear",
+          "Other lease violations"
+        ],
         "notes": "Landlord must send itemized list within 30 days. Tenant has 7 days to dispute. GA has minimal procedural requirements."
       },
       "rent_control": {
@@ -1627,49 +1812,136 @@
         "notes": "State law preempts local rent control. Tenant can challenge unconscionable rent increases in court."
       },
       "repairs": {
-        "landlord_duties": ["Maintain electrical/plumbing/heating", "Provide garbage removal where required", "Provide running water/hot water", "Keep unit weatherproof", "Comply with housing codes", "Exterminate pests in multi-unit buildings"],
-        "tenant_remedies": {"repair_deduct": false, "rent_withholding": false, "termination": true, "notes": "GA does not explicitly authorize rent withholding or repair-and-deduct. Tenant can terminate lease if landlord fails to repair after written notice."},
+        "landlord_duties": [
+          "Maintain electrical/plumbing/heating",
+          "Provide garbage removal where required",
+          "Provide running water/hot water",
+          "Keep unit weatherproof",
+          "Comply with housing codes",
+          "Exterminate pests in multi-unit buildings"
+        ],
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": false,
+          "termination": true,
+          "notes": "GA has no statutory rent withholding or repair-and-deduct. Since July 1, 2024, every residential lease includes a statutory fit-for-human-habitation promise (O.C.G.A. §44-7-13(b), Safe at Home Act). Tenants may sue for damages; serious failures may support termination for constructive eviction."
+        },
         "emergency_repairs": "Varies by severity; typically 24-72 hours for heating/hot water",
         "cold_weather_rule": "No statewide cold weather rule; GA Public Service Commission winter shutoff protections for low-income households"
       },
       "landlord_entry": {
         "notice_required": true,
         "notice_period": "24 hours (reasonable notice)",
-        "allowed_reasons": ["Emergency", "Inspection (limited)", "Repairs/maintenance", "Showing to prospective tenants/buyers"],
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection (limited)",
+          "Repairs/maintenance",
+          "Showing to prospective tenants/buyers"
+        ],
         "tenant_rights": "Tenant can refuse entry without proper notice. Repeated unauthorized entry may constitute harassment."
       },
       "eviction": {
         "court": "Magistrate Court (initial filing); Superior Court for appeals",
         "timeline": "Typically 2-3 weeks from filing to judgment; 7 days for writ of possession",
-        "tenant_defenses": ["Retaliation", "Discrimination", "Landlord failed to maintain unit", "Improper notice", "Rent paid but not credited"],
+        "tenant_defenses": [
+          "Retaliation",
+          "Discrimination",
+          "Landlord failed to maintain unit",
+          "Improper notice",
+          "Rent paid but not credited"
+        ],
         "expungement": "Eviction records generally not expunged in GA; limited exceptions",
         "self_help_illegal": true,
         "lockout_prohibited": true,
         "utility_shutoff_prohibited": true
       },
       "discrimination": {
-        "protected_classes": ["Race", "Color", "Religion", "National origin", "Sex", "Familial status", "Disability", "Age"],
+        "protected_classes": [
+          "Race",
+          "Color",
+          "Religion",
+          "National origin",
+          "Sex",
+          "Familial status",
+          "Disability",
+          "Age"
+        ],
         "familial_status": "Cannot refuse to rent to families with children",
         "disability_accommodations": "Reasonable accommodations/modifications required",
         "complaint_agency": "Georgia Commission on Equal Opportunity",
         "complaint_url": "https://gceo.georgia.gov/"
       },
       "legal_aid": [
-        {"name": "Atlanta Legal Aid Society", "phone": "404-524-5811", "toll_free": "800-821-8012", "url": "https://www.atlantalegalaid.org", "services": "Housing legal aid for low-income metro Atlanta residents", "counties": "Fulton, DeKalb, Clayton, Cobb, Gwinnett"},
-        {"name": "Georgia Legal Services Program", "phone": "706-226-5253", "toll_free": "800-498-9469", "url": "https://www.glsp.org", "services": "Statewide legal aid outside metro Atlanta", "counties": "Statewide outside metro"},
-        {"name": "State Bar of Georgia Pro Bono Project", "phone": "404-527-8760", "url": "https://www.gabar.org", "services": "Pro bono legal services for low-income Georgians", "counties": "Statewide"},
-        {"name": "Atlanta Volunteer Lawyers Foundation", "phone": "404-521-0789", "url": "https://www.avlf.org", "counties": "Fulton"},
-        {"name": "Georgia Advocacy Office", "phone": "404-885-1877", "toll_free": "800-537-2329", "url": "https://thegao.org", "services": "Disability rights and housing advocacy", "counties": "Statewide"}
+        {
+          "name": "Atlanta Legal Aid Society",
+          "phone": "404-524-5811",
+          "toll_free": "800-821-8012",
+          "url": "https://www.atlantalegalaid.org",
+          "services": "Housing legal aid for low-income metro Atlanta residents",
+          "counties": "Fulton, DeKalb, Clayton, Cobb, Gwinnett"
+        },
+        {
+          "name": "Georgia Legal Services Program",
+          "phone": "706-226-5253",
+          "toll_free": "800-498-9469",
+          "url": "https://www.glsp.org",
+          "services": "Statewide legal aid outside metro Atlanta",
+          "counties": "Statewide outside metro"
+        },
+        {
+          "name": "State Bar of Georgia Pro Bono Project",
+          "phone": "404-527-8760",
+          "url": "https://www.gabar.org",
+          "services": "Pro bono legal services for low-income Georgians",
+          "counties": "Statewide"
+        },
+        {
+          "name": "Atlanta Volunteer Lawyers Foundation",
+          "phone": "404-521-0789",
+          "url": "https://www.avlf.org",
+          "counties": "Fulton"
+        },
+        {
+          "name": "Georgia Advocacy Office",
+          "phone": "404-885-1877",
+          "toll_free": "800-537-2329",
+          "url": "https://thegao.org",
+          "services": "Disability rights and housing advocacy",
+          "counties": "Statewide"
+        }
       ],
       "government_resources": [
-        {"name": "Georgia Attorney General - Consumer Protection", "url": "https://consumer.georgia.gov/", "phone": "404-651-8600"},
-        {"name": "Georgia Department of Community Affairs - Housing", "url": "https://www.dca.ga.gov/housing", "services": "Affordable housing programs, rental assistance"},
-        {"name": "Georgia Commission on Equal Opportunity", "url": "https://gceo.georgia.gov/", "phone": "404-327-7400", "services": "Discrimination complaints"}
+        {
+          "name": "Georgia Attorney General - Consumer Protection",
+          "url": "https://consumer.georgia.gov/",
+          "phone": "404-651-8600"
+        },
+        {
+          "name": "Georgia Department of Community Affairs - Housing",
+          "url": "https://www.dca.ga.gov/housing",
+          "services": "Affordable housing programs, rental assistance"
+        },
+        {
+          "name": "Georgia Commission on Equal Opportunity",
+          "url": "https://gceo.georgia.gov/",
+          "phone": "404-327-7400",
+          "services": "Discrimination complaints"
+        }
       ],
       "forms_templates": [
-        {"name": "Repair Request Letter (GA)", "url": "/library/forms/repair-request-ga.html", "description": "GA-specific repair request with statutory citations"},
-        {"name": "Security Deposit Demand Letter", "url": "/library/forms/deposit-demand-ga.html"},
-        {"name": "Notice to Vacate (GA)", "url": "/library/forms/notice-to-vacate-ga.html"}
+        {
+          "name": "Repair Request Letter (GA)",
+          "url": "/library/forms/repair-request-ga.html",
+          "description": "GA-specific repair request with statutory citations"
+        },
+        {
+          "name": "Security Deposit Demand Letter",
+          "url": "/library/forms/deposit-demand-ga.html"
+        },
+        {
+          "name": "Notice to Vacate (GA)",
+          "url": "/library/forms/notice-to-vacate-ga.html"
+        }
       ],
       "special_programs": {
         "rental_assistance": "Georgia Department of Community Affairs emergency rental assistance (when funded)",
@@ -1699,85 +1971,85 @@
       "notes": "Many NJ cities have rent control. Strong anti-eviction protections."
     },
     "WI": {
-        "code": "WI",
-        "name": "Wisconsin",
-        "status": "partial",
-        "stub_url": "https://core.tenantresourcecenter.org/wisconsin",
-        "notice_requirements": {
-          "nonpayment": "5-day written pay-or-vacate notice for month-to-month or lease of 1 year or less (Wis. Stat. 704.17(1p)(a) and (2)(a)). Tenant can stop the eviction by paying rent within that window.",
-          "lease_violation": "5-day notice to remedy the breach or vacate; if the same breach recurs within a year, landlord may give 14 days to vacate without a right to cure (Wis. Stat. 704.17(1p)(b) and (2)(b))."
-        },
-        "security_deposit": {
-          "limit": "No statutory cap (Wis. Stat. 704.28; ATCP 134.06)",
-          "return_deadline": "21 days after termination or surrender, with itemized deductions (Wis. Stat. 704.28(4); ATCP 134.06)",
-          "notes": "Wrongful withholding can trigger double damages plus attorney fees (ATCP 134.06)."
-        },
-        "landlord_entry": {
-          "notice_required": "At least 12 hours' advance notice for non-emergency entry, entry only at reasonable times (Wis. Stat. 704.05(2); ATCP 134.09(2))"
-        },
-        "eviction": {
-          "key_protection": "Lease provisions that conflict with Wis. Stat. chapter 704 are unenforceable unless the lease is for longer than one year (Wis. Stat. 704.17(5))."
-        },
-        "sources": [
-          {
-            "label": "Wis. Stat. 704.17 — notice terminating tenancies",
-            "url": "https://docs.legis.wisconsin.gov/statutes/statutes/704/17"
-          },
-          {
-            "label": "Wis. Stat. 704.28 — security deposit return",
-            "url": "https://docs.legis.wisconsin.gov/statutes/statutes/704/28"
-          },
-          {
-            "label": "Wis. Stat. 704.05(2) — access",
-            "url": "https://docs.legis.wisconsin.gov/statutes/statutes/704/05"
-          },
-          {
-            "label": "Tenant Resource Center — Wisconsin",
-            "url": "https://core.tenantresourcecenter.org/wisconsin"
-          }
-        ],
-        "notes": "Crisis-tier fields only — verified against Wis. Stat. and ATCP 2026-09-07."
+      "code": "WI",
+      "name": "Wisconsin",
+      "status": "partial",
+      "stub_url": "https://core.tenantresourcecenter.org/wisconsin",
+      "notice_requirements": {
+        "nonpayment": "5-day written pay-or-vacate notice for month-to-month or lease of 1 year or less (Wis. Stat. 704.17(1p)(a) and (2)(a)). Tenant can stop the eviction by paying rent within that window.",
+        "lease_violation": "5-day notice to remedy the breach or vacate; if the same breach recurs within a year, landlord may give 14 days to vacate without a right to cure (Wis. Stat. 704.17(1p)(b) and (2)(b))."
       },
+      "security_deposit": {
+        "limit": "No statutory cap (Wis. Stat. 704.28; ATCP 134.06)",
+        "return_deadline": "21 days after termination or surrender, with itemized deductions (Wis. Stat. 704.28(4); ATCP 134.06)",
+        "notes": "Wrongful withholding can trigger double damages plus attorney fees (ATCP 134.06)."
+      },
+      "landlord_entry": {
+        "notice_required": "At least 12 hours' advance notice for non-emergency entry, entry only at reasonable times (Wis. Stat. 704.05(2); ATCP 134.09(2))"
+      },
+      "eviction": {
+        "key_protection": "Lease provisions that conflict with Wis. Stat. chapter 704 are unenforceable unless the lease is for longer than one year (Wis. Stat. 704.17(5))."
+      },
+      "sources": [
+        {
+          "label": "Wis. Stat. 704.17 — notice terminating tenancies",
+          "url": "https://docs.legis.wisconsin.gov/statutes/statutes/704/17"
+        },
+        {
+          "label": "Wis. Stat. 704.28 — security deposit return",
+          "url": "https://docs.legis.wisconsin.gov/statutes/statutes/704/28"
+        },
+        {
+          "label": "Wis. Stat. 704.05(2) — access",
+          "url": "https://docs.legis.wisconsin.gov/statutes/statutes/704/05"
+        },
+        {
+          "label": "Tenant Resource Center — Wisconsin",
+          "url": "https://core.tenantresourcecenter.org/wisconsin"
+        }
+      ],
+      "notes": "Crisis-tier fields only — verified against Wis. Stat. and ATCP 2026-09-07."
+    },
     "MO": {
-        "code": "MO",
-        "name": "Missouri",
-        "status": "partial",
-        "stub_url": "https://www.mobar.org/attorneysearch/",
-        "notice_requirements": {
-          "nonpayment": "No formal notice-to-pay period required before filing a rent-and-possession action; landlord may file as soon as rent is past due, after a demand for payment (RSMo 535.010, 535.020)",
-          "lease_violation": "10-day written notice to vacate for illegal activity or controlled-substance use (RSMo 441.040); other lease breaches follow the lease's notice/cure terms. Month-to-month termination requires 30 days' notice (RSMo 441.060)."
-        },
-        "security_deposit": {
-          "limit": "2 months' rent (RSMo 535.300(1))",
-          "return_deadline": "30 days after termination, with written itemized deductions or full return (RSMo 535.300(2)-(3))",
-          "notes": "Wrongful withholding can mean up to double the withheld amount plus court costs and attorney fees."
-        },
-        "landlord_entry": {
-          "notice_required": "No fixed statutory notice period — 'reasonable notice' required for move-out inspection and is implied for other entry (RSMo 535.300(5); common law). 24 hours is typical practice."
-        },
-        "eviction": {
-          "key_protection": "Tenant may appear and plead within 5 days of service of the summons (RSMo 21-16-7 analog; Missouri Rules of Civil Procedure). For nonpayment, full payment before judgment may restore possession."
-        },
-        "sources": [
-          {
-            "label": "RSMo 535.010 - 535.020 — rent and possession",
-            "url": "https://revisor.mo.gov/main/OneSection.aspx?bid=28366&section=535.010"
-          },
-          {
-            "label": "RSMo 441.040 — 10-day notice for unlawful use",
-            "url": "https://revisor.mo.gov/main/OneSection.aspx?bid=24342&section=441.040"
-          },
-          {
-            "label": "RSMo 535.300 — security deposits",
-            "url": "https://revisor.mo.gov/main/OneSection.aspx?bid=28387&section=535.300"
-          },
-          {
-            "label": "Missouri Bar — lawyer search / legal aid",
-            "url": "https://www.mobar.org/attorneysearch/"
-          }
-        ],
-        "notes": "Crisis-tier fields only — verified against RSMo 2026-09-07. Missouri Bar is a referral, not legal aid; replace with a Missouri legal-aid URL when known."
+      "code": "MO",
+      "name": "Missouri",
+      "status": "partial",
+      "stub_url": "https://www.mobar.org/attorneysearch/",
+      "notice_requirements": {
+        "nonpayment": "No formal notice-to-pay period required before filing a rent-and-possession action; landlord may file as soon as rent is past due, after a demand for payment (RSMo 535.010, 535.020)",
+        "lease_violation": "10-day written notice to vacate for illegal activity or controlled-substance use (RSMo 441.040); other lease breaches follow the lease's notice/cure terms. Month-to-month termination requires 30 days' notice (RSMo 441.060)."
       },
+      "security_deposit": {
+        "limit": "2 months' rent (RSMo 535.300(1))",
+        "return_deadline": "30 days after termination, with written itemized deductions or full return (RSMo 535.300(2)-(3))",
+        "notes": "Wrongful withholding can mean up to double the withheld amount plus court costs and attorney fees."
+      },
+      "landlord_entry": {
+        "notice_required": "No fixed statutory notice period — 'reasonable notice' required for move-out inspection and is implied for other entry (RSMo 535.300(5); common law). 24 hours is typical practice."
+      },
+      "eviction": {
+        "key_protection": "Tenant may appear and plead within 5 days of service of the summons (RSMo 21-16-7 analog; Missouri Rules of Civil Procedure). For nonpayment, full payment before judgment may restore possession."
+      },
+      "sources": [
+        {
+          "label": "RSMo 535.010 - 535.020 — rent and possession",
+          "url": "https://revisor.mo.gov/main/OneSection.aspx?bid=28366&section=535.010"
+        },
+        {
+          "label": "RSMo 441.040 — 10-day notice for unlawful use",
+          "url": "https://revisor.mo.gov/main/OneSection.aspx?bid=24342&section=441.040"
+        },
+        {
+          "label": "RSMo 535.300 — security deposits",
+          "url": "https://revisor.mo.gov/main/OneSection.aspx?bid=28387&section=535.300"
+        },
+        {
+          "label": "Missouri Bar — lawyer search / legal aid",
+          "url": "https://www.mobar.org/attorneysearch/"
+        }
+      ],
+      "notes": "Crisis-tier fields only — verified against RSMo 2026-09-07. Missouri Bar is a referral, not legal aid; replace with a Missouri legal-aid URL when known."
+    },
     "AL": {
       "code": "AL",
       "name": "Alabama",
@@ -1828,44 +2100,44 @@
       "notes": "Idaho is landlord-friendly. No rent control."
     },
     "IA": {
-        "code": "IA",
-        "name": "Iowa",
-        "status": "partial",
-        "stub_url": "https://www.iowalegalaid.org/issues/housing",
-        "notice_requirements": {
-          "nonpayment": "3-day written notice to pay rent or the landlord may terminate the rental agreement (Iowa Code 562A.27(2))",
-          "lease_violation": "7-day written notice to remedy the breach or terminate the rental agreement; if the same act recurs within 6 months, landlord may terminate with 7 days' notice and no right to cure (Iowa Code 562A.27(1))"
-        },
-        "security_deposit": {
-          "limit": "2 months' rent (Iowa Code 562A.12(1))",
-          "return_deadline": "30 days after termination and receipt of tenant's mailing address, with itemized deductions (Iowa Code 562A.12(3)(a))"
-        },
-        "landlord_entry": {
-          "notice_required": "At least 24 hours' notice, entry only at reasonable times; tenant may not unreasonably withhold consent (Iowa Code 562A.19)"
-        },
-        "eviction": {
-          "key_protection": "Landlord has no other right of access except by court order or as permitted by statute — access must be for specific purposes and not used to harass (Iowa Code 562A.19(4))."
-        },
-        "sources": [
-          {
-            "label": "Iowa Code 562A.27 — noncompliance / nonpayment",
-            "url": "https://www.legis.iowa.gov/docs/code/562A.27.pdf"
-          },
-          {
-            "label": "Iowa Code 562A.12 — rental deposits",
-            "url": "https://www.legis.iowa.gov/docs/code/562A.12.pdf"
-          },
-          {
-            "label": "Iowa Code 562A.19 — access",
-            "url": "https://www.legis.iowa.gov/docs/code/562A.19.pdf"
-          },
-          {
-            "label": "Iowa Legal Aid — housing",
-            "url": "https://www.iowalegalaid.org/issues/housing"
-          }
-        ],
-        "notes": "Crisis-tier fields only — verified against Iowa Code 2026-09-07."
+      "code": "IA",
+      "name": "Iowa",
+      "status": "partial",
+      "stub_url": "https://www.iowalegalaid.org/issues/housing",
+      "notice_requirements": {
+        "nonpayment": "3-day written notice to pay rent or the landlord may terminate the rental agreement (Iowa Code 562A.27(2))",
+        "lease_violation": "7-day written notice to remedy the breach or terminate the rental agreement; if the same act recurs within 6 months, landlord may terminate with 7 days' notice and no right to cure (Iowa Code 562A.27(1))"
       },
+      "security_deposit": {
+        "limit": "2 months' rent (Iowa Code 562A.12(1))",
+        "return_deadline": "30 days after termination and receipt of tenant's mailing address, with itemized deductions (Iowa Code 562A.12(3)(a))"
+      },
+      "landlord_entry": {
+        "notice_required": "At least 24 hours' notice, entry only at reasonable times; tenant may not unreasonably withhold consent (Iowa Code 562A.19)"
+      },
+      "eviction": {
+        "key_protection": "Landlord has no other right of access except by court order or as permitted by statute — access must be for specific purposes and not used to harass (Iowa Code 562A.19(4))."
+      },
+      "sources": [
+        {
+          "label": "Iowa Code 562A.27 — noncompliance / nonpayment",
+          "url": "https://www.legis.iowa.gov/docs/code/562A.27.pdf"
+        },
+        {
+          "label": "Iowa Code 562A.12 — rental deposits",
+          "url": "https://www.legis.iowa.gov/docs/code/562A.12.pdf"
+        },
+        {
+          "label": "Iowa Code 562A.19 — access",
+          "url": "https://www.legis.iowa.gov/docs/code/562A.19.pdf"
+        },
+        {
+          "label": "Iowa Legal Aid — housing",
+          "url": "https://www.iowalegalaid.org/issues/housing"
+        }
+      ],
+      "notes": "Crisis-tier fields only — verified against Iowa Code 2026-09-07."
+    },
     "KS": {
       "code": "KS",
       "name": "Kansas",
@@ -1944,44 +2216,44 @@
       "notes": "New Mexico has anti-discrimination and habitability protections."
     },
     "ND": {
-        "code": "ND",
-        "name": "North Dakota",
-        "status": "partial",
-        "stub_url": "https://www.ndcourts.gov/legal-self-help",
-        "notice_requirements": {
-          "nonpayment": "3-day notice of intention to evict; if nonpayment is the only ground, tenant has 3 days to pay in full or move out (NDCC 47-32-01, 47-32-02; ND Courts eviction forms)",
-          "lease_violation": "3-day notice of intention to evict for material violations of the lease (NDCC 47-32-01(4)-(6); 47-32-02)"
-        },
-        "security_deposit": {
-          "limit": "1 month's rent (up to 2 months for tenants with certain felony/judgment history or with a pet) (NDCC 47-16-07.1)",
-          "return_deadline": "30 days after termination and delivery of possession, with itemization (NDCC 47-16-07.1)"
-        },
-        "landlord_entry": {
-          "notice_required": "No fixed statutory hours — landlord must give reasonable notice and obtain consent identifying a time certain; consent is presumed if tenant does not object (NDCC 47-16-07.3)"
-        },
-        "eviction": {
-          "key_protection": "Landlord must serve the Notice of Intention to Evict and file proof of service with the court; three days must expire before filing the eviction action (NDCC 47-32-02)."
-        },
-        "sources": [
-          {
-            "label": "NDCC 47-32-01/47-32-02 — eviction grounds and notice",
-            "url": "https://ndlegis.gov/cencode/t47c32.pdf"
-          },
-          {
-            "label": "NDCC 47-16-07.1 — security deposits",
-            "url": "https://ndlegis.gov/cencode/t47c16.pdf"
-          },
-          {
-            "label": "NDCC 47-16-07.3 — landlord entry",
-            "url": "https://codes.findlaw.com/nd/title-47-property/nd-cent-code-sect-47-16-07-3/"
-          },
-          {
-            "label": "North Dakota Courts — self help / eviction",
-            "url": "https://www.ndcourts.gov/legal-self-help"
-          }
-        ],
-        "notes": "Crisis-tier fields only — verified against NDCC and ND Courts 2026-09-07."
+      "code": "ND",
+      "name": "North Dakota",
+      "status": "partial",
+      "stub_url": "https://www.ndcourts.gov/legal-self-help",
+      "notice_requirements": {
+        "nonpayment": "3-day notice of intention to evict; if nonpayment is the only ground, tenant has 3 days to pay in full or move out (NDCC 47-32-01, 47-32-02; ND Courts eviction forms)",
+        "lease_violation": "3-day notice of intention to evict for material violations of the lease (NDCC 47-32-01(4)-(6); 47-32-02)"
       },
+      "security_deposit": {
+        "limit": "1 month's rent (up to 2 months for tenants with certain felony/judgment history or with a pet) (NDCC 47-16-07.1)",
+        "return_deadline": "30 days after termination and delivery of possession, with itemization (NDCC 47-16-07.1)"
+      },
+      "landlord_entry": {
+        "notice_required": "No fixed statutory hours — landlord must give reasonable notice and obtain consent identifying a time certain; consent is presumed if tenant does not object (NDCC 47-16-07.3)"
+      },
+      "eviction": {
+        "key_protection": "Landlord must serve the Notice of Intention to Evict and file proof of service with the court; three days must expire before filing the eviction action (NDCC 47-32-02)."
+      },
+      "sources": [
+        {
+          "label": "NDCC 47-32-01/47-32-02 — eviction grounds and notice",
+          "url": "https://ndlegis.gov/cencode/t47c32.pdf"
+        },
+        {
+          "label": "NDCC 47-16-07.1 — security deposits",
+          "url": "https://ndlegis.gov/cencode/t47c16.pdf"
+        },
+        {
+          "label": "NDCC 47-16-07.3 — landlord entry",
+          "url": "https://codes.findlaw.com/nd/title-47-property/nd-cent-code-sect-47-16-07-3/"
+        },
+        {
+          "label": "North Dakota Courts — self help / eviction",
+          "url": "https://www.ndcourts.gov/legal-self-help"
+        }
+      ],
+      "notes": "Crisis-tier fields only — verified against NDCC and ND Courts 2026-09-07."
+    },
     "OK": {
       "code": "OK",
       "name": "Oklahoma",
@@ -2004,40 +2276,40 @@
       "notes": "South Carolina is landlord-friendly."
     },
     "SD": {
-        "code": "SD",
-        "name": "South Dakota",
-        "status": "partial",
-        "stub_url": "https://ujslawhelp.sd.gov/LegalTopics/For-Landlords-and-Tenants.aspx",
-        "notice_requirements": {
-          "nonpayment": "No notice to quit required since July 1, 2024; a landlord may file an eviction action after rent is 3 days late (SDCL 21-16-1(4); SB 90 repealed SDCL 21-16-2)",
-          "lease_violation": "Lease controls the cure/notice period; if silent, action may proceed after a reasonable time for the tenant to remedy the breach (SDCL 21-16; 43-32-24)"
-        },
-        "security_deposit": {
-          "limit": "1 month's rent; up to 2 months' rent if the tenant has a pet (SDCL 43-32-6.1, 43-32-24)",
-          "return_deadline": "Within 2 weeks (14 days) of termination and receipt of mailing address, unless the landlord is withholding, in which case a written statement and itemized accounting (on request within 45 days) are required (SDCL 43-32-24)"
-        },
-        "landlord_entry": {
-          "notice_required": "No fixed statutory notice period — entry must be at reasonable times and in a reasonable manner for enumerated purposes (SDCL 43-32-1 / 43-32-32)"
-        },
-        "eviction": {
-          "key_protection": "Self-help eviction is prohibited; landlords must use the court process (SDCL 21-16-1 et seq.). Tenant has 5 days to respond to the summons (SDCL 21-16-7)."
-        },
-        "sources": [
-          {
-            "label": "SDCL 21-16-1 and 21-16-2 — forcible entry and detainer",
-            "url": "https://law.justia.com/codes/south-dakota/2023/title-21/chapter-16/section-21-16-2/"
-          },
-          {
-            "label": "SDCL 43-32-6.1 and 43-32-24 — security deposits",
-            "url": "https://law.justia.com/codes/south-dakota/title-43/chapter-32/section-43-32-24/"
-          },
-          {
-            "label": "South Dakota Unified Judicial System — Landlords and Tenants",
-            "url": "https://ujslawhelp.sd.gov/LegalTopics/For-Landlords-and-Tenants.aspx"
-          }
-        ],
-        "notes": "Crisis-tier fields only — verified against SDCL and SD Courts 2026-09-07. Nonpayment notice requirement was removed by SB 90 in 2024."
+      "code": "SD",
+      "name": "South Dakota",
+      "status": "partial",
+      "stub_url": "https://ujslawhelp.sd.gov/LegalTopics/For-Landlords-and-Tenants.aspx",
+      "notice_requirements": {
+        "nonpayment": "No notice to quit required since July 1, 2024; a landlord may file an eviction action after rent is 3 days late (SDCL 21-16-1(4); SB 90 repealed SDCL 21-16-2)",
+        "lease_violation": "Lease controls the cure/notice period; if silent, action may proceed after a reasonable time for the tenant to remedy the breach (SDCL 21-16; 43-32-24)"
       },
+      "security_deposit": {
+        "limit": "1 month's rent; up to 2 months' rent if the tenant has a pet (SDCL 43-32-6.1, 43-32-24)",
+        "return_deadline": "Within 2 weeks (14 days) of termination and receipt of mailing address, unless the landlord is withholding, in which case a written statement and itemized accounting (on request within 45 days) are required (SDCL 43-32-24)"
+      },
+      "landlord_entry": {
+        "notice_required": "No fixed statutory notice period — entry must be at reasonable times and in a reasonable manner for enumerated purposes (SDCL 43-32-1 / 43-32-32)"
+      },
+      "eviction": {
+        "key_protection": "Self-help eviction is prohibited; landlords must use the court process (SDCL 21-16-1 et seq.). Tenant has 5 days to respond to the summons (SDCL 21-16-7)."
+      },
+      "sources": [
+        {
+          "label": "SDCL 21-16-1 and 21-16-2 — forcible entry and detainer",
+          "url": "https://law.justia.com/codes/south-dakota/2023/title-21/chapter-16/section-21-16-2/"
+        },
+        {
+          "label": "SDCL 43-32-6.1 and 43-32-24 — security deposits",
+          "url": "https://law.justia.com/codes/south-dakota/title-43/chapter-32/section-43-32-24/"
+        },
+        {
+          "label": "South Dakota Unified Judicial System — Landlords and Tenants",
+          "url": "https://ujslawhelp.sd.gov/LegalTopics/For-Landlords-and-Tenants.aspx"
+        }
+      ],
+      "notes": "Crisis-tier fields only — verified against SDCL and SD Courts 2026-09-07. Nonpayment notice requirement was removed by SB 90 in 2024."
+    },
     "TN": {
       "code": "TN",
       "name": "Tennessee",
