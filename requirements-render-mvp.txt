@@ -96,3 +96,11 @@ pymupdf>=1.23.0
 # Numerical utilities used by core modules
 # =============================================================================
 numpy>=1.24.0
+
+# =============================================================================
+# Embeddings — ONNX build of all-MiniLM-L6-v2 (same 384-dim vector space as
+# sentence-transformers, no torch). Fits the free-tier container where the
+# full torch stack (~1.5GB image / ~600MB RSS) does not. Weights are baked
+# into the image at build time (see Dockerfile).
+# =============================================================================
+fastembed>=0.8.0,<0.9

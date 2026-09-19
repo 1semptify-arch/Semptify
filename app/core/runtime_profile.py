@@ -114,16 +114,16 @@ _PROFILES: dict[str, LoadProfile] = {
         name="render_mvp",
         description=(
             "Current Render-tuned production behavior. All infrastructure "
-            "services on except the embedding model, which is loaded on first "
-            "request. Preloading all-MiniLM-L6-v2 at startup adds 25-100 MB "
-            "of RAM on top of an already-capped free-tier container, so it "
-            "is now warmed lazily while the retrieval code still caches it "
-            "as a singleton after the first use."
+            "services on. The embedding model runs via fastembed's ONNX "
+            "backend (same all-MiniLM-L6-v2 weights, same 384-dim vector "
+            "space, no torch) with weights baked into the image — the "
+            "torch build stays excluded because ~600MB RSS does not fit "
+            "the free-tier container. Loaded lazily on first use."
         ),
         positronic_brain=True,
         module_hub=True,
         mesh_network=True,
-        embedding_model=False,
+        embedding_model=True,
         performance_monitoring=True,
     ),
     "full": LoadProfile(
