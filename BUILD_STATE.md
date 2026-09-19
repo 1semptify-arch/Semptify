@@ -15141,7 +15141,7 @@ claim remains live — Brad ruled leave it (NO-TOUCH). Report:
 
 ## Session — 2026-09-19 — Post-FINALE vault provisioning engine (devin)
 
-**Shipped (PR #292, pending merge):** Steps 1a+1b of `intake-vault-provisioning`.
+**Shipped (PR #292 → ed88a479, deployed dep-dan690p42hec73dci0t0):** Steps 1a+1b of `intake-vault-provisioning`.
 - `app/services/vault_provisioning.py` — chunked step registry
   (folders → vault_db → configs), idempotent/resumable, one step per call
   behind Cloudflare. Progress in `User.completed_groups` `prov_*` gates.
