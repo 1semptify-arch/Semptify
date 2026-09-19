@@ -396,3 +396,8 @@ def _request_to_dict(r: PublicRecordsRequest, now: datetime | None = None) -> di
         "subject_id": r.subject_id,
         "created_at": r.created_at.isoformat() if r.created_at else None,
     }
+
+
+# Conventional name for the contract-route guardrail, which looks for a
+# literal `router` attribute on the module (manifest router_attr unchanged).
+router = accountability_ledger_router

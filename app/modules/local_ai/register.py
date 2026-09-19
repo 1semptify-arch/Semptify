@@ -38,9 +38,6 @@ register_function_group(
         outputs=("status",),
         dependencies=("app.modules.local_ai.router",),
         deterministic=True,
-        tier="T0",
-        allowed_routes=("/local-ai/health",),
-        allowed_prefixes=("/local-ai",),
     )
 )
 
@@ -57,9 +54,6 @@ register_function_group(
         outputs=("response",),
         dependencies=("app.modules.local_ai.router",),
         deterministic=False,
-        tier="T2",
-        allowed_routes=("/local-ai/chat",),
-        allowed_prefixes=("/local-ai",),
     )
 )
 
@@ -76,9 +70,6 @@ register_function_group(
         outputs=("analysis",),
         dependencies=("app.modules.local_ai.router",),
         deterministic=False,
-        tier="T2",
-        allowed_routes=("/local-ai/analyze",),
-        allowed_prefixes=("/local-ai",),
     )
 )
 
@@ -95,9 +86,6 @@ register_function_group(
         outputs=("summary",),
         dependencies=("app.modules.local_ai.router",),
         deterministic=False,
-        tier="T2",
-        allowed_routes=("/local-ai/summarize",),
-        allowed_prefixes=("/local-ai",),
     )
 )
 

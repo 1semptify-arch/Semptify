@@ -59,3 +59,30 @@ register_function_group(
         allowed_prefixes=("/api/legal-intel",),
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="legal_intel",
+        group_name="legal_intel_records",
+        title="Legal Intel Record Management (SSOT)",
+        description=(
+            "CANONICAL ingest and browse of legal-intel records — entities, "
+            "attorneys, cases, docket entries, and relationships — sourced "
+            "from public records. Operator workbench data, never tenant "
+            "documents."
+        ),
+        inputs=("entity?", "attorney?", "case?", "docket?", "relationship?"),
+        outputs=("record",),
+        dependencies=("app.modules.legal_intel.router",),
+        deterministic=True,
+        tier="T1",
+        allowed_routes=(
+            "/api/legal-intel/entities",
+            "/api/legal-intel/attorneys",
+            "/api/legal-intel/cases",
+            "/api/legal-intel/cases/{case_id}/dockets",
+            "/api/legal-intel/relationships",
+        ),
+        allowed_prefixes=("/api/legal-intel",),
+    )
+)
