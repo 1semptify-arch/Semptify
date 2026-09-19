@@ -4159,20 +4159,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return False
 
     async def _needs_provisioning(db: AsyncSession, user_id: str | None) -> bool:
-        """True when FINALE passed but role-home vault provisioning isn't done.
+        """True when FINALE passed and a runnable provisioning step remains.
 
         Post-onboarding: folders/configs finish installing at the role home,
-        chunked and resumable. Never raises — a gate-read failure hides the
-        banner rather than blocking the home.
+        chunked and resumable. Pending (not-yet-built) steps don't count —
+        the banner settles when nothing runnable is left and returns on its
+        own when a queued step lands. Never raises — a read failure hides
+        the banner rather than blocking the home.
         """
-        if not user_id:
-            return False
         try:
-            from app.modules.onboarding.gates import check_gate
+            from app.services.vault_provisioning import needs_run
 
-            if not await check_gate(db, user_id, "document_uploaded"):
-                return False
-            return not await check_gate(db, user_id, "vault_provisioned")
+            return await needs_run(db, user_id)
         except Exception:  # pylint: disable=broad-exception-caught
             return False
 
