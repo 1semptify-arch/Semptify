@@ -41,6 +41,9 @@ TOKEN_BACKUP = f"{AUTH_FOLDER}/token.enc.backup"
 DEVICE_KEYS_FILE = f"{AUTH_FOLDER}/device_keys.json"
 PROVISIONING_FILE = f"{AUTH_FOLDER}/provisioning.json"
 REHOME_FILE = f"{AUTH_FOLDER}/rehome.json"
+# Device-reconnection page at the Semptify root — the file a tenant clicks
+# on a new device to re-sync their vault. Belongs with folder creation.
+REHOME_HTML_FILE = f"{SEMPTIFY_ROOT}/Rehome.html"
 README_FILE = f"{VAULT_FOLDER}/README.md"
 VAULT_MANIFEST = f"{VAULT_FOLDER}/manifest.json"
 EXPERIENCE_TOKEN_FILE = f"{VAULT_FOLDER}/experience_token.json"
