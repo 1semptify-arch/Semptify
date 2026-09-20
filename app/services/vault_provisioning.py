@@ -50,55 +50,20 @@ _STEP_GATES = {
 _PENDING_STEPS: set[str] = set()  # all current steps implemented
 PROVISION_STEPS = tuple(_STEP_GATES)
 
-# Full working set: canonical folder tree + the data-anchor directories
-# every anchor file needs (journal.json lives in journal/, etc.). Onboarding
+# The eager working set comes from the folder-requirements registry —
+# app/core/vault_folder_requirements.py is the SSOT for which folders are
+# provisioned at setup (eager) vs created on first use (lazy). Onboarding
 # creates only its own spec's subset; this superset is provisioned here —
 # the role_configs/*.json onboarding specs stay untouched.
-_WORKING_SET_FOLDERS = [
-    vp.VAULT_DOCUMENTS,
-    vp.VAULT_CERTIFICATES,
-    vp.VAULT_TIMELINE,
-    vp.VAULT_JOURNAL,
-    vp.VAULT_LEDGER,
-    vp.VAULT_CALENDAR,
-    vp.VAULT_CONTACTS,
-    vp.VAULT_RECORDS,
-    vp.VAULT_DERIVED,
-    vp.VAULT_EXTERNAL,
-    vp.VAULT_SCRATCHPAD,
-    vp.VAULT_OVERLAYS,
-    vp.VAULT_OVERLAY_DOCUMENTS,
-    vp.VAULT_OVERLAY_QUERIES,
-    vp.VAULT_OVERLAYS_FORMS,
-    vp.VAULT_OVERLAY_REDACTIONS,
-    vp.VAULT_FILEDORED,
-    vp.VAULT_FILEDORED_PDF,
-    vp.VAULT_FILEDORED_WORD,
-    vp.VAULT_FILEDORED_TEXT,
-    vp.VAULT_FILEDORED_SPREADS,
-    vp.VAULT_FILEDORED_PRESENTS,
-    vp.VAULT_FILEDORED_SCANS,
-    vp.VAULT_FILEDORED_DUPLICATES,
-    vp.VAULT_FILEDORED_OTHER,
-    vp.VAULT_FILEDORED_AI,
-    vp.VAULT_FILEDORED_AI_LEASE,
-    vp.VAULT_FILEDORED_AI_NOTICE,
-    vp.VAULT_FILEDORED_AI_EVIDENCE,
-    vp.VAULT_FILEDORED_AI_PHOTO,
-    vp.VAULT_FILEDORED_AI_INVOICE,
-    vp.VAULT_FILEDORED_AI_COMM,
-    vp.VAULT_FILEDORED_AI_UNKNOWN,
-]
-
-
 def _provisioning_folder_spec(role_type: str | None) -> VaultFolderSpec:
-    """Full working set + the role's own product folders (deduped)."""
+    """Eager requirements + the role's own product folders (deduped)."""
+    from app.core.vault_folder_requirements import eager_folders
     from app.modules.onboarding.role_config import vault_spec_for_role
 
     role_spec = vault_spec_for_role(role_type or "tenant")
     merged: list[str] = []
     seen: set[str] = set()
-    for path in _WORKING_SET_FOLDERS + list(role_spec.product_folders):
+    for path in eager_folders() + list(role_spec.product_folders):
         if path not in seen:
             seen.add(path)
             merged.append(path)
