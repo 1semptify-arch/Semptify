@@ -313,7 +313,7 @@ async def update_event(user: UserContext, event_id: str, fields: dict) -> Simple
     def work(conn):
         conn.row_factory = _dict_factory
         cur = conn.execute(
-            f"UPDATE calendar_events SET {', '.join(updates)} WHERE id = ?",
+            f"UPDATE calendar_events SET {', '.join(updates)} WHERE id = ?",  # nosec B608 — updates contain only whitelisted _EVENT_COLUMNS keys as `key = ?`; values are parameterized
             params,
         )
         if cur.rowcount == 0:
@@ -363,7 +363,7 @@ async def existing_link_keys(user_id: str, sources: tuple[str, ...]) -> set[str]
 
     def work(conn):
         rows = conn.execute(
-            f"SELECT DISTINCT linked_record_id FROM calendar_events"
+            f"SELECT DISTINCT linked_record_id FROM calendar_events"  # nosec B608 — placeholders are generated `?` marks; source values are parameterized
             f" WHERE source IN ({placeholders}) AND linked_record_id IS NOT NULL",
             list(sources),
         ).fetchall()
@@ -388,7 +388,7 @@ async def delete_source_events(user_id: str, sources: tuple[str, ...]) -> int:
 
     def work(conn):
         cur = conn.execute(
-            f"DELETE FROM calendar_events WHERE source IN ({placeholders})",
+            f"DELETE FROM calendar_events WHERE source IN ({placeholders})",  # nosec B608 — placeholders are generated `?` marks; source values are parameterized
             list(sources),
         )
         return cur.rowcount
