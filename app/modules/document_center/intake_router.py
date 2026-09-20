@@ -15,6 +15,7 @@ written silently.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 
@@ -108,20 +109,16 @@ async def intake_start(body: StartBody, request: Request) -> JSONResponse:
     if content is None:
         return JSONResponse(status_code=422, content={"error": "content_unavailable"})
 
-    try:
-        session = await intake_ocr.start_intake(
-            user_id=user_id,
-            vault_id=doc.vault_id,
-            filename=doc.filename,
-            storage_ref=doc.storage_path,
-            content=content,
-            storage=storage,
-        )
-    except VaultDbError as exc:
-        return JSONResponse(
-            status_code=409,
-            content={"error": "vault_db_missing", "detail": str(exc)},
-        )
+    # Register the session now and return it status=processing — the client
+    # watches the document while the pipeline runs in a background task and
+    # polls GET /{session_id} as regions and fields resolve (Pass 0).
+    session = intake_ocr.create_pending_session(
+        user_id=user_id,
+        vault_id=doc.vault_id,
+        filename=doc.filename,
+        storage_ref=doc.storage_path,
+    )
+    asyncio.create_task(intake_ocr.run_intake_pipeline(session, content, storage))
     return JSONResponse(session.to_dict())
 
 

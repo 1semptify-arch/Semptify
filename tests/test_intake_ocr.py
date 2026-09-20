@@ -6,9 +6,11 @@ import zipfile
 
 import pytest
 
+from app.core.document_types import DOCUMENT_TYPES
 from app.core.vault_paths import VAULT_DB_FILE
 from app.sdk.vault import db as vault_db
-from app.services import intake_ocr
+from app.services import intake_ocr, intake_segmentation
+from app.services.ocr_service import WordBox
 
 
 class FakeStorageProvider:
@@ -125,6 +127,98 @@ def test_session_proposes_every_checklist_field():
     assert rent.source_span_key
     # Brad's rule: nothing is pre-answered
     assert all(f.answer is None for f in session.fields)
+
+
+# ---------------------------------------------------------------------------
+# Pass 0 — segmentation, ranking, staged extraction
+# ---------------------------------------------------------------------------
+
+
+def test_segment_text_blocks_char_spans():
+    regions = intake_segmentation.segment(LEASE_TEXT, None, True)
+    assert len(regions) >= 3
+    assert all(r.char_span for r in regions)
+    # Spans tile the document without overlap and keep order.
+    spans = sorted(r.char_span for r in regions)
+    assert spans[0][0] == 0
+    for (a_end, _), (b_start, _) in zip(spans, spans[1:]):
+        assert b_start >= a_end
+
+
+def test_segment_word_boxes_clusters_lines():
+    boxes = [
+        WordBox("Lease", 10, 10, 40, 10, page=0),
+        WordBox("Agreement", 60, 10, 60, 10, page=0),
+        WordBox("Rent", 10, 60, 30, 10, page=0),   # big gap -> new block
+        WordBox("$1,250", 50, 60, 50, 10, page=0),
+    ]
+    regions = intake_segmentation.segment("", boxes, False)
+    assert len(regions) == 2
+    first = regions[0]
+    assert first.bbox == {"left": 10, "top": 10, "width": 110, "height": 10}
+    assert first.word_indices == [0, 1]
+    assert "Agreement" in first.text
+
+
+def test_rank_regions_passes_and_manual_review():
+    regions = [
+        intake_segmentation.Region(
+            region_id="r1", label="b1",
+            text="Monthly Rent: $1,250.00 due on the first of each month.",
+        ),
+        intake_segmentation.Region(region_id="r2", label="b2", text="zz qx vwf tplm"),
+    ]
+    intake_segmentation.rank_regions(regions, DOCUMENT_TYPES["lease"])
+    assert regions[0].confidence > 0
+    assert regions[0].pass_number == 1
+    assert regions[1].pass_number == intake_segmentation.PASS_CAP
+    intake_segmentation.finalize_region_status(regions)
+    # Signaled data but nothing resolved -> flagged for a look.
+    assert regions[0].status == "manual_review"
+    # Zero signal was never a data candidate -> settles quietly, no flag.
+    assert regions[1].status == "no_data"
+
+
+def test_build_session_tags_region_provenance():
+    session = _fresh_session()
+    attributed = [f for f in session.fields if f.region_id]
+    assert attributed  # at least one proposal came out of a region
+    for f in attributed:
+        assert 1 <= f.pass_number <= intake_segmentation.PASS_CAP
+        region = next(r for r in session.regions if r.region_id == f.region_id)
+        assert f.name in region.field_names
+        assert region.status == "resolved"
+
+
+def test_pending_session_lifecycle():
+    session = intake_ocr.create_pending_session(
+        user_id="u1", vault_id="docX", filename="scan.png", storage_ref="ref"
+    )
+    assert session.status == "processing"
+    assert session.to_dict()["status"] == "processing"
+    assert intake_ocr.get_session(session.session_id) is session
+
+
+@pytest.mark.anyio
+async def test_pipeline_marks_ready_with_regions():
+    storage = FakeStorageProvider()
+    await _seed_vault(storage)
+    session = intake_ocr.create_pending_session(
+        user_id="u1",
+        vault_id="doc1",
+        filename="lease.docx",
+        storage_ref="Semptify5.0/Vault/documents/lease.docx",
+    )
+    await intake_ocr.run_intake_pipeline(
+        session, _docx_bytes(LEASE_TEXT), storage
+    )
+    assert session.status == "ready"
+    assert session.doc_type == "lease"
+    assert session.regions
+    assert session.fields
+    # overlay creation is attempted explicitly — FakeStorage may not support
+    # the overlay folders, but the session must record the outcome either way.
+    assert session.overlay_status in ("created", "error")
 
 
 # ---------------------------------------------------------------------------

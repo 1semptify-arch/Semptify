@@ -1582,14 +1582,65 @@
         uploadSubmit.disabled = true;
     }
 
+    // Show the picked file on the work surface while upload + intake run —
+    // the spec's live-intake rule: the user watches their document, not a
+    // modal spinner. Images get the overlay wrapper so Pass 0 regions can
+    // paint on the same layer once the session resolves; everything else
+    // previews through the browser's native renderer.
+    function previewLocalFile(file) {
+        const url = URL.createObjectURL(file);
+        const container = document.getElementById('dcPdfContainer');
+        const empty = document.getElementById('dcViewerEmpty');
+        const iframe = document.getElementById('dcIframeFallback');
+        const imageContainer = document.getElementById('dcImageContainer');
+        if (empty) empty.style.display = 'none';
+        if (iframe) iframe.style.display = 'none';
+        if (imageContainer) imageContainer.style.display = 'none';
+        if (file.type && file.type.startsWith('image/')) {
+            container.style.display = 'flex';
+            container.style.position = 'relative';
+            container.innerHTML = '';
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            wrapper.style.maxWidth = '100%';
+            wrapper.style.background = 'var(--zone-surface-inverse)';
+            const img = document.createElement('img');
+            img.src = url;
+            img.style.display = 'block';
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.draggable = false;
+            wrapper.appendChild(img);
+            const overlay = document.createElement('div');
+            overlay.className = 'dc-image-overlay';
+            overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
+            wrapper.appendChild(overlay);
+            container.appendChild(wrapper);
+        } else {
+            container.style.display = 'none';
+            if (iframe) { iframe.style.display = ''; iframe.src = url; }
+        }
+    }
+
+    function showIntakeStripNote(title, text) {
+        const strip = document.getElementById('dcFieldWalk');
+        if (!strip) return;
+        strip.hidden = false;
+        strip.innerHTML = '<div class="dc-fieldcard"><div class="dc-fieldcard-label">' + escapeHtml(title) + '</div><div class="dc-fieldcard-value">' + escapeHtml(text) + '</div></div>';
+    }
+
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!selectedFile) return;
-        uploadSubmit.disabled = true;
-        uploadSubmit.textContent = 'Uploading…';
-        uploadStatus.textContent = '';
+        const file = selectedFile;
+        // The work surface takes over immediately — document visible while
+        // the upload posts, then the intake session drives the strip.
+        uploadModal.style.display = 'none';
+        resetUpload();
+        previewLocalFile(file);
+        showIntakeStripNote('Uploading', 'Your document is on its way to your vault — then Semptify starts reading it.');
         const fd = new FormData();
-        fd.append('file', selectedFile);
+        fd.append('file', file);
         fd.append('user_id', (document.cookie.match(/(^|; )semptify_uid=([^;]+)/) || [,'',''])[2] || 'anon');
         fd.append('username', 'tenant');
         fd.append('storage_provider', 'local');
@@ -1603,16 +1654,13 @@
             if (!r.ok) throw new Error(data.detail || data.message || 'HTTP ' + r.status);
 
             if (data.error === 'reconnect_required' || data.error === 'token_expired' || data.error === 'storage_required') {
+                uploadModal.style.display = 'flex';
                 uploadStatus.innerHTML = '<span style="color:var(--color-warning-800);">' + escapeHtml(data.message || 'Storage needs reconnecting.') + '</span> <a href="/storage/reconnect?return_to=/dc" class="frame-btn" style="margin-left:0.5rem;">Reconnect</a>';
                 uploadSubmit.disabled = false;
                 uploadSubmit.textContent = 'Upload';
                 return;
             }
 
-            uploadStatus.textContent = 'Uploaded.';
-            uploadModal.style.display = 'none';
-            resetUpload();
-            uploadSubmit.textContent = 'Upload';
             await loadDocs();
             await loadUnlocks();
             const newDocId = data.vault_id || data.id;
@@ -1621,9 +1669,8 @@
                 if (uploadedDoc) await selectDoc(uploadedDoc);
             }
         } catch (err) {
-            uploadStatus.textContent = 'Upload failed: ' + (err.message || 'unknown error');
-            uploadSubmit.disabled = false;
-            uploadSubmit.textContent = 'Upload';
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Upload failed: ' + (err.message || 'unknown error'));
+            showIntakeStripNote('Upload failed', (err.message || 'Something went wrong — the document did not reach your vault. Try again.'));
         }
     });
 
@@ -1707,9 +1754,29 @@
     // can't start (local doc, unprovisioned vault), the checklist walk
     // below stays as the fallback — same strip, same controls.
 
+    let intakePollTimer = null;
+
+    function stopIntakePoll() {
+        if (intakePollTimer) { clearInterval(intakePollTimer); intakePollTimer = null; }
+    }
+
+    async function pollIntake() {
+        if (!intakeSession || intakeSession.status !== 'processing') { stopIntakePoll(); return; }
+        try {
+            const r = await fetch('/api/dc/intake/' + encodeURIComponent(intakeSession.session_id), { credentials: 'include' });
+            if (!r.ok) { stopIntakePoll(); intakeSession = null; renderFieldWalk(); return; }
+            intakeSession = await r.json();
+            renderRegions();
+            renderFieldWalk();
+            if (intakeSession.status !== 'processing') stopIntakePoll();
+        } catch (e) { /* transient — keep polling */ }
+    }
+
     async function startIntake(doc) {
+        stopIntakePoll();
         intakeSession = null;
         intakeWordBoxes = null;
+        document.querySelectorAll('.dc-region').forEach(el => el.remove());
         const state = fieldConfirmState[doc.id] || {};
         if (state.manual_status === 'verified') return;  // already finalized
         try {
@@ -1721,8 +1788,13 @@
             });
             if (!r.ok) return;
             const session = await r.json();
-            if (session && Array.isArray(session.fields) && session.fields.length) {
-                intakeSession = session;
+            intakeSession = session;
+            renderRegions();
+            renderFieldWalk();
+            if (session.status === 'processing') {
+                intakePollTimer = setInterval(pollIntake, 1500);
+            } else if (!session.fields || !session.fields.length) {
+                intakeSession = null;
             }
         } catch (e) { /* silent — fallback walk handles it */ }
     }
@@ -1815,6 +1887,54 @@
         await answerIntakeField(doc, field, 'edit', input);
     }
 
+    // --- Pass 0 region painting -------------------------------------------
+    // Regions arrive on the session as the segmentation passes run. Those
+    // with bounding boxes paint onto the same overlay layer the field
+    // highlights use — pending regions show a neutral outline, resolved
+    // ones calm green, and anything flagged for manual review amber.
+    // The original document is never touched; this draws on the overlay.
+
+    function renderRegions() {
+        document.querySelectorAll('.dc-region').forEach(el => el.remove());
+        if (!intakeSession || !Array.isArray(intakeSession.regions)) return;
+        const overlay = document.querySelector('#dcViewer .dc-image-overlay');
+        if (!overlay) return;
+        const img = overlay.parentElement ? overlay.parentElement.querySelector('img') : null;
+        if (!img || !img.naturalWidth) return;
+        const scaleX = overlay.clientWidth / img.naturalWidth;
+        const scaleY = overlay.clientHeight / img.naturalHeight;
+        intakeSession.regions.forEach(region => {
+            if (!region.bbox || region.status === 'no_data') return;
+            const el = document.createElement('div');
+            el.className = 'dc-region dc-region--' + (region.status || 'pending');
+            el.title = region.label + (region.status === 'manual_review' ? ' — needs a look' : '');
+            el.style.cssText = 'position:absolute;pointer-events:none;border-radius:3px;'
+                + 'left:' + (region.bbox.left * scaleX) + 'px;top:' + (region.bbox.top * scaleY) + 'px;'
+                + 'width:' + Math.max(region.bbox.width * scaleX, 8) + 'px;height:' + Math.max(region.bbox.height * scaleY, 8) + 'px;';
+            overlay.appendChild(el);
+        });
+    }
+
+    function renderIntakeProgress(strip) {
+        const card = document.createElement('div');
+        card.className = 'dc-fieldcard';
+        const regions = intakeSession.regions || [];
+        const resolved = regions.filter(r => r.status === 'resolved').length;
+        card.innerHTML = '<div class="dc-fieldcard-label">Reading your document</div>' +
+            '<div class="dc-fieldcard-value">Semptify is checking the page in passes — details to confirm will appear here.</div>' +
+            (regions.length ? '<div class="shell-note" style="font-size:0.75rem;">' + resolved + ' of ' + regions.length + ' areas read so far</div>' : '');
+        strip.appendChild(card);
+    }
+
+    function renderIntakeError(strip) {
+        const card = document.createElement('div');
+        card.className = 'dc-fieldcard';
+        card.innerHTML = '<div class="dc-fieldcard-label">Reading stopped</div>' +
+            '<div class="dc-fieldcard-value">' + escapeHtml(intakeSession.status_detail || 'Semptify could not finish reading this document.') + '</div>' +
+            '<div class="shell-note" style="font-size:0.75rem;">The document is safe in your vault — you can reopen it to try again.</div>';
+        strip.appendChild(card);
+    }
+
     function renderIntakeWalk(strip, doc) {
         const fields = intakeSession.fields;
         const answered = fields.filter(f => f.answer).length;
@@ -1825,6 +1945,19 @@
         counter.className = 'dc-fieldcard-count';
         counter.textContent = answered + ' of ' + fields.length + ' confirmed';
         strip.appendChild(counter);
+
+        if (intakeSession.manual_review_count) {
+            const flag = document.createElement('div');
+            flag.className = 'dc-fieldcard-more';
+            flag.textContent = intakeSession.manual_review_count + ' area' + (intakeSession.manual_review_count === 1 ? '' : 's') + ' on the page need a look — outlined in amber.';
+            strip.appendChild(flag);
+        }
+        if (intakeSession.overlay_status === 'error') {
+            const ow = document.createElement('div');
+            ow.className = 'dc-fieldcard-more';
+            ow.textContent = 'The region overlay could not be saved — your review still works; reopen the document to retry saving it.';
+            strip.appendChild(ow);
+        }
 
         if (!pending.length) {
             const card = document.createElement('div');
@@ -1911,6 +2044,8 @@
         if (!doc) { strip.hidden = true; return; }
         if (intakeSession && intakeSession.vault_id === doc.id) {
             strip.hidden = false;
+            if (intakeSession.status === 'processing') { renderIntakeProgress(strip); return; }
+            if (intakeSession.status === 'error') { renderIntakeError(strip); return; }
             renderIntakeWalk(strip, doc);
             return;
         }
