@@ -15378,3 +15378,37 @@ Pass 0 segments the extracted structure, which still satisfies
 ranking/passes/manual-review. Whether unresolved regions block finalize
 wasn't specified — they don't today (regions flag; fields still require
 individual answers).
+
+## Session — 2026-09-20 — Provisioning trigger on all role homes (devin)
+
+**Task:** `intake-vault-provisioning` — mount the post-FINALE provisioning
+banner on every role home, not just the tenant's.
+
+**Gap found:** the trigger (`provisioning_status.html` + `vault_provisioning.js`
++ `/api/vault/provision/*`) existed but was only included on
+`tenant_home_next.html`. All roles share START→FINALE (`document_uploaded`),
+so advocates, legal, admin, manager, researcher, agency, developer, and
+donor-supporter homes never drove provisioning — a non-tenant's vault
+would stay unprovisioned and `/api/dc/intake/start` would 409 forever.
+
+**What shipped**
+
+- `main.py` — `needs_provisioning` added to render contexts:
+  `advocate_page` + `legal_page` (gained `db` dep), `advocate_home`,
+  `legal_home`, `admin_home_page`, `manager_portal_page`.
+  `_role_home_or_setup` already supplied it for the shared homes.
+- Templates gained `{% if needs_provisioning %}{% include
+  "components/provisioning_status.html" %}{% endif %}` after the hero:
+  `role_home_shared.html`, `advocate.html`, `legal.html`,
+  `admin_home.html`, `manager_dashboard.html`. The component self-hides
+  when `status.applicable` is false, so mounting is safe even where the
+  flag is absent.
+- `role_home_setup.html` correctly untouched — pre-FINALE pages can't
+  provision.
+
+**Verified:** py_compile clean; Jinja compiles all 6 touched templates;
+253/253 tests pass (`test_ssot_architecture` + `module_health`); app boots
+on :8002; all role-home routes respond (302 auth-gated, admin gateway 200
+renders clean with banner correctly absent for anon). **Not verified:**
+authenticated browser pass (IronBee MCP unavailable); real provisioning
+run on a live provider (needs tenant OAuth token).
