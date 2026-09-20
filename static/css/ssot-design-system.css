@@ -2571,6 +2571,26 @@ body.shell--dc .dc-viewer {
   position: relative;
 }
 
+/* Pass 0 intake regions — outlines painted on the overlay copy, never the
+   original. Pending = quiet calm outline, resolved = success, manual
+   review = amber so it reads as "needs your eyes", not an error. */
+body.shell--dc .dc-region {
+  outline: 1.5px dashed var(--color-calm-400);
+  background: color-mix(in srgb, var(--color-calm-100) 25%, transparent);
+}
+body.shell--dc .dc-region--resolved {
+  outline: 1.5px solid var(--color-success-800);
+  background: color-mix(in srgb, var(--color-success-50) 35%, transparent);
+}
+body.shell--dc .dc-region--pending {
+  outline: 1.5px dashed var(--color-calm-400);
+  background: color-mix(in srgb, var(--color-calm-100) 25%, transparent);
+}
+body.shell--dc .dc-region--manual_review {
+  outline: 1.5px dashed var(--color-warning-800);
+  background: color-mix(in srgb, var(--color-warning-50) 45%, transparent);
+}
+
 /* Detail tabs — overlays / checklist / meaning ride at the bottom edge
    of the surface, a fixed-height region that scrolls internally. */
 body.shell--dc .dc-detail {
@@ -2747,6 +2767,18 @@ body.shell .fnav {
   background: var(--bg-card, #ffffff);
   border: 2px solid var(--role-accent);
   box-sizing: border-box;
+}
+
+/* Step-intent sentence — "You upload a document." Rendered when the stage
+   carries grammar fields (subject/verb/object); the rail reads as one
+   sentence instead of a bare label. */
+.fnav__intent {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--shell-ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Rail buttons share one base; variants set the weight of the voice. */

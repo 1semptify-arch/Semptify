@@ -19,10 +19,17 @@ What is honestly generic (FGC has no data for it):
   ui_state_change/notification output types)
 - narrative_events: empty — verbs cannot be derived from FGC data
 
+flow: derived from ContractStage grammar fields (subject/verb/object/
+next_condition/ui_component). A stage contributes a flow step only when it
+carries the full sentence (subject + verb + object all set).
+
 Usage (from module root, venv311):
     python tools/derive_module_contracts.py --dry-run          # report only
     python tools/derive_module_contracts.py --only journal vault
     python tools/derive_module_contracts.py --write            # all eligible
+    python tools/derive_module_contracts.py --sync-flow intake # update only the
+                                                             # flow key in an
+                                                             # existing contract
 """
 
 from __future__ import annotations
@@ -40,6 +47,33 @@ MODULES_DIR = MODULE_ROOT / "app" / "modules"
 
 def humanize(dirname: str) -> str:
     return dirname.replace("_", " ").replace("-", " ").title()
+
+
+def derive_flow(groups: list) -> list[dict]:
+    """Build the module-level `flow` list from grammar-carrying stages.
+
+    A stage becomes a flow step only when the full sentence is declared
+    (subject + verb + object). Steps are numbered in registration order
+    across the module's function groups; group_name records provenance.
+    """
+    flow: list[dict] = []
+    for g in groups:
+        for s in g.stages:
+            if not (s.subject and s.verb and s.object):
+                continue
+            flow.append(
+                {
+                    "step": len(flow) + 1,
+                    "id": s.id,
+                    "subject": s.subject,
+                    "verb": s.verb,
+                    "object": s.object,
+                    "ui_component": s.ui_component or None,
+                    "next_condition": s.next_condition or None,
+                    "group_name": g.group_name,
+                }
+            )
+    return flow
 
 
 def derive(module_dir: Path, groups: list) -> dict:
@@ -106,6 +140,7 @@ def derive(module_dir: Path, groups: list) -> dict:
             f"routes and dependencies."
         ),
         "narrative_events": [],
+        "flow": derive_flow(groups),
     }
 
 
@@ -114,6 +149,12 @@ def main() -> int:
     ap.add_argument("--write", action="store_true", help="write files (default: dry run)")
     ap.add_argument("--dry-run", action="store_true", help="report only (default)")
     ap.add_argument("--only", nargs="*", default=None, help="limit to module dirs")
+    ap.add_argument(
+        "--sync-flow",
+        nargs="*",
+        default=None,
+        help="update only the `flow` key in existing module_contract.json files",
+    )
     args = ap.parse_args()
 
     from app.core.contract_loader import load_all_contracts
@@ -124,6 +165,42 @@ def main() -> int:
     by_module: dict[str, list] = {}
     for c in contract_registry.list_contracts():
         by_module.setdefault(c.module, []).append(c)
+
+    if args.sync_flow is not None:
+        synced, unchanged, errors = [], [], []
+        for module_dir in sorted(MODULES_DIR.iterdir()):
+            if not module_dir.is_dir():
+                continue
+            mod = module_dir.name
+            if args.sync_flow and mod not in args.sync_flow:
+                continue
+            target = module_dir / "module_contract.json"
+            if not target.exists():
+                errors.append((mod, "no module_contract.json to sync"))
+                continue
+            groups = by_module.get(mod, [])
+            data = json.loads(target.read_text(encoding="utf-8"))
+            flow = derive_flow(groups)
+            if data.get("flow") == flow:
+                unchanged.append(mod)
+                continue
+            data["flow"] = flow
+            try:
+                ModuleContract.model_validate(data)
+            except Exception as exc:
+                errors.append((mod, f"synced contract fails schema: {exc}"))
+                continue
+            target.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+            synced.append(mod)
+        print(f"flow synced: {len(synced)}  unchanged: {len(unchanged)}  errors: {len(errors)}")
+        for m in synced:
+            print(f"  SYNCED {m}")
+        for m, why in errors:
+            print(f"  ERROR  {m}: {why}")
+        return 1 if errors else 0
 
     written, skipped, would_write = [], [], []
     for module_dir in sorted(MODULES_DIR.iterdir()):

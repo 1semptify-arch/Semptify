@@ -98,6 +98,23 @@ class NarratorEvent(BaseModel):
         return v
 
 
+class FlowStep(BaseModel):
+    """One sentence of a module's paragraph — the grammar-to-UI step.
+
+    Derived from FunctionGroupContract.stages (ContractStage grammar fields),
+    never hand-authored. One module = one paragraph = one primary task.
+    """
+
+    step: int = Field(..., ge=1)
+    id: str = Field(..., min_length=1)
+    subject: str = Field(..., min_length=1)  # actor: user / system / role name
+    verb: str = Field(..., min_length=1)  # present-tense snake_case, one verb
+    object: str = Field(..., min_length=1)  # data/artifact, not the component
+    ui_component: str | None = None
+    next_condition: str | None = None
+    group_name: str | None = None  # which FunctionGroupContract declared this step
+
+
 class ModuleContract(BaseModel):
     """Part 1 build contract for a module/function.
 
@@ -107,6 +124,8 @@ class ModuleContract(BaseModel):
 
     module_name: str = Field(..., min_length=1)
     layout: str = Field(..., min_length=1)
+
+    flow: list[FlowStep] = Field(default_factory=list)
 
     inputs: list[ModuleContractInput] = Field(default_factory=list)
     input_audit: list[ModuleContractInputAudit] = Field(default_factory=list)

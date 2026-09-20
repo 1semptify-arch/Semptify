@@ -103,6 +103,9 @@
         
         <a href="/home" class="back-link">← Back to main home</a>
     </div>
+{% if needs_provisioning %}
+  {% include "components/provisioning_status.html" %}
+{% endif %}
 {% endblock %}
 {% block scripts %}
 <script>
