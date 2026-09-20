@@ -1,3 +1,9 @@
+## Session — 2026-09-19 — Transparency Feed blueprint drafted, build parked (devin)
+
+- `docs/blueprints/transparency_feed_blueprint.md` — DRAFT blueprint for a GOVERN-pillar, DEV-tier runtime transparency feed: in-memory ring buffer of plain-English narration entries (request lifecycle via dedicated middleware, EventBus domain-event mirroring, browser echoes), live admin-only `/transparency` page over SSE, `TRANSPARENCY_FEED` env kill switch (`off` default — zero overhead), T0-only data (no PII/user IDs/query strings/bodies; token-like path segments masked).
+- Brad's call 2026-09-19: blueprint saved, **build parked — return later.** Not approved yet; do not implement until he approves.
+- Queued in master orchestrator as `transparency-feed-build` (deferred).
+
 ## Session — 2026-09-18 — Three donor ports shipped (devin): Dakota wizard, PMAS FOIA, legal-intel
 
 ### What shipped
