@@ -38,6 +38,10 @@
     </nav>
 </section>
 
+{% if needs_provisioning %}
+  {% include "components/provisioning_status.html" %}
+{% endif %}
+
 {% if surfacing and surfacing.sections %}
 <section class="shell-zone" aria-labelledby="legal-surfacing">
     <h2 id="legal-surfacing" class="shell-zone-title">Where everything lives</h2>

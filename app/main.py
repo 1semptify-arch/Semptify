@@ -2510,7 +2510,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         user_id = extract_user_id(request)
         if user_id and get_role_from_user_id(user_id) == "admin" and await _needs_vault_setup(db, user_id):
             return _role_setup_page(request, "admin")
-        return templates.TemplateResponse(request, "pages/admin_home.html")
+        return templates.TemplateResponse(
+            request,
+            "pages/admin_home.html",
+            {"needs_provisioning": await _needs_provisioning(db, user_id)},
+        )
 
     # Admin guard - checks elevation cookie (time-limited TOTP-verified elevation)
     # Does NOT check OAuth role — elevation is separate from storage identity
@@ -2868,7 +2872,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return templates.TemplateResponse(
                     request,
                     "pages/manager_dashboard.html",
-                    {"surfacing": get_role_surfacing("manager")},
+                    {
+                        "surfacing": get_role_surfacing("manager"),
+                        "needs_provisioning": await _needs_provisioning(db, user_id),
+                    },
                 )
             except Exception as e:
                 logger.warning("Manager dashboard template error, falling back to static: %s", e)
@@ -5908,7 +5915,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/advocate", response_class=HTMLResponse)
     @fastapi_app.get("/advocate/", response_class=HTMLResponse)
-    async def advocate_page(request: Request):
+    async def advocate_page(request: Request, db: AsyncSession = Depends(get_db)):
         """Serve the advocate dashboard page."""
         guard_redirect = await _guard_role_page(request, {"advocate"})
         if guard_redirect:
@@ -5920,7 +5927,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return templates.TemplateResponse(
                     request,
                     "pages/advocate.html",
-                    {"surfacing": get_role_surfacing("advocate")},
+                    {
+                        "surfacing": get_role_surfacing("advocate"),
+                        "needs_provisioning": await _needs_provisioning(
+                            db, extract_user_id(request)
+                        ),
+                    },
                 )
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Advocate template error, falling back to static: %s", e)
@@ -6011,7 +6023,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         advocate_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_home.html"
         if advocate_home_template_path.exists():
             try:
-                return templates.TemplateResponse(request, "pages/advocate_home.html")
+                return templates.TemplateResponse(
+                    request,
+                    "pages/advocate_home.html",
+                    {"needs_provisioning": await _needs_provisioning(db, user_id)},
+                )
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Advocate home template error: %s", e)
 
@@ -6024,7 +6040,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/legal", response_class=HTMLResponse)
     @fastapi_app.get("/legal/", response_class=HTMLResponse)
-    async def legal_page(request: Request):
+    async def legal_page(request: Request, db: AsyncSession = Depends(get_db)):
         """Serve the legal dashboard page."""
         guard_redirect = await _guard_role_page(request, {"legal"})
         if guard_redirect:
@@ -6036,7 +6052,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return templates.TemplateResponse(
                     request,
                     "pages/legal.html",
-                    {"surfacing": get_role_surfacing("legal")},
+                    {
+                        "surfacing": get_role_surfacing("legal"),
+                        "needs_provisioning": await _needs_provisioning(
+                            db, extract_user_id(request)
+                        ),
+                    },
                 )
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Legal template error, falling back to static: %s", e)
@@ -6106,7 +6127,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         legal_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "legal_home.html"
         if legal_home_template_path.exists():
             try:
-                return templates.TemplateResponse(request, "pages/legal_home.html")
+                return templates.TemplateResponse(
+                    request,
+                    "pages/legal_home.html",
+                    {"needs_provisioning": await _needs_provisioning(db, user_id)},
+                )
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Legal home template error: %s", e)
 

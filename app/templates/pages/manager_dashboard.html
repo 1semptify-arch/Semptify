@@ -26,6 +26,10 @@
         </div>
     </header>
 
+    {% if needs_provisioning %}
+      {% include "components/provisioning_status.html" %}
+    {% endif %}
+
     <!-- Main Content -->
     <section class="dashboard-content">
         <!-- Stats Overview -->
