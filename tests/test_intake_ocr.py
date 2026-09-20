@@ -349,7 +349,7 @@ def test_migration_0002_rebuilds_documents_preserving_children(tmp_path, monkeyp
     # Restore the real migrations dir: reopening runs 0002 on the v1 file.
     monkeypatch.setattr(vault_db, "MIGRATIONS_DIR", real)
     conn = vault_db.open_local(path)
-    assert vault_db.schema_version(conn) == 2
+    assert vault_db.schema_version(conn) == 3
     assert conn.execute("SELECT COUNT(*) FROM document_fields").fetchone()[0] == 1
     assert conn.execute("SELECT COUNT(*) FROM documents").fetchone()[0] == 1
     # 'court_summons' (DC taxonomy, not in the handoff's 8) is now legal.

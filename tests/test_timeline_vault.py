@@ -1,4 +1,4 @@
-"""Functional tests for timeline event overlays in the user vault."""
+"""Functional tests for timeline events in the user vault SQLite store."""
 
 from datetime import timedelta
 from types import SimpleNamespace
@@ -16,7 +16,9 @@ class _FakeUser:
 
     def __init__(self, user_id: str):
         self.user_id = user_id
-        self.access_token = "token"
+        # Distinct token per user — each user's vault.db lives in their own
+        # storage, so per-token stores preserve tenant isolation.
+        self.access_token = f"token-{user_id}"
 
     def get_effective_user_id(self):
         return self.user_id
@@ -25,15 +27,19 @@ class _FakeUser:
 @pytest.fixture
 def store_env(monkeypatch):
     managers: dict[str, UnifiedOverlayManager] = {}
+    stores: dict[str, FakeStorageProvider] = {}
+
+    def _provider(_provider_value, access_token=None):
+        return stores.setdefault(access_token or "default", FakeStorageProvider())
 
     async def _manager(_storage, user_id):
         if user_id not in managers:
             managers[user_id] = UnifiedOverlayManager(FakeStorageProvider(), user_id)
         return managers[user_id]
 
-    monkeypatch.setattr(timeline_store, "get_provider", lambda *a, **k: object())
+    monkeypatch.setattr(timeline_store, "get_provider", _provider)
     monkeypatch.setattr(timeline_store, "get_unified_overlay_manager", _manager)
-    return managers
+    return stores
 
 
 @pytest.mark.asyncio

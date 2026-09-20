@@ -225,6 +225,34 @@ async def ensure_remote(storage) -> dict:
         shutil.rmtree(workdir, ignore_errors=True)
 
 
+async def read_remote(storage, work: Callable[[sqlite3.Connection], Any], default: Any = None) -> Any:
+    """Download vault.db, run ``work(conn)``, close — no upload.
+
+    The read counterpart to ``mutate_remote``: the file is pulled, opened
+    (pending migrations apply to the local copy only — they persist on the
+    next write), read, and discarded. Returns ``default`` when the file
+    does not exist (provisioning has not run — callers treat the domain
+    as simply empty, matching legacy failure semantics). A file that
+    exists but fails to open raises ``VaultDbError``.
+    """
+    workdir = Path(tempfile.mkdtemp(prefix="semptify_vaultdb_"))
+    local = workdir / VAULT_DB_FILENAME
+    try:
+        if not await storage.file_exists(VAULT_DB_FILE):
+            return default
+        local.write_bytes(await storage.download_file(VAULT_DB_FILE))
+        try:
+            conn = open_local(local)
+        except sqlite3.Error as exc:
+            raise VaultDbError(f"vault.db failed to open: {exc}") from exc
+        try:
+            return work(conn)
+        finally:
+            checkpoint_and_close(conn)
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
+
+
 async def mutate_remote(storage, work: Callable[[sqlite3.Connection], Any]) -> Any:
     """Download vault.db, run ``work(conn)``, checkpoint, re-upload.
 
@@ -280,3 +308,15 @@ async def mutate_remote(storage, work: Callable[[sqlite3.Connection], Any]) -> A
         return result
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
+
+
+async def mutate_remote_ensured(storage, work: Callable[[sqlite3.Connection], Any]) -> Any:
+    """``mutate_remote`` that first provisions vault.db when missing.
+
+    Live stores must keep working for users whose vault predates the
+    SQLite provisioning step — the first write lazily creates the file
+    via ``ensure_remote`` (idempotent verify-or-create), then mutates.
+    """
+    if not await storage.file_exists(VAULT_DB_FILE):
+        await ensure_remote(storage)
+    return await mutate_remote(storage, work)

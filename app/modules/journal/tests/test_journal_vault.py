@@ -126,8 +126,10 @@ async def test_get_entry_resolves_legacy_payload_id(storages):
         tags=None,
         document_link=None,
     )
+    # In the SQLite store the row id IS the payload id — lookups by either
+    # the view's overlay_id or the payload id resolve to the same row.
     legacy_id = created.payload["id"]
-    assert legacy_id != created.overlay_id
+    assert legacy_id == created.overlay_id
 
     fetched = await service.get_entry(user, legacy_id)
     assert fetched is not None
