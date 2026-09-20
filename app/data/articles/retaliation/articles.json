@@ -1,0 +1,33 @@
+{
+  "subject": "retaliation",
+  "articles": [
+    {
+      "id": "stats",
+      "kind": "statistical",
+      "title": "Retaliation: the numbers behind it",
+      "body": "Retaliation protections are widespread but under-used. Forty states plus the District of Columbia have statutes protecting tenants from retaliatory action, and at least four more states recognize the defense under common law — a legal doctrine that began with Edwards v. Habib (D.C. Cir. 1968), where a tenant reported more than 40 code violations and was served a 30-day notice to quit.\n\nHow often retaliation actually happens is hard to count — and the gap in the data is itself a finding. Most tenants appear in eviction court without a lawyer and rarely manage to raise a defense, and many others never contest at all. Studies of eviction courts summarized in legal scholarship paint a stark picture: an older California study found tenants prevailed in fewer than one percent of eviction cases; a San Diego tenant advocate estimated about 95 percent of tenants who contest their evictions lose anyway; and a Chicago study found tenants essentially always lost on the merits.\n\nA large survey of private renters in England found the pattern behind the silence: tenants who made a formal complaint to their local authority or a redress scheme had a 46 percent chance of receiving an eviction notice within six months, and evicted tenants were eight times more likely to have complained to a redress scheme. Meanwhile 44 percent of tenants who experienced a problem chose not to complain at all — fear of eviction or a rent increase was the main reason. That fear is exactly what retaliation laws exist to counter.\n\nIn Minnesota, the presumption window does measurable work: when an eviction, rent increase, or service cut lands within 90 days of a protected complaint, Minn. Stat. § 504B.441 puts the burden of proving it was NOT retaliatory on the landlord. After 90 days the burden shifts back to the tenant — which is why dates on the record matter so much.",
+      "sources": [
+        {"label": "Uniform Law Commission — URLTA retaliation provisions memorandum", "url": "https://www.uniformlaws.org"},
+        {"label": "Edwards v. Habib, 397 F.2d 687 (D.C. Cir. 1968)", "url": "https://law.justia.com/cases/federal/appellate-courts/F2/397/687/359942/"},
+        {"label": "Minn. Stat. § 504B.441 — retaliation presumption", "url": "https://www.revisor.mn.gov/statutes/cite/504B.441"},
+        {"label": "Citizens UK / ThinkHouse — Touch and Go: retaliatory eviction research", "url": "https://www.thinkhouse.org.uk"},
+        {"label": "Oklahoma Law Review — retaliatory eviction defense scholarship", "url": "https://digitalcommons.law.ou.edu/olr/"}
+      ],
+      "voice_gate": "passed",
+      "review_status": "BETA"
+    },
+    {
+      "id": "about",
+      "kind": "usage",
+      "title": "Retaliation: what it is and how the tracker helps",
+      "body": "Retaliation is when a landlord punishes a tenant for doing something the law protects — asking for repairs, calling a housing inspector, organizing with other tenants, or asserting a legal right. The punishment can be an eviction notice, a rent increase, cut services, threats, or a refusal to renew.\n\nWhat makes retaliation arguable is the record: proof the protected step happened, proof the landlord knew about it, and dates showing how close together the two events landed. In Minnesota, an eviction or penalty within 90 days of a protected complaint raises a presumption of retaliation — the landlord has to prove it wasn't. And under Central Housing v. Olson (Minn. 2019), even complaints made directly to the landlord — not just to a government agency — are protected under common law.\n\nSemptify's Retaliation Tracker works off the tenant's own timeline. They log protected actions (repair request, agency complaint, organizing) and adverse actions (eviction notice, rent hike, lockout) as they happen, attach the actual documents, and the tracker measures the gaps between them — flagging anything inside the presumption windows. An assessment view shows which pieces of the record exist and which are still missing, and recognized documents (a scanned eviction notice, a repair letter) get suggested as events to confirm.\n\nThe tracker reports what happened and when — it never decides 'this is retaliation.' That call belongs to a court or an attorney, and the tracker points users to legal aid when the record raises the question.",
+      "sources": [
+        {"label": "Central Housing Associates v. Olson, 929 N.W.2d 398 (Minn. 2019)", "url": "https://law.justia.com/cases/minnesota/supreme-court/2019/a17-1286.html"},
+        {"label": "Minn. Stat. § 504B.441 — retaliation presumption", "url": "https://www.revisor.mn.gov/statutes/cite/504B.441"},
+        {"label": "Robinson v. Diamond Housing Corp., 463 F.2d 853 (D.C. Cir. 1972)", "url": "https://www.courtlistener.com"}
+      ],
+      "voice_gate": "passed",
+      "review_status": "BETA"
+    }
+  ]
+}

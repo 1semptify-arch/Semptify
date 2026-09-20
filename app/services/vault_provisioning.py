@@ -9,7 +9,7 @@ Cloudflare (KF#5 — never more than ~20s of work per call).
 Steps, in order:
     folders   — verify/create the full working-set folder tree
     vault_db  — per-tenant SQLite datastore + embedded migrations
-                (queued: prov-vault-sqlite)
+                (app/services/vault_db.py → .semptify/vault/vault.db)
     configs   — per-role OCR + overlay config files
                 (queued: prov-role-configs)
 
@@ -29,7 +29,9 @@ from app.core.user_context import UserContext
 from app.core.user_id import get_role_from_user_id
 from app.modules.onboarding.gates import check_gate, mark_gate
 from app.sdk.vault import VaultClient
+from app.sdk.vault.db import ensure_remote
 from app.sdk.vault.folder_spec import BASE_VAULT, VaultFolderSpec
+from app.services.storage import get_provider
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +46,7 @@ _STEP_GATES = {
     "vault_db": "prov_vault_db",
     "configs": "prov_configs",
 }
-_PENDING_STEPS = {"vault_db", "configs"}
+_PENDING_STEPS = {"configs"}
 PROVISION_STEPS = tuple(_STEP_GATES)
 
 # Full working set: canonical folder tree + the data-anchor directories
@@ -157,6 +159,8 @@ async def run_step(db: AsyncSession, user: UserContext, step: str) -> dict:
         return {"success": True, "step": step, "state": "done", "skipped": True}
     if step == "folders":
         return await _run_folders(db, user)
+    if step == "vault_db":
+        return await _run_vault_db(db, user)
     return {"success": False, "error": "unhandled_step", "step": step}
 
 
@@ -196,3 +200,25 @@ async def _run_folders(db: AsyncSession, user: UserContext) -> dict:
         "state": "done",
         "folders_created": [f.path for f in result.succeeded],
     }
+
+
+async def _run_vault_db(db: AsyncSession, user: UserContext) -> dict:
+    """Step 2: create (or verify+migrate) the per-tenant vault SQLite file.
+
+    ensure_remote is idempotent: a missing file is created at the current
+    schema version; an existing file is downloaded, pending embedded
+    migrations applied, and re-uploaded only when its version advanced.
+    """
+    provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+    storage = get_provider(provider_name, access_token=user.access_token)
+    try:
+        result = await asyncio.wait_for(ensure_remote(storage), timeout=25.0)
+    except TimeoutError:
+        logger.error("Provisioning vault_db timed out for user %s", user.user_id[:6] + "***")
+        return {"success": False, "step": "vault_db", "error": "Timed out preparing vault database — retrying is safe"}
+    except Exception as e:
+        logger.error("Provisioning vault_db failed for user %s: %s", user.user_id[:6] + "***", e)
+        return {"success": False, "step": "vault_db", "error": str(e)}
+    await mark_gate(db, user.user_id, _STEP_GATES["vault_db"])
+    await _maybe_mark_provisioned(db, user.user_id)
+    return {"success": True, "step": "vault_db", "state": "done", **result}

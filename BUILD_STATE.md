@@ -1,3 +1,37 @@
+## Session — 2026-09-19 — Donate page repair + fact-check pass (devin)
+
+**Task `donate-page-factcheck-linkfix` → review.** All changes in `app/templates/public/donate.html` (standalone template, own inline nav/footer — known hardcoded-footer page).
+
+**Root-cause fix:** the `<!-- ====` banner before the Support section never closed — the first `-->` was inside `<!-- Donate -->` 11 lines later, so `<section id="support">`, its header, and the `.support-grid` wrapper were all commented out. The donate/GitHub Sponsors CTA never rendered and every `#support` anchor (nav CTA + 3 footer links) was dead. Banner comment now closes properly; section renders with `bg-alt` matching page rhythm.
+
+**Dead/broken links fixed:**
+- 2× `http://127.0.0.1:8001` "Funding Forge (Admin)" links → `github.com/1semptify-arch/Semptify/tree/main/funding_forge` (real, public).
+- `https://semptify.org` self-links → `/`; "Contact Us at semptify.org" → real `/contact` page.
+- Hero counter `data-format="3.6M"` was ignored by the counter JS (would have animated to 3,600,000) → corrected to `data-count="3.6" data-suffix="M" data-decimal="1"`.
+
+**Fact-check cards — wording + source links added (verified live):**
+- 3.6M filings/yr → Eviction Lab national estimates (https://evictionlab.org/national-estimates/). "One every nine seconds" math checks out.
+- 90%/10% representation → tightened to match NCCRC compiled stats (studied avg ~84% landlords / ~4% tenants; many courts 90%+). Source: NCCRC PDF on civilrighttocounsel.org.
+- Cost burden → corrected from "average American spends 30–50%" to JCHS actuals: 50% of renter households (22.6M) >30% income, 12.1M >50%, 83% of under-$30k renters burdened. Source: jchs.harvard.edu/americas-rental-housing-2024.
+- Habitability → HUD/Census American Housing Survey linked.
+- Disparity claim → Eviction Lab linked; wording tightened to the sourced disparity (Black renters, esp. Black women).
+
+**Cards linked to real routes:** all 6 pillar cards + all 11 feature cards now link to live public pages (/library, /legal-research, /portal, /advocacy, /complaints, /eviction-defense, /tools, /services). All named modules verified on disk (fems, litigation_intelligence, fraud_exposure, public_exposure, retaliation_tracker, court_forms, eviction_defense, complaints, law_library, case_builder, timeline, vault, funding_forge, r2.py).
+
+**Voice pass:** "evidence" → "record/documentation" in descriptive copy (FEMS proper noun kept); "They know how to win" → non win/lose wording. No "free"/account/pricing language introduced. No 501(c)(3) text exists on this page — none touched, none added.
+
+**No-dead-end rule:** page previously had zero path to real help — added nav "Get Help" → /help and a footer Site column (/about /services /library /help /contact /privacy /terms). Footer also gains GitHub Sponsors link.
+
+**Verified:** app import clean; local :8001 `/donate` 200; support section + Sponsor button render; 8 source links + 20 card links present; 0 localhost refs; all 7 `#` anchors resolve; HTML comments balanced; every linked internal route returns 200. Browser preview opened for Brad.
+
+**Follow-up (same session):** Brad reviewed and chose to cut the unattributed composite pull-quote ("I didn't know I had rights…") entirely rather than replace it — removed the block and its dead `.pull-quote` CSS. Re-verified: page 200, support section renders, comments balanced.
+
+**Module count correction (Brad decision):** "17+ modules" → "20+ tenant-facing tools" (hero stat + features heading). Real counts from live system: 133 module dirs, 132 registry entries, 99 modules loading clean (777 contracts, 46 skipped). Tech section now reads "20+ tenant-facing tools … — 130+ registered modules under the hood" so both framings stay honest.
+
+**Not verified:** visual layout at 375/1280px (IronBee browser MCP not connected this session — preview left running for eyeball check); GitHub Sponsors requires a GitHub login to give (expected, stated on-page).
+
+---
+
 ## Session — 2026-09-18 — Three donor ports shipped (devin): Dakota wizard, PMAS FOIA, legal-intel
 
 ### What shipped

@@ -432,6 +432,7 @@ async def quick_start_guide() -> dict:
             "BBB complaints become public record",
             "HOME Line offers free tenant advice hotline",
             "Legal Aid can represent you in court for free",
+            "City leaders matter too — a factual letter to your council member or mayor routes city departments (see /api/campaign/leader-letter)",
         ],
         "recommended_order": [
             "1. HOME Line (get immediate advice - 612-728-5767)",
@@ -439,7 +440,8 @@ async def quick_start_guide() -> dict:
             "3. MN Attorney General (strongest enforcement)",
             "4. HUD (if any discrimination involved)",
             "5. MN Commerce (license accountability)",
-            "6. BBB (public pressure)",
+            "6. City council member or mayor (civic pressure - POST /api/campaign/leader-letter)",
+            "7. BBB (public pressure)",
         ],
     }
 
