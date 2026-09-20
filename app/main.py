@@ -3298,6 +3298,65 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             set_experience_token_cookie(response, tapering_ctx["experience_token"])
         return response
 
+    @fastapi_app.get("/gui/record/intake/upload", response_class=HTMLResponse)
+    async def gui_intake_upload_guide_page(
+        request: Request,
+        db: AsyncSession = Depends(get_db),
+    ):
+        """In-task guide preview for adding a document (RECORD pillar).
+
+        Grammar-to-UI proof of concept: intake_upload_auto carries the
+        first three-step sentence grammar (upload → Semptify reads → check
+        the saved record); the fnav rail renders it as step intents.
+        """
+        from app.core.module_contracts import contract_registry
+        from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.tapering import set_experience_token_cookie
+
+        contract = contract_registry.get("intake", "intake_upload_auto")
+        if contract is None:
+            raise HTTPException(status_code=404, detail="Function contract not found")
+
+        narration = {
+            "state": "pending",
+            "step_label": "When you click Add document, Semptify does the following:",
+            "mode": "sync",
+            "narration": [
+                "Stores the file in your vault so only you can reach it.",
+                "Reads the document and pulls out dates, amounts, and people.",
+                "Flags anything that looks like it needs attention.",
+                "Adds it to your record and your timeline.",
+            ],
+        }
+
+        situational_available = is_function_resolved(request, contract.module)
+        explanation_data = await get_explanation_for_guide(
+            request,
+            contract,
+            Pillar.RECORD,
+            "Add a document to your record — a notice, letter, lease, receipt, or photo.",
+            ["document", "upload", "add record", "intake"],
+            db=db,
+        )
+        explanation = explanation_data["explanation"]
+        tapering_ctx = explanation_data["tapering_ctx"]
+
+        response = templates.TemplateResponse(
+            request,
+            "pages/intake_upload_guide.html",
+            {
+                "contract": contract.to_dict(),
+                "intensity_level": tapering_ctx["intensity_level"],
+                "exposure_count": tapering_ctx["exposure_count"],
+                "situational_available": situational_available,
+                "narration": narration,
+                "explanation": explanation,
+            },
+        )
+        if not tapering_ctx["experience_token_saved_to_cloud"]:
+            set_experience_token_cookie(response, tapering_ctx["experience_token"])
+        return response
+
     @fastapi_app.get("/gui/know/law-library/get-statute", response_class=HTMLResponse)
     async def gui_law_library_get_statute_guide_page(
         request: Request,

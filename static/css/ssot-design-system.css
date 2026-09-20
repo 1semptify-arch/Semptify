@@ -2749,6 +2749,18 @@ body.shell .fnav {
   box-sizing: border-box;
 }
 
+/* Step-intent sentence — "You upload a document." Rendered when the stage
+   carries grammar fields (subject/verb/object); the rail reads as one
+   sentence instead of a bare label. */
+.fnav__intent {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--shell-ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Rail buttons share one base; variants set the weight of the voice. */
 .fnav__btn {
   display: inline-flex;

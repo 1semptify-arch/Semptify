@@ -15281,3 +15281,44 @@ py_compile + node --check clean, `/dc` 302 + intake 401-gated live on
 not connected; also needs an authenticated tenant session), and
 word-box index alignment between the session's OCR run and the
 word-boxes endpoint's separate run — highlight is best-effort.
+
+## Session — 2026-09-20 — Grammar-to-UI contract fields POC (devin)
+
+**`grammar-step-contracts` — sentence=step grammar landed, scoped to one module.**
+
+Handoff asked for `subject`/`verb`/`object`/`next_condition` on
+module_contract.json + a step-intent label in the step renderer. Mapped to
+the real architecture: `page_builder.html` doesn't exist (renderer is
+`components/fnav.html` + `composer_preview_shell.html` reading
+`FunctionGroupContract.stages`); `doc_intake` doesn't exist (canonical
+module is `intake`, contract `intake_upload_auto` = the "Add Record"
+backend).
+
+- `ContractStage` gained optional `subject`/`verb`/`object`/
+  `next_condition`/`ui_component`; serialized in `to_dict()`.
+- `ModuleContract` schema gained `flow: list[FlowStep]` (handoff's shape +
+  `group_name` provenance). Optional — all 129 contracts still validate.
+- `derive_module_contracts.py` derives `flow` from grammar-carrying stages;
+  new `--sync-flow <mods>` updates only the `flow` key in existing JSONs
+  (derive, don't hand-write). Ran for intake — 3 steps landed.
+- `intake_upload_auto` declares 3 stages: user uploads a document →
+  Semptify reads the document → user checks the saved record.
+- `fnav.html` renders the current stage's sentence as a `.fnav__intent`
+  label ("You upload a document") + per-pip tooltips carry each sentence;
+  grammar-less stages render identically (journal page verified unchanged).
+- New guide page `pages/intake_upload_guide.html` + route
+  `/gui/record/intake/upload` (journal pattern; posts to
+  `/api/intake/upload/auto`).
+
+**Verified:** py_compile clean; contract tests 19/19 + framework tests pass;
+`test_ssot_architecture.py` 8/8; `/api/workflow/module-contracts` returns
+grammar fields; page 200 with correct fnav/intent/sidebar HTML; all 129
+module_contract.json validate. **Not verified:** real-browser pass (IronBee
+MCP not connected — same limitation as the DC session above); multi-stage
+`current` progression is data-only (no cross-stage navigation exists yet —
+pips show the paragraph, stage 1 is the live step). Pre-existing
+`test_workflow_contracts.py` failures (6, stale `/home` assertions vs
+`/tenant/start`) logged to intake, untouched.
+
+**Stop point honored:** no other module retrofitted. Rollout waits for
+Brad's review.

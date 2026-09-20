@@ -26,6 +26,11 @@ class ContractStage:
 
     This is in-task ordering, not access gating — it hides/defers actions
     that cannot run yet, it never removes access to a function.
+
+    Grammar fields (added 2026-09-20, grammar-to-UI contract spec): a stage
+    is one sentence — subject does verb to object. The renderer shows the
+    sentence as the step-intent label so the rail reads as a paragraph:
+    "You upload a document. Semptify reads it. You check the result."
     """
 
     id: str  # stable stage id, e.g. "choose_file"
@@ -33,6 +38,13 @@ class ContractStage:
     action: str  # forward-action label, e.g. "Save journal entry"
     requires: tuple[str, ...] = ()  # form field names that must be non-empty to unlock `action`
     skippable: bool = False  # whether a Skip action appears at this stage
+
+    # Sentence grammar — all optional so existing stages are unaffected.
+    subject: str = ""  # the actor: "user", "system", or a role name — never a UI element
+    verb: str = ""  # present-tense snake_case action — one verb per stage
+    object: str = ""  # the data/artifact the verb acts on — not the component
+    next_condition: str = ""  # declarative rule for whether the flow continues, e.g. "file_exists == true"
+    ui_component: str = ""  # template that renders this sentence's interaction
 
 
 @dataclass(frozen=True)
@@ -80,6 +92,11 @@ class FunctionGroupContract:
                     "action": s.action,
                     "requires": list(s.requires),
                     "skippable": s.skippable,
+                    "subject": s.subject,
+                    "verb": s.verb,
+                    "object": s.object,
+                    "next_condition": s.next_condition,
+                    "ui_component": s.ui_component,
                 }
                 for s in self.stages
             ],
