@@ -157,6 +157,14 @@ async def run_step(db: AsyncSession, user: UserContext, step: str) -> dict:
     if step in _PENDING_STEPS:
         return {"success": True, "step": step, "state": "pending"}
     if await check_gate(db, user.user_id, _STEP_GATES[step]):
+        if step == "folders":
+            # Vaults provisioned before Rehome was part of this step still
+            # get it — every folders-step run verifies the file exists.
+            provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+            client = VaultClient(provider_name, user.access_token, user.user_id, folder_spec=BASE_VAULT)
+            rehome_error = await _ensure_rehome_file(client, user, provider_name)
+            if rehome_error:
+                return {"success": False, "step": step, "error": rehome_error}
         return {"success": True, "step": step, "state": "done", "skipped": True}
     if step == "folders":
         return await _run_folders(db, user)
@@ -195,6 +203,9 @@ async def _run_folders(db: AsyncSession, user: UserContext) -> dict:
             "step": "folders",
             "errors": [f"{f.path}: {f.detail}" for f in result.failed],
         }
+    rehome_error = await _ensure_rehome_file(client, user, provider_name)
+    if rehome_error:
+        return {"success": False, "step": "folders", "error": rehome_error}
     await mark_gate(db, user.user_id, _STEP_GATES["folders"])
     await _maybe_mark_provisioned(db, user.user_id)
     return {
@@ -203,6 +214,42 @@ async def _run_folders(db: AsyncSession, user: UserContext) -> dict:
         "state": "done",
         "folders_created": [f.path for f in result.succeeded],
     }
+
+
+async def _ensure_rehome_file(client: VaultClient, user: UserContext, provider_name: str) -> str | None:
+    """Write Rehome.html at Semptify5.0/ if it isn't already there.
+
+    The folder tree and the reconnection file belong together — a vault
+    without Rehome.html can't sync a new device. Onboarding's installer
+    writes it; this covers any vault whose tree came up another way
+    (partial install, older spec). Idempotent: never overwrites an
+    existing file. Returns an error string or None.
+    """
+    from app.core.rehome import generate_rehome_html
+
+    storage = client._get_storage()  # system files live outside Vault/ — same pattern as vault_installer
+    try:
+        if await asyncio.wait_for(storage.file_exists(vp.REHOME_HTML_FILE), timeout=25.0):
+            return None
+        from app.core.config import get_settings
+
+        base_url = (get_settings().public_base_url or "https://semptify.org").rstrip("/")
+        await asyncio.wait_for(
+            storage.upload_file(
+                file_content=generate_rehome_html(user.user_id, provider_name, base_url).encode(),
+                destination_path=vp.SEMPTIFY_ROOT,
+                filename="Rehome.html",
+                mime_type="text/html",
+            ),
+            timeout=25.0,
+        )
+        return None
+    except TimeoutError:
+        logger.error("Rehome.html write timed out for user %s", user.user_id[:6] + "***")
+        return "Timed out writing Rehome.html — retrying is safe"
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error("Rehome.html write failed for user %s: %s", user.user_id[:6] + "***", e)
+        return f"Rehome.html: {e}"
 
 
 async def _run_vault_db(db: AsyncSession, user: UserContext) -> dict:
