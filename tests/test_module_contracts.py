@@ -3,6 +3,7 @@
 import pytest
 
 from app.core.module_contracts import (
+    ContractStage,
     FunctionGroupContract,
     ModuleContractRegistry,
     contract_registry,
@@ -191,3 +192,97 @@ class TestModuleLevelHelpers:
         returned = register_function_group(c)
         assert returned is c
         assert contract_registry.get("test_helper_mod", "test_helper_grp") is c
+
+
+# ---------------------------------------------------------------------------
+# ContractStage grammar fields (sentence = step)
+# ---------------------------------------------------------------------------
+class TestContractStageGrammar:
+    def test_grammar_defaults_empty(self):
+        s = ContractStage(id="a", label="A", action="Go")
+        assert s.subject == ""
+        assert s.verb == ""
+        assert s.object == ""
+        assert s.next_condition == ""
+        assert s.ui_component == ""
+
+    def test_grammar_round_trips_to_dict(self):
+        c = FunctionGroupContract(
+            module="intake",
+            group_name="intake_upload_auto",
+            title="T",
+            description="D",
+            inputs=("file",),
+            outputs=("doc_id",),
+            dependencies=(),
+            stages=(
+                ContractStage(
+                    id="upload_file",
+                    label="Choose a document",
+                    action="Add document",
+                    requires=("file",),
+                    subject="user",
+                    verb="upload",
+                    object="a document",
+                    next_condition="file_selected == true",
+                    ui_component="pages/intake_upload_guide.html",
+                ),
+            ),
+        )
+        stage = c.to_dict()["stages"][0]
+        assert stage["subject"] == "user"
+        assert stage["verb"] == "upload"
+        assert stage["object"] == "a document"
+        assert stage["next_condition"] == "file_selected == true"
+        assert stage["ui_component"] == "pages/intake_upload_guide.html"
+
+
+# ---------------------------------------------------------------------------
+# ModuleContract flow (module_contract.json schema)
+# ---------------------------------------------------------------------------
+class TestModuleContractFlow:
+    def _base(self):
+        return {
+            "module_name": "M",
+            "layout": "L",
+            "output_type": "other",
+            "output_how": "h",
+            "output_where": "w",
+            "output_why": "y",
+            "process_description": "p",
+            "process_context": "c",
+        }
+
+    def test_flow_optional(self):
+        from app.core.module_contract import ModuleContract
+
+        c = ModuleContract.model_validate(self._base())
+        assert c.flow == []
+
+    def test_flow_steps_validate(self):
+        from app.core.module_contract import ModuleContract
+
+        data = self._base()
+        data["flow"] = [
+            {
+                "step": 1,
+                "id": "upload_file",
+                "subject": "user",
+                "verb": "upload",
+                "object": "a document",
+                "ui_component": "pages/intake_upload_guide.html",
+                "next_condition": "file_selected == true",
+                "group_name": "intake_upload_auto",
+            }
+        ]
+        c = ModuleContract.model_validate(data)
+        assert c.flow[0].subject == "user"
+        assert c.flow[0].next_condition == "file_selected == true"
+
+    def test_flow_step_requires_full_sentence(self):
+        from app.core.module_contract import ModuleContract
+
+        data = self._base()
+        data["flow"] = [{"step": 1, "id": "x", "subject": "user", "verb": "", "object": "o"}]
+        with pytest.raises(Exception):
+            ModuleContract.model_validate(data)
