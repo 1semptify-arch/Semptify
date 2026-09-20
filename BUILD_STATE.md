@@ -1,3 +1,21 @@
+## Session — 2026-09-20 — OCR-first intake backend, Step 2 (devin)
+
+**Task `intake-ocr-first-pass` → review.** Server-side slice of the OCR-first pipeline: extraction, per-field proposal sessions, and the vault-SQLite write. Brad's rule landed structurally — finalize refuses unless EVERY proposed field has an answer (yes/no/edit); nothing lands in the vault unreviewed.
+
+**What shipped:**
+- `app/sdk/vault/migrations/0002_doc_types_union.sql` — rebuilds `documents.doc_type` CHECK as the union of the handoff's 8 + document_types.py's extras (rent_receipt, move_in_inspection, court_summons, other = 12 total). Root-cause fix for the taxonomy divergence — no mapping shim. Uses the new `-- @fk_off` header convention: the runner toggles `foreign_keys` OFF outside the transaction so the DROP/rebuild can't cascade into document_fields/overlays/timeline_events children.
+- `app/sdk/vault/db.py` — `@fk_off` support in the migration runner + `mutate_remote(storage, work)`: the single write path for live vault data (download → open+migrate → work(conn) → commit → WAL-checkpoint → re-upload; work-failure leaves remote untouched, upload-failure restores original bytes).
+- `app/services/intake_ocr.py` — `extract_text_layer` (native PDF/DOCX skips OCR per the text-layer-first rule), `classify_doc_type` (keyword scoring over the document_types SSOT), `build_session` (every checklist field becomes a proposal incl. None-values, with `source_span_key` as `word:{page}:{i}` for scans or `text:{offset}` for text-layer docs), `start_intake` (writes the unverified documents row + has_text_layer), `answer_field`, `finalize` (one mutate_remote: document_fields rows w/ confirm_answer, verification_state — all-yes→verified, any no→mismatched, else in_review — and processed_document_count++ on leaving unverified; uploaded_at untouched). Sessions are in-memory w/ 45-min TTL (ADR-0007 server path is memory-only).
+- `app/modules/document_center/intake_router.py` — POST /api/dc/intake/start {vault_id}, GET /{session_id}, POST /{session_id}/answer, POST /{session_id}/finalize; cookie auth + session ownership enforced; mounted in main.py next to the DC router.
+- `app/core/vault_configs.py` — ocr.json doc_types now sourced from document_types.py verbatim (full field defs incl. ocr_target for the client engine); OCR_CONFIG_VERSION → 2 so provisioned vaults refresh on next run.
+- `tests/test_intake_ocr.py` — 10 tests end-to-end against FakeStorageProvider incl. a real v1→v2 migration that proves child rows survive the documents rebuild.
+
+**Verified:** 31/31 tests pass across test_intake_ocr + test_vault_db + test_vault_configs; py_compile clean; app boots (777 contracts, route audit pass); live :8001 — intake endpoints mounted and correctly 401 unauthenticated, /donate still 200. Tesseract is installed locally so real OCR path is exercisable.
+
+**Not verified / remaining:** real OAuth end-to-end (tenant token wall); DC viewer wiring — the confirm UI needs to consume /api/dc/intake/* (existing review-state endpoints persist to VaultIndexDB, not vault.db — the SQLite path is now the canonical one); client-side WASM/ONNX engine (ADR-0007 primary path — this build is the ephemeral-server fallback); pull/push concurrency if two tabs write vault.db simultaneously (single-writer assumption, acceptable v1).
+
+---
+
 ## Session — 2026-09-19 — Per-role vault configs, Step 1d (devin)
 
 **Task `prov-role-configs` → review.** Final step of the intake-vault-provisioning sequence — `_PENDING_STEPS` is now empty, so `vault_provisioned` can actually flip true once all three steps run.
