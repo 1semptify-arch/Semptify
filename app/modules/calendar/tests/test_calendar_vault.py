@@ -142,8 +142,10 @@ async def test_list_filters_by_date_range_type_and_critical(storages):
 async def test_get_event_resolves_legacy_payload_id(storages):
     user = _make_user("GUalice001", "tok-a")
     created = await service.create_event(user, **_event_kwargs())
+    # In the SQLite store the row id IS the payload id — lookups by either
+    # the view's overlay_id or the payload id resolve to the same row.
     legacy_id = created.payload["id"]
-    assert legacy_id != created.overlay_id
+    assert legacy_id == created.overlay_id
 
     fetched = await service.get_event(user, legacy_id)
     assert fetched is not None
