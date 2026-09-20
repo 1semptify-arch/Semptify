@@ -1,3 +1,25 @@
+## Session — 2026-09-19 — Vault SQLite datastore + embedded migrations (devin)
+
+**Task `prov-vault-sqlite` → review.** Step 1c of the intake-vault-provisioning pipeline: the `vault_db` provisioning step is now real — it was previously in `_PENDING_STEPS` and `run_step` dispatched to a `_run_vault_db` that was never defined (latent NameError once un-pended).
+
+**What shipped:**
+- `app/core/vault_paths.py` — new `VAULT_DB_FILE = Semptify5.0/.semptify/vault.db` (system folder, hidden from casual browsing).
+- `app/sdk/vault/migrations/0001_initial.sql` — schema v1: the 11 tables from `handoffs/vault_sqlite_schema_handoff.md` verbatim (vault_meta, documents, document_fields, overlays, share_tokens, contacts, appointments, interactions, ledger_entries, dispute_packets, resource_directory) + `journal_entries` + `timeline_events` matching the live JOURNAL_ENTRY / TIMELINE_EVENT overlay payload shapes field-for-field (Option A: SQLite owns live reads; JSON overlays become export/provenance). Seeds `schema_version=1`, `processed_document_count=0`.
+- `app/sdk/vault/db.py` — pure-stdlib engine (no FastAPI/SQLAlchemy, same envelope as client.py): `open_local()` sets the locked pragmas (WAL / foreign_keys=ON / synchronous=NORMAL) on every open and runs pending numbered `NNNN_*.sql` migrations gated on `vault_meta.schema_version`; `checkpoint_and_close()` folds WAL into the main file before upload so the remote copy is self-contained; `ensure_remote(storage)` is the idempotent provisioning/sync entry point — create-if-missing, download+migrate+re-upload only when schema_version advanced, corrupt existing file raises `VaultDbError` and is never overwritten.
+- `app/services/vault_provisioning.py` — `_run_vault_db()` wired (25s timeout guard, gate `prov_vault_db`, `_maybe_mark_provisioned`); `vault_db` removed from `_PENDING_STEPS`.
+- `app/sdk/vault/__init__.py` — exports `open_local`, `checkpoint_and_close`, `ensure_remote`, `schema_version`, `VaultDbError`.
+- `tests/test_vault_db.py` — 11 tests (dict-backed FakeStorageProvider, no real cloud needed).
+
+**Bug the tests caught:** `conn.executescript()` implicit-commits before running, so an explicit `BEGIN` around it was dead code and a failed migration could neither roll back nor report cleanly. Fix: `BEGIN`/`COMMIT` are embedded inside the script text and the schema_version bump runs in the same transaction — failed migrations roll back DDL atomically. Convention documented: migration files must never contain their own transaction statements.
+
+**Verified:** all changed files `py_compile` clean; 11/11 new tests pass (`--no-cov`); existing vault SDK tests pass (4/4 — `__init__` exports are additive); module import confirms `vault_db` now a runnable step, `configs` still pending.
+
+**Not verified:** a real end-to-end provision against a live OAuth provider — `ensure_remote` needs a tenant access token, same wall as prior vault work. FakeStorageProvider covers create / verify-no-rewrite / migrate+re-upload / corrupt-refusal paths. Encryption at rest remains the handoff's flagged open decision — this file is plaintext SQLite for now.
+
+**Migration-authoring note for future versions:** add `NNNN_description.sql` to `app/sdk/vault/migrations/`; nothing else to wire — `open_local` picks it up automatically on next open.
+
+---
+
 ## Session — 2026-09-19 — Donate page repair + fact-check pass (devin)
 
 **Task `donate-page-factcheck-linkfix` → review.** All changes in `app/templates/public/donate.html` (standalone template, own inline nav/footer — known hardcoded-footer page).
