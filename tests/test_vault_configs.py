@@ -7,6 +7,8 @@ import pytest
 
 from app.core.vault_configs import (
     DOC_TYPE_FIELDS,
+    OCR_CONFIG_VERSION,
+    OVERLAY_CONFIG_VERSION,
     configs_for_role,
     ocr_config_for_role,
     overlay_config_for_role,
@@ -92,9 +94,10 @@ async def test_ensure_configs_creates_both_files():
     assert result["success"] is True
     assert result["files"][OCR_CONFIG_FILE] == "created"
     assert result["files"][OVERLAY_CONFIG_FILE] == "created"
-    for path in (OCR_CONFIG_FILE, OVERLAY_CONFIG_FILE):
+    expected = {OCR_CONFIG_FILE: OCR_CONFIG_VERSION, OVERLAY_CONFIG_FILE: OVERLAY_CONFIG_VERSION}
+    for path, version in expected.items():
         payload = json.loads(storage.files[path].decode("utf-8"))
-        assert payload["version"] == 1
+        assert payload["version"] == version
         assert payload["role"] == "tenant"
 
 
@@ -116,7 +119,7 @@ async def test_ensure_configs_refreshes_stale_version():
     ).encode("utf-8")
     result = await vault_configs.ensure_configs_remote(storage, "tenant")
     assert result["files"][OCR_CONFIG_FILE] == "refreshed"
-    assert json.loads(storage.files[OCR_CONFIG_FILE])["version"] == 1
+    assert json.loads(storage.files[OCR_CONFIG_FILE])["version"] == OCR_CONFIG_VERSION
 
 
 @pytest.mark.anyio
@@ -125,7 +128,7 @@ async def test_ensure_configs_replaces_unparseable():
     storage.files[OVERLAY_CONFIG_FILE] = b"\x00\xff not json"
     result = await vault_configs.ensure_configs_remote(storage, "tenant")
     assert result["files"][OVERLAY_CONFIG_FILE] == "refreshed"
-    assert json.loads(storage.files[OVERLAY_CONFIG_FILE])["version"] == 1
+    assert json.loads(storage.files[OVERLAY_CONFIG_FILE])["version"] == OVERLAY_CONFIG_VERSION
 
 
 @pytest.mark.anyio

@@ -263,6 +263,13 @@ class VaultClient:
         """
         storage = self._get_storage()
         dest_path = f"{VAULT_ROOT}/{subfolder}"
+        # First-use folder creation: a lazy-declared subfolder materializes
+        # the first time something writes into it (see
+        # app.core.vault_folder_requirements). create_folder is idempotent.
+        from app.sdk.vault.folders import ensure_vault_folders
+
+        if not await ensure_vault_folders(storage, [dest_path]):
+            raise RuntimeError(f"Vault upload destination unavailable: {dest_path}")
         return await storage.upload_file(
             file_content=content,
             destination_path=dest_path,
