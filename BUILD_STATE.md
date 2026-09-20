@@ -15251,3 +15251,33 @@ claim remains live — Brad ruled leave it (NO-TOUCH). Report:
 on in-memory SQLite (status transitions, pre-FINALE guard, pending steps,
 step ordering). Live provider folder-creation untested — needs a real
 onboarded session.
+
+## Session — 2026-09-20 — DC viewer wired to intake confirm loop (devin)
+
+**`intake-viewer-confirm-wiring` shipped (Step 3 of intake-pipeline-parent).**
+The field-verify strip in Document Center is now driven by the real
+`/api/dc/intake/*` session instead of the client-side mock checklist.
+
+- `selectDoc` starts an intake session (skipped when the doc is already
+  `verified`; silent fallback to the checklist walk when intake can't
+  start — local docs, unprovisioned vaults, expired session).
+- One proposal per card in the walk: "We read: <value>" or a fill-in
+  prompt, with Looks right / Fix it / Not right / Not now. "Not now"
+  rotates the field — every field must be answered before save (Brad's
+  rule), so snoozed fields resurface rather than disappear.
+- `source_span_key` `word:{page}:{i}` spans get a best-effort highlight on
+  the image overlay (word-boxes fetched once per doc and cached);
+  `text:{offset}` spans can't map to the viewer — card still works.
+- All answered → "Save to vault" → finalize → vault.db write. Router now
+  mirrors the outcome onto the doc index (`document_type`, `processed`,
+  `review_state_json` field_confirm_state + manual_status) so the list,
+  checklist, and status filter show the truth.
+- 422 `unreviewed_fields` on finalize puts the pending fields back in the
+  walk rather than erroring.
+
+**Verified:** 11/11 intake tests (incl. new `_sync_doc_index` test),
+py_compile + node --check clean, `/dc` 302 + intake 401-gated live on
+:8001. **Not verified:** real-browser exercise of the loop (IronBee MCP
+not connected; also needs an authenticated tenant session), and
+word-box index alignment between the session's OCR run and the
+word-boxes endpoint's separate run — highlight is best-effort.

@@ -265,3 +265,59 @@ def test_migration_0002_rebuilds_documents_preserving_children(tmp_path, monkeyp
     )
     conn.commit()
     vault_db.checkpoint_and_close(conn)
+
+
+# ---------------------------------------------------------------------------
+# Finalize -> doc-index sync (DC list/checklist mirror)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.anyio
+async def test_finalize_syncs_doc_index(monkeypatch):
+    """After finalize, _sync_doc_index mirrors type/status/field state onto
+    the server-side index record the doc list and checklist read."""
+    import json
+
+    from app.modules.document_center import intake_router
+    import app.services.vault_upload_service as vus
+
+    storage = FakeStorageProvider()
+    await _seed_vault(storage)
+    await _seed_doc_row(storage)
+    session = _fresh_session()
+    for f in session.fields:
+        f.answer = "yes"
+    session.fields[0].answer = "edit"
+    session.fields[0].final_value = "corrected-value"
+    result = await intake_ocr.finalize(session, storage)
+    assert result["success"] is True
+    assert result["verification_state"] == "in_review"
+
+    updates: dict = {}
+
+    class _FakeIndex:
+        async def update(self, vault_id, **kwargs):
+            updates[vault_id] = kwargs
+            return None
+
+    class _FakeDoc:
+        review_state_json = json.dumps({"field_confirm_state": {"old_field": "confirmed"}})
+
+    class _FakeSvc:
+        index = _FakeIndex()
+
+        async def get_document(self, vault_id):
+            return _FakeDoc()
+
+    monkeypatch.setattr(vus, "get_vault_service", lambda: _FakeSvc())
+
+    await intake_router._sync_doc_index(session, None, result)
+
+    assert updates[session.vault_id]["processed"] is True
+    assert updates[session.vault_id]["document_type"] == session.doc_type
+    state = json.loads(updates[session.vault_id]["review_state_json"])
+    assert state["manual_status"] == "review"  # in_review -> review
+    first = session.fields[0]
+    assert state["field_confirm_state"][first.name] == "corrected"
+    assert state["field_confirm_state"][first.name + "_value"] == "corrected-value"
+    assert state["field_confirm_state"][session.fields[1].name] == "confirmed"
+    assert state["field_confirm_state"]["old_field"] == "confirmed"  # merge keeps prior state

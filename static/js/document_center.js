@@ -24,6 +24,8 @@
     let documentTypes = {};
     let currentTab = 'overlays';
     let fieldConfirmState = {};  // {vault_id: {field_name: 'confirmed'|'corrected'|'pending'}}
+    let intakeSession = null;    // live /api/dc/intake session for currentDoc (null → mock walk)
+    let intakeWordBoxes = null;  // {doc_id, boxes[]} cache for source-span highlight
     let activeMobilePane = 'left';
 
     function setMobilePane(pane) {
@@ -254,6 +256,7 @@
         statusSelect.value = d.verification_status || 'new';
         downloadBtn.style.display = '';
         await loadReviewState(d);
+        await startIntake(d);
         document.getElementById('dcAnnotTools').style.display = 'flex';
         document.getElementById('dcProcessBtn').style.display = '';
         document.getElementById('dcExplainBtn').style.display = '';
@@ -1696,12 +1699,221 @@
         renderFieldWalk();
     }
 
+    // --- OCR intake confirm loop (vault-backed session) -------------------
+    // When the vault + intake pipeline are available, the field walk is
+    // driven by a real /api/dc/intake session: OCR proposes values with
+    // source spans, the user answers yes / no / fix per field, and finalize
+    // writes the reviewed fields into the tenant's vault.db. When intake
+    // can't start (local doc, unprovisioned vault), the checklist walk
+    // below stays as the fallback — same strip, same controls.
+
+    async function startIntake(doc) {
+        intakeSession = null;
+        intakeWordBoxes = null;
+        const state = fieldConfirmState[doc.id] || {};
+        if (state.manual_status === 'verified') return;  // already finalized
+        try {
+            const r = await fetch('/api/dc/intake/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vault_id: doc.id }),
+                credentials: 'include',
+            });
+            if (!r.ok) return;
+            const session = await r.json();
+            if (session && Array.isArray(session.fields) && session.fields.length) {
+                intakeSession = session;
+            }
+        } catch (e) { /* silent — fallback walk handles it */ }
+    }
+
+    async function answerIntakeField(doc, field, answer, value) {
+        try {
+            const r = await fetch('/api/dc/intake/' + encodeURIComponent(intakeSession.session_id) + '/answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ field_id: field.id, answer: answer, value: value || null }),
+                credentials: 'include',
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok) {
+                if (window.SemptifyFeedback) SemptifyFeedback.error(data.error === 'session_not_found' ? 'That review session expired — reopen the document to restart it.' : ('Could not save the answer: ' + (data.error || 'HTTP ' + r.status)));
+                if (r.status === 404) { intakeSession = null; renderFieldWalk(); }
+                return;
+            }
+            field.answer = data.field.answer;
+            field.final_value = data.field.final_value;
+            intakeSession.fields_answered = data.fields_answered;
+            renderFieldWalk();
+        } catch (e) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save the answer: ' + e.message);
+        }
+    }
+
+    async function finalizeIntake(doc) {
+        try {
+            const r = await fetch('/api/dc/intake/' + encodeURIComponent(intakeSession.session_id) + '/finalize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+                credentials: 'include',
+            });
+            const data = await r.json().catch(() => ({}));
+            if (r.status === 422 && data.error === 'unreviewed_fields') {
+                if (window.SemptifyFeedback) SemptifyFeedback.info('A few details still need an answer — they are back in the walk above.');
+                renderFieldWalk();
+                return;
+            }
+            if (!r.ok || !data.success) throw new Error(data.error || 'HTTP ' + r.status);
+            intakeSession = null;
+            const label = data.verification_state === 'verified' ? 'verified' : (data.verification_state === 'mismatched' ? 'flagged as mismatched' : 'saved for review');
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Saved to your vault — document ' + label + '.');
+            await loadReviewState(doc);
+            await loadDocs();
+            renderFieldWalk();
+        } catch (e) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save to the vault: ' + e.message);
+        }
+    }
+
+    function clearIntakeHighlights() {
+        document.querySelectorAll('.dc-intake-hl').forEach(el => el.remove());
+    }
+
+    async function highlightFieldSpan(doc, field) {
+        clearIntakeHighlights();
+        const span = field && field.source_span_key;
+        if (!span || !span.startsWith('word:')) return;
+        const idx = parseInt(span.split(':')[2], 10);
+        if (!Number.isFinite(idx)) return;
+        if (!intakeWordBoxes || intakeWordBoxes.doc_id !== doc.id) {
+            try {
+                const r = await fetch('/api/dc/document/' + encodeURIComponent(doc.id) + '/word-boxes', { credentials: 'include' });
+                const data = r.ok ? await r.json() : null;
+                intakeWordBoxes = { doc_id: doc.id, boxes: (data && data.word_boxes) || [] };
+            } catch (e) { return; }
+        }
+        const wb = intakeWordBoxes.boxes[idx];
+        if (!wb || !wb.bbox) return;
+        const overlay = document.querySelector('#dcViewer .dc-image-overlay');
+        if (!overlay) return;
+        const img = overlay.parentElement ? overlay.parentElement.querySelector('img') : null;
+        if (!img || !img.naturalWidth) return;
+        const scaleX = overlay.clientWidth / img.naturalWidth;
+        const scaleY = overlay.clientHeight / img.naturalHeight;
+        const hl = document.createElement('div');
+        hl.className = 'dc-intake-hl';
+        hl.style.cssText = 'position:absolute;pointer-events:none;background:rgba(255,205,60,0.4);border-radius:2px;'
+            + 'left:' + (wb.bbox.left * scaleX) + 'px;top:' + (wb.bbox.top * scaleY) + 'px;'
+            + 'width:' + Math.max(wb.bbox.width * scaleX, 6) + 'px;height:' + Math.max(wb.bbox.height * scaleY, 6) + 'px;';
+        overlay.appendChild(hl);
+    }
+
+    async function promptIntakeEdit(doc, field) {
+        const input = await showValueModal('Correct value for ' + field.label + ':', field.proposed_value || '');
+        if (input === null) return;
+        await answerIntakeField(doc, field, 'edit', input);
+    }
+
+    function renderIntakeWalk(strip, doc) {
+        const fields = intakeSession.fields;
+        const answered = fields.filter(f => f.answer).length;
+        const pending = fields.filter(f => !f.answer);
+        const snoozed = snoozedFields[doc.id] || {};
+
+        const counter = document.createElement('div');
+        counter.className = 'dc-fieldcard-count';
+        counter.textContent = answered + ' of ' + fields.length + ' confirmed';
+        strip.appendChild(counter);
+
+        if (!pending.length) {
+            const card = document.createElement('div');
+            card.className = 'dc-fieldcard';
+            card.innerHTML = '<div class="dc-fieldcard-label">All details reviewed</div>' +
+                '<div class="dc-fieldcard-value">Save the confirmed details to your vault.</div>';
+            const actions = document.createElement('div');
+            actions.className = 'dc-fieldcard-actions';
+            const save = document.createElement('button');
+            save.className = 'frame-btn';
+            save.style.flex = '1';
+            save.style.fontSize = '0.75rem';
+            save.style.padding = '0.25rem 0.4rem';
+            save.style.background = 'var(--color-success-50)';
+            save.style.color = 'var(--color-success-800)';
+            save.textContent = 'Save to vault';
+            save.addEventListener('click', () => finalizeIntake(doc));
+            actions.appendChild(save);
+            card.appendChild(actions);
+            strip.appendChild(card);
+            return;
+        }
+
+        // "Not now" rotates a field to the back — every field must be
+        // answered before save, so snoozed fields resurface rather than
+        // disappear.
+        const field = pending.find(f => !snoozed[f.id]) || pending[0];
+        const card = document.createElement('div');
+        card.className = 'dc-fieldcard';
+        const read = field.proposed_value
+            ? 'We read: ' + escapeHtml(field.proposed_value)
+            : 'We could not read this — type it in with "Fix it".';
+        card.innerHTML =
+            '<div class="dc-fieldcard-label">' + escapeHtml(field.label) + (field.required ? '' : ' · optional') + '</div>' +
+            '<div class="dc-fieldcard-value">' + read + '</div>';
+        const actions = document.createElement('div');
+        actions.className = 'dc-fieldcard-actions';
+
+        const ok = document.createElement('button');
+        ok.className = 'frame-btn'; ok.style.flex = '1'; ok.style.fontSize = '0.75rem'; ok.style.padding = '0.25rem 0.4rem';
+        ok.style.background = 'var(--color-success-50)'; ok.style.color = 'var(--color-success-800)';
+        ok.textContent = 'Looks right';
+        ok.addEventListener('click', () => answerIntakeField(doc, field, 'yes'));
+
+        const fix = document.createElement('button');
+        fix.className = 'frame-btn'; fix.style.flex = '1'; fix.style.fontSize = '0.75rem'; fix.style.padding = '0.25rem 0.4rem';
+        fix.textContent = 'Fix it';
+        fix.addEventListener('click', () => promptIntakeEdit(doc, field));
+
+        const wrong = document.createElement('button');
+        wrong.className = 'frame-btn'; wrong.style.flex = '1'; wrong.style.fontSize = '0.75rem'; wrong.style.padding = '0.25rem 0.4rem';
+        wrong.title = 'Not right — flags the document as mismatched';
+        wrong.textContent = 'Not right';
+        wrong.addEventListener('click', () => answerIntakeField(doc, field, 'no'));
+
+        const later = document.createElement('button');
+        later.className = 'frame-btn'; later.style.fontSize = '0.75rem'; later.style.padding = '0.25rem 0.4rem';
+        later.title = 'Ask me after the next one';
+        later.textContent = 'Not now';
+        later.addEventListener('click', () => {
+            if (!snoozedFields[doc.id]) snoozedFields[doc.id] = {};
+            snoozedFields[doc.id][field.id] = true;
+            renderFieldWalk();
+        });
+
+        actions.appendChild(ok); actions.appendChild(fix); actions.appendChild(wrong); actions.appendChild(later);
+        card.appendChild(actions);
+        strip.appendChild(card);
+        highlightFieldSpan(doc, field);
+
+        if (pending.length > 1) {
+            const more = document.createElement('div');
+            more.className = 'dc-fieldcard-more';
+            more.textContent = '+ ' + (pending.length - 1) + ' more after this';
+            strip.appendChild(more);
+        }
+    }
+
     function renderFieldWalk() {
         const strip = document.getElementById('dcFieldWalk');
         if (!strip) return;
         strip.innerHTML = '';
         const doc = currentDoc;
         if (!doc) { strip.hidden = true; return; }
+        if (intakeSession && intakeSession.vault_id === doc.id) {
+            strip.hidden = false;
+            renderIntakeWalk(strip, doc);
+            return;
+        }
         const def = doc.document_type ? documentTypes[doc.document_type] : null;
         if (!def) {
             strip.hidden = false;

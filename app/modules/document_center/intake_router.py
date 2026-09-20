@@ -15,6 +15,7 @@ written silently.
 
 from __future__ import annotations
 
+import json
 import logging
 
 from fastapi import APIRouter, Request
@@ -179,5 +180,51 @@ async def intake_finalize(session_id: str, body: FinalizeBody, request: Request)
         result = await intake_ocr.finalize(session, storage, doc_type=body.doc_type)
     except VaultDbError as exc:
         return JSONResponse(status_code=409, content={"error": "vault_db_missing", "detail": str(exc)})
+    if result.get("success"):
+        await _sync_doc_index(session, body.doc_type, result)
     status = 200 if result.get("success") else 422
     return JSONResponse(status_code=status, content=result)
+
+
+async def _sync_doc_index(session, doc_type_override: str | None, result: dict) -> None:
+    """Mirror the finalized review onto the server-side doc index.
+
+    vault.db owns the reviewed fields; the index record carries the
+    summary (document_type, processed flag, review_state_json) that the
+    document list, checklist, and status filter read. Failures here are
+    logged, never raised — the vault write already succeeded.
+    """
+    try:
+        from app.services.vault_upload_service import get_vault_service
+
+        vault_service = get_vault_service()
+        doc = await vault_service.get_document(session.vault_id)
+        try:
+            review_state = json.loads((doc.review_state_json if doc else None) or "{}")
+        except Exception:
+            review_state = {}
+        field_state = review_state.get("field_confirm_state", {})
+        for f in session.fields:
+            if f.answer == "yes":
+                field_state[f.name] = "confirmed"
+            elif f.answer == "edit":
+                field_state[f.name] = "corrected"
+                field_state[f.name + "_value"] = f.final_value
+            elif f.answer == "no":
+                field_state[f.name] = "rejected"
+        review_state["field_confirm_state"] = field_state
+        manual = {
+            "verified": "verified",
+            "in_review": "review",
+            "mismatched": "mismatched",
+        }.get(result.get("verification_state"))
+        if manual:
+            review_state["manual_status"] = manual
+        await vault_service.index.update(
+            session.vault_id,
+            document_type=doc_type_override or session.doc_type,
+            processed=True,
+            review_state_json=json.dumps(review_state),
+        )
+    except Exception:
+        logger.warning("intake finalize index sync failed for %s", session.vault_id)
