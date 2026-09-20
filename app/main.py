@@ -4747,6 +4747,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.services.timeline_store import create_event
 
         user = await build_context_for_user_id(user_id)
+        if user is None:
+            raise HTTPException(status_code=503, detail="Storage not connected for this account")
         event = await create_event(
             user,
             event_type=event_type,
@@ -4789,11 +4791,80 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         ]
 
         jurisdiction = get_jurisdiction(request)
-        return correlate(
+        result = correlate(
             events,
             jurisdiction=jurisdiction.state if jurisdiction else None,
             now=utc_now(),
         )
+        from app.services.retaliation_tracker import assess
+
+        result["assessment"] = assess(
+            result,
+            jurisdiction=jurisdiction.state if jurisdiction else None,
+        )
+        return result
+
+    @fastapi_app.get("/api/tenant/retaliation/doc-suggestions")
+    async def tenant_retaliation_doc_suggestions(request: Request):
+        """Suggest protected/adverse timeline candidates from recognized documents.
+
+        Takes the tenant's documents that document_recognition has already
+        classified (Document.document_type) and maps them through
+        ``suggest_from_documents`` — an eviction notice suggests an adverse
+        action, a repair request a protected one. Documents already attached
+        to a logged tracker event are skipped. Suggestions are candidates
+        only; the user confirms before anything is logged.
+        """
+        from sqlalchemy import select
+
+        from app.core.database import get_db_session
+        from app.models.models import Document
+        from app.services.retaliation_tracker import (
+            DOC_TYPE_TO_INDICATOR,
+            EVENT_TYPE_ADVERSE,
+            EVENT_TYPE_PROTECTED,
+            parse_event_tags,
+            suggest_from_documents,
+        )
+        from app.services.timeline_store import list_events_for_user_id
+
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+
+        user_id = extract_user_id(request)
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Authentication required")
+
+        # Documents already attached to a tracker event — don't re-suggest.
+        already_attached: set[str] = set()
+        for e in await list_events_for_user_id(user_id):
+            if e.event_type in (EVENT_TYPE_PROTECTED, EVENT_TYPE_ADVERSE):
+                already_attached.update(parse_event_tags(getattr(e, "attached_document_ids", None)))
+
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(Document).where(
+                    Document.user_id == user_id,
+                    Document.document_type.is_not(None),
+                )
+            )
+            documents = result.scalars().all()
+
+        normalized = [
+            {
+                "id": d.id,
+                "doc_type": (d.document_type or "").lower(),
+                "title": d.original_filename or d.filename,
+                "description": d.description,
+                "date": d.uploaded_at.isoformat() if d.uploaded_at else None,
+            }
+            for d in documents
+            if (d.document_type or "").lower() in DOC_TYPE_TO_INDICATOR
+            and d.id not in already_attached
+        ]
+
+        return {"suggestions": suggest_from_documents(normalized)}
 
     @fastapi_app.post("/api/tenant/capture")
     async def tenant_capture_post(request: Request):
@@ -4869,6 +4940,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.services.timeline_store import create_event
 
         user = await build_context_for_user_id(user_id)
+        if user is None:
+            raise HTTPException(status_code=503, detail="Storage not connected for this account")
         event = await create_event(
             user,
             event_type=event_type,
@@ -5648,6 +5721,32 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             user_id = require_request_user_id(request)
         except Exception:  # pylint: disable=broad-exception-caught
             user_id = ""
+
+        # How-To Guides are curated first-hand procedures, not fact/story
+        # content — serve them from the guides data store instead.
+        if subject == "how_to":
+            from app.services.howto_library import guides_as_components, load_guides
+
+            guide_components = guides_as_components(load_guides())
+            if not guide_components:
+                guide_components = [
+                    {
+                        "type": "empty_state",
+                        "data": {
+                            "icon": "▸",
+                            "title": "How-To Guides are being written",
+                            "body": "Step-by-step guides from first-hand experience are on the way. Check back soon.",
+                        },
+                    }
+                ]
+            return templates.TemplateResponse(
+                request,
+                "components/component_fragment.html",
+                {
+                    "fragment_title": "How-To Guides",
+                    "components": guide_components,
+                },
+            )
 
         try:
             page = await compose_page(

@@ -512,27 +512,28 @@
       color: var(--muted);
       line-height: 1.55;
     }
-
-    .pull-quote {
-      background: linear-gradient(135deg, rgba(245,166,35,0.08), rgba(0,196,167,0.05));
-      border-left: 4px solid var(--amber);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      padding: 2rem 2.5rem;
-      margin: 3rem 0;
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
-      font-style: italic;
-      color: rgba(240,237,232,0.9);
-      line-height: 1.5;
+    .stat-src {
+      display: inline-block;
+      margin-top: 0.9rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      color: var(--teal);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0,196,167,0.3);
     }
-    .pull-quote cite {
-      display: block;
-      margin-top: 0.75rem;
-      font-style: normal;
-      font-size: 0.85rem;
-      font-family: 'Inter', sans-serif;
-      color: var(--muted);
+    .stat-src:hover { color: var(--amber); border-color: var(--amber); }
+    .card-link {
+      display: inline-block;
+      margin-top: 0.9rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem;
+      letter-spacing: 0.08em;
+      color: var(--amber);
+      text-decoration: none;
     }
+    .card-link::after { content: ' →'; }
+    .card-link:hover { color: var(--teal); }
 
     .problem-secondary {
       display: grid;
@@ -1143,6 +1144,7 @@
     </button>
     <ul class="nav-links" id="navLinks">
       <li><a href="/">The App</a></li>
+      <li><a href="/help">Get Help</a></li>
       <li><a href="#solution">The Platform</a></li>
       <li><a href="#features">Features</a></li>
       <li><a href="#impact">Impact</a></li>
@@ -1222,20 +1224,20 @@
   <div class="hero-stats fade-in fade-in-delay-4">
     <div class="hero-stats-inner">
       <div class="hero-stat">
-        <span class="hero-stat-num count-num" data-count="3600000" data-format="3.6M">3.6M</span>
-        <span class="hero-stat-label">eviction filings per year in the U.S.</span>
+        <span class="hero-stat-num count-num" data-count="3.6" data-suffix="M" data-decimal="1">3.6M</span>
+        <a class="hero-stat-label" href="https://evictionlab.org/national-estimates/" target="_blank" rel="noopener" style="text-decoration:underline dotted; text-underline-offset:3px;">eviction filings per year in the U.S. — Eviction Lab</a>
       </div>
       <div class="hero-stat">
         <span class="hero-stat-num">90%</span>
-        <span class="hero-stat-label">of landlords have legal representation</span>
+        <a class="hero-stat-label" href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener" style="text-decoration:underline dotted; text-underline-offset:3px;">of landlords have lawyers in many courts — NCCRC</a>
       </div>
       <div class="hero-stat">
         <span class="hero-stat-num">&lt;10%</span>
-        <span class="hero-stat-label">of tenants have any legal help</span>
+        <a class="hero-stat-label" href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener" style="text-decoration:underline dotted; text-underline-offset:3px;">of tenants have any legal help — NCCRC</a>
       </div>
       <div class="hero-stat">
-        <span class="hero-stat-num count-num" data-count="17" data-suffix="+">17+</span>
-        <span class="hero-stat-label">platform tools, tenants never pay</span>
+        <span class="hero-stat-num count-num" data-count="20" data-suffix="+">20+</span>
+        <span class="hero-stat-label">tenant-facing tools, no cost to use</span>
       </div>
     </div>
   </div>
@@ -1258,24 +1260,22 @@
       <div class="stat-card fade-in fade-in-delay-1">
         <span class="stat-card-num count-num" data-count="3.6" data-suffix="M" data-decimal="1">3.6M</span>
         <div class="stat-card-label">Eviction Filings Per Year</div>
-        <div class="stat-card-desc">The United States sees approximately 3.6 million eviction filings annually — one every nine seconds. Most never go to trial. Most tenants have no idea what their rights are.</div>
+        <div class="stat-card-desc">In a typical year, U.S. landlords file about 3.6 million eviction cases — one every nine seconds. Most never go to trial. Most tenants have no idea what their rights are.</div>
+        <a class="stat-src" href="https://evictionlab.org/national-estimates/" target="_blank" rel="noopener">Source: Eviction Lab, Princeton University</a>
       </div>
       <div class="stat-card fade-in fade-in-delay-2">
         <span class="stat-card-num">9 in 10</span>
         <div class="stat-card-label">Landlords Have Legal Representation</div>
-        <div class="stat-card-desc">In housing court, the power imbalance is stark. Nearly 90% of landlords show up with an attorney. They know the process. They know the paperwork. They know how to win.</div>
+        <div class="stat-card-desc">In housing court, the power imbalance is stark. In many courts studied, 90% or more of landlords show up with an attorney — the studied average is about 84%. They know the process. They know the paperwork. They've done this a hundred times.</div>
+        <a class="stat-src" href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener">Source: NCCRC eviction representation data</a>
       </div>
       <div class="stat-card fade-in fade-in-delay-3">
         <span class="stat-card-num">1 in 10</span>
         <div class="stat-card-label">Tenants Have Legal Help</div>
-        <div class="stat-card-desc">Fewer than 10% of tenants in housing proceedings have access to a lawyer. The rest face legal proceedings — often with eviction or homelessness on the line — completely alone.</div>
+        <div class="stat-card-desc">In the courts studied, only about 4% of tenants facing eviction have a lawyer — in many, nearly none. The rest face legal proceedings — often with eviction or homelessness on the line — completely alone.</div>
+        <a class="stat-src" href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener">Source: NCCRC eviction representation data</a>
       </div>
     </div>
-
-    <blockquote class="pull-quote fade-in">
-      "I didn't know I had rights. By the time I found out, it was too late."
-      <cite>— The experience of millions of renters who face housing court without knowledge, records, or representation</cite>
-    </blockquote>
 
     <div class="problem-secondary">
       <div class="problem-item fade-in fade-in-delay-1">
@@ -1283,21 +1283,24 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </div>
         <h4>Housing Cost Burden</h4>
-        <p>The average American now spends 30–50% or more of their income on housing. For low-income renters, that number routinely exceeds 60–70%, leaving nothing for emergencies, legal help, or advocacy.</p>
+        <p>Half of U.S. renter households — a record 22.6 million — spend more than 30% of their income on housing, and 12.1 million spend more than half. For renters earning under $30,000, 83% are cost-burdened — leaving nothing for emergencies, legal help, or advocacy.</p>
+        <a class="stat-src" href="https://www.jchs.harvard.edu/americas-rental-housing-2024" target="_blank" rel="noopener">Source: Harvard Joint Center for Housing Studies</a>
       </div>
       <div class="problem-item fade-in fade-in-delay-2">
         <div class="problem-item-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
         </div>
         <h4>Habitability Violations</h4>
-        <p>Millions of renters live in units with mold, broken heat, pest infestations, or structural hazards — and don't know how to document violations, file complaints, or legally withhold rent without risking eviction.</p>
+        <p>Millions of U.S. rental units have severe or moderate physical problems — mold, broken heat, pest infestations, structural hazards — and most renters don't know how to document violations, file complaints, or respond without risking eviction.</p>
+        <a class="stat-src" href="https://www.census.gov/programs-surveys/ahs.html" target="_blank" rel="noopener">Source: HUD / U.S. Census American Housing Survey</a>
       </div>
       <div class="problem-item fade-in fade-in-delay-3">
         <div class="problem-item-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         </div>
         <h4>Communities Most Affected</h4>
-        <p>The burden falls disproportionately on Black, Brown, immigrant, elderly, and disabled renters — communities already navigating systemic disadvantage. Eviction is not a housing event; it's a life event with cascading consequences.</p>
+        <p>Eviction filings fall hardest on Black renters — especially Black women — and on immigrant, elderly, and disabled renters. Eviction is not a housing event; it's a life event with cascading consequences.</p>
+        <a class="stat-src" href="https://evictionlab.org/" target="_blank" rel="noopener">Source: Eviction Lab research</a>
       </div>
     </div>
   </div>
@@ -1325,6 +1328,7 @@
         </div>
         <div class="pillar-title">Know Your Rights Before the Dispute Starts</div>
         <p class="pillar-desc">Plain-language, state-by-state explanations of tenant rights — notice requirements, habitability standards, illegal fees, retaliation protections, and more. Accessible to everyone, not just lawyers.</p>
+        <a class="card-link" href="/library">Open the Law Library</a>
       </div>
       <!-- 2. Research -->
       <div class="pillar-card fade-in fade-in-delay-2">
@@ -1334,6 +1338,7 @@
         </div>
         <div class="pillar-title">Go Deeper on Your Specific Situation</div>
         <p class="pillar-desc">Not every situation is the same. Semptify's research layer helps tenants explore the statutes, precedents, and agency rules relevant to their exact case — without needing to know where to look.</p>
+        <a class="card-link" href="/legal-research">See legal research tools</a>
       </div>
       <!-- 3. Documentation -->
       <div class="pillar-card fade-in fade-in-delay-3">
@@ -1343,6 +1348,7 @@
         </div>
         <div class="pillar-title">A Paper Trail You Can Trust</div>
         <p class="pillar-desc">Every communication, payment, repair request, and notice — documented, timestamped, and organized. A complete paper trail stored in your own cloud, ready if you ever need it in court or with a mediator.</p>
+        <a class="card-link" href="/portal">Start documenting</a>
       </div>
       <!-- 4. Organize -->
       <div class="pillar-card fade-in fade-in-delay-4">
@@ -1351,7 +1357,8 @@
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
         </div>
         <div class="pillar-title">Scattered Texts, Photos, Receipts → Coherent Record</div>
-        <p class="pillar-desc">Most tenants have evidence — it's just scattered across phone photos, email threads, text messages, and handwritten notes. Semptify organizes everything into a coherent, chronological record that tells your story clearly.</p>
+        <p class="pillar-desc">Most tenants have the makings of a record — it's just scattered across phone photos, email threads, text messages, and handwritten notes. Semptify organizes everything into a coherent, chronological record that tells your story clearly.</p>
+        <a class="card-link" href="/portal">Organize your records</a>
       </div>
       <!-- 5. Collaborate -->
       <div class="pillar-card fade-in fade-in-delay-5">
@@ -1361,6 +1368,7 @@
         </div>
         <div class="pillar-title">Find Your Tenants Union. Build One If It Doesn't Exist.</div>
         <p class="pillar-desc">Tenants are stronger together. Semptify connects renters with their local tenants unions, tenant advocacy organizations, and community support networks — and provides tools for organizing where nothing yet exists.</p>
+        <a class="card-link" href="/advocacy">Advocacy &amp; organizing</a>
       </div>
       <!-- 6. Be Heard -->
       <div class="pillar-card fade-in fade-in-delay-6">
@@ -1370,6 +1378,7 @@
         </div>
         <div class="pillar-title">File Complaints. Reach Legislators. Tell Your Story.</div>
         <p class="pillar-desc">Semptify's Public Exposure Suite connects tenants to journalists, housing advocates, and elected officials. The Complaint Wizard guides users through HUD, state AG, and code enforcement filings — step by step, plain language, no lawyer required.</p>
+        <a class="card-link" href="/complaints">File a complaint</a>
       </div>
     </div>
   </div>
@@ -1382,7 +1391,7 @@
 <section id="features" class="section bg-alt">
   <div class="container">
     <span class="section-label fade-in">Platform Features</span>
-    <h2 class="section-title fade-in fade-in-delay-1">17+ Modules,<br>Built to Matter</h2>
+    <h2 class="section-title fade-in fade-in-delay-1">20+ Tenant Tools,<br>Built to Matter</h2>
     <div class="divider fade-in fade-in-delay-2"></div>
     <p class="section-subtitle fade-in fade-in-delay-2">
       Every feature in Semptify answers a specific, real gap in the tenant experience. From the first lease signature to the last day in court.
@@ -1399,6 +1408,7 @@
           </div>
           <div class="feature-title">Know Your Rights Law Library</div>
           <p class="feature-desc">State-by-state housing law in plain English. Covers notice requirements, security deposit rules, habitability standards, retaliation protections, and right-to-cure timelines. No law degree required.</p>
+          <a class="card-link" href="/library">Open the library</a>
         </div>
 
         <div class="feature-card fade-in fade-in-delay-2">
@@ -1407,6 +1417,7 @@
           </div>
           <div class="feature-title">Document Vault</div>
           <p class="feature-desc">Your tenant document vault lives in your own Google Drive, Dropbox, or OneDrive account — not on Semptify's servers. Lease agreements, repair photos, payment receipts, notices: all organized and owned by you.</p>
+          <a class="card-link" href="/portal">Set up your vault</a>
         </div>
 
         <div class="feature-card fade-in fade-in-delay-3">
@@ -1415,6 +1426,7 @@
           </div>
           <div class="feature-title">Unified Timeline</div>
           <p class="feature-desc">Every event in your tenancy — payments, notices, calls, repairs, inspections, disputes — presented as a single chronological timeline. The clearest possible picture of what happened, and when.</p>
+          <a class="card-link" href="/portal">Build your timeline</a>
         </div>
 
         <div class="feature-card fade-in fade-in-delay-1">
@@ -1422,7 +1434,8 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
           </div>
           <div class="feature-title">Case Builder</div>
-          <p class="feature-desc">Automated documentation from your records. Case Builder takes your vault contents and timeline, identifies the strongest evidence, and assembles them into a clear, coherent case narrative ready for legal or advocacy use.</p>
+          <p class="feature-desc">Automated documentation from your records. Case Builder takes your vault contents and timeline, identifies the strongest documentation, and assembles it into a clear, coherent case narrative ready for legal or advocacy use.</p>
+          <a class="card-link" href="/services">See services</a>
         </div>
 
         <div class="feature-card fade-in fade-in-delay-2">
@@ -1431,6 +1444,7 @@
           </div>
           <div class="feature-title">Complaint Wizard</div>
           <p class="feature-desc">Guided, step-by-step filing with HUD, state attorneys general, local housing authorities, and code enforcement agencies. The Wizard pre-fills forms from your vault data and walks you through every field in plain language.</p>
+          <a class="card-link" href="/complaints">File a complaint</a>
         </div>
 
       </div>
@@ -1447,6 +1461,7 @@
           </div>
           <div class="feature-title">Eviction Defense Module</div>
           <p class="feature-desc">Step-by-step guidance through the eviction process — from notice receipt to court date. Includes state-specific court procedure guides, timeline calculators, deadline tracking, and response templates drafted in plain language.</p>
+          <a class="card-link" href="/eviction-defense">Open eviction defense</a>
         </div>
 
         <div class="feature-card fade-in fade-in-delay-2">
@@ -1455,6 +1470,7 @@
           </div>
           <div class="feature-title">Court Forms System</div>
           <p class="feature-desc">Pre-filled legal documents drawn from your vault and timeline. Generates answers to eviction summons, motions for continuance, habitability defenses, and more — with state-specific formatting and instructions for filing pro se.</p>
+          <a class="card-link" href="/tools">See tools</a>
         </div>
 
         <div class="feature-card fade-in fade-in-delay-3">
@@ -1463,6 +1479,7 @@
           </div>
           <div class="feature-title">Litigation Intelligence</div>
           <p class="feature-desc">Pattern detection across public housing court records. Identifies serial evictors, landlords with histories of retaliation or code violations, and systemic practices — giving tenants and advocates actionable intelligence to level the playing field.</p>
+          <a class="card-link" href="/legal-research">Legal research tools</a>
         </div>
 
         <div class="feature-card fade-in fade-in-delay-1">
@@ -1471,6 +1488,7 @@
           </div>
           <div class="feature-title">Fraud Exposure</div>
           <p class="feature-desc">Document and surface predatory landlord patterns: illegal fees, false security deposit claims, retaliatory lease terminations, habitability cover-ups, and discriminatory practices. Creates a documented record for regulatory and legal action.</p>
+          <a class="card-link" href="/legal-research">Legal research tools</a>
         </div>
 
         <div class="feature-card fade-in fade-in-delay-2">
@@ -1479,6 +1497,7 @@
           </div>
           <div class="feature-title">Public Exposure Suite</div>
           <p class="feature-desc">Bridges the gap between individual tenants and systemic change. Connects tenants with housing journalists, policy advocates, and legislators. Makes individual stories part of a larger record — with privacy controls tenants control.</p>
+          <a class="card-link" href="/advocacy">Advocacy &amp; outreach</a>
         </div>
 
         <div class="feature-card fade-in fade-in-delay-3">
@@ -1486,7 +1505,8 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           </div>
           <div class="feature-title">Forensic Evidence System — FEMS</div>
-          <p class="feature-desc">Advanced evidence processing: OCR of scanned documents and photos, automatic deduplication, SMS and chat import, metadata preservation, and chain-of-custody logging. Turns a phone's camera roll into legally credible evidence.</p>
+          <p class="feature-desc">Advanced document processing: OCR of scanned documents and photos, automatic deduplication, SMS and chat import, metadata preservation, and chain-of-custody logging. Turns a phone's camera roll into a clear, credible record.</p>
+          <a class="card-link" href="/services">See services</a>
         </div>
 
       </div>
@@ -1636,7 +1656,7 @@
     <h2 class="section-title fade-in fade-in-delay-1">Production-Ready Mechanics.<br>Built to Scale.</h2>
     <div class="divider fade-in fade-in-delay-2"></div>
     <p class="section-subtitle fade-in fade-in-delay-2">
-      Semptify is not a prototype. Version 5.0 is a fully async, cloud-native architecture with 17+ modules across multiple tiers, deployed at semptify.org and open source on GitHub.
+      Semptify is not a prototype. Version 5.0 is a fully async, cloud-native architecture with 20+ tenant-facing tools across multiple tiers — 130+ registered modules under the hood — deployed at <a href="/">semptify.org</a> and open source on <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener">GitHub</a>.
     </p>
 
     <!-- Stack -->
@@ -1842,7 +1862,9 @@
 
 
 <!-- ============================================================
-     <section id="support" class="section">
+     10. SUPPORT
+============================================================ -->
+<section id="support" class="section bg-alt">
   <div class="container">
     <span class="section-label fade-in">Get Involved</span>
     <h2 class="section-title fade-in fade-in-delay-1">Support Semptify</h2>
@@ -1873,7 +1895,8 @@
         <h3>Partner With Us</h3>
         <p>Legal aid organizations, housing advocacy groups, universities, journalists, and government agencies — Semptify is built to work with you, not duplicate you. Let's connect.</p>
         <div class="support-links">
-          <a href="https://semptify.org" target="_blank" rel="noopener" class="btn btn-teal btn-sm">Contact Us at semptify.org</a>
+          <a href="/contact" class="btn btn-teal btn-sm">Contact Us</a>
+          <a href="/advocacy" class="btn btn-outline btn-sm">Advocacy Partnerships</a>
         </div>
       </div>
 
@@ -1894,9 +1917,9 @@
       <div class="support-card fade-in fade-in-delay-4">
         <span class="support-icon">📢</span>
         <h3>Get the Word Out</h3>
-        <p>The most important thing you can do is make sure a renter who needs this knows it exists. Share semptify.org with tenants organizations, social workers, community groups, and anyone who works with people in housing difficulty.</p>
+        <p>The most important thing you can do is make sure a renter who needs this knows it exists. Share semptify.org with tenant organizations, social workers, community groups, and anyone who works with people in housing difficulty.</p>
         <div class="support-links">
-          <a href="https://semptify.org" target="_blank" rel="noopener" class="btn btn-primary btn-sm">semptify.org</a>
+          <a href="/" class="btn btn-primary btn-sm">semptify.org</a>
           <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-outline btn-sm">Star on GitHub</a>
         </div>
       </div>
@@ -1907,9 +1930,9 @@
       <h3 style="margin-bottom:0.5rem; font-size:1.3rem;">Connect &amp; Contact</h3>
       <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1.5rem; max-width:520px; margin-left:auto; margin-right:auto;">Questions, partnership inquiries, media requests, or just want to talk about housing justice and technology — reach us through any of these.</p>
       <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
-        <a href="/" class="btn btn-primary btn-sm">semptify.org</a>
+        <a href="/contact" class="btn btn-primary btn-sm">Contact</a>
         <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-outline btn-sm">GitHub</a>
-        <a href="http://127.0.0.1:8001" target="_blank" class="btn btn-teal btn-sm">Funding Forge (Admin)</a>
+        <a href="https://github.com/1semptify-arch/Semptify/tree/main/funding_forge" target="_blank" rel="noopener" class="btn btn-teal btn-sm">Funding Forge (source)</a>
       </div>
     </div>
   </div>
@@ -1941,7 +1964,7 @@
           <li><a href="#features">All Features</a></li>
           <li><a href="#privacy">Privacy Architecture</a></li>
           <li><a href="#tech">Technical Docs</a></li>
-          <li><a href="https://semptify.org" target="_blank" rel="noopener">semptify.org</a></li>
+          <li><a href="/">semptify.org</a></li>
         </ul>
       </div>
 
@@ -1950,10 +1973,25 @@
         <h5>Links</h5>
         <ul>
           <li><a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener">GitHub (Open Source)</a></li>
-          <li><a href="http://127.0.0.1:8001" target="_blank">Funding Forge (Admin)</a></li>
+          <li><a href="https://github.com/1semptify-arch/Semptify/tree/main/funding_forge" target="_blank" rel="noopener">Funding Forge (source)</a></li>
+          <li><a href="https://github.com/sponsors/1semptify-arch" target="_blank" rel="noopener">GitHub Sponsors</a></li>
           <li><a href="#support">Donate</a></li>
           <li><a href="#support">Partner</a></li>
           <li><a href="#support">Volunteer</a></li>
+        </ul>
+      </div>
+
+      <!-- Site -->
+      <div class="footer-col">
+        <h5>Site</h5>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/services">Services</a></li>
+          <li><a href="/library">Law Library</a></li>
+          <li><a href="/help">Get Help</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/terms">Terms</a></li>
         </ul>
       </div>
     </div>
@@ -1964,7 +2002,7 @@
       </p>
       <p style="font-size:0.82rem; color:var(--muted); text-align:right;">
         Open source. Tenants never pay.<br>
-        <a href="https://semptify.org" target="_blank" rel="noopener" style="color:var(--amber);">semptify.org</a>
+        <a href="/" style="color:var(--amber);">semptify.org</a>
       </p>
     </div>
   </div>

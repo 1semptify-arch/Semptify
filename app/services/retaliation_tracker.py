@@ -285,6 +285,251 @@ def correlate(
     }
 
 
+# ---------------------------------------------------------------------------
+# Assessment — how strong the documented record is
+# ---------------------------------------------------------------------------
+#
+# What retaliation claims generally turn on (educational, not advice):
+#   - Proof the protected activity happened and reached the landlord
+#     (written repair request, agency complaint record, inspection report —
+#     Central Housing v. Olson, 929 N.W.2d 398 (Minn. 2019), protects
+#     good-faith complaints made directly TO the landlord under MN common law)
+#   - Dates for both events — proximity drives presumption windows
+#     (Minn. Stat. § 504B.441: burden shifts to the landlord within 90 days)
+#   - Attached documents, not just narrative
+#   - The landlord's stated reason vs. timing — courts weigh both
+#     (Davies v. Simba, No. A24-0002 (Minn. Ct. App. 2024): non-retaliatory
+#     reasons for non-renewal defeated the defense)
+#   - Good faith — § 504B.441 requires the complaint be made in good faith
+#
+# This is a RECORD-READINESS assessment: which pieces of the user's own
+# record exist and which are missing. It never says "this is retaliation" —
+# that is a legal conclusion for a court.
+
+
+@dataclass
+class AssessmentElement:
+    """One element of record readiness."""
+
+    key: str
+    label: str
+    present: bool
+    detail: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "key": self.key,
+            "label": self.label,
+            "present": self.present,
+            "detail": self.detail,
+        }
+
+
+def assess(correlation_result: dict[str, Any], *, jurisdiction: str | None = None) -> dict[str, Any]:
+    """Evaluate the retaliation record produced by ``correlate()``.
+
+    Takes the dict returned by ``correlate(timeline_events, ...)`` and
+    reports which record elements are documented, which are missing, and
+    plain-language guidance on what would strengthen the record. Output
+    wording follows the UPL-safe pattern used throughout this module —
+    it describes the record, never concludes "retaliation happened".
+    """
+    protected = correlation_result.get("protected_events", [])
+    adverse = correlation_result.get("adverse_events", [])
+    pairs = correlation_result.get("pairs", [])
+    flagged = correlation_result.get("flagged_count", 0)
+    open_windows = correlation_result.get("open_windows", [])
+    presumption = correlation_result.get("presumption", {})
+
+    has_docs = any(e.get("attached_document_ids") for e in protected + adverse)
+
+    elements = [
+        AssessmentElement(
+            key="protected_documented",
+            label="Protected activity on record",
+            present=bool(protected),
+            detail=(
+                f"{len(protected)} protected action(s) logged."
+                if protected
+                else "No protected actions logged — repair requests, agency complaints, "
+                "and tenant organizing are what the law protects."
+            ),
+        ),
+        AssessmentElement(
+            key="adverse_documented",
+            label="Adverse action on record",
+            present=bool(adverse),
+            detail=(
+                f"{len(adverse)} adverse action(s) logged."
+                if adverse
+                else "No adverse actions logged — if the landlord raised rent, "
+                "cut services, or served notice, log it with its date."
+            ),
+        ),
+        AssessmentElement(
+            key="proximity_flagged",
+            label="Close timing flagged",
+            present=bool(flagged),
+            detail=(
+                f"{flagged} adverse action(s) landed inside a presumption or "
+                "urgency window — proximity is what raises the retaliation question."
+                if flagged
+                else "No adverse action landed inside a presumption window. "
+                "After the window, the burden of proof stays on the tenant in "
+                "most states — the pattern can still matter."
+            ),
+        ),
+        AssessmentElement(
+            key="documents_attached",
+            label="Documents attached to events",
+            present=has_docs,
+            detail=(
+                "Events have attached documents — dated written proof carries "
+                "more weight than recollection."
+                if has_docs
+                else "No documents attached yet. Attaching the letter, notice, "
+                "or inspection report to an event makes the record much stronger."
+            ),
+        ),
+        AssessmentElement(
+            key="pattern_multiple",
+            label="Pattern of protected activity",
+            present=len(protected) >= 2,
+            detail=(
+                f"{len(protected)} protected actions — a repeated pattern shows "
+                "ongoing exercise of rights, not a one-off."
+                if len(protected) >= 2
+                else "A single protected action can still matter, but a pattern "
+                "of requests/complaints is harder to dismiss."
+            ),
+        ),
+        AssessmentElement(
+            key="open_window",
+            label="Presumption window open now",
+            present=bool(open_windows),
+            detail=(
+                f"{len(open_windows)} protected action(s) still inside the "
+                f"{presumption.get('days')}-day presumption window."
+                if open_windows and presumption.get("days")
+                else "No open presumption window right now."
+                if presumption.get("days")
+                else "Presumption window unknown for this jurisdiction — "
+                "check your state's rule."
+            ),
+        ),
+    ]
+
+    present = [e for e in elements if e.present]
+    gaps = [e for e in elements if not e.present]
+
+    gap_guidance = []
+    if not protected:
+        gap_guidance.append(
+            "Log every protected step — repair requests, calls to inspectors, "
+            "organizing — with the date it happened. The date starts the clock."
+        )
+    if not adverse:
+        gap_guidance.append(
+            "If the landlord acts against you — notice, rent increase, cut "
+            "services, lockout — log it the day it happens."
+        )
+    if not has_docs and (protected or adverse):
+        gap_guidance.append(
+            "Attach the document itself (letter, notice, inspection report, "
+            "photo of the notice) to the matching timeline event."
+        )
+    if adverse and not flagged:
+        gap_guidance.append(
+            "Timing didn't fall inside a presumption window — the pattern may "
+            "still matter, but expect to carry the burden of proof. Talk to "
+            "legal aid about whether the record is enough."
+        )
+    if flagged:
+        gap_guidance.append(
+            "Flagged proximity is the strongest piece you have — take this "
+            "record to legal aid while the window context is fresh."
+        )
+
+    return {
+        "elements": [e.to_dict() for e in elements],
+        "present_count": len(present),
+        "total_count": len(elements),
+        "gaps": [e.key for e in gaps],
+        "guidance": gap_guidance,
+        "jurisdiction": jurisdiction,
+        "note": (
+            "This describes what is in your record, not whether retaliation "
+            "occurred — that is a legal question for a court or attorney."
+        ),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Document indicators — suggest timeline candidates from recognized documents
+# ---------------------------------------------------------------------------
+#
+# document_recognition.py classifies vault documents into DocumentType values.
+# Several of those types map directly onto the tracker's vocabularies — an
+# eviction notice is an adverse action; a repair request is a protected one.
+# ``suggest_from_documents`` turns recognized documents into candidate
+# timeline events the user can confirm (nothing is logged automatically —
+# the user decides).
+
+DOC_TYPE_TO_INDICATOR: dict[str, tuple[str, str]] = {
+    # protected — things the law protects
+    "repair_request": ("protected", "repair_request"),
+    "inspection": ("protected", "agency_complaint"),
+    "condition_report": ("protected", "code_violation_report"),
+    "work_order": ("protected", "repair_request"),
+    # adverse — things the landlord does after
+    "eviction_notice": ("adverse", "eviction_notice"),
+    "eviction_filing": ("adverse", "eviction_notice"),
+    "summons": ("adverse", "eviction_notice"),
+    "notice_to_quit": ("adverse", "eviction_notice"),
+    "rent_increase": ("adverse", "rent_increase"),
+    "non_renewal": ("adverse", "lease_nonrenewal"),
+    "entry_notice": ("adverse", "entry_without_notice"),
+    "lease_violation": ("adverse", "other"),
+    "late_notice": ("adverse", "other"),
+}
+
+
+def suggest_from_documents(documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Suggest protected/adverse timeline candidates from recognized documents.
+
+    Each item in ``documents`` is a normalized dict with at least ``id`` and
+    ``doc_type`` (a DocumentType value); ``title``, ``date`` (ISO string or
+    datetime), and ``description`` are used when present. Documents whose
+    type has no indicator mapping are skipped. Returns candidate dicts —
+    callers present them for the user to confirm; nothing is written here.
+    """
+    suggestions: list[dict[str, Any]] = []
+    for doc in documents:
+        doc_type = (doc.get("doc_type") or "").lower()
+        mapping = DOC_TYPE_TO_INDICATOR.get(doc_type)
+        if not mapping:
+            continue
+        kind, subtype = mapping
+        vocab = PROTECTED_SUBTYPES if kind == "protected" else ADVERSE_SUBTYPES
+        suggestions.append(
+            {
+                "document_id": doc.get("id"),
+                "suggested_event_type": EVENT_TYPE_PROTECTED if kind == "protected" else EVENT_TYPE_ADVERSE,
+                "suggested_subtype": subtype,
+                "subtype_label": vocab.get(subtype, vocab["other"]),
+                "title": doc.get("title") or vocab.get(subtype, "Document"),
+                "description": doc.get("description"),
+                "event_date": doc.get("date") or doc.get("event_date"),
+                "reason": (
+                    f"This document was recognized as '{doc_type.replace('_', ' ')}', "
+                    "which may be a "
+                    + ("protected step you took." if kind == "protected" else "landlord action worth logging.")
+                ),
+            }
+        )
+    return suggestions
+
+
 def _summary_line(
     n_protected: int,
     n_adverse: int,

@@ -86,6 +86,32 @@ register_function_group(
 register_function_group(
     FunctionGroupContract(
         module="campaign",
+        group_name="campaign_pressure_map",
+        title="Campaign Pressure Map (GET) (SSOT)",
+        description="GET /pressure-map",
+        inputs=(),
+        outputs=("result",),
+        dependencies=("app.modules.campaign.router",),
+        deterministic=True,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="campaign",
+        group_name="campaign_leader_letter",
+        title="Campaign Generate Leader Letter (POST) (SSOT)",
+        description="POST /leader-letter",
+        inputs=(),
+        outputs=("result",),
+        dependencies=("app.modules.campaign.router",),
+        deterministic=False,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="campaign",
         group_name="campaign_health",
         title="Campaign Campaign Health (GET) (SSOT)",
         description="Health check for campaign service",

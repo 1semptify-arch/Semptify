@@ -47,6 +47,21 @@ class PressInput(BaseModel):
     language: str = "en"
 
 
+class LeaderLetterInput(BaseModel):
+    """Facts for a letter to an elected official. All fields are factual
+    statements the tenant supplies — no accusations beyond what they can
+    document."""
+
+    leader_name: str = ""
+    leader_role: str = "council_member"  # mayor / council_member / county_commissioner / state_legislator / city_staff
+    city: str = ""
+    tenant_name: str = ""
+    property_address: str = ""
+    issue_summary: str = ""
+    complaints_filed: list[str] = []
+    ask: str = "Bring these conditions to the attention of the relevant city departments and help ensure they are addressed."
+
+
 class CampaignLaunchRequest(BaseModel):
     """Full campaign launch combining all three modules"""
 
@@ -191,6 +206,62 @@ SUPPORTING DOCUMENTATION:
     return {"press_release": release}
 
 
+LEADER_ROLE_LABELS = {
+    "mayor": "Mayor",
+    "council_member": "Council Member",
+    "county_commissioner": "County Commissioner",
+    "state_legislator": "State Legislator",
+    "city_staff": "City Staff",
+}
+
+
+def _leader_letter_text(params: dict[str, Any]) -> str:
+    """Build a factual letter to an elected official.
+
+    Plain-language, respectful, and strictly factual — the tenant states
+    what they documented and filed, and asks the official's office for
+    help. No threats, no unverified accusations: a letter a council member
+    can act on is also one that can't be dismissed as a rant.
+    """
+    role_label = LEADER_ROLE_LABELS.get(params.get("leader_role", ""), "Official")
+    salutation = (
+        f"Dear {role_label} {params['leader_name']},"
+        if params.get("leader_name")
+        else f"Dear {role_label},"
+    )
+    place = params.get("city") or "your city"
+    address_line = (
+        f"I am a resident of {place} writing about housing conditions at {params['property_address']}."
+        if params.get("property_address")
+        else f"I am a resident of {place} writing about housing conditions I have been documenting."
+    )
+
+    complaints = params.get("complaints_filed") or []
+    complaints_line = ""
+    if complaints:
+        complaints_line = (
+            "\n\nI have filed formal complaints with: "
+            + "; ".join(complaints)
+            + "."
+        )
+
+    return f"""{salutation}
+
+{address_line}
+
+WHAT I HAVE DOCUMENTED:
+{params.get('issue_summary') or '(describe the conditions and dates here — stick to what you can point to a document for)'}{complaints_line}
+
+WHAT I AM ASKING:
+{params.get('ask')}
+
+I am not asking your office to take my word for anything — I have dated documentation and am happy to share it. I would appreciate a response letting me know how your office can help.
+
+Respectfully,
+{params.get('tenant_name') or '(your name)'}
+"""
+
+
 async def export_zip_internal(complaint_id: str) -> dict[str, Any]:
     """Generate export bundle"""
     return {
@@ -292,6 +363,78 @@ async def quick_generate_press(payload: PressInput, user: StorageUser = Depends(
     """Quick press release generation without full campaign"""
     user_id = user.user_id if hasattr(user, "user_id") else "anonymous"
     return await generate_press_internal(user_id, payload.dict())
+
+
+@router.get("/pressure-map")
+async def pressure_map(user: StorageUser = Depends(yellow_access)):
+    """The full accountability sequence — complaints, city leaders, and press —
+    as one ordered map. Each step names the endpoint that powers it."""
+    return {
+        "title": "Accountability pressure map",
+        "note": (
+            "Every step is something you do yourself, in order, with your own "
+            "documentation. Nothing here files or sends anything for you."
+        ),
+        "steps": [
+            {
+                "step": 1,
+                "name": "Document everything",
+                "why": "Every later step leans on dated, verifiable records.",
+                "endpoint": "Timeline, journal, and document vault (RECORD pillar)",
+            },
+            {
+                "step": 2,
+                "name": "Get advice first",
+                "why": "Legal aid and HOME Line can tell you which complaints fit your facts.",
+                "endpoint": "GET /api/complaints/quick-start",
+            },
+            {
+                "step": 3,
+                "name": "File agency complaints",
+                "why": "AG, HUD, Commerce, and others create official records and investigations.",
+                "endpoint": "POST /api/complaints/drafts → POST /api/complaints/drafts/{id}/file",
+            },
+            {
+                "step": 4,
+                "name": "Tell city leaders",
+                "why": "Mayors, council members, and county commissioners can route city departments and put the landlord on notice that the record exists.",
+                "endpoint": "POST /api/campaign/leader-letter",
+            },
+            {
+                "step": 5,
+                "name": "Press release & media",
+                "why": "Public visibility is pressure a landlord can't ignore — keep it factual and you stay on solid ground.",
+                "endpoint": "POST /api/exposure/press-release → POST /api/exposure/media-kit",
+            },
+            {
+                "step": 6,
+                "name": "Follow up on a schedule",
+                "why": "Agencies and offices respond to documented persistence, not volume.",
+                "endpoint": "GET /api/campaign/status/{id} + contact interaction logs",
+            },
+        ],
+    }
+
+
+@router.post("/leader-letter")
+async def generate_leader_letter(payload: LeaderLetterInput, user: StorageUser = Depends(yellow_access)):
+    """Draft a factual letter to an elected official (mayor, council member,
+    county commissioner, state legislator). The tenant supplies the facts;
+    the output is a draft for them to review and send themselves."""
+    user_id = user.user_id if hasattr(user, "user_id") else "anonymous"
+    letter = {
+        "id": make_id("ltr"),
+        "to_role": payload.leader_role,
+        "to_name": payload.leader_name,
+        "text": _leader_letter_text(payload.dict()),
+        "note": (
+            "Review before sending — state only what you can document. "
+            "A factual letter carries weight; an exaggerated one gets set aside."
+        ),
+        "created_at": utc_now().isoformat(),
+    }
+    logger.info(f"Leader letter drafted: {letter['id']} by user {user_id}")
+    return letter
 
 
 @router.get("/health")

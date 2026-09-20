@@ -1,6 +1,6 @@
 {
   "module_name": "Campaign",
-  "layout": "app/modules/campaign/ — 7 registered function groups (campaign_launch_campaign, campaign_campaign_status, campaign_campaigns, campaign_quick_file_complaint, campaign_quick_analyze_fraud, campaign_quick_generate_press, campaign_health). Derived record: page layout not yet described.",
+  "layout": "app/modules/campaign/ — 9 registered function groups (campaign_launch_campaign, campaign_campaign_status, campaign_campaigns, campaign_quick_file_complaint, campaign_quick_analyze_fraud, campaign_quick_generate_press, campaign_pressure_map, campaign_leader_letter, campaign_health). Derived record: page layout not yet described.",
   "inputs": [],
   "input_audit": [],
   "preview_state": null,
@@ -9,7 +9,7 @@
   "output_how": "Registered function groups return named outputs (result) via the module's routes/services.",
   "output_where": "app.modules.campaign function outputs",
   "output_why": "Serves the Campaign functions declared in its FunctionGroupContracts.",
-  "process_description": "POST /launch GET /status/{campaign_id} GET /list POST /quick-file POST /quick-analyze POST /quick-press Health check for campaign service",
+  "process_description": "POST /launch GET /status/{campaign_id} GET /list POST /quick-file POST /quick-analyze POST /quick-press GET /pressure-map POST /leader-letter Health check for campaign service",
   "process_context": "Derived record. Invoked via the campaign module's registered routes and dependencies.",
   "narrative_events": []
 }
