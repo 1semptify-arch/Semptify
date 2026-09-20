@@ -1,3 +1,19 @@
+## Session — 2026-09-19 — Per-role vault configs, Step 1d (devin)
+
+**Task `prov-role-configs` → review.** Final step of the intake-vault-provisioning sequence — `_PENDING_STEPS` is now empty, so `vault_provisioned` can actually flip true once all three steps run.
+
+**What shipped:**
+- `app/core/vault_paths.py` — `CONFIGS_FOLDER = .semptify/configs/`, `OCR_CONFIG_FILE`, `OVERLAY_CONFIG_FILE`.
+- `app/core/vault_configs.py` (new) — content layer: required-field catalog for the 8 locked doc types, per-role OCR config (text-layer-first, ADR-0007 engine block: client WASM/ONNX primary, ephemeral-memory server fallback, zero content logging, per-field yes/no/edit confirm flow), per-role overlay config (allowed categories keyed to `overlay_types` groups + empty `seeds` slot for typed seeds). Doc-ingest roles (tenant/advocate/mca/legal/manager/agency) get the full 8-type catalog; non-intake roles get empty `doc_types`. Unknown role → empty/minimal, never silently tenant.
+- `app/sdk/vault/configs.py` (new) — transport: `ensure_configs_remote(storage, role)` — create-if-missing, verified-if-same-version, refresh stale-or-unparseable (configs are app-generated, safe to replace), never downgrade a newer file.
+- `app/services/vault_provisioning.py` — `_run_configs()` wired with the same 25s timeout + gate pattern; `configs` dispatch added to `run_step`.
+- `app/sdk/vault/__init__.py` — exports `ensure_configs_remote`.
+- `tests/test_vault_configs.py` — 10 tests.
+
+**Verified:** 10/10 new tests pass (`--no-cov`); `py_compile` clean; import check confirms all three steps runnable. **Not verified:** live provision against a real OAuth provider (same tenant-token wall as 1c); `unified_overlay_manager.py` untouched — the task's file_path listed it but v1 needs no edits there (overlay config is consumed by readers later, e.g. live-reads-retarget).
+
+---
+
 ## Session — 2026-09-19 — Vault SQLite datastore + embedded migrations (devin)
 
 **Task `prov-vault-sqlite` → review.** Step 1c of the intake-vault-provisioning pipeline: the `vault_db` provisioning step is now real — it was previously in `_PENDING_STEPS` and `run_step` dispatched to a `_run_vault_db` that was never defined (latent NameError once un-pended).
