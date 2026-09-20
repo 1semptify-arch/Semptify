@@ -32,7 +32,9 @@ import re
 import shutil
 import sqlite3
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from app.core.vault_paths import SYSTEM_FOLDER, VAULT_DB_FILE
 
@@ -88,16 +90,26 @@ def _apply_pending_migrations(conn: sqlite3.Connection) -> list[int]:
         # must live INSIDE the script text — a failed migration then rolls
         # back its DDL instead of half-applying. Migration files must never
         # contain their own BEGIN/COMMIT statements.
+        # Escape hatch: a first-line `-- @fk_off` marker runs the migration
+        # with foreign_keys OFF (table-rebuild migrations only — DROP on a
+        # parent table otherwise cascades into child tables). The pragma is
+        # toggled outside the transaction; inside one it is a no-op.
+        fk_off = script.lstrip().startswith("-- @fk_off")
         version_stmt = (
             "INSERT OR REPLACE INTO vault_meta (key, value)"
             f" VALUES ('schema_version', '{number}');"
         )
         try:
+            if fk_off:
+                conn.execute("PRAGMA foreign_keys = OFF")
             conn.executescript(f"BEGIN;\n{script}\n{version_stmt}\nCOMMIT;")
         except sqlite3.Error as exc:
             if conn.in_transaction:
                 conn.rollback()
             raise VaultDbError(f"vault.db migration {path.name} failed: {exc}") from exc
+        finally:
+            if fk_off:
+                conn.execute("PRAGMA foreign_keys = ON")
         applied.append(number)
         current = number
     return applied
@@ -209,5 +221,62 @@ async def ensure_remote(storage) -> dict:
             "schema_version": version,
             "path": VAULT_DB_FILE,
         }
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
+
+
+async def mutate_remote(storage, work: Callable[[sqlite3.Connection], Any]) -> Any:
+    """Download vault.db, run ``work(conn)``, checkpoint, re-upload.
+
+    The single write path for live vault data: pull the file, open it
+    (pending migrations apply on open), mutate inside one commit, fold the
+    WAL, and upload the self-contained file back. If ``work`` raises, the
+    remote file is left untouched. If the re-upload fails, the original
+    remote bytes are restored so a retry never loses committed state.
+
+    Requires the file to already exist — provisioning (ensure_remote)
+    creates it. Per-call cost is one download + one upload, so callers
+    should batch mutations rather than call this per row.
+    """
+    workdir = Path(tempfile.mkdtemp(prefix="semptify_vaultdb_"))
+    local = workdir / VAULT_DB_FILENAME
+    try:
+        if not await storage.file_exists(VAULT_DB_FILE):
+            raise VaultDbError(
+                f"vault.db not found at {VAULT_DB_FILE} — provisioning has not run"
+            )
+        original = await storage.download_file(VAULT_DB_FILE)
+        local.write_bytes(original)
+        try:
+            conn = open_local(local)
+        except sqlite3.Error as exc:
+            raise VaultDbError(f"vault.db failed to open: {exc}") from exc
+        try:
+            result = work(conn)
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            checkpoint_and_close(conn)
+        await storage.delete_file(VAULT_DB_FILE)
+        try:
+            await _upload(storage, local)
+        except Exception:
+            try:
+                await storage.upload_file(
+                    file_content=original,
+                    destination_path=SYSTEM_FOLDER,
+                    filename=VAULT_DB_FILENAME,
+                    mime_type=VAULT_DB_MIME,
+                )
+            except Exception:
+                logger.critical(
+                    "vault.db write upload failed AND restore failed — "
+                    "local copy retained in %s",
+                    workdir,
+                )
+            raise
+        return result
     finally:
         shutil.rmtree(workdir, ignore_errors=True)

@@ -19,66 +19,18 @@ the role arrives via ``get_role_from_user_id``.
 
 from __future__ import annotations
 
+from app.core.document_types import DOCUMENT_TYPES
 from app.core.vault_paths import OCR_CONFIG_FILE, OVERLAY_CONFIG_FILE
 
-OCR_CONFIG_VERSION = 1
+OCR_CONFIG_VERSION = 2
 OVERLAY_CONFIG_VERSION = 1
 
-# ---------------------------------------------------------------------------
-# Required-field catalog — the 8 locked doc types from
-# handoffs/vault_sqlite_schema_handoff.md. Field labels are what the intake
-# confirm loop proposes; they land in document_fields.label.
-# ---------------------------------------------------------------------------
+# Required-field catalog — sourced from the shipping SSOT
+# (app/core/document_types.py) so the vault-resident config can never drift
+# from the checklists the confirm loop actually renders.
 DOC_TYPE_FIELDS: dict[str, list[str]] = {
-    "lease": [
-        "landlord_name",
-        "tenant_names",
-        "property_address",
-        "term_start",
-        "term_end",
-        "monthly_rent",
-        "deposit",
-    ],
-    "eviction_notice": [
-        "landlord_name",
-        "property_address",
-        "notice_date",
-        "deadline_date",
-        "stated_reason",
-        "amount_claimed",
-    ],
-    "notice_to_vacate": [
-        "landlord_name",
-        "property_address",
-        "notice_date",
-        "vacate_by_date",
-    ],
-    "repair_request": [
-        "property_address",
-        "issue_description",
-        "request_date",
-    ],
-    "payment_record": [
-        "amount",
-        "payment_date",
-        "payment_method",
-        "period_covered",
-    ],
-    "inspection_report": [
-        "property_address",
-        "inspection_date",
-        "inspector_name",
-        "findings_summary",
-    ],
-    "correspondence": [
-        "from_name",
-        "date",
-        "subject",
-    ],
-    "house_rules": [
-        "property_address",
-        "effective_date",
-    ],
+    key: [f["name"] for f in defn["fields"] if f["required"]]
+    for key, defn in DOCUMENT_TYPES.items()
 }
 
 # Roles that put documents through the OCR-first intake pipeline get the
@@ -165,7 +117,7 @@ def ocr_config_for_role(role: str | None) -> dict:
         "engine": dict(_OCR_ENGINE),
         "confirm_flow": dict(_CONFIRM_FLOW),
         "doc_types": (
-            {dt: {"required_fields": list(fields)} for dt, fields in DOC_TYPE_FIELDS.items()}
+            {key: dict(defn) for key, defn in DOCUMENT_TYPES.items()}
             if role in _DOC_INTAKE_ROLES
             else {}
         ),

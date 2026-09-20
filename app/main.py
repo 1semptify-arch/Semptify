@@ -1978,6 +1978,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 prefix="/api/dc",
                 tags=["Document Center"],
             )
+        from app.modules.document_center import intake_router
+
+        if not any(
+            getattr(r, "path", "").startswith("/api/dc/intake")
+            for r in fastapi_app.routes
+            if hasattr(r, "path")
+        ):
+            fastapi_app.include_router(
+                intake_router.router,
+                prefix="/api/dc/intake",
+                tags=["Document Center Intake"],
+            )
 
     # Static asset mount used by public pages (unrelated to the root route below).
     app_static_path = BASE_PATH / "app" / "static"
