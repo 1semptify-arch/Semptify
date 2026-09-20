@@ -617,6 +617,7 @@ async def get_contact_types():
             {"value": "court", "label": "Court", "icon": "▸"},
             {"value": "legal_aid", "label": "Legal Aid", "icon": "▸"},
             {"value": "tenant_org", "label": "Tenant Organization", "icon": "○"},
+            {"value": "elected_official", "label": "Elected Official", "icon": "▸"},
             {"value": "other", "label": "Other", "icon": "●"},
         ],
         "roles": [
@@ -629,6 +630,11 @@ async def get_contact_types():
             {"value": "judge", "label": "Judge"},
             {"value": "mediator", "label": "Mediator"},
             {"value": "support", "label": "Support Contact"},
+            {"value": "mayor", "label": "Mayor"},
+            {"value": "council_member", "label": "City Council Member"},
+            {"value": "county_commissioner", "label": "County Commissioner"},
+            {"value": "state_legislator", "label": "State Legislator"},
+            {"value": "city_staff", "label": "City Staff / Department"},
         ],
         "interaction_types": [
             {"value": "phone_call", "label": "Phone Call", "icon": "●"},

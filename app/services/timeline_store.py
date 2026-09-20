@@ -123,6 +123,8 @@ async def list_events_for_user_id(user_id: str) -> list[SimpleNamespace]:
         user = await build_context_for_user_id(user_id)
     except Exception:
         return []
+    if user is None:
+        return []
     return await list_events(user)
 
 

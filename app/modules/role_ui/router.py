@@ -20,6 +20,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.core.navigation import navigation
+from app.core.privacy_aup import DISCLAIMERS
 from app.core.security import get_current_user
 from app.core.ssot_guard import ssot_redirect
 from app.core.user_context import ROLE_METADATA, UserContext, UserRole, get_role_definition, get_role_metadata
@@ -439,11 +440,8 @@ _templates.env.globals.update(
     }
 )
 
-LEGAL_DISCLAIMER = (
-    "This information is for educational purposes only and does not constitute legal advice. "
-    "Semptify is a tenant documentation tool, not a law firm. "
-    "For legal advice, consult a licensed attorney or local legal aid organization."
-)
+# Canonical disclaimer text lives in app/core/privacy_aup.py (DISCLAIMERS registry).
+LEGAL_DISCLAIMER = DISCLAIMERS["educational_info"]
 
 _MODULE_CONTRACTS = {
     "eviction-defense": {

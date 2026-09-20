@@ -61,6 +61,7 @@ COMPONENT_TYPES = {
     "prompt_card",
     "stat_badge",
     "empty_state",
+    "howto_card",
 }
 
 # --- Page intent registry (SSOT for valid page intents) ----------------
@@ -362,12 +363,31 @@ def _compose_library(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
         "court_prep": "▸",
         "evidence": "●",
         "timeline": "◆",
+        "how_to": "▸",
     }
 
     components: list[dict[str, Any]] = []
 
     selected_subject = ctx.get("subject")
-    if selected_subject and selected_subject in ALL_SUBJECTS:
+    if selected_subject == "how_to":
+        # How-To Guides — curated first-hand procedures, not fact/story content.
+        from app.services.howto_library import guides_as_components, load_guides
+
+        guide_components = guides_as_components(load_guides())
+        if guide_components:
+            components.extend(guide_components)
+        else:
+            components.append(
+                _component(
+                    "empty_state",
+                    {
+                        "icon": "▸",
+                        "title": "How-To Guides are being written",
+                        "body": "Step-by-step guides from first-hand experience are on the way. Check back soon.",
+                    },
+                )
+            )
+    elif selected_subject and selected_subject in ALL_SUBJECTS:
         facts = ctx.get("facts") or []
         stories = ctx.get("stories") or []
         label = ctx.get("label") or SUBJECT_LABELS.get(selected_subject, selected_subject)
