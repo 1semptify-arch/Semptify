@@ -11,35 +11,17 @@ description: Enable Cloudflare Development Mode and purge cache to bypass CDN ca
 
 Run this when you need to bypass Cloudflare CDN caching during development or after deploying critical fixes.
 
----
+**Zone:** `semptify.org` → zone ID `3afd2a548023104ce9d29c4e65848209`.
 
-### Step 1 — Enable Cloudflare Development Mode
+> The `.env`-based credential path is gone — use the **`cloudflare` MCP server** (already authenticated). Its `execute` tool runs:
 
-Run (PowerShell, cwd repo root): `Get-Content .env | ForEach-Object { if ($_ -match '^(CLOUDFLARE_[^=]+)=(.+)$') { [System.Environment]::SetEnvironmentVariable($Matches[1], $Matches[2], 'Process') } }; $body = '{"value":"on"}'; Invoke-RestMethod -Uri "https://api.cloudflare.com/client/v4/zones/$env:CLOUDFLARE_ZONE_ID/settings/development_mode" -Method PATCH -Headers @{"Authorization"="Bearer $env:CLOUDFLARE_API_TOKEN";"Content-Type"="application/json"} -Body $body`
+```js
+async () => {
+  const zone = '3afd2a548023104ce9d29c4e65848209';
+  const dev = await cloudflare.request({method:'PATCH', path:`/zones/${zone}/settings/development_mode`, body:{value:'on'}});
+  const purge = await cloudflare.request({method:'POST', path:`/zones/${zone}/purge_cache`, body:{purge_everything:true}});
+  return {dev_mode:{success:dev.success}, purge:{success:purge.success}};
+}
+```
 
-Credentials are loaded from `.env` automatically. This bypasses Cloudflare cache for 3 hours.
-
----
-
-### Step 2 — Purge Cloudflare Cache
-
-Run (PowerShell, cwd repo root): `Get-Content .env | ForEach-Object { if ($_ -match '^(CLOUDFLARE_[^=]+)=(.+)$') { [System.Environment]::SetEnvironmentVariable($Matches[1], $Matches[2], 'Process') } }; Invoke-RestMethod -Uri "https://api.cloudflare.com/client/v4/zones/$env:CLOUDFLARE_ZONE_ID/purge_cache" -Method POST -Headers @{"Authorization"="Bearer $env:CLOUDFLARE_API_TOKEN";"Content-Type"="application/json"} -Body '{"purge_everything":true}'`
-
-This clears all cached content from Cloudflare's edge servers.
-
----
-
-### Step 3 — Confirm Success
-
-Both commands should return `{"success":true}`.
-
-Tell the user:
-"Cloudflare Development Mode is now enabled for 3 hours and cache has been purged. Your changes will be visible immediately at <https://semptify.org>"
-
----
-
-### Notes
-
-- Development Mode automatically expires after 3 hours
-- You can re-run this workflow to extend it
-- For production use, disable Development Mode to restore CDN performance
+Both should return `success: true`. Dev Mode lasts 3 hours; to disable early, PATCH `value:'off'`.
