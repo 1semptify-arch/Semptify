@@ -27,6 +27,10 @@
     {% endif %}
   </section>
 
+  {% if needs_provisioning %}
+    {% include "components/provisioning_status.html" %}
+  {% endif %}
+
   {% if surfacing and surfacing.sections %}
   <section class="shell-zone" aria-labelledby="rh-sections">
     <h2 id="rh-sections" class="shell-zone-title">Where everything lives</h2>

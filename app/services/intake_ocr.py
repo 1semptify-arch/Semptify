@@ -5,6 +5,8 @@ OCR-extracted information is reviewed by the user during intake):
 
     upload -> text-layer check FIRST (native PDF/DOCX skips OCR)
            -> OCRService extract (ephemeral, in-memory — ADR-0007 fallback)
+           -> Pass 0 segmentation: regions ranked by confidence, processed
+              in passes (cap 3); unresolved regions flagged for manual review
            -> doc_type proposal
            -> EVERY field of the type's checklist proposed into the confirm
               loop — fields with no detected value still require review
@@ -30,7 +32,15 @@ from dataclasses import dataclass, field
 from app.core.document_types import DOCUMENT_TYPES, FieldDef
 from app.core.id_gen import make_id
 from app.core.utc import utc_now_iso
-from app.sdk.vault.db import mutate_remote
+from app.sdk.vault.db import VaultDbError, mutate_remote
+from app.services.intake_segmentation import (
+    PASS_CAP,
+    Region,
+    finalize_region_status,
+    mark_region_resolved,
+    rank_regions,
+    segment,
+)
 from app.services.ocr_service import ocr_service
 
 logger = logging.getLogger(__name__)
@@ -174,6 +184,43 @@ def _extract_value(field: FieldDef, text: str, word_boxes: list | None) -> tuple
     return None, None
 
 
+# ---------------------------------------------------------------------------
+# Pass 0 staged extraction — high-confidence regions first, whole-text last
+# ---------------------------------------------------------------------------
+
+
+def _region_span_key(region: Region, local_start: int) -> str | None:
+    """Map a char offset inside region.text back to a document-level span key."""
+    if region.word_indices:
+        wi = len(region.text[:local_start].split())
+        wi = min(wi, len(region.word_indices) - 1)
+        return f"word:{region.page}:{region.word_indices[wi]}"
+    if region.char_span:
+        return f"text:{region.char_span[0] + local_start}"
+    return None
+
+
+def _extract_staged(
+    field: FieldDef, regions: list[Region], text: str, word_boxes: list | None
+) -> tuple[str | None, str | None, Region | None]:
+    """Try each region in pass order; fall back to whole-text extraction.
+
+    The whole-text fallback keeps the pre-Pass-0 behavior for fields whose
+    value sits outside any confident region — nothing is lost, it just gets
+    no region attribution.
+    """
+    for region in sorted(regions, key=lambda r: r.pass_number):
+        value, local_key = _extract_value(field, region.text, None)
+        if value is None:
+            continue
+        local_start = int(local_key.split(":", 1)[1]) if local_key else 0
+        span = _region_span_key(region, local_start)
+        mark_region_resolved(region, field["name"])
+        return value, span, region
+    value, span = _extract_value(field, text, word_boxes)
+    return value, span, None
+
+
 @dataclass
 class FieldProposal:
     id: str
@@ -185,6 +232,9 @@ class FieldProposal:
     source_span_key: str | None
     answer: str | None = None          # yes | no | edit — None until reviewed
     final_value: str | None = None     # edited value when answer == 'edit'
+    region_id: str | None = None       # Pass 0 region this proposal came from
+    pass_number: int = PASS_CAP        # which segmentation pass surfaced it
+    confidence: float = 0.0            # source region's confidence
 
     def to_dict(self) -> dict:
         return {
@@ -197,6 +247,9 @@ class FieldProposal:
             "source_span_key": self.source_span_key,
             "answer": self.answer,
             "final_value": self.final_value,
+            "region_id": self.region_id,
+            "pass_number": self.pass_number,
+            "confidence": round(self.confidence, 3),
         }
 
 
@@ -207,12 +260,19 @@ class IntakeSession:
     vault_id: str
     filename: str
     storage_ref: str
-    doc_type: str
-    doc_type_confidence: float
-    has_text_layer: bool
-    ocr_method: str
+    doc_type: str = ""
+    doc_type_confidence: float = 0.0
+    has_text_layer: bool = False
+    ocr_method: str = ""
     fields: list[FieldProposal] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
+    # Pass 0 overlay-first state
+    status: str = "processing"          # processing | ready | error
+    status_detail: str | None = None
+    regions: list[Region] = field(default_factory=list)
+    pass_cap: int = PASS_CAP
+    overlay_status: str | None = None   # created | error
+    overlay_error: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -223,6 +283,15 @@ class IntakeSession:
             "doc_type_confidence": self.doc_type_confidence,
             "has_text_layer": self.has_text_layer,
             "ocr_method": self.ocr_method,
+            "status": self.status,
+            "status_detail": self.status_detail,
+            "regions": [r.to_dict() for r in self.regions],
+            "pass_cap": self.pass_cap,
+            "manual_review_count": sum(
+                1 for r in self.regions if r.status == "manual_review"
+            ),
+            "overlay_status": self.overlay_status,
+            "overlay_error": self.overlay_error,
             "fields": [f.to_dict() for f in self.fields],
             "fields_total": len(self.fields),
             "fields_answered": sum(1 for f in self.fields if f.answer),
@@ -254,14 +323,18 @@ def build_session(
     has_text_layer: bool,
     ocr_method: str,
     doc_type: str | None = None,
+    regions: list[Region] | None = None,
 ) -> IntakeSession:
     """Create the confirm-loop session. Every checklist field becomes a
     proposal — detected or not — because every one gets user review."""
     key, confidence = classify_doc_type(text) if not doc_type else (doc_type, 1.0)
     defn = DOCUMENT_TYPES.get(key) or DOCUMENT_TYPES["other"]
+    if regions is None:
+        regions = segment(text, word_boxes, has_text_layer)
+        rank_regions(regions, defn)
     proposals = []
     for fdef in defn["fields"]:
-        value, span = _extract_value(fdef, text, word_boxes)
+        value, span, region = _extract_staged(fdef, regions, text, word_boxes)
         proposals.append(
             FieldProposal(
                 id=make_id("fld"),
@@ -271,8 +344,12 @@ def build_session(
                 required=fdef["required"],
                 proposed_value=value,
                 source_span_key=span,
+                region_id=region.region_id if region else None,
+                pass_number=region.pass_number if region else PASS_CAP,
+                confidence=region.confidence if region else 0.0,
             )
         )
+    finalize_region_status(regions)
     session = IntakeSession(
         session_id=make_id("int"),
         user_id=user_id,
@@ -284,10 +361,160 @@ def build_session(
         has_text_layer=has_text_layer,
         ocr_method=ocr_method,
         fields=proposals,
+        status="ready",
+        regions=regions,
     )
     _sweep_sessions()
     _SESSIONS[session.session_id] = session
     return session
+
+
+def create_pending_session(
+    *, user_id: str, vault_id: str, filename: str, storage_ref: str
+) -> IntakeSession:
+    """Register a status=processing stub so the client can poll while the
+    pipeline runs in a background task."""
+    session = IntakeSession(
+        session_id=make_id("int"),
+        user_id=user_id,
+        vault_id=vault_id,
+        filename=filename,
+        storage_ref=storage_ref,
+        status="processing",
+    )
+    _sweep_sessions()
+    _SESSIONS[session.session_id] = session
+    return session
+
+
+async def run_intake_pipeline(session: IntakeSession, content: bytes, storage) -> None:
+    """Extract -> segment (Pass 0) -> propose fields -> unverified row ->
+    region-map overlay. Any failure lands on session.status/status_detail —
+    never silent: the client polls and shows it."""
+    try:
+        text = extract_text_layer(content, session.filename)
+        word_boxes = []
+        if text is not None:
+            has_text_layer, method = True, "text_layer"
+        else:
+            result = await ocr_service.extract_text(
+                file_bytes=content, filename=session.filename
+            )
+            text = result.text or ""
+            word_boxes = result.word_boxes
+            has_text_layer, method = False, result.method
+
+        key, confidence = classify_doc_type(text)
+        defn = DOCUMENT_TYPES.get(key) or DOCUMENT_TYPES["other"]
+        regions = segment(text, word_boxes, has_text_layer)
+        rank_regions(regions, defn)
+
+        proposals = []
+        for fdef in defn["fields"]:
+            value, span, region = _extract_staged(fdef, regions, text, word_boxes)
+            proposals.append(
+                FieldProposal(
+                    id=make_id("fld"),
+                    name=fdef["name"],
+                    label=fdef["label"],
+                    field_type=fdef["field_type"],
+                    required=fdef["required"],
+                    proposed_value=value,
+                    source_span_key=span,
+                    region_id=region.region_id if region else None,
+                    pass_number=region.pass_number if region else PASS_CAP,
+                    confidence=region.confidence if region else 0.0,
+                )
+            )
+        finalize_region_status(regions)
+
+        session.doc_type = key
+        session.doc_type_confidence = confidence
+        session.has_text_layer = has_text_layer
+        session.ocr_method = method
+        session.fields = proposals
+        session.regions = regions
+
+        now = utc_now_iso()
+        vault_id, filename, storage_ref = (
+            session.vault_id,
+            session.filename,
+            session.storage_ref,
+        )
+
+        def _upsert_document(conn):
+            exists = conn.execute(
+                "SELECT id FROM documents WHERE id = ?", (vault_id,)
+            ).fetchone()
+            if exists:
+                conn.execute(
+                    "UPDATE documents SET has_text_layer = ?, updated_at = ? WHERE id = ?",
+                    (1 if has_text_layer else 0, now, vault_id),
+                )
+            else:
+                conn.execute(
+                    "INSERT INTO documents (id, name, doc_type, verification_state,"
+                    " uploaded_at, storage_ref, has_text_layer, created_at, updated_at)"
+                    " VALUES (?,?,?,?,?,?,?,?,?)",
+                    (
+                        vault_id,
+                        filename,
+                        session.doc_type,
+                        "unverified",
+                        now,
+                        storage_ref,
+                        1 if has_text_layer else 0,
+                        now,
+                        now,
+                    ),
+                )
+
+        await mutate_remote(storage, _upsert_document)
+
+        # Region-map overlay — explicit create, return value checked. The
+        # original vault document is never touched; the overlay is the
+        # derived artifact. Failure is visible on the session, not a
+        # warning-only log (the old intake path's silent-skip bug).
+        try:
+            from app.core.overlay_types import OverlayType
+            from app.models.unified_overlay_models import CreateOverlayRequest
+            from app.services.unified_overlay_manager import UnifiedOverlayManager
+
+            manager = UnifiedOverlayManager(storage, session.user_id)
+            resp = await manager.create_overlay(
+                CreateOverlayRequest(
+                    overlay_type=OverlayType.DOCUMENT_EXTRACTION,
+                    document_id=session.vault_id,
+                    vault_path=session.storage_ref,
+                    payload={
+                        "source": "pass0_segmentation",
+                        "session_id": session.session_id,
+                        "pass_cap": session.pass_cap,
+                        "regions": [r.to_dict() for r in session.regions],
+                    },
+                    metadata={"doc_type": session.doc_type, "pass0": True},
+                )
+            )
+            if resp.success:
+                session.overlay_status = "created"
+            else:
+                session.overlay_status = "error"
+                session.overlay_error = resp.message
+        except Exception as exc:
+            logger.error("Pass 0 overlay creation failed: %s", exc, exc_info=True)
+            session.overlay_status = "error"
+            session.overlay_error = str(exc)
+
+        session.status = "ready"
+    except VaultDbError as exc:
+        # Background tasks can't surface a raise — the client reads it
+        # off the session. start_intake re-raises for sync callers.
+        session.status = "error"
+        session.status_detail = f"vault_db_missing: {exc}"
+    except Exception as exc:
+        logger.error("Pass 0 intake pipeline failed: %s", exc, exc_info=True)
+        session.status = "error"
+        session.status_detail = str(exc)
 
 
 async def start_intake(
@@ -300,56 +527,14 @@ async def start_intake(
     storage,
 ) -> IntakeSession:
     """Extract -> write the unverified documents row -> build the session."""
-    text = extract_text_layer(content, filename)
-    word_boxes = []
-    if text is not None:
-        has_text_layer, method = True, "text_layer"
-    else:
-        result = await ocr_service.extract_text(file_bytes=content, filename=filename)
-        text = result.text or ""
-        word_boxes = result.word_boxes
-        has_text_layer, method = False, result.method
-
-    now = utc_now_iso()
-    session = build_session(
-        user_id=user_id,
-        vault_id=vault_id,
-        filename=filename,
-        storage_ref=storage_ref,
-        text=text,
-        word_boxes=word_boxes,
-        has_text_layer=has_text_layer,
-        ocr_method=method,
+    session = create_pending_session(
+        user_id=user_id, vault_id=vault_id, filename=filename, storage_ref=storage_ref
     )
-
-    def _upsert_document(conn):
-        exists = conn.execute(
-            "SELECT id FROM documents WHERE id = ?", (vault_id,)
-        ).fetchone()
-        if exists:
-            conn.execute(
-                "UPDATE documents SET has_text_layer = ?, updated_at = ? WHERE id = ?",
-                (1 if has_text_layer else 0, now, vault_id),
-            )
-        else:
-            conn.execute(
-                "INSERT INTO documents (id, name, doc_type, verification_state,"
-                " uploaded_at, storage_ref, has_text_layer, created_at, updated_at)"
-                " VALUES (?,?,?,?,?,?,?,?,?)",
-                (
-                    vault_id,
-                    filename,
-                    session.doc_type,
-                    "unverified",
-                    now,
-                    storage_ref,
-                    1 if has_text_layer else 0,
-                    now,
-                    now,
-                ),
-            )
-
-    await mutate_remote(storage, _upsert_document)
+    await run_intake_pipeline(session, content, storage)
+    if session.status == "error" and (session.status_detail or "").startswith(
+        "vault_db_missing"
+    ):
+        raise VaultDbError(session.status_detail)
     return session
 
 

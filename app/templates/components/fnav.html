@@ -1,7 +1,13 @@
 {#
   Function-nav rail — gated stage navigation, rendered from
   FunctionGroupContract.stages (list of dicts: id, label, action,
-  requires, skippable).
+  requires, skippable, and optional grammar fields subject/verb/object/
+  next_condition/ui_component).
+
+  Grammar fields (sentence = step): when a stage carries subject, verb,
+  and object, the rail shows the step-intent sentence — "You upload a
+  document" — so the staged flow reads as one paragraph. Stages without
+  grammar fields render exactly as before.
 
   Parameters:
     stages       — contract stages (list of dicts). Required.
@@ -18,15 +24,22 @@
   gate it on the named form fields. Without JS the button submits
   normally — the gate is an enhancement, never a dead end.
 #}
+{% macro stage_intent(s) %}
+{%- if s.subject and s.verb and s.object -%}
+{{ 'You' if s.subject == 'user' else ('Semptify' if s.subject == 'system' else s.subject | replace('_', ' ') | title) }} {{ s.verb | replace('_', ' ') }} {{ s.object }}
+{%- endif -%}
+{% endmacro %}
 {% macro fnav(stages, current=0, form_id="", back_href="", back_label="Back", module_label="", help_anchor="#shell-side", skip_href="") %}
 {% set stage = stages[current] %}
+{% set intent = stage_intent(stage) | trim %}
 <div class="fnav" role="navigation" aria-label="Task steps">
   <span class="fnav__pos">
     {% if module_label %}<span class="fnav__label">{{ module_label }} · {{ current + 1 }} of {{ stages | length }}</span>{% endif %}
     <span class="fnav__pips" aria-hidden="true">
-      {% for s in stages %}<i class="{{ 'done' if loop.index0 < current else 'now' if loop.index0 == current else '' }}"></i>{% endfor %}
+      {% for s in stages %}<i class="{{ 'done' if loop.index0 < current else 'now' if loop.index0 == current else '' }}"{% if s.subject and s.verb and s.object %} title="{{ stage_intent(s) | trim }}"{% endif %}></i>{% endfor %}
     </span>
-    <span class="sr-only">Step {{ current + 1 }} of {{ stages | length }}: {{ stage.label }}</span>
+    {% if intent %}<span class="fnav__intent">{{ intent }}</span>{% endif %}
+    <span class="sr-only">Step {{ current + 1 }} of {{ stages | length }}: {{ intent if intent else stage.label }}</span>
   </span>
 
   {% if back_href %}
