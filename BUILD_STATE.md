@@ -15251,3 +15251,164 @@ claim remains live — Brad ruled leave it (NO-TOUCH). Report:
 on in-memory SQLite (status transitions, pre-FINALE guard, pending steps,
 step ordering). Live provider folder-creation untested — needs a real
 onboarded session.
+
+## Session — 2026-09-20 — DC viewer wired to intake confirm loop (devin)
+
+**`intake-viewer-confirm-wiring` shipped (Step 3 of intake-pipeline-parent).**
+The field-verify strip in Document Center is now driven by the real
+`/api/dc/intake/*` session instead of the client-side mock checklist.
+
+- `selectDoc` starts an intake session (skipped when the doc is already
+  `verified`; silent fallback to the checklist walk when intake can't
+  start — local docs, unprovisioned vaults, expired session).
+- One proposal per card in the walk: "We read: <value>" or a fill-in
+  prompt, with Looks right / Fix it / Not right / Not now. "Not now"
+  rotates the field — every field must be answered before save (Brad's
+  rule), so snoozed fields resurface rather than disappear.
+- `source_span_key` `word:{page}:{i}` spans get a best-effort highlight on
+  the image overlay (word-boxes fetched once per doc and cached);
+  `text:{offset}` spans can't map to the viewer — card still works.
+- All answered → "Save to vault" → finalize → vault.db write. Router now
+  mirrors the outcome onto the doc index (`document_type`, `processed`,
+  `review_state_json` field_confirm_state + manual_status) so the list,
+  checklist, and status filter show the truth.
+- 422 `unreviewed_fields` on finalize puts the pending fields back in the
+  walk rather than erroring.
+
+**Verified:** 11/11 intake tests (incl. new `_sync_doc_index` test),
+py_compile + node --check clean, `/dc` 302 + intake 401-gated live on
+:8001. **Not verified:** real-browser exercise of the loop (IronBee MCP
+not connected; also needs an authenticated tenant session), and
+word-box index alignment between the session's OCR run and the
+word-boxes endpoint's separate run — highlight is best-effort.
+
+## Session — 2026-09-20 — Grammar-to-UI contract fields POC (devin)
+
+**`grammar-step-contracts` — sentence=step grammar landed, scoped to one module.**
+
+Handoff asked for `subject`/`verb`/`object`/`next_condition` on
+module_contract.json + a step-intent label in the step renderer. Mapped to
+the real architecture: `page_builder.html` doesn't exist (renderer is
+`components/fnav.html` + `composer_preview_shell.html` reading
+`FunctionGroupContract.stages`); `doc_intake` doesn't exist (canonical
+module is `intake`, contract `intake_upload_auto` = the "Add Record"
+backend).
+
+- `ContractStage` gained optional `subject`/`verb`/`object`/
+  `next_condition`/`ui_component`; serialized in `to_dict()`.
+- `ModuleContract` schema gained `flow: list[FlowStep]` (handoff's shape +
+  `group_name` provenance). Optional — all 129 contracts still validate.
+- `derive_module_contracts.py` derives `flow` from grammar-carrying stages;
+  new `--sync-flow <mods>` updates only the `flow` key in existing JSONs
+  (derive, don't hand-write). Ran for intake — 3 steps landed.
+- `intake_upload_auto` declares 3 stages: user uploads a document →
+  Semptify reads the document → user checks the saved record.
+- `fnav.html` renders the current stage's sentence as a `.fnav__intent`
+  label ("You upload a document") + per-pip tooltips carry each sentence;
+  grammar-less stages render identically (journal page verified unchanged).
+- New guide page `pages/intake_upload_guide.html` + route
+  `/gui/record/intake/upload` (journal pattern; posts to
+  `/api/intake/upload/auto`).
+
+**Verified:** py_compile clean; contract tests 19/19 + framework tests pass;
+`test_ssot_architecture.py` 8/8; `/api/workflow/module-contracts` returns
+grammar fields; page 200 with correct fnav/intent/sidebar HTML; all 129
+module_contract.json validate. **Not verified:** real-browser pass (IronBee
+MCP not connected — same limitation as the DC session above); multi-stage
+`current` progression is data-only (no cross-stage navigation exists yet —
+pips show the paragraph, stage 1 is the live step). Pre-existing
+`test_workflow_contracts.py` failures (6, stale `/home` assertions vs
+`/tenant/start`) logged to intake, untouched.
+
+**Stop point honored:** no other module retrofitted. Rollout waits for
+Brad's review.
+
+## Session — 2026-09-20 — Pass 0 overlay-first intake + DC live intake stage (devin)
+
+**Task:** `pass0-segmentation-intake` (parent `intake-pipeline-parent`) —
+spec `handoffs/overlay-first-intake-spec-2026-09-20.md`, decisions locked
+by Brad: fixed pass cap 3, low-confidence regions flagged for manual review.
+Branch `feature/grammar-step-contracts` (continued from grammar POC).
+
+**What shipped**
+
+- New `app/services/intake_segmentation.py` — rule-based Pass 0 (no AI,
+  consistent with the locked OCR path): word-box line/block clustering for
+  scans, paragraph blocks for text-layer docs. Regions carry confidence,
+  `pass_number` (thresholds 0.5 / 0.2 / 0.0), `bbox` or `char_span`, status.
+- `intake_ocr.py` — `FieldProposal` += `region_id`/`pass_number`/`confidence`;
+  `IntakeSession` += `status` (processing|ready|error), `regions`,
+  `pass_cap`, `overlay_status`. Pipeline split into
+  `create_pending_session` + `run_intake_pipeline`; `start_intake` kept as
+  the sync wrapper (tests/back-compat). Region statuses: `resolved` when a
+  proposal lands, `manual_review` when signal > 0 but nothing resolved
+  after the cap, `no_data` for zero-signal prose (settles quietly — flagging
+  prose would train tenants to ignore the flag).
+- Region-map persisted via **explicit** `UnifiedOverlayManager.create_overlay`
+  (`DOCUMENT_EXTRACTION` type) — return value checked; failure lands on
+  `session.overlay_status`/`overlay_error`, never warning-only (the old
+  `mark_processed` silent-skip pattern is not reproduced). Original vault
+  document untouched.
+- `document_center/intake_router.py` — `/start` returns the session
+  immediately (`processing`); pipeline runs as an `asyncio` task; client
+  polls `GET /{session_id}`. `VaultDbError` lands on session status in the
+  task path, re-raised by `start_intake` for sync callers.
+- `document_center.js` — picked file previews locally on the work surface
+  the moment upload submits (images get the overlay wrapper; other types
+  via the browser iframe renderer); upload modal no longer blocks the
+  stage; strip shows Uploading → Reading progress → confirm cards; session
+  polling paints `.dc-region` outlines live (resolved=green,
+  pending=calm dashed, manual_review=amber); error + overlay-error states
+  surface in the strip.
+- `ssot-design-system.css` — `.dc-region` variants, tokens only.
+
+**Verified:** py_compile clean on all changed files; `test_intake_ocr.py`
+17/17 (6 new Pass 0 tests); imports clean; app boots on :8002; endpoints
+respond (401 unauthenticated, as designed); word-box scenario run
+end-to-end via script (2 blocks → 1 resolved pass-1 region with global
+word-index span key, header settles `no_data`); live static assets serve
+new JS/CSS. **Not verified:** real-browser pass — IronBee MCP not
+connected (same limitation as the DC-viewer session). PDF viewers have no
+`.dc-image-overlay` layer — region outlines paint on image docs only,
+matching the pre-existing field-highlight limitation.
+
+**Open:** per-region OCR before full-doc extract (literal Pass-0
+reading) deferred — needs PIL pipeline + cropped tesseract calls; current
+Pass 0 segments the extracted structure, which still satisfies
+ranking/passes/manual-review. Whether unresolved regions block finalize
+wasn't specified — they don't today (regions flag; fields still require
+individual answers).
+
+## Session — 2026-09-20 — Provisioning trigger on all role homes (devin)
+
+**Task:** `intake-vault-provisioning` — mount the post-FINALE provisioning
+banner on every role home, not just the tenant's.
+
+**Gap found:** the trigger (`provisioning_status.html` + `vault_provisioning.js`
++ `/api/vault/provision/*`) existed but was only included on
+`tenant_home_next.html`. All roles share START→FINALE (`document_uploaded`),
+so advocates, legal, admin, manager, researcher, agency, developer, and
+donor-supporter homes never drove provisioning — a non-tenant's vault
+would stay unprovisioned and `/api/dc/intake/start` would 409 forever.
+
+**What shipped**
+
+- `main.py` — `needs_provisioning` added to render contexts:
+  `advocate_page` + `legal_page` (gained `db` dep), `advocate_home`,
+  `legal_home`, `admin_home_page`, `manager_portal_page`.
+  `_role_home_or_setup` already supplied it for the shared homes.
+- Templates gained `{% if needs_provisioning %}{% include
+  "components/provisioning_status.html" %}{% endif %}` after the hero:
+  `role_home_shared.html`, `advocate.html`, `legal.html`,
+  `admin_home.html`, `manager_dashboard.html`. The component self-hides
+  when `status.applicable` is false, so mounting is safe even where the
+  flag is absent.
+- `role_home_setup.html` correctly untouched — pre-FINALE pages can't
+  provision.
+
+**Verified:** py_compile clean; Jinja compiles all 6 touched templates;
+253/253 tests pass (`test_ssot_architecture` + `module_health`); app boots
+on :8002; all role-home routes respond (302 auth-gated, admin gateway 200
+renders clean with banner correctly absent for anon). **Not verified:**
+authenticated browser pass (IronBee MCP unavailable); real provisioning
+run on a live provider (needs tenant OAuth token).
