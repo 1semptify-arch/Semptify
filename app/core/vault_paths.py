@@ -48,6 +48,10 @@ EXPERIENCE_TOKEN_FILE = f"{VAULT_FOLDER}/experience_token.json"
 # timeline, and composer/preview domains. Single file; WAL sidecars never
 # leave the local temp dir it is opened in.
 VAULT_DB_FILE = f"{SYSTEM_FOLDER}/vault.db"
+# Vault-resident per-role configs installed by provisioning (prov-role-configs)
+CONFIGS_FOLDER = normalize_cloud_path(f"{SYSTEM_FOLDER}/configs")
+OCR_CONFIG_FILE = f"{CONFIGS_FOLDER}/ocr.json"
+OVERLAY_CONFIG_FILE = f"{CONFIGS_FOLDER}/overlays.json"
 
 # ── User document folders (under Vault/) ─────────────────────────────────────
 VAULT_DOCUMENTS = normalize_cloud_path(f"{VAULT_ROOT}/documents")

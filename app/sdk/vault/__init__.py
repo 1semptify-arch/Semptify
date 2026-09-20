@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 __version__ = "1.0.0"
 
 from app.sdk.vault.client import VaultClient, VaultResult
+from app.sdk.vault.configs import ensure_configs_remote
 from app.sdk.vault.db import (
     VaultDbError,
     checkpoint_and_close,
@@ -68,5 +69,6 @@ __all__ = [
     "open_local",
     "checkpoint_and_close",
     "ensure_remote",
+    "ensure_configs_remote",
     "schema_version",
 ]
