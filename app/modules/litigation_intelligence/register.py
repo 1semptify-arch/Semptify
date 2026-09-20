@@ -74,6 +74,19 @@ register_function_group(
 register_function_group(
     FunctionGroupContract(
         module="litigation_intelligence",
+        group_name="litigation_intelligence_retaliation_check",
+        title="LIS Retaliation Check (SSOT)",
+        description="CANONICAL run retaliation correlation + record assessment on tracker timeline events.",
+        inputs=("user_id", "request"),
+        outputs=("retaliation_check",),
+        dependencies=("app.modules.litigation_intelligence.router",),
+        deterministic=True,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="litigation_intelligence",
         group_name="litigation_intelligence_get",
         title="LIS Get Case Intelligence (SSOT)",
         description="CANONICAL get stored intelligence report for a case.",

@@ -604,11 +604,67 @@ class FrivolousClaimDetector:
         return None
 
 
+def _tracker_events_from_dicts(raw_events: list[Any]) -> list[Any]:
+    """Convert dict-shaped timeline events into objects normalize_event() can read.
+
+    Accepts dicts with ``event_type``, ``event_date`` (ISO string or datetime),
+    ``tags``/``subtype``, ``title``, ``description``, ``urgency``, and
+    ``attached_document_ids``. Dicts missing a parseable date are skipped.
+    """
+    from types import SimpleNamespace
+    import json as _json
+
+    out = []
+    for item in raw_events:
+        if not isinstance(item, dict):
+            out.append(item)
+            continue
+        raw_date = item.get("event_date") or item.get("date")
+        if isinstance(raw_date, str):
+            try:
+                raw_date = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+        tags = item.get("tags")
+        if tags is None and item.get("subtype"):
+            tags = [item["subtype"]]
+        out.append(
+            SimpleNamespace(
+                id=item.get("id", ""),
+                event_type=item.get("event_type", ""),
+                title=item.get("title", ""),
+                description=item.get("description"),
+                event_date=raw_date,
+                urgency=item.get("urgency", "normal"),
+                tags=_json.dumps(tags) if isinstance(tags, list) else tags,
+                attached_document_ids=(
+                    _json.dumps(item["attached_document_ids"])
+                    if isinstance(item.get("attached_document_ids"), list)
+                    else item.get("attached_document_ids")
+                ),
+            )
+        )
+    return out
+
+
 class RetaliationPatternDetector:
-    """Detects retaliation patterns."""
+    """Detects retaliation patterns.
+
+    Two input paths: ``case_data["timeline_events"]`` (tracker-style
+    protected/adverse events) runs the real correlation from
+    ``app.services.retaliation_tracker`` — flagged proximity, presumption
+    windows, and record gaps all come from the tenant's own record.
+    Without timeline events it falls back to the flag-based heuristic.
+    """
 
     async def detect_pattern(self, case_data: dict[str, Any]) -> PatternMatch | None:
         """Detect retaliation patterns."""
+        timeline_events = case_data.get("timeline_events") or []
+        if isinstance(timeline_events, list) and timeline_events:
+            match = self._from_timeline(case_data, timeline_events)
+            if match:
+                return match
+
         retaliatory_actions = case_data.get("retaliatory_actions", [])
         if not isinstance(retaliatory_actions, list):
             retaliatory_actions = []
@@ -635,6 +691,60 @@ class RetaliationPatternDetector:
                 ],
             )
         return None
+
+    def _from_timeline(self, case_data: dict[str, Any], timeline_events: list[Any]) -> PatternMatch | None:
+        """Correlate tracker events and build a PatternMatch from real numbers."""
+        from app.services.retaliation_tracker import assess, correlate
+
+        result = correlate(
+            _tracker_events_from_dicts(timeline_events),
+            jurisdiction=case_data.get("jurisdiction"),
+            now=utc_now(),
+        )
+        pairs = result.get("pairs", [])
+        if not pairs and not result.get("flagged_count"):
+            return None
+
+        flagged = result["flagged_count"]
+        presumption = result.get("presumption", {})
+        statute = presumption.get("statute") or "state retaliation protections"
+        open_windows = result.get("open_windows", [])
+        assessment = assess(result, jurisdiction=case_data.get("jurisdiction"))
+        gaps = set(assessment.get("gaps", []))
+
+        strongest = min(p["days_between"] for p in pairs)
+        description = (
+            f"{flagged or len(pairs)} adverse action(s) followed a protected action "
+            f"(closest gap: {strongest} days)"
+        )
+        if open_windows and presumption.get("days"):
+            description += (
+                f"; {len(open_windows)} protected action(s) still inside the "
+                f"{presumption['days']}-day presumption window"
+            )
+
+        confidence = min(0.95, 0.70 + flagged * 0.05 + len(open_windows) * 0.03)
+        tenant, landlord = _parties_from_case(case_data)
+
+        recommended = [
+            "Take the correlated timeline to legal aid — flagged proximity is the strongest piece of the record",
+            f"Preserve the presumption argument under {statute}" if presumption.get("statute") else "Check your state's retaliation presumption window",
+        ]
+        if "documents_attached" in gaps:
+            recommended.append("Attach the source documents (notice, letter, inspection report) to each logged event")
+        if "pattern_multiple" in gaps:
+            recommended.append("Log every earlier protected step — a pattern of requests is harder to dismiss than one")
+        recommended.append("Document all retaliatory actions and communications going forward")
+
+        return PatternMatch(
+            pattern_type=PatternType.RETALIATION_PATTERN,
+            confidence=confidence,
+            description=description,
+            affected_parties=[tenant, landlord],
+            legal_basis=f"Retaliation protections — {statute}",
+            precedent_cases=[],
+            recommended_actions=recommended,
+        )
 
 
 class HabitabilityIssueDetector:
