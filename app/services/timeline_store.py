@@ -210,7 +210,7 @@ async def create_event(user: UserContext, event_type: str, title: str, event_dat
     def work(conn):
         conn.row_factory = _dict_factory
         conn.execute(
-            f"INSERT INTO timeline_events (id, {', '.join(columns)}, created_at, updated_at)"
+            f"INSERT INTO timeline_events (id, {', '.join(columns)}, created_at, updated_at)"  # nosec B608 — columns are whitelisted _EVENT_COLUMNS keys; placeholders are generated `?` marks; values parameterized
             f" VALUES (?, {placeholders}, ?, ?)",
             (event_id, *[values[c] for c in columns], now, now),
         )

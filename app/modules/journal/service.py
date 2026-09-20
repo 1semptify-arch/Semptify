@@ -294,7 +294,7 @@ async def update_entry(user: UserContext, entry_id: str, fields: dict) -> Simple
     def work(conn):
         conn.row_factory = _dict_factory
         cur = conn.execute(
-            f"UPDATE journal_entries SET {', '.join(updates)} WHERE id = ?",
+            f"UPDATE journal_entries SET {', '.join(updates)} WHERE id = ?",  # nosec B608 — updates contain only whitelisted _ENTRY_COLUMNS keys as `key = ?`; values are parameterized
             params,
         )
         if cur.rowcount == 0:
