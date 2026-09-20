@@ -1,0 +1,36 @@
+{
+  "_readme": {
+    "what": "How-To Guides — first-hand procedural knowledge for the tenant library's How-To section.",
+    "who": "Entries are written from Brad's first-hand experience. Each guide is a real procedure that has actually been done, not theory.",
+    "how_to_add_an_entry": "Copy the '_entry_template' object into 'guides', give it a new id, fill the fields, set status to 'published' when ready. Entries with any other status are hidden from the app.",
+    "fields": {
+      "id": "unique slug, snake_case",
+      "title": "plain-language title — what the person is trying to do",
+      "summary": "one or two sentences — what this guide gets them",
+      "steps": "ordered list; each step has a short 'title' and a 'body' explaining what to actually do",
+      "tips": "optional list of things learned the hard way — what to watch for",
+      "related_subjects": "library subjects this guide relates to (see taxonomy.py ALL_SUBJECTS)",
+      "source": "'first_hand' for Brad's experience; anything else needs a note",
+      "status": "'placeholder' = skeleton only, hidden | 'draft' = written, hidden | 'published' = shown"
+    }
+  },
+  "section": "how_to",
+  "updated": "2026-09-19",
+  "_entry_template": {
+    "id": "template_do_not_publish",
+    "title": "How to ___ (replace with the real task)",
+    "summary": "What this gets done and why it matters, in one or two sentences.",
+    "steps": [
+      {"title": "First thing you do", "body": "What to actually do — the real-world version, including where to go, what to bring, what to say."},
+      {"title": "Then this", "body": "Next step."},
+      {"title": "Last step", "body": "How you know it's done."}
+    ],
+    "tips": [
+      "Things that went wrong or surprised you — what you'd tell a friend doing this for the first time."
+    ],
+    "related_subjects": [],
+    "source": "first_hand",
+    "status": "placeholder"
+  },
+  "guides": []
+}

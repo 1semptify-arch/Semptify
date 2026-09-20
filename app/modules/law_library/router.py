@@ -15,6 +15,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from app.core.capabilities import require_capability
+from app.core.privacy_aup import DISCLAIMERS
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +29,9 @@ router = APIRouter(
 
 # =============================================================================
 # LEGAL DISCLAIMER - Included with all responses
+# Canonical text lives in app/core/privacy_aup.py (DISCLAIMERS registry).
 # =============================================================================
-LEGAL_DISCLAIMER = (
-    "This information is for educational purposes only and does not constitute "
-    "legal advice. Laws change frequently - always verify current statutes at "
-    "revisor.mn.gov. For advice about your specific situation, consult with a "
-    "licensed attorney or contact Legal Aid (www.LawHelpMN.org)."
-)
+LEGAL_DISCLAIMER = DISCLAIMERS["educational_info"]
 
 LAST_VERIFIED_DATE = "2025-01-01"  # Date when legal content was last verified
 

@@ -1,3 +1,74 @@
+## Session — 2026-09-19 — Per-role vault configs, Step 1d (devin)
+
+**Task `prov-role-configs` → review.** Final step of the intake-vault-provisioning sequence — `_PENDING_STEPS` is now empty, so `vault_provisioned` can actually flip true once all three steps run.
+
+**What shipped:**
+- `app/core/vault_paths.py` — `CONFIGS_FOLDER = .semptify/configs/`, `OCR_CONFIG_FILE`, `OVERLAY_CONFIG_FILE`.
+- `app/core/vault_configs.py` (new) — content layer: required-field catalog for the 8 locked doc types, per-role OCR config (text-layer-first, ADR-0007 engine block: client WASM/ONNX primary, ephemeral-memory server fallback, zero content logging, per-field yes/no/edit confirm flow), per-role overlay config (allowed categories keyed to `overlay_types` groups + empty `seeds` slot for typed seeds). Doc-ingest roles (tenant/advocate/mca/legal/manager/agency) get the full 8-type catalog; non-intake roles get empty `doc_types`. Unknown role → empty/minimal, never silently tenant.
+- `app/sdk/vault/configs.py` (new) — transport: `ensure_configs_remote(storage, role)` — create-if-missing, verified-if-same-version, refresh stale-or-unparseable (configs are app-generated, safe to replace), never downgrade a newer file.
+- `app/services/vault_provisioning.py` — `_run_configs()` wired with the same 25s timeout + gate pattern; `configs` dispatch added to `run_step`.
+- `app/sdk/vault/__init__.py` — exports `ensure_configs_remote`.
+- `tests/test_vault_configs.py` — 10 tests.
+
+**Verified:** 10/10 new tests pass (`--no-cov`); `py_compile` clean; import check confirms all three steps runnable. **Not verified:** live provision against a real OAuth provider (same tenant-token wall as 1c); `unified_overlay_manager.py` untouched — the task's file_path listed it but v1 needs no edits there (overlay config is consumed by readers later, e.g. live-reads-retarget).
+
+---
+
+## Session — 2026-09-19 — Vault SQLite datastore + embedded migrations (devin)
+
+**Task `prov-vault-sqlite` → review.** Step 1c of the intake-vault-provisioning pipeline: the `vault_db` provisioning step is now real — it was previously in `_PENDING_STEPS` and `run_step` dispatched to a `_run_vault_db` that was never defined (latent NameError once un-pended).
+
+**What shipped:**
+- `app/core/vault_paths.py` — new `VAULT_DB_FILE = Semptify5.0/.semptify/vault.db` (system folder, hidden from casual browsing).
+- `app/sdk/vault/migrations/0001_initial.sql` — schema v1: the 11 tables from `handoffs/vault_sqlite_schema_handoff.md` verbatim (vault_meta, documents, document_fields, overlays, share_tokens, contacts, appointments, interactions, ledger_entries, dispute_packets, resource_directory) + `journal_entries` + `timeline_events` matching the live JOURNAL_ENTRY / TIMELINE_EVENT overlay payload shapes field-for-field (Option A: SQLite owns live reads; JSON overlays become export/provenance). Seeds `schema_version=1`, `processed_document_count=0`.
+- `app/sdk/vault/db.py` — pure-stdlib engine (no FastAPI/SQLAlchemy, same envelope as client.py): `open_local()` sets the locked pragmas (WAL / foreign_keys=ON / synchronous=NORMAL) on every open and runs pending numbered `NNNN_*.sql` migrations gated on `vault_meta.schema_version`; `checkpoint_and_close()` folds WAL into the main file before upload so the remote copy is self-contained; `ensure_remote(storage)` is the idempotent provisioning/sync entry point — create-if-missing, download+migrate+re-upload only when schema_version advanced, corrupt existing file raises `VaultDbError` and is never overwritten.
+- `app/services/vault_provisioning.py` — `_run_vault_db()` wired (25s timeout guard, gate `prov_vault_db`, `_maybe_mark_provisioned`); `vault_db` removed from `_PENDING_STEPS`.
+- `app/sdk/vault/__init__.py` — exports `open_local`, `checkpoint_and_close`, `ensure_remote`, `schema_version`, `VaultDbError`.
+- `tests/test_vault_db.py` — 11 tests (dict-backed FakeStorageProvider, no real cloud needed).
+
+**Bug the tests caught:** `conn.executescript()` implicit-commits before running, so an explicit `BEGIN` around it was dead code and a failed migration could neither roll back nor report cleanly. Fix: `BEGIN`/`COMMIT` are embedded inside the script text and the schema_version bump runs in the same transaction — failed migrations roll back DDL atomically. Convention documented: migration files must never contain their own transaction statements.
+
+**Verified:** all changed files `py_compile` clean; 11/11 new tests pass (`--no-cov`); existing vault SDK tests pass (4/4 — `__init__` exports are additive); module import confirms `vault_db` now a runnable step, `configs` still pending.
+
+**Not verified:** a real end-to-end provision against a live OAuth provider — `ensure_remote` needs a tenant access token, same wall as prior vault work. FakeStorageProvider covers create / verify-no-rewrite / migrate+re-upload / corrupt-refusal paths. Encryption at rest remains the handoff's flagged open decision — this file is plaintext SQLite for now.
+
+**Migration-authoring note for future versions:** add `NNNN_description.sql` to `app/sdk/vault/migrations/`; nothing else to wire — `open_local` picks it up automatically on next open.
+
+---
+
+## Session — 2026-09-19 — Donate page repair + fact-check pass (devin)
+
+**Task `donate-page-factcheck-linkfix` → review.** All changes in `app/templates/public/donate.html` (standalone template, own inline nav/footer — known hardcoded-footer page).
+
+**Root-cause fix:** the `<!-- ====` banner before the Support section never closed — the first `-->` was inside `<!-- Donate -->` 11 lines later, so `<section id="support">`, its header, and the `.support-grid` wrapper were all commented out. The donate/GitHub Sponsors CTA never rendered and every `#support` anchor (nav CTA + 3 footer links) was dead. Banner comment now closes properly; section renders with `bg-alt` matching page rhythm.
+
+**Dead/broken links fixed:**
+- 2× `http://127.0.0.1:8001` "Funding Forge (Admin)" links → `github.com/1semptify-arch/Semptify/tree/main/funding_forge` (real, public).
+- `https://semptify.org` self-links → `/`; "Contact Us at semptify.org" → real `/contact` page.
+- Hero counter `data-format="3.6M"` was ignored by the counter JS (would have animated to 3,600,000) → corrected to `data-count="3.6" data-suffix="M" data-decimal="1"`.
+
+**Fact-check cards — wording + source links added (verified live):**
+- 3.6M filings/yr → Eviction Lab national estimates (https://evictionlab.org/national-estimates/). "One every nine seconds" math checks out.
+- 90%/10% representation → tightened to match NCCRC compiled stats (studied avg ~84% landlords / ~4% tenants; many courts 90%+). Source: NCCRC PDF on civilrighttocounsel.org.
+- Cost burden → corrected from "average American spends 30–50%" to JCHS actuals: 50% of renter households (22.6M) >30% income, 12.1M >50%, 83% of under-$30k renters burdened. Source: jchs.harvard.edu/americas-rental-housing-2024.
+- Habitability → HUD/Census American Housing Survey linked.
+- Disparity claim → Eviction Lab linked; wording tightened to the sourced disparity (Black renters, esp. Black women).
+
+**Cards linked to real routes:** all 6 pillar cards + all 11 feature cards now link to live public pages (/library, /legal-research, /portal, /advocacy, /complaints, /eviction-defense, /tools, /services). All named modules verified on disk (fems, litigation_intelligence, fraud_exposure, public_exposure, retaliation_tracker, court_forms, eviction_defense, complaints, law_library, case_builder, timeline, vault, funding_forge, r2.py).
+
+**Voice pass:** "evidence" → "record/documentation" in descriptive copy (FEMS proper noun kept); "They know how to win" → non win/lose wording. No "free"/account/pricing language introduced. No 501(c)(3) text exists on this page — none touched, none added.
+
+**No-dead-end rule:** page previously had zero path to real help — added nav "Get Help" → /help and a footer Site column (/about /services /library /help /contact /privacy /terms). Footer also gains GitHub Sponsors link.
+
+**Verified:** app import clean; local :8001 `/donate` 200; support section + Sponsor button render; 8 source links + 20 card links present; 0 localhost refs; all 7 `#` anchors resolve; HTML comments balanced; every linked internal route returns 200. Browser preview opened for Brad.
+
+**Follow-up (same session):** Brad reviewed and chose to cut the unattributed composite pull-quote ("I didn't know I had rights…") entirely rather than replace it — removed the block and its dead `.pull-quote` CSS. Re-verified: page 200, support section renders, comments balanced.
+
+**Module count correction (Brad decision):** "17+ modules" → "20+ tenant-facing tools" (hero stat + features heading). Real counts from live system: 133 module dirs, 132 registry entries, 99 modules loading clean (777 contracts, 46 skipped). Tech section now reads "20+ tenant-facing tools … — 130+ registered modules under the hood" so both framings stay honest.
+
+**Not verified:** visual layout at 375/1280px (IronBee browser MCP not connected this session — preview left running for eyeball check); GitHub Sponsors requires a GitHub login to give (expected, stated on-page).
+
+---
 ## Session — 2026-09-19 — Transparency Feed blueprint drafted, build parked (devin)
 
 - `docs/blueprints/transparency_feed_blueprint.md` — DRAFT blueprint for a GOVERN-pillar, DEV-tier runtime transparency feed: in-memory ring buffer of plain-English narration entries (request lifecycle via dedicated middleware, EventBus domain-event mirroring, browser echoes), live admin-only `/transparency` page over SSE, `TRANSPARENCY_FEED` env kill switch (`off` default — zero overhead), T0-only data (no PII/user IDs/query strings/bodies; token-like path segments masked).

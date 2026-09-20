@@ -53,6 +53,13 @@
     </div>
   </section>
 
+  <section class="shell-zone" id="docsZone" aria-labelledby="rt-docs-title">
+    <h2 id="rt-docs-title" class="shell-zone-title">From your documents</h2>
+    <div id="docSuggestions" class="retaliation-suggestions">
+      <p class="retaliation-empty">Loading…</p>
+    </div>
+  </section>
+
   <section class="shell-zone" id="recordZone" aria-labelledby="rt-record-title">
     <h2 id="rt-record-title" class="shell-zone-title">The record</h2>
     <div id="recordList" class="retaliation-record">
@@ -195,7 +202,83 @@
             );
         }
 
+        if (data.assessment && data.assessment.elements && data.assessment.elements.length) {
+            parts.push('<div class="rt-assessment"><h3 class="rt-assessment-title">How complete is the record</h3><ul class="rt-assessment-list">');
+            data.assessment.elements.forEach(el => {
+                parts.push(
+                    '<li class="rt-assessment-item rt-assessment-item--' + (el.present ? 'yes' : 'no') + '">' +
+                      '<span class="rt-assessment-mark" aria-hidden="true">' + (el.present ? '✓' : '–') + '</span>' +
+                      '<span><strong>' + esc(el.label) + '</strong> — ' + esc(el.detail) + '</span>' +
+                    '</li>'
+                );
+            });
+            parts.push('</ul>');
+            if (data.assessment.guidance && data.assessment.guidance.length) {
+                parts.push('<ul class="rt-assessment-guidance">');
+                data.assessment.guidance.forEach(g => {
+                    parts.push('<li>' + esc(g) + '</li>');
+                });
+                parts.push('</ul>');
+            }
+            if (data.assessment.note) {
+                parts.push('<p class="rt-note">' + esc(data.assessment.note) + '</p>');
+            }
+            parts.push('</div>');
+        }
+
         patternEl.innerHTML = parts.join('');
+    }
+
+    function renderDocSuggestions(data) {
+        const el = document.getElementById('docSuggestions');
+        const suggestions = (data && data.suggestions) || [];
+        if (!suggestions.length) {
+            el.innerHTML = '<p class="retaliation-empty">No documents on file that look like protected steps or landlord actions yet. When recognized documents come in, they show up here.</p>';
+            return;
+        }
+        const parts = [];
+        suggestions.forEach(s => {
+            const kind = s.suggested_event_type === 'protected_action' ? 'protected' : 'adverse';
+            parts.push(
+                '<div class="rt-suggestion">' +
+                  '<span class="rt-kind rt-kind--' + kind + '">' + (kind === 'protected' ? 'You' : 'Them') + '</span>' +
+                  '<div class="rt-suggestion-body">' +
+                    '<div class="rt-suggestion-head"><strong>' + esc(s.subtype_label) + '</strong>' +
+                      (s.event_date ? '<span class="rt-suggestion-when">' + fmtDate(s.event_date) + '</span>' : '') + '</div>' +
+                    '<p class="rt-suggestion-reason">' + esc(s.title || '') + ' — ' + esc(s.reason || '') + '</p>' +
+                    '<button type="button" class="rt-suggestion-use" data-kind="' + kind + '"' +
+                      ' data-subtype="' + esc(s.suggested_subtype || 'other') + '"' +
+                      ' data-date="' + esc(s.event_date || '') + '"' +
+                      ' data-title="' + esc(s.title || '') + '">Use this</button>' +
+                  '</div>' +
+                '</div>'
+            );
+        });
+        el.innerHTML = parts.join('');
+        el.querySelectorAll('.rt-suggestion-use').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const form = document.querySelector('.retaliation-form[data-kind="' + btn.dataset.kind + '"]');
+                if (!form) return;
+                const sel = form.querySelector('select[name=subtype]');
+                const dateIn = form.querySelector('input[name=event_date]');
+                const desc = form.querySelector('textarea[name=description]');
+                if (sel && btn.dataset.subtype) sel.value = btn.dataset.subtype;
+                if (dateIn && btn.dataset.date) dateIn.value = String(btn.dataset.date).slice(0, 10);
+                if (desc && btn.dataset.title) desc.value = btn.dataset.title;
+                form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+    }
+
+    async function loadDocSuggestions() {
+        const el = document.getElementById('docSuggestions');
+        try {
+            const r = await fetch('/api/tenant/retaliation/doc-suggestions', { credentials: 'include' });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            renderDocSuggestions(await r.json());
+        } catch (e) {
+            el.innerHTML = '<p class="retaliation-empty">Could not check your documents right now.</p>';
+        }
     }
 
     function renderRecord(data) {
@@ -262,6 +345,7 @@
     });
 
     loadAnalysis();
+    loadDocSuggestions();
 })();
 </script>
 <style>
@@ -303,6 +387,28 @@
 .rt-event-when { color: var(--text-secondary); font-size: 0.8125rem; white-space: nowrap; }
 .rt-event-desc { margin: 0.25rem 0 0; font-size: 0.875rem; color: var(--text-secondary); }
 .rt-event-docs { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--text-secondary); }
+.rt-assessment { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--shell-line); }
+.rt-assessment-title { font-size: 0.9375rem; font-weight: 600; margin: 0 0 0.5rem; }
+.rt-assessment-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.375rem; }
+.rt-assessment-item { display: flex; gap: 0.5rem; font-size: 0.875rem; color: var(--text-secondary); }
+.rt-assessment-mark { flex: none; width: 1rem; font-weight: 600; }
+.rt-assessment-item--yes .rt-assessment-mark { color: var(--role-accent); }
+.rt-assessment-item--no .rt-assessment-mark { color: var(--text-secondary); }
+.rt-assessment-guidance { margin: 0.75rem 0 0; padding-left: 1.25rem; font-size: 0.875rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.375rem; }
+.rt-suggestion {
+    display: flex; gap: 0.75rem; padding: 0.625rem 0;
+    border-bottom: 1px solid var(--shell-line);
+}
+.rt-suggestion-body { flex: 1; min-width: 0; }
+.rt-suggestion-head { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.9375rem; }
+.rt-suggestion-when { color: var(--text-secondary); font-size: 0.8125rem; white-space: nowrap; }
+.rt-suggestion-reason { margin: 0.25rem 0 0.5rem; font-size: 0.8125rem; color: var(--text-secondary); }
+.rt-suggestion-use {
+    font-size: 0.8125rem; padding: 0.25rem 0.75rem; border: 1px solid var(--shell-line);
+    border-radius: 8px; background: var(--bg-card, #fff); color: var(--role-accent);
+    cursor: pointer; font-weight: 500;
+}
+.rt-suggestion-use:hover { background: var(--role-tint); }
 .retaliation-form { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; }
 .retaliation-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8125rem; color: var(--text-secondary); }
 .retaliation-field input, .retaliation-field select, .retaliation-field textarea {

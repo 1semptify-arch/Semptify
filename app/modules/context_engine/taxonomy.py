@@ -22,6 +22,7 @@ class Subject(StrEnum):
     TIMELINE = "timeline"
     JOURNAL = "journal"
     LAW_LIBRARY = "law_library"
+    HOW_TO = "how_to"
     LANDING = "landing"
 
 
@@ -43,6 +44,7 @@ SUBJECT_LABELS = {
     Subject.TIMELINE.value: "Timeline Building",
     Subject.JOURNAL.value: "Journal / Record Keeping",
     Subject.LAW_LIBRARY.value: "Law Library & Statutes",
+    Subject.HOW_TO.value: "How-To Guides",
     Subject.LANDING.value: "Landing Page",
 }
 
@@ -64,5 +66,6 @@ SUBJECT_TO_FREE_API = {
     Subject.TIMELINE.value: None,  # No external API — guidance only
     Subject.JOURNAL.value: None,  # No external API — guidance only
     Subject.LAW_LIBRARY.value: "law_library_catalog",
+    Subject.HOW_TO.value: None,  # First-hand procedural guides — curated content, no external API
     Subject.LANDING.value: None,  # Public marketing/landing claims — verified by fact-check/freshness system
 }

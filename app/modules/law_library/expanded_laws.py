@@ -1496,6 +1496,57 @@ EXPANDED_CASES = [
         "key_quotes": [
             "A one-sided attorney fee provision in a residential lease is unconscionable and unenforceable."
         ],
+    },
+    # Retaliation Cases
+    {
+        "id": "edwards_v_habib",
+        "case_name": "Edwards v. Habib",
+        "citation": "397 F.2d 687 (D.C. Cir. 1968), cert. denied, 393 U.S. 1016 (1969)",
+        "court": "U.S. Court of Appeals, D.C. Circuit",
+        "date_decided": "1968-06-17",
+        "summary": "First case to recognize retaliatory eviction as a defense. A tenant reported more than 40 housing code violations to inspectors; the landlord responded with a 30-day notice to quit.",
+        "holding": "A landlord may evict for any legal reason or no reason — but not in retaliation for a tenant's report of housing code violations to authorities.",
+        "relevance": "The foundational retaliation case; most state retaliation statutes and common-law defenses trace back to it.",
+        "key_quotes": [
+            "While the landlord may evict for any legal reason or for no reason at all, he is not, we hold, free to evict in retaliation for his tenant's report of housing code violations to the authorities."
+        ],
+    },
+    {
+        "id": "robinson_v_diamond_housing",
+        "case_name": "Robinson v. Diamond Housing Corp.",
+        "citation": "463 F.2d 853 (D.C. Cir. 1972)",
+        "court": "U.S. Court of Appeals, D.C. Circuit",
+        "date_decided": "1972-05-26",
+        "summary": "After a tenant won a habitability defense in a nonpayment eviction, the landlord served a 30-day notice to quit. The court held the tenant must be allowed to prove the notice was retaliatory.",
+        "holding": "Retaliatory motive is a fact question — summary judgment is improper where a tenant offers evidence the eviction followed her successful legal defense.",
+        "relevance": "Extends Edwards v. Habib: winning a legal fight (not just complaining to an agency) can be protected activity, and motive is for the fact-finder.",
+        "key_quotes": [
+            "The tenant should be permitted to show that the landlord was motivated by a retaliatory intent when it served the notice to quit."
+        ],
+    },
+    {
+        "id": "central_housing_v_olson",
+        "case_name": "Central Housing Associates, LP v. Olson",
+        "citation": "929 N.W.2d 398 (Minn. 2019)",
+        "court": "Minnesota Supreme Court",
+        "date_decided": "2019-06-12",
+        "summary": "A jury found the landlord retaliated against a tenant for complaining about the condition of the premises, but the statutory defense under Minn. Stat. § 504B.441 was unavailable because the tenant had not complained to a government entity or filed a formal legal proceeding. The court then recognized a common-law retaliation defense covering good-faith complaints made directly to the landlord.",
+        "holding": "The § 504B.441 defense requires a complaint to a government entity or a formal legal proceeding. Separately, Minnesota common law recognizes a retaliation defense where a landlord evicts for the tenant's good-faith complaint TO THE LANDLORD of a material violation of law, covenants, or the lease.",
+        "relevance": "The controlling Minnesota case: complaints directly to the landlord are protected under common law even when the statute does not apply.",
+        "key_quotes": [
+            "The common law should recognize a defense when a landlord retaliates against a tenant for making a good-faith complaint to the landlord of a material violation of local or state law, residential covenants, or the lease."
+        ],
+    },
+    {
+        "id": "davies_v_simba",
+        "case_name": "Davies v. Simba",
+        "citation": "No. A24-0002 (Minn. Ct. App. Sept. 30, 2024) (nonprecedential)",
+        "court": "Minnesota Court of Appeals",
+        "date_decided": "2024-09-30",
+        "summary": "A tenant reported city code violations; the landlord later declined to renew the lease and evicted for holdover. The tenant's retaliation defense failed because the landlord provided non-retaliatory reasons for the non-renewal.",
+        "holding": "Where a landlord offers non-retaliatory reasons for non-renewal, a tenant's retaliation defense under Minn. Stat. §§ 504B.285 and .441 was not proven. Affirmed eviction.",
+        "relevance": "Recent Minnesota example showing the defense must be proven — courts weigh the landlord's stated reasons against timing. Nonprecedential but instructive.",
+        "key_quotes": [],
     }
 ]
 

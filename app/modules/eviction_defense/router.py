@@ -20,6 +20,7 @@ from pydantic import BaseModel
 
 from app.core.document_hub import get_document_hub
 from app.core.event_bus import EventType, event_bus
+from app.core.privacy_aup import DISCLAIMERS
 from app.core.security import StorageUser, yellow_access
 from app.core.utc import utc_now
 from app.services.form_data import get_form_data_service
@@ -31,12 +32,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/eviction-defense", tags=["Eviction Defense"])
 
 # Legal disclaimer - required on all legal information
-LEGAL_DISCLAIMER = (
-    "This information is provided for educational purposes only and does not constitute "
-    "legal advice. Semptify is a tenant documentation tool, not a law firm. For legal "
-    "advice specific to your situation, please consult with a licensed attorney or contact "
-    "your local legal aid organization."
-)
+# Canonical text lives in app/core/privacy_aup.py (DISCLAIMERS registry).
+LEGAL_DISCLAIMER = DISCLAIMERS["educational_info"]
 
 
 # =============================================================================

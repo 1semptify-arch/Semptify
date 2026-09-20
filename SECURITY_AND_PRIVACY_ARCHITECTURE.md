@@ -348,6 +348,13 @@ You:           Fully logged out, can't access app
 This section is the single source of truth for what Semptify may and may not store
 by user role. All modules, plugins, add-ons, and AI agents must respect this boundary.
 
+> **Expanded SSOT (2026-09-19):** the enforceable, machine-readable version of these
+> rules — per-role storage buckets, the canonical disclaimer registry for all modules
+> and roles, and the acceptable-use will/won't-do lists — now lives in
+> `app/core/privacy_aup.py` + `docs/admin/PRIVACY_AND_ACCEPTABLE_USE_SSOT.md`.
+> This section remains the canonical policy statement; the privacy_aup module is
+> how code enforces it.
+
 ---
 
 ### The Core Distinction
