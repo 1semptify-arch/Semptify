@@ -1,0 +1,135 @@
+{% extends "body/composer_preview_shell.html" %}
+{% from "components/ui_composer.html" import process_indicator with context %}
+
+{# Module Contract — intake:intake_upload_auto (pillar: record)
+   Function: the tenant adds a document; Semptify stores it in the vault,
+   reads it, and pulls out dates, amounts, and issues.
+   Inputs: file (required), description, tags (optional)
+   Outputs: doc_id, document_type, issues_found, dates, amounts, parties, status
+   Preview: empty state = prompt copy; result = what was saved + what was found
+   Actions: Add document — fnav rail, gated on a chosen file
+            View your documents — help-bottom, secondary
+   Layout: primary=composer, ratio=3fr 2fr, mobile=[composer, preview, help] #}
+{% set shell_ratio = "3fr 2fr" %}
+{% set shell_primary = "composer" %}
+{% set shell_mobile_order = ["composer", "preview", "help"] %}
+{# Staged nav rail: the forward action lives in .fnav and submits this
+   form; it stays locked until a file is chosen. #}
+{% set fnav_label = "Document" %}
+{% set fnav_form_id = "intakeUploadForm" %}
+{% set fnav_back_stage = "tenant_home" %}
+
+{% block title %}Add a document - Semptify{% endblock %}
+{% block nav_record %}active{% endblock %}
+{% block cps_aria_label %}Add a document{% endblock %}
+{% block cps_title %}Add a document{% endblock %}
+{% block cps_description %}Put a notice, letter, lease, receipt, or photo into your record. Semptify reads it and pulls out the dates, amounts, and anything that needs attention.{% endblock %}
+{% block cps_controls_title %}Choose the file{% endblock %}
+{% block cps_preview_title %}What was saved{% endblock %}
+{% block cps_help_title %}How this works{% endblock %}
+
+{% block styles %}
+{{ super() }}
+{% endblock %}
+
+{% block composer %}
+<form id="intakeUploadForm" class="record-guide__form" onsubmit="event.preventDefault(); submitDocument();" novalidate>
+  <div class="record-guide__field block-input">
+    <label for="file">Document <span class="required">*</span></label>
+    <input id="file" name="file" type="file" required>
+    <p class="cps__hint">A notice, letter, lease, receipt, or photo — anything worth keeping a record of.</p>
+  </div>
+
+  <details class="record-guide__extra">
+    <summary>Add more detail</summary>
+    <div class="record-guide__extra-fields">
+      <div class="record-guide__field block-input">
+        <label for="description">What it is</label>
+        <input id="description" name="description" type="text" maxlength="500" placeholder="e.g. Notice from landlord dated March 3">
+      </div>
+
+      <div class="record-guide__field block-input">
+        <label for="tags">Tags</label>
+        <input id="tags" name="tags" type="text" placeholder="notice, repair, rent (comma-separated)">
+      </div>
+    </div>
+  </details>
+</form>
+{% endblock %}
+
+{% block preview %}
+<div id="intakeResult" class="record-guide__result" role="status" aria-live="polite">
+  <p class="cps__empty">Nothing added yet. When you add a document, what Semptify found appears here.</p>
+</div>
+{% endblock %}
+
+{% block help %}
+  {% if explanation %}
+  <p class="cps__description">{{ explanation }}</p>
+  {% endif %}
+  {% if narration %}
+  {{ process_indicator(narration) }}
+  {% endif %}
+
+  <p class="record-guide__next">
+    <a href="{{ navigation.get_stage('tenant_documents').path }}" class="output-trigger">View your documents</a>
+  </p>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+  }
+
+  function submitDocument() {
+    const form = document.getElementById('intakeUploadForm');
+    const resultDiv = document.getElementById('intakeResult');
+    const fileInput = document.getElementById('file');
+    if (!fileInput.files || !fileInput.files.length) {
+      resultDiv.innerHTML = '<p>Choose a file first.</p>';
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    const desc = (form.description.value || '').trim();
+    if (desc) formData.append('description', desc);
+    const tags = (form.tags.value || '').trim();
+    if (tags) formData.append('tags', tags);
+
+    resultDiv.innerHTML = '<p>Reading the document…</p>';
+
+    fetch('/api/intake/upload/auto', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: formData,
+    })
+    .then(function (res) {
+      if (res.ok) {
+        return res.json().then(function (data) {
+          const type = data.doc_type || data.document_type || 'document';
+          const issues = data.issues_found != null ? data.issues_found : 0;
+          resultDiv.innerHTML =
+            '<p>Saved as: <strong>' + esc(type) + '</strong></p>' +
+            (data.vault_id ? '<p class="cps__hint">Record ID: <code>' + esc(data.vault_id) + '</code></p>' : '') +
+            '<p>' + esc(issues) + (issues === 1 ? ' issue' : ' issues') + ' found. ' + esc(data.message || '') + '</p>';
+          form.reset();
+        });
+      }
+      if (res.status === 401 || res.status === 403) {
+        resultDiv.innerHTML = '<p>Your documents need a place to live first. <a href="{{ navigation.get_stage('preamble').path }}">Start here</a> — it takes a minute.</p>';
+        return;
+      }
+      return res.text().then(function (text) {
+        resultDiv.innerHTML = '<p>That file could not be added: ' + esc(text) + '</p>';
+      });
+    })
+    .catch(function (err) {
+      resultDiv.innerHTML = '<p>Could not add the document: ' + esc(err.message) + '</p>';
+    });
+  }
+</script>
+{% endblock %}

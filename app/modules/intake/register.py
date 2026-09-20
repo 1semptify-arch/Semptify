@@ -6,7 +6,7 @@ intelligence (dates, amounts, parties, issues), and routes them to the vault.
 This is the RECORD pillar's entry point.
 """
 
-from app.core.module_contracts import FunctionGroupContract, register_function_group
+from app.core.module_contracts import ContractStage, FunctionGroupContract, register_function_group
 
 # --- Upload Endpoints ---
 
@@ -41,6 +41,40 @@ register_function_group(
         outputs=("doc_id", "document_type", "issues_found", "dates", "amounts", "parties", "status"),
         dependencies=("app.modules.intake.router", "app.modules.documents.router"),
         deterministic=False,
+        # Grammar-to-UI proof of concept: one paragraph, one primary task.
+        # subject + verb + object = the sentence the step renders;
+        # next_condition = the rule that lets the paragraph continue.
+        stages=(
+            ContractStage(
+                id="upload_file",
+                label="Choose a document",
+                action="Add document",
+                requires=("file",),
+                subject="user",
+                verb="upload",
+                object="a document",
+                ui_component="pages/intake_upload_guide.html",
+                next_condition="file_selected == true",
+            ),
+            ContractStage(
+                id="read_document",
+                label="Semptify reads it",
+                action="Continue",
+                subject="system",
+                verb="reads",
+                object="the document",
+                next_condition="processing_complete == true",
+            ),
+            ContractStage(
+                id="check_record",
+                label="Check the record",
+                action="Done",
+                subject="user",
+                verb="check",
+                object="the saved record",
+                next_condition="record_reviewed == true",
+            ),
+        ),
     )
 )
 
