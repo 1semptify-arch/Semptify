@@ -1,21 +1,32 @@
 """
 Calendar Service
 ================
-Per-user calendar store backed by the Unified Overlay System.
+Per-user calendar store backed by the tenant's vault SQLite database.
 
-Each event is a CALENDAR_EVENT overlay anchored to document_id="calendar:{user_id}"
-in the user's own cloud storage — same pattern as journal and the rent ledger.
-Manual and auto-synced events (document_extraction, rent_ledger) live in the
-same store; auto-synced events carry payload["source"] + payload["linked_record_id"]
-for idempotent refresh by calendar_sync. No server-side database rows:
-the tenant's records live in the tenant's vault (vault-persistence-migration,
-Phase 1).
+Events live in the ``calendar_events`` table of the tenant-owned
+``Semptify5.0/.semptify/vault.db`` (live-reads-retarget-sqlite; Phase-1
+JSON overlays are now an export/provenance layer, not the live store).
+Manual and auto-synced events (document_extraction, rent_ledger) live in
+the same store; auto-synced events carry ``source`` +
+``linked_record_id`` for idempotent refresh by calendar_sync.
+
+Two bounded, idempotent import paths run on read so history is never
+stranded: ``migrate_overlay_events`` copies Phase-1 CALENDAR_EVENT
+overlays into SQLite (dedupe by primary key, overlay files left in
+place), and ``migrate_legacy_events`` imports pre-overlay server DB rows.
+
+View contract: functions return SimpleNamespace objects carrying the
+UnifiedOverlay attribute surface — ``overlay_id``, ``overlay_type``,
+``created_by``, ``document_id``, ``vault_path``, ``payload`` (dict),
+``created_at``/``updated_at`` (datetime) — so every consumer keeps
+working unchanged.
 """
 
 from __future__ import annotations
 
 import logging
 from datetime import datetime
+from types import SimpleNamespace
 
 from sqlalchemy import select
 
@@ -26,11 +37,29 @@ from app.core.user_context import UserContext
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_CALENDAR_FILE
 from app.models.models import CalendarEvent as CalendarEventModel
-from app.models.unified_overlay_models import CreateOverlayRequest, UnifiedOverlay
+from app.sdk.vault import (
+    VaultDbError,
+    mutate_remote_ensured,
+    read_remote,
+)
 from app.services.storage import get_provider
 from app.services.unified_overlay_manager import get_unified_overlay_manager
 
 logger = logging.getLogger(__name__)
+
+# Payload keys that map to calendar_events columns.
+_EVENT_COLUMNS = (
+    "title",
+    "description",
+    "start_datetime",
+    "end_datetime",
+    "all_day",
+    "event_type",
+    "is_critical",
+    "reminder_days",
+    "source",
+    "linked_record_id",
+)
 
 
 def get_calendar_anchor_id(user_id: str) -> str:
@@ -43,42 +72,66 @@ def get_calendar_vault_path() -> str:
     return VAULT_CALENDAR_FILE
 
 
-async def _get_overlay_manager(user: UserContext):
-    """Build an overlay manager for the current user's cloud storage.
+def _get_storage(user: UserContext):
+    """Storage provider for the current user's cloud vault."""
+    return get_provider(user.provider.value, access_token=user.access_token)
 
-    The manager is labelled with the *effective* user id so events created
-    during support impersonation belong to the impersonated tenant — matching
-    the legacy user_id=effective_id column semantics.
-    """
-    storage = get_provider(user.provider.value, access_token=user.access_token)
+
+async def _get_overlay_manager(user: UserContext):
+    """Overlay manager — now used ONLY by the Phase-1 import path."""
+    storage = _get_storage(user)
     return await get_unified_overlay_manager(storage, user.get_effective_user_id())
 
 
-def _owns(user: UserContext, overlay: UnifiedOverlay) -> bool:
-    """True if the overlay is a calendar event owned by the effective user."""
-    return (
-        overlay.overlay_type == OverlayType.CALENDAR_EVENT
-        and overlay.created_by == user.get_effective_user_id()
-    )
+def _dict_factory(cursor, row):
+    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
 
 
-def _owns_id(effective_id: str, overlay: UnifiedOverlay) -> bool:
-    """Ownership check for helpers that only have a user id."""
-    return overlay.overlay_type == OverlayType.CALENDAR_EVENT and overlay.created_by == effective_id
-
-
-def _start_key(overlay: UnifiedOverlay) -> str:
-    """Sort key: payload start_datetime falling back to creation time."""
-    return overlay.payload.get("start_datetime") or overlay.created_at.isoformat()
+def _parse_dt(value) -> datetime | None:
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(str(value))
+    except ValueError:
+        return None
 
 
 def _to_iso(value) -> str | None:
-    """Normalize a datetime/ISO-string field to an ISO string for the payload."""
+    """Normalize a datetime/ISO-string field to an ISO string."""
     if value is None:
         return None
     if isinstance(value, datetime):
         return value.isoformat()
     return str(value)
+
+
+def _view(row, effective_id: str) -> SimpleNamespace:
+    """Build the overlay-shaped view consumers expect from a table row."""
+    payload = {
+        "id": row["id"],
+        "title": row["title"],
+        "description": row["description"],
+        "start_datetime": row["start_datetime"],
+        "end_datetime": row["end_datetime"],
+        "all_day": bool(row["all_day"]),
+        "event_type": row["event_type"],
+        "is_critical": bool(row["is_critical"]),
+        "reminder_days": row["reminder_days"],
+        "source": row["source"],
+        "linked_record_id": row["linked_record_id"],
+    }
+    return SimpleNamespace(
+        overlay_id=row["id"],
+        overlay_type=OverlayType.CALENDAR_EVENT,
+        created_by=effective_id,
+        document_id=get_calendar_anchor_id(effective_id),
+        vault_path=VAULT_CALENDAR_FILE,
+        payload=payload,
+        created_at=_parse_dt(row["created_at"]),
+        updated_at=_parse_dt(row["updated_at"]),
+    )
 
 
 async def create_event(
@@ -94,42 +147,47 @@ async def create_event(
     description: str | None = None,
     source: str = "manual",
     linked_record_id: str | None = None,
-) -> UnifiedOverlay:
-    """Create a calendar event overlay in the user's cloud."""
-    manager = await _get_overlay_manager(user)
-    request = CreateOverlayRequest(
-        overlay_type=OverlayType.CALENDAR_EVENT,
-        document_id=get_calendar_anchor_id(user.get_effective_user_id()),
-        vault_path=get_calendar_vault_path(),
-        payload={
-            "id": make_id("cal"),
-            "title": title,
-            "description": description,
-            "start_datetime": _to_iso(start_datetime),
-            "end_datetime": _to_iso(end_datetime),
-            "all_day": all_day,
-            "event_type": event_type,
-            "is_critical": is_critical,
-            "reminder_days": reminder_days,
-            "source": source,
-            "linked_record_id": linked_record_id,
-        },
-        metadata={
-            "event_type": event_type,
-            "is_critical": is_critical,
-            "source": source,
-            "scope": "calendar",
-        },
-    )
-    response = await manager.create_overlay(request)
-    if not response.success or not response.overlay_id:
-        logger.error("Failed to create calendar event for user %s: %s", user.user_id[:8], response.message)
-        raise RuntimeError(f"Could not save calendar event: {response.message}")
+) -> SimpleNamespace:
+    """Create a calendar event row in the user's vault SQLite."""
+    effective_id = user.get_effective_user_id()
+    event_id = make_id("cal")
+    now = utc_now().isoformat()
+    storage = _get_storage(user)
 
-    overlay = await manager.get_overlay(response.overlay_id)
-    if overlay is None:
-        raise RuntimeError("Calendar event was reported as created but cannot be retrieved")
-    return overlay
+    def work(conn):
+        conn.row_factory = _dict_factory
+        conn.execute(
+            "INSERT INTO calendar_events "
+            "(id, title, description, start_datetime, end_datetime, all_day,"
+            " event_type, is_critical, reminder_days, source, linked_record_id,"
+            " created_at, updated_at)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                event_id,
+                title,
+                description,
+                _to_iso(start_datetime),
+                _to_iso(end_datetime),
+                int(all_day),
+                event_type,
+                int(is_critical),
+                reminder_days,
+                source,
+                linked_record_id,
+                now,
+                now,
+            ),
+        )
+        return conn.execute(
+            "SELECT * FROM calendar_events WHERE id = ?", (event_id,)
+        ).fetchone()
+
+    try:
+        row = await mutate_remote_ensured(storage, work)
+    except VaultDbError as e:
+        logger.error("Failed to create calendar event for user %s: %s", user.user_id[:8], e)
+        raise RuntimeError(f"Could not save calendar event: {e}") from e
+    return _view(row, effective_id)
 
 
 async def list_events(
@@ -141,35 +199,49 @@ async def list_events(
     critical_only: bool = False,
     skip: int = 0,
     limit: int = 500,
-) -> tuple[list[UnifiedOverlay], int]:
+) -> tuple[list[SimpleNamespace], int]:
     """Return (events, total) for the user, sorted by start_datetime ascending.
 
-    Datetime filters accept aware datetimes; payload values are ISO strings so
+    Datetime filters accept aware datetimes; stored values are ISO strings so
     comparison is done on ISO-normalized strings (ISO-8601 sorts correctly).
     """
     await migrate_legacy_events(user)
-    manager = await _get_overlay_manager(user)
-    response = await manager.get_overlays(
-        document_id=get_calendar_anchor_id(user.get_effective_user_id()),
-        overlay_type=OverlayType.CALENDAR_EVENT,
-    )
-    if not response.success:
-        logger.error("Failed to list calendar events for user %s: %s", user.user_id[:8], response.filters_applied)
-        return [], 0
+    await migrate_overlay_events(user)
+    storage = _get_storage(user)
+    effective_id = user.get_effective_user_id()
 
-    events = [o for o in response.overlays if _owns(user, o)]
     start_iso = start.isoformat() if start else None
     end_iso = end.isoformat() if end else None
-    if start_iso:
-        events = [o for o in events if (o.payload.get("start_datetime") or "") >= start_iso]
-    if end_iso:
-        events = [o for o in events if (o.payload.get("start_datetime") or "") <= end_iso]
-    if event_type:
-        events = [o for o in events if o.payload.get("event_type") == event_type]
-    if critical_only:
-        events = [o for o in events if o.payload.get("is_critical")]
-    events.sort(key=_start_key)
-    return events[skip : skip + limit], len(events)
+
+    def work(conn):
+        conn.row_factory = _dict_factory
+        clauses: list[str] = []
+        params: list = []
+        if start_iso:
+            clauses.append("start_datetime >= ?")
+            params.append(start_iso)
+        if end_iso:
+            clauses.append("start_datetime <= ?")
+            params.append(end_iso)
+        if event_type:
+            clauses.append("event_type = ?")
+            params.append(event_type)
+        if critical_only:
+            clauses.append("is_critical = 1")
+        sql = "SELECT * FROM calendar_events"
+        if clauses:
+            sql += " WHERE " + " AND ".join(clauses)
+        sql += " ORDER BY COALESCE(start_datetime, created_at) ASC"
+        return conn.execute(sql, params).fetchall()
+
+    try:
+        rows = await read_remote(storage, work, default=[])
+    except VaultDbError as e:
+        logger.error("Failed to list calendar events for user %s: %s", user.user_id[:8], e)
+        return [], 0
+
+    views = [_view(row, effective_id) for row in rows]
+    return views[skip : skip + limit], len(views)
 
 
 async def list_events_for_user_id(
@@ -179,7 +251,7 @@ async def list_events_for_user_id(
     end: datetime | None = None,
     event_type: str | None = None,
     critical_only: bool = False,
-) -> tuple[list[UnifiedOverlay], int]:
+) -> tuple[list[SimpleNamespace], int]:
     """list_events for callers that only have a user_id (timeline, workflow,
     case builder, calendar_sync).
 
@@ -196,56 +268,81 @@ async def list_events_for_user_id(
     )
 
 
-async def _resolve_event(manager, user: UserContext, event_id: str) -> UnifiedOverlay | None:
-    """Resolve an event by overlay id, or by a legacy ``cal_`` id carried in
-    the overlay payload for migrated rows."""
-    overlay = await manager.get_overlay(event_id)
-    if overlay is not None and _owns(user, overlay):
-        return overlay
+async def get_event(user: UserContext, event_id: str) -> SimpleNamespace | None:
+    """Get a single calendar event by id."""
+    storage = _get_storage(user)
+    effective_id = user.get_effective_user_id()
 
-    response = await manager.get_overlays(
-        document_id=get_calendar_anchor_id(user.get_effective_user_id()),
-        overlay_type=OverlayType.CALENDAR_EVENT,
-    )
-    if not response.success:
+    def work(conn):
+        conn.row_factory = _dict_factory
+        return conn.execute(
+            "SELECT * FROM calendar_events WHERE id = ?", (event_id,)
+        ).fetchone()
+
+    try:
+        row = await read_remote(storage, work, default=None)
+    except VaultDbError as e:
+        logger.error("Failed to read calendar event for user %s: %s", user.user_id[:8], e)
         return None
-    for candidate in response.overlays:
-        if _owns(user, candidate) and (
-            candidate.payload.get("id") == event_id or candidate.payload.get("legacy_id") == event_id
-        ):
-            return candidate
-    return None
+    return _view(row, effective_id) if row else None
 
 
-async def get_event(user: UserContext, event_id: str) -> UnifiedOverlay | None:
-    """Get a single calendar event by id, ownership-checked."""
-    manager = await _get_overlay_manager(user)
-    return await _resolve_event(manager, user, event_id)
+async def update_event(user: UserContext, event_id: str, fields: dict) -> SimpleNamespace | None:
+    """Merge fields into an event row. Datetime values are normalized
+    to ISO strings. Returns the updated view."""
+    effective_id = user.get_effective_user_id()
+    storage = _get_storage(user)
 
+    updates: list[str] = []
+    params: list = []
+    for key, value in fields.items():
+        if key not in _EVENT_COLUMNS:
+            continue
+        if key.endswith("_datetime"):
+            value = _to_iso(value)
+        elif key in ("all_day", "is_critical"):
+            value = int(bool(value))
+        updates.append(f"{key} = ?")
+        params.append(value)
+    if not updates:
+        return await get_event(user, event_id)
+    updates.append("updated_at = ?")
+    params.append(utc_now().isoformat())
+    params.append(event_id)
 
-async def update_event(user: UserContext, event_id: str, fields: dict) -> UnifiedOverlay | None:
-    """Merge fields into an event's payload. Datetime values are normalized
-    to ISO strings. Returns the updated overlay."""
-    manager = await _get_overlay_manager(user)
-    overlay = await _resolve_event(manager, user, event_id)
-    if overlay is None:
+    def work(conn):
+        conn.row_factory = _dict_factory
+        cur = conn.execute(
+            f"UPDATE calendar_events SET {', '.join(updates)} WHERE id = ?",
+            params,
+        )
+        if cur.rowcount == 0:
+            return None
+        return conn.execute(
+            "SELECT * FROM calendar_events WHERE id = ?", (event_id,)
+        ).fetchone()
+
+    try:
+        row = await mutate_remote_ensured(storage, work)
+    except VaultDbError as e:
+        logger.error("Failed to update calendar event for user %s: %s", user.user_id[:8], e)
         return None
-
-    normalized = {k: _to_iso(v) if k.endswith("_datetime") else v for k, v in fields.items()}
-    overlay.payload.update(normalized)
-    overlay.payload["updated_at"] = utc_now().isoformat()
-    if not await manager.update_overlay(overlay.overlay_id, payload=overlay.payload):
-        return None
-    return await manager.get_overlay(overlay.overlay_id)
+    return _view(row, effective_id) if row else None
 
 
 async def delete_event(user: UserContext, event_id: str) -> bool:
-    """Delete a calendar event overlay."""
-    manager = await _get_overlay_manager(user)
-    overlay = await _resolve_event(manager, user, event_id)
-    if overlay is None:
+    """Delete a calendar event row."""
+    storage = _get_storage(user)
+
+    def work(conn):
+        cur = conn.execute("DELETE FROM calendar_events WHERE id = ?", (event_id,))
+        return cur.rowcount > 0
+
+    try:
+        return bool(await mutate_remote_ensured(storage, work))
+    except VaultDbError as e:
+        logger.error("Failed to delete calendar event for user %s: %s", user.user_id[:8], e)
         return False
-    return await manager.delete_overlay(overlay.overlay_id)
 
 
 # ---------------------------------------------------------------------------
@@ -254,57 +351,57 @@ async def delete_event(user: UserContext, event_id: str) -> bool:
 
 
 async def existing_link_keys(user_id: str, sources: tuple[str, ...]) -> set[str]:
-    """Return the set of payload linked_record_id values already stored for
-    the given auto sources. Empty set when context cannot be rebuilt."""
+    """Return the set of linked_record_id values already stored for the
+    given auto sources. Empty set when context cannot be rebuilt."""
     from app.core.user_context import build_context_for_user_id
 
     context = await build_context_for_user_id(user_id)
     if context is None:
         return set()
-    effective_id = context.get_effective_user_id()
-    manager = await _get_overlay_manager(context)
-    response = await manager.get_overlays(
-        document_id=get_calendar_anchor_id(effective_id),
-        overlay_type=OverlayType.CALENDAR_EVENT,
-    )
-    if not response.success:
+    storage = _get_storage(context)
+    placeholders = ",".join("?" for _ in sources)
+
+    def work(conn):
+        rows = conn.execute(
+            f"SELECT DISTINCT linked_record_id FROM calendar_events"
+            f" WHERE source IN ({placeholders}) AND linked_record_id IS NOT NULL",
+            list(sources),
+        ).fetchall()
+        return {r[0] for r in rows}
+
+    try:
+        return await read_remote(storage, work, default=set())
+    except VaultDbError:
         return set()
-    return {
-        o.payload["linked_record_id"]
-        for o in response.overlays
-        if _owns_id(effective_id, o)
-        and o.payload.get("source") in sources
-        and o.payload.get("linked_record_id")
-    }
 
 
 async def delete_source_events(user_id: str, sources: tuple[str, ...]) -> int:
-    """Delete all calendar overlays whose payload source is in ``sources``
-    (the overwrite path of calendar_sync). Returns count deleted."""
+    """Delete all calendar rows whose source is in ``sources`` (the
+    overwrite path of calendar_sync). Returns count deleted."""
     from app.core.user_context import build_context_for_user_id
 
     context = await build_context_for_user_id(user_id)
     if context is None:
         return 0
-    effective_id = context.get_effective_user_id()
-    manager = await _get_overlay_manager(context)
-    response = await manager.get_overlays(
-        document_id=get_calendar_anchor_id(effective_id),
-        overlay_type=OverlayType.CALENDAR_EVENT,
-    )
-    if not response.success:
+    storage = _get_storage(context)
+    placeholders = ",".join("?" for _ in sources)
+
+    def work(conn):
+        cur = conn.execute(
+            f"DELETE FROM calendar_events WHERE source IN ({placeholders})",
+            list(sources),
+        )
+        return cur.rowcount
+
+    try:
+        return int(await mutate_remote_ensured(storage, work))
+    except VaultDbError:
         return 0
-    deleted = 0
-    for overlay in response.overlays:
-        if _owns_id(effective_id, overlay) and overlay.payload.get("source") in sources:
-            if await manager.delete_overlay(overlay.overlay_id):
-                deleted += 1
-    return deleted
 
 
 async def create_event_for_user_id(user_id: str, **fields) -> str | None:
     """create_event for callers that only have a user_id (calendar_sync,
-    setup). Returns the new overlay id, or None when context/creation fails.
+    setup). Returns the new event id, or None when context/creation fails.
     """
     from app.core.user_context import build_context_for_user_id
 
@@ -312,29 +409,121 @@ async def create_event_for_user_id(user_id: str, **fields) -> str | None:
     if context is None:
         return None
     try:
-        overlay = await create_event(context, **fields)
+        view = await create_event(context, **fields)
     except Exception as e:
         logger.error("Auto calendar event create failed for %s***: %s", user_id[:6], e)
         return None
-    return overlay.overlay_id
+    return view.overlay_id
+
+
+# ---------------------------------------------------------------------------
+# Phase-1 overlay import (non-destructive, idempotent)
+# ---------------------------------------------------------------------------
+# Events written while JSON overlays were the live store still live in the
+# tenant's overlay files. migrate_overlay_events() copies them into
+# calendar_events (dedupe by primary key), bounded per call. Overlay files
+# are left in place as provenance.
+
+
+def _insert_event_row(conn, event_id: str, payload: dict, fallback_created: str | None) -> bool:
+    """INSERT OR IGNORE one overlay/legacy-shaped row. True if inserted."""
+    now = utc_now().isoformat()
+    created = payload.get("created_at") or fallback_created or now
+    cur = conn.execute(
+        "INSERT OR IGNORE INTO calendar_events "
+        "(id, title, description, start_datetime, end_datetime, all_day,"
+        " event_type, is_critical, reminder_days, source, linked_record_id,"
+        " created_at, updated_at)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        (
+            event_id,
+            payload.get("title") or "",
+            payload.get("description"),
+            _to_iso(payload.get("start_datetime")),
+            _to_iso(payload.get("end_datetime")),
+            int(bool(payload.get("all_day"))),
+            payload.get("event_type") or "reminder",
+            int(bool(payload.get("is_critical"))),
+            payload.get("reminder_days"),
+            payload.get("source") or "manual",
+            payload.get("linked_record_id"),
+            created,
+            payload.get("updated_at") or created,
+        ),
+    )
+    return cur.rowcount > 0
+
+
+async def migrate_overlay_events(user: UserContext, limit: int = 25) -> int:
+    """Import Phase-1 CALENDAR_EVENT overlays into vault SQLite.
+
+    Bounded to ``limit`` new rows per call; idempotent via primary-key
+    dedupe (the overlay payload id becomes the row id). Returns the count
+    imported this call.
+    """
+    effective_id = user.get_effective_user_id()
+    try:
+        manager = await _get_overlay_manager(user)
+        response = await manager.get_overlays(
+            document_id=get_calendar_anchor_id(effective_id),
+            overlay_type=OverlayType.CALENDAR_EVENT,
+        )
+    except Exception as e:
+        logger.warning("Calendar overlay import skipped for %s***: %s", effective_id[:6], e)
+        return 0
+    if not response.success:
+        return 0
+
+    owned = [
+        o
+        for o in response.overlays
+        if o.overlay_type == OverlayType.CALENDAR_EVENT and o.created_by == effective_id
+    ]
+    if not owned:
+        return 0
+
+    storage = _get_storage(user)
+
+    def work(conn):
+        existing = {r[0] for r in conn.execute("SELECT id FROM calendar_events")}
+        imported = 0
+        for overlay in owned:
+            if imported >= limit:
+                break
+            rid = overlay.payload.get("id") or overlay.overlay_id
+            if rid in existing:
+                continue
+            fallback = overlay.created_at.isoformat() if overlay.created_at else None
+            if _insert_event_row(conn, rid, overlay.payload, fallback):
+                imported += 1
+        return imported
+
+    try:
+        imported = await mutate_remote_ensured(storage, work)
+    except VaultDbError as e:
+        logger.error("Calendar overlay import failed for user %s: %s", user.user_id[:8], e)
+        return 0
+    if imported:
+        logger.info("Imported %d calendar overlays to vault.db for user %s", imported, effective_id[:8])
+    return imported
 
 
 # ---------------------------------------------------------------------------
 # Legacy database migration (non-destructive, idempotent)
 # ---------------------------------------------------------------------------
 # Rows written before the vault-persistence migration still live in the
-# calendar_events table. migrate_legacy_events() imports them into the user's
-# vault as CALENDAR_EVENT overlays marked with payload["legacy_id"], so repeat
-# runs never duplicate. Source rows are left in place until the table-drop
-# phase — this step moves data, it does not delete history.
+# server-side calendar_events table. migrate_legacy_events() imports them
+# into the tenant's vault SQLite (dedupe by primary key — the legacy row id
+# is preserved as the row id). Source rows are left in place until the
+# table-drop phase — this step moves data, it does not delete history.
 
 
 async def migrate_legacy_events(user: UserContext, max_rows: int = 25) -> int:
-    """Import legacy DB calendar rows into vault overlays.
+    """Import legacy DB calendar rows into vault SQLite.
 
-    Bounded to ``max_rows`` per call to stay inside the provider-work budget;
-    repeat calls continue where the last one left off (idempotent via
-    ``legacy_id``). Returns the count imported this call.
+    Bounded to ``max_rows`` per call to stay inside the provider-work
+    budget; repeat calls continue where the last one left off (idempotent
+    via primary-key dedupe). Returns the count imported this call.
     """
     effective_id = user.get_effective_user_id()
     try:
@@ -351,53 +540,39 @@ async def migrate_legacy_events(user: UserContext, max_rows: int = 25) -> int:
     if not rows:
         return 0
 
-    manager = await _get_overlay_manager(user)
-    existing = await manager.get_overlays(
-        document_id=get_calendar_anchor_id(effective_id),
-        overlay_type=OverlayType.CALENDAR_EVENT,
-    )
-    migrated_ids = {
-        o.payload.get("legacy_id")
-        for o in existing.overlays
-        if _owns(user, o) and o.payload.get("legacy_id")
-    }
+    storage = _get_storage(user)
 
-    imported = 0
-    for row in rows:
-        if imported >= max_rows:
-            break
-        if row.id in migrated_ids:
-            continue
-        response = await manager.create_overlay(
-            CreateOverlayRequest(
-                overlay_type=OverlayType.CALENDAR_EVENT,
-                document_id=get_calendar_anchor_id(effective_id),
-                vault_path=get_calendar_vault_path(),
-                payload={
-                    "id": row.id,
-                    "legacy_id": row.id,
-                    "title": row.title or "",
+    def work(conn):
+        existing = {r[0] for r in conn.execute("SELECT id FROM calendar_events")}
+        imported = 0
+        for row in rows:
+            if imported >= max_rows or row.id in existing:
+                continue
+            if _insert_event_row(
+                conn,
+                row.id,
+                {
+                    "title": row.title,
                     "description": row.description,
                     "start_datetime": row.start_datetime.isoformat() if row.start_datetime else None,
                     "end_datetime": row.end_datetime.isoformat() if row.end_datetime else None,
-                    "all_day": bool(row.all_day),
+                    "all_day": row.all_day,
                     "event_type": row.event_type or "reminder",
-                    "is_critical": bool(row.is_critical),
+                    "is_critical": row.is_critical,
                     "reminder_days": row.reminder_days,
                     "source": row.source or "manual",
                     "linked_record_id": row.linked_record_id,
                 },
-                metadata={
-                    "migrated_from": "calendar_events",
-                    "legacy_created_at": row.created_at.isoformat() if row.created_at else None,
-                    "scope": "calendar",
-                },
-            )
-        )
-        if response.success:
-            imported += 1
-        else:
-            logger.error("Failed to migrate calendar row %s: %s", row.id, response.message)
+                row.created_at.isoformat() if row.created_at else None,
+            ):
+                imported += 1
+        return imported
+
+    try:
+        imported = await mutate_remote_ensured(storage, work)
+    except VaultDbError as e:
+        logger.error("Legacy calendar migration failed for user %s: %s", user.user_id[:8], e)
+        return 0
     if imported:
-        logger.info("Migrated %d legacy calendar events to vault for user %s", imported, effective_id[:8])
+        logger.info("Migrated %d legacy calendar events to vault.db for user %s", imported, effective_id[:8])
     return imported

@@ -15251,3 +15251,39 @@ claim remains live — Brad ruled leave it (NO-TOUCH). Report:
 on in-memory SQLite (status transitions, pre-FINALE guard, pending steps,
 step ordering). Live provider folder-creation untested — needs a real
 onboarded session.
+
+## Session — 2026-09-20 — Live reads retargeted to vault SQLite (devin)
+
+**`live-reads-retarget-sqlite` (Option A) implemented:** journal, calendar,
+and timeline live reads/writes now own the tenant's `vault.db`; Phase-1 JSON
+overlays become export/provenance only. All service function signatures and
+view contracts preserved — every consumer (feed, briefcase, export, search,
+housing accountability, advocate/manager views, calendar_sync, setup) works
+unchanged and now reads SQLite.
+
+- `app/sdk/vault/db.py` — added `read_remote()` (download → open → work →
+  close, no upload; missing file → caller's default) and
+  `mutate_remote_ensured()` (lazily provisions vault.db on first write for
+  pre-provisioning users).
+- Migration `0003` — creates `calendar_events` (mirrors CALENDAR_EVENT
+  payload) AND rebuilds `timeline_events` dropping its `document_id` /
+  `parent_event_id` REFERENCES: payloads carry provider doc ids that are
+  never `documents` rows, and bounded overlay import can hit a child before
+  its parent — hard FKs broke live writes (caught by tests).
+- `app/modules/journal/service.py`, `app/modules/calendar/service.py`,
+  `app/services/timeline_store.py` — CRUD retargeted to SQLite; each gained
+  a bounded idempotent `migrate_overlay_*` (overlay → SQLite, dedupe by PK,
+  overlay files left as provenance) plus the existing legacy-DB migration
+  now writes SQLite instead of overlays.
+- Views are overlay-shaped SimpleNamespaces (`overlay_id`, `overlay_type`,
+  `created_by`, `payload`, `created_at`/`updated_at` datetimes; timeline
+  keeps the ORM attribute surface). Row PK = payload id — get-by-legacy-id
+  resolves by primary key.
+- "Composer/preview pilots" needed no retarget — the intake
+  `documents`/`document_fields` write path already landed in
+  `intake-ocr-first-pass`; `ui_composer` persists nothing.
+
+**Verified:** 50 vault/domain tests + 10 intake + module_health suite all
+pass; app imports (777 contracts, route audit clean); py_compile clean.
+**Not verified:** real-provider pull/push per request (Cloudflare budget)
+and live OAuth E2E — needs an onboarded tenant session.

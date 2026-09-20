@@ -20,6 +20,7 @@ EXPECTED_TABLES = {
     "interactions",
     "journal_entries",
     "timeline_events",
+    "calendar_events",
     "ledger_entries",
     "dispute_packets",
     "resource_directory",
@@ -71,7 +72,7 @@ def _table_names(conn: sqlite3.Connection) -> set[str]:
 def test_open_local_creates_schema_v1(tmp_path):
     conn = vault_db.open_local(tmp_path / "vault.db")
     assert EXPECTED_TABLES <= _table_names(conn)
-    assert vault_db.schema_version(conn) == 2
+    assert vault_db.schema_version(conn) == 3
     row = conn.execute(
         "SELECT value FROM vault_meta WHERE key='processed_document_count'"
     ).fetchone()
@@ -91,7 +92,7 @@ def test_open_local_is_idempotent(tmp_path):
     path = tmp_path / "vault.db"
     vault_db.checkpoint_and_close(vault_db.open_local(path))
     conn = vault_db.open_local(path)  # second open: no migrations re-run
-    assert vault_db.schema_version(conn) == 2
+    assert vault_db.schema_version(conn) == 3
     vault_db.checkpoint_and_close(conn)
 
 
@@ -169,7 +170,7 @@ async def test_ensure_remote_creates_and_uploads(tmp_path):
     result = await vault_db.ensure_remote(storage)
     assert result["success"] is True
     assert result["state"] == "created"
-    assert result["schema_version"] == 2
+    assert result["schema_version"] == 3
     assert VAULT_DB_FILE in storage.files
     assert storage.files[VAULT_DB_FILE].startswith(b"SQLite format 3")
 
@@ -182,7 +183,7 @@ async def test_ensure_remote_verifies_current_file(tmp_path):
 
     result = await vault_db.ensure_remote(storage)
     assert result["state"] == "verified"
-    assert result["schema_version"] == 2
+    assert result["schema_version"] == 3
     assert storage.uploads == uploads_after_create  # no needless re-upload
 
 
@@ -191,27 +192,27 @@ async def test_ensure_remote_migrates_stale_file(tmp_path, monkeypatch):
     storage = FakeStorageProvider()
     await vault_db.ensure_remote(storage)
 
-    # Ship migration 0002 after the file already exists at v1.
+    # Ship a new migration after the file already exists at v3.
     real_dir = vault_db.MIGRATIONS_DIR
     migdir = tmp_path / "migrations"
     migdir.mkdir()
     for f in real_dir.glob("*.sql"):
         (migdir / f.name).write_text(f.read_text(encoding="utf-8"), encoding="utf-8")
-    (migdir / "0003_extra.sql").write_text(
+    (migdir / "0004_extra.sql").write_text(
         "CREATE TABLE extra_t (id TEXT PRIMARY KEY);", encoding="utf-8"
     )
     monkeypatch.setattr(vault_db, "MIGRATIONS_DIR", migdir)
 
     result = await vault_db.ensure_remote(storage)
     assert result["state"] == "migrated"
-    assert result["schema_version"] == 3
+    assert result["schema_version"] == 4
     assert VAULT_DB_FILE in storage.files
 
-    # The re-uploaded file really is at v3.
+    # The re-uploaded file really is at v4.
     local = tmp_path / "roundtrip.db"
     local.write_bytes(storage.files[VAULT_DB_FILE])
     conn = vault_db.open_local(local)
-    assert vault_db.schema_version(conn) == 3
+    assert vault_db.schema_version(conn) == 4
     assert "extra_t" in _table_names(conn)
     vault_db.checkpoint_and_close(conn)
 
