@@ -15322,3 +15322,59 @@ pips show the paragraph, stage 1 is the live step). Pre-existing
 
 **Stop point honored:** no other module retrofitted. Rollout waits for
 Brad's review.
+
+## Session — 2026-09-20 — Pass 0 overlay-first intake + DC live intake stage (devin)
+
+**Task:** `pass0-segmentation-intake` (parent `intake-pipeline-parent`) —
+spec `handoffs/overlay-first-intake-spec-2026-09-20.md`, decisions locked
+by Brad: fixed pass cap 3, low-confidence regions flagged for manual review.
+Branch `feature/grammar-step-contracts` (continued from grammar POC).
+
+**What shipped**
+
+- New `app/services/intake_segmentation.py` — rule-based Pass 0 (no AI,
+  consistent with the locked OCR path): word-box line/block clustering for
+  scans, paragraph blocks for text-layer docs. Regions carry confidence,
+  `pass_number` (thresholds 0.5 / 0.2 / 0.0), `bbox` or `char_span`, status.
+- `intake_ocr.py` — `FieldProposal` += `region_id`/`pass_number`/`confidence`;
+  `IntakeSession` += `status` (processing|ready|error), `regions`,
+  `pass_cap`, `overlay_status`. Pipeline split into
+  `create_pending_session` + `run_intake_pipeline`; `start_intake` kept as
+  the sync wrapper (tests/back-compat). Region statuses: `resolved` when a
+  proposal lands, `manual_review` when signal > 0 but nothing resolved
+  after the cap, `no_data` for zero-signal prose (settles quietly — flagging
+  prose would train tenants to ignore the flag).
+- Region-map persisted via **explicit** `UnifiedOverlayManager.create_overlay`
+  (`DOCUMENT_EXTRACTION` type) — return value checked; failure lands on
+  `session.overlay_status`/`overlay_error`, never warning-only (the old
+  `mark_processed` silent-skip pattern is not reproduced). Original vault
+  document untouched.
+- `document_center/intake_router.py` — `/start` returns the session
+  immediately (`processing`); pipeline runs as an `asyncio` task; client
+  polls `GET /{session_id}`. `VaultDbError` lands on session status in the
+  task path, re-raised by `start_intake` for sync callers.
+- `document_center.js` — picked file previews locally on the work surface
+  the moment upload submits (images get the overlay wrapper; other types
+  via the browser iframe renderer); upload modal no longer blocks the
+  stage; strip shows Uploading → Reading progress → confirm cards; session
+  polling paints `.dc-region` outlines live (resolved=green,
+  pending=calm dashed, manual_review=amber); error + overlay-error states
+  surface in the strip.
+- `ssot-design-system.css` — `.dc-region` variants, tokens only.
+
+**Verified:** py_compile clean on all changed files; `test_intake_ocr.py`
+17/17 (6 new Pass 0 tests); imports clean; app boots on :8002; endpoints
+respond (401 unauthenticated, as designed); word-box scenario run
+end-to-end via script (2 blocks → 1 resolved pass-1 region with global
+word-index span key, header settles `no_data`); live static assets serve
+new JS/CSS. **Not verified:** real-browser pass — IronBee MCP not
+connected (same limitation as the DC-viewer session). PDF viewers have no
+`.dc-image-overlay` layer — region outlines paint on image docs only,
+matching the pre-existing field-highlight limitation.
+
+**Open:** per-region OCR before full-doc extract (literal Pass-0
+reading) deferred — needs PIL pipeline + cropped tesseract calls; current
+Pass 0 segments the extracted structure, which still satisfies
+ranking/passes/manual-review. Whether unresolved regions block finalize
+wasn't specified — they don't today (regions flag; fields still require
+individual answers).
