@@ -1,18 +1,32 @@
 """
 Journal Service
 ===============
-Per-user journal store backed by the Unified Overlay System.
+Per-user journal store backed by the tenant's vault SQLite database.
 
-Each entry is a JOURNAL_ENTRY overlay anchored to document_id="journal:{user_id}"
-in the user's own cloud storage — the same pattern sticky_notes uses for the
-scratchpad. No server-side database rows: the tenant's records live in the
-tenant's vault (vault-persistence-migration, Phase 1).
+Entries live in the ``journal_entries`` table of the tenant-owned
+``Semptify5.0/.semptify/vault.db`` — the tenant's records live in the
+tenant's vault (live-reads-retarget-sqlite; Phase-1 JSON overlays are now
+an export/provenance layer, not the live store).
+
+Two bounded, idempotent import paths run on read so history is never
+stranded:
+
+- ``migrate_overlay_entries`` — Phase-1 JOURNAL_ENTRY overlays -> SQLite
+  (deduped by primary key, non-destructive: overlay files stay in place).
+- ``migrate_legacy_entries`` — pre-overlay server DB rows -> SQLite.
+
+View contract: functions return SimpleNamespace objects carrying the
+UnifiedOverlay attribute surface — ``overlay_id``, ``overlay_type``,
+``created_by``, ``document_id``, ``vault_path``, ``payload`` (dict),
+``created_at``/``updated_at`` (datetime) — so every consumer keeps
+working unchanged.
 """
 
 from __future__ import annotations
 
 import logging
 from datetime import datetime
+from types import SimpleNamespace
 
 from sqlalchemy import select
 
@@ -23,11 +37,29 @@ from app.core.user_context import UserContext
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_JOURNAL_FILE
 from app.models.models import JournalEntry as JournalEntryModel
-from app.models.unified_overlay_models import CreateOverlayRequest, UnifiedOverlay
+from app.sdk.vault import (
+    VaultDbError,
+    mutate_remote_ensured,
+    read_remote,
+)
 from app.services.storage import get_provider
 from app.services.unified_overlay_manager import get_unified_overlay_manager
 
 logger = logging.getLogger(__name__)
+
+# Payload keys that map to journal_entries columns. Unknown update keys are
+# ignored — the overlay store accepted any payload key; the table cannot.
+_ENTRY_COLUMNS = (
+    "entry_type",
+    "title",
+    "content",
+    "occurred_at",
+    "is_urgent",
+    "involved_party",
+    "tags",
+    "document_link",
+    "source",
+)
 
 
 def get_journal_anchor_id(user_id: str) -> str:
@@ -40,28 +72,54 @@ def get_journal_vault_path() -> str:
     return VAULT_JOURNAL_FILE
 
 
-async def _get_overlay_manager(user: UserContext):
-    """Build an overlay manager for the current user's cloud storage.
+def _get_storage(user: UserContext):
+    """Storage provider for the current user's cloud vault."""
+    return get_provider(user.provider.value, access_token=user.access_token)
 
-    The manager is labelled with the *effective* user id so entries created
-    during support impersonation belong to the impersonated tenant — matching
-    the legacy user_id=effective_id column semantics.
-    """
-    storage = get_provider(user.provider.value, access_token=user.access_token)
+
+async def _get_overlay_manager(user: UserContext):
+    """Overlay manager — now used ONLY by the Phase-1 import path."""
+    storage = _get_storage(user)
     return await get_unified_overlay_manager(storage, user.get_effective_user_id())
 
 
-def _owns(user: UserContext, overlay: UnifiedOverlay) -> bool:
-    """True if the overlay is a journal entry owned by the effective user."""
-    return (
-        overlay.overlay_type == OverlayType.JOURNAL_ENTRY
-        and overlay.created_by == user.get_effective_user_id()
+def _parse_dt(value) -> datetime | None:
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(str(value))
+    except ValueError:
+        return None
+
+
+def _view(row, effective_id: str) -> SimpleNamespace:
+    """Build the overlay-shaped view consumers expect from a table row."""
+    occurred_at = row["occurred_at"]
+    created_at = row["created_at"]
+    payload = {
+        "id": row["id"],
+        "entry_type": row["entry_type"],
+        "title": row["title"],
+        "content": row["content"],
+        "occurred_at": occurred_at,
+        "is_urgent": bool(row["is_urgent"]),
+        "involved_party": row["involved_party"],
+        "tags": row["tags"],
+        "document_link": row["document_link"],
+        "source": row["source"],
+    }
+    return SimpleNamespace(
+        overlay_id=row["id"],
+        overlay_type=OverlayType.JOURNAL_ENTRY,
+        created_by=effective_id,
+        document_id=get_journal_anchor_id(effective_id),
+        vault_path=VAULT_JOURNAL_FILE,
+        payload=payload,
+        created_at=_parse_dt(created_at),
+        updated_at=_parse_dt(row["updated_at"]),
     )
-
-
-def _occurred_at(overlay: UnifiedOverlay) -> str:
-    """Sort key: payload occurred_at falling back to overlay creation time."""
-    return overlay.payload.get("occurred_at") or overlay.created_at.isoformat()
 
 
 async def create_entry(
@@ -76,40 +134,48 @@ async def create_entry(
     tags: str | None,
     document_link: str | None,
     source: str = "manual",
-) -> UnifiedOverlay:
-    """Create a journal entry overlay in the user's cloud."""
-    manager = await _get_overlay_manager(user)
-    request = CreateOverlayRequest(
-        overlay_type=OverlayType.JOURNAL_ENTRY,
-        document_id=get_journal_anchor_id(user.get_effective_user_id()),
-        vault_path=get_journal_vault_path(),
-        payload={
-            "id": make_id("jrn"),
-            "entry_type": entry_type,
-            "title": title,
-            "content": content,
-            "occurred_at": occurred_at.isoformat(),
-            "is_urgent": is_urgent,
-            "involved_party": involved_party,
-            "tags": tags,
-            "document_link": document_link,
-            "source": source,
-        },
-        metadata={
-            "entry_type": entry_type,
-            "is_urgent": is_urgent,
-            "scope": "journal",
-        },
+) -> SimpleNamespace:
+    """Create a journal entry row in the user's vault SQLite."""
+    effective_id = user.get_effective_user_id()
+    entry_id = make_id("jrn")
+    now = utc_now().isoformat()
+    occurred_iso = (
+        occurred_at.isoformat() if isinstance(occurred_at, datetime) else str(occurred_at)
     )
-    response = await manager.create_overlay(request)
-    if not response.success or not response.overlay_id:
-        logger.error("Failed to create journal entry for user %s: %s", user.user_id[:8], response.message)
-        raise RuntimeError(f"Could not save journal entry: {response.message}")
+    storage = _get_storage(user)
 
-    overlay = await manager.get_overlay(response.overlay_id)
-    if overlay is None:
-        raise RuntimeError("Journal entry was reported as created but cannot be retrieved")
-    return overlay
+    def work(conn):
+        conn.row_factory = _dict_factory
+        conn.execute(
+            "INSERT INTO journal_entries "
+            "(id, entry_type, title, content, occurred_at, is_urgent,"
+            " involved_party, tags, document_link, source, created_at, updated_at)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                entry_id,
+                entry_type,
+                title,
+                content,
+                occurred_iso,
+                int(is_urgent),
+                involved_party,
+                tags,
+                document_link,
+                source,
+                now,
+                now,
+            ),
+        )
+        return conn.execute(
+            "SELECT * FROM journal_entries WHERE id = ?", (entry_id,)
+        ).fetchone()
+
+    try:
+        row = await mutate_remote_ensured(storage, work)
+    except VaultDbError as e:
+        logger.error("Failed to create journal entry for user %s: %s", user.user_id[:8], e)
+        raise RuntimeError(f"Could not save journal entry: {e}") from e
+    return _view(row, effective_id)
 
 
 async def _context_for_user_id(user_id: str) -> UserContext | None:
@@ -127,7 +193,7 @@ async def list_entries_for_user_id(
     is_urgent: bool | None = None,
     skip: int = 0,
     limit: int = 50,
-) -> tuple[list[UnifiedOverlay], int]:
+) -> tuple[list[SimpleNamespace], int]:
     """list_entries for callers that only have a user_id (feed, briefcase).
 
     Returns ([], 0) when the user's context/token cannot be reconstructed —
@@ -146,93 +212,228 @@ async def list_entries(
     is_urgent: bool | None = None,
     skip: int = 0,
     limit: int = 50,
-) -> tuple[list[UnifiedOverlay], int]:
+) -> tuple[list[SimpleNamespace], int]:
     """Return (entries, total) for the user, newest occurred_at first."""
     await migrate_legacy_entries(user)
-    manager = await _get_overlay_manager(user)
-    response = await manager.get_overlays(
-        document_id=get_journal_anchor_id(user.get_effective_user_id()),
-        overlay_type=OverlayType.JOURNAL_ENTRY,
-    )
-    if not response.success:
-        logger.error("Failed to list journal entries for user %s: %s", user.user_id[:8], response.filters_applied)
+    await migrate_overlay_entries(user)
+    storage = _get_storage(user)
+    effective_id = user.get_effective_user_id()
+
+    def work(conn):
+        conn.row_factory = _dict_factory
+        sql = "SELECT * FROM journal_entries"
+        clauses: list[str] = []
+        params: list = []
+        if entry_type:
+            clauses.append("entry_type = ?")
+            params.append(entry_type)
+        if is_urgent is not None:
+            clauses.append("is_urgent = ?")
+            params.append(int(is_urgent))
+        if clauses:
+            sql += " WHERE " + " AND ".join(clauses)
+        sql += " ORDER BY occurred_at DESC, created_at DESC"
+        rows = conn.execute(sql, params).fetchall()
+        return rows
+
+    try:
+        rows = await read_remote(storage, work, default=[])
+    except VaultDbError as e:
+        logger.error("Failed to list journal entries for user %s: %s", user.user_id[:8], e)
         return [], 0
 
-    entries = [o for o in response.overlays if _owns(user, o)]
-    if entry_type:
-        entries = [o for o in entries if o.payload.get("entry_type") == entry_type]
-    if is_urgent is not None:
-        entries = [o for o in entries if bool(o.payload.get("is_urgent")) == is_urgent]
-    entries.sort(key=_occurred_at, reverse=True)
-    return entries[skip : skip + limit], len(entries)
+    views = [_view(row, effective_id) for row in rows]
+    return views[skip : skip + limit], len(views)
 
 
-async def _resolve_entry(manager, user: UserContext, entry_id: str) -> UnifiedOverlay | None:
-    """Resolve an entry by overlay id, or by a legacy ``jrn_`` id carried in
-    the overlay payload for migrated rows."""
-    overlay = await manager.get_overlay(entry_id)
-    if overlay is not None and _owns(user, overlay):
-        return overlay
+def _dict_factory(cursor, row):
+    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
 
-    response = await manager.get_overlays(
-        document_id=get_journal_anchor_id(user.get_effective_user_id()),
-        overlay_type=OverlayType.JOURNAL_ENTRY,
-    )
-    if not response.success:
+
+async def get_entry(user: UserContext, entry_id: str) -> SimpleNamespace | None:
+    """Get a single journal entry by id."""
+    storage = _get_storage(user)
+    effective_id = user.get_effective_user_id()
+
+    def work(conn):
+        conn.row_factory = _dict_factory
+        return conn.execute(
+            "SELECT * FROM journal_entries WHERE id = ?", (entry_id,)
+        ).fetchone()
+
+    try:
+        row = await read_remote(storage, work, default=None)
+    except VaultDbError as e:
+        logger.error("Failed to read journal entry for user %s: %s", user.user_id[:8], e)
         return None
-    for candidate in response.overlays:
-        if _owns(user, candidate) and (
-            candidate.payload.get("id") == entry_id or candidate.payload.get("legacy_id") == entry_id
-        ):
-            return candidate
-    return None
+    return _view(row, effective_id) if row else None
 
 
-async def get_entry(user: UserContext, entry_id: str) -> UnifiedOverlay | None:
-    """Get a single journal entry by id, ownership-checked."""
-    manager = await _get_overlay_manager(user)
-    return await _resolve_entry(manager, user, entry_id)
+async def update_entry(user: UserContext, entry_id: str, fields: dict) -> SimpleNamespace | None:
+    """Merge fields into an entry row. Returns the updated view."""
+    effective_id = user.get_effective_user_id()
+    storage = _get_storage(user)
 
+    updates: list[str] = []
+    params: list = []
+    for key, value in fields.items():
+        if key not in _ENTRY_COLUMNS:
+            continue
+        if key == "is_urgent":
+            value = int(bool(value))
+        elif key == "occurred_at" and isinstance(value, datetime):
+            value = value.isoformat()
+        updates.append(f"{key} = ?")
+        params.append(value)
+    if not updates:
+        return await get_entry(user, entry_id)
+    updates.append("updated_at = ?")
+    params.append(utc_now().isoformat())
+    params.append(entry_id)
 
-async def update_entry(user: UserContext, entry_id: str, fields: dict) -> UnifiedOverlay | None:
-    """Merge fields into an entry's payload. Returns the updated overlay."""
-    manager = await _get_overlay_manager(user)
-    overlay = await _resolve_entry(manager, user, entry_id)
-    if overlay is None:
+    def work(conn):
+        conn.row_factory = _dict_factory
+        cur = conn.execute(
+            f"UPDATE journal_entries SET {', '.join(updates)} WHERE id = ?",
+            params,
+        )
+        if cur.rowcount == 0:
+            return None
+        return conn.execute(
+            "SELECT * FROM journal_entries WHERE id = ?", (entry_id,)
+        ).fetchone()
+
+    try:
+        row = await mutate_remote_ensured(storage, work)
+    except VaultDbError as e:
+        logger.error("Failed to update journal entry for user %s: %s", user.user_id[:8], e)
         return None
-
-    overlay.payload.update(fields)
-    overlay.payload["updated_at"] = utc_now().isoformat()
-    if not await manager.update_overlay(overlay.overlay_id, payload=overlay.payload):
-        return None
-    return await manager.get_overlay(overlay.overlay_id)
+    return _view(row, effective_id) if row else None
 
 
 async def delete_entry(user: UserContext, entry_id: str) -> bool:
-    """Delete a journal entry overlay."""
-    manager = await _get_overlay_manager(user)
-    overlay = await _resolve_entry(manager, user, entry_id)
-    if overlay is None:
+    """Delete a journal entry row."""
+    storage = _get_storage(user)
+
+    def work(conn):
+        cur = conn.execute("DELETE FROM journal_entries WHERE id = ?", (entry_id,))
+        return cur.rowcount > 0
+
+    try:
+        return bool(await mutate_remote_ensured(storage, work))
+    except VaultDbError as e:
+        logger.error("Failed to delete journal entry for user %s: %s", user.user_id[:8], e)
         return False
-    return await manager.delete_overlay(overlay.overlay_id)
+
+
+# ---------------------------------------------------------------------------
+# Phase-1 overlay import (non-destructive, idempotent)
+# ---------------------------------------------------------------------------
+# Entries written while JSON overlays were the live store still live in the
+# tenant's overlay files. migrate_overlay_entries() copies them into
+# journal_rows (dedupe by primary key), bounded per call to stay inside the
+# provider-work budget. Overlay files are left in place as provenance —
+# this step copies data, it does not delete history.
+
+
+def _insert_entry_row(conn, entry_id: str, payload: dict, fallback_created: str | None) -> bool:
+    """INSERT OR IGNORE one overlay/legacy-shaped row. Returns True if inserted."""
+    now = utc_now().isoformat()
+    occurred = payload.get("occurred_at") or fallback_created or now
+    created = payload.get("created_at") or fallback_created or now
+    cur = conn.execute(
+        "INSERT OR IGNORE INTO journal_entries "
+        "(id, entry_type, title, content, occurred_at, is_urgent,"
+        " involved_party, tags, document_link, source, created_at, updated_at)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        (
+            entry_id,
+            payload.get("entry_type") or "note",
+            payload.get("title") or "",
+            payload.get("content"),
+            occurred,
+            int(bool(payload.get("is_urgent"))),
+            payload.get("involved_party"),
+            payload.get("tags"),
+            payload.get("document_link"),
+            payload.get("source") or "manual",
+            created,
+            payload.get("updated_at") or created,
+        ),
+    )
+    return cur.rowcount > 0
+
+
+async def migrate_overlay_entries(user: UserContext, limit: int = 25) -> int:
+    """Import Phase-1 JOURNAL_ENTRY overlays into vault SQLite.
+
+    Bounded to ``limit`` new rows per call; idempotent via primary-key
+    dedupe (the overlay payload id becomes the row id). Returns the count
+    imported this call.
+    """
+    effective_id = user.get_effective_user_id()
+    try:
+        manager = await _get_overlay_manager(user)
+        response = await manager.get_overlays(
+            document_id=get_journal_anchor_id(effective_id),
+            overlay_type=OverlayType.JOURNAL_ENTRY,
+        )
+    except Exception as e:
+        logger.warning("Journal overlay import skipped for %s***: %s", effective_id[:6], e)
+        return 0
+    if not response.success:
+        return 0
+
+    owned = [
+        o
+        for o in response.overlays
+        if o.overlay_type == OverlayType.JOURNAL_ENTRY and o.created_by == effective_id
+    ]
+    if not owned:
+        return 0
+
+    storage = _get_storage(user)
+
+    def work(conn):
+        existing = {r[0] for r in conn.execute("SELECT id FROM journal_entries")}
+        imported = 0
+        for overlay in owned:
+            if imported >= limit:
+                break
+            rid = overlay.payload.get("id") or overlay.overlay_id
+            if rid in existing:
+                continue
+            fallback = overlay.created_at.isoformat() if overlay.created_at else None
+            if _insert_entry_row(conn, rid, overlay.payload, fallback):
+                imported += 1
+        return imported
+
+    try:
+        imported = await mutate_remote_ensured(storage, work)
+    except VaultDbError as e:
+        logger.error("Journal overlay import failed for user %s: %s", user.user_id[:8], e)
+        return 0
+    if imported:
+        logger.info("Imported %d journal overlays to vault.db for user %s", imported, effective_id[:8])
+    return imported
 
 
 # ---------------------------------------------------------------------------
 # Legacy database migration (non-destructive, idempotent)
 # ---------------------------------------------------------------------------
 # Rows written before the vault-persistence migration still live in the
-# journal_entries table. migrate_legacy_entries() imports them into the user's
-# vault as JOURNAL_ENTRY overlays marked with payload["legacy_id"], so repeat
-# runs never duplicate. Source rows are left in place until the table-drop
-# phase — this step moves data, it does not delete history.
+# server-side journal_entries table. migrate_legacy_entries() imports them
+# into the tenant's vault SQLite (dedupe by primary key — the legacy row id
+# is preserved as the row id). Source rows are left in place until the
+# table-drop phase — this step moves data, it does not delete history.
 
 
 async def migrate_legacy_entries(user: UserContext, max_rows: int = 25) -> int:
-    """Import legacy DB journal rows into vault overlays.
+    """Import legacy DB journal rows into vault SQLite.
 
-    Bounded to ``max_rows`` per call to stay inside the provider-work budget;
-    repeat calls continue where the last one left off (idempotent via
-    ``legacy_id``). Returns the count imported this call.
+    Bounded to ``max_rows`` per call to stay inside the provider-work
+    budget; repeat calls continue where the last one left off (idempotent
+    via primary-key dedupe). Returns the count imported this call.
     """
     effective_id = user.get_effective_user_id()
     try:
@@ -249,52 +450,38 @@ async def migrate_legacy_entries(user: UserContext, max_rows: int = 25) -> int:
     if not rows:
         return 0
 
-    manager = await _get_overlay_manager(user)
-    existing = await manager.get_overlays(
-        document_id=get_journal_anchor_id(effective_id),
-        overlay_type=OverlayType.JOURNAL_ENTRY,
-    )
-    migrated_ids = {
-        o.payload.get("legacy_id")
-        for o in existing.overlays
-        if _owns(user, o) and o.payload.get("legacy_id")
-    }
+    storage = _get_storage(user)
 
-    imported = 0
-    for row in rows:
-        if imported >= max_rows:
-            break
-        if row.id in migrated_ids:
-            continue
-        response = await manager.create_overlay(
-            CreateOverlayRequest(
-                overlay_type=OverlayType.JOURNAL_ENTRY,
-                document_id=get_journal_anchor_id(effective_id),
-                vault_path=get_journal_vault_path(),
-                payload={
-                    "id": row.id,
-                    "legacy_id": row.id,
-                    "entry_type": row.entry_type or "note",
-                    "title": row.title or "",
+    def work(conn):
+        existing = {r[0] for r in conn.execute("SELECT id FROM journal_entries")}
+        imported = 0
+        for row in rows:
+            if imported >= max_rows or row.id in existing:
+                continue
+            if _insert_entry_row(
+                conn,
+                row.id,
+                {
+                    "entry_type": row.entry_type,
+                    "title": row.title,
                     "content": row.content,
                     "occurred_at": row.occurred_at.isoformat() if row.occurred_at else None,
-                    "is_urgent": bool(row.is_urgent),
+                    "is_urgent": row.is_urgent,
                     "involved_party": row.involved_party,
                     "tags": row.tags,
                     "document_link": row.document_link,
-                    "source": row.source or "manual",
+                    "source": row.source,
                 },
-                metadata={
-                    "migrated_from": "journal_entries",
-                    "legacy_created_at": row.created_at.isoformat() if row.created_at else None,
-                    "scope": "journal",
-                },
-            )
-        )
-        if response.success:
-            imported += 1
-        else:
-            logger.error("Failed to migrate journal row %s: %s", row.id, response.message)
+                row.created_at.isoformat() if row.created_at else None,
+            ):
+                imported += 1
+        return imported
+
+    try:
+        imported = await mutate_remote_ensured(storage, work)
+    except VaultDbError as e:
+        logger.error("Legacy journal migration failed for user %s: %s", user.user_id[:8], e)
+        return 0
     if imported:
-        logger.info("Migrated %d legacy journal entries to vault for user %s", imported, effective_id[:8])
+        logger.info("Migrated %d legacy journal entries to vault.db for user %s", imported, effective_id[:8])
     return imported

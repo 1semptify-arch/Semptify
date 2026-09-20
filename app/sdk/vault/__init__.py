@@ -26,7 +26,10 @@ from app.sdk.vault.db import (
     VaultDbError,
     checkpoint_and_close,
     ensure_remote,
+    mutate_remote,
+    mutate_remote_ensured,
     open_local,
+    read_remote,
     schema_version,
 )
 from app.sdk.vault.encryption import (
@@ -70,5 +73,8 @@ __all__ = [
     "checkpoint_and_close",
     "ensure_remote",
     "ensure_configs_remote",
+    "mutate_remote",
+    "mutate_remote_ensured",
+    "read_remote",
     "schema_version",
 ]
