@@ -57,6 +57,20 @@ class CaseAnalysisRequest(BaseModel):
     analysis_options: dict[str, Any] | None = Field(None, description="Analysis options")
 
 
+class RetaliationCheckRequest(BaseModel):
+    """Request for a standalone retaliation check on tracker timeline events.
+
+    ``timeline_events`` items are dicts with ``event_type``
+    ("protected_action" | "adverse_action"), ``event_date`` (ISO string),
+    optional ``subtype``/``tags``, ``title``, ``description``,
+    ``attached_document_ids`` — the same shape the tenant retaliation
+    tracker produces.
+    """
+
+    timeline_events: list[dict[str, Any]] = Field(default_factory=list)
+    jurisdiction: str | None = Field(None, description="State code or name, e.g. MN")
+
+
 class GraphVisualizationRequest(BaseModel):
     """Request for graph visualization."""
 
@@ -215,6 +229,34 @@ async def analyze_case_intelligence(request: CaseAnalysisRequest, current_user=D
         logger.error(f"Case analysis failed: {e}")
         logger.exception("Analysis failed")
         raise HTTPException(status_code=500, detail="Analysis failed")
+
+
+@lis_router.post("/analyze/retaliation-check")
+async def retaliation_check(request: RetaliationCheckRequest, current_user=Depends(get_current_user)):
+    """Run the retaliation correlation + record-readiness assessment on
+    tracker-style timeline events.
+
+    Returns the correlation (protected→adverse pairs, presumption windows,
+    open windows) and the assessment (which record elements exist, which
+    are missing, and what would strengthen the record). Factual output
+    only — it never declares that retaliation legally occurred.
+    """
+    try:
+        from app.services.retaliation_tracker import assess, correlate
+
+        from .intelligence_engine import _tracker_events_from_dicts
+
+        result = correlate(
+            _tracker_events_from_dicts(request.timeline_events),
+            jurisdiction=request.jurisdiction,
+            now=utc_now(),
+        )
+        result["assessment"] = assess(result, jurisdiction=request.jurisdiction)
+        return JSONResponse(content={"success": True, "retaliation_check": result})
+    except Exception as e:
+        logger.error(f"Retaliation check failed: {e}")
+        logger.exception("Retaliation check failed")
+        raise HTTPException(status_code=500, detail="Retaliation check failed")
 
 
 @lis_router.get("/intelligence/{case_id}")

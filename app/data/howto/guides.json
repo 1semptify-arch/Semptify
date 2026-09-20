@@ -32,5 +32,27 @@
     "source": "first_hand",
     "status": "placeholder"
   },
-  "guides": []
+  "guides": [
+    {
+      "id": "pressure_sequence_complaints_leaders_press",
+      "title": "How to build pressure the right way: complaints, city leaders, and press — in order",
+      "summary": "The accountability sequence that actually moves a landlord: document first, get advice, file real complaints, put city leaders on notice, then go public. Each step feeds the next.",
+      "steps": [
+        {"title": "Document everything before you say anything", "body": "Every step after this one leans on dated, verifiable records — the notice, the repair request, the inspection report. Timeline, journal, and your document vault are the foundation; pressure built on memory gets waved off."},
+        {"title": "Get advice before filing", "body": "Talk to legal aid or a tenant hotline first. They'll tell you which complaints fit your facts, which deadlines apply, and whether your situation has a presumption window open right now."},
+        {"title": "File the real complaints", "body": "File with the agencies that actually have jurisdiction — attorney general, housing/code enforcement, HUD if discrimination is in play, the licensing board if the landlord or broker is licensed. Each filing creates an official record and an investigation the landlord has to answer to."},
+        {"title": "Put city leaders on notice", "body": "Send a factual letter to your council member, the mayor, or your county commissioner. Not a rant — what you documented, who you filed with, and what you're asking their office to do. City leaders can route inspections and put the landlord on notice that a record exists."},
+        {"title": "Go public only when the record can carry it", "body": "A press release or media kit works when the facts speak for themselves. Stick to what you can document — a truthful press release is pressure a landlord can't make go away; an exaggerated one gets set aside."},
+        {"title": "Follow up on a schedule", "body": "Agencies and offices respond to documented persistence. Log every contact, note every deadline they give you, and follow up when it passes. The record of follow-ups itself becomes part of the pressure."}
+      ],
+      "tips": [
+        "Filing with multiple agencies at once is legitimate — each has different leverage.",
+        "Everything you send to a leader or reporter should be something you'd be comfortable seeing in a courtroom. Facts only.",
+        "This is accountability, not revenge — the record does the talking. If a step would only embarrass someone rather than create a record or an obligation, skip it."
+      ],
+      "related_subjects": ["retaliation", "law_library"],
+      "source": "research — system procedure, not first-hand experience; review before publishing",
+      "status": "draft"
+    }
+  ]
 }
