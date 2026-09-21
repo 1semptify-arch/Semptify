@@ -261,6 +261,13 @@ class NavigationRegistry:
             next_stage=None,
             requires_checkpoint=False,
         ),
+        "info_donation_page": FlowStage(
+            id="info_donation_page",
+            name="Help the Next Tenant",
+            path="/help-the-next-tenant",
+            next_stage=None,
+            requires_checkpoint=False,
+        ),
     }
 
     # --- Court Integration Paths (SSOT) ---

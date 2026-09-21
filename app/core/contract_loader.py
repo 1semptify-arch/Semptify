@@ -186,6 +186,8 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.local_ai.register",
     # Legal Intel: entity/attorney/shell-LLC intelligence (RESEARCH tier).
     "app.modules.legal_intel.register",
+    # Info Donation: post-resolution opt-in info donation (CORE tier).
+    "app.modules.info_donation.register",
     # Services with contracts
     "app.services.unified_overlay_manager",
     "app.services.communication_service",

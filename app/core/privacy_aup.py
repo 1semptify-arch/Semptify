@@ -399,6 +399,7 @@ MODULE_DISCLAIMERS: dict[str, tuple[str, ...]] = {
     # Consent-gated storage.
     "cloud_sync": ("consent_gate", "tenant_zero_pii"),
     "analytics": ("consent_gate",),
+    "info_donation": ("consent_gate",),
     # Scraped / public-data pipelines.
     "crawler": ("public_content_opinion",),
     "fraud_exposure": ("public_content_opinion", "educational_info"),

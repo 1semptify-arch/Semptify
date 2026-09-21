@@ -1,0 +1,121 @@
+{% extends "shell_base.html" %}
+{#
+  Info Donation — "help the next tenant" (shell--solo single column).
+
+  Chronological zones, gated by JS against /api/info-donation/status:
+    0. Still-working escape routes (help + home — always visible)
+    1. Resolve gate
+    2. Informed consent
+    3. Per-item answers
+    4. Review before submit
+    5. What's been shared + withdrawal
+    6. Quiet opt-out (dismiss)
+
+  All state changes go through /api/info-donation/* — this page never
+  stores anything on its own. Copy follows Semptify voice rules.
+#}
+
+{% block title %}Help the next tenant — Semptify{% endblock %}
+{% block body_class %}shell shell--solo{% endblock %}
+
+{% block content %}
+<div class="shell-solo-col">
+
+  <section class="shell-zone" aria-labelledby="id-hero">
+    <p class="shell-eyebrow">Semptify · Help the next tenant</p>
+    <h1 id="id-hero">Share what happened — if you want to.</h1>
+    <p class="shell-lede">If your situation is settled, you can share a few
+      anonymous answers about how it went and what helped. Nothing is shared
+      unless you choose it, each answer is a separate choice, and you can take
+      anything back at any time. Your documents and personal details are never
+      part of this.</p>
+    <p id="donation-status-line" class="shell-status" role="status" aria-live="polite"></p>
+  </section>
+
+  {# Zone 0 — escape routes first. This page is only for after things settle. #}
+  <section class="shell-zone" aria-labelledby="id-need-help">
+    <h2 id="id-need-help" class="shell-zone-title">Still working on it?</h2>
+    <p>This page is only for after things are settled. If you still need help:</p>
+    <div class="shell-actions">
+      <a href="/help" class="shell-btn shell-btn--primary">Find help near you</a>
+      <a href="{{ navigation.get_stage('tenant_home').path if navigation else '/tenant/start' }}" class="shell-btn">Back to home</a>
+    </div>
+  </section>
+
+  {# Zone 1 — resolve gate #}
+  <section class="shell-zone" id="zone-resolve" aria-labelledby="id-resolve">
+    <h2 id="id-resolve" class="shell-zone-title">1. Is your situation settled?</h2>
+    <p>Sharing is only offered after your housing situation is resolved —
+      never in the middle of it.</p>
+    <div class="shell-actions">
+      <button id="btn-resolved" type="button" class="shell-btn shell-btn--primary">Yes, it's settled</button>
+      <button id="btn-not-resolved" type="button" class="shell-btn">Not yet</button>
+    </div>
+    <p id="resolve-msg" class="shell-note" hidden>Take your time — this page
+      will be here. Use “Find help near you” above if you need it.</p>
+  </section>
+
+  {# Zone 2 — informed consent #}
+  <section class="shell-zone" id="zone-consent" aria-labelledby="id-consent" hidden>
+    <h2 id="id-consent" class="shell-zone-title">2. What sharing means</h2>
+    <div class="shell-panel">
+      <p class="shell-note" id="consent-text"></p>
+    </div>
+    <p>Each question below is a separate choice. Leave any of them blank, and
+      take back anything you share at any time.</p>
+    <div class="shell-actions">
+      <button id="btn-consent" type="button" class="shell-btn shell-btn--primary">I understand — show me the questions</button>
+      <button id="btn-decline" type="button" class="shell-btn">No thanks</button>
+    </div>
+    <p id="decline-msg" class="shell-note" hidden>That's completely fine —
+      nothing is shared. We won't bring this up again.</p>
+  </section>
+
+  {# Zone 3 — per-item answers #}
+  <section class="shell-zone" id="zone-items" aria-labelledby="id-items" hidden>
+    <h2 id="id-items" class="shell-zone-title">3. Choose what to share</h2>
+    <p>Answer only the ones you want. Written answers are read by a person
+      before they count toward anything.</p>
+    <form id="donation-form"></form>
+    <div class="shell-actions">
+      <button id="btn-to-review" type="button" class="shell-btn shell-btn--primary">Review what I'm sharing</button>
+    </div>
+  </section>
+
+  {# Zone 4 — review before submit #}
+  <section class="shell-zone" id="zone-review" aria-labelledby="id-review" hidden>
+    <h2 id="id-review" class="shell-zone-title">4. Review before you share</h2>
+    <p>This is exactly what will be stored:</p>
+    <dl id="review-list" class="shell-status-rows"></dl>
+    <div class="shell-actions">
+      <button id="btn-submit" type="button" class="shell-btn shell-btn--primary">Share these answers</button>
+      <button id="btn-back" type="button" class="shell-btn">Go back and change</button>
+    </div>
+  </section>
+
+  {# Zone 5 — what's shared + withdrawal #}
+  <section class="shell-zone" id="zone-mine" aria-labelledby="id-mine" hidden>
+    <h2 id="id-mine" class="shell-zone-title">What you've shared</h2>
+    <ul id="mine-list" class="shell-list"></ul>
+    <div class="shell-actions">
+      <button id="btn-withdraw-all" type="button" class="shell-btn">Take back everything</button>
+    </div>
+  </section>
+
+  {# Zone 6 — quiet opt-out, separated from the forward flow #}
+  <section class="shell-zone" id="zone-dismiss" aria-labelledby="id-dismiss" hidden>
+    <h2 id="id-dismiss" class="shell-zone-title">Rather not?</h2>
+    <div class="shell-actions">
+      <button id="btn-dismiss" type="button" class="shell-btn">Don't show me this again</button>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/info_donation.js" defer></script>
+{% endblock %}

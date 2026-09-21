@@ -192,6 +192,12 @@ try:
 except ImportError:
     pass
 
+# Register Info Donation models with SQLAlchemy Base
+try:
+    import app.modules.info_donation.models  # noqa: F401
+except ImportError:
+    pass
+
 
 @asynccontextmanager
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
