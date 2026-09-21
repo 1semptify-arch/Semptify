@@ -300,10 +300,13 @@
         resetMeaningPane();
         const fname = (d.filename || '').toLowerCase();
         const isPdf = fname.endsWith('.pdf');
+        const isDocx = fname.endsWith('.docx');
         const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/.test(fname);
         try {
             if (isPdf && window.pdfjsLib) {
                 await renderPdf(d);
+            } else if (isDocx && window.SemptifyMediaPlayer) {
+                await renderDocx(d);
             } else if (isImage) {
                 renderImage(d);
             } else {
@@ -404,6 +407,56 @@
             iframe.style.display = '';
             iframe.src = '/api/dc/document/' + encodeURIComponent(d.id) + '/view';
         }
+    }
+
+    let currentMediaPlayer = null;
+
+    async function renderDocx(d) {
+        const container = document.getElementById('dcPdfContainer');
+        const empty = document.getElementById('dcViewerEmpty');
+        const iframe = document.getElementById('dcIframeFallback');
+        const imgContainer = document.getElementById('dcImageContainer');
+        const toggle = document.getElementById('dcWordBoxToggle');
+        empty.style.display = 'none';
+        iframe.style.display = 'none';
+        imgContainer.style.display = 'none';
+        toggle.style.display = 'none';
+        container.style.display = 'block';
+        container.innerHTML = '<div style="color:var(--text-muted); padding:2rem;">Loading document…</div>';
+        currentMediaPlayer = await SemptifyMediaPlayer.mount(container, {
+            url: '/api/dc/document/' + encodeURIComponent(d.id) + '/view',
+            name: d.filename,
+            mime: d.mime_type,
+            tools: true,
+            fill: true,
+            saveCopy: saveEditedCopyToVault,
+        });
+    }
+
+    // Light edit → save as a NEW vault document through the normal intake.
+    // The original stays untouched — no in-place overwrite (versioning is
+    // a separate decision), and the copy rides the same confirm pipeline
+    // as any other upload.
+    async function saveEditedCopyToVault(blob, name) {
+        const base = (name || 'document').replace(/\.docx$/i, '');
+        const file = new File([blob], base + '-edited.docx', {
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        });
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('user_id', (document.cookie.match(/(^|; )semptify_uid=([^;]+)/) || [,'',''])[2] || 'anon');
+        fd.append('username', 'tenant');
+        fd.append('storage_provider', 'local');
+        const r = await fetch('/api/intake/upload/auto', {
+            method: 'POST',
+            body: fd,
+            credentials: 'include',
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.detail || data.message || 'HTTP ' + r.status);
+        await loadDocs();
+        await loadUnlocks();
+        showIntakeStripNote('Edited copy saved', 'A new document was added to your vault — the original is unchanged.');
     }
 
     function showImageViewer(d) {
@@ -1592,8 +1645,28 @@
             dropTitle.textContent = selectedFile.name;
             dropHint.textContent = (selectedFile.size / 1024).toFixed(1) + ' KB';
             uploadSubmit.disabled = false;
+            previewPickedFile(selectedFile);
         }
     });
+
+    // Verify-before-upload: the picked file's real content renders inside
+    // the modal so the user checks the document itself, not just its name.
+    // Client-side only — bytes stay on the device until Upload is pressed.
+    let previewSeq = 0;
+    async function previewPickedFile(file) {
+        const host = document.getElementById('dcUploadPreview');
+        if (!host || !window.SemptifyMediaPlayer) return;
+        const seq = ++previewSeq;
+        host.hidden = false;
+        host.innerHTML = '';
+        try {
+            await SemptifyMediaPlayer.mount(host, { file: file });
+        } catch (e) {
+            if (seq === previewSeq) {
+                host.innerHTML = '<div class="mp__empty"><p>Could not preview this file — check the filename carefully.</p></div>';
+            }
+        }
+    }
     ['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, e => {
         e.preventDefault();
         dropZone.style.borderColor = 'var(--color-info)';
@@ -1616,6 +1689,9 @@
         dropHint.textContent = 'Photos, letters, PDFs, screenshots — anything about your tenancy.';
         uploadStatus.textContent = '';
         uploadSubmit.disabled = true;
+        previewSeq++;
+        const prev = document.getElementById('dcUploadPreview');
+        if (prev) { prev.hidden = true; prev.innerHTML = ''; }
     }
 
     // Show the picked file on the work surface while upload + intake run —
@@ -1652,6 +1728,11 @@
             overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
             wrapper.appendChild(overlay);
             container.appendChild(wrapper);
+        } else if (window.SemptifyMediaPlayer) {
+            container.style.display = 'block';
+            container.innerHTML = '';
+            SemptifyMediaPlayer.mount(container, { file: file, fill: true });
+            if (iframe) iframe.style.display = 'none';
         } else {
             container.style.display = 'none';
             if (iframe) { iframe.style.display = ''; iframe.src = url; }
