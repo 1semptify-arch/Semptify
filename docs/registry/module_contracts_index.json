@@ -542,6 +542,15 @@
       "narrative_event_count": 0
     },
     {
+      "module_path": "app.modules.info_donation",
+      "contract_path": "app/modules/info_donation/module_contract.json",
+      "module_name": "Info Donation",
+      "output_type": "record",
+      "has_preview_state": true,
+      "has_review_state": true,
+      "narrative_event_count": 0
+    },
+    {
       "module_path": "app.modules.intake",
       "contract_path": "app/modules/intake/module_contract.json",
       "module_name": "Intake",
