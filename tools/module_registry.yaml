@@ -1836,3 +1836,14 @@
   test_suite: TODO
   last_verified: null
   status: unverified
+- id: info_donation
+  display_name: Info Donation / Record
+  category: core
+  tier: B
+  owner: brad
+  version: 0.1.0
+  module_path: app.modules.info_donation.router
+  health_check: tools.module_health.check_info_donation
+  test_suite: tests/module_health/test_info_donation.py
+  last_verified: null
+  status: unverified

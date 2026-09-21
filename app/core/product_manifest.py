@@ -707,6 +707,17 @@ _register(
     log_message="MNDES router loaded — Court Exhibit System active",
 )
 
+# Info Donation — post-resolution opt-in info donation ("help the next tenant")
+_register(
+    "app.modules.info_donation.router",
+    prefix="/api/info-donation",
+    tags=("Info Donation",),
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    fees_policy=FeesPolicy.TENANT_NO_FEES,
+    dev_notes="Opt-in anonymized donation gated on issue-resolved (POST /resolved or ISSUE_RESOLVED event). Versioned informed consent, per-item opt-in, aggregate-only, withdrawable. T2. Spec: handoffs/info-donation-possibilities-2026-09-19.md.",
+)
+
 
 # =============================================================================
 # EXTENDED TIER — Legal Tools & Advanced Features (Disabled by Default)
@@ -1294,6 +1305,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.sticky_notes.router",
         "app.modules.law_linker.router",
         "app.modules.document_center.router",
+        "app.modules.info_donation.router",
     ],
     "advocate": [
         # Everything tenant gets

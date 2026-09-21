@@ -4034,6 +4034,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return templates.TemplateResponse(request, "pages/eviction_packet_wizard.html", {})
 
     # =========================================================================
+    # Info Donation Page — "help the next tenant"
+    # =========================================================================
+
+    @fastapi_app.get("/help-the-next-tenant", response_class=HTMLResponse)
+    async def info_donation_page(request: Request):
+        """Post-resolution opt-in info donation.
+
+        The page explains the idea and handles the resolve → consent →
+        per-item → review flow; all state changes go through
+        /api/info-donation/* which enforce the resolved + consent gates.
+        """
+        return templates.TemplateResponse(request, "pages/info_donation.html", {})
+
+    # =========================================================================
     # Zoom Court Page
     # =========================================================================
 
