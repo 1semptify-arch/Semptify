@@ -35,10 +35,10 @@
         </select>
         <select id="dcStatusSelect" style="background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-color); border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
             <option value="">— Status —</option>
-            <option value="new">New</option>
-            <option value="review">In Review</option>
+            <option value="unverified">Unverified</option>
+            <option value="in_review">In review</option>
             <option value="verified">Verified</option>
-            <option value="mismatched">Mismatched</option>
+            <option value="mismatched">Needs a look</option>
         </select>
         <div id="dcTypeSuggest" style="display:none; align-items:center; gap:0.375rem; background:var(--zone-surface-2); padding:0.1875rem 0.5rem; font-size:0.75rem; border-radius:0.25rem;">
             <span style="color:var(--color-warning-800);">◆ Semptify suggests:</span>
@@ -195,10 +195,14 @@
     </div>
     <div style="display:flex; flex-wrap:wrap; gap:0.25rem; margin-bottom:0.5rem; font-size:0.75rem;">
         <button class="frame-btn dc-filter" data-filter="all" style="flex:1; background:var(--zone-surface-1);">All</button>
-        <button class="frame-btn dc-filter" data-filter="new" style="flex:1;">New</button>
-        <button class="frame-btn dc-filter" data-filter="review" style="flex:1;">Review</button>
+        <button class="frame-btn dc-filter" data-filter="unverified" style="flex:1;">Unverified</button>
+        <button class="frame-btn dc-filter" data-filter="in_review" style="flex:1;">In review</button>
         <button class="frame-btn dc-filter" data-filter="verified" style="flex:1;">Verified</button>
-        <button class="frame-btn dc-filter" data-filter="mismatched" style="flex:1;">Mismatched</button>
+        <button class="frame-btn dc-filter" data-filter="mismatched" style="flex:1;">Needs a look</button>
+    </div>
+    <div id="dcPendingWrap" style="display:none; margin-bottom:0.5rem;">
+        <div class="shell-note" style="font-size:0.75rem; margin-bottom:0.25rem;">Still needs your answers</div>
+        <div id="dcPendingList"></div>
     </div>
     <div id="dcDocList" style="overflow-y:auto; max-height:16rem;"></div>
     <div class="frame-empty" id="dcDocEmpty">
@@ -206,6 +210,7 @@
         <p>No documents yet.</p>
         <p class="frame-empty--hint">Upload your first document to get started.</p>
     </div>
+    <p id="dcUnlockNote" class="shell-note" style="font-size:0.75rem; margin-top:0.5rem;"></p>
 </section>
 </div>
 {% endblock %}

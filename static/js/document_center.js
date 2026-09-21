@@ -18,7 +18,9 @@
     const unlocksDiv = document.getElementById('dcUnlocks');
     const overallSpan = document.getElementById('dcOverall');
     let currentDoc = null;
-    let allDocs = [];
+    let allDocs = [];          // filed documents — required fields answered
+    let pendingDocs = [];      // stored but not yet confirmed — the "needs your answers" lane
+    let processedCount = 0;    // vault_meta.processed_document_count (drives the unlock note)
     let currentFilter = 'all';
     let previousUnlocks = null;
     let documentTypes = {};
@@ -102,19 +104,19 @@
     }
     function statusIcon(s) {
         if (s === 'verified') return '●';
-        if (s === 'review') return '◆';
+        if (s === 'in_review') return '◆';
         if (s === 'mismatched') return '▸';
         return '○';
     }
 
     function statusBadge(s) {
         const badges = {
-            new: { label: 'Unverified', color: 'var(--text-muted)', bg: 'var(--color-gray-100)' },
-            review: { label: 'In Review', color: 'var(--color-warning-800)', bg: 'var(--color-warning-50)' },
+            unverified: { label: 'Unverified', color: 'var(--text-muted)', bg: 'var(--color-gray-100)' },
+            in_review: { label: 'In review', color: 'var(--color-warning-800)', bg: 'var(--color-warning-50)' },
             verified: { label: 'Verified', color: 'var(--color-success-800)', bg: 'var(--color-success-50)' },
-            mismatched: { label: 'Mismatched', color: 'var(--color-error-800)', bg: 'var(--color-error-50)' }
+            mismatched: { label: 'Needs a look', color: 'var(--color-error-800)', bg: 'var(--color-error-50)' }
         };
-        const b = badges[s] || badges.new;
+        const b = badges[s] || badges.unverified;
         return b;
     }
 
@@ -132,7 +134,7 @@
         const state = fieldConfirmState[doc.id] || {};
         if (state.manual_status) return state.manual_status;
         if (computeMismatched(doc)) return 'mismatched';
-        return doc.verification_status || 'new';
+        return doc.verification_state || 'unverified';
     }
 
     async function loadReviewState(doc) {
@@ -143,7 +145,7 @@
             const data = await r.json();
             fieldConfirmState[doc.id] = data.field_confirm_state || {};
             fieldConfirmState[doc.id].manual_status = data.manual_status || '';
-            if (statusSelect) statusSelect.value = data.effective_status || 'new';
+            if (statusSelect) statusSelect.value = data.effective_status || 'unverified';
         } catch (e) { /* silent */ }
     }
 
@@ -163,7 +165,7 @@
             });
             if (!r.ok) throw new Error('HTTP ' + r.status);
             const data = await r.json();
-            currentDoc.verification_status = data.effective_status;
+            currentDoc.verification_state = data.effective_status;
             await loadDocs();
         } catch (err) {
             if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save review state: ' + err.message);
@@ -183,7 +185,10 @@
             }
             const data = await r.json();
             allDocs = data.documents || [];
+            pendingDocs = data.pending_documents || [];
+            processedCount = typeof data.processed_document_count === 'number' ? data.processed_document_count : 0;
             renderDocs();
+            renderUnlockNote();
         } catch (e) {
             docEmpty.querySelector('p').textContent = 'Could not load documents.';
             const hint = docEmpty.querySelector('.frame-empty--hint');
@@ -192,58 +197,89 @@
         updateGuidanceRail();
     }
 
+    function renderUnlockNote() {
+        const note = document.getElementById('dcUnlockNote');
+        if (!note) return;
+        const remaining = Math.max(0, 3 - processedCount);
+        note.textContent = remaining > 0
+            ? 'Process ' + remaining + ' more document' + (remaining === 1 ? '' : 's') + ' to unlock the case timeline.'
+            : 'Case timeline unlocked.';
+    }
+
+    function makeDocRow(d) {
+        const row = document.createElement('div');
+        row.className = 'frame-item';
+        row.style.cursor = 'pointer';
+        if (currentDoc && currentDoc.id === d.id) {
+            row.style.background = 'var(--color-calm-100)';
+        }
+        const effStatus = effectiveStatus(d);
+        const icon = document.createElement('div');
+        icon.className = 'frame-item--icon';
+        icon.textContent = statusIcon(effStatus);
+        const main = document.createElement('div');
+        main.className = 'frame-item--main';
+        const title = document.createElement('div');
+        title.className = 'frame-item--title';
+        title.textContent = d.filename || 'Untitled';
+        title.style.fontSize = '0.875rem';
+        const meta = document.createElement('div');
+        meta.className = 'frame-item--meta';
+        const typeLabel = d.document_type ? d.document_type.replace(/_/g, ' ') : '—';
+        meta.textContent = fmtDate(d.uploaded_at) + ' · ' + typeLabel;
+        main.appendChild(title);
+        main.appendChild(meta);
+        const badge = document.createElement('span');
+        const b = statusBadge(effStatus);
+        badge.style.display = 'inline-block';
+        badge.style.padding = '0.125rem 0.375rem';
+        badge.style.fontSize = '0.625rem';
+        badge.style.fontWeight = '600';
+        badge.style.color = b.color;
+        badge.style.background = b.bg;
+        badge.style.borderRadius = '0.25rem';
+        badge.style.textTransform = 'uppercase';
+        badge.style.letterSpacing = '0.04em';
+        badge.style.marginTop = '0.25rem';
+        badge.textContent = b.label;
+        main.appendChild(badge);
+        row.appendChild(icon);
+        row.appendChild(main);
+        row.addEventListener('click', () => selectDoc(d));
+        return row;
+    }
+
     function renderDocs() {
+        const showPending = currentFilter === 'all' || currentFilter === 'unverified';
         const filtered = currentFilter === 'all'
             ? allDocs
             : allDocs.filter(d => effectiveStatus(d) === currentFilter);
         docList.innerHTML = '';
+
+        // Pending lane — stored files whose details still need answers.
+        // These never join the filed list until the confirm loop finishes.
+        const pendingWrap = document.getElementById('dcPendingWrap');
+        const pendingList = document.getElementById('dcPendingList');
+        if (pendingWrap && pendingList) {
+            pendingList.innerHTML = '';
+            if (showPending && pendingDocs.length) {
+                pendingWrap.style.display = '';
+                pendingDocs.forEach(d => pendingList.appendChild(makeDocRow(d)));
+            } else {
+                pendingWrap.style.display = 'none';
+            }
+        }
+
         if (!filtered.length) {
-            docList.appendChild(docEmpty);
-            docEmpty.querySelector('p').textContent = currentFilter === 'all' ? 'No documents yet.' : 'No ' + currentFilter + ' documents.';
+            if (!showPending || !pendingDocs.length) {
+                docList.appendChild(docEmpty);
+                docEmpty.querySelector('p').textContent = currentFilter === 'all'
+                    ? 'No documents yet.'
+                    : 'No ' + statusBadge(currentFilter).label.toLowerCase() + ' documents.';
+            }
             return;
         }
-        filtered.forEach(d => {
-            const row = document.createElement('div');
-            row.className = 'frame-item';
-            row.style.cursor = 'pointer';
-            if (currentDoc && currentDoc.id === d.id) {
-                row.style.background = 'var(--color-calm-100)';
-            }
-            const effStatus = effectiveStatus(d);
-            const icon = document.createElement('div');
-            icon.className = 'frame-item--icon';
-            icon.textContent = statusIcon(effStatus);
-            const main = document.createElement('div');
-            main.className = 'frame-item--main';
-            const title = document.createElement('div');
-            title.className = 'frame-item--title';
-            title.textContent = d.filename || 'Untitled';
-            title.style.fontSize = '0.875rem';
-            const meta = document.createElement('div');
-            meta.className = 'frame-item--meta';
-            const typeLabel = d.document_type ? d.document_type.replace(/_/g, ' ') : '—';
-            meta.textContent = fmtDate(d.uploaded_at) + ' · ' + typeLabel;
-            main.appendChild(title);
-            main.appendChild(meta);
-            const badge = document.createElement('span');
-            const b = statusBadge(effStatus);
-            badge.style.display = 'inline-block';
-            badge.style.padding = '0.125rem 0.375rem';
-            badge.style.fontSize = '0.625rem';
-            badge.style.fontWeight = '600';
-            badge.style.color = b.color;
-            badge.style.background = b.bg;
-            badge.style.borderRadius = '0.25rem';
-            badge.style.textTransform = 'uppercase';
-            badge.style.letterSpacing = '0.04em';
-            badge.style.marginTop = '0.25rem';
-            badge.textContent = b.label;
-            main.appendChild(badge);
-            row.appendChild(icon);
-            row.appendChild(main);
-            row.addEventListener('click', () => selectDoc(d));
-            docList.appendChild(row);
-        });
+        filtered.forEach(d => docList.appendChild(makeDocRow(d)));
     }
 
     async function selectDoc(d) {
@@ -253,7 +289,7 @@
         typeSelect.style.display = '';
         typeSelect.value = d.document_type || '';
         statusSelect.style.display = '';
-        statusSelect.value = d.verification_status || 'new';
+        statusSelect.value = d.verification_state || 'unverified';
         downloadBtn.style.display = '';
         await loadReviewState(d);
         await startIntake(d);
@@ -1346,10 +1382,10 @@
         if (!newStatus) return;
         if (!fieldConfirmState[currentDoc.id]) fieldConfirmState[currentDoc.id] = {};
         fieldConfirmState[currentDoc.id].manual_status = newStatus;
-        currentDoc.verification_status = newStatus;
+        currentDoc.verification_state = newStatus;
         renderDocs();
         await saveReviewState(currentDoc);
-        if (window.SemptifyFeedback) SemptifyFeedback.success('Status set to ' + newStatus + '.');
+        if (window.SemptifyFeedback) SemptifyFeedback.success('Status set to ' + statusBadge(newStatus).label + '.');
     });
 
     // Semptify-suggested document type — banner with Accept/Dismiss
@@ -1675,7 +1711,7 @@
     });
 
     // ---- Guidance rail: goal / progress / about / next-step / field walk ----
-    // Driven by real state only: doc.verification_status, documentTypes field
+    // Driven by real state only: doc.verification_state, documentTypes field
     // defs, fieldConfirmState, and overlay progress. Nothing decorative.
 
     const PROGRESS_STEPS = ['Added', 'Type set', 'Fields confirmed', 'Verified', 'Ready to use'];
@@ -1727,7 +1763,11 @@
         });
         if (!doc) {
             about.innerHTML = '<div class="shell-status-row"><span class="shell-status-label">Status</span><span class="shell-status-value">Nothing selected</span></div>';
-            next.textContent = allDocs.length ? 'Pick a document from your vault below — it opens on the right.' : 'Upload your first document with the button below.';
+            if (pendingDocs.length) {
+                next.textContent = pendingDocs.length + ' document' + (pendingDocs.length === 1 ? ' still needs' : 's still need') + ' your answers — pick one below to finish it.';
+            } else {
+                next.textContent = allDocs.length ? 'Pick a document from your vault below — it opens on the right.' : 'Upload your first document with the button below.';
+            }
             renderFieldWalk();
             return;
         }
