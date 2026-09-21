@@ -108,6 +108,9 @@ class EventType(str, Enum):
     REVIEW_STATE_SAVED = "review_state_saved"
     SHARE_LINK_SENT = "share_link_sent"
 
+    # Lifecycle events
+    ISSUE_RESOLVED = "issue_resolved"
+
 
 # Narration strings for ADR-0008 §2.3 Live Event-Driven Narration.
 # These are injected at the WebSocket boundary only; they do not alter the

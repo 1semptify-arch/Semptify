@@ -1,0 +1,57 @@
+{
+  "module_name": "Info Donation",
+  "layout": "app/modules/info_donation/ — 2 registered function groups (info_donation_donate, info_donation_review). Page surface: /help-the-next-tenant (shell--solo).",
+  "inputs": [
+    {
+      "name": "items",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "consent_version",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "item_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "user_id",
+      "type": "field",
+      "required": true
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "items",
+      "source": "other",
+      "note": "Per-item opt-in answers from the donation page form (selects, checkboxes, textareas), validated against catalog.py."
+    },
+    {
+      "input_name": "consent_version",
+      "source": "button",
+      "note": "Sent by the consent button; must equal catalog.CONSENT_VERSION — proves the tenant saw the current consent text."
+    },
+    {
+      "input_name": "item_id",
+      "source": "button",
+      "note": "Donation row id for withdraw/review actions."
+    },
+    {
+      "input_name": "user_id",
+      "source": "auto_detect",
+      "note": "Signed semptify_uid cookie via require_tier/auth_gate."
+    }
+  ],
+  "preview_state": "review-before-submit — the page renders the exact answers to be stored before POST /donate",
+  "review_state": "free-text items stored as moderation=pending; never served until approved by a reviewer",
+  "output_type": "record",
+  "output_how": "Writes info_donation_items rows (aggregate-only donation answers) and info_donation_profiles rows (resolution gate, consent, dismissal state).",
+  "output_where": "/api/info-donation/status, /api/info-donation/donate, /api/info-donation/mine, /api/info-donation/review/pending (prefixes: /api/info-donation)",
+  "output_why": "Serves the Info Donation functions declared in its FunctionGroupContracts.",
+  "process_description": "CANONICAL post-resolution info donation. Resolved-gate + versioned informed consent + per-item opt-in + PII-screened free text held in moderation + per-item and withdraw-all revocation. Server-side aggregate storage by explicit consent only — the zero-persistence promise still applies to documents.",
+  "process_context": "Tenant-facing T2 module. Invoked via /help-the-next-tenant and /api/info-donation/* routes. Resolution arrives via POST /resolved or EventType.ISSUE_RESOLVED from any module.",
+  "narrative_events": []
+}
