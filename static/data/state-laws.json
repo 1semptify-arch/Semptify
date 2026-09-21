@@ -17,6 +17,7 @@
       "IA",
       "ID",
       "IL",
+      "IN",
       "KS",
       "KY",
       "LA",
@@ -1446,7 +1447,7 @@
         "summary": "Oregon has statewide rent stabilization (first in the nation) and just-cause-style eviction limits after the first year."
       },
       "notice_requirements": {
-        "nonpayment": "Nonpayment: 144-hour notice on day 5, or 72-hour notice on day 8 (ORS 90.394)"
+        "nonpayment": "Nonpayment: 13-day notice given no sooner than day 5, or 10-day notice given no sooner than day 8 (ORS 90.394, as amended 2023); week-to-week tenancies: 72-hour notice on day 5"
       },
       "security_deposit": {
         "limit": "No statutory cap",
@@ -1554,7 +1555,7 @@
       },
       "eviction": {
         "key_protections": [
-          "10-day nonpayment demand (extended from 3 days in 2023)",
+          "10-day nonpayment demand (5 days for exempt residential agreements; extended from 3 days in 2021)",
           "Statutory warranty of habitability",
           "Self-help eviction illegal"
         ],
@@ -2393,8 +2394,8 @@
       },
       "landlord_entry": {
         "notice_required": true,
-        "notice_period": "72 hours",
-        "notes": "§55.1-1229(A) — 72-hour notice for routine entry; emergencies excepted."
+        "notice_period": "72 hours for landlord-initiated routine maintenance",
+        "notes": "§55.1-1229(A) — 72-hour notice for unrequested routine maintenance; otherwise notice of intent and entry at reasonable times; emergencies excepted."
       },
       "eviction": {
         "key_protections": [
@@ -2448,7 +2449,7 @@
       },
       "security_deposit": {
         "limit": "1.5 months' rent (N.J.S.A. 46:8-21.2)",
-        "return_deadline": "30 days after termination (5 days if displaced by fire/flood/condemnation)",
+        "return_deadline": "30 days after termination (5 business days if displaced by fire/flood/condemnation)",
         "interest_required": true,
         "notes": "Interest or earnings must be paid annually."
       },
@@ -2627,7 +2628,7 @@
         "summary": "Alabama landlord-tenant law — key rules below; verify current statute text before acting."
       },
       "notice_requirements": {
-        "nonpayment": "7-day notice to pay or vacate (35-9A-421)"
+        "nonpayment": "7-business-day notice to pay or vacate (35-9A-421)"
       },
       "security_deposit": {
         "limit": "1 month's rent",
@@ -2656,7 +2657,7 @@
         "notes": ""
       },
       "eviction": {
-        "key_protection": "7-day nonpayment notice; self-help eviction illegal"
+        "key_protection": "7-business-day nonpayment notice; self-help eviction illegal"
       },
       "rent_control": {
         "statewide": false,
@@ -2698,8 +2699,8 @@
         "nonpayment": "7-day notice to pay or quit (AS 34.03.220)"
       },
       "security_deposit": {
-        "limit": "2 months' rent",
-        "return_deadline": "14 days if no deductions; 30 days with itemized deductions (AS 34.03.070)",
+        "limit": "2 months' rent (no cap when rent exceeds $2,000/month)",
+        "return_deadline": "14 days after termination if the tenant gave notice under AS 34.03.290; otherwise 30 days (AS 34.03.070(g))",
         "notes": ""
       },
       "repairs": {
@@ -2763,11 +2764,11 @@
         "summary": "Arkansas landlord-tenant law — key rules below; verify current statute text before acting."
       },
       "notice_requirements": {
-        "nonpayment": "3-day notice; failure-to-vacate can carry criminal exposure (18-16-101)"
+        "nonpayment": "3-day notice to quit for civil eviction (18-60-304); criminal failure-to-vacate requires 10 days’ written notice (18-16-101)"
       },
       "security_deposit": {
-        "limit": "2 months' rent (only if landlord has 25+ units or uses a manager)",
-        "return_deadline": "60 days (18-16-306)",
+        "limit": "2 months' rent — deposit rules apply only to landlords with 6+ units or who use a paid manager (18-16-303)",
+        "return_deadline": "60 days (18-16-305)",
         "notes": ""
       },
       "repairs": {
@@ -2839,7 +2840,7 @@
       },
       "security_deposit": {
         "limit": "2 months' rent (1 month if tenant is 62+) (CGS 47a-21)",
-        "return_deadline": "30 days after termination or 15 days after receiving forwarding address, whichever is later",
+        "return_deadline": "21 days after termination or 15 days after receiving forwarding address, whichever is later",
         "interest_required": true,
         "notes": "Annual interest at the rate set by the Banking Commissioner."
       },
@@ -2918,7 +2919,7 @@
       "security_deposit": {
         "limit": "1 month's rent",
         "return_deadline": "20 days after termination (5514)",
-        "notes": ""
+        "notes": "Month-to-month and undefined-term deposits are uncapped until the tenancy reaches 1 year (5514(a)(3))."
       },
       "repairs": {
         "landlord_duties": [
@@ -2938,7 +2939,7 @@
       },
       "landlord_entry": {
         "notice_required": true,
-        "notice_period": "Reasonable notice required (5510)",
+        "notice_period": "48 hours’ notice; entry only 8 a.m.–9 p.m. (25 Del.C. 5509)",
         "notes": ""
       },
       "eviction": {
@@ -3177,7 +3178,7 @@
         "nonpayment": "3-day notice to pay or quit (58-2564)"
       },
       "security_deposit": {
-        "limit": "1 month's rent (1.5 if furnished/with pets)",
+        "limit": "1 month's rent (1.5 if furnished; pets allow an additional deposit up to half a month's rent) (58-2550)",
         "return_deadline": "30 days (58-2550)",
         "notes": ""
       },
@@ -3318,7 +3319,7 @@
         "summary": "Louisiana landlord-tenant law — key rules below; verify current statute text before acting."
       },
       "notice_requirements": {
-        "nonpayment": "5-day notice to vacate (CCP art. 4701)"
+        "nonpayment": "5-day notice to vacate — waivable in the lease (CCP art. 4701)"
       },
       "security_deposit": {
         "limit": "No statutory cap",
@@ -3413,7 +3414,7 @@
           "repair_deduct": true,
           "rent_withholding": false,
           "termination": true,
-          "notes": "Repair-and-deduct allowed for habitability violations after notice — capped amount, use with care (14 M.R.S. 6026). Termination for serious habitability failures (§6021)."
+          "notes": "Repair-and-deduct allowed for habitability violations after notice — capped at $500 or half a month's rent, whichever is greater; 14 days' written notice (14 M.R.S. 6026). Termination for serious habitability failures (§6021)."
         },
         "emergency_repairs": "Report in writing immediately; timelines vary by severity"
       },
@@ -3465,7 +3466,7 @@
         "nonpayment": "Nonpayment: no pre-filing notice required — landlord may file failure-to-pay immediately; tenant may stop the eviction by paying all rent due before judgment (RP §8-401)"
       },
       "security_deposit": {
-        "limit": "2 months' rent (RP §8-203)",
+        "limit": "1 month's rent for leases signed on or after Oct 1, 2024 (HB 693); 2 months only for earlier leases or the narrow utility-assistance exception (RP §8-203)",
         "return_deadline": "45 days after termination, with itemized deductions",
         "interest_required": true,
         "notes": "Wrongful withholding can mean up to treble damages plus attorney fees."
@@ -3751,7 +3752,7 @@
         "nonpayment": "7-day pay-or-quit notice for nonpayment (NRS 40.253)"
       },
       "security_deposit": {
-        "limit": "3 months' rent",
+        "limit": "3 months' rent (private housing; 1 month in public housing, or $50 for project-based Section 8)",
         "return_deadline": "30 days after termination (118A.242)",
         "notes": ""
       },
@@ -3907,7 +3908,7 @@
           "repair_deduct": false,
           "rent_withholding": true,
           "termination": true,
-          "notes": "Rent abatement authorized for habitability failures after notice (47-8-29); essential-services remedies (47-8-30). Termination available. No unilateral deduct."
+          "notes": "Rent abatement authorized for habitability failures after notice (47-8-27.2). Termination available (47-8-27.1). No unilateral deduct."
         },
         "emergency_repairs": "Report in writing immediately; timelines vary by severity"
       },
@@ -4018,7 +4019,7 @@
       "security_deposit": {
         "limit": "No statutory cap",
         "return_deadline": "45 days after termination and the tenant's written demand (41 O.S. 115)",
-        "notes": ""
+        "notes": "Deposit reverts to the landlord if the tenant makes no written demand within 6 months of termination (41 O.S. §115(B))."
       },
       "repairs": {
         "landlord_duties": [
@@ -4267,7 +4268,7 @@
         "summary": "Tennessee landlord-tenant law — key rules below; verify current statute text before acting."
       },
       "notice_requirements": {
-        "nonpayment": "14-day notice in URLTA counties (66-28-505); lease/common-law elsewhere"
+        "nonpayment": "14-day notice in URLTA counties — waivable in the lease (66-28-505); lease/common-law elsewhere"
       },
       "security_deposit": {
         "limit": "No statutory cap",
@@ -4495,7 +4496,7 @@
       },
       "security_deposit": {
         "limit": "No statutory cap",
-        "return_deadline": "60 days after termination (30 days for subsidized housing); +15 days if third-party repairs needed (37-6A-1/37-6A-2)",
+        "return_deadline": "60 days after termination or 45 days after a new tenant occupies, whichever is shorter (37-6A-1); +15 days if third-party repairs needed (37-6A-2); 30 days for federally subsidized housing",
         "notes": ""
       },
       "repairs": {
@@ -4559,11 +4560,11 @@
         "summary": "Wyoming landlord-tenant law — key rules below; verify current statute text before acting."
       },
       "notice_requirements": {
-        "nonpayment": "3-day notice to pay or quit (1-21-1002)"
+        "nonpayment": "3-day notice to quit (1-21-1003); proceedings allowed after 3 days' unpaid rent (1-21-1002)"
       },
       "security_deposit": {
         "limit": "No statutory cap",
-        "return_deadline": "30 days, or 15 days after receiving forwarding address, whichever is later (1-21-1208)",
+        "return_deadline": "30 days, or 15 days after receiving forwarding address, whichever is later; +30 days if there is damage (1-21-1208)",
         "notes": ""
       },
       "repairs": {
