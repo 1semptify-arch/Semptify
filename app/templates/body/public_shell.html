@@ -55,15 +55,34 @@
     .section-description { color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 1.05rem; }
 
     .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem; }
-    .service-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-block); padding: 1.5rem; display: flex; flex-direction: column; transition: box-shadow 0.2s ease, transform 0.2s ease; }
+    .service-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-block); padding: 0.5rem 0.85rem; display: flex; flex-direction: column; transition: box-shadow 0.2s ease, transform 0.2s ease; }
     .service-card:hover { box-shadow: var(--elevation-2); transform: translateY(-2px); }
-    .service-card .icon { font-size: 1.75rem; margin-bottom: 0.75rem; }
-    .service-card h3 { font-size: 1.1rem; color: var(--color-primary); margin-bottom: 0.5rem; font-weight: 600; }
-    .service-card p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; flex-grow: 1; }
-    .service-card .cta-button { display: inline-block; background: var(--color-accent); color: var(--text-inverse); padding: 0.6rem 1.25rem; font-size: 0.95rem; text-decoration: none; font-weight: 500; border-radius: var(--radius-input); align-self: flex-start; }
+    .service-card .icon { font-size: 1.1rem; display: inline-block; vertical-align: middle; margin: 0 0.4rem 0 0; }
+    .service-card h3 { font-size: 1rem; color: var(--color-primary); margin-bottom: 0.35rem; font-weight: 600; display: inline; vertical-align: middle; }
+    .service-card p { color: var(--text-secondary); font-size: 0.875rem; line-height: 1.3; margin: 0.4rem 0; flex-grow: 1; }
+    .service-card .cta-button { display: inline-block; background: var(--color-accent); color: var(--text-inverse); padding: 0.4rem 0.9rem; font-size: 0.85rem; text-decoration: none; font-weight: 500; border-radius: var(--radius-input); align-self: flex-start; }
     .service-card .cta-button:hover { background: var(--color-accent-hover); }
     .service-card .cta-button.secondary { background: var(--text-muted); }
     .service-card .cta-button.secondary:hover { background: var(--text-secondary); }
+
+    /* Dark mode: the shared --bg-card goes dark, leaving large dark cards.
+       Lighten the card surface ~90% and flip its text to dark ink. */
+    @media (prefers-color-scheme: dark) {
+        .service-card { background: #efeeea; border-color: #d5d2ca; color: #1f1d1a; }
+        body .service-card h3 { color: #2f4438; }
+        .service-card p { color: #4a4742; }
+        .service-card .cta-button { background: #4c6b4c; color: #ffffff; }
+        .service-card .cta-button:hover { background: #3d583d; }
+        .service-card .cta-button.secondary { background: #6b655d; }
+        .service-card .cta-button.secondary:hover { background: #4a4742; }
+    }
+    [data-theme="dark"] .service-card { background: #efeeea; border-color: #d5d2ca; color: #1f1d1a; }
+    [data-theme="dark"] .service-card h3 { color: #2f4438; }
+    [data-theme="dark"] .service-card p { color: #4a4742; }
+    [data-theme="dark"] .service-card .cta-button { background: #4c6b4c; color: #ffffff; }
+    [data-theme="dark"] .service-card .cta-button:hover { background: #3d583d; }
+    [data-theme="dark"] .service-card .cta-button.secondary { background: #6b655d; }
+    [data-theme="dark"] .service-card .cta-button.secondary:hover { background: #4a4742; }
 
     .category-section { margin-bottom: 2.25rem; }
     .category-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
@@ -78,6 +97,22 @@
     .cta-section h2 { font-size: 1.4rem; color: var(--color-primary); margin-bottom: 1rem; }
     .cta-button-large { display: inline-block; background: var(--color-primary); color: var(--text-inverse); padding: 1rem 2.5rem; font-size: 1.05rem; text-decoration: none; font-weight: 500; border-radius: var(--radius-input); }
     .cta-button-large:hover { background: var(--color-primary-light); }
+
+    /* Liquid desktop layout — public pages fit the viewport without page
+       scroll: tighter sections, denser grid, compact CTA band. */
+    @media (min-width: 1024px) {
+        .section { margin-bottom: 1rem; }
+        .section-title { font-size: 1.15rem; margin-bottom: 0.25rem; }
+        .section-description { margin-bottom: 0.75rem; font-size: 0.95rem; }
+        .services-grid { gap: 0.75rem; }
+        .category-section { margin-bottom: 1.25rem; }
+        .category-header { margin-bottom: 0.25rem; }
+        .category-description { margin-bottom: 0.75rem; }
+        .info-banner { margin: 1rem 0; padding: 0.85rem 1.25rem; }
+        .cta-section { padding: 1.25rem 1.5rem; margin-top: 1.25rem; }
+        .cta-section h2 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+        .cta-button-large { padding: 0.6rem 1.75rem; font-size: 0.95rem; }
+    }
 
     @media (max-width: 640px) {
         .services-grid { grid-template-columns: 1fr; }
