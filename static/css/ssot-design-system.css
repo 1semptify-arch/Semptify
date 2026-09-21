@@ -353,6 +353,21 @@
     --zone-surface-3: #334155;
     --zone-surface-inverse: #0f172a;
   }
+
+  /* Shell paper palette flips too — otherwise --bg-card darkens while
+     shell text stays dark-on-dark. Warm dark paper, light ink.
+     `html body.shell` outranks the later `body.shell` token block. */
+  html body.shell {
+    --shell-paper: #1e1c18;
+    --shell-ink: #efede8;
+    --shell-ink-2: #b6b1a8;
+    --shell-ink-3: #8f897f;
+    --shell-line: #3b3833;
+    --shell-sage: #8ba98b;
+    --role-accent: #8ba98b;
+    --role-deep: #6b8e6b;
+    --role-tint: #2a2f2a;
+  }
 }
 
 [data-theme="dark"] {
@@ -370,6 +385,18 @@
   --zone-surface-2: #273344;
   --zone-surface-3: #334155;
   --zone-surface-inverse: #0f172a;
+}
+
+[data-theme="dark"] body.shell {
+  --shell-paper: #1e1c18;
+  --shell-ink: #efede8;
+  --shell-ink-2: #b6b1a8;
+  --shell-ink-3: #8f897f;
+  --shell-line: #3b3833;
+  --shell-sage: #8ba98b;
+  --role-accent: #8ba98b;
+  --role-deep: #6b8e6b;
+  --role-tint: #2a2f2a;
 }
 
 /* ============================================================================
