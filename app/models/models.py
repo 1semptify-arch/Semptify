@@ -2067,6 +2067,10 @@ class VaultCheck(Base):
     # JSON: per-item results {check_name: {status, detail}}.
     checks_json: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Device type at attempt time ('mobile'/'tablet'/'desktop') — recorded only
+    # for roles whose role_configs/{role}.json opts in via record_device_type.
+    device_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
 
 
