@@ -1,3 +1,28 @@
+## Session — 2026-09-21 — Fleet dispatch night: 4 tasks shipped, 2 PRs open (devin + swe-executor spawns)
+
+**What shipped (PRs awaiting Brad's merge — branch protection):**
+- **PR #305** (`feature/dc-list-layer1`) — four commits:
+  - `dea61ea0` test_workflow_contracts.py assertions updated for the `/tenant/start` role-home cutover (21/21 pass)
+  - `40b90ff8` duplicate `/api/vault-installer/*` surface retired; `/activate-vault` redirects via `navigation.get_stage` SSOT
+  - `7a478f32` Document Center Layer 1 (F1.1–F1.5): `/api/dc/list` reads vault.db index merged with Postgres, `pending_documents` lane for unconfirmed docs, locked 4-state vocabulary, packet_builder consumer fix
+  - `e01250e0` 19 verbatim-verified state-law corrections in `state-laws.json` — material: OR 10/13-day notice (post-SB611), MD 1-month deposit cap (HB693), CT 21-day return, AL 7 *business* days, DE 48h entry notice, AR/NM cite fixes
+- **PR #306** (`feature/info-donation`) — `ec3cb63b`: info_donation module, `/help-the-next-tenant` page, consent-gated on issue-resolved (15/15 tests, module_health 16/16)
+
+**Verified this session:** tests re-run independently post-commit (30/30 dc smoke, 21/21 workflow, 15/15 donation); Playwright local smoke 6/6 on :8001; **Brad eyeballed the tenant dashboard on prod** — surfacing renders (intro, section cards, tools), links work; minor cosmetic flags (action button, scrolling) logged to intake. Corpus vetting report at `handoffs/explanation-corpus-vetting-report-2026-09-21.md`.
+
+**Known pending:**
+- Both PRs need Brad's merge click, then the master-repo gitlink bump (ship Step 8.5)
+- `device-type-recording-non-tenant` agent in flight (Brad-approved NO-TOUCH exception: non-tenant role_configs + VaultCheck.device_type column + migration)
+- Terms page still says California/SF — MN/Dakota County decided, awaiting Brad's `ai_generated:false` attestation before live copy edits
+- i18n: 12 machine catalogs live; human-translation commissioning is a budget decision parked on Brad
+- Other role dashboards (advocate/legal/etc.) not individually eyeballed — hard role-gated, same render path as tenant's verified pass
+
+**Ops tooling (master-repo, commit 1bcad42):** auto-dispatch toggle on /orchestrator (persisted in Postgres, gates drain loop + standalone daemon); spawned agents now run `--permission-mode bypass` with deny rules hard-blocking rm/del/git push/git -C/env writes; `tools/agent_commit.py` scoped-commit helper (agents must use it — plain `git commit` variants were confirmation-gated and killing headless spawns); dispatch calls auto-close on spawn exit.
+
+**Next session starts with:** merge PRs #305/#306 → gitlink bump → verify device-type task landed → terms edit once Brad attests.
+
+---
+
 ## Session — 2026-09-20 — OCR-first intake backend, Step 2 (devin)
 
 **Task `intake-ocr-first-pass` → review.** Server-side slice of the OCR-first pipeline: extraction, per-field proposal sessions, and the vault-SQLite write. Brad's rule landed structurally — finalize refuses unless EVERY proposed field has an answer (yes/no/edit); nothing lands in the vault unreviewed.
