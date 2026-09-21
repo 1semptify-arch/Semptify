@@ -77,6 +77,24 @@ ALLOWED_DOCUMENT_TYPES: frozenset[str] = frozenset(
     }
 )
 
+# Locked verification-state vocabulary — mirrors the vault.db
+# `documents.verification_state` CHECK constraint (schema handoff). Every DC
+# badge and /list response emits exactly these four values.
+VERIFICATION_STATES: frozenset[str] = frozenset(
+    {"unverified", "in_review", "verified", "mismatched"}
+)
+
+# Legacy Postgres `review_state_json.manual_status` values predate the locked
+# vocabulary — normalize them on read and accept them on write.
+_LEGACY_VERIFICATION_STATE = {"new": "unverified", "review": "in_review"}
+
+
+def _normalize_verification_state(status: str | None) -> str | None:
+    """Map legacy DC status vocabulary onto the locked vault.db states."""
+    if status is None:
+        return None
+    return _LEGACY_VERIFICATION_STATE.get(status, status)
+
 # Mapping from document type to the contextual-explanation envelope used by
 # "What does this mean?". Pillar is chosen so it matches the right Layer 1
 # explanation entries (record-keeping, legal facts, next steps, or safety).
@@ -467,52 +485,69 @@ async def dc_get_document_types(request: Request) -> JSONResponse:
 
 @router.get("/list")
 async def dc_list_documents(request: Request) -> JSONResponse:
-    """List vault documents with overlay status for the DC left panel.
+    """List the tenant's vault documents for the DC rail.
 
-    Returns documents with id, filename, uploaded_at, document_type,
-    overlay_count (null — real count requires per-doc cloud fetch via
-    /api/dc/document/{vault_id}/overlays), and verification_status.
+    ``documents`` — the filed list — contains only docs whose required
+    fields have been answered (F1.4): when the tenant's vault.db is
+    reachable, its ``documents`` index is canonical and a row's
+    ``verification_state`` leaves ``unverified`` only inside intake
+    ``finalize()``, which refuses while any proposed field is unanswered.
+    ``pending_documents`` holds everything else — indexed-but-unanswered
+    docs and stored files ingest has not registered — so an unfinished
+    document is never a dead end; selecting it resumes intake.
+
+    ``processed_document_count`` comes straight from ``vault_meta`` (F1.5) —
+    the unlock note reads the stored counter instead of a per-render
+    COUNT(*) scan. When vault.db is unavailable the counter falls back to
+    the Postgres ``processed`` mirror written at finalize.
+
+    Each item: id, filename, uploaded_at, document_type, overlay_count
+    (null — real count requires per-doc cloud fetch via
+    /api/dc/document/{vault_id}/overlays), verification_state (locked
+    4-state vocabulary).
     """
     user_id = _auth(request)
     if not user_id:
         return JSONResponse(status_code=401, content={"error": "not_authenticated"})
 
-    documents: list[dict] = []
+    vault_docs: list = []
     try:
         from app.services.vault_upload_service import get_vault_service
 
         vault_service = get_vault_service()
         vault_docs = await vault_service.get_user_documents(user_id)
-        for doc in vault_docs:
-            uploaded_raw = doc.uploaded_at
-            if isinstance(uploaded_raw, str):
-                uploaded_str = uploaded_raw
-            elif hasattr(uploaded_raw, "isoformat"):
-                uploaded_str = uploaded_raw.isoformat()
-            else:
-                uploaded_str = str(uploaded_raw)
-
-            # overlay_count is null in list view — real count requires per-doc
-            # cloud fetch via /api/dc/document/{vault_id}/overlays.
-            verification_status = _verification_status_for_doc(doc)
-
-            documents.append(
-                {
-                    "id": doc.vault_id,
-                    "filename": doc.filename,
-                    "uploaded_at": uploaded_str,
-                    "document_type": doc.document_type or "",
-                    "overlay_count": None,
-                    "verification_status": verification_status,
-                }
-            )
     except Exception as vault_err:
         logger.warning("DC list: vault fetch failed for user=%s: %s", user_id, vault_err)
 
+    index_result = await _vault_doc_index(user_id)
+
+    filed: list[dict] = []
+    pending: list[dict] = []
+    seen_ids: set[str] = set()
+    for doc in vault_docs:
+        seen_ids.add(doc.vault_id)
+        item = _list_item_for_doc(doc, index_result)
+        (pending if item["verification_state"] == "unverified" else filed).append(item)
+
+    # Index rows with no Postgres file record — still canonical documents.
+    if index_result is not None:
+        for vault_id, row in index_result[0].items():
+            if vault_id in seen_ids:
+                continue
+            item = _list_item_for_row(vault_id, row)
+            (pending if row["verification_state"] == "unverified" else filed).append(item)
+
+    if index_result is not None:
+        processed_count = index_result[1]
+    else:
+        processed_count = sum(1 for d in vault_docs if getattr(d, "processed", False))
+
     return JSONResponse(
         {
-            "documents": documents,
-            "total": len(documents),
+            "documents": filed,
+            "pending_documents": pending,
+            "processed_document_count": processed_count,
+            "total": len(filed) + len(pending),
             "generated_at": utc_now().isoformat(),
         }
     )
@@ -527,20 +562,128 @@ def _review_state_for_doc(doc) -> dict:
 
 
 def _verification_status_for_doc(doc) -> str:
-    """Return the effective DC verification status for a vault document.
+    """Return the effective DC verification state for a vault document.
 
-    A manually-set status in `review_state_json` takes precedence. Otherwise
-    fall back to the document's registry/processing flags.
+    Emits the locked vault.db vocabulary (``unverified``/``in_review``/
+    ``verified``/``mismatched``). A manually-set status in
+    `review_state_json` takes precedence; otherwise fall back to the
+    document's registry/processing flags (legacy derivation — used only
+    when the tenant's vault.db index is unavailable).
     """
     review_state = _review_state_for_doc(doc)
-    manual_status = review_state.get("manual_status")
-    if manual_status in {"verified", "mismatched", "review", "new"}:
+    manual_status = _normalize_verification_state(review_state.get("manual_status"))
+    if manual_status in VERIFICATION_STATES:
         return manual_status
     if doc.registry_id:
         return "verified"
     if doc.processed:
-        return "review"
-    return "new"
+        return "in_review"
+    return "unverified"
+
+
+async def _vault_doc_index(user_id: str) -> tuple[dict[str, dict], int] | None:
+    """Read the tenant's vault.db document index + processed counter.
+
+    Returns ``(documents_by_id, processed_document_count)`` when the tenant's
+    vault.db is reachable, or ``None`` when it isn't (local storage,
+    unprovisioned vault, missing token, read failure). ``documents`` is the
+    Document Center's canonical index per the schema handoff — only the
+    intake pipeline writes it, so a row exists only for documents that have
+    entered the confirm loop.
+    """
+    try:
+        from app.core.user_context import build_context_for_user_id
+        from app.sdk.vault import VaultDbError, read_remote
+        from app.services.storage import get_provider
+
+        user = await build_context_for_user_id(user_id)
+        if user is None or user.provider.value == "local":
+            return None
+        storage = get_provider(user.provider.value, access_token=user.access_token)
+
+        def work(conn):
+            conn.row_factory = lambda cur, row: {
+                col[0]: row[i] for i, col in enumerate(cur.description)
+            }
+            docs = {
+                r["id"]: r
+                for r in conn.execute(
+                    "SELECT id, name, doc_type, verification_state,"
+                    " uploaded_at, has_text_layer FROM documents"
+                ).fetchall()
+            }
+            meta = conn.execute(
+                "SELECT value FROM vault_meta WHERE key = 'processed_document_count'"
+            ).fetchone()
+            count = int(meta["value"]) if meta and meta["value"] else 0
+            return docs, count
+
+        try:
+            return await read_remote(storage, work, default=None)
+        except VaultDbError as e:
+            logger.warning("DC list: vault.db read failed for user=%s: %s", user_id, e)
+            return None
+    except Exception as e:
+        logger.debug("DC list: vault.db unavailable for user=%s: %s", user_id, e)
+        return None
+
+
+def _list_item_for_doc(doc, index_result) -> dict:
+    """Build one rail item for a Postgres-indexed vault file.
+
+    State precedence: the tenant's explicit manual_status > the vault.db
+    `documents` row (canonical index) > legacy Postgres derivation when the
+    index is unavailable > ``unverified`` when the index is live but ingest
+    has not registered the file (uploaded, never through the confirm loop).
+    """
+    index = index_result[0] if index_result is not None else None
+    row = index.get(doc.vault_id) if index else None
+
+    manual = _normalize_verification_state(_review_state_for_doc(doc).get("manual_status"))
+    if manual in VERIFICATION_STATES:
+        state = manual
+    elif row is not None:
+        state = row["verification_state"]
+    elif index is not None:
+        state = "unverified"
+    else:
+        state = _verification_status_for_doc(doc)
+
+    uploaded_raw = doc.uploaded_at
+    if isinstance(uploaded_raw, str):
+        uploaded_str = uploaded_raw
+    elif hasattr(uploaded_raw, "isoformat"):
+        uploaded_str = uploaded_raw.isoformat()
+    else:
+        uploaded_str = str(uploaded_raw)
+
+    return {
+        "id": doc.vault_id,
+        "filename": doc.filename,
+        "uploaded_at": uploaded_str,
+        "document_type": (row["doc_type"] if row else None) or doc.document_type or "",
+        "overlay_count": None,
+        "verification_state": state,
+    }
+
+
+def _list_item_for_row(vault_id: str, row: dict) -> dict:
+    """Build one rail item for a vault.db row with no Postgres file record.
+
+    Rare integrity gap (index row survives a deleted vault-index entry) —
+    the document is still listed rather than hidden; the viewer already
+    reports an unreadable file honestly if it is selected.
+    """
+    return {
+        "id": vault_id,
+        "filename": row["name"],
+        "uploaded_at": row["uploaded_at"],
+        "document_type": row["doc_type"] or "",
+        "overlay_count": None,
+        "verification_state": row["verification_state"],
+        "has_text_layer": bool(row["has_text_layer"]),
+        "index_only": True,
+    }
 
 
 def _compute_unlocks(docs: list) -> list[dict]:
@@ -1126,7 +1269,10 @@ async def dc_get_review_state(vault_id: str, request: Request) -> JSONResponse:
 async def dc_post_review_state(vault_id: str, request: Request) -> JSONResponse:
     """Save the Document Center review state for a vault document.
 
-    Body: {"field_confirm_state": {...}, "manual_status": "verified|mismatched|review|new"}
+    Body: {"field_confirm_state": {...},
+           "manual_status": "unverified|in_review|verified|mismatched"}
+    Legacy values "new"/"review" are accepted and normalized to the locked
+    vault.db vocabulary.
     """
     user_id = _auth(request)
     if not user_id:
@@ -1138,11 +1284,14 @@ async def dc_post_review_state(vault_id: str, request: Request) -> JSONResponse:
         return JSONResponse(status_code=400, content={"error": "invalid_json", "detail": str(e)})
 
     field_confirm_state = body.get("field_confirm_state")
-    manual_status = body.get("manual_status")
-    if manual_status is not None and manual_status not in {"verified", "mismatched", "review", "new"}:
+    manual_status = _normalize_verification_state(body.get("manual_status"))
+    if manual_status is not None and manual_status not in VERIFICATION_STATES:
         return JSONResponse(
             status_code=400,
-            content={"error": "invalid_manual_status", "allowed": ["verified", "mismatched", "review", "new"]},
+            content={
+                "error": "invalid_manual_status",
+                "allowed": sorted(VERIFICATION_STATES),
+            },
         )
 
     try:
@@ -1183,7 +1332,7 @@ async def dc_post_review_state(vault_id: str, request: Request) -> JSONResponse:
             {
                 "ok": True,
                 "vault_id": vault_id,
-                "effective_status": _verification_status_for_doc(updated_doc) if updated_doc else "new",
+                "effective_status": _verification_status_for_doc(updated_doc) if updated_doc else "unverified",
                 "manual_status": review_state.get("manual_status"),
                 "generated_at": utc_now().isoformat(),
             }

@@ -83,6 +83,149 @@ def test_dc_list_contract_outputs():
     contract = contract_registry.get("document_center", "dc_list")
     assert "documents" in contract.outputs
     assert "total" in contract.outputs
+    assert "pending_documents" in contract.outputs
+    assert "processed_document_count" in contract.outputs
+
+
+# ---------------------------------------------------------------------------
+# Layer 1 — locked 4-state verification vocabulary (F1.2), ingest-gated list
+# bucketing (F1.4), processed_document_count plumbing (F1.5)
+# ---------------------------------------------------------------------------
+
+
+def test_dc_verification_states_locked_vocabulary():
+    """VERIFICATION_STATES is exactly the 4 states locked in the schema handoff."""
+    from app.modules.document_center.router import VERIFICATION_STATES
+
+    assert VERIFICATION_STATES == frozenset(
+        {"unverified", "in_review", "verified", "mismatched"}
+    )
+
+
+def test_dc_normalize_verification_state_maps_legacy():
+    """Legacy 'new'/'review' values normalize onto the locked vocabulary."""
+    from app.modules.document_center.router import _normalize_verification_state
+
+    assert _normalize_verification_state("new") == "unverified"
+    assert _normalize_verification_state("review") == "in_review"
+    assert _normalize_verification_state("verified") == "verified"
+    assert _normalize_verification_state("mismatched") == "mismatched"
+    assert _normalize_verification_state(None) is None
+    assert _normalize_verification_state("bogus") == "bogus"
+
+
+def test_dc_verification_status_for_doc_emits_locked_names():
+    """_verification_status_for_doc (legacy derivation) emits locked names."""
+    import json
+    from unittest.mock import MagicMock
+
+    from app.modules.document_center.router import _verification_status_for_doc
+
+    doc = MagicMock()
+    doc.review_state_json = json.dumps({"manual_status": "review"})
+    assert _verification_status_for_doc(doc) == "in_review"
+
+    doc.review_state_json = json.dumps({"manual_status": "new"})
+    assert _verification_status_for_doc(doc) == "unverified"
+
+    doc.review_state_json = "{}"
+    doc.registry_id = "SEM-2026-000001-ABCD"
+    doc.processed = False
+    assert _verification_status_for_doc(doc) == "verified"
+
+    doc.registry_id = None
+    doc.processed = True
+    assert _verification_status_for_doc(doc) == "in_review"
+
+    doc.processed = False
+    assert _verification_status_for_doc(doc) == "unverified"
+
+
+def _mock_doc(vault_id, review_state_json="{}", registry_id=None, processed=False):
+    import json
+    from unittest.mock import MagicMock
+
+    doc = MagicMock()
+    doc.vault_id = vault_id
+    doc.filename = f"{vault_id}.pdf"
+    doc.uploaded_at = "2026-09-20T00:00:00"
+    doc.document_type = "lease"
+    doc.review_state_json = review_state_json
+    doc.registry_id = registry_id
+    doc.processed = processed
+    return doc
+
+
+def test_dc_list_item_prefers_vault_db_state():
+    """F1.4: vault.db documents row is the canonical state for the rail."""
+    import json
+
+    from app.modules.document_center.router import _list_item_for_doc
+
+    doc = _mock_doc(
+        "v1",
+        review_state_json=json.dumps({"manual_status": "review"}),
+        registry_id="SEM-1",
+    )
+    index = ({"v1": {"id": "v1", "doc_type": "lease", "verification_state": "in_review"}}, 1)
+    item = _list_item_for_doc(doc, index)
+    assert item["verification_state"] == "in_review"
+    assert item["id"] == "v1"
+
+
+def test_dc_list_item_manual_status_beats_vault_row():
+    """The tenant's explicit manual status wins over the index row."""
+    import json
+
+    from app.modules.document_center.router import _list_item_for_doc
+
+    doc = _mock_doc("v1", review_state_json=json.dumps({"manual_status": "verified"}))
+    index = ({"v1": {"id": "v1", "doc_type": "lease", "verification_state": "unverified"}}, 0)
+    item = _list_item_for_doc(doc, index)
+    assert item["verification_state"] == "verified"
+
+
+def test_dc_list_item_unindexed_file_is_unverified_when_index_live():
+    """F1.4: a stored file with no vault.db row is 'unverified', never filed."""
+    from app.modules.document_center.router import _list_item_for_doc
+
+    # Even a certified file (registry_id set) is unverified when the
+    # canonical index is live but ingest never registered it — a certified
+    # upload is not a confirmed document.
+    doc = _mock_doc("v9", registry_id="SEM-9", processed=True)
+    item = _list_item_for_doc(doc, ({}, 0))
+    assert item["verification_state"] == "unverified"
+
+
+def test_dc_list_item_legacy_derivation_when_no_index():
+    """Without vault.db the legacy Postgres derivation applies (renamed)."""
+    from app.modules.document_center.router import _list_item_for_doc
+
+    doc = _mock_doc("v2", registry_id="SEM-2", processed=True)
+    item = _list_item_for_doc(doc, None)
+    assert item["verification_state"] == "verified"
+
+    doc2 = _mock_doc("v3")
+    item2 = _list_item_for_doc(doc2, None)
+    assert item2["verification_state"] == "unverified"
+
+
+def test_dc_list_item_for_row_shape():
+    """Index-only rows (no Postgres file record) render as real documents."""
+    from app.modules.document_center.router import _list_item_for_row
+
+    row = {
+        "name": "lease.pdf",
+        "doc_type": "lease",
+        "verification_state": "verified",
+        "uploaded_at": "2026-09-20T00:00:00",
+        "has_text_layer": 1,
+    }
+    item = _list_item_for_row("v5", row)
+    assert item["id"] == "v5"
+    assert item["verification_state"] == "verified"
+    assert item["filename"] == "lease.pdf"
+    assert item["index_only"] is True
 
 
 def test_dc_router_has_overlays_endpoint():

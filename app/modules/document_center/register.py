@@ -12,14 +12,26 @@ register_function_group(
         group_name="dc_list",
         title="Document Center List (SSOT)",
         description=(
-            "CANONICAL document list for the DC left panel. Returns all vault documents "
-            "for the authenticated user, each with: id, filename, uploaded_at, "
-            "document_type, overlay_count (null — real count requires per-doc cloud fetch), "
-            "verification_status ('new'|'review'|'verified'). "
-            "Call dc_overlays for the authoritative count per document."
+            "CANONICAL document list for the DC left rail. Reads the tenant's vault.db "
+            "`documents` index (canonical — written only by the intake pipeline) merged "
+            "with the Postgres vault file index. `documents` is the filed list: only docs "
+            "whose required fields have been answered (verification_state != 'unverified'). "
+            "`pending_documents` holds indexed-but-unanswered docs and stored files ingest "
+            "has not registered — the resumable 'still needs your answers' lane. "
+            "`processed_document_count` comes from vault_meta (no per-render COUNT(*)). "
+            "Each item: id, filename, uploaded_at, document_type, overlay_count "
+            "(null — real count requires per-doc cloud fetch), verification_state "
+            "('unverified'|'in_review'|'verified'|'mismatched'). "
+            "Call dc_overlays for the authoritative overlay count per document."
         ),
         inputs=("user_id",),
-        outputs=("documents", "total", "generated_at"),
+        outputs=(
+            "documents",
+            "pending_documents",
+            "processed_document_count",
+            "total",
+            "generated_at",
+        ),
         dependencies=("app.modules.document_center.router", "app.services.vault_upload_service"),
         deterministic=True,
     )
