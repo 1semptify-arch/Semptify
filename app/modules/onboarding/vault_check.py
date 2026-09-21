@@ -14,9 +14,13 @@ import asyncio
 import json
 import logging
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+if TYPE_CHECKING:
+    from fastapi import Request
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +59,26 @@ def _pending(detail: str) -> dict:
     return {"status": "pending", "detail": detail}
 
 
+def device_type_for_role(request: "Request", role_type: str | None) -> str | None:
+    """Return the request's device type when the role's config records it.
+
+    Gated on role_configs/{role}.json `record_device_type` — tenant and
+    unknown roles return None so their vault_checks rows stay NULL. Never
+    raises: a detection failure must not break vault setup.
+    """
+    try:
+        from app.modules.onboarding.role_config import record_device_type_for_role
+
+        if not record_device_type_for_role(role_type):
+            return None
+        from app.modules.role_ui.router import detect_device_type
+
+        return detect_device_type(request)
+    except Exception as exc:
+        logger.warning("device_type_for_role failed: %s", exc)
+        return None
+
+
 async def record_vault_check(
     db: AsyncSession,
     user_id: str,
@@ -63,6 +87,7 @@ async def record_vault_check(
     failed_check: str | None = None,
     detail: str | None = None,
     checks: dict | None = None,
+    device_type: str | None = None,
 ) -> None:
     """Append one vault-check attempt row. Never raises to the caller."""
     try:
@@ -75,6 +100,7 @@ async def record_vault_check(
                 failed_check=failed_check,
                 detail=detail,
                 checks_json=json.dumps(checks) if checks else None,
+                device_type=device_type,
             )
         )
         await db.commit()
