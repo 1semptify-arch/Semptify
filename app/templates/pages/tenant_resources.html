@@ -1,16 +1,25 @@
 {% extends "body/composer_preview_shell.html" %}
 {#
-  Resource directory — tenant-facing "find help near you" view (flagship Phase B).
+  Resource directory — tenant-facing "find help near you" view.
 
   Route: /tenant/resources
 
   Module contract — resource_directory:list_resources
-    Inputs:  search text, category, language (optional)
-    Outputs: matching community resources (name, category, contact info)
-    Layout:  composer-primary, 2fr 3fr — filters left, results right.
+    Inputs:  location (geolocated or picked state/county), category, search,
+             language (optional)
+    Outputs: matching community resources (name, contact info, badges)
+    Layout:  composer-primary, 2fr 3fr — controls left, results right.
 
-  Emergency / crisis / hotline / shelter listings are pinned to the top of
-  results and visually distinct, with one-tap tel: links.
+  Jurisdiction: listings carry state_code/county; nationwide listings
+  (state_code NULL) always appear. Only listings that charge nothing or are
+  officially verified nonprofits are returned by the API.
+
+  Privacy: "Use my location" resolves coordinates to a county name in the
+  browser (FCC census lookup); Semptify only ever receives "state + county"
+  text — never coordinates — and stores nothing.
+
+  Crisis / hotline / shelter listings are pinned to the top of results and
+  visually distinct, with one-tap tel:/sms: links.
 #}
 
 {# Staged nav rail: Find resources — always available (no required fields). #}
@@ -24,9 +33,9 @@
 {% block cps_aria_label %}Find help near you{% endblock %}
 {% block cps_eyebrow %}Know · Directory{% endblock %}
 {% block cps_title %}Find help near you{% endblock %}
-{% block cps_description %}Legal aid, hotlines, and community resources — verified listings for where you live.{% endblock %}
-{% block cps_controls_title %}Narrow it down{% endblock %}
-{% block cps_preview_title %}Resources{% endblock %}
+{% block cps_description %}Crisis lines, food, shelter, legal aid, recovery, and community help — verified listings for where you live. Everything listed costs nothing or is a verified nonprofit.{% endblock %}
+{% block cps_controls_title %}Where are you, and what do you need?{% endblock %}
+{% block cps_preview_title %}Help near you{% endblock %}
 {% block cps_help_title %}About this directory{% endblock %}
 
 {% block styles %}
@@ -39,13 +48,42 @@
     border-radius: var(--radius-input); font-size: var(--text-base); background: var(--color-white);
     color: var(--text-primary); font-family: inherit; box-sizing: border-box;
   }
+  .rd-locate {
+    width: 100%; padding: var(--space-3) var(--space-6); background: var(--color-primary); color: var(--text-inverse);
+    border: none; border-radius: var(--radius-input); font-size: var(--text-base); font-weight: var(--font-semibold);
+    cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+  }
+  .rd-locate:disabled { opacity: 0.6; cursor: wait; }
+  .rd-privacy { font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-2); line-height: var(--leading-relaxed); }
+  .rd-loc-chip {
+    display: none; align-items: center; justify-content: space-between; gap: var(--space-2);
+    padding: var(--space-2) var(--space-3); background: var(--bg-zone-alt, rgba(0,0,0,0.04));
+    border-radius: var(--radius-input); font-size: var(--text-sm); color: var(--text-primary);
+  }
+  .rd-loc-chip[data-on] { display: flex; }
+  .rd-loc-clear { background: none; border: none; color: var(--color-info); cursor: pointer; font-size: var(--text-sm); font-family: inherit; padding: 0; text-decoration: underline; }
+  .rd-loc-err { display: none; font-size: var(--text-sm); color: var(--text-primary); background: var(--color-warning); border-radius: var(--radius-input); padding: var(--space-2) var(--space-3); }
+  .rd-loc-err[data-on] { display: block; }
+  .rd-divider { font-size: var(--text-xs); color: var(--text-secondary); text-align: center; }
   .rd-results { display: flex; flex-direction: column; }
   .rd-resource { padding: var(--space-3) 0; }
   .rd-resource + .rd-resource { border-top: 1px solid var(--border-color); }
   .rd-name { font-weight: var(--font-semibold); color: var(--text-primary); font-size: var(--text-base); }
   .rd-cat { font-size: var(--text-xs); color: var(--text-secondary); text-transform: capitalize; }
-  .rd-contact { font-size: var(--text-sm); color: var(--text-primary); margin-top: var(--space-1); }
-  .rd-contact a { color: var(--color-info); }
+  .rd-badges { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-1); }
+  .rd-badge {
+    font-size: var(--text-xs); font-weight: var(--font-semibold); padding: 1px var(--space-2);
+    border-radius: 999px; background: var(--bg-zone-alt, rgba(0,0,0,0.06)); color: var(--text-primary);
+  }
+  .rd-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+  .rd-act {
+    display: inline-flex; align-items: center; padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-input); font-size: var(--text-sm); font-weight: var(--font-semibold);
+    text-decoration: none; font-family: inherit;
+  }
+  .rd-act--call { background: var(--color-primary); color: var(--text-inverse); }
+  .rd-act--alt { background: var(--bg-zone-alt, rgba(0,0,0,0.06)); color: var(--text-primary); }
+  .rd-detail { font-size: var(--text-sm); color: var(--text-primary); margin-top: var(--space-2); }
   .rd-meta { font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-1); }
   .rd-resource--emergency { background: var(--color-warning); padding: var(--space-3); border-radius: var(--radius-input); margin-bottom: var(--space-2); }
   .rd-resource--emergency .rd-cat { color: var(--text-primary); font-weight: var(--font-semibold); }
@@ -61,14 +99,46 @@
 {% block composer %}
 <form id="rdForm" class="rd-form" novalidate>
   <div>
-    <label class="rd-label" for="rdSearch">Search</label>
-    <input id="rdSearch" class="rd-input" type="search" placeholder="legal aid, food shelf, shelter…">
+    <button type="button" id="rdLocate" class="rd-locate">Use my location</button>
+    <p class="rd-privacy">Your location is used once to find your county — it's
+      never saved and never reaches Semptify as a location.</p>
+    <div class="rd-loc-chip" id="rdLocChip">
+      <span id="rdLocText"></span>
+      <button type="button" class="rd-loc-clear" id="rdLocClear">clear</button>
+    </div>
+    <div class="rd-loc-err" id="rdLocErr"></div>
   </div>
   <div>
-    <label class="rd-label" for="rdCategory">Category</label>
+    <p class="rd-divider">— or pick it yourself —</p>
+  </div>
+  <div>
+    <label class="rd-label" for="rdState">State</label>
+    <select id="rdState" class="rd-select">
+      <option value="">Anywhere / nationwide</option>
+    </select>
+  </div>
+  <div>
+    <label class="rd-label" for="rdCounty">County <span style="font-weight:400; color:var(--text-secondary);">(optional)</span></label>
+    <input id="rdCounty" class="rd-input" type="text" placeholder="e.g., Hennepin">
+  </div>
+  <div>
+    <label class="rd-label" for="rdCategory">What kind of help</label>
     <select id="rdCategory" class="rd-select">
       <option value="">Everything</option>
+      <option value="crisis">Crisis &amp; hotlines</option>
+      <option value="food">Food</option>
+      <option value="shelter">Shelter</option>
+      <option value="housing">Housing &amp; rent</option>
+      <option value="legal_aid">Legal aid</option>
+      <option value="addiction">Addiction recovery</option>
+      <option value="mental_health">Mental health</option>
+      <option value="pet_health">Pet care</option>
+      <option value="faith">Faith community</option>
     </select>
+  </div>
+  <div>
+    <label class="rd-label" for="rdSearch">Search</label>
+    <input id="rdSearch" class="rd-input" type="search" placeholder="legal aid, food shelf, shelter…">
   </div>
   <div>
     <label class="rd-label" for="rdLang">Language <span style="font-weight:400; color:var(--text-secondary);">(optional)</span></label>
@@ -83,9 +153,9 @@
 {% endblock %}
 
 {% block help %}
-  <p><strong>These are community listings</strong> — legal aid offices,
-  tenant hotlines, shelters, and support services. Semptify keeps them
-  verified and up to date.</p>
+  <p><strong>Every listing here costs nothing or is a verified nonprofit</strong>
+  — checked against official sources. If a number stops working,
+  <a href="/feedback" style="color: var(--color-info);">tell us</a> so we can fix it.</p>
   <p style="margin-top: var(--space-3);">In an emergency — a lockout, a
   court date this week, or no safe place to sleep — call the hotline
   listings first. They're pinned at the top.</p>
@@ -99,36 +169,95 @@
 <script>
 (function () {
   const esc = (s) => String(s || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const EMERGENCY = /emergency|crisis|hotline|shelter|domestic/i;
+  const EMERGENCY = /emergency|crisis|hotline|shelter|domestic|trafficking|runaway/i;
+
+  /* FIPS state code -> postal code (for the FCC census lookup). */
+  const FIPS = {'01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT','10':'DE','11':'DC','12':'FL','13':'GA','15':'HI','16':'ID','17':'IL','18':'IN','19':'IA','20':'KS','21':'KY','22':'LA','23':'ME','24':'MD','25':'MA','26':'MI','27':'MN','28':'MS','29':'MO','30':'MT','31':'NE','32':'NV','33':'NH','34':'NJ','35':'NM','36':'NY','37':'NC','38':'ND','39':'OH','40':'OK','41':'OR','42':'PA','44':'RI','45':'SC','46':'SD','47':'TN','48':'TX','49':'UT','50':'VT','51':'VA','53':'WA','54':'WV','55':'WI','56':'WY','72':'PR'};
+  const STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','PR'];
+  const CAT_LABELS = {crisis:'Crisis', food:'Food', shelter:'Shelter', housing:'Housing', legal_aid:'Legal aid', addiction:'Recovery', mental_health:'Mental health', pet_health:'Pet care', faith:'Faith'};
 
   const empty = document.getElementById('rdEmpty');
   const results = document.getElementById('rdResults');
   const catSelect = document.getElementById('rdCategory');
+  const stateSelect = document.getElementById('rdState');
+  const countyInput = document.getElementById('rdCounty');
+  const locChip = document.getElementById('rdLocChip');
+  const locText = document.getElementById('rdLocText');
+  const locErr = document.getElementById('rdLocErr');
+  const locateBtn = document.getElementById('rdLocate');
   let all = [];
 
+  STATES.forEach(function (s) {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    stateSelect.appendChild(opt);
+  });
+
+  /* ---------------- contact actions ---------------- */
+
+  function smsLink(textLine) {
+    /* "Text HOME to 741741" -> sms:741741?&body=HOME ; "66008" -> sms:66008 */
+    if (!textLine) return null;
+    const m = String(textLine).match(/text\s+(\w+)\s+to\s+([\d-]+)/i);
+    if (m) return 'sms:' + m[2].replace(/-/g, '') + '?&body=' + encodeURIComponent(m[1].toUpperCase());
+    const d = String(textLine).match(/([\d-]{5,})/);
+    if (d) return 'sms:' + d[1].replace(/-/g, '');
+    return null;
+  }
+
+  function actions(c) {
+    let h = '<div class="rd-actions">';
+    if (c.phone) {
+      const num = String(c.phone).match(/(\d[\d\s().-]+\d|\d{3})/);
+      const tel = num ? num[0].replace(/[^\d]/g, '') : '';
+      if (tel) h += '<a class="rd-act rd-act--call" href="tel:' + esc(tel) + '">Call ' + esc(c.phone) + '</a>';
+    }
+    const sms = smsLink(c.text_line);
+    if (sms) h += '<a class="rd-act rd-act--alt" href="' + esc(sms) + '">Text</a>';
+    if (c.email) h += '<a class="rd-act rd-act--alt" href="mailto:' + esc(c.email) + '">Email</a>';
+    if (c.website) h += '<a class="rd-act rd-act--alt" href="' + esc(c.website) + '" target="_blank" rel="noopener">Website</a>';
+    if (c.intake_url) h += '<a class="rd-act rd-act--alt" href="' + esc(c.intake_url) + '" target="_blank" rel="noopener">Get started</a>';
+    h += '</div>';
+    return h;
+  }
+
+  function detail(c) {
+    let h = '';
+    if (c.phone) h += '<div class="rd-detail">' + esc(c.phone) + '</div>';
+    if (c.text_line) h += '<div class="rd-detail">' + esc(c.text_line) + '</div>';
+    if (c.tty) h += '<div class="rd-detail">TTY ' + esc(c.tty) + '</div>';
+    if (c.address) {
+      h += '<div class="rd-detail">' + esc(c.address) + ' · <a href="https://www.google.com/maps/search/?api=1&query=' +
+           encodeURIComponent(c.address) + '" target="_blank" rel="noopener" style="color:var(--color-info);">directions</a></div>';
+    }
+    if (c.hours) h += '<div class="rd-meta">Hours: ' + esc(c.hours) + '</div>';
+    return h;
+  }
+
   function render(list) {
-    const emergency = list.filter((r) => EMERGENCY.test(r.category || ''));
-    const rest = list.filter((r) => !EMERGENCY.test(r.category || ''));
+    const emergency = list.filter((r) => EMERGENCY.test((r.category || '') + ' ' + (r.subcategory || '')));
+    const rest = list.filter((r) => !EMERGENCY.test((r.category || '') + ' ' + (r.subcategory || '')));
     const ordered = emergency.concat(rest);
     if (!ordered.length) {
       results.innerHTML = '';
       empty.hidden = false;
-      empty.textContent = 'Nothing matches — try a broader search, or the crisis page for immediate help.';
+      empty.textContent = 'Nothing matches nearby — try clearing the county, or 211 for local referrals.';
       return;
     }
     let html = '<div class="rd-count">' + ordered.length + ' resource' + (ordered.length === 1 ? '' : 's') + '</div>';
     ordered.forEach(function (r) {
       const c = r.contact_info || {};
-      const isEm = EMERGENCY.test(r.category || '');
+      const isEm = EMERGENCY.test((r.category || '') + ' ' + (r.subcategory || ''));
+      const cat = CAT_LABELS[r.category] || r.category || '';
+      const area = r.service_area || '';
       html += '<div class="rd-resource' + (isEm ? ' rd-resource--emergency' : '') + '">' +
         '<div class="rd-name">' + esc(r.name) + '</div>' +
-        '<div class="rd-cat">' + esc(r.category || '') + (r.service_area ? ' · ' + esc(r.service_area) : '') + '</div>' +
-        '<div class="rd-contact">' +
-          (c.phone ? '<a href="tel:' + esc(String(c.phone).replace(/[^0-9+]/g, '')) + '">' + esc(c.phone) + '</a>' : '') +
-          (c.phone && c.website ? ' · ' : '') +
-          (c.website ? '<a href="' + esc(c.website) + '" rel="noopener">' + esc(c.website) + '</a>' : '') +
-          (c.address ? '<br>' + esc(c.address) : '') +
+        '<div class="rd-cat">' + esc(cat) + (r.subcategory ? ' · ' + esc(r.subcategory.replace(/_/g, ' ')) : '') + (area ? ' · ' + esc(area) : '') + '</div>' +
+        '<div class="rd-badges">' +
+          (r.is_no_charge ? '<span class="rd-badge">No charge</span>' : '') +
+          (r.is_verified_nonprofit ? '<span class="rd-badge">Verified nonprofit</span>' : '') +
         '</div>' +
+        actions(c) + detail(c) +
         (r.languages && r.languages.length ? '<div class="rd-meta">Languages: ' + esc(r.languages.join(', ')) + '</div>' : '') +
       '</div>';
     });
@@ -137,38 +266,115 @@
     results.hidden = false;
   }
 
-  function applyFilters() {
-    const q = document.getElementById('rdSearch').value.trim().toLowerCase();
-    const cat = catSelect.value;
+  /* ---------------- fetch + filters ---------------- */
+
+  function query() {
+    const p = new URLSearchParams();
+    if (stateSelect.value) p.set('state', stateSelect.value);
+    const county = countyInput.value.trim();
+    if (county) p.set('county', county);
+    if (catSelect.value) p.set('category', catSelect.value);
     const lang = document.getElementById('rdLang').value.trim().toLowerCase();
+    if (lang) p.set('language', lang);
+    return p.toString() ? ('?' + p.toString()) : '';
+  }
+
+  function load() {
+    empty.hidden = false;
+    empty.textContent = 'Loading resources…';
+    results.hidden = true;
+    fetch('/api/resources' + query(), { credentials: 'include' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        all = (data && data.resources) || [];
+        applySearch();
+      })
+      .catch(function () {
+        empty.textContent = 'Could not load the directory. Call 211 for local referrals, or the crisis page for hotlines.';
+      });
+  }
+
+  function applySearch() {
+    const q = document.getElementById('rdSearch').value.trim().toLowerCase();
     let list = all;
-    if (cat) list = list.filter((r) => (r.category || '') === cat);
-    if (lang) list = list.filter((r) => (r.languages || []).map((l) => String(l).toLowerCase()).includes(lang));
     if (q) list = list.filter((r) =>
       (r.name || '').toLowerCase().includes(q) ||
       (r.category || '').toLowerCase().includes(q) ||
+      (r.subcategory || '').toLowerCase().includes(q) ||
       (r.service_area || '').toLowerCase().includes(q));
     render(list);
   }
 
-  document.getElementById('rdForm').addEventListener('submit', (e) => { e.preventDefault(); applyFilters(); });
-  catSelect.addEventListener('change', applyFilters);
+  /* ---------------- location ---------------- */
 
-  fetch('/api/resources', { credentials: 'include' })
-    .then((r) => r.ok ? r.json() : null)
-    .then((data) => {
-      all = (data && data.resources) || [];
-      const cats = [...new Set(all.map((r) => r.category).filter(Boolean))].sort();
-      cats.forEach(function (c) {
-        const opt = document.createElement('option');
-        opt.value = c; opt.textContent = c;
-        catSelect.appendChild(opt);
-      });
-      render(all);
-    })
-    .catch(function () {
-      empty.textContent = 'Could not load the directory. The crisis help page has phone numbers that always work.';
-    });
+  function setLoc(state, county, how) {
+    stateSelect.value = state || '';
+    if (county) countyInput.value = county;
+    if (state || county) {
+      locText.textContent = 'Showing help for ' +
+        (county ? county + ', ' : '') + (state || 'nationwide') +
+        (how === 'geo' ? ' (from your location)' : '');
+      locChip.dataset.on = '1';
+    }
+    locErr.removeAttribute('data-on');
+    load();
+  }
+
+  locateBtn.addEventListener('click', function () {
+    locErr.removeAttribute('data-on');
+    if (!navigator.geolocation) {
+      locErr.textContent = 'This browser cannot share location — pick your state and county below instead.';
+      locErr.dataset.on = '1';
+      return;
+    }
+    locateBtn.disabled = true;
+    locateBtn.textContent = 'Finding your county…';
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      fetch('https://geo.fcc.gov/api/census/area?lat=' + pos.coords.latitude +
+            '&lon=' + pos.coords.longitude + '&format=json')
+        .then((r) => r.json())
+        .then((data) => {
+          const res = data && data.results && data.results[0];
+          const st = res && FIPS[res.state_fips];
+          if (st) {
+            const county = res.county_name ? res.county_name.replace(/\s+(County|Parish|Borough|Census Area|city and borough)$/i, '') : '';
+            setLoc(st, county, 'geo');
+          } else {
+            locErr.textContent = 'Could not match that spot to a county — pick your state below.';
+            locErr.dataset.on = '1';
+          }
+        })
+        .catch(function () {
+          locErr.textContent = 'The county lookup is unreachable — pick your state below.';
+          locErr.dataset.on = '1';
+        })
+        .finally(function () {
+          locateBtn.disabled = false;
+          locateBtn.textContent = 'Use my location';
+        });
+    }, function () {
+      locErr.textContent = 'Location was not shared — no problem, pick your state and county below.';
+      locErr.dataset.on = '1';
+      locateBtn.disabled = false;
+      locateBtn.textContent = 'Use my location';
+    }, { timeout: 10000, maximumAge: 600000 });
+  });
+
+  document.getElementById('rdLocClear').addEventListener('click', function () {
+    stateSelect.value = '';
+    countyInput.value = '';
+    locChip.removeAttribute('data-on');
+    load();
+  });
+
+  document.getElementById('rdForm').addEventListener('submit', (e) => { e.preventDefault(); applySearch(); });
+  catSelect.addEventListener('change', load);
+  stateSelect.addEventListener('change', load);
+  countyInput.addEventListener('change', load);
+  document.getElementById('rdSearch').addEventListener('input', applySearch);
+  document.getElementById('rdLang').addEventListener('change', load);
+
+  load();
 })();
 </script>
 {% endblock %}

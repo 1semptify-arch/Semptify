@@ -1912,11 +1912,33 @@ class Resource(Base):
     # "Minnesota", "National"). Indexed for filtering.
     service_area: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
 
+    # Structured jurisdiction — powers "find help near me". All nullable:
+    # NULL state_code means the listing serves everywhere (national hotlines).
+    state_code: Mapped[str | None] = mapped_column(String(2), nullable=True, index=True)
+    county: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    city: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+
+    # Subcategory within a category (e.g., category="food",
+    # subcategory="meals" | "food_shelf" | "snap_help"). Free-form.
+    subcategory: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+
+    # Listing rule (Brad, 2026-09-21): a listing may be shown publicly only if
+    # it charges nothing (is_no_charge) OR is an officially verified nonprofit
+    # (is_verified_nonprofit). Both default False — unverified rows are stored
+    # for admin review but never surface publicly.
+    is_no_charge: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    is_verified_nonprofit: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+
+    # What the verification rests on — e.g. "lsc-grantee", "hud-approved",
+    # "gov-registry", "state-bar", "org-official-site", "samhsa".
+    verified_source: Mapped[str | None] = mapped_column(String(120), nullable=True)
+
     # Languages offered, stored as a JSON array of ISO-639-1 codes.
     # Examples: ["en", "es", "so", "hmn"]
     languages: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
 
-    # Contact points: JSON object {phone, email, website, address}
+    # Contact points: JSON object {phone, text_line, email, website, address,
+    # hours, tty, intake_url}
     contact_info: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     # Provenance and freshness

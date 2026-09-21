@@ -48,7 +48,14 @@ def _model_to_response(resource: ResourceModel) -> ResourceRead:
         id=resource.id,
         name=resource.name,
         category=resource.category,
+        subcategory=resource.subcategory,
         service_area=resource.service_area,
+        state_code=resource.state_code,
+        county=resource.county,
+        city=resource.city,
+        is_no_charge=bool(resource.is_no_charge),
+        is_verified_nonprofit=bool(resource.is_verified_nonprofit),
+        verified_source=resource.verified_source,
         languages=languages,
         contact_info=ResourceContactInfo(**contact),
         source=resource.source,
@@ -59,15 +66,41 @@ def _model_to_response(resource: ResourceModel) -> ResourceRead:
     )
 
 
+def _norm_county(value: str | None) -> str:
+    """Normalize a county name for loose matching ('Hennepin County' -> 'hennepin')."""
+    if not value:
+        return ""
+    v = value.strip().lower()
+    for suffix in (" county", " parish", " borough", " census area", " city and borough"):
+        if v.endswith(suffix):
+            v = v[: -len(suffix)]
+    return v.strip()
+
+
+def _visible(resource: ResourceModel) -> bool:
+    """Public-listing rule: only no-charge or officially verified nonprofits."""
+    return bool(resource.is_no_charge) or bool(resource.is_verified_nonprofit)
+
+
 @router.get("/api/resources", response_model=ResourceListResponse)
 async def list_resources(
     category: str | None = Query(None, description="Filter by resource category"),
+    subcategory: str | None = Query(None, description="Filter by resource subcategory"),
     service_area: str | None = Query(None, description="Filter by geographic service area"),
+    state: str | None = Query(None, description="Two-letter state code — matches that state plus nationwide listings"),
+    county: str | None = Query(None, description="County name — narrows a state search to county + statewide + nationwide listings"),
     language: str | None = Query(None, description="Filter by offered language code (ISO-639-1)"),
     include_inactive: bool = Query(False, description="Include inactive listings (admin preview)"),
+    include_unverified: bool = Query(False, description="Include listings that fail the no-charge/verified-nonprofit rule (admin preview)"),
     stale_only: bool = Query(False, description="Only return stale (unverified) listings"),
 ):
-    """List active community resources, optionally filtered."""
+    """List active community resources, optionally filtered.
+
+    Public results only contain listings that charge nothing or are officially
+    verified nonprofits — that is the directory's admission rule. Jurisdiction
+    filtering is additive: a `state`/`county` search always keeps nationwide
+    listings (state_code IS NULL) since hotlines serve everyone.
+    """
     async with get_db_session() as session:
         query = select(ResourceModel)
 
@@ -75,6 +108,8 @@ async def list_resources(
             query = query.where(ResourceModel.is_active)
         if category:
             query = query.where(func.lower(ResourceModel.category) == category.lower())
+        if subcategory:
+            query = query.where(func.lower(ResourceModel.subcategory) == subcategory.lower())
         if service_area:
             query = query.where(func.lower(ResourceModel.service_area) == service_area.lower())
         if stale_only:
@@ -86,24 +121,40 @@ async def list_resources(
         result = await session.execute(query)
         resources = result.scalars().all()
 
+    state_code = state.strip().upper()[:2] if state else None
+    want_county = _norm_county(county)
+
     filtered = []
     for resource in resources:
+        if state_code:
+            # Nationwide listings (NULL state) always match; otherwise the row
+            # must be for this state — and when a county is given, the row must
+            # be statewide (no county set) or for that county.
+            if resource.state_code and resource.state_code.upper() != state_code:
+                continue
+            if want_county and resource.county and _norm_county(resource.county) != want_county:
+                continue
         if language:
             langs = resource.languages or []
             if isinstance(langs, str):
                 langs = json.loads(langs) if langs else []
             if language.lower() not in {lang.lower() for lang in langs}:
                 continue
+        if not include_unverified and not _visible(resource):
+            continue
         filtered.append(_model_to_response(resource))
 
     # Narrate only deliberate searches — a bare unfiltered list is page load,
     # not a search act.
-    if category or service_area or language:
+    if category or subcategory or service_area or state or county or language:
         event_bus.publish_sync(
             EventType.RESOURCE_SEARCHED,
             {
                 "category": category,
+                "subcategory": subcategory,
                 "service_area": service_area,
+                "state": state,
+                "county": county,
                 "language": language,
                 "results_count": len(filtered),
                 "narrator": {
@@ -124,7 +175,7 @@ async def get_resource(resource_id: str):
             select(ResourceModel).where(ResourceModel.id == resource_id, ResourceModel.is_active)
         )
         resource = result.scalar_one_or_none()
-        if not resource:
+        if not resource or not _visible(resource):
             raise HTTPException(status_code=404, detail="Resource not found")
         return _model_to_response(resource)
 
@@ -141,7 +192,14 @@ async def create_resource(data: ResourceCreate):
         id=make_id("res"),
         name=data.name,
         category=data.category,
+        subcategory=data.subcategory,
         service_area=data.service_area,
+        state_code=data.state_code.upper() if data.state_code else None,
+        county=data.county,
+        city=data.city,
+        is_no_charge=data.is_no_charge,
+        is_verified_nonprofit=data.is_verified_nonprofit,
+        verified_source=data.verified_source,
         languages=data.languages,
         contact_info=data.contact_info.model_dump() if data.contact_info else None,
         source=data.source,
@@ -228,11 +286,16 @@ def _parse_last_verified(raw: str | None) -> datetime | None:
 def _row_contact(row: dict[str, str]) -> dict[str, Any]:
     """Build contact_info JSON from CSV row columns."""
     contact: dict[str, Any] = {}
-    for key in ("phone", "email", "website", "address"):
+    for key in ("phone", "text_line", "email", "website", "address", "hours", "tty", "intake_url"):
         value = row.get(key, "").strip()
         if value:
             contact[key] = value
     return contact
+
+
+def _row_bool(row: dict[str, str], key: str) -> bool:
+    """Parse a truthy CSV cell (1/true/yes/y)."""
+    return (row.get(key) or "").strip().lower() in ("1", "true", "yes", "y")
 
 
 async def _find_existing(session, name: str, category: str, service_area: str | None) -> ResourceModel | None:
@@ -257,8 +320,10 @@ async def _find_existing(session, name: str, category: str, service_area: str | 
 async def import_resources_csv(file: UploadFile = File(...)):
     """Bulk import resources from a CSV file (admin network only).
 
-    Expected columns: name, category, service_area, languages, phone, email,
-    website, address, source, last_verified. `name` and `category` are required.
+    Expected columns: name, category, subcategory, service_area, state_code,
+    county, city, is_no_charge, is_verified_nonprofit, verified_source,
+    languages, phone, text_line, email, website, address, hours, tty,
+    intake_url, source, last_verified. `name` and `category` are required.
     Existing rows (matched by name + category + service_area) are updated.
     """
     if not file.filename or not file.filename.lower().endswith(".csv"):
@@ -289,6 +354,13 @@ async def import_resources_csv(file: UploadFile = File(...)):
                 continue
 
             service_area = (row.get("service_area") or "").strip() or None
+            subcategory = (row.get("subcategory") or "").strip() or None
+            state_code = (row.get("state_code") or "").strip().upper()[:2] or None
+            county = (row.get("county") or "").strip() or None
+            city = (row.get("city") or "").strip() or None
+            is_no_charge = _row_bool(row, "is_no_charge")
+            is_verified_nonprofit = _row_bool(row, "is_verified_nonprofit")
+            verified_source = (row.get("verified_source") or "").strip() or None
             languages = _normalize_languages(row.get("languages"))
             contact_info = _row_contact(row)
             source = (row.get("source") or "").strip() or None
@@ -301,6 +373,13 @@ async def import_resources_csv(file: UploadFile = File(...)):
             existing = await _find_existing(session, name, category, service_area)
             if existing:
                 existing.service_area = service_area
+                existing.subcategory = subcategory
+                existing.state_code = state_code
+                existing.county = county
+                existing.city = city
+                existing.is_no_charge = is_no_charge
+                existing.is_verified_nonprofit = is_verified_nonprofit
+                existing.verified_source = verified_source
                 existing.languages = languages
                 existing.contact_info = contact_info
                 existing.source = source
@@ -313,7 +392,14 @@ async def import_resources_csv(file: UploadFile = File(...)):
                     id=make_id("res"),
                     name=name,
                     category=category,
+                    subcategory=subcategory,
                     service_area=service_area,
+                    state_code=state_code,
+                    county=county,
+                    city=city,
+                    is_no_charge=is_no_charge,
+                    is_verified_nonprofit=is_verified_nonprofit,
+                    verified_source=verified_source,
                     languages=languages,
                     contact_info=contact_info,
                     source=source,
