@@ -17,6 +17,7 @@
   let ws = null;
   let reconnectAttempts = 0;
   let reconnectTimer = null;
+  let errorLogged = false;
   let isManualClose = false;
 
   // Event handlers registry
@@ -31,6 +32,7 @@
       ws.onopen = () => {
         console.log('[WebSocket] Connected');
         reconnectAttempts = 0;
+        errorLogged = false;
         emit('connected', { timestamp: new Date().toISOString() });
       };
 
@@ -51,7 +53,10 @@
       };
 
       ws.onerror = (error) => {
-        console.error('[WebSocket] Error:', error);
+        if (!errorLogged) {
+          console.error('[WebSocket] Error:', error);
+          errorLogged = true;
+        }
         emit('error', { error: 'WebSocket error occurred' });
       };
 
