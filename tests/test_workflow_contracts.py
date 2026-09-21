@@ -3,6 +3,33 @@ import pytest
 from app.services.positronic_brain import get_brain
 
 
+async def _seed_connected_user(user_id: str, role: str = "user") -> None:
+    """Persist a User row with the storage_connected gate marked.
+
+    /api/workflow/case-state reads gate state via get_onboarding_state()
+    (User.completed_groups) — a signed cookie alone is not enough to be a
+    "connected" user anymore. Seed the durable gate so the endpoint sees a
+    genuinely connected tenant.
+    """
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from app.core.database import get_engine
+    from app.models.models import User
+
+    session_factory = async_sessionmaker(get_engine(), expire_on_commit=False)
+    async with session_factory() as session:
+        session.add(
+            User(
+                id=user_id,
+                primary_provider="google_drive",
+                storage_user_id=user_id,
+                default_role=role,
+                completed_groups="storage_connected",
+            )
+        )
+        await session.commit()
+
+
 @pytest.mark.anyio
 async def test_workflow_route_returns_tenant_b2_when_documents_present(client):
     response = await client.post(
@@ -17,7 +44,7 @@ async def test_workflow_route_returns_tenant_b2_when_documents_present(client):
     assert response.status_code == 200
     payload = response.json()
     assert payload["next_process"] == "B2"
-    assert payload["next_route"] == "/home"
+    assert payload["next_route"] == "/tenant/start"
 
 
 @pytest.mark.anyio
@@ -35,7 +62,7 @@ async def test_workflow_route_infers_documents_present_from_overlay_ids(client):
     assert response.status_code == 200
     payload = response.json()
     assert payload["next_process"] == "B2"
-    assert payload["next_route"] == "/home"
+    assert payload["next_route"] == "/tenant/start"
 
 
 @pytest.mark.anyio
@@ -92,18 +119,19 @@ async def test_workflow_contract_endpoint_returns_functionx_contract(client):
 
 
 @pytest.mark.anyio
-async def test_root_renders_template_welcome_contract_link(client):
-    # The welcome contract link lives in the welcome page template
-    # (app/templates/pages/welcome.html). The /welcome.html route serves
-    # a static fallback; verify the template itself contains the contract
-    # link and "Process A" label.
+async def test_welcome_template_marks_process_a(client):
+    # The welcome page is the Process A entry point. Its template must exist
+    # and carry the "Process A" marker. The welcome contract itself is covered
+    # by test_workflow_contract_endpoint_returns_welcome_contract — the raw
+    # /api/workflow/contracts/welcome link was removed from the template in
+    # PR #273 because it dumped raw JSON on tenants.
     from pathlib import Path
 
     template_path = Path(__file__).parent.parent / "app" / "templates" / "pages" / "welcome.html"
     assert template_path.exists(), "welcome.html template must exist"
     text = template_path.read_text(encoding="utf-8")
-    assert "/api/workflow/contracts/welcome" in text
     assert "Process A" in text
+    assert "process_start_clicked" in text
 
 
 @pytest.mark.anyio
@@ -248,7 +276,7 @@ async def test_workflow_advance_infers_documents_present_from_overlay_ids(client
     payload = response.json()
     assert payload["status"] == "advance"
     assert payload["next_process"] == "B2"
-    assert payload["next_route"] == "/home"
+    assert payload["next_route"] == "/tenant/start"
 
 
 @pytest.mark.anyio
@@ -365,6 +393,8 @@ async def test_workflow_case_state_anonymous_user_returns_safe_defaults(client):
 async def test_workflow_case_state_connected_tenant_defaults_to_b1_without_docs(client):
     from app.core.cookie_auth import sign_user_id
 
+    await _seed_connected_user("GUtenant1234", role="user")
+
     response = await client.get(
         "/api/workflow/case-state",
         cookies={"semptify_uid": sign_user_id("GUtenant1234")},
@@ -386,6 +416,8 @@ async def test_workflow_case_state_connected_tenant_defaults_to_b1_without_docs(
 @pytest.mark.anyio
 async def test_workflow_case_state_professional_role_maps_to_b4(client):
     from app.core.cookie_auth import sign_user_id
+
+    await _seed_connected_user("GLlegal1234", role="legal")
 
     response = await client.get(
         "/api/workflow/case-state",
