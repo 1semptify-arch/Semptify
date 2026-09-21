@@ -1574,13 +1574,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     register_onboarding(fastapi_app, onboarding_config)
 
     # =========================================================================
-    # Vault Installer - Simple Direct Installation
-    # =========================================================================
-    from app.modules.vault_installer import register_vault_installer
-
-    register_vault_installer(fastapi_app)
-
-    # =========================================================================
     # Rate Limiting
     # =========================================================================
     from slowapi.errors import RateLimitExceeded
@@ -6316,18 +6309,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             status_code=404,
         )
 
-    # Vault Activation Page
+    # Vault Activation Page — retired with the duplicate /api/vault-installer/*
+    # surface (2026-09-21). Redirect to the onboarding smart entry so stale
+    # links land in the live setup flow instead of a dead page.
     @fastapi_app.get("/activate-vault", response_class=HTMLResponse)
     async def activate_vault_page():
-        """Serve the vault activation page."""
-
-        from fastapi.responses import FileResponse
-
-        page_path = BASE_PATH / "static" / "onboarding" / "activate-vault.html"
-        if page_path.exists():
-            return FileResponse(page_path)
-
-        return HTMLResponse("<h1>Vault activation page not found</h1>", status_code=404)
+        """Redirect the retired vault activation page to the onboarding entry."""
+        onboarding_stage = navigation.get_stage("onboarding_start")
+        onboarding_path = onboarding_stage.path if onboarding_stage else "/onboarding/start"
+        return ssot_redirect(onboarding_path, context="activate-vault legacy redirect")
 
     # =========================================================================
     # Health check â€” must return JSON, never HTML

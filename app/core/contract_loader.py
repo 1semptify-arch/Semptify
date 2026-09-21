@@ -168,7 +168,6 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.system_health.register",
     "app.modules.user_concerns.register",
     "app.modules.voice.register",
-    "app.modules.vault_installer.register",
     # Modules that recently gained register.py files (law_linker v2, sticky notes,
     # admin console consolidated register).
     "app.modules.law_linker.register",

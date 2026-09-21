@@ -1,17 +1,17 @@
 """
 Semptify Vault Installer
 
-A standalone installer that creates the Semptify vault structure
-directly in the user's OAuth-authorized storage provider.
+Library that creates the Semptify vault structure directly in the user's
+OAuth-authorized storage provider. Used by the canonical onboarding
+vault-setup flow at /onboarding/api/vault/*.
 
-No complex onboarding flow - just install the vault and activate.
+The duplicate /api/vault-installer/* HTTP surface was removed 2026-09-21 —
+/onboarding/api/vault/* is the single entry point (SSOT "one way in").
 """
 
 import logging
 
 from .installer import VaultInstaller, install_vault_folders_only, install_vault_for_user
-from .register import register_vault_installer
-from .routes import create_router
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,4 @@ __all__ = [
     "VaultInstaller",
     "install_vault_for_user",
     "install_vault_folders_only",
-    "create_router",
-    "register_vault_installer",
 ]
