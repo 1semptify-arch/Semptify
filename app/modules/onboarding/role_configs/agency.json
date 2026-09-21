@@ -31,7 +31,7 @@
       }
     ]
   },
-  "record_device_type": false,
+  "record_device_type": true,
   "privacy": {
     "visibility": "program_referrals",
     "logging": "standard",

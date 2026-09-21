@@ -57,7 +57,7 @@
       }
     ]
   },
-  "record_device_type": false,
+  "record_device_type": true,
   "privacy": {
     "visibility": "privileged_workspace",
     "logging": "standard",

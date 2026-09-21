@@ -30,7 +30,7 @@
       }
     ]
   },
-  "record_device_type": false,
+  "record_device_type": true,
   "privacy": {
     "visibility": "technical_workspace",
     "logging": "standard",
