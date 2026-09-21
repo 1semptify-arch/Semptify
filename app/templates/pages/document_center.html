@@ -15,6 +15,7 @@
 {% block styles %}
 {{ super() }}
 <link rel="stylesheet" href="/static/css/document-center.css?v=20260911-01">
+<link rel="stylesheet" href="/static/css/media-player.css?v=20260921-01">
 {% endblock %}
 
 {% block content %}
@@ -111,7 +112,7 @@
 
 <!-- Upload modal -->
 <div id="dcUploadModal" style="display:none; position:fixed; inset:0; background:color-mix(in srgb, var(--color-black), transparent 30%); z-index:100; align-items:center; justify-content:center;">
-    <div style="background:var(--zone-surface-2); padding:1.5rem; max-width:500px; width:90%;">
+    <div style="background:var(--zone-surface-2); padding:1.5rem; max-width:44rem; width:92%;">
         <h3 style="color:var(--text-primary); margin-bottom:1rem;">Upload a document</h3>
         <form id="dcUploadForm" enctype="multipart/form-data">
             <div id="dcDropZone" style="background:var(--zone-surface-1); padding:2rem; text-align:center; cursor:pointer; margin-bottom:1rem;">
@@ -119,6 +120,9 @@
                 <div id="dcDropHint" style="color:var(--text-muted); font-size:0.8125rem; margin-top:0.5rem;">Photos, letters, PDFs, screenshots — anything about your tenancy.</div>
             </div>
             <input type="file" id="dcFileInput" name="file" accept="*/*" style="display:none;">
+            <!-- Verify-before-upload: the file's actual content renders here
+                 the moment it is picked — before it ever reaches the vault. -->
+            <div id="dcUploadPreview" hidden style="margin-bottom:1rem; max-height:55vh; overflow:auto;"></div>
             <div id="dcUploadStatus" style="font-size:0.8125rem; color:var(--text-muted); margin-bottom:0.5rem;"></div>
             <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
                 <button type="button" id="dcUploadCancel" class="frame-btn">Cancel</button>
@@ -218,5 +222,9 @@
 {% block scripts %}
 <script src="/static/components/feedback.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="/static/js/vendor/mammoth.browser.min.js"></script>
+<script src="/static/js/vendor/jszip.min.js"></script>
+<script src="/static/js/docx_export.js?v=20260921-01"></script>
+<script src="/static/js/media_player.js?v=20260921-01"></script>
 <script src="/static/js/document_center.js"></script>
 {% endblock %}
