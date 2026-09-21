@@ -40,7 +40,7 @@
       }
     ]
   },
-  "record_device_type": false,
+  "record_device_type": true,
   "privacy": {
     "visibility": "staff_only",
     "logging": "audit",

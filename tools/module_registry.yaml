@@ -1580,20 +1580,6 @@
   last_result:
     health_check: 11 route(s), no exposure issues
     test_suite: 1 passed in 1.12s
-- id: routes
-  display_name: Vault Installer
-  category: advanced
-  tier: B
-  owner: brad
-  version: 1.0.0
-  module_path: app.modules.vault_installer.routes
-  health_check: tools.module_health.check_routes
-  test_suite: tests/module_health/test_routes.py
-  last_verified: '2026-08-21T22:43:00.536505+00:00'
-  status: ok
-  last_result:
-    health_check: 4 route(s), no exposure issues
-    test_suite: 1 passed in 1.19s
 - id: export_import
   display_name: Data Export/Import
   category: advanced

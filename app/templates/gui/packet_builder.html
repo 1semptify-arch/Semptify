@@ -152,7 +152,10 @@
   fetch('/api/dc/list', { credentials: 'include' })
     .then((r) => r.ok ? r.json() : null)
     .then((data) => {
-      const docs = (data && data.documents) || [];
+      // documents = confirmed/filed docs; pending_documents = stored files
+      // not yet through the confirm loop. The picker needs both — a stored
+      // file is still usable in a packet even if its fields are unanswered.
+      const docs = data ? [...(data.documents || []), ...(data.pending_documents || [])] : [];
       if (!docs.length) {
         docList.innerHTML = '<div class="pk-hint" style="padding: var(--space-2) var(--space-3);">No documents yet — <a href="/tenant/capture" style="color: var(--color-info);">add one first</a>.</div>';
         return;

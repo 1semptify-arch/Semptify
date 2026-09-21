@@ -1213,15 +1213,6 @@ _register(
     optional=True,
     dev_notes="Runtime state/event loop (nervous system). Distinct from context_engine (verified-facts + tenant-stories engine). Wired via main.py subscribe_context_loop_events().",
 )
-_register(
-    "app.modules.vault_installer.routes",
-    router_attr="router",
-    tags=("Vault Installer",),
-    tier=ProductTier.DEV,
-    lifecycle="stable",
-    optional=True,
-    dev_notes="Simple vault installation endpoints. Wired via main.py register_vault_installer(). Uses routes.py not router.py.",
-)
 
 # Phase 2 / internal utilities
 _register(

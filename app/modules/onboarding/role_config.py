@@ -152,4 +152,13 @@ def vault_spec_for_role(role_type: str | None) -> VaultFolderSpec:
     return _spec_from_config("tenant")
 
 
-__all__ = ["vault_spec_for_role"]
+def record_device_type_for_role(role_type: str | None) -> bool:
+    """True when the role's JSON config opts in to recording device_type.
+
+    Unknown roles fall back to tenant.json (which does not record), so the
+    safe default is False.
+    """
+    return bool(_load_json_config(role_type).get("record_device_type", False))
+
+
+__all__ = ["vault_spec_for_role", "record_device_type_for_role"]

@@ -266,7 +266,6 @@ Module paths below are shortened (`app.modules.` prefix dropped; `app.core.` sho
 | `example_payment_tracking` | `-` | dev_only |
 | `legal_filing_module` | `-` | dev_only |
 | `context_loop.router` | `-` | stable |
-| `vault_installer.routes` | `-` | stable |
 | `export_import.router` | `/api/export-import` | stable |
 | `testing.router` | `/api/testing` | stable |
 | `documentation.router` | `/api/docs` | stable |

@@ -1100,15 +1100,6 @@
       "narrative_event_count": 0
     },
     {
-      "module_path": "app.modules.vault_installer",
-      "contract_path": "app/modules/vault_installer/module_contract.json",
-      "module_name": "Vault Installer",
-      "output_type": "other",
-      "has_preview_state": false,
-      "has_review_state": false,
-      "narrative_event_count": 0
-    },
-    {
       "module_path": "app.modules.voice",
       "contract_path": "app/modules/voice/module_contract.json",
       "module_name": "Voice",

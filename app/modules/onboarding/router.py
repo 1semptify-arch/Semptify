@@ -358,6 +358,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # ------------------------------------------------------------------
     @router.post("/api/vault/init")
     async def vault_init(
+        request: Request,
         user: StorageUser = Depends(green_access),
         db: AsyncSession = Depends(get_db),
     ):
@@ -370,9 +371,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
         role_type = get_role_from_user_id(user.user_id)
 
-        from app.modules.onboarding.vault_check import VaultStatus, record_vault_check
+        from app.modules.onboarding.vault_check import VaultStatus, device_type_for_role, record_vault_check
 
-        await record_vault_check(db, user.user_id, VaultStatus.INITIALIZING)
+        device_type = device_type_for_role(request, role_type)
+        await record_vault_check(db, user.user_id, VaultStatus.INITIALIZING, device_type=device_type)
 
         if await check_gate(db, user.user_id, "vault_initialized"):
             logger.info("Vault init skipped: already initialized for user %s", user.user_id[:6] + "***")
@@ -409,6 +411,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # ------------------------------------------------------------------
     @router.post("/api/vault/security")
     async def vault_security(
+        request: Request,
         user: StorageUser = Depends(green_access),
         db: AsyncSession = Depends(get_db),
     ):
@@ -503,9 +506,14 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             # Folders (step 1) + token backup + probe all passed.
             await mark_gate(db, user.user_id, "vault_initialized")
 
-            from app.modules.onboarding.vault_check import VaultStatus, record_vault_check
+            from app.modules.onboarding.vault_check import VaultStatus, device_type_for_role, record_vault_check
 
-            await record_vault_check(db, user.user_id, VaultStatus.TEST_PENDING)
+            await record_vault_check(
+                db,
+                user.user_id,
+                VaultStatus.TEST_PENDING,
+                device_type=device_type_for_role(request, role_type),
+            )
 
             results["success"] = True
             logger.info("Step 2 complete — vault_initialized marked for user %s", user.user_id[:6] + "***")
@@ -543,6 +551,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         from app.modules.onboarding.gates import mark_gate
         from app.modules.onboarding.vault_check import (
             VaultStatus,
+            device_type_for_role,
             record_vault_check,
             run_vault_verification,
         )
@@ -550,9 +559,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
         role_type = get_role_from_user_id(user.user_id)
+        device_type = device_type_for_role(request, role_type)
         vault_service = VaultUploadService()
 
-        await record_vault_check(db, user.user_id, VaultStatus.VERIFYING)
+        await record_vault_check(db, user.user_id, VaultStatus.VERIFYING, device_type=device_type)
 
         # ── 1. Acquire the test document — posted in this request. The only
         #    upload moment in onboarding; nothing is held server-side. ────────
@@ -617,6 +627,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     VaultStatus.FAILED,
                     failed_check="test_file_present",
                     detail="Upload timed out",
+                    device_type=device_type,
                 )
                 return {"ok": False, "accessible": True, "error": "Upload timed out — please try again"}
             except Exception as e:
@@ -627,6 +638,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     VaultStatus.FAILED,
                     failed_check="test_file_present",
                     detail=str(e),
+                    device_type=device_type,
                 )
                 return {"ok": False, "accessible": True, "error": str(e)}
         else:
@@ -641,6 +653,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     user.user_id,
                     VaultStatus.TEST_PENDING,
                     detail="No document in vault — waiting for first upload",
+                    device_type=device_type,
                 )
                 return {"ok": False, "accessible": True, "error": "Please select a document to upload"}
             vault_doc = existing_docs[0]
@@ -709,7 +722,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         if verdict["verdict"] == "active":
             await mark_gate(db, user.user_id, "document_uploaded")
-            await record_vault_check(db, user.user_id, VaultStatus.ACTIVE, checks=checks)
+            await record_vault_check(
+                db, user.user_id, VaultStatus.ACTIVE, checks=checks, device_type=device_type
+            )
             logger.info(
                 "Final gate passed — '%s' seeded all systems for user %s",
                 original_name,
@@ -738,6 +753,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 failed_check=failed_check,
                 detail=detail,
                 checks=checks,
+                device_type=device_type,
             )
             logger.warning(
                 "Vault verification failed at check '%s' for user %s: %s",
@@ -754,7 +770,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 "vault_status": "failed",
             }
 
-        await record_vault_check(db, user.user_id, VaultStatus.VERIFYING, checks=checks)
+        await record_vault_check(
+            db, user.user_id, VaultStatus.VERIFYING, checks=checks, device_type=device_type
+        )
         return {
             "ok": False,
             "accessible": True,

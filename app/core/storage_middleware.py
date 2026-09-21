@@ -166,7 +166,6 @@ PUBLIC_PREFIXES = (
     "/api/eviction-defense/case-checklist/",
     "/onboarding/",  # All onboarding sub-routes public — new users have no cookie yet
     "/onboarding-assets/",  # Onboarding static files
-    "/api/vault-installer/",  # Vault installer — auth checked by route
     "/api/law-library/",  # Law library — public education content (page is already public)
     "/api/portal/",  # Portal services catalog — public, no auth (semptify.org guest portal)
     "/api/resources/",  # Resource directory — public read endpoints
