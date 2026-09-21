@@ -9,9 +9,13 @@ class ResourceContactInfo(BaseModel):
     """Contact points for a resource listing."""
 
     phone: str | None = None
+    text_line: str | None = None
     email: str | None = None
     website: str | None = None
     address: str | None = None
+    hours: str | None = None
+    tty: str | None = None
+    intake_url: str | None = None
 
 
 class ResourceBase(BaseModel):
@@ -19,7 +23,14 @@ class ResourceBase(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255)
     category: str = Field(..., min_length=1, max_length=100)
+    subcategory: str | None = Field(None, max_length=100)
     service_area: str | None = Field(None, max_length=255)
+    state_code: str | None = Field(None, max_length=2)
+    county: str | None = Field(None, max_length=120)
+    city: str | None = Field(None, max_length=120)
+    is_no_charge: bool = False
+    is_verified_nonprofit: bool = False
+    verified_source: str | None = Field(None, max_length=120)
     languages: list[str] = Field(default_factory=list)
     contact_info: ResourceContactInfo = Field(default_factory=ResourceContactInfo)
     source: str | None = Field(None, max_length=255)
@@ -36,7 +47,14 @@ class ResourceUpdate(BaseModel):
 
     name: str | None = Field(None, min_length=1, max_length=255)
     category: str | None = Field(None, min_length=1, max_length=100)
+    subcategory: str | None = Field(None, max_length=100)
     service_area: str | None = Field(None, max_length=255)
+    state_code: str | None = Field(None, max_length=2)
+    county: str | None = Field(None, max_length=120)
+    city: str | None = Field(None, max_length=120)
+    is_no_charge: bool | None = None
+    is_verified_nonprofit: bool | None = None
+    verified_source: str | None = Field(None, max_length=120)
     languages: list[str] | None = None
     contact_info: ResourceContactInfo | None = None
     source: str | None = Field(None, max_length=255)
