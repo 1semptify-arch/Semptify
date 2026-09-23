@@ -1,3 +1,35 @@
+## Session — 2026-09-23 — Public intro page: /document-everything (devin)
+
+**Brad's ask:** explain Semptify to new users from the "Document everything"
+motto viewpoint — public landing "hello world" intro, statistical facts tied
+to what readers can do whether or not they use Semptify.
+
+**What shipped (branch `feature/onboarding-solo-tenant`, PR #317):**
+- `app/templates/public/document_everything.html` — new standalone public
+  page (portal-registry pattern, extends `body/public_shell.html`). Written
+  via the semptify-article pipeline: Gate 1 source review, opening pick,
+  semptify-voice + humanizer passes. Content: motto hook → what the habit
+  looks like → two sourced stats (KC Eviction Project 70% default-loss;
+  Tenants Together >70% deposit win rate, both linked) → "whether or not you
+  use Semptify" → commitments → not-a-law-firm + HOME Line way-out →
+  Get help now CTA. AI-use disclosure comes from the global footer verbatim.
+- `app/modules/portal/pages.py` — registered `/document-everything`
+  (in footer, label "Document everything", order 8; in sitemap).
+- **Language-rule fixes in the same file (flagged, fixed):** `services` and
+  `tools` entries described Semptify itself with "free" — replaced with
+  "no-cost" per the non-negotiable language rule.
+- `SEMPTIFY_REFERENCE_LIBRARY.md` §17 (master repo) — "Document everything."
+  recorded as the org motto, canonical 2026-09-23, distinct from the
+  "Tenant rights, documented." tagline.
+
+**Verified live:** `/document-everything` → 200, renders at 1280px and
+375px (screenshots), all 4 links resolve, 0 console errors, AI disclosure
+present in footer.
+
+**Note:** existing `welcome.html` untouched — this is a new sibling public
+page, not a replacement. Suggested next: link it from the landing hero or
+`/about` for discoverability (not done — additive-link decision is Brad's).
+
 ## Session — 2026-09-23 — Legal UI epic slice 2: mutual-consent sharing + scoped access (devin)
 
 **Task `legal-ui-epic-2026-09-23` slice 2.** Sharing page `/tenant/my-advocate` rebuilt around the real consent flow; this is now THE access mechanism under the tenant-only model — a share grant, not a role, is what lets a helper see anything.
