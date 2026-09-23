@@ -1,3 +1,21 @@
+## Session — 2026-09-23 — Legal UI epic slice 2: mutual-consent sharing + scoped access (devin)
+
+**Task `legal-ui-epic-2026-09-23` slice 2.** Sharing page `/tenant/my-advocate` rebuilt around the real consent flow; this is now THE access mechanism under the tenant-only model — a share grant, not a role, is what lets a helper see anything.
+
+**What shipped (branch `feature/onboarding-solo-tenant`, PR #317):**
+- `app/modules/advocate/router.py` — mutual consent both directions: tenant-initiated `POST /link-request` (helper must accept; was previously instant-link) and helper-initiated intake (`pending_incoming`, tenant approves/declines via `POST /my-advocates/{id}/respond`). Scope stored in `rel.context["access_scope"]` (`mode: all|selected`, `document_ids`, `share_timeline`); tenant can narrow/revoke live via `PUT /my-advocates/{id}/scope` and `DELETE /my-advocates/{id}`. `link-request` role check replaced with an existence check — the share target is another tenant identity now, not a role. Every grant/deny/change writes `DocumentAccessLog`.
+- `app/templates/pages/tenant_my_advocate.html` — rewired to the real endpoints, chronological zone order per `.cursor/rules/01`: pending decisions (both directions) → Share Your ID → Ask Someone to Help (scope radio + doc picker + timeline toggle) → People With Access (per-row Change access inline editor / Remove) → Who Has Seen My Case (audit feed).
+- `tests/test_advocate_sharing.py` — 17 tests: consent both directions, scope enforcement, audit surface.
+- **Bug found + fixed in verify**: `loadShareableDocs` cached its result — an empty first fetch stayed empty forever (new uploads invisible). Now always fetched fresh.
+- **Bug found + fixed in verify**: `.page-header` collided with the SSOT dark-hero band (dark text on dark gradient, illegible) — renamed to scoped `.page-head`. ~14 sibling templates have the same collision → intake `intake-84ed2ffc`.
+- **Mobile fix**: `.advocate-row` now wraps actions to their own line ≤560px — IDs were collapsing to one-char-per-line. Log rows stack.
+
+**Verified live** (seeded `semptify.db`: tenant `GUuitenant01`, helper `GUuihelper01`, requester `GUuiother001`, 3 docs incl. 1 privileged): page renders all zones; approve incoming request end-to-end → relationship active, audit row appears; Change access → picker shows only shareable docs (privileged doc listed disabled with reason); save narrows scope to `selected`+`share_timeline` (DB-verified in `context` JSON); UI shows "1 document + timeline"; audit logs "You changed what is shared". 375px + 1280px screenshots clean.
+
+**Tests:** 25/25 (17 sharing + 8 solo-tenant).
+
+**Noticed but not fixed (intake):** `intake-84ed2ffc` page-header collision ×14 templates; `intake-262cee53` footer disclaimer near-invisible/cramped; `intake-0f46b5af` `ws/events` 404 retry spam from websocket-client.js.
+
 ## Session — 2026-09-23 — Stateless tenant-only: roles and role gates removed (devin)
 
 **Brad's direction (verbatim):** "i do not want any one other then tenant i want it to be a stateless no access to any rolr but tenant i will have shareensbled by tenant thats it i want the gates per role totaky gone the option do not delete any modukes" — and "none arer to be gated ther is no other role otherthan tenant" / "nit just disabled non exisyant."
