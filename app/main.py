@@ -1553,18 +1553,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     onboarding_config = OnboardingConfig(
         product_name="Semptify Tenant Rights",
-        allowed_roles=[
-            "tenant",
-            "admin",
-            "advocate",
-            "legal",
-            "manager",
-            "multi_client_advocate",
-            "donor_supporter",
-            "researcher",
-            "agency",
-            "developer",
-        ],
+        # ONBOARDING SOLO (2026-09-23): tenant only — pro roles onboard via a
+        # separate add-on repo or the invite-gated /api/storage/role switch.
+        allowed_roles=["tenant"],
         allowed_providers=["google_drive", "dropbox", "onedrive"],
         on_complete_redirect="/home",
         # Disable duplicate gate middleware â€” StorageRequirementMiddleware already

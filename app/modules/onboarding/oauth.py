@@ -25,20 +25,15 @@ from app.modules.onboarding.gates import mark_gate
 
 logger = logging.getLogger(__name__)
 
+# ONBOARDING SOLO (Brad, 2026-09-23): this module onboards tenants ONLY.
+# Every account created through OAuth here is a tenant account — there is no
+# role parameter that can mint advocate/legal/manager/admin. Professional-role
+# onboarding is a separate add-on (different repo, networked later); elevation
+# inside this repo happens only through invite-gated paths
+# (storage /api/storage/role switch, role_upgrade module).
 ALLOWED_ROLES = {
     "tenant",
-    "advocate",
-    "legal",
-    "admin",
-    "manager",
-    "user",
-    # role_configs/{key}.json keys — each config key is a real role
-    "multi_client_advocate",
-    "donor_supporter",
-    "researcher",
-    "research",
-    "agency",
-    "developer",
+    "user",  # legacy alias for tenant
 }
 
 

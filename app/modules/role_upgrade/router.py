@@ -143,16 +143,17 @@ async def request_role_upgrade(request: RoleUpgradeRequest, user: UserContext | 
             status_code=403, detail="Admin role cannot be requested via API. Contact system administrator."
         )
 
-    # TEMPORARY: Professional roles coming soon (Q3 2026)
-    # SSOT for role availability is onboarding/select-role.html
+    # ONBOARDING SOLO (Brad, 2026-09-23): professional roles do not exist in
+    # this repo's onboarding — they arrive via a separate add-on (different
+    # repo) or the invite-gated /api/storage/role switch. Self-serve upgrade
+    # requests stay closed.
     if requested_role in (UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER):
         raise HTTPException(
             status_code=503,
             detail={
-                "error": "coming_soon",
-                "message": f"The {requested_role.value} role is launching Q3 2026.",
+                "error": "invite_only",
+                "message": f"The {requested_role.value} role is available by invitation only.",
                 "available_now": ["tenant"],
-                "note": "SSOT: static/onboarding/select-role.html shows current availability",
             },
         )
 

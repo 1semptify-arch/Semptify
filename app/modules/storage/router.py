@@ -101,6 +101,15 @@ OAUTH_CONFIGS = {
 
 OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
+# ONBOARDING SOLO (Brad, 2026-09-23): OAuth can only ever MINT tenant
+# accounts. Any role value arriving via ?role=, OAuth state, or the connect
+# page that is not in MINTABLE_ROLES is demoted to tenant before a user_id
+# is generated — there is no URL or state path to a professional account.
+MINTABLE_ROLES = {"tenant", "user"}
+
+# Roles the /role switch endpoint recognizes — it is the deliberate,
+# invite-gated elevation path (invite codes for advocate/legal, PIN for
+# admin, household gate for manager), NOT self-serve onboarding.
 ALLOWED_ROLES = {
     "user",
     "tenant",
@@ -757,13 +766,13 @@ async def storage_connect(
 ):
     """
     Entry point for NEW users only.
-    Shows provider selection for users who have selected a role.
+    Shows provider selection for the onboarding user.
 
     Args:
-        role: The role selected by the user (tenant, manager, advocate, etc.)
+        role: Carried through OAuth state (tenant only — onboarding solo).
     """
-    # Validate role
-    if role not in ALLOWED_ROLES:
+    # Onboarding solo: only tenant/user can flow into OAuth state
+    if role not in MINTABLE_ROLES:
         role = "tenant"
 
     # Store role in session/temp storage for OAuth flow
@@ -1081,7 +1090,7 @@ def _generate_providers_html(
         """
 
     auth_params: dict[str, str] = {}
-    if role in ALLOWED_ROLES:
+    if role in MINTABLE_ROLES:
         auth_params["role"] = role
     if from_source:
         auth_params["from"] = from_source
@@ -1525,10 +1534,12 @@ async def initiate_oauth(
         # For returning users, extract role from their existing user ID.
         # existing_uid may be a plain UID (HMAC already stripped by reconnect),
         # so use parse_user_id which handles both signed and plain formats.
+        role_from_identity = False
         if existing_uid:
             _, extracted_role, _ = parse_user_id(existing_uid)
             if extracted_role:
                 role = extracted_role
+                role_from_identity = True
                 logger.debug("Returning user (existing_uid) - extracted role '%s'", role)
 
         if not role:
@@ -1537,14 +1548,18 @@ async def initiate_oauth(
             if cookie_uid and is_valid_storage_user(cookie_uid):
                 _, extracted_role, _ = parse_user_id(cookie_uid)
                 role = extracted_role or "tenant"
+                role_from_identity = True
                 logger.debug("Returning user (cookie) - extracted role '%s'", role)
-            else:
-                role = (role or "tenant").strip().lower()
-                if role not in ALLOWED_ROLES:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Invalid role '{role}'. Allowed roles: {sorted(ALLOWED_ROLES)}",
-                    )
+
+        # Onboarding solo: a role that did not come from a verified identity
+        # (existing_uid / signed cookie) is just a URL parameter — it can only
+        # be tenant/user. Extracted pro roles pass through for reauth; param
+        # roles like ?role=legal demote so they can never reach OAuth state.
+        if not role_from_identity:
+            role = (role or "tenant").strip().lower()
+            if role not in MINTABLE_ROLES:
+                logger.info("OAuth init: non-identity role '%s' demoted to tenant", role)
+                role = "tenant"
 
         # Keep returning-user reauth bound to the current browser cookie.
         # cookie_uid is the raw signed value (user_id.hmac); existing_uid from the URL
@@ -1815,7 +1830,7 @@ async def oauth_callback(
                 else:
                     # Completely new user - generate new ID
                     role = (state_data.get("role") or "tenant").strip().lower()
-                    if role not in ALLOWED_ROLES:
+                    if role not in MINTABLE_ROLES:
                         role = "tenant"
                     user_id = generate_user_id(provider, role)
                     logger.info(f"🆕 OAuth callback: New user (existing_uid didn't match OAuth subject): {user_id}")
@@ -1829,8 +1844,16 @@ async def oauth_callback(
                 state_role = (state_data.get("role") or "").strip().lower()
                 db_role = (matched_user.default_role or "tenant").strip().lower()
                 # If a higher-privilege role was requested via state AND the user is already
-                # registered (e.g. admin re-connecting OAuth), update their stored role
-                if state_role and state_role != db_role and state_role in ALLOWED_ROLES:
+                # registered (e.g. admin re-connecting OAuth), update their stored role.
+                # Onboarding solo: OAuth state can never carry or change a professional
+                # role — both sides must be mintable, so a tampered state can't elevate
+                # (and can't accidentally downgrade a pro user either).
+                if (
+                    state_role
+                    and state_role != db_role
+                    and state_role in MINTABLE_ROLES
+                    and db_role in MINTABLE_ROLES
+                ):
                     matched_user.default_role = state_role
                     await db.commit()
                     role = state_role
@@ -1843,7 +1866,7 @@ async def oauth_callback(
             else:
                 # New user - generate ID encoding provider + role
                 role = (state_data.get("role") or "tenant").strip().lower()
-                if role not in ALLOWED_ROLES:
+                if role not in MINTABLE_ROLES:
                     role = "tenant"
                 user_id = generate_user_id(provider, role)
                 logger.info(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role})")

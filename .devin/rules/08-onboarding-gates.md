@@ -6,6 +6,17 @@ description: Onboarding gate system and module status
 
 Canonical implementation lives in `app/modules/onboarding/`.
 
+## ONBOARDING SOLO (Brad, 2026-09-23)
+
+This module is **tenant-only**. There is no role selection — every account
+created through onboarding is a tenant (`oauth.py ALLOWED_ROLES =
+{"tenant","user"}`; `storage/router.py MINTABLE_ROLES` gates every
+new-account minting point). Professional roles (advocate, legal, manager,
+admin) are onboarded through a **separate add-on in another repo**, networked
+later — do not re-add a role picker here. The only in-repo elevation path is
+the invite-gated `/api/storage/role` switch (invite code for advocate/legal,
+PIN for admin).
+
 ## Gates (three — declared in `app/modules/onboarding/config.py`)
 
 1. `storage_connected` — OAuth completed to the user's cloud drive.

@@ -15608,3 +15608,36 @@ sessions); embedded images are dropped from edited exports (noted to user).
   while (support ticket clears it); old SHAs referenced in BUILD_STATE/PR
   timelines now point nowhere; all clones must re-clone. Render needs
   `INVITE_CODES` env var set before new advocate/legal codes are issued.
+
+## 2026-09-23 — ONBOARDING SOLO: tenant-only onboarding (Brad directive)
+
+- Role selection removed entirely — onboarding is tenant-only. Pro-role
+  onboarding is a separate add-on (different repo), networked later.
+- Deleted: `app/templates/pages/role_selection.html` (was live at
+  `/choose-role` via page_router manifest), dead Jinja
+  `app/templates/pages/welcome.html` (had a role select; live welcome is
+  `static/public/welcome.html`), `static/onboarding/validation/validate-*.html`
+  (dead invite pages; intake 95e902bf already flagged them).
+- `navigation.py` `role_select` stage repointed to `/onboarding/providers`;
+  preamble and `/onboarding/start` follow it automatically. Legacy URLs
+  `/select-role.html`, `/role-select`, `/onboarding/select-role` redirect.
+- `onboarding/oauth.py` `ALLOWED_ROLES` → {tenant, user}.
+- `storage/router.py` new `MINTABLE_ROLES` = {tenant, user} gates every
+  new-account minting point; a URL `role` param that did not come from a
+  verified identity (existing_uid/signed cookie) demotes to tenant —
+  closes a real bypass where `/storage/auth/<p>?role=legal` wrote 'legal'
+  into OAuth state. State can also no longer overwrite `default_role` on
+  an existing account (both sides must be mintable — also fixes a latent
+  pro-role downgrade on reconnect).
+- `/api/storage/role` switch unchanged — invite-gated elevation path
+  (invite code for advocate/legal, PIN for admin).
+- `role_upgrade` 503 detail updated (invite_only, no stale SSOT pointer);
+  `main.py` onboarding `allowed_roles` → ["tenant"] (dead config narrowed).
+- `page_manifest`: `role_selection` entry removed (kills `/choose-role`
+  route — now 404); welcome entry corrected to the static source.
+- Verified live: all entries land on `/onboarding/providers` (zero role
+  mentions), tampered `?role=legal` stores `tenant` in `oauth_states` on
+  both onboarding and storage OAuth paths, 0 console errors.
+- Tests: `tests/test_onboarding_solo_tenant.py` 6/6 green.
+- NOT in this change: in-progress advocate slice-2 edits in
+  `app/modules/advocate/router.py` remain uncommitted.

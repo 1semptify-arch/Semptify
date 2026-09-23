@@ -90,10 +90,14 @@ class NavigationRegistry:
             id="preamble", name="Preamble", path="/preamble", next_stage="role_select", requires_checkpoint=False
         ),
         "welcome": FlowStage(id="welcome", name="Welcome", path="/", next_stage="preamble", requires_checkpoint=False),
+        # ONBOARDING SOLO (Brad, 2026-09-23): no role selection exists — every
+        # onboarding user is a tenant. The "role_select" stage id is kept as
+        # the wiring token (preamble/telemetry reference it) but now points
+        # straight at provider selection.
         "role_select": FlowStage(
             id="role_select",
-            name="Select Role",
-            path="/onboarding/select-role.html",  # Served by router, shadowing static
+            name="Get Started",
+            path="/onboarding/providers",
             next_stage="storage_select",
             requires_checkpoint=True,
         ),
