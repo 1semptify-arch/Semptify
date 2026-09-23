@@ -121,3 +121,28 @@ register_function_group(
         deterministic=False,
     )
 )
+register_function_group(
+    FunctionGroupContract(
+        module="unified_overlays",
+        group_name="unified_overlays_add_footnote",
+        title="Unified_Overlays Add Footnote (POST) (SSOT)",
+        description="POST /annotations/footnote",
+        inputs=(),
+        outputs=("result",),
+        dependencies=("app.modules.unified_overlays.router",),
+        deterministic=False,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="unified_overlays",
+        group_name="unified_overlays_color_key",
+        title="Unified_Overlays Document Color Key (GET/PUT) (SSOT)",
+        description="GET/PUT /annotations/color-key — per-document legend mapping highlight colors to meanings",
+        inputs=(),
+        outputs=("result",),
+        dependencies=("app.modules.unified_overlays.router",),
+        deterministic=False,
+    )
+)

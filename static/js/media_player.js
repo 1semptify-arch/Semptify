@@ -66,7 +66,14 @@
 
         var player = {
             kind: 'other', root: root, surface: surface,
-            _docEl: null, _editable: false, _source: null,
+            _docEl: null, _textEl: null, _editable: false, _source: null,
+
+            /* The element whose text nodes represent the document body —
+               docx (.mp__doc) or plain text (.mp__text). Used by the
+               annotation/color-key layer to paint highlights. */
+            getContentRoot: function () {
+                return player._docEl || player._textEl || null;
+            },
 
             say: function (msg, tone) {
                 status.style.display = msg ? '' : 'none';
@@ -186,7 +193,9 @@
             } else if (kind === 'text') {
                 var b2 = await blob();
                 var txt = await b2.text();
-                surface.appendChild(el('pre', 'mp__text', txt.slice(0, 400000)));
+                var pre = el('pre', 'mp__text', txt.slice(0, 400000));
+                player._textEl = pre;
+                surface.appendChild(pre);
                 if (txt.length > 400000) player.say('Showing the first part of a large file.');
             } else if (kind === 'image') {
                 var b3 = await blob();

@@ -59,6 +59,11 @@ class OverlayType(str, Enum):
     TRACKED_EDIT = "tracked_edit"
     """Suggested text change (insert, delete, replace)."""
 
+    DOCUMENT_KEY = "document_key"
+    """Per-document color legend — maps highlight colors to plain-English
+    meanings (payload: {colors: {yellow: 'evidence', ...}}). One per document;
+    travels with the document so shared/co-viewed renders stay meaningful."""
+
     # ==========================================================================
     # 4. FORM-FILL (Jurisdiction-specific legal forms)
     # ==========================================================================
@@ -195,6 +200,7 @@ ANNOTATION_OVERLAYS: set[OverlayType] = {
     OverlayType.STICKY_NOTE,
     OverlayType.FOOTNOTE,
     OverlayType.TRACKED_EDIT,
+    OverlayType.DOCUMENT_KEY,
 }
 
 FORM_OVERLAYS: set[OverlayType] = {
