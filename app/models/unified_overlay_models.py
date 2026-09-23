@@ -77,10 +77,13 @@ class UnifiedOverlay(BaseModel):
 
 
 class TextRange(BaseModel):
-    """Position reference in document."""
+    """Position reference in document.
 
-    start_offset: int
-    end_offset: int
+    Offsets default to 0 — several callers anchor by `text` quote or
+    page/x/y coordinates instead of character offsets."""
+
+    start_offset: int = 0
+    end_offset: int = 0
     text: str | None = None  # Selected text (for verification)
     page: int | None = None  # For PDFs
     paragraph: int | None = None  # For text documents

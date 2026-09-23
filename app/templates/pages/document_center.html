@@ -57,11 +57,28 @@
             <button type="button" class="frame-btn dc-annot-tool" data-tool="reference" style="padding:0.25rem 0.5rem; font-size:0.75rem;">▸ Reference</button>
             <button type="button" class="frame-btn dc-annot-tool" data-tool="none" style="padding:0.25rem 0.5rem; font-size:0.75rem;">✕ Cancel</button>
             <button type="button" class="frame-btn" id="dcWordBoxToggle" style="padding:0.25rem 0.5rem; font-size:0.75rem; display:none;">◆ Word highlights</button>
+            <button type="button" class="frame-btn" id="dcColorKeyBtn" style="padding:0.25rem 0.5rem; font-size:0.75rem;">◆ Color key</button>
         </div>
     </div>
 
     <!-- Field-verify strip: the "is this right?" walk rides above the evidence -->
     <div id="dcFieldWalk" class="dc-fieldwalk" hidden></div>
+
+    <!-- Color key: what each highlight color means on this document,
+         and a jump list to every marked passage. -->
+    <div id="dcColorKey" class="dc-colorkey" hidden>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <h2 style="flex:1;">Color key</h2>
+            <button type="button" class="frame-btn" id="dcColorKeySave" style="padding:0.125rem 0.5rem; font-size:0.75rem;">Save meanings</button>
+            <button type="button" class="frame-btn" id="dcColorKeyClose" style="padding:0.125rem 0.5rem; font-size:0.75rem;" aria-label="Close color key">✕</button>
+        </div>
+        <h3>What each color means on this document</h3>
+        <div id="dcColorKeyColors"></div>
+        <h3>Marked passages</h3>
+        <div id="dcColorKeyPassages"></div>
+        <h3 id="dcColorKeyFnHead" style="display:none;">Footnotes</h3>
+        <div id="dcColorKeyFootnotes"></div>
+    </div>
 
     <!-- The document in focus owns the body of the surface -->
     <div id="dcViewer" class="dc-viewer">
@@ -226,5 +243,5 @@
 <script src="/static/js/vendor/jszip.min.js"></script>
 <script src="/static/js/docx_export.js?v=20260921-01"></script>
 <script src="/static/js/media_player.js?v=20260921-01"></script>
-<script src="/static/js/document_center.js"></script>
+<script src="/static/js/document_center.js?v=20260923-02"></script>
 {% endblock %}

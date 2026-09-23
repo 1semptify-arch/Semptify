@@ -1362,6 +1362,47 @@ class VaultAuditLog(Base):
     vault_item: Mapped["VaultItem"] = relationship(back_populates="audit_logs")
 
 
+class DocumentAccessLog(Base):
+    """
+    Access audit trail for cross-party document access.
+
+    Records every time a non-owner (advocate, legal sub-role, admin) lists,
+    views, annotates, reviews, or deletes an overlay on a tenant's document.
+    Covers the `documents` table (string ids) which `VaultAuditLog` cannot
+    reference — VaultAuditLog is keyed to `vault_items.item_id`.
+
+    Rows are append-only: no API exposes update or delete.
+    """
+
+    __tablename__ = "document_access_logs"
+
+    log_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
+    actor_user_id: Mapped[str] = mapped_column(String(128), index=True)
+    """Who performed the access (advocate/legal/admin user_id)."""
+
+    actor_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    """Role at time of access: advocate, legal, admin."""
+
+    tenant_user_id: Mapped[str] = mapped_column(String(128), index=True)
+    """The tenant whose file was accessed."""
+
+    document_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    """Specific document, or null for list-level actions."""
+
+    action: Mapped[str] = mapped_column(
+        String(50), comment="list_documents, view_overlays, annotate, review, delete_overlay, access_denied"
+    )
+
+    outcome: Mapped[str] = mapped_column(String(20), default="ok")
+    """ok or denied."""
+
+    detail: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    """Short context: overlay_type, review status, deny reason."""
+
+    timestamp: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, index=True)
+
+
 # =============================================================================
 # Invite Code Model - For Advocate/Legal Role Validation
 # =============================================================================

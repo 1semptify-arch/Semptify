@@ -335,3 +335,161 @@ async def add_note(
     manager = await get_unified_overlay_manager(storage, user.user_id)
 
     return await manager.create_overlay(request)
+
+
+@router.post("/annotations/footnote")
+async def add_footnote(
+    document_id: str,
+    vault_path: str,
+    number: int,
+    range_data: dict,
+    content: str,
+    citation: str | None = None,
+    user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> CreateOverlayResponse:
+    """Convenience endpoint to add a numbered footnote anchored to text."""
+    from app.models.unified_overlay_models import FootnotePayload, TextRange
+
+    payload = FootnotePayload(
+        number=number,
+        range=TextRange(**range_data),
+        content=content,
+        citation=citation,
+    ).dict()
+
+    request = CreateOverlayRequest(
+        overlay_type=OverlayType.FOOTNOTE,
+        document_id=document_id,
+        vault_path=vault_path,
+        payload=payload,
+    )
+
+    storage = await get_storage_client(user, db, settings)
+    manager = await get_unified_overlay_manager(storage, user.user_id)
+
+    return await manager.create_overlay(request)
+
+
+# =============================================================================
+# Document Color Key (DOCUMENT_KEY overlay)
+# =============================================================================
+
+DEFAULT_COLOR_KEY: dict[str, str] = {
+    "yellow": "Key evidence",
+    "red": "Contradiction",
+    "blue": "Date or deadline",
+    "green": "Money",
+    "orange": "Notice or warning",
+    "purple": "Personal note",
+}
+
+ALLOWED_KEY_COLORS = set(DEFAULT_COLOR_KEY)
+
+
+@router.get("/annotations/color-key")
+async def get_color_key(
+    document_id: str,
+    user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Get a document's color key — colors mapped to plain-English meanings.
+
+    Returns the stored DOCUMENT_KEY overlay if one exists, otherwise the
+    default palette so callers can render a legend immediately.
+    """
+    storage = await get_storage_client(user, db, settings)
+    manager = await get_unified_overlay_manager(storage, user.user_id)
+
+    result = await manager.get_overlays(
+        document_id=document_id,
+        overlay_type=OverlayType.DOCUMENT_KEY,
+        created_by=user.user_id,
+    )
+
+    for overlay in result.overlays:
+        colors = (overlay.payload or {}).get("colors")
+        if isinstance(colors, dict):
+            merged = {**DEFAULT_COLOR_KEY, **{k: str(v) for k, v in colors.items() if k in ALLOWED_KEY_COLORS}}
+            return {
+                "success": True,
+                "document_id": document_id,
+                "overlay_id": overlay.overlay_id,
+                "colors": merged,
+                "is_default": False,
+            }
+
+    return {
+        "success": True,
+        "document_id": document_id,
+        "overlay_id": None,
+        "colors": DEFAULT_COLOR_KEY,
+        "is_default": True,
+    }
+
+
+@router.put("/annotations/color-key")
+async def set_color_key(
+    document_id: str,
+    vault_path: str,
+    key_data: dict,  # {"colors": {yellow: "...", ...}}
+    user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """Create or update a document's color key (upsert).
+
+    Stored as a DOCUMENT_KEY overlay in the user's cloud vault — the original
+    document is never modified.
+    """
+    raw = (key_data or {}).get("colors") or {}
+    colors = {
+        str(k): str(v).strip()
+        for k, v in raw.items()
+        if k in ALLOWED_KEY_COLORS and str(v).strip()
+    }
+    if not colors:
+        raise HTTPException(status_code=400, detail="At least one color meaning is required")
+
+    storage = await get_storage_client(user, db, settings)
+    manager = await get_unified_overlay_manager(storage, user.user_id)
+
+    existing = await manager.get_overlays(
+        document_id=document_id,
+        overlay_type=OverlayType.DOCUMENT_KEY,
+        created_by=user.user_id,
+    )
+
+    if existing.overlays:
+        overlay_id = existing.overlays[0].overlay_id
+        ok = await manager.update_overlay(
+            overlay_id,
+            payload={"colors": colors},
+        )
+        if not ok:
+            raise HTTPException(status_code=400, detail="Failed to update color key")
+        return {
+            "success": True,
+            "document_id": document_id,
+            "overlay_id": overlay_id,
+            "colors": colors,
+            "updated": True,
+        }
+
+    response = await manager.create_overlay(
+        CreateOverlayRequest(
+            overlay_type=OverlayType.DOCUMENT_KEY,
+            document_id=document_id,
+            vault_path=vault_path,
+            payload={"colors": colors},
+        )
+    )
+    return {
+        "success": response.success,
+        "document_id": document_id,
+        "overlay_id": response.overlay_id,
+        "colors": colors,
+        "updated": False,
+    }

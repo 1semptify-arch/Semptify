@@ -18,7 +18,9 @@ All endpoints require advocate role (verified via user_id cookie).
 import logging
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
+from sqlalchemy import func, select
 
 from app.core.database import get_db_session
 from app.core.request_utils import require_request_user_id
@@ -27,6 +29,7 @@ from app.core.user_id import get_provider_from_user_id
 from app.core.utc import utc_now
 from app.models.models import (
     Document,
+    DocumentAccessLog,
     RelationshipType,
     User,
     UserRelationship,
@@ -46,44 +49,106 @@ router = APIRouter(prefix="/api/advocate", tags=["Advocate"])
 def _require_advocate(user_id: str) -> None:
     """Verify the current user has advocate role."""
     role = get_role_from_user_id(user_id)
-    if role not in (UserRole.ADVOCATE, UserRole.ADMIN):
+    if role not in (UserRole.ADVOCATE, UserRole.MULTI_CLIENT_ADVOCATE, UserRole.ADMIN):
         raise HTTPException(
             status_code=403,
             detail="Only advocates can access this endpoint.",
         )
 
 
-def _get_clients_for_advocate(db, advocate_id: str):
+async def _get_clients_for_advocate(db, advocate_id: str):
     """Return all active ADVOCACY relationships for this advocate."""
-    return (
-        db.query(UserRelationship)
-        .filter(
+    result = await db.execute(
+        select(UserRelationship).where(
             UserRelationship.from_user_id == advocate_id,
             UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
             UserRelationship.is_active.is_(True),
         )
-        .all()
     )
+    return result.scalars().all()
 
 
-def _check_client_link(db, advocate_id: str, client_id: str) -> UserRelationship:
+async def _check_client_link(db, advocate_id: str, client_id: str) -> UserRelationship:
     """Verify advocate has access to this client. Returns the relationship."""
-    rel = (
-        db.query(UserRelationship)
-        .filter(
+    result = await db.execute(
+        select(UserRelationship).where(
             UserRelationship.from_user_id == advocate_id,
             UserRelationship.to_user_id == client_id,
             UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
             UserRelationship.is_active.is_(True),
         )
-        .first()
     )
+    rel = result.scalars().first()
     if not rel:
         raise HTTPException(
             status_code=403,
             detail="No active advocacy relationship with this client.",
         )
     return rel
+
+
+def _advocate_visible_doc_stmt(client_id: str):
+    """Documents an advocate may see for a client.
+
+    Privileged documents (`is_privileged`) are visible only to the client
+    and the creating attorney; attorney work product (`is_work_product`)
+    is protected from discovery. Neither is ever exposed to an advocate.
+    """
+    return select(Document).where(
+        Document.user_id == client_id,
+        Document.is_privileged.is_(False),
+        Document.is_work_product.is_(False),
+    )
+
+
+async def _doc_count(db, tenant_id: str) -> int:
+    """Count of advocate-visible documents for a tenant."""
+    return (
+        await db.execute(
+            select(func.count(Document.id)).where(
+                Document.user_id == tenant_id,
+                Document.is_privileged.is_(False),
+                Document.is_work_product.is_(False),
+            )
+        )
+    ).scalar_one()
+
+
+async def _log_doc_access(
+    db,
+    actor_user_id: str,
+    tenant_user_id: str,
+    action: str,
+    document_id: str | None = None,
+    outcome: str = "ok",
+    detail: str | None = None,
+) -> None:
+    """Append-only audit row for cross-party document access."""
+    role = get_role_from_user_id(actor_user_id)
+    db.add(
+        DocumentAccessLog(
+            actor_user_id=actor_user_id,
+            actor_role=role.value if role else None,
+            tenant_user_id=tenant_user_id,
+            document_id=document_id,
+            action=action,
+            outcome=outcome,
+            detail=(detail or "")[:500] or None,
+        )
+    )
+    await db.commit()
+
+
+async def _check_client_link_logged(db, advocate_id: str, client_id: str, action_hint: str):
+    """Client-link check that records denied access attempts (append-only log)."""
+    try:
+        return await _check_client_link(db, advocate_id, client_id)
+    except HTTPException:
+        await _log_doc_access(
+            db, advocate_id, client_id, "access_denied",
+            outcome="denied", detail=action_hint,
+        )
+        raise
 
 
 # =============================================================================
@@ -116,8 +181,8 @@ async def advocate_dashboard(request: Request):
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
 
-    with get_db_session() as db:
-        rels = _get_clients_for_advocate(db, user_id)
+    async with get_db_session() as db:
+        rels = await _get_clients_for_advocate(db, user_id)
         total_clients = len(rels)
         total_docs = 0
         total_events = 0
@@ -126,10 +191,10 @@ async def advocate_dashboard(request: Request):
         recent_clients = []
 
         for rel in rels:
-            tenant = db.query(User).filter_by(id=rel.to_user_id).first()
+            tenant = await db.get(User, rel.to_user_id)
             if not tenant:
                 continue
-            doc_count = db.query(Document).filter_by(user_id=tenant.id).count()
+            doc_count = await _doc_count(db, tenant.id)
             event_count = await count_events_for_user_id(tenant.id)
             total_docs += doc_count
             total_events += event_count
@@ -179,14 +244,14 @@ async def list_clients(request: Request):
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
 
-    with get_db_session() as db:
-        rels = _get_clients_for_advocate(db, user_id)
+    async with get_db_session() as db:
+        rels = await _get_clients_for_advocate(db, user_id)
         clients = []
         for rel in rels:
-            tenant = db.query(User).filter_by(id=rel.to_user_id).first()
+            tenant = await db.get(User, rel.to_user_id)
             if not tenant:
                 continue
-            doc_count = db.query(Document).filter_by(user_id=tenant.id).count()
+            doc_count = await _doc_count(db, tenant.id)
             event_count = await count_events_for_user_id(tenant.id)
             clients.append(
                 {
@@ -207,13 +272,13 @@ async def client_detail(client_id: str, request: Request):
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
 
-    with get_db_session() as db:
-        _check_client_link(db, user_id, client_id)
-        tenant = db.query(User).filter_by(id=client_id).first()
+    async with get_db_session() as db:
+        await _check_client_link_logged(db, user_id, client_id, "client_detail")
+        tenant = await db.get(User, client_id)
         if not tenant:
             raise HTTPException(status_code=404, detail="Client not found")
 
-        doc_count = db.query(Document).filter_by(user_id=tenant.id).count()
+        doc_count = await _doc_count(db, tenant.id)
         event_count = await count_events_for_user_id(tenant.id)
         recent_events = sorted(
             await list_events_for_user_id(tenant.id),
@@ -252,8 +317,8 @@ async def case_queue(request: Request):
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
 
-    with get_db_session() as db:
-        rels = _get_clients_for_advocate(db, user_id)
+    async with get_db_session() as db:
+        rels = await _get_clients_for_advocate(db, user_id)
         if not rels:
             return {"queue": [], "count": 0}
 
@@ -294,22 +359,22 @@ async def new_intake(body: IntakeRequest, request: Request):
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
 
-    with get_db_session() as db:
+    async with get_db_session() as db:
         # Verify tenant exists
-        tenant = db.query(User).filter_by(id=body.tenant_user_id).first()
+        tenant = await db.get(User, body.tenant_user_id)
         if not tenant:
             raise HTTPException(status_code=404, detail="Tenant user not found")
 
         # Check if relationship already exists
         existing = (
-            db.query(UserRelationship)
-            .filter(
-                UserRelationship.from_user_id == user_id,
-                UserRelationship.to_user_id == body.tenant_user_id,
-                UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+            await db.execute(
+                select(UserRelationship).where(
+                    UserRelationship.from_user_id == user_id,
+                    UserRelationship.to_user_id == body.tenant_user_id,
+                    UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+                )
             )
-            .first()
-        )
+        ).scalars().first()
         if existing:
             if existing.is_active:
                 raise HTTPException(status_code=409, detail="Advocacy relationship already exists")
@@ -318,7 +383,7 @@ async def new_intake(body: IntakeRequest, request: Request):
             existing.updated_at = utc_now()
             if body.notes:
                 existing.context = {"notes": body.notes}
-            db.commit()
+            await db.commit()
             return {"relationship_id": existing.id, "status": "reactivated", "client_id": tenant.id}
 
         rel = UserRelationship(
@@ -330,8 +395,8 @@ async def new_intake(body: IntakeRequest, request: Request):
             created_by=user_id,
         )
         db.add(rel)
-        db.commit()
-        db.refresh(rel)
+        await db.commit()
+        await db.refresh(rel)
 
         logger.info("Advocate %s linked to tenant %s (rel_id=%s)", user_id, tenant.id, rel.id)
         return {"relationship_id": rel.id, "status": "created", "client_id": tenant.id}
@@ -343,12 +408,12 @@ async def merged_timeline(request: Request, client_id: str | None = None):
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
 
-    with get_db_session() as db:
+    async with get_db_session() as db:
         if client_id:
-            _check_client_link(db, user_id, client_id)
+            await _check_client_link(db, user_id, client_id)
             events = await list_events_for_user_id(client_id)
         else:
-            rels = _get_clients_for_advocate(db, user_id)
+            rels = await _get_clients_for_advocate(db, user_id)
             if not rels:
                 return {"events": [], "count": 0}
             client_ids = [r.to_user_id for r in rels]
@@ -381,10 +446,18 @@ async def client_documents(client_id: str, request: Request):
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
 
-    with get_db_session() as db:
-        _check_client_link(db, user_id, client_id)
-        docs = db.query(Document).filter_by(user_id=client_id).order_by(Document.created_at.desc()).limit(100).all()
+    async with get_db_session() as db:
+        rel = await _check_client_link_logged(db, user_id, client_id, "list_documents")
+        docs = (
+            await db.execute(
+                _advocate_visible_doc_stmt(client_id)
+                .order_by(Document.uploaded_at.desc())
+                .limit(100)
+            )
+        ).scalars().all()
+        await _log_doc_access(db, user_id, client_id, "list_documents", detail=f"count={len(docs)}")
 
+        reviews = (rel.context or {}).get("document_reviews", {})
         return {
             "client_id": client_id,
             "documents": [
@@ -392,13 +465,61 @@ async def client_documents(client_id: str, request: Request):
                     "id": d.id,
                     "filename": getattr(d, "filename", None) or getattr(d, "name", ""),
                     "doc_type": getattr(d, "doc_type", None) or getattr(d, "document_type", ""),
-                    "certified": getattr(d, "is_certified", False),
-                    "created_at": d.created_at.isoformat() if d.created_at else None,
+                    "certified": bool(getattr(d, "certificate_path", None)),
+                    "review_status": (reviews.get(d.id) or {}).get("status"),
+                    "created_at": d.uploaded_at.isoformat() if d.uploaded_at else None,
                 }
                 for d in docs
             ],
             "count": len(docs),
         }
+
+
+@router.get("/clients/{client_id}/documents/{doc_id}/view")
+async def view_client_document(
+    client_id: str,
+    doc_id: str,
+    request: Request,
+):
+    """Stream a client's document to the advocate, read-only.
+
+    The document is served as-is from the tenant's vault storage — the
+    advocate can view and annotate via overlays, but the original bytes
+    are never writable through this path. Every view is recorded in
+    document_access_logs.
+    """
+    user_id = require_request_user_id(request)
+    _require_advocate(user_id)
+
+    async with get_db_session() as db:
+        await _check_client_link_logged(db, user_id, client_id, "view_document")
+        doc = (
+            await db.execute(
+                _advocate_visible_doc_stmt(client_id).where(Document.id == doc_id)
+            )
+        ).scalars().first()
+        if not doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        file_path = doc.file_path
+        mime_type = doc.mime_type or "application/octet-stream"
+        safe_name = (doc.original_filename or "document").replace('"', "").replace("\r", "").replace("\n", "")
+        await _log_doc_access(db, user_id, client_id, "view_document", document_id=doc_id)
+
+    storage = await _get_tenant_storage(client_id)
+
+    try:
+        data = await storage.download_file(file_path)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Advocate view doc %s failed: %s", doc_id, e, exc_info=True)
+        raise HTTPException(status_code=502, detail="Could not load the document from storage.")
+
+    return Response(
+        content=data,
+        media_type=mime_type,
+        headers={"Content-Disposition": f'inline; filename="{safe_name}"'},
+    )
 
 
 @router.post("/clients/{client_id}/documents/{doc_id}/review")
@@ -415,15 +536,18 @@ async def review_document(
     if body.status not in ("reviewed", "flagged", "approved"):
         raise HTTPException(status_code=400, detail="status must be: reviewed, flagged, or approved")
 
-    with get_db_session() as db:
-        _check_client_link(db, user_id, client_id)
-        doc = db.query(Document).filter_by(id=doc_id, user_id=client_id).first()
+    async with get_db_session() as db:
+        rel = await _check_client_link_logged(db, user_id, client_id, "review")
+        doc = (
+            await db.execute(
+                _advocate_visible_doc_stmt(client_id).where(Document.id == doc_id)
+            )
+        ).scalars().first()
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
 
         # Store review as context metadata on the relationship
         # (Document model doesn't have a review field; we track via relationship context)
-        rel = _check_client_link(db, user_id, client_id)
         ctx = dict(rel.context) if rel.context else {}
         reviews = ctx.get("document_reviews", {})
         reviews[doc_id] = {
@@ -434,7 +558,8 @@ async def review_document(
         }
         ctx["document_reviews"] = reviews
         rel.context = ctx
-        db.commit()
+        await db.commit()
+        await _log_doc_access(db, user_id, client_id, "review", document_id=doc_id, detail=f"status={body.status}")
 
         logger.info("Advocate %s reviewed doc %s for client %s: %s", user_id, doc_id, client_id, body.status)
         return {"success": True, "doc_id": doc_id, "status": body.status}
@@ -535,9 +660,13 @@ async def annotate_document(
             detail=f"overlay_type must be one of {allowed_types}",
         )
 
-    with get_db_session() as db:
-        _check_client_link(db, user_id, client_id)
-        doc = db.query(Document).filter_by(id=doc_id, user_id=client_id).first()
+    async with get_db_session() as db:
+        await _check_client_link_logged(db, user_id, client_id, "annotate")
+        doc = (
+            await db.execute(
+                _advocate_visible_doc_stmt(client_id).where(Document.id == doc_id)
+            )
+        ).scalars().first()
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
         vault_path = doc.file_path
@@ -579,6 +708,12 @@ async def annotate_document(
         body.overlay_type,
         resp.overlay_id,
     )
+    async with get_db_session() as db:
+        await _log_doc_access(
+            db, user_id, client_id, "annotate",
+            document_id=doc_id,
+            detail=f"type={body.overlay_type} overlay={resp.overlay_id}",
+        )
     return {
         "success": True,
         "overlay_id": resp.overlay_id,
@@ -601,11 +736,16 @@ async def list_document_overlays(
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
 
-    with get_db_session() as db:
-        _check_client_link(db, user_id, client_id)
-        doc = db.query(Document).filter_by(id=doc_id, user_id=client_id).first()
+    async with get_db_session() as db:
+        await _check_client_link_logged(db, user_id, client_id, "view_overlays")
+        doc = (
+            await db.execute(
+                _advocate_visible_doc_stmt(client_id).where(Document.id == doc_id)
+            )
+        ).scalars().first()
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
+        await _log_doc_access(db, user_id, client_id, "view_overlays", document_id=doc_id)
 
     storage = await _get_tenant_storage(client_id)
 
@@ -653,8 +793,8 @@ async def delete_annotation(
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
 
-    with get_db_session() as db:
-        _check_client_link(db, user_id, client_id)
+    async with get_db_session() as db:
+        await _check_client_link_logged(db, user_id, client_id, "delete_overlay")
 
     storage = await _get_tenant_storage(client_id)
 
@@ -686,6 +826,8 @@ async def delete_annotation(
         overlay_id,
         client_id,
     )
+    async with get_db_session() as db:
+        await _log_doc_access(db, user_id, client_id, "delete_overlay", detail=f"overlay={overlay_id}")
     return {"success": True, "overlay_id": overlay_id}
 
 
@@ -712,17 +854,17 @@ async def list_org_invite_codes(request: Request):
 
     from app.models.models import InviteCode
 
-    with get_db_session() as db:
+    async with get_db_session() as db:
         # Find advocate's manager via TEAM_MEMBER relationship
         team_rel = (
-            db.query(UserRelationship)
-            .filter_by(
-                from_user_id=user_id,
-                relationship_type=RelationshipType.TEAM_MEMBER.value,
-                is_active=True,
+            await db.execute(
+                select(UserRelationship).where(
+                    UserRelationship.from_user_id == user_id,
+                    UserRelationship.relationship_type == RelationshipType.TEAM_MEMBER.value,
+                    UserRelationship.is_active.is_(True),
+                )
             )
-            .first()
-        )
+        ).scalars().first()
 
         if not team_rel:
             return {
@@ -736,13 +878,13 @@ async def list_org_invite_codes(request: Request):
 
         # Get active, non-expired codes from this org
         codes = (
-            db.query(InviteCode)
-            .filter_by(
-                organization_id=org_id,
-                is_active=True,
+            await db.execute(
+                select(InviteCode).where(
+                    InviteCode.organization_id == org_id,
+                    InviteCode.is_active.is_(True),
+                )
             )
-            .all()
-        )
+        ).scalars().all()
 
         # Filter out expired and used-up codes
         now = utc_now()
@@ -820,17 +962,17 @@ async def tenant_link_advocate(body: LinkAdvocateRequest, request: Request):
             detail="The provided user_id is not an advocate. Ask your advocate for their Semptify ID.",
         )
 
-    with get_db_session() as db:
+    async with get_db_session() as db:
         # Check if relationship already exists
         existing = (
-            db.query(UserRelationship)
-            .filter(
-                UserRelationship.from_user_id == body.advocate_user_id,
-                UserRelationship.to_user_id == user_id,
-                UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+            await db.execute(
+                select(UserRelationship).where(
+                    UserRelationship.from_user_id == body.advocate_user_id,
+                    UserRelationship.to_user_id == user_id,
+                    UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+                )
             )
-            .first()
-        )
+        ).scalars().first()
         if existing:
             if existing.is_active:
                 return {
@@ -842,7 +984,7 @@ async def tenant_link_advocate(body: LinkAdvocateRequest, request: Request):
             existing.is_active = True
             existing.context = {"notes": body.notes} if body.notes else existing.context
             existing.created_by = user_id
-            db.commit()
+            await db.commit()
             return {
                 "success": True,
                 "message": "Relationship reactivated.",
@@ -859,7 +1001,7 @@ async def tenant_link_advocate(body: LinkAdvocateRequest, request: Request):
             created_by=user_id,
         )
         db.add(rel)
-        db.commit()
+        await db.commit()
 
     logger.info(
         "Tenant %s linked to advocate %s (tenant-initiated)",
@@ -882,16 +1024,16 @@ async def list_my_advocates(request: Request):
     """
     user_id = require_request_user_id(request)
 
-    with get_db_session() as db:
+    async with get_db_session() as db:
         rels = (
-            db.query(UserRelationship)
-            .filter(
-                UserRelationship.to_user_id == user_id,
-                UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
-                UserRelationship.is_active.is_(True),
+            await db.execute(
+                select(UserRelationship).where(
+                    UserRelationship.to_user_id == user_id,
+                    UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+                    UserRelationship.is_active.is_(True),
+                )
             )
-            .all()
-        )
+        ).scalars().all()
 
         return {
             "advocates": [
@@ -916,22 +1058,22 @@ async def revoke_advocate_access(advocate_user_id: str, request: Request):
     """
     user_id = require_request_user_id(request)
 
-    with get_db_session() as db:
+    async with get_db_session() as db:
         rel = (
-            db.query(UserRelationship)
-            .filter(
-                UserRelationship.from_user_id == advocate_user_id,
-                UserRelationship.to_user_id == user_id,
-                UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
-                UserRelationship.is_active.is_(True),
+            await db.execute(
+                select(UserRelationship).where(
+                    UserRelationship.from_user_id == advocate_user_id,
+                    UserRelationship.to_user_id == user_id,
+                    UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+                    UserRelationship.is_active.is_(True),
+                )
             )
-            .first()
-        )
+        ).scalars().first()
         if not rel:
             raise HTTPException(status_code=404, detail="No active link to this advocate.")
 
         rel.is_active = False
-        db.commit()
+        await db.commit()
 
     logger.info(
         "Tenant %s revoked advocate %s access",

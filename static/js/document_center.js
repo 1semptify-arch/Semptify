@@ -301,11 +301,12 @@
         const fname = (d.filename || '').toLowerCase();
         const isPdf = fname.endsWith('.pdf');
         const isDocx = fname.endsWith('.docx');
+        const isText = /\.(txt|md|log|csv|json)$/.test(fname);
         const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/.test(fname);
         try {
             if (isPdf && window.pdfjsLib) {
                 await renderPdf(d);
-            } else if (isDocx && window.SemptifyMediaPlayer) {
+            } else if ((isDocx || isText) && window.SemptifyMediaPlayer) {
                 await renderDocx(d);
             } else if (isImage) {
                 renderImage(d);
@@ -431,6 +432,7 @@
             fill: true,
             saveCopy: saveEditedCopyToVault,
         });
+        loadUserAnnotations(d);
     }
 
     // Light edit → save as a NEW vault document through the normal intake.
@@ -653,6 +655,9 @@
     // Load saved user annotations (highlights, notes, references) from overlays
     async function loadUserAnnotations(doc) {
         if (!doc) return;
+        dcKeyPassages = [];
+        dcKeyFootnotes = [];
+        dcKeyTargets = {};
         try {
             const r = await fetch('/api/unified-overlays/list?document_id=' + encodeURIComponent(doc.id), { credentials: 'include' });
             if (!r.ok) return;
@@ -666,16 +671,24 @@
             overlays.forEach(ov => {
                 const type = ov.overlay_type || ov.type || '';
                 const payload = ov.payload || {};
+                const ovId = ov.id || ov.overlay_id || '';
 
                 if (type === 'highlight' && payload.range) {
+                    dcKeyPassages.push({
+                        id: ovId,
+                        color: payload.color || 'blue',
+                        text: (payload.range.text || '').trim(),
+                        note: payload.note || '',
+                    });
                     if (isPdf && payload.range.text) {
                         const normalized = String(payload.range.text).toLowerCase();
                         currentExtractedText.forEach(entry => {
                             if (entry.text.toLowerCase().includes(normalized) && !entry.span.dataset.userHighlight) {
                                 const span = entry.span;
                                 span.dataset.userHighlight = '1';
-                                span.style.background = 'color-mix(in srgb, var(--color-info), transparent 60%)';
+                                span.classList.add('ckhl', 'ckhl-' + (payload.color || 'blue'));
                                 span.style.borderRadius = '2px';
+                                if (!dcKeyTargets[ovId]) dcKeyTargets[ovId] = span;
                             }
                         });
                     } else if (isImage && payload.range.image) {
@@ -693,13 +706,22 @@
                         box.style.top = (y - h / 2) + '%';
                         box.style.width = w + '%';
                         box.style.height = h + '%';
-                        box.style.background = 'color-mix(in srgb, var(--color-info), transparent 80%)';
+                        box.className = 'ckhl ckhl-' + (payload.color || 'blue');
                         box.style.border = '1px solid var(--color-info)';
                         box.style.borderRadius = '2px';
                         box.style.pointerEvents = 'auto';
                         box.style.cursor = 'pointer';
                         overlay.appendChild(box);
+                        if (!dcKeyTargets[ovId]) dcKeyTargets[ovId] = box;
                     }
+                } else if (type === 'footnote' && payload.range) {
+                    dcKeyFootnotes.push({
+                        id: ovId,
+                        number: payload.number || 0,
+                        text: (payload.range.text || '').trim(),
+                        content: payload.content || '',
+                        citation: payload.citation || '',
+                    });
                 } else if (type === 'note' && payload.content) {
                     const range = payload.range || {};
                     const pin = document.createElement('div');
@@ -755,8 +777,11 @@
                     }
                 }
             });
+            paintTextOverlays(overlays);
         } catch (e) {
             // Silently fail — annotations are non-critical
+        } finally {
+            if (colorKeyPanel && !colorKeyPanel.hidden) renderColorKeyPanel();
         }
     }
 
@@ -2230,6 +2255,420 @@
             strip.appendChild(more);
         }
     }
+
+    // =========================================================================
+    // Slice 7 — Document Color Key
+    // A per-document legend: each highlight color gets a plain-English meaning
+    // (stored as a DOCUMENT_KEY overlay), highlights and footnotes are painted
+    // on docx/text surfaces, and the legend links jump straight to the text.
+    // =========================================================================
+
+    const CK_COLORS = ['yellow', 'red', 'blue', 'green', 'orange', 'purple'];
+    const CK_COLOR_CSS = {
+        yellow: 'var(--color-warning)',
+        red: 'var(--color-error)',
+        blue: 'var(--color-info)',
+        green: 'var(--color-success)',
+        orange: 'color-mix(in srgb, var(--color-warning) 55%, var(--color-error))',
+        purple: 'var(--color-accent)',
+    };
+    let dcColorKey = {};
+    let dcKeyPassages = [];
+    let dcKeyFootnotes = [];
+    let dcKeyTargets = {};
+    const colorKeyPanel = document.getElementById('dcColorKey');
+
+    function ckColorVar(color) { return CK_COLOR_CSS[color] || CK_COLOR_CSS.blue; }
+
+    // Wrap every occurrence-range of `quote` inside rootEl's text nodes in
+    // <mark> elements. Returns the marks created (first gets the anchor id).
+    function paintQuote(rootEl, quote, className, overlayId, titleText) {
+        if (!quote || quote.length < 2) return null;
+        const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        let concat = '';
+        let n;
+        while ((n = walker.nextNode())) {
+            if (n.parentElement && n.parentElement.closest('.ckhl')) continue;
+            nodes.push({ node: n, start: concat.length });
+            concat += n.nodeValue;
+        }
+        let idx = concat.indexOf(quote);
+        let endIdx = idx + quote.length;
+        if (idx === -1) {
+            // Whitespace-tolerant retry — rendered HTML often collapses or
+            // re-wraps whitespace compared to the stored quote.
+            const map = [];
+            let flat = '';
+            let prevSpace = true;
+            for (let i = 0; i < concat.length; i++) {
+                const c = concat[i];
+                if (/\s/.test(c)) {
+                    if (!prevSpace) { flat += ' '; map.push(i); }
+                    prevSpace = true;
+                } else { flat += c; map.push(i); prevSpace = false; }
+            }
+            const fq = quote.replace(/\s+/g, ' ').trim();
+            const fi = flat.indexOf(fq);
+            if (fi === -1) return null;
+            idx = map[fi];
+            endIdx = map[fi + fq.length - 1] + 1;
+        }
+        const marks = [];
+        nodes.forEach(entry => {
+            const nodeLen = entry.node.nodeValue.length;
+            const s = Math.max(idx - entry.start, 0);
+            const e = Math.min(endIdx - entry.start, nodeLen);
+            if (s >= e) return;
+            let target = entry.node;
+            if (s > 0) target = target.splitText(s);
+            if (e - s < target.nodeValue.length) target.splitText(e - s);
+            const mark = document.createElement('mark');
+            mark.className = className;
+            if (overlayId) mark.dataset.ovid = overlayId;
+            if (titleText) mark.title = titleText;
+            target.parentNode.replaceChild(mark, target);
+            mark.appendChild(target);
+            marks.push(mark);
+        });
+        if (marks.length && overlayId) marks[0].id = 'ckp-' + overlayId;
+        return marks.length ? marks : null;
+    }
+
+    // The element holding the document's text (docx render or text pre).
+    function getTextSurface() {
+        if (currentMediaPlayer && currentMediaPlayer.getContentRoot) {
+            const rootEl = getTextSurface();
+            if (rootEl) return rootEl;
+        }
+        return document.querySelector('#dcPdfContainer .mp__doc, #dcPdfContainer .mp__text');
+    }
+
+    // Paint highlight + footnote overlays onto docx/text viewer surfaces.
+    function paintTextOverlays(overlays) {
+        const rootEl = getTextSurface();
+        if (!rootEl) return;
+        overlays.forEach(ov => {
+            const type = ov.overlay_type || ov.type || '';
+            const payload = ov.payload || {};
+            const ovId = ov.id || ov.overlay_id || '';
+            const range = payload.range || {};
+            const quote = (range.text || '').trim();
+            if (!quote) return;
+            if (type === 'highlight') {
+                const marks = paintQuote(rootEl, quote, 'ckhl ckhl-' + (payload.color || 'blue'), ovId, payload.note || '');
+                if (marks) dcKeyTargets[ovId] = marks[0];
+            } else if (type === 'footnote') {
+                const label = payload.content + (payload.citation ? ' — ' + payload.citation : '');
+                const marks = paintQuote(rootEl, quote, 'ckhl ckhl-fn', ovId, label);
+                if (marks) {
+                    dcKeyTargets[ovId] = marks[0];
+                    const sup = document.createElement('sup');
+                    sup.className = 'ckfn';
+                    sup.textContent = '[' + (payload.number || '?') + ']';
+                    sup.title = label;
+                    marks[marks.length - 1].after(sup);
+                }
+            }
+        });
+    }
+
+    // ---- Legend panel ------------------------------------------------------
+
+    document.getElementById('dcColorKeyBtn').addEventListener('click', function (e) {
+        e.stopPropagation();
+        colorKeyPanel.hidden = !colorKeyPanel.hidden;
+        if (!colorKeyPanel.hidden) renderColorKeyPanel();
+    });
+    document.getElementById('dcColorKeyClose').addEventListener('click', function () {
+        colorKeyPanel.hidden = true;
+    });
+
+    async function renderColorKeyPanel() {
+        if (!currentDoc) {
+            renderKeyColors();
+            const host = document.getElementById('dcColorKeyPassages');
+            host.innerHTML = '';
+            const p = document.createElement('p');
+            p.style.cssText = 'color:var(--text-muted); font-size:0.8125rem; margin:0.25rem 0 0;';
+            p.textContent = 'Select a document first — the color key lives with each document.';
+            host.appendChild(p);
+            document.getElementById('dcColorKeyFnHead').style.display = 'none';
+            return;
+        }
+        try {
+            const r = await fetch('/api/unified-overlays/annotations/color-key?document_id=' + encodeURIComponent(currentDoc.id), { credentials: 'include' });
+            if (r.ok) {
+                const d = await r.json();
+                if (d.colors) dcColorKey = d.colors;
+            }
+        } catch (e) { /* default palette still renders */ }
+        renderKeyColors();
+        renderKeyPassages();
+        renderKeyFootnotes();
+    }
+
+    function renderKeyColors() {
+        const host = document.getElementById('dcColorKeyColors');
+        host.innerHTML = '';
+        CK_COLORS.forEach(color => {
+            const row = document.createElement('div');
+            row.className = 'ck-row';
+            const sw = document.createElement('span');
+            sw.className = 'ck-swatch ckhl-' + color;
+            sw.style.background = ckColorVar(color);
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = dcColorKey[color] || '';
+            input.placeholder = 'What does ' + color + ' mean here?';
+            input.dataset.ckColor = color;
+            input.setAttribute('aria-label', 'Meaning of ' + color + ' highlights');
+            const count = dcKeyPassages.filter(p => p.color === color).length;
+            const badge = document.createElement('span');
+            badge.style.cssText = 'font-size:0.6875rem; color:var(--text-muted); flex:none;';
+            badge.textContent = count ? count + ' marked' : '';
+            row.appendChild(sw);
+            row.appendChild(input);
+            row.appendChild(badge);
+            host.appendChild(row);
+        });
+    }
+
+    function renderKeyPassages() {
+        const host = document.getElementById('dcColorKeyPassages');
+        host.innerHTML = '';
+        if (!dcKeyPassages.length) {
+            const p = document.createElement('p');
+            p.style.cssText = 'color:var(--text-muted); font-size:0.8125rem; margin:0.25rem 0 0;';
+            p.textContent = 'Nothing marked yet — press "▸ Highlight" above, then select text in the document.';
+            host.appendChild(p);
+            return;
+        }
+        CK_COLORS.forEach(color => {
+            const group = dcKeyPassages.filter(p => p.color === color);
+            if (!group.length) return;
+            const label = document.createElement('div');
+            label.style.cssText = 'display:flex; align-items:center; gap:0.375rem; margin-top:0.375rem; font-size:0.75rem; color:var(--text-muted);';
+            const sw = document.createElement('span');
+            sw.className = 'ck-swatch';
+            sw.style.background = ckColorVar(color);
+            label.appendChild(sw);
+            label.appendChild(document.createTextNode(dcColorKey[color] || color));
+            host.appendChild(label);
+            group.forEach(p => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ck-passage';
+                const q = document.createElement('span');
+                q.className = 'ck-quote';
+                q.textContent = '“' + (p.text || '(region on image)') + '”';
+                btn.appendChild(q);
+                if (p.note) {
+                    const m = document.createElement('span');
+                    m.className = 'ck-meta';
+                    m.textContent = p.note;
+                    btn.appendChild(m);
+                }
+                btn.addEventListener('click', () => jumpToPassage(p.id));
+                host.appendChild(btn);
+            });
+        });
+    }
+
+    function renderKeyFootnotes() {
+        const host = document.getElementById('dcColorKeyFootnotes');
+        const head = document.getElementById('dcColorKeyFnHead');
+        host.innerHTML = '';
+        head.style.display = dcKeyFootnotes.length ? '' : 'none';
+        dcKeyFootnotes
+            .slice()
+            .sort((a, b) => (a.number || 0) - (b.number || 0))
+            .forEach(fn => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ck-passage';
+                const q = document.createElement('span');
+                q.className = 'ck-quote';
+                q.textContent = '[' + fn.number + '] ' + fn.content;
+                btn.appendChild(q);
+                const m = document.createElement('span');
+                m.className = 'ck-meta';
+                m.textContent = (fn.text ? 'on “' + fn.text + '”' : '') + (fn.citation ? '  ' + fn.citation : '');
+                if (m.textContent) btn.appendChild(m);
+                btn.addEventListener('click', () => jumpToPassage(fn.id));
+                host.appendChild(btn);
+            });
+    }
+
+    function jumpToPassage(overlayId) {
+        const el2 = dcKeyTargets[overlayId] || document.getElementById('ckp-' + overlayId);
+        if (!el2) {
+            if (window.SemptifyFeedback) SemptifyFeedback.info('That passage is on a part of this document that cannot be shown as text yet.', { timeout: 5000 });
+            return;
+        }
+        el2.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        el2.classList.add('ckhl-flash');
+        setTimeout(() => el2.classList.remove('ckhl-flash'), 1600);
+    }
+
+    document.getElementById('dcColorKeySave').addEventListener('click', async function () {
+        if (!currentDoc) return;
+        const colors = {};
+        document.querySelectorAll('#dcColorKeyColors input[data-ck-color]').forEach(inp => {
+            if (inp.value.trim()) colors[inp.dataset.ckColor] = inp.value.trim();
+        });
+        try {
+            const r = await fetch('/api/unified-overlays/annotations/color-key?document_id=' + encodeURIComponent(currentDoc.id) + '&vault_path=' + encodeURIComponent(currentDoc.vault_path || currentDoc.id), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ colors: colors }),
+                credentials: 'include',
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const d = await r.json();
+            if (d.colors) dcColorKey = d.colors;
+            renderKeyColors();
+            renderKeyPassages();
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Color key saved.');
+        } catch (err) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save color key: ' + err.message);
+        }
+    });
+
+    // ---- Select text → mark it ---------------------------------------------
+    // With the Highlight tool on, selecting text on a docx/text surface opens
+    // a small picker: a color (with its meaning) or a footnote.
+
+    let ckSelPopover = null;
+    document.addEventListener('mousedown', e => {
+        if (ckSelPopover && !ckSelPopover.contains(e.target)) { ckSelPopover.remove(); ckSelPopover = null; }
+    });
+
+    document.getElementById('dcPdfContainer').addEventListener('mouseup', function (e) {
+        if (activeAnnotTool !== 'highlight' || !currentDoc) return;
+        const rootEl = getTextSurface();
+        if (!rootEl) return;
+        const sel = window.getSelection();
+        if (!sel || sel.isCollapsed || !sel.toString().trim()) return;
+        if (!rootEl.contains(sel.anchorNode)) return;
+        e.stopPropagation();
+        showSelectionPicker(e.clientX, e.clientY, sel.toString().trim(), rootEl);
+    });
+
+    function showSelectionPicker(x, y, quote, rootEl) {
+        if (ckSelPopover) ckSelPopover.remove();
+        const pop = document.createElement('div');
+        pop.className = 'ck-picker';
+        pop.setAttribute('role', 'menu');
+        pop.setAttribute('aria-label', 'Highlight color');
+        CK_COLORS.forEach(color => {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'ck-dot ckhl-' + color;
+            dot.style.background = ckColorVar(color);
+            dot.title = (dcColorKey[color] || color);
+            dot.setAttribute('aria-label', 'Highlight as ' + (dcColorKey[color] || color));
+            dot.addEventListener('click', () => { saveTextHighlight(quote, color); pop.remove(); ckSelPopover = null; });
+            pop.appendChild(dot);
+        });
+        const fnBtn = document.createElement('button');
+        fnBtn.type = 'button';
+        fnBtn.className = 'frame-btn';
+        fnBtn.style.cssText = 'font-size:0.6875rem; padding:0.125rem 0.375rem;';
+        fnBtn.textContent = '+ footnote';
+        fnBtn.addEventListener('click', async () => {
+            pop.remove(); ckSelPopover = null;
+            const content = await showValueModal('Footnote text:', '');
+            if (!content || !content.trim()) return;
+            const citation = await showValueModal('Source or citation (optional):', '');
+            saveTextFootnote(quote, content.trim(), (citation || '').trim());
+        });
+        pop.appendChild(fnBtn);
+        document.body.appendChild(pop);
+        pop.style.left = Math.min(x, window.innerWidth - 320) + 'px';
+        pop.style.top = (y + 12) + 'px';
+        ckSelPopover = pop;
+    }
+
+    // Character offsets of the selection inside the surface's text.
+    function selectionOffsets(rootEl, quote) {
+        const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT);
+        let concat = '';
+        let n;
+        while ((n = walker.nextNode())) concat += n.nodeValue;
+        const idx = concat.indexOf(quote);
+        return idx === -1 ? { start_offset: 0, end_offset: quote.length } : { start_offset: idx, end_offset: idx + quote.length };
+    }
+
+    async function saveTextHighlight(quote, color) {
+        const rootEl = getTextSurface();
+        const rangeData = Object.assign(selectionOffsets(rootEl, quote), { text: quote });
+        try {
+            const r = await fetch('/api/unified-overlays/annotations/highlight?document_id=' + encodeURIComponent(currentDoc.id) + '&vault_path=' + encodeURIComponent(currentDoc.vault_path || currentDoc.id) + '&color=' + encodeURIComponent(color), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(rangeData),
+                credentials: 'include',
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const d = await r.json();
+            const ovId = d.overlay_id || (d.overlay && d.overlay.id) || '';
+            const marks = paintQuote(rootEl, quote, 'ckhl ckhl-' + color, ovId, '');
+            if (marks) dcKeyTargets[ovId] = marks[0];
+            dcKeyPassages.push({ id: ovId, color: color, text: quote, note: '' });
+            if (colorKeyPanel && !colorKeyPanel.hidden) renderColorKeyPanel();
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Marked as ' + (dcColorKey[color] || color) + '.');
+        } catch (err) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save highlight: ' + err.message);
+        }
+    }
+
+    async function saveTextFootnote(quote, content, citation) {
+        const rootEl = getTextSurface();
+        const nextNum = dcKeyFootnotes.reduce((m, f) => Math.max(m, f.number || 0), 0) + 1;
+        const rangeData = Object.assign(selectionOffsets(rootEl, quote), { text: quote });
+        try {
+            let url = '/api/unified-overlays/annotations/footnote?document_id=' + encodeURIComponent(currentDoc.id) + '&vault_path=' + encodeURIComponent(currentDoc.vault_path || currentDoc.id) + '&number=' + nextNum + '&content=' + encodeURIComponent(content);
+            if (citation) url += '&citation=' + encodeURIComponent(citation);
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(rangeData),
+                credentials: 'include',
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const d = await r.json();
+            const ovId = d.overlay_id || (d.overlay && d.overlay.id) || '';
+            const label = content + (citation ? ' — ' + citation : '');
+            const marks = paintQuote(rootEl, quote, 'ckhl ckhl-fn', ovId, label);
+            if (marks) {
+                dcKeyTargets[ovId] = marks[0];
+                const sup = document.createElement('sup');
+                sup.className = 'ckfn';
+                sup.textContent = '[' + nextNum + ']';
+                sup.title = label;
+                marks[marks.length - 1].after(sup);
+            }
+            dcKeyFootnotes.push({ id: ovId, number: nextNum, text: quote, content: content, citation: citation });
+            if (colorKeyPanel && !colorKeyPanel.hidden) renderColorKeyPanel();
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Footnote ' + nextNum + ' saved.');
+        } catch (err) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save footnote: ' + err.message);
+        }
+    }
+
+    // Integration seam — lets live co-viewing sync (and automated tests) drive
+    // the same paint/jump path the UI uses, without duplicating it.
+    window.SemptifyDCAnnotations = {
+        paintQuote: paintQuote,
+        paintTextOverlays: paintTextOverlays,
+        jumpToPassage: jumpToPassage,
+        loadUserAnnotations: loadUserAnnotations,
+        renderColorKeyPanel: renderColorKeyPanel,
+        getPassages: function () { return dcKeyPassages; },
+        getFootnotes: function () { return dcKeyFootnotes; },
+        getKey: function () { return dcColorKey; },
+    };
 
     // Mobile tab switching
     document.querySelectorAll('.dc-mobile-tab').forEach(btn => {
