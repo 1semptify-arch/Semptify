@@ -15563,3 +15563,31 @@ sessions); embedded images are dropped from edited exports (noted to user).
     var(--token, #canonical) references + stylesheet link; dark mode now works
     there too. Baseline 156 -> 138. Dead statics (pick-role, role-select,
     validate-*) logged to intake 95e902bf for deletion review.
+
+---
+
+## 2026-09-23 — Public-repo history scrub (filter-repo, authorized)
+
+- Full-history scrub of the public GitHub repo executed with git filter-repo
+  (4,495 commits rewritten across all local branches).
+- Stripped from ALL history: `invite_codes.json`, `legal_intel/velair_*` dossier,
+  `docs/orchestration/vision-brief-for-opus.md`, `r22.pdf`, `DOCUMENTS/`,
+  `data/cases/`, `data/case_outputs/` (real litigation work product),
+  `data/court_cases/`, `data/vault_storage/` (committed vault PDFs),
+  `data/test_local_vault/`, `data/test_e2e_run/`, `data/converted_documents/`,
+  `data/vault_index/`, `data/legal_filings/`, classification fixture PDFs.
+- String-scrubbed in all blobs + commit messages: invite code values, case
+  number, personal email, entity/property/party names, local case paths.
+- GitHub: `main` + all live PR branches force-pushed; 24 stale remote-only
+  branches deleted; `protect-main` ruleset toggled off/on for the push
+  (re-enabled, verified active).
+- `origin` bare mirror (`sources/app-semptify-fastapi`) synced to rewritten
+  history; stale remote-refs deleted; `gc --prune=now` on both repos — zero
+  residual contaminated objects in either.
+- Fixture PDFs regenerated via `make_fixtures.py` (synthetic; `lease_02` real
+  lease stays local-only, gitignored); fixture tests pass 8/8.
+- Pre-scrub mirror backup: `C:\master-repo\_backups\semptify-pre-scrub-20260923.git`.
+- KNOWN RESIDUALS: GitHub may still serve old commit SHAs from cache for a
+  while (support ticket clears it); old SHAs referenced in BUILD_STATE/PR
+  timelines now point nowhere; all clones must re-clone. Render needs
+  `INVITE_CODES` env var set before new advocate/legal codes are issued.
