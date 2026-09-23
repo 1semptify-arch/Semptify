@@ -1,0 +1,12 @@
+{
+  "app/static/css/landing.css": 17,
+  "app/static/css/style.css": 17,
+  "app/templates/body/public_shell.html": 9,
+  "app/templates/public/donate.html": 31,
+  "static/onboarding/pick-role.html": 12,
+  "static/onboarding/providers-reconnect.html": 9,
+  "static/onboarding/providers.html": 9,
+  "static/onboarding/role-select.html": 16,
+  "static/onboarding/validation/validate-advocate.html": 17,
+  "static/onboarding/validation/validate-legal.html": 19
+}

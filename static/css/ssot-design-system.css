@@ -35,6 +35,11 @@
   --color-primary-dark:  hsl(var(--h-primary) var(--s-primary) calc(var(--l-primary) - 8%));
   --color-accent:        hsl(var(--h-accent)  var(--s-accent)  var(--l-accent));
   --color-accent-hover:  hsl(var(--h-accent)  var(--s-accent)  calc(var(--l-accent) - 10%));
+  /* Text-safe accent: WCAG AA on paper. Use for accent-colored TEXT and
+     accent fills carrying light text; keep --color-accent for borders and
+     decorative fills where 3:1 is enough. */
+  --color-accent-strong:        hsl(var(--h-accent)  var(--s-accent)  calc(var(--l-accent) - 10%));
+  --color-accent-strong-hover:  hsl(var(--h-accent)  var(--s-accent)  calc(var(--l-accent) - 18%));
   --color-accent-text:   var(--text-inverse);
 
   /* Semantic Colors — fixed, NOT derived from brand dials */
@@ -352,6 +357,10 @@
     --zone-surface-2: #273344;
     --zone-surface-3: #334155;
     --zone-surface-inverse: #0f172a;
+    /* Text-safe accent inverts in dark mode: lighter so it stays AA on dark
+       surfaces. Applies globally, not just on body.shell pages. */
+    --color-accent-strong: hsl(var(--h-accent) var(--s-accent) 55%);
+    --color-accent-strong-hover: hsl(var(--h-accent) var(--s-accent) 62%);
   }
 
   /* Shell paper palette flips too — otherwise --bg-card darkens while
@@ -365,7 +374,7 @@
     --shell-line: #3b3833;
     --shell-sage: #8ba98b;
     --role-accent: #8ba98b;
-    --role-deep: #6b8e6b;
+    --role-deep: #84a884;
     --role-tint: #2a2f2a;
   }
 }
@@ -385,6 +394,8 @@
   --zone-surface-2: #273344;
   --zone-surface-3: #334155;
   --zone-surface-inverse: #0f172a;
+  --color-accent-strong: hsl(var(--h-accent) var(--s-accent) 55%);
+  --color-accent-strong-hover: hsl(var(--h-accent) var(--s-accent) 62%);
 }
 
 [data-theme="dark"] body.shell {
@@ -395,7 +406,7 @@
   --shell-line: #3b3833;
   --shell-sage: #8ba98b;
   --role-accent: #8ba98b;
-  --role-deep: #6b8e6b;
+  --role-deep: #84a884;
   --role-tint: #2a2f2a;
 }
 
@@ -706,7 +717,7 @@ a:hover {
 .text-secondary { color: var(--text-secondary); }
 .text-muted { color: var(--text-muted); }
 .text-inverse { color: var(--text-inverse); }
-.text-accent { color: var(--color-accent); }
+.text-accent { color: var(--color-accent-strong); }
 .text-success { color: var(--color-success); }
 .text-warning { color: var(--color-warning); }
 .text-error { color: var(--color-error); }
@@ -1959,7 +1970,7 @@ body.shell .unified-footer .footer-disclaimer-icon {
 }
 
 body.shell .unified-footer .footer-disclaimer-title {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--role-deep);
   margin: 0;
@@ -1979,7 +1990,7 @@ body.shell .unified-footer .footer-legal {
 }
 
 body.shell .unified-footer .footer-legal a {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--role-deep);
 }
 
@@ -1994,13 +2005,13 @@ body.shell .unified-footer .footer-bottom {
 }
 
 body.shell .unified-footer .footer-copyright { margin: 0; }
-body.shell .unified-footer .footer-help { margin: 0; font-size: 0.6875rem; }
+body.shell .unified-footer .footer-help { margin: 0; font-size: 0.75rem; }
 body.shell .unified-footer .footer-help form { display: inline-flex; align-items: center; gap: 0.3rem; }
-body.shell .unified-footer .footer-help label { font-size: 0.6875rem; color: var(--shell-ink-3); }
+body.shell .unified-footer .footer-help label { font-size: 0.75rem; color: var(--shell-ink-3); }
 
 body.shell .unified-footer .footer-copyright,
 body.shell .unified-footer .footer-mandates {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--shell-ink-3);
   margin: 0;
   white-space: nowrap;
@@ -2016,7 +2027,7 @@ body.shell .unified-footer .footer-help label { display: none; }
 
 body.shell .unified-footer .footer-help select,
 body.shell .unified-footer .footer-help button {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   padding: 0.1rem 0.3rem;
   background: transparent;
   border: 1px solid var(--shell-line);
@@ -2052,7 +2063,7 @@ body.shell .shell-eyebrow {
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
   margin-bottom: 0.5rem;
 }
 
@@ -2120,13 +2131,13 @@ body.shell .shell-btn--primary:hover {
 }
 
 body.shell .shell-btn--accent {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
   color: var(--bg-card);
 }
 
 body.shell .shell-btn--accent:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-accent-strong-hover);
 }
 
 /* --- Compact link list (sidebar "next steps") ------------------------------- */
@@ -2191,7 +2202,7 @@ body.shell .shell-step-num {
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
   min-width: 1.5rem;
 }
 
@@ -2268,7 +2279,7 @@ body.shell .shell-item:last-child { border-bottom: none; }
 body.shell .shell-item--icon {
   font-family: var(--font-display);
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
   min-width: 3rem;
   font-size: 0.9rem;
 }
@@ -2301,7 +2312,7 @@ body.shell .shell-empty {
 body.shell .shell-empty--icon {
   font-family: var(--font-display);
   font-size: 2rem;
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
   margin-bottom: 0.5rem;
 }
 
@@ -2487,7 +2498,7 @@ body.shell .shell-chip {
 
 body.shell .shell-chip:hover {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
 }
 
 body.shell .shell-note {
@@ -2625,7 +2636,7 @@ body.shell--dc .dc-fieldcard {
 
 body.shell--dc .dc-fieldcard-label {
   color: var(--text-muted);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -2822,7 +2833,7 @@ body.shell .fnav {
 }
 
 .fnav__label {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2924,7 +2935,7 @@ body.shell .fnav {
 
 /* Gate note — the small "what unlocks this" text next to a locked action. */
 .fnav__gate {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--shell-ink-3);
   white-space: nowrap;
 }
@@ -3031,7 +3042,7 @@ body.shell .shell-path-step--done {
 }
 
 body.shell .shell-path-step--done .shell-path-marker {
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
   font-weight: 600;
 }
 
@@ -3041,7 +3052,7 @@ body.shell .shell-path-step--now {
 }
 
 body.shell .shell-path-step--now .shell-path-marker {
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
 }
 
 body.shell .shell-path-marker {
