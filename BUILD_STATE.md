@@ -15641,3 +15641,16 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - Tests: `tests/test_onboarding_solo_tenant.py` 6/6 green.
 - NOT in this change: in-progress advocate slice-2 edits in
   `app/modules/advocate/router.py` remain uncommitted.
+
+## 2026-09-23 — ONBOARDING SOLO follow-up: no elevation path at all
+
+- Brad directive (same day, tightening): "none are to be gated — there is
+  no other role other than tenant." The invite-gated `/api/storage/role`
+  switch endpoint was **deleted entirely** (not disabled — non-existent):
+  POST /api/storage/role → 404 live.
+- Removed with it: `RoleSwitchRequest`, `ALLOWED_ROLES`, `VALID_INVITE_CODES`,
+  `ADMIN_PIN`, `update_user_id_role` import, `storage_switch_role` contract.
+- All "invite-gated switch" comments updated — there is no in-repo path to
+  any non-tenant role. Pro-role accounts belong to the add-on repo.
+- Verified live: both POST paths 404, providers 200, /choose-role 404.
+  tests/test_onboarding_solo_tenant.py 6/6.

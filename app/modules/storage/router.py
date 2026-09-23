@@ -57,7 +57,6 @@ from app.core.user_id import (
     get_provider_from_user_id,
     get_role_from_user_id,
     parse_user_id,
-    update_user_id_role,
 )
 from app.core.workflow_engine import route_user as _route_user
 from app.models.models import OAuthState, Session as SessionModel, StorageConfig, User
@@ -101,31 +100,12 @@ OAUTH_CONFIGS = {
 
 OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
-# ONBOARDING SOLO (Brad, 2026-09-23): OAuth can only ever MINT tenant
-# accounts. Any role value arriving via ?role=, OAuth state, or the connect
-# page that is not in MINTABLE_ROLES is demoted to tenant before a user_id
-# is generated — there is no URL or state path to a professional account.
+# ONBOARDING SOLO (Brad, 2026-09-23): tenant is the ONLY role in this repo.
+# OAuth can only ever MINT tenant accounts, and the /role switch accepts
+# only tenant/user — there is no invite code, PIN, or parameter that opens
+# another role here. Professional-role accounts belong to a separate add-on
+# (different repo), networked later.
 MINTABLE_ROLES = {"tenant", "user"}
-
-# Roles the /role switch endpoint recognizes — it is the deliberate,
-# invite-gated elevation path (invite codes for advocate/legal, PIN for
-# admin, household gate for manager), NOT self-serve onboarding.
-ALLOWED_ROLES = {
-    "user",
-    "tenant",
-    "manager",
-    "advocate",
-    "legal",
-    "judge",
-    "admin",
-    # role_configs/{key}.json keys — each config key is a real role
-    "multi_client_advocate",
-    "donor_supporter",
-    "researcher",
-    "research",
-    "agency",
-    "developer",
-}
 
 # In-memory session cache for transitional compatibility (primary sessions are in DB)
 SESSIONS: dict = {}
@@ -710,23 +690,6 @@ async def create_or_update_user(
 # ============================================================================
 # Models
 # ============================================================================
-
-
-class RoleSwitchRequest(BaseModel):
-    role: str  # user, manager, advocate, legal, admin
-    pin: str | None = None  # Required for admin role
-    invite_code: str | None = None  # Required for advocate/legal
-    household_members: int | None = None  # Required for manager (>1 on lease)
-
-
-# Valid invite codes for advocate/legal roles - loaded from environment
-# Set INVITE_CODES in .env as comma-separated values
-import os as _os
-
-VALID_INVITE_CODES = set(_os.getenv("INVITE_CODES", "CHANGE-ME-1,CHANGE-ME-2").split(","))
-
-# Admin PIN - loaded from environment
-ADMIN_PIN = _os.getenv("ADMIN_PIN", "CHANGE-ME")
 
 
 # ============================================================================
@@ -2959,102 +2922,6 @@ async def validate_and_refresh_token(
         "message": "Token is invalid and could not be refreshed. Please re-authenticate.",
     }
 
-
-# ============================================================================
-# Role Management
-# ============================================================================
-
-
-@router.post("/role")
-async def switch_role(
-    request: RoleSwitchRequest,
-    response: Response,
-    semptify_uid: str | None = Cookie(None),
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Switch user's role. Updates user ID and cookie.
-
-    Roles and Authorization:
-    - user: Standard tenant access (default) - no authorization needed
-    - manager: Property management - requires household_members > 1
-    - advocate: Tenant advocate - requires valid invite_code
-    - legal: Legal professional - requires valid invite_code
-    - admin: System administrator - requires PIN (set via ADMIN_PIN env var)
-    """
-    if not semptify_uid:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    if request.role not in ALLOWED_ROLES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid role. Valid: {sorted(ALLOWED_ROLES)}",
-        )
-
-    # Authorization checks based on role
-    if request.role == "admin":
-        # Admin requires PIN
-        if not request.pin or request.pin != ADMIN_PIN:
-            raise HTTPException(status_code=403, detail="Admin access requires valid PIN")
-
-    elif request.role in ["advocate", "legal"]:
-        # Advocate/Legal require invite code
-        if not request.invite_code or request.invite_code not in VALID_INVITE_CODES:
-            raise HTTPException(
-                status_code=403, detail=f"{request.role.capitalize()} access requires valid invite code"
-            )
-
-    elif request.role == "manager":
-        # Manager requires multiple people on lease
-        if not request.household_members or request.household_members < 2:
-            raise HTTPException(status_code=403, detail="Manager access requires more than one person on lease")
-
-    try:
-        # Generate new user ID with new role
-        new_uid = update_user_id_role(semptify_uid, request.role)
-        if not new_uid:
-            raise HTTPException(status_code=400, detail="Invalid user ID format")
-
-        # Get existing session from database
-        session = await get_session_from_db(db, semptify_uid)
-        if session:
-            # Save session with new user ID
-            await save_session_to_db(
-                db=db,
-                user_id=new_uid,
-                provider=session["provider"],
-                access_token=session["access_token"],
-                refresh_token=session.get("refresh_token"),
-            )
-            # Update user record
-            await create_or_update_user(db, new_uid, session["provider"])
-            # Update storage config
-            await get_or_create_storage_config(db, new_uid, session["provider"])
-            # Clear old compatibility cache entry.
-            SESSIONS.pop(semptify_uid, None)
-        # Role transition invalidates prior function tokens bound to the old role context.
-        invalidate_function_access_tokens(semptify_uid)
-
-        # Update cookie
-        set_auth_cookie(response, new_uid, secure=request.url.scheme == "https")
-
-        return {
-            "success": True,
-            "old_user_id": semptify_uid,
-            "new_user_id": new_uid,
-            "role": request.role,
-            "authorized": True,
-        }
-    except HTTPException:
-        # Re-raise HTTP exceptions (already formatted)
-        raise
-    except Exception as e:
-        logger.error(
-            f"Role switch failed for {semptify_uid} ▸ {request.role}: {type(e).__name__}: {str(e)}", exc_info=True
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Role switch failed: {type(e).__name__}. Check server logs for details."
-        )
 
 
 # ============================================================================

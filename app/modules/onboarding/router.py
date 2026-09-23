@@ -6,8 +6,8 @@ ONBOARDING SOLO — tenant-only onboarding.
 Onboarding is the fast, generic entry: tenant account + storage OAuth.
 There is no role selection — every account created here is a tenant.
 Professional roles (advocate, legal, manager, admin) are NOT onboarded
-through this module; they arrive via a separate add-on (different repo)
-or the invite-gated /api/storage/role switch.
+through this module; they arrive via a separate add-on (different repo,
+networked later). There is no in-repo elevation path.
 
 After OAuth the user lands on their role home page, which owns vault
 install, verification, overlay/Document Center setup, and the mandatory

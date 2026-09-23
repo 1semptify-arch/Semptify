@@ -3,8 +3,8 @@
 Brad, 2026-09-23: this repo onboards tenants only. There is no role
 selection page, no role URL parameter, and no OAuth state path that can mint
 or advertise a professional role. Pro-role onboarding is a separate add-on
-(different repo); the only in-repo elevation is the invite-gated
-/api/storage/role switch.
+(different repo); there is no in-repo elevation path — the role-switch
+endpoint was deleted entirely.
 """
 
 import importlib
@@ -55,12 +55,16 @@ def test_storage_oauth_minting_is_tenant_only():
     assert PRO_ROLES.isdisjoint(storage_module.MINTABLE_ROLES)
 
 
-def test_role_switch_endpoint_still_recognizes_pro_roles():
-    """The invite-gated /role switch keeps its full role list — that endpoint
-    is the deliberate elevation path (invite code / PIN), not self-serve
-    onboarding. Removing pro roles there would break invitations."""
-    for role in ("advocate", "legal", "admin", "manager"):
-        assert role in storage_module.ALLOWED_ROLES
+def test_no_role_switch_surface():
+    """The /api/storage/role switch endpoint and its plumbing were deleted —
+    there is no in-repo elevation path at all (Brad: 'none are to be gated,
+    there is no other role other than tenant')."""
+    assert not hasattr(storage_module, "ALLOWED_ROLES")
+    assert not hasattr(storage_module, "RoleSwitchRequest")
+    assert not hasattr(storage_module, "VALID_INVITE_CODES")
+    assert not hasattr(storage_module, "ADMIN_PIN")
+    route_paths = {getattr(r, "path", "") for r in storage_module.router.routes}
+    assert "/role" not in route_paths
 
 
 def test_role_selection_page_is_gone():

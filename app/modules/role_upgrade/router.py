@@ -145,8 +145,7 @@ async def request_role_upgrade(request: RoleUpgradeRequest, user: UserContext | 
 
     # ONBOARDING SOLO (Brad, 2026-09-23): professional roles do not exist in
     # this repo's onboarding — they arrive via a separate add-on (different
-    # repo) or the invite-gated /api/storage/role switch. Self-serve upgrade
-    # requests stay closed.
+    # repo, networked later). There is no in-repo elevation path.
     if requested_role in (UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER):
         raise HTTPException(
             status_code=503,

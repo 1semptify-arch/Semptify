@@ -17,8 +17,9 @@ MINTABLE_ROLES` gates every new-account minting point, and a `role` param
 that did not come from a verified identity demotes to tenant). Professional
 roles (advocate, legal, manager, admin) are onboarded through a **separate
 add-on in another repo**, networked later — do not re-add a role picker or
-role copy here. The only in-repo elevation path is the invite-gated
-`/api/storage/role` switch (invite code for advocate/legal, PIN for admin).
+role copy here. There is **no in-repo elevation path**: the
+`/api/storage/role` switch endpoint was deleted entirely — no invite code,
+PIN, or parameter opens another role in this repo.
 
 ## Gates (three — declared in `app/modules/onboarding/config.py`)
 
