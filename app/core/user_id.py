@@ -145,9 +145,10 @@ def generate_user_id(provider: str, role: str = "user") -> str:
         >>> generate_user_id("google_drive", "user")
         'GUa8Km3xPq'
     """
-    # Get codes
+    # Get codes — ONBOARDING SOLO: every minted ID is a tenant ID. Any
+    # non-tenant role string coerces to the tenant ('U') code.
     provider_code = PROVIDER_TO_CODE.get(provider, ProviderCode.GOOGLE_DRIVE)
-    role_code = ROLE_TO_CODE.get(role, RoleCode.USER)
+    role_code = ROLE_TO_CODE.get(role) if role in ("tenant", "user") else RoleCode.USER
 
     # Generate cryptographically secure 8-char random suffix
     # Use token_urlsafe for URL-safe characters, then convert to alphanumeric
@@ -198,6 +199,11 @@ def parse_user_id(user_id: str) -> tuple[str | None, str | None, str | None]:
 
     if not provider or not role:
         return None, None, None
+
+    # ONBOARDING SOLO (Brad, 2026-09-23): there is exactly one role — tenant.
+    # Whatever letter sits in this position (legacy, forged, or future), the
+    # ID decodes as tenant so no access can ever derive a professional role.
+    role = "tenant"
 
     return provider, role, unique_part
 

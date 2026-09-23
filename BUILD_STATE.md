@@ -1,3 +1,22 @@
+## Session — 2026-09-23 — Stateless tenant-only: roles and role gates removed (devin)
+
+**Brad's direction (verbatim):** "i do not want any one other then tenant i want it to be a stateless no access to any rolr but tenant i will have shareensbled by tenant thats it i want the gates per role totaky gone the option do not delete any modukes" — and "none arer to be gated ther is no other role otherthan tenant" / "nit just disabled non exisyant."
+
+**What shipped (branch `feature/onboarding-solo-tenant`, PR #317, commits c268f16d + this):**
+- **No role can exist**: `generate_user_id` always mints the tenant ('U') code regardless of the role argument; `parse_user_id`/`get_role_from_user_id` decode every letter — valid, legacy, or forged — as tenant. No path can create or resurrect a pro-role identity.
+- **Every elevation path deleted or dead**: `/api/storage/role` + `/storage/role` endpoints, `RoleSwitchRequest`, `ALLOWED_ROLES`, `VALID_INVITE_CODES`, `ADMIN_PIN`, the `storage_switch_role` contract — all deleted outright (verified 404 live even with invite code + PIN). Onboarding OAuth takes no role param; storage OAuth demotes any param not backed by a verified identity; tampered OAuth `state.role` can no longer overwrite `default_role` on existing accounts.
+- **Role gates gone**: `module_gate._extract_role` always returns USER (killed the `x-user-role` header privilege-escalation hole); `MODULE_RULES` `min_role`/`allowed_roles` no longer enforced; `_guard_role_page` + `_guard_by_contract` in main.py check auth+storage only; `features.is_enabled_for_role` returns enabled-for-everyone; `legal_filing`/`functionx`/`advocate` helpers are auth-only — advocate data is authorized by the tenant-granted share relationship (`from_user_id` scoping), never by role.
+- **Role params neutralized**: workflow `/route`, `/next-step`, `/advance`, `/groups` coerce any non-tenant body/param role to tenant (verified live: `role=legal`/`admin` → tenant B1/B2 routing, never B4 professional workspace; `/advance` no longer requires `role_selected`). `/api/components/config/{role}` always serves the tenant config — including unauthenticated. `/api/roles/*` (role_upgrade) advertises tenant only; `requirements/{pro-role}` and `upgrade` to pro roles → 404; `trusted-organizations` returns empty.
+- **Role picker/code gone**: `/choose-role` 404 (manifest entry removed — it was a live page via page_router); `role_selection.html`, dead Jinja `welcome.html` (hidden second picker), `validate-advocate/legal.html` deleted; `/onboarding/role-select`/`/select-role.html`/`/preamble` → providers; pro `role_configs/*.json` deleted (tenant.json kept as registry seed).
+- **Modules retained, dormant**: advocate/legal/admin-console modules stay in tree per Brad — pro-role endpoints 403/404 for all users since no pro identity can exist; admin console's env-credentialed elevation (`/admin/login` + TOTP + `X-Admin-Token`) left intact as ops access, not a selectable role.
+- **Inert data left deliberately**: `UserRole` enum + `ROLE_PERMISSIONS` (SDK + user_context) kept — ~390 dormant-module imports depend on them; nothing enforces them. `PageContract.roles_supported` lists kept as historical metadata — no enforcement path reads them.
+
+**Verified:** 8/8 `test_onboarding_solo_tenant.py` (incl. all-letters-decode-tenant + mint-always-U + only-tenant-config), 245/245 module_health, live on :8002 — choose-role 404, storage-role 404 with invite+PIN, roles/available = tenant only, requirements/legal 404, components/config/legal 404, workflow bodies with pro roles → tenant routing, `?role=legal` on both OAuth paths stores tenant (DB-verified). Browser pass on providers: zero role mentions, 0 console errors.
+
+**Marked:** `.devin/rules/08-onboarding-gates.md` ONBOARDING SOLO note updated — future sessions must not re-add a picker, role param, or elevation endpoint; pro roles onboard via the separate add-on repo.
+
+**Caveats:** existing dev DB may hold previously-minted pro user_ids — they now decode as tenant (harmless; Brad says no real users exist). `role_upgrade`/`admin_console`/`advocate` modules are dormant-but-present; natural move to the add-on repo when built. Slice-2 advocate scoping work remains uncommitted in the tree.
+
 ## Session — 2026-09-23 — Legal UI epic slice 1: advocate dashboard + enforcement (devin)
 
 **Task `legal-ui-epic-2026-09-23` slice 1 → review.** Spec-of-record: `docs/blueprints/legal_ui_acceptance_matrix.md` (~85 rows, 11 invariants, research-backed: ABA 1.6/5.3, FRE 902, SAMHSA trauma-informed).

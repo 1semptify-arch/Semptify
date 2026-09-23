@@ -90,11 +90,8 @@ async def _guard_page(request: Request, page_id: str) -> RedirectResponse | None
         reconnect_path = reconnect_stage.path if reconnect_stage else "/storage/reconnect"
         return ssot_redirect(reconnect_path, context=f"page_router:{page_id} reconnect required")
 
-    current_role = get_role_from_user_id(user_id) or ""
-    allowed_roles = {r.value for r in contract.roles_supported}
-    if current_role not in allowed_roles:
-        return ssot_redirect(await _route_user(user_id), context=f"page_router:{page_id} role mismatch")
-
+    # ONBOARDING SOLO: contract.roles_supported is not enforced — tenant is
+    # the only role; deeper surfaces authorize via share relationships.
     return None
 
 

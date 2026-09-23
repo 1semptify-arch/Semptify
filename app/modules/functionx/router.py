@@ -28,11 +28,14 @@ def _get_user_role(request: Request) -> str:
     return role
 
 
-def _require_roles(request: Request, allowed_roles: list[str]) -> str:
-    role = _get_user_role(request)
-    if role not in allowed_roles:
-        raise HTTPException(status_code=403, detail="Insufficient role privileges")
-    return role
+def _require_roles(request: Request, allowed_roles: list[str] | None = None) -> str:
+    # ONBOARDING SOLO: roles no longer gate access — tenant is the only
+    # role. This now only requires an authenticated user; call sites keep
+    # their signature so dormant pro-role wiring isn't disturbed.
+    user_id = get_request_user_id(request, fallback=None)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return "tenant"
 
 
 async def _emit_functionx_telemetry(

@@ -67,6 +67,30 @@ def test_no_role_switch_surface():
     assert "/role" not in route_paths
 
 
+def test_user_ids_always_decode_as_tenant():
+    """STATELESS TENANT-ONLY: any role letter in a user_id — valid, legacy,
+    or forged — decodes as tenant. No access can ever derive a pro role."""
+    from app.core.user_id import parse_user_id, generate_user_id
+
+    # Every possible role letter decodes as tenant
+    for letter in "UAMLVJCSPR":
+        provider, role, _ = parse_user_id(f"G{letter}abc12345")
+        assert role == "tenant", f"letter {letter} decoded as {role}"
+
+    # Minting always produces a tenant ('U') code, whatever role is asked for
+    for role in ("tenant", "user", "admin", "legal", "advocate", "manager"):
+        uid = generate_user_id("google_drive", role)
+        assert uid[1] == "U", f"generate_user_id({role}) minted letter {uid[1]}"
+
+
+def test_only_tenant_role_config_remains():
+    """The pro-role configs are gone — the role plugin registry in this
+    repo defines tenant only. Future roles live in the add-on repo."""
+    config_dir = REPO_ROOT / "app/modules/onboarding/role_configs"
+    configs = {p.name for p in config_dir.glob("*.json")}
+    assert configs == {"tenant.json"}
+
+
 def test_role_selection_page_is_gone():
     """The role picker was removed entirely — no manifest entry, no template,
     no render function."""

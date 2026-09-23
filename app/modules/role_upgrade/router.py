@@ -73,23 +73,22 @@ async def get_available_roles():
     """
     Get all available roles and their requirements.
     """
-    validator = get_role_validator()
-
-    roles = []
-    for role in [UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL]:
-        req = validator.get_role_requirements(role)
-        roles.append(
+    # ONBOARDING SOLO (Brad, 2026-09-23): tenant is the only role in this
+    # repo. Professional roles are not advertised — they onboard via a
+    # separate add-on repo, not through this endpoint.
+    return {
+        "roles": [
             {
-                "role": role.value,
-                "name": req.get("name", role.value),
-                "requirements": req.get("requirements", ""),
-                "verification_options": req.get("verification_options", []),
-                "warning": req.get("warning"),
-                "self_service": role != UserRole.ADMIN,
+                "role": "tenant",
+                "name": "Tenant",
+                "requirements": "Connect a cloud storage provider.",
+                "verification_options": [],
+                "warning": None,
+                "self_service": True,
             }
-        )
-
-    return {"roles": roles, "note": "Admin role is not available via self-service"}
+        ],
+        "note": "Tenant is the only role.",
+    }
 
 
 @router.get("/requirements/{role}")
@@ -97,21 +96,16 @@ async def get_role_requirements(role: str):
     """
     Get detailed requirements for a specific role.
     """
-    validator = get_role_validator()
-
-    try:
-        user_role = UserRole(role.lower())
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid role: {role}")
-
-    requirements = validator.get_role_requirements(user_role)
+    # ONBOARDING SOLO: tenant is the only role — anything else does not exist.
+    if role.lower() not in ("tenant", "user"):
+        raise HTTPException(status_code=404, detail="Not Found")
 
     return RoleRequirementsResponse(
-        role=role,
-        name=requirements.get("name", role),
-        requirements=requirements.get("requirements", ""),
-        verification_options=requirements.get("verification_options", []),
-        warning=requirements.get("warning"),
+        role="tenant",
+        name="Tenant",
+        requirements="Connect a cloud storage provider.",
+        verification_options=[],
+        warning=None,
     )
 
 
@@ -129,32 +123,12 @@ async def request_role_upgrade(request: RoleUpgradeRequest, user: UserContext | 
     """
     validator = get_role_validator()
 
-    # Parse requested role
-    try:
-        requested_role = UserRole(request.requested_role.lower())
-    except ValueError:
-        raise HTTPException(
-            status_code=400, detail=f"Invalid role: {request.requested_role}. Valid: user, advocate, legal"
-        )
+    # ONBOARDING SOLO (Brad, 2026-09-23): tenant is the only role in this
+    # repo — there is no upgrade target and no elevation path at all.
+    if request.requested_role.lower() not in ("tenant", "user"):
+        raise HTTPException(status_code=404, detail="Not Found")
 
-    # Reject admin requests
-    if requested_role == UserRole.ADMIN:
-        raise HTTPException(
-            status_code=403, detail="Admin role cannot be requested via API. Contact system administrator."
-        )
-
-    # ONBOARDING SOLO (Brad, 2026-09-23): professional roles do not exist in
-    # this repo's onboarding — they arrive via a separate add-on (different
-    # repo, networked later). There is no in-repo elevation path.
-    if requested_role in (UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER):
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "error": "invite_only",
-                "message": f"The {requested_role.value} role is available by invitation only.",
-                "available_now": ["tenant"],
-            },
-        )
+    requested_role = UserRole.USER
 
     # Get user ID (from session or generate temp)
     user_id = user.user_id if user else "temp_" + str(hash(request.email or "anon"))[:8]
@@ -236,15 +210,8 @@ async def get_my_role(user: UserContext | None = Depends(get_current_user)):
 @router.get("/trusted-organizations")
 async def get_trusted_organizations():
     """
-    Get list of trusted organizations whose email domains auto-verify.
+    ONBOARDING SOLO: no elevated roles exist in this repo, so there are no
+    trusted verification domains to advertise. Kept (empty) for API
+    compatibility with dormant pro-role modules.
     """
-    from app.core.trusted_config import TRUSTED_ADVOCATE_DOMAINS, TRUSTED_LEGAL_DOMAINS
-
-    return {
-        "advocate_domains": sorted(TRUSTED_ADVOCATE_DOMAINS),
-        "legal_domains": sorted(TRUSTED_LEGAL_DOMAINS - TRUSTED_ADVOCATE_DOMAINS),
-        "note": (
-            "Users with email addresses from these organizations can be automatically "
-            "verified for elevated roles. Contact us to add your organization."
-        ),
-    }
+    return {"advocate_domains": [], "legal_domains": [], "note": "Tenant is the only role."}

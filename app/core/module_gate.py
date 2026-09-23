@@ -307,14 +307,11 @@ class ModuleGateMiddleware(BaseHTTPMiddleware):
             return request.state.user.role
 
         # Try to get from cookie/header
-        role_header = request.headers.get("x-user-role")
-        if role_header:
-            try:
-                return UserRole(role_header.lower())
-            except ValueError:
-                pass
-
-        # Default to tenant
+        # ONBOARDING SOLO (Brad, 2026-09-23): tenant is the only role. The
+        # x-user-role header was a privilege-escalation hole — a client could
+        # claim any role by sending it. It is no longer read; every request
+        # resolves as tenant. Access beyond tenant scope comes only from
+        # tenant-granted share relationships, not roles.
         return UserRole.USER
 
     def _extract_jurisdiction(self, request: Request) -> Jurisdiction:
@@ -357,14 +354,10 @@ class ModuleGateMiddleware(BaseHTTPMiddleware):
         restricted: dict[str, str] = {}
 
         for module_id, rule in MODULE_RULES.items():
-            # Check role
-            if rule.min_role and role.value < rule.min_role.value:
-                restricted[module_id] = f"Requires {rule.min_role.value} role or higher"
-                continue
-
-            if rule.allowed_roles and role not in rule.allowed_roles:
-                restricted[module_id] = f"Not available for {role.value} role"
-                continue
+            # ONBOARDING SOLO: role checks removed entirely — no min_role or
+            # allowed_roles gating. Module availability is decided by
+            # jurisdiction and feature flags only; access beyond the tenant
+            # surface is granted by share relationships, never by role.
 
             # Check jurisdiction (state-level)
             if jurisdiction.state:

@@ -1825,6 +1825,10 @@ async def oauth_callback(
                     )
                 else:
                     role = db_role
+                # Onboarding solo: a stored pro-role value is legacy data —
+                # session role is always tenant now.
+                if role not in MINTABLE_ROLES:
+                    role = "tenant"
                 logger.info(f"▸ OAuth callback: Matched existing user by provider subject: {user_id} (role={role})")
             else:
                 # New user - generate ID encoding provider + role

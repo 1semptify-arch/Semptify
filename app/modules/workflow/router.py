@@ -562,7 +562,9 @@ async def get_route_decision(body: RouteRequest) -> RouteResponse:
     try:
         documents_present = body.documents_present or bool(body.overlay_record_ids)
         decision = evaluate_from_params(
-            role=body.role,
+            # ONBOARDING SOLO: tenant is the only role — any other value
+            # coerces so a tampered body can't reach pro-role routing.
+            role=body.role if body.role in ("tenant", "user") else "tenant",
             storage_state=body.storage_state,
             documents_present=documents_present,
             has_active_case=body.has_active_case,
@@ -595,11 +597,8 @@ async def advance_workflow(body: AdvanceRequest) -> AdvanceResponse:
 
     missing_requirements: list[str] = []
 
-    if not body.role.strip():
-        missing_requirements.append("role_selected")
-    else:
-        if "role_selected" not in completed:
-            missing_requirements.append("role_selected")
+    # ONBOARDING SOLO: there is no role selection — 'role_selected' can
+    # never be a required action.
 
     if not body.storage_state.strip():
         missing_requirements.append("storage_status_set")
@@ -623,7 +622,7 @@ async def advance_workflow(body: AdvanceRequest) -> AdvanceResponse:
     try:
         documents_present = body.documents_present or bool(body.overlay_record_ids)
         decision = evaluate_from_params(
-            role=body.role,
+            role=body.role if body.role in ("tenant", "user") else "tenant",
             storage_state=body.storage_state,
             documents_present=documents_present,
             has_active_case=body.has_active_case,
@@ -649,15 +648,13 @@ async def get_next_step(body: NextStepRequest) -> NextStepResponse:
     """
     Determine the single best deterministic next step from current case state.
     """
-    try:
-        role_enum = UserRole(body.role)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=f"Unknown role: '{body.role}'") from exc
+    # ONBOARDING SOLO: tenant is the only role — anything else coerces.
+    role_enum = UserRole.USER if body.role not in ("tenant", "user") else UserRole(body.role)
 
     try:
         # Validate enums and normalize role-specific base route using existing engine.
         baseline = evaluate_from_params(
-            role=body.role,
+            role=body.role if body.role in ("tenant", "user") else "tenant",
             storage_state=body.storage_state,
             documents_present=body.documents_present,
             has_active_case=body.has_active_case,
@@ -928,10 +925,9 @@ async def list_process_groups(role: str | None = None) -> dict:
     Return all 8 process groups, optionally filtered by role.
     """
     if role:
-        try:
-            role_enum = UserRole(role)
-        except ValueError as exc:
-            raise HTTPException(status_code=422, detail=f"Unknown role: '{role}'") from exc
+        # ONBOARDING SOLO: tenant is the only role — anything else resolves
+        # to the tenant group set rather than erroring or exposing pro groups.
+        role_enum = UserRole(role) if role in ("tenant", "user") else UserRole.USER
         groups = get_groups_for_role(role_enum)
     else:
         groups = list(PROCESS_GROUPS)
