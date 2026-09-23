@@ -15547,3 +15547,8 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - Not done (intake-logged): donate.html palette restyle (8fd1b511);
   composer_preview_shell on tenant pages decision; legacy themes/ retirement
   (workbook §10.3 undecided); IronBee visual pass pending browser MCP.
+  - Follow-up on same PR: providers.html + providers-reconnect.html (the live
+    onboarding storage picker) restyled from the old purple-gradient palette to
+    var(--token, #canonical) references + stylesheet link; dark mode now works
+    there too. Baseline 156 -> 138. Dead statics (pick-role, role-select,
+    validate-*) logged to intake 95e902bf for deletion review.
