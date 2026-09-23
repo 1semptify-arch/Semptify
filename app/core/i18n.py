@@ -191,6 +191,11 @@ def available_locales() -> dict[str, str]:
     }
 
 
+def catalog_status(locale: str) -> str:
+    """Return a catalog's review status ('human_reviewed', 'machine', 'stub')."""
+    return I18n().catalog_status(locale)
+
+
 def gettext(key: str, locale: str | None = None, request: Any | None = None, **kwargs: Any) -> str:
     return I18n().translate(key, locale=locale, request=request, **kwargs)
 
