@@ -1,3 +1,14 @@
+## Session — 2026-09-23 — Post-merge verification + review-queue sweep (devin)
+
+**What happened:**
+- PR #307 merged (b21977d1): terms MN/Dakota + AI notice, docx preview/edit, find-help directory. Master gitlink bumped (b7acf79).
+- **Render autoDeploy is OFF** — prod still on a625bb3f (PR #301). Next manual deploy ships PRs #302-#310 together.
+- Post-merge test fix: resource-directory tests predated the public-visibility rule -> PR #308.
+- i18n: Brad chose keep-visible-with-marker -> PR #309 (asterisk + caption on machine catalogs).
+- /tenant/start cosmetic flags diagnosed: auto dark palette + card-like shell buttons + inner-zone scroll -> spec at docs/blueprints/shell_visual_quieting_spec_2026-09-23.md (PR #310), awaiting Brad sign-off.
+
+**Pending Brad:** merge #308/#309/#310; spec sign-off; decide when to trigger prod deploy; terms legal attestation vs his self-attestation of the copy.
+
 ## Session — 2026-09-21 — Fleet dispatch night: 4 tasks shipped, 2 PRs open (devin + swe-executor spawns)
 
 **What shipped (PRs awaiting Brad's merge — branch protection):**
