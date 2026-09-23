@@ -1,8 +1,14 @@
 ---
-description: Role definitions, legal sub-roles, and manager correction
+description: SUPERSEDED — tenant-only identity (PR #317). Kept as add-on-repo reference.
 ---
 
-# Roles and Identity
+# Roles and Identity — SUPERSEDED (2026-09-23)
+
+**This repo is stateless tenant-only (PR #317). There are no pro roles, no
+role gates, and no elevation paths — every identity is a tenant and access
+beyond the tenant's own surface comes only from tenant-granted sharing.
+The definitions below are preserved for the separate pro-role add-on repo
+(networked later) — do not implement, reference, or gate on them here.**
 
 ## Legal sub-roles
 

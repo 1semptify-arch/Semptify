@@ -30,7 +30,7 @@ Skipping it is how the design system drifts and Known Failures repeat.
 Current canonical chrome is **Site Shell v5** (see BUILD_STATE.md 2026-09-12):
 
 - `app/templates/shell_base.html` + `app/templates/body/*_shell.html` — asymmetric rail frame: **work zone left, supporting rail right** (Document Center is the exception: rail left, work right).
-- Paper background, thin role-colored header/footer, transparent regions, liquid root scaling, **no desktop page-scroll**.
+- Paper background, thin palette-colored header/footer, transparent regions, liquid root scaling, **no desktop page-scroll**.
 - `.shell-side` rail: top-aligned, sticky, viewport-capped.
 - `/tenant/start` solo variant — locked spec, don't generalize it.
 - Header and footer are fixed universal templates — never vary per page. Footer is injected by `static/js/unified-footer-loader.js`.
@@ -69,5 +69,5 @@ Do not mark GUI work done on code review alone.
 
 - `.html` static files can shadow Jinja routes (`/about.html` vs `/about`) — check `static/` before assuming a route renders your template.
 - Contract copy is contract-shaped, not user-friendly — templates expose title/description override blocks; use them rather than editing contracts.
-- Advocate/legal shell variants are CSS-wired but unexercised — needs a role account to verify.
+- Advocate/legal shell variants are CSS-wired but dormant — no pro roles exist in this repo (PR #317); they revive in the add-on repo.
 - Mobile toolset is a separate deferred workstream — desktop shell is the rolled-out baseline.

@@ -12,7 +12,7 @@ lifecycle pipeline before reaching production users.
 ## Access
 
 - **URL:** `/admin/forge.html` (alias: `/admin/dev-lab.html`)
-- **Access:** Admin role only (stealth admin guard)
+- **Access:** dormant — no admin role exists (tenant-only repo, PR #317). Reachable only via Brad's env-credentialed ops elevation (stealth admin guard).
 - **Dashboard link:** ⚒️ Semptify Forge
 
 ## Lifecycle Pipeline
@@ -35,7 +35,7 @@ dev_only → preview → experimental → beta → stable
 
    ```python
    _register("app.modules.<name>.router", tags=("<Name>",), tier=ProductTier.DEV,
-             lifecycle="dev_only", requires_role=("admin",),
+             lifecycle="dev_only", requires_role=("admin",),  # inert marker — no roles exist; keeps module dormant
              dev_notes="What this module does.",
              log_message="<Name> router connected")
    ```text
