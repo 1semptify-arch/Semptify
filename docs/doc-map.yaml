@@ -234,3 +234,15 @@
     - app/core/logging_service.py
     - app/core/audit_logger.py
   category: adr
+
+- doc: planning/B_SIDE_DISPLAY_WINDOW_MAP.md
+  covers:
+    - app/core/navigation.py
+    - app/core/module_contracts.py
+    - app/core/product_manifest.py
+    - app/modules/role_ui/router.py
+    - app/templates/shell_base.html
+    - app/templates/components/fnav.html
+    - static/css/ssot-design-system.css
+    - app/modules
+  category: admin

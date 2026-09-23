@@ -15473,3 +15473,46 @@ on :8002; all role-home routes respond (302 auth-gated, admin gateway 200
 renders clean with banner correctly absent for anon). **Not verified:**
 authenticated browser pass (IronBee MCP unavailable); real provisioning
 run on a live provider (needs tenant OAuth token).
+
+## Session — 2026-09-21 — Universal media player: upload preview + docx view/edit (devin)
+
+**Task:** `docx-preview-edit-2026-09-21` (Brad request, expanded scope):
+verify a file's real content before upload — not just its name — via one
+reusable "media player" viewer (all formats, borderless, resizable, liquid).
+
+**What shipped**
+
+- `static/js/media_player.js` + `static/css/media-player.css` — new
+  `SemptifyMediaPlayer` component: mounts into any host, classifies by
+  name+mime, renders docx (mammoth→HTML), pdf/html (iframe), images, plain
+  text/csv/md, audio/video (native controls), and an honest "can't preview"
+  fallback — never a blank, upload still possible.
+- `static/js/docx_export.js` — tiny HTML→real-OOXML docx writer (own code,
+  jszip only). Chosen over html-docx-js after verification showed that lib
+  emits altChunk HTML: Word-openable but blank to mammoth/python-docx — an
+  edited copy would have previewed empty in our own viewer. Ours round-trips.
+- Vendored `static/js/vendor/mammoth.browser.min.js` (1.11.0) and
+  `jszip.min.js` (3.10.1) — local files, no runtime CDN dependency for this
+  feature (the file never leaves the device for preview).
+- `document_center.js` — upload modal renders picked-file content
+  (`previewPickedFile` → `#dcUploadPreview`) before Upload; `previewLocalFile`
+  routes non-image files through the media player; `selectDoc` renders .docx
+  via `/api/dc/document/{id}/view` → mammoth (`renderDocx`) instead of the
+  dead iframe; edit toggle → Download .docx or "Save copy to vault"
+  (`saveEditedCopyToVault` posts `…-edited.docx` through
+  `/api/intake/upload/auto` — a NEW record, original untouched; in-place
+  overwrite deliberately out of scope).
+- `document_center.html` — media-player.css link, `#dcUploadPreview` pane in
+  upload modal (widened to 44rem), script tags for the 4 JS files.
+- `tools/docx-studio/` (master-repo) — standalone zero-server page using the
+  same component: drop a file → preview → edit → save .docx.
+- Blueprint: `docs/blueprints/docx_preview_edit_blueprint.md` (approved +
+  expanded by Brad).
+
+**Verified:** `node --check` clean; Jinja compiles; app boots on :8001;
+/dc renders all assets authenticated (seed-test-user). Full in-browser
+round-trip via the standalone page: docx→preview→edit→export→mammoth
+re-read shows all content incl. edits and bold; text/.doc/unknown
+fallbacks verified. **Not verified:** authenticated DC browser pass with a
+real vaulted docx (IronBee MCP not connected — same limitation as recent
+sessions); embedded images are dropped from edited exports (noted to user).
