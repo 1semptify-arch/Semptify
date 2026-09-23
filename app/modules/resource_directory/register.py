@@ -13,10 +13,11 @@ register_function_group(
         group_name="resource_list",
         title="Resource List (SSOT)",
         description=(
-            "CANONICAL public list of community resources with category/state "
-            "filters. No tenant data."
+            "CANONICAL public list of community resources with category and "
+            "jurisdiction (state/county) filters. Only no-charge or verified-"
+            "nonprofit listings surface publicly. No tenant data."
         ),
-        inputs=("category?", "state?", "query?"),
+        inputs=("category?", "subcategory?", "state?", "county?", "service_area?", "language?", "query?"),
         outputs=("resources", "total"),
         dependencies=("app.modules.resource_directory.router",),
         deterministic=True,
