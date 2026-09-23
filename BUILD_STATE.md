@@ -1,3 +1,14 @@
+## Session — 2026-09-23 — UI audit fixes + donate accuracy shipped to prod (devin)
+
+**What shipped:**
+- PR #312 merged (ebad46cb): accent-strong token (all 3 WCAG contrast failures fixed, worst combo now 4.68:1), 12px font floor across design system + 28 templates, tenant_retaliation badge fix, public_shell card palette consolidated, onboarding providers + providers-reconnect restyled to tokens (dark-mode aware), **style-guard CI live** — new hardcoded hexes / sub-12px fonts fail the build (baseline: 138 known violations, only shrinks).
+- PR #313 merged (5e2748eb): donate.html accuracy pass — "1 in 10" → 4% (NCCRC), "state-by-state" → "35 states and growing", "Zero" → "Near-Zero Breach Risk". Standalone dark design kept per Brad.
+- **Deploy dep-dapkqso473hc73c2pteg LIVE on prod** (commit 5e2748eb) — ships #312 + #313 together. All 3 corrected donate claims verified serving on semptify.org. Cloudflare dev-mode + full purge done earlier.
+
+**Parked in intake:** dead CSS files (`app/static/css/landing.css`, `style.css` — intake-00ab17af), dead onboarding HTML (`intake-95e902bf`), donate.html restyle-if-ever (baseline debt, deliberate).
+
+**Pending Brad:** nothing blocking — all merged work is live. Human-translation commissioning still parked (budget).
+
 ## Session — 2026-09-23 — Post-merge verification + review-queue sweep (devin)
 
 **What happened:**
