@@ -296,6 +296,10 @@ REPOs/
 funding_forge/.cursor/
 
 # Real case data & personal documents — backed up outside repo (brads temp); never commit
+# Legal-intel research artifacts are case-relevant dossiers — never commit
+legal_intel/*.md
+!legal_intel/README.md
+!legal_intel/MANUAL.md
 data/cases/
 data/case_outputs/
 data/converted_documents/
