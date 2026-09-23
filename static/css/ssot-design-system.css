@@ -2367,6 +2367,62 @@ body.shell--solo .shell-solo-col {
   margin: 0 auto;
 }
 
+/* --- Solo visual quieting (Brad-approved 2026-09-23, scoped to tenant
+   flagship only — see docs/blueprints/shell_visual_quieting_spec_2026-09-23.md)
+   Consistent control text: hovers shift border/tint, never invert text color
+   or lift the control. Subtle separation: panels lose their fill. Tightened
+   vertical rhythm so the solo column fits the locked viewport. */
+
+body.shell--solo .shell-btn:hover {
+  transform: none;
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border-color: var(--color-accent);
+  color: var(--text-primary);
+}
+
+body.shell--solo .shell-btn--accent:hover,
+body.shell--solo .shell-btn--primary:hover {
+  transform: none;
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  color: var(--bg-card);
+}
+
+body.shell--solo .shell-chip:hover {
+  border-color: var(--color-accent);
+  color: var(--text-primary);
+}
+
+body.shell--solo .shell-panel {
+  background: transparent;
+}
+
+body.shell--solo .shell-main {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+body.shell--solo .shell-zone + .shell-zone {
+  padding-top: 1.125rem;
+  margin-top: 1.125rem;
+}
+
+body.shell--solo .shell-lede {
+  margin-bottom: 1rem;
+}
+
+body.shell--solo .shell-status-row {
+  padding: 0.45rem 0;
+}
+
+body.shell--solo .shell-rows a {
+  padding: 0.5rem 0.25rem;
+}
+
+body.shell--solo .shell-zone-title {
+  margin-bottom: 0.5rem;
+}
+
 /* Dense/long pages anchor content at the top instead of vertically
    centering it — apply via main_class="shell-main shell-main--top". */
 body.shell .shell-main--top {
