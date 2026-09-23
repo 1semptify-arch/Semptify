@@ -37,6 +37,7 @@ async def test_create_and_get_resource():
         "languages": ["en", "es", "so"],
         "contact_info": {"phone": "612-728-5767", "website": "https://homelinemn.org"},
         "source": "manual",
+        "is_no_charge": True,
     }
 
     async with _client() as client:
@@ -64,12 +65,24 @@ async def test_list_resources_filter_by_category():
                 "name": "Tenants Union",
                 "category": "tenant_union",
                 "service_area": "Hennepin County, MN",
+                "is_no_charge": True,
             },
         )
         await client.post(
             "/admin/resources",
             json={
                 "name": "Legal Aid",
+                "category": "legal_aid",
+                "service_area": "Hennepin County, MN",
+                "is_no_charge": True,
+            },
+        )
+        # Fails the public-visibility rule (neither no-charge nor verified
+        # nonprofit) — must be excluded even though the category matches.
+        await client.post(
+            "/admin/resources",
+            json={
+                "name": "Unverified Paid Referral Service",
                 "category": "legal_aid",
                 "service_area": "Hennepin County, MN",
             },
