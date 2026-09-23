@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reconnect Storage - Semptify</title>
+    <link rel="stylesheet" href="/css/ssot-design-system.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-page, #f6f4ef);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -16,22 +17,22 @@
             padding: 20px;
         }
         .container {
-            background: white;
+            background: var(--bg-card, #ffffff);
             border-radius: 16px;
             padding: 40px;
             max-width: 500px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 30px rgba(31, 29, 26, 0.12);
         }
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--text-primary, #1f1d1a);
             margin-bottom: 8px;
             font-size: 28px;
         }
         .subtitle {
             text-align: center;
-            color: #666;
+            color: var(--text-secondary, #5d5a55);
             margin-bottom: 32px;
             font-size: 16px;
             line-height: 1.5;
@@ -44,19 +45,18 @@
             display: flex;
             align-items: center;
             padding: 20px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color, #e8e6e1);
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: border-color 0.2s, background 0.2s;
             text-decoration: none;
             color: inherit;
-            background: white;
+            background: var(--bg-card, #ffffff);
         }
         .provider-btn:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-            transform: translateY(-2px);
-        }
+            border-color: var(--color-accent-strong, #436048);
+            background: var(--bg-muted, #f0eee9);
+            }
         .provider-icon {
             width: 48px;
             height: 48px;
@@ -66,29 +66,29 @@
             justify-content: center;
             font-size: 24px;
             margin-right: 16px;
-            background: #f5f5f5;
+            background: var(--bg-muted, #f0eee9);
         }
         .provider-info { flex: 1; text-align: left; }
         .provider-name {
             font-weight: 600;
             font-size: 18px;
-            color: #333;
+            color: var(--text-primary, #1f1d1a);
             margin-bottom: 4px;
         }
         .provider-desc {
             font-size: 14px;
-            color: #666;
+            color: var(--text-secondary, #5d5a55);
         }
         .secure-note {
             text-align: center;
             margin-top: 24px;
             padding-top: 24px;
-            border-top: 1px solid #e0e0e0;
-            color: #666;
+            border-top: 1px solid var(--border-color, #e8e6e1);
+            color: var(--text-secondary, #5d5a55);
             font-size: 14px;
         }
         .secure-note span {
-            color: #4caf50;
+            color: var(--color-success-800, #065f46);
             font-weight: 500;
         }
     </style>

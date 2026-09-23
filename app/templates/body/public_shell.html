@@ -65,24 +65,30 @@
     .service-card .cta-button.secondary { background: var(--text-muted); }
     .service-card .cta-button.secondary:hover { background: var(--text-secondary); }
 
-    /* Dark mode: the shared --bg-card goes dark, leaving large dark cards.
-       Lighten the card surface ~90% and flip its text to dark ink. */
-    @media (prefers-color-scheme: dark) {
-        .service-card { background: #efeeea; border-color: #d5d2ca; color: #1f1d1a; }
-        body .service-card h3 { color: #2f4438; }
-        .service-card p { color: #4a4742; }
-        .service-card .cta-button { background: #4c6b4c; color: #ffffff; }
-        .service-card .cta-button:hover { background: #3d583d; }
-        .service-card .cta-button.secondary { background: #6b655d; }
-        .service-card .cta-button.secondary:hover { background: #4a4742; }
+    /* Fixed light-island palette for service cards. These are literals on
+       purpose — they must NOT follow the dark-mode token flip, so the card
+       stays light in both themes. Defined once here; referenced below. */
+    .service-card {
+        --pc-bg: #efeeea; --pc-line: #d5d2ca; --pc-ink: #1f1d1a;
+        --pc-title: #2f4438; --pc-body: #4a4742; --pc-cta: #4c6b4c;
+        --pc-cta-hover: #3d583d; --pc-muted: #6b655d; --pc-muted-hover: #4a4742;
     }
-    [data-theme="dark"] .service-card { background: #efeeea; border-color: #d5d2ca; color: #1f1d1a; }
-    [data-theme="dark"] .service-card h3 { color: #2f4438; }
-    [data-theme="dark"] .service-card p { color: #4a4742; }
-    [data-theme="dark"] .service-card .cta-button { background: #4c6b4c; color: #ffffff; }
-    [data-theme="dark"] .service-card .cta-button:hover { background: #3d583d; }
-    [data-theme="dark"] .service-card .cta-button.secondary { background: #6b655d; }
-    [data-theme="dark"] .service-card .cta-button.secondary:hover { background: #4a4742; }
+    @media (prefers-color-scheme: dark) {
+        .service-card { background: var(--pc-bg); border-color: var(--pc-line); color: var(--pc-ink); }
+        body .service-card h3 { color: var(--pc-title); }
+        .service-card p { color: var(--pc-body); }
+        .service-card .cta-button { background: var(--pc-cta); color: var(--pc-bg); }
+        .service-card .cta-button:hover { background: var(--pc-cta-hover); }
+        .service-card .cta-button.secondary { background: var(--pc-muted); }
+        .service-card .cta-button.secondary:hover { background: var(--pc-muted-hover); }
+    }
+    [data-theme="dark"] .service-card { background: var(--pc-bg); border-color: var(--pc-line); color: var(--pc-ink); }
+    [data-theme="dark"] .service-card h3 { color: var(--pc-title); }
+    [data-theme="dark"] .service-card p { color: var(--pc-body); }
+    [data-theme="dark"] .service-card .cta-button { background: var(--pc-cta); color: var(--pc-bg); }
+    [data-theme="dark"] .service-card .cta-button:hover { background: var(--pc-cta-hover); }
+    [data-theme="dark"] .service-card .cta-button.secondary { background: var(--pc-muted); }
+    [data-theme="dark"] .service-card .cta-button.secondary:hover { background: var(--pc-muted-hover); }
 
     .category-section { margin-bottom: 2.25rem; }
     .category-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
