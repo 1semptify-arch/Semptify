@@ -313,6 +313,11 @@ Verify methods: `API` = pytest/contract; `UI` = browser-driven live;
   control that swaps to a neutral page instantly.
 - **Co-view scope → role-agnostic (advocate AND legal).** One session
   system; per-role visibility enforced by the existing privilege filter.
+- **Legal roles use OAuth storage like everyone else — no exceptions.**
+  Same onboarding (provider connect → vault → role via invite code + bar
+  number). No separate legal auth path. Consequence: an attorney's private
+  work-product overlays live in the *attorney's own* vault — invisible to
+  the tenant — which is the correct privilege boundary by construction.
 
 ## Still open
 

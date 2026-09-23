@@ -86,6 +86,10 @@ crappy insecure conference is worse than none.
 - [x] **Pro security: idle session timeout; no extra 2FA layer** (provider
       OAuth already carries it).
 - [x] **Safety exit: quick-exit button** (instant swap to neutral page).
+- [x] **Legal/advocate users have OAuth storage like everyone else — no
+      exceptions.** Same provider-connect → vault → role pipeline. An
+      attorney's private work-product overlays live in *their* vault,
+      invisible to the tenant — privilege by construction.
 
 ## Still open
 
