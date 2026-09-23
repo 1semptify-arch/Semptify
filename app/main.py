@@ -117,11 +117,12 @@ templates.env.globals["subject_starters"] = _get_subject_starters()
 
 # Expose i18n `_()` helper, locale list, and current-locale resolver to all Jinja2
 # templates (Task 6 i18n).
-from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, get_locale, i18n
+from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, catalog_status, get_locale, i18n
 
 templates.env.globals["_"] = _jinja2_gettext
 templates.env.globals["supported_locales"] = available_locales()
 templates.env.globals["get_locale"] = get_locale
+templates.env.globals["catalog_status"] = catalog_status
 
 # Central plain-language copy for contract-bearing pages (C2).
 from app.core.contract_copy import contract_description, contract_title
