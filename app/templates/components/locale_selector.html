@@ -3,9 +3,10 @@
     <select id="locale-select" name="locale" class="locale-selector__select" aria-label="{{ _("language.selector.aria") }}">
         {% for code, name in supported_locales.items() %}
         <option value="{{ code }}" {% if get_locale(request) == code %}selected{% endif %}>
-            {{ name }}
+            {{ name }}{% if catalog_status(code) == "machine" %} *{% endif %}
         </option>
         {% endfor %}
     </select>
     <button type="submit" class="locale-selector__button">{{ _("action.save") }}</button>
+    <p class="locale-selector__note text-muted">* {{ _("language.machine_note") }}</p>
 </form>
