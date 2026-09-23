@@ -72,14 +72,24 @@ crappy insecure conference is worse than none.
 - No attorney-specific privilege tooling beyond session logging.
 - No changes to `app/modules/onboarding/` (NO-TOUCH module).
 
-## Decisions parked for Brad
+## Decisions — settled by Brad (2026-09-23)
 
-- [ ] Advocate vs. attorney: one role with a "barred attorney" flag, or two
-      separate roles? (Privilege handling differs.)
-- [ ] Co-view MVP: page-sync only, or live annotations too?
-- [ ] Who can start a session — tenant only, or advocate can request?
-- [ ] Invite delivery: codes only, or in-app email sending?
-- [ ] Stage-5 "represent" — a label on the case, or a fuller status lifecycle?
+- [x] **Co-view is role-agnostic** — one session system serving advocate AND
+      legal roles; per-role visibility enforced by the privilege filter.
+- [x] **Co-view MVP: page-sync + shared pointer**, plus anchored Q&A
+      (question pinned to a passage, answered in-session, persisted as
+      overlays — not a chat inbox).
+- [x] **Invite delivery: codes only** for v1. (Future: time-limited SMS
+      verification + email fallback — logged, not scheduled.)
+- [x] **Stage-5 "represent": a simple status marker** on the relationship,
+      visible to both sides.
+- [x] **Pro security: idle session timeout; no extra 2FA layer** (provider
+      OAuth already carries it).
+- [x] **Safety exit: quick-exit button** (instant swap to neutral page).
+
+## Still open
+
+- [ ] Who can start a session — tenant only, or either side proposes.
 - [ ] Naming: keep "advocate" as the umbrella term for helpers/lawyers?
 
 ## Build order (each slice ships independently, behind flags)

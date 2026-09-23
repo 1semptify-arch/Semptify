@@ -293,19 +293,30 @@ Verify methods: `API` = pytest/contract; `UI` = browser-driven live;
   annotations) may be discoverable; the UI must never promise secrecy a
   court can't honor. → G5.13.
 
-## Carried decisions (from pipeline blueprint — still Brad's call)
+## Decisions — settled by Brad (2026-09-23)
 
-- Advocate vs. attorney as one role + flag, or two roles (rules already
-  define legal sub-roles — likely "advocate" stays distinct from legal)
-- Co-view MVP scope: page-sync only vs live annotations
-- Who starts sessions; invite delivery (codes vs email)
-- How deep "represented" status goes; naming of the helper role
-- **New:** whether per-case/per-document scoping ships in slice 2 or is
-  deferred — currently grants are whole-client
-- **New:** session timeout values (30/60 min suggested baseline) and
-  whether 2FA is in scope for legal roles — adds account-security surface
-- **New:** G5.9 assumes sessions can show "who's present" — needs the
-  co-view design to expose participants, and Brad to accept that an
-  advocate joining an attorney-client session may carry a privilege flag
-- **New:** G10.10 safety-exit depth — full quick-exit (DV-portal style)
-  vs. simple neutral-page navigation
+- **Scoping granularity → slice 2, before new invites.** Per-case /
+  per-document sharing lands early; whole-file grants are the interim state.
+- **Co-view MVP → page sync + shared pointer.** Plus an *anchored Q&A* lane
+  (question pinned to a passage, answered in-session, persisted as overlays)
+  — built in the session slice, not a chat inbox.
+- **Session participants → visible** (G5.9 stands: an advocate present in an
+  attorney-client session is shown and flagged as a possible waiver risk).
+- **Representation status → simple marker** on the relationship, visible to
+  both sides. No full lifecycle machinery in v1.
+- **Invites → codes only for v1.** Brad's future idea logged: time-limited
+  text-message verification with email fallback — revisit post-v1.
+- **Pro-role security → idle session timeout; no extra 2FA layer.** Auth is
+  delegated to provider OAuth (Google/Dropbox already enforce their own 2FA);
+  an in-app second factor is friction without proportionate gain for v1.
+- **Safety exit → quick-exit button** (DV-portal style): persistent discreet
+  control that swaps to a neutral page instantly.
+- **Co-view scope → role-agnostic (advocate AND legal).** One session
+  system; per-role visibility enforced by the existing privilege filter.
+
+## Still open
+
+- Who can start a session — tenant-only vs. either side proposes (Brad asked
+  whether sessions are advocate-only or include legal; settled above as
+  role-agnostic, but the *initiator* question remains)
+- Naming of the helper role ("advocate" umbrella vs. separate terms)
