@@ -40,7 +40,7 @@
     .metric-info{flex:1}
     .metric-name{font-weight:600}
     .metric-meta{font-size:0.75rem;color:var(--text-secondary)}
-    .badge{font-size:0.68rem;font-weight:600;padding:0.12rem 0.4rem;border-radius:6px;white-space:nowrap}
+    .badge{font-size: 0.75rem;font-weight:600;padding:0.12rem 0.4rem;border-radius:6px;white-space:nowrap}
     .badge-up{background:var(--bg-card);color:var(--color-success)}
     .badge-down{background:var(--bg-card);color:var(--color-error)}
     .badge-new{background:var(--bg-card);color:var(--text-primary)}
@@ -48,7 +48,7 @@
     .activity-item:last-child{border-bottom:none}
     .activity-icon{font-size:1.1rem;flex-shrink:0}
     .activity-text{flex:1;color:var(--text-primary)}
-    .activity-time{font-size:0.72rem;color:var(--text-secondary);white-space:nowrap}
+    .activity-time{font-size: 0.75rem;color:var(--text-secondary);white-space:nowrap}
     .stat-row{display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid var(--border-color);font-size:0.88rem}
     .stat-row:last-child{border-bottom:none}
     .stat-val{font-weight:700;color:var(--accent)}
@@ -580,12 +580,12 @@
         // Build sessions list
         const sessionsHtml = user.sessions && user.sessions.length > 0 
           ? user.sessions.map(s => `
-              <div style="padding:0.4rem;background:var(--bg-card);border-radius:4px;margin-bottom:0.25rem;font-size:0.7rem">
+              <div style="padding:0.4rem;background:var(--bg-card);border-radius:4px;margin-bottom:0.25rem;font-size: 0.75rem">
                 <strong>${s.role}</strong> via ${s.provider}
                 ${s.is_expired ? '<span style="color:var(--color-error)">(expired)</span>' : '<span style="color:var(--color-success)">(active)</span>'}
               </div>
             `).join('')
-          : '<p style="font-size:0.7rem;color:var(--text-secondary)">No sessions found</p>';
+          : '<p style="font-size: 0.75rem;color:var(--text-secondary)">No sessions found</p>';
         
         // Build action buttons
         const canImpersonate = user.admin_actions_available?.includes('impersonate');
@@ -603,7 +603,7 @@
             </div>
             
             <div style="margin-bottom:0.75rem">
-              <div style="font-weight:600;font-size:0.7rem;margin-bottom:0.25rem;color:var(--text-secondary)">SESSIONS</div>
+              <div style="font-weight:600;font-size: 0.75rem;margin-bottom:0.25rem;color:var(--text-secondary)">SESSIONS</div>
               <div style="max-height:100px;overflow-y:auto">
                 ${sessionsHtml}
               </div>
@@ -1051,10 +1051,10 @@
               <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:${enabled && tierEnabled ? 'var(--color-success-50)' : 'var(--color-error-50)'};border-radius:4px;margin-bottom:0.25rem">
                 <div>
                   <div style="font-weight:600;font-size:0.85rem">${displayName}</div>
-                  <div style="font-size:0.7rem;color:var(--text-secondary)">${name}</div>
+                  <div style="font-size: 0.75rem;color:var(--text-secondary)">${name}</div>
                 </div>
                 <button onclick="toggleModule('${name}', ${enabled})"
-                        style="padding:0.2rem 0.5rem;background:${enabled ? 'var(--color-error)' : 'var(--color-success)'};color:var(--text-inverse);border:none;border-radius:4px;cursor:pointer;font-size:0.7rem">
+                        style="padding:0.2rem 0.5rem;background:${enabled ? 'var(--color-error)' : 'var(--color-success)'};color:var(--text-inverse);border:none;border-radius:4px;cursor:pointer;font-size: 0.75rem">
                   ${enabled ? 'Disable' : 'Enable'}
                 </button>
               </div>
@@ -1165,10 +1165,10 @@
         if (retentionData) {
           html += `<h4 style="margin:1rem 0 0.5rem;color:var(--color-success)">User Retention</h4>`;
           html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:1rem">`;
-          html += `<div style="background:var(--bg-card);padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600">${retentionData.total_users}</div><div style="font-size:0.7rem;color:var(--text-secondary)">Total Users</div></div>`;
-          html += `<div style="background:var(--bg-card);padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600;color:var(--color-success)">${retentionData.active_last_1d}</div><div style="font-size:0.7rem;color:var(--text-secondary)">Active 1d</div></div>`;
-          html += `<div style="background:var(--bg-card);padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600;color:var(--color-success)">${retentionData.retention_rate_7d}%</div><div style="font-size:0.7rem;color:var(--text-secondary)">7-day Retention</div></div>`;
-          html += `<div style="background:var(--bg-card);padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600;color:var(--color-warning)">${retentionData.retention_rate_30d}%</div><div style="font-size:0.7rem;color:var(--text-secondary)">30-day Retention</div></div>`;
+          html += `<div style="background:var(--bg-card);padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600">${retentionData.total_users}</div><div style="font-size: 0.75rem;color:var(--text-secondary)">Total Users</div></div>`;
+          html += `<div style="background:var(--bg-card);padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600;color:var(--color-success)">${retentionData.active_last_1d}</div><div style="font-size: 0.75rem;color:var(--text-secondary)">Active 1d</div></div>`;
+          html += `<div style="background:var(--bg-card);padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600;color:var(--color-success)">${retentionData.retention_rate_7d}%</div><div style="font-size: 0.75rem;color:var(--text-secondary)">7-day Retention</div></div>`;
+          html += `<div style="background:var(--bg-card);padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600;color:var(--color-warning)">${retentionData.retention_rate_30d}%</div><div style="font-size: 0.75rem;color:var(--text-secondary)">30-day Retention</div></div>`;
           html += `</div>`;
         }
         
@@ -1262,12 +1262,12 @@
                 <button onclick="saveOneKey('${k.key}')"
                   style="padding:3px 8px;background:var(--color-info);color:var(--text-inverse);border:none;border-radius:4px;cursor:pointer;font-size:12px">Save</button>
               </div>
-              <div id="msg_${k.key}" style="font-size:11px;margin-top:3px;min-height:14px;color:var(--text-secondary)"></div>
+              <div id="msg_${k.key}" style="font-size: 12px;margin-top:3px;min-height:14px;color:var(--text-secondary)"></div>
             </td>
           </tr>`).join('');
         groupHtml += `
           <tr style="background:var(--bg-card)">
-            <td colspan="3" style="padding:8px 8px 4px;font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em">${g.group}</td>
+            <td colspan="3" style="padding:8px 8px 4px;font-size: 12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em">${g.group}</td>
           </tr>${rows}`;
       }
 
@@ -1297,7 +1297,7 @@
             </table>
           </div>
           <div style="padding:14px 22px;border-top:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:11px;color:var(--text-muted)">⚠️ Plain JSON in transit — use only over HTTPS or localhost.</span>
+            <span style="font-size: 12px;color:var(--text-muted)">⚠️ Plain JSON in transit — use only over HTTPS or localhost.</span>
             <button onclick="document.getElementById('apiKeysModal').remove()"
               style="padding:7px 18px;background:var(--zone-bg-secondary);color:var(--text-inverse);border:none;border-radius:6px;cursor:pointer;font-size:13px">Close</button>
           </div>

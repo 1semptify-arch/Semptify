@@ -1,0 +1,17 @@
+name: Style Guard — Design Token Enforcement
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  style-guard:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Enforce token colors and font floor
+      run: python tools/style_guard.py

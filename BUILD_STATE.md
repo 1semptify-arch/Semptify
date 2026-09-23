@@ -15527,3 +15527,28 @@ re-read shows all content incl. edits and bold; text/.doc/unknown
 fallbacks verified. **Not verified:** authenticated DC browser pass with a
 real vaulted docx (IronBee MCP not connected — same limitation as recent
 sessions); embedded images are dropped from edited exports (noted to user).
+
+## Session — 2026-09-23 — UI audit fixes + style guard (devin)
+
+- Fixed all 3 WCAG contrast failures from the UI audit: new `--color-accent-strong`
+  token (6.36:1 light paper / 5.83:1 dark paper) for accent-as-text and accent
+  button fills; dark `role-deep` #6b8e6b→#84a884 (5.14 on role-tint).
+- Font floor: every font-size < 12px/0.75rem raised across ssot-design-system.css,
+  28 templates, 4 standalone static pages.
+- tenant_retaliation: white-on-sage flag -> role-tint/role-deep; accent text repointed.
+- public_shell: always-light card palette deduped into named local custom properties.
+- NEW GUARD: `tools/style_guard.py` + `.github/workflows/style-guard.yml` + baseline
+  JSON — PRs now fail if they add hardcoded hex colors or sub-floor fonts outside
+  the token system. 156 known violations baselined (donate.html, onboarding
+  statics, app/static css) — count can only shrink; `--write-baseline` regenerates.
+- Verification: style_guard passes (0 new), contrast recomputed ≥4.5 all modes,
+  CSS braces balanced, templates parse, local server /,/help,/about 200,
+  i18n+ssot tests 22/22. PR #312.
+- Not done (intake-logged): donate.html palette restyle (8fd1b511);
+  composer_preview_shell on tenant pages decision; legacy themes/ retirement
+  (workbook §10.3 undecided); IronBee visual pass pending browser MCP.
+  - Follow-up on same PR: providers.html + providers-reconnect.html (the live
+    onboarding storage picker) restyled from the old purple-gradient palette to
+    var(--token, #canonical) references + stylesheet link; dark mode now works
+    there too. Baseline 156 -> 138. Dead statics (pick-role, role-select,
+    validate-*) logged to intake 95e902bf for deletion review.
