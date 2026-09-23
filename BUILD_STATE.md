@@ -1,3 +1,20 @@
+## Session — 2026-09-23 — Legal UI epic slice 1: advocate dashboard + enforcement (devin)
+
+**Task `legal-ui-epic-2026-09-23` slice 1 → review.** Spec-of-record: `docs/blueprints/legal_ui_acceptance_matrix.md` (~85 rows, 11 invariants, research-backed: ABA 1.6/5.3, FRE 902, SAMHSA trauma-informed).
+
+**What shipped (branch `feature/legal-ui-slice1`):**
+- `advocate_dashboard.html` — static mockup replaced with real `/api/advocate/*` wiring (clients, queue, timeline, stats; loading/empty/error states; advocate-ID copy box).
+- `advocate_client_detail.html` — real review-status badges (was: mislabeled `certified` as "Reviewed"), document View modal (media player + overlay painting + honest error on storage failure — no blank iframe), View Notes modal renders the DOCUMENT_KEY color legend + formatted annotations, mobile wrap fixes (375px clean).
+- `app/modules/advocate/router.py` — full sync→async DB conversion; privilege boundary enforced on every document path (`is_privileged`/`is_work_product` invisible to advocates — 404, not 403, so no existence oracle); every access + denied attempt logged.
+- `DocumentAccessLog` model + migration `20260923_add_document_access_logs` — append-only audit table for cross-party document access (`vault_audit_logs` is keyed to vault_items, can't carry document ids).
+- **Root-cause fix — `request_utils.require_request_user_id`/`get_request_user_id`** returned the raw signed cookie (`uid.<hmac>`): poisoned every DB lookup and leaked the signature into the advocate-ID UI. Now verifies HMAC and returns raw user_id (401 on missing/tampered). This also un-broke `user_context.get_role_from_user_id` — it was a stub returning USER for everyone, so `_require_advocate` would have 403'd every real advocate. Now delegates to the canonical `user_id` parser.
+
+**Verified:** 6/6 new enforcement tests (`test_advocate_document_access.py`), 247/247 module_health, live on :8002 with seeded advocate+tenant+4 docs — dashboard shows real data, docs list privilege-filtered (2 of 4), review→flagged badge round-trip, stranger tenant 403+audit row, privileged doc direct-view 404, tenant-role cookie 403, audit rows land for list/review/view/overlays/denied. 1280px + 375px screenshots clean, zero console errors.
+
+**Caveat:** live overlay/byte streaming blocked by dead tenant OAuth on dev box (same as color-key slice) — byte path covered by FakeStorage test; error states verified honest.
+
+**Pending Brad:** merge decision on this branch + `feature/document-color-key` (f196f57c); per-case/per-document scoping decision (recommended early, slice 2); parked decisions at bottom of acceptance matrix.
+
 ## Session — 2026-09-23 — UI audit fixes + donate accuracy shipped to prod (devin)
 
 **What shipped:**

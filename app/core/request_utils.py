@@ -5,13 +5,14 @@ Shared Request Utilities
 Centralises repeated request-handling patterns that were duplicated
 across dozens of router modules:
 
-1. **get_request_user_id(request)** -- extracts the user ID from the
-   ``semptify_uid`` cookie (via the canonical ``COOKIE_USER_ID``
-   constant), returning ``"anonymous"`` when the cookie is absent.
+1. **get_request_user_id(request)** -- verifies the HMAC-signed
+   ``semptify_uid`` cookie (via ``cookie_auth.extract_user_id``) and
+   returns the raw user ID, or ``"anonymous"`` when the cookie is
+   absent or fails verification.
 
-2. **require_request_user_id(request)** -- same extraction but raises
-   ``HTTPException(401)`` when the cookie is missing, for endpoints
-   that must have an authenticated user.
+2. **require_request_user_id(request)** -- same verification but raises
+   ``HTTPException(401)`` when the cookie is missing, unsigned, or
+   tampered, for endpoints that must have an authenticated user.
 
 3. **raise_for_storage_error(exc)** -- inspects an exception from a
    storage operation and re-raises as the appropriate ``HTTPException``
@@ -24,19 +25,27 @@ from typing import NoReturn
 
 from fastapi import HTTPException, Request
 
-from app.core.user_id import COOKIE_USER_ID
-
 logger = logging.getLogger(__name__)
 
 
 def get_request_user_id(request: Request, *, fallback: str = "anonymous") -> str:
-    """Return the user ID from the request cookie, or *fallback*."""
-    return request.cookies.get(COOKIE_USER_ID, fallback)
+    """Return the verified user ID from the request cookie, or *fallback*.
+
+    The ``semptify_uid`` cookie is HMAC-signed (``<user_id>.<sig>``). This
+    verifies the signature and returns the raw user_id — never the signed
+    value, which would poison DB lookups and leak the signature into UI.
+    """
+    from app.core.cookie_auth import extract_user_id
+
+    return extract_user_id(request) or fallback
 
 
 def require_request_user_id(request: Request) -> str:
-    """Return the user ID or raise 401 if the cookie is missing."""
-    user_id = request.cookies.get(COOKIE_USER_ID)
+    """Return the verified user ID or raise 401 if the cookie is missing,
+    unsigned, or has an invalid signature."""
+    from app.core.cookie_auth import extract_user_id
+
+    user_id = extract_user_id(request)
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return user_id

@@ -6,28 +6,26 @@
 
     :root { --hdr1: var(--color-success-800); --hdr2: var(--color-success-800); --accent: var(--color-success-800); --accent2: var(--color-success); --light: var(--color-success-50); }
     .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
-    .vault-btn { background: linear-gradient(135deg, var(--color-warning), var(--color-alarm)); color: var(--text-inverse); border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
-    .user-btn { background: color-mix(in srgb, var(--bg-card), transparent 85%); color: var(--text-inverse); border: 1px solid color-mix(in srgb, var(--bg-card), transparent 70%); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
     .role-banner { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--text-inverse); padding: 0.45rem 0; font-size: 0.82rem; text-align: center; }
 
     .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
-
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
 
     .grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
-    .card { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 12px; padding: 1.25rem; transition: all 0.15s; }
-    .card:hover { border-color: var(--accent); box-shadow: 0 2px 8px color-mix(in srgb, var(--color-success-800), transparent 92%); }
+    .card { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 12px; padding: 1.25rem; }
     .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
     .card-title { font-weight: 700; font-size: 0.95rem; color: var(--color-gray-900); }
-    .card-icon { font-size: 1.4rem; }
     .card-body { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; }
     .card-action { display: inline-block; margin-top: 0.75rem; color: var(--accent); font-weight: 600; font-size: 0.85rem; text-decoration: none; }
     .card-action:hover { text-decoration: underline; }
 
     .client-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid var(--bg-muted); font-size: 0.88rem; }
     .client-row:last-child { border-bottom: none; }
+    .client-row a.client-link { display: flex; align-items: center; gap: 0.75rem; flex: 1; color: inherit; text-decoration: none; }
+    .client-row a.client-link:hover .client-name { text-decoration: underline; }
     .client-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--text-inverse); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
-    .client-info { flex: 1; }
-    .client-name { font-weight: 600; }
+    .client-info { flex: 1; min-width: 0; }
+    .client-name { font-weight: 600; word-break: break-all; }
     .client-meta { font-size: 0.75rem; color: var(--text-muted); }
     .client-badge { font-size: 0.75rem; font-weight: 600; padding: 0.12rem 0.4rem; border-radius: 6px; white-space: nowrap; }
     .badge-urgent { background: var(--bg-sidebar); color: var(--color-error); }
@@ -36,8 +34,7 @@
 
     .activity-item { display: flex; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid var(--bg-muted); font-size: 0.85rem; }
     .activity-item:last-child { border-bottom: none; }
-    .activity-icon { font-size: 1.1rem; flex-shrink: 0; }
-    .activity-text { flex: 1; color: var(--text-primary); }
+    .activity-text { flex: 1; color: var(--text-primary); word-break: break-word; }
     .activity-time { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
 
     .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--bg-muted); font-size: 0.88rem; }
@@ -46,156 +43,73 @@
 
     .btn-block { display: block; text-align: center; background: var(--light); color: var(--accent); border: 1px solid var(--color-gray-300); padding: 0.6rem; border-radius: 10px; font-weight: 700; font-size: 0.9rem; text-decoration: none; margin-bottom: 0.5rem; transition: all 0.15s; }
     .btn-block:hover { background: var(--accent); color: var(--text-inverse); border-color: var(--accent); }
-    .btn-block.vault { background: linear-gradient(135deg, var(--color-warning), var(--color-alarm)); color: var(--text-inverse); border: none; }
-    .btn-block.vault:hover { filter: brightness(1.1); }
 
+    .empty-state { color: var(--text-muted); font-size: 0.88rem; padding: 0.75rem 0; line-height: 1.6; }
+    .load-error { color: var(--color-error); font-size: 0.88rem; padding: 0.75rem 0; }
+    .loading { color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem 0; }
 
+    .advocate-id-box { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .advocate-id-value { font-family: monospace; font-size: 0.85rem; background: var(--bg-muted); padding: 0.35rem 0.6rem; border-radius: 6px; word-break: break-all; }
+    .copy-btn { background: var(--accent); color: var(--text-inverse); border: none; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .copy-btn:hover { filter: brightness(1.1); }
 
 </style>
 {% endblock %}
 {% block content %}
 <p class="shell-eyebrow">Semptify</p>
-<h1>Welcome, Maria</h1>
-<p class="shell-lede">You have 4 active clients, 2 documents pending review, and 1 urgent case.</p>
+<h1>Advocate dashboard</h1>
+<p class="shell-lede" id="lede">Loading your cases…</p>
 <div class="role-banner">
-    🌿 Advocate View — Housing rights advocacy dashboard
-  </div>
+    🌿 Advocate View — you see only what tenants have chosen to share with you
+</div>
 
-  <div class="main">
+<div class="main">
     <div>
-      <div class="hero">
-        <h1>Welcome, Maria</h1>
-        <p>You have <strong>4 active clients</strong>, <strong>2 documents pending review</strong>, and <strong>1 urgent case</strong>.</p>
+      <div class="card" style="margin-bottom:1.25rem;">
+        <div class="card-header">
+          <span class="card-title">🔗 Your advocate ID</span>
+        </div>
+        <div class="card-body">
+          <p style="margin-bottom:0.6rem;">A tenant connects their case to you by entering this ID on their side. Nothing is shared until they choose to share it.</p>
+          <div class="advocate-id-box">
+            <span class="advocate-id-value" id="advocate-id">…</span>
+            <button class="copy-btn" id="copy-id-btn" type="button">Copy</button>
+            <span id="copy-note" style="font-size:0.75rem;color:var(--text-muted);"></span>
+          </div>
+        </div>
       </div>
 
       <div class="grid-2">
         <div class="card">
           <div class="card-header">
-            <span class="card-title">👥 Active Clients</span>
-            <span class="card-icon">🌿</span>
+            <span class="card-title">👥 Your clients</span>
           </div>
-          <div class="card-body">
-            <div class="client-row">
-              <div class="client-avatar">JT</div>
-              <div class="client-info">
-                <div class="client-name">James Taylor</div>
-                <div class="client-meta">Eviction defense · Repair dispute</div>
-              </div>
-              <span class="client-badge badge-urgent">Urgent</span>
-            </div>
-            <div class="client-row">
-              <div class="client-avatar">SR</div>
-              <div class="client-info">
-                <div class="client-name">Sofia Rodriguez</div>
-                <div class="client-meta">Lease renewal · Rent increase fight</div>
-              </div>
-              <span class="client-badge badge-active">Active</span>
-            </div>
-            <div class="client-row">
-              <div class="client-avatar">KM</div>
-              <div class="client-info">
-                <div class="client-name">Kwame Mensah</div>
-                <div class="client-meta">Habitability · Mold · No heat</div>
-              </div>
-              <span class="client-badge badge-review">Review</span>
-            </div>
-            <div class="client-row">
-              <div class="client-avatar">LC</div>
-              <div class="client-info">
-                <div class="client-name">Ling Chen</div>
-                <div class="client-meta">Retaliation · Documented</div>
-              </div>
-              <span class="client-badge badge-active">Active</span>
-            </div>
+          <div class="card-body" id="clients-body">
+            <div class="loading">Loading clients…</div>
           </div>
-          <a href="#" class="card-action">View all clients →</a>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📨 Inbox</span>
-            <span class="card-icon">📬</span>
+            <span class="card-title">📋 Needs attention</span>
           </div>
-          <div class="card-body">
-            <div class="activity-item">
-              <span class="activity-icon">✍️</span>
-              <span class="activity-text">James Taylor signed Settlement Agreement</span>
-              <span class="activity-time">Today</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">📎</span>
-              <span class="activity-text">Kwame uploaded 3 new photos to vault</span>
-              <span class="activity-time">Yesterday</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">💬</span>
-              <span class="activity-text">Sofia asked about lease renewal options</span>
-              <span class="activity-time">Apr 20</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">📋</span>
-              <span class="activity-text">Ling added court hearing to timeline</span>
-              <span class="activity-time">Apr 19</span>
-            </div>
+          <div class="card-body" id="queue-body">
+            <div class="loading">Loading queue…</div>
           </div>
-          <a href="/office/inbox" class="card-action">Open inbox →</a>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📁 Review Queue</span>
-            <span class="card-icon">👁</span>
+            <span class="card-title">🕐 Recent activity</span>
           </div>
-          <div class="card-body">
-            <div class="client-row">
-              <div class="client-avatar">KM</div>
-              <div class="client-info">
-                <div class="client-name">Repair photos — Kwame Mensah</div>
-                <div class="client-meta">3 images · Uploaded yesterday</div>
-              </div>
-              <span class="client-badge badge-urgent">Review</span>
-            </div>
-            <div class="client-row">
-              <div class="client-avatar">SR</div>
-              <div class="client-info">
-                <div class="client-name">Lease Renewal Notice — Sofia</div>
-                <div class="client-meta">PDF · 2 pages · Uploaded Apr 18</div>
-              </div>
-              <span class="client-badge badge-review">Review</span>
-            </div>
+          <div class="card-body" id="activity-body">
+            <div class="loading">Loading activity…</div>
           </div>
-          <a href="/office/vault" class="card-action">Open vault →</a>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">📅 This Week</span>
-            <span class="card-icon">🗓</span>
-          </div>
-          <div class="card-body">
-            <div class="activity-item">
-              <span class="activity-icon">⚖️</span>
-              <span class="activity-text">Court prep call — James Taylor</span>
-              <span class="activity-time">Wed 2pm</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">🏠</span>
-              <span class="activity-text">Site visit — Kwame Mensah unit</span>
-              <span class="activity-time">Thu 10am</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">📝</span>
-              <span class="activity-text">Draft response letter — Sofia</span>
-              <span class="activity-time">Fri</span>
-            </div>
-          </div>
-          <a href="#" class="card-action">Full calendar →</a>
         </div>
 
         <div class="card" style="border-left:4px solid var(--color-info);">
           <div class="card-header">
             <span class="card-title">⚖️ MNDES Compliance</span>
-            <span class="card-icon">🏛️</span>
           </div>
           <div class="card-body">
             All client exhibit files must meet MNDES requirements before any MN court hearing (Order ADM09-8010, eff. Jan 1, 2025). The MNDES guides live in the legal-role library — ask the attorney on the case.
@@ -206,40 +120,172 @@
 
     <aside>
       <div class="card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">⚡ Quick Actions</div>
-        <a href="/office/delivery" class="btn-block vault">📤 Send Document</a>
-        <a href="/office/vault" class="btn-block">🔒 Review Vault</a>
-        <a href="/tools" class="btn-block">📄 Generate Letter</a>
-        <a href="#" class="btn-block">➕ New Client Intake</a>
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">⚡ Quick actions</div>
+        <a href="/advocate/invite" class="btn-block">🔗 Invite codes</a>
+        <a href="/office/vault" class="btn-block">🔒 Review vault</a>
+        <a href="/office/delivery" class="btn-block">📤 Send document</a>
+        <a href="/tools" class="btn-block">📄 Generate letter</a>
       </div>
 
       <div class="card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">📊 Advocate Stats</div>
-        <div class="stat-row"><span>Active clients</span><span class="stat-val">4</span></div>
-        <div class="stat-row"><span>Cases this month</span><span class="stat-val">7</span></div>
-        <div class="stat-row"><span>Documents reviewed</span><span class="stat-val">23</span></div>
-        <div class="stat-row"><span>Messages sent</span><span class="stat-val">47</span></div>
-        <div class="stat-row"><span>Success rate</span><span class="stat-val">82%</span></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">🚨 Urgent</div>
-        <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6;">
-          <p style="margin-bottom:0.5rem;"><strong>James Taylor</strong> settlement deadline is <strong>April 25</strong>. He still needs to sign or we lose negotiated terms.</p>
-          <a href="/office/delivery" style="color:var(--accent);font-weight:600;font-size:0.85rem;">Send reminder →</a>
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">📊 Your caseload</div>
+        <div id="stats-body">
+          <div class="loading">Loading…</div>
         </div>
       </div>
     </aside>
-  </div>
+</div>
 {% endblock %}
 {% block scripts %}
 {{ super() }}
 <script>
+(function () {
+    'use strict';
 
-    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
-    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
-  
+    function esc(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    async function fetchJSON(url) {
+        try {
+            const resp = await fetch(url);
+            if (!resp.ok) return null;
+            return await resp.json();
+        } catch (e) { return null; }
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '—';
+        try { return new Date(iso).toLocaleDateString(); }
+        catch (e) { return iso; }
+    }
+
+    function initials(id) {
+        return (id || '?').substring(0, 2).toUpperCase();
+    }
+
+    function shortId(id) {
+        if (!id) return 'Client';
+        return id.length > 12 ? id.substring(0, 12) + '…' : id;
+    }
+
+    function errorState(msg) {
+        return '<div class="load-error">' + esc(msg) + ' <a href="" onclick="location.reload();return false;">Try again</a></div>';
+    }
+
+    async function loadDashboard() {
+        const [dash, clients, queue, timeline] = await Promise.all([
+            fetchJSON('/api/advocate/dashboard'),
+            fetchJSON('/api/advocate/clients'),
+            fetchJSON('/api/advocate/queue'),
+            fetchJSON('/api/advocate/timeline'),
+        ]);
+
+        // Advocate ID + lede
+        if (dash && dash.advocate_id) {
+            document.getElementById('advocate-id').textContent = dash.advocate_id;
+        } else {
+            document.getElementById('advocate-id').textContent = 'unavailable';
+        }
+
+        const summary = (dash && dash.summary) || null;
+        if (summary) {
+            const parts = [];
+            parts.push(summary.total_clients + (summary.total_clients === 1 ? ' client' : ' clients'));
+            if (summary.pending_reviews) parts.push(summary.pending_reviews + ' awaiting review');
+            if (summary.flagged_documents) parts.push(summary.flagged_documents + ' flagged');
+            document.getElementById('lede').textContent = parts.join(' · ') + '.';
+        } else if (dash === null) {
+            document.getElementById('lede').textContent = 'Could not load your dashboard. Check your connection and try again.';
+        }
+
+        // Stats
+        const statsBody = document.getElementById('stats-body');
+        if (summary) {
+            statsBody.innerHTML =
+                '<div class="stat-row"><span>Clients</span><span class="stat-val">' + summary.total_clients + '</span></div>' +
+                '<div class="stat-row"><span>Client documents</span><span class="stat-val">' + summary.total_documents + '</span></div>' +
+                '<div class="stat-row"><span>Timeline events</span><span class="stat-val">' + summary.total_timeline_events + '</span></div>' +
+                '<div class="stat-row"><span>Awaiting review</span><span class="stat-val">' + summary.pending_reviews + '</span></div>' +
+                '<div class="stat-row"><span>Flagged</span><span class="stat-val">' + summary.flagged_documents + '</span></div>';
+        } else {
+            statsBody.innerHTML = errorState('Stats unavailable.');
+        }
+
+        // Clients
+        const clientsBody = document.getElementById('clients-body');
+        if (clients === null) {
+            clientsBody.innerHTML = errorState('Could not load clients.');
+        } else if (!clients.clients || clients.clients.length === 0) {
+            clientsBody.innerHTML =
+                '<div class="empty-state">No clients yet.<br>' +
+                'When a tenant adds your advocate ID on their side, they appear here — with only what they chose to share.</div>';
+        } else {
+            clientsBody.innerHTML = clients.clients.map(function (c) {
+                return '<div class="client-row">' +
+                    '<a class="client-link" href="/advocate/clients/' + encodeURIComponent(c.user_id) + '">' +
+                    '<div class="client-avatar">' + esc(initials(c.user_id)) + '</div>' +
+                    '<div class="client-info">' +
+                    '<div class="client-name">' + esc(shortId(c.user_id)) + '</div>' +
+                    '<div class="client-meta">' + (c.doc_count || 0) + ' documents · linked ' + esc(formatDate(c.linked_at)) + '</div>' +
+                    '</div></a>' +
+                    '<span class="client-badge badge-active">Linked</span>' +
+                    '</div>';
+            }).join('');
+        }
+
+        // Queue (needs attention)
+        const queueBody = document.getElementById('queue-body');
+        if (queue === null) {
+            queueBody.innerHTML = errorState('Could not load the queue.');
+        } else if (!queue.queue || queue.queue.length === 0) {
+            queueBody.innerHTML = '<div class="empty-state">Nothing needs attention right now.</div>';
+        } else {
+            queueBody.innerHTML = queue.queue.slice(0, 8).map(function (q) {
+                const badge = q.urgent
+                    ? '<span class="client-badge badge-urgent">Urgent</span>'
+                    : '<span class="client-badge badge-review">Review</span>';
+                return '<div class="client-row">' +
+                    '<a class="client-link" href="/advocate/clients/' + encodeURIComponent(q.client_id) + '">' +
+                    '<div class="client-info">' +
+                    '<div class="client-name">' + esc(q.title || 'Untitled event') + '</div>' +
+                    '<div class="client-meta">' + esc(shortId(q.client_id)) + ' · ' + esc(formatDate(q.event_date || q.created_at)) + '</div>' +
+                    '</div></a>' + badge + '</div>';
+            }).join('');
+        }
+
+        // Recent activity (merged timeline)
+        const activityBody = document.getElementById('activity-body');
+        if (timeline === null) {
+            activityBody.innerHTML = errorState('Could not load activity.');
+        } else if (!timeline.events || timeline.events.length === 0) {
+            activityBody.innerHTML = '<div class="empty-state">No client activity yet.</div>';
+        } else {
+            activityBody.innerHTML = timeline.events.slice(0, 8).map(function (e) {
+                return '<div class="activity-item">' +
+                    '<span class="activity-text">' + esc(e.title || e.description || 'Event') +
+                    ' <span style="color:var(--text-muted)">(' + esc(shortId(e.client_id)) + ')</span></span>' +
+                    '<span class="activity-time">' + esc(formatDate(e.created_at)) + '</span>' +
+                    '</div>';
+            }).join('');
+        }
+    }
+
+    document.getElementById('copy-id-btn').addEventListener('click', async function () {
+        const id = document.getElementById('advocate-id').textContent;
+        const note = document.getElementById('copy-note');
+        try {
+            await navigator.clipboard.writeText(id);
+            note.textContent = 'Copied — share it with your tenant.';
+        } catch (e) {
+            note.textContent = 'Select the ID and copy it manually.';
+        }
+        setTimeout(function () { note.textContent = ''; }, 4000);
+    });
+
+    loadDashboard();
+})();
 </script>
-<script src="/js/core/vault-portal.js?v=20260626d"></script>
-<script src="/static/components/feedback.js"></script>
 {% endblock %}

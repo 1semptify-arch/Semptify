@@ -685,13 +685,25 @@ def get_ui_config(role: UserRole) -> dict:
 
 
 def get_role_from_user_id(user_id: str) -> UserRole:
-    """Get role for a user ID from their stored context."""
+    """Get role for a user ID by parsing the role code embedded in the ID.
+
+    Delegates to ``app.core.user_id.get_role_from_user_id`` (the canonical
+    parser — role is encoded in the second character). Returns a ``UserRole``
+    enum; roles with no enum member (donor_supporter, researcher, agency,
+    developer) and unparseable/local IDs fall back to ``UserRole.USER``.
+    """
     if not user_id:
         return UserRole.USER
 
-    # In a real implementation, this would look up the user's role from storage
-    # For now, default to USER role since role assignment happens during onboarding
-    return UserRole.USER
+    from app.core.user_id import get_role_from_user_id as _parse_role
+
+    role_str = _parse_role(user_id)
+    if not role_str:
+        return UserRole.USER
+    try:
+        return UserRole(role_str)
+    except ValueError:
+        return UserRole.USER
 
 
 async def get_user_context(
