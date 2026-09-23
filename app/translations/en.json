@@ -25,5 +25,6 @@
   "footer.terms": "Terms of Use",
   "footer.report": "Report a problem",
   "language.label": "Language",
-  "language.selector.aria": "Choose your preferred language"
+  "language.selector.aria": "Choose your preferred language",
+  "language.machine_note": "Machine translation; may contain errors."
 }
