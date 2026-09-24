@@ -201,7 +201,7 @@ def _db_error_response() -> HTMLResponse:
   <div class="actions">
     <button class="retry-btn" onclick="window.location.reload()">Try Again</button>
     <button class="fresh-btn"
-      onclick="document.cookie='semptify_uid=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';window.location.href='/onboarding/select-role.html'">
+      onclick="document.cookie='semptify_uid=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';window.location.href='/onboarding/providers'">
       Start Fresh
     </button>
   </div>

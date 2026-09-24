@@ -57,7 +57,6 @@ from app.core.user_id import (
     get_provider_from_user_id,
     get_role_from_user_id,
     parse_user_id,
-    update_user_id_role,
 )
 from app.core.workflow_engine import route_user as _route_user
 from app.models.models import OAuthState, Session as SessionModel, StorageConfig, User
@@ -101,22 +100,12 @@ OAUTH_CONFIGS = {
 
 OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
-ALLOWED_ROLES = {
-    "user",
-    "tenant",
-    "manager",
-    "advocate",
-    "legal",
-    "judge",
-    "admin",
-    # role_configs/{key}.json keys — each config key is a real role
-    "multi_client_advocate",
-    "donor_supporter",
-    "researcher",
-    "research",
-    "agency",
-    "developer",
-}
+# ONBOARDING SOLO (Brad, 2026-09-23): tenant is the ONLY role in this repo.
+# OAuth can only ever MINT tenant accounts, and the /role switch accepts
+# only tenant/user — there is no invite code, PIN, or parameter that opens
+# another role here. Professional-role accounts belong to a separate add-on
+# (different repo), networked later.
+MINTABLE_ROLES = {"tenant", "user"}
 
 # In-memory session cache for transitional compatibility (primary sessions are in DB)
 SESSIONS: dict = {}
@@ -703,23 +692,6 @@ async def create_or_update_user(
 # ============================================================================
 
 
-class RoleSwitchRequest(BaseModel):
-    role: str  # user, manager, advocate, legal, admin
-    pin: str | None = None  # Required for admin role
-    invite_code: str | None = None  # Required for advocate/legal
-    household_members: int | None = None  # Required for manager (>1 on lease)
-
-
-# Valid invite codes for advocate/legal roles - loaded from environment
-# Set INVITE_CODES in .env as comma-separated values
-import os as _os
-
-VALID_INVITE_CODES = set(_os.getenv("INVITE_CODES", "CHANGE-ME-1,CHANGE-ME-2").split(","))
-
-# Admin PIN - loaded from environment
-ADMIN_PIN = _os.getenv("ADMIN_PIN", "CHANGE-ME")
-
-
 # ============================================================================
 # Main Entry Point - Check Cookie & Auto-Route
 # ============================================================================
@@ -757,13 +729,13 @@ async def storage_connect(
 ):
     """
     Entry point for NEW users only.
-    Shows provider selection for users who have selected a role.
+    Shows provider selection for the onboarding user.
 
     Args:
-        role: The role selected by the user (tenant, manager, advocate, etc.)
+        role: Carried through OAuth state (tenant only — onboarding solo).
     """
-    # Validate role
-    if role not in ALLOWED_ROLES:
+    # Onboarding solo: only tenant/user can flow into OAuth state
+    if role not in MINTABLE_ROLES:
         role = "tenant"
 
     # Store role in session/temp storage for OAuth flow
@@ -1081,7 +1053,7 @@ def _generate_providers_html(
         """
 
     auth_params: dict[str, str] = {}
-    if role in ALLOWED_ROLES:
+    if role in MINTABLE_ROLES:
         auth_params["role"] = role
     if from_source:
         auth_params["from"] = from_source
@@ -1525,10 +1497,12 @@ async def initiate_oauth(
         # For returning users, extract role from their existing user ID.
         # existing_uid may be a plain UID (HMAC already stripped by reconnect),
         # so use parse_user_id which handles both signed and plain formats.
+        role_from_identity = False
         if existing_uid:
             _, extracted_role, _ = parse_user_id(existing_uid)
             if extracted_role:
                 role = extracted_role
+                role_from_identity = True
                 logger.debug("Returning user (existing_uid) - extracted role '%s'", role)
 
         if not role:
@@ -1537,14 +1511,18 @@ async def initiate_oauth(
             if cookie_uid and is_valid_storage_user(cookie_uid):
                 _, extracted_role, _ = parse_user_id(cookie_uid)
                 role = extracted_role or "tenant"
+                role_from_identity = True
                 logger.debug("Returning user (cookie) - extracted role '%s'", role)
-            else:
-                role = (role or "tenant").strip().lower()
-                if role not in ALLOWED_ROLES:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Invalid role '{role}'. Allowed roles: {sorted(ALLOWED_ROLES)}",
-                    )
+
+        # Onboarding solo: a role that did not come from a verified identity
+        # (existing_uid / signed cookie) is just a URL parameter — it can only
+        # be tenant/user. Extracted pro roles pass through for reauth; param
+        # roles like ?role=legal demote so they can never reach OAuth state.
+        if not role_from_identity:
+            role = (role or "tenant").strip().lower()
+            if role not in MINTABLE_ROLES:
+                logger.info("OAuth init: non-identity role '%s' demoted to tenant", role)
+                role = "tenant"
 
         # Keep returning-user reauth bound to the current browser cookie.
         # cookie_uid is the raw signed value (user_id.hmac); existing_uid from the URL
@@ -1815,7 +1793,7 @@ async def oauth_callback(
                 else:
                     # Completely new user - generate new ID
                     role = (state_data.get("role") or "tenant").strip().lower()
-                    if role not in ALLOWED_ROLES:
+                    if role not in MINTABLE_ROLES:
                         role = "tenant"
                     user_id = generate_user_id(provider, role)
                     logger.info(f"🆕 OAuth callback: New user (existing_uid didn't match OAuth subject): {user_id}")
@@ -1829,8 +1807,16 @@ async def oauth_callback(
                 state_role = (state_data.get("role") or "").strip().lower()
                 db_role = (matched_user.default_role or "tenant").strip().lower()
                 # If a higher-privilege role was requested via state AND the user is already
-                # registered (e.g. admin re-connecting OAuth), update their stored role
-                if state_role and state_role != db_role and state_role in ALLOWED_ROLES:
+                # registered (e.g. admin re-connecting OAuth), update their stored role.
+                # Onboarding solo: OAuth state can never carry or change a professional
+                # role — both sides must be mintable, so a tampered state can't elevate
+                # (and can't accidentally downgrade a pro user either).
+                if (
+                    state_role
+                    and state_role != db_role
+                    and state_role in MINTABLE_ROLES
+                    and db_role in MINTABLE_ROLES
+                ):
                     matched_user.default_role = state_role
                     await db.commit()
                     role = state_role
@@ -1839,11 +1825,15 @@ async def oauth_callback(
                     )
                 else:
                     role = db_role
+                # Onboarding solo: a stored pro-role value is legacy data —
+                # session role is always tenant now.
+                if role not in MINTABLE_ROLES:
+                    role = "tenant"
                 logger.info(f"▸ OAuth callback: Matched existing user by provider subject: {user_id} (role={role})")
             else:
                 # New user - generate ID encoding provider + role
                 role = (state_data.get("role") or "tenant").strip().lower()
-                if role not in ALLOWED_ROLES:
+                if role not in MINTABLE_ROLES:
                     role = "tenant"
                 user_id = generate_user_id(provider, role)
                 logger.info(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role})")
@@ -2936,102 +2926,6 @@ async def validate_and_refresh_token(
         "message": "Token is invalid and could not be refreshed. Please re-authenticate.",
     }
 
-
-# ============================================================================
-# Role Management
-# ============================================================================
-
-
-@router.post("/role")
-async def switch_role(
-    request: RoleSwitchRequest,
-    response: Response,
-    semptify_uid: str | None = Cookie(None),
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Switch user's role. Updates user ID and cookie.
-
-    Roles and Authorization:
-    - user: Standard tenant access (default) - no authorization needed
-    - manager: Property management - requires household_members > 1
-    - advocate: Tenant advocate - requires valid invite_code
-    - legal: Legal professional - requires valid invite_code
-    - admin: System administrator - requires PIN (set via ADMIN_PIN env var)
-    """
-    if not semptify_uid:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    if request.role not in ALLOWED_ROLES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid role. Valid: {sorted(ALLOWED_ROLES)}",
-        )
-
-    # Authorization checks based on role
-    if request.role == "admin":
-        # Admin requires PIN
-        if not request.pin or request.pin != ADMIN_PIN:
-            raise HTTPException(status_code=403, detail="Admin access requires valid PIN")
-
-    elif request.role in ["advocate", "legal"]:
-        # Advocate/Legal require invite code
-        if not request.invite_code or request.invite_code not in VALID_INVITE_CODES:
-            raise HTTPException(
-                status_code=403, detail=f"{request.role.capitalize()} access requires valid invite code"
-            )
-
-    elif request.role == "manager":
-        # Manager requires multiple people on lease
-        if not request.household_members or request.household_members < 2:
-            raise HTTPException(status_code=403, detail="Manager access requires more than one person on lease")
-
-    try:
-        # Generate new user ID with new role
-        new_uid = update_user_id_role(semptify_uid, request.role)
-        if not new_uid:
-            raise HTTPException(status_code=400, detail="Invalid user ID format")
-
-        # Get existing session from database
-        session = await get_session_from_db(db, semptify_uid)
-        if session:
-            # Save session with new user ID
-            await save_session_to_db(
-                db=db,
-                user_id=new_uid,
-                provider=session["provider"],
-                access_token=session["access_token"],
-                refresh_token=session.get("refresh_token"),
-            )
-            # Update user record
-            await create_or_update_user(db, new_uid, session["provider"])
-            # Update storage config
-            await get_or_create_storage_config(db, new_uid, session["provider"])
-            # Clear old compatibility cache entry.
-            SESSIONS.pop(semptify_uid, None)
-        # Role transition invalidates prior function tokens bound to the old role context.
-        invalidate_function_access_tokens(semptify_uid)
-
-        # Update cookie
-        set_auth_cookie(response, new_uid, secure=request.url.scheme == "https")
-
-        return {
-            "success": True,
-            "old_user_id": semptify_uid,
-            "new_user_id": new_uid,
-            "role": request.role,
-            "authorized": True,
-        }
-    except HTTPException:
-        # Re-raise HTTP exceptions (already formatted)
-        raise
-    except Exception as e:
-        logger.error(
-            f"Role switch failed for {semptify_uid} ▸ {request.role}: {type(e).__name__}: {str(e)}", exc_info=True
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Role switch failed: {type(e).__name__}. Check server logs for details."
-        )
 
 
 # ============================================================================

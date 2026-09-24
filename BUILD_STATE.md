@@ -1,3 +1,72 @@
+## Session — 2026-09-23 — Public intro page: /document-everything (devin)
+
+**Brad's ask:** explain Semptify to new users from the "Document everything"
+motto viewpoint — public landing "hello world" intro, statistical facts tied
+to what readers can do whether or not they use Semptify.
+
+**What shipped (branch `feature/onboarding-solo-tenant`, PR #317):**
+- `app/templates/public/document_everything.html` — new standalone public
+  page (portal-registry pattern, extends `body/public_shell.html`). Written
+  via the semptify-article pipeline: Gate 1 source review, opening pick,
+  semptify-voice + humanizer passes. Content: motto hook → what the habit
+  looks like → two sourced stats (KC Eviction Project 70% default-loss;
+  Tenants Together >70% deposit win rate, both linked) → "whether or not you
+  use Semptify" → commitments → not-a-law-firm + HOME Line way-out →
+  Get help now CTA. AI-use disclosure comes from the global footer verbatim.
+- `app/modules/portal/pages.py` — registered `/document-everything`
+  (in footer, label "Document everything", order 8; in sitemap).
+- **Language-rule fixes in the same file (flagged, fixed):** `services` and
+  `tools` entries described Semptify itself with "free" — replaced with
+  "no-cost" per the non-negotiable language rule.
+- `SEMPTIFY_REFERENCE_LIBRARY.md` §17 (master repo) — "Document everything."
+  recorded as the org motto, canonical 2026-09-23, distinct from the
+  "Tenant rights, documented." tagline.
+
+**Verified live:** `/document-everything` → 200, renders at 1280px and
+375px (screenshots), all 4 links resolve, 0 console errors, AI disclosure
+present in footer.
+
+**Note:** existing `welcome.html` untouched — this is a new sibling public
+page, not a replacement. Suggested next: link it from the landing hero or
+`/about` for discoverability (not done — additive-link decision is Brad's).
+
+## Session — 2026-09-23 — Legal UI epic slice 2: mutual-consent sharing + scoped access (devin)
+
+**Task `legal-ui-epic-2026-09-23` slice 2.** Sharing page `/tenant/my-advocate` rebuilt around the real consent flow; this is now THE access mechanism under the tenant-only model — a share grant, not a role, is what lets a helper see anything.
+
+**What shipped (branch `feature/onboarding-solo-tenant`, PR #317):**
+- `app/modules/advocate/router.py` — mutual consent both directions: tenant-initiated `POST /link-request` (helper must accept; was previously instant-link) and helper-initiated intake (`pending_incoming`, tenant approves/declines via `POST /my-advocates/{id}/respond`). Scope stored in `rel.context["access_scope"]` (`mode: all|selected`, `document_ids`, `share_timeline`); tenant can narrow/revoke live via `PUT /my-advocates/{id}/scope` and `DELETE /my-advocates/{id}`. `link-request` role check replaced with an existence check — the share target is another tenant identity now, not a role. Every grant/deny/change writes `DocumentAccessLog`.
+- `app/templates/pages/tenant_my_advocate.html` — rewired to the real endpoints, chronological zone order per `.cursor/rules/01`: pending decisions (both directions) → Share Your ID → Ask Someone to Help (scope radio + doc picker + timeline toggle) → People With Access (per-row Change access inline editor / Remove) → Who Has Seen My Case (audit feed).
+- `tests/test_advocate_sharing.py` — 17 tests: consent both directions, scope enforcement, audit surface.
+- **Bug found + fixed in verify**: `loadShareableDocs` cached its result — an empty first fetch stayed empty forever (new uploads invisible). Now always fetched fresh.
+- **Bug found + fixed in verify**: `.page-header` collided with the SSOT dark-hero band (dark text on dark gradient, illegible) — renamed to scoped `.page-head`. ~14 sibling templates have the same collision → intake `intake-84ed2ffc`.
+- **Mobile fix**: `.advocate-row` now wraps actions to their own line ≤560px — IDs were collapsing to one-char-per-line. Log rows stack.
+
+**Verified live** (seeded `semptify.db`: tenant `GUuitenant01`, helper `GUuihelper01`, requester `GUuiother001`, 3 docs incl. 1 privileged): page renders all zones; approve incoming request end-to-end → relationship active, audit row appears; Change access → picker shows only shareable docs (privileged doc listed disabled with reason); save narrows scope to `selected`+`share_timeline` (DB-verified in `context` JSON); UI shows "1 document + timeline"; audit logs "You changed what is shared". 375px + 1280px screenshots clean.
+
+**Tests:** 25/25 (17 sharing + 8 solo-tenant).
+
+**Noticed but not fixed (intake):** `intake-84ed2ffc` page-header collision ×14 templates; `intake-262cee53` footer disclaimer near-invisible/cramped; `intake-0f46b5af` `ws/events` 404 retry spam from websocket-client.js.
+
+## Session — 2026-09-23 — Stateless tenant-only: roles and role gates removed (devin)
+
+**Brad's direction (verbatim):** "i do not want any one other then tenant i want it to be a stateless no access to any rolr but tenant i will have shareensbled by tenant thats it i want the gates per role totaky gone the option do not delete any modukes" — and "none arer to be gated ther is no other role otherthan tenant" / "nit just disabled non exisyant."
+
+**What shipped (branch `feature/onboarding-solo-tenant`, PR #317, commits c268f16d + this):**
+- **No role can exist**: `generate_user_id` always mints the tenant ('U') code regardless of the role argument; `parse_user_id`/`get_role_from_user_id` decode every letter — valid, legacy, or forged — as tenant. No path can create or resurrect a pro-role identity.
+- **Every elevation path deleted or dead**: `/api/storage/role` + `/storage/role` endpoints, `RoleSwitchRequest`, `ALLOWED_ROLES`, `VALID_INVITE_CODES`, `ADMIN_PIN`, the `storage_switch_role` contract — all deleted outright (verified 404 live even with invite code + PIN). Onboarding OAuth takes no role param; storage OAuth demotes any param not backed by a verified identity; tampered OAuth `state.role` can no longer overwrite `default_role` on existing accounts.
+- **Role gates gone**: `module_gate._extract_role` always returns USER (killed the `x-user-role` header privilege-escalation hole); `MODULE_RULES` `min_role`/`allowed_roles` no longer enforced; `_guard_role_page` + `_guard_by_contract` in main.py check auth+storage only; `features.is_enabled_for_role` returns enabled-for-everyone; `legal_filing`/`functionx`/`advocate` helpers are auth-only — advocate data is authorized by the tenant-granted share relationship (`from_user_id` scoping), never by role.
+- **Role params neutralized**: workflow `/route`, `/next-step`, `/advance`, `/groups` coerce any non-tenant body/param role to tenant (verified live: `role=legal`/`admin` → tenant B1/B2 routing, never B4 professional workspace; `/advance` no longer requires `role_selected`). `/api/components/config/{role}` always serves the tenant config — including unauthenticated. `/api/roles/*` (role_upgrade) advertises tenant only; `requirements/{pro-role}` and `upgrade` to pro roles → 404; `trusted-organizations` returns empty.
+- **Role picker/code gone**: `/choose-role` 404 (manifest entry removed — it was a live page via page_router); `role_selection.html`, dead Jinja `welcome.html` (hidden second picker), `validate-advocate/legal.html` deleted; `/onboarding/role-select`/`/select-role.html`/`/preamble` → providers; pro `role_configs/*.json` deleted (tenant.json kept as registry seed).
+- **Modules retained, dormant**: advocate/legal/admin-console modules stay in tree per Brad — pro-role endpoints 403/404 for all users since no pro identity can exist; admin console's env-credentialed elevation (`/admin/login` + TOTP + `X-Admin-Token`) left intact as ops access, not a selectable role.
+- **Inert data left deliberately**: `UserRole` enum + `ROLE_PERMISSIONS` (SDK + user_context) kept — ~390 dormant-module imports depend on them; nothing enforces them. `PageContract.roles_supported` lists kept as historical metadata — no enforcement path reads them.
+
+**Verified:** 8/8 `test_onboarding_solo_tenant.py` (incl. all-letters-decode-tenant + mint-always-U + only-tenant-config), 245/245 module_health, live on :8002 — choose-role 404, storage-role 404 with invite+PIN, roles/available = tenant only, requirements/legal 404, components/config/legal 404, workflow bodies with pro roles → tenant routing, `?role=legal` on both OAuth paths stores tenant (DB-verified). Browser pass on providers: zero role mentions, 0 console errors.
+
+**Marked:** `.devin/rules/08-onboarding-gates.md` ONBOARDING SOLO note updated — future sessions must not re-add a picker, role param, or elevation endpoint; pro roles onboard via the separate add-on repo.
+
+**Caveats:** existing dev DB may hold previously-minted pro user_ids — they now decode as tenant (harmless; Brad says no real users exist). `role_upgrade`/`admin_console`/`advocate` modules are dormant-but-present; natural move to the add-on repo when built. Slice-2 advocate scoping work remains uncommitted in the tree.
+
 ## Session — 2026-09-23 — Legal UI epic slice 1: advocate dashboard + enforcement (devin)
 
 **Task `legal-ui-epic-2026-09-23` slice 1 → review.** Spec-of-record: `docs/blueprints/legal_ui_acceptance_matrix.md` (~85 rows, 11 invariants, research-backed: ABA 1.6/5.3, FRE 902, SAMHSA trauma-informed).
@@ -15608,3 +15677,49 @@ sessions); embedded images are dropped from edited exports (noted to user).
   while (support ticket clears it); old SHAs referenced in BUILD_STATE/PR
   timelines now point nowhere; all clones must re-clone. Render needs
   `INVITE_CODES` env var set before new advocate/legal codes are issued.
+
+## 2026-09-23 — ONBOARDING SOLO: tenant-only onboarding (Brad directive)
+
+- Role selection removed entirely — onboarding is tenant-only. Pro-role
+  onboarding is a separate add-on (different repo), networked later.
+- Deleted: `app/templates/pages/role_selection.html` (was live at
+  `/choose-role` via page_router manifest), dead Jinja
+  `app/templates/pages/welcome.html` (had a role select; live welcome is
+  `static/public/welcome.html`), `static/onboarding/validation/validate-*.html`
+  (dead invite pages; intake 95e902bf already flagged them).
+- `navigation.py` `role_select` stage repointed to `/onboarding/providers`;
+  preamble and `/onboarding/start` follow it automatically. Legacy URLs
+  `/select-role.html`, `/role-select`, `/onboarding/select-role` redirect.
+- `onboarding/oauth.py` `ALLOWED_ROLES` → {tenant, user}.
+- `storage/router.py` new `MINTABLE_ROLES` = {tenant, user} gates every
+  new-account minting point; a URL `role` param that did not come from a
+  verified identity (existing_uid/signed cookie) demotes to tenant —
+  closes a real bypass where `/storage/auth/<p>?role=legal` wrote 'legal'
+  into OAuth state. State can also no longer overwrite `default_role` on
+  an existing account (both sides must be mintable — also fixes a latent
+  pro-role downgrade on reconnect).
+- `/api/storage/role` switch unchanged — invite-gated elevation path
+  (invite code for advocate/legal, PIN for admin).
+- `role_upgrade` 503 detail updated (invite_only, no stale SSOT pointer);
+  `main.py` onboarding `allowed_roles` → ["tenant"] (dead config narrowed).
+- `page_manifest`: `role_selection` entry removed (kills `/choose-role`
+  route — now 404); welcome entry corrected to the static source.
+- Verified live: all entries land on `/onboarding/providers` (zero role
+  mentions), tampered `?role=legal` stores `tenant` in `oauth_states` on
+  both onboarding and storage OAuth paths, 0 console errors.
+- Tests: `tests/test_onboarding_solo_tenant.py` 6/6 green.
+- NOT in this change: in-progress advocate slice-2 edits in
+  `app/modules/advocate/router.py` remain uncommitted.
+
+## 2026-09-23 — ONBOARDING SOLO follow-up: no elevation path at all
+
+- Brad directive (same day, tightening): "none are to be gated — there is
+  no other role other than tenant." The invite-gated `/api/storage/role`
+  switch endpoint was **deleted entirely** (not disabled — non-existent):
+  POST /api/storage/role → 404 live.
+- Removed with it: `RoleSwitchRequest`, `ALLOWED_ROLES`, `VALID_INVITE_CODES`,
+  `ADMIN_PIN`, `update_user_id_role` import, `storage_switch_role` contract.
+- All "invite-gated switch" comments updated — there is no in-repo path to
+  any non-tenant role. Pro-role accounts belong to the add-on repo.
+- Verified live: both POST paths 404, providers 200, /choose-role 404.
+  tests/test_onboarding_solo_tenant.py 6/6.

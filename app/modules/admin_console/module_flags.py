@@ -262,7 +262,9 @@ async def preview_as_user(
     This is the 'Test as user' feature — admin specifies a role,
     jurisdiction, and gates, and gets back the resolved module set.
     """
-    allowed_roles = {"tenant", "advocate", "admin", "manager", "legal", "judge", "research", "dev"}
+    # ONBOARDING SOLO: tenant is the only role — preview-as-role only
+    # accepts tenant context now.
+    allowed_roles = {"tenant", "user"}
     if body.role not in allowed_roles:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

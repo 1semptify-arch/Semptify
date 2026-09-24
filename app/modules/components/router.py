@@ -893,10 +893,10 @@ async def get_component_config(
             },
         }
 
-        # Use the role from the authenticated user context when available,
-        # falling back to the URL path parameter for unauthenticated calls.
-        effective_role = get_role_from_user_id(user_id) if user_id else role
-        config = role_configs.get(effective_role, role_configs["tenant"])
+        # ONBOARDING SOLO: tenant is the only role — the URL path parameter
+        # can never select a pro-role config, even unauthenticated.
+        effective_role = "tenant"
+        config = role_configs["tenant"]
 
         return JSONResponse(
             {"role": effective_role, "config": config, "user_id": user_id, "timestamp": utc_now().isoformat()}

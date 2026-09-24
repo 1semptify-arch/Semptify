@@ -224,23 +224,10 @@ register_function_group(
     )
 )
 
-# --- Role & Logout ---
-
-register_function_group(
-    FunctionGroupContract(
-        module="storage",
-        group_name="storage_switch_role",
-        title="Storage Switch Role (SSOT)",
-        description=(
-            "CANONICAL role switching. Changes the user's role and re-issues "
-            "the auth cookie with the new role. Used by the role switcher UI."
-        ),
-        inputs=("role", "semptify_uid?"),
-        outputs=("success", "new_role"),
-        dependencies=("app.modules.storage.router",),
-        deterministic=False,
-    )
-)
+# --- Logout ---
+# NOTE (onboarding solo, 2026-09-23): the "storage_switch_role" group was
+# removed with the /api/storage/role endpoint — there is no role to switch
+# to. Tenant is the only role in this repo.
 
 register_function_group(
     FunctionGroupContract(

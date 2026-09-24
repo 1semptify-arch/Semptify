@@ -8,9 +8,9 @@ The Dev Lab has been rebranded as **Semptify Forge** — the canonical module de
 
 - Canonical URL: `/admin/forge.html`
 - Alias: `/admin/dev-lab.html`
-- Access: admin role only.
+- Access: dormant in this repo — no admin role exists (tenant-only, PR #317). Reachable only via Brad's env-credentialed ops elevation.
 - Lifecycle pipeline: `dev_only` → `preview` → `experimental` → `beta` → `stable`.
-- Admins promote/demote modules via runtime overrides.
+- Ops promotes/demotes modules via runtime overrides.
 
 ## Workflow
 
@@ -28,5 +28,5 @@ The full Forge workflow is in `.devin/workflows/forge.md` (mirrored as `.github/
 ## Rules
 
 - Every new module starts at `dev_only`.
-- Only admins see `dev_only`/`preview` modules.
+- Only ops-elevated sessions see `dev_only`/`preview` modules.
 - Production users see `stable`/`beta` only.

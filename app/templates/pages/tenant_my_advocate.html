@@ -22,14 +22,14 @@
 }
 .back-link:hover { color: var(--text-primary); }
 
-.page-header { margin-bottom: 1.5rem; }
-.page-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.3rem 0; }
-.page-header p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+/* Scoped name — `.page-header` collides with the SSOT dark-hero band */
+.page-head { margin-bottom: 1.5rem; }
+.page-head h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.3rem 0; }
+.page-head p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
 
 /* Info banner */
 .info-banner {
     background: var(--color-calm-50);
-    border: 1px solid var(--color-calm-200);
     border-radius: var(--radius-input);
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
@@ -39,16 +39,18 @@
 }
 .info-banner strong { font-weight: 700; }
 
-/* Cards */
-.card {
+/* Zone blocks (background separation, no card borders) */
+.zone {
     background: var(--bg-card);
-    border: none;
     border-radius: var(--radius-block);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     box-shadow: var(--elevation-1);
 }
-.card h3 { margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 700; }
+.zone h3 { margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 700; }
+
+/* Pending-decision zone */
+.zone--attention { background: var(--color-calm-50); }
 
 /* Form */
 .form-field { margin-bottom: 1rem; }
@@ -56,13 +58,13 @@
     display: block; font-size: 0.85rem; font-weight: 600;
     margin-bottom: 0.3rem;
 }
-.form-field input, .form-field textarea {
+.form-field input[type="text"], .form-field textarea {
     width: 100%; padding: 0.6rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-input);
     font-family: inherit; font-size: 0.9rem;
 }
-.form-field input {
+.form-field input[type="text"] {
     font-family: 'Courier New', monospace;
     letter-spacing: 0.02em;
 }
@@ -71,6 +73,26 @@
     font-size: 0.78rem; color: var(--text-secondary);
     margin-top: 0.3rem;
 }
+.scope-choice { display: flex; flex-direction: column; gap: 0.5rem; }
+.scope-choice label { display: flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.88rem; }
+
+/* Document picker */
+.doc-picker {
+    max-height: 220px; overflow-y: auto;
+    border-radius: var(--radius-input);
+    background: var(--color-gray-50);
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
+.doc-pick-row {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.45rem 0.5rem; border-radius: 6px;
+    font-size: 0.85rem;
+}
+.doc-pick-row:hover { background: var(--color-gray-100); }
+.doc-pick-row.disabled { opacity: 0.55; }
+.doc-pick-row .doc-name { flex: 1; word-break: break-all; }
+.doc-pick-row .doc-flag { font-size: 0.75rem; color: var(--text-muted); }
 
 /* Buttons */
 .btn {
@@ -95,17 +117,15 @@
 .btn--secondary:hover { background: var(--color-gray-100); }
 .btn--sm { padding: 0.35rem 0.8rem; font-size: 0.82rem; }
 
-/* Advocate list */
+/* Advocate rows */
 .advocate-row {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     padding: 0.85rem 1rem;
-    border: none;
     border-radius: var(--radius-input);
     margin-bottom: 0.5rem;
-    background: var(--bg-card);
-    box-shadow: var(--elevation-1);
+    background: var(--color-gray-50);
 }
 .advocate-avatar {
     width: 40px; height: 40px;
@@ -115,7 +135,7 @@
     font-weight: 700; font-size: 0.85rem;
     flex-shrink: 0;
 }
-.advocate-info { flex: 1; }
+.advocate-info { flex: 1; min-width: 0; }
 .advocate-name {
     font-weight: 600; font-size: 0.9rem;
     font-family: 'Courier New', monospace;
@@ -125,25 +145,37 @@
     font-size: 0.76rem; color: var(--text-secondary);
     margin-top: 0.2rem;
 }
-.initiated-badge {
+.advocate-actions { display: flex; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; }
+.badge {
     display: inline-block;
     font-size: 0.75rem; font-weight: 600;
     padding: 0.12rem 0.4rem; border-radius: 6px;
     margin-left: 0.5rem;
 }
-.initiated-tenant { background: var(--color-success-50); color: var(--color-success-800); }
-.initiated-advocate { background: var(--color-gray-100); color: var(--text-muted); }
+.badge--tenant { background: var(--color-success-50); color: var(--color-success-800); }
+.badge--other { background: var(--color-gray-100); color: var(--text-muted); }
+.badge--pending { background: var(--color-calm-100); color: var(--color-calm-800); }
 
-/* Empty state */
+/* Access log */
+.log-row {
+    padding: 0.55rem 0.25rem;
+    font-size: 0.82rem;
+    border-bottom: 1px solid var(--color-gray-100);
+    display: flex; gap: 0.6rem; align-items: baseline;
+}
+.log-row:last-child { border-bottom: none; }
+.log-when { color: var(--text-muted); font-size: 0.75rem; flex-shrink: 0; width: 8.5rem; }
+.log-what { flex: 1; }
+.log-denied { color: var(--color-error); }
+
+/* Empty / loading */
 .empty-state {
     text-align: center;
-    padding: 2rem 1rem;
+    padding: 1.5rem 1rem;
     color: var(--text-secondary);
     font-size: 0.9rem;
 }
-
-/* Loading */
-.loading { text-align: center; padding: 2rem; color: var(--text-secondary); }
+.loading { text-align: center; padding: 1.5rem; color: var(--text-secondary); }
 
 /* My ID box */
 .my-id-box {
@@ -151,32 +183,30 @@
     border: 1px dashed var(--border-color);
     border-radius: var(--radius-input);
     padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
 }
-.my-id-label {
-    font-size: 0.78rem; color: var(--text-secondary);
-    flex-shrink: 0;
-}
+.my-id-label { font-size: 0.78rem; color: var(--text-secondary); flex-shrink: 0; }
 .my-id-value {
     font-family: 'Courier New', monospace;
-    font-size: 0.85rem;
-    font-weight: 600;
-    word-break: break-all;
-    flex: 1;
+    font-size: 0.85rem; font-weight: 600;
+    word-break: break-all; flex: 1;
 }
 .copy-btn {
-    padding: 0.25rem 0.6rem;
-    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem; font-size: 0.75rem;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
-    flex-shrink: 0;
+    border-radius: 6px; cursor: pointer; flex-shrink: 0;
 }
 .copy-btn:hover { background: var(--color-gray-100); }
+
+@media (max-width: 560px) {
+    .advocate-row { flex-wrap: wrap; }
+    .advocate-actions { flex-basis: 100%; padding-left: 3.25rem; }
+    .log-row { flex-direction: column; gap: 0.1rem; }
+    .log-when { width: auto; }
+}
 </style>
 {% endblock %}
 
@@ -185,21 +215,29 @@
 <div class="tenant-advocate-page">
     <a href="/" class="back-link">← Back to Home</a>
 
-    <div class="page-header">
-        <h1>My Advocate</h1>
-        <p>Manage who can see your case and help you through the process.</p>
+    <div class="page-head">
+        <h1>Sharing &amp; Help</h1>
+        <p>You decide who can see your case — and exactly what they can see.</p>
     </div>
 
     <div class="info-banner">
-        <strong>You are in control.</strong> You choose who can access your case.
-        Share your Semptify ID with someone you trust, or enter their Advocate ID below.
-        You can revoke access at any time.
+        <strong>You are in control.</strong> Nothing is shared until you say so, and the other
+        person must accept before they see anything. You can change what's shared or remove
+        access at any time — it takes effect immediately.
     </div>
 
-    <div class="card">
+    <!-- Step 1: decisions waiting on you -->
+    <div class="zone zone--attention" id="zone-pending" style="display:none;">
+        <h3>Waiting for your decision</h3>
+        <div id="pending-list"></div>
+    </div>
+
+    <!-- Step 2: your ID + start a share -->
+    <div class="zone">
         <h3>Share Your ID</h3>
         <p style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 0.75rem 0;">
-            Give this ID to an advocate so they can add you to their client list.
+            Give this ID to someone you trust so they can ask to help with your case.
+            Nothing is shared until you approve their request.
         </p>
         <div class="my-id-box">
             <span class="my-id-label">Your Semptify ID:</span>
@@ -208,26 +246,46 @@
         </div>
     </div>
 
-    <div class="card">
-        <h3>Link to an Advocate</h3>
+    <div class="zone">
+        <h3>Ask Someone to Help</h3>
         <p style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 1rem 0;">
-            Enter your advocate's Semptify ID to give them access to your case.
+            Enter their Semptify ID to send a sharing request. They must accept before they
+            can see anything.
         </p>
         <div class="form-field">
-            <label for="advocate-id-input">Advocate's Semptify ID</label>
-            <input type="text" id="advocate-id-input" placeholder="e.g. gd_adv_abc123...">
-            <div class="form-help">Ask your advocate to share their ID from their dashboard.</div>
+            <label for="advocate-id-input">Their Semptify ID</label>
+            <input type="text" id="advocate-id-input" placeholder="e.g. GUabc123...">
         </div>
         <div class="form-field">
-            <label for="link-notes">Optional Message</label>
-            <textarea id="link-notes" placeholder="e.g. Hi, I'm the tenant at 123 Main St. You suggested I connect with you."></textarea>
+            <label>What can they see?</label>
+            <div class="scope-choice">
+                <label><input type="radio" name="scope" value="all" checked> Everything in my case file</label>
+                <label><input type="radio" name="scope" value="selected"> Only the documents I pick</label>
+                <label style="margin-left:1.6rem;"><input type="checkbox" id="share-timeline" checked> Include my timeline</label>
+            </div>
+            <div class="doc-picker" id="doc-picker" style="display:none;">
+                <div class="loading">Loading your documents...</div>
+            </div>
         </div>
-        <button class="btn btn--primary" id="btn-link">Link to Advocate</button>
+        <div class="form-field">
+            <label for="link-notes">Optional note</label>
+            <textarea id="link-notes" placeholder="e.g. Hi, I'm the tenant you met Tuesday."></textarea>
+        </div>
+        <button class="btn btn--primary" id="btn-link">Send Sharing Request</button>
     </div>
 
-    <div class="card">
-        <h3>Linked Advocates</h3>
+    <!-- Step 3: manage existing access -->
+    <div class="zone">
+        <h3>People With Access</h3>
         <div id="advocates-list">
+            <div class="loading">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Step 4: audit trail -->
+    <div class="zone">
+        <h3>Who Has Seen My Case</h3>
+        <div id="access-log">
             <div class="loading">Loading...</div>
         </div>
     </div>
@@ -242,132 +300,327 @@ async function fetchJSON(url, opts) {
         return { ok: false, data: { detail: e.message } };
     }
 }
-
+function notify(kind, msg) {
+    if (window.SemptifyFeedback) SemptifyFeedback[kind](msg);
+    else alert(msg);
+}
 function formatDate(iso) {
     if (!iso) return '—';
-    try { return new Date(iso).toLocaleDateString(); }
-    catch (e) { return iso; }
+    try { return new Date(iso).toLocaleDateString(); } catch (e) { return iso; }
+}
+function formatWhen(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
+}
+function avatarInitials(id) { return (id || '?').substring(0, 2).toUpperCase(); }
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function avatarInitials(id) {
-    return (id || '?').substring(0, 2).toUpperCase();
-}
-
-// Load current user ID from cookie
+// ---- My ID ----
 function getCurrentUserId() {
     const match = document.cookie.match(/(?:^|;)\s*semptify_user_id=([^;]+)/);
     return match ? decodeURIComponent(match[1]) : null;
 }
-
 const myId = getCurrentUserId();
-if (myId) {
-    document.getElementById('my-user-id').textContent = myId;
-} else {
-    document.getElementById('my-user-id').textContent = 'Not signed in';
-}
-
+document.getElementById('my-user-id').textContent = myId || 'Not signed in';
 document.getElementById('copy-my-id').addEventListener('click', () => {
     if (!myId) return;
-    try {
-        navigator.clipboard.writeText(myId);
-        if (window.SemptifyFeedback) {
-            SemptifyFeedback.success('ID copied to clipboard');
-        }
-    } catch (e) {
-        const textarea = document.createElement('textarea');
-        textarea.value = myId;
-        document.body.appendChild(textarea);
-        textarea.select();
-        try { document.execCommand('copy'); } catch (e2) { /* ignore */ }
-        document.body.removeChild(textarea);
-        if (window.SemptifyFeedback) {
-            SemptifyFeedback.success('ID copied to clipboard');
-        }
-    }
+    navigator.clipboard.writeText(myId).then(
+        () => notify('success', 'ID copied'),
+        () => notify('success', 'ID copied')
+    );
 });
 
-// Link to advocate
-document.getElementById('btn-link').addEventListener('click', async () => {
-    const advocateId = document.getElementById('advocate-id-input').value.trim();
-    const notes = document.getElementById('link-notes').value.trim();
-    if (!advocateId) {
-        if (window.SemptifyFeedback) {
-            SemptifyFeedback.error('Please enter an advocate ID');
-        } else { alert('Please enter an advocate ID'); }
+// ---- Document picker ----
+// Always fetched fresh — a cached empty/stale list would hide newly
+// uploaded documents or changes made in another tab.
+async function loadShareableDocs() {
+    const { ok, data } = await fetchJSON('/api/advocate/my-shareable-documents');
+    return ok ? (data.documents || []) : [];
+}
+async function renderDocPicker() {
+    const picker = document.getElementById('doc-picker');
+    const docs = await loadShareableDocs();
+    if (!docs.length) {
+        picker.innerHTML = '<div class="empty-state">No documents uploaded yet.</div>';
         return;
+    }
+    picker.innerHTML = docs.map(d => {
+        if (d.shareable) {
+            return `<label class="doc-pick-row"><input type="checkbox" class="doc-check" value="${esc(d.id)}"> <span class="doc-name">${esc(d.filename)}</span></label>`;
+        }
+        return `<div class="doc-pick-row disabled"><input type="checkbox" disabled> <span class="doc-name">${esc(d.filename)}</span> <span class="doc-flag">${esc(d.shareable_reason || 'Cannot be shared')}</span></div>`;
+    }).join('');
+}
+document.querySelectorAll('input[name="scope"]').forEach(r => {
+    r.addEventListener('change', () => {
+        const picker = document.getElementById('doc-picker');
+        if (document.querySelector('input[name="scope"]:checked').value === 'selected') {
+            picker.style.display = 'block';
+            renderDocPicker();
+        } else {
+            picker.style.display = 'none';
+        }
+    });
+});
+
+// ---- Send sharing request ----
+document.getElementById('btn-link').addEventListener('click', async () => {
+    const targetId = document.getElementById('advocate-id-input').value.trim();
+    const notes = document.getElementById('link-notes').value.trim();
+    const shareAll = document.querySelector('input[name="scope"]:checked').value === 'all';
+    const shareTimeline = document.getElementById('share-timeline').checked;
+    if (!targetId) { notify('error', 'Please enter their Semptify ID'); return; }
+    let docIds = [];
+    if (!shareAll) {
+        docIds = [...document.querySelectorAll('.doc-check:checked')].map(c => c.value);
+        if (!docIds.length) { notify('error', 'Pick at least one document, or choose "everything".'); return; }
     }
     const { ok, data } = await fetchJSON('/api/advocate/link-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ advocate_user_id: advocateId, notes: notes || null }),
+        body: JSON.stringify({
+            advocate_user_id: targetId,
+            notes: notes || null,
+            share_all: shareAll,
+            document_ids: docIds.length ? docIds : null,
+            share_timeline: shareTimeline,
+        }),
     });
     if (ok && data.success) {
-        if (window.SemptifyFeedback) {
-            SemptifyFeedback.success(data.message);
-        } else { alert(data.message); }
+        notify('success', data.message || 'Request sent.');
         document.getElementById('advocate-id-input').value = '';
         document.getElementById('link-notes').value = '';
-        loadAdvocates();
+        refresh();
     } else {
-        if (window.SemptifyFeedback) {
-            SemptifyFeedback.error(data.detail || 'Failed to link');
-        } else { alert(data.detail || 'Failed to link'); }
+        notify('error', data.detail || 'Could not send the request');
     }
 });
 
-// Load advocates
+// ---- Pending decisions (both directions) ----
+async function loadPending() {
+    const zone = document.getElementById('zone-pending');
+    const list = document.getElementById('pending-list');
+    const rows = [];
+
+    // People asking to help me (they requested; I approve or decline)
+    const { ok: okA, data: mine } = await fetchJSON('/api/advocate/my-advocates');
+    if (okA) {
+        for (const a of mine.advocates || []) {
+            if (a.status === 'pending_incoming') {
+                rows.push({
+                    id: a.advocate_user_id,
+                    text: `<strong>${esc(a.advocate_user_id)}</strong> asked to help with your case.`,
+                    approve: `/api/advocate/my-advocates/${encodeURIComponent(a.advocate_user_id)}/respond`,
+                    note: a.notes ? `<div class="advocate-meta">"${esc(a.notes)}"</div>` : '',
+                });
+            }
+        }
+    }
+    // People asking me to help them (they sent me a share request; I accept or decline)
+    const { ok: okR, data: reqs } = await fetchJSON('/api/advocate/requests');
+    if (okR) {
+        for (const r of reqs.incoming || []) {
+            rows.push({
+                id: r.tenant_user_id,
+                text: `<strong>${esc(r.tenant_user_id)}</strong> asked to share their case with you.`,
+                approve: `/api/advocate/requests/${encodeURIComponent(r.tenant_user_id)}/respond`,
+                note: r.notes ? `<div class="advocate-meta">"${esc(r.notes)}"</div>` : '',
+            });
+        }
+    }
+
+    if (!rows.length) { zone.style.display = 'none'; return; }
+    zone.style.display = 'block';
+    list.innerHTML = rows.map(r => `
+        <div class="advocate-row">
+            <div class="advocate-avatar">${avatarInitials(r.id)}</div>
+            <div class="advocate-info">${r.text}${r.note}</div>
+            <div class="advocate-actions">
+                <button class="btn btn--primary btn--sm" data-respond="${r.approve}" data-accept="true">Approve</button>
+                <button class="btn btn--secondary btn--sm" data-respond="${r.approve}" data-accept="false">Decline</button>
+            </div>
+        </div>
+    `).join('');
+}
+document.addEventListener('click', async e => {
+    const btn = e.target.closest('[data-respond]');
+    if (!btn) return;
+    const { ok, data } = await fetchJSON(btn.getAttribute('data-respond'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accept: btn.getAttribute('data-accept') === 'true' }),
+    });
+    if (ok && data.success) { notify('success', 'Done.'); refresh(); }
+    else notify('error', data.detail || 'Could not respond');
+});
+
+// ---- People with access ----
+function scopeLabel(a) {
+    if (!a.scope) return '';
+    if (a.scope.mode === 'all') {
+        return a.scope.share_timeline ? 'Whole case file + timeline' : 'Whole case file (no timeline)';
+    }
+    const n = a.scope.shared_document_count || 0;
+    return `${n} document${n === 1 ? '' : 's'}${a.scope.share_timeline ? ' + timeline' : ''}`;
+}
+let lastAdvocates = [];
 async function loadAdvocates() {
     const listEl = document.getElementById('advocates-list');
     const { ok, data } = await fetchJSON('/api/advocate/my-advocates');
-    if (!ok) {
-        listEl.innerHTML = '<div class="empty-state">Could not load advocates.</div>';
+    if (!ok) { listEl.innerHTML = '<div class="empty-state">Could not load.</div>'; return; }
+    const rows = (data.advocates || []).filter(a => a.status !== 'pending_incoming');
+    lastAdvocates = rows;
+    if (!rows.length) {
+        listEl.innerHTML = '<div class="empty-state">Nobody has access to your case.</div>';
         return;
     }
-    if (!data.advocates || data.advocates.length === 0) {
-        listEl.innerHTML = '<div class="empty-state">No advocates linked yet. Enter an advocate ID above to get started.</div>';
-        return;
-    }
-    listEl.innerHTML = data.advocates.map(a => {
-        const initiated = a.initiated_by === 'tenant' ? 'initiated-tenant' : 'initiated-advocate';
-        const initiatedLabel = a.initiated_by === 'tenant' ? 'You invited' : 'They added you';
+    listEl.innerHTML = rows.map(a => {
+        const who = a.initiated_by === 'tenant' ? 'You invited' : 'They asked';
+        const badge = a.status === 'pending_outgoing'
+            ? '<span class="badge badge--pending">Waiting for them to accept</span>'
+            : `<span class="badge ${a.initiated_by === 'tenant' ? 'badge--tenant' : 'badge--other'}">${who}</span>`;
+        const last = a.last_access ? `Last opened ${formatWhen(a.last_access)}` : 'Never opened anything';
+        const actions = a.status === 'pending_outgoing'
+            ? `<button class="btn btn--secondary btn--sm" data-revoke="${esc(a.advocate_user_id)}">Cancel request</button>`
+            : `<button class="btn btn--secondary btn--sm" data-scope-edit="${esc(a.advocate_user_id)}">Change access</button>
+               <button class="btn btn--danger btn--sm" data-revoke="${esc(a.advocate_user_id)}">Remove access</button>`;
         return `
             <div class="advocate-row">
                 <div class="advocate-avatar">${avatarInitials(a.advocate_user_id)}</div>
                 <div class="advocate-info">
-                    <div class="advocate-name">${a.advocate_user_id}</div>
-                    <div class="advocate-meta">
-                        Linked ${formatDate(a.linked_at)}
-                        <span class="initiated-badge ${initiated}">${initiatedLabel}</span>
-                    </div>
+                    <div class="advocate-name">${esc(a.advocate_user_id)}${badge}</div>
+                    <div class="advocate-meta">${esc(scopeLabel(a))}${a.scope ? ' · ' : ''}${last}</div>
                 </div>
-                <button class="btn btn--danger btn--sm" data-revoke="${a.advocate_user_id}">Revoke</button>
-            </div>
-        `;
+                <div class="advocate-actions">${actions}</div>
+            </div>`;
     }).join('');
 }
 
-// Revoke advocate
-document.addEventListener('click', async (e) => {
+// Revoke / cancel
+document.addEventListener('click', async e => {
     const btn = e.target.closest('[data-revoke]');
     if (!btn) return;
-    const advocateId = btn.getAttribute('data-revoke');
-    if (!confirm('Revoke this advocate\'s access to your case? They will no longer be able to see your documents or timeline.')) return;
-    const { ok, data } = await fetchJSON(`/api/advocate/my-advocates/${encodeURIComponent(advocateId)}`, {
-        method: 'DELETE',
-    });
-    if (ok && data.success) {
-        if (window.SemptifyFeedback) {
-            SemptifyFeedback.success(data.message);
-        } else { alert(data.message); }
-        loadAdvocates();
-    } else {
-        if (window.SemptifyFeedback) {
-            SemptifyFeedback.error(data.detail || 'Failed to revoke');
-        } else { alert(data.detail || 'Failed to revoke'); }
-    }
+    if (!confirm('Remove their access? It takes effect immediately.')) return;
+    const { ok, data } = await fetchJSON(
+        `/api/advocate/my-advocates/${encodeURIComponent(btn.getAttribute('data-revoke'))}`,
+        { method: 'DELETE' }
+    );
+    if (ok && data.success) { notify('success', data.message || 'Done.'); refresh(); }
+    else notify('error', data.detail || 'Could not update');
 });
 
-loadAdvocates();
+// Change access — inline picker expands under the advocate's row
+let openScopeEditor = null;
+async function openScopePanel(rowEl, advocateId, currentScope) {
+    closeScopePanel();
+    const docs = await loadShareableDocs();
+    const panel = document.createElement('div');
+    panel.className = 'advocate-row';
+    panel.style.background = 'var(--color-calm-50)';
+    panel.dataset.scopePanel = advocateId;
+    const currentIds = new Set(
+        (currentScope && currentScope.shared_document_ids) || []
+    );
+    const mode = currentScope ? currentScope.mode : 'all';
+    const timeline = currentScope ? currentScope.share_timeline : true;
+    panel.innerHTML = `
+        <div style="flex:1;min-width:0;">
+            <div class="scope-choice" style="margin-bottom:0.6rem;">
+                <label><input type="radio" name="escope" value="all" ${mode === 'all' ? 'checked' : ''}> Everything in my case file</label>
+                <label><input type="radio" name="escope" value="selected" ${mode === 'selected' ? 'checked' : ''}> Only the documents I pick below</label>
+                <label style="margin-left:1.6rem;"><input type="checkbox" id="escope-timeline" ${timeline ? 'checked' : ''}> Include my timeline</label>
+            </div>
+            <div class="doc-picker" data-escope-picker style="display:${mode === 'selected' ? 'block' : 'none'};">
+                ${docs.map(d => d.shareable
+                    ? `<label class="doc-pick-row"><input type="checkbox" class="edoc-check" value="${esc(d.id)}" ${currentIds.has(d.id) ? 'checked' : ''}> <span class="doc-name">${esc(d.filename)}</span></label>`
+                    : `<div class="doc-pick-row disabled"><input type="checkbox" disabled> <span class="doc-name">${esc(d.filename)}</span> <span class="doc-flag">${esc(d.shareable_reason || 'Cannot be shared')}</span></div>`
+                ).join('') || '<div class="empty-state">No documents uploaded yet.</div>'}
+            </div>
+            <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
+                <button class="btn btn--primary btn--sm" data-scope-save="${esc(advocateId)}">Save</button>
+                <button class="btn btn--secondary btn--sm" data-scope-cancel>Cancel</button>
+            </div>
+        </div>`;
+    rowEl.after(panel);
+    panel.querySelectorAll('input[name="escope"]').forEach(r => {
+        r.addEventListener('change', () => {
+            panel.querySelector('[data-escope-picker]').style.display =
+                panel.querySelector('input[name="escope"]:checked').value === 'selected' ? 'block' : 'none';
+        });
+    });
+    openScopeEditor = panel;
+}
+function closeScopePanel() {
+    if (openScopeEditor) { openScopeEditor.remove(); openScopeEditor = null; }
+}
+document.addEventListener('click', async e => {
+    const editBtn = e.target.closest('[data-scope-edit]');
+    if (editBtn) {
+        const rowEl = editBtn.closest('.advocate-row');
+        const a = (lastAdvocates || []).find(x => x.advocate_user_id === editBtn.getAttribute('data-scope-edit'));
+        await openScopePanel(rowEl, editBtn.getAttribute('data-scope-edit'), a ? a.scope : null);
+        return;
+    }
+    if (e.target.closest('[data-scope-cancel]')) { closeScopePanel(); return; }
+    const saveBtn = e.target.closest('[data-scope-save]');
+    if (!saveBtn) return;
+    const id = saveBtn.getAttribute('data-scope-save');
+    const panel = saveBtn.closest('[data-scope-panel]');
+    const shareAll = panel.querySelector('input[name="escope"]:checked').value === 'all';
+    const shareTimeline = panel.querySelector('#escope-timeline').checked;
+    let body;
+    if (shareAll) {
+        body = { share_all: true, share_timeline: shareTimeline };
+    } else {
+        const ids = [...panel.querySelectorAll('.edoc-check:checked')].map(c => c.value);
+        if (!ids.length) { notify('error', 'Pick at least one document, or choose "everything".'); return; }
+        body = { share_all: false, document_ids: ids, share_timeline: shareTimeline };
+    }
+    const { ok, data } = await fetchJSON(
+        `/api/advocate/my-advocates/${encodeURIComponent(id)}/scope`,
+        { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    if (ok && data.success) { notify('success', 'Access updated.'); closeScopePanel(); refresh(); }
+    else notify('error', data.detail || 'Could not update access');
+});
+
+// ---- Access log ----
+const ACTION_WORDS = {
+    share_request: 'Sharing request sent',
+    share_accept: 'Sharing request accepted',
+    share_approve: 'You approved a help request',
+    share_decline: 'Request declined',
+    share_cancel: 'Request cancelled',
+    scope_update: 'You changed what is shared',
+    revoke: 'Access removed',
+    list_documents: 'Looked at the document list',
+    view_document: 'Opened a document',
+    view_overlays: 'Viewed notes on a document',
+    annotate: 'Added a note',
+    review: 'Marked a document reviewed',
+    access_denied: 'Tried to access without permission',
+};
+async function loadAccessLog() {
+    const el = document.getElementById('access-log');
+    const { ok, data } = await fetchJSON('/api/advocate/my-access-log');
+    if (!ok || !data.entries || !data.entries.length) {
+        el.innerHTML = '<div class="empty-state">No activity yet.</div>';
+        return;
+    }
+    el.innerHTML = data.entries.map(e => `
+        <div class="log-row">
+            <span class="log-when">${formatWhen(e.created_at)}</span>
+            <span class="log-what ${e.outcome === 'denied' ? 'log-denied' : ''}">
+                ${esc(e.actor_user_id)} — ${esc(ACTION_WORDS[e.action] || e.action)}${e.document_name ? `: ${esc(e.document_name)}` : ''}
+            </span>
+        </div>
+    `).join('');
+}
+
+function refresh() { loadPending(); loadAdvocates(); loadAccessLog(); }
+refresh();
 </script>
 </div>
 {% endblock %}

@@ -47,13 +47,13 @@ router = APIRouter(prefix="/api/advocate", tags=["Advocate"])
 
 
 def _require_advocate(user_id: str) -> None:
-    """Verify the current user has advocate role."""
-    role = get_role_from_user_id(user_id)
-    if role not in (UserRole.ADVOCATE, UserRole.MULTI_CLIENT_ADVOCATE, UserRole.ADMIN):
-        raise HTTPException(
-            status_code=403,
-            detail="Only advocates can access this endpoint.",
-        )
+    """ONBOARDING SOLO: roles are gone — access is authorized by the
+    tenant-granted ADVOCACY share relationship, not by a role bit. Each
+    endpoint scopes its queries to relationships where this user_id is the
+    grantee, so a user with no grant simply sees an empty list / 404. This
+    guard only requires a signed-in identity."""
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
 
 
 async def _get_clients_for_advocate(db, advocate_id: str):
@@ -87,31 +87,126 @@ async def _check_client_link(db, advocate_id: str, client_id: str) -> UserRelati
     return rel
 
 
-def _advocate_visible_doc_stmt(client_id: str):
+def _rel_scope(rel: UserRelationship) -> dict:
+    """Access scope granted by the tenant on this relationship.
+
+    Stored in rel.context["access_scope"]:
+      mode           "all" (whole case file) or "selected" (picked docs only)
+      document_ids   list[str] — used when mode == "selected"
+      share_timeline bool — whether timeline events are visible
+
+    Links created before scoping existed have no access_scope and
+    default to whole-file access (mode="all", timeline shared).
+    """
+    ctx = rel.context or {}
+    scope = ctx.get("access_scope") or {}
+    mode = scope.get("mode")
+    if mode not in ("all", "selected"):
+        mode = "all"
+    return {
+        "mode": mode,
+        "document_ids": set(scope.get("document_ids") or []),
+        "share_timeline": bool(scope.get("share_timeline", True)),
+    }
+
+
+def _rel_status(rel: UserRelationship) -> str:
+    """Lifecycle status: active | pending | declined | revoked (inactive)."""
+    if rel.is_active:
+        return "active"
+    return (rel.context or {}).get("status", "revoked")
+
+
+def _scope_payload(share_all: bool, document_ids: list[str] | None, share_timeline: bool) -> dict:
+    """Serialize a tenant's sharing choice into rel.context['access_scope']."""
+    if share_all:
+        return {"mode": "all", "share_timeline": share_timeline}
+    return {
+        "mode": "selected",
+        "document_ids": sorted(set(document_ids or [])),
+        "share_timeline": share_timeline,
+    }
+
+
+def _scope_summary(rel: UserRelationship) -> dict:
+    """Public-facing scope description — never exposes the tenant's total
+    document count (that would leak the existence of unshared docs)."""
+    scope = _rel_scope(rel)
+    return {
+        "mode": scope["mode"],
+        "shared_document_count": len(scope["document_ids"]) if scope["mode"] == "selected" else None,
+        "share_timeline": scope["share_timeline"],
+    }
+
+
+async def _validate_shareable_docs(db, tenant_id: str, document_ids: list[str]) -> list[str]:
+    """Verify every id is a tenant-owned, shareable document.
+
+    Privileged and work-product documents can never be shared with an
+    advocate — they are rejected with a plain reason, not silently dropped.
+    """
+    if not document_ids:
+        return []
+    docs = (
+        await db.execute(
+            select(Document).where(
+                Document.user_id == tenant_id,
+                Document.id.in_(list(set(document_ids))),
+            )
+        )
+    ).scalars().all()
+    found = {d.id: d for d in docs}
+    missing = [d for d in set(document_ids) if d not in found]
+    if missing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown document id(s): {', '.join(sorted(missing))}",
+        )
+    blocked = [d.id for d in docs if d.is_privileged or d.is_work_product]
+    if blocked:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "These documents can never be shared with an advocate "
+                f"(privileged/work product): {', '.join(sorted(blocked))}"
+            ),
+        )
+    return sorted(found.keys())
+
+
+def _advocate_visible_doc_stmt(client_id: str, rel: UserRelationship | None = None):
     """Documents an advocate may see for a client.
 
     Privileged documents (`is_privileged`) are visible only to the client
     and the creating attorney; attorney work product (`is_work_product`)
     is protected from discovery. Neither is ever exposed to an advocate.
+
+    When the tenant granted selected-document scope, out-of-scope docs are
+    filtered identically — indistinguishable from missing (no oracle).
     """
-    return select(Document).where(
+    stmt = select(Document).where(
         Document.user_id == client_id,
         Document.is_privileged.is_(False),
         Document.is_work_product.is_(False),
     )
+    if rel is not None:
+        scope = _rel_scope(rel)
+        if scope["mode"] == "selected":
+            stmt = stmt.where(Document.id.in_(sorted(scope["document_ids"])))
+    return stmt
 
 
-async def _doc_count(db, tenant_id: str) -> int:
-    """Count of advocate-visible documents for a tenant."""
-    return (
-        await db.execute(
-            select(func.count(Document.id)).where(
-                Document.user_id == tenant_id,
-                Document.is_privileged.is_(False),
-                Document.is_work_product.is_(False),
-            )
-        )
-    ).scalar_one()
+async def _doc_count(db, tenant_id: str, rel: UserRelationship | None = None) -> int:
+    """Count of documents actually visible to the advocate (scope-aware)."""
+    scope = _rel_scope(rel) if rel is not None else {"mode": "all", "document_ids": set()}
+    stmt = select(func.count(Document.id)).where(
+        Document.user_id == tenant_id,
+        Document.is_privileged.is_(False),
+        Document.is_work_product.is_(False),
+    )
+    if scope["mode"] == "selected":
+        stmt = stmt.where(Document.id.in_(sorted(scope["document_ids"])))
+    return (await db.execute(stmt)).scalar_one()
 
 
 async def _log_doc_access(
@@ -194,8 +289,9 @@ async def advocate_dashboard(request: Request):
             tenant = await db.get(User, rel.to_user_id)
             if not tenant:
                 continue
-            doc_count = await _doc_count(db, tenant.id)
-            event_count = await count_events_for_user_id(tenant.id)
+            doc_count = await _doc_count(db, tenant.id, rel)
+            scope = _rel_scope(rel)
+            event_count = await count_events_for_user_id(tenant.id) if scope["share_timeline"] else 0
             total_docs += doc_count
             total_events += event_count
 
@@ -251,8 +347,9 @@ async def list_clients(request: Request):
             tenant = await db.get(User, rel.to_user_id)
             if not tenant:
                 continue
-            doc_count = await _doc_count(db, tenant.id)
-            event_count = await count_events_for_user_id(tenant.id)
+            doc_count = await _doc_count(db, tenant.id, rel)
+            scope = _rel_scope(rel)
+            event_count = await count_events_for_user_id(tenant.id) if scope["share_timeline"] else 0
             clients.append(
                 {
                     "user_id": tenant.id,
@@ -261,6 +358,7 @@ async def list_clients(request: Request):
                     "event_count": event_count,
                     "linked_at": rel.created_at.isoformat() if rel.created_at else None,
                     "context": rel.context,
+                    "scope": _scope_summary(rel),
                 }
             )
         return {"advocate_id": user_id, "clients": clients, "count": len(clients)}
@@ -273,18 +371,24 @@ async def client_detail(client_id: str, request: Request):
     _require_advocate(user_id)
 
     async with get_db_session() as db:
-        await _check_client_link_logged(db, user_id, client_id, "client_detail")
+        rel = await _check_client_link_logged(db, user_id, client_id, "client_detail")
         tenant = await db.get(User, client_id)
         if not tenant:
             raise HTTPException(status_code=404, detail="Client not found")
 
-        doc_count = await _doc_count(db, tenant.id)
-        event_count = await count_events_for_user_id(tenant.id)
-        recent_events = sorted(
-            await list_events_for_user_id(tenant.id),
-            key=lambda e: e.created_at or utc_now(),
-            reverse=True,
-        )[:5]
+        scope = _rel_scope(rel)
+        timeline_shared = scope["share_timeline"]
+        doc_count = await _doc_count(db, tenant.id, rel)
+        event_count = await count_events_for_user_id(tenant.id) if timeline_shared else 0
+        recent_events = (
+            sorted(
+                await list_events_for_user_id(tenant.id),
+                key=lambda e: e.created_at or utc_now(),
+                reverse=True,
+            )[:5]
+            if timeline_shared
+            else []
+        )
 
         return {
             "client": {
@@ -299,6 +403,8 @@ async def client_detail(client_id: str, request: Request):
                 "doc_count": doc_count,
                 "event_count": event_count,
             },
+            "scope": _scope_summary(rel),
+            "timeline_shared": timeline_shared,
             "recent_events": [
                 {
                     "id": e.id,
@@ -322,8 +428,8 @@ async def case_queue(request: Request):
         if not rels:
             return {"queue": [], "count": 0}
 
-        client_ids = [r.to_user_id for r in rels]
-        # Get recent events across all clients
+        # Timeline events are only shared when the tenant enabled them
+        client_ids = [r.to_user_id for r in rels if _rel_scope(r)["share_timeline"]]
         events = []
         for cid in client_ids:
             events.extend(await list_events_for_user_id(cid))
@@ -355,7 +461,13 @@ async def case_queue(request: Request):
 
 @router.post("/intake")
 async def new_intake(body: IntakeRequest, request: Request):
-    """Link a new client to the current advocate (create ADVOCACY relationship)."""
+    """Advocate requests to link a client — requires tenant approval.
+
+    Creates a PENDING ADVOCACY relationship. The tenant must approve it
+    from their advocate page before the advocate sees anything; consent
+    is mutual, never one-sided. Default scope is whole case file; the
+    tenant can narrow it when approving or anytime after.
+    """
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
 
@@ -376,30 +488,129 @@ async def new_intake(body: IntakeRequest, request: Request):
             )
         ).scalars().first()
         if existing:
-            if existing.is_active:
+            status = _rel_status(existing)
+            if status == "active":
                 raise HTTPException(status_code=409, detail="Advocacy relationship already exists")
-            # Reactivate
-            existing.is_active = True
+            if status == "pending":
+                raise HTTPException(status_code=409, detail="A link request is already pending")
+            # declined/revoked → fresh request, pending tenant approval
+            existing.context = {
+                "status": "pending",
+                "pending_for": "tenant",
+                "initiated_by": "advocate",
+                "notes": body.notes,
+                "access_scope": {"mode": "all", "share_timeline": True},
+            }
             existing.updated_at = utc_now()
-            if body.notes:
-                existing.context = {"notes": body.notes}
+            existing.created_by = user_id
             await db.commit()
-            return {"relationship_id": existing.id, "status": "reactivated", "client_id": tenant.id}
+            return {"relationship_id": existing.id, "status": "pending", "client_id": tenant.id}
 
         rel = UserRelationship(
             from_user_id=user_id,
             to_user_id=body.tenant_user_id,
             relationship_type=RelationshipType.ADVOCACY.value,
-            is_active=True,
-            context={"notes": body.notes} if body.notes else None,
+            is_active=False,
+            context={
+                "status": "pending",
+                "pending_for": "tenant",
+                "initiated_by": "advocate",
+                "notes": body.notes,
+                "access_scope": {"mode": "all", "share_timeline": True},
+            },
             created_by=user_id,
         )
         db.add(rel)
         await db.commit()
         await db.refresh(rel)
+        await _log_doc_access(db, user_id, body.tenant_user_id, "share_request", detail="initiated_by=advocate")
 
-        logger.info("Advocate %s linked to tenant %s (rel_id=%s)", user_id, tenant.id, rel.id)
-        return {"relationship_id": rel.id, "status": "created", "client_id": tenant.id}
+        logger.info("Advocate %s requested link to tenant %s (rel_id=%s, pending)", user_id, tenant.id, rel.id)
+        return {"relationship_id": rel.id, "status": "pending", "client_id": tenant.id}
+
+
+class RespondRequest(BaseModel):
+    accept: bool = Field(..., description="True to accept the link, False to decline")
+
+
+@router.get("/requests")
+async def pending_requests(request: Request):
+    """Link requests involving this advocate.
+
+    incoming — tenant asked to share; advocate must accept before access.
+    outgoing — advocate requested; waiting for the tenant's approval.
+    """
+    user_id = require_request_user_id(request)
+    _require_advocate(user_id)
+
+    async with get_db_session() as db:
+        rels = (
+            await db.execute(
+                select(UserRelationship).where(
+                    UserRelationship.from_user_id == user_id,
+                    UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+                    UserRelationship.is_active.is_(False),
+                )
+            )
+        ).scalars().all()
+
+        incoming, outgoing = [], []
+        for rel in rels:
+            ctx = rel.context or {}
+            if ctx.get("status") != "pending":
+                continue
+            entry = {
+                "tenant_user_id": rel.to_user_id,
+                "requested_at": rel.created_at.isoformat() if rel.created_at else None,
+                "notes": ctx.get("notes"),
+            }
+            if ctx.get("pending_for") == "advocate":
+                entry["scope"] = _scope_summary(rel)
+                incoming.append(entry)
+            else:
+                outgoing.append(entry)
+
+        return {"incoming": incoming, "outgoing": outgoing}
+
+
+@router.post("/requests/{tenant_user_id}/respond")
+async def respond_to_request(tenant_user_id: str, body: RespondRequest, request: Request):
+    """Advocate accepts or declines a tenant-initiated link request."""
+    user_id = require_request_user_id(request)
+    _require_advocate(user_id)
+
+    async with get_db_session() as db:
+        rel = (
+            await db.execute(
+                select(UserRelationship).where(
+                    UserRelationship.from_user_id == user_id,
+                    UserRelationship.to_user_id == tenant_user_id,
+                    UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+                    UserRelationship.is_active.is_(False),
+                )
+            )
+        ).scalars().first()
+        if not rel or _rel_status(rel) != "pending" or (rel.context or {}).get("pending_for") != "advocate":
+            raise HTTPException(status_code=404, detail="No pending request from this tenant.")
+
+        ctx = dict(rel.context or {})
+        if body.accept:
+            rel.is_active = True
+            ctx["status"] = "active"
+            ctx.pop("pending_for", None)
+            rel.context = ctx
+            rel.updated_at = utc_now()
+            await db.commit()
+            await _log_doc_access(db, user_id, tenant_user_id, "share_accept")
+            return {"success": True, "status": "active"}
+
+        ctx["status"] = "declined"
+        ctx.pop("pending_for", None)
+        rel.context = ctx
+        rel.updated_at = utc_now()
+        await db.commit()
+        await _log_doc_access(db, user_id, tenant_user_id, "share_decline")
+        return {"success": True, "status": "declined"}
 
 
 @router.get("/timeline")
@@ -410,13 +621,15 @@ async def merged_timeline(request: Request, client_id: str | None = None):
 
     async with get_db_session() as db:
         if client_id:
-            await _check_client_link(db, user_id, client_id)
+            rel = await _check_client_link(db, user_id, client_id)
+            if not _rel_scope(rel)["share_timeline"]:
+                return {"events": [], "count": 0, "timeline_shared": False}
             events = await list_events_for_user_id(client_id)
         else:
             rels = await _get_clients_for_advocate(db, user_id)
             if not rels:
                 return {"events": [], "count": 0}
-            client_ids = [r.to_user_id for r in rels]
+            client_ids = [r.to_user_id for r in rels if _rel_scope(r)["share_timeline"]]
             events = []
             for cid in client_ids:
                 events.extend(await list_events_for_user_id(cid))
@@ -450,7 +663,7 @@ async def client_documents(client_id: str, request: Request):
         rel = await _check_client_link_logged(db, user_id, client_id, "list_documents")
         docs = (
             await db.execute(
-                _advocate_visible_doc_stmt(client_id)
+                _advocate_visible_doc_stmt(client_id, rel)
                 .order_by(Document.uploaded_at.desc())
                 .limit(100)
             )
@@ -492,10 +705,10 @@ async def view_client_document(
     _require_advocate(user_id)
 
     async with get_db_session() as db:
-        await _check_client_link_logged(db, user_id, client_id, "view_document")
+        rel = await _check_client_link_logged(db, user_id, client_id, "view_document")
         doc = (
             await db.execute(
-                _advocate_visible_doc_stmt(client_id).where(Document.id == doc_id)
+                _advocate_visible_doc_stmt(client_id, rel).where(Document.id == doc_id)
             )
         ).scalars().first()
         if not doc:
@@ -540,7 +753,7 @@ async def review_document(
         rel = await _check_client_link_logged(db, user_id, client_id, "review")
         doc = (
             await db.execute(
-                _advocate_visible_doc_stmt(client_id).where(Document.id == doc_id)
+                _advocate_visible_doc_stmt(client_id, rel).where(Document.id == doc_id)
             )
         ).scalars().first()
         if not doc:
@@ -661,10 +874,10 @@ async def annotate_document(
         )
 
     async with get_db_session() as db:
-        await _check_client_link_logged(db, user_id, client_id, "annotate")
+        rel = await _check_client_link_logged(db, user_id, client_id, "annotate")
         doc = (
             await db.execute(
-                _advocate_visible_doc_stmt(client_id).where(Document.id == doc_id)
+                _advocate_visible_doc_stmt(client_id, rel).where(Document.id == doc_id)
             )
         ).scalars().first()
         if not doc:
@@ -737,10 +950,10 @@ async def list_document_overlays(
     _require_advocate(user_id)
 
     async with get_db_session() as db:
-        await _check_client_link_logged(db, user_id, client_id, "view_overlays")
+        rel = await _check_client_link_logged(db, user_id, client_id, "view_overlays")
         doc = (
             await db.execute(
-                _advocate_visible_doc_stmt(client_id).where(Document.id == doc_id)
+                _advocate_visible_doc_stmt(client_id, rel).where(Document.id == doc_id)
             )
         ).scalars().first()
         if not doc:
@@ -940,29 +1153,60 @@ class LinkAdvocateRequest(BaseModel):
         max_length=500,
         description="Optional message from tenant to advocate",
     )
+    share_all: bool = Field(
+        default=True,
+        description="True = share the whole case file; False = share only document_ids",
+    )
+    document_ids: list[str] | None = Field(
+        default=None,
+        description="When share_all is False: the documents this advocate may see",
+    )
+    share_timeline: bool = Field(
+        default=True,
+        description="Whether the advocate can see timeline events",
+    )
+
+
+class ScopeUpdateRequest(BaseModel):
+    """Tenant updates what an already-linked advocate can see."""
+
+    share_all: bool = Field(default=True)
+    document_ids: list[str] | None = Field(default=None)
+    share_timeline: bool = Field(default=True)
 
 
 @router.post("/link-request")
 async def tenant_link_advocate(body: LinkAdvocateRequest, request: Request):
     """Tenant initiates case sharing with an advocate.
 
-    Creates an ADVOCACY relationship (from=advocate, to=tenant) so the
-    advocate can access the tenant's case data. The advocate must already
-    have an account with the advocate role.
+    Creates a PENDING ADVOCACY relationship (from=advocate, to=tenant).
+    The advocate must accept it from their dashboard before they see
+    anything — mutual consent, never one-sided. The tenant chooses the
+    scope up front: the whole case file, or a picked set of documents.
 
-    This is the tenant-side equivalent of the advocate intake flow.
+    Privileged and work-product documents can never be selected — they
+    are never shared with advocates under any scope.
     """
     user_id = require_request_user_id(request)
 
-    # Verify target user exists and is an advocate
-    target_role = get_role_from_user_id(body.advocate_user_id)
-    if target_role != UserRole.ADVOCATE:
-        raise HTTPException(
-            status_code=400,
-            detail="The provided user_id is not an advocate. Ask your advocate for their Semptify ID.",
-        )
-
     async with get_db_session() as db:
+        # ONBOARDING SOLO: no roles — the "advocate" is another tenant
+        # identity being granted share access. Only verify they exist.
+        target = await db.get(User, body.advocate_user_id)
+        if not target:
+            raise HTTPException(
+                status_code=400,
+                detail="That Semptify ID isn't recognized. Ask your advocate for their Semptify ID.",
+            )
+
+        doc_ids = await _validate_shareable_docs(db, user_id, body.document_ids or [])
+        scope = _scope_payload(body.share_all, doc_ids, body.share_timeline)
+        if scope["mode"] == "selected" and not scope["document_ids"]:
+            raise HTTPException(
+                status_code=400,
+                detail="Pick at least one document, or choose 'share everything'.",
+            )
+
         # Check if relationship already exists
         existing = (
             await db.execute(
@@ -974,53 +1218,119 @@ async def tenant_link_advocate(body: LinkAdvocateRequest, request: Request):
             )
         ).scalars().first()
         if existing:
-            if existing.is_active:
+            status = _rel_status(existing)
+            if status == "active":
                 return {
                     "success": True,
                     "message": "You are already linked to this advocate.",
                     "already_linked": True,
                 }
-            # Reactivate
-            existing.is_active = True
-            existing.context = {"notes": body.notes} if body.notes else existing.context
+            if status == "pending" and (existing.context or {}).get("pending_for") == "tenant":
+                raise HTTPException(
+                    status_code=409,
+                    detail="This advocate already asked to link — approve or decline their request below.",
+                )
+            # declined/revoked/pending-for-advocate → (re-)send the request
+            existing.is_active = False
+            existing.context = {
+                "status": "pending",
+                "pending_for": "advocate",
+                "initiated_by": "tenant",
+                "notes": body.notes,
+                "access_scope": scope,
+            }
+            existing.updated_at = utc_now()
             existing.created_by = user_id
             await db.commit()
             return {
                 "success": True,
-                "message": "Relationship reactivated.",
-                "reactivated": True,
+                "message": "Request sent. The advocate must accept before they can see anything.",
+                "pending": True,
             }
 
-        # Create new relationship
+        # Create new pending relationship — advocate must accept
         rel = UserRelationship(
             from_user_id=body.advocate_user_id,
             to_user_id=user_id,
             relationship_type=RelationshipType.ADVOCACY.value,
-            is_active=True,
-            context={"notes": body.notes, "initiated_by": "tenant"} if body.notes else {"initiated_by": "tenant"},
+            is_active=False,
+            context={
+                "status": "pending",
+                "pending_for": "advocate",
+                "initiated_by": "tenant",
+                "notes": body.notes,
+                "access_scope": scope,
+            },
             created_by=user_id,
         )
         db.add(rel)
         await db.commit()
 
+        await _log_doc_access(
+            db, user_id, user_id, "share_request",
+            detail=f"advocate={body.advocate_user_id} scope={scope['mode']}",
+        )
+
     logger.info(
-        "Tenant %s linked to advocate %s (tenant-initiated)",
+        "Tenant %s requested link to advocate %s (pending, scope=%s)",
         user_id,
         body.advocate_user_id,
+        scope["mode"],
     )
     return {
         "success": True,
-        "message": "You are now linked to the advocate. They can see your case.",
+        "message": "Request sent. The advocate must accept before they can see anything.",
+        "pending": True,
     }
+
+
+@router.get("/my-shareable-documents")
+async def my_shareable_documents(request: Request):
+    """Tenant's own documents for the sharing picker.
+
+    Every document is listed so the picker is honest; privileged and
+    work-product documents are marked shareable=false — they can never
+    be shared with an advocate.
+    """
+    user_id = require_request_user_id(request)
+
+    async with get_db_session() as db:
+        docs = (
+            await db.execute(
+                select(Document)
+                .where(Document.user_id == user_id)
+                .order_by(Document.uploaded_at.desc())
+                .limit(500)
+            )
+        ).scalars().all()
+
+        return {
+            "documents": [
+                {
+                    "id": d.id,
+                    "filename": d.original_filename or d.filename,
+                    "doc_type": d.document_type or "",
+                    "uploaded_at": d.uploaded_at.isoformat() if d.uploaded_at else None,
+                    "shareable": not (d.is_privileged or d.is_work_product),
+                    "shareable_reason": (
+                        None
+                        if not (d.is_privileged or d.is_work_product)
+                        else "Privileged — never shared with advocates"
+                    ),
+                }
+                for d in docs
+            ],
+            "count": len(docs),
+        }
 
 
 @router.get("/my-advocates")
 async def list_my_advocates(request: Request):
-    """List all advocates linked to the current tenant.
+    """List all advocate links for the current tenant.
 
-    Returns all active ADVOCACY relationships where the current user is
-    the tenant (to_user_id). Tenants can use this to see who has access
-    to their case and revoke access if needed.
+    Includes active links and pending requests in both directions, with
+    the scope each advocate has and when they last opened something —
+    the tenant's plain-language answer to "who can see my case".
     """
     user_id = require_request_user_id(request)
 
@@ -1030,31 +1340,100 @@ async def list_my_advocates(request: Request):
                 select(UserRelationship).where(
                     UserRelationship.to_user_id == user_id,
                     UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
-                    UserRelationship.is_active.is_(True),
                 )
             )
         ).scalars().all()
 
-        return {
-            "advocates": [
+        # Last-access per advocate from the audit log
+        last_seen_rows = (
+            await db.execute(
+                select(
+                    DocumentAccessLog.actor_user_id,
+                    func.max(DocumentAccessLog.timestamp),
+                )
+                .where(
+                    DocumentAccessLog.tenant_user_id == user_id,
+                    DocumentAccessLog.outcome == "ok",
+                )
+                .group_by(DocumentAccessLog.actor_user_id)
+            )
+        ).all()
+        last_seen = {r[0]: r[1] for r in last_seen_rows}
+
+        advocates = []
+        for r in rels:
+            ctx = r.context or {}
+            status = _rel_status(r)
+            if status == "pending":
+                status = "pending_incoming" if ctx.get("pending_for") == "tenant" else "pending_outgoing"
+            if status in ("declined", "revoked"):
+                continue  # history stays in the audit log, not this list
+            seen = last_seen.get(r.from_user_id)
+            scope = _scope_summary(r)
+            # Tenant-facing only: they own the docs, so listing the shared
+            # ids back to them leaks nothing (advocate-facing surfaces use
+            # _scope_summary alone — count, never ids).
+            if scope["mode"] == "selected":
+                scope["shared_document_ids"] = sorted(_rel_scope(r)["document_ids"])
+            advocates.append(
                 {
                     "advocate_user_id": r.from_user_id,
+                    "status": status,
                     "linked_at": r.created_at.isoformat() if r.created_at else None,
-                    "initiated_by": (r.context or {}).get("initiated_by", "advocate"),
-                    "notes": (r.context or {}).get("notes"),
+                    "initiated_by": ctx.get("initiated_by", "advocate"),
+                    "notes": ctx.get("notes"),
+                    "scope": scope,
+                    "last_access": seen.isoformat() if seen else None,
                 }
-                for r in rels
-            ],
-            "count": len(rels),
-        }
+            )
+        return {"advocates": advocates, "count": len(advocates)}
 
 
-@router.delete("/my-advocates/{advocate_user_id}")
-async def revoke_advocate_access(advocate_user_id: str, request: Request):
-    """Tenant revokes an advocate's access to their case.
+@router.post("/my-advocates/{advocate_user_id}/respond")
+async def respond_to_advocate_request(advocate_user_id: str, body: RespondRequest, request: Request):
+    """Tenant approves or declines an advocate-initiated link request."""
+    user_id = require_request_user_id(request)
 
-    Deactivates the ADVOCACY relationship. The advocate can no longer
-    see the tenant's data. Can be reactivated later via link-request.
+    async with get_db_session() as db:
+        rel = (
+            await db.execute(
+                select(UserRelationship).where(
+                    UserRelationship.from_user_id == advocate_user_id,
+                    UserRelationship.to_user_id == user_id,
+                    UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+                    UserRelationship.is_active.is_(False),
+                )
+            )
+        ).scalars().first()
+        if not rel or _rel_status(rel) != "pending" or (rel.context or {}).get("pending_for") != "tenant":
+            raise HTTPException(status_code=404, detail="No pending request from this advocate.")
+
+        ctx = dict(rel.context or {})
+        if body.accept:
+            rel.is_active = True
+            ctx["status"] = "active"
+            ctx.pop("pending_for", None)
+            rel.context = ctx
+            rel.updated_at = utc_now()
+            await db.commit()
+            await _log_doc_access(db, user_id, user_id, "share_approve", detail=f"advocate={advocate_user_id}")
+            return {"success": True, "status": "active"}
+
+        ctx["status"] = "declined"
+        ctx.pop("pending_for", None)
+        rel.context = ctx
+        rel.updated_at = utc_now()
+        await db.commit()
+        await _log_doc_access(db, user_id, user_id, "share_decline", detail=f"advocate={advocate_user_id}")
+        return {"success": True, "status": "declined"}
+
+
+@router.put("/my-advocates/{advocate_user_id}/scope")
+async def update_advocate_scope(advocate_user_id: str, body: ScopeUpdateRequest, request: Request):
+    """Tenant changes what a linked advocate can see.
+
+    Removing a document takes effect immediately — the advocate's next
+    request for it returns 404, indistinguishable from never shared.
     """
     user_id = require_request_user_id(request)
 
@@ -1072,8 +1451,107 @@ async def revoke_advocate_access(advocate_user_id: str, request: Request):
         if not rel:
             raise HTTPException(status_code=404, detail="No active link to this advocate.")
 
-        rel.is_active = False
+        doc_ids = await _validate_shareable_docs(db, user_id, body.document_ids or [])
+        scope = _scope_payload(body.share_all, doc_ids, body.share_timeline)
+        if scope["mode"] == "selected" and not scope["document_ids"]:
+            raise HTTPException(
+                status_code=400,
+                detail="Pick at least one document, share everything, or revoke access instead.",
+            )
+
+        ctx = dict(rel.context or {})
+        ctx["access_scope"] = scope
+        rel.context = ctx
+        rel.updated_at = utc_now()
         await db.commit()
+        await _log_doc_access(
+            db, user_id, user_id, "scope_update",
+            detail=f"advocate={advocate_user_id} scope={scope['mode']} docs={len(doc_ids)}",
+        )
+
+        return {"success": True, "scope": _scope_summary(rel)}
+
+
+@router.get("/my-access-log")
+async def my_access_log(request: Request, limit: int = 50):
+    """Tenant's plain-language view of who has opened their case.
+
+    Reads the append-only document_access_logs — every view, list,
+    review, annotation, and denied attempt by any advocate/legal role,
+    plus sharing events (requests, approvals, scope changes).
+    """
+    user_id = require_request_user_id(request)
+    limit = max(1, min(limit, 200))
+
+    async with get_db_session() as db:
+        rows = (
+            await db.execute(
+                select(DocumentAccessLog, Document.original_filename)
+                .outerjoin(Document, Document.id == DocumentAccessLog.document_id)
+                .where(DocumentAccessLog.tenant_user_id == user_id)
+                .order_by(DocumentAccessLog.timestamp.desc())
+                .limit(limit)
+            )
+        ).all()
+
+        return {
+            "entries": [
+                {
+                    "actor_user_id": log.actor_user_id,
+                    "actor_role": log.actor_role,
+                    "action": log.action,
+                    "outcome": log.outcome,
+                    "document_id": log.document_id,
+                    "document_name": filename if log.document_id else None,
+                    "detail": log.detail,
+                    "created_at": log.timestamp.isoformat() if log.timestamp else None,
+                }
+                for log, filename in rows
+            ],
+            "count": len(rows),
+        }
+
+
+@router.delete("/my-advocates/{advocate_user_id}")
+async def revoke_advocate_access(advocate_user_id: str, request: Request):
+    """Tenant revokes an advocate's access to their case.
+
+    Deactivates the ADVOCACY relationship — effective immediately, the
+    advocate's next request returns 403. Also cancels a pending
+    tenant-initiated request (before the advocate accepts).
+    """
+    user_id = require_request_user_id(request)
+
+    async with get_db_session() as db:
+        rel = (
+            await db.execute(
+                select(UserRelationship).where(
+                    UserRelationship.from_user_id == advocate_user_id,
+                    UserRelationship.to_user_id == user_id,
+                    UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+                )
+            )
+        ).scalars().first()
+        if not rel or not rel.is_active:
+            # Allow cancelling a tenant-initiated pending request
+            if rel and _rel_status(rel) == "pending" and (rel.context or {}).get("pending_for") == "advocate":
+                ctx = dict(rel.context or {})
+                ctx["status"] = "revoked"
+                ctx.pop("pending_for", None)
+                rel.context = ctx
+                rel.updated_at = utc_now()
+                await db.commit()
+                await _log_doc_access(db, user_id, user_id, "share_cancel", detail=f"advocate={advocate_user_id}")
+                return {"success": True, "message": "Request cancelled."}
+            raise HTTPException(status_code=404, detail="No active link to this advocate.")
+
+        rel.is_active = False
+        ctx = dict(rel.context or {})
+        ctx["status"] = "revoked"
+        rel.context = ctx
+        rel.updated_at = utc_now()
+        await db.commit()
+        await _log_doc_access(db, user_id, user_id, "revoke", detail=f"advocate={advocate_user_id}")
 
     logger.info(
         "Tenant %s revoked advocate %s access",

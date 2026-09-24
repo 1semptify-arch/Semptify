@@ -269,8 +269,9 @@ class FeatureFlagManager:
         await self._ensure_fresh()
         if not self._resolve(feature.value):
             return False
-        allowed_roles = self._cache_detail.get(feature.value, {}).get("allowed_roles") or []
-        return not (allowed_roles and role not in allowed_roles)
+        # ONBOARDING SOLO: role dimension removed — an enabled feature is
+        # enabled for everyone; tenant is the only role.
+        return True
 
     async def set_enabled(self, flag_name: str, enabled: bool, updated_by: str = "system") -> None:
         """Persist flag change to the DB and update in-memory cache immediately.

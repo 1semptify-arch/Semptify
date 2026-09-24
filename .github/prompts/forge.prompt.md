@@ -14,7 +14,7 @@ lifecycle pipeline before reaching production users.
 ## Access
 
 - **URL:** `/admin/forge.html` (alias: `/admin/dev-lab.html`)
-- **Access:** Admin role only (stealth admin guard)
+- **Access:** dormant — no admin role exists (tenant-only repo, PR #317). Reachable only via Brad's env-credentialed ops elevation (stealth admin guard).
 - **Dashboard link:** ⚒️ Semptify Forge
 
 ## Lifecycle Pipeline
@@ -37,7 +37,7 @@ dev_only → preview → experimental → beta → stable
 
    ```python
    _register("app.modules.<name>.router", tags=("<Name>",), tier=ProductTier.DEV,
-             lifecycle="dev_only", requires_role=("admin",),
+             lifecycle="dev_only", requires_role=("admin",),  # inert marker — no roles exist; keeps module dormant
              dev_notes="What this module does.",
              log_message="<Name> router connected")
    ```text
@@ -95,6 +95,6 @@ dev_only → preview → experimental → beta → stable
 1. **All new modules start at `dev_only`** — no exceptions.
 2. **Tests required for promotion** — the Forge checks for a `tests/` directory.
 3. **Promotions persist in PostgreSQL** — survive restarts.
-4. **Only admins see Forge modules** — production users see `stable` and `beta` only.
+4. **Only ops-elevated sessions see Forge modules** — production users see `stable` and `beta` only.
 5. **Register contracts** — every new module must register FunctionGroupContracts.
 6. **Use the Forge UI** — don't manually edit `module_overrides` table.

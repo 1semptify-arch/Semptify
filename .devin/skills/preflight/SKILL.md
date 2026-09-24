@@ -87,7 +87,7 @@ Before you rely on any file, doc claim, or search hit to justify what you're abo
 
    | Area | Status (verify before trusting) |
    |---|---|
-   | **Design tokens / palettes** | `template-N` classes (5 role palettes defined in `static/css/ssot-design-system.css`) are canonical per `docs/admin/DESIGN_TOKEN_WORKBOOK.md` §10.1 (decided 2026-09-14). `static/css/themes/` (5-theme crimson/forest/ocean/royal/slate switcher) is legacy and unrelated to template-N — retirement undecided (§10.3). A separate `design-system/` directory is a deprecated parallel token system — fold-or-archive undecided (§10.2). A color/token value existing in any one of the three tells you nothing about which is live on a given page — check what that page's `<body class>` and `<link>` tags actually load. |
+   | **Design tokens / palettes** | `template-N` classes (5 palettes defined in `static/css/ssot-design-system.css`) are canonical per `docs/admin/DESIGN_TOKEN_WORKBOOK.md` §10.1 (decided 2026-09-14). They were originally named for roles — roles no longer exist (tenant-only, PR #317); treat `template-N` as plain palette names, not role markers. `static/css/themes/` (5-theme crimson/forest/ocean/royal/slate switcher) is legacy and unrelated to template-N — retirement undecided (§10.3). A separate `design-system/` directory is a deprecated parallel token system — fold-or-archive undecided (§10.2). A color/token value existing in any one of the three tells you nothing about which is live on a given page — check what that page's `<body class>` and `<link>` tags actually load. |
    | **Footers** | At least three separate implementations exist: `app/templates/components/footer.html` (Jinja component), `static/js/unified-footer-loader.js` (JS-injected loader for standalone static pages), and footer markup hardcoded inline in individual templates (`base.html`, `public_base.html`, `donate.html`, and others). Confirm which one actually renders on the specific page you're touching before editing any of them — editing the component does nothing for a page using the hardcoded or JS-injected version. |
    | **`context_loop`** | Was forked into `app/modules/context_loop/service.py` and `app/services/context_loop.py`. `CONTEXT_LOOP_DECISION_BRIEF.md` claims this was resolved 2026-08-29 (service copy deleted, module copy canonical). Verify this yourself — confirm the file is actually gone and grep live (non-cached) source for the old import path — rather than trusting the doc's "Resolved" banner. Docs that say "resolved" can themselves go stale. |
    | **Feature flags** | `app/core/features.py` (DB-backed, `Feature` enum, `require_feature()`) is canonical. `app/core/feature_flags.py` (in-memory, `FeatureFlagMiddleware`) was a second, independent system with its own flag namespace. Confirm current state on the filesystem and in `app/main.py` before assuming either exists or is wired up — `AGENTS.md` Known Failure #20 and parts of `ACTIVE_CONTEXT.md` still describe both as live, which may itself be stale by the time you read this. |
@@ -131,11 +131,11 @@ Before writing code, claim the task in the orchestrator and avoid duplicate work
 2. Verify no other task with the same `file_path` is already `in_progress`
 3. Do NOT edit files until the task is marked `in_progress` with `assigned_agent`/`assigned_to` set
 
-### Step 3: Check pending Fix-It reports from admin dashboard
+### Step 3: Check pending Fix-It reports (DORMANT — no pro features)
 
-The admin dashboard has "Fix It" buttons that queue errors to the `admin_error_queue` Postgres table AND log a distinctive `FIXIT_REPORT|id=N|section=...|endpoint=...|priority=...|error=...` line to Render logs.
+The admin dashboard was a pro-role surface. As of PR #317 this repo is tenant-only — no pro roles, no role gates, and the admin dashboard is dormant (reachable only via Brad's env-credentialed ops elevation, not by any user). Its "Fix It" buttons cannot generate new `FIXIT_REPORT` lines under normal operation, so this check is dormant.
 
-To check for pending errors the user clicked since the last session:
+**Skip this step by default.** Run it only if Brad says he has been using the admin dashboard via ops elevation:
 
 1. Call `mcp3_list_workspaces` (select the workspace if not already selected)
 2. Call `mcp3_list_services` to get the Semptify service ID
@@ -148,8 +148,6 @@ To check for pending errors the user clicked since the last session:
 4. Parse the `FIXIT_REPORT|...` lines — each is a pending issue the user wants fixed
 5. Tell the user: "Found N pending Fix-It reports from the admin dashboard:" and list them
 6. Ask if they want to address any of them before starting new work
-
-If no FIXIT_REPORT lines found: "No pending Fix-It reports. Admin dashboard is clean."
 
 ### Step 4: Check the app
 

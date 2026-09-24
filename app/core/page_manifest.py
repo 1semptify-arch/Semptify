@@ -79,18 +79,18 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
     PageManifestEntry(
         page_id="welcome",
         route="/",
-        source_file="app/templates/pages/welcome.html",
-        page_type="template",
+        source_file="static/public/welcome.html",
+        page_type="static",
         page_contract=ObjectSetCoverage(CoverageStatus.COMPLETE, "CONTRACT_WELCOME registered in page_contracts.py"),
-        route_guards=ObjectSetCoverage(CoverageStatus.COMPLETE, "Public access, role selection enforced"),
+        route_guards=ObjectSetCoverage(CoverageStatus.COMPLETE, "Public access — tenant-only onboarding, no role selection"),
         module_links=ObjectSetCoverage(CoverageStatus.COMPLETE, "Welcome module, security validation module"),
-        action_map=ObjectSetCoverage(CoverageStatus.COMPLETE, "role_select, storage_connect, process_start actions"),
-        object_set_inputs=ObjectSetCoverage(CoverageStatus.COMPLETE, "UserRole selection, storage_status"),
+        action_map=ObjectSetCoverage(CoverageStatus.COMPLETE, "storage_connect, process_start actions"),
+        object_set_inputs=ObjectSetCoverage(CoverageStatus.COMPLETE, "storage_status"),
         output_objects=ObjectSetCoverage(
-            CoverageStatus.COMPLETE, "Session initialization, role cookie, route decision"
+            CoverageStatus.COMPLETE, "Session initialization, route decision"
         ),
         telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE, "welcome_page_load, role_selected, process_start_clicked"
+            CoverageStatus.COMPLETE, "welcome_page_load, process_start_clicked"
         ),
         mesh_binding=ObjectSetCoverage(
             CoverageStatus.PARTIAL, "No mesh workflow triggered on entry (could trigger context_sync)"
@@ -102,25 +102,10 @@ PAGE_MANIFEST: list[PageManifestEntry] = [
     #
     # ONBOARDING SEQUENCE (A2 — A4)
     #
-    PageManifestEntry(
-        page_id="role_selection",
-        route="/choose-role",
-        source_file="app/templates/pages/role_selection.html",
-        page_type="template",
-        page_contract=ObjectSetCoverage(CoverageStatus.COMPLETE, "CONTRACT_ROLE_SELECTION registered"),
-        route_guards=ObjectSetCoverage(CoverageStatus.COMPLETE, "Public access — no auth required"),
-        module_links=ObjectSetCoverage(CoverageStatus.PARTIAL, "Welcome module, security_validation module"),
-        action_map=ObjectSetCoverage(CoverageStatus.COMPLETE, "role_selected action, routes to /storage-info"),
-        object_set_inputs=ObjectSetCoverage(CoverageStatus.COMPLETE, "UserRole enum options"),
-        output_objects=ObjectSetCoverage(CoverageStatus.COMPLETE, "Role cookie set, route to /storage-info"),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE, "role_selection_load, role_selected, role_confirmed"
-        ),
-        mesh_binding=ObjectSetCoverage(CoverageStatus.NA, "No mesh workflow at role selection"),
-        overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="high",
-    ),
+    # ONBOARDING SOLO (Brad, 2026-09-23): the "role_selection" page was
+    # removed — there is no role choice; every onboarding user is a tenant.
+    # The CONTRACT_ROLE_SELECTION contract remains dormant in
+    # page_contracts.py for the future pro-role add-on repo.
     PageManifestEntry(
         page_id="storage_info",
         route="/storage-info",

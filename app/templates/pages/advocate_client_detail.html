@@ -668,7 +668,7 @@ function renderOverlaysModal(overlays) {
         html += '<div class="ck-legend"><div class="ck-title">◆ Color key' +
             (keyOv.is_mine ? ' (set by you)' : ' (set by client)') + '</div>' +
             Object.entries(keyOv.payload.colors).map(([c, m]) =>
-                '<div class="ck-row"><span class="ov-swatch" style="background:' + esc(OVERLAY_COLORS[c] || '#999') + '"></span>' +
+                '<div class="ck-row"><span class="ov-swatch" style="background:' + esc(OVERLAY_COLORS[c] || 'var(--text-muted)') + '"></span>' +
                 '<strong>' + esc(c) + '</strong>&nbsp;=&nbsp;' + esc(m) + '</div>'
             ).join('') + '</div>';
     }
