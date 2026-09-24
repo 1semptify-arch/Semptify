@@ -1,3 +1,14 @@
+## Session — 2026-09-24 — PR #317 (role removal) fixed, merged, deployed + intake triage (devin)
+
+**What shipped:**
+- Style-guard was (correctly) failing PR #317 + main: fixed 4 violations (`#999` swatch fallback → `var(--text-muted)`, three sub-12px fonts → 0.75rem) in `3ab4b8c5`.
+- PR #317 merged (`b32d1654`): **roles removed entirely — stateless tenant-only identity.** Onboarding solo, `/api/storage/role` deleted, advocate mutual-consent sharing slice 2, pro-role docs marked dormant.
+- **Deploy dep-daqei0rncjis739mf8eg LIVE** on prod — `/` 200, `/onboarding` 302 (no more role select), `/about` 200.
+- Intake triage: 4 dismissed (obsolete post-#312/#313), 6 promoted — websocket 404 (task-13f9680a), .page-header dark-on-dark (task-a3e934c9), footer AI-notice contrast (task-b8680f25), Tier-1 docs still describe roles (task-cdd463ba), dead onboarding files (task-efd9b0ed), dead CSS files (task-5e0cf6d3).
+
+**Pending Brad (owner-only):** file GitHub sensitive-data removal request — draft ready at `C:/master-repo/_backups/scrub-spec/github-sensitive-data-request.md`, verified old SHAs still serve (5e2748eb, ebad46cb both 200). Submit at support.github.com/request.
+
+
 ## Session — 2026-09-23 — Public intro page: /document-everything (devin)
 
 **Brad's ask:** explain Semptify to new users from the "Document everything"
