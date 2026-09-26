@@ -1,5 +1,6 @@
 {% extends "body/composer_preview_shell.html" %}
 {% from "components/ui_composer.html" import process_indicator with context %}
+{% from "components/fnav.html" import stage_intent with context %}
 
 {# Module Contract — intake:intake_upload_auto (pillar: record)
    Function: the tenant adds a document; Semptify stores it in the vault,
@@ -7,17 +8,17 @@
    Inputs: file (required), description, tags (optional)
    Outputs: doc_id, document_type, issues_found, dates, amounts, parties, status
    Preview: empty state = prompt copy; result = what was saved + what was found
-   Actions: Add document — fnav rail, gated on a chosen file
-            View your documents — help-bottom, secondary
+   Actions: Add document — Guided Navigation Panel (.shell-side rail), gated on
+            a chosen file; View your documents + Back to your home sit behind
+            the "other options" disclosure.
    Layout: primary=composer, ratio=3fr 2fr, mobile=[composer, preview, help] #}
 {% set shell_ratio = "3fr 2fr" %}
 {% set shell_primary = "composer" %}
 {% set shell_mobile_order = ["composer", "preview", "help"] %}
-{# Staged nav rail: the forward action lives in .fnav and submits this
-   form; it stays locked until a file is chosen. #}
-{% set fnav_label = "Document" %}
-{% set fnav_form_id = "intakeUploadForm" %}
-{% set fnav_back_stage = "tenant_home" %}
+{# Guided Navigation Panel (semptify-gui-standards.md): the .shell-side rail is
+   the nav panel — no bottom action bar. The fnav strip is suppressed and the
+   gated primary action lives in the rail instead. #}
+{% block fnav %}{% endblock %}
 
 {% block title %}Add a document - Semptify{% endblock %}
 {% block nav_record %}active{% endblock %}
@@ -26,7 +27,7 @@
 {% block cps_description %}Put a notice, letter, lease, receipt, or photo into your record. Semptify reads it and pulls out the dates, amounts, and anything that needs attention.{% endblock %}
 {% block cps_controls_title %}Choose the file{% endblock %}
 {% block cps_preview_title %}What was saved{% endblock %}
-{% block cps_help_title %}How this works{% endblock %}
+{% block cps_help_title %}Next step{% endblock %}
 
 {% block styles %}
 {{ super() }}
@@ -64,16 +65,30 @@
 {% endblock %}
 
 {% block help %}
+  {% set _stages = contract.stages if contract and contract.stages else [] %}
+  {% set _intent = stage_intent(_stages[0]) | trim if _stages else "" %}
+  <p class="cps__hint">Step 1 of {{ _stages | length or 1 }}{% if _intent %} — {{ _intent }}.{% endif %}</p>
+  <p>
+    <button id="gnavGo" type="submit" form="intakeUploadForm"
+            class="shell-btn shell-btn--accent" disabled>
+      Add document →
+    </button>
+  </p>
+  <p id="gnavGate" class="cps__hint" role="status">Choose a file to continue.</p>
+  <p class="cps__description">Semptify stores it in your vault, reads it, and pulls out dates, amounts, and anything that needs attention.</p>
+
+  <details class="record-guide__extra">
+    <summary>Other options</summary>
+    <p><a href="{{ navigation.get_stage('tenant_documents').path }}">View your documents</a></p>
+    <p><a href="{{ navigation.get_stage('tenant_home').path }}">Back to your home</a></p>
+  </details>
+
   {% if explanation %}
   <p class="cps__description">{{ explanation }}</p>
   {% endif %}
   {% if narration %}
   {{ process_indicator(narration) }}
   {% endif %}
-
-  <p class="record-guide__next">
-    <a href="{{ navigation.get_stage('tenant_documents').path }}" class="output-trigger">View your documents</a>
-  </p>
 {% endblock %}
 
 {% block scripts %}
@@ -131,5 +146,27 @@
       resultDiv.innerHTML = '<p>Could not add the document: ' + esc(err.message) + '</p>';
     });
   }
+
+  /* Guided Navigation Panel gate — the rail's primary action stays
+     inactive until the step's minimum required action (choose a file)
+     is done. Mirrors the fnav.js gate; page-scoped. */
+  (function () {
+    var go = document.getElementById('gnavGo');
+    var file = document.getElementById('file');
+    var gate = document.getElementById('gnavGate');
+    var form = document.getElementById('intakeUploadForm');
+    if (!go || !file || !form) return;
+    function update() {
+      var has = !!(file.files && file.files.length);
+      go.disabled = !has;
+      if (has) { go.removeAttribute('aria-disabled'); }
+      else { go.setAttribute('aria-disabled', 'true'); }
+      if (gate) gate.hidden = has;
+    }
+    file.addEventListener('change', update);
+    form.addEventListener('input', update);
+    form.addEventListener('reset', function () { setTimeout(update, 0); });
+    update();
+  })();
 </script>
 {% endblock %}
