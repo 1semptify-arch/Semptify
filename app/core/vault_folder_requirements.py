@@ -144,6 +144,14 @@ FOLDER_REQUIREMENTS: dict[str, dict] = {
         "why": "notepad.json anchor — flip to lazy once sticky-notes service ensures.",
         "folders": [vp.VAULT_SCRATCHPAD],
     },
+    "case_review": {
+        "eager": True,
+        "ensure_hook": None,
+        "why": "case_review/index.json anchor — EVIDENCE_INDEX + REVIEW_THREAD "
+               "overlays (case review + legal share). Flip to lazy once the "
+               "overlay write path ensures the anchor's parent folder.",
+        "folders": [vp.VAULT_CASE_REVIEW],
+    },
 }
 
 
