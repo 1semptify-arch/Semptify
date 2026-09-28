@@ -21,6 +21,7 @@ Skipping it is how the design system drifts and Known Failures repeat.
 ## Step 2: Read the binding rules
 
 - `.cursor/rules/01-gui-chronological-spatial.mdc` — chronological task ordering + eye-path audit. **Mandatory before marking any GUI task done.**
+- `semptify-gui-standards.md` — reconciled UI/UX architecture standard: 3-tier app structure, Guided Navigation Panel (the `.shell-side` rail) behavior, sage `#6B8E6B` primary action with `#d97706` reserved for real deadlines only.
 - `.devin/rules/10-progressive-disclosure.md` — capability revelation / Familiarity Tapering.
 - `.devin/rules/01-product-positioning.md` — pillars + positioning language.
 - `.devin/rules/03-ssot-redirects.md` — no hardcoded URLs anywhere (Python or templates).

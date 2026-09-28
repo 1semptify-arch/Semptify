@@ -64,6 +64,13 @@ class OverlayType(str, Enum):
     meanings (payload: {colors: {yellow: 'evidence', ...}}). One per document;
     travels with the document so shared/co-viewed renders stay meaningful."""
 
+    EVIDENCE_INDEX = "evidence_index"
+    """Case-scoped evidence-index records for the Case Review module
+    (legend, notes, document tags, share markers). Anchored to
+    ``document_id="evidence-index:{case_id}"``; payload["kind"] discriminates:
+    "legend" | "note" | "doc_tag" | "share_marker". Never certified —
+    certification belongs to Vault Services on original documents only."""
+
     # ==========================================================================
     # 4. FORM-FILL (Jurisdiction-specific legal forms)
     # ==========================================================================
@@ -161,6 +168,17 @@ class OverlayType(str, Enum):
     DOCUMENT_SHARE = "document_share"
     """Owner-granted document share link (recipient, scope, token) — lives in the owner's vault."""
 
+    CASE_SHARE = "case_share"
+    """Owner-granted case-file review share (reviewer label, selected sections/documents,
+    expiring revocable token) — lives in the owner's vault. The reviewer is anonymous:
+    the token is the entire credential, no reviewer account or identity exists."""
+
+    REVIEW_THREAD = "review_thread"
+    """Document-specific Q&A thread between a case-share reviewer and the tenant.
+    Reviewer questions and tenant answers are tenant-owned overlays — the reviewer
+    only ever holds the share token. No Semptify-authored content; both sides'
+    text is their own words."""
+
     EXTERNAL_MAPPING = "external_mapping"
     """Bridge between a tenant record and an external system ID (court, parcel, agency)."""
 
@@ -201,6 +219,7 @@ ANNOTATION_OVERLAYS: set[OverlayType] = {
     OverlayType.FOOTNOTE,
     OverlayType.TRACKED_EDIT,
     OverlayType.DOCUMENT_KEY,
+    OverlayType.EVIDENCE_INDEX,
 }
 
 FORM_OVERLAYS: set[OverlayType] = {
@@ -242,6 +261,8 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.TIMELINE_EVENT,
     OverlayType.PATTERN_RECORD,
     OverlayType.DOCUMENT_SHARE,
+    OverlayType.CASE_SHARE,
+    OverlayType.REVIEW_THREAD,
     OverlayType.EXTERNAL_MAPPING,
     OverlayType.COURT_CASE_MAPPING,
     OverlayType.PROPERTY_MAPPING,

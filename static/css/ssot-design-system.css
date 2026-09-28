@@ -2098,7 +2098,9 @@ body.shell .shell-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.5rem;
+  /* px, not rem: the 44px tap-target floor (gui-standards) is physical —
+     liquid root scaling must not shrink it below the floor. */
+  min-height: 44px;
   min-width: 7rem;
   padding: 0.5rem 1.25rem;
   border: 1px solid var(--shell-line);
@@ -2138,6 +2140,21 @@ body.shell .shell-btn--accent {
 
 body.shell .shell-btn--accent:hover {
   background: var(--color-accent-strong-hover);
+}
+
+/* Locked state — same muted treatment as the fnav gate: visibly
+   unavailable, not dead. Used by Guided Navigation Panel actions. */
+body.shell .shell-btn:disabled {
+  background: var(--shell-line);
+  border-color: var(--shell-line);
+  color: var(--shell-ink-3);
+  cursor: not-allowed;
+  transform: none;
+}
+body.shell .shell-btn:disabled:hover {
+  background: var(--shell-line);
+  border-color: var(--shell-line);
+  transform: none;
 }
 
 /* --- Compact link list (sidebar "next steps") ------------------------------- */
@@ -2879,7 +2896,7 @@ body.shell .fnav {
 .fnav__btn {
   display: inline-flex;
   align-items: center;
-  min-height: 2.75rem;   /* 44px touch target */
+  min-height: 44px;   /* 44px touch target — px so liquid root scaling can't shrink it */
   padding: 0.4rem 1rem;
   font-size: 0.8125rem;
   font-weight: 500;

@@ -4515,6 +4515,23 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         dc_stage = navigation.get_stage("document_center")
         return ssot_redirect(dc_stage.path, context="document-center alias")
 
+    @fastapi_app.get("/case-review", response_class=HTMLResponse)
+    async def case_review_page(request: Request):
+        """Serve the Case File Review & Evidence Index page (tenant-side only —
+        per the locked spec's Decision 1, no attorney/Legal-role vault access
+        is built; the tenant shares their own folder outside Semptify)."""
+        guard_redirect = await _guard_role_page(request, {"tenant", "admin"})
+        if guard_redirect:
+            return guard_redirect
+        cr_template_path = BASE_PATH / "app" / "templates" / "pages" / "case_review.html"
+        if cr_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/case_review.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Case review template error, falling back to DC page: %s", e)
+
+        return ssot_redirect(navigation.get_stage("document_center").path, context="case_review_page template fallback")
+
     async def _get_tenant_briefcase(user_id: str, user_name: str | None = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
         return await get_tenant_briefcase(user_id, user_name)

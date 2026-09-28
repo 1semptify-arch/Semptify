@@ -1833,3 +1833,25 @@
   test_suite: tests/module_health/test_info_donation.py
   last_verified: null
   status: unverified
+- id: case_review
+  display_name: Case File Review & Evidence Index
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.case_review.router
+  health_check: tools.module_health.check_case_review
+  test_suite: tests/module_health/test_case_review.py
+  last_verified: null
+  status: unverified
+- id: legal_share
+  display_name: Legal Share (Case File Review Share)
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.legal_share.router
+  health_check: tools.module_health.check_legal_share
+  test_suite: tests/module_health/test_legal_share.py
+  last_verified: null
+  status: unverified

@@ -1,0 +1,95 @@
+{% extends "shell_base.html" %}
+{#
+  Reviewer share page — anonymous, token-gated (/r/{token}).
+
+  The person who shared the case file stays in control: this page shows only
+  what they selected, documents are read-only, and questions go back to them
+  as their own words. No identity, no account, no tracking beyond the share
+  owner's access count.
+
+  Eye-path (chronological): case identity → document list → reader →
+  "ask a question" → existing questions & answers. Mobile stacks in the
+  same order.
+#}
+{% block title %}Shared case file — Semptify{% endblock %}
+{% block body_class %}shell reviewer-share{% endblock %}
+{% block main_class %}shell-main shell-main--top{% endblock %}
+{% block nav %}{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/legal-share.css?v=20260928-03">
+{% endblock %}
+
+{% block content %}
+<div id="rsLoading" class="rs-loading" role="status">Opening the shared case file…</div>
+
+<div id="rsShell" class="rs-shell" hidden data-token="{{ token }}">
+    <!-- 1. Case identity -->
+    <header class="rs-head">
+        <p class="shell-eyebrow">Shared case file</p>
+        <h1 id="rsCaseTitle">Case file</h1>
+        <p class="rs-meta" id="rsMeta"></p>
+    </header>
+
+    <!-- 2. Document selection -->
+    <nav id="rsDocs" class="rs-docs" aria-label="Shared documents">
+        <h2 class="rs-section-head">Documents</h2>
+        <ul id="rsDocList" class="rs-doc-list"></ul>
+        <div id="rsNotes" class="rs-notes" hidden>
+            <h3 class="rs-section-head">Case notes</h3>
+            <ul id="rsNoteList" class="rs-note-list"></ul>
+        </div>
+        <div id="rsDeadlines" class="rs-deadlines" hidden>
+            <h3 class="rs-section-head">Dates to know</h3>
+            <ul id="rsDeadlineList" class="rs-note-list"></ul>
+        </div>
+    </nav>
+
+    <!-- 3. Reading pane -->
+    <section id="rsViewerPane" class="rs-viewer" aria-label="Document reader">
+        <div class="rs-view-bar">
+            <span id="rsDocTitle">Pick a document to read it here</span>
+            <a id="rsOpenFull" class="rs-btn" href="#" target="_blank" rel="noopener" hidden>Open in a new tab</a>
+        </div>
+        <iframe id="rsViewer" class="rs-frame" title="Document preview" hidden></iframe>
+        <div class="rs-empty" id="rsViewerEmpty">
+            <p>Choose a document from the list to read it here.</p>
+            <p class="rs-hint">Documents are read-only — what you see is exactly what was shared.</p>
+        </div>
+        <!-- 4. Ask a question about the open document -->
+        <form id="rsAskForm" class="rs-ask" hidden>
+            <label class="rs-label" for="rsAskBody">Ask a question about this document</label>
+            <input id="rsAskSubject" class="rs-input" placeholder="Short label (optional)" aria-label="Question label">
+            <textarea id="rsAskBody" class="rs-textarea" rows="3" required
+                placeholder="Your question goes to the person who shared this file, in your own words."></textarea>
+            <button type="submit" class="rs-btn rs-btn--primary">Send question</button>
+            <span id="rsAskMsg" class="rs-hint" role="status"></span>
+        </form>
+    </section>
+
+    <!-- 5. Questions and answers -->
+    <section id="rsThreads" class="rs-threads" aria-label="Questions and answers">
+        <h2 class="rs-section-head">Questions &amp; answers</h2>
+        <div id="rsThreadList"></div>
+        <p id="rsThreadsEmpty" class="rs-hint" hidden>No questions yet. Open a document and ask one — it stays attached to that document.</p>
+    </section>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<h2>About this view</h2>
+<ul class="shell-list">
+    <li><span class="rs-side-note">Someone shared this case file with you through Semptify. Everything here is read-only.</span></li>
+    <li><span class="rs-side-note">Questions you send go to the person who shared the file. Your words stay your words.</span></li>
+    <li><span class="rs-side-note">This link can expire or be turned off by the person who shared it.</span></li>
+</ul>
+<h2 style="margin-top:1.5rem">Semptify</h2>
+<ul class="shell-list">
+    <li><a href="/about">About the organization</a></li>
+    <li><a href="/help">Help for renters</a></li>
+</ul>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/reviewer.js?v=20260928-01"></script>
+{% endblock %}

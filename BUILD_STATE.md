@@ -1,3 +1,89 @@
+## Session — 2026-09-28 — Legal Share portal: token-gated case-file review share (swe-2.0)
+
+**Task `semptify-legal-share-portal`** (Brad approved 2026-09-27, supersedes Case Review spec §8 "sharing happens outside Semptify"): tenant grants an outside attorney/advocate a private link to selected case material — no reviewer identity, no sign-in, originals immutable, all state as owner-vault overlays.
+
+**Backend (commit `8f90ad64`):**
+- `CASE_SHARE` overlay — share id, case, reviewer label, selected doc/deadline scope, owner-scoped token (`{uid}:{urlsafe32}`), expiry, revocation, access metrics. `REVIEW_THREAD` overlay — per-document Q&A (reviewer question ↔ tenant answer) with per-share read/unread flags.
+- New module `app/modules/legal_share/` — tenant API (`/api/legal-share/shares`, `cases/{id}/items`, threads, reply, revoke, `/questions`) + anonymous reviewer API (`/api/legal-share/r/{token}/...`) + pages (`/legal-share`, `/r/{token}`). `storage_middleware` treats `/r/` + `/api/legal-share/r/` as public — token is the credential.
+- `app/services/shared_document_stream.py` — token-gated document meta/stream extracted from document_center; originals never written.
+- Events: `REVIEW_QUESTION_POSTED`, `REVIEW_ANSWER_POSTED`; `SHARE_LINK_SENT` reused.
+- Case Review integration: `create_share` calls `mark_share_initialized` → `EVIDENCE_INDEX` overlay → `legal_share_initialized` capability. Manual self-mark kept for out-of-band shares.
+
+**UI (this commit):**
+- `/r/{token}` — public shell, 2-zone work grid (docs rail | reader+ask) with Q&A below; `reviewer_unavailable.html` calm state for bad/expired/revoked links.
+- `/legal-share` — numbered-step create flow (case → items → reviewer → contact → expiry → link) then shared-links list then questions inbox; destructive revoke last with confirm.
+- `static/css/legal-share.css`, `reviewer.js`, `legal_share.js`; case_review.html locked state now links to `/legal-share`.
+
+**Verified live (IronBee + curl, local dev):** share create → anonymous open → doc content stream → question → tenant sees unread → reply → revoke → reviewer gets 410 + unavailable page. 13 legal-share + 9 case-review tests pass; 0 console errors; 375px + 1280px clean.
+
+**Bugs caught in verify:** inner 3-col grid exceeded shell work-zone width (viewer crushed to 53px → reworked to 200px docs + 1fr reader + full-width threads); class `display` rules overriding `[hidden]` → scoped `[hidden]{display:none!important}` guard added; pytest basename collision → `tests/__init__.py` added to legal_share + case_review tests dirs.
+
+**Out of scope parked:** import bridge for on-disk folder trees (Phase 5, synthetic fixtures only — not started); calendar `list_events` has no case linkage so the deadline picker lists all tenant dates (explicit opt-in checkboxes are the scope control); shell footer's AI-notice paragraph renders as a narrow vertical column at ≤375px — pre-existing shared-footer issue, logged to intake.
+
+
+## Session — 2026-09-28 — Preparatory commits: prior-session WIP recorded so legal-share commits stay clean (swe-2.0)
+
+**Context:** the `semptify-legal-share-portal` task found three uncommitted slices in the tree sharing files it needs (`product_manifest.py`, `overlay_types.py`, `contract_loader.py`, `vault_paths.py`, `module_registry.yaml`). Path-scoped commits cannot split a file, so the prior work was committed first, labeled by originating slice:
+
+1. **Case File Review & Evidence Index** (`app/modules/case_review/`, prior devin session, locked spec 2026-09-27) — EXTENDED tier, `EVIDENCE_INDEX` overlays at `VAULT_CASE_REVIEW`, `/case-review` page route, per-case legend / evidence notes / category+evidence-type doc tags / index export. Unlocks on `legal_share_initialized` self-mark. Registry + module-health test added.
+2. **Call Manager + local god-mode tooling** (two 2026-09-25 sessions below) — `app/modules/call_manager/` + `LocalDiskProvider` dev bypass + `seed_godmode_brad.py` + `/debug/seed-test-user` token planting. Both manifest registrations landed in this commit once the case_review module itself was committed.
+
+Both slices remain **pending Brad's review** — committing locally does not approve them; it only keeps task commits separated (one task per commit). Legal-share work follows on `feat/legal-share-portal`.
+
+
+## Session — 2026-09-25 — Call Manager module: ACT!-style outreach desk (devin)
+
+**Brad's ask:** proactive call manager like ACT! software — interactive call scripts ("help on what to say"), tap-based outcome logging (he can't type fast), call history per contact, follow-up tracking, key-fact capture (names/dates/figures).
+
+**What shipped (new module `app/modules/call_manager/`, DEV tier, dev_only):**
+- `models.py` — `call_logs` table: contact snapshot (id/name/phone/role), script used, direction, outcome, duration, summary, `key_facts` JSON (label/value pairs — the "remembering names/dates/figures" layer), `follow_up_at` + note.
+- `scripts.py` — 4 interactive scripts: `attorney_intake` (opening line, "they'll ask" with his case specifics baked in — Turner name, dates, trial de novo, packet link, fee questions, if-they-decline referral ask), `agency_call` (reference-number discipline), `court_clerk` (case numbers loaded), `follow_up` (warm callback).
+- `router.py` — API: `GET /scripts`, `GET /scripts/{key}`, `POST /calls`, `GET /calls` (filterable), `GET /follow-ups`, `GET /desk` (HTML page).
+- **One-save fan-out**: POST /calls writes `CallLog` + `JournalEntry` (conversation, source=call_manager) + `TimelineEvent` (communication) always, + `CalendarEvent` reminder when follow_up_days set. A completed call lands on the timeline automatically.
+- `register.py` — 3 FunctionGroupContracts (script lookup, call write, history/follow-ups).
+- `/api/call-manager/desk` — self-contained tap-first page: left = follow-ups due + contact queue (reads `/api/contacts/`), center = contact card + script picker (auto-selects script by contact role) with checkbox questions that expand into fact fields, 8 outcome buttons, follow-up chips (none/tomorrow/+3d/+7d), right = per-contact call history. Mobile collapses to single column.
+
+**Verified live:** startup 1187 contracts / 145 modules / 0 failures; `POST /calls` → 201 with `follow_up_at`; journal entry + calendar reminder + timeline row confirmed in DB and via `/api/journal/` + `/api/calendar/`; `/desk` → 200 with all UI hooks present; test call rows cleaned after verification. Bug caught + fixed in verify: `get_db_session` is an asynccontextmanager, not a route dep — the route dep is `get_db`.
+
+**Not committed** — pending Brad's review; god-mode session work, one task per commit.
+
+
+## Session — 2026-09-25 — Local "god mode": Postgres + LocalDiskProvider + seeded case data (devin)
+
+**Brad's ask:** make the local Semptify instance usable as his personal case command center — every module on, his real case data inside, no OAuth fighting. Internal/local config only — not a public-facing product change.
+
+**What shipped (local dev environment, not pushed):**
+- **Dedicated app DB `semptify_app` on local Postgres.** The pre-existing `semptify` DB holds a *different* schema (cases/events/documents/costs/calls — the case-tool tables) and collides on `documents`; left untouched. `pgvector` extension installed in `semptify_app`; startup ran alembic + create_all clean (95 modules, 774 contracts, 0 load errors).
+- `.env`: `DATABASE_URL` → `postgresql+asyncpg://semptify:***@127.0.0.1:5432/semptify_app`; `SEMPTIFY_ENV` → `development` (production tier set excludes DEV-tier routers — calendar/timeline/document-center-adjacent routes 404'd until this flipped).
+- **`app/services/storage/local_disk.py` (new)** — `LocalDiskProvider`, development-only provider persisting overlays/vault files to local disk; implements the full `base.py` interface.
+- **`app/services/storage/__init__.py`** — when `access_token == LOCAL_DEV_TOKEN` the factory returns `LocalDiskProvider()` instead of Google Drive. Ordinary tokens still get `GoogleDriveProvider` — the bypass is gated to the dev token only, not a general fallback.
+- **`app/modules/debug/router.py`** — `/debug/seed-test-user` now also plants the dev storage token in the session (one call = session + storage), and accepts GET so it works as a one-click browser login.
+- **`scripts/seed_godmode_brad.py` (new)** — idempotent seed for Brad's case: 17 contacts, 7 calendar deadlines, ~20 timeline events, 3 incidents, rent/expense ledger entries (incl. $716 Wyndham displacement stay), attorney-outreach journal entry. Direct SQL inserts with explicit not-null values (model defaults aren't DB-level defaults — `interaction_count`, `is_urgent`, `updated_at` all needed explicit values).
+
+**Verified live** (server on `http://127.0.0.1:8000`, no reload churn):
+- `/api/contacts/` → seeded contacts through overlay-backed path (`ovl_*` IDs — LocalDiskProvider confirmed writing, no Google Drive calls).
+- `/api/calendar/` + `/api/calendar/upcoming` → seeded deadlines incl. critical ELT date.
+- `POST /api/timeline/unified` → 14 items serving the seeded chronology (POST-based canvas API — `/events` is create-only, not list).
+- `/api/vault/incidents` → seeded eviction incidents. `/api/rent/payments` → motel expense + running balance. `/api/journal/` → seeded entry.
+- `/api/accountability-ledger/subjects` → 4 subjects POSTed live (Velair Property MGMT incl. "Vesta" alias, Lexington Flats entity, Lisa Burg, Douglass Turner/Hanbery & Turner).
+- `/api/dc/list` → live but empty — no files uploaded to the local vault yet (case docs live on disk/OneDrive, not in-app).
+
+**Known gaps / next:** Document Center needs real files uploaded through vault upload to populate; `plan_maker` exists for the daily-plan surface but DO_TODAY currently rides the calendar; local_ai infra exists but no chat surface; god-mode token is dev-only by design — must never ship to production config.
+
+**Not committed:** `.env` stays local (contains credentials); scripts + provider are commit-ready pending Brad's review — one task per commit.
+
+
+## Session — 2026-09-24 — PR #317 (role removal) fixed, merged, deployed + intake triage (devin)
+
+**What shipped:**
+- Style-guard was (correctly) failing PR #317 + main: fixed 4 violations (`#999` swatch fallback → `var(--text-muted)`, three sub-12px fonts → 0.75rem) in `3ab4b8c5`.
+- PR #317 merged (`b32d1654`): **roles removed entirely — stateless tenant-only identity.** Onboarding solo, `/api/storage/role` deleted, advocate mutual-consent sharing slice 2, pro-role docs marked dormant.
+- **Deploy dep-daqei0rncjis739mf8eg LIVE** on prod — `/` 200, `/onboarding` 302 (no more role select), `/about` 200.
+- Intake triage: 4 dismissed (obsolete post-#312/#313), 6 promoted — websocket 404 (task-13f9680a), .page-header dark-on-dark (task-a3e934c9), footer AI-notice contrast (task-b8680f25), Tier-1 docs still describe roles (task-cdd463ba), dead onboarding files (task-efd9b0ed), dead CSS files (task-5e0cf6d3).
+
+**Pending Brad (owner-only):** file GitHub sensitive-data removal request — draft ready at `C:/master-repo/_backups/scrub-spec/github-sensitive-data-request.md`, verified old SHAs still serve (5e2748eb, ebad46cb both 200). Submit at support.github.com/request.
+
+
 ## Session — 2026-09-23 — Public intro page: /document-everything (devin)
 
 **Brad's ask:** explain Semptify to new users from the "Document everything"
@@ -15723,3 +15809,26 @@ sessions); embedded images are dropped from edited exports (noted to user).
   any non-tenant role. Pro-role accounts belong to the add-on repo.
 - Verified live: both POST paths 404, providers 200, /choose-role 404.
   tests/test_onboarding_solo_tenant.py 6/6.
+
+## 2026-09-28 — Legal Share rollup branch (feat/legal-share-portal → PR pending)
+
+- Branch `feat/legal-share-portal` carries 11 commits over main: Case File
+  Review & Evidence Index module (442df914), Call Manager + god-mode dev
+  tooling (5ef140ad), Guided Navigation Panel pilot on the intake upload
+  guide (d5d89c19), reconciled UI/UX architecture standard
+  (b80a070f, semptify-gui-standards.md), GUI capability row (d7d46389),
+  and the full Legal Share feature — backend CASE_SHARE/REVIEW_THREAD
+  overlays + token-gated reviewer API (8f90ad64), reviewer portal
+  `/r/{token}` + tenant `/legal-share` UI (79a770eb), counsel-packet
+  on-disk import bridge (09687c18 + hardening eb08e73d), vault folder
+  requirement for legal_share/case_review overlays (9a62cb6d).
+- Independently re-verified 2026-09-28 (devin, SWE-2): all 34 changed .py
+  files compile; 289/289 tests green (module_health suite + legal_share,
+  case_review, solo-tenant onboarding, folder requirements). Live check
+  on :8001 — `/legal-share` 302 unauth redirect, `/api/legal-share/*`
+  401 tenant-gated, bogus reviewer token 404 on API / 200 page shell.
+- Playwright smoke suite: skipped (no dev server running at ship time).
+- Pending: PR review + merge by Brad; master-repo gitlink bump after merge.
+- Next session: Brad merges PR → run `/ship` Step 8.5 gitlink bump;
+  Phase 5 importer (`scripts/import_counsel_packet.py`) is staged against
+  the live counsel packet — dry-run it before a real import.

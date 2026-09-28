@@ -21,6 +21,13 @@ def get_provider(provider_name: str, **kwargs) -> StorageProvider:
     Returns:
         StorageProvider instance
     """
+    # Dev god-mode: the seeded dev token maps every provider call to local
+    # disk so the app is fully usable without OAuth. Never a real user's path.
+    from app.services.storage.local_disk import DEV_TOKEN, LocalDiskProvider
+
+    if kwargs.get("access_token") == DEV_TOKEN:
+        return LocalDiskProvider()
+
     providers = {
         "google_drive": GoogleDriveProvider,
         "googledrive": GoogleDriveProvider,

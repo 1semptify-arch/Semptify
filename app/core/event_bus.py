@@ -107,6 +107,8 @@ class EventType(str, Enum):
     DOCUMENT_TYPE_CONFIRMED = "document_type_confirmed"
     REVIEW_STATE_SAVED = "review_state_saved"
     SHARE_LINK_SENT = "share_link_sent"
+    REVIEW_QUESTION_POSTED = "review_question_posted"
+    REVIEW_ANSWER_POSTED = "review_answer_posted"
 
     # Lifecycle events
     ISSUE_RESOLVED = "issue_resolved"

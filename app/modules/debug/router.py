@@ -167,6 +167,7 @@ async def debug_stamp_alembic_head(request: Request):
     return JSONResponse(content=info)
 
 
+@router.get("/debug/seed-test-user")
 @router.post("/debug/seed-test-user")
 async def debug_seed_test_user(request: Request):
     """Dev-only: seed a local tenant user and log the browser in."""
@@ -234,6 +235,29 @@ async def debug_seed_test_user(request: Request):
                 }
 
         info["step"] = "done"
+
+        # Plant a dev access token in the in-memory token manager so the
+        # ice-cube check in ensure_valid_token passes without real OAuth.
+        # DB-backed surfaces (contacts, calendar, timeline, journal, ledger)
+        # become usable; actual provider calls still need a real OAuth login.
+        # In-memory only — re-POST this endpoint after each server restart.
+        try:
+            from datetime import timedelta
+
+            from app.core.oauth_token_manager import OAuthToken, get_token_manager
+
+            get_token_manager().store_token(
+                "GUbGQUTpK6",
+                OAuthToken(
+                    access_token="dev-godmode-token",
+                    refresh_token=None,
+                    expires_at=utc_now() + timedelta(days=30),
+                    provider="google_drive",
+                ),
+            )
+            info["token"] = "dev-godmode-token (in-memory, 30d)"
+        except Exception as tok_exc:
+            info["token_error"] = str(tok_exc)
 
         # Log the browser in as the seeded user.
         redirect = ssot_redirect("/gui/record/journal/create", context="debug seed-test-user")

@@ -1527,39 +1527,10 @@ async def dc_shared_document_content(share_token: str, request: Request):
         if share.scope not in {"view", "download"}:
             return JSONResponse(status_code=403, content={"error": "scope_not_allowed", "detail": share.scope})
 
-        from app.services.vault_upload_service import get_vault_service
+        from app.services.shared_document_stream import stream_vault_document
 
-        vault_service = get_vault_service()
-        doc = await vault_service.get_document(share.vault_id)
-        if not doc:
-            return JSONResponse(status_code=404, content={"error": "document_not_found"})
-
-        access_token: str | None = None
-        if doc.storage_provider != "local":
-            async with get_db_session() as db:
-                _, token_obj, _ = await ensure_valid_token(doc.user_id, db)
-                access_token = token_obj.access_token if token_obj else None
-            if not access_token:
-                return JSONResponse(
-                    status_code=503,
-                    content={
-                        "error": "storage_unavailable",
-                        "detail": "The document owner must reconnect storage for this share to work.",
-                    },
-                )
-
-        content = await vault_service.get_document_content(share.vault_id, access_token)
-        if not content:
-            return JSONResponse(status_code=404, content={"error": "document_content_unavailable"})
-
-        mime = doc.mime_type or "application/octet-stream"
-        safe_name = doc.filename.replace('"', "").replace("\\", "")
-        download = request.query_params.get("download")
-        if download or share.scope == "download":
-            headers = {"Content-Disposition": f'attachment; filename="{safe_name}"'}
-        else:
-            headers = {"Content-Disposition": f'inline; filename="{safe_name}"'}
-        return Response(content=content, media_type=mime, headers=headers)
+        download = bool(request.query_params.get("download")) or share.scope == "download"
+        return await stream_vault_document(share.vault_id, download=download)
     except Exception as e:
         logger.error("DC shared content error token=%s: %s", share_token, e, exc_info=True)
         return JSONResponse(status_code=500, content={"error": "shared_content_failed", "detail": str(e)})

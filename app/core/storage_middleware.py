@@ -173,6 +173,8 @@ PUBLIC_PREFIXES = (
     "/admin/api/",  # Admin API endpoints — auth checked by route (elevation/capability)
     "/debug/",  # TEMPORARY: diagnostic endpoints (gated to SECURITY_MODE=open in routes)
     "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)
+    "/r/",  # Case-share reviewer pages — anonymous token-gated (the share token is the credential)
+    "/api/legal-share/r/",  # Case-share reviewer API — token-gated, no Semptify identity
 )
 
 

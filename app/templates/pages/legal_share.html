@@ -1,0 +1,108 @@
+{% extends "shell_base.html" %}
+{#
+  Legal Share — tenant share-management page (/legal-share).
+
+  One decision at a time, top to bottom: pick a case → pick what to share →
+  name the reviewer → optional contact → link duration → create. The finished
+  link, existing shares, and reviewer questions live below in that order.
+  Revoke controls sit at the bottom of each share, visually separated.
+#}
+{% block title %}Share your case file — Semptify{% endblock %}
+{% block body_class %}shell legal-share{% endblock %}
+{% block main_class %}shell-main shell-main--top{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/legal-share.css?v=20260928-03">
+{% endblock %}
+
+{% block content %}
+<p class="shell-eyebrow">Legal share</p>
+<h1>Share your case file</h1>
+<p class="shell-lede">Give an attorney, advocate, or legal-aid reviewer a private link to the parts of a case you choose. They read documents and can ask you questions — no sign-in needed on their end.</p>
+
+<!-- Steps 1–6: create a share -->
+<section class="zone-block ls-zone" aria-label="Create a share">
+    <ol class="ls-steps">
+        <li class="ls-step">
+            <label class="rs-label" for="lsCase">1. Choose a case</label>
+            <select id="lsCase" class="rs-input">
+                <option value="">— choose a case —</option>
+            </select>
+        </li>
+        <li class="ls-step" id="lsItemsStep" hidden>
+            <span class="rs-label">2. Choose what to include</span>
+            <p class="rs-hint">Checked items are the ones your reviewer will see. Filed documents, exhibits, and messages with your landlord start checked; drafts and account material stay unchecked.</p>
+            <div id="lsItems"></div>
+            <div id="lsDeadlinePick" hidden>
+                <h3 class="ls-sub">Dates to include</h3>
+                <div id="lsDeadlines"></div>
+            </div>
+            <label class="ls-check"><input type="checkbox" id="lsIncludeNotes" checked> Include my case notes</label>
+            <label class="ls-check"><input type="checkbox" id="lsIncludeSummary" checked> Include the case summary (title and status)</label>
+        </li>
+        <li class="ls-step" id="lsReviewerStep" hidden>
+            <label class="rs-label" for="lsReviewer">3. Who is this for?</label>
+            <input id="lsReviewer" class="rs-input" placeholder="e.g. Attorney Lee, legal aid intake" maxlength="120">
+        </li>
+        <li class="ls-step" id="lsContactStep" hidden>
+            <label class="rs-label" for="lsContact">4. Their email or phone (optional — just a note for yourself)</label>
+            <input id="lsContact" class="rs-input" placeholder="optional" maxlength="200">
+        </li>
+        <li class="ls-step" id="lsExpiryStep" hidden>
+            <span class="rs-label">5. How long should the link work?</span>
+            <div class="ls-expiry" role="radiogroup" aria-label="Link duration">
+                <label class="ls-radio"><input type="radio" name="lsExpiry" value="7"> 7 days</label>
+                <label class="ls-radio"><input type="radio" name="lsExpiry" value="30" checked> 30 days</label>
+                <label class="ls-radio"><input type="radio" name="lsExpiry" value="90"> 90 days</label>
+            </div>
+        </li>
+        <li class="ls-step" id="lsCreateStep" hidden>
+            <button type="button" id="lsCreateBtn" class="shell-btn shell-btn--accent">6. Create the link</button>
+            <span id="lsCreateMsg" class="rs-hint" role="status"></span>
+        </li>
+    </ol>
+</section>
+
+<!-- Step 7: the link, once created -->
+<section class="zone-block ls-zone" id="lsLinkZone" hidden aria-label="Your share link">
+    <h2 class="rs-section-head">Send this link</h2>
+    <p class="rs-hint">Anyone with this link can read what you selected until it expires or you turn it off.</p>
+    <div class="ls-linkrow">
+        <input id="lsLink" class="rs-input" readonly aria-label="Share link">
+        <button type="button" id="lsCopyBtn" class="rs-btn">Copy</button>
+        <a id="lsMailto" class="rs-btn" href="#">Send by email</a>
+    </div>
+</section>
+
+<!-- Step 8/9: existing shares; revoke controls sit at the bottom of each -->
+<section class="ls-zone" id="lsSharesZone" aria-label="Your shares">
+    <h2 class="rs-section-head">Your shared links</h2>
+    <div id="lsShareList"></div>
+    <p id="lsSharesEmpty" class="rs-hint" hidden>No links yet. Create one above.</p>
+</section>
+
+<!-- Step 10: reviewer questions -->
+<section class="ls-zone" id="lsQuestionsZone" aria-label="Questions from reviewers">
+    <h2 class="rs-section-head">Questions from reviewers</h2>
+    <div id="lsQuestionList"></div>
+    <p id="lsQuestionsEmpty" class="rs-hint" hidden>No questions yet. When a reviewer asks about a document, it lands here.</p>
+</section>
+{% endblock %}
+
+{% block sidebar %}
+<h2>About sharing</h2>
+<ul class="shell-list">
+    <li><span class="rs-side-note">The link shows only what you select. Your originals never change — reviewers can only read and ask questions.</span></li>
+    <li><span class="rs-side-note">You can turn a link off anytime. Nothing is sent automatically — you choose who gets the link.</span></li>
+</ul>
+<h2 style="margin-top:1.5rem">Related</h2>
+<ul class="shell-list">
+    <li><a href="/api/case-review/page">Case file review</a></li>
+    <li><a href="{{ navigation.get_stage('document_center').path if navigation else '/dc' }}">Document center</a></li>
+    <li><a href="/help">Find real help</a></li>
+</ul>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/legal_share.js?v=20260928-01"></script>
+{% endblock %}

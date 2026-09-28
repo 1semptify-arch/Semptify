@@ -213,6 +213,7 @@ Given the commitment not to gatekeep safety information, access should unlock ba
 | `tenant-core` | Default on storage connect | Vault, Timeline, Library, Copilot, basic Document Center |
 | `case-active` | Auto-set when a notice/dispute is logged | Full complaint wizard, case builder in ACT |
 | `court-bound` | Auto-set when a hearing date is added to Calendar | Court Prep toolkit, escalating deadline alerts |
+| `legal-share-initialized` | Tenant self-marks that they've shared their case file with an attorney/legal reviewer (the share itself happens in the tenant's own storage, outside Semptify) | Case File Review & Evidence Index — per-case legend, linked evidence notes, paste-ready index export |
 | `verified-advocate` | Tenant explicitly invites someone, invite accepted | Scoped read/comment access to *only* the documents that tenant shared |
 | `verified-professional` | Identity/credential check (bar number, legal aid org affiliation) | Multi-case dashboard view, shared only where a tenant has explicitly granted access |
 | `org-staff` | Internal onboarding (HR-side, not self-service) | GOVERN admin console access, scoped by role |

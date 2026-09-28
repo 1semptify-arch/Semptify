@@ -547,6 +547,17 @@ _register(
 
 # Core tools
 _register("app.modules.contacts.router", tags=("Contact Manager",), tier=ProductTier.CORE)
+
+# Call Manager — ACT!-style outreach desk: contact queue, interactive call
+# scripts, tap-outcome logging, auto fan-out to journal/timeline/calendar.
+_register(
+    "app.modules.call_manager.router",
+    tags=("Call Manager",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    dev_notes="Personal call desk. Pairs with contacts (read) + calendar/journal/timeline (write fan-out). DEV-tier: local god-mode tooling.",
+    log_message="Call Manager router connected",
+)
 _register(
     "app.modules.journal.router",
     prefix="/api/journal",
@@ -770,6 +781,48 @@ _register(
     tier=ProductTier.EXTENDED,
     upl_risk_tier=UPLRiskTier.MEDIUM,
     dev_notes="Canonical case-builder module. Legacy app/modules/case_builder.py standalone file removed — it was shadowed by this package. Case/incident records vault-persisted as INCIDENT overlays (integer incident_id preserved in payload; legacy rows migrate on first read).",
+)
+_register(
+    "app.modules.case_review.router",
+    prefix="/api/case-review",
+    tags=("Case Review", "Evidence Index"),
+    tier=ProductTier.EXTENDED,
+    upl_risk_tier=UPLRiskTier.MEDIUM,
+    dev_notes=(
+        "Case File Review & Evidence Index — locked spec 2026-09-27. Per-case legend, "
+        "evidence notes with multi-document links, and category/evidence_type document tags "
+        "persisted as EVIDENCE_INDEX overlays in the tenant's vault (zero server persistence, "
+        "originals immutable, nothing certified). NOT in CAPABILITY_DEFAULTS — unlocks on the "
+        "legal_share_initialized flag: tenant self-marks that they've shared their case file "
+        "with a legal reviewer (sharing itself happens outside Semptify per Decision 1)."
+    ),
+)
+# Legal Share — tenant-granted, token-gated case file review share
+# (supersedes Case Review spec §8 "sharing happens outside Semptify").
+_register(
+    "app.modules.legal_share.router",
+    prefix="/api/legal-share",
+    tags=("Legal Share", "Case Share"),
+    tier=ProductTier.EXTENDED,
+    lifecycle="dev_only",
+    upl_risk_tier=UPLRiskTier.MEDIUM,
+    dev_notes=(
+        "Tenant creates an expiring, revocable /r/{token} link into a selected slice of a case "
+        "(documents, notes, deadlines, summary) for an outside reviewer. Reviewer is anonymous — "
+        "the owner-scoped token is the entire credential. CASE_SHARE overlays at VAULT_RECORDS_FILE; "
+        "REVIEW_THREAD Q&A overlays at VAULT_CASE_REVIEW_FILE. Creating a share sets "
+        "legal_share_initialized via the existing case_review path."
+    ),
+    log_message="Legal Share router connected",
+)
+_register(
+    "app.modules.legal_share.router",
+    router_attr="pages_router",
+    tags=("Legal Share Pages",),
+    tier=ProductTier.EXTENDED,
+    lifecycle="dev_only",
+    upl_risk_tier=UPLRiskTier.MEDIUM,
+    dev_notes="Page routes: /legal-share (tenant management UI, cookie-gated) and /r/{token} (anonymous reviewer portal, token-gated).",
 )
 _register("app.modules.progress.router", tags=("Progress Tracker",), tier=ProductTier.EXTENDED)
 _register("app.modules.actions.router", tags=("Smart Actions",), tier=ProductTier.EXTENDED)
