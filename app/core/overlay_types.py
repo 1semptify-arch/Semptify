@@ -64,6 +64,13 @@ class OverlayType(str, Enum):
     meanings (payload: {colors: {yellow: 'evidence', ...}}). One per document;
     travels with the document so shared/co-viewed renders stay meaningful."""
 
+    EVIDENCE_INDEX = "evidence_index"
+    """Case-scoped evidence-index records for the Case Review module
+    (legend, notes, document tags, share markers). Anchored to
+    ``document_id="evidence-index:{case_id}"``; payload["kind"] discriminates:
+    "legend" | "note" | "doc_tag" | "share_marker". Never certified —
+    certification belongs to Vault Services on original documents only."""
+
     # ==========================================================================
     # 4. FORM-FILL (Jurisdiction-specific legal forms)
     # ==========================================================================
@@ -201,6 +208,7 @@ ANNOTATION_OVERLAYS: set[OverlayType] = {
     OverlayType.FOOTNOTE,
     OverlayType.TRACKED_EDIT,
     OverlayType.DOCUMENT_KEY,
+    OverlayType.EVIDENCE_INDEX,
 }
 
 FORM_OVERLAYS: set[OverlayType] = {

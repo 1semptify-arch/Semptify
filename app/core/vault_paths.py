@@ -113,6 +113,13 @@ VAULT_DERIVED_FILE = normalize_cloud_path(f"{VAULT_DERIVED}/derived.json")
 VAULT_EXTERNAL = normalize_cloud_path(f"{VAULT_ROOT}/external")
 VAULT_EXTERNAL_FILE = normalize_cloud_path(f"{VAULT_EXTERNAL}/mappings.json")
 
+# Per-user case-review anchor for EVIDENCE_INDEX overlays (per-case color
+# legends, evidence notes, document category/evidence-type tags, and the
+# legal_share_initialized marker). Records-only anchor — original documents
+# are never written here.
+VAULT_CASE_REVIEW = normalize_cloud_path(f"{VAULT_ROOT}/case_review")
+VAULT_CASE_REVIEW_FILE = normalize_cloud_path(f"{VAULT_CASE_REVIEW}/index.json")
+
 # =============================================================================
 # Role-specific folders (direct children of Vault/)
 # =============================================================================

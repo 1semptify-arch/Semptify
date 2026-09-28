@@ -1,0 +1,101 @@
+{% extends "shell_base.html" %}
+{#
+  Case File Review & Evidence Index — Document Center 3-pane pattern.
+
+  Route: /api/case-review/page (storage-gated).
+  Left:  case picker + vault documents grouped by case category.
+  Center: read-only viewer (embeds the DC /view stream — originals are
+          immutable; this page has no write path to them).
+  Right: per-case color legend → evidence notes → export, in task order.
+  Locked until the tenant marks legal_share_initialized (spec §8).
+#}
+{% block title %}Case Review — Semptify{% endblock %}
+{% block body_class %}shell case-review{% endblock %}
+{% block main_class %}shell-main shell-main--top{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/case-review.css?v=20260927-01">
+{% endblock %}
+
+{% block content %}
+<div id="crShell">
+    <!-- Left: case picker, then document tree in category order -->
+    <section id="crDocs" aria-label="Case documents">
+        <select id="crCasePicker" aria-label="Choose a case">
+            <option value="">— Choose a case —</option>
+        </select>
+        <div id="crDocGroups"></div>
+    </section>
+
+    <!-- Center: the focused document, read-only -->
+    <section id="crViewerPane" aria-label="Document viewer">
+        <div id="crViewBar">
+            <span id="crDocTitle">Select a document</span>
+            <a id="crOpenFull" class="cr-btn" href="#" target="_blank" rel="noopener" hidden>Open full size</a>
+        </div>
+        <div id="crTagBar" hidden>
+            <span>Category</span>
+            <select id="crTagCategory" class="cr-select" aria-label="Document category">
+                <option value="">— not in index —</option>
+                <option value="foundational">Foundational</option>
+                <option value="discovery">Discovery</option>
+                <option value="motion">Motions</option>
+                <option value="evidence">Evidence</option>
+                <option value="misc">Misc</option>
+            </select>
+            <span>Type</span>
+            <select id="crTagEvidence" class="cr-select" aria-label="Evidence type">
+                <option value="none">—</option>
+                <option value="documentary">Documentary</option>
+                <option value="digital">Digital</option>
+                <option value="physical">Physical</option>
+                <option value="witness">Witness statement</option>
+            </select>
+        </div>
+        <iframe id="crViewer" title="Document preview" hidden></iframe>
+        <div class="frame-empty" id="crViewerEmpty">
+            <div class="frame-empty--icon">◆</div>
+            <p>No document selected</p>
+            <p class="frame-empty--hint">Pick a file from the list to view it here. Viewing is read-only — your original never changes.</p>
+        </div>
+    </section>
+
+    <!-- Right: legend, then evidence notes, then export -->
+    <section id="crIndex" aria-label="Evidence index">
+        <div>
+            <h2 class="cr-section-head">Color legend <button type="button" id="crLegendSave" class="cr-btn" hidden>Save</button></h2>
+            <div id="crLegend"></div>
+        </div>
+        <div class="cr-notes-col">
+            <h2 class="cr-section-head">Evidence notes</h2>
+            <div id="crNoteList"></div>
+            <form id="crNoteForm">
+                <textarea id="crNoteText" placeholder="What does this show? Plain words are fine." aria-label="Note text"></textarea>
+                <div class="cr-form-row">
+                    <select id="crNoteLegend" class="cr-select" aria-label="Legend label"><option value="">— label —</option></select>
+                    <input id="crNoteLocation" class="cr-select cr-location" placeholder="p. 3" aria-label="Location">
+                </div>
+                <div class="cr-form-row">
+                    <button type="submit" class="cr-btn cr-btn-primary">Add note about this document</button>
+                </div>
+            </form>
+        </div>
+        <div>
+            <h2 class="cr-section-head">Export</h2>
+            <button type="button" id="crExportBtn" class="cr-btn">Copy evidence index</button>
+            <span id="crExportMsg" class="cr-doc-meta"></span>
+        </div>
+    </section>
+</div>
+
+<!-- Locked state — replaces the workspace until the share flag is set -->
+<div id="crLocked" hidden>
+    <h2>Case review unlocks when you're working with a legal reviewer</h2>
+    <p>This tool helps you organize documents and build a linked index to walk through with an attorney or legal-aid reviewer. It's ready once you've shared your case file with them — the share happens in your own storage, so just confirm it here.</p>
+    <button type="button" id="crUnlockBtn" class="cr-btn cr-btn-primary">I've shared my case file — unlock</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/case_review.js?v=20260927-01"></script>
+{% endblock %}
