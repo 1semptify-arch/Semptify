@@ -91,8 +91,11 @@
 <!-- Locked state — replaces the workspace until the share flag is set -->
 <div id="crLocked" hidden>
     <h2>Case review unlocks when you're working with a legal reviewer</h2>
-    <p>This tool helps you organize documents and build a linked index to walk through with an attorney or legal-aid reviewer. It's ready once you've shared your case file with them — the share happens in your own storage, so just confirm it here.</p>
-    <button type="button" id="crUnlockBtn" class="cr-btn cr-btn-primary">I've shared my case file — unlock</button>
+    <p>This tool helps you organize documents and build a linked index to walk through with an attorney or legal-aid reviewer. Create a shared link under Legal share — your reviewer opens it without signing in — or confirm here if you shared your file another way.</p>
+    <div class="cr-form-row">
+        <a href="/legal-share" class="cr-btn cr-btn-primary">Create a shared link</a>
+        <button type="button" id="crUnlockBtn" class="cr-btn">I've shared another way — unlock</button>
+    </div>
 </div>
 {% endblock %}
 

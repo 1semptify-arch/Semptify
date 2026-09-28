@@ -1,0 +1,40 @@
+{% extends "shell_base.html" %}
+{#
+  Reviewer share — unavailable state (/r/{token} with an expired, revoked,
+  or unknown token). Calm, no dead end: the reviewer knows what happened
+  and what to do next.
+#}
+{% block title %}Shared link — Semptify{% endblock %}
+{% block body_class %}shell reviewer-share{% endblock %}
+{% block main_class %}shell-main shell-main--top{% endblock %}
+{% block nav %}{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/legal-share.css?v=20260928-03">
+{% endblock %}
+
+{% block content %}
+<div class="rs-unavailable">
+    <p class="shell-eyebrow">Shared case file</p>
+    {% if reason == "expired" %}
+    <h1>This link has expired</h1>
+    <p class="rs-lede">Shared links only work for a set time. Ask the person who shared this file with you to send a new link.</p>
+    {% elif reason == "revoked" %}
+    <h1>This share has been closed</h1>
+    <p class="rs-lede">The person who shared this case file ended access. If that doesn't sound right, check with them directly.</p>
+    {% else %}
+    <h1>This link doesn't open a shared file</h1>
+    <p class="rs-lede">The link may be incomplete or mistyped. Check that the whole link came through, or ask the person who shared it to send it again.</p>
+    {% endif %}
+    <p class="rs-hint">Semptify doesn't keep a copy you can request — only the person who shared the file can give access.</p>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<h2>Semptify</h2>
+<ul class="shell-list">
+    <li><a href="/about">About the organization</a></li>
+    <li><a href="/help">Help for renters</a></li>
+    <li><a href="/law-library">Know your rights</a></li>
+</ul>
+{% endblock %}

@@ -1,3 +1,26 @@
+## Session — 2026-09-28 — Legal Share portal: token-gated case-file review share (swe-2.0)
+
+**Task `semptify-legal-share-portal`** (Brad approved 2026-09-27, supersedes Case Review spec §8 "sharing happens outside Semptify"): tenant grants an outside attorney/advocate a private link to selected case material — no reviewer identity, no sign-in, originals immutable, all state as owner-vault overlays.
+
+**Backend (commit `8f90ad64`):**
+- `CASE_SHARE` overlay — share id, case, reviewer label, selected doc/deadline scope, owner-scoped token (`{uid}:{urlsafe32}`), expiry, revocation, access metrics. `REVIEW_THREAD` overlay — per-document Q&A (reviewer question ↔ tenant answer) with per-share read/unread flags.
+- New module `app/modules/legal_share/` — tenant API (`/api/legal-share/shares`, `cases/{id}/items`, threads, reply, revoke, `/questions`) + anonymous reviewer API (`/api/legal-share/r/{token}/...`) + pages (`/legal-share`, `/r/{token}`). `storage_middleware` treats `/r/` + `/api/legal-share/r/` as public — token is the credential.
+- `app/services/shared_document_stream.py` — token-gated document meta/stream extracted from document_center; originals never written.
+- Events: `REVIEW_QUESTION_POSTED`, `REVIEW_ANSWER_POSTED`; `SHARE_LINK_SENT` reused.
+- Case Review integration: `create_share` calls `mark_share_initialized` → `EVIDENCE_INDEX` overlay → `legal_share_initialized` capability. Manual self-mark kept for out-of-band shares.
+
+**UI (this commit):**
+- `/r/{token}` — public shell, 2-zone work grid (docs rail | reader+ask) with Q&A below; `reviewer_unavailable.html` calm state for bad/expired/revoked links.
+- `/legal-share` — numbered-step create flow (case → items → reviewer → contact → expiry → link) then shared-links list then questions inbox; destructive revoke last with confirm.
+- `static/css/legal-share.css`, `reviewer.js`, `legal_share.js`; case_review.html locked state now links to `/legal-share`.
+
+**Verified live (IronBee + curl, local dev):** share create → anonymous open → doc content stream → question → tenant sees unread → reply → revoke → reviewer gets 410 + unavailable page. 13 legal-share + 9 case-review tests pass; 0 console errors; 375px + 1280px clean.
+
+**Bugs caught in verify:** inner 3-col grid exceeded shell work-zone width (viewer crushed to 53px → reworked to 200px docs + 1fr reader + full-width threads); class `display` rules overriding `[hidden]` → scoped `[hidden]{display:none!important}` guard added; pytest basename collision → `tests/__init__.py` added to legal_share + case_review tests dirs.
+
+**Out of scope parked:** import bridge for on-disk folder trees (Phase 5, synthetic fixtures only — not started); calendar `list_events` has no case linkage so the deadline picker lists all tenant dates (explicit opt-in checkboxes are the scope control); shell footer's AI-notice paragraph renders as a narrow vertical column at ≤375px — pre-existing shared-footer issue, logged to intake.
+
+
 ## Session — 2026-09-28 — Preparatory commits: prior-session WIP recorded so legal-share commits stay clean (swe-2.0)
 
 **Context:** the `semptify-legal-share-portal` task found three uncommitted slices in the tree sharing files it needs (`product_manifest.py`, `overlay_types.py`, `contract_loader.py`, `vault_paths.py`, `module_registry.yaml`). Path-scoped commits cannot split a file, so the prior work was committed first, labeled by originating slice:
