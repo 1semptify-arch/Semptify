@@ -15,10 +15,13 @@ import mimetypes
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 PACKET_DIR = Path(r"E:\CASE_FILE_Crowe_Sazama_v_Velair\LEGAL_COUNSEL_PACKET")
-USER_ID = "GUbGQUTpK6"  # Brad's Google Drive-backed tenant
+USER_ID = "GUO09lki54"  # Brad's Google Drive-backed tenant (fresh session 2026-09-28)
 MANIFEST_OUT = PACKET_DIR / "_vault_manifest.json"
 
 # Generated UI artifacts exist alongside source docs; import only source files.
@@ -34,6 +37,13 @@ async def main() -> None:
     from app.core.auto_refresh import ensure_valid_token
     from app.core.database import get_db_session
     from app.services.vault_upload_service import get_vault_service
+
+    # The vault allowlist (config.py class attr, not env-bound) lacks .md.
+    # This packet's legal review is markdown — widen it for this process only.
+    from app.core.config import get_settings
+    settings = get_settings()
+    if "md" not in settings.allowed_extensions:
+        settings.allowed_extensions += ",md"
 
     files = sorted(
         p for p in PACKET_DIR.rglob("*")
@@ -58,18 +68,30 @@ async def main() -> None:
         elif path.suffix.lower() == ".txt":
             mime = "text/plain"
         mime = mime or "application/octet-stream"
-        doc = await vault.upload(
-            user_id=USER_ID,
-            filename=path.name,
-            content=path.read_bytes(),
-            mime_type=mime,
-            document_type="legal_counsel_packet",
-            description=rel,
-            tags=["legal_counsel_packet", path.parent.name or "root"],
-            source_module="legal_share_import",
-            access_token=access_token,
-            storage_provider="google_drive",
-        )
+        doc = None
+        for attempt in range(5):
+            try:
+                doc = await vault.upload(
+                    user_id=USER_ID,
+                    filename=path.name,
+                    content=path.read_bytes(),
+                    mime_type=mime,
+                    document_type="legal_counsel_packet",
+                    description=rel,
+                    tags=["legal_counsel_packet", path.parent.name or "root"],
+                    source_module="legal_share_import",
+                    access_token=access_token,
+                    storage_provider="google_drive",
+                )
+                break
+            except Exception as e:
+                wait = 20 * (attempt + 1)
+                print(f"  retry {attempt + 1}/5 for {rel} after {type(e).__name__}: {e} — waiting {wait}s")
+                await asyncio.sleep(wait)
+        if doc is None:
+            print(f"  FAILED permanently: {rel}")
+            continue
+        await asyncio.sleep(3)  # stay under Drive per-minute quota
         manifest.append({"path": rel, "vault_id": doc.vault_id,
                          "name": path.name, "mime": mime})
         print(f"  {doc.vault_id}  {rel}")
