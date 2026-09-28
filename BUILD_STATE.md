@@ -1,3 +1,55 @@
+## Session — 2026-09-28 — Preparatory commits: prior-session WIP recorded so legal-share commits stay clean (swe-2.0)
+
+**Context:** the `semptify-legal-share-portal` task found three uncommitted slices in the tree sharing files it needs (`product_manifest.py`, `overlay_types.py`, `contract_loader.py`, `vault_paths.py`, `module_registry.yaml`). Path-scoped commits cannot split a file, so the prior work was committed first, labeled by originating slice:
+
+1. **Case File Review & Evidence Index** (`app/modules/case_review/`, prior devin session, locked spec 2026-09-27) — EXTENDED tier, `EVIDENCE_INDEX` overlays at `VAULT_CASE_REVIEW`, `/case-review` page route, per-case legend / evidence notes / category+evidence-type doc tags / index export. Unlocks on `legal_share_initialized` self-mark. Registry + module-health test added.
+2. **Call Manager + local god-mode tooling** (two 2026-09-25 sessions below) — `app/modules/call_manager/` + `LocalDiskProvider` dev bypass + `seed_godmode_brad.py` + `/debug/seed-test-user` token planting. Both manifest registrations landed in this commit once the case_review module itself was committed.
+
+Both slices remain **pending Brad's review** — committing locally does not approve them; it only keeps task commits separated (one task per commit). Legal-share work follows on `feat/legal-share-portal`.
+
+
+## Session — 2026-09-25 — Call Manager module: ACT!-style outreach desk (devin)
+
+**Brad's ask:** proactive call manager like ACT! software — interactive call scripts ("help on what to say"), tap-based outcome logging (he can't type fast), call history per contact, follow-up tracking, key-fact capture (names/dates/figures).
+
+**What shipped (new module `app/modules/call_manager/`, DEV tier, dev_only):**
+- `models.py` — `call_logs` table: contact snapshot (id/name/phone/role), script used, direction, outcome, duration, summary, `key_facts` JSON (label/value pairs — the "remembering names/dates/figures" layer), `follow_up_at` + note.
+- `scripts.py` — 4 interactive scripts: `attorney_intake` (opening line, "they'll ask" with his case specifics baked in — Turner name, dates, trial de novo, packet link, fee questions, if-they-decline referral ask), `agency_call` (reference-number discipline), `court_clerk` (case numbers loaded), `follow_up` (warm callback).
+- `router.py` — API: `GET /scripts`, `GET /scripts/{key}`, `POST /calls`, `GET /calls` (filterable), `GET /follow-ups`, `GET /desk` (HTML page).
+- **One-save fan-out**: POST /calls writes `CallLog` + `JournalEntry` (conversation, source=call_manager) + `TimelineEvent` (communication) always, + `CalendarEvent` reminder when follow_up_days set. A completed call lands on the timeline automatically.
+- `register.py` — 3 FunctionGroupContracts (script lookup, call write, history/follow-ups).
+- `/api/call-manager/desk` — self-contained tap-first page: left = follow-ups due + contact queue (reads `/api/contacts/`), center = contact card + script picker (auto-selects script by contact role) with checkbox questions that expand into fact fields, 8 outcome buttons, follow-up chips (none/tomorrow/+3d/+7d), right = per-contact call history. Mobile collapses to single column.
+
+**Verified live:** startup 1187 contracts / 145 modules / 0 failures; `POST /calls` → 201 with `follow_up_at`; journal entry + calendar reminder + timeline row confirmed in DB and via `/api/journal/` + `/api/calendar/`; `/desk` → 200 with all UI hooks present; test call rows cleaned after verification. Bug caught + fixed in verify: `get_db_session` is an asynccontextmanager, not a route dep — the route dep is `get_db`.
+
+**Not committed** — pending Brad's review; god-mode session work, one task per commit.
+
+
+## Session — 2026-09-25 — Local "god mode": Postgres + LocalDiskProvider + seeded case data (devin)
+
+**Brad's ask:** make the local Semptify instance usable as his personal case command center — every module on, his real case data inside, no OAuth fighting. Internal/local config only — not a public-facing product change.
+
+**What shipped (local dev environment, not pushed):**
+- **Dedicated app DB `semptify_app` on local Postgres.** The pre-existing `semptify` DB holds a *different* schema (cases/events/documents/costs/calls — the case-tool tables) and collides on `documents`; left untouched. `pgvector` extension installed in `semptify_app`; startup ran alembic + create_all clean (95 modules, 774 contracts, 0 load errors).
+- `.env`: `DATABASE_URL` → `postgresql+asyncpg://semptify:***@127.0.0.1:5432/semptify_app`; `SEMPTIFY_ENV` → `development` (production tier set excludes DEV-tier routers — calendar/timeline/document-center-adjacent routes 404'd until this flipped).
+- **`app/services/storage/local_disk.py` (new)** — `LocalDiskProvider`, development-only provider persisting overlays/vault files to local disk; implements the full `base.py` interface.
+- **`app/services/storage/__init__.py`** — when `access_token == LOCAL_DEV_TOKEN` the factory returns `LocalDiskProvider()` instead of Google Drive. Ordinary tokens still get `GoogleDriveProvider` — the bypass is gated to the dev token only, not a general fallback.
+- **`app/modules/debug/router.py`** — `/debug/seed-test-user` now also plants the dev storage token in the session (one call = session + storage), and accepts GET so it works as a one-click browser login.
+- **`scripts/seed_godmode_brad.py` (new)** — idempotent seed for Brad's case: 17 contacts, 7 calendar deadlines, ~20 timeline events, 3 incidents, rent/expense ledger entries (incl. $716 Wyndham displacement stay), attorney-outreach journal entry. Direct SQL inserts with explicit not-null values (model defaults aren't DB-level defaults — `interaction_count`, `is_urgent`, `updated_at` all needed explicit values).
+
+**Verified live** (server on `http://127.0.0.1:8000`, no reload churn):
+- `/api/contacts/` → seeded contacts through overlay-backed path (`ovl_*` IDs — LocalDiskProvider confirmed writing, no Google Drive calls).
+- `/api/calendar/` + `/api/calendar/upcoming` → seeded deadlines incl. critical ELT date.
+- `POST /api/timeline/unified` → 14 items serving the seeded chronology (POST-based canvas API — `/events` is create-only, not list).
+- `/api/vault/incidents` → seeded eviction incidents. `/api/rent/payments` → motel expense + running balance. `/api/journal/` → seeded entry.
+- `/api/accountability-ledger/subjects` → 4 subjects POSTed live (Velair Property MGMT incl. "Vesta" alias, Lexington Flats entity, Lisa Burg, Douglass Turner/Hanbery & Turner).
+- `/api/dc/list` → live but empty — no files uploaded to the local vault yet (case docs live on disk/OneDrive, not in-app).
+
+**Known gaps / next:** Document Center needs real files uploaded through vault upload to populate; `plan_maker` exists for the daily-plan surface but DO_TODAY currently rides the calendar; local_ai infra exists but no chat surface; god-mode token is dev-only by design — must never ship to production config.
+
+**Not committed:** `.env` stays local (contains credentials); scripts + provider are commit-ready pending Brad's review — one task per commit.
+
+
 ## Session — 2026-09-24 — PR #317 (role removal) fixed, merged, deployed + intake triage (devin)
 
 **What shipped:**
