@@ -160,6 +160,7 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.agent_orchestrator.register",
     "app.modules.document_center.register",
     "app.modules.case_review.register",
+    "app.modules.legal_share.register",
     "app.modules.portal.register",
     # Contract coverage pass 2026-09-06: active modules that had no contracts.
     "app.modules.advanced.register",

@@ -5,13 +5,13 @@ evidence index, persisted as EVIDENCE_INDEX overlays in the tenant's own
 cloud vault. Original documents are immutable — this module has no endpoint
 that writes to a document; the viewer embeds the read-only DC stream.
 
-Unlock model (spec §8, resolved): the module stays locked until the tenant
-self-marks ``legal_share_initialized`` — the point at which they have shared
-their case file with an attorney/legal reviewer. Sharing happens outside
-Semptify (tenant shares their own folder directly), so the flag is a tenant
-declaration, not a detected event. The POST writes a share_marker overlay
-AND grants the module capability (source=legal_share_initialized) so the
-module resolver can surface it.
+Unlock model (spec §8, SUPERSEDED 2026-09-28): the module still unlocks on
+``legal_share_initialized``, but sharing now happens INSIDE Semptify via the
+legal_share module — creating a /r/{token} case-share link writes the
+share_marker overlay and grants this module's capability through this same
+marker/grant path (legal_share calls mark_share_initialized + grant_capability
+here, so the flag stays single-sourced). The POST endpoint below remains the
+manual self-mark for tenants who shared a file some other way.
 
 Route layout (mounted at /api/case-review):
   GET  /status                                    — unlocked flag (ungated; it IS the lock check)

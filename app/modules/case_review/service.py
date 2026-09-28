@@ -43,8 +43,9 @@ from app.services.unified_overlay_manager import UnifiedOverlayManager, get_unif
 logger = logging.getLogger(__name__)
 
 # Capability flag event — the module stays locked until the tenant marks that
-# they have shared their case file with a legal reviewer (sharing itself
-# happens outside Semptify, in the tenant's own storage provider).
+# they have shared their case file with a legal reviewer. Spec §8 superseded
+# 2026-09-28: legal_share creates the share in-Semptify and sets this flag via
+# mark_share_initialized; the manual self-mark still covers outside sharing.
 LEGAL_SHARE_INITIALIZED = "legal_share_initialized"
 
 # Locked taxonomy (spec §2). Values are metadata tags only — they never move

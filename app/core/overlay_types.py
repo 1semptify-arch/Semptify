@@ -168,6 +168,17 @@ class OverlayType(str, Enum):
     DOCUMENT_SHARE = "document_share"
     """Owner-granted document share link (recipient, scope, token) — lives in the owner's vault."""
 
+    CASE_SHARE = "case_share"
+    """Owner-granted case-file review share (reviewer label, selected sections/documents,
+    expiring revocable token) — lives in the owner's vault. The reviewer is anonymous:
+    the token is the entire credential, no reviewer account or identity exists."""
+
+    REVIEW_THREAD = "review_thread"
+    """Document-specific Q&A thread between a case-share reviewer and the tenant.
+    Reviewer questions and tenant answers are tenant-owned overlays — the reviewer
+    only ever holds the share token. No Semptify-authored content; both sides'
+    text is their own words."""
+
     EXTERNAL_MAPPING = "external_mapping"
     """Bridge between a tenant record and an external system ID (court, parcel, agency)."""
 
@@ -250,6 +261,8 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.TIMELINE_EVENT,
     OverlayType.PATTERN_RECORD,
     OverlayType.DOCUMENT_SHARE,
+    OverlayType.CASE_SHARE,
+    OverlayType.REVIEW_THREAD,
     OverlayType.EXTERNAL_MAPPING,
     OverlayType.COURT_CASE_MAPPING,
     OverlayType.PROPERTY_MAPPING,

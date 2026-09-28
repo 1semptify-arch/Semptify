@@ -797,6 +797,33 @@ _register(
         "with a legal reviewer (sharing itself happens outside Semptify per Decision 1)."
     ),
 )
+# Legal Share — tenant-granted, token-gated case file review share
+# (supersedes Case Review spec §8 "sharing happens outside Semptify").
+_register(
+    "app.modules.legal_share.router",
+    prefix="/api/legal-share",
+    tags=("Legal Share", "Case Share"),
+    tier=ProductTier.EXTENDED,
+    lifecycle="dev_only",
+    upl_risk_tier=UPLRiskTier.MEDIUM,
+    dev_notes=(
+        "Tenant creates an expiring, revocable /r/{token} link into a selected slice of a case "
+        "(documents, notes, deadlines, summary) for an outside reviewer. Reviewer is anonymous — "
+        "the owner-scoped token is the entire credential. CASE_SHARE overlays at VAULT_RECORDS_FILE; "
+        "REVIEW_THREAD Q&A overlays at VAULT_CASE_REVIEW_FILE. Creating a share sets "
+        "legal_share_initialized via the existing case_review path."
+    ),
+    log_message="Legal Share router connected",
+)
+_register(
+    "app.modules.legal_share.router",
+    router_attr="pages_router",
+    tags=("Legal Share Pages",),
+    tier=ProductTier.EXTENDED,
+    lifecycle="dev_only",
+    upl_risk_tier=UPLRiskTier.MEDIUM,
+    dev_notes="Page routes: /legal-share (tenant management UI, cookie-gated) and /r/{token} (anonymous reviewer portal, token-gated).",
+)
 _register("app.modules.progress.router", tags=("Progress Tracker",), tier=ProductTier.EXTENDED)
 _register("app.modules.actions.router", tags=("Smart Actions",), tier=ProductTier.EXTENDED)
 _register("app.modules.plan_maker.router", tags=("Plan Maker",), tier=ProductTier.EXTENDED)
