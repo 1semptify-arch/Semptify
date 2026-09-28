@@ -15809,3 +15809,26 @@ sessions); embedded images are dropped from edited exports (noted to user).
   any non-tenant role. Pro-role accounts belong to the add-on repo.
 - Verified live: both POST paths 404, providers 200, /choose-role 404.
   tests/test_onboarding_solo_tenant.py 6/6.
+
+## 2026-09-28 — Legal Share rollup branch (feat/legal-share-portal → PR pending)
+
+- Branch `feat/legal-share-portal` carries 11 commits over main: Case File
+  Review & Evidence Index module (442df914), Call Manager + god-mode dev
+  tooling (5ef140ad), Guided Navigation Panel pilot on the intake upload
+  guide (d5d89c19), reconciled UI/UX architecture standard
+  (b80a070f, semptify-gui-standards.md), GUI capability row (d7d46389),
+  and the full Legal Share feature — backend CASE_SHARE/REVIEW_THREAD
+  overlays + token-gated reviewer API (8f90ad64), reviewer portal
+  `/r/{token}` + tenant `/legal-share` UI (79a770eb), counsel-packet
+  on-disk import bridge (09687c18 + hardening eb08e73d), vault folder
+  requirement for legal_share/case_review overlays (9a62cb6d).
+- Independently re-verified 2026-09-28 (devin, SWE-2): all 34 changed .py
+  files compile; 289/289 tests green (module_health suite + legal_share,
+  case_review, solo-tenant onboarding, folder requirements). Live check
+  on :8001 — `/legal-share` 302 unauth redirect, `/api/legal-share/*`
+  401 tenant-gated, bogus reviewer token 404 on API / 200 page shell.
+- Playwright smoke suite: skipped (no dev server running at ship time).
+- Pending: PR review + merge by Brad; master-repo gitlink bump after merge.
+- Next session: Brad merges PR → run `/ship` Step 8.5 gitlink bump;
+  Phase 5 importer (`scripts/import_counsel_packet.py`) is staged against
+  the live counsel packet — dry-run it before a real import.
