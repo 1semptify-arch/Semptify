@@ -89,7 +89,7 @@
 
 .cr-doc .cr-doc-tag {
   display: inline-block;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   padding: 0.0625rem 0.375rem;
   border-radius: 999px;
   background: var(--zone-surface-3);
@@ -204,7 +204,7 @@
 
 .cr-note-label {
   display: inline-block;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   padding: 0.0625rem 0.375rem;
   border-radius: 999px;
   color: var(--text-primary);
