@@ -23,8 +23,16 @@
   // Event handlers registry
   const handlers = new Map();
 
+  // The shell loads this on every page, including public ones with no
+  // session. The server closes unauthenticated sockets with 1008 —
+  // don't even open the handshake without the cookie.
+  function hasAuthCookie() {
+    return document.cookie.split(';').some(c => c.trim().startsWith('semptify_uid='));
+  }
+
   function connect() {
     if (ws?.readyState === WebSocket.OPEN) return;
+    if (!hasAuthCookie()) return;
 
     try {
       ws = new WebSocket(WS_URL);
@@ -49,6 +57,8 @@
       ws.onclose = (event) => {
         console.log('[WebSocket] Closed', event.code);
         emit('disconnected', { code: event.code, wasClean: event.wasClean });
+        // 1008 = server rejected auth — retrying just spams the console.
+        if (event.code === 1008) return;
         if (!isManualClose) scheduleReconnect();
       };
 
