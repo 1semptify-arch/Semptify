@@ -4,9 +4,9 @@
 
 {% block styles %}
 <style>
-  .page-header { margin-bottom: var(--space-lg); }
-  .page-header h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
-  .page-header p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
+  .page-head { margin-bottom: var(--space-lg); }
+  .page-head h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-head p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
   .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
   .drop-zone { padding: var(--space-xl); border-radius: var(--radius-lg); background: var(--color-background); text-align: center; color: var(--color-text-secondary); font-size: var(--font-size-base); margin-bottom: var(--space-md); cursor: pointer; }
   .drop-zone.dragover { background: var(--color-primary); color: var(--color-on-primary); }
@@ -26,13 +26,13 @@
   @media (max-width: 768px) {
     .panel { padding: var(--space-md); }
     .drop-zone { padding: var(--space-md); }
-    .page-header h1 { font-size: var(--font-size-xl); }
+    .page-head h1 { font-size: var(--font-size-xl); }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="page-header">
+<section class="page-head">
   <h1>Document Recognition</h1>
   <p>Extract text and data from scanned documents.</p>
 </section>

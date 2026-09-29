@@ -61,63 +61,63 @@
   "input_audit": [
     {
       "input_name": "case_id",
-      "source": "request_body",
+      "source": "dropdown",
       "note": "Incident id — resolved against the tenant's own INCIDENT overlays via case_review.service.resolve_case; 404 if not theirs."
     },
     {
       "input_name": "reviewer_label",
-      "source": "request_body",
+      "source": "typed",
       "note": "Tenant-chosen display name for the reviewer (e.g. 'Attorney Lee'). Not an identity — display only."
     },
     {
       "input_name": "document_ids",
-      "source": "request_body",
+      "source": "dropdown",
       "note": "Vault document ids the reviewer may read. Enforced at every reviewer read; documents are verified against the owner's vault at share creation."
     },
     {
       "input_name": "expires_days",
-      "source": "request_body",
+      "source": "dropdown",
       "note": "Enum: 7 | 30 | 90. Share expiry in days from creation."
     },
     {
       "input_name": "share_id",
-      "source": "route_path",
+      "source": "auto_detect",
       "note": "Tenant-side share management identifier (CASE_SHARE payload share_id)."
     },
     {
       "input_name": "token",
-      "source": "route_path",
+      "source": "auto_detect",
       "note": "Owner-scoped share token '{user_id}:{urlsafe32}' — the entire reviewer credential. Resolves the owner vault with no server-side index."
     },
     {
       "input_name": "document_id",
-      "source": "request_body",
+      "source": "dropdown",
       "note": "Vault document id a reviewer question attaches to; must be inside the share's document scope."
     },
     {
       "input_name": "vault_id",
-      "source": "route_path",
+      "source": "auto_detect",
       "note": "Vault document id for metadata/content reads; enforced against share scope."
     },
     {
       "input_name": "thread_id",
-      "source": "route_path",
+      "source": "auto_detect",
       "note": "REVIEW_THREAD payload thread_id (or overlay_id); lookup verifies the owning case anchor."
     },
     {
       "input_name": "body",
-      "source": "request_body",
+      "source": "typed",
       "note": "Question/answer text — stored verbatim; Semptify never drafts or suggests legal content."
     },
     {
       "input_name": "user_id",
-      "source": "auth_session",
+      "source": "auto_detect",
       "note": "yellow_access cookie/session for tenant routes. Reviewer routes take no user_id — the token is the credential."
     }
   ],
   "preview_state": "Reviewer sees the shared slice only: case summary, selected documents (metadata + read-only byte stream), evidence notes, deadlines, and this share's threads. Expired/revoked/unknown tokens render a calm 'not available' page.",
   "review_state": "Tenant sees every share with access count, last opened, unread question count, and full threads; revoke is a deliberate bottom-of-page action.",
-  "output_type": "overlay_records",
+  "output_type": "record",
   "output_how": "CASE_SHARE overlays anchored 'case-shares:{effective_id}' at VAULT_RECORDS_FILE; REVIEW_THREAD overlays anchored 'review-threads:{case_id}' at VAULT_CASE_REVIEW_FILE — both written via UnifiedOverlayManager into the tenant's own OAuth-connected cloud vault.",
   "output_where": "Tenant's cloud vault — Semptify servers hold no share state and no thread content.",
   "output_why": "Lets a tenant hand a structured case file to an outside attorney/advocate with document-tied Q&A, without the reviewer needing any Semptify identity.",
@@ -125,12 +125,12 @@
   "process_context": "Supersedes Case Review spec §8 (sharing outside Semptify) — Brad approved in-Semptify sharing 2026-09-27. Replaces the OneDrive folder-tree + index-file workflow with the same structure plus a per-document question action.",
   "narrative_events": [
     {
-      "verb": "created",
+      "verb": "saved",
       "object": "a shared case-file link",
       "context_clause": "because the tenant chose to share selected case material with a reviewer"
     },
     {
-      "verb": "received",
+      "verb": "found",
       "object": "a reviewer question on a shared document",
       "context_clause": "while the reviewer was reading the shared case file"
     }

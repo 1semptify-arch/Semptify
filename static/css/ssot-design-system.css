@@ -1892,6 +1892,14 @@ body.shell .main-nav .nav-link {
   padding: 0.2rem 0.5rem;
 }
 
+/* Header nav — always visible at every width, ordered right-to-left per
+   the gui-standards header rule. DOM order is Back → Home → DC → Library →
+   Help & resources; row-reverse renders that order right-to-left. */
+body.shell .main-nav .nav-links {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
 /* Crisis/help pill — thin outline in the role color. */
 body.shell .nav-actions .btn,
 body.shell .shell-crisis {
@@ -2002,10 +2010,11 @@ body.shell .unified-footer .footer-bottom {
   display: flex;
   align-items: center;
   gap: 0.9rem;
+  flex-wrap: wrap;
 }
 
 body.shell .unified-footer .footer-copyright { margin: 0; }
-body.shell .unified-footer .footer-help { margin: 0; font-size: 0.75rem; }
+body.shell .unified-footer .footer-help { margin: 0; font-size: 0.75rem; color: var(--shell-ink-3); }
 body.shell .unified-footer .footer-help form { display: inline-flex; align-items: center; gap: 0.3rem; }
 body.shell .unified-footer .footer-help label { font-size: 0.75rem; color: var(--shell-ink-3); }
 
@@ -2241,6 +2250,17 @@ body.shell .shell-step-desc {
     overflow-y: auto;
     height: auto;
     min-height: 100vh;
+  }
+  /* Header stays pinned on mobile scroll (gui-standards: always on top,
+     fully visible). The crisis pill drops to make room — the "Help &
+     resources" nav link reaches the same /help surface. */
+  body.shell .main-nav {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-50);
+  }
+  body.shell .main-nav .nav-actions {
+    display: none;
   }
   body.shell .shell-main {
     border-left: none;

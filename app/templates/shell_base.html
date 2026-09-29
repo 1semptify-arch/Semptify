@@ -26,7 +26,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 {% endblock %}
 
-{% block nav %}{% endblock %}
+{# Visual header nav — standard order RIGHT-TO-LEFT (semptify-gui-standards.md
+   "Placement & Order"): ← Back, Home, DC, Library, Help & resources.
+   DOM order = listed order; the row is visually reversed in CSS, so the
+   first item (Back) lands at the right edge. #}
+{% block nav %}
+{% if navigation %}
+<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('tenant_home').path }}" onclick="if (window.history.length > 1) { window.history.back(); return false; }">← Back</a></li>
+<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('tenant_home').path }}">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('document_center').path }}">DC</a></li>
+<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('law_library').path }}">Library</a></li>
+<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('help').path }}">Help &amp; resources</a></li>
+{% endif %}
+{% endblock %}
 
 {# Live narration strip (ADR-0008 / Build Contract Part 2): a single calm
    status line between header and work zone. The WebSocket client pushes

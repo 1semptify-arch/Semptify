@@ -265,7 +265,7 @@ body.shell .rs-btn--primary {
 
 .rs-thread-status {
     display: inline-block;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 600;
     padding: 0.15rem 0.5rem;
     border-radius: 999px;
@@ -286,7 +286,7 @@ body.shell .rs-btn--primary {
 }
 
 .rs-msg-side {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
@@ -294,7 +294,7 @@ body.shell .rs-btn--primary {
 }
 
 .rs-msg-time {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
     margin-left: 0.35rem;
 }
@@ -428,7 +428,7 @@ body.shell .rs-btn--primary {
 
 .ls-status {
     display: inline-block;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 600;
     padding: 0.15rem 0.6rem;
     border-radius: 999px;
