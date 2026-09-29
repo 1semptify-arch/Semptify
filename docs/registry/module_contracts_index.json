@@ -164,6 +164,15 @@
       "narrative_event_count": 0
     },
     {
+      "module_path": "app.modules.case_review",
+      "contract_path": "app/modules/case_review/module_contract.json",
+      "module_name": "Case Review",
+      "output_type": "record",
+      "has_preview_state": true,
+      "has_review_state": true,
+      "narrative_event_count": 1
+    },
+    {
       "module_path": "app.modules.cloud_sync",
       "contract_path": "app/modules/cloud_sync/module_contract.json",
       "module_name": "Cloud Sync",
@@ -630,6 +639,15 @@
       "has_preview_state": false,
       "has_review_state": false,
       "narrative_event_count": 0
+    },
+    {
+      "module_path": "app.modules.legal_share",
+      "contract_path": "app/modules/legal_share/module_contract.json",
+      "module_name": "Legal Share",
+      "output_type": "record",
+      "has_preview_state": true,
+      "has_review_state": true,
+      "narrative_event_count": 2
     },
     {
       "module_path": "app.modules.legal_trails",

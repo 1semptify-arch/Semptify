@@ -56,59 +56,70 @@
   "input_audit": [
     {
       "input_name": "case_id",
-      "source": "route_path",
+      "source": "auto_detect",
       "note": "Incident id — resolved against the tenant's own INCIDENT overlays; 404 if not theirs."
     },
     {
       "input_name": "document_id",
-      "source": "route_path",
+      "source": "auto_detect",
       "note": "Vault document id; used as a pointer only — the module never writes to documents."
     },
     {
       "input_name": "category",
-      "source": "request_body",
+      "source": "dropdown",
       "note": "Enum: foundational | discovery | motion | evidence | misc (locked taxonomy, spec §2)."
     },
     {
       "input_name": "evidence_type",
-      "source": "request_body",
+      "source": "dropdown",
       "note": "Enum: none | documentary | digital | physical | witness."
     },
     {
       "input_name": "entries",
-      "source": "request_body",
+      "source": "typed",
       "note": "Legend entries [{label, color}] — per case, user-editable, purely visual."
     },
     {
       "input_name": "text",
-      "source": "request_body",
+      "source": "typed",
       "note": "Evidence note body (tenant's own words)."
     },
     {
       "input_name": "links",
-      "source": "request_body",
+      "source": "dropdown",
       "note": "[{document_id, vault_path?, name?, location?}] — one note can link several places across several documents."
     },
     {
       "input_name": "legend_label",
-      "source": "request_body",
+      "source": "typed",
       "note": "Visual grouping label referencing a legend entry; no semantic meaning."
     },
     {
       "input_name": "user_id",
-      "source": "auth_session",
+      "source": "auto_detect",
       "note": "yellow_access cookie/session — all storage is in the tenant's own cloud vault."
+    },
+    {
+      "input_name": "note_id",
+      "source": "auto_detect",
+      "note": "Evidence note id — system-supplied when editing/deleting an existing note."
     }
   ],
   "preview_state": "Document viewer embeds the existing read-only DC stream (/api/dc/document/{id}/view) — a byte stream for display only.",
   "review_state": "Notes and legend are listed for review before export; each is editable/deletable by the tenant.",
-  "output_type": "overlay_records",
+  "output_type": "record",
   "output_how": "EVIDENCE_INDEX overlays written via UnifiedOverlayManager into the tenant's own OAuth-connected cloud vault (anchor document_id='evidence-index:{case_id}', vault_path=VAULT_CASE_REVIEW_FILE). Export returns plain text.",
   "output_where": "Tenant's cloud vault — Semptify servers hold no documents and no index state.",
   "output_why": "Per-case evidence index for attorney/legal-reviewer sessions; survives reload because it lives in the tenant's vault.",
   "process_description": "Tenant marks legal_share_initialized (self-declared — actual sharing happens outside Semptify) → module unlocks. Tenant tags vault documents into the locked category/evidence_type taxonomy (metadata only — cloud folders are never restructured), edits the case color legend, and writes evidence notes that link multiple document locations. Export produces a paste-ready plain-text index.",
   "process_context": "Productionization of the case-review-tool.html stopgap per the locked build spec. No attorney/Legal-role vault access is built — tenant-side sharing only (Decision 1).",
-  "narrative_events": ["legal_share_initialized"],
+  "narrative_events": [
+    {
+      "verb": "confirmed",
+      "object": "legal share setup",
+      "context_clause": "because the tenant marked legal sharing as initialized"
+    }
+  ],
   "invariants": [
     "No write/edit path to original documents exists anywhere in this module — viewer is read-only, tag overlay stores only a document_id pointer.",
     "certified is hardcoded False on every overlay this module creates — only Vault Services certifies, and only original documents.",
