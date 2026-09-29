@@ -42,3 +42,36 @@ This is the existing `.shell-side` sticky rail (asymmetric work-zone-left/rail-r
 - **Layout:** Desktop = no-scroll full-screen liquid layout. Mobile = stacked-scroll. Both required on every page.
 - **Accessibility:** WCAG AA, tap targets ≥44px, ≤2 taps from Home, crisis-help reachable from every page, disclaimer footer present per static-chrome rule.
 - **Validation:** Next Step stays inactive until the current step's minimum required action is complete.
+
+---
+
+## Placement & Order — Module Task Pattern + Visual Header
+
+*Logged 2026-09-28 from Brad's directive. Applies to every module page and to the shared chrome.*
+
+### 1. Module instructions
+
+- Every module page carries short instructions on how to use the module to complete the task at hand.
+- Layout and placement follow those instructions, in task order — do not complicate the UI.
+- If a color code is ever used, it must relate elements to the module's task flow — never decorative.
+
+### 2. Object → objective → actions (the work-zone model)
+
+Before building or arranging a module page, answer in order:
+
+1. **What module group is this?** (pillar: RECORD / KNOW / ACT / GOVERN)
+2. **What is the objective of this configuration?**
+3. **Is the object chosen?** (the thing the page acts on — a document, an entry, a statute…)
+4. **What needs to be done with the object to complete the objective?**
+
+- Each step shows only the function that serves the module's objective.
+- The selected object determines the available actions — what can be done **to it, with it, for it**. Those are the actions shown.
+- **Max three functions** visible in the work zone.
+
+### 3. Visual header — always on top, fully visible
+
+- The header is pinned and never scrolls out of view or collapses — every viewport, every page.
+- Nav items in order **right to left**: **← Back arrow, Home, DC (Document Center), Library, Help & resources**.
+- A way back home must always be present — the Back arrow and the Home button both satisfy this.
+- Crisis help stays reachable from every page (Help & resources → `/help`; the "Get help now" pill where space allows).
+- User time is valuable: nobody should hunt for the way to finish a task or to navigate. No extra UI beyond this.
