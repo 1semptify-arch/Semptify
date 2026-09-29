@@ -4,9 +4,9 @@
 
 {% block styles %}
 <style>
-  .page-header { margin-bottom: var(--space-lg); }
-  .page-header h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
-  .page-header p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
+  .page-head { margin-bottom: var(--space-lg); }
+  .page-head h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-head p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
   .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
   .status { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-md); min-height: 1.5em; }
   .status.working { color: var(--color-warning); }
@@ -29,14 +29,14 @@
   .progress-text { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: var(--space-xs); }
   @media (max-width: 768px) {
     .panel { padding: var(--space-md); }
-    .page-header h1 { font-size: var(--font-size-xl); }
+    .page-head h1 { font-size: var(--font-size-xl); }
     .phase { flex-direction: column; gap: var(--space-xs); }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="page-header">
+<section class="page-head">
   <h1>Complete Journey</h1>
   <p>Your full tenant rights journey from start to finish.</p>
 </section>

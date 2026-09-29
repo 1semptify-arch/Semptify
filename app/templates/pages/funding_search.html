@@ -4,9 +4,9 @@
 
 {% block styles %}
 <style>
-  .page-header { margin-bottom: var(--space-lg); }
-  .page-header h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
-  .page-header p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
+  .page-head { margin-bottom: var(--space-lg); }
+  .page-head h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-head p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
   .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
   .filter-row { display: flex; gap: var(--space-md); margin-bottom: var(--space-md); flex-wrap: wrap; }
   .form-group { flex: 1; min-width: 180px; }
@@ -24,13 +24,13 @@
   @media (max-width: 768px) {
     .filter-row { flex-direction: column; }
     .panel { padding: var(--space-md); }
-    .page-header h1 { font-size: var(--font-size-xl); }
+    .page-head h1 { font-size: var(--font-size-xl); }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="page-header">
+<section class="page-head">
   <h1>Funding Search</h1>
   <p>Find housing assistance programs you may qualify for.</p>
 </section>

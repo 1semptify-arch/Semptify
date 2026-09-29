@@ -2010,10 +2010,11 @@ body.shell .unified-footer .footer-bottom {
   display: flex;
   align-items: center;
   gap: 0.9rem;
+  flex-wrap: wrap;
 }
 
 body.shell .unified-footer .footer-copyright { margin: 0; }
-body.shell .unified-footer .footer-help { margin: 0; font-size: 0.75rem; }
+body.shell .unified-footer .footer-help { margin: 0; font-size: 0.75rem; color: var(--shell-ink-3); }
 body.shell .unified-footer .footer-help form { display: inline-flex; align-items: center; gap: 0.3rem; }
 body.shell .unified-footer .footer-help label { font-size: 0.75rem; color: var(--shell-ink-3); }
 

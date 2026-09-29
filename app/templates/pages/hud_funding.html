@@ -4,9 +4,9 @@
 
 {% block styles %}
 <style>
-  .page-header { margin-bottom: var(--space-lg); }
-  .page-header h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
-  .page-header p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
+  .page-head { margin-bottom: var(--space-lg); }
+  .page-head h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-head p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
   .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
   .filter-bar { display: flex; gap: var(--space-sm); margin-bottom: var(--space-md); flex-wrap: wrap; }
   .filter-btn { padding: var(--space-xs) var(--space-md); border-radius: var(--radius-sm); background: var(--color-background); color: var(--color-text-primary); font-size: var(--font-size-sm); border: none; cursor: pointer; }
@@ -22,13 +22,13 @@
   @media (max-width: 768px) {
     .panel { padding: var(--space-md); }
     .filter-bar { flex-direction: column; }
-    .page-header h1 { font-size: var(--font-size-xl); }
+    .page-head h1 { font-size: var(--font-size-xl); }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="page-header">
+<section class="page-head">
   <h1>HUD Funding Guide</h1>
   <p>Learn about HUD housing assistance programs.</p>
 </section>

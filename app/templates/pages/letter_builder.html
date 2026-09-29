@@ -4,9 +4,9 @@
 
 {% block styles %}
 <style>
-  .page-header { margin-bottom: var(--space-lg); }
-  .page-header h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
-  .page-header p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+  .page-head { margin-bottom: var(--space-lg); }
+  .page-head h1 { font-size: var(--font-size-xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-head p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
   .section { background: var(--color-surface); border-radius: var(--radius-md); padding: var(--space-lg); margin-bottom: var(--space-lg); }
   .letter-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-lg); }
   .letter-option { background: var(--color-surface-alt); border-radius: var(--radius-sm); padding: var(--space-md); cursor: pointer; font-size: var(--font-size-sm); color: var(--color-text-primary); text-align: center; }
@@ -32,7 +32,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-head">
   <h1>Letter Builder</h1>
   <p>Create formal letters from templates.</p>
 </div>
