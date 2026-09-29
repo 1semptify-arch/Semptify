@@ -79,16 +79,20 @@ The canonical first-run onboarding flow, verified against live code
 2. **`/preamble`** — the only new-vs-returning branch point
    (`app/modules/preamble/router.py`). Earlier versions of this section
    omitted it.
-3. Role selection (`/onboarding/select-role.html`) — Tenant only in Core
-4. **Storage connection (MANDATORY)** (`/onboarding/providers`) → OAuth → callback
-5. **Vault setup — three steps, not one:**
+3. **Storage connection (MANDATORY)** (`/onboarding/providers`) → OAuth → callback
+4. **Vault setup — three steps, not one:**
    - `/onboarding/vault-setup` → `POST /api/vault/init` (folders only)
    - `/onboarding/vault-setup/security` → `POST /api/vault/security`
      (encrypted token backup, then system/data files)
    - `/onboarding/vault-setup/inspect` → `POST /api/vault/verify`
      (write/read-back probe, then the first document through the full
      pipeline; marks `vault_initialized` + `document_uploaded`)
-6. `/onboarding/complete` → role-specific home via `route_user()`
+5. `/onboarding/complete` → tenant home via `route_user()`
+
+**Correction (2026-09-28):** the role-selection step is gone — onboarding-solo
+(PR #317) removed the role picker entirely; every onboarded user is a tenant.
+Legacy `/onboarding/role-select` / `/select-role.html` URLs redirect to
+providers. `route_user()` no longer fans out by role.
 
 **Note:** Storage connection is mandatory for Core 5.0. There is no "skip" option.
 Documents are stored in user's cloud provider (Google Drive, Dropbox, or OneDrive).
@@ -159,11 +163,11 @@ The `client_activated` gate was removed on 2026-05-12 — do not reintroduce it.
 ### Canonical Onboarding Assets
 
 - `static/onboarding/welcome.html`
-- `static/onboarding/select-role.html`
-- `static/onboarding/validate-advocate.html`
-- `static/onboarding/validate-legal.html`
+- `static/onboarding/index.html`
+- `static/onboarding/providers.html`
+- `static/onboarding/providers-reconnect.html`
 
-This flow must land the user in an active vault session and a role-specific home page, not a dead-end or ambiguous state.
+This flow must land the user in an active vault session and the tenant home page, not a dead-end or ambiguous state.
 
 ## 5. Doc Rules for Developers and Agents
 

@@ -541,7 +541,7 @@ All navigation, routing, and URL construction MUST follow Single Source of Truth
 ### ALWAYS DO
 
 - Import: `from app.core.navigation import navigation`
-- Use: `navigation.get_stage("role_select").path`
+- Use: `navigation.get_stage("tenant_home").path`
 - Use: `navigation.get_onboarding_start()` for entry points
 - Use: `navigation.get_next_path(current_stage)` for transitions
 - Static files: Fetch `/onboarding/ssot-navigation` API, then navigate
