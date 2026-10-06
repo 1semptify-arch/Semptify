@@ -1,3 +1,18 @@
+## Session — 2026-10-03 — Queue verification pass: header-nav close-out + footer-bug re-check (devin)
+
+**Brad's ask:** "put it all together" — review current state toward getting real supporters, confirm security work is actually done, start on consistent UI/polish. Full scope assessed and written up as a proposal (not committed to a file — session summary); this entry covers the concrete verification work done in the same session.
+
+**Verified (no code changes needed):**
+- `gnp-header-nav-order-2026-09-28` — confirmed commit `7296b747` (fixed header nav: Back/Home/DC/Library/Help&resources) is merged into `github-direct/main` via PR #319 (merge commit `9b7c399e`), not just committed locally as the task note previously said. `py_compile` clean on `app/main.py` + `app/core/navigation.py`; full `pytest tests/module_health -q --no-cov` 249/249 passed. Marked `review` in the master queue with this evidence — ready for Brad's `resolved` sign-off (executors can't self-resolve).
+- `intake-1cadb535` (footer AI-notice paragraph allegedly collapsing to a ~50px column at ≤375px) — re-tested live with Playwright at 320px and 375px on `/legal-share` and the seeded `/gui/record/journal/create` shell page: `.footer-help` renders full-width (285–337px) and wraps normally in both cases. Could not reproduce. Dismissed in the intake queue with the verification notes; flagged to re-open if Brad sees it again on a real device.
+
+**Assessed, not yet started (flagged back to Brad, scope too large for a single unplanned session):**
+- `semptify-consistent-ui-infrastructure` (open, unassigned) — Brad's own "most difficult obstacle" task; this is the literal "group functions by user goal, not module name" work. Needs a real plan (its own queue note says "plan before dispatching") before any code changes.
+- `semptify-always-on-deploy` (open) — needed before sharing links/donate page go in front of real supporters; blocked on Brad picking a hosting target (cost tradeoff, flagged per nonprofit-budget rule).
+- Confirmed the safety/security track record is real, not just claimed: PII purge + history rewrite (2026-09-05), prod DB ownership fix + deploy drift guard (2026-09-13), stateless tenant-only identity with role gates fully removed (2026-09-23), mutual-consent scoped sharing with audit log (2026-09-23), token-gated no-login legal-share portal with immutable originals (2026-09-28).
+
+**Not touched:** no application code changed this session — verification and queue hygiene only.
+
 ## Session — 2026-09-28 — Legal Share portal: token-gated case-file review share (swe-2.0)
 
 **Task `semptify-legal-share-portal`** (Brad approved 2026-09-27, supersedes Case Review spec §8 "sharing happens outside Semptify"): tenant grants an outside attorney/advocate a private link to selected case material — no reviewer identity, no sign-in, originals immutable, all state as owner-vault overlays.
