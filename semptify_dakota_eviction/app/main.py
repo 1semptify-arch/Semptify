@@ -226,8 +226,8 @@ async def startup_event():
         print("⚠️  Forms manifest not found - run setup script")
 
     print("=" * 60)
-    print("🚀 Server ready at http://localhost:8001")
-    print("📖 API docs at http://localhost:8001/docs")
+    print("🚀 Server ready at http://localhost:8011")
+    print("📖 API docs at http://localhost:8011/docs")
     print("=" * 60)
 
 
@@ -241,7 +241,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8001,  # Separate port from main Semptify
+        port=8011,  # Separate port from main Semptify
         reload=True,
         reload_dirs=[str(BASE_DIR)],
     )

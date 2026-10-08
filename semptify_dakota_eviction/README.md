@@ -27,9 +27,9 @@ pip install -r requirements.txt
 python run.py
 ```text
 
-Server starts at: <http://localhost:8001>
+Server starts at: <http://localhost:8011>
 
-API docs at: <http://localhost:8001/docs>
+API docs at: <http://localhost:8011/docs>
 
 ## Directory Structure
 
