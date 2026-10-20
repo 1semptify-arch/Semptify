@@ -14,7 +14,9 @@
 
 **Verified:** 12/12 module tests pass; `py_compile` clean on all touched files; live boot on scratch SQLite — intake lands Unresolved, resolve refuses without gate fields, resolved record surfaces by subject AND normalized citation, failed recheck auto-hides, 124/124 module-health tests pass. Template block renders only on real data.
 
-**Not done / pending Brad:** records pool is empty — needs Brad to intake real MN housing outcomes by hand (the module deliberately has no scraper). Not yet promoted past `dev_only`.
+**Not done / pending Brad:** records pool is empty — needs Brad to intake real MN housing outcomes by hand (the module deliberately has no scraper).
+
+**Same-session promotion (Brad-approved):** manifest `lifecycle` moved `dev_only → experimental` (one adjacent step, per `LIFECYCLE_ORDER`). `README.md` added — the experimental checklist requires it. 12/12 tests still green. Opt-in users only at this stage; `beta` needs integration tests + user docs + flag overlay per the maturity checklist, `stable` needs E2E + real usage. Note: locally the app runs `SEMPTIFY_ENV=development` (all tiers mount); production mounts only CORE/EXTENDED/ADVOCATE/ADMIN tiers — a tier change is a separate later decision.
 
 ## Session — 2026-10-03 — Queue verification pass: header-nav close-out + footer-bug re-check (devin)
 

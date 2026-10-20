@@ -1219,7 +1219,7 @@ _register(
     "app.modules.settlement_awareness.router",
     tags=("Settlement Awareness", "KNOW"),
     tier=ProductTier.DEV,
-    lifecycle="dev_only",
+    lifecycle="experimental",
     dev_notes="Verified pool of real housing settlements/judgments/enforcement actions surfaced in the Law Linker pop-out. Every record passes the Part 3B gate (source, fabrication check, human attestation, <90-day freshness); stale records auto-hide. API /api/settlement-awareness/related + operator intake/resolve/recheck.",
 )
 
