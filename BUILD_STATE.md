@@ -1,3 +1,21 @@
+## Session — 2026-10-20 — Settlement Awareness module built (devin)
+
+**Task `settlement-awareness-module-2026-09-28`** — blueprint approved by Brad, built as a `dev_only` additive module tied to Law Linker. Surfaces verified, human-attested public housing outcomes (settlements, judgments, enforcement actions) next to matching citations in the Law Linker pop-out.
+
+**What shipped:**
+- `app/modules/settlement_awareness/` — models.py (`settlement_or_case_records` table mirroring the Part 3B ContextFact gate shape), service.py (create/resolve/recheck/related/due_for_recheck — the read path re-checks every gate so regressed records auto-hide), router.py (`/api/settlement-awareness/related`, `/records`, `/resolve/{id}`, `/recheck`, `/recheck/{id}`), register.py (2 FunctionGroupContracts), module_contract.json.
+- `alembic/versions/20261020_add_settlement_awareness_records.py` — new head off `20260923_doc_access_logs`; verified upgrade creates table + 6 indexes + surface composite index on a scratch SQLite.
+- `app/core/database.py` — model registration.
+- `app/core/product_manifest.py` — `_register` at `ProductTier.DEV` / `lifecycle="dev_only"`.
+- `app/templates/pages/law_linker_popout.html` — additive "Real public outcomes" block; stays hidden unless verified records return.
+- `tools/module_registry.yaml` — `settlement_awareness` entry (unverified, health_check TODO).
+
+**Gates enforced at write AND read:** `resolution_status=Resolved`, `source_url` populated, `fabrication_check=true`, `ai_generated=false`, `attested_by` names a human, `is_verified=true`, `last_verified_date` ≤90 days (ADR-0009 stale auto-hide). `news_*` authorities cannot resolve without `primary_source_url`. No AI summaries, no predictions, no standalone page.
+
+**Verified:** 12/12 module tests pass; `py_compile` clean on all touched files; live boot on scratch SQLite — intake lands Unresolved, resolve refuses without gate fields, resolved record surfaces by subject AND normalized citation, failed recheck auto-hides, 124/124 module-health tests pass. Template block renders only on real data.
+
+**Not done / pending Brad:** records pool is empty — needs Brad to intake real MN housing outcomes by hand (the module deliberately has no scraper). Not yet promoted past `dev_only`.
+
 ## Session — 2026-10-03 — Queue verification pass: header-nav close-out + footer-bug re-check (devin)
 
 **Brad's ask:** "put it all together" — review current state toward getting real supporters, confirm security work is actually done, start on consistent UI/polish. Full scope assessed and written up as a proposal (not committed to a file — session summary); this entry covers the concrete verification work done in the same session.

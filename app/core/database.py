@@ -198,6 +198,12 @@ try:
 except ImportError:
     pass
 
+# Register Settlement Awareness models with SQLAlchemy Base
+try:
+    import app.modules.settlement_awareness.models  # noqa: F401
+except ImportError:
+    pass
+
 
 @asynccontextmanager
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:

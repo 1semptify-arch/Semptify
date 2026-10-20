@@ -1,0 +1,37 @@
+{
+  "module_name": "Settlement Awareness",
+  "layout": "app/modules/settlement_awareness/ — 2 registered function groups (settlement_awareness_related, settlement_awareness_records).",
+  "inputs": [
+    {
+      "name": "citation",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "subject",
+      "type": "field",
+      "required": false
+    }
+  ],
+  "input_audit": [
+    {
+      "input_name": "citation",
+      "source": "other",
+      "note": "Passed through from the Law Linker pop-out context."
+    },
+    {
+      "input_name": "subject",
+      "source": "other",
+      "note": "A taxonomy.py Subject tag."
+    }
+  ],
+  "preview_state": "dev_only",
+  "review_state": null,
+  "output_type": "other",
+  "output_how": "JSON lists of verified settlement/case records matched by citation or subject, plus operator intake/resolve/recheck endpoints.",
+  "output_where": "/api/settlement-awareness/related, /api/settlement-awareness/records, /api/settlement-awareness/recheck",
+  "output_why": "Surfaces real, human-attested public housing outcomes next to matching legal citations in the Law Linker pop-out.",
+  "process_description": "Records are pointers to real public sources only. The read surface re-checks the Part 3B gate (resolution_status, source_url, fabrication_check, ai_generated=false, attested_by, freshness) on every call; stale or regressed records auto-hide.",
+  "process_context": "dev_only lifecycle. Wired into the Law Linker pop-out as an additive block; no standalone page.",
+  "narrative_events": []
+}

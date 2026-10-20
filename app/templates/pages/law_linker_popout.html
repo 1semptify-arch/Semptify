@@ -44,6 +44,33 @@
     font-size: 0.8125rem;
     margin-bottom: 1rem;
 }
+.law-popout--outcomes {
+    margin-top: 1rem;
+}
+.law-popout--outcome {
+    border: 1px solid var(--border-subtle, var(--bg-footer));
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+.law-popout--outcome h3 {
+    margin: 0 0 0.25rem;
+    font-size: 0.9375rem;
+}
+.law-popout--outcome p {
+    margin: 0.25rem 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary, var(--text-secondary));
+}
+.law-popout--outcome .law-popout--outcome-kind {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary, var(--text-secondary));
+}
+.law-popout--outcome a {
+    font-size: 0.8125rem;
+}
 </style>
 {% endblock %}
 
@@ -79,6 +106,16 @@
             <p style="color:var(--text-tertiary); font-size:0.75rem; margin-top:1rem;">
                 {{ citation.disclaimer }}
             </p>
+
+            <section class="law-popout--outcomes" id="relatedOutcomes" hidden
+                     aria-label="Related public outcomes">
+                <h2 style="font-size:1rem; margin:0.5rem 0 0;">Real public outcomes</h2>
+                <p style="margin:0.25rem 0; font-size:0.8125rem; color:var(--text-secondary);">
+                    Verified settlements, judgments, and enforcement actions that cite this law.
+                    These show what happened in real cases — not a prediction of yours.
+                </p>
+                <div id="relatedOutcomesList"></div>
+            </section>
         </div>
     </section>
 </div>
@@ -116,5 +153,70 @@ document.getElementById('saveToScratch').addEventListener('click', async functio
         alert('Could not save to scratch pad.');
     }
 });
+
+// Settlement Awareness — fetch verified public outcomes matching this
+// citation. The section stays hidden unless real, verified records come
+// back; nothing unverified ever renders.
+(function () {
+    const citationText = {{ citation.citation | tojson | safe }};
+    if (!citationText) return;
+    const section = document.getElementById('relatedOutcomes');
+    const list = document.getElementById('relatedOutcomesList');
+    if (!section || !list) return;
+
+    fetch('/api/settlement-awareness/related?citation=' + encodeURIComponent(citationText))
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+            if (!data || !Array.isArray(data.records) || !data.records.length) return;
+            data.records.forEach(function (r) {
+                const card = document.createElement('div');
+                card.className = 'law-popout--outcome';
+
+                const kind = document.createElement('span');
+                kind.className = 'law-popout--outcome-kind';
+                kind.textContent = (r.record_kind || 'outcome').replace(/_/g, ' ');
+                card.appendChild(kind);
+
+                const h = document.createElement('h3');
+                h.textContent = r.title || '';
+                card.appendChild(h);
+
+                if (r.parties) {
+                    const p = document.createElement('p');
+                    p.textContent = r.parties;
+                    card.appendChild(p);
+                }
+                if (r.headline) {
+                    const p = document.createElement('p');
+                    p.textContent = r.headline;
+                    card.appendChild(p);
+                }
+                if (r.relief_summary) {
+                    const p = document.createElement('p');
+                    p.textContent = r.relief_summary;
+                    card.appendChild(p);
+                }
+                if (r.last_verified_date) {
+                    const p = document.createElement('p');
+                    p.textContent = 'Source verified ' + r.last_verified_date +
+                        (r.source_authority ? ' — ' + r.source_authority : '');
+                    card.appendChild(p);
+                }
+                if (r.source_url) {
+                    const a = document.createElement('a');
+                    a.href = r.source_url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    a.textContent = 'View the official record';
+                    card.appendChild(a);
+                }
+                list.appendChild(card);
+            });
+            if (list.children.length) {
+                section.hidden = false;
+            }
+        })
+        .catch(function () { /* stay hidden — silence beats fabrication */ });
+})();
 </script>
 {% endblock %}

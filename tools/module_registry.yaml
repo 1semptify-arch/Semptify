@@ -1855,3 +1855,14 @@
   test_suite: tests/module_health/test_legal_share.py
   last_verified: null
   status: unverified
+- id: settlement_awareness
+  display_name: Settlement Awareness / Know
+  category: advanced
+  tier: B
+  owner: brad
+  version: 0.1.0
+  module_path: app.modules.settlement_awareness.router
+  health_check: TODO
+  test_suite: app/modules/settlement_awareness/tests/test_settlement_awareness.py
+  last_verified: null
+  status: unverified
