@@ -1,0 +1,124 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}Hello — Welcome to Semptify{% endblock %}
+{% block description %}What Semptify is becoming, what's in the works — including a housing bill proposal — where the build stands, and our standing commitments: no cost, no advertising, no tracking.{% endblock %}
+{% block keywords %}semptify welcome, under construction, housing bill, tenant rights platform, no tracking, donations{% endblock %}
+
+{% block header_title %}Hello, world. Welcome to Semptify.{% endblock %}
+{% block header_tagline %}Tenant rights, documented. Our motto: document everything.{% endblock %}
+{% block header_subtitle %}Semptify is under construction — built in public, at no cost, always. Here is where things stand.{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .hello-grid { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+    .hello-zone { background: var(--bg-surface); border-radius: var(--radius-block); padding: 1rem 1.25rem; }
+    .hello-zone h2 { font-size: 1.1rem; color: var(--color-primary); font-weight: 600; margin-bottom: 0.4rem; }
+    .hello-zone p, .hello-zone li { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; }
+    .hello-zone ul { margin: 0.25rem 0 0 1.1rem; padding: 0; }
+    .hello-zone li { margin-bottom: 0.35rem; }
+    .hello-zone li strong { color: var(--text-primary); }
+    .hello-label { display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .hello-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.6rem; }
+    .hello-note { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem; }
+    /* Desktop poster: two columns, fits viewport without page scroll */
+    @media (min-width: 1024px) {
+        .hello-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        .hello-zone { padding: 0.75rem 1rem; }
+        .hello-zone--wide { grid-column: 1 / -1; }
+    }
+</style>
+{% endblock %}
+
+{% block page_body %}
+<div class="hello-grid">
+
+    <section class="hello-zone">
+        <h2>What Semptify is becoming</h2>
+        <p>
+            A tenant rights advocate organization — a public utility, not a product.
+            We help renters document what is happening, understand their rights in
+            plain language, and take the next right step. Your documents stay in
+            your own storage. Nonprofit filing is in progress, and the code is
+            <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener">open source on GitHub</a>.
+        </p>
+    </section>
+
+    <section class="hello-zone">
+        <h2>Where the build stands</h2>
+        <p>
+            We are under construction. Some tools work today; more are on the way.
+            Expect good things — and honest notes where we're not there yet.
+        </p>
+        <ul>
+            <li><a href="/document-everything">Document everything</a> — the idea the whole platform runs on</li>
+            <li><a href="/law-library">Know your rights library</a> — plain-language facts, sources shown</li>
+            <li><a href="/portal">The portal</a> — tools and services as they come online</li>
+        </ul>
+    </section>
+
+    <section class="hello-zone hello-zone--wide">
+        <h2>In the works: a housing bill proposal</h2>
+        <p>
+            We are working to put together a proposal for a bill for the housing
+            industry, centered on clear, fair documentation standards. It is early.
+            Nothing is filed. What follows is <strong>our early read — opinion,
+            labeled as opinion, not settled fact</strong> — on how it might affect
+            different people:
+        </p>
+        <ul>
+            <li><strong>For renters:</strong> a common documentation standard could make it simpler to keep a clear, dated record of a tenancy — and simpler to show the facts when something goes wrong.</li>
+            <li><strong>For housing providers:</strong> clear standards could reduce disputes, make expectations predictable, and make it easier for good operators to show they are good operators.</li>
+            <li><strong>For lawmakers:</strong> better records across the industry could give policymakers real data about what is actually happening in housing, instead of competing anecdotes.</li>
+        </ul>
+        <p class="hello-note">We will publish the draft and invite comment from every side as the work matures.</p>
+    </section>
+
+    <section class="hello-zone">
+        <h2>Our standing commitments</h2>
+        <ul>
+            <li><strong>No cost, always.</strong> We never charge for anything.</li>
+            <li><strong>No advertising and no paid endorsements, ever.</strong></li>
+            <li><strong>We never track you.</strong> No analytics, no cookies that follow you, no email capture.</li>
+            <li><strong>Transparency instead of accounts:</strong> because we take no names, requests sent to us are posted publicly along with our responses.</li>
+        </ul>
+        <div class="hello-actions">
+            <a href="/tool-requests" class="cta-button">Need a tool? Ask for it</a>
+        </div>
+    </section>
+
+    <section class="hello-zone">
+        <h2>Funding the work</h2>
+        <p>
+            Semptify survives on donations and, we hope, grants. We are currently
+            looking for funding resources — the next milestone is our 501(c)(3)
+            filing fee.
+        </p>
+        <div class="hello-actions">
+            <a href="https://github.com/sponsors/1semptify-arch" target="_blank" rel="noopener" class="cta-button">Sponsor on GitHub</a>
+            <a href="/donate" class="cta-button secondary">How funding works</a>
+        </div>
+    </section>
+
+    <section class="hello-zone hello-zone--wide">
+        <h2>Outside views</h2>
+        <p>
+            We invite outside reviews of what we're building — agree or disagree.
+            As independent write-ups are published, we will link them here. So far:
+            <a href="https://vibedprojects.com/projects/commons/semptify" target="_blank" rel="noopener">Vibe Coded Projects</a>
+            lists Semptify as "a nonprofit tenant-rights platform" (listed 1 October 2026).
+        </p>
+        <p class="hello-note">
+            Semptify is an organizational and educational tool, not a law firm. For
+            legal advice, contact a licensed attorney or your local legal aid society.
+        </p>
+        <p class="hello-note">
+            AI-Assisted Content Notice: Semptify uses AI tools to help generate
+            Minnesota housing-law educational material. This site does not provide
+            legal advice. For case-specific guidance, contact a licensed Minnesota
+            attorney.
+        </p>
+    </section>
+
+</div>
+{% endblock %}

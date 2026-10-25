@@ -1214,6 +1214,15 @@ _register(
     dev_notes="Citation pop-out: click a marked citation to open a window with word-for-word official text and a Save to Scratch Pad button. API /api/law-linker/citation. Page /law-linker/pop-out.",
 )
 
+# Settlement Awareness — verified public housing outcomes beside citations
+_register(
+    "app.modules.settlement_awareness.router",
+    tags=("Settlement Awareness", "KNOW"),
+    tier=ProductTier.DEV,
+    lifecycle="experimental",
+    dev_notes="Verified pool of real housing settlements/judgments/enforcement actions surfaced in the Law Linker pop-out. Every record passes the Part 3B gate (source, fabrication check, human attestation, <90-day freshness); stale records auto-hide. API /api/settlement-awareness/related + operator intake/resolve/recheck.",
+)
+
 # Tactics — Legal tactics development tools
 _register(
     "app.modules.tactics.router",

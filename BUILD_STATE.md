@@ -1,3 +1,50 @@
+## Session — 2026-10-25 — Brand system + /hello page + public tool-request forum (devin)
+
+**Queue task `plan-20261025-semptify-org-brand-development-system-pu-19e8`** (master queue) — Semptify.org public brand package.
+
+**What shipped (commit fb9d4745 on chore/consolidate-limbo-lists-2026-10-24 → PR):**
+- `app/templates/public/hello.html` + `pages.py` entry `/hello` — brand front door: what Semptify is becoming, honest build status, housing-bill proposal news with three labeled perspectives (renters / housing providers / lawmakers — labeled opinion, not fact), standing commitments (no cost, no ads/endorsements, no tracking, public requests), 501(c)(3) filing-fee funding milestone + GitHub Sponsors button, outside-views section (vibedprojects.com listing cited), canonical AI-use footer disclosure.
+- `app/templates/public/tool_requests.html` + `pages.py` entry `/tool-requests` — anonymous request form (no name/email by design) + public list of requests with our responses.
+- `tool_requests` table — `models.py` ToolRequest (org-facing public content, no user linkage — DB boundary note in docstring), `alembic/versions/20261025_add_tool_requests.py` off `20261020_settlement_awareness`, POST `/api/tool-request` (rate-limited 5/min) + GET `/api/tool-requests` in `public_forms`, contract `public_forms_tool_request` registered.
+- Master repo: `SEMPTIFY_BRAND_SYSTEM.md` (commit 03c20b3) — brand operating system: realm-of-interests map, ethical guardrails, five-gate pipeline, model routing.
+
+**Brad's decisions:** review-then-post gate KEPT (is_published defaults False — requests publish after a review pass removing personal details); publishing a response currently requires a direct DB update (admin review screen is a known gap).
+
+**Verified:** py_compile clean; migration verified on scratch SQLite; live boot — both pages 200, submit→store→publish→list loop works end-to-end; banned-words scan of rendered pages clean; `test_ssot_architecture.py` all pass; semptify-local-smoke.js 6/6 (first run had a cold-start timeout on `/` — unrelated to this change, clean on re-run).
+
+**Known infra issue (not introduced here):** local Postgres 10.0.0.106 — every semptify DB is empty and the `semptify` role lacks CREATE on schema public; needs a one-time admin `GRANT ALL ON SCHEMA public TO semptify;`. Parked — local dev uses SQLite, prod is Neon.
+
+**Next session:** build the admin "review & respond" screen for tool requests; collect outside reviews for the Outside Views section; wire /hello into home-page nav if Brad wants it.
+
+**Same-session DB split (Brad directive — Semptify dev on Neon, private/legal stays local):**
+- Neon `dev` branch `br-restless-math-an5kb1wa` created off `production` — copy-on-write clone; local dev now runs against a realistic, safe-to-break DB. `.env` `DATABASE_URL` repointed (local-only file, not committed).
+- `alembic upgrade head` run on dev: 20260913_tl_tags → 20261025_tool_requests (all 8 pending migrations applied clean on Postgres).
+- `database.py` root-cause fix committed: `_resolve_db_ssl()` — URL `sslmode` > `DB_SSL_MODE` (now actually wired, was dead config) > host heuristic; self-signed LAN certs encrypt-without-verify instead of crashing.
+- LAN Postgres 10.0.0.106 = legal/private DBs only; its empty `semptify_*` DBs can be dropped by an admin whenever (intake intake-60f8fcde).
+- Local PC also has Postgres 16 installed but service stopped — unused, leave it.
+
+---
+
+## Session — 2026-10-20 — Settlement Awareness module built (devin)
+
+**Task `settlement-awareness-module-2026-09-28`** — blueprint approved by Brad, built as a `dev_only` additive module tied to Law Linker. Surfaces verified, human-attested public housing outcomes (settlements, judgments, enforcement actions) next to matching citations in the Law Linker pop-out.
+
+**What shipped:**
+- `app/modules/settlement_awareness/` — models.py (`settlement_or_case_records` table mirroring the Part 3B ContextFact gate shape), service.py (create/resolve/recheck/related/due_for_recheck — the read path re-checks every gate so regressed records auto-hide), router.py (`/api/settlement-awareness/related`, `/records`, `/resolve/{id}`, `/recheck`, `/recheck/{id}`), register.py (2 FunctionGroupContracts), module_contract.json.
+- `alembic/versions/20261020_add_settlement_awareness_records.py` — new head off `20260923_doc_access_logs`; verified upgrade creates table + 6 indexes + surface composite index on a scratch SQLite.
+- `app/core/database.py` — model registration.
+- `app/core/product_manifest.py` — `_register` at `ProductTier.DEV` / `lifecycle="dev_only"`.
+- `app/templates/pages/law_linker_popout.html` — additive "Real public outcomes" block; stays hidden unless verified records return.
+- `tools/module_registry.yaml` — `settlement_awareness` entry (unverified, health_check TODO).
+
+**Gates enforced at write AND read:** `resolution_status=Resolved`, `source_url` populated, `fabrication_check=true`, `ai_generated=false`, `attested_by` names a human, `is_verified=true`, `last_verified_date` ≤90 days (ADR-0009 stale auto-hide). `news_*` authorities cannot resolve without `primary_source_url`. No AI summaries, no predictions, no standalone page.
+
+**Verified:** 12/12 module tests pass; `py_compile` clean on all touched files; live boot on scratch SQLite — intake lands Unresolved, resolve refuses without gate fields, resolved record surfaces by subject AND normalized citation, failed recheck auto-hides, 124/124 module-health tests pass. Template block renders only on real data.
+
+**Not done / pending Brad:** records pool is empty — needs Brad to intake real MN housing outcomes by hand (the module deliberately has no scraper).
+
+**Same-session promotion (Brad-approved):** manifest `lifecycle` moved `dev_only → experimental` (one adjacent step, per `LIFECYCLE_ORDER`). `README.md` added — the experimental checklist requires it. 12/12 tests still green. Opt-in users only at this stage; `beta` needs integration tests + user docs + flag overlay per the maturity checklist, `stable` needs E2E + real usage. Note: locally the app runs `SEMPTIFY_ENV=development` (all tiers mount); production mounts only CORE/EXTENDED/ADVOCATE/ADMIN tiers — a tier change is a separate later decision.
+
 ## Session — 2026-10-03 — Queue verification pass: header-nav close-out + footer-bug re-check (devin)
 
 **Brad's ask:** "put it all together" — review current state toward getting real supporters, confirm security work is actually done, start on consistent UI/polish. Full scope assessed and written up as a proposal (not committed to a file — session summary); this entry covers the concrete verification work done in the same session.

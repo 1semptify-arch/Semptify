@@ -54,6 +54,22 @@ class FeedbackRequest(BaseModel):
         return v
 
 
+class ToolRequestCreate(BaseModel):
+    """Anonymous public tool request — no name, no email, by design."""
+
+    message: str
+
+    @field_validator("message")
+    @classmethod
+    def message_valid(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Request cannot be empty")
+        v = v.strip()
+        if len(v) > 2000:
+            raise ValueError("Request must be 2000 characters or fewer")
+        return v
+
+
 class ContactRequest(BaseModel):
     name: str
     email: str
@@ -258,6 +274,68 @@ async def tenant_autofill(request: Request):
     user_id = extract_user_id(request) or ""
     result = await load_tenant_autofill(user_id)
     return JSONResponse(result)
+
+
+@router.post("/tool-request")
+@limiter.limit("5/minute")
+async def submit_tool_request(request: Request, body: ToolRequestCreate):
+    """
+    Receive an anonymous public tool request from /tool-requests.
+
+    No name or email is accepted — Semptify takes no names and tracks no
+    one. The request is stored and published on /tool-requests with our
+    response after a review pass that removes personal details.
+    """
+    import uuid
+
+    from app.core.database import get_db_session
+    from app.models.models import ToolRequest
+
+    async with get_db_session() as db:
+        db.add(ToolRequest(id=str(uuid.uuid4()), request_text=body.message))
+
+    return JSONResponse({"status": "ok", "received": True})
+
+
+@router.get("/tool-requests")
+async def list_tool_requests():
+    """
+    List published tool requests with our responses — public, no auth.
+    Newest first, capped at 200.
+    """
+    from sqlalchemy import select
+
+    from app.core.database import get_db_session
+    from app.models.models import ToolRequest
+
+    async with get_db_session() as db:
+        result = await db.execute(
+            select(ToolRequest)
+            .where(ToolRequest.is_published.is_(True))
+            .order_by(ToolRequest.created_at.desc())
+            .limit(200)
+        )
+        rows = result.scalars().all()
+        pending = await db.execute(
+            select(ToolRequest.id).where(ToolRequest.is_published.is_(False))
+        )
+        pending_count = len(pending.scalars().all())
+
+    return JSONResponse(
+        {
+            "requests": [
+                {
+                    "id": r.id,
+                    "request": r.request_text,
+                    "response": r.response_text,
+                    "status": r.status,
+                    "date": r.created_at.date().isoformat() if r.created_at else None,
+                }
+                for r in rows
+            ],
+            "awaiting_review": pending_count,
+        }
+    )
 
 
 @router.post("/contact")

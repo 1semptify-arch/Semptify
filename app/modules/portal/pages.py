@@ -47,6 +47,30 @@ class PortalPageRegistry:
 
     PAGES: ClassVar[list[PortalPage]] = [
         PortalPage(
+            id="hello",
+            title="Hello — Welcome to Semptify",
+            path="/hello",
+            template="public/hello.html",
+            description="What Semptify is becoming, what's in the works — including a housing bill proposal — where the build stands, and our standing commitments: no cost, no advertising, no tracking.",
+            keywords="semptify welcome, under construction, housing bill, tenant rights platform, no tracking, donations",
+            og_title="Hello — Welcome to Semptify",
+            og_description="What Semptify is becoming, what's in the works, and where the build stands.",
+            footer_label="Welcome",
+            order=3,
+        ),
+        PortalPage(
+            id="tool_requests",
+            title="Tool Requests — Semptify",
+            path="/tool-requests",
+            template="public/tool_requests.html",
+            description="Ask for a tool you need. No name, no email required — every request and our response is posted publicly, because Semptify takes no names and tracks no one.",
+            keywords="tool request, request a tool, public requests, tenant tools, semptify",
+            og_title="Tool Requests — Semptify",
+            og_description="Ask for a tool you need. Every request and our response is posted publicly.",
+            footer_label="Tool requests",
+            order=95,
+        ),
+        PortalPage(
             id="portal",
             title="Semptify — Tenant Rights, Documented",
             path="/portal",

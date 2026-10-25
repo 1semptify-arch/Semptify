@@ -2137,6 +2137,47 @@ class VaultCheck(Base):
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
 
 
+# =============================================================================
+# Public Tool Requests
+# =============================================================================
+
+
+class ToolRequest(Base):
+    """
+    Public tool request — anonymous, intentionally public content.
+
+    DB-boundary note: this is NOT tenant case data. It is org-facing public
+    forum content submitted anonymously from /tool-requests (no user_id, no
+    name, no email — by design, since Semptify takes no names and tracks no
+    one). Requests and our responses are published openly on the site after
+    a review pass that removes any personal details someone pasted in
+    (precedent: press_release_records also holds org-facing public content).
+
+    is_published gates public visibility: a request is stored on submission
+    and surfaces on /tool-requests once reviewed. Decision flagged to Brad
+    2026-10-25 — flip the default if instant posting is preferred.
+    """
+
+    __tablename__ = "tool_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+
+    # What the visitor asked for (the tool/need), published verbatim after review.
+    request_text: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # Our public response, filled in by the org.
+    response_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # received | published | answered | declined
+    status: Mapped[str] = mapped_column(String(32), default="received", index=True, nullable=False)
+
+    # Public visibility gate (see docstring).
+    is_published: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, index=True, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
+
+
 # Import context engine models so they are registered on the shared Base.
 # This keeps Alembic autogenerate and other Base.metadata consumers in sync.
 from app.modules.context_engine.models import ContextFact, TenantStory  # noqa: F401
