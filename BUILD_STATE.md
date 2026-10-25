@@ -1,3 +1,23 @@
+## Session — 2026-10-25 — Brand system + /hello page + public tool-request forum (devin)
+
+**Queue task `plan-20261025-semptify-org-brand-development-system-pu-19e8`** (master queue) — Semptify.org public brand package.
+
+**What shipped (commit fb9d4745 on chore/consolidate-limbo-lists-2026-10-24 → PR):**
+- `app/templates/public/hello.html` + `pages.py` entry `/hello` — brand front door: what Semptify is becoming, honest build status, housing-bill proposal news with three labeled perspectives (renters / housing providers / lawmakers — labeled opinion, not fact), standing commitments (no cost, no ads/endorsements, no tracking, public requests), 501(c)(3) filing-fee funding milestone + GitHub Sponsors button, outside-views section (vibedprojects.com listing cited), canonical AI-use footer disclosure.
+- `app/templates/public/tool_requests.html` + `pages.py` entry `/tool-requests` — anonymous request form (no name/email by design) + public list of requests with our responses.
+- `tool_requests` table — `models.py` ToolRequest (org-facing public content, no user linkage — DB boundary note in docstring), `alembic/versions/20261025_add_tool_requests.py` off `20261020_settlement_awareness`, POST `/api/tool-request` (rate-limited 5/min) + GET `/api/tool-requests` in `public_forms`, contract `public_forms_tool_request` registered.
+- Master repo: `SEMPTIFY_BRAND_SYSTEM.md` (commit 03c20b3) — brand operating system: realm-of-interests map, ethical guardrails, five-gate pipeline, model routing.
+
+**Brad's decisions:** review-then-post gate KEPT (is_published defaults False — requests publish after a review pass removing personal details); publishing a response currently requires a direct DB update (admin review screen is a known gap).
+
+**Verified:** py_compile clean; migration verified on scratch SQLite; live boot — both pages 200, submit→store→publish→list loop works end-to-end; banned-words scan of rendered pages clean; `test_ssot_architecture.py` all pass; semptify-local-smoke.js 6/6 (first run had a cold-start timeout on `/` — unrelated to this change, clean on re-run).
+
+**Known infra issue (not introduced here):** local Postgres 10.0.0.106 — every semptify DB is empty and the `semptify` role lacks CREATE on schema public; needs a one-time admin `GRANT ALL ON SCHEMA public TO semptify;`. Parked — local dev uses SQLite, prod is Neon.
+
+**Next session:** build the admin "review & respond" screen for tool requests; collect outside reviews for the Outside Views section; wire /hello into home-page nav if Brad wants it.
+
+---
+
 ## Session — 2026-10-20 — Settlement Awareness module built (devin)
 
 **Task `settlement-awareness-module-2026-09-28`** — blueprint approved by Brad, built as a `dev_only` additive module tied to Law Linker. Surfaces verified, human-attested public housing outcomes (settlements, judgments, enforcement actions) next to matching citations in the Law Linker pop-out.
