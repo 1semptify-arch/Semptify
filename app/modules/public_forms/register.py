@@ -35,6 +35,19 @@ register_function_group(
 register_function_group(
     FunctionGroupContract(
         module="public_forms",
+        group_name="public_forms_tool_request",
+        title="Public Forms Tool Request (SSOT)",
+        description="CANONICAL anonymous public tool request: submit from /tool-requests and list published requests with responses. Public endpoints.",
+        inputs=("message",),
+        outputs=("success", "requests"),
+        dependencies=("app.modules.public_forms.router",),
+        deterministic=False,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="public_forms",
         group_name="public_forms_contact",
         title="Public Forms Submit Contact (SSOT)",
         description="CANONICAL receive a contact form submission. Public endpoint.",
