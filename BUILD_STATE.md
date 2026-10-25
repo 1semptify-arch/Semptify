@@ -16,6 +16,13 @@
 
 **Next session:** build the admin "review & respond" screen for tool requests; collect outside reviews for the Outside Views section; wire /hello into home-page nav if Brad wants it.
 
+**Same-session DB split (Brad directive — Semptify dev on Neon, private/legal stays local):**
+- Neon `dev` branch `br-restless-math-an5kb1wa` created off `production` — copy-on-write clone; local dev now runs against a realistic, safe-to-break DB. `.env` `DATABASE_URL` repointed (local-only file, not committed).
+- `alembic upgrade head` run on dev: 20260913_tl_tags → 20261025_tool_requests (all 8 pending migrations applied clean on Postgres).
+- `database.py` root-cause fix committed: `_resolve_db_ssl()` — URL `sslmode` > `DB_SSL_MODE` (now actually wired, was dead config) > host heuristic; self-signed LAN certs encrypt-without-verify instead of crashing.
+- LAN Postgres 10.0.0.106 = legal/private DBs only; its empty `semptify_*` DBs can be dropped by an admin whenever (intake intake-60f8fcde).
+- Local PC also has Postgres 16 installed but service stopped — unused, leave it.
+
 ---
 
 ## Session — 2026-10-20 — Settlement Awareness module built (devin)
