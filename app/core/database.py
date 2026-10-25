@@ -29,13 +29,41 @@ except ImportError:
     StaticPool = None
     SQLALCHEMY_AVAILABLE = False
 
-from app.core.config import get_settings
+from app.core.config import _requires_ssl, get_settings
 
 
 class Base(DeclarativeBase):
     """Base class for all ORM models."""
 
     pass
+
+
+def _resolve_db_ssl(settings) -> object:
+    """Resolve the asyncpg ``ssl`` connect arg.
+
+    Priority:
+    1. ``sslmode=require|verify-full`` in the raw DATABASE_URL → verified TLS
+       (Neon / production).
+    2. ``DB_SSL_MODE``: ``disable`` → off; ``require``/``verify-*`` → verified TLS.
+    3. Otherwise (``prefer``, the default): localhost → off; any other host →
+       encrypt but accept self-signed certs (LAN Postgres). Previously this was
+       a localhost-only heuristic that forced verified TLS on LAN servers and
+       crashed on their self-signed certs.
+    """
+    import ssl as _ssl
+
+    mode = (settings.db_ssl_mode or "prefer").lower()
+    if _requires_ssl() or mode in ("require", "verify-ca", "verify-full"):
+        return True
+    if mode == "disable":
+        return False
+    is_localhost = "localhost" in settings.database_url or "127.0.0.1" in settings.database_url
+    if is_localhost:
+        return False
+    ctx = _ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = _ssl.CERT_NONE
+    return ctx
 
 
 # Engine and session factory (lazy initialization)
@@ -76,9 +104,7 @@ def get_engine():
                 }
         else:
             # PostgreSQL: use async-compatible connection pooling
-            # Auto-detect localhost (no SSL) vs production (SSL required)
-            is_localhost = "localhost" in settings.database_url or "127.0.0.1" in settings.database_url
-
+            # SSL is resolved by _resolve_db_ssl (URL sslmode > DB_SSL_MODE > host heuristic)
             pool_config = {
                 "poolclass": AsyncAdaptedQueuePool,
                 "pool_size": 5,  # Base connections
@@ -91,7 +117,7 @@ def get_engine():
                 "pool_recycle": 280,
                 "pool_pre_ping": True,  # Verify connections before use
                 "connect_args": {
-                    "ssl": False if is_localhost else True,
+                    "ssl": _resolve_db_ssl(settings),
                     # asyncpg timeouts: without these a suspended/unreachable
                     # Postgres can hang pre-ping and queries indefinitely.
                     "timeout": 10,  # connect timeout
