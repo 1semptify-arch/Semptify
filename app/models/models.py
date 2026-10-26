@@ -2178,6 +2178,52 @@ class ToolRequest(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
 
 
+# =============================================================================
+# Your Voice — public questions and opinions on the housing bill
+# =============================================================================
+
+
+class VoicePost(Base):
+    """
+    Your Voice post — anonymous public questions and opinions about the
+    housing bill draft and the issues affecting renters, shown on
+    /your-voice.
+
+    Same org-facing public-content boundary as ToolRequest: NOT tenant
+    case data, no user_id, no name, no email — by design, since Semptify
+    takes no names and tracks no one. Posts surface publicly after a
+    review pass that removes any personal details someone pasted in.
+    Answers come from the org or invited contributors and are labeled by
+    role (responder_label), never an invented name.
+    """
+
+    __tablename__ = "voice_posts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+
+    # question | opinion
+    kind: Mapped[str] = mapped_column(String(16), default="question", index=True, nullable=False)
+
+    # What the visitor asked or said, published verbatim after review.
+    post_text: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # The public answer, filled in by the org or an invited contributor.
+    response_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Who answered, by role only — e.g. "Semptify", "a volunteer housing
+    # attorney", "a legislative staffer". Never a fabricated name.
+    responder_label: Mapped[str | None] = mapped_column(String(80), nullable=True)
+
+    # received | published | answered | declined
+    status: Mapped[str] = mapped_column(String(32), default="received", index=True, nullable=False)
+
+    # Public visibility gate — same review-then-post policy as tool_requests.
+    is_published: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, index=True, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
+
+
 # Import context engine models so they are registered on the shared Base.
 # This keeps Alembic autogenerate and other Base.metadata consumers in sync.
 from app.modules.context_engine.models import ContextFact, TenantStory  # noqa: F401

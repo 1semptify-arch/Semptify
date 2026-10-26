@@ -48,6 +48,19 @@ register_function_group(
 register_function_group(
     FunctionGroupContract(
         module="public_forms",
+        group_name="public_forms_voice_post",
+        title="Public Forms Voice Post (SSOT)",
+        description="CANONICAL anonymous public question/opinion on the housing bill: submit from /your-voice and list published posts with answers. Public endpoints.",
+        inputs=("kind", "message"),
+        outputs=("success", "posts"),
+        dependencies=("app.modules.public_forms.router",),
+        deterministic=False,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="public_forms",
         group_name="public_forms_contact",
         title="Public Forms Submit Contact (SSOT)",
         description="CANONICAL receive a contact form submission. Public endpoint.",

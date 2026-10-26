@@ -221,8 +221,8 @@ class PortalRegistry:
             order=10,
             requires_auth=False,
             description_long=(
-                "Semptify is free for tenants, forever. Donations keep it that way. "
-                "Donate via GitHub Sponsors — no account required."
+                "Semptify costs tenants nothing, ever. Donations keep it that way. "
+                "Donate via GitHub Sponsors — one-time or monthly."
             ),
         ),
         # =====================================================================

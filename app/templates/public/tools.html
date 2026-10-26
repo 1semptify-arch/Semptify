@@ -1,19 +1,20 @@
 {% extends "body/public_shell.html" %}
 
-{% block title %}Standalone Tools — Semptify{% endblock %}
-{% block description %}Standalone tools: PDF tools, document converter, public forms. No account required.{% endblock %}
-{% block keywords %}pdf tools, document converter, public forms, housing forms, no account required{% endblock %}
+{% block title %}Tools — Semptify{% endblock %}
+{% block description %}Semptify tools: PDF tools, document converter, public forms — part of the Semptify service catalog.{% endblock %}
+{% block keywords %}pdf tools, document converter, public forms, housing forms, tenant tools{% endblock %}
 
-{% block header_title %}Standalone Tools{% endblock %}
-{% block header_tagline %}Tools — No Account Required{% endblock %}
-{% block header_subtitle %}Use individual tools without signing up.{% endblock %}
+{% block header_title %}Tools{% endblock %}
+{% block header_tagline %}Tools — three tool sets inside Semptify{% endblock %}
+{% block header_subtitle %}Each opens inside Semptify. Nothing you process is kept on our side.{% endblock %}
 
 {% block page_body %}
 
 <section class="section">
     <h2 class="section-title">PDF Tools</h2>
     <p style="color: var(--text-light);">
-        Merge, split, and convert PDFs. No account required — files processed and returned.
+        Merge, split, and convert PDFs — repair notices, lease packets, exhibit sets.
+        Files are processed and returned; nothing is stored.
     </p>
     <a href="/preamble" class="cta-button" style="margin-top: 1rem;">Open PDF Tools →</a>
 </section>
@@ -22,7 +23,7 @@
     <h2 class="section-title">Document Converter</h2>
     <p style="color: var(--text-light);">
         Convert documents between formats: PDF to DOCX, DOCX to HTML, HTML to PDF, and more.
-        No account required.
+        Processed and returned — nothing stored.
     </p>
     <a href="/preamble" class="cta-button" style="margin-top: 1rem;">Open Converter →</a>
 </section>
@@ -30,8 +31,8 @@
 <section class="section">
     <h2 class="section-title">Public Forms</h2>
     <p style="color: var(--text-light);">
-        Public housing forms and templates: lease agreements, notice letters, complaint forms,
-        and more. Download or fill online. No account required.
+        Housing forms and templates: lease agreements, notice letters, complaint forms,
+        and more. Download or fill in inside Semptify.
     </p>
     <a href="/preamble" class="cta-button" style="margin-top: 1rem;">Browse Forms →</a>
 </section>
@@ -39,15 +40,18 @@
 <section class="section">
     <div class="info-banner">
         <p>
-            These tools are standalone — no vault, no account, no data stored.
-            Files are processed and returned. Nothing is kept.
+            These are three of the sixteen services in the full Semptify catalog —
+            document organizing, the law library, complaint filing, and more.
+        </p>
+        <p style="margin-top: 0.5rem;">
+            <a href="/portal">See the full service catalog →</a>
         </p>
     </div>
 </section>
 
 <section class="cta-section">
-    <h2>Want the full Semptify experience?</h2>
-    <a href="/preamble" class="cta-button-large">📓 Get Started →</a>
+    <h2>Open Semptify</h2>
+    <a href="/preamble" class="cta-button-large">Get started →</a>
 </section>
 
 {% endblock %}
