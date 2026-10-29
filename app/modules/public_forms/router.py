@@ -70,6 +70,31 @@ class ToolRequestCreate(BaseModel):
         return v
 
 
+class VoicePostCreate(BaseModel):
+    """Anonymous public Your Voice post — no name, no email, by design."""
+
+    kind: str
+    message: str
+
+    @field_validator("kind")
+    @classmethod
+    def kind_valid(cls, v: str) -> str:
+        allowed = {"question", "opinion"}
+        if v not in allowed:
+            raise ValueError(f"Invalid post kind. Must be one of: {sorted(allowed)}")
+        return v
+
+    @field_validator("message")
+    @classmethod
+    def message_valid(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Post cannot be empty")
+        v = v.strip()
+        if len(v) > 2000:
+            raise ValueError("Post must be 2000 characters or fewer")
+        return v
+
+
 class ContactRequest(BaseModel):
     name: str
     email: str
@@ -328,6 +353,76 @@ async def list_tool_requests():
                     "id": r.id,
                     "request": r.request_text,
                     "response": r.response_text,
+                    "status": r.status,
+                    "date": r.created_at.date().isoformat() if r.created_at else None,
+                }
+                for r in rows
+            ],
+            "awaiting_review": pending_count,
+        }
+    )
+
+
+@router.post("/voice-post")
+@limiter.limit("5/minute")
+async def submit_voice_post(request: Request, body: VoicePostCreate):
+    """
+    Receive an anonymous public question or opinion from /your-voice.
+
+    No name or email is accepted — Semptify takes no names and tracks no
+    one. The post is stored and published on /your-voice with an answer
+    after a review pass that removes personal details.
+    """
+    import uuid
+
+    from app.core.database import get_db_session
+    from app.models.models import VoicePost
+
+    async with get_db_session() as db:
+        db.add(
+            VoicePost(
+                id=str(uuid.uuid4()),
+                kind=body.kind,
+                post_text=body.message,
+            )
+        )
+
+    return JSONResponse({"status": "ok", "received": True})
+
+
+@router.get("/voice-posts")
+async def list_voice_posts():
+    """
+    List published Your Voice posts with answers — public, no auth.
+    Newest first, capped at 200.
+    """
+    from sqlalchemy import select
+
+    from app.core.database import get_db_session
+    from app.models.models import VoicePost
+
+    async with get_db_session() as db:
+        result = await db.execute(
+            select(VoicePost)
+            .where(VoicePost.is_published.is_(True))
+            .order_by(VoicePost.created_at.desc())
+            .limit(200)
+        )
+        rows = result.scalars().all()
+        pending = await db.execute(
+            select(VoicePost.id).where(VoicePost.is_published.is_(False))
+        )
+        pending_count = len(pending.scalars().all())
+
+    return JSONResponse(
+        {
+            "posts": [
+                {
+                    "id": r.id,
+                    "kind": r.kind,
+                    "post": r.post_text,
+                    "response": r.response_text,
+                    "responder": r.responder_label,
                     "status": r.status,
                     "date": r.created_at.date().isoformat() if r.created_at else None,
                 }

@@ -157,7 +157,12 @@ def register_stateless_routes(app: FastAPI):
     async def root(request: Request):
         from app.modules.context_engine.cache import get_verified_landing_facts
 
-        landing_facts = await get_verified_landing_facts()
+        try:
+            landing_facts = await get_verified_landing_facts()
+        except Exception:  # noqa: S110
+            # Facts are optional chrome — the landing page must never 500
+            # just because the facts source is unreachable.
+            landing_facts = []
         ctx = {"year": utc_now().year, "landing_facts": landing_facts}
         try:
             guides_path = BASE_PATH / "app" / "data" / "situation_guides.json"

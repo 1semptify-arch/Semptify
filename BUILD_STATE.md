@@ -1,3 +1,65 @@
+## Session — 2026-10-26 (cont.) — Cover upgraded to real CC0 photograph (devin)
+
+### Guardrail Engine Run — 2026-10-26T11:35:28+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+**Brad direction:** photo-quality cover image, deep search for cover-story-type photography, "give a fun life to Semptify."
+
+**What shipped (uncommitted):**
+- `static/img/semptify-live-001-cover.jpg` (311 KB, 960×1438 portrait) — warm terracotta apartment facade, every window a home. Source: "Brown Apartment Building (Unsplash).jpg", Wikimedia Commons, **CC0 public domain** — no attribution required, no license risk. (Note: image lives in repo-root `static/img/`, NOT `app/static/` — `/static` mount serves the root tree; `app/static` mounts at `/assets`. First placement 404'd, corrected.)
+- `app/templates/index.html` cover rebuilt photo-forward — drawn SVG art removed; photo panel is the dominant element with a dual-gradient scrim (left + bottom); masthead unchanged; cover story headline + standfirst + "Read the live file →" printed in white directly on the photo (left column); the 4 numbered cover lines print on the photo's right side like a real magazine's cover-line column; urgent bar + colophon stay on paper below. Mobile: photo panel goes full-width single-column, lines stack on the photo.
+
+**Rejected candidates (inspected visually):** StockSnap CDN thumbs — all returned HTML placeholders (hotlink protection); tan art-deco tower (Unsplash CC0) — reads "corporate tower", not homes; white Venezuelan slab facade (CC0) — cold/institutional.
+
+**Verified:** image serves `/static/img/...` 200; 1280px = cover fits viewport no-scroll, headline legible over scrim; 375px = clean stack; 0 console errors.
+
+---
+
+## Session — 2026-10-26 — Magazine-cover homepage ("Semptify Live" issue 001) + Neon quota discovery (devin)
+
+**Queue task `plan-20261026-magazine-cover-homepage-semptify-live-is-7568`** — Brad directive: the public homepage becomes the first cover of the "Semptify Live" weekly magazine. Full-screen, no scroll, the bill as cover story, cover lines linking to every department.
+
+**What shipped (uncommitted):**
+- `app/templates/index.html` rewritten as a magazine cover — masthead "SEMPTIFY LIVE / Housing, on the record. / Issue N° 001 First edition" with double rule; cover story "The bill, written in public." + standfirst (aim vs. not, honestly labeled) → /your-voice; hand-drawn SVG cover art (house of document lines + "the draft" insert, feTurbulence crayon grain); 4 numbered cover lines (library/document-everything/tool-requests/hello); urgent line preserving Get help now + situation_guides chips; colophon commitments; rail = "This issue, for everyone" departments (renters/providers/advocates/courts/students/developers/funding desk); nav gains Your Voice. Desktop poster no-scroll + mobile stacked-scroll verified.
+- `app/main.py` — root route hardened: `get_verified_landing_facts()` wrapped in try/except (landing_facts=[]) — the homepage must never 500 on a DB outage, matching the existing situation_guides optional-chrome pattern.
+- Latent bug fixed in passing: old index.html used `{% block extra_css %}` which shell_base.html does not define — styles never applied. Cover uses `{% block styles %}` + `{{ super() }}`.
+
+**Infra discovery — Neon quota EXHAUSTED:** mid-session all DB connections began failing `InsufficientResourcesError: account or project has exceeded the quota`. Root: project `semptify` (flat-block-24520481) free-tier compute/active-time quota burned through — production endpoint `ep-cold-surf-anjssth8` has `suspend_timeout_seconds: 0` (never auto-suspends → runs 24/7). `quota_reset_at: 2026-11-01` — **DB-backed routes on the live site will 500 until Nov 1 unless the plan is bumped.** API suspend-interval change refused (HTTP 412 "not permitted on this account" — org-locked; Brad may be able to toggle autosuspend in the Neon console UI, worth trying). Local `.env` DATABASE_URL commented out → sqlite fallback for local dev until reset; uncomment to restore Neon dev.
+
+**Verified:** root 200 with DB fully down (resilience fix proven live); cover renders at 1280 no-scroll and 375 stacked; situation chips render from real context; 0 console errors; py_compile clean on main.py.
+
+**Not done / flagged:** uncommitted — ship is Brad's call, same batch as Your Voice; cover story text is a standfirst, the full "amazing article" about the bill is a content task for another pass (semptify-article pipeline exists for it); magazine-name "Semptify Live" is tentative; 2 test voice_posts remain unpublished in Neon dev.
+
+---
+
+## Session — 2026-10-26 — Your Voice public lane: live bill draft + public Q&A board (devin)
+
+**Queue task `plan-20261026-your-voice-public-page-bill-draft-live-f-86dc`** (master queue, model-tier claude) — the "Your Voice" public lane Brad ordered: a bill written in public, idea → law, with anonymous public questions/opinions and role-labeled answers.
+
+**What shipped (uncommitted at session end — pending Brad's ship call):**
+- `app/templates/public/your_voice.html` + `pages.py` entry `/your-voice` (footer order 4) — creed band ("Do not lie to me. Everything else can be worked out."), plain-language journey track (Idea→Draft→Sponsors→Committee→Floor→Law, "Draft — we are here" marked), the live file, anonymous ask/weigh-in form (question|opinion), public board, "Passing it on" classroom/students note + funding links. Mobile journey track goes vertical.
+- `app/templates/public/bill_draft.html` — THE LIVE FILE: Jinja partial included by /your-voice; editing that one file updates the public draft, git history is the public change log. v0.1 outline stage, honestly labeled (aim vs. question vs. status).
+- `voice_posts` table — `models.py` VoicePost (kind question|opinion, post_text, response_text, responder_label role-only, status, is_published gate — same org-facing public-content boundary as ToolRequest), `alembic/versions/20261026_add_voice_posts.py` off `20261025_tool_requests`, applied to Neon dev branch.
+- Public API — POST `/api/voice-post` (rate-limited 5/min) + GET `/api/voice-posts` (published only, + awaiting_review count) in `public_forms`; contract `public_forms_voice_post` registered.
+- Front-and-center wiring (Brad: "buzzing our homepage"): `public_shell.html` nav gains "Your Voice" after Home (every public page) + sidebar link after "Get help now"; `hello.html` gains a wide "Now open: Your Voice" zone as the FIRST grid item.
+
+**Verified:** py_compile clean (5 files); alembic upgrade applied to Neon dev; live boot :8001 — `/your-voice`, `/hello`, `/` all 200; POST→store→(unpublished)→GET loop real (awaiting_review counts 1, then 2); in-browser (playwright-mcp) — 1280px poster scrolls work zone correctly, 375px stacked-scroll renders all zones in order, form submit hides form + shows confirmation, 0 console errors; eye-path: creed→journey→draft→ask→board→closing, all controls chronological.
+
+**Not done / flagged for Brad:** change not committed (ship is his call); answers currently require a direct DB update — the admin "review & respond" screen gap now covers voice_posts too; `/` locally serves the older landing page, not hello — the Your Voice feature zone lives on `/hello` (live site already routes `/`→hello per earlier check); 2 test posts sit unpublished in Neon dev (harmless, breakable branch).
+
+**Next session options:** admin review/respond screen covering tool_requests + voice_posts; real bill-writer/staffer/professor Q&A answers once Brad recruits reviewers; ship this page when he says go.
+
+---
+
 ## Session — 2026-10-25 — Brand system + /hello page + public tool-request forum (devin)
 
 **Queue task `plan-20261025-semptify-org-brand-development-system-pu-19e8`** (master queue) — Semptify.org public brand package.

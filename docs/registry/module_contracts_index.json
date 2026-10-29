@@ -974,6 +974,15 @@
       "narrative_event_count": 0
     },
     {
+      "module_path": "app.modules.settlement_awareness",
+      "contract_path": "app/modules/settlement_awareness/module_contract.json",
+      "module_name": "Settlement Awareness",
+      "output_type": "other",
+      "has_preview_state": true,
+      "has_review_state": false,
+      "narrative_event_count": 0
+    },
+    {
       "module_path": "app.modules.setup",
       "contract_path": "app/modules/setup/module_contract.json",
       "module_name": "Setup",

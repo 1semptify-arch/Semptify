@@ -1,0 +1,145 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}What the Bill Would Change — Semptify Live, Issue 001{% endblock %}
+{% block description %}The Issue 001 cover story: nobody sends you a letter when your rights are violated. What the public housing-documentation bill aims to change — and what it honestly isn't yet.{% endblock %}
+{% block keywords %}housing bill, tenant documentation, renter rights, cover story, semptify live{% endblock %}
+
+{% block header_title %}Nobody Sends You a Letter{% endblock %}
+{% block header_tagline %}Cover story — Issue Nº 001{% endblock %}
+{% block header_subtitle %}What the housing bill — the one being written in public — aims to change, and for whom.{% endblock %}
+
+{% block page_body %}
+<article class="story">
+
+<p class="story-lede">
+    When your rights are violated, nothing arrives in the mail. No notice, no
+    flag, no friendly letter saying <em>what just happened to you was not
+    allowed</em>. The protection exists on paper — but paper doesn't knock on
+    your door.
+</p>
+
+<p>
+    That is the quiet problem underneath most housing disputes. A repair goes
+    unmade for months. A deposit comes back short, with no explanation. A
+    complaint is answered with a notice to leave. Each of those may already be
+    against the rules — renters frequently can't tell, because nobody's job is
+    to tell them. The first time many people learn what their rights were is
+    after they've already lost the chance to use them.
+</p>
+
+<p>
+    The bill being drafted on this site starts from a simple observation:
+    <strong>a documented fact beats a loud argument.</strong> If the record of
+    what happened — dates, photos, notices, responses — counted for something
+    the moment it was made, a renter wouldn't have to discover their rights
+    after the fact. The record would carry them there.
+</p>
+
+<h2>What it aims to change</h2>
+
+<p>
+    The draft is early — an outline, honestly labeled. These are its aims,
+    not promises:
+</p>
+
+<ul class="story-list">
+    <li><strong>Your record counts.</strong> Plain-language standards for how
+    housing problems get documented — so that a photo with a date and a repair
+    request with a timestamp carry real weight, the same weight for everyone.</li>
+    <li><strong>Answers have a clock.</strong> Reasonable timelines for
+    responses — on both sides. A renter who reports a problem deserves to know
+    when to expect an answer; a housing provider deserves a clear ask, not an
+    open-ended complaint.</li>
+    <li><strong>Telling the truth is protected.</strong> Reporting a real
+    problem shouldn't be a risk. The draft aims to protect honest reporting
+    from being answered with punishment.</li>
+    <li><strong>One standard, any size.</strong> The same documentation
+    standard for a four-unit landlord and a four-hundred-unit operator —
+    scaled so small providers aren't crushed by paperwork meant for the big
+    ones. How to do that fairly is one of the open questions.</li>
+</ul>
+
+<h2>Who it changes things for</h2>
+
+<p>
+    <strong>Renters</strong> get something they rarely have today: a record
+    that was worth keeping. Not a promise that every dispute goes their way —
+    a fair chance for their side to be heard.
+</p>
+
+<p>
+    <strong>Honest housing providers</strong> get the same thing, from the
+    other direction. When a claim isn't true, a good record is what proves
+    it. The standard that protects a tenant's real complaint is the same one
+    that protects a provider from a false one. This bill is not aimed at
+    anyone — it is aimed at the fog that hurts both sides.
+</p>
+
+<p>
+    <strong>Courts and mediators</strong> get better files. Most housing
+    cases don't fail because someone is lying; they fail because nobody can
+    show what actually happened. A shared standard means disputes arrive
+    smaller and resolve faster.
+</p>
+
+<p>
+    <strong>And everyone watching</strong> gets something rarer than any of
+    that: a law being drafted where they can see it. Every edit is public.
+    Every question asked on this site is answered or honestly marked
+    unanswered. Students can follow an idea from a first outline all the way
+    to — if it earns it — a statute.
+</p>
+
+<h2>What it is not</h2>
+
+<p>
+    It is not law. It is not filed. It is not before any legislature. It is
+    an outline that a small, donation-funded organization is writing in the
+    open, and it will change many times before it deserves a sponsor. It may
+    never become law at all — and if it doesn't, the public record of how it
+    was written still belongs to everyone.
+</p>
+
+<p>
+    What it can already do, today, is make the invisible visible — starting
+    with the idea that your own record of your own home should count.
+</p>
+
+<h2>The hope, stated plainly</h2>
+
+<p>
+    Most renters lose long before anyone calls it a loss. They lose the day
+    they decide there's no point in writing it down. This bill exists to make
+    that decision wrong — to make the record you keep the thing that carries
+    you. That's the hope, and it's the kind you can verify: it's written down,
+    in public, one honest draft at a time.
+</p>
+
+<p class="story-doors">
+    <a href="/your-voice">Read the live draft →</a>
+    <a href="/your-voice#ask">Ask a question or weigh in →</a>
+</p>
+
+</article>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .story { max-width: 66ch; }
+    .story p { font-size: 1.02rem; line-height: 1.7; margin-bottom: 1.1rem; }
+    .story-lede {
+        font-size: 1.2rem !important; line-height: 1.6 !important;
+        color: var(--text-primary); font-weight: 500;
+        padding-bottom: 0.9rem; margin-bottom: 1.2rem !important;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .story h2 {
+        font-size: 1.35rem; margin: 1.8rem 0 0.7rem;
+        padding-top: 1.1rem; border-top: 1px solid var(--border-color);
+    }
+    .story-list { margin: 0.4rem 0 1.1rem; padding-left: 1.3rem; }
+    .story-list li { margin-bottom: 0.7rem; line-height: 1.6; }
+    .story-doors { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1.8rem; font-weight: 600; }
+</style>
+{% endblock %}

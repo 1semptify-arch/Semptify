@@ -1,0 +1,235 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}Your Voice — the housing bill, in public — Semptify{% endblock %}
+{% block description %}Watch an idea become a bill and maybe a law — out in the open. Read the live draft, ask a question, or share an opinion. Anonymous, no names, no tracking.{% endblock %}
+{% block keywords %}your voice, housing bill, tenant rights bill, public comment, renters, housing legislation, semptify{% endblock %}
+
+{% block header_title %}Your Voice{% endblock %}
+{% block header_tagline %}Idea → draft → sponsors → committee → floor → law — in public, the whole way.{% endblock %}
+{% block header_subtitle %}Anonymous. No names. Everything labeled — fact, aim, or opinion — and corrections posted in the open.{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .yv-promise {
+        background: var(--bg-surface); border-radius: var(--radius-block);
+        padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+    }
+    .yv-promise p { margin: 0 0 0.6rem 0; }
+    .yv-promise p:last-child { margin-bottom: 0; }
+
+    .yv-journey { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0 0.25rem; padding: 0; }
+    .yv-journey li {
+        padding: 0.35rem 0.8rem; border-radius: 999px;
+        font-size: 0.85rem; color: var(--text-secondary);
+        background: var(--bg-surface);
+    }
+    .yv-journey li.yv-here {
+        background: var(--color-primary); color: var(--text-inverse); font-weight: 600;
+    }
+    .yv-journey .yv-arrow { background: none; color: var(--text-muted); padding: 0.35rem 0.1rem; }
+
+    .yv-draft {
+        background: var(--bg-surface); border-radius: var(--radius-block);
+        padding: 1.5rem; margin-top: 0.5rem;
+    }
+    .yv-draft h3 { margin-top: 0.25rem; color: var(--color-primary); }
+    .yv-draft p { line-height: 1.6; }
+    .yv-draft ul { margin: 0.25rem 0 1rem 1.25rem; color: var(--text-secondary); }
+    .draft-label {
+        font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--text-muted); margin: 0;
+    }
+    .draft-status { font-size: 0.9rem; color: var(--text-secondary); }
+
+    .yv-form .yv-kinds { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .yv-form .yv-kinds label {
+        padding: 0.45rem 1rem; border-radius: 999px; cursor: pointer;
+        font-size: 0.9rem; color: var(--text-secondary);
+        background: var(--bg-surface); border: 1px solid var(--border-color);
+    }
+    .yv-form .yv-kinds input { position: absolute; opacity: 0; pointer-events: none; }
+    .yv-form .yv-kinds label:has(input:checked) {
+        background: var(--color-primary); color: var(--text-inverse); border-color: var(--color-primary);
+    }
+    .yv-form textarea {
+        width: 100%; min-height: 110px; padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color); border-radius: var(--radius-input);
+        font-size: 0.95rem; font-family: inherit; color: var(--text-primary);
+        background: var(--bg-card); resize: vertical; margin-bottom: 0.75rem;
+    }
+    .yv-form textarea:focus { outline: none; border-color: var(--color-accent); }
+    .yv-form .btn { background: var(--color-primary); color: var(--text-inverse); border: none; padding: 0.75rem 1.75rem; border-radius: var(--radius-input); font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .yv-form .btn:hover { background: var(--color-primary-light); }
+    .yv-success { display: none; background: var(--color-success-50); border: 1px solid var(--color-success); border-radius: var(--radius-block); padding: 1.25rem; color: var(--color-success-800); margin-top: 0.75rem; }
+    .yv-note { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+
+    .yv-list { list-style: none; margin: 0.75rem 0 0 0; padding: 0; }
+    .yv-list li { padding: 0.9rem 0; border-top: 1px solid var(--border-color); }
+    .yv-date { font-size: 0.8rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .yv-kind { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-accent); font-weight: 600; }
+    .yv-post { font-size: 0.95rem; color: var(--text-primary); margin: 0.25rem 0; }
+    .yv-response { font-size: 0.9rem; color: var(--text-secondary); margin: 0.25rem 0 0 1rem; border-left: 3px solid var(--color-primary); padding-left: 0.75rem; }
+    .yv-responder { font-size: 0.8rem; color: var(--text-muted); margin: 0.25rem 0 0 1rem; font-style: italic; }
+    .yv-pending { font-size: 0.85rem; color: var(--text-muted); font-style: italic; }
+
+    @media (max-width: 640px) {
+        .yv-journey { flex-direction: column; align-items: flex-start; }
+        .yv-journey .yv-arrow { transform: rotate(90deg); padding: 0 0 0 0.6rem; }
+        .yv-draft { padding: 1.1rem; }
+    }
+</style>
+{% endblock %}
+
+{% block page_body %}
+
+<section class="section">
+    <div class="yv-promise">
+        <p><strong>What this place is.</strong> Semptify is writing a housing bill —
+        and we're doing it where you can watch. This page holds the live draft,
+        the plain-language path a bill travels, and a public board where anyone
+        can ask a question or share an opinion.</p>
+        <p><strong>How we keep it honest.</strong> Every statement here is one of
+        three things, and we say which: a <em>fact</em> with a source, an
+        <em>aim</em> — what we're trying to do — or an <em>opinion</em>. If we get
+        something wrong, we say so on this page, in the open.</p>
+        <p><strong>Who it's for.</strong> Everyone. Renters, housing providers who
+        do right, students learning how a bill becomes a law, neighbors who just
+        want to know what's happening to their homes. This benefits people — it
+        isn't for or against anyone.</p>
+    </div>
+</section>
+
+<section class="section">
+    <h2 class="section-title">The journey a bill takes</h2>
+    <p class="section-description">In plain language: someone has an idea. It gets
+    written as a draft. Lawmakers sponsor it. A committee studies it and hears the
+    public. If it survives, the whole body votes. If it passes and is signed, it
+    becomes law. Ours is here:</p>
+    <ul class="yv-journey">
+        <li>Idea</li>
+        <li class="yv-arrow">→</li>
+        <li class="yv-here">Draft — we are here</li>
+        <li class="yv-arrow">→</li>
+        <li>Sponsors</li>
+        <li class="yv-arrow">→</li>
+        <li>Committee</li>
+        <li class="yv-arrow">→</li>
+        <li>Floor</li>
+        <li class="yv-arrow">→</li>
+        <li>Law</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">The live file</h2>
+    <p class="section-description">This is the real working draft — not a summary.
+    When it changes, this page changes, and every change is on the public record.</p>
+    <div class="yv-draft">
+        {% include "public/bill_draft.html" %}
+    </div>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Ask, or weigh in</h2>
+    <form id="yvForm" class="yv-form" onsubmit="submitVoicePost(event)">
+        <div class="yv-kinds" role="radiogroup" aria-label="What are you posting?">
+            <label><input type="radio" name="kind" value="question" checked> A question</label>
+            <label><input type="radio" name="kind" value="opinion"> An opinion</label>
+        </div>
+        <textarea id="yvMessage" maxlength="2000" required
+            placeholder="Ask about the bill or the issues affecting renters — or say what you think. Please don't include your name, address, or other personal details — posts are public."></textarea>
+        <button type="submit" class="btn">Post it</button>
+    </form>
+    <div class="yv-success" id="yvSuccess">
+        <strong>Received.</strong> Your post will appear on this page after a quick
+        review to remove any personal details. Questions wait here, honestly marked,
+        until someone qualified answers them.
+    </div>
+    <p class="yv-note" style="margin-top:0.75rem;">
+        No name. No email. Posts appear publicly after a review pass — that's how
+        we stay transparent without tracking anyone.
+    </p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">The public board</h2>
+    <p class="section-description" style="margin-bottom:0.25rem;">
+        Every posted question and opinion lives here, with its answer. The people
+        writing the bill — and invited contributors like housing attorneys,
+        legislative staff, and professors — answer what they can, labeled by role.
+    </p>
+    <p class="yv-pending" id="yvPendingCount"></p>
+    <ul class="yv-list" id="yvList">
+        <li id="yvEmpty">Nothing posted yet. Yours could be the first.</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Passing it on</h2>
+    <p class="section-description">
+        This lane is also a classroom — from grade schoolers learning how laws are
+        made to interns who may write them someday. Students and volunteers help
+        with research and answers; what they contribute is credited by role, and
+        checked before it posts. If you'd like to help — research, reading,
+        fact-checking — say so on the board above.
+    </p>
+    <p class="yv-note">
+        Semptify runs on donations and grants, not ads or data. If this kind of
+        open work matters to you:
+        <a href="https://github.com/sponsors/1semptify-arch">GitHub Sponsors</a> ·
+        <a href="/donate">Support the work</a>
+    </p>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    function submitVoicePost(e) {
+        e.preventDefault();
+        const kind = document.querySelector('input[name="kind"]:checked').value;
+        const message = document.getElementById('yvMessage').value;
+        fetch('/api/voice-post', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind, message })
+        })
+        .catch(() => {})
+        .finally(() => {
+            document.getElementById('yvForm').style.display = 'none';
+            document.getElementById('yvSuccess').style.display = 'block';
+        });
+    }
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s || '';
+        return d.innerHTML;
+    }
+
+    fetch('/api/voice-posts')
+        .then(r => r.json())
+        .then(data => {
+            const list = document.getElementById('yvList');
+            if (data.awaiting_review > 0) {
+                document.getElementById('yvPendingCount').textContent =
+                    data.awaiting_review + ' post(s) received and awaiting the review pass.';
+            }
+            if (data.posts && data.posts.length) {
+                list.innerHTML = data.posts.map(p =>
+                    '<li>' +
+                    '<div class="yv-date">' + esc(p.date) + ' · <span class="yv-kind">' + esc(p.kind) + '</span></div>' +
+                    '<p class="yv-post">' + esc(p.post) + '</p>' +
+                    (p.response
+                        ? '<p class="yv-response">' + esc(p.response) + '</p>' +
+                          (p.responder ? '<p class="yv-responder">— ' + esc(p.responder) + '</p>' : '')
+                        : '<p class="yv-pending">Awaiting an answer — questions stay visible until someone qualified responds.</p>') +
+                    '</li>'
+                ).join('');
+            }
+        })
+        .catch(() => {});
+</script>
+{% endblock %}
