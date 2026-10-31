@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="/static/css/ssot-design-system.css">
     {% block styles %}{% endblock %}
 </head>
-<body class="{% block body_class %}template-1{% endblock %}">
+<body class="{% block body_class %}template-1{% endblock %}" {% block body_attrs %}{% endblock %}>
     <a class="skip-link" href="#main-content">Skip to main content</a>
 
     {% block header %}

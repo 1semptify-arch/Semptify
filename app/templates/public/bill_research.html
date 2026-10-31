@@ -1,0 +1,89 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}The Numbers &amp; Sources — Minnesota Bill — Semptify{% endblock %}
+{% block description %}Every figure behind the Minnesota rent assurance bill, with its source and verification status — published only after triple-check.{% endblock %}
+{% block keywords %}housing bill research, rent assurance figures, deposit data sources, bill fact check{% endblock %}
+
+{% block body_attrs %}data-theme="northstar"{% endblock %}
+{% block body_class %}shell bill-section{% endblock %}
+
+{% block header_title %}The numbers &amp; sources{% endblock %}
+{% block header_tagline %}Every figure, its source, and its check status.{% endblock %}
+{% block header_subtitle %}A figure publishes only after three independent checks. Unchecked work says so.{% endblock %}
+
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="/bill">The Bill</a></li>
+<li class="nav-item"><a class="nav-link" href="/bill/live">Live draft</a></li>
+<li class="nav-item"><a class="nav-link" href="/bill/research">The numbers</a></li>
+<li class="nav-item"><a class="nav-link" href="/your-voice">Your Voice</a></li>
+<li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+{% endblock %}
+
+{% block sidebar %}
+<h2>The bill</h2>
+<ul class="shell-list">
+    <li><a href="/bill">Bill home</a></li>
+    <li><a href="/bill/live">Read the live draft</a></li>
+    <li><a href="/your-voice">Ask or weigh in</a></li>
+    <li><a href="/what-the-bill-changes">What it would change</a></li>
+    <li><a href="/help">Get help now</a></li>
+</ul>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/themes/northstar.css">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+    .rs-how { background:var(--card-bg); padding:1.25rem 1.5rem; margin-bottom:1.5rem; }
+    .rs-how p { margin:0 0 0.6rem; line-height:1.6; }
+    .rs-how p:last-child { margin-bottom:0; }
+    .rs-ledger { width:100%; border-collapse:collapse; background:var(--card-bg); }
+    .rs-ledger td, .rs-ledger th { padding:0.7rem 0.9rem; text-align:left; vertical-align:top;
+                                  border-bottom:1px solid var(--card-border); font-size:0.95rem; }
+    .rs-ledger th { color:var(--accent-primary); font-weight:600; }
+    .rs-ok { color:var(--accent-success); font-weight:600; }
+    .rs-pend { color:var(--accent-secondary); font-weight:600; }
+</style>
+{% endblock %}
+
+{% block page_body %}
+
+<section class="section">
+    <div class="rs-how">
+        <p><strong>How a figure earns its place.</strong> Every number on this
+        site comes from a source you can read yourself. Before it publishes,
+        it goes through three checks: (1) the source exists and says what we
+        claim, (2) the math is re-derived independently, and (3) the figure is
+        presented without spin. Fail any check and the figure waits — it does
+        not publish.</p>
+        <p><strong>What you won't find.</strong> No people's names, no business
+        names — private parties appear only as roles ("a metro provider,"
+        "a renter"), unless that party has given written consent to be named.
+        Public agencies and published research sources are cited by name —
+        that's how you check our work.</p>
+    </div>
+</section>
+
+<section class="section">
+    <h2 class="section-title">The verification ledger</h2>
+    <p class="section-description">Live from the research registry — the same
+    ledger the publish gate reads.</p>
+    <table class="rs-ledger">
+        <tr><th>Figure</th><th>Claim</th><th>Source</th><th>Status</th></tr>
+        {% for c in claims %}
+        <tr>
+            <td>{{ c.figure }}</td>
+            <td>{{ c.claim }}</td>
+            <td>{{ c.source }}</td>
+            <td>{% if c.published %}<span class="rs-ok">verified ×3</span>{% else %}<span class="rs-pend">checking</span>{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No published figures yet — the ledger is being
+            checked. This table fills in as each claim earns verification.</td></tr>
+        {% endfor %}
+    </table>
+</section>
+
+{% endblock %}

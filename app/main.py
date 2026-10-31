@@ -2057,6 +2057,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     context["services"] = catalog["services"]
                     context["categories"] = catalog["categories"]
                     context["total_services"] = catalog["total_services"]
+                if _p.id == "bill_research":
+                    # Published claims ledger — written by the case-side
+                    # publish pipeline (sanitized, no private-party names).
+                    claims_file = BASE_PATH / "data" / "bill_claims_public.json"
+                    if claims_file.exists():
+                        try:
+                            import json as _json
+                            context.update(_json.loads(
+                                claims_file.read_text(encoding="utf-8")))
+                        except Exception:  # pylint: disable=broad-exception-caught
+                            context["claims"] = []
+                    else:
+                        context["claims"] = []
                 return templates.TemplateResponse(request, _p.template, context)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Public page template error (%s): %s", _p.template, e)

@@ -1,0 +1,77 @@
+/* ========================================
+   THEME: NORTH STAR
+   For: The Minnesota housing bill public section (/bill/*)
+   Palette drawn from the 2024 Minnesota state flag —
+   deep blue (land/night), sky blue (10,000 lakes), white star.
+   ======================================== */
+
+[data-theme="northstar"] {
+  /* Flag-derived palette */
+  --ns-navy: #002d5c;        /* hoist field — deep MN blue */
+  --ns-navy-soft: #0a4172;
+  --ns-sky: #78d3ff;         /* lakes blue */
+  --ns-sky-pale: #dff3ff;
+  --ns-star: #ffffff;
+  --ns-gold: #c9a227;        /* community gold accent — warm, civic */
+
+  /* Header — deep blue, star-lit */
+  --header-bg-start: var(--ns-navy);
+  --header-bg-end: var(--ns-navy-soft);
+  --header-accent: var(--ns-sky);
+  --header-text: var(--ns-star);
+
+  /* Footer — same deep band */
+  --footer-bg-start: var(--ns-navy);
+  --footer-bg-end: var(--ns-navy-soft);
+  --footer-accent: var(--ns-sky);
+  --footer-text: var(--ns-star);
+
+  /* Body */
+  --body-bg: var(--ns-sky-pale);
+  --body-text: var(--ns-navy);
+
+  /* Cards / zones */
+  --card-bg: var(--ns-star);
+  --card-border: var(--ns-sky);
+  --card-text: var(--ns-navy);
+
+  /* Text */
+  --text-primary: var(--ns-navy);
+  --text-secondary: var(--ns-navy-soft);
+  --text-muted: #4a6d8c;
+
+  /* Accents */
+  --accent-primary: var(--ns-navy);
+  --accent-secondary: var(--ns-gold);
+  --accent-success: var(--color-success);
+  --accent-warning: var(--color-warning);
+  --accent-error: var(--color-error);
+
+  /* Interactive */
+  --hover-bg: var(--ns-sky-pale);
+  --focus-ring: var(--ns-sky);
+}
+
+[data-theme="northstar"] .page-header {
+  background: linear-gradient(135deg, var(--header-bg-start) 0%, var(--header-bg-end) 70%, var(--header-accent) 130%);
+  color: var(--header-text);
+}
+
+[data-theme="northstar"] .page-footer {
+  background: linear-gradient(180deg, var(--footer-bg-start) 0%, var(--footer-bg-end) 50%, var(--footer-accent) 150%);
+  color: var(--footer-text);
+}
+
+[data-theme="northstar"] .page-body {
+  background: var(--body-bg);
+  color: var(--body-text);
+}
+
+/* Bill-section typography — the document itself is set in a period
+   print face; UI chrome stays in the system stack. */
+[data-theme="northstar"] .bill-text,
+[data-theme="northstar"] .bill-text h1,
+[data-theme="northstar"] .bill-text h2,
+[data-theme="northstar"] .bill-text h3 {
+  font-family: "IM Fell English", Georgia, serif;
+}
