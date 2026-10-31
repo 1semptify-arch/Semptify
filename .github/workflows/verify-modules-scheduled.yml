@@ -2,7 +2,9 @@
 # Scheduled Module Registry Verification
 # =============================================================================
 # Runs verify_modules.py on a cron schedule and on demand.
-# If the registry changed, it commits the updated module_registry.yaml.
+# If the registry changed, it opens/updates a PR carrying the updated
+# module_registry.yaml — branch protection on main requires PRs, so a
+# direct push is rejected (was the daily failure mode before 2026-10-27).
 # Review/enable: the cron schedule is active. Disable by removing `schedule:`.
 # =============================================================================
 
@@ -16,6 +18,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 env:
   PYTHON_VERSION: "3.11"
@@ -42,14 +45,25 @@ jobs:
         run: |
           python tools/verify_modules.py --sync
 
-      - name: Commit updated registry if changed
+      - name: Open/update PR with updated registry if changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           if [ -n "$(git status --porcelain tools/module_registry.yaml)" ]; then
+            BRANCH="chore/module-registry-sync"
+            git checkout -B "$BRANCH"
             git add tools/module_registry.yaml
-            git commit -m "chore: scheduled module registry verification [skip ci]"
-            git push
+            git commit -m "chore: scheduled module registry verification"
+            git push -f origin "$BRANCH"
+            if ! gh pr view "$BRANCH" >/dev/null 2>&1; then
+              gh pr create --base main --head "$BRANCH" \
+                --title "chore: module registry sync" \
+                --body "Regenerated tools/module_registry.yaml via scheduled verify-modules run. Review and merge to land the drift update."
+            else
+              echo "PR already open for $BRANCH — branch updated."
+            fi
           else
             echo "No registry changes."
           fi

@@ -1,0 +1,100 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}The Minnesota Rent Assurance Bill — Semptify{% endblock %}
+{% block description %}A Minnesota housing bill written in public — the live draft, the numbers behind it, and how to weigh in. For renters, providers, students, and neighbors. No cost, no tracking.{% endblock %}
+{% block keywords %}minnesota housing bill, rent assurance, deposit protection, tenant bill, public bill, semptify, north star{% endblock %}
+
+{% block body_attrs %}data-theme="northstar"{% endblock %}
+{% block body_class %}shell bill-section{% endblock %}
+
+{% block header_title %}The Minnesota Bill{% endblock %}
+{% block header_tagline %}Written in public, for the North Star State.{% endblock %}
+{% block header_subtitle %}Rent assurance and deposit protection — read the live draft, check the numbers, weigh in.{% endblock %}
+
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="/bill">The Bill</a></li>
+<li class="nav-item"><a class="nav-link" href="/bill/live">Live draft</a></li>
+<li class="nav-item"><a class="nav-link" href="/bill/research">The numbers</a></li>
+<li class="nav-item"><a class="nav-link" href="/your-voice">Your Voice</a></li>
+<li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+{% endblock %}
+
+{% block sidebar %}
+<h2>The bill</h2>
+<ul class="shell-list">
+    <li><a href="/bill/live">Read the live draft</a></li>
+    <li><a href="/bill/research">The numbers &amp; sources</a></li>
+    <li><a href="/your-voice">Ask or weigh in</a></li>
+    <li><a href="/what-the-bill-changes">What it would change</a></li>
+    <li><a href="/help">Get help now</a></li>
+</ul>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/themes/northstar.css">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+    .ns-hero { display:flex; flex-wrap:wrap; gap:1.5rem; align-items:center; margin-bottom:2rem; }
+    .ns-flags { display:flex; gap:0.75rem; align-items:flex-start; }
+    .ns-flags img { width:120px; border:1px solid var(--card-border); }
+    .ns-flags img:first-child { width:100px; }
+    .ns-hero-text h2 { font-family:"IM Fell English", Georgia, serif; font-size:1.9rem; margin:0 0 0.4rem; color:var(--text-primary); }
+    .ns-hero-text p { margin:0; color:var(--text-secondary); max-width:34rem; line-height:1.55; }
+    .ns-lanes { display:grid; gap:0.9rem; }
+    .ns-lane { background:var(--card-bg); border-left:4px solid var(--accent-secondary); padding:1rem 1.25rem; }
+    .ns-lane h3 { margin:0 0 0.3rem; color:var(--text-primary); font-size:1.05rem; }
+    .ns-lane p { margin:0 0 0.5rem; color:var(--text-secondary); font-size:0.95rem; line-height:1.5; }
+    .ns-flag-note { font-size:0.8rem; color:var(--text-muted); margin-top:1.5rem; }
+</style>
+{% endblock %}
+
+{% block page_body %}
+
+<section class="section">
+    <div class="ns-hero">
+        <div class="ns-flags">
+            <img src="/static/img/flag-us.svg" alt="Flag of the United States">
+            <img src="/static/img/flag-mn.svg" alt="Flag of Minnesota — the North Star flag">
+        </div>
+        <div class="ns-hero-text">
+            <h2>A bill for Minnesota, in the open.</h2>
+            <p>Renters deserve a fair shot when things go wrong at home — a deposit
+            that comes back, a repair that gets made, a record that counts. This
+            proposal is being written where everyone can watch, and everyone can
+            check the work.</p>
+        </div>
+    </div>
+    <p class="ns-flag-note">Flags displayed unaltered per Minn. Stat. § 609.40.
+    Semptify is a pre-nonprofit project — this page carries no advertising.</p>
+</section>
+
+<section class="section">
+    <div class="ns-lanes">
+        <div class="ns-lane">
+            <h3><a href="/bill/live">The live draft →</a></h3>
+            <p>The real working text, refreshed daily. What you see is what
+            exists right now — honest labels for what is decided, what is an
+            aim, and what is still a question.</p>
+        </div>
+        <div class="ns-lane">
+            <h3><a href="/bill/research">The numbers &amp; sources →</a></h3>
+            <p>Every figure the bill relies on, with its source and its
+            verification status. Nothing publishes that hasn't been
+            triple-checked — and unchecked figures say so.</p>
+        </div>
+        <div class="ns-lane">
+            <h3><a href="/your-voice">Your voice →</a></h3>
+            <p>Ask a question or share an opinion on the public board — no
+            names, no tracking. Invited contributors answer in the open.</p>
+        </div>
+        <div class="ns-lane">
+            <h3><a href="/what-the-bill-changes">What it would change →</a></h3>
+            <p>The plain-language case for the bill — and an honest look at
+            what it doesn't fix yet.</p>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

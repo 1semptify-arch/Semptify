@@ -15956,3 +15956,14 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - Next session: Brad merges PR → run `/ship` Step 8.5 gitlink bump;
   Phase 5 importer (`scripts/import_counsel_packet.py`) is staged against
   the live counsel packet — dry-run it before a real import.
+
+## 2026-10-27 — CI fix: Module Registry Verification → PR flow (PR #323 pending)
+
+- Root cause of daily failures (runs 40324638974, 40500015324): scheduled job
+  regenerated tools/module_registry.yaml and pushed to main; branch
+  protection rejects all direct pushes — including the bot.
+- Fix: workflow now force-pushes `chore/module-registry-sync` branch and
+  opens/updates a PR (added `pull-requests: write`; dropped `[skip ci]` so
+  required checks run on the registry PR).
+- Side effect on merge: next scheduled/dispatched run will auto-open a PR
+  carrying the ~1,590-line registry drift update — review before merging.

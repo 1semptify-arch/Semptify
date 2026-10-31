@@ -153,12 +153,16 @@ class FeatureFlagManager:
     while staying live-updatable by admins without a redeploy.
     """
 
-    CACHE_TTL_SECONDS: int = 60
+    CACHE_TTL_SECONDS: int = 300
+    # Same pattern as module_overlay: on DB failure, hold whatever we have
+    # and back off — a dead DB must not turn every request into a retry.
+    FAILURE_TTL_SECONDS: int = 3600
 
     def __init__(self) -> None:
         self._cache: dict[str, bool] = {}
         self._cache_detail: dict[str, dict] = {}
         self._cache_loaded_at: float = 0.0
+        self._last_failure_at: float = 0.0
         self._env_overrides: dict[str, bool] = {}
         self._env_loaded: bool = False
 
@@ -179,6 +183,11 @@ class FeatureFlagManager:
         import time
 
         return (time.monotonic() - self._cache_loaded_at) < self.CACHE_TTL_SECONDS
+
+    def _in_failure_backoff(self) -> bool:
+        import time
+
+        return (time.monotonic() - self._last_failure_at) < self.FAILURE_TTL_SECONDS
 
     def _apply_defaults_to_cache(self) -> None:
         for flag_name, enabled in DEFAULT_ENABLED.items():
@@ -230,13 +239,16 @@ class FeatureFlagManager:
             self._cache_loaded_at = time.monotonic()
             logger.debug("Feature flags refreshed from DB: %d rows", len(rows))
         except Exception as e:
-            logger.warning("Feature flags DB read failed, falling back to cache/defaults: %s", e)
+            import time
+
+            self._last_failure_at = time.monotonic()
+            logger.warning("Feature flags DB read failed (backoff 1h), falling back to cache/defaults: %s", e)
             if not self._cache:
                 self._apply_defaults_to_cache()
 
     async def _ensure_fresh(self) -> None:
         self._load_env_overrides()
-        if not self._is_cache_fresh():
+        if not self._is_cache_fresh() and not self._in_failure_backoff():
             await self._refresh_from_db()
             self._apply_defaults_to_cache()
 

@@ -1,0 +1,76 @@
+{
+  "claims": [
+    {
+      "figure": "~$780M / ~20%",
+      "claim": "Deposit float ~$780M self-funds ~20% of program",
+      "source": "whitepaper L44",
+      "published": false
+    },
+    {
+      "figure": "3-7%",
+      "claim": "Private carriers sell narrower versions at 3-7% of annual rent",
+      "source": "whitepaper L48",
+      "published": false
+    },
+    {
+      "figure": "1%",
+      "claim": "Statutory 1% deposit interest; treasury-only investment audited annually",
+      "source": "whitepaper L78",
+      "published": false
+    },
+    {
+      "figure": "15%/25%/$1,200",
+      "claim": "Turnover model: 15% turnover x 25% legitimate x $1,200 avg",
+      "source": "whitepaper L91",
+      "published": false
+    },
+    {
+      "figure": "$15.33 / 1.18%",
+      "claim": "Base case: $106M premium vs $110M claims = $15.33/unit, 1.18% of rent",
+      "source": "whitepaper L99",
+      "published": false
+    },
+    {
+      "figure": "$21.23 / 1.63%",
+      "claim": "Fraud stress +30% claims: $138M/$153M = $21.23, 1.63%",
+      "source": "whitepaper L100",
+      "published": false
+    },
+    {
+      "figure": "$30.00 / 2.31%",
+      "claim": "Recession shock 6% default: $185M/$216M = $30.00, 2.31%",
+      "source": "whitepaper L101",
+      "published": false
+    },
+    {
+      "figure": "~$4M/yr",
+      "claim": "Reserves build ~$4M/yr normal years",
+      "source": "whitepaper L104",
+      "published": false
+    },
+    {
+      "figure": "~$39/mo",
+      "claim": "Premium ~3% of rent ~= $39/mo at modeled rent level",
+      "source": "whitepaper L106",
+      "published": false
+    },
+    {
+      "figure": "~$23M/yr",
+      "claim": "Deposit float ~$23M/yr (4% yield less 1% statutory interest)",
+      "source": "whitepaper L114",
+      "published": false
+    },
+    {
+      "figure": "~1%",
+      "claim": "Premium add-on ~1% of rent headline figure",
+      "source": "whitepaper L159",
+      "published": false
+    },
+    {
+      "figure": "~1.6%",
+      "claim": "Fraud stress +30% lands ~1.6% of rent",
+      "source": "whitepaper L190",
+      "published": false
+    }
+  ]
+}

@@ -55,14 +55,23 @@ class ModuleOverlayManager:
     In-memory cache with CACHE_TTL_SECONDS for performance.
     """
 
-    CACHE_TTL_SECONDS: int = 60
+    CACHE_TTL_SECONDS: int = 300
+    # On read failure: hold whatever cache we have (possibly stale, possibly
+    # empty) and back off hard instead of retrying on every check. A dead DB
+    # otherwise turns each request into a retry storm that burns free-tier
+    # compute-hours for zero benefit.
+    FAILURE_TTL_SECONDS: int = 3600
 
     def __init__(self) -> None:
         self._cache: dict[str, ModuleInfo] = {}
         self._cache_loaded_at: float = 0.0
+        self._last_failure_at: float = 0.0
 
     def _is_cache_fresh(self) -> bool:
         return (time.monotonic() - self._cache_loaded_at) < self.CACHE_TTL_SECONDS
+
+    def _in_failure_backoff(self) -> bool:
+        return (time.monotonic() - self._last_failure_at) < self.FAILURE_TTL_SECONDS
 
     async def _refresh_from_db(self) -> None:
         try:
@@ -94,12 +103,14 @@ class ModuleOverlayManager:
                     notes=r.notes or "",
                 )
             self._cache_loaded_at = time.monotonic()
+            self._last_failure_at = 0.0
             logger.debug("Module registry refreshed: %d rows", len(rows))
         except Exception as e:
-            logger.warning("Module registry DB read failed: %s", e)
+            self._last_failure_at = time.monotonic()
+            logger.warning("Module registry DB read failed (backoff 1h): %s", e)
 
     async def _ensure_fresh(self) -> None:
-        if not self._is_cache_fresh():
+        if not self._is_cache_fresh() and not self._in_failure_backoff():
             await self._refresh_from_db()
 
     # ------------------------------------------------------------------

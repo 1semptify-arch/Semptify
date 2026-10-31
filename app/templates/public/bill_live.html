@@ -1,0 +1,59 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}The Live Draft — Minnesota Rent Assurance Bill — Semptify{% endblock %}
+{% block description %}The real working draft of the Minnesota rent assurance and deposit protection bill — refreshed daily, every figure triple-checked or honestly marked.{% endblock %}
+{% block keywords %}minnesota housing bill live draft, rent assurance text, deposit protection bill, working draft{% endblock %}
+
+{% block body_attrs %}data-theme="northstar"{% endblock %}
+{% block body_class %}shell bill-section{% endblock %}
+
+{% block header_title %}The live draft{% endblock %}
+{% block header_tagline %}The real working text — refreshed daily.{% endblock %}
+{% block header_subtitle %}Not a summary, not a press release. When the draft changes, this page changes.{% endblock %}
+
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="/bill">The Bill</a></li>
+<li class="nav-item"><a class="nav-link" href="/bill/live">Live draft</a></li>
+<li class="nav-item"><a class="nav-link" href="/bill/research">The numbers</a></li>
+<li class="nav-item"><a class="nav-link" href="/your-voice">Your Voice</a></li>
+<li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+{% endblock %}
+
+{% block sidebar %}
+<h2>The bill</h2>
+<ul class="shell-list">
+    <li><a href="/bill">Bill home</a></li>
+    <li><a href="/bill/research">The numbers &amp; sources</a></li>
+    <li><a href="/your-voice">Ask or weigh in</a></li>
+    <li><a href="/what-the-bill-changes">What it would change</a></li>
+    <li><a href="/help">Get help now</a></li>
+</ul>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/themes/northstar.css">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+    .bill-text { background:var(--card-bg); padding:2rem 2.25rem; max-width:46rem;
+                 font-size:1.05rem; line-height:1.7; }
+    .bill-text h3 { color:var(--accent-primary); margin:1.6rem 0 0.4rem; font-size:1.35rem; }
+    .bill-text p { margin:0 0 1rem; }
+    .bill-text ul { margin:0 0 1rem 1.5rem; color:var(--text-secondary); }
+    .draft-label { font-family:inherit; font-size:0.85rem; letter-spacing:0.08em;
+                   text-transform:uppercase; color:var(--text-muted); }
+    .draft-status { border-top:1px solid var(--card-border); padding-top:1rem;
+                    font-size:0.95rem; color:var(--text-secondary); }
+</style>
+{% endblock %}
+
+{% block page_body %}
+
+<section class="section">
+    <div class="bill-text">
+        {% include "public/bill_draft.html" %}
+    </div>
+</section>
+
+{% endblock %}
