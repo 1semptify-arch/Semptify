@@ -136,6 +136,13 @@
   --tone-800: #4a4a4a;
   --tone-900: #1a1a1a;
 
+  /* Magazine-cover palette — printed over the cover photograph on the
+     landing page (app/templates/index.html). Warm dark-photo inks. */
+  --cover-bg: #3a2a20;        /* fallback behind the cover image */
+  --cover-accent: #e8c9a8;    /* kicker / cover-line numbers / hover */
+  --cover-ink: #ffffff;       /* headline, links, cover-line titles */
+  --cover-ink-soft: #f5efe6;  /* standfirst body text */
+
   /* Spacing Scale (8px base) */
   --space-1: 0.25rem;   /* 4px */
   --space-2: 0.5rem;    /* 8px */
