@@ -126,6 +126,24 @@ _PROFILES: dict[str, LoadProfile] = {
         embedding_model=True,
         performance_monitoring=True,
     ),
+    "render_balanced": LoadProfile(
+        name="render_balanced",
+        description=(
+            "Balanced production footprint for Render — the minimalist "
+            "user-assist profile. Keeps the machinery that serves renters "
+            "directly: the embedding model (semantic retrieval over "
+            "rights/resources content, same lazy fastembed ONNX path as "
+            "render_mvp) and Module Hub (the module/action registry the "
+            "plugin tool-list model depends on). Drops the control-layer "
+            "infrastructure: Positronic Brain, Mesh Network, and "
+            "performance monitoring. Select via LOAD_PROFILE=render_balanced."
+        ),
+        positronic_brain=False,
+        module_hub=True,
+        mesh_network=False,
+        embedding_model=True,
+        performance_monitoring=False,
+    ),
     "full": LoadProfile(
         name="full",
         description=(
