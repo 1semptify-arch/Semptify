@@ -1,6 +1,8 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-09-13 (Prod schema repair + donor portal — Neon table ownership fixed (`authenticator`→`neondb_owner`), migrations applied, deploy-time drift guard added (PR #232, KF #20); fact-checked funding presentation live at `/donate` with GitHub Sponsors (PRs #234–#236). Retaliation tracker live. See BUILD_STATE.md 2026-09-13 entries.)
+**Last Updated**: 2026-10-31 (Public bill section live on semptify.org via `bill-mirror` Cloudflare worker — static mirror of `/bill`, `/bill/live`, `/bill/research`, `/your-voice`, `/what-the-bill-changes` + `/` failover from GitHub repo `semptify-bill-mirror`. `/bill` is a standalone full-viewport page: AI-rendered MN lake scene (Workers AI FLUX, composites in `bill-static`), North Star palette, Fell English title, flags per § 609.40, no advertising. Render origin DOWN: Neon quota exhausted (resets 2026-11-01 00:00Z) + cold-boot exceeds port-scan window — bridge DB `divine-sun-29128013` + stamped alembic_version as emergency workaround. See BUILD_STATE.md 2026-10-31 for full details + scene-generation pipeline notes.)
+
+**Previous**: 2026-09-13 (Prod schema repair + donor portal — Neon table ownership fixed (`authenticator`→`neondb_owner`), migrations applied, deploy-time drift guard added (PR #232, KF #20); fact-checked funding presentation live at `/donate` with GitHub Sponsors (PRs #234–#236). Retaliation tracker live. See BUILD_STATE.md 2026-09-13 entries.)
 
 **Previous**: 2026-09-12 (Site Shell v5 rollout complete — PRs #205–#224; mobile quick-capture wired end-to-end incl. contacts/call-log/file-camera-audio upload; `/tenant/contacts` added; DC flipped to rail-left/work-right; shell lightness pass merged. See BUILD_STATE.md 2026-09-12 entries for the full ship log.)
 

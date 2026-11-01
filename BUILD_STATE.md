@@ -15967,3 +15967,48 @@ sessions); embedded images are dropped from edited exports (noted to user).
   required checks run on the registry PR).
 - Side effect on merge: next scheduled/dispatched run will auto-open a PR
   carrying the ~1,590-line registry drift update — review before merging.
+
+## 2026-10-31 — Bill public section live via Cloudflare mirror; AI-rendered scene (devin, SWE-2)
+
+- **Render origin DOWN all day**: Neon free-tier compute quota exhausted
+  (suspend_timeout=0 + 3s retry loop burned it; quota resets 2026-11-01 00:00Z
+  ~7pm CT). Four `update_failed` deploys — NOT code: app cold-boot (~60s module
+  import + startup stages) exceeds Render free-tier port-scan window; instances
+  killed mid-boot. Fresh bridge Neon project `divine-sun-29128013` created +
+  `DATABASE_URL` repointed + `alembic_version` stamped to `20261026_voice_posts`
+  as emergency workaround — real fix = slim startup (lazy router imports) +
+  repair migrations.
+- **Public bill LIVE anyway**: `bill-mirror` Cloudflare Worker serves a static
+  mirror of the bill section from public repo `1semptify-arch/semptify-bill-mirror`.
+  Routes: `semptify.org/bill*`, `/your-voice*`, `/what-the-bill-changes*`,
+  `/static/*`, `/` (origin-failover → `home.html` after 8s origin timeout).
+  Worker has `?v=N` cache-buster on GitHub-raw fetches — bump it whenever
+  mirror content changes or pages serve stale for ~5 min.
+- **New ASSETS must be added to the worker's ASSETS map** or the request falls
+  through to the dead origin and hangs — no wildcard.
+- **/bill is now a standalone full-viewport page** (not the asymmetric shell):
+  full-screen scene image, dark-glass panels, IM Fell English title,
+  North Star palette, US+MN flags w/ § 609.40 note, no advertising.
+- **Scene pipeline**: Cloudflare Workers AI FLUX `@cf/black-forest-labs/flux-1-schnell`
+  renders 1024×1024 via a temporary `/gen-image` route on the worker (key-gated
+  `gen-7f3a9b2e`, AI binding `[{type:"ai",name:"AI"}]`); PIL crops to 16:9 and
+  composites elements across renders. SD-1.5 inpainting available too but
+  downscales output to 512 — poor quality, avoid.
+- **Current lead scene** `bill-scene-day.jpg` = gen-flux-15 base + deer composited
+  from gen-flux-14 via luminance-mask + warm grade (buck on dry sand at wooded
+  shoreline right, loon far out, thin fog). Approved by Brad.
+- **Rotation set staged** in app `static/img/` + mirror: `bill-scene-day`,
+  `bill-scene-aurora` (night + stone fire ring — campfire belongs to the night
+  scene per Brad), `bill-scene-ai`, `bill-scene-alt1/2`. Swap = 1-line `<img>` change.
+  Rotation plan logged: `plan-20261031-...-d683` (day/night scheduled swap).
+- **Brad's authenticity rules learned**: deer drink AT the water's edge on dry
+  land, never standing in water; campfires burn in a stone fire ring on the
+  beach — never on a porch; loons = dark bill + RED EYES (red bill = merganser,
+  wrong bird); birch trunks white w/ dark dashes.
+- **All 16 gen attempts + crops** archived at `C:\Users\bradc\Desktop\bill-static\`.
+- **Committed locally in repo**: `bill_hub.html` rewrite + new images + earlier
+  features.py/module_overlay.py resilience edits (PR #324 merged carried part).
+  Next PR ships them to Render once prod heals.
+- **Cleanup pending**: `/gen-image` route + AI binding still ON the worker for
+  ongoing iteration — REMOVE when scene work is done (key-gated but exposed).
+
