@@ -310,6 +310,18 @@ class PortalPageRegistry:
             footer_label="Credits",
             order=170,
         ),
+        PortalPage(
+            id="toolbox",
+            title="The Toolbox — what works today, what is coming — Semptify",
+            path="/toolbox",
+            template="public/toolbox.html",
+            description="Every tool and service Semptify has mentioned, with an honest status and what you can do right now.",
+            keywords="semptify tools, tenant tools, what works today, roadmap, honest status",
+            og_title="The Toolbox — Semptify",
+            og_description="Every tool Semptify has mentioned, and where each one honestly stands.",
+            footer_label="The Toolbox",
+            order=6,
+        ),
     ]
 
     @classmethod

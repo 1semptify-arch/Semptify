@@ -2021,6 +2021,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # ------------------------------------------------------------------
     from app.modules.portal.pages import portal_pages as _portal_pages
     from app.modules.portal.service import get_portal_catalog as _get_catalog
+    from app.modules.portal.toolbox import toolbox as _toolbox
 
     # Paths that already have routes registered elsewhere in the app
     _existing_public_paths = {"/help", "/tools", "/library"}
@@ -2057,12 +2058,30 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     context["services"] = catalog["services"]
                     context["categories"] = catalog["categories"]
                     context["total_services"] = catalog["total_services"]
+                if _p.id == "toolbox":
+                    context.update(_toolbox.page_context())
                 return templates.TemplateResponse(request, _p.template, context)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Public page template error (%s): %s", _p.template, e)
                 root_stage = navigation.get_stage("root")
                 root_path = root_stage.path if root_stage else "/"
                 return ssot_redirect(root_path, context=f"template error {_p.template}")
+
+    # Toolbox detail pages — one honest status page per promised service.
+    # Unknown ids render the full toolbox (404 status) so there is no dead end.
+    _toolbox_page = _portal_pages.get_page("toolbox")
+
+    @fastapi_app.get(_toolbox_page.path + "/{entry_id}", response_class=HTMLResponse)
+    async def _serve_toolbox_entry(request: Request, entry_id: str):
+        """Serve one toolbox entry from the ToolboxCatalog (SSOT)."""
+        context = {"page": _toolbox_page, "footer_pages": _portal_pages.get_footer_pages()}
+        context.update(_toolbox.page_context())
+        entry = _toolbox.get(entry_id)
+        if entry is None:
+            context["not_found"] = True
+            return templates.TemplateResponse(request, _toolbox_page.template, context, status_code=404)
+        context["entry"] = entry
+        return templates.TemplateResponse(request, "public/toolbox_entry.html", context)
 
     DAKOTA_AVAILABLE = False
     if DAKOTA_AVAILABLE:

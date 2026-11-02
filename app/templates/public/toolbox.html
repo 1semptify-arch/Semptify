@@ -1,0 +1,67 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}The Toolbox — what works today, what is coming — Semptify{% endblock %}
+{% block description %}Every tool and service Semptify has mentioned, with an honest status: works today, partly ready, planned, or long-term. And what you can do right now.{% endblock %}
+{% block keywords %}semptify tools, tenant tools status, what semptify does, tenant rights tools, roadmap{% endblock %}
+
+{% block header_title %}The Toolbox{% endblock %}
+{% block header_tagline %}Everything Semptify has said it does, and where each one honestly stands.{% endblock %}
+{% block header_subtitle %}If something is not ready, its page tells you what you can do today instead.{% endblock %}
+
+{% block page_body %}
+
+{% if not_found %}
+<p class="tb-notice" role="status">We could not find that tool. Here is the full list.</p>
+{% endif %}
+
+<p class="tb-counts">
+    <strong>{{ counts.live }}</strong> work today ·
+    <strong>{{ counts.partial }}</strong> partly ready ·
+    <strong>{{ counts.planned }}</strong> planned ·
+    <strong>{{ counts.vision }}</strong> long-term
+</p>
+
+{% for group_id, group, entries in groups %}
+{% if entries %}
+<section class="tb-group" aria-labelledby="tb-{{ group_id }}">
+    <h2 class="tb-group-title" id="tb-{{ group_id }}">{{ group.label }}</h2>
+    <p class="tb-group-desc">{{ group.description }}</p>
+    <ul class="tb-list">
+        {% for e in entries %}
+        <li class="tb-row">
+            <a class="tb-name" href="/toolbox/{{ e.id }}">{{ e.name }}</a>
+            <span class="badge {{ status_class[e.status] }} tb-pill">{{ status_label[e.status] }}</span>
+            <p class="tb-purpose">{{ e.purpose }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+{% endfor %}
+
+<section class="tb-close">
+    <p>Need something that is not on this list?</p>
+    <a class="cta-button-large" href="/tool-requests">Ask for a tool</a>
+</section>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .tb-notice { background: var(--bg-muted); padding: 0.75rem 1rem; border-radius: var(--radius-input); margin-bottom: 1.25rem; }
+    .tb-counts { color: var(--text-secondary); margin-bottom: 1.75rem; }
+    .tb-counts strong { color: var(--text-primary); }
+    .tb-group { margin-bottom: 2rem; }
+    .tb-group-title { font-size: 1.2rem; font-weight: 600; color: var(--color-primary); margin-bottom: 0.15rem; }
+    .tb-group-desc { color: var(--text-secondary); margin-bottom: 0.5rem; }
+    .tb-list { list-style: none; margin: 0; padding: 0; }
+    .tb-row { padding: 0.7rem 0; border-bottom: 1px solid var(--border-color); }
+    .tb-row:last-child { border-bottom: none; }
+    .tb-name { font-weight: 600; color: var(--text-primary); text-decoration: none; margin-right: 0.5rem; }
+    .tb-name:hover, .tb-name:focus-visible { text-decoration: underline; }
+    .tb-pill { letter-spacing: 0.04em; text-transform: uppercase; vertical-align: 0.1em; }
+    .tb-purpose { color: var(--text-secondary); margin: 0.2rem 0 0; line-height: 1.5; }
+    .tb-close { padding: 1.5rem 0 0.5rem; border-top: 1px solid var(--border-color); }
+    .tb-close p { margin-bottom: 0.75rem; color: var(--text-secondary); }
+</style>
+{% endblock %}
