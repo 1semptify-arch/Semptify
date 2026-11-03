@@ -142,6 +142,16 @@ PUBLIC_PATHS: set[str] = {
     "/api/data-freshness/cron/verify-landing-claims",
     # Resource directory — public list endpoint (detail routes covered by prefix)
     "/api/resources",
+    # Public forms — anonymous submissions + public lists (public_forms router,
+    # explicitly designed "public, no auth": voice board, tool requests,
+    # contact, feedback, tenant autofill)
+    "/api/feedback",
+    "/api/tool-request",
+    "/api/tool-requests",
+    "/api/voice-post",
+    "/api/voice-posts",
+    "/api/contact",
+    "/api/tenant/autofill",
     # SEO files
     "/robots.txt",
     "/sitemap.xml",
