@@ -14,10 +14,11 @@ INDEX = HERE / "index.html"
 
 
 def latest_draft():
-    files = sorted(CONTENT.glob("BILL_V2_TITLED_*.md"))
-    if not files:
-        sys.exit("no BILL_V2_TITLED_*.md found")
-    return files[-1]
+    """THE live document — BILL_LIVE.md at the bill-folder root. No versions."""
+    f = HERE.parent / "BILL_LIVE.md"
+    if not f.exists():
+        sys.exit("BILL_LIVE.md missing")
+    return f
 
 
 def esc(s):
