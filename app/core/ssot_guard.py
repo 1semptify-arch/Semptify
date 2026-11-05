@@ -98,7 +98,7 @@ def require_ssot_path(path: str, context: str = ""):
         raise SSOTViolation(violation_msg)
 
 
-def ssot_redirect(path: str, context: str = "", strict: bool = False) -> RedirectResponse:
+def ssot_redirect(path: str, context: str = "", strict: bool = False, status_code: int = 302) -> RedirectResponse:
     """
     Create a redirect response with SSOT validation.
 
@@ -108,6 +108,7 @@ def ssot_redirect(path: str, context: str = "", strict: bool = False) -> Redirec
         path: Destination path
         context: Where this redirect originates
         strict: If True, raises on non-SSOT paths. If False, warns and allows.
+        status_code: Redirect status (302 default; 301 for permanent moves).
 
     Returns:
         RedirectResponse (validated through evolution system)
@@ -131,7 +132,7 @@ def ssot_redirect(path: str, context: str = "", strict: bool = False) -> Redirec
         if strict:
             raise SSOTViolation(f"Strict mode: Non-canonical path '{path}' blocked in {context}")
 
-    return RedirectResponse(url=path, status_code=302)
+    return RedirectResponse(url=path, status_code=status_code)
 
 
 def ssot_middleware_guard(request: Request) -> None:
