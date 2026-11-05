@@ -1796,10 +1796,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.sticky_notes.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: null
-  status: unverified
+  health_check: tools.module_health.check_sticky_notes
+  test_suite: tests/module_health/test_sticky_notes.py
+  last_verified: '2026-11-05T17:41:31.034953+00:00'
+  status: ok
+  last_result:
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 2.67s
 - id: law_linker
   display_name: Law Linker / Know
   category: advanced
@@ -1807,10 +1810,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.law_linker.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: null
-  status: unverified
+  health_check: tools.module_health.check_law_linker
+  test_suite: tests/module_health/test_law_linker.py
+  last_verified: '2026-11-05T17:42:11.664364+00:00'
+  status: ok
+  last_result:
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 4.55s
 - id: accountability_ledger_accountability_ledger_router
   display_name: Accountability Ledger / Political Tracker / Research
   category: advanced
