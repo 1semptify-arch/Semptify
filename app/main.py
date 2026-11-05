@@ -2036,6 +2036,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         @fastapi_app.get(_pg.path, response_class=HTMLResponse)
         async def _serve_public_page(request: Request, _p=_pg):
             """Serve a public website page from the portal pages registry."""
+            # Page lives off-app (e.g. the bill microsite on semptify.org) —
+            # the registry path permanently redirects to its real home.
+            if _p.redirect_to:
+                return RedirectResponse(_p.redirect_to, status_code=301)
             # HEAD probes from uptime monitors — return empty 200.
             if request.method == "HEAD":
                 return Response(status_code=200)
