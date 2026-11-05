@@ -15,7 +15,16 @@ def test_render_balanced_flags():
         "mesh_network": False,
         "embedding_model": True,
         "performance_monitoring": False,
+        "db_null_pool": True,
     }
+
+
+def test_db_null_pool_only_on_render_balanced():
+    # The DB-sleep flag belongs to the light prod profile only — heavier
+    # profiles keep connection pooling.
+    for name in ("local_dev", "local_dev_semantic", "render_mvp", "full"):
+        with patch.dict(os.environ, {"LOAD_PROFILE": name}):
+            assert get_active_profile().db_null_pool is False, name
 
 
 def test_render_balanced_via_override_not_default():
