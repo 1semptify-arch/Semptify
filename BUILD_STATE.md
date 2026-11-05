@@ -1,3 +1,16 @@
+## Session — 2026-11-05 — Title I statutory draft for outside-counsel redline (devin)
+
+**Queue task `plan-20261105-draft-title-i-as-formal-amendatory-act-a-17ce`.** Turned the bill's clause outline into amendatory-act language against Minn. Stat. § 504B.178 — the step between "model" and "introduced statute" in the 2026-11-05 evaluation roadmap.
+
+**What shipped (uncommitted):**
+- `app/static/turnbuchalla/builder/TITLE_I_STATUTORY_DRAFT_2026-11-05.md` — new subdivisions 1a (definitions), 1b (custodial escrow, 14-day transmission), 1c (1% tenant interest + net float + claims-free dividend), 3a (claims + independent adjudication + default return + conciliation-court displacement), 3b (no-subrogation/recourse lock), 3c (SDR convert-or-exclude); conforming-amendment table for existing subds. 2, 3, 9 with replacement text; skeleton-provisions list for what the Act must supply elsewhere; 5 counsel questions (3 from the evaluation + 2 found in drafting: fiduciary status under § 82.55 subd. 26, mid-tenancy transition).
+- `builder/INDEX.md` — indexed the new draft.
+
+**Verified:** § 504B.178 current text pulled from revisor.mn.gov (2026 compilation) and quoted accurately; locked clauses traced to DECISIONS.md/BILL_V2 — no conflicts found. Markdown only — no code, no py_compile applicable.
+**Open:** counsel redline (the actual next step), Title II MHFA pilot drafting, Brad confirms needed on IV-2 home agency / IV-4 sunset term / I-9 SDR clause.
+
+---
+
 ## Session — 2026-11-05 — Build-time route audit guardrail (swe-2)
 
 ### Guardrail Engine Run — 2026-11-05T17:05:13+00:00
