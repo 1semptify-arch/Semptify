@@ -16101,3 +16101,43 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - Out of scope, not changed: Document Center `/dc` keeps its pdf.js canvas
   viewer (richer, CDN-dependent); `SemptifyMediaPlayer` iframe PDF path left
   as-is.
+
+## 2026-11-05 — Feedback component wired via base template (task feedback-component-epic, swe-2)
+
+- **Gap closed**: `SemptifyFeedback` component (`static/components/feedback.html`
+  + `feedback.js`, committed earlier under e617cf0d) was never included in a
+  base template — every `if (window.SemptifyFeedback)` call in retrofitted pages
+  was a dead no-op. Added `<script src="/static/components/feedback.js">` to
+  `app/templates/base.html` global scripts → live on all Jinja pages
+  (shell_base + public_base both extend base).
+- **Button spinner fixed**: `.btn--loading` styles existed only in orphaned
+  `loading-overlay.html` (no template references it). Ported `.btn--loading` /
+  `::after` / `@keyframes se-pt-loading-spin` into the component's own styles
+  (both variants); fixed `border-top-color: currentColor` resolving to
+  transparent — spinner arc now uses `var(--color-accent)`.
+- **Audit targets verified against live code**: the archived
+  ACTION_FEEDBACK_AUDIT's `static/{tenant,admin,tools}` pages were migrated to
+  `app/templates/pages/*` Jinja templates; all in-scope pages already have 0
+  `alert()` calls and wrapped fetches with `SemptifyFeedback` or visible
+  inline errors. `static/onboarding/activate-vault.html` no longer exists
+  (`/activate-vault` is an ssot_redirect); `static/onboarding/index.html` is a
+  redirect splash already loading feedback.js with a fallback catch.
+- **Verified live** (127.0.0.1:8001, IronBee): `/help` renders with feedback.js
+  loaded via base; `SemptifyFeedback` API complete (start/done/success/error/
+  info/story); success toast role=status + error toast role=alert render
+  bottom-right; `start()` produces a visible sage-accent spinner + disabled
+  button; console clean. Screenshot: verification toast visible on /help.
+- **Files**: `app/templates/base.html`, `static/components/feedback.js`,
+  `static/components/feedback.html`.
+- Intake logged for out-of-scope leftovers: remaining `alert()`s on non-scoped
+  pages (advocate_client_detail, document_*, motions, etc. — audit Tiers 3–5).
+
+## 2026-11-05 — DEPLOYMENT_READINESS production checklist re-verified live (task prod-deploy-readiness-remaining, swe-2)
+
+- All four open checklist items verified against live prod via Render + Neon MCPs:
+  - PostgreSQL 16.15 on Neon `flat-block-24520481` / `semptifty_db` (production branch), app writing sessions live.
+  - All 79 public tables + sequences owned by `neondb_owner` — KF#20 ownership fix holding.
+  - `alembic_version = 20261026_voice_posts` = single repo head; startup stage-3 auto-migrate + drift guard confirmed in `app/main.py`; deploy `dep-dbmadglbedkc73bmlb6g` live 15:55Z, `GET /health` = ok.
+  - Env vars verified where observable: `SECURITY_MODE=enforced` (boot log), `SECRET_KEY` (enforced-mode startup would fail without it), `DATABASE_URL` working, port 10000 bound, `DEPLOY_TARGET`/`LOAD_PROFILE` quota profiles (PR #332).
+- DEPLOYMENT_READINESS.md updated: stale self-hosted-PG wording corrected to real Render+Neon topology, checked items carry evidence, stale `81c36d8f2466` head refs fixed.
+- New "Open Items" section logged for Brad's dashboard checks: `NEDRIVE_CLIENT_SECRET` typo in render.yaml (OneDrive may be dead in prod), Dockerfile drift (dashboard builds `./Dockerfile` unpinned `3.11-slim`, not `Dockerfile.render`'s `3.11.9-slim`), bridge Neon `divine-sun-29128013` no longer live target (different Neon account — delete decision), stale `semptify db`/`neondb` DBs on prod branch, OAuth creds unverifiable via API, Neon quota resets 2026-12-01.
