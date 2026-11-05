@@ -80,6 +80,11 @@
     .doc-info { flex: 1; }
     .doc-name { font-weight: 500; }
     .doc-meta { font-size: 0.875rem; color: var(--color-gray-500); }
+    .docview-slot {
+        padding: 0.75rem;
+        background: color-mix(in srgb, var(--bg-card), transparent 93%);
+        border-radius: var(--radius-input);
+    }
     #message {
         padding: 1rem;
         border-radius: var(--radius-input);
@@ -295,6 +300,10 @@
                                     ${new Date(doc.uploaded_at).toLocaleDateString()}
                                 </div>
                             </div>
+                            ${(doc.mime_type || '').includes('pdf') ? `
+                            <button class="btn" onclick="toggleDocView('${doc.vault_id}', '${accessToken}', this)">
+                                View
+                            </button>` : ''}
                             <button class="btn" onclick="downloadDoc('${doc.vault_id}', '${accessToken}')">
                                 Download
                             </button>
@@ -339,6 +348,24 @@
 
         async function downloadDoc(id, token) {
             window.open('/api/vault/' + id + '/download?access_token=' + token, '_blank');
+        }
+
+        // In-app viewer — pages render as images inside this page instead of
+        // opening the document in another program. Toggles per document.
+        function toggleDocView(id, token, btn) {
+            const row = btn.closest('.doc-item');
+            const next = row.nextElementSibling;
+            if (next && next.classList.contains('docview-slot')) {
+                next.remove();
+                btn.textContent = 'View';
+                return;
+            }
+            if (!window.SemptifyDocViewer) return;
+            const slot = document.createElement('div');
+            slot.className = 'docview-slot';
+            row.parentNode.insertBefore(slot, row.nextSibling);
+            SemptifyDocViewer.mount(slot, { documentId: id, accessToken: token });
+            btn.textContent = 'Close';
         }
 
         async function exportCase() {
@@ -412,5 +439,6 @@
         // Init on load
         init();
     </script>
+    {% include "components/doc_viewer.html" %}
     <script src="/js/core/vault-portal.js?v=20260626d"></script>
 {% endblock %}

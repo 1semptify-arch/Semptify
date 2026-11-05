@@ -16067,3 +16067,37 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - **Cleanup pending**: `/gen-image` route + AI binding still ON the worker for
   ongoing iteration — REMOVE when scene work is done (key-gated but exposed).
 
+
+## 2026-11-05 — In-app PDF viewer for vault documents (task semptify-inline-doc-viewer, swe-2)
+
+- **What shipped**: `GET /api/vault/{document_id}/preview.png?page=N&scale=S`
+  renders one vault PDF page to PNG via PyMuPDF (`get_pixmap` → PNG — port of
+  the efile_helper `DocViewer`). Shares the download endpoint's auth + provider
+  fetch path (extracted to `_fetch_document_content`). Headers: `X-Page-Count`,
+  `X-Page-Number`, `X-Content-Type-Options` via Response defaults,
+  `Cache-Control: private, no-store`. Errors: 416 page out of range, 415
+  non-renderable/encrypted/corrupt, 404 missing doc. Page/scale clamped via
+  Query(ge/le). Rendering runs in `run_in_threadpool` (CPU-bound, must not
+  block the event loop — Known Failure #19). In-memory byte cache: 120s TTL,
+  8 docs max, avoids re-download per page flip.
+- **New reusable component**: `app/templates/components/doc_viewer.html` —
+  `SemptifyDocViewer.mount(el, {documentId, accessToken?})`, Prev/Next/Page-x-of-y/
+  Zoom−/Zoom+/Download-file, SSOT design tokens, zone separation (no card
+  borders), aria-live page label.
+- **Wired into**: `intake_upload_guide.html` — after a successful PDF upload
+  the "What was saved" pane mounts the viewer ("Review what you saved — the
+  pages show right here"); `vault.html` — per-PDF-doc "View" button toggles an
+  in-place preview slot.
+- **Verified live** (local dev, 127.0.0.1:8001): 3-page test PDF upload →
+  preview p1–3 HTTP 200 image/png (~893×1263), p4 → 416, non-PDF → 415;
+  IronBee browser: upload→viewer mount→Next→Zoom exercised, 375px + 1280px
+  screenshots clean, console clean (benign ws logs only).
+  `py_compile` ✓; `tests/module_health` 249 passed; `test_ssot_architecture` 8 passed.
+- **Pending/not verified**: vault.html View button not browser-tested live —
+  `/vault` page requires connected storage and the local dev OAuth token is
+  expired (`needs_reauth`); component mount path identical to the verified
+  upload-guide path. Preview with a *cloud* (non-local-disk) provider untested —
+  same fetch path as `/download`, parity assumed.
+- Out of scope, not changed: Document Center `/dc` keeps its pdf.js canvas
+  viewer (richer, CDN-dependent); `SemptifyMediaPlayer` iframe PDF path left
+  as-is.
