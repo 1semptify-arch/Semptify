@@ -246,3 +246,9 @@
     - static/css/ssot-design-system.css
     - app/modules
   category: admin
+
+- doc: funding/github-sponsors-345-filing-fund.md
+  covers:
+    - app/templates/public/donate.html
+    - .github/FUNDING.yml
+  category: admin
