@@ -110,6 +110,22 @@ _PROFILES: dict[str, LoadProfile] = {
         embedding_model=True,
         performance_monitoring=False,
     ),
+    "render_balanced": LoadProfile(
+        name="render_balanced",
+        description=(
+            "Balanced Render footprint: keeps semantic retrieval "
+            "(embedding model) and the Module Hub plugin registry on, "
+            "while Positronic Brain, Mesh Network, and performance "
+            "monitoring stay off. For when the free-tier container can't "
+            "carry the full render_mvp stack but the product still needs "
+            "search + modules live. Select via LOAD_PROFILE=render_balanced."
+        ),
+        positronic_brain=False,
+        module_hub=True,
+        mesh_network=False,
+        embedding_model=True,
+        performance_monitoring=False,
+    ),
     "render_mvp": LoadProfile(
         name="render_mvp",
         description=(
