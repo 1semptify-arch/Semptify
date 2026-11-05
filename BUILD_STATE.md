@@ -1,3 +1,58 @@
+## Session — 2026-11-05 — Build-time route audit guardrail (swe-2)
+
+### Guardrail Engine Run — 2026-11-05T17:05:13+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-05T17:03:26+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+**Queue task `route-scan-ad-hoc-public-routes`** — close the gap where routes registered directly on `fastapi_app` (the `/debug/*` class) were invisible to `contract_route_check.py`, which only inspects module routers via the product manifest.
+
+**What shipped:**
+- `tools/checks/route_audit_check.py` — new guardrail plugin. Builds the app via `create_app()` under the same env pins as `tests/conftest.py` (`SECURITY_MODE=open` so the widest surface mounts; `SEMPTIFY_ENV=development` so every contract tier registers), then calls `app/core/route_audit.py`'s `scan_public_routes()` — the SSOT for public/actionable/covered, no duplicated logic. Any uncovered actionable public route fails the commit. Env pins are snapshotted and restored so they can't leak into later checks in the engine process.
+
+**Verified:** standalone engine-style run — PASS, "All actionable public routes have contract coverage" (~26s; 1203 contracts, 0 load failures). Negative test: a fake `@app.get('/api/portal/ad-hoc-uncontracted-test')` is flagged; a non-public `/api/` route correctly is not. `py_compile` clean.
+
+**Noted (intake `intake-b90b1922`, low):** GET-only public routes outside `/api/` are deliberately out of audit scope (`_is_actionable`) — a GET-only `/debug/*` ad-hoc route would evade both runtime audit and this check.
+
+---
+
+## Session — 2026-11-03 — Portal reorganized by the six functions + strict text contrast + step map (devin)
+
+**Brad direction:** light text on light backgrounds is a bug; organize the UI by what Semptify does for people (six pillars) and who it serves; every step must know what it needs and what comes before/after.
+
+**What shipped (uncommitted):**
+- Contrast: `--text-secondary` #5b6470 -> #4b5560, `--text-muted` #767d8a -> #5f6772 (both >= 4.5:1 on paper/card/white); fixed self-referencing `--text-muted`/`--font-serif` vars in `public_base.html`; public-shell service buttons now #4c6b4c (6.0:1) instead of sage #6b8e6b (3.7:1 with white text); donate.html `--muted` #7a8fa6 -> #8aa0b6 (was 4.44:1). Guard: `tests/test_text_contrast.py`.
+- Portal (`/portal`) now renders the six functions in journey order (Information, Research, Documentation, Organize, Collaborate, Be Heard) then "Work with Semptify"; each service shows who it is for. Registry: `pillar` + `audiences` fields, `PILLARS`, `get_pillars_with_services()`.
+- Step map (the "brain"): `app/modules/portal/step_map.py` — per step: needs_first, how, done_when, tools; previous 2 / next 2 are derived from order. Guard: `tests/test_step_map.py`.
+- Copy: removed "Free to use" / "no cost" / "account" wording from portal, registry, and page metadata.
+
+**Verified:** `/portal` 200 with 7 pillar sections on a fresh server (port 8011); `/services`, `/donate`, `/about` 200; test_text_contrast, test_step_map, test_ssot_architecture pass.
+**NOT verified:** IronBee browser server was not available this session — no screenshots, no 375px/1280px visual check, no console check. Contrast was computed from token values, not measured in a rendered page.
+**Open:** `/services` still groups by audience (same data, older layout); other shell pages may still use the sage fill with light text; step map covers the tenant journey only.
+
+---
+
 ## Session — 2026-10-26 (cont.) — Cover upgraded to real CC0 photograph (devin)
 
 ### Guardrail Engine Run — 2026-10-26T11:35:28+00:00
