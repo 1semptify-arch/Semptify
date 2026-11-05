@@ -72,6 +72,7 @@ class LoadProfile:
     mesh_network: bool  # Mesh Network + Distributed Mesh (mesh_handlers)
     embedding_model: bool  # sentence-transformer (all-MiniLM-L6-v2) for Layer 2 semantic retrieval
     performance_monitoring: bool  # background sampler + per-request middleware
+    db_null_pool: bool  # no held DB connections — lets serverless Postgres (Neon) suspend after idle window
 
     def flags(self) -> dict[str, bool]:
         return {
@@ -80,6 +81,7 @@ class LoadProfile:
             "mesh_network": self.mesh_network,
             "embedding_model": self.embedding_model,
             "performance_monitoring": self.performance_monitoring,
+            "db_null_pool": self.db_null_pool,
         }
 
 
@@ -97,6 +99,7 @@ _PROFILES: dict[str, LoadProfile] = {
         mesh_network=False,
         embedding_model=False,
         performance_monitoring=False,
+        db_null_pool=False,
     ),
     "local_dev_semantic": LoadProfile(
         name="local_dev_semantic",
@@ -109,22 +112,7 @@ _PROFILES: dict[str, LoadProfile] = {
         mesh_network=False,
         embedding_model=True,
         performance_monitoring=False,
-    ),
-    "render_balanced": LoadProfile(
-        name="render_balanced",
-        description=(
-            "Balanced Render footprint: keeps semantic retrieval "
-            "(embedding model) and the Module Hub plugin registry on, "
-            "while Positronic Brain, Mesh Network, and performance "
-            "monitoring stay off. For when the free-tier container can't "
-            "carry the full render_mvp stack but the product still needs "
-            "search + modules live. Select via LOAD_PROFILE=render_balanced."
-        ),
-        positronic_brain=False,
-        module_hub=True,
-        mesh_network=False,
-        embedding_model=True,
-        performance_monitoring=False,
+        db_null_pool=False,
     ),
     "render_mvp": LoadProfile(
         name="render_mvp",
@@ -141,6 +129,7 @@ _PROFILES: dict[str, LoadProfile] = {
         mesh_network=True,
         embedding_model=True,
         performance_monitoring=True,
+        db_null_pool=False,
     ),
     "render_balanced": LoadProfile(
         name="render_balanced",
@@ -159,6 +148,7 @@ _PROFILES: dict[str, LoadProfile] = {
         mesh_network=False,
         embedding_model=True,
         performance_monitoring=False,
+        db_null_pool=True,
     ),
     "full": LoadProfile(
         name="full",
@@ -173,6 +163,7 @@ _PROFILES: dict[str, LoadProfile] = {
         mesh_network=True,
         embedding_model=True,
         performance_monitoring=True,
+        db_null_pool=False,
     ),
 }
 
