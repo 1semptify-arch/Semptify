@@ -1,5 +1,70 @@
 ## Session — 2026-10-26 (cont.) — Cover upgraded to real CC0 photograph (devin)
 
+### Guardrail Engine Run — 2026-11-06T19:08:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-06T19:07:47+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Check plugin failed to load (bug in the check itself).
+- **fees_policy_check**: FAIL — Check plugin failed to load (bug in the check itself).
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-06T19:07:15+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-06T18:41:27+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-06T18:41:09+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+One or more checks failed — see console output.
+
 ### Guardrail Engine Run — 2026-11-06T18:32:23+00:00
 
 - **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
