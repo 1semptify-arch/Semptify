@@ -5,6 +5,7 @@ Invite-only working set. Read the live bill first: https://bill.semptify.org
 - BILL_LIVE.md — canonical working text (V1)
 - BILL_V2_TITLED_2026-10-24.md — titled restructure (the version on the public page)
 - TITLE_I_STATUTORY_DRAFT_2026-11-05.md — Title I amendatory text vs. § 504B.178, for outside-counsel redline
+- COMMUNITY_BOARD_DESIGN_2026-11-06.md — public discussion layer spec (Margin + Floor, docket model, phased)
 - SSOT_LIVE.md — single source of truth for how this folder works
 - DECISIONS.md — locked calls
 - TASKS.md — open work
