@@ -1,4 +1,30 @@
+## Session — 2026-11-06 — Credit-reporting mission explainer, KNOW pillar (swe-2)
+
+**Queue task `plan-20261027-semptify-mission-angle-credit-industry-a-332e`** (master queue, trusted) — case-derived mission fuel (RRS/Velair tradeline fight): a KNOW-pillar explainer on how the credit-reporting system actually works — no-consent model, furnisher duties, the real remedies (statutory/punitive damages + fee-shifting under FCRA/FDCPA), and why the dispute paper-trail sequence is the leverage. Education-only framing.
+
+**What shipped:**
+- `app/data/articles/credit/content_request.json` — new composer subject `credit` (pillar: know), one `system_explainer` article declared, upl_risk_tier high.
+- `app/data/articles/credit/articles.json` — the explainer, drafted per `docs/content_request_convention.md`: 16 paragraphs covering the voluntary/no-consent furnishing model (15 U.S.C. § 1681b), bureau reinvestigation duties (§ 1681i), furnisher duties incl. direct-dispute (§ 1681s-2), FCRA remedies (§§ 1681n/1681o/1681p), FDCPA layer (§§ 1692e/1692f/1692k), 7-year reporting window (§ 1681c), MN layer (chs. 13C/332), and the paper-trail-as-leverage analysis (labeled analysis, not law). 21 sources — all official (govinfo.gov statute text quoted verbatim, consumerfinance.gov, consumer.ftc.gov, revisor.mn.gov). Canonical AI-disclosure footer included verbatim; review_status BETA.
+
+**Verified:** both JSON files parse; banned-language scan clean (no evidence/proof/adversarial/business-model terms; "free" only in statute quote + FTC external-program description — permitted); `py_compile app/main.py` PASS.
+**Not verified / noted for reviewer:** `credit` is not in `context_engine/taxonomy.py` `Subject` enum — the article is content-only and unreachable by any live page until a subject is added (product decision, out of scope here). Nothing in `app/` renders `app/data/articles/` yet; this is pipeline-staged content.
+
+---
+
 ## Session — 2026-11-06 — Commit-boundary separation + legacy-cleanup closeout (swe-2)
+
+### Guardrail Engine Run — 2026-11-06T11:30:10+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Guardrail Engine Run — 2026-11-06T10:54:51+00:00
 
