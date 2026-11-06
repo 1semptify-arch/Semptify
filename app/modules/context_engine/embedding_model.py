@@ -31,13 +31,13 @@ import threading
 from typing import Any
 
 from app.core.runtime_profile import get_active_profile
+from app.modules.context_engine.constants import EMBEDDING_DIMENSIONS
 
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 MODEL_NAME: str = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
-EMBEDDING_DIMENSIONS: int = 384
 EMBEDDING_CACHE_DIR: str | None = os.getenv("EMBEDDING_CACHE_DIR") or None
 
 # The sentence-transformers / huggingface libraries are chatty at INFO.

@@ -14,7 +14,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
 from app.core.database_types import AsymmetricVector
-from app.modules.context_engine.embedding_model import EMBEDDING_DIMENSIONS
+from app.modules.context_engine.constants import EMBEDDING_DIMENSIONS
 from app.core.utc import utc_now
 
 
