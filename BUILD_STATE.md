@@ -1,4 +1,61 @@
+## Session — 2026-11-06 — Commit-boundary separation + legacy-cleanup closeout (swe-2)
+
+- Resumed `plan-20261026-old-site-content-cleanup-legacy-imported-7070` after
+  Brad's desk unblock. The prior run had committed 8 cleanup templates
+  (f6254a27) but stopped at a commit boundary: its remaining edits
+  (registry.py visible=False + de-claims, pages.py metadata) were
+  hunk-interleaved with ~600 lines of an earlier session's uncommitted
+  pillar/journey work.
+- Separated at hunk level: committed the recovered pillar/journey/contrast
+  work under its own task (6767ed4d, `plan-20261102-build-the-6-pillar-…-e44b`
+  — /portal as six-pillar journey, step_map.py SSOT, text-contrast AA pass),
+  then the cleanup remainder under -7070 (832a3e13: role portals hidden
+  visible=False, de-claimed registry copy, pages.py metadata).
+- bill_draft.html committed separately (publish_bill.py 2026-11-05 output,
+  titled act). Left untracked and uncommitted: LEGISLATOR_CONTACTS/ROSTER
+  2026-11-03 (case-side artifacts in public static dir — review decision),
+  _pr325_probe*.py / stub_tasks_probe.json / `nul` (session junk).
+
 ## Session — 2026-11-05 — Title I statutory draft for outside-counsel redline (devin)
+
+### Guardrail Engine Run — 2026-11-06T07:24:21+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: FAIL — Check crashed while running.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-05T19:06:08+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-05T18:30:52+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 **Queue task `plan-20261105-draft-title-i-as-formal-amendatory-act-a-17ce`.** Turned the bill's clause outline into amendatory-act language against Minn. Stat. § 504B.178 — the step between "model" and "introduced statute" in the 2026-11-05 evaluation roadmap.
 
@@ -16154,3 +16211,25 @@ sessions); embedded images are dropped from edited exports (noted to user).
   - Env vars verified where observable: `SECURITY_MODE=enforced` (boot log), `SECRET_KEY` (enforced-mode startup would fail without it), `DATABASE_URL` working, port 10000 bound, `DEPLOY_TARGET`/`LOAD_PROFILE` quota profiles (PR #332).
 - DEPLOYMENT_READINESS.md updated: stale self-hosted-PG wording corrected to real Render+Neon topology, checked items carry evidence, stale `81c36d8f2466` head refs fixed.
 - New "Open Items" section logged for Brad's dashboard checks: `NEDRIVE_CLIENT_SECRET` typo in render.yaml (OneDrive may be dead in prod), Dockerfile drift (dashboard builds `./Dockerfile` unpinned `3.11-slim`, not `Dockerfile.render`'s `3.11.9-slim`), bridge Neon `divine-sun-29128013` no longer live target (different Neon account — delete decision), stale `semptify db`/`neondb` DBs on prod branch, OAuth creds unverifiable via API, Neon quota resets 2026-12-01.
+
+
+## 2026-11-05 — Donate page rebuilt inside Site Shell v5 (task plan-20261026-donate-page-rebuild, swe-2)
+
+- `/donate` was the last standalone public page: 2,137-line dark-theme page with
+  its own fixed navbar/footer, three external Google Fonts families, floating-shape
+  hero, and scroll/counter animation JS — no return nav. Rebuilt in place (same
+  filename, KF#13) as a `body/public_shell.html` child matching all 22 sibling
+  public pages: header nav + "Get help now" pill + right-rail "On this page"
+  anchor list + unified footer now provide nav; SSOT tokens only (`dn-` prefixed
+  page classes, zone separation, sage `--color-accent` primary CTA, calm palette
+  for secondary accents, error/success tints on the comparison table).
+- All content preserved verbatim: sourced crisis stats (Eviction Lab/NCCRC/JCHS/
+  Census links kept), six pillars, 11 feature cards, privacy flow diagram +
+  comparison table, tech stack + module tiers, 4-phase roadmap, support section
+  with GitHub Sponsors. Dropped: dark palette, dedicated font loads (page now
+  inherits the site's Inter/Plex-Mono/Playfair set), decorative animation JS
+  (calm-over-clever; no behavioral loss — numbers are static text).
+- Verified live (127.0.0.1:8001, IronBee): 200 OK, all sections render in shell
+  chrome at 1280px (internal work-zone scroll) and 375px (stacked scroll,
+  comparison table fits, no horizontal overflow); console clean (benign ws logs);
+  `pytest tests/test_ssot_architecture.py` 8/8 pass.
