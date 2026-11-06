@@ -1,3 +1,15 @@
+## Session — 2026-11-06 — Credit-report pull guide public page (swe-2)
+
+**Queue task `plan-20261027-semptify-feature-credit-report-pull-guid-cf67`** (master queue, trusted) — case-derived (STEPS_credit_reports.md, Crowe/Sazama workflow), generalized for tenants: a self-help guide teaching renters to pull all 3 bureau reports from AnnualCreditReport.com, save them, and scan for landlord/collector tradelines. DIY, no paid service, no sign-up, no credit-score upsell.
+
+**What shipped:**
+- `app/modules/portal/pages.py` — additive `PortalPage` entry `credit_reports` (`/credit-reports`, footer label "Credit reports", order 62); route auto-generates from the registry.
+- `app/templates/public/credit_reports.html` — new public page on `body/public_shell.html`: why look → what you need → the six steps (type the URL, identity form, security questions + 1-877-322-8228 phone fallback, all 3 bureaus, save as PDF, scan for landlord/collector entries) → what to look for → dispute pointer (15 U.S.C. § 1681i + CFPB) → what to skip (look-alike/paid/score-upsell sites) → not-lawyers banner → sources (FTC ×2, CFPB ×2, govinfo) → external CTA to annualcreditreport.com.
+
+**Verified:** `py_compile` PASS; live on 127.0.0.1:8002 — 200, full ARIA tree in chronological order, desktop-poster (1280px, internal work-zone scroll) + mobile-stacked-scroll (375px) screenshots clean, console clean, `test_ssot_architecture` 8/8; banned-language scan clean ("free" only in official program/button names — permitted exception). Facts checked against CFPB/FTC/annualcreditreport.com (authorized site, weekly reports permanent, phone number, ~15-day mail timing, no score included).
+**Not verified / noted for reviewer:** global footer already carries the canonical AI-use notice, so no in-body copy (unlike the sibling `credit` explainer's articles.json format); composer subject `credit` remains unregistered in taxonomy (same product decision flagged on the explainer task); stale uvicorn on port 8001 left running untouched — verification used 8002.
+**Out of scope, logged:** whether this guide should ALSO be staged as a second article in `app/data/articles/credit/articles.json` — the staging catalog row described a guide page; pipeline staging would be a separate task.
+
 ## Session — 2026-11-06 — Credit-reporting mission explainer, KNOW pillar (swe-2)
 
 **Queue task `plan-20261027-semptify-mission-angle-credit-industry-a-332e`** (master queue, trusted) — case-derived mission fuel (RRS/Velair tradeline fight): a KNOW-pillar explainer on how the credit-reporting system actually works — no-consent model, furnisher duties, the real remedies (statutory/punitive damages + fee-shifting under FCRA/FDCPA), and why the dispute paper-trail sequence is the leverage. Education-only framing.

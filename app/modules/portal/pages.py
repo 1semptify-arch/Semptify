@@ -153,6 +153,18 @@ class PortalPageRegistry:
             order=8,
         ),
         PortalPage(
+            id="credit_reports",
+            title="Pull Your Own Credit Reports — Semptify",
+            path="/credit-reports",
+            template="public/credit_reports.html",
+            description="A six-step guide to pulling all three of your credit reports from the official government-authorized site — at no cost, no sign-up, no paid service. What you need, how to save them, and what to look for.",
+            keywords="credit report, annualcreditreport, credit bureaus, collection account, landlord debt collections, tenant credit, pull credit report",
+            og_title="Pull Your Own Credit Reports — Semptify",
+            og_description="See what's on your credit reports — all three bureaus, at no cost, on the official site.",
+            footer_label="Credit reports",
+            order=62,
+        ),
+        PortalPage(
             id="about",
             title="About Semptify — Tenant Rights Organization",
             path="/about",
