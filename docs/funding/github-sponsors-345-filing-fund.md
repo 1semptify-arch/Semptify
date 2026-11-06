@@ -48,21 +48,32 @@ Dashboard: <https://github.com/sponsors/accounts> → profile for `1semptify-arc
 - `FUNDING.yml` in this repo already reads `github: [1semptify-arch]`, so the
   repo's Sponsor button points at the listing.
 
-### Publish auth boundary (found 2026-11-06)
+### Publish auth boundary (verified 2026-11-06, third pass)
 
-- Listing profile text and goals are **dashboard-only** — there is no public
-  GraphQL/REST mutation for them. They need a browser signed in as
-  `1semptify-arch`.
-- Tiers ARE API-writable (`createSponsorsTier` with `publish: true`), but only
-  with a token carrying the `user` (or `admin:org`) scope. The local `gh`
-  token for `1semptify-arch` has `gist, read:org, repo, workflow` — confirmed
-  `INSUFFICIENT_SCOPES` on a live call.
+- Listing profile text and goals are **dashboard-only** — GraphQL schema
+  introspection 2026-11-06 shows the complete Sponsors mutation set:
+  `cancelSponsorship`, `createSponsorsListing`, `createSponsorsTier`,
+  `createSponsorship`, `createSponsorships`, `publishSponsorsTier`,
+  `retireSponsorsTier`, `updatePatreonSponsorability`,
+  `updateSponsorshipPreferences`. None edit listing text or goals. They need
+  a browser session signed in as `1semptify-arch`.
+- Tiers ARE API-writable (`createSponsorsTier` + `publishSponsorsTier`), but
+  only with a token carrying the `user` (or `admin:org`) scope. The local
+  `gh` token for `1semptify-arch` has `gist, read:org, repo, workflow` —
+  confirmed `INSUFFICIENT_SCOPES` on a live call; scopes re-checked
+  2026-11-06, unchanged.
+- Live state re-verified 2026-11-06 (pass 3): profile copy, `$50/month`
+  goal, and zero tiers all still unchanged — publish has not happened.
 - So finishing the publish needs one of:
   a. Brad pastes the three sections below at <https://github.com/sponsors/accounts>
      (~2 min), or
   b. `gh auth refresh -s user` for `1semptify-arch`, after which an agent can
      run the tier mutations (profile text + goal still need the dashboard), or
   c. Brad signs the IronBee browser into GitHub and an agent drives the paste.
+- **Do not re-dispatch this task until one of a/b/c has landed** — every
+  dispatch without an auth change produces this same blocked result. If the
+  campaign should wait for the right moment, park it `deferred` rather than
+  `unblock`.
 - Optional extra surface (needs Brad's OK — it is his personal profile):
   a `1semptify-arch/1semptify-arch` repo with the blurb below as
   `README.md` would put the campaign on the public GitHub profile page.
