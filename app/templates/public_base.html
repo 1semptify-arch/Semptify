@@ -38,7 +38,6 @@
         --error: var(--color-error);
         --text: var(--text-primary);
         --text-light: var(--text-secondary);
-        --text-muted: var(--text-muted);
         --bg: var(--bg-page);
         --paper: var(--bg-card);
         --bg-alt: var(--bg-surface);
@@ -54,7 +53,6 @@
         --shadow-lg: 0 10px 15px color-mix(in srgb, var(--color-black), transparent 90%);
 
         --font-family: var(--font-sans);
-        --font-serif: var(--font-serif);
     }
 
     body {
@@ -282,5 +280,13 @@
     @media (min-width: 641px) and (max-width: 1024px) {
         .services-grid { grid-template-columns: repeat(2, 1fr); }
     }
+
+    /* --primary aliases --color-primary, which is pinned to shell ink in
+       dark mode — the CTA fill becomes a light chip and literal white
+       text would vanish. Pair it with the dark paper token. */
+    @media (prefers-color-scheme: dark) {
+        body.shell .cta-button-large { color: var(--shell-paper); }
+    }
+    [data-theme="dark"] body.shell .cta-button-large { color: var(--shell-paper); }
 </style>
 {% endblock %}

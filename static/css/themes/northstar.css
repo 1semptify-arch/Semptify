@@ -75,3 +75,31 @@
 [data-theme="northstar"] .bill-text h3 {
   font-family: "IM Fell English", Georgia, serif;
 }
+
+/* Explicit-theme pin — northstar is a LIGHT-ONLY palette (white star card,
+   navy ink, sky-pale body). Without this block, the global
+   prefers-color-scheme:dark flip in ssot-design-system.css wins because
+   `html body.shell` outranks `[data-theme]`, turns shell-ink LIGHT while
+   --card-bg stays WHITE = unreadable light-on-light bill text.
+   `html body.shell[data-theme]` (0,2,2) outranks `html body.shell` (0,1,2). */
+@media (prefers-color-scheme: dark) {
+  html body.shell[data-theme="northstar"] {
+    --shell-paper: var(--ns-sky-pale);
+    --shell-ink: var(--ns-navy);
+    --shell-ink-2: var(--ns-navy-soft);
+    --shell-ink-3: #4a6d8c;
+    --shell-line: var(--ns-sky);
+    --shell-sage: var(--ns-navy-soft);
+    --role-accent: var(--ns-navy);
+    --role-deep: var(--ns-navy-soft);
+    --role-tint: var(--ns-sky-pale);
+
+    /* Token remaps that body.shell would otherwise resolve to dark-mode
+       shell values — pinned back to the northstar palette. */
+    --bg-page: var(--ns-sky-pale);
+    --bg-card: var(--ns-star);
+    --text-primary: var(--ns-navy);
+    --text-secondary: var(--ns-navy-soft);
+    --text-muted: #4a6d8c;
+  }
+}

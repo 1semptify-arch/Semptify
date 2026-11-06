@@ -46,6 +46,8 @@ class PortalService:
     visible: bool = True  # toggle visibility (future: tied to module flags)
     requires_auth: bool = False  # does this service require login?
     description_long: str = ""  # longer description for the service detail page
+    pillar: str = "partner"  # one of PortalRegistry.PILLARS keys (the six functions) or "partner"
+    audiences: tuple[str, ...] = ()  # CATEGORIES keys this service is for
 
 
 @dataclass
@@ -69,6 +71,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="📓",
             category="tenant",
+            pillar="documentation",
+            audiences=("tenant",),
             order=10,
             requires_auth=False,
             description_long=(
@@ -85,6 +89,8 @@ class PortalRegistry:
             cta_path="/law-library",
             icon="📚",
             category="tenant",
+            pillar="information",
+            audiences=("tenant", "legal", "researcher",),
             order=20,
             requires_auth=False,
             description_long=(
@@ -101,6 +107,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="📝",
             category="tenant",
+            pillar="be_heard",
+            audiences=("tenant",),
             order=30,
             requires_auth=False,
             description_long=(
@@ -119,6 +127,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="🤝",
             category="advocate",
+            pillar="collaborate",
+            audiences=("advocate",),
             order=10,
             requires_auth=False,
             description_long=(
@@ -134,6 +144,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="🌱",
             category="advocate",
+            pillar="collaborate",
+            audiences=("advocate", "tenant",),
             order=20,
             requires_auth=False,
             description_long=(
@@ -149,6 +161,8 @@ class PortalRegistry:
             cta_path="/advocate",
             icon="🏢",
             category="advocate",
+            pillar="collaborate",
+            audiences=("advocate",),
             order=30,
             requires_auth=True,
             description_long=(
@@ -167,6 +181,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="🔍",
             category="legal",
+            pillar="research",
+            audiences=("legal", "researcher",),
             order=10,
             requires_auth=False,
             description_long=(
@@ -182,6 +198,8 @@ class PortalRegistry:
             cta_path="/legal",
             icon="⚖️",
             category="legal",
+            pillar="organize",
+            audiences=("legal",),
             order=20,
             requires_auth=True,
             description_long=(
@@ -200,6 +218,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="🏛️",
             category="agency",
+            pillar="partner",
+            audiences=("agency",),
             order=10,
             requires_auth=False,
             description_long=(
@@ -218,6 +238,8 @@ class PortalRegistry:
             cta_path="/donate",
             icon="💝",
             category="donor",
+            pillar="partner",
+            audiences=("donor",),
             order=10,
             requires_auth=False,
             description_long=(
@@ -236,6 +258,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="🔬",
             category="researcher",
+            pillar="research",
+            audiences=("researcher",),
             order=10,
             requires_auth=False,
             description_long=(
@@ -254,6 +278,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="💻",
             category="developer",
+            pillar="partner",
+            audiences=("developer",),
             order=10,
             requires_auth=False,
             description_long=(
@@ -272,6 +298,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="📄",
             category="standalone",
+            pillar="organize",
+            audiences=("tenant", "advocate", "legal",),
             order=10,
             requires_auth=False,
             description_long=(
@@ -287,6 +315,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="🔄",
             category="standalone",
+            pillar="organize",
+            audiences=("tenant", "advocate", "legal",),
             order=20,
             requires_auth=False,
             description_long=(
@@ -302,6 +332,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="📋",
             category="standalone",
+            pillar="documentation",
+            audiences=("tenant",),
             order=30,
             requires_auth=False,
             description_long=(
@@ -320,6 +352,8 @@ class PortalRegistry:
             cta_path="/preamble",
             icon="⚡",
             category="tenant",
+            pillar="research",
+            audiences=("tenant", "researcher",),
             order=40,
             requires_auth=False,
             description_long=(
@@ -328,6 +362,54 @@ class PortalRegistry:
             ),
         ),
     ]
+
+    # --- The six core functions (docs/admin/MOTIVATIONS.md §3), in the order a
+    # person needs them. "partner" is not a function: it groups the
+    # organization-facing doors (agencies, donors, developers).
+    PILLARS: ClassVar[dict[str, dict[str, str]]] = {
+        "information": {
+            "number": "1",
+            "label": "Information",
+            "question": "What are my rights?",
+            "blurb": "Plain-language, sourced answers about tenant rights and process.",
+        },
+        "research": {
+            "number": "2",
+            "label": "Research",
+            "question": "What applies to my situation?",
+            "blurb": "Go deeper than the general rules: statutes, records, and patterns.",
+        },
+        "documentation": {
+            "number": "3",
+            "label": "Documentation",
+            "question": "What actually happened?",
+            "blurb": "A dated record of every notice, payment, repair request, and conversation.",
+        },
+        "organize": {
+            "number": "4",
+            "label": "Organize",
+            "question": "How do I make it something a person can follow?",
+            "blurb": "Turn scattered photos, texts, and papers into one coherent record.",
+        },
+        "collaborate": {
+            "number": "5",
+            "label": "Collaborate",
+            "question": "Who else is in this with me?",
+            "blurb": "Find a tenants association or advocate, or start one.",
+        },
+        "be_heard": {
+            "number": "6",
+            "label": "Be Heard",
+            "question": "How do I put this on the record?",
+            "blurb": "File a legitimate complaint and pass your story to whoever will listen.",
+        },
+    }
+    PARTNER_PILLAR: ClassVar[dict[str, str]] = {
+        "number": "",
+        "label": "Work with Semptify",
+        "question": "Are you an agency, supporter, or developer?",
+        "blurb": "Organizations and people who want to partner, fund, or build with us.",
+    }
 
     # --- Category Metadata ---
     CATEGORIES: ClassVar[dict[str, dict[str, str]]] = {
@@ -389,6 +471,45 @@ class PortalRegistry:
             [s for s in cls.SERVICES if s.visible and s.category == category],
             key=lambda s: s.order,
         )
+
+    @classmethod
+    def get_pillars_with_services(cls) -> list[dict]:
+        """Pillars in journey order, each with its visible services (by order).
+
+        Each service dict carries `audience_labels` so a card can say who it is for.
+        Pillars with no visible service are omitted; the partner group is last.
+        """
+        out = []
+        for key, meta in [*cls.PILLARS.items(), ("partner", cls.PARTNER_PILLAR)]:
+            svcs = sorted(
+                (s for s in cls.SERVICES if s.visible and s.pillar == key),
+                key=lambda s: s.order,
+            )
+            if not svcs:
+                continue
+            out.append(
+                {
+                    "id": key,
+                    **meta,
+                    "services": [
+                        {
+                            "id": s.id,
+                            "name": s.name,
+                            "short_description": s.short_description,
+                            "cta_label": s.cta_label,
+                            "cta_path": s.cta_path,
+                            "requires_auth": s.requires_auth,
+                            "audience_labels": [
+                                cls.CATEGORIES[a]["label"].removeprefix("For ")
+                                for a in s.audiences
+                                if a in cls.CATEGORIES
+                            ],
+                        }
+                        for s in svcs
+                    ],
+                }
+            )
+        return out
 
     @classmethod
     def get_service(cls, service_id: str) -> PortalService | None:

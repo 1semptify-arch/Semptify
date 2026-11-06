@@ -2057,6 +2057,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     context["services"] = catalog["services"]
                     context["categories"] = catalog["categories"]
                     context["total_services"] = catalog["total_services"]
+                if _p.id == "portal":
+                    from app.modules.portal import step_map as _step_map
+                    from app.modules.portal.registry import PortalRegistry as _PortalRegistry
+                    _steps = {s.id: s for s in _step_map.TENANT_JOURNEY}
+                    context["pillars"] = _PortalRegistry.get_pillars_with_services()
+                    context["journey"] = {
+                        s.id: _step_map.context(s.id) for s in _step_map.TENANT_JOURNEY
+                    }
+                    context["journey_by_pillar"] = {s.pillar: s.id for s in _steps.values()}
                 if _p.id == "bill_research":
                     # Published claims ledger — written by the case-side
                     # publish pipeline (sanitized, no private-party names).
