@@ -19,6 +19,11 @@ to personal accounts, so every dollar reaches the fund.
 
 Using the mail filing keeps the goal at $345 instead of $365.
 
+Filing note for whoever submits: the SoS articles form warns that a
+nonprofit intending to apply for 501(c)(3) cannot use the bare form —
+the articles must include the IRS-required purpose/dissolution language
+(<https://www.sos.mn.gov/media/6178/nonprofitarticlesofincorporation.pdf>).
+
 ## Publish steps (GitHub Sponsors dashboard)
 
 Dashboard: <https://github.com/sponsors/accounts> → profile for `1semptify-arch`.
@@ -32,7 +37,7 @@ Dashboard: <https://github.com/sponsors/accounts> → profile for `1semptify-arc
    entirely if the profile already has tiers it should keep.
 4. Save, then update this file's **Live state** section with what shipped.
 
-### Live state (verified 2026-11-06 via GraphQL `viewer.sponsorsListing` + public page)
+### Live state (verified 2026-11-06 pass 4 — unauthenticated public page fetch; earlier passes used GraphQL `viewer.sponsorsListing`)
 
 - Sponsors listing: LIVE and public — <https://github.com/sponsors/1semptify-arch>
 - Profile text currently live: **older copy, predates this doc**
@@ -64,6 +69,12 @@ Dashboard: <https://github.com/sponsors/accounts> → profile for `1semptify-arc
   2026-11-06, unchanged.
 - Live state re-verified 2026-11-06 (pass 3): profile copy, `$50/month`
   goal, and zero tiers all still unchanged — publish has not happened.
+- Pass 4 (2026-11-06, swe-2, fourth dispatch): IronBee browser still
+  signed OUT of github.com (`/sponsors/accounts` → login redirect); `gh`
+  scopes still `gist, read:org, repo, workflow`; live listing unchanged.
+  Fees re-verified: 1023-EZ still $275 (irs.gov, reviewed 09-Oct-2026),
+  MN 317A articles still $70 mail (SoS fee schedule + Minn. Stat.
+  317A.151 subd. 2).
 - So finishing the publish needs one of:
   a. Brad pastes the three sections below at <https://github.com/sponsors/accounts>
      (~2 min), or
@@ -71,9 +82,10 @@ Dashboard: <https://github.com/sponsors/accounts> → profile for `1semptify-arc
      run the tier mutations (profile text + goal still need the dashboard), or
   c. Brad signs the IronBee browser into GitHub and an agent drives the paste.
 - **Do not re-dispatch this task until one of a/b/c has landed** — every
-  dispatch without an auth change produces this same blocked result. If the
-  campaign should wait for the right moment, park it `deferred` rather than
-  `unblock`.
+  dispatch without an auth change produces this same blocked result.
+  2026-11-06: Brad delegated the disposition to the agent ("please
+  decide"); per this rule the task was parked `deferred` — revisit trigger
+  on the queue entry is "one of a/b/c lands".
 - Optional extra surface (needs Brad's OK — it is his personal profile):
   a `1semptify-arch/1semptify-arch` repo with the blurb below as
   `README.md` would put the campaign on the public GitHub profile page.
