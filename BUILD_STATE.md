@@ -1,5 +1,18 @@
 ## Session — 2026-11-06 — Commit-boundary separation + legacy-cleanup closeout (swe-2)
 
+### Guardrail Engine Run — 2026-11-06T10:54:51+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 - Resumed `plan-20261026-old-site-content-cleanup-legacy-imported-7070` after
   Brad's desk unblock. The prior run had committed 8 cleanup templates
   (f6254a27) but stopped at a commit boundary: its remaining edits
@@ -15,6 +28,14 @@
   titled act). Left untracked and uncommitted: LEGISLATOR_CONTACTS/ROSTER
   2026-11-03 (case-side artifacts in public static dir — review decision),
   _pr325_probe*.py / stub_tasks_probe.json / `nul` (session junk).
+- Closeout sweep (same session, later dispatch): full banned-language scan of
+  `app/templates/public/`, `app/templates/pages/`, `static/` found one residual
+  self-description violation — "Always free." on the emergency help page, both
+  copies (`static/public/` live + `static/911/` canonical source for the
+  independently-hosted page). Fixed to canonical "No cost, always." Verified
+  live on :8001 — all touched routes 200, zero banned phrases in rendered
+  bodies, `/static/public/semptify-help-standalone.html` serves the fix
+  (`/static/911/` is 403 by design — source only, deployed independently).
 
 ## Session — 2026-11-05 — Title I statutory draft for outside-counsel redline (devin)
 
