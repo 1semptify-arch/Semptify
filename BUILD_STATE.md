@@ -1,4 +1,60 @@
-## Session — 2026-10-26 (cont.) — Cover upgraded to real CC0 photograph (devin)
+## Session — 2026-11-06 — P5 complaint wizard backend completion (swe-2, task sorg-p5-action)
+
+### Guardrail Engine Run — 2026-11-06T20:38:42+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-06T20:37:55+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+- Completed the complaint wizard backend on the toolbox branch
+  (`feat/toolbox-service-stubs`), top open entry of the P5 Next-steps phase.
+- `app/services/complaint_wizard.py`: real guided-wizard state machine —
+  5 steps (complaint_type → situation → agency → details → review), complaint
+  types with agency-recommendation keywords, ephemeral in-memory sessions
+  with a 4h TTL (nothing personal stored server-side), `wizard_start` /
+  `wizard_state` / `wizard_answer` / `wizard_finish`.
+- `app/modules/complaints/router.py`: `POST /wizard/{id}/answer` and
+  `POST /wizard/{id}/finish` are now real endpoints. Finish creates a vault
+  draft marked `ready` for an identified tenant; anonymous visitors get the
+  generated complaint text plus agency filing instructions — no dead end,
+  nothing stored.
+- **Honesty fix:** `POST /api/complaints/submit` previously returned
+  `status: "submitted"` + "Complaint submitted to {agency}" while doing
+  nothing — a user could believe a complaint reached the agency. It now
+  creates a real draft marked `ready_to_file` (or `prepared` for anonymous)
+  with instructions for filing it themselves; matches its own contract
+  ("Does NOT file on the tenant's behalf").
+- Anonymous callers of `/submit` no longer hit a 500 (`build_context_for_user_id`
+  returning None is now handled).
+- Tests: new `tests/test_complaints_wizard.py` (9 tests — step flow,
+  recommendations, validation, finish-anonymous, submit honesty).
+  `pytest tests/test_complaints_wizard.py tests/test_complaints.py
+  tests/module_health/test_complaints.py` — 27/27 pass.
+- `toolbox.py`: `complaint_wizard` entry note updated — still `partial`
+  (backend flow done; a click-through UI page is still needed).
+- Remaining P5 entries (case_builder, court_forms, court_packet,
+  deadline_engine, document_delivery, court_prep, eviction_defense): modules
+  all exist with real code and stay `partial`; not touched this session.
 
 ### Guardrail Engine Run — 2026-11-06T19:08:00+00:00
 

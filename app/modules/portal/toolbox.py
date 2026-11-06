@@ -247,6 +247,7 @@ class ToolboxCatalog:
             group="act", status="partial", level="L1", engine="action",
             today="Read how complaints work.", today_path="/complaints",
             backed_by=("complaints",), promised_on=("/complaints", "/services", "/donate"),
+            note="The step-by-step wizard flow works through the API (start, answer, finish — drafts save to the tenant's vault; anonymous visitors get the complaint text plus filing instructions). A click-through page is still being built.",
         ),
         ToolboxEntry(
             id="case_builder", name="Case builder",
