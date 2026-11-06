@@ -1,61 +1,49 @@
 {% extends "body/public_shell.html" %}
 
-{% block title %}Legal Research — Semptify{% endblock %}
-{% block description %}Legal research tools for attorneys, paralegals, and researchers. Research landlords, court filings, and property history.{% endblock %}
-{% block keywords %}legal research, landlord research, court filings, litigation intelligence, housing law{% endblock %}
+{% block title %}Research Tools — Semptify{% endblock %}
+{% block description %}Statute and public-records research tools — court filings, property records, and housing patterns.{% endblock %}
+{% block keywords %}legal research, landlord research, court filings, property records, housing law{% endblock %}
 
-{% block header_title %}🔍 Legal Research{% endblock %}
-{% block header_tagline %}Tools for Legal Professionals{% endblock %}
-{% block header_subtitle %}Research landlords, court filings, and property history.{% endblock %}
+{% block header_title %}🔍 Research Tools{% endblock %}
+{% block header_tagline %}Look it up — statutes, filings, property records{% endblock %}
+{% block header_subtitle %}Sourced facts, not guesses. Every claim shows where it came from.{% endblock %}
 
 {% block page_body %}
 
 <section class="section">
-    <h2 class="section-title">Research Landlords</h2>
+    <h2 class="section-title">The Law Library</h2>
     <p style="color: var(--text-light);">
-        Tools for researching landlords: court filings, property records, litigation history,
-        and pattern detection. Built for attorneys, paralegals, and researchers who need
-        verifiable information.
+        Verified statutes, cases, and court rules — plain-language summaries with the
+        official text and a link to the source. Open to everyone, no strings.
     </p>
+    <a href="/law-library" class="cta-button" style="margin-top: 1rem;">Browse the Law Library →</a>
 </section>
 
 <section class="section">
-    <h2 class="section-title">Legal Portal</h2>
-    <p style="color: var(--text-light); margin-bottom: 1rem;">
-        Tools for attorneys, paralegals, clerks, and judges:
-    </p>
-    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
-        <li>Matter management and case files</li>
-        <li>Court filing and discovery prep</li>
-        <li>Exhibits and records management</li>
-        <li>Legal overlays on tenant documents (notes, redaction)</li>
-        <li>Forms sharing with tenants</li>
-        <li>Case review, oversight, and judicial orders</li>
-    </ul>
-    <a href="/legal" class="cta-button secondary" style="margin-top: 1rem;">Legal Login →</a>
-</section>
-
-<section class="section">
-    <h2 class="section-title">Litigation Intelligence</h2>
+    <h2 class="section-title">Research a Landlord's Record</h2>
     <p style="color: var(--text-light);">
-        Advanced research tools: landlord pattern detection, housing accountability research,
-        and exportable datasets. For researchers and data analysts.
+        Inside Semptify, tenants can look at the public record around their housing:
+        court filings, property records, and patterns in a landlord's filing history —
+        so a dispute is met with facts, not memory.
     </p>
+    <a href="/preamble" class="cta-button" style="margin-top: 1rem;">Open Semptify →</a>
 </section>
 
 <section class="section">
-    <h2 class="section-title">Bar License Required</h2>
-    <div class="info-banner">
-        <p>
-            All legal sub-roles (attorney, judge, clerk, paralegal) require a bar license
-            number on file. This is a public professional credential — not PII.
-        </p>
-    </div>
+    <h2 class="section-title">For Attorneys and Advocates</h2>
+    <p style="color: var(--text-light);">
+        There is no separate portal and nothing to sign into. Semptify is built for the
+        tenant — their records live in their own cloud storage, organized and dated.
+        If they choose to share documents with you, they share them directly.
+    </p>
+    <p style="color: var(--text-light); margin-top: 1rem;">
+        The law library above is open to you the same as everyone else.
+    </p>
 </section>
 
 <section class="cta-section">
-    <h2>Ready to research?</h2>
-    <a href="/preamble" class="cta-button-large">Get Started →</a>
+    <h2>Ready to look something up?</h2>
+    <a href="/law-library" class="cta-button-large">Open the Law Library →</a>
 </section>
 
 {% endblock %}

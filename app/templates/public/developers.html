@@ -1,55 +1,58 @@
 {% extends "body/public_shell.html" %}
 
 {% block title %}Developer Hub — Semptify{% endblock %}
-{% block description %}Resources for developers: external SDK, Forge module marketplace, API documentation, and contribution guidelines.{% endblock %}
+{% block description %}Resources for developers: the open source codebase, the module SDK, the Forge pipeline, API documentation, and contribution guidelines.{% endblock %}
 {% block keywords %}semptify sdk, developer tools, api documentation, open source, contribute{% endblock %}
 
 {% block header_title %}💻 Developer Hub{% endblock %}
 {% block header_tagline %}Build With Semptify{% endblock %}
-{% block header_subtitle %}SDK, module marketplace, API docs, and contribution guidelines.{% endblock %}
+{% block header_subtitle %}Open source codebase, module SDK, API docs, and contribution guidelines.{% endblock %}
 
 {% block page_body %}
 
 <section class="section">
-    <h2 class="section-title">External SDK</h2>
+    <h2 class="section-title">The Module SDK</h2>
     <p style="color: var(--text-light);">
-        Semptify offers an external SDK for developers who want to build tools that
-        integrate with Semptify's vault, document, and context engine systems.
+        Semptify ships a Python SDK (<code>app/sdk</code>) that modules use to work with
+        the vault, documents, timeline, and context engine. Vault operations go through
+        the canonical <code>VaultClient</code> — a tenant's files stay in their own
+        cloud storage, and the SDK never holds their credentials beyond the session.
     </p>
 </section>
 
 <section class="section">
-    <h2 class="section-title">Forge Module Marketplace</h2>
+    <h2 class="section-title">The Forge Pipeline</h2>
     <p style="color: var(--text-light);">
-        The Forge is Semptify's module marketplace. Developers can build, test, and
-        promote modules through the lifecycle pipeline. Modules can be standalone tools,
-        add-ons to the tenant role, or advanced features.
+        The Forge is Semptify's module development system. Developers can build, test,
+        and promote modules through a lifecycle pipeline — from draft to tested to live.
+        Modules extend the tenant experience or add tools like the PDF toolkit.
     </p>
 </section>
 
 <section class="section">
     <h2 class="section-title">API Documentation</h2>
     <p style="color: var(--text-light); margin-bottom: 1rem;">
-        Semptify's API is documented at:
+        When API docs are enabled, Semptify's API is documented at:
     </p>
     <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
-        <li><code>/docs</code> — FastAPI auto-generated docs (Swagger UI)</li>
-        <li><code>/redoc</code> — ReDoc documentation</li>
-        <li><code>/openapi.json</code> — OpenAPI specification</li>
+        <li><code>/api/docs</code> — FastAPI auto-generated docs (Swagger UI)</li>
+        <li><code>/api/redoc</code> — ReDoc documentation</li>
+        <li><code>/api/openapi.json</code> — OpenAPI specification</li>
     </ul>
 </section>
 
 <section class="section">
     <h2 class="section-title">Contribution Guidelines</h2>
     <p style="color: var(--text-light);">
-        Semptify is built with discipline: no band-aids, no workarounds, no hallucinations.
-        Contributors should read <code>AGENTS.md</code> before submitting code.
+        Semptify is open source and built with discipline: no band-aids, no workarounds,
+        no hallucinations. Contributors should read <code>AGENTS.md</code> in the
+        repository before submitting code.
     </p>
 </section>
 
 <section class="cta-section">
     <h2>Ready to build with Semptify?</h2>
-    <a href="/preamble" class="cta-button-large">Get Started →</a>
+    <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="cta-button-large">See the Code →</a>
 </section>
 
 {% endblock %}
