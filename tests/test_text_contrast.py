@@ -70,7 +70,7 @@ def check_filled_controls() -> list[str]:
 def check_literals(report_only: bool = False) -> list[str]:
     pat = re.compile(r"(?<![-\w])color\s*:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})\b")
     problems = []
-    files = [p for p in (ROOT / "app/templates/public").glob("*.html") if p.name != "donate.html"] + [
+    files = list((ROOT / "app/templates/public").glob("*.html")) + [
         ROOT / "app/templates/body/public_shell.html",
         ROOT / "app/templates/public_base.html",
     ]
@@ -91,21 +91,8 @@ def check_literals(report_only: bool = False) -> list[str]:
     return problems
 
 
-def check_donate_dark() -> list[str]:
-    """donate.html is a self-contained dark page: check its text vars on its own surfaces."""
-    text = (ROOT / "app/templates/public/donate.html").read_text(encoding="utf-8")
-    surfaces = [re.search(rf"--{n}:\s*(#[0-9a-fA-F]{{6}})", text).group(1) for n in ("bg", "card-bg", "card-bg2")]
-    problems = []
-    for var in ("text", "muted", "teal", "green"):
-        fg = re.search(rf"--{var}:\s*(#[0-9a-fA-F]{{6}})", text).group(1)
-        worst = min(ratio(fg, s) for s in surfaces)
-        if worst < MIN:
-            problems.append(f"donate.html --{var} {fg} = {worst:.2f}:1 on dark surfaces")
-    return problems
-
-
 def main() -> int:
-    problems = check_tokens() + check_filled_controls() + check_literals() + check_donate_dark()
+    problems = check_tokens() + check_filled_controls() + check_literals()
     for p in problems:
         print("FAIL", p)
     print("OK: all checked text >= 4.5:1" if not problems else f"{len(problems)} contrast problem(s)")
