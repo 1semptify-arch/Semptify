@@ -209,7 +209,7 @@ class ToolboxCatalog:
             today="Open the law library.", today_path="/law-library",
             backed_by=("law_library", "state_laws", "context_engine"),
             promised_on=("/", "/donate", "/hello", "/services"),
-            note="The donate page says 35 states and growing, and later all 50 states plus DC. Minnesota is the deepest. Other states have entries but uneven depth, and content is still marked BETA.",
+            note="Minnesota is the deepest. Other states have entries but uneven depth, and content is still marked BETA. The donate page's present-tense '35 states' claim was corrected 2026-11-06; its remaining 'all 50 states + DC' mentions are Phase 2 / impact-with-funding goals, clearly future.",
         ),
         ToolboxEntry(
             id="situation_research", name="Go deeper on your situation",

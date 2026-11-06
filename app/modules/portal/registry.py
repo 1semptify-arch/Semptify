@@ -145,12 +145,12 @@ class PortalRegistry:
             id="advocate_portal",
             name="Advocate Portal",
             short_description="Manage clients, review documents, and coordinate support.",
-            cta_label="Advocate Login",
+            cta_label="See Where It Stands",
             cta_path="/toolbox/advocate_portal",
             icon="🏢",
             category="advocate",
             order=30,
-            requires_auth=True,
+            requires_auth=False,
             description_long=(
                 "Tools for advocates: client management, document review, annotations, "
                 "invite codes, and case coordination."
@@ -178,12 +178,12 @@ class PortalRegistry:
             id="legal_portal",
             name="Legal Portal",
             short_description="Case management, court filing, discovery, and legal overlays.",
-            cta_label="Legal Login",
+            cta_label="See Where It Stands",
             cta_path="/toolbox/legal_portal",
             icon="⚖️",
             category="legal",
             order=20,
-            requires_auth=True,
+            requires_auth=False,
             description_long=(
                 "Tools for attorneys, paralegals, clerks, and judges: matter management, "
                 "court filing, discovery prep, exhibits, and legal overlays on tenant documents."
@@ -249,7 +249,7 @@ class PortalRegistry:
         PortalService(
             id="developer_sdk",
             name="Software Development",
-            short_description="External SDK, module marketplace, and contributor resources.",
+            short_description="The open codebase, the developer kit, and how to contribute.",
             cta_label="Developer Hub",
             cta_path="/developers",
             icon="💻",
@@ -257,8 +257,10 @@ class PortalRegistry:
             order=10,
             requires_auth=False,
             description_long=(
-                "Resources for developers: external SDK, Forge module marketplace, "
-                "API documentation, and contribution guidelines."
+                "Resources for developers: the public codebase on GitHub, the "
+                "developer kit under app/sdk/, and how to contribute. Public API "
+                "documentation and a module marketplace are future decisions — "
+                "see the Toolbox for where each stands."
             ),
         ),
         # =====================================================================
