@@ -26,16 +26,46 @@ Dashboard: <https://github.com/sponsors/accounts> → profile for `1semptify-arc
 1. **Profile / "Tell us about yourself"** — paste **Profile blurb** below.
    Markdown is supported.
 2. **Goals → New goal** — one-time goal, target **$345**. Paste **Goal title**
-   and **Goal description** below.
+   and **Goal description** below. This replaces the currently-live
+   "$50 per month" recurring goal (only one goal is active at a time).
 3. **Tiers** (optional) — the three suggested one-time tiers below. Skip
    entirely if the profile already has tiers it should keep.
 4. Save, then update this file's **Live state** section with what shipped.
 
-### Live state
+### Live state (verified 2026-11-06 via GraphQL `viewer.sponsorsListing` + public page)
 
-- Profile blurb: NOT YET PUBLISHED (drafted 2026-11-05)
-- Goal: NOT YET PUBLISHED
-- Tiers: untouched
+- Sponsors listing: LIVE and public — <https://github.com/sponsors/1semptify-arch>
+- Profile text currently live: **older copy, predates this doc**
+  - short: "Building Semptify, a nonprofit tenant-rights platform — no fees to
+    tenants, ever — mostly solo with AI coding agents. Sponsorship funds our
+    nonprofit filing fees so this can grow beyond one person."
+  - full: "Hi, I'm Brad — I'm building Semptify (semptify.org), a nonprofit
+    tenant-rights platform with no fees to tenants, ever, largely on my own
+    with the help of AI coding agents doing the heavy lifting on the codebase."
+- Goal currently live: **"$50 per month" recurring**, 0% complete — NOT the
+  canonical $345 one-time filing-fund goal below
+- Tiers currently live: **none** — only GitHub's default custom-amount box
+- `FUNDING.yml` in this repo already reads `github: [1semptify-arch]`, so the
+  repo's Sponsor button points at the listing.
+
+### Publish auth boundary (found 2026-11-06)
+
+- Listing profile text and goals are **dashboard-only** — there is no public
+  GraphQL/REST mutation for them. They need a browser signed in as
+  `1semptify-arch`.
+- Tiers ARE API-writable (`createSponsorsTier` with `publish: true`), but only
+  with a token carrying the `user` (or `admin:org`) scope. The local `gh`
+  token for `1semptify-arch` has `gist, read:org, repo, workflow` — confirmed
+  `INSUFFICIENT_SCOPES` on a live call.
+- So finishing the publish needs one of:
+  a. Brad pastes the three sections below at <https://github.com/sponsors/accounts>
+     (~2 min), or
+  b. `gh auth refresh -s user` for `1semptify-arch`, after which an agent can
+     run the tier mutations (profile text + goal still need the dashboard), or
+  c. Brad signs the IronBee browser into GitHub and an agent drives the paste.
+- Optional extra surface (needs Brad's OK — it is his personal profile):
+  a `1semptify-arch/1semptify-arch` repo with the blurb below as
+  `README.md` would put the campaign on the public GitHub profile page.
 
 ---
 
