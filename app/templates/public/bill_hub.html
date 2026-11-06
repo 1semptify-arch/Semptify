@@ -74,12 +74,34 @@ body{font-family:"Source Sans 3",system-ui,sans-serif;background:var(--lake-deep
 <body>
 
 <div class="scene" aria-hidden="true">
-    <img class="lake" src="/static/img/bill-scene-day.jpg" alt="">
+    <img class="lake" id="bill-scene" alt="">
+    <noscript><img class="lake" src="/static/img/bill-scene-day.jpg" alt=""></noscript>
 
     <!-- drifting fog over the water -->
     <div class="fogband f1"></div>
     <div class="fogband f2"></div>
 </div>
+
+<script>
+/* Scene rotation — a daylight scene is picked deterministically each day (same
+   pick for every visitor that day); the aurora scene shows from dusk to dawn
+   with the window shifted by month to roughly track MN light. Lives client-side
+   so the app page and the bill-mirror static copy share one implementation;
+   worker-side scheduling takes this over later. */
+(function(){
+    var img=document.getElementById('bill-scene');
+    if(!img)return;
+    var DAY=['/static/img/bill-scene-day.jpg','/static/img/bill-scene-ai.jpg',
+             '/static/img/bill-scene-alt1.jpg','/static/img/bill-scene-alt2.jpg'];
+    var NIGHT='/static/img/bill-scene-aurora.jpg';
+    var now=new Date(),h=now.getHours();
+    var dusk=[17,17,18,19,20,21,21,20,19,18,17,17][now.getMonth()];
+    var dawn=[8,8,7,6,6,5,5,5,6,7,7,8][now.getMonth()];
+    if(h>=dusk||h<dawn){img.src=NIGHT;return;}
+    var doy=Math.floor((now-new Date(now.getFullYear(),0,0))/864e5);
+    img.src=DAY[doy%DAY.length];
+})();
+</script>
 
 <header class="topbar">
     <a class="brand" href="/">Semptify</a>
