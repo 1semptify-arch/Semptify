@@ -78,7 +78,7 @@ class PortalRegistry:
             description_long=(
                 "Semptify is a document organizer for renters. Keep records of every "
                 "interaction with your landlord, build a timeline of your tenancy, and "
-                "store documents in your own cloud storage. Free, private, and simple."
+                "store documents in your own cloud storage. Private and simple."
             ),
         ),
         PortalService(
@@ -153,17 +153,22 @@ class PortalRegistry:
                 "funding, and how Semptify can support your work."
             ),
         ),
+        # Advocate Portal — hidden 2026-11-06. The role portals were removed
+        # with the tenant-only decision (PR #317); the /advocate page still
+        # renders for authenticated users but there is no advocate role to log
+        # into. Kept in the registry (visible=False) pending a retire decision.
         PortalService(
             id="advocate_portal",
             name="Advocate Portal",
             short_description="Manage clients, review documents, and coordinate support.",
-            cta_label="Advocate Login",
+            cta_label="Advocate Portal",
             cta_path="/advocate",
             icon="🏢",
             category="advocate",
             pillar="collaborate",
             audiences=("advocate",),
             order=30,
+            visible=False,
             requires_auth=True,
             description_long=(
                 "Tools for advocates: client management, document review, annotations, "
@@ -190,17 +195,19 @@ class PortalRegistry:
                 "litigation history, and pattern detection."
             ),
         ),
+        # Legal Portal — hidden 2026-11-06, same reason as advocate_portal.
         PortalService(
             id="legal_portal",
             name="Legal Portal",
             short_description="Case management, court filing, discovery, and legal overlays.",
-            cta_label="Legal Login",
+            cta_label="Legal Portal",
             cta_path="/legal",
             icon="⚖️",
             category="legal",
             pillar="organize",
             audiences=("legal",),
             order=20,
+            visible=False,
             requires_auth=True,
             description_long=(
                 "Tools for attorneys, paralegals, clerks, and judges: matter management, "
@@ -250,10 +257,13 @@ class PortalRegistry:
         # =====================================================================
         # RESEARCHER SERVICES
         # =====================================================================
+        # Researcher Tools — hidden 2026-11-06. There is no researcher surface
+        # post-#317; the public law library and the bill research pages are open
+        # to everyone. Kept dormant pending a retire decision.
         PortalService(
             id="researcher_tools",
             name="Researcher Tools",
-            short_description="Advanced research tools, litigation intelligence, and data analysis.",
+            short_description="Advanced research tools and data analysis.",
             cta_label="Researcher Access",
             cta_path="/preamble",
             icon="🔬",
@@ -261,9 +271,10 @@ class PortalRegistry:
             pillar="research",
             audiences=("researcher",),
             order=10,
+            visible=False,
             requires_auth=False,
             description_long=(
-                "Tools for legal researchers and data analysts: litigation intelligence, "
+                "Tools for legal researchers and data analysts: "
                 "landlord pattern detection, housing accountability research, and exportable datasets."
             ),
         ),
@@ -273,9 +284,9 @@ class PortalRegistry:
         PortalService(
             id="developer_sdk",
             name="Software Development",
-            short_description="External SDK, module marketplace, and contributor resources.",
+            short_description="Open source codebase, Forge module pipeline, and API documentation.",
             cta_label="Developer Hub",
-            cta_path="/preamble",
+            cta_path="/developers",
             icon="💻",
             category="developer",
             pillar="partner",
@@ -283,8 +294,8 @@ class PortalRegistry:
             order=10,
             requires_auth=False,
             description_long=(
-                "Resources for developers: external SDK, Forge module marketplace, "
-                "API documentation, and contribution guidelines."
+                "Resources for developers: the open codebase, the Forge module "
+                "lifecycle pipeline, API documentation, and contribution guidelines."
             ),
         ),
         # =====================================================================
@@ -293,7 +304,7 @@ class PortalRegistry:
         PortalService(
             id="standalone_pdf_tools",
             name="PDF Tools",
-            short_description="Merge, split, and convert PDFs. No account required.",
+            short_description="Merge, split, and convert PDFs — inside Semptify.",
             cta_label="Open PDF Tools",
             cta_path="/preamble",
             icon="📄",
@@ -303,8 +314,8 @@ class PortalRegistry:
             order=10,
             requires_auth=False,
             description_long=(
-                "Standalone PDF tools: merge, split, convert, and sign PDF documents. "
-                "No account required — files processed and returned."
+                "PDF tools inside Semptify: merge, split, convert, and sign PDF "
+                "documents. Files are processed and returned — nothing is stored."
             ),
         ),
         PortalService(
@@ -320,14 +331,14 @@ class PortalRegistry:
             order=20,
             requires_auth=False,
             description_long=(
-                "Convert documents between formats: PDF to DOCX, DOCX to HTML, "
-                "HTML to PDF, and more. No account required."
+                "Convert documents between formats inside Semptify: PDF to DOCX, "
+                "DOCX to HTML, HTML to PDF, and more."
             ),
         ),
         PortalService(
             id="standalone_public_forms",
             name="Public Forms",
-            short_description="Housing-related forms and templates. No account required.",
+            short_description="Housing-related forms and templates — inside Semptify.",
             cta_label="Browse Forms",
             cta_path="/preamble",
             icon="📋",
@@ -357,8 +368,8 @@ class PortalRegistry:
             order=40,
             requires_auth=False,
             description_long=(
-                "Advanced tools for power users: litigation intelligence, housing "
-                "accountability, crawler, and beta features. Requires opt-in."
+                "Advanced tools for power users: records research, housing "
+                "accountability, and beta features. Requires opt-in."
             ),
         ),
     ]
@@ -421,12 +432,12 @@ class PortalRegistry:
         "advocate": {
             "label": "For Advocates",
             "icon": "🤝",
-            "description": "Partner with Semptify, manage clients, and coordinate support.",
+            "description": "Partner with Semptify or start an advocacy group.",
         },
         "legal": {
             "label": "For Legal Professionals",
             "icon": "⚖️",
-            "description": "Legal research, case management, and court filing tools.",
+            "description": "Statute and public-records research.",
         },
         "agency": {
             "label": "For Agencies",
@@ -446,12 +457,12 @@ class PortalRegistry:
         "developer": {
             "label": "For Developers",
             "icon": "💻",
-            "description": "SDK, module marketplace, and contributor resources.",
+            "description": "Open source codebase, module pipeline, and contributor resources.",
         },
         "standalone": {
-            "label": "Standalone Tools",
+            "label": "Tools",
             "icon": "🛠️",
-            "description": "Use individual tools without an account.",
+            "description": "Individual tools inside Semptify.",
         },
     }
 
