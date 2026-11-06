@@ -187,10 +187,12 @@ class ToolboxCatalog:
         ToolboxEntry(
             id="timestamp_seal", name="Dated fingerprint for documents",
             purpose="Create a fingerprint of a file so anyone can check later that it was not changed.",
-            group="record", status="planned", level="L1", engine="trust",
-            today="Keep the original file unchanged and note the date you saved it.",
+            group="record", status="partial", level="L1", engine="trust",
+            today="Upload a document to your vault — every upload automatically gets a certificate with a fingerprint and an independent timestamp.",
+            today_path="/preamble",
+            backed_by=("vault", "storage"),
             promised_on=("/privacy",),
-            note="The privacy page describes optional blockchain timestamping. No timestamping code exists yet. Plan: a fingerprint made in your own browser, adapted from the case-side seal tool.",
+            note="Vault uploads already create a certificate: a SHA-256 fingerprint plus an RFC 3161 third-party timestamp (a self-signed fallback is marked when the outside service is unreachable). A stand-alone browser-side fingerprint tool is still planned. The privacy page wrongly said 'blockchain' — corrected 2026-11-06.",
         ),
         ToolboxEntry(
             id="fems", name="Forensic evidence system (FEMS)",
@@ -496,7 +498,7 @@ class ToolboxCatalog:
             group="builders", status="planned", level="L3", engine="trust",
             today="Read the code on GitHub.", today_path="https://github.com/1semptify-arch/Semptify",
             promised_on=("/developers",),
-            note="The developers page lists /docs, /redoc, and /openapi.json. All three return not-found on semptify.org (checked 2026-11-01).",
+            note="The developers page listed /docs, /redoc, and /openapi.json — all three still return not-found on semptify.org (re-checked 2026-11-06). Page copy corrected on this branch: the spec ships with the code, public docs are a future decision.",
         ),
         ToolboxEntry(
             id="external_sdk", name="Developer kit (SDK)",
@@ -547,7 +549,7 @@ class ToolboxCatalog:
             group="support", status="partial", level="L0", engine="trust",
             today="Use the feedback form, which is confirmed working.", today_path="/feedback",
             promised_on=("/contact", "/help", "/privacy", "/terms", "/disclaimer"),
-            note="Seven addresses are published. Whether each one is a working mailbox has not been verified.",
+            note="Nine distinct addresses appear across public pages (hello, tech, legal, privacy, partnerships, press, support, brad, admin) — the contact page shows six of them. Whether each is a working mailbox has not been verified.",
         ),
     ]
 
