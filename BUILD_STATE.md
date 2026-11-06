@@ -1,6 +1,6 @@
 ## Session — 2026-11-06 — Credit-report pull guide public page (swe-2)
 
-**Queue task `plan-20261027-semptify-feature-credit-report-pull-guid-cf67`** (master queue, trusted) — case-derived (STEPS_credit_reports.md, Crowe/Sazama workflow), generalized for tenants: a self-help guide teaching renters to pull all 3 bureau reports from AnnualCreditReport.com, save them, and scan for landlord/collector tradelines. DIY, no paid service, no sign-up, no credit-score upsell.
+**Queue task `plan-20261027-semptify-feature-credit-report-pull-guid-cf67`** (master queue, trusted) — case-derived (case-side `STEPS_credit_reports.md` workflow doc), generalized for tenants: a self-help guide teaching renters to pull all 3 bureau reports from AnnualCreditReport.com, save them, and scan for landlord/collector tradelines. DIY, no paid service, no sign-up, no credit-score upsell.
 
 **What shipped:**
 - `app/modules/portal/pages.py` — additive `PortalPage` entry `credit_reports` (`/credit-reports`, footer label "Credit reports", order 62); route auto-generates from the registry.
