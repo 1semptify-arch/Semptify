@@ -1,4 +1,57 @@
+## Session — 2026-11-07 — P6 civic public-voice pipeline (swe-2, task sorg-p6-civic)
+
+- **Shipped (worktree `semptify-wt-toolbox`, branch `feat/toolbox-service-stubs`):** checkpoint `77bd06e1` (prior session, died mid-run) + `9ba3243a` contract fix this session.
+  - New public pages: `/tell-your-story` (anonymous story submit + moderated list) and `/reach-legislators` (official .gov-only lookup links, MN + federal). Page registry entries added in `portal/pages.py`.
+  - New public API: `POST /api/story`, `GET /api/stories` in `public_forms` (rate-limited 5/min, fixed subject set, no name/email by design).
+  - New admin lane: `/admin/public-voice` page + 4 `admin_api` endpoints (`GET /admin/api/public-forms/pending`; `POST .../voice-posts/{id}`, `.../tool-requests/{id}`, `.../stories/{id}`) — publish / answer / decline / unpublish for voice posts and tool requests, publish/unpublish with anonymizing edits for stories. All behind `require_elevation`; admin nav entry added.
+  - Toolbox flips: `reach_legislators` planned→live, `tell_your_story` partial→live, `your_voice` note updated to point at the review lane. Catalog now 20 live.
+  - `error_handling.py`: strips non-JSON-serializable `ctx` from pydantic validation errors (was 500ing on bad input).
+  - `9ba3243a`: `admin_public_voice_review` contract was missing `allowed_routes` — `contract_route_check` failed until the 4 new routes were declared.
+- **Verified live (:8014, local SQLite):** public pages 200; story submit→pending→admin publish (with edit applied)→public list; voice post→answer→visible with responder label on /your-voice; tool request→publish→visible. Browser: real admin login → elevation cookie → `/admin/public-voice` renders queues, in-page Publish works. 375px no horizontal overflow; console clean (only WS info logs).
+- **Tests:** `tests/test_public_voice.py` 15/15; module_health scope tests 11/11 (portal_toolbox, public_forms, portal, context_engine, admin_console). Full module_health run: 189 passed, 67 errors — ALL environmental (`database or disk is full` / tmp_path failures; C: hit 100%). Guardrail: ALL CHECKS PASSED.
+- **Env notes:** C: drive was 100% full during this session (17MB at worst; ~300MB after pip-cache purge) — disk starvation caused test errors + probably contributed to the prior session's mid-run death. Worktree has no `.env` — verification ran with explicit `SECRET_KEY`/`MASTER_KEY`/`ADMIN_*`/`DATABASE_URL` env vars (throwaway dev values, nothing written). Stray `nul` file + `semptify-dev-verify.db` left untracked in the worktree (deletion is off-limits for agents).
+- **Pending:** Brad reviews + merges `feat/toolbox-service-stubs`; admin lane needs real `ADMIN_PASSWORD`/`ADMIN_TOTP_SECRET` in prod env.
+
 ## Session — 2026-11-06 — P5 complaint wizard backend completion (swe-2, task sorg-p5-action)
+
+### Guardrail Engine Run — 2026-11-07T04:36:57+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-07T04:36:14+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — 4 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-07T04:25:35+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+One or more checks failed — see console output.
 
 ### Guardrail Engine Run — 2026-11-06T20:38:42+00:00
 
