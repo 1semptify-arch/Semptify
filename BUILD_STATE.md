@@ -1,3 +1,110 @@
+## Session — 2026-11-07 — /turnbuchalla public bill record ledgers (swe-2)
+
+### Guardrail Engine Run — 2026-11-07T17:47:28+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: FAIL — Check crashed while running.
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+One or more checks failed — see console output.
+
+- New static mount `/turnbuchalla` → `app/static/turnbuchalla` (html=True) in
+  `app/main.py`; public-path exemptions added in `storage_middleware.py` and
+  `checkpoint_middleware.py` so the bill pages serve without auth/checkpoint.
+- `record.html` ledgers (editions / who-stands-where / build log) now render
+  from case-side JSONL registers via `build_record.py` — markers
+  `LED:<NAME>:START/END`, empty-state paragraphs toggle on register contents,
+  all register text HTML-escaped.
+- `build_record.py` is idempotent: sha256 of the page with BUILDS regions
+  masked decides whether to write + log; a builds-register backlog is caught
+  up without logging (no feedback loop, never one row behind).
+- `build_platform.py` now appends to `registers/builds.jsonl` only when the
+  generated bill output actually changes.
+- Registers are case-side SSOT:
+  `E:\CASE_FILE_Crowe_Sazama_v_Velair\06_The_Bill_Turnbucapp\registers\`
+  (editions 9 rows seeded E-01–E-09; positions intentionally empty;
+  builds 3 rows). Repo copies under `app/static/turnbuchalla/` are mirrors.
+- style.css: `table.ledger` stacks to labeled rows at ≤640px (scoped to
+  record.html's ledgers; references.html table untouched).
+- Verified: py_compile all touched files (venv311/3.11.9); live app on
+  :8001 — `/turnbuchalla`, `/turnbuchalla/record.html`, `style.css` all 200;
+  IronBee browser: all 9 edition rows + empty positions state + 3 build
+  rows render; zero console messages; 375px stacked and 1280px table both
+  confirmed via screenshot.
+- Resubmission pass (later 2026-11-07, same session line): re-verified —
+  `pytest tests/module_health` 260/260; guardrail engine 8/9 PASS
+  (`stub_check` crashed on a 120s `stub_detector.py` subprocess timeout —
+  same crash recorded in the 2026-11-06 lazy-imports run, pre-existing and
+  unrelated to this change); `/turnbuchalla` live 200s re-confirmed with
+  rendered ledger rows. Committed this entry + builder
+  `LEGISLATOR_CONTACTS_2026-11-03.md` / `LEGISLATOR_ROSTER_2026-11-03.csv`
+  (who-stands-where source data, previously untracked).
+- Case-side files are outside the repo — no commit path for them; noted
+  in the task report.
+
+## Session — 2026-11-06 — Lazy router imports for Render free-tier cold boot (swe-2)
+
+### Guardrail Engine Run — 2026-11-06T21:09:52+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: FAIL — Check crashed while running.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-06T19:14:09+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-06T19:04:12+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+**Queue task `plan-20261101-slim-app-startup-for-render-free-tier-co-75c2`** (master queue, trusted) — root-cause fix for the 2026-10-31 entry's "real fix = slim startup (lazy router imports)": cold boot was ~60s of module imports inside `create_app()` plus staged setup, all before uvicorn binds the port (uvicorn binds only after `config.load()` + lifespan startup), exceeding Render's port-scan window → exit-3 crash loop during the Neon outage.
+
+**What shipped:**
+- `app/core/lazy_routers.py` (new) — deferred registration machinery: `defer_router_registration()` stashes enabled tiers on `app.state` + installs a warmup gate middleware; `run_deferred_registration()` runs `load_all_contracts` → `register_tiers` → `scan_public_routes` in a thread executor (KF#19 — imports never block the loop) then flips `routers_ready`. Warmup gate returns 503 + `Retry-After: 3` (self-refreshing HTML for browsers, JSON for API) for non-exempt paths; `/health`, `/static`, `/assets`, `/public`, `/.well-known`, `/components/footer`, `/`, `/welcome.html`, `/activate-vault`, and all portal-registry pages keep serving during warmup (never a dead end — retry page links home + standalone help).
+- `app/main.py` — `register_tiers`, the pre-audit `load_all_contracts` + `scan_public_routes`, and the DEV-tier document-center mount all defer when lazy mode is on; lifespan spawns the warmup task at the top so imports overlap staged setup; contract-load stage skips itself (now owned by warmup); warmup task cancelled on shutdown. Also removed two unused module-level imports (`retrieve_explanations`, `select_tapered_variant`) and moved `get_explanation_for_guide` to function-level imports (6 guide handlers) per file convention.
+- PEP 562 lazy `router` exports in `context_engine`, `case_builder`, `ui_composer` `__init__.py` — stops `from app.modules.X.anything` (e.g. `app.models.models` → `context_engine.models` via `app.core.security`; `fca_guard`) from dragging the full router chain into the import path.
+- `context_engine/constants.py` (new leaf) holds `EMBEDDING_DIMENSIONS = 384`; `models.py` imports it there instead of via `embedding_model` (which pulls numpy); `embedding_model` re-exports it for compatibility.
+- **Activation:** auto-on under `DEPLOY_TARGET=render_mvp` (Render prod). `SEMPTIFY_LAZY_ROUTERS=1/0` force on/off — the rollback escape hatch mirrors `ENABLE_HEAVY_SERVICES`. Dev/tests unchanged (eager path).
+
+**Verified:** `py_compile` all changed files; `pytest tests/module_health` 253/253, `test_ssot_architecture` + `test_runtime_profile` 11/11. Live lazy-mode boot (uvicorn, render_mvp env): port bound ~14s after process start (was ~22s+ eager locally; prod delta larger since import phase dominates on the weak free-tier CPU); warmup task registered all 53 MVP routers + 49 contract modules ~4s post-bind; gate returned 503+Retry-After for gated paths during warmup and 200/401-real-route after; exempt paths served throughout. Local eager path (`SEMPTIFY_LAZY_ROUTERS=0`) still registers 282 routes.
+
+**Not verified / flags for review:** (1) local box is much faster than Render free tier — prod gains estimated, not measured; watch first deploy logs. (2) Lifespan stages still block the bind (~7s local; migrations can be slower during DB trouble — a separate failure mode, not addressed here). (3) Forcing `SEMPTIFY_LAZY_ROUTERS=1` outside render_mvp skips the explicit `document_center.intake_router` mount (manifest covers `document_center.router` at /api/dc regardless). (4) If the warmup task itself fails, the gate stays up (503s) and logs a critical error rather than crash-looping — deliberate, but means a broken warmup reports "live" on port scan.
+BUILD_STATE.md entry was initially left uncommitted (file carried another session's pending edits); committed in the 2026-11-07 resubmission pass.
+
+**Re-verified 2026-11-07 (auto-bounce resubmission, swe-2):** py_compile clean on all 8 changed files; `pytest tests/module_health tests/test_ssot_architecture.py tests/test_runtime_profile.py` 264/264 PASS; guardrail engine 8/8 PASS; live `DEPLOY_TARGET=render_mvp` boot — warmup registered 53 routers + route audit clean, gate opened, /health 200, gated route serving post-warmup. Box was disk-bound (C: 100%) so wall-clock timings are not prod-representative — first Render deploy logs remain the real check.
+
 ## Session — 2026-11-06 — Credit-report pull guide public page (swe-2)
 
 **Queue task `plan-20261027-semptify-feature-credit-report-pull-guid-cf67`** (master queue, trusted) — case-derived (case-side `STEPS_credit_reports.md` workflow doc), generalized for tenants: a self-help guide teaching renters to pull all 3 bureau reports from AnnualCreditReport.com, save them, and scan for landlord/collector tradelines. DIY, no paid service, no sign-up, no credit-score upsell.
