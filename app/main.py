@@ -2108,6 +2108,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                             context["claims"] = []
                     else:
                         context["claims"] = []
+                if _p.id == "bill_live":
+                    # Clean statute tab — derived from the same published
+                    # partial the notes tab renders verbatim, so the two
+                    # views can never drift apart. None -> template falls
+                    # back to including the working file.
+                    try:
+                        from app.modules.portal.service import bill_statute_view
+                        draft_file = BASE_PATH / "app" / "templates" / "public" / "bill_draft.html"
+                        context["bill_statute_html"] = bill_statute_view(
+                            draft_file.read_text(encoding="utf-8"))
+                    except Exception:  # pylint: disable=broad-exception-caught
+                        context["bill_statute_html"] = None
                 return templates.TemplateResponse(request, _p.template, context)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Public page template error (%s): %s", _p.template, e)

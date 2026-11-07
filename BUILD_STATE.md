@@ -1,3 +1,42 @@
+## Session — 2026-11-07 — /bill/live two-tab view: clean statute + drafting notes (swe-2)
+
+**Queue task `plan-20261105-add-clean-working-statute-tab-on-bill-li-9670`** (master queue, trusted) — 2026-11-05 evaluation found legislative staff see raw drafting shorthand on /bill/live.
+
+**What shipped:**
+- `app/modules/portal/service.py` — new `bill_statute_view(draft_html)` pure
+  transform: cuts the published `bill_draft.html` between the act name and
+  the "Locked clauses" notes tail, strips `*(…)*` drafting annotations
+  (Locked/NEEDS BRAD/REMEDIATION/Open drafting Q — including ones spanning
+  the publish pipeline's `</p><p>` line wraps), promotes `**X-Y. …**`
+  run-ins to `h4.clause-head`, `**`→`<strong>`, `*…*`→`<em>` (merging
+  wrapped paragraphs inside), `---`→`<hr class="bill-rule">`, empties
+  removed. Returns None on missing markers → template falls back to the
+  raw include (no dead end).
+- `app/main.py` — `bill_live` context hook next to the `bill_research`
+  precedent: reads `bill_draft.html`, injects `bill_statute_html`.
+- `app/templates/public/bill_live.html` — two tabs (`role=tablist`, arrow
+  keys, `aria-selected`/`tabpanel`/`hidden` wiring): **The working
+  statute** (derived clean view) and **Drafting notes & change log**
+  (verbatim `bill_draft.html` include + GitHub file-history link). Tab
+  chrome ships `hidden` and is only revealed by the inline script —
+  without JS both sections stack in order, fully readable. Northstar
+  tokens; tabs flex-wrap on mobile.
+- `tests/test_bill_live_views.py` — 4 tests: markers canary on the real
+  published partial (fails loudly if the case-side publish format
+  changes), shorthand-strip assertions, structure, None fallbacks.
+- `PORTS.md` (master-repo) — claimed 8025 as the ad-hoc verification
+  instance (8001 dev server is session-owned; verified there first that
+  old code + new template degrades cleanly to the raw include).
+
+**Design note:** clean view is derived at render time from the same file
+the notes tab renders verbatim — no second source copy, so the two tabs
+can never drift apart when the case-side `publish_bill.py` next runs.
+
+**Verified:** py_compile service.py+main.py; `test_bill_live_views` 4/4;
+IronBee live on :8025 — tab 1 shorthand-free (ARIA: 21 clause h4s, 4
+titles, em notes merged), tab 2 verbatim file + history link, both
+directions switch, 375px + 1280px screenshots clean, console clear.
+
 ## Session — 2026-11-07 — /turnbuchalla public bill record ledgers (swe-2)
 
 ### Guardrail Engine Run — 2026-11-07T18:51:02+00:00
