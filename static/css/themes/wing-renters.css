@@ -1,0 +1,50 @@
+/* ============================================================================
+   WING: RENTERS — the default audience
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3 — see wing-base.css for the contract)
+
+   Look: "Calm desk". A person in crisis needs zero decoding — this is the
+   quietest wing on the site.
+     Archetype : calm-desk (static/css/archetypes/calm-desk.css)
+     Type      : sans only — no serif anywhere in this wing
+     Accent    : sage (the existing org primary — renters IS the default look,
+                 so this file pins the shared palette explicitly rather than
+                 restyling it)
+     Imagery   : none, or at most one soft photo per page
+   ============================================================================ */
+
+body[data-theme="renters"] {
+  /* Accent — the established sage identity (same values as the shell
+     default; pinned here so the renters wing can't drift if the org
+     default ever shifts). */
+  --role-accent: #6b8e6b;
+  --role-deep: #4c6b4c;
+  --role-tint: #eceae0;
+  --shell-sage: #6b8e6b;
+
+  /* Type — sans only. The display/heading stacks collapse onto the body
+     stack so nothing in this wing sets a serif face. */
+  --font-head: var(--font-sans);
+  --font-display: var(--font-sans);
+  --font-body: var(--font-sans);
+}
+
+/* Serif-proofing: anything that would still pick up a display serif
+   (headings, eyebrows) is held to the sans stack. */
+body[data-theme="renters"] h1,
+body[data-theme="renters"] h2,
+body[data-theme="renters"] h3,
+body[data-theme="renters"] .shell-eyebrow,
+body[data-theme="renters"] .wing-eyebrow {
+  font-family: var(--font-sans);
+}
+
+/* Dark-mode pin — keeps the renters palette readable when the global
+   prefers-color-scheme flip runs. Same shape as northstar.css. */
+@media (prefers-color-scheme: dark) {
+  html body.shell[data-theme="renters"] {
+    --role-accent: #8ba98b;
+    --role-deep: #a8bfa8;
+    --role-tint: #2a2f2a;
+    --shell-sage: #8ba98b;
+  }
+}

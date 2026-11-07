@@ -1,0 +1,50 @@
+/* ============================================================================
+   WING: DEVELOPERS
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3 — see wing-base.css for the contract)
+
+   Look: "Docs". Two-pane navigation, code blocks, API reference — the
+   standard docs layout people expect.
+     Archetype : docs (static/css/archetypes/docs.css)
+     Type      : mono + sans
+     Accent    : charcoal
+     Imagery   : none
+   ============================================================================ */
+
+body[data-theme="developers"] {
+  --role-accent: #4b5560;
+  --role-deep: #1f2b38;
+  --role-tint: #e8eaec;
+  --shell-sage: #4b5560;
+
+  --font-head: var(--font-sans);
+  --font-display: var(--font-sans);
+  --font-body: var(--font-sans);
+}
+
+body[data-theme="developers"] h1,
+body[data-theme="developers"] h2,
+body[data-theme="developers"] h3,
+body[data-theme="developers"] .shell-eyebrow {
+  font-family: var(--font-sans);
+}
+
+/* Code is first-class in this wing — mono, slightly inset from prose. */
+body[data-theme="developers"] code,
+body[data-theme="developers"] pre,
+body[data-theme="developers"] kbd,
+body[data-theme="developers"] samp {
+  font-family: var(--font-mono);
+}
+body[data-theme="developers"] pre {
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  html body.shell[data-theme="developers"] {
+    --role-accent: #8f98a3;
+    --role-deep: #aeb6bf;
+    --role-tint: #262a2f;
+    --shell-sage: #8f98a3;
+  }
+}

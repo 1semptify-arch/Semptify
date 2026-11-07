@@ -1,0 +1,53 @@
+/* ============================================================================
+   ARCHETYPE: EDITORIAL — The Bill wing (the showpiece)
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3)
+
+   Magazine: cover, standfirst, long-form, pull quotes, full-bleed real
+   photography. Paired theme: static/css/themes/northstar.css.
+   Applied via `data-arch="editorial"` on <body>.
+
+   The /bill section already carries much of this inside its own templates
+   (full-viewport cover, Fell English statute text). This file is the
+   archetype contract new editorial surfaces (version history, press room,
+   classroom kit, myths & facts) should reuse instead of re-inventing.
+   ============================================================================ */
+
+body[data-arch="editorial"] .shell-main,
+body[data-arch="editorial"] main {
+  max-width: 44rem;
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+/* Standfirst — the one-paragraph summary under a cover headline. */
+body[data-arch="editorial"] .ed-standfirst {
+  font-size: 1.3rem;
+  line-height: 1.45;
+  color: var(--shell-ink-2, var(--text-secondary));
+  margin: 0 0 1.75rem;
+}
+
+/* Pull quote — a line lifted from the piece, set large in the wing
+   display face. */
+body[data-arch="editorial"] .ed-pull {
+  margin: 2rem 0;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1.35;
+  color: var(--role-deep);
+}
+
+/* Full-bleed photography — breaks the text column, edge to edge of the
+   work zone. Real photography only (CC0), never illustration stand-ins. */
+body[data-arch="editorial"] .ed-bleed {
+  margin: 2rem -1.5rem;
+}
+body[data-arch="editorial"] .ed-bleed img {
+  width: 100%;
+  display: block;
+}
+body[data-arch="editorial"] .ed-bleed figcaption {
+  font-size: 0.8rem;
+  color: var(--shell-ink-3, var(--text-muted));
+  padding: 0.4rem 1.5rem 0;
+}

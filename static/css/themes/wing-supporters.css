@@ -1,0 +1,40 @@
+/* ============================================================================
+   WING: SUPPORTERS
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3 — see wing-base.css for the contract)
+
+   Look: "Open report". Numbers, plain story, where money goes —
+   transparency, never a sales page.
+     Archetype : open-report (static/css/archetypes/open-report.css)
+     Type      : serif headings + sans body
+     Accent    : warm amber — STATUS-SAFE USE ONLY. The draft reserves the
+                 bright amber (--color-alarm #d97706) for real deadlines, so
+                 this wing uses a muted bronze that cannot be mistaken for
+                 urgency. Never brighten this accent.
+     Imagery   : one photo at most
+   ============================================================================ */
+
+body[data-theme="supporters"] {
+  --role-accent: #8a6d3f;
+  --role-deep: #6b5230;
+  --role-tint: #efe8da;
+  --shell-sage: #8a6d3f;
+
+  --font-head: var(--font-serif);
+  --font-display: var(--font-serif);
+  --font-body: var(--font-sans);
+}
+
+body[data-theme="supporters"] h1,
+body[data-theme="supporters"] h2,
+body[data-theme="supporters"] h3 {
+  font-family: var(--font-serif);
+}
+
+@media (prefers-color-scheme: dark) {
+  html body.shell[data-theme="supporters"] {
+    --role-accent: #b39a6e;
+    --role-deep: #c9b48c;
+    --role-tint: #2e2a22;
+    --shell-sage: #b39a6e;
+  }
+}

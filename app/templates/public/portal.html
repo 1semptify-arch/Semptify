@@ -1,5 +1,11 @@
 {% extends "body/public_shell.html" %}
 
+{# Wing: renters (SEMPTIFY_ORG_ARCHITECTURE_DRAFT §3) — sage theme file +
+   calm-desk layout archetype. data-theme selects the wing theme,
+   data-arch the layout archetype; both ride on the shared base rule in
+   static/css/themes/wing-base.css. #}
+{% block body_attrs %}data-theme="renters" data-arch="calm-desk"{% endblock %}
+
 {% block title %}Semptify — Tenant Rights, Documented{% endblock %}
 {% block description %}Semptify is a tenant rights organization building technology to protect and advance lawful tenant rights through documentation, education, and record-keeping.{% endblock %}
 {% block keywords %}tenant rights, tenant organizer, housing, renter rights, landlord tenant, eviction defense, habitability, security deposit, housing advocacy{% endblock %}
@@ -35,6 +41,9 @@
 
 {% block styles %}
 {{ super() }}
+<link rel="stylesheet" href="/static/css/themes/wing-base.css?v=1">
+<link rel="stylesheet" href="/static/css/themes/wing-renters.css?v=1">
+<link rel="stylesheet" href="/static/css/archetypes/calm-desk.css?v=1">
 <style>
     .portal-lede { font-size: 1.1rem; color: var(--text-secondary); max-width: 46rem; margin: 0 0 0.75rem; }
     .portal-keep { color: var(--text-primary); margin: 0 0 1.5rem; max-width: 46rem; }

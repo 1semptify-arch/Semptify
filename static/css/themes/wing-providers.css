@@ -1,0 +1,38 @@
+/* ============================================================================
+   WING: HOUSING PROVIDERS
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3 — see wing-base.css for the contract)
+
+   Look: "Plain dealing". Neutral, factual, not adversarial — what changes
+   for you, laid out side by side.
+     Archetype : plain-dealing (static/css/archetypes/plain-dealing.css)
+     Type      : sans
+     Accent    : slate
+     Imagery   : none
+   ============================================================================ */
+
+body[data-theme="providers"] {
+  --role-accent: #5f6b76;
+  --role-deep: #3d4750;
+  --role-tint: #e7eaec;
+  --shell-sage: #5f6b76;
+
+  --font-head: var(--font-sans);
+  --font-display: var(--font-sans);
+  --font-body: var(--font-sans);
+}
+
+body[data-theme="providers"] h1,
+body[data-theme="providers"] h2,
+body[data-theme="providers"] h3,
+body[data-theme="providers"] .shell-eyebrow {
+  font-family: var(--font-sans);
+}
+
+@media (prefers-color-scheme: dark) {
+  html body.shell[data-theme="providers"] {
+    --role-accent: #8d98a3;
+    --role-deep: #aebac4;
+    --role-tint: #282d33;
+    --shell-sage: #8d98a3;
+  }
+}

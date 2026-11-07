@@ -1,0 +1,49 @@
+/* ============================================================================
+   WING: ADVOCATES & ORGANIZERS
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3 — see wing-base.css for the contract)
+
+   Look: "Field guide". Numbered steps, checklists, printable — used on the
+   go and handed out.
+     Archetype : field-guide (static/css/archetypes/field-guide.css)
+     Type      : sans + small-caps labels
+     Accent    : forest
+     Imagery   : simple line drawings only
+   ============================================================================ */
+
+body[data-theme="advocates"] {
+  --role-accent: #3d6b4f;
+  --role-deep: #2c523a;
+  --role-tint: #e2eae3;
+  --shell-sage: #3d6b4f;
+
+  --font-head: var(--font-sans);
+  --font-display: var(--font-sans);
+  --font-body: var(--font-sans);
+
+  /* Small-caps labels rather than plain uppercase eyebrows. */
+  --wing-eyebrow-transform: none;
+}
+
+body[data-theme="advocates"] h1,
+body[data-theme="advocates"] h2,
+body[data-theme="advocates"] h3,
+body[data-theme="advocates"] .shell-eyebrow {
+  font-family: var(--font-sans);
+}
+
+body[data-theme="advocates"] .wing-eyebrow,
+body[data-theme="advocates"] .shell-eyebrow,
+body[data-theme="advocates"] .fg-step-label {
+  font-variant-caps: small-caps;
+  letter-spacing: 0.05em;
+  text-transform: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html body.shell[data-theme="advocates"] {
+    --role-accent: #7fa78e;
+    --role-deep: #9dbfa8;
+    --role-tint: #263028;
+    --shell-sage: #7fa78e;
+  }
+}
