@@ -20,6 +20,13 @@ Status meanings (shown to the public):
 Level meanings (see C:/master-repo/SEMPTIFY_WHOLE_PICTURE_MAP.md §2):
 - L0 read & learn · L1 my own record · L2 helped (consent-shared)
 - L3 self-hosted workshop · L4 civic / aggregate public data only
+
+The catalog also doubles as the plugin slot registry
+(C:/master-repo/SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §4, §7): every entry
+carries `slot` (the plugin slot it backs) and `wing` (the audience wing
+that surfaces it). `SLOTS` is the complete list of declared slot ids —
+until plugins exist, a slot is filled by its toolbox status page, so
+there is never a dead end.
 """
 
 from __future__ import annotations
@@ -30,6 +37,35 @@ from typing import ClassVar
 STATUSES = ("live", "partial", "planned", "vision")
 LEVELS = ("L0", "L1", "L2", "L3", "L4")
 ENGINES = ("content", "record", "action", "help", "civic", "trust", "page")
+
+# Plugin slots — the spaces a future plugin can fill
+# (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §4). A slot is a space on the site:
+# the front door, a shared space (shared.*), a pillar space on the path
+# (pNN.*), or a wing front page (wing.*). `wing.bill` is the only id added
+# beyond the draft's §4 list — §5 makes the bill its own wing but assigned
+# it no slot id.
+SLOTS = (
+    "front.door",
+    "shared.help", "shared.toolbox", "shared.requests", "shared.about",
+    "shared.policy", "shared.contact", "shared.search",
+    "p01.front", "p01.library", "p01.guides", "p01.states", "p01.glossary",
+    "p02.front", "p02.research", "p02.cases", "p02.credit",
+    "p03.front", "p03.tools", "p03.vault", "p03.seal", "p03.checklists",
+    "p04.front", "p04.timeline", "p04.center", "p04.case", "p04.fems",
+    "p04.export", "p04.utilities",
+    "p05.front", "p05.finder", "p05.start", "p05.kit",
+    "p06.front", "p06.complaint", "p06.eviction", "p06.court",
+    "p06.letters", "p06.legislators", "p06.story",
+    "wing.renters", "wing.providers", "wing.advocates", "wing.legal",
+    "wing.research", "wing.classroom", "wing.developers", "wing.supporters",
+    "wing.bill",
+)
+
+# Audience wings (draft §3) plus "shared" for spaces that span audiences.
+WINGS = (
+    "shared", "renters", "advocates", "bill", "classroom",
+    "developers", "legal", "providers", "research", "supporters",
+)
 
 STATUS_LABELS = {"live": "Works today", "partial": "Partly ready", "planned": "Planned", "vision": "Long-term"}
 STATUS_CLASSES = {"live": "badge--success", "partial": "badge--accent", "planned": "badge--secondary", "vision": "badge--secondary"}
@@ -59,6 +95,8 @@ class ToolboxEntry:
     promised_on: tuple[str, ...] = ()  # public pages that mention it
     note: str = ""  # honesty note — where a page claims more than exists
     queue_ref: str = ""  # orchestrator queue id, when one exists
+    slot: str = ""  # plugin slot this entry backs — one of SLOTS, or "" for a cross-cutting capability with no space in the inventory yet
+    wing: str = ""  # audience wing that primarily surfaces it — one of WINGS; "renters" is the default, "shared" for site-wide spaces
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -88,6 +126,7 @@ class ToolboxCatalog:
             group="start", status="live", level="L0", engine="content",
             today="Open the start page and choose what happened.", today_path="/preamble",
             backed_by=("preamble", "portal"), promised_on=("/", "/portal", "/services"),
+            slot="front.door", wing="shared",
         ),
         ToolboxEntry(
             id="situation_guides", name="Do this now guides",
@@ -95,6 +134,7 @@ class ToolboxCatalog:
             group="start", status="live", level="L0", engine="content",
             today="Pick a situation guide from the home page.", today_path="/",
             backed_by=("portal",), promised_on=("/",),
+            slot="p01.guides", wing="renters",
         ),
         ToolboxEntry(
             id="crisis_resources", name="Crisis and emergency lines",
@@ -102,6 +142,7 @@ class ToolboxCatalog:
             group="start", status="live", level="L0", engine="help",
             today="Call 211 for basic needs or 988 for a mental health crisis.", today_path="/help",
             promised_on=("/help", "/about"),
+            slot="shared.help", wing="shared",
         ),
         ToolboxEntry(
             id="help_center", name="Help center",
@@ -109,6 +150,7 @@ class ToolboxCatalog:
             group="start", status="live", level="L0", engine="help",
             today="Read the help page.", today_path="/help",
             promised_on=("/help", "/contact"),
+            slot="shared.help", wing="shared",
         ),
         ToolboxEntry(
             id="credit_report_guide", name="Credit report guide",
@@ -117,6 +159,7 @@ class ToolboxCatalog:
             today="The official source for your reports is the U.S. consumer protection agency.",
             today_path="https://www.consumerfinance.gov/",
             queue_ref="plan-20261027-semptify-feature-credit-report-pull-guid-cf67",
+            slot="p02.credit", wing="renters",
         ),
         # ----------------------------------------------------------- RECORD
         ToolboxEntry(
@@ -127,6 +170,7 @@ class ToolboxCatalog:
             backed_by=("vault", "storage", "vault_engine", "cloud_sync"),
             promised_on=("/donate", "/privacy", "/portal"),
             note="All three storage providers exist in code. Moving every record type into your own storage is about 40% done.",
+            slot="p03.vault", wing="renters",
         ),
         ToolboxEntry(
             id="timeline", name="Unified timeline",
@@ -134,6 +178,7 @@ class ToolboxCatalog:
             group="record", status="live", level="L1", engine="record",
             today="Start from the start page, then open the timeline.", today_path="/preamble",
             backed_by=("timeline",), promised_on=("/donate", "/portal"),
+            slot="p04.timeline", wing="renters",
         ),
         ToolboxEntry(
             id="journal", name="Journal",
@@ -141,6 +186,7 @@ class ToolboxCatalog:
             group="record", status="live", level="L1", engine="record",
             today="Start from the start page, then open the journal.", today_path="/preamble",
             backed_by=("journal",), promised_on=("/document-everything",),
+            slot="p03.tools", wing="renters",
         ),
         ToolboxEntry(
             id="calendar", name="Calendar",
@@ -148,6 +194,7 @@ class ToolboxCatalog:
             group="record", status="live", level="L1", engine="record",
             today="Start from the start page, then open the calendar.", today_path="/preamble",
             backed_by=("calendar",),
+            slot="p03.tools", wing="renters",
         ),
         ToolboxEntry(
             id="contacts_log", name="Contacts and call log",
@@ -155,6 +202,7 @@ class ToolboxCatalog:
             group="record", status="live", level="L1", engine="record",
             today="Start from the start page, then open contacts.", today_path="/preamble",
             backed_by=("contacts", "communication"),
+            slot="p03.tools", wing="renters",
         ),
         ToolboxEntry(
             id="rent_ledger", name="Rent ledger",
@@ -162,6 +210,7 @@ class ToolboxCatalog:
             group="record", status="live", level="L1", engine="record",
             today="Start from the start page, then open the rent ledger.", today_path="/preamble",
             backed_by=("rent",),
+            slot="p03.tools", wing="renters",
         ),
         ToolboxEntry(
             id="quick_capture", name="Quick capture",
@@ -169,6 +218,7 @@ class ToolboxCatalog:
             group="record", status="live", level="L1", engine="record",
             today="Start from the start page.", today_path="/preamble",
             backed_by=("intake", "documents"),
+            slot="p03.tools", wing="renters",
         ),
         ToolboxEntry(
             id="document_center", name="Document center",
@@ -176,6 +226,7 @@ class ToolboxCatalog:
             group="record", status="live", level="L1", engine="record",
             today="Start from the start page.", today_path="/preamble",
             backed_by=("document_center", "briefcase"), promised_on=("/donate",),
+            slot="p04.center", wing="renters",
         ),
         ToolboxEntry(
             id="retaliation_tracker", name="Retaliation tracker",
@@ -183,6 +234,7 @@ class ToolboxCatalog:
             group="record", status="live", level="L1", engine="record",
             today="Start from the start page.", today_path="/preamble",
             backed_by=("dispute_tracker",), promised_on=("/donate",),
+            slot="p03.tools", wing="renters",
         ),
         ToolboxEntry(
             id="timestamp_seal", name="Dated fingerprint for documents",
@@ -193,6 +245,7 @@ class ToolboxCatalog:
             backed_by=("vault", "storage"),
             promised_on=("/privacy",),
             note="Vault uploads already create a certificate: a SHA-256 fingerprint plus an RFC 3161 third-party timestamp (a self-signed fallback is marked when the outside service is unreachable). A stand-alone browser-side fingerprint tool is still planned. The privacy page wrongly said 'blockchain' — corrected 2026-11-06.",
+            slot="p03.seal", wing="renters",
         ),
         ToolboxEntry(
             id="fems", name="Forensic evidence system (FEMS)",
@@ -200,6 +253,7 @@ class ToolboxCatalog:
             group="record", status="partial", level="L1", engine="record",
             today="Use the document center for now.", today_path="/preamble",
             backed_by=("fems",), promised_on=("/donate",),
+            slot="p04.fems", wing="renters",
         ),
         # ------------------------------------------------------------- KNOW
         ToolboxEntry(
@@ -210,6 +264,7 @@ class ToolboxCatalog:
             backed_by=("law_library", "state_laws", "context_engine"),
             promised_on=("/", "/donate", "/hello", "/services"),
             note="Minnesota is the deepest. Other states have entries but uneven depth, and content is still marked BETA. The donate page's present-tense '35 states' claim was corrected 2026-11-06; its remaining 'all 50 states + DC' mentions are Phase 2 / impact-with-funding goals, clearly future.",
+            slot="p01.library", wing="renters",
         ),
         ToolboxEntry(
             id="situation_research", name="Go deeper on your situation",
@@ -217,6 +272,7 @@ class ToolboxCatalog:
             group="know", status="partial", level="L0", engine="content",
             today="Search the law library by topic.", today_path="/law-library",
             backed_by=("legal_analysis", "context_engine", "law_linker"), promised_on=("/donate",),
+            slot="p02.research", wing="renters",
         ),
         ToolboxEntry(
             id="read_aloud", name="Read aloud",
@@ -224,6 +280,7 @@ class ToolboxCatalog:
             group="know", status="planned", level="L0", engine="page",
             today="Your device's built-in screen reader works on every Semptify page.",
             backed_by=("voice",),
+            slot="", wing="shared",
         ),
         ToolboxEntry(
             id="languages", name="Other languages",
@@ -232,6 +289,7 @@ class ToolboxCatalog:
             today="Pages are in English only for now.",
             promised_on=("/donate",),
             note="12 language files exist as empty placeholders. Real translations are deferred until they can be done properly.",
+            slot="", wing="shared",
         ),
         # -------------------------------------------------------------- ACT
         ToolboxEntry(
@@ -240,6 +298,7 @@ class ToolboxCatalog:
             group="act", status="partial", level="L1", engine="action",
             today="Open eviction defense.", today_path="/eviction-defense",
             backed_by=("eviction_defense", "eviction_timeline"), promised_on=("/donate",),
+            slot="p06.eviction", wing="renters",
         ),
         ToolboxEntry(
             id="complaint_wizard", name="Complaint wizard",
@@ -248,6 +307,7 @@ class ToolboxCatalog:
             today="Read how complaints work.", today_path="/complaints",
             backed_by=("complaints",), promised_on=("/complaints", "/services", "/donate"),
             note="The step-by-step wizard flow works through the API (start, answer, finish — drafts save to the tenant's vault; anonymous visitors get the complaint text plus filing instructions). A click-through page is still being built.",
+            slot="p06.complaint", wing="renters",
         ),
         ToolboxEntry(
             id="case_builder", name="Case builder",
@@ -255,6 +315,7 @@ class ToolboxCatalog:
             group="act", status="partial", level="L1", engine="action",
             today="Start from the start page.", today_path="/preamble",
             backed_by=("case_builder",), promised_on=("/donate",),
+            slot="p04.case", wing="renters",
         ),
         ToolboxEntry(
             id="court_forms", name="Court forms",
@@ -262,6 +323,7 @@ class ToolboxCatalog:
             group="act", status="partial", level="L1", engine="action",
             today="Your local courthouse self-help center can help with forms.",
             backed_by=("court_forms", "public_forms"), promised_on=("/donate",),
+            slot="p06.court", wing="renters",
         ),
         ToolboxEntry(
             id="court_packet", name="Court packet builder",
@@ -269,6 +331,7 @@ class ToolboxCatalog:
             group="act", status="partial", level="L1", engine="action",
             today="Start from the start page.", today_path="/preamble",
             backed_by=("court_packet", "packet_builder"),
+            slot="p06.court", wing="renters",
         ),
         ToolboxEntry(
             id="court_prep", name="Court appearance preparation",
@@ -276,6 +339,7 @@ class ToolboxCatalog:
             group="act", status="partial", level="L0", engine="action",
             today="Start from the start page.", today_path="/preamble",
             backed_by=("zoom_court", "zoom_court_prep"),
+            slot="p06.court", wing="renters",
         ),
         ToolboxEntry(
             id="letters", name="Sample letters",
@@ -283,6 +347,7 @@ class ToolboxCatalog:
             group="act", status="planned", level="L0", engine="action",
             today="Write your request in your own words, date it, and keep a copy.",
             note="Registered as response_letter_generator but not built.",
+            slot="p06.letters", wing="renters",
         ),
         ToolboxEntry(
             id="deadline_engine", name="Deadline calculator for every notice",
@@ -291,6 +356,7 @@ class ToolboxCatalog:
             today="Eviction deadlines can be calculated today in eviction defense.", today_path="/eviction-defense",
             backed_by=("eviction_defense",),
             note="Eviction deadlines work. A general rules engine for other notices is planned (proven first on the case side).",
+            slot="p06.eviction", wing="renters",
         ),
         ToolboxEntry(
             id="document_delivery", name="Document delivery",
@@ -298,6 +364,7 @@ class ToolboxCatalog:
             group="act", status="partial", level="L1", engine="action",
             today="Send by a method that gives you a receipt, and save the receipt.",
             backed_by=("document_delivery",), promised_on=("/privacy",),
+            slot="p04.export", wing="renters",
         ),
         ToolboxEntry(
             id="pdf_tools", name="PDF tools",
@@ -306,6 +373,7 @@ class ToolboxCatalog:
             today="The tool exists inside Semptify. A stand-alone version is being built.", today_path="/preamble",
             backed_by=("pdf_tools",), promised_on=("/tools", "/services"),
             note="Pages say no setup is needed, but the button leads to the general start page.",
+            slot="p04.utilities", wing="renters",
         ),
         ToolboxEntry(
             id="document_converter", name="Document converter",
@@ -314,6 +382,7 @@ class ToolboxCatalog:
             today="The tool exists inside Semptify. A stand-alone version is being built.", today_path="/preamble",
             backed_by=("document_converter",), promised_on=("/tools", "/services"),
             note="Same as PDF tools: the button leads to the general start page.",
+            slot="p04.utilities", wing="renters",
         ),
         ToolboxEntry(
             id="public_forms", name="Public forms library",
@@ -321,6 +390,7 @@ class ToolboxCatalog:
             group="act", status="partial", level="L0", engine="action",
             today="The library exists inside Semptify. A browsable public version is being built.", today_path="/preamble",
             backed_by=("public_forms",), promised_on=("/tools", "/services"),
+            slot="p04.utilities", wing="renters",
         ),
         ToolboxEntry(
             id="mobile_app", name="Semptify on your phone",
@@ -329,6 +399,7 @@ class ToolboxCatalog:
             today="semptify.org works in your phone's browser.", today_path="/",
             promised_on=("/donate",),
             note="Semptify Go (the phone app) is a separate earlier build. A dedicated phone toolset is deferred.",
+            slot="", wing="renters",
         ),
         # --------------------------------------------------------- TOGETHER
         ToolboxEntry(
@@ -338,6 +409,7 @@ class ToolboxCatalog:
             today="Dial 211 and ask for tenant organizations in your area.", today_path="tel:211",
             backed_by=("campaign",), promised_on=("/donate",),
             note="Every listing must be reviewed and approved before it appears (listing rules).",
+            slot="p05.finder", wing="renters",
         ),
         ToolboxEntry(
             id="start_a_group", name="Start a tenant group",
@@ -346,6 +418,7 @@ class ToolboxCatalog:
             today="Read the outline on the advocacy page.", today_path="/advocacy",
             promised_on=("/advocacy", "/services", "/donate"),
             note="The advocacy page lists the topics. The guide itself is not written yet.",
+            slot="p05.start", wing="advocates",
         ),
         ToolboxEntry(
             id="reach_legislators", name="Reach your legislators",
@@ -354,6 +427,7 @@ class ToolboxCatalog:
             today="Open the official lookup links.", today_path="/reach-legislators",
             promised_on=("/donate",),
             note="Links go only to .gov pages run by the legislatures themselves.",
+            slot="p06.legislators", wing="renters",
         ),
         ToolboxEntry(
             id="tell_your_story", name="Tell your story",
@@ -362,6 +436,7 @@ class ToolboxCatalog:
             today="Tell your story.", today_path="/tell-your-story",
             backed_by=("public_forms",), promised_on=("/donate",),
             note="Anonymous stories publish after a moderation pass that removes personal details.",
+            slot="p06.story", wing="renters",
         ),
         ToolboxEntry(
             id="your_voice", name="Your Voice",
@@ -370,6 +445,7 @@ class ToolboxCatalog:
             today="Open Your Voice.", today_path="/your-voice",
             backed_by=("public_forms",), promised_on=("/", "/hello"),
             note="Answers post through the elevation-gated review lane at /admin/public-voice.",
+            slot="wing.bill", wing="bill",
         ),
         ToolboxEntry(
             id="housing_bill", name="The Minnesota housing bill",
@@ -377,6 +453,7 @@ class ToolboxCatalog:
             group="together", status="live", level="L4", engine="civic",
             today="Read the bill section.", today_path="/bill",
             promised_on=("/",),
+            slot="wing.bill", wing="bill",
         ),
         ToolboxEntry(
             id="tool_requests", name="Ask for a tool",
@@ -384,6 +461,7 @@ class ToolboxCatalog:
             group="together", status="live", level="L0", engine="trust",
             today="Send a tool request.", today_path="/tool-requests",
             backed_by=("public_forms",), promised_on=("/", "/hello"),
+            slot="shared.requests", wing="shared",
         ),
         # ---------------------------------------------------------- HELPERS
         ToolboxEntry(
@@ -394,6 +472,7 @@ class ToolboxCatalog:
             backed_by=("legal_share",),
             note="Built on a branch that is waiting for review.",
             queue_ref="feat/legal-share-portal",
+            slot="p04.export", wing="legal",
         ),
         ToolboxEntry(
             id="advocate_portal", name="Advocate tools",
@@ -402,6 +481,7 @@ class ToolboxCatalog:
             today="Advocates can help a tenant use Semptify side by side.",
             backed_by=("advocate",), promised_on=("/advocacy", "/services"),
             note="Advocate and legal roles were removed from this app on purpose. They will come back as a separate add-on.",
+            slot="wing.advocates", wing="advocates",
         ),
         ToolboxEntry(
             id="legal_portal", name="Legal professional tools",
@@ -410,6 +490,7 @@ class ToolboxCatalog:
             today="Attorneys can receive a tenant's downloaded record directly.",
             backed_by=("legal", "legal_filing"), promised_on=("/legal-research", "/services"),
             note="Same as advocate tools: will return as a separate add-on.",
+            slot="wing.legal", wing="legal",
         ),
         ToolboxEntry(
             id="agency_connect", name="Agencies connect",
@@ -417,6 +498,7 @@ class ToolboxCatalog:
             group="helpers", status="planned", level="L2", engine="help",
             today="Agencies can write to the partnerships address.", today_path="/contact",
             promised_on=("/services",),
+            slot="wing.advocates", wing="advocates",
         ),
         ToolboxEntry(
             id="partnerships", name="Advocacy partnerships",
@@ -424,6 +506,7 @@ class ToolboxCatalog:
             group="helpers", status="planned", level="L2", engine="help",
             today="Write to the partnerships address.", today_path="/contact",
             promised_on=("/advocacy", "/donate"),
+            slot="wing.advocates", wing="advocates",
         ),
         # --------------------------------------------------------- RESEARCH
         ToolboxEntry(
@@ -434,6 +517,7 @@ class ToolboxCatalog:
             backed_by=("legal_intel", "crawler", "external_mappings"),
             promised_on=("/legal-research", "/services"),
             note="Research tools exist for internal use only. A public version must use sanctioned public sources and show patterns, not target people.",
+            slot="wing.research", wing="research",
         ),
         ToolboxEntry(
             id="litigation_intelligence", name="Litigation intelligence",
@@ -442,6 +526,7 @@ class ToolboxCatalog:
             today="Not available to the public yet.",
             backed_by=("litigation_intelligence",), promised_on=("/donate", "/legal-research"),
             note="Marked inactive. One part (graph engine) needs to be built or removed.",
+            slot="wing.research", wing="research",
         ),
         ToolboxEntry(
             id="housing_accountability", name="Housing accountability",
@@ -449,6 +534,7 @@ class ToolboxCatalog:
             group="research", status="partial", level="L4", engine="civic",
             today="Not available to the public yet.",
             backed_by=("housing_accountability", "accountability_ledger"),
+            slot="wing.research", wing="research",
         ),
         ToolboxEntry(
             id="fraud_exposure", name="Fraud documentation",
@@ -456,6 +542,7 @@ class ToolboxCatalog:
             group="research", status="partial", level="L4", engine="civic",
             today="Not available to the public yet.",
             backed_by=("fraud_exposure",), promised_on=("/donate",),
+            slot="wing.research", wing="research",
         ),
         ToolboxEntry(
             id="public_records_suite", name="Public records suite",
@@ -464,6 +551,7 @@ class ToolboxCatalog:
             today="Not available to the public yet.",
             backed_by=("public_exposure",), promised_on=("/donate",),
             note="Shown on the donate page as Public Exposure Suite. Public copy should use calmer naming.",
+            slot="wing.research", wing="research",
         ),
         ToolboxEntry(
             id="researcher_data", name="Research data access",
@@ -471,6 +559,7 @@ class ToolboxCatalog:
             group="research", status="vision", level="L4", engine="civic",
             today="Researchers can write to us.", today_path="/contact",
             promised_on=("/services", "/donate"),
+            slot="wing.research", wing="research",
         ),
         ToolboxEntry(
             id="policy_reporting", name="Policy impact reporting",
@@ -478,6 +567,7 @@ class ToolboxCatalog:
             group="research", status="vision", level="L4", engine="civic",
             today="See the numbers behind the Minnesota bill.", today_path="/bill/research",
             promised_on=("/donate",),
+            slot="wing.classroom", wing="classroom",
         ),
         ToolboxEntry(
             id="legal_aid_integration", name="Legal aid system connection",
@@ -485,6 +575,7 @@ class ToolboxCatalog:
             group="research", status="vision", level="L2", engine="help",
             today="Download your records and bring them to legal aid.",
             promised_on=("/donate",),
+            slot="p04.export", wing="legal",
         ),
         # --------------------------------------------------------- BUILDERS
         ToolboxEntry(
@@ -493,6 +584,7 @@ class ToolboxCatalog:
             group="builders", status="live", level="L3", engine="trust",
             today="Read the code on GitHub.", today_path="https://github.com/1semptify-arch/Semptify",
             promised_on=("/", "/donate", "/hello", "/developers"),
+            slot="wing.developers", wing="developers",
         ),
         ToolboxEntry(
             id="api_docs", name="API documentation",
@@ -501,6 +593,7 @@ class ToolboxCatalog:
             today="Read the code on GitHub.", today_path="https://github.com/1semptify-arch/Semptify",
             promised_on=("/developers",),
             note="The developers page listed /docs, /redoc, and /openapi.json — all three still return not-found on semptify.org (re-checked 2026-11-06). Page copy corrected on this branch: the spec ships with the code, public docs are a future decision.",
+            slot="wing.developers", wing="developers",
         ),
         ToolboxEntry(
             id="external_sdk", name="Developer kit (SDK)",
@@ -508,6 +601,7 @@ class ToolboxCatalog:
             group="builders", status="partial", level="L3", engine="trust",
             today="The kit lives in the code repository.", today_path="https://github.com/1semptify-arch/Semptify",
             promised_on=("/developers", "/services"),
+            slot="wing.developers", wing="developers",
         ),
         ToolboxEntry(
             id="module_marketplace", name="Module marketplace",
@@ -515,6 +609,7 @@ class ToolboxCatalog:
             group="builders", status="vision", level="L3", engine="trust",
             today="Contributions go through GitHub.", today_path="https://github.com/1semptify-arch/Semptify",
             promised_on=("/developers",),
+            slot="wing.developers", wing="developers",
         ),
         ToolboxEntry(
             id="self_host_kit", name="Run it yourself",
@@ -522,6 +617,7 @@ class ToolboxCatalog:
             group="builders", status="vision", level="L3", engine="record",
             today="The code is open to run today, with technical setup.",
             today_path="https://github.com/1semptify-arch/Semptify",
+            slot="wing.developers", wing="developers",
         ),
         # ---------------------------------------------------------- SUPPORT
         ToolboxEntry(
@@ -530,6 +626,7 @@ class ToolboxCatalog:
             group="support", status="live", level="L0", engine="trust",
             today="See how funding works.", today_path="/donate",
             promised_on=("/", "/donate", "/hello", "/your-voice"),
+            slot="wing.supporters", wing="supporters",
         ),
         ToolboxEntry(
             id="volunteer", name="Volunteer and contribute",
@@ -537,6 +634,7 @@ class ToolboxCatalog:
             group="support", status="planned", level="L0", engine="trust",
             today="Contributions go through GitHub.", today_path="https://github.com/1semptify-arch/Semptify",
             promised_on=("/donate",),
+            slot="wing.supporters", wing="supporters",
         ),
         ToolboxEntry(
             id="feedback", name="Feedback",
@@ -544,6 +642,7 @@ class ToolboxCatalog:
             group="support", status="live", level="L0", engine="trust",
             today="Send feedback.", today_path="/feedback",
             promised_on=("/contact", "/accessibility"),
+            slot="shared.contact", wing="shared",
         ),
         ToolboxEntry(
             id="contact_mailboxes", name="Contact addresses",
@@ -552,6 +651,7 @@ class ToolboxCatalog:
             today="Use the feedback form, which is confirmed working.", today_path="/feedback",
             promised_on=("/contact", "/help", "/privacy", "/terms", "/disclaimer"),
             note="Nine distinct addresses appear across public pages (hello, tech, legal, privacy, partnerships, press, support, brad, admin) — the contact page shows six of them. Whether each is a working mailbox has not been verified.",
+            slot="shared.contact", wing="shared",
         ),
     ]
 
@@ -570,6 +670,16 @@ class ToolboxCatalog:
             (gid, meta, [e for e in cls.ENTRIES if e.group == gid])
             for gid, meta in cls.GROUPS.items()
         ]
+
+    @classmethod
+    def by_slot(cls) -> dict[str, list[ToolboxEntry]]:
+        """Every declared slot -> the entries backing it (the plugin-slot view)."""
+        return {s: [e for e in cls.ENTRIES if e.slot == s] for s in SLOTS}
+
+    @classmethod
+    def by_wing(cls) -> dict[str, list[ToolboxEntry]]:
+        """Every wing -> the entries it surfaces."""
+        return {w: [e for e in cls.ENTRIES if e.wing == w] for w in WINGS}
 
     @classmethod
     def counts(cls) -> dict[str, int]:
@@ -593,6 +703,8 @@ class ToolboxCatalog:
             "groups": cls.GROUPS,
             "counts": cls.counts(),
             "total": len(cls.ENTRIES),
+            "slots": {s: [e.id for e in entries] for s, entries in cls.by_slot().items()},
+            "wings": {w: [e.id for e in entries] for w, entries in cls.by_wing().items()},
         }
 
 

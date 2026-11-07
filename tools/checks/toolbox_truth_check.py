@@ -7,7 +7,8 @@ service semptify.org mentions. This check mechanically enforces the rule
 can verify:
 
 1. Catalog structure is valid — unique ids, valid status/level/engine/group,
-   non-empty purpose and `today` text on every entry.
+   slot in SLOTS (or empty), wing in WINGS, non-empty purpose and `today`
+   text on every entry.
 2. Every internal `today_path` and every `promised_on` path resolves to a
    real public surface: the portal pages registry, a verified allowlist of
    app/worker routes, or the generated /toolbox pages themselves.
@@ -90,6 +91,8 @@ def run(repo_root: Path) -> CheckResult:
     valid_level = set(mod.LEVELS)
     valid_engine = set(mod.ENGINES)
     valid_group = set(mod.ToolboxCatalog.GROUPS)
+    valid_slot = set(getattr(mod, "SLOTS", ()))
+    valid_wing = set(getattr(mod, "WINGS", ()))
 
     resolvable = _registry_paths(repo_root) | KNOWN_PUBLIC_PATHS | {"/toolbox"}
     resolvable |= {f"/toolbox/{e.id}" for e in entries}
@@ -113,6 +116,10 @@ def run(repo_root: Path) -> CheckResult:
             problems.append(f"{e.id}: invalid engine '{e.engine}'")
         if e.group not in valid_group:
             problems.append(f"{e.id}: invalid group '{e.group}'")
+        if valid_slot and e.slot and e.slot not in valid_slot:
+            problems.append(f"{e.id}: invalid slot '{e.slot}'")
+        if valid_wing and e.wing not in valid_wing:
+            problems.append(f"{e.id}: invalid wing '{e.wing}'")
         if not e.purpose.strip() or not e.today.strip():
             problems.append(f"{e.id}: empty purpose or today text")
 

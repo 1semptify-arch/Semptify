@@ -1,4 +1,54 @@
+## Session — 2026-11-07 — Toolbox slot + wing fields (swe-2, task plan-20261102-toolbox-add-slot-wing-fields)
+
+- **Shipped (worktree `semptify-wt-toolbox`, branch `feat/toolbox-service-stubs`):** the Toolbox catalog now doubles as the plugin slot registry per `SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md` §4/§7/§9 improvement 1.
+  - `app/modules/portal/toolbox.py`: new `slot` and `wing` fields on `ToolboxEntry`, populated on all 62 entries; new `SLOTS` (49 ids — the draft's 48 plus `wing.bill`, the one id the draft left unassigned for the bill wing) and `WINGS` (9 audience wings + `shared`); new `by_slot()` / `by_wing()` catalog views; `to_dict()` now also returns `slots` and `wings` maps for `/api/portal/toolbox`.
+  - Slot semantics: `slot` names the §4 space the entry backs (`""` = cross-cutting capability with no space — `read_aloud`, `languages`, `mobile_app`); `wing` names the audience wing that primarily surfaces it (`renters` default for tenant-path tools, `shared` for site-wide).
+  - `tools/checks/toolbox_truth_check.py`: structure check now validates `slot` ∈ SLOTS (when set) and `wing` ∈ WINGS.
+  - `tests/module_health/test_portal_toolbox.py`: same assertions added.
+- **Verified:** `py_compile` on all three changed files; `pytest tests/module_health/test_portal_toolbox.py` 7/7; `toolbox_truth_check` standalone PASS (62 entries, all paths resolve). Live/UI verify not run — no user-visible surface changed (slot/wing appear only in the JSON catalog, not the public pages).
+- **Pending Brad's eye:** slot assignments were made per the draft's §4/§4.3 mapping — check the judgment calls (documented in the report doc): `wing.bill` as the bill-wing slot, `p04.export` shared by three legal-aid handoff entries, `policy_reporting` under `wing.classroom`, three entries left unslotted.
+- **Note:** the BUILD_STATE entry below this one (P6 session, 2026-11-07) carried uncommitted auto-appended guardrail run logs from prior sessions, plus one run this session triggered (15:26, engine invoked without env vars — its `contract_route_check`/`resource_intake_check` FAILs are missing-`SECRET_KEY` environment errors, not code failures; `toolbox_truth_check` PASSED in the same run). All are included in this commit as real run records.
+
 ## Session — 2026-11-07 — P6 civic public-voice pipeline (swe-2, task sorg-p6-civic)
+
+### Guardrail Engine Run — 2026-11-07T15:26:12+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-07T05:12:38+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-07T05:12:13+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+One or more checks failed — see console output.
 
 - **Shipped (worktree `semptify-wt-toolbox`, branch `feat/toolbox-service-stubs`):** checkpoint `77bd06e1` (prior session, died mid-run) + `9ba3243a` contract fix this session.
   - New public pages: `/tell-your-story` (anonymous story submit + moderated list) and `/reach-legislators` (official .gov-only lookup links, MN + federal). Page registry entries added in `portal/pages.py`.
