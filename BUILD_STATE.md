@@ -1,4 +1,61 @@
+## Session — 2026-11-07 — P9 builders: API docs, SDK guide, contribution guide, volunteer page, self-host kit (swe-2, task sorg-p9-builders)
+
+### Guardrail Engine Run — 2026-11-07T05:58:18+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (22 live, 26 partial, 10 planned, 4 vision)
+
+All checks passed.
+
+- **Shipped (worktree `worktrees/p9-builders`, branch `feat/p9-builders`):**
+  - **Public API docs ON (Brad's 2026-11-02 decision):** `/api/docs`, `/api/redoc`, `/api/openapi.json` now pass the storage gate. Root cause was a path mismatch — the middleware whitelisted `/docs`, `/redoc`, `/openapi.json`, but FastAPI mounts docs under `/api/`.
+  - **Public-only OpenAPI schema:** `create_app()` wraps `fastapi_app.openapi` — builds the full schema via FastAPI's own machinery, then keeps only `/api/` paths where `is_public_path()` is true, drops now-empty tag groups, and relabels the description. Result verified live: 49 paths, every one anonymously callable; auth-required endpoints are not in the schema. NOTE: FastAPI 0.141 `include_router` is lazy (`_IncludedRouter` nodes) — `app.routes` does NOT contain the included routers' paths, so filtering route objects does not work; filtering the generated `paths` dict does.
+  - **Restored missing public-forms whitelist (P6 gap, root cause):** this branch lacked main's public-form entries (`/api/feedback`, `/api/tool-request(s)`, `/api/voice-post(s)`, `/api/contact`, `/api/tenant/autofill`) and P6's new `/api/story`, `/api/stories` had never been whitelisted anywhere — anonymous civic endpoints were 401ing. All are now in `PUBLIC_PATHS`, which is also what the public schema enumerates.
+  - **`/toolbox/{entry_id}` detail pages made public** (`/toolbox/` added to `PUBLIC_PREFIXES`) — they 302'd to onboarding despite serving data identical to the already-public list page and `/api/portal/toolbox/{id}` JSON.
+  - **New public page `/volunteer`** (registry + `public/volunteer.html`, public shell): what it is/isn't → ways to give time → ground rules → one next step (GitHub). `/your-voice` and `/donate` now link to it.
+  - **`/developers` rewritten to honest surface:** live `/api/docs` + `/api/redoc` + `/api/openapi.json` links, SDK pointer to `docs/SDK_GUIDE.md`, self-host pointer to `docs/SELF_HOST.md`, marketplace described as long-term goal, `/volunteer` linked.
+  - **`CONTRIBUTING.md` expanded:** public-utility framing, contribution paths (code/review/testing/translation-deferred/resource suggestions), ground rules (3.11.9, voice rules, no PII server-side, no dead ends), verification commands.
+  - **New docs:** `docs/SDK_GUIDE.md` (module SDK, `app.sdk.vault` VaultClient, least-privilege external clients — honest "in-repo, not packaged" status) and `docs/SELF_HOST.md` (Python 3.11.9 venv, open mode, enforced mode with user-owned OAuth apps, Docker; no packaged appliance yet). Both mapped in `docs/doc-map.yaml`.
+  - **Toolbox flips:** `api_docs` planned→live (`/api/docs`), `volunteer` planned→live (`/volunteer`), `self_host_kit` vision→partial (`docs/SELF_HOST.md`); `external_sdk` + `module_marketplace` notes refreshed (stays partial/vision). Catalog now 22 live, 26 partial, 10 planned, 4 vision.
+  - `tools/checks/toolbox_truth_check.py`: `/api/docs`, `/api/redoc`, `/api/openapi.json` added to `KNOWN_PUBLIC_PATHS`.
+- **Verified live (:8123, SECURITY_MODE=enforced, real uvicorn):** all public surfaces 200 — `/api/docs`, `/api/redoc`, `/api/openapi.json`, `/volunteer`, `/developers`, `/toolbox`, all 5 `/toolbox/{id}` detail pages; protected `/api/journal/*`, `/api/vault/*` still 401; unknown `/toolbox/bad-id` renders catalog at 404 (no dead end). OpenAPI schema = 49 paths, all publicly callable. Browser (IronBee): `/volunteer` at 375px clean + chronological (intro→ways→rules→next step), `/developers` at 1280px clean, `/api/docs` Swagger UI renders only real public groups, `/toolbox/api_docs` detail page correct.
+- **Tests:** `py_compile` clean on all changed files; guardrail 8/8 PASS; module_health scoped tests 11/11 (portal_toolbox ×7, public_exposure, public_forms, portal, page_shell). Full module_health run: 187 passed, 69 errors — ALL environmental `sqlite3.OperationalError: database or disk is full` at test setup (C: drive 100% full again, 234MB free at check time).
+- **Env notes:** worktree has no `.env` — all runs used `SECRET_KEY`/`SECURITY_MODE` passed inline (borrowed from the existing dev `.env`, nothing written). Port 8001 was already occupied by a stale server — verified on :8123. Port 8001 result earlier (docs 200 / volunteer 404 / toolbox 404) was the OLD server, not this branch.
+- **Pending:** Brad reviews + merges `feat/p9-builders`. After merge, prod will serve public docs once deployed. Swagger UI (CDN, `swagger-ui-dist@5`) logs two internal TypeErrors during init on this stack — cosmetic vendor noise, page fully renders and works.
+
 ## Session — 2026-11-07 — P6 civic public-voice pipeline (swe-2, task sorg-p6-civic)
+
+### Guardrail Engine Run — 2026-11-07T05:22:09+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (22 live, 26 partial, 10 planned, 4 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-07T05:21:47+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (22 live, 26 partial, 10 planned, 4 vision)
+
+One or more checks failed — see console output.
 
 - **Shipped (worktree `semptify-wt-toolbox`, branch `feat/toolbox-service-stubs`):** checkpoint `77bd06e1` (prior session, died mid-run) + `9ba3243a` contract fix this session.
   - New public pages: `/tell-your-story` (anonymous story submit + moderated list) and `/reach-legislators` (official .gov-only lookup links, MN + federal). Page registry entries added in `portal/pages.py`.

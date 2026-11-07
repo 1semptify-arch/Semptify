@@ -227,6 +227,18 @@ class PortalPageRegistry:
             order=80,
         ),
         PortalPage(
+            id="volunteer",
+            title="Volunteer — Semptify",
+            path="/volunteer",
+            template="public/volunteer.html",
+            description="Ways to give time to Semptify: code, review, testing, and — when it is ready — translation. Everything is public and every change is reviewed by a person.",
+            keywords="volunteer semptify, contribute tenant rights, open source housing, give time nonprofit",
+            og_title="Volunteer — Semptify",
+            og_description="Ways to give time: code, review, testing. Everything is public and reviewed by a person.",
+            footer_label="Volunteer",
+            order=85,
+        ),
+        PortalPage(
             id="tools",
             title="Standalone Tools — Semptify",
             path="/tools",

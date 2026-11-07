@@ -496,18 +496,20 @@ class ToolboxCatalog:
         ),
         ToolboxEntry(
             id="api_docs", name="API documentation",
-            purpose="Public documentation of every Semptify endpoint.",
-            group="builders", status="planned", level="L3", engine="trust",
-            today="Read the code on GitHub.", today_path="https://github.com/1semptify-arch/Semptify",
+            purpose="Public documentation of every Semptify endpoint anyone can call.",
+            group="builders", status="live", level="L3", engine="trust",
+            today="Browse the public API documentation.", today_path="/api/docs",
             promised_on=("/developers",),
-            note="The developers page listed /docs, /redoc, and /openapi.json — all three still return not-found on semptify.org (re-checked 2026-11-06). Page copy corrected on this branch: the spec ships with the code, public docs are a future decision.",
+            note="Turned on 2026-11-07 (Brad's 2026-11-02 decision). /api/docs, /api/redoc, and /api/openapi.json are public; the schema is generated only from endpoints the storage middleware lets through without a session, so auth-required endpoints are not listed.",
         ),
         ToolboxEntry(
             id="external_sdk", name="Developer kit (SDK)",
             purpose="A kit for building tools that work with Semptify.",
             group="builders", status="partial", level="L3", engine="trust",
-            today="The kit lives in the code repository.", today_path="https://github.com/1semptify-arch/Semptify",
+            today="Read the SDK guide in the repository.",
+            today_path="https://github.com/1semptify-arch/Semptify/blob/main/docs/SDK_GUIDE.md",
             promised_on=("/developers", "/services"),
+            note="The kit lives at app/sdk/ — module SDK, vault client, and least-privilege external-module clients. Documented in docs/SDK_GUIDE.md; not yet a packaged release.",
         ),
         ToolboxEntry(
             id="module_marketplace", name="Module marketplace",
@@ -515,13 +517,15 @@ class ToolboxCatalog:
             group="builders", status="vision", level="L3", engine="trust",
             today="Contributions go through GitHub.", today_path="https://github.com/1semptify-arch/Semptify",
             promised_on=("/developers",),
+            note="The plugin-loading machinery (app/sdk/plugin_manager.py) and the Forge lifecycle exist; a shared catalog of community modules is a long-term goal.",
         ),
         ToolboxEntry(
             id="self_host_kit", name="Run it yourself",
             purpose="A packaged version an advocate or tenant can run on their own computer.",
-            group="builders", status="vision", level="L3", engine="record",
-            today="The code is open to run today, with technical setup.",
-            today_path="https://github.com/1semptify-arch/Semptify",
+            group="builders", status="partial", level="L3", engine="record",
+            today="Follow the run-it-yourself guide in the repository.",
+            today_path="https://github.com/1semptify-arch/Semptify/blob/main/docs/SELF_HOST.md",
+            note="docs/SELF_HOST.md covers open mode, enforced mode (your own OAuth apps), and Docker. A packaged appliance remains the long-term goal.",
         ),
         # ---------------------------------------------------------- SUPPORT
         ToolboxEntry(
@@ -534,9 +538,9 @@ class ToolboxCatalog:
         ToolboxEntry(
             id="volunteer", name="Volunteer and contribute",
             purpose="Ways to give time: code, review, writing, translation.",
-            group="support", status="planned", level="L0", engine="trust",
-            today="Contributions go through GitHub.", today_path="https://github.com/1semptify-arch/Semptify",
-            promised_on=("/donate",),
+            group="support", status="live", level="L0", engine="trust",
+            today="See the ways to give time.", today_path="/volunteer",
+            promised_on=("/donate", "/developers", "/your-voice"),
         ),
         ToolboxEntry(
             id="feedback", name="Feedback",

@@ -54,6 +54,11 @@ KNOWN_PUBLIC_PATHS = {
     "/bill",
     "/bill/live",
     "/bill/research",
+    # Public API docs — served by FastAPI itself once enable_docs is on and the
+    # storage-middleware whitelist admits them (added 2026-11-07, P9 builders).
+    "/api/docs",
+    "/api/redoc",
+    "/api/openapi.json",
 }
 
 

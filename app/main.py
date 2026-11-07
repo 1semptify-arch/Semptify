@@ -1552,6 +1552,54 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     )
 
     # =========================================================================
+    # Public API docs (decision 2026-11-02: expose /api/docs, /api/redoc,
+    # /api/openapi.json without a session — whitelisted in
+    # StorageRequirementMiddleware.PUBLIC_PATHS).
+    # The schema is built ONLY from routes the middleware lets through
+    # unauthenticated, so the public docs can never describe an endpoint the
+    # public cannot actually call — auth-required endpoints are not in it.
+    # =========================================================================
+    from app.core.storage_middleware import is_public_path
+
+    _full_openapi = fastapi_app.openapi
+
+    def _public_openapi() -> dict:
+        # FastAPI builds (and caches) the complete schema, including routers
+        # included lazily via _IncludedRouter. Filter the path table down to
+        # endpoints the storage gate lets through unauthenticated.
+        full_schema = _full_openapi()
+        public_paths = {
+            path: operations
+            for path, operations in full_schema.get("paths", {}).items()
+            if path.startswith("/api/") and is_public_path(path)
+        }
+        schema = {**full_schema, "paths": public_paths}
+        # Drop tag groups that no longer own any path so the docs UI has no
+        # empty sections for endpoints that are intentionally absent.
+        used_tags = {
+            tag
+            for operations in public_paths.values()
+            for operation in operations.values()
+            if isinstance(operation, dict)
+            for tag in operation.get("tags", [])
+        }
+        if "tags" in schema:
+            schema["tags"] = [
+                tag for tag in schema["tags"] if tag.get("name") in used_tags
+            ]
+        schema["info"] = {
+            **full_schema.get("info", {}),
+            "description": (
+                "Semptify's public endpoints — the ones anyone can call without "
+                "connecting storage. Endpoints that need a session are "
+                "intentionally not listed here."
+            ),
+        }
+        return schema
+
+    fastapi_app.openapi = _public_openapi
+
+    # =========================================================================
     # Onboarding Module (self-contained, config-driven onboarding system)
     # =========================================================================
     from app.modules.onboarding import OnboardingConfig, register_onboarding
