@@ -1,0 +1,97 @@
+{% extends "body/public_shell.html" %}
+{#
+  Pillar front page — one of the six doors onto the path
+  (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §2, §4.2). Shared by all six fronts;
+  per-pillar content comes from app/modules/portal/pillars.py and the
+  Toolbox catalog resolves each space's honest status.
+
+  Layout rule: crisis link first, spaces in inventory order, then exactly
+  one next step (the next pillar, or real help after the last) — never a
+  dead end.
+#}
+
+{% block title %}{{ page.title }}{% endblock %}
+{% block description %}{{ page.description }}{% endblock %}
+{% block keywords %}{{ page.keywords }}{% endblock %}
+{% if page.og_title %}{% block og_title %}{{ page.og_title }}{% endblock %}{% endif %}
+{% if page.og_description %}{% block og_description %}{{ page.og_description }}{% endblock %}{% endif %}
+
+{% block header_title %}{{ pillar.number }}. {{ pillar.label }}{% endblock %}
+{% block header_tagline %}{{ pillar.question }}{% endblock %}
+{% block header_subtitle %}{{ pillar.blurb }}{% endblock %}
+
+{% block page_body %}
+
+<p class="pf-help">Something wrong at home right now? <a href="/help">Get help now</a>.</p>
+
+<p class="pf-intro">{{ pillar.intro }}</p>
+<p class="pf-step">Step {{ pillar.number }} of 6 on the path.</p>
+
+{% for space in spaces %}
+<section class="pf-space" aria-labelledby="pf-{{ space.slot }}">
+    <h2 class="pf-space-name" id="pf-{{ space.slot }}">{{ space.name }}
+        <span class="badge {{ space.status_class }} pf-pill">{{ space.status_label }}</span>
+    </h2>
+    <p class="pf-space-purpose">{{ space.purpose }}</p>
+    {% if space.entries %}
+    <ul class="pf-entries">
+        {% for e in space.entries %}
+        <li class="pf-entry">
+            <a class="pf-entry-name" href="/toolbox/{{ e.id }}">{{ e.name }}</a>
+            <span class="badge {{ e.status_class }} pf-pill">{{ e.status_label }}</span>
+            <span class="pf-entry-purpose">{{ e.purpose }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="pf-empty">Promised in the plan — nothing built behind this door yet. What it will be is written above.</p>
+    {% endif %}
+</section>
+{% endfor %}
+
+{% if next_pillar %}
+<section class="pf-next">
+    <h2 class="pf-next-title">Next on the path</h2>
+    <p>
+        <a class="cta-button-large" href="{{ next_pillar.path }}">
+            {{ next_pillar.number }}. {{ next_pillar.label }} — {{ next_pillar.question }}
+        </a>
+    </p>
+</section>
+{% else %}
+<section class="pf-next">
+    <h2 class="pf-next-title">Next: real help</h2>
+    <p>Being heard is the last step on the path — but it is never the last place to go. If you need a person, start here.</p>
+    <p><a class="cta-button-large" href="/help">Get help now</a></p>
+</section>
+{% endif %}
+
+<p class="pf-back"><a href="/toolbox">The whole toolbox</a> · <a href="/">Front door</a></p>
+
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .pf-help { margin-bottom: 1.25rem; }
+    .pf-intro { font-size: 1.05rem; line-height: 1.6; margin-bottom: 0.35rem; }
+    .pf-step { color: var(--text-secondary); margin-bottom: 1.75rem; }
+    .pf-space { padding: 0.85rem 0; border-bottom: 1px solid var(--border-color); }
+    .pf-space-name { font-size: 1.15rem; font-weight: 600; color: var(--color-primary); margin-bottom: 0.2rem; }
+    .pf-space-purpose { color: var(--text-secondary); margin: 0 0 0.5rem; line-height: 1.5; }
+    .pf-pill { letter-spacing: 0.04em; text-transform: uppercase; vertical-align: 0.15em; font-weight: 500; }
+    .pf-entries { list-style: none; margin: 0; padding: 0; }
+    .pf-entry { padding: 0.35rem 0 0.35rem 1rem; }
+    .pf-entry-name { font-weight: 600; color: var(--text-primary); text-decoration: none; margin-right: 0.4rem; }
+    .pf-entry-name:hover, .pf-entry-name:focus-visible { text-decoration: underline; }
+    .pf-entry-purpose { color: var(--text-secondary); }
+    .pf-empty { color: var(--text-secondary); font-style: italic; margin: 0; }
+    .pf-next { padding: 1.5rem 0 0.75rem; }
+    .pf-next-title { font-size: 1.15rem; font-weight: 600; color: var(--color-primary); margin-bottom: 0.75rem; }
+    .pf-back { color: var(--text-secondary); margin-top: 1.25rem; }
+    @media (min-width: 1024px) {
+        .pf-space { padding: 0.6rem 0; }
+        .pf-next { padding-top: 1rem; }
+    }
+</style>
+{% endblock %}

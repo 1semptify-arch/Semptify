@@ -653,6 +653,57 @@ class ToolboxCatalog:
             note="Nine distinct addresses appear across public pages (hello, tech, legal, privacy, partnerships, press, support, brad, admin) — the contact page shows six of them. Whether each is a working mailbox has not been verified.",
             slot="shared.contact", wing="shared",
         ),
+        # -------------------------------------------------- PILLAR FRONTS
+        # The six doors onto the path (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md
+        # §2, §4.2). Each fills its pNN.front slot: the door page itself.
+        ToolboxEntry(
+            id="front_information", name="Information front page",
+            purpose="The door into knowing your rights — what the library, guides, and state pages hold and where to start.",
+            group="know", status="live", level="L0", engine="page",
+            today="Open the Information front page.", today_path="/path/information",
+            backed_by=("portal",),
+            slot="p01.front", wing="renters",
+        ),
+        ToolboxEntry(
+            id="front_research", name="Research front page",
+            purpose="The door into going deeper — situation research, a case law reader, and a credit report guide.",
+            group="know", status="live", level="L0", engine="page",
+            today="Open the Research front page.", today_path="/path/research",
+            backed_by=("portal",),
+            slot="p02.front", wing="renters",
+        ),
+        ToolboxEntry(
+            id="front_documentation", name="Documentation front page",
+            purpose="The door into keeping a record — the record tools, your vault, dated fingerprints, and what-to-write-down checklists.",
+            group="record", status="live", level="L0", engine="page",
+            today="Open the Documentation front page.", today_path="/path/documentation",
+            backed_by=("portal",),
+            slot="p03.front", wing="renters",
+        ),
+        ToolboxEntry(
+            id="front_organize", name="Organize front page",
+            purpose="The door into turning a pile into one record — timeline, document center, case builder, exports, and stand-alone utilities.",
+            group="record", status="live", level="L0", engine="page",
+            today="Open the Organize front page.", today_path="/path/organize",
+            backed_by=("portal",),
+            slot="p04.front", wing="renters",
+        ),
+        ToolboxEntry(
+            id="front_collaborate", name="Collaborate front page",
+            purpose="The door into finding others — find a tenant group, start one, or use the group toolkit.",
+            group="together", status="live", level="L0", engine="page",
+            today="Open the Collaborate front page.", today_path="/path/collaborate",
+            backed_by=("portal",),
+            slot="p05.front", wing="renters",
+        ),
+        ToolboxEntry(
+            id="front_be_heard", name="Be heard front page",
+            purpose="The door into making it count — complaints, eviction defense, court prep, letters, legislators, and your story.",
+            group="act", status="live", level="L0", engine="page",
+            today="Open the Be heard front page.", today_path="/path/be-heard",
+            backed_by=("portal",),
+            slot="p06.front", wing="renters",
+        ),
     ]
 
     @classmethod
