@@ -228,10 +228,10 @@ class ToolboxCatalog:
         ToolboxEntry(
             id="languages", name="Other languages",
             purpose="Semptify in the languages tenants actually speak.",
-            group="know", status="planned", level="L0", engine="content",
-            today="Pages are in English only for now.",
+            group="know", status="partial", level="L0", engine="content",
+            today="Site navigation and shared text come in 13 languages — pick yours in the footer.",
             promised_on=("/donate",),
-            note="12 language files exist as empty placeholders. Real translations are deferred until they can be done properly.",
+            note="Machine-translated chrome (nav, footer, help labels) in 13 catalogs; page bodies are still English. Human review is planned before pages translate.",
         ),
         # -------------------------------------------------------------- ACT
         ToolboxEntry(
@@ -326,9 +326,9 @@ class ToolboxCatalog:
             id="mobile_app", name="Semptify on your phone",
             purpose="A phone version built for one hand and a small screen.",
             group="act", status="partial", level="L1", engine="page",
-            today="semptify.org works in your phone's browser.", today_path="/",
+            today="semptify.org works in your phone's browser — see what works today.", today_path="/phone",
             promised_on=("/donate",),
-            note="Semptify Go (the phone app) is a separate earlier build. A dedicated phone toolset is deferred.",
+            note="Semptify Go (the phone app) is a separate earlier build. A dedicated phone toolset is planned; /phone lists what works in a mobile browser now.",
         ),
         # --------------------------------------------------------- TOGETHER
         ToolboxEntry(

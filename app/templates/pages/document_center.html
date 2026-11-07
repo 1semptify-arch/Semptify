@@ -10,7 +10,7 @@
   calls, and modal behavior preserved from the three-pane original.
 #}
 {% block title %}Document Center — Semptify{% endblock %}
-{% block body_class %}shell shell--dc{% endblock %}
+{% block body_class %}shell shell--dc{% if dc_layout == "b" %} shell--dc-alt{% endif %}{% endblock %}
 {% block main_class %}shell-main shell-main--top{% endblock %}
 {% block styles %}
 {{ super() }}

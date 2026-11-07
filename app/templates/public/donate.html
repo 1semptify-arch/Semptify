@@ -477,19 +477,15 @@
       margin-bottom: 4rem;
     }
     .stat-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2.5rem 2rem;
-      text-align: center;
+      padding: 1.5rem 1rem 1.5rem 0;
+      border-bottom: 1px solid var(--border);
       position: relative;
-      overflow: hidden;
     }
     .stat-card::before {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
+      top: 0; left: 0;
+      height: 2px; width: 3rem;
       background: linear-gradient(90deg, var(--amber), var(--teal));
     }
     .stat-card-num {
@@ -577,29 +573,11 @@
     }
 
     .pillar-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      transition: var(--trans);
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--border);
       position: relative;
-      overflow: hidden;
     }
-    .pillar-card::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--amber), transparent);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .pillar-card:hover {
-      border-color: rgba(245,166,35,0.35);
-      transform: translateY(-4px);
-      box-shadow: var(--shadow);
-    }
-    .pillar-card:hover::after { opacity: 1; }
+    .pillar-card:hover .pillar-title { color: var(--amber); }
 
     .pillar-num {
       font-family: 'JetBrains Mono', monospace;
@@ -664,16 +642,8 @@
     }
 
     .feature-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.75rem;
-      transition: var(--trans);
-    }
-    .feature-card:hover {
-      border-color: rgba(0,196,167,0.3);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
     }
 
     .feature-icon {
@@ -721,7 +691,6 @@
     }
     .privacy-node:hover {
       border-color: var(--amber);
-      transform: scale(1.03);
     }
     .privacy-node-icon {
       font-size: 2.5rem;
@@ -760,16 +729,9 @@
       margin: 3rem 0;
     }
     .privacy-benefit {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      text-align: center;
-    }
-    .privacy-benefit-icon {
-      font-size: 2.2rem;
-      display: block;
-      margin-bottom: 1rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
     }
     .privacy-benefit h4 {
       color: var(--amber);
@@ -942,14 +904,12 @@
       margin-top: 3rem;
     }
     .serve-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem 1rem;
-      text-align: center;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
     }
-    .serve-icon { font-size: 1.8rem; display: block; margin-bottom: 0.6rem; }
-    .serve-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .serve-card:last-child { border-bottom: none; }
+    .serve-title { font-size: 0.9rem; font-weight: 600; color: var(--text); }
 
     /* ============================================================
        10. SUPPORT
@@ -960,12 +920,10 @@
       gap: 1.5rem;
     }
     .support-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--border);
     }
-    .support-icon { font-size: 1.8rem; display: block; margin-bottom: 1rem; }
+    .support-card:last-child { border-bottom: none; }
     .support-card h3 { font-size: 1.2rem; margin-bottom: 0.6rem; color: var(--text); }
     .support-card p { font-size: 0.9rem; color: var(--muted); margin-bottom: 1.25rem; }
     .support-links {
@@ -1545,7 +1503,6 @@
     <!-- Architecture diagram -->
     <div class="privacy-diagram fade-in">
       <div class="privacy-node">
-        <span class="privacy-node-icon">☁️</span>
         <div class="privacy-node-title">Your Cloud</div>
         <div class="privacy-node-sub">Google Drive / Dropbox / OneDrive</div>
         <div style="margin-top:0.75rem; display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
@@ -1558,7 +1515,6 @@
         <span>Auth + Files</span>
       </div>
       <div class="privacy-node" style="border-color:rgba(245,166,35,0.35);">
-        <span class="privacy-node-icon">⚡</span>
         <div class="privacy-node-title">Semptify</div>
         <div class="privacy-node-sub">FastAPI · Logic Layer Only</div>
         <div style="margin-top:0.75rem; display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
@@ -1571,7 +1527,6 @@
         <span>Results Back</span>
       </div>
       <div class="privacy-node">
-        <span class="privacy-node-icon">🔒</span>
         <div class="privacy-node-title">Back to Your Cloud</div>
         <div class="privacy-node-sub">Organized · Searchable · Yours</div>
         <div style="margin-top:0.75rem; display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
@@ -1583,17 +1538,14 @@
     <!-- Three benefit cards -->
     <div class="privacy-benefits">
       <div class="privacy-benefit fade-in fade-in-delay-1">
-        <span class="privacy-benefit-icon">🔑</span>
         <h4>Zero Passwords</h4>
         <p>You connect Google Drive, Dropbox, or OneDrive. There is no Semptify password to create, store, remember, or lose. Your own cloud storage confirms it's you.</p>
       </div>
       <div class="privacy-benefit fade-in fade-in-delay-2">
-        <span class="privacy-benefit-icon">📁</span>
         <h4>You Own Your Data</h4>
         <p>Every document, timeline entry, and case record is written back to your own cloud account — timeline data included, held in your own storage. Semptify holds zero personal files. If Semptify disappeared tomorrow, your records would still be exactly where you left them.</p>
       </div>
       <div class="privacy-benefit fade-in fade-in-delay-3">
-        <span class="privacy-benefit-icon">🌐</span>
         <h4>Portability</h4>
         <p>Your identity and your records travel with your cloud account. Switch devices, reinstall the app, or share access with a lawyer — your entire tenancy record comes with you, without re-registration.</p>
       </div>
@@ -1836,23 +1788,18 @@
       <h3 style="margin-bottom:1.5rem; font-size:1.25rem;">Who We Serve</h3>
       <div class="who-we-serve">
         <div class="serve-card">
-          <span class="serve-icon">🏠</span>
           <div class="serve-title">Tenants</div>
         </div>
         <div class="serve-card">
-          <span class="serve-icon">✊</span>
           <div class="serve-title">Advocates</div>
         </div>
         <div class="serve-card">
-          <span class="serve-icon">⚖️</span>
           <div class="serve-title">Legal Aid</div>
         </div>
         <div class="serve-card">
-          <span class="serve-icon">🔬</span>
           <div class="serve-title">Researchers</div>
         </div>
         <div class="serve-card">
-          <span class="serve-icon">🏛️</span>
           <div class="serve-title">Government</div>
         </div>
       </div>
@@ -1876,7 +1823,6 @@
     <div class="support-grid">
       <!-- Donate -->
       <div class="support-card fade-in fade-in-delay-1">
-        <span class="support-icon">❤️</span>
         <h3>Donate</h3>
         <p>Tenants never pay for Semptify. But building it takes real funding. Contributions of any size fund development, legal accuracy review, infrastructure, and the time it takes to do this right.</p>
         <div class="support-links" style="align-items:center;">
@@ -1891,7 +1837,6 @@
 
       <!-- Partner -->
       <div class="support-card fade-in fade-in-delay-2">
-        <span class="support-icon">🤝</span>
         <h3>Partner With Us</h3>
         <p>Legal aid organizations, housing advocacy groups, universities, journalists, and government agencies — Semptify is built to work with you, not duplicate you. Let's connect.</p>
         <div class="support-links">
@@ -1902,7 +1847,6 @@
 
       <!-- Volunteer / Contribute -->
       <div class="support-card fade-in fade-in-delay-3">
-        <span class="support-icon">💻</span>
         <h3>Volunteer &amp; Contribute</h3>
         <p>Developers (Python, FastAPI, frontend), housing law experts, legal aid practitioners, translators, and UX researchers — your expertise directly improves what tenants receive. The codebase is open source and welcoming.</p>
         <div class="support-links">
@@ -1915,7 +1859,6 @@
 
       <!-- Spread the Word -->
       <div class="support-card fade-in fade-in-delay-4">
-        <span class="support-icon">📢</span>
         <h3>Get the Word Out</h3>
         <p>The most important thing you can do is make sure a renter who needs this knows it exists. Share semptify.org with tenant organizations, social workers, community groups, and anyone who works with people in housing difficulty.</p>
         <div class="support-links">

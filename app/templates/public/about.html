@@ -13,15 +13,13 @@
     .promise-banner { background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)); color: var(--text-inverse); border-radius: var(--radius-block); padding: 2rem 2rem 1.75rem; margin-bottom: 2.5rem; }
     .promise-banner h2 { color: var(--text-inverse); margin-top: 0; font-size: 1.35rem; border-bottom: 1px solid color-mix(in srgb, var(--color-white), transparent 80%); padding-bottom: 0.75rem; margin-bottom: 1.25rem; }
     .promise-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-    .promise-list li { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.92rem; line-height: 1.5; }
-    .promise-list li .mark { flex-shrink: 0; margin-top: 0.05rem; font-size: 1rem; }
+    .promise-list li { font-size: 0.92rem; line-height: 1.5; }
     .promise-list li span { opacity: 0.93; }
 
     .hard-no { background: var(--color-warning-50); border-radius: var(--radius-block); padding: 1.5rem; margin-bottom: 2.5rem; }
-    .hard-no h2 { color: var(--color-warning-800); margin-top: 0; font-size: 1.15rem; margin-bottom: 1rem; }
-    .hard-no-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
-    .hard-no-item { background: var(--bg-card); border-radius: var(--radius-block); padding: 0.85rem 1rem; display: flex; gap: 0.6rem; align-items: flex-start; }
-    .hard-no-item .no-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .hard-no h2 { color: var(--color-warning-800); margin-top: 0; font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .hard-no-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0 1.5rem; }
+    .hard-no-item { padding: 0.7rem 0; border-bottom: 1px solid color-mix(in srgb, var(--color-warning-800), transparent 85%); }
     .hard-no-item strong { font-size: 0.88rem; display: block; color: var(--color-warning-800); margin-bottom: 0.15rem; }
     .hard-no-item span { font-size: 0.82rem; color: var(--color-warning-800); line-height: 1.4; }
 
@@ -43,14 +41,15 @@
 
     .org-group { margin-bottom: 1.5rem; }
     .org-group h3 { font-size: 0.9rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.6rem; }
-    .org-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-    .org-chip { display: inline-block; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.35rem 0.75rem; font-size: 0.83rem; color: var(--text-secondary); text-decoration: none; }
-    .org-chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .org-chips { display: block; }
+    .org-chip { display: block; padding: 0.4rem 0; border-bottom: 1px solid color-mix(in srgb, var(--color-black), transparent 92%); font-size: 0.88rem; color: var(--text-secondary); text-decoration: none; }
+    .org-chip:last-child { border-bottom: none; }
+    .org-chip:hover { color: var(--color-primary); }
     .org-chip[target="_blank"]::after { content: " ↗"; font-size: 0.75rem; opacity: 0.6; }
     .orgs-note { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem; background: var(--bg-surface); border-radius: var(--radius-block); padding: 0.75rem 1rem; }
 
     .stat-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
-    .stat-box { background: var(--bg-card); border-radius: var(--radius-block); padding: 1.25rem; text-align: center; }
+    .stat-box { padding: 0.5rem 0; }
     .stat-box .num { font-size: 1.5rem; font-weight: 800; color: var(--color-accent); }
     .stat-box .label { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3; }
 
@@ -86,40 +85,36 @@
 
 <section class="section">
     <h2 class="section-title">Who We Serve</h2>
-    <div class="services-grid">
-        <div class="service-card">
-            <span class="icon">🏠</span>
+    <ul class="svc-list">
+        <li class="svc-row">
             <h3>Tenants</h3>
             <p>People renting a home who need to document conditions, track rent payments, record communications, and build a clear record of their tenancy. This is our primary user and our first priority in every decision.</p>
-        </div>
-        <div class="service-card">
-            <span class="icon">🤝</span>
+        </li>
+        <li class="svc-row">
             <h3>Advocates</h3>
             <p>Housing counselors, tenant unions, and community organizers who help multiple tenants at once. Semptify helps them manage cases, deliver documents securely, and stay organized without spreadsheets.</p>
-        </div>
-        <div class="service-card">
-            <span class="icon">⚖️</span>
+        </li>
+        <li class="svc-row">
             <h3>Legal Aid &amp; Attorneys</h3>
             <p>Legal professionals working in housing law who need organized case files, evidence trails, and court-ready documents. We build to MN Supreme Court exhibit standards (MNDES ADM09-8010).</p>
-        </div>
-        <div class="service-card">
-            <span class="icon">🔬</span>
+        </li>
+        <li class="svc-row">
             <h3>Researchers &amp; Policy</h3>
             <p>Academics and policy professionals studying housing patterns. We provide aggregate, anonymized insights — never individual data — to support better housing policy.</p>
-        </div>
-    </div>
+        </li>
+    </ul>
 </section>
 
 <div class="promise-banner">
     <h2>Our Promises to You — Every One of Them Permanent</h2>
     <ul class="promise-list">
-        <li><span class="mark">✅</span><span><strong>No advertising. Ever.</strong> Not banner ads. Not sponsored content. Not "partner" placements. Nothing.</span></li>
-        <li><span class="mark">✅</span><span><strong>No data sales.</strong> We do not sell, trade, license, or share your information with any third party for any commercial purpose.</span></li>
-        <li><span class="mark">✅</span><span><strong>No user tracking.</strong> We do not track how you use the app, which buttons you press, or how long you spend on a page.</span></li>
-        <li><span class="mark">✅</span><span><strong>Your documents are yours.</strong> Files live in your own cloud storage — Google Drive, Dropbox, or OneDrive. We never own them.</span></li>
-        <li><span class="mark">✅</span><span><strong>No behavioral analytics.</strong> We do not build profiles of your behavior, interests, or activity — not even anonymized ones.</span></li>
-        <li><span class="mark">✅</span><span><strong>Donation-only funding.</strong> We survive entirely on donations and grants. No investors. No growth targets. No exit strategy.</span></li>
-        <li><span class="mark">✅</span><span><strong>Open source.</strong> Anyone can inspect the code, verify our claims, or run their own instance. No black boxes.</span></li>
+        <li><span><strong>No advertising. Ever.</strong> Not banner ads. Not sponsored content. Not "partner" placements. Nothing.</span></li>
+        <li><span><strong>No data sales.</strong> We do not sell, trade, license, or share your information with any third party for any commercial purpose.</span></li>
+        <li><span><strong>No user tracking.</strong> We do not track how you use the app, which buttons you press, or how long you spend on a page.</span></li>
+        <li><span><strong>Your documents are yours.</strong> Files live in your own cloud storage — Google Drive, Dropbox, or OneDrive. We never own them.</span></li>
+        <li><span><strong>No behavioral analytics.</strong> We do not build profiles of your behavior, interests, or activity — not even anonymized ones.</span></li>
+        <li><span><strong>Donation-only funding.</strong> We survive entirely on donations and grants. No investors. No growth targets. No exit strategy.</span></li>
+        <li><span><strong>Open source.</strong> Anyone can inspect the code, verify our claims, or run their own instance. No black boxes.</span></li>
     </ul>
 </div>
 
@@ -127,35 +122,35 @@
     <h2>Things We Will Never Do — These Are Not Negotiable</h2>
     <div class="hard-no-grid">
         <div class="hard-no-item">
-            <span class="no-icon">🚫</span>
+            
             <div><strong>Advertising of any kind</strong><span>No ads, no promoted results, no sponsored listings, no affiliate links. Organizations listed on this platform are listed because they help people — not because they paid us.</span></div>
         </div>
         <div class="hard-no-item">
-            <span class="no-icon">🚫</span>
+            
             <div><strong>Selling or trading user data</strong><span>Not to advertisers, not to data brokers, not to researchers, not to anyone. Your data is not our product.</span></div>
         </div>
         <div class="hard-no-item">
-            <span class="no-icon">🚫</span>
+            
             <div><strong>Tracking your behavior</strong><span>We do not record which features you use, how often you log in, what you click on, or any other behavioral signal.</span></div>
         </div>
         <div class="hard-no-item">
-            <span class="no-icon">🚫</span>
+            
             <div><strong>Profiling users</strong><span>We build no profile of who you are, your demographics, your situation, or your interests — anonymous or otherwise.</span></div>
         </div>
         <div class="hard-no-item">
-            <span class="no-icon">🚫</span>
+            
             <div><strong>Venture capital or investor funding</strong><span>Investors require returns. Returns require monetisation. Monetisation compromises the mission. We do not take investment.</span></div>
         </div>
         <div class="hard-no-item">
-            <span class="no-icon">🚫</span>
+            
             <div><strong>Paywalling rights information</strong><span>Legal rights information, law library resources, and document templates are always no-cost. We will not charge for access to information that people need to protect themselves.</span></div>
         </div>
         <div class="hard-no-item">
-            <span class="no-icon">🚫</span>
+            
             <div><strong>Victim-blaming content</strong><span>We will not produce content that softens legal facts, hedges clear tenant protections, or creates false equivalence between tenants and landlords when the law is clear.</span></div>
         </div>
         <div class="hard-no-item">
-            <span class="no-icon">🚫</span>
+            
             <div><strong>Surveillance features</strong><span>No keystroke logging, screen capture, location tracking, or any feature that monitors what users do outside of what is strictly necessary for the app to function.</span></div>
         </div>
     </div>
@@ -168,28 +163,28 @@
         <div class="data-col never">
             <h4>We NEVER collect or keep</h4>
             <ul>
-                <li>🚫 <span>Your document contents</span></li>
-                <li>🚫 <span>Which pages you visit or for how long</span></li>
-                <li>🚫 <span>Which buttons or features you use</span></li>
-                <li>🚫 <span>Your IP address (beyond routing)</span></li>
-                <li>🚫 <span>Your device type, browser, or OS</span></li>
-                <li>🚫 <span>Your physical location</span></li>
-                <li>🚫 <span>Your search terms inside the app</span></li>
-                <li>🚫 <span>How many times you tap anything</span></li>
-                <li>🚫 <span>Any behavioral or usage analytics</span></li>
-                <li>🚫 <span>Third-party tracking cookies</span></li>
-                <li>🚫 <span>Advertising identifiers</span></li>
+                <li><span>Your document contents</span></li>
+                <li><span>Which pages you visit or for how long</span></li>
+                <li><span>Which buttons or features you use</span></li>
+                <li><span>Your IP address (beyond routing)</span></li>
+                <li><span>Your device type, browser, or OS</span></li>
+                <li><span>Your physical location</span></li>
+                <li><span>Your search terms inside the app</span></li>
+                <li><span>How many times you tap anything</span></li>
+                <li><span>Any behavioral or usage analytics</span></li>
+                <li><span>Third-party tracking cookies</span></li>
+                <li><span>Advertising identifiers</span></li>
             </ul>
         </div>
         <div class="data-col only">
             <h4>We ONLY keep (engineering use only)</h4>
             <ul>
-                <li>✅ <span>Server error logs (anonymised, auto-deleted)</span></li>
-                <li>✅ <span>API response times (no user identifiers)</span></li>
-                <li>✅ <span>Crash reports (stack traces, no user data)</span></li>
-                <li>✅ <span>Rate limit counters (IP-based, ephemeral)</span></li>
-                <li>✅ <span>Session tokens (signed, stored in your browser only)</span></li>
-                <li>✅ <span>Onboarding gate state (which steps are complete)</span></li>
+                <li><span>Server error logs (anonymised, auto-deleted)</span></li>
+                <li><span>API response times (no user identifiers)</span></li>
+                <li><span>Crash reports (stack traces, no user data)</span></li>
+                <li><span>Rate limit counters (IP-based, ephemeral)</span></li>
+                <li><span>Session tokens (signed, stored in your browser only)</span></li>
+                <li><span>Onboarding gate state (which steps are complete)</span></li>
             </ul>
             <p style="font-size:0.8rem;margin-top:0.75rem;font-style:italic;">
                 Technical data is used only to keep the platform running correctly. It is never used to understand user behaviour, target content, or report to any third party.
@@ -296,38 +291,32 @@
 
 <section class="section">
     <h2 class="section-title">What We Believe</h2>
-    <div class="services-grid">
-        <div class="service-card">
-            <span class="icon">⚖️</span>
+    <ul class="svc-list">
+        <li class="svc-row">
             <h3>The Law Is the Law</h3>
             <p>When the law protects a tenant, we say so clearly. We do not soften legal facts to avoid controversy. We do not hedge to create false balance.</p>
-        </div>
-        <div class="service-card">
-            <span class="icon">📋</span>
+        </li>
+        <li class="svc-row">
             <h3>Evidence Integrity First</h3>
             <p>Every feature is evaluated on whether it improves rights protection, evidence preservation, or user control. Features that optimise for engagement or growth are not our priority.</p>
-        </div>
-        <div class="service-card">
-            <span class="icon">🔒</span>
+        </li>
+        <li class="svc-row">
             <h3>Privacy Is Not a Feature</h3>
             <p>Privacy is not a selling point we can remove if business demands change. It is a structural commitment built into how the platform works.</p>
-        </div>
-        <div class="service-card">
-            <span class="icon">🧭</span>
+        </li>
+        <li class="svc-row">
             <h3>Clarity Under Stress</h3>
             <p>Our users are often scared, overwhelmed, and short on time. Clear, plain-language guidance beats impressive jargon every time.</p>
-        </div>
-        <div class="service-card">
-            <span class="icon">🌐</span>
+        </li>
+        <li class="svc-row">
             <h3>Public Infrastructure</h3>
             <p>Housing justice tools should be public goods, not proprietary products. Open source by default. Anyone can inspect, fork, or build on what we make.</p>
-        </div>
-        <div class="service-card">
-            <span class="icon">🤲</span>
+        </li>
+        <li class="svc-row">
             <h3>Conviction, Not Commerce</h3>
             <p>We are not building toward an acquisition or an IPO. We are building something that should exist and currently does not exist well enough.</p>
-        </div>
-    </div>
+        </li>
+    </ul>
 </section>
 
 <div class="team-note">
