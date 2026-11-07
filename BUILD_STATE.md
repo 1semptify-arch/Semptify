@@ -27,7 +27,7 @@ One or more checks failed — see console output.
 - `build_platform.py` now appends to `registers/builds.jsonl` only when the
   generated bill output actually changes.
 - Registers are case-side SSOT:
-  `E:\CASE_FILE_Crowe_Sazama_v_Velair\06_The_Bill_Turnbucapp\registers\`
+  `E:\<case-bundle>\06_The_Bill_Turnbucapp\registers\`
   (editions 9 rows seeded E-01–E-09; positions intentionally empty;
   builds 3 rows). Repo copies under `app/static/turnbuchalla/` are mirrors.
 - style.css: `table.ledger` stacks to labeled rows at ≤640px (scoped to
