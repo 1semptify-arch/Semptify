@@ -1,0 +1,126 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}Reach Your Legislators — Semptify{% endblock %}
+{% block description %}Find who represents you and how to contact them through official government channels — the Minnesota Legislature and the U.S. Congress.{% endblock %}
+{% block keywords %}contact legislators, who represents me, Minnesota legislature, housing bill, renters{% endblock %}
+
+{% block header_title %}Reach your legislators{% endblock %}
+{% block header_tagline %}The people who vote on this work for you — here is how to reach them.{% endblock %}
+{% block header_subtitle %}Official government channels only. Every link on this page goes to a page run by the legislature itself.{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .rl-note {
+        background: var(--bg-surface); border-radius: var(--radius-block);
+        padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+    }
+    .rl-note p { margin: 0 0 0.6rem 0; }
+    .rl-note p:last-child { margin-bottom: 0; }
+
+    .rl-list { list-style: none; margin: 0.5rem 0 0 0; padding: 0; }
+    .rl-list li { padding: 0.85rem 0; border-top: 1px solid var(--border-color); }
+    .rl-list li:first-child { border-top: none; }
+    .rl-link { font-weight: 700; color: var(--color-primary); font-size: 1rem; }
+    .rl-desc { font-size: 0.9rem; color: var(--text-secondary); margin: 0.2rem 0 0; line-height: 1.55; }
+    .rl-host { font-size: 0.78rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+    .rl-say { margin: 0.5rem 0 0 1.25rem; color: var(--text-secondary); line-height: 1.7; }
+    .rl-say li { margin-bottom: 0.4rem; }
+    .rl-small { font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; }
+</style>
+{% endblock %}
+
+{% block page_body %}
+
+<section class="section">
+    <div class="rl-note">
+        <p><strong>Why this page exists.</strong> The housing bill on this site
+        only becomes law if legislators carry it — and legislators carry what
+        the people in their districts ask for. One clear message from a
+        constituent counts more than a hundred from anywhere else.</p>
+        <p><strong>What this page is not.</strong> We do not contact anyone for
+        you, we do not collect your information, and we do not run a petition.
+        These are the government's own lookup tools and directories — you use
+        them directly.</p>
+    </div>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Minnesota</h2>
+    <p class="section-description">The bill is a Minnesota bill — these are the
+    channels that can act on it.</p>
+    <ul class="rl-list">
+        <li>
+            <a class="rl-link" href="https://gis.lcc.mn.gov/iMaps/districts/" rel="noopener">Who represents me — district lookup</a>
+            <p class="rl-desc">Type your address; get your state senator and
+            representative with their contact information. Run by the
+            Legislative Coordinating Commission.</p>
+            <span class="rl-host">gis.lcc.mn.gov</span>
+        </li>
+        <li>
+            <a class="rl-link" href="https://www.leg.mn.gov/leg/legislators" rel="noopener">All Minnesota legislators</a>
+            <p class="rl-desc">The full roster of House and Senate members, by
+            name or by district.</p>
+            <span class="rl-host">leg.mn.gov</span>
+        </li>
+        <li>
+            <a class="rl-link" href="https://www.house.mn.gov/members/" rel="noopener">Minnesota House members</a>
+            <p class="rl-desc">Member pages with office phone, email, and
+            committee assignments for all 134 representatives.</p>
+            <span class="rl-host">house.mn.gov</span>
+        </li>
+        <li>
+            <a class="rl-link" href="https://www.leg.mn.gov/leg/legdir" rel="noopener">Legislative contact directory</a>
+            <p class="rl-desc">Phone numbers and directories for the House,
+            Senate, and legislative offices — including the Senate member list.</p>
+            <span class="rl-host">leg.mn.gov</span>
+        </li>
+        <li>
+            <a class="rl-link" href="https://www.leg.mn.gov/civic" rel="noopener">Civic engagement resources</a>
+            <p class="rl-desc">The Legislature's own guide: how to write a
+            legislator, follow a bill, and testify at a committee hearing.</p>
+            <span class="rl-host">leg.mn.gov</span>
+        </li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Federal</h2>
+    <p class="section-description">Housing policy runs through Washington too —
+    renter protections, funding, and fair-housing enforcement.</p>
+    <ul class="rl-list">
+        <li>
+            <a class="rl-link" href="https://www.house.gov/representatives/find-your-representative" rel="noopener">Find your U.S. Representative</a>
+            <p class="rl-desc">Enter your ZIP code; get your House member's
+            official page and contact form.</p>
+            <span class="rl-host">house.gov</span>
+        </li>
+        <li>
+            <a class="rl-link" href="https://www.senate.gov/senators/senators-contact.htm" rel="noopener">Contact your U.S. Senators</a>
+            <p class="rl-desc">The Senate's own directory — every senator's
+            contact page, phone, and mailing address.</p>
+            <span class="rl-host">senate.gov</span>
+        </li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">What to say</h2>
+    <p class="section-description">No script needed — short and honest works
+    best. A few things that help staff route your message:</p>
+    <ul class="rl-say">
+        <li>Say you live in their district — that is what makes it count.</li>
+        <li>One or two sentences on what happened to you, or why renting needs the rule changed.</li>
+        <li>What you would like them to do — for example, support the
+        renter-documentation bill being drafted in public on this site.</li>
+        <li>Your name and address go in their contact form, not in the message
+        itself — that is how they verify you are a constituent.</li>
+    </ul>
+    <p class="rl-small">
+        If a link here ever stops working, tell us on
+        <a href="/your-voice">Your Voice</a> and we will fix it.
+    </p>
+</section>
+
+{% endblock %}

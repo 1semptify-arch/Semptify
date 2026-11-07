@@ -1,0 +1,204 @@
+{% extends "shell_base.html" %}
+{% block title %}Public Voice Review – Semptify Admin{% endblock %}
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="/admin/dashboard">← Admin home</a></li>
+{% endblock %}
+{% block sidebar %}
+<h2>Public pages</h2>
+<ul class="shell-list">
+    <li><a href="/your-voice">Your Voice board</a></li>
+    <li><a href="/tool-requests">Tool requests</a></li>
+    <li><a href="/tell-your-story">Tell your story</a></li>
+    <li><a href="/admin/dashboard">Admin home</a></li>
+</ul>
+{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/css/admin-nav.css">
+<link rel="stylesheet" href="/static/css/ssot-design-system.css">
+<style>
+    *{box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg-card);color:var(--text-primary)}
+    .pv-wrap{max-width:960px;margin:0 auto;padding:1.5rem}
+    .pv-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.25rem}
+    .pv-head h1{font-size:1.4rem;font-weight:800}
+    .pv-sub{color:var(--text-secondary);font-size:0.92rem;max-width:60ch;line-height:1.55;margin-bottom:1.5rem}
+    .pv-queue{margin-bottom:2rem}
+    .pv-queue h2{font-size:1.05rem;font-weight:700;margin-bottom:0.25rem}
+    .pv-queue .pv-qnote{font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem}
+    .pv-item{background:var(--bg-surface);border-radius:10px;padding:1rem 1.15rem;margin-bottom:0.9rem}
+    .pv-meta{display:flex;gap:0.6rem;align-items:baseline;font-size:0.78rem;color:var(--text-muted);margin-bottom:0.35rem;flex-wrap:wrap}
+    .pv-kind{text-transform:uppercase;letter-spacing:0.05em;font-weight:700;color:var(--color-info)}
+    .pv-status{font-weight:600}
+    .pv-text{font-size:0.95rem;line-height:1.55;white-space:pre-wrap;color:var(--text-primary);margin-bottom:0.5rem}
+    .pv-title{font-weight:700;font-size:1rem;margin-bottom:0.25rem}
+    .pv-resp{font-size:0.88rem;color:var(--text-secondary);border-left:3px solid var(--color-info);padding-left:0.7rem;margin-bottom:0.5rem;white-space:pre-wrap}
+    .pv-actions{display:flex;flex-direction:column;gap:0.55rem;margin-top:0.6rem}
+    .pv-actions textarea,.pv-actions input[type=text]{width:100%;padding:0.55rem 0.7rem;border:1px solid var(--border-color);border-radius:8px;font-size:0.9rem;font-family:inherit;background:var(--bg-card);color:var(--text-primary)}
+    .pv-actions textarea{min-height:80px;resize:vertical}
+    .pv-btnrow{display:flex;gap:0.5rem;flex-wrap:wrap}
+    .pv-btn{border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);padding:0.5rem 1rem;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer}
+    .pv-btn:hover{filter:brightness(0.97)}
+    .pv-btn--primary{background:var(--color-info);color:var(--text-inverse);border-color:var(--color-info)}
+    .pv-btn--danger{color:var(--color-error)}
+    .pv-empty{font-size:0.9rem;color:var(--text-muted);font-style:italic;padding:0.5rem 0}
+    .pv-note{font-size:0.8rem;color:var(--text-muted);margin-top:0.35rem}
+    details.pv-recent{margin-top:0.75rem}
+    details.pv-recent summary{cursor:pointer;font-size:0.85rem;color:var(--text-secondary);font-weight:600}
+    .pv-msg{position:sticky;bottom:1rem;max-width:960px;margin:0.5rem auto 0;padding:0.7rem 1rem;border-radius:8px;font-size:0.9rem;display:none}
+    .pv-msg--ok{display:block;background:var(--color-success);color:var(--text-inverse)}
+    .pv-msg--err{display:block;background:var(--color-error);color:var(--text-inverse)}
+</style>
+{% endblock %}
+{% block content %}
+<div class="pv-wrap">
+    <div class="pv-head">
+        <h1>Public voice — review lane</h1>
+        <div id="admin-nav-container"></div>
+    </div>
+    <p class="pv-sub">
+        Everything the public submits waits here. The review pass removes any
+        personal details before a post goes out — what you publish appears on the
+        site verbatim. Answering publishes the post with its response; publishing
+        alone puts it up marked as awaiting an answer.
+    </p>
+
+    <section class="pv-queue" id="queue-voice">
+        <h2>Your Voice posts</h2>
+        <p class="pv-qnote">Questions and opinions from /your-voice. Answer questions when you can; opinions can publish as-is.</p>
+        <div id="pvVoiceList"><p class="pv-empty">Loading…</p></div>
+        <details class="pv-recent" id="pvVoiceRecent"><summary>Recently published</summary><div id="pvVoicePub"></div></details>
+    </section>
+
+    <section class="pv-queue" id="queue-tools">
+        <h2>Tool requests</h2>
+        <p class="pv-qnote">Requests from /tool-requests. Answer with what we can do — honest, including "we can't."</p>
+        <div id="pvToolList"><p class="pv-empty">Loading…</p></div>
+        <details class="pv-recent" id="pvToolRecent"><summary>Recently published</summary><div id="pvToolPub"></div></details>
+    </section>
+
+    <section class="pv-queue" id="queue-stories">
+        <h2>Tenant stories</h2>
+        <p class="pv-qnote">Stories from /tell-your-story. Edit before publishing to remove names, addresses, or case details — the published text is what you see here after your edits.</p>
+        <div id="pvStoryList"><p class="pv-empty">Loading…</p></div>
+        <details class="pv-recent" id="pvStoryRecent"><summary>Recently published</summary><div id="pvStoryPub"></div></details>
+    </section>
+</div>
+<div class="pv-msg" id="pvMsg" role="status"></div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/admin-nav.js"></script>
+<script>
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+function showMsg(text,ok){const m=document.getElementById('pvMsg');m.textContent=text;m.className='pv-msg '+(ok?'pv-msg--ok':'pv-msg--err');clearTimeout(m._t);m._t=setTimeout(()=>{m.className='pv-msg'},5000)}
+
+async function post(url,payload){
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(r.status===401){window.location.href='/admin/login';return null}
+    if(!r.ok){const t=await r.text();throw new Error(t||('HTTP '+r.status))}
+    return r.json();
+}
+
+function voiceItem(p){
+    return '<div class="pv-item" data-id="'+esc(p.id)+'">'
+        +'<div class="pv-meta"><span class="pv-kind">'+esc(p.kind)+'</span><span>'+esc(p.date||'')+'</span><span class="pv-status">'+esc(p.status)+'</span></div>'
+        +'<div class="pv-text">'+esc(p.post)+'</div>'
+        +(p.response?'<div class="pv-resp">'+esc(p.response)+(p.responder?' — <em>'+esc(p.responder)+'</em>':'')+'</div>':'')
+        +'<div class="pv-actions">'
+        +'<textarea placeholder="Public answer — shown under the post verbatim." class="pv-answer"></textarea>'
+        +'<input type="text" placeholder="Answered by (role label, e.g. Semptify)" class="pv-label" maxlength="80">'
+        +'<div class="pv-btnrow">'
+        +'<button class="pv-btn pv-btn--primary" onclick="voiceAct(\''+esc(p.id)+'\',\'answer\',this)">Answer &amp; publish</button>'
+        +'<button class="pv-btn" onclick="voiceAct(\''+esc(p.id)+'\',\'publish\',this)">Publish as-is</button>'
+        +(p.is_published!==false&&p.status!=='received'&&p.status!=='declined'?'<button class="pv-btn" onclick="voiceAct(\''+esc(p.id)+'\',\'unpublish\',this)">Unpublish</button>':'')
+        +(p.status==='received'||p.status==='published'?'<button class="pv-btn pv-btn--danger" onclick="voiceAct(\''+esc(p.id)+'\',\'decline\',this)">Decline</button>':'')
+        +'</div></div></div>';
+}
+async function voiceAct(id,action,btn){
+    const item=btn.closest('.pv-item');
+    const payload={action};
+    if(action==='answer'){
+        payload.response_text=item.querySelector('.pv-answer').value;
+        payload.responder_label=item.querySelector('.pv-label').value||null;
+    }
+    try{await post('/admin/api/public-forms/voice-posts/'+id,payload);showMsg('Done — '+action+'.',true);loadAll()}
+    catch(e){showMsg('Failed: '+e.message,false)}
+}
+
+function toolItem(r){
+    return '<div class="pv-item" data-id="'+esc(r.id)+'">'
+        +'<div class="pv-meta"><span>'+esc(r.date||'')+'</span><span class="pv-status">'+esc(r.status)+'</span></div>'
+        +'<div class="pv-text">'+esc(r.request)+'</div>'
+        +(r.response?'<div class="pv-resp">'+esc(r.response)+'</div>':'')
+        +'<div class="pv-actions">'
+        +'<textarea placeholder="Public response — shown under the request verbatim." class="pv-answer"></textarea>'
+        +'<div class="pv-btnrow">'
+        +'<button class="pv-btn pv-btn--primary" onclick="toolAct(\''+esc(r.id)+'\',\'answer\',this)">Answer &amp; publish</button>'
+        +'<button class="pv-btn" onclick="toolAct(\''+esc(r.id)+'\',\'publish\',this)">Publish as-is</button>'
+        +(r.status!=='received'&&r.status!=='declined'?'<button class="pv-btn" onclick="toolAct(\''+esc(r.id)+'\',\'unpublish\',this)">Unpublish</button>':'')
+        +(r.status==='received'||r.status==='published'?'<button class="pv-btn pv-btn--danger" onclick="toolAct(\''+esc(r.id)+'\',\'decline\',this)">Decline</button>':'')
+        +'</div></div></div>';
+}
+async function toolAct(id,action,btn){
+    const item=btn.closest('.pv-item');
+    const payload={action};
+    if(action==='answer'){payload.response_text=item.querySelector('.pv-answer').value}
+    try{await post('/admin/api/public-forms/tool-requests/'+id,payload);showMsg('Done — '+action+'.',true);loadAll()}
+    catch(e){showMsg('Failed: '+e.message,false)}
+}
+
+function storyItem(s){
+    return '<div class="pv-item" data-id="'+esc(s.id)+'">'
+        +'<div class="pv-meta"><span class="pv-kind">'+esc(s.subject)+'</span><span>'+esc(s.jurisdiction)+'</span><span>'+esc(s.date||'')+'</span><span class="pv-status">'+esc(s.outcome)+'</span></div>'
+        +'<div class="pv-title">'+esc(s.title)+'</div>'
+        +'<div class="pv-text">'+esc(s.body)+'</div>'
+        +'<div class="pv-actions">'
+        +'<input type="text" class="pv-title-edit" value="'+esc(s.title)+'" maxlength="200">'
+        +'<textarea class="pv-body-edit">'+esc(s.body)+'</textarea>'
+        +'<p class="pv-note">Edits above apply when you publish — use them to remove personal details.</p>'
+        +'<div class="pv-btnrow">'
+        +'<button class="pv-btn pv-btn--primary" onclick="storyAct('+s.id+',\'publish\',this)">Publish</button>'
+        +(s.is_published?'<button class="pv-btn" onclick="storyAct('+s.id+',\'unpublish\',this)">Unpublish</button>':'')
+        +'</div></div></div>';
+}
+async function storyAct(id,action,btn){
+    const item=btn.closest('.pv-item');
+    const payload={action};
+    const t=item.querySelector('.pv-title-edit'),b=item.querySelector('.pv-body-edit');
+    if(t&&b){payload.title=t.value;payload.body=b.value}
+    try{await post('/admin/api/public-forms/stories/'+id,payload);showMsg('Done — '+action+'.',true);loadAll()}
+    catch(e){showMsg('Failed: '+e.message,false)}
+}
+
+function renderList(elId,items,fn,emptyText){
+    const el=document.getElementById(elId);
+    el.innerHTML=items&&items.length?items.map(fn).join(''):'<p class="pv-empty">'+emptyText+'</p>';
+}
+
+async function loadAll(){
+    let data;
+    try{
+        const r=await fetch('/admin/api/public-forms/pending');
+        if(r.status===401){window.location.href='/admin/login';return}
+        if(!r.ok)throw new Error('HTTP '+r.status);
+        data=await r.json();
+    }catch(e){
+        showMsg('Could not load the review queue: '+e.message,false);
+        return;
+    }
+    renderList('pvVoiceList',data.voice_posts,voiceItem,'Nothing waiting.');
+    renderList('pvToolList',data.tool_requests,toolItem,'Nothing waiting.');
+    renderList('pvStoryList',data.stories,storyItem,'Nothing waiting.');
+    const pub=data.published||{};
+    renderList('pvVoicePub',pub.voice_posts,voiceItem,'Nothing published yet.');
+    renderList('pvToolPub',pub.tool_requests,toolItem,'Nothing published yet.');
+    renderList('pvStoryPub',pub.stories,storyItem,'Nothing published yet.');
+    document.getElementById('pvVoiceRecent').style.display=(pub.voice_posts&&pub.voice_posts.length)?'':'none';
+    document.getElementById('pvToolRecent').style.display=(pub.tool_requests&&pub.tool_requests.length)?'':'none';
+    document.getElementById('pvStoryRecent').style.display=(pub.stories&&pub.stories.length)?'':'none';
+}
+
+document.addEventListener('DOMContentLoaded',loadAll);
+</script>
+{% endblock %}

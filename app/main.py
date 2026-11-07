@@ -2693,6 +2693,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """Serve Script Catalog admin page - ADMIN role required."""
         return templates.TemplateResponse(request, "pages/admin_script_catalog.html")
 
+    @fastapi_app.get("/admin/public-voice", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/public-voice.html", response_class=HTMLResponse)
+    async def admin_public_voice_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve the public-voice review-and-respond lane - ADMIN elevation required."""
+        return templates.TemplateResponse(request, "pages/admin_public_voice.html")
+
     @fastapi_app.get("/admin/dev-lab.html", response_class=HTMLResponse)
     async def admin_dev_lab_page(
         request: Request,

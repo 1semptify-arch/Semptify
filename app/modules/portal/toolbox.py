@@ -350,17 +350,18 @@ class ToolboxCatalog:
         ToolboxEntry(
             id="reach_legislators", name="Reach your legislators",
             purpose="Find who represents you and how to contact them through official channels.",
-            group="together", status="planned", level="L0", engine="civic",
-            today="Follow the housing bill and weigh in.", today_path="/your-voice",
+            group="together", status="live", level="L0", engine="civic",
+            today="Open the official lookup links.", today_path="/reach-legislators",
             promised_on=("/donate",),
+            note="Links go only to .gov pages run by the legislatures themselves.",
         ),
         ToolboxEntry(
             id="tell_your_story", name="Tell your story",
             purpose="Share what happened, anonymously, to inform public policy.",
-            group="together", status="partial", level="L4", engine="civic",
-            today="Post a question or opinion on Your Voice.", today_path="/your-voice",
+            group="together", status="live", level="L4", engine="civic",
+            today="Tell your story.", today_path="/tell-your-story",
             backed_by=("public_forms",), promised_on=("/donate",),
-            note="Anonymous questions and opinions work today. Longer stories are not built.",
+            note="Anonymous stories publish after a moderation pass that removes personal details.",
         ),
         ToolboxEntry(
             id="your_voice", name="Your Voice",
@@ -368,7 +369,7 @@ class ToolboxCatalog:
             group="together", status="live", level="L4", engine="civic",
             today="Open Your Voice.", today_path="/your-voice",
             backed_by=("public_forms",), promised_on=("/", "/hello"),
-            note="Answers are currently posted by hand. A review-and-respond screen is planned.",
+            note="Answers post through the elevation-gated review lane at /admin/public-voice.",
         ),
         ToolboxEntry(
             id="housing_bill", name="The Minnesota housing bill",

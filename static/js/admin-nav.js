@@ -17,6 +17,7 @@ function renderAdminNav(containerId, currentPage) {
     { id: 'function-browser', label: '⚙️ Functions', href: '/admin/function-browser.html' },
     { id: 'contract-browser', label: '📋 Contracts', href: '/admin/contract-browser.html' },
     { id: 'page-editor', label: '📝 Editor', href: '/admin/page-editor.html' },
+    { id: 'public-voice', label: '📮 Public Voice', href: '/admin/public-voice.html' },
     { id: 'review-checklist', label: '✅ Review', href: '/admin/review-checklist.html' },
     { id: 'manual', label: '📖 Manual', href: '/admin/manual.html' }
   ];
