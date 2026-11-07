@@ -16399,3 +16399,34 @@ sessions); embedded images are dropped from edited exports (noted to user).
   chrome at 1280px (internal work-zone scroll) and 375px (stacked scroll,
   comparison table fits, no horizontal overflow); console clean (benign ws logs);
   `pytest tests/test_ssot_architecture.py` 8/8 pass.
+
+
+## 2026-11-07 — DB pool retuned for Neon scale-to-zero (task neon-db-pool-nullpool-render-balanced, swe-2)
+
+- **Problem**: prod engine (`app/core/database.py::get_engine`, the only live
+  engine — `database_pool.py` has zero importers) used `AsyncAdaptedQueuePool`
+  with `pool_size=5`. Five connections were held open for the life of the
+  Render process; one request per hour was enough to keep them warm 24/7, so
+  the Neon compute endpoint never went idle and never suspended (~20
+  CU-hrs/mo of dead compute).
+- **Fix**: new `DB_POOL_MODE` setting (`auto`|`nullpool`|`queue`, default
+  `auto`). On Render (`RENDER` env var present) `auto` resolves to NullPool —
+  connections now exist only for the duration of a request, so a traffic lull
+  of one autosuspend window (5 min default) lets Neon scale to zero. Local /
+  non-Render Postgres keeps the QueuePool (sizes now env-tunable via
+  `DB_POOL_SIZE` / `DB_MAX_OVERFLOW`, defaults unchanged at 5/10). Same
+  `connect_args` in both modes; the 10s connect timeout covers Neon's
+  resume-from-suspend latency. `DB_POOL_MODE=queue` is the kill switch if
+  per-request connect latency ever matters in prod.
+- **Scope check**: `/health` does not touch the DB; the periodic scheduler
+  loops (`litigation_intelligence` scheduler, cache/export/freshness
+  cleanup) are not started from `main.py`, so nothing else pings the DB on a
+  timer. `alembic/env.py` and the startup migration verifier already used
+  NullPool.
+- **Verified**: py_compile clean; engine instantiated under all five
+  env combinations — `RENDER=1`→NullPool, local→AsyncAdaptedQueuePool,
+  explicit `DB_POOL_MODE` overrides both directions.
+- **Files**: `app/core/config.py`, `app/core/database.py`.
+- Out-of-scope logged to intake (intake-f7327e75): `funding_forge/database.py`
+  and `legal_intel/app/db.py` create default pooled engines — would re-block
+  scale-to-zero if ever deployed; currently unimported by the service.
