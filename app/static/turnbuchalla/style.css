@@ -91,6 +91,14 @@ footer .sig{font:italic 500 18px 'EB Garamond',serif;color:var(--ink-soft)}
   .doc .secnum{width:34px;font-size:13px}
   .egg-ice,.egg-snow{display:none}
   .sheet{padding-left:18px;padding-right:18px}
+  table.ledger,table.ledger tbody,table.ledger tr,table.ledger td{display:block}
+  table.ledger thead{display:none}
+  table.ledger td{padding:10px 4px;border-bottom:none}
+  table.ledger td::before{content:attr(data-label);display:block;
+    font:600 11px/1 'Cormorant Garamond',serif;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-faint);margin-bottom:3px}
+  table.ledger tr{border-bottom:1px solid rgba(138,115,80,.35)}
+  table.ledger tr:last-child{border-bottom:none}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
 @media print{body{background:#fff;padding:0}.sheet{box-shadow:none;max-width:100%}.annot,.egg,.comment,.btn,.pnav,.topbar,.subnav{display:none}}

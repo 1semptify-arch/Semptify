@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """Regenerate index.html bill sections from the canonical titled draft.
 
-SSOT: ../01_CONTENT/BILL_V2_TITLED_*.md (latest) -> index.html between
-<!-- BILLDOC:START --> and <!-- BILLDOC:END -->. Never hand-edit inside
-the markers. Run: python build_platform.py
+SSOT: ../BILL_LIVE.md (the live document — no versions) -> index.html
+between <!-- BILLDOC:START --> and <!-- BILLDOC:END -->. Never hand-edit
+inside the markers. Run: python build_platform.py
 """
-import re, html, sys
+import re, html, sys, json, hashlib
+from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).parent
 CONTENT = HERE.parent / "01_CONTENT"
 INDEX = HERE / "index.html"
+BUILDS = HERE.parent / "registers" / "builds.jsonl"
 
 
 def latest_draft():
@@ -121,6 +123,18 @@ def convert(md):
     return "\n".join(out), opens
 
 
+def _log_build(what):
+    """Append this run to the public build log (registers/builds.jsonl —
+    rendered into record.html Ledger the third by build_record.py)."""
+    try:
+        BUILDS.parent.mkdir(exist_ok=True)
+        row = {"ts": datetime.now().strftime("%Y-%m-%d %H:%M"), "what": what}
+        with open(BUILDS, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+    except OSError:
+        pass
+
+
 def main():
     md = latest_draft().read_text(encoding="utf-8")
     frag, opens = convert(md)
@@ -141,8 +155,17 @@ def main():
     a = page.index("<!-- BILLDOC:START")
     a = page.index("-->", a) + 3
     b = page.index("<!-- BILLDOC:END -->")
-    INDEX.write_text(page[:a] + "\n" + frag + "\n  " + page[b:], encoding="utf-8")
-    print(f"OK — index.html bill sections regenerated from {latest_draft().name}")
+    out = page[:a] + "\n" + frag + "\n  " + page[b:]
+    if hashlib.sha256(out.encode("utf-8")).hexdigest() == \
+            hashlib.sha256(page.encode("utf-8")).hexdigest():
+        print(f"unchanged — index.html already current from "
+              f"{latest_draft().name}")
+        return
+    INDEX.write_text(out, encoding="utf-8")
+    _log_build(f"index.html bill sections regenerated from "
+               f"{latest_draft().name}")
+    print(f"OK — index.html bill sections regenerated from "
+          f"{latest_draft().name}; run logged to builds.jsonl")
 
 
 if __name__ == "__main__":

@@ -32,6 +32,7 @@
       <span class="lbl">On this page</span>
       <a href="#editions-h">Editions ledger</a>
       <a href="#stands-h">Who stands where</a>
+      <a href="#builds-h">Build log</a>
     </nav>
   </header>
 
@@ -39,21 +40,51 @@
 
   <h2 id="editions-h"><span class="sec-no">Ledger the first</span>Editions — how the draft changed, and why</h2>
   <p class="lede">Every change to the text is entered here: the edition, the clause it touched, and whose argument moved it. A draft that hides its history hides its debts.</p>
-  <table>
+  <table class="ledger">
     <thead><tr><th scope="col">Edition</th><th scope="col">Date</th><th scope="col">Clause</th><th scope="col">The change — and what drove it</th></tr></thead>
-    <tbody id="editions"><!-- rendered from editions.jsonl --></tbody>
+    <tbody id="editions"><!-- LED:EDITIONS:START -->
+    <tr><td data-label="Edition">E-01</td><td data-label="Date">2026-10-14</td><td data-label="Clause">all</td><td data-label="Change">First full structure locked — the design calls that became the draft's spine: landlord-paid, experience-rated premium; no subrogation; independent claims adjudication with a tenant counter-claim lane; tenant and consumer seats on the governing board; manufactured-claim penalties; sunset with a year-3 report.</td></tr>
+    <tr><td data-label="Edition">E-02</td><td data-label="Date">2026-10-16</td><td data-label="Clause">—</td><td data-label="Change">Naming locked: the model is Turnbuchalla; the statute is the Minnesota Rent Assurance &amp; Deposit Protection Act; presented by Semptify.</td></tr>
+    <tr><td data-label="Edition">E-03</td><td data-label="Date">2026-10-18</td><td data-label="Clause">Titles I–III</td><td data-label="Change">Funding model resolved — the deposit goes into bonded program escrow at signing and the landlord never holds it; year one carried by escrow float, the ongoing share by the MN Renter's Credit. Third coverage leg added: renter's personal-belongings coverage rides the same pool.</td></tr>
+    <tr><td data-label="Edition">E-04</td><td data-label="Date">2026-10-19</td><td data-label="Clause">Titles II–III</td><td data-label="Change">Funding braid merged to three sources — escrow float, Renter's Credit assignment, and an explicit landlord matched share. Fairness axiom locked: nobody gets hurt — landlord-side and tenant-side abuse controls must be equally real. Belongings coverage shape deferred to post-actuarial.</td></tr>
+    <tr><td data-label="Edition">E-05</td><td data-label="Date">2026-10-23</td><td data-label="Clause">I-1, I-5, Title II</td><td data-label="Change">Hole-audit remediation: deposit stays in custodial escrow for the tenancy (UK custodial model) with an annual float dividend replacing the clean-year refund; rating resolved as community-rated base plus bounded experience surcharge; landlord no-claim dividend added. Float math corrected to 3% net of escrowed deposits.</td></tr>
+    <tr><td data-label="Edition">E-06</td><td data-label="Date">2026-10-23</td><td data-label="Clause">—</td><td data-label="Change">Model renamed Turnbucapp to Turnbuchalla; the old spelling kept only as an internal alias.</td></tr>
+    <tr><td data-label="Edition">E-07</td><td data-label="Date">2026-10-24</td><td data-label="Clause">all</td><td data-label="Change">Titled restructure — the draft reorganized into Titles I through IV (deposit protection, rent assurance, belongings, governance). This became the public read-through text.</td></tr>
+    <tr><td data-label="Edition">E-08</td><td data-label="Date">2026-11-02</td><td data-label="Clause">all</td><td data-label="Change">One live bill — versions abolished; BILL_LIVE.md is the only draft and the public read-through is generated from it. First public parchment published: the bill, the Inkwell, the Public Record, References, Supporters.</td></tr>
+    <tr><td data-label="Edition">E-09</td><td data-label="Date">2026-11-05</td><td data-label="Clause">Title I</td><td data-label="Change">Title I rendered as a formal amendatory act against Minn. Stat. § 504B.178 — statutory language prepared for outside-counsel redline.</td></tr>
+  <!-- LED:EDITIONS:END --></tbody>
   </table>
-  <p class="empty">The ledger opens when the first mark is read in — every edition entered here will carry its reason.</p>
+  <!-- LED:EDITIONS_EMPTY:START -->
+  <p class="empty" hidden>The ledger opens when the first mark is read in — every edition entered here will carry its reason.</p>
+  <!-- LED:EDITIONS_EMPTY:END -->
 
   <div class="rule"><span></span></div>
 
   <h2 id="stands-h"><span class="sec-no">Ledger the second</span>Who stands where</h2>
   <p class="lede">A person is listed only after being contacted and given a fair window to answer. <i>Silence is recorded as silence — never as opposition.</i></p>
-  <table>
+  <table class="ledger">
     <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Stance</th><th scope="col">On record</th></tr></thead>
-    <tbody id="stands"><!-- rendered from positions.jsonl --></tbody>
+    <tbody id="stands"><!-- LED:STANDS:START --><!-- LED:STANDS:END --></tbody>
   </table>
+  <!-- LED:STANDS_EMPTY:START -->
   <p class="empty">No public positions yet — invitations go out with the drafting package; answers and silences alike will be entered, dated, and sourced.</p>
+  <!-- LED:STANDS_EMPTY:END -->
+
+  <div class="rule"><span></span></div>
+
+  <h2 id="builds-h"><span class="sec-no">Ledger the third</span>The build log — what the public pages were, and when</h2>
+  <p class="lede">Every publish run that changes these pages is entered here. The page you are reading is one of its entries.</p>
+  <table class="ledger">
+    <thead><tr><th scope="col">Date</th><th scope="col">The build — what changed on the public pages</th></tr></thead>
+    <tbody id="builds"><!-- LED:BUILDS:START -->
+    <tr><td data-label="Date">2026-11-02</td><td data-label="The build">First public publish — five pages live: the bill read-through, the Inkwell, the Public Record, References, Supporters.</td></tr>
+    <tr><td data-label="Date">2026-11-07 10:56</td><td data-label="The build">record.html ledgers rendered — editions register goes live (E-01–E-09); positions + build-log ledgers wired.</td></tr>
+    <tr><td data-label="Date">2026-11-07 11:01</td><td data-label="The build">record.html ledgers rendered — editions:9 stands:0</td></tr>
+  <!-- LED:BUILDS:END --></tbody>
+  </table>
+  <!-- LED:BUILDS_EMPTY:START -->
+  <p class="empty" hidden>No publish runs entered yet — the log starts when the first build is entered.</p>
+  <!-- LED:BUILDS_EMPTY:END -->
 
   <footer>
     <div class="rule"><span></span></div>

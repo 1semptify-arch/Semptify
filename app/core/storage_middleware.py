@@ -125,6 +125,9 @@ PUBLIC_PATHS: set[str] = {
     "/contact",
     "/privacy",
     "/terms",
+    # Turnbuchalla public bill platform — static parchment pages, no auth
+    "/turnbuchalla",
+    "/turnbuchalla/",
     # Situation guides — ungated "what happened?" entry pages
     "/guide",
     # Eviction defense — read-only reference toolkit (page + stateless lookups;
@@ -185,6 +188,7 @@ PUBLIC_PREFIXES = (
     "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)
     "/r/",  # Case-share reviewer pages — anonymous token-gated (the share token is the credential)
     "/api/legal-share/r/",  # Case-share reviewer API — token-gated, no Semptify identity
+    "/turnbuchalla/",  # Turnbuchalla public bill platform — static pages, no auth
 )
 
 

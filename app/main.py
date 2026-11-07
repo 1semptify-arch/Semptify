@@ -2206,6 +2206,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if css_path.exists():
         fastapi_app.mount("/css", StaticFiles(directory=str(css_path)), name="css_static")
 
+    # Turnbuchalla public bill platform — self-contained static parchment
+    # pages (index/comment/record/references/supporters). html=True serves
+    # index.html at /turnbuchalla and /turnbuchalla/.
+    turnbuchalla_path = BASE_PATH / "app" / "static" / "turnbuchalla"
+    if turnbuchalla_path.exists():
+        fastapi_app.mount(
+            "/turnbuchalla",
+            StaticFiles(directory=str(turnbuchalla_path), html=True),
+            name="turnbuchalla_static",
+        )
+
     # =========================================================================
     # Onboarding Redirect (before catch-all)
     # =========================================================================
