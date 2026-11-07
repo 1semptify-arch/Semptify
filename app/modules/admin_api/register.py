@@ -54,6 +54,12 @@ register_function_group(
         ),
         deterministic=False,
         tier="T2",
+        allowed_routes=(
+            "/admin/api/public-forms/pending",
+            "/admin/api/public-forms/voice-posts/{post_id}",
+            "/admin/api/public-forms/tool-requests/{request_id}",
+            "/admin/api/public-forms/stories/{story_id}",
+        ),
         allowed_prefixes=("/admin/api/public-forms",),
     )
 )
