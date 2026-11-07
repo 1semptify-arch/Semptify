@@ -36,8 +36,10 @@ def storages(monkeypatch):
 
     monkeypatch.setattr(service, "get_provider", fake_get_provider)
     # Timeline events are a projection — keep them out of these tests.
+    emitted: list[tuple] = []
+
     async def _no_timeline(user, kind, fields):
-        return None
+        emitted.append((kind, fields))
 
     monkeypatch.setattr(service, "_emit_timeline_event", _no_timeline)
     return stores
