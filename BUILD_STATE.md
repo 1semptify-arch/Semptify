@@ -1,5 +1,31 @@
 ## Session — 2026-11-07 — P6 civic public-voice pipeline (swe-2, task sorg-p6-civic)
 
+### Guardrail Engine Run — 2026-11-07T15:00:59+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-07T14:59:31+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+One or more checks failed — see console output.
+
 - **Shipped (worktree `semptify-wt-toolbox`, branch `feat/toolbox-service-stubs`):** checkpoint `77bd06e1` (prior session, died mid-run) + `9ba3243a` contract fix this session.
   - New public pages: `/tell-your-story` (anonymous story submit + moderated list) and `/reach-legislators` (official .gov-only lookup links, MN + federal). Page registry entries added in `portal/pages.py`.
   - New public API: `POST /api/story`, `GET /api/stories` in `public_forms` (rate-limited 5/min, fixed subject set, no name/email by design).
@@ -16142,3 +16168,29 @@ sessions); embedded images are dropped from edited exports (noted to user).
   required checks run on the registry PR).
 - Side effect on merge: next scheduled/dispatched run will auto-open a PR
   carrying the ~1,590-line registry drift update — review before merging.
+
+## 2026-11-07 — P10 Research (L4): calmer naming + aggregate-only contract (sorg-p10-research, feat/p10-research)
+
+- Public copy pass on the seven L4 research toolbox entries: "Litigation
+  Intelligence" → **Housing Court Patterns**, "Fraud documentation" →
+  **Pattern documentation**, "Public Exposure Suite" → **Public Records
+  Tools**. Renamed in toolbox.py entry names, donate.html feature cards /
+  module-tier tags / roadmap, legal_research.html section, and portal
+  registry/pages service copy.
+- Aggregate-only honesty: every public claim about research outputs now
+  states combined totals / trends only — never a named person or address.
+  Removed the "identifies serial evictors" and "predatory landlord
+  patterns" targeting claims on /donate (violated the L4 contract and the
+  non-adversarial voice rules).
+- Fixed a dead link: `policy_reporting` today_path pointed at
+  `/bill/research`, a route that does not exist → now `/your-voice` with a
+  note. (`housing_bill`'s `/bill` path is the same class of dead link —
+  logged to intake, not fixed here; outside P10 scope.)
+- Verified the "lit-intel graph engine build-or-remove" premise: the graph
+  engine exists and works (in-memory, BFS, PNG/SVG viz, 17 auth-gated
+  endpoints). All RESEARCH-tier modules are simply unmounted in production
+  (`_LIVE_TIERS` omits RESEARCH) — "inactive" means dormant, not missing.
+- New `docs/blueprints/public_research_outputs_blueprint.md` — the
+  aggregate-only contract (combined totals, small-cell suppression ≥5,
+  city/ZIP floor, no named parties, sourced figures, human publish gate)
+  and the keep-dormant recommendation for the graph engine. Pending Brad.

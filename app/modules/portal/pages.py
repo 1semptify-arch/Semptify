@@ -184,7 +184,7 @@ class PortalPageRegistry:
             path="/legal-research",
             template="public/legal_research.html",
             description="Legal research tools for attorneys, paralegals, and researchers. Research landlords, court filings, and property history.",
-            keywords="legal research, landlord research, court filings, litigation intelligence, housing law",
+            keywords="legal research, landlord research, court filings, housing court patterns, housing law",
             og_title="Legal Research — Semptify",
             og_description="Legal research tools for attorneys and researchers.",
             footer_label="Legal Research",
