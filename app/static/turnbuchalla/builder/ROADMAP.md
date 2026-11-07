@@ -16,6 +16,9 @@
 - [ ] Fill bracketed To: fields — real staffer names for Howard/Igo/Port
 
 ## Phase 3 — Champions
+*Send window (set 11/7 per 10/31 assessment): legislator pitches held until
+House/Senate org sessions name the 2027-28 housing chairs (~late Nov/early
+Dec). Birnberg + FHF validation sends are election-neutral — go anytime.*
 - [ ] Howard staff briefing (chair-elect — sole gate, pending org-session confirmation)
 - [ ] Igo staff briefing (parallel, different pitch — now ranking member; bipartisan cover, not veto pair)
 - [ ] Port committee staff + Mohamed (both returning — pairing is redundancy, not succession hedge)
