@@ -1,6 +1,8 @@
 # TASKS — newest on top
 
 ## Open
+- [ ] Confirm 2027-28 committee chairs after December org sessions; re-pull LEGISLATOR_CONTACTS post-certification (~Nov 24). Champion map refreshed 11/7 (CHAMPION_MAP_MHSIP_2026-11-07) — all 4 won, Igo now ranking member.
+- [ ] Update outreach kit emails #1–#2 co-chair phrasing → chair/ranking member before the Howard+Igo send.
 - [ ] Submit court data request (Send Center item "Court data request" — web form, Brad pastes + submits). Feeds COST_STUDY/STATE_FIGURES.md gaps 1–3. Queued 10/31.
 - [x] HOLE AUDIT remediations — APPLIED 10/23 (fixes in
   `01_CONTENT/REMEDIATION_2026-10-23.md`): Brad approved UK-custodial
