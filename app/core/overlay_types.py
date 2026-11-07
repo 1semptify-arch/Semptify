@@ -194,6 +194,12 @@ class OverlayType(str, Enum):
     MNDES_PACKAGE = "mndes_package"
     """MNDES exhibit package (case number, exhibits, attestations, submission state)."""
 
+    LEGAL_TRAIL_RECORD = "legal_trail_record"
+    """Legal Trails accountability record — violation, eviction threat, late-fee
+    violation, broker-oversight, or legal-claim entry logged by the tenant.
+    Anchored to ``document_id="legal_trails:{user_id}"``;
+    ``payload["kind"]`` discriminates the record family."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -268,6 +274,7 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.PROPERTY_MAPPING,
     OverlayType.AGENCY_MAPPING,
     OverlayType.MNDES_PACKAGE,
+    OverlayType.LEGAL_TRAIL_RECORD,
 }
 
 # All overlay types (for validation)
