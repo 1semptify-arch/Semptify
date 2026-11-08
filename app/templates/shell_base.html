@@ -32,11 +32,11 @@
    first item (Back) lands at the right edge. #}
 {% block nav %}
 {% if navigation %}
-<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('tenant_home').path }}" onclick="if (window.history.length > 1) { window.history.back(); return false; }">← Back</a></li>
-<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('tenant_home').path }}">Home</a></li>
-<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('document_center').path }}">DC</a></li>
-<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('law_library').path }}">Library</a></li>
-<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('help').path }}">Help &amp; resources</a></li>
+<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('tenant_home').path }}" onclick="if (window.history.length > 1) { window.history.back(); return false; }">← {{ _("action.back") }}</a></li>
+<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('tenant_home').path }}">{{ _("nav.home") }}</a></li>
+<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('document_center').path }}">{{ _("nav.dc") }}</a></li>
+<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('law_library').path }}">{{ _("nav.library") }}</a></li>
+<li class="nav-item"><a class="nav-link" href="{{ navigation.get_stage('help').path }}">{{ _("nav.help_resources") }}</a></li>
 {% endif %}
 {% endblock %}
 
@@ -59,11 +59,11 @@
 {% block post_main %}
 <aside class="shell-side" id="shell-side" aria-label="Supporting">
     {% block sidebar %}
-    <h2>Next steps</h2>
+    <h2>{{ _("side.next_steps") }}</h2>
     <ul class="shell-list">
-        <li><a href="{{ navigation.get_stage('tenant_home').path if navigation else '/tenant/start' }}">Your home</a></li>
-        <li><a href="/help">Find real help</a></li>
-        <li><a href="/law-library">Know your rights</a></li>
+        <li><a href="{{ navigation.get_stage('tenant_home').path if navigation else '/tenant/start' }}">{{ _("side.your_home") }}</a></li>
+        <li><a href="/help">{{ _("side.find_help") }}</a></li>
+        <li><a href="/law-library">{{ _("side.know_rights") }}</a></li>
     </ul>
     {% endblock %}
 </aside>

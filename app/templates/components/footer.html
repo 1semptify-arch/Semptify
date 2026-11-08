@@ -2,30 +2,27 @@
     <div class="footer-container">
         <div class="footer-disclaimer">
             <div class="footer-disclaimer-icon" aria-hidden="true">!</div>
-            <p class="footer-disclaimer-title">Semptify is not legal advice</p>
+            <p class="footer-disclaimer-title">{{ _("footer.disclaimer_title") }}</p>
             <p class="footer-disclaimer-text">
-                Semptify helps tenants organize documents and find verified facts. It is not a law firm.
-                For legal advice, contact a licensed attorney or your local legal aid office.
-                If you need help right now, <a href="/help">get help now</a>.
+                {{ _("footer.disclaimer_text") }}
+                <a href="/help">{{ _("action.get_help") }}</a>.
             </p>
         </div>
-        <nav class="footer-legal" aria-label="Legal and site information">
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
-            <a href="/disclaimer">Disclaimer</a>
-            <a href="/accessibility">Accessibility</a>
-            <a href="/about">About</a>
-            <a href="/contact">Contact</a>
-            <a href="{{ navigation.get_stage('public_feedback').path }}">Feedback</a>
-            <a href="/credits">Credits</a>
+        <nav class="footer-legal" aria-label="{{ _("footer.legal_aria") }}">
+            <a href="/privacy">{{ _("footer.privacy_link") }}</a>
+            <a href="/terms">{{ _("footer.terms_link") }}</a>
+            <a href="/disclaimer">{{ _("footer.disclaimer_link") }}</a>
+            <a href="/accessibility">{{ _("footer.accessibility_link") }}</a>
+            <a href="/about">{{ _("footer.about_link") }}</a>
+            <a href="/contact">{{ _("footer.contact_link") }}</a>
+            <a href="{{ navigation.get_stage('public_feedback').path }}">{{ _("footer.feedback_link") }}</a>
+            <a href="/credits">{{ _("footer.credits_link") }}</a>
         </nav>
         <div class="footer-divider"></div>
         <div class="footer-bottom">
             <p class="footer-copyright">&copy; {{ year | default(2026) }} Semptify.org</p>
-            <p class="footer-mandates">No ads &middot; Your data stays yours &middot; Not legal advice &mdash; get qualified help</p>
-            <p class="footer-help">AI-Assisted Content Notice: Semptify uses AI tools to help generate
-                Minnesota housing-law educational material. This site does not provide legal advice.
-                For case-specific guidance, contact a licensed Minnesota attorney.</p>
+            <p class="footer-mandates">{{ _("footer.mandates") }}</p>
+            <p class="footer-help">{{ _("footer.ai_notice") }}</p>
             <div class="footer-help">{% include "components/locale_selector.html" %}</div>
         </div>
     </div>

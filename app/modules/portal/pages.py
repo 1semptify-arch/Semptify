@@ -399,6 +399,18 @@ class PortalPageRegistry:
             order=170,
         ),
         PortalPage(
+            id="phone",
+            title="Semptify on Your Phone",
+            path="/phone",
+            template="public/phone.html",
+            description="What works on a phone today: every page on this site, the standalone tools, and help resources — no app to install. A dedicated phone experience is in the works.",
+            keywords="semptify phone, semptify mobile, tenant tools phone, mobile tenant rights",
+            og_title="Semptify on Your Phone",
+            og_description="Everything on this site works in your phone's browser — no app to install.",
+            footer_label="On your phone",
+            order=97,
+        ),
+        PortalPage(
             id="toolbox",
             title="The Toolbox — what works today, what is coming — Semptify",
             path="/toolbox",
