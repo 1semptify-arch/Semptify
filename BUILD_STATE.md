@@ -71,6 +71,33 @@ All checks passed.
 
 ### Guardrail Engine Run — 2026-11-07T05:21:47+00:00
 
+## Session — 2026-11-07 — The six pillar front pages (swe-2, task plan-20261102-build-the-6-pillar-front-pages)
+
+- **Shipped (worktree `semptify-wt-toolbox`, branch `feat/toolbox-service-stubs`):** the six pillar front pages from `SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md` §2 + §4.2 — each a door plus its toolbox entries.
+  - `app/modules/portal/pillars.py` (new): SSOT for the six fronts — number, label, question, blurb, intro, `/path/<pillar>` URL, the §4.2 space inventory per pillar, and the next-step handoff. Each space resolves its honest status from the Toolbox catalog (least-ready backing entry wins; no backing entries = "Planned").
+  - `app/modules/portal/pages.py`: six `PortalPage` registrations (`/path/information`, `/path/research`, `/path/documentation`, `/path/organize`, `/path/collaborate`, `/path/be-heard`), `in_footer=False`, in sitemap. `/path/*` chosen because `/research` is already claimed by an authenticated PageContract — the namespace keeps the six uniform and collision-proof.
+  - `app/templates/public/pillar_front.html` (new): one shared template on `body/public_shell.html` — crisis link first, intro, spaces in inventory order with status pills + `/toolbox/{id}` links, then exactly one next step (next pillar; pillar 6 hands to `/help`). No dead ends.
+  - `app/modules/portal/toolbox.py`: six new `front_*` entries (68 total) filling the previously empty `pNN.front` slots.
+  - `app/main.py`: pillar context hook in the generated-route loop (same pattern as the toolbox hook).
+  - `tests/module_health/test_portal_pillars.py` (new): 6 tests — registry paths, front slots filled, space slots declared and in the right pillar, context/handoff resolution, banned-word copy check, unknown-id safety.
+- **Verified:** `py_compile` all changed files (venv311); pytest `test_portal_pillars.py` + `test_portal_toolbox.py` 13/13; `toolbox_truth_check` standalone PASS (68 entries, all internal paths resolve). Live on :8001 (local SQLite): all six fronts + `/toolbox` + `/toolbox/front_collaborate` return 200; IronBee ARIA snapshot shows the full door structure (crisis link, spaces, statuses, next-step link); `.shell-main` scrolls internally on desktop with the last element reachable; 375px and 1280px screenshots clean; console clean except one benign websocket info log. Eye-path audit: help → intro → spaces in order → single next step → back links — matches the chronological-ordering rule.
+- **Pending Brad's eye:** space→slot status roll-up rule (least-ready wins), the `/path/*` URL choice, `in_footer=False` (six doors not added to the universal footer), and the pillar copy tone. Merge-time reconciliation note documented in `pillars.py`: `registry.py` on main carries a parallel `PILLARS` table for /portal that doesn't exist on this branch — the two should collapse into one pillar SSOT when this branch merges.
+
+## Session — 2026-11-07 — Toolbox slot + wing fields (swe-2, task plan-20261102-toolbox-add-slot-wing-fields)
+
+- **Shipped (worktree `semptify-wt-toolbox`, branch `feat/toolbox-service-stubs`):** the Toolbox catalog now doubles as the plugin slot registry per `SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md` §4/§7/§9 improvement 1.
+  - `app/modules/portal/toolbox.py`: new `slot` and `wing` fields on `ToolboxEntry`, populated on all 62 entries; new `SLOTS` (49 ids — the draft's 48 plus `wing.bill`, the one id the draft left unassigned for the bill wing) and `WINGS` (9 audience wings + `shared`); new `by_slot()` / `by_wing()` catalog views; `to_dict()` now also returns `slots` and `wings` maps for `/api/portal/toolbox`.
+  - Slot semantics: `slot` names the §4 space the entry backs (`""` = cross-cutting capability with no space — `read_aloud`, `languages`, `mobile_app`); `wing` names the audience wing that primarily surfaces it (`renters` default for tenant-path tools, `shared` for site-wide).
+  - `tools/checks/toolbox_truth_check.py`: structure check now validates `slot` ∈ SLOTS (when set) and `wing` ∈ WINGS.
+  - `tests/module_health/test_portal_toolbox.py`: same assertions added.
+- **Verified:** `py_compile` on all three changed files; `pytest tests/module_health/test_portal_toolbox.py` 7/7; `toolbox_truth_check` standalone PASS (62 entries, all paths resolve). Live/UI verify not run — no user-visible surface changed (slot/wing appear only in the JSON catalog, not the public pages).
+- **Pending Brad's eye:** slot assignments were made per the draft's §4/§4.3 mapping — check the judgment calls (documented in the report doc): `wing.bill` as the bill-wing slot, `p04.export` shared by three legal-aid handoff entries, `policy_reporting` under `wing.classroom`, three entries left unslotted.
+- **Note:** the BUILD_STATE entry below this one (P6 session, 2026-11-07) carried uncommitted auto-appended guardrail run logs from prior sessions, plus one run this session triggered (15:26, engine invoked without env vars — its `contract_route_check`/`resource_intake_check` FAILs are missing-`SECRET_KEY` environment errors, not code failures; `toolbox_truth_check` PASSED in the same run). All are included in this commit as real run records.
+
+## Session — 2026-11-07 — P6 civic public-voice pipeline (swe-2, task sorg-p6-civic)
+
+### Guardrail Engine Run — 2026-11-07T15:26:12+00:00
+
 - **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
 - **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
 - **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
@@ -79,6 +106,32 @@ All checks passed.
 - **resource_intake_check**: FAIL — Check crashed while running.
 - **stub_check**: PASS — No stubs found.
 - **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (22 live, 26 partial, 10 planned, 4 vision)
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-07T05:12:38+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-07T05:12:13+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
 
 One or more checks failed — see console output.
 
