@@ -291,12 +291,12 @@ Semptify's module-level queue `tools/agent_orchestrator_tasks.json`, managed by 
 The **master orchestrator queue** is `C:\master-repo\tools\orchestrator_state.json`. Use it for any task with a `model_tier` or a handoff. Read it to find the next task, and use:
 
 - Pick up: `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent <your-model-name> --preflight` (`--preflight` is required — it attests you ran the freshness/canonicity gate, `.devin/skills/preflight/SKILL.md` Steps 1a-1c)
-- Executor finish (swe-executor): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> review --usage '{"wall_clock_min": X, "tool_calls": Y}' --agent swe-executor`
-- Orchestrator finish (Claude): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> resolved --pr <url> --agent claude-code`
+- Executor finish (swe-executor dispatched work): report back to the dispatching agent with report doc + verification + usage; the **dispatching agent** marks `resolved` after re-verifying: `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> resolved --agent <agent-id> --report-doc <path> --verification '{...}' --usage '{"wall_clock_min": X, "tool_calls": Y}'`
+- Direct finish (agent completing its own task): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> resolved --pr <url> --agent <your-model-name>`
 - Blocked: `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> blocked_on_decision --blocked-reason "<why>" --agent <your-model-name>` (auto-surfaces to `decisions_pending_brad`)
 - Parked-for-later (already decided): `python C:\master-repo\tools\orchestrator_mark_task.py <task_id> deferred --agent <your-model-name>` (does NOT surface to Brad)
 
-Unlimited-pool executors (free/non-premium usage class — `trusted` sub-tier: swe-executor, SWE-1.7; `restricted` sub-tier: GLM-5.2) may NOT mark a task `resolved` or `rejected`; they stop at `review` or `blocked_on_decision`. Do this every time, without being asked — it is how the queue stays accurate without a human tracking it by hand. Dispatch preference inside the free pool (Brad, 2026-09-15): swe-executor → SWE-2.0 → GLM, subject to the trust boundary — `trusted` work never goes to GLM regardless of order.
+**The owning agent resolves its own task** (Brad, 2026-11-07 — self-approval guard removed; the Review Desk is retired as a routing destination). There is no `review` stop — `blocked_on_decision` is the only waiting state, used only for genuine Brad judgment calls (filings, spend, public copy, strategy, holds, PII). A dispatched subagent reports back; the dispatching agent owns resolution. Dispatch preference inside the free pool (Brad, 2026-09-15): swe-executor → SWE-2.0 → GLM, subject to the trust boundary — `trusted` work never goes to GLM regardless of order.
 
 ---
 
