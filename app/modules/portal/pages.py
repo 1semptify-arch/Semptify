@@ -35,6 +35,7 @@ class PortalPage:
     in_footer: bool = True  # include in footer links
     footer_label: str = ""  # label for footer link (defaults to title)
     order: int = 100  # sort order in footer
+    redirect_to: str = ""  # external URL the path permanently redirects to (page moved off-app)
 
 
 @dataclass
@@ -69,6 +70,7 @@ class PortalPageRegistry:
             og_description="Watch an idea become a bill and maybe a law. Read the live draft, ask a question, or share an opinion.",
             footer_label="Your Voice",
             order=4,
+            redirect_to="https://semptify.org/your-voice",
         ),
         PortalPage(
             id="tell_your_story",
@@ -105,6 +107,7 @@ class PortalPageRegistry:
             og_description="Nobody sends you a letter when your rights are violated. What the public housing bill aims to change.",
             footer_label="The bill",
             order=96,
+            redirect_to="https://semptify.org/what-the-bill-changes",
         ),
         PortalPage(
             id="bill",
@@ -117,6 +120,7 @@ class PortalPageRegistry:
             og_description="A Minnesota housing bill written in public — read the live draft and check the numbers.",
             footer_label="The MN Bill",
             order=4,
+            redirect_to="https://semptify.org/bill",
         ),
         PortalPage(
             id="bill_live",
@@ -128,6 +132,7 @@ class PortalPageRegistry:
             og_title="The Live Draft — Minnesota Bill",
             og_description="The real working text — refreshed daily.",
             in_footer=False,
+            redirect_to="https://semptify.org/bill/live",
         ),
         PortalPage(
             id="bill_research",
@@ -139,6 +144,7 @@ class PortalPageRegistry:
             og_title="The Numbers & Sources — Minnesota Bill",
             og_description="Every figure, its source, and its check status.",
             in_footer=False,
+            redirect_to="https://semptify.org/bill/research",
         ),
         PortalPage(
             id="tool_requests",

@@ -117,6 +117,34 @@ def get_engine():
                 "command_timeout": 30,  # per-statement timeout
                 "server_settings": {"application_name": "semptify_fastapi"},
             }
+            from app.core.runtime_profile import get_active_profile
+
+            if get_active_profile().db_null_pool:
+                # No held connections: open a fresh connection per request and
+                # close it afterward. Held pool connections count as activity
+                # and keep Neon's scale-to-zero from suspending the compute
+                # (~20 CU-hrs/mo on the free tier). Recycle/pre-ping are moot —
+                # nothing survives between requests to go stale. Trade-off:
+                # each DB-touching request pays connect latency, plus a
+                # one-shot resume (~0.5-1.5s) when Neon wakes from suspend.
+                pool_config = {
+                    "poolclass": NullPool,
+                    "connect_args": connect_args,
+                }
+            else:
+                pool_config = {
+                    "poolclass": AsyncAdaptedQueuePool,
+                    "pool_size": 5,  # Base connections
+                    "max_overflow": 10,  # Extra connections under load
+                    "pool_timeout": 30,  # Seconds to wait for connection
+                    # Neon drops idle connections at ~300s; recycle below that so the
+                    # pool proactively replaces connections before the server kills
+                    # them (Render cold-start bursts post-deploy left startup-warmed
+                    # connections dead by the first request).
+                    "pool_recycle": 280,
+                    "pool_pre_ping": True,  # Verify connections before use
+                    "connect_args": connect_args,
+                }
 
             pool_mode = (settings.db_pool_mode or "auto").lower()
             if pool_mode == "auto":
