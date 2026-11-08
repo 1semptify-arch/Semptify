@@ -1,0 +1,9 @@
+/* Portal CTA palette — forest-green call-to-action colors shared by the
+   public portal path/service/final prompts (app/templates/public/portal.html)
+   and the public shell card buttons (--pc-cta family). */
+:root{
+    --portal-cta-bg:#4c6b4c;
+    --portal-cta-bg-hover:#3d583d;
+    --portal-cta-text:#fbfaf8;
+    --portal-cta-outline:#1f1d1a;
+}

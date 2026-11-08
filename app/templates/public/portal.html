@@ -43,13 +43,14 @@
 {{ super() }}
 <link rel="stylesheet" href="/static/css/themes/wing-base.css?v=1">
 <link rel="stylesheet" href="/static/css/themes/wing-renters.css?v=1">
+<link rel="stylesheet" href="/static/css/themes/portal-cta.css?v=1">
 <link rel="stylesheet" href="/static/css/archetypes/calm-desk.css?v=1">
 <style>
     .portal-lede { font-size: 1.1rem; color: var(--text-secondary); max-width: 46rem; margin: 0 0 0.75rem; }
     .portal-keep { color: var(--text-primary); margin: 0 0 1.5rem; max-width: 46rem; }
     .portal-path { display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; list-style: none; padding: 0; margin: 0 0 1.75rem; }
     .portal-path a { display: inline-block; padding: 0.55rem 0.9rem; min-height: 44px; background: var(--bg-muted); color: var(--text-primary); text-decoration: none; font-weight: 600; border-radius: var(--radius-input); }
-    .portal-path a:hover, .portal-path a:focus-visible { background: #4c6b4c; color: #fbfaf8; outline: 2px solid #1f1d1a; outline-offset: 2px; }
+    .portal-path a:hover, .portal-path a:focus-visible { background: var(--portal-cta-bg); color: var(--portal-cta-text); outline: 2px solid var(--portal-cta-outline); outline-offset: 2px; }
     .pillar { background: var(--bg-surface); padding: 1.25rem 1.5rem; margin: 0 0 1.25rem; border-radius: var(--radius-block); }
     .pillar-head { display: flex; align-items: baseline; gap: 0.75rem; margin: 0 0 0.25rem; }
     .pillar-num { font-weight: 700; color: var(--color-primary); font-size: 1.3rem; min-width: 1.5rem; }
@@ -66,13 +67,13 @@
     .svc-name { font-weight: 700; color: var(--text-primary); margin: 0; }
     .svc-desc { grid-column: 1; color: var(--text-secondary); margin: 0; font-size: 0.95rem; }
     .svc-for { grid-column: 1; color: var(--text-secondary); font-size: 0.85rem; margin: 0; }
-    .svc-go { grid-column: 2; grid-row: 1 / span 3; display: inline-block; background: #4c6b4c; color: #fbfaf8; padding: 0.6rem 1rem; min-height: 44px; text-decoration: none; font-weight: 600; border-radius: var(--radius-input); }
-    .svc-go:hover, .svc-go:focus-visible { background: #3d583d; outline: 2px solid #1f1d1a; outline-offset: 2px; }
+    .svc-go { grid-column: 2; grid-row: 1 / span 3; display: inline-block; background: var(--portal-cta-bg); color: var(--portal-cta-text); padding: 0.6rem 1rem; min-height: 44px; text-decoration: none; font-weight: 600; border-radius: var(--radius-input); }
+    .svc-go:hover, .svc-go:focus-visible { background: var(--portal-cta-bg-hover); outline: 2px solid var(--portal-cta-outline); outline-offset: 2px; }
     .pillar-flow { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
     .pillar-flow strong { color: var(--text-primary); }
     .portal-final { text-align: center; padding: 2rem 1.5rem; background: var(--bg-surface); border-radius: var(--radius-block); }
-    .portal-final a { display: inline-block; background: #4c6b4c; color: #fbfaf8; padding: 0.8rem 2rem; min-height: 44px; font-weight: 600; text-decoration: none; border-radius: var(--radius-input); }
-    .portal-final a:hover, .portal-final a:focus-visible { background: #3d583d; outline: 2px solid #1f1d1a; outline-offset: 2px; }
+    .portal-final a { display: inline-block; background: var(--portal-cta-bg); color: var(--portal-cta-text); padding: 0.8rem 2rem; min-height: 44px; font-weight: 600; text-decoration: none; border-radius: var(--radius-input); }
+    .portal-final a:hover, .portal-final a:focus-visible { background: var(--portal-cta-bg-hover); outline: 2px solid var(--portal-cta-outline); outline-offset: 2px; }
     @media (max-width: 640px) {
         .svc { grid-template-columns: 1fr; }
         .svc-go { grid-column: 1; grid-row: auto; justify-self: start; }

@@ -1,0 +1,8 @@
+/* Bill Hub palette — dawn/lake navy + ember gold theme for the public bill
+   microsite (app/templates/public/bill_hub.html). Hex lives here so the
+   template styles with var(--token), per tools/style_guard.py. */
+:root{
+    --dawn-deep:#0b1e33; --dawn-mid:#14324f; --dawn-rose:#b85c38; --dawn-gold:#f2a65a;
+    --lake-deep:#0a1a2e; --ink:#e8eef4; --ink-soft:#c4d2de; --ink-dim:#8fa7ba;
+    --glass:rgba(9,22,38,.78); --glass-edge:rgba(242,166,90,.35); --gold:#f2a65a;
+}
