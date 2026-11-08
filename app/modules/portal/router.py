@@ -20,6 +20,7 @@ from app.modules.portal.service import (
     get_service,
     get_sitemap_entries,
 )
+from app.modules.portal.toolbox import toolbox
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +62,25 @@ async def get_portal_service(service_id: str):
         "requires_auth": service.requires_auth,
         "description_long": service.description_long,
     }
+
+
+@router.get("/toolbox")
+async def list_toolbox():
+    """Every service semptify.org mentions, with honest build status.
+
+    Public endpoint — no auth required. Agents building Semptify read this
+    to see what is promised and not yet built.
+    """
+    return toolbox.to_dict()
+
+
+@router.get("/toolbox/{entry_id}")
+async def get_toolbox_entry(entry_id: str):
+    """One toolbox entry. Public endpoint — no auth required."""
+    entry = toolbox.get(entry_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail=f"Unknown toolbox entry: {entry_id}")
+    return entry.to_dict()
 
 
 @router.get("/pages")

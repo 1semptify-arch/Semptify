@@ -1,0 +1,81 @@
+/* ============================================================================
+   ARCHETYPE: CALM DESK — Renters wing
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3)
+
+   One column, big text (18-19px), one action per screen. Built for a person
+   reading under stress: nothing to decode, nothing to compare, one obvious
+   next step. Applied via `data-arch="calm-desk"` on <body>; rules scope to
+   the shell work zone (.shell-main) and plain <main> so they never restyle
+   header, footer, or the .shell-side rail.
+
+   Chronological & Spatial Task Ordering applies inside the column: first
+   action top, later steps below, destructive/low-frequency last.
+   ============================================================================ */
+
+/* Measure: a comfortable single column. Never full-width text. */
+body[data-arch="calm-desk"] .shell-main,
+body[data-arch="calm-desk"] main {
+  max-width: 46rem;
+}
+
+/* Big text — 18-19px body with relaxed leading. The shell's compact
+   13px work type is wrong for this audience; calm-desk reads like a page,
+   not a console. */
+body[data-arch="calm-desk"] .shell-main,
+body[data-arch="calm-desk"] main {
+  font-size: 1.125rem;               /* 18px at the default root */
+  line-height: 1.6;
+}
+body[data-arch="calm-desk"] .shell-main p,
+body[data-arch="calm-desk"] main p {
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+@media (min-width: 900px) {
+  body[data-arch="calm-desk"] .shell-main,
+  body[data-arch="calm-desk"] main,
+  body[data-arch="calm-desk"] .shell-main p,
+  body[data-arch="calm-desk"] main p {
+    font-size: 1.1875rem;            /* 19px desktop */
+  }
+}
+
+/* Breathing room — generous vertical rhythm so each block reads as its
+   own beat, not a wall. */
+body[data-arch="calm-desk"] .shell-main section,
+body[data-arch="calm-desk"] main section {
+  margin-bottom: 2rem;
+}
+body[data-arch="calm-desk"] .shell-main h2,
+body[data-arch="calm-desk"] main h2 {
+  margin-top: 2.25rem;
+}
+
+/* One action per screen — the primary action is a large, unmissable
+   button; competing actions are quiet text links behind it. */
+body[data-arch="calm-desk"] .cd-action,
+body[data-arch="calm-desk"] .svc-go,
+body[data-arch="calm-desk"] .cta-button-large {
+  display: inline-block;
+  min-height: 48px;
+  padding: 0.85rem 1.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  border-radius: var(--radius-input);
+}
+body[data-arch="calm-desk"] .cd-secondary {
+  display: inline-block;
+  min-height: 44px;
+  padding: 0.6rem 0.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+/* Lists of choices (pillar doors, service rows) become stacked full-width
+   rows — one tap target per row, scanning top-to-bottom in task order. */
+body[data-arch="calm-desk"] .svc-list .svc,
+body[data-arch="calm-desk"] .cd-step {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}

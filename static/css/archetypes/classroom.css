@@ -1,0 +1,58 @@
+/* ============================================================================
+   ARCHETYPE: CLASSROOM — Lawmakers & students wing
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3)
+
+   Explainers, timelines, glossary sidebars — teaching, not persuading.
+   Applied via `data-arch="classroom"` on <body>.
+   ============================================================================ */
+
+body[data-arch="classroom"] .shell-main,
+body[data-arch="classroom"] main {
+  max-width: 50rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+/* Explainer blocks — a concept, then a plain-words restatement. */
+body[data-arch="classroom"] .cls-explainer {
+  margin: 0 0 1.5rem;
+}
+body[data-arch="classroom"] .cls-plain {
+  background: var(--role-tint);
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-block);
+  margin-top: 0.6rem;
+}
+
+/* Glossary sidebar — terms inline get a quiet underline; pulled terms sit
+   in the rail as a definition list. */
+body[data-arch="classroom"] .cls-term {
+  border-bottom: 1px dotted var(--role-accent);
+}
+body[data-arch="classroom"] .cls-glossary dt {
+  font-weight: 700;
+  margin-top: 0.6rem;
+}
+body[data-arch="classroom"] .cls-glossary dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  color: var(--shell-ink-2, var(--text-secondary));
+}
+
+/* Stage timeline — the bill's journey as an ordered track with the
+   current stage marked by the wing accent (state, not decoration). */
+body[data-arch="classroom"] .cls-track {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  display: grid;
+  gap: 0.4rem;
+}
+body[data-arch="classroom"] .cls-track li {
+  padding: 0.5rem 0.75rem;
+  border-left: 2px solid var(--shell-line, var(--border-color));
+}
+body[data-arch="classroom"] .cls-track li.is-here {
+  border-left-color: var(--role-accent);
+  font-weight: 600;
+}

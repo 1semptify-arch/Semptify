@@ -1,0 +1,55 @@
+/* ============================================================================
+   ARCHETYPE: LEDGER — Researchers wing
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3)
+
+   Tables, figures, source column, method notes — every number shows its
+   source. Applied via `data-arch="ledger"` on <body>.
+   ============================================================================ */
+
+body[data-arch="ledger"] .shell-main,
+body[data-arch="ledger"] main {
+  max-width: 64rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Wide tables get the room they need and scroll sideways on narrow
+   screens rather than crushing columns. */
+body[data-arch="ledger"] .ldg-table-wrap {
+  overflow-x: auto;
+}
+body[data-arch="ledger"] table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+body[data-arch="ledger"] th,
+body[data-arch="ledger"] td {
+  text-align: left;
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--shell-line, var(--border-color));
+}
+body[data-arch="ledger"] th {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--shell-ink-3, var(--text-muted));
+}
+
+/* The source column — last column of any figure row, always muted. */
+body[data-arch="ledger"] .ldg-source,
+body[data-arch="ledger"] td:last-child.ldg-src {
+  font-size: 0.8rem;
+  color: var(--shell-ink-3, var(--text-muted));
+}
+
+/* Figure blocks — chart/table plus its method note, kept together. */
+body[data-arch="ledger"] .ldg-figure {
+  margin: 0 0 1.75rem;
+}
+body[data-arch="ledger"] .ldg-figure figcaption,
+body[data-arch="ledger"] .ldg-method {
+  font-size: 0.8rem;
+  color: var(--shell-ink-3, var(--text-muted));
+  margin-top: 0.4rem;
+}

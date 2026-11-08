@@ -15,6 +15,7 @@ from app.core.user_context import build_context_for_user_id
 from app.services.complaint_wizard import (
     AgencyType,
     ComplaintDraft,
+    ComplaintStatus,
     complaint_wizard,
 )
 
@@ -478,12 +479,13 @@ async def analyze_case_for_complaints(
 
 # =============================================================================
 # Wizard Session Endpoints (for guided complaint flow)
+#
+# Sessions are ephemeral (in-memory, 4h TTL) — nothing personal is stored
+# server-side while a tenant walks the steps. Finishing produces a complaint
+# draft: persisted to the tenant's own vault when identified, or returned as
+# text + filing instructions for an anonymous visitor. Semptify never files
+# on the tenant's behalf.
 # =============================================================================
-
-from app.core.id_gen import make_id
-
-# In-memory wizard sessions (for simplicity)
-_wizard_sessions: dict = {}
 
 
 class WizardStartRequest(BaseModel):
@@ -492,33 +494,135 @@ class WizardStartRequest(BaseModel):
     complaint_type: str
 
 
-class WizardSession(BaseModel):
-    """Wizard session state."""
+class WizardAnswerRequest(BaseModel):
+    """Answer for the current wizard step — fields depend on the step."""
 
-    session_id: str
-    complaint_type: str
-    step: int = 1
-    data: dict = {}
-    created_at: str
+    model_config = {"extra": "allow"}
+
+    complaint_type: str | None = None
+    keywords: list[str] | str | None = None
+    text: str | None = None
+    agency_id: str | None = None
+    details: dict | None = None
 
 
 @router.post("/wizard/start")
-async def start_wizard(request: WizardStartRequest) -> WizardSession:
-    """Start a new complaint wizard session."""
-    session_id = make_id("wiz")
-    session = WizardSession(
-        session_id=session_id, complaint_type=request.complaint_type, step=1, data={}, created_at=utc_now().isoformat()
-    )
-    _wizard_sessions[session_id] = session.model_dump()
-    return session
+async def start_wizard(request: WizardStartRequest) -> dict:
+    """Start a guided complaint session; returns the next step's prompt."""
+    try:
+        return complaint_wizard.wizard_start(request.complaint_type)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/wizard/{session_id}")
-async def get_wizard_session(session_id: str) -> WizardSession:
-    """Get current wizard session state."""
-    if session_id not in _wizard_sessions:
+async def get_wizard_session(session_id: str) -> dict:
+    """Get current wizard session state (step, prompt, options, collected)."""
+    state = complaint_wizard.wizard_state(session_id)
+    if state is None:
         raise HTTPException(status_code=404, detail="Wizard session not found")
-    return WizardSession(**_wizard_sessions[session_id])
+    return state
+
+
+@router.post("/wizard/{session_id}/answer")
+async def answer_wizard(session_id: str, request: WizardAnswerRequest) -> dict:
+    """Answer the current step; returns the next step's state."""
+    try:
+        return complaint_wizard.wizard_answer(session_id, **request.model_dump(exclude_none=True))
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Wizard session not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+def _filing_instructions(agency) -> list[str]:
+    """Honest next steps — the tenant files the complaint themselves."""
+    channel = agency.filing_url or agency.website
+    steps = ["Review the complaint and edit anything that is missing."]
+    if channel:
+        steps.append(f"File it with {agency.name}: {channel}")
+    elif agency.phone:
+        steps.append(f"File it with {agency.name}: call {agency.phone}")
+    steps.append(f"{agency.name} typically responds in ~{agency.typical_response_days} days.")
+    steps.append("Save any confirmation or tracking number, then mark the draft filed to keep tracking it.")
+    return steps
+
+
+@router.post("/wizard/{session_id}/finish")
+async def finish_wizard(
+    session_id: str, request: Request, user_id: str | None = Depends(get_optional_user_id)
+) -> dict:
+    """Finish the wizard and prepare the complaint.
+
+    Identified tenant: a real draft is created in their vault, marked ready.
+    Anonymous visitor: the generated complaint text and filing instructions
+    are returned without storing anything.
+    """
+    payload = complaint_wizard.wizard_finish(session_id)
+    if payload is None:
+        raise HTTPException(status_code=404, detail="Wizard session not found")
+
+    agency = complaint_wizard.get_agency(payload["agency_id"]) if payload["agency_id"] else None
+    uid = get_user_id_from_request(request, user_id)
+    user = await build_context_for_user_id(uid)
+
+    if user is not None:
+        draft = await complaint_wizard.create_draft_vault(
+            user,
+            agency_id=payload["agency_id"],
+            subject=sanitize_user_input(payload["subject"]),
+            complaint_type=payload["complaint_type"],
+        )
+        draft = await complaint_wizard.update_draft_vault(
+            user,
+            draft.id,
+            description=payload["description"],
+            incident_dates=payload["incident_dates"],
+            respondent_name=payload["respondent_name"],
+            respondent_company=payload["respondent_company"],
+            respondent_address=payload["respondent_address"],
+            respondent_phone=payload["respondent_phone"],
+            relief_sought=payload["relief_sought"],
+            damages_claimed=payload["damages_claimed"],
+            status=ComplaintStatus.READY.value,
+        )
+        return {
+            "status": "ready_to_file",
+            "draft_id": draft.id,
+            "agency": agency.name if agency else None,
+            "filing_url": agency.filing_url if agency else None,
+            "missing": payload["missing"],
+            "next_steps": _filing_instructions(agency) if agency else ["Pick an agency and file the complaint yourself."],
+        }
+
+    text = complaint_wizard.generate_complaint_text(
+        ComplaintDraft(
+            id=session_id,
+            user_id="",
+            agency_id=payload["agency_id"],
+            subject=payload["subject"],
+            description=payload["description"],
+            incident_dates=payload["incident_dates"],
+            respondent_name=payload["respondent_name"],
+            respondent_company=payload["respondent_company"],
+            respondent_address=payload["respondent_address"],
+            respondent_phone=payload["respondent_phone"],
+            relief_sought=payload["relief_sought"],
+            damages_claimed=payload["damages_claimed"],
+            created_at=utc_now(),
+            updated_at=utc_now(),
+        )
+    )
+    return {
+        "status": "prepared",
+        "complaint_text": text,
+        "agency": agency.name if agency else None,
+        "filing_url": agency.filing_url if agency else None,
+        "checklist": complaint_wizard.get_filing_checklist(payload["agency_id"]) if agency else None,
+        "missing": payload["missing"],
+        "next_steps": _filing_instructions(agency) if agency else ["Pick an agency and file the complaint yourself."],
+        "note": "Nothing was filed and nothing was stored. You file it yourself — the steps above say where.",
+    }
 
 
 # =============================================================================
@@ -527,7 +631,7 @@ async def get_wizard_session(session_id: str) -> WizardSession:
 
 
 class SubmitComplaintRequest(BaseModel):
-    """Request to submit a complaint."""
+    """Request to prepare a complaint for filing."""
 
     agency_id: str
     complaint_type: str = "general"
@@ -536,29 +640,80 @@ class SubmitComplaintRequest(BaseModel):
     detailed_description: str | None = None
     target_type: str | None = None
     target_name: str | None = None
+    session_id: str | None = None
 
 
 @router.post("/submit")
-async def submit_complaint(request: SubmitComplaintRequest) -> dict:
-    """Submit a complaint to an agency."""
-    # Validate agency exists
-    agency = complaint_wizard.get_agency(request.agency_id)
+async def submit_complaint(
+    request_body: SubmitComplaintRequest,
+    request: Request,
+    user_id: str | None = Depends(get_optional_user_id),
+) -> dict:
+    """Prepare a complaint draft for the tenant to file.
+
+    Creates a real draft marked ready — Semptify does not file on the
+    tenant's behalf. With a wizard ``session_id``, answers collected in the
+    session fill in fields not given explicitly.
+    """
+    agency = complaint_wizard.get_agency(request_body.agency_id)
     if not agency:
         raise HTTPException(status_code=422, detail="Invalid agency_id")
 
-    # Create a draft and mark it ready for submission
-    draft_id = make_id("cmp")
+    collected: dict = {}
+    if request_body.session_id:
+        collected = complaint_wizard.wizard_finish(request_body.session_id) or {}
 
+    subject = request_body.subject or collected.get("subject") or ""
+    description = (
+        request_body.detailed_description
+        or request_body.summary
+        or collected.get("description")
+        or ""
+    )
+    respondent_name = request_body.target_name or collected.get("respondent_name") or ""
+
+    uid = get_user_id_from_request(request, user_id)
+    user = await build_context_for_user_id(uid)
+    if user is None:
+        return {
+            "status": "prepared",
+            "draft_id": None,
+            "agency": agency.name,
+            "agency_id": request_body.agency_id,
+            "subject": subject,
+            "description": description,
+            "respondent_name": respondent_name,
+            "created_at": utc_now().isoformat(),
+            "filing_url": agency.filing_url,
+            "next_steps": _filing_instructions(agency),
+            "note": "Nothing was filed and nothing was stored. You file it yourself — the steps above say where.",
+        }
+
+    draft = await complaint_wizard.create_draft_vault(
+        user,
+        agency_id=request_body.agency_id,
+        subject=sanitize_user_input(subject),
+        complaint_type=request_body.complaint_type,
+    )
+    draft = await complaint_wizard.update_draft_vault(
+        user,
+        draft.id,
+        description=description,
+        incident_dates=collected.get("incident_dates") or [],
+        respondent_name=respondent_name,
+        respondent_company=collected.get("respondent_company") or "",
+        respondent_address=collected.get("respondent_address") or "",
+        respondent_phone=collected.get("respondent_phone") or "",
+        relief_sought=collected.get("relief_sought") or "",
+        status=ComplaintStatus.READY.value,
+    )
     return {
-        "status": "submitted",
-        "complaint_id": draft_id,
+        "status": "ready_to_file",
+        "draft_id": draft.id,
         "agency": agency.name,
-        "agency_id": request.agency_id,
-        "subject": request.subject,
-        "created_at": utc_now().isoformat(),
-        "next_steps": [
-            f"Complaint submitted to {agency.name}",
-            f"Expected response in ~{agency.typical_response_days} days",
-            "Keep your complaint ID for reference",
-        ],
+        "agency_id": request_body.agency_id,
+        "subject": draft.subject,
+        "created_at": draft.created_at.isoformat(),
+        "filing_url": agency.filing_url,
+        "next_steps": _filing_instructions(agency),
     }

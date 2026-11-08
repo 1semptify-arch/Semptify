@@ -188,15 +188,20 @@ async def semptify_exception_handler(request: Request, exc: Exception) -> JSONRe
         return create_error_response(user_error)
 
     elif isinstance(exc, RequestValidationError):
+        # Strip the "ctx" key from each error — pydantic embeds the raw
+        # exception object there and it is not JSON-serializable.
+        raw_errors = [
+            {k: v for k, v in error.items() if k != "ctx"} for error in exc.errors()
+        ]
         validation_errors = []
-        for error in exc.errors():
+        for error in raw_errors:
             field = " -> ".join(str(loc) for loc in error["loc"])
             validation_errors.append(f"{field}: {error['msg']}")
 
         user_error = ValidationError(
             message=f"Validation failed: {', '.join(validation_errors)}",
             error_code="VALIDATION_ERROR",
-            details={"validation_errors": exc.errors()},
+            details={"validation_errors": raw_errors},
             user_message="Invalid input data. Please check all fields and try again.",
         )
         return create_error_response(user_error)

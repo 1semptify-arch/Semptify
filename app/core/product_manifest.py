@@ -763,7 +763,18 @@ _register(
     upl_risk_tier=UPLRiskTier.MEDIUM,
 )
 # _register("app.modules.legal_filing.router", tags=("Legal Filing",), tier=ProductTier.EXTENDED)  # INACTIVE: Not integrated with mesh/network
-_register("app.modules.legal_trails.router", tags=("Legal Trails",), tier=ProductTier.EXTENDED)
+_register(
+    "app.modules.legal_trails.router",
+    tags=("Legal Trails",),
+    tier=ProductTier.EXTENDED,
+    dev_notes=(
+        "Tenant-facing accountability tracker. Records persist per-user as "
+        "LEGAL_TRAIL_RECORD overlays in VAULT_RECORDS_FILE (was: global "
+        "in-memory dicts, unauthenticated — replaced 2026-11-06, legal-ui "
+        "slice 3). Every endpoint requires a session (require_tier T2). "
+        "Page served at GET /legal-trails/; JSON overview moved to /overview."
+    ),
+)
 _register(
     "app.modules.legal.router",
     tags=("Legal", "Court Filing", "Discovery", "Exhibits", "Workspace"),

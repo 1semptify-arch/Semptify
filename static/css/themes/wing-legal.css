@@ -1,0 +1,45 @@
+/* ============================================================================
+   WING: LEGAL AID & COURTS
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3 — see wing-base.css for the contract)
+
+   Look: "Brief". Dense, citation margin, statute text verbatim — respects
+   how lawyers read.
+     Archetype : brief (static/css/archetypes/brief.css)
+     Type      : serif body + mono citations
+     Accent    : slate-blue
+     Imagery   : none
+   ============================================================================ */
+
+body[data-theme="legal"] {
+  --role-accent: #5c7a99;
+  --role-deep: #3a4f66;
+  --role-tint: #e8edf2;
+  --shell-sage: #5c7a99;
+
+  --font-head: var(--font-serif);
+  --font-display: var(--font-serif);
+  --font-body: var(--font-serif);
+}
+
+body[data-theme="legal"] .shell-main,
+body[data-theme="legal"] main {
+  font-family: var(--font-serif);
+}
+
+/* Citations, section symbols, statute references — mono, the way a brief
+   sets them apart from prose. */
+body[data-theme="legal"] .citation,
+body[data-theme="legal"] cite,
+body[data-theme="legal"] .statute-ref,
+body[data-theme="legal"] code {
+  font-family: var(--font-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  html body.shell[data-theme="legal"] {
+    --role-accent: #8ba3bf;
+    --role-deep: #a9bdd4;
+    --role-tint: #272e36;
+    --shell-sage: #8ba3bf;
+  }
+}

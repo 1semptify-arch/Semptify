@@ -1,0 +1,119 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}Volunteer — Semptify{% endblock %}
+{% block description %}Ways to give time to Semptify: code, review, testing, and — when it is ready — translation. Everything is public and every change is reviewed by a person.{% endblock %}
+{% block keywords %}volunteer semptify, contribute tenant rights, open source housing, give time nonprofit{% endblock %}
+
+{% block header_title %}Volunteer{% endblock %}
+{% block header_tagline %}Ways to give time{% endblock %}
+{% block header_subtitle %}Semptify is a public utility for tenants. It is built in the open, and every change is reviewed by a person before it ships.{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .vol-note {
+        background: var(--bg-surface); border-radius: var(--radius-block);
+        padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+    }
+    .vol-note p { margin: 0 0 0.6rem 0; }
+    .vol-note p:last-child { margin-bottom: 0; }
+
+    .vol-list { list-style: none; margin: 0.5rem 0 0 0; padding: 0; }
+    .vol-list li { padding: 0.85rem 0; border-top: 1px solid var(--border-color); }
+    .vol-list li:first-child { border-top: none; }
+    .vol-name { font-weight: 700; color: var(--color-primary); font-size: 1rem; }
+    .vol-desc { font-size: 0.9rem; color: var(--text-secondary); margin: 0.2rem 0 0; line-height: 1.55; }
+
+    .vol-rules { margin: 0.5rem 0 0 1.25rem; color: var(--text-secondary); line-height: 1.7; }
+    .vol-rules li { margin-bottom: 0.4rem; }
+    .vol-small { font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; }
+</style>
+{% endblock %}
+
+{% block page_body %}
+
+<section class="section">
+    <div class="vol-note">
+        <p><strong>What this page is.</strong> An honest list of the help
+        Semptify actually needs, and how to start. Semptify is small — the
+        work is public, the review is human, and nothing is asked of you
+        that a person in crisis would pay for.</p>
+        <p><strong>What this page is not.</strong> There is nothing to join,
+        no sign-up, and no commitment. You do as much or as little as you
+        like, through GitHub, in the open.</p>
+    </div>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Ways to give time</h2>
+    <ul class="vol-list">
+        <li>
+            <span class="vol-name">Code</span>
+            <p class="vol-desc">Pick an open issue — the ones tagged
+            <code>good first issue</code> are the gentlest place to start —
+            and open a pull request that links it. The developer kit and
+            setup guide are on the
+            <a href="/developers">developers page</a>.</p>
+        </li>
+        <li>
+            <span class="vol-name">Review the words</span>
+            <p class="vol-desc">Read a public page or guide and say what is
+            unclear, wrong, or out of date. Plain-language review is real
+            help — the people reading these pages are often in crisis.</p>
+        </li>
+        <li>
+            <span class="vol-name">Test it</span>
+            <p class="vol-desc">Use the site, try to break it, and file what
+            broke with the steps that caused it. Bugs found before a tenant
+            hits them matter.</p>
+        </li>
+        <li>
+            <span class="vol-name">Translation — not yet</span>
+            <p class="vol-desc">Real translations are planned but deferred
+            until they can be done properly. Bilingual reviewers are welcome
+            to watch the repository for when that work opens.</p>
+        </li>
+        <li>
+            <span class="vol-name">Suggest a resource</span>
+            <p class="vol-desc">Know a legal aid office or tenant group that
+            should be listed? Every outside resource Semptify lists is
+            reviewed and approved by a person first — suggestions go through
+            GitHub or the <a href="/contact">contact page</a>.</p>
+        </li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">The ground rules</h2>
+    <p class="section-description">These apply to every contribution, however
+    small — they are the same rules the site itself follows.</p>
+    <ul class="vol-rules">
+        <li>Plain, calm language. No urgency, no pressure, no selling.</li>
+        <li>No accounts, ads, tracking, or anything that keeps people on the
+        site instead of getting them to real help.</li>
+        <li>A tenant's records stay in their own storage. Features respect
+        that model.</li>
+        <li>No dead ends — every page routes a person toward real help.</li>
+        <li>Honest status only — if it is not built, the page says so.</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">How to start</h2>
+    <p class="section-description">One step: open the repository. The
+    contribution guide there covers setup, the ground rules in detail, and
+    what a good first pull request looks like.</p>
+    <p class="vol-small">
+        If code is not your thing, reviewing pages and testing the tools
+        need nothing installed at all — the
+        <a href="/feedback">feedback form</a> is enough.
+    </p>
+</section>
+
+<section class="cta-section">
+    <h2>Start with the repository</h2>
+    <a href="https://github.com/1semptify-arch/Semptify" class="cta-button-large">Open Semptify on GitHub →</a>
+    <p style="margin-top: 1rem;"><a href="/developers">Developer hub and API docs →</a></p>
+</section>
+
+{% endblock %}

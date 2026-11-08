@@ -1,0 +1,50 @@
+/* ============================================================================
+   ARCHETYPE: OPEN REPORT — Supporters wing
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3)
+
+   Numbers, plain story, where money goes — transparency, never a sales
+   page. No urgency, no persuasion devices. Applied via
+   `data-arch="open-report"` on <body>.
+   ============================================================================ */
+
+body[data-arch="open-report"] .shell-main,
+body[data-arch="open-report"] main {
+  max-width: 48rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+/* The report figure — a number with its plain caption and its source.
+   Every figure in this wing shows where it came from. */
+body[data-arch="open-report"] .or-figure {
+  margin: 0 0 1.75rem;
+}
+body[data-arch="open-report"] .or-number {
+  font-size: 2.25rem;
+  font-weight: 600;
+  color: var(--role-deep);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+body[data-arch="open-report"] .or-caption {
+  margin: 0.25rem 0 0;
+}
+body[data-arch="open-report"] .or-source {
+  font-size: 0.8rem;
+  color: var(--shell-ink-3, var(--text-muted));
+  margin: 0.15rem 0 0;
+}
+
+/* "Where money goes" rows — category, amount, share. Plain rows, hairline
+   separation, tabular figures. */
+body[data-arch="open-report"] .or-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--shell-line, var(--border-color));
+  font-variant-numeric: tabular-nums;
+}
+
+/* No persuasion furniture — this archetype defines no countdowns, no
+   progress thermometers, no matching-gift banners, on purpose. */

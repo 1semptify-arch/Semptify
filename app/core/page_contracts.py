@@ -1259,12 +1259,12 @@ CONTRACT_LEGAL_TRAILS = PageContract(
         help_contacts=COVERAGE_LINKED,
         system_admin_monitoring=COVERAGE_NA,
     ),
-    qualification="Authenticated user.",
-    expectations="User explores procedural paths through the legal system.",
-    scope_of_use="Guided procedural decision trees for legal navigation.",
+    qualification="Authenticated user with connected storage.",
+    expectations="User logs dated records of violations, threats, and illegal fees; sees filing windows and official next steps.",
+    scope_of_use="Tenant-facing accountability tracker. Per-user vault-overlay records (violations, eviction threats, late fees, broker oversight, claims), filing-window reminders, and draft complaint starters routed to official channels.",
     entry_criteria=["User authenticated"],
-    exit_criteria=["Trail completed or path selected"],
-    telemetry_events=["legal_trails_load", "trail_started", "trail_step_completed", "trail_path_selected"],
+    exit_criteria=["Record logged or official channel identified"],
+    telemetry_events=["legal_trails_load", "record_logged", "draft_generated"],
 )
 
 

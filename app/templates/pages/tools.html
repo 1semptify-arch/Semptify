@@ -4,12 +4,51 @@
 
 {% block main_class %}shell-main shell-main--top{% endblock %}
 
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="/bill">The Bill</a></li>
+<li class="nav-item"><a class="nav-link" href="/your-voice">Your Voice</a></li>
+<li class="nav-item"><a class="nav-link" href="/law-library">Library</a></li>
+<li class="nav-item"><a class="nav-link" href="/office">Office</a></li>
+<li class="nav-item"><a class="nav-link" href="/tools">Tools</a></li>
+<li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+{% endblock %}
+
+{% block sidebar %}
+<h2>On this page</h2>
+<ul class="shell-list">
+    <li><a href="#document-tools">Document tools</a></li>
+    <li><a href="#legal-tools">Legal tools</a></li>
+</ul>
+<h2>Semptify</h2>
+<ul class="shell-list">
+    <li><a href="/help">Get help now</a></li>
+    <li><a href="/tool-requests">Ask for a tool</a></li>
+    <li><a href="/law-library">Know your rights</a></li>
+    <li><a href="/tenant/start">Your home</a></li>
+</ul>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Tool rows are links — make that affordance visible, not just on hover. */
+    .shell-rows a { position: relative; padding-right: 2rem; }
+    .shell-rows a::after {
+        content: "→"; position: absolute; right: 0.5rem; top: 50%;
+        transform: translateY(-50%); color: var(--color-accent);
+        font-weight: 600; transition: transform 0.15s ease;
+    }
+    .shell-rows a:hover::after { transform: translate(0.2rem, -50%); }
+</style>
+{% endblock %}
+
 {% block content %}
 <p class="shell-eyebrow">Act</p>
 <h1>Tools</h1>
 <p class="shell-lede">Document generators, analysis tools, and case management utilities to help build your case.</p>
 
-<h2 class="shell-zone-title">Document tools</h2>
+<h2 class="shell-zone-title" id="document-tools">Document tools</h2>
 <nav class="shell-rows" aria-label="Document tools">
     <a href="/tenant/tools/letters">
         <span class="shell-row-name">Letter Builder</span>
@@ -25,7 +64,7 @@
     </a>
 </nav>
 
-<h2 class="shell-zone-title">Legal tools</h2>
+<h2 class="shell-zone-title" id="legal-tools">Legal tools</h2>
 <nav class="shell-rows" aria-label="Legal tools">
     <a href="/eviction-defense">
         <span class="shell-row-name">Eviction Defense Kit</span>
@@ -44,4 +83,6 @@
         <div class="shell-row-desc">Search tenant protection statutes and regulations.</div>
     </a>
 </nav>
+
+<p class="shell-lede"><a href="/toolbox">See every tool Semptify mentions and exactly where it stands →</a></p>
 {% endblock %}

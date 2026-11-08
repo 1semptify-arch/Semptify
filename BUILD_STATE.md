@@ -1,4 +1,603 @@
+## Session — 2026-11-07 — /bill/live two-tab view: clean statute + drafting notes (swe-2)
+
+### Guardrail Engine Run — 2026-11-07T22:23:21+00:00
+## Session — 2026-11-07 — P9 builders: API docs, SDK guide, contribution guide, volunteer page, self-host kit (swe-2, task sorg-p9-builders)
+
+### Guardrail Engine Run — 2026-11-07T05:58:18+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: FAIL — Check crashed while running.
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-07T21:18:53+00:00
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (22 live, 26 partial, 10 planned, 4 vision)
+
+All checks passed.
+
+- **Shipped (worktree `worktrees/p9-builders`, branch `feat/p9-builders`):**
+  - **Public API docs ON (Brad's 2026-11-02 decision):** `/api/docs`, `/api/redoc`, `/api/openapi.json` now pass the storage gate. Root cause was a path mismatch — the middleware whitelisted `/docs`, `/redoc`, `/openapi.json`, but FastAPI mounts docs under `/api/`.
+  - **Public-only OpenAPI schema:** `create_app()` wraps `fastapi_app.openapi` — builds the full schema via FastAPI's own machinery, then keeps only `/api/` paths where `is_public_path()` is true, drops now-empty tag groups, and relabels the description. Result verified live: 49 paths, every one anonymously callable; auth-required endpoints are not in the schema. NOTE: FastAPI 0.141 `include_router` is lazy (`_IncludedRouter` nodes) — `app.routes` does NOT contain the included routers' paths, so filtering route objects does not work; filtering the generated `paths` dict does.
+  - **Restored missing public-forms whitelist (P6 gap, root cause):** this branch lacked main's public-form entries (`/api/feedback`, `/api/tool-request(s)`, `/api/voice-post(s)`, `/api/contact`, `/api/tenant/autofill`) and P6's new `/api/story`, `/api/stories` had never been whitelisted anywhere — anonymous civic endpoints were 401ing. All are now in `PUBLIC_PATHS`, which is also what the public schema enumerates.
+  - **`/toolbox/{entry_id}` detail pages made public** (`/toolbox/` added to `PUBLIC_PREFIXES`) — they 302'd to onboarding despite serving data identical to the already-public list page and `/api/portal/toolbox/{id}` JSON.
+  - **New public page `/volunteer`** (registry + `public/volunteer.html`, public shell): what it is/isn't → ways to give time → ground rules → one next step (GitHub). `/your-voice` and `/donate` now link to it.
+  - **`/developers` rewritten to honest surface:** live `/api/docs` + `/api/redoc` + `/api/openapi.json` links, SDK pointer to `docs/SDK_GUIDE.md`, self-host pointer to `docs/SELF_HOST.md`, marketplace described as long-term goal, `/volunteer` linked.
+  - **`CONTRIBUTING.md` expanded:** public-utility framing, contribution paths (code/review/testing/translation-deferred/resource suggestions), ground rules (3.11.9, voice rules, no PII server-side, no dead ends), verification commands.
+  - **New docs:** `docs/SDK_GUIDE.md` (module SDK, `app.sdk.vault` VaultClient, least-privilege external clients — honest "in-repo, not packaged" status) and `docs/SELF_HOST.md` (Python 3.11.9 venv, open mode, enforced mode with user-owned OAuth apps, Docker; no packaged appliance yet). Both mapped in `docs/doc-map.yaml`.
+  - **Toolbox flips:** `api_docs` planned→live (`/api/docs`), `volunteer` planned→live (`/volunteer`), `self_host_kit` vision→partial (`docs/SELF_HOST.md`); `external_sdk` + `module_marketplace` notes refreshed (stays partial/vision). Catalog now 22 live, 26 partial, 10 planned, 4 vision.
+  - `tools/checks/toolbox_truth_check.py`: `/api/docs`, `/api/redoc`, `/api/openapi.json` added to `KNOWN_PUBLIC_PATHS`.
+- **Verified live (:8123, SECURITY_MODE=enforced, real uvicorn):** all public surfaces 200 — `/api/docs`, `/api/redoc`, `/api/openapi.json`, `/volunteer`, `/developers`, `/toolbox`, all 5 `/toolbox/{id}` detail pages; protected `/api/journal/*`, `/api/vault/*` still 401; unknown `/toolbox/bad-id` renders catalog at 404 (no dead end). OpenAPI schema = 49 paths, all publicly callable. Browser (IronBee): `/volunteer` at 375px clean + chronological (intro→ways→rules→next step), `/developers` at 1280px clean, `/api/docs` Swagger UI renders only real public groups, `/toolbox/api_docs` detail page correct.
+- **Tests:** `py_compile` clean on all changed files; guardrail 8/8 PASS; module_health scoped tests 11/11 (portal_toolbox ×7, public_exposure, public_forms, portal, page_shell). Full module_health run: 187 passed, 69 errors — ALL environmental `sqlite3.OperationalError: database or disk is full` at test setup (C: drive 100% full again, 234MB free at check time).
+- **Env notes:** worktree has no `.env` — all runs used `SECRET_KEY`/`SECURITY_MODE` passed inline (borrowed from the existing dev `.env`, nothing written). Port 8001 was already occupied by a stale server — verified on :8123. Port 8001 result earlier (docs 200 / volunteer 404 / toolbox 404) was the OLD server, not this branch.
+- **Pending:** Brad reviews + merges `feat/p9-builders`. After merge, prod will serve public docs once deployed. Swagger UI (CDN, `swagger-ui-dist@5`) logs two internal TypeErrors during init on this stack — cosmetic vendor noise, page fully renders and works.
+
+## Session — 2026-11-07 — P6 civic public-voice pipeline (swe-2, task sorg-p6-civic)
+
+### Guardrail Engine Run — 2026-11-07T05:22:09+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (22 live, 26 partial, 10 planned, 4 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-07T05:21:47+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (22 live, 26 partial, 10 planned, 4 vision)
+
+One or more checks failed — see console output.
+
+- **Shipped (worktree `semptify-wt-toolbox`, branch `feat/toolbox-service-stubs`):** checkpoint `77bd06e1` (prior session, died mid-run) + `9ba3243a` contract fix this session.
+  - New public pages: `/tell-your-story` (anonymous story submit + moderated list) and `/reach-legislators` (official .gov-only lookup links, MN + federal). Page registry entries added in `portal/pages.py`.
+  - New public API: `POST /api/story`, `GET /api/stories` in `public_forms` (rate-limited 5/min, fixed subject set, no name/email by design).
+  - New admin lane: `/admin/public-voice` page + 4 `admin_api` endpoints (`GET /admin/api/public-forms/pending`; `POST .../voice-posts/{id}`, `.../tool-requests/{id}`, `.../stories/{id}`) — publish / answer / decline / unpublish for voice posts and tool requests, publish/unpublish with anonymizing edits for stories. All behind `require_elevation`; admin nav entry added.
+  - Toolbox flips: `reach_legislators` planned→live, `tell_your_story` partial→live, `your_voice` note updated to point at the review lane. Catalog now 20 live.
+  - `error_handling.py`: strips non-JSON-serializable `ctx` from pydantic validation errors (was 500ing on bad input).
+  - `9ba3243a`: `admin_public_voice_review` contract was missing `allowed_routes` — `contract_route_check` failed until the 4 new routes were declared.
+- **Verified live (:8014, local SQLite):** public pages 200; story submit→pending→admin publish (with edit applied)→public list; voice post→answer→visible with responder label on /your-voice; tool request→publish→visible. Browser: real admin login → elevation cookie → `/admin/public-voice` renders queues, in-page Publish works. 375px no horizontal overflow; console clean (only WS info logs).
+- **Tests:** `tests/test_public_voice.py` 15/15; module_health scope tests 11/11 (portal_toolbox, public_forms, portal, context_engine, admin_console). Full module_health run: 189 passed, 67 errors — ALL environmental (`database or disk is full` / tmp_path failures; C: hit 100%). Guardrail: ALL CHECKS PASSED.
+- **Env notes:** C: drive was 100% full during this session (17MB at worst; ~300MB after pip-cache purge) — disk starvation caused test errors + probably contributed to the prior session's mid-run death. Worktree has no `.env` — verification ran with explicit `SECRET_KEY`/`MASTER_KEY`/`ADMIN_*`/`DATABASE_URL` env vars (throwaway dev values, nothing written). Stray `nul` file + `semptify-dev-verify.db` left untracked in the worktree (deletion is off-limits for agents).
+- **Pending:** Brad reviews + merges `feat/toolbox-service-stubs`; admin lane needs real `ADMIN_PASSWORD`/`ADMIN_TOTP_SECRET` in prod env.
+
+## Session — 2026-11-06 — P5 complaint wizard backend completion (swe-2, task sorg-p5-action)
+
+### Guardrail Engine Run — 2026-11-07T04:36:57+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-07T21:10:33+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-07T04:36:14+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — 4 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+**Queue task `plan-20261105-add-clean-working-statute-tab-on-bill-li-9670`** (master queue, trusted) — 2026-11-05 evaluation found legislative staff see raw drafting shorthand on /bill/live.
+
+**What shipped:**
+- `app/modules/portal/service.py` — new `bill_statute_view(draft_html)` pure
+  transform: cuts the published `bill_draft.html` between the act name and
+  the "Locked clauses" notes tail, strips `*(…)*` drafting annotations
+  (Locked/NEEDS BRAD/REMEDIATION/Open drafting Q — including ones spanning
+  the publish pipeline's `</p><p>` line wraps), promotes `**X-Y. …**`
+  run-ins to `h4.clause-head`, `**`→`<strong>`, `*…*`→`<em>` (merging
+  wrapped paragraphs inside), `---`→`<hr class="bill-rule">`, empties
+  removed. Returns None on missing markers → template falls back to the
+  raw include (no dead end).
+- `app/main.py` — `bill_live` context hook next to the `bill_research`
+  precedent: reads `bill_draft.html`, injects `bill_statute_html`.
+- `app/templates/public/bill_live.html` — two tabs (`role=tablist`, arrow
+  keys, `aria-selected`/`tabpanel`/`hidden` wiring): **The working
+  statute** (derived clean view) and **Drafting notes & change log**
+  (verbatim `bill_draft.html` include + GitHub file-history link). Tab
+  chrome ships `hidden` and is only revealed by the inline script —
+  without JS both sections stack in order, fully readable. Northstar
+  tokens; tabs flex-wrap on mobile.
+- `tests/test_bill_live_views.py` — 4 tests: markers canary on the real
+  published partial (fails loudly if the case-side publish format
+  changes), shorthand-strip assertions, structure, None fallbacks.
+- `PORTS.md` (master-repo) — claimed 8025 as the ad-hoc verification
+  instance (8001 dev server is session-owned; verified there first that
+  old code + new template degrades cleanly to the raw include).
+
+**Design note:** clean view is derived at render time from the same file
+the notes tab renders verbatim — no second source copy, so the two tabs
+can never drift apart when the case-side `publish_bill.py` next runs.
+
+**Verified:** py_compile service.py+main.py; `test_bill_live_views` 4/4;
+IronBee live on :8025 — tab 1 shorthand-free (ARIA: 21 clause h4s, 4
+titles, em notes merged), tab 2 verbatim file + history link, both
+directions switch, 375px + 1280px screenshots clean, console clear.
+
+## Session — 2026-11-07 — /turnbuchalla public bill record ledgers (swe-2)
+
+### Guardrail Engine Run — 2026-11-07T18:51:02+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-07T17:47:28+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: FAIL — Check crashed while running.
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+One or more checks failed — see console output.
+
+- New static mount `/turnbuchalla` → `app/static/turnbuchalla` (html=True) in
+  `app/main.py`; public-path exemptions added in `storage_middleware.py` and
+  `checkpoint_middleware.py` so the bill pages serve without auth/checkpoint.
+- `record.html` ledgers (editions / who-stands-where / build log) now render
+  from case-side JSONL registers via `build_record.py` — markers
+  `LED:<NAME>:START/END`, empty-state paragraphs toggle on register contents,
+  all register text HTML-escaped.
+- `build_record.py` is idempotent: sha256 of the page with BUILDS regions
+  masked decides whether to write + log; a builds-register backlog is caught
+  up without logging (no feedback loop, never one row behind).
+- `build_platform.py` now appends to `registers/builds.jsonl` only when the
+  generated bill output actually changes.
+- Registers are case-side SSOT:
+  `E:\<case-bundle>\06_The_Bill_Turnbucapp\registers\`
+  (editions 9 rows seeded E-01–E-09; positions intentionally empty;
+  builds 3 rows). Repo copies under `app/static/turnbuchalla/` are mirrors.
+- style.css: `table.ledger` stacks to labeled rows at ≤640px (scoped to
+  record.html's ledgers; references.html table untouched).
+- Verified: py_compile all touched files (venv311/3.11.9); live app on
+  :8001 — `/turnbuchalla`, `/turnbuchalla/record.html`, `style.css` all 200;
+  IronBee browser: all 9 edition rows + empty positions state + 3 build
+  rows render; zero console messages; 375px stacked and 1280px table both
+  confirmed via screenshot.
+- Resubmission pass (later 2026-11-07, same session line): re-verified —
+  `pytest tests/module_health` 260/260; guardrail engine 8/9 PASS
+  (`stub_check` crashed on a 120s `stub_detector.py` subprocess timeout —
+  same crash recorded in the 2026-11-06 lazy-imports run, pre-existing and
+  unrelated to this change); `/turnbuchalla` live 200s re-confirmed with
+  rendered ledger rows. Committed this entry + builder
+  `LEGISLATOR_CONTACTS_2026-11-03.md` / `LEGISLATOR_ROSTER_2026-11-03.csv`
+  (who-stands-where source data, previously untracked).
+- Case-side files are outside the repo — no commit path for them; noted
+  in the task report.
+
+## Session — 2026-11-06 — Lazy router imports for Render free-tier cold boot (swe-2)
+
+### Guardrail Engine Run — 2026-11-06T21:09:52+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: FAIL — Check crashed while running.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-06T19:14:09+00:00
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-07T04:25:35+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (20 live, 25 partial, 12 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-06T20:38:42+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-06T19:04:12+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+**Queue task `plan-20261101-slim-app-startup-for-render-free-tier-co-75c2`** (master queue, trusted) — root-cause fix for the 2026-10-31 entry's "real fix = slim startup (lazy router imports)": cold boot was ~60s of module imports inside `create_app()` plus staged setup, all before uvicorn binds the port (uvicorn binds only after `config.load()` + lifespan startup), exceeding Render's port-scan window → exit-3 crash loop during the Neon outage.
+
+**What shipped:**
+- `app/core/lazy_routers.py` (new) — deferred registration machinery: `defer_router_registration()` stashes enabled tiers on `app.state` + installs a warmup gate middleware; `run_deferred_registration()` runs `load_all_contracts` → `register_tiers` → `scan_public_routes` in a thread executor (KF#19 — imports never block the loop) then flips `routers_ready`. Warmup gate returns 503 + `Retry-After: 3` (self-refreshing HTML for browsers, JSON for API) for non-exempt paths; `/health`, `/static`, `/assets`, `/public`, `/.well-known`, `/components/footer`, `/`, `/welcome.html`, `/activate-vault`, and all portal-registry pages keep serving during warmup (never a dead end — retry page links home + standalone help).
+- `app/main.py` — `register_tiers`, the pre-audit `load_all_contracts` + `scan_public_routes`, and the DEV-tier document-center mount all defer when lazy mode is on; lifespan spawns the warmup task at the top so imports overlap staged setup; contract-load stage skips itself (now owned by warmup); warmup task cancelled on shutdown. Also removed two unused module-level imports (`retrieve_explanations`, `select_tapered_variant`) and moved `get_explanation_for_guide` to function-level imports (6 guide handlers) per file convention.
+- PEP 562 lazy `router` exports in `context_engine`, `case_builder`, `ui_composer` `__init__.py` — stops `from app.modules.X.anything` (e.g. `app.models.models` → `context_engine.models` via `app.core.security`; `fca_guard`) from dragging the full router chain into the import path.
+- `context_engine/constants.py` (new leaf) holds `EMBEDDING_DIMENSIONS = 384`; `models.py` imports it there instead of via `embedding_model` (which pulls numpy); `embedding_model` re-exports it for compatibility.
+- **Activation:** auto-on under `DEPLOY_TARGET=render_mvp` (Render prod). `SEMPTIFY_LAZY_ROUTERS=1/0` force on/off — the rollback escape hatch mirrors `ENABLE_HEAVY_SERVICES`. Dev/tests unchanged (eager path).
+
+**Verified:** `py_compile` all changed files; `pytest tests/module_health` 253/253, `test_ssot_architecture` + `test_runtime_profile` 11/11. Live lazy-mode boot (uvicorn, render_mvp env): port bound ~14s after process start (was ~22s+ eager locally; prod delta larger since import phase dominates on the weak free-tier CPU); warmup task registered all 53 MVP routers + 49 contract modules ~4s post-bind; gate returned 503+Retry-After for gated paths during warmup and 200/401-real-route after; exempt paths served throughout. Local eager path (`SEMPTIFY_LAZY_ROUTERS=0`) still registers 282 routes.
+
+**Not verified / flags for review:** (1) local box is much faster than Render free tier — prod gains estimated, not measured; watch first deploy logs. (2) Lifespan stages still block the bind (~7s local; migrations can be slower during DB trouble — a separate failure mode, not addressed here). (3) Forcing `SEMPTIFY_LAZY_ROUTERS=1` outside render_mvp skips the explicit `document_center.intake_router` mount (manifest covers `document_center.router` at /api/dc regardless). (4) If the warmup task itself fails, the gate stays up (503s) and logs a critical error rather than crash-looping — deliberate, but means a broken warmup reports "live" on port scan.
+BUILD_STATE.md entry was initially left uncommitted (file carried another session's pending edits); committed in the 2026-11-07 resubmission pass.
+
+**Re-verified 2026-11-07 (auto-bounce resubmission, swe-2):** py_compile clean on all 8 changed files; `pytest tests/module_health tests/test_ssot_architecture.py tests/test_runtime_profile.py` 264/264 PASS; guardrail engine 8/8 PASS; live `DEPLOY_TARGET=render_mvp` boot — warmup registered 53 routers + route audit clean, gate opened, /health 200, gated route serving post-warmup. Box was disk-bound (C: 100%) so wall-clock timings are not prod-representative — first Render deploy logs remain the real check.
+
+## Session — 2026-11-06 — Credit-report pull guide public page (swe-2)
+
+**Queue task `plan-20261027-semptify-feature-credit-report-pull-guid-cf67`** (master queue, trusted) — case-derived (case-side `STEPS_credit_reports.md` workflow doc), generalized for tenants: a self-help guide teaching renters to pull all 3 bureau reports from AnnualCreditReport.com, save them, and scan for landlord/collector tradelines. DIY, no paid service, no sign-up, no credit-score upsell.
+
+**What shipped:**
+- `app/modules/portal/pages.py` — additive `PortalPage` entry `credit_reports` (`/credit-reports`, footer label "Credit reports", order 62); route auto-generates from the registry.
+- `app/templates/public/credit_reports.html` — new public page on `body/public_shell.html`: why look → what you need → the six steps (type the URL, identity form, security questions + 1-877-322-8228 phone fallback, all 3 bureaus, save as PDF, scan for landlord/collector entries) → what to look for → dispute pointer (15 U.S.C. § 1681i + CFPB) → what to skip (look-alike/paid/score-upsell sites) → not-lawyers banner → sources (FTC ×2, CFPB ×2, govinfo) → external CTA to annualcreditreport.com.
+
+**Verified:** `py_compile` PASS; live on 127.0.0.1:8002 — 200, full ARIA tree in chronological order, desktop-poster (1280px, internal work-zone scroll) + mobile-stacked-scroll (375px) screenshots clean, console clean, `test_ssot_architecture` 8/8; banned-language scan clean ("free" only in official program/button names — permitted exception). Facts checked against CFPB/FTC/annualcreditreport.com (authorized site, weekly reports permanent, phone number, ~15-day mail timing, no score included).
+**Not verified / noted for reviewer:** global footer already carries the canonical AI-use notice, so no in-body copy (unlike the sibling `credit` explainer's articles.json format); composer subject `credit` remains unregistered in taxonomy (same product decision flagged on the explainer task); stale uvicorn on port 8001 left running untouched — verification used 8002.
+**Out of scope, logged:** whether this guide should ALSO be staged as a second article in `app/data/articles/credit/articles.json` — the staging catalog row described a guide page; pipeline staging would be a separate task.
+
+## Session — 2026-11-06 — Credit-reporting mission explainer, KNOW pillar (swe-2)
+
+**Queue task `plan-20261027-semptify-mission-angle-credit-industry-a-332e`** (master queue, trusted) — case-derived mission fuel (RRS/Velair tradeline fight): a KNOW-pillar explainer on how the credit-reporting system actually works — no-consent model, furnisher duties, the real remedies (statutory/punitive damages + fee-shifting under FCRA/FDCPA), and why the dispute paper-trail sequence is the leverage. Education-only framing.
+
+**What shipped:**
+- `app/data/articles/credit/content_request.json` — new composer subject `credit` (pillar: know), one `system_explainer` article declared, upl_risk_tier high.
+- `app/data/articles/credit/articles.json` — the explainer, drafted per `docs/content_request_convention.md`: 16 paragraphs covering the voluntary/no-consent furnishing model (15 U.S.C. § 1681b), bureau reinvestigation duties (§ 1681i), furnisher duties incl. direct-dispute (§ 1681s-2), FCRA remedies (§§ 1681n/1681o/1681p), FDCPA layer (§§ 1692e/1692f/1692k), 7-year reporting window (§ 1681c), MN layer (chs. 13C/332), and the paper-trail-as-leverage analysis (labeled analysis, not law). 21 sources — all official (govinfo.gov statute text quoted verbatim, consumerfinance.gov, consumer.ftc.gov, revisor.mn.gov). Canonical AI-disclosure footer included verbatim; review_status BETA.
+
+**Verified:** both JSON files parse; banned-language scan clean (no evidence/proof/adversarial/business-model terms; "free" only in statute quote + FTC external-program description — permitted); `py_compile app/main.py` PASS.
+**Not verified / noted for reviewer:** `credit` is not in `context_engine/taxonomy.py` `Subject` enum — the article is content-only and unreachable by any live page until a subject is added (product decision, out of scope here). Nothing in `app/` renders `app/data/articles/` yet; this is pipeline-staged content.
+
+---
+
+## Session — 2026-11-06 — Commit-boundary separation + legacy-cleanup closeout (swe-2)
+
+### Guardrail Engine Run — 2026-11-06T11:30:10+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-06T10:54:51+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+- Resumed `plan-20261026-old-site-content-cleanup-legacy-imported-7070` after
+  Brad's desk unblock. The prior run had committed 8 cleanup templates
+  (f6254a27) but stopped at a commit boundary: its remaining edits
+  (registry.py visible=False + de-claims, pages.py metadata) were
+  hunk-interleaved with ~600 lines of an earlier session's uncommitted
+  pillar/journey work.
+- Separated at hunk level: committed the recovered pillar/journey/contrast
+  work under its own task (6767ed4d, `plan-20261102-build-the-6-pillar-…-e44b`
+  — /portal as six-pillar journey, step_map.py SSOT, text-contrast AA pass),
+  then the cleanup remainder under -7070 (832a3e13: role portals hidden
+  visible=False, de-claimed registry copy, pages.py metadata).
+- bill_draft.html committed separately (publish_bill.py 2026-11-05 output,
+  titled act). Left untracked and uncommitted: LEGISLATOR_CONTACTS/ROSTER
+  2026-11-03 (case-side artifacts in public static dir — review decision),
+  _pr325_probe*.py / stub_tasks_probe.json / `nul` (session junk).
+- Closeout sweep (same session, later dispatch): full banned-language scan of
+  `app/templates/public/`, `app/templates/pages/`, `static/` found one residual
+  self-description violation — "Always free." on the emergency help page, both
+  copies (`static/public/` live + `static/911/` canonical source for the
+  independently-hosted page). Fixed to canonical "No cost, always." Verified
+  live on :8001 — all touched routes 200, zero banned phrases in rendered
+  bodies, `/static/public/semptify-help-standalone.html` serves the fix
+  (`/static/911/` is 403 by design — source only, deployed independently).
+
+## Session — 2026-11-05 — Title I statutory draft for outside-counsel redline (devin)
+
+### Guardrail Engine Run — 2026-11-06T07:24:21+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: FAIL — Check crashed while running.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-05T19:06:08+00:00
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-06T20:37:55+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+- Completed the complaint wizard backend on the toolbox branch
+  (`feat/toolbox-service-stubs`), top open entry of the P5 Next-steps phase.
+- `app/services/complaint_wizard.py`: real guided-wizard state machine —
+  5 steps (complaint_type → situation → agency → details → review), complaint
+  types with agency-recommendation keywords, ephemeral in-memory sessions
+  with a 4h TTL (nothing personal stored server-side), `wizard_start` /
+  `wizard_state` / `wizard_answer` / `wizard_finish`.
+- `app/modules/complaints/router.py`: `POST /wizard/{id}/answer` and
+  `POST /wizard/{id}/finish` are now real endpoints. Finish creates a vault
+  draft marked `ready` for an identified tenant; anonymous visitors get the
+  generated complaint text plus agency filing instructions — no dead end,
+  nothing stored.
+- **Honesty fix:** `POST /api/complaints/submit` previously returned
+  `status: "submitted"` + "Complaint submitted to {agency}" while doing
+  nothing — a user could believe a complaint reached the agency. It now
+  creates a real draft marked `ready_to_file` (or `prepared` for anonymous)
+  with instructions for filing it themselves; matches its own contract
+  ("Does NOT file on the tenant's behalf").
+- Anonymous callers of `/submit` no longer hit a 500 (`build_context_for_user_id`
+  returning None is now handled).
+- Tests: new `tests/test_complaints_wizard.py` (9 tests — step flow,
+  recommendations, validation, finish-anonymous, submit honesty).
+  `pytest tests/test_complaints_wizard.py tests/test_complaints.py
+  tests/module_health/test_complaints.py` — 27/27 pass.
+- `toolbox.py`: `complaint_wizard` entry note updated — still `partial`
+  (backend flow done; a click-through UI page is still needed).
+- Remaining P5 entries (case_builder, court_forms, court_packet,
+  deadline_engine, document_delivery, court_prep, eviction_defense): modules
+  all exist with real code and stay `partial`; not touched this session.
+
+### Guardrail Engine Run — 2026-11-06T19:08:00+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-05T18:30:52+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+**Queue task `plan-20261105-draft-title-i-as-formal-amendatory-act-a-17ce`.** Turned the bill's clause outline into amendatory-act language against Minn. Stat. § 504B.178 — the step between "model" and "introduced statute" in the 2026-11-05 evaluation roadmap.
+
+**What shipped (uncommitted):**
+- `app/static/turnbuchalla/builder/TITLE_I_STATUTORY_DRAFT_2026-11-05.md` — new subdivisions 1a (definitions), 1b (custodial escrow, 14-day transmission), 1c (1% tenant interest + net float + claims-free dividend), 3a (claims + independent adjudication + default return + conciliation-court displacement), 3b (no-subrogation/recourse lock), 3c (SDR convert-or-exclude); conforming-amendment table for existing subds. 2, 3, 9 with replacement text; skeleton-provisions list for what the Act must supply elsewhere; 5 counsel questions (3 from the evaluation + 2 found in drafting: fiduciary status under § 82.55 subd. 26, mid-tenancy transition).
+- `builder/INDEX.md` — indexed the new draft.
+
+**Verified:** § 504B.178 current text pulled from revisor.mn.gov (2026 compilation) and quoted accurately; locked clauses traced to DECISIONS.md/BILL_V2 — no conflicts found. Markdown only — no code, no py_compile applicable.
+**Open:** counsel redline (the actual next step), Title II MHFA pilot drafting, Brad confirms needed on IV-2 home agency / IV-4 sunset term / I-9 SDR clause.
+
+---
+
+## Session — 2026-11-05 — Build-time route audit guardrail (swe-2)
+
+### Guardrail Engine Run — 2026-11-05T17:05:13+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-05T17:03:26+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+**Queue task `route-scan-ad-hoc-public-routes`** — close the gap where routes registered directly on `fastapi_app` (the `/debug/*` class) were invisible to `contract_route_check.py`, which only inspects module routers via the product manifest.
+
+**What shipped:**
+- `tools/checks/route_audit_check.py` — new guardrail plugin. Builds the app via `create_app()` under the same env pins as `tests/conftest.py` (`SECURITY_MODE=open` so the widest surface mounts; `SEMPTIFY_ENV=development` so every contract tier registers), then calls `app/core/route_audit.py`'s `scan_public_routes()` — the SSOT for public/actionable/covered, no duplicated logic. Any uncovered actionable public route fails the commit. Env pins are snapshotted and restored so they can't leak into later checks in the engine process.
+
+**Verified:** standalone engine-style run — PASS, "All actionable public routes have contract coverage" (~26s; 1203 contracts, 0 load failures). Negative test: a fake `@app.get('/api/portal/ad-hoc-uncontracted-test')` is flagged; a non-public `/api/` route correctly is not. `py_compile` clean.
+
+**Noted (intake `intake-b90b1922`, low):** GET-only public routes outside `/api/` are deliberately out of audit scope (`_is_actionable`) — a GET-only `/debug/*` ad-hoc route would evade both runtime audit and this check.
+
+---
+
+## Session — 2026-11-03 — Portal reorganized by the six functions + strict text contrast + step map (devin)
+
+**Brad direction:** light text on light backgrounds is a bug; organize the UI by what Semptify does for people (six pillars) and who it serves; every step must know what it needs and what comes before/after.
+
+**What shipped (uncommitted):**
+- Contrast: `--text-secondary` #5b6470 -> #4b5560, `--text-muted` #767d8a -> #5f6772 (both >= 4.5:1 on paper/card/white); fixed self-referencing `--text-muted`/`--font-serif` vars in `public_base.html`; public-shell service buttons now #4c6b4c (6.0:1) instead of sage #6b8e6b (3.7:1 with white text); donate.html `--muted` #7a8fa6 -> #8aa0b6 (was 4.44:1). Guard: `tests/test_text_contrast.py`.
+- Portal (`/portal`) now renders the six functions in journey order (Information, Research, Documentation, Organize, Collaborate, Be Heard) then "Work with Semptify"; each service shows who it is for. Registry: `pillar` + `audiences` fields, `PILLARS`, `get_pillars_with_services()`.
+- Step map (the "brain"): `app/modules/portal/step_map.py` — per step: needs_first, how, done_when, tools; previous 2 / next 2 are derived from order. Guard: `tests/test_step_map.py`.
+- Copy: removed "Free to use" / "no cost" / "account" wording from portal, registry, and page metadata.
+
+**Verified:** `/portal` 200 with 7 pillar sections on a fresh server (port 8011); `/services`, `/donate`, `/about` 200; test_text_contrast, test_step_map, test_ssot_architecture pass.
+**NOT verified:** IronBee browser server was not available this session — no screenshots, no 375px/1280px visual check, no console check. Contrast was computed from token values, not measured in a rendered page.
+**Open:** `/services` still groups by audience (same data, older layout); other shell pages may still use the sage fill with light text; step map covers the tenant journey only.
+
+---
+
 ## Session — 2026-10-26 (cont.) — Cover upgraded to real CC0 photograph (devin)
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-06T19:07:47+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Check plugin failed to load (bug in the check itself).
+- **fees_policy_check**: FAIL — Check plugin failed to load (bug in the check itself).
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-06T19:07:15+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-06T18:41:27+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-06T18:41:09+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: FAIL — Check crashed while running.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-11-06T18:32:23+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 62 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (18 live, 26 partial, 13 planned, 5 vision)
+
+All checks passed.
 
 ### Guardrail Engine Run — 2026-10-26T11:35:28+00:00
 
@@ -15967,3 +16566,175 @@ sessions); embedded images are dropped from edited exports (noted to user).
   required checks run on the registry PR).
 - Side effect on merge: next scheduled/dispatched run will auto-open a PR
   carrying the ~1,590-line registry drift update — review before merging.
+
+## 2026-10-31 — Bill public section live via Cloudflare mirror; AI-rendered scene (devin, SWE-2)
+
+- **Render origin DOWN all day**: Neon free-tier compute quota exhausted
+  (suspend_timeout=0 + 3s retry loop burned it; quota resets 2026-11-01 00:00Z
+  ~7pm CT). Four `update_failed` deploys — NOT code: app cold-boot (~60s module
+  import + startup stages) exceeds Render free-tier port-scan window; instances
+  killed mid-boot. Fresh bridge Neon project `divine-sun-29128013` created +
+  `DATABASE_URL` repointed + `alembic_version` stamped to `20261026_voice_posts`
+  as emergency workaround — real fix = slim startup (lazy router imports) +
+  repair migrations.
+- **Public bill LIVE anyway**: `bill-mirror` Cloudflare Worker serves a static
+  mirror of the bill section from public repo `1semptify-arch/semptify-bill-mirror`.
+  Routes: `semptify.org/bill*`, `/your-voice*`, `/what-the-bill-changes*`,
+  `/static/*`, `/` (origin-failover → `home.html` after 8s origin timeout).
+  Worker has `?v=N` cache-buster on GitHub-raw fetches — bump it whenever
+  mirror content changes or pages serve stale for ~5 min.
+- **New ASSETS must be added to the worker's ASSETS map** or the request falls
+  through to the dead origin and hangs — no wildcard.
+- **/bill is now a standalone full-viewport page** (not the asymmetric shell):
+  full-screen scene image, dark-glass panels, IM Fell English title,
+  North Star palette, US+MN flags w/ § 609.40 note, no advertising.
+- **Scene pipeline**: Cloudflare Workers AI FLUX `@cf/black-forest-labs/flux-1-schnell`
+  renders 1024×1024 via a temporary `/gen-image` route on the worker (key-gated
+  `gen-7f3a9b2e`, AI binding `[{type:"ai",name:"AI"}]`); PIL crops to 16:9 and
+  composites elements across renders. SD-1.5 inpainting available too but
+  downscales output to 512 — poor quality, avoid.
+- **Current lead scene** `bill-scene-day.jpg` = gen-flux-15 base + deer composited
+  from gen-flux-14 via luminance-mask + warm grade (buck on dry sand at wooded
+  shoreline right, loon far out, thin fog). Approved by Brad.
+- **Rotation set staged** in app `static/img/` + mirror: `bill-scene-day`,
+  `bill-scene-aurora` (night + stone fire ring — campfire belongs to the night
+  scene per Brad), `bill-scene-ai`, `bill-scene-alt1/2`. Swap = 1-line `<img>` change.
+  Rotation plan logged: `plan-20261031-...-d683` (day/night scheduled swap).
+- **Brad's authenticity rules learned**: deer drink AT the water's edge on dry
+  land, never standing in water; campfires burn in a stone fire ring on the
+  beach — never on a porch; loons = dark bill + RED EYES (red bill = merganser,
+  wrong bird); birch trunks white w/ dark dashes.
+- **All 16 gen attempts + crops** archived at `C:\Users\bradc\Desktop\bill-static\`.
+- **Committed locally in repo**: `bill_hub.html` rewrite + new images + earlier
+  features.py/module_overlay.py resilience edits (PR #324 merged carried part).
+  Next PR ships them to Render once prod heals.
+- **Cleanup pending**: `/gen-image` route + AI binding still ON the worker for
+  ongoing iteration — REMOVE when scene work is done (key-gated but exposed).
+
+
+## 2026-11-05 — In-app PDF viewer for vault documents (task semptify-inline-doc-viewer, swe-2)
+
+- **What shipped**: `GET /api/vault/{document_id}/preview.png?page=N&scale=S`
+  renders one vault PDF page to PNG via PyMuPDF (`get_pixmap` → PNG — port of
+  the efile_helper `DocViewer`). Shares the download endpoint's auth + provider
+  fetch path (extracted to `_fetch_document_content`). Headers: `X-Page-Count`,
+  `X-Page-Number`, `X-Content-Type-Options` via Response defaults,
+  `Cache-Control: private, no-store`. Errors: 416 page out of range, 415
+  non-renderable/encrypted/corrupt, 404 missing doc. Page/scale clamped via
+  Query(ge/le). Rendering runs in `run_in_threadpool` (CPU-bound, must not
+  block the event loop — Known Failure #19). In-memory byte cache: 120s TTL,
+  8 docs max, avoids re-download per page flip.
+- **New reusable component**: `app/templates/components/doc_viewer.html` —
+  `SemptifyDocViewer.mount(el, {documentId, accessToken?})`, Prev/Next/Page-x-of-y/
+  Zoom−/Zoom+/Download-file, SSOT design tokens, zone separation (no card
+  borders), aria-live page label.
+- **Wired into**: `intake_upload_guide.html` — after a successful PDF upload
+  the "What was saved" pane mounts the viewer ("Review what you saved — the
+  pages show right here"); `vault.html` — per-PDF-doc "View" button toggles an
+  in-place preview slot.
+- **Verified live** (local dev, 127.0.0.1:8001): 3-page test PDF upload →
+  preview p1–3 HTTP 200 image/png (~893×1263), p4 → 416, non-PDF → 415;
+  IronBee browser: upload→viewer mount→Next→Zoom exercised, 375px + 1280px
+  screenshots clean, console clean (benign ws logs only).
+  `py_compile` ✓; `tests/module_health` 249 passed; `test_ssot_architecture` 8 passed.
+- **Pending/not verified**: vault.html View button not browser-tested live —
+  `/vault` page requires connected storage and the local dev OAuth token is
+  expired (`needs_reauth`); component mount path identical to the verified
+  upload-guide path. Preview with a *cloud* (non-local-disk) provider untested —
+  same fetch path as `/download`, parity assumed.
+- Out of scope, not changed: Document Center `/dc` keeps its pdf.js canvas
+  viewer (richer, CDN-dependent); `SemptifyMediaPlayer` iframe PDF path left
+  as-is.
+
+## 2026-11-05 — Feedback component wired via base template (task feedback-component-epic, swe-2)
+
+- **Gap closed**: `SemptifyFeedback` component (`static/components/feedback.html`
+  + `feedback.js`, committed earlier under e617cf0d) was never included in a
+  base template — every `if (window.SemptifyFeedback)` call in retrofitted pages
+  was a dead no-op. Added `<script src="/static/components/feedback.js">` to
+  `app/templates/base.html` global scripts → live on all Jinja pages
+  (shell_base + public_base both extend base).
+- **Button spinner fixed**: `.btn--loading` styles existed only in orphaned
+  `loading-overlay.html` (no template references it). Ported `.btn--loading` /
+  `::after` / `@keyframes se-pt-loading-spin` into the component's own styles
+  (both variants); fixed `border-top-color: currentColor` resolving to
+  transparent — spinner arc now uses `var(--color-accent)`.
+- **Audit targets verified against live code**: the archived
+  ACTION_FEEDBACK_AUDIT's `static/{tenant,admin,tools}` pages were migrated to
+  `app/templates/pages/*` Jinja templates; all in-scope pages already have 0
+  `alert()` calls and wrapped fetches with `SemptifyFeedback` or visible
+  inline errors. `static/onboarding/activate-vault.html` no longer exists
+  (`/activate-vault` is an ssot_redirect); `static/onboarding/index.html` is a
+  redirect splash already loading feedback.js with a fallback catch.
+- **Verified live** (127.0.0.1:8001, IronBee): `/help` renders with feedback.js
+  loaded via base; `SemptifyFeedback` API complete (start/done/success/error/
+  info/story); success toast role=status + error toast role=alert render
+  bottom-right; `start()` produces a visible sage-accent spinner + disabled
+  button; console clean. Screenshot: verification toast visible on /help.
+- **Files**: `app/templates/base.html`, `static/components/feedback.js`,
+  `static/components/feedback.html`.
+- Intake logged for out-of-scope leftovers: remaining `alert()`s on non-scoped
+  pages (advocate_client_detail, document_*, motions, etc. — audit Tiers 3–5).
+
+## 2026-11-05 — DEPLOYMENT_READINESS production checklist re-verified live (task prod-deploy-readiness-remaining, swe-2)
+
+- All four open checklist items verified against live prod via Render + Neon MCPs:
+  - PostgreSQL 16.15 on Neon `flat-block-24520481` / `semptifty_db` (production branch), app writing sessions live.
+  - All 79 public tables + sequences owned by `neondb_owner` — KF#20 ownership fix holding.
+  - `alembic_version = 20261026_voice_posts` = single repo head; startup stage-3 auto-migrate + drift guard confirmed in `app/main.py`; deploy `dep-dbmadglbedkc73bmlb6g` live 15:55Z, `GET /health` = ok.
+  - Env vars verified where observable: `SECURITY_MODE=enforced` (boot log), `SECRET_KEY` (enforced-mode startup would fail without it), `DATABASE_URL` working, port 10000 bound, `DEPLOY_TARGET`/`LOAD_PROFILE` quota profiles (PR #332).
+- DEPLOYMENT_READINESS.md updated: stale self-hosted-PG wording corrected to real Render+Neon topology, checked items carry evidence, stale `81c36d8f2466` head refs fixed.
+- New "Open Items" section logged for Brad's dashboard checks: `NEDRIVE_CLIENT_SECRET` typo in render.yaml (OneDrive may be dead in prod), Dockerfile drift (dashboard builds `./Dockerfile` unpinned `3.11-slim`, not `Dockerfile.render`'s `3.11.9-slim`), bridge Neon `divine-sun-29128013` no longer live target (different Neon account — delete decision), stale `semptify db`/`neondb` DBs on prod branch, OAuth creds unverifiable via API, Neon quota resets 2026-12-01.
+
+
+## 2026-11-05 — Donate page rebuilt inside Site Shell v5 (task plan-20261026-donate-page-rebuild, swe-2)
+
+- `/donate` was the last standalone public page: 2,137-line dark-theme page with
+  its own fixed navbar/footer, three external Google Fonts families, floating-shape
+  hero, and scroll/counter animation JS — no return nav. Rebuilt in place (same
+  filename, KF#13) as a `body/public_shell.html` child matching all 22 sibling
+  public pages: header nav + "Get help now" pill + right-rail "On this page"
+  anchor list + unified footer now provide nav; SSOT tokens only (`dn-` prefixed
+  page classes, zone separation, sage `--color-accent` primary CTA, calm palette
+  for secondary accents, error/success tints on the comparison table).
+- All content preserved verbatim: sourced crisis stats (Eviction Lab/NCCRC/JCHS/
+  Census links kept), six pillars, 11 feature cards, privacy flow diagram +
+  comparison table, tech stack + module tiers, 4-phase roadmap, support section
+  with GitHub Sponsors. Dropped: dark palette, dedicated font loads (page now
+  inherits the site's Inter/Plex-Mono/Playfair set), decorative animation JS
+  (calm-over-clever; no behavioral loss — numbers are static text).
+- Verified live (127.0.0.1:8001, IronBee): 200 OK, all sections render in shell
+  chrome at 1280px (internal work-zone scroll) and 375px (stacked scroll,
+  comparison table fits, no horizontal overflow); console clean (benign ws logs);
+  `pytest tests/test_ssot_architecture.py` 8/8 pass.
+
+
+## 2026-11-07 — DB pool retuned for Neon scale-to-zero (task neon-db-pool-nullpool-render-balanced, swe-2)
+
+- **Problem**: prod engine (`app/core/database.py::get_engine`, the only live
+  engine — `database_pool.py` has zero importers) used `AsyncAdaptedQueuePool`
+  with `pool_size=5`. Five connections were held open for the life of the
+  Render process; one request per hour was enough to keep them warm 24/7, so
+  the Neon compute endpoint never went idle and never suspended (~20
+  CU-hrs/mo of dead compute).
+- **Fix**: new `DB_POOL_MODE` setting (`auto`|`nullpool`|`queue`, default
+  `auto`). On Render (`RENDER` env var present) `auto` resolves to NullPool —
+  connections now exist only for the duration of a request, so a traffic lull
+  of one autosuspend window (5 min default) lets Neon scale to zero. Local /
+  non-Render Postgres keeps the QueuePool (sizes now env-tunable via
+  `DB_POOL_SIZE` / `DB_MAX_OVERFLOW`, defaults unchanged at 5/10). Same
+  `connect_args` in both modes; the 10s connect timeout covers Neon's
+  resume-from-suspend latency. `DB_POOL_MODE=queue` is the kill switch if
+  per-request connect latency ever matters in prod.
+- **Scope check**: `/health` does not touch the DB; the periodic scheduler
+  loops (`litigation_intelligence` scheduler, cache/export/freshness
+  cleanup) are not started from `main.py`, so nothing else pings the DB on a
+  timer. `alembic/env.py` and the startup migration verifier already used
+  NullPool.
+- **Verified**: py_compile clean; engine instantiated under all five
+  env combinations — `RENDER=1`→NullPool, local→AsyncAdaptedQueuePool,
+  explicit `DB_POOL_MODE` overrides both directions.
+- **Files**: `app/core/config.py`, `app/core/database.py`.
+- Out-of-scope logged to intake (intake-f7327e75): `funding_forge/database.py`
+  and `legal_intel/app/db.py` create default pooled engines — would re-block
+  scale-to-zero if ever deployed; currently unimported by the service.

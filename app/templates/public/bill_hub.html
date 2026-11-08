@@ -1,100 +1,168 @@
-{% extends "body/public_shell.html" %}
-
-{% block title %}The Minnesota Rent Assurance Bill — Semptify{% endblock %}
-{% block description %}A Minnesota housing bill written in public — the live draft, the numbers behind it, and how to weigh in. For renters, providers, students, and neighbors. No cost, no tracking.{% endblock %}
-{% block keywords %}minnesota housing bill, rent assurance, deposit protection, tenant bill, public bill, semptify, north star{% endblock %}
-
-{% block body_attrs %}data-theme="northstar"{% endblock %}
-{% block body_class %}shell bill-section{% endblock %}
-
-{% block header_title %}The Minnesota Bill{% endblock %}
-{% block header_tagline %}Written in public, for the North Star State.{% endblock %}
-{% block header_subtitle %}Rent assurance and deposit protection — read the live draft, check the numbers, weigh in.{% endblock %}
-
-{% block nav %}
-<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-<li class="nav-item"><a class="nav-link" href="/bill">The Bill</a></li>
-<li class="nav-item"><a class="nav-link" href="/bill/live">Live draft</a></li>
-<li class="nav-item"><a class="nav-link" href="/bill/research">The numbers</a></li>
-<li class="nav-item"><a class="nav-link" href="/your-voice">Your Voice</a></li>
-<li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
-{% endblock %}
-
-{% block sidebar %}
-<h2>The bill</h2>
-<ul class="shell-list">
-    <li><a href="/bill/live">Read the live draft</a></li>
-    <li><a href="/bill/research">The numbers &amp; sources</a></li>
-    <li><a href="/your-voice">Ask or weigh in</a></li>
-    <li><a href="/what-the-bill-changes">What it would change</a></li>
-    <li><a href="/help">Get help now</a></li>
-</ul>
-{% endblock %}
-
-{% block styles %}
-{{ super() }}
-<link rel="stylesheet" href="/static/css/themes/northstar.css">
-<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="refresh" content="0; url=https://bill.semptify.org/">
+  <link rel="canonical" href="https://bill.semptify.org/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Minnesota Rent Assurance Bill — Semptify</title>
+<meta name="description" content="A Minnesota housing bill written in public — the live draft, the numbers behind it, and how to weigh in. For renters, providers, students, and neighbors. No cost, no tracking.">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/themes/bill-hub.css?v=1">
 <style>
-    .ns-hero { display:flex; flex-wrap:wrap; gap:1.5rem; align-items:center; margin-bottom:2rem; }
-    .ns-flags { display:flex; gap:0.75rem; align-items:flex-start; }
-    .ns-flags img { width:120px; border:1px solid var(--card-border); }
-    .ns-flags img:first-child { width:100px; }
-    .ns-hero-text h2 { font-family:"IM Fell English", Georgia, serif; font-size:1.9rem; margin:0 0 0.4rem; color:var(--text-primary); }
-    .ns-hero-text p { margin:0; color:var(--text-secondary); max-width:34rem; line-height:1.55; }
-    .ns-lanes { display:grid; gap:0.9rem; }
-    .ns-lane { background:var(--card-bg); border-left:4px solid var(--accent-secondary); padding:1rem 1.25rem; }
-    .ns-lane h3 { margin:0 0 0.3rem; color:var(--text-primary); font-size:1.05rem; }
-    .ns-lane p { margin:0 0 0.5rem; color:var(--text-secondary); font-size:0.95rem; line-height:1.5; }
-    .ns-flag-note { font-size:0.8rem; color:var(--text-muted); margin-top:1.5rem; }
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:"Source Sans 3",system-ui,sans-serif;background:var(--lake-deep);color:var(--ink);min-height:100vh;overflow-x:hidden}
+
+/* ——— the scene: real lake photograph + layered wildlife ——— */
+.scene{position:fixed;inset:0;width:100vw;height:100vh;z-index:0}
+.scene .lake{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 62%}
+.scene::after{content:"";position:absolute;inset:0;background:
+    linear-gradient(180deg,rgba(11,30,51,.12) 0%,rgba(11,30,51,0) 30%,rgba(10,26,46,.30) 70%,rgba(8,18,32,.80) 100%)}
+
+.fogband{position:absolute;left:-20%;width:140%;height:16vh;filter:blur(22px);
+    background:linear-gradient(90deg,transparent,rgba(224,205,170,.16) 30%,rgba(224,205,170,.22) 55%,rgba(224,205,170,.14) 75%,transparent)}
+.fogband.f1{top:38%;animation:mistdrift 30s ease-in-out infinite alternate}
+.fogband.f2{top:58%;height:12vh;opacity:.7;animation:mistdrift 40s ease-in-out infinite alternate-reverse}
+@keyframes mistdrift{from{transform:translateX(-4%)}to{transform:translateX(4%)}}
+
+.lake{animation:lakebreathe 24s ease-in-out infinite alternate}
+@keyframes lakebreathe{from{transform:scale(1)}to{transform:scale(1.04)}}
+
+/* ——— chrome ——— */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;
+    padding:.85rem 1.4rem;background:linear-gradient(180deg,rgba(8,18,32,.85),rgba(8,18,32,0))}
+.topbar .brand{font-family:"IM Fell English",serif;font-size:1.15rem;letter-spacing:.04em;color:var(--ink);text-decoration:none}
+.topbar nav{display:flex;gap:1.1rem;flex-wrap:wrap}
+.topbar nav a{color:var(--ink-soft);text-decoration:none;font-size:.92rem;letter-spacing:.02em}
+.topbar nav a:hover,.topbar nav a.here{color:var(--gold)}
+
+/* ——— hero ——— */
+.hero{position:relative;z-index:2;min-height:92vh;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
+    padding:0 clamp(1.25rem,6vw,6rem)}
+.hero .kicker{font-size:.8rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem}
+.hero h1{font-family:"IM Fell English",Georgia,serif;font-weight:400;font-size:clamp(2.4rem,6.2vw,4.6rem);line-height:1.08;
+    max-width:13em;color:var(--ink);text-shadow:0 2px 30px rgba(8,18,32,.9)}
+.hero .sub{margin-top:1.4rem;max-width:34rem;font-size:clamp(1.02rem,1.6vw,1.2rem);line-height:1.6;color:var(--ink-soft);
+    text-shadow:0 1px 18px rgba(8,18,32,.9)}
+.scrollcue{position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);color:var(--ink-dim);font-size:.8rem;
+    letter-spacing:.22em;text-transform:uppercase;text-decoration:none;animation:cue 2.4s ease-in-out infinite}
+@keyframes cue{0%,100%{transform:translate(-50%,0);opacity:.55}50%{transform:translate(-50%,8px);opacity:1}}
+
+/* ——— content ——— */
+.deck{position:relative;z-index:2;padding:0 clamp(1.25rem,6vw,6rem) 4rem;display:grid;gap:1.1rem;max-width:1200px}
+.panel{background:var(--glass);border:1px solid var(--glass-edge);border-radius:14px;padding:1.5rem 1.7rem;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.panel h2{font-family:"IM Fell English",serif;font-weight:400;font-size:1.5rem;color:var(--gold);margin-bottom:.55rem}
+.panel h2 a{color:inherit;text-decoration:none}
+.panel h2 a:hover{text-decoration:underline}
+.panel p{color:var(--ink-soft);line-height:1.6;font-size:1rem;max-width:44rem}
+.panel .go{display:inline-block;margin-top:.7rem;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--gold);font-size:.95rem}
+.panel .go:hover{color:var(--gold)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}.hero{min-height:88vh}}
+.foot{position:relative;z-index:2;padding:0 clamp(1.25rem,6vw,6rem) 3rem;max-width:1200px;color:var(--ink-dim);font-size:.82rem;line-height:1.6}
+.foot-flags{display:flex;gap:.6rem;margin-bottom:.8rem}
+.foot-flags img{height:34px;border:1px solid rgba(232,238,244,.25);border-radius:2px}
+.foot a{color:var(--ink-soft)}
 </style>
-{% endblock %}
+</head>
+<body>
 
-{% block page_body %}
+<div class="scene" aria-hidden="true">
+    <img class="lake" id="bill-scene" alt="">
+    <noscript><img class="lake" src="/static/img/bill-scene-day.jpg" alt=""></noscript>
 
-<section class="section">
-    <div class="ns-hero">
-        <div class="ns-flags">
-            <img src="/static/img/flag-us.svg" alt="Flag of the United States">
-            <img src="/static/img/flag-mn.svg" alt="Flag of Minnesota — the North Star flag">
-        </div>
-        <div class="ns-hero-text">
-            <h2>A bill for Minnesota, in the open.</h2>
-            <p>Renters deserve a fair shot when things go wrong at home — a deposit
-            that comes back, a repair that gets made, a record that counts. This
-            proposal is being written where everyone can watch, and everyone can
-            check the work.</p>
-        </div>
-    </div>
-    <p class="ns-flag-note">Flags displayed unaltered per Minn. Stat. § 609.40.
-    Semptify is a pre-nonprofit project — this page carries no advertising.</p>
+    <!-- drifting fog over the water -->
+    <div class="fogband f1"></div>
+    <div class="fogband f2"></div>
+</div>
+
+<script>
+/* Scene rotation — a daylight scene is picked deterministically each day (same
+   pick for every visitor that day); the aurora scene shows from dusk to dawn
+   with the window shifted by month to roughly track MN light. Lives client-side
+   so the app page and the bill-mirror static copy share one implementation;
+   worker-side scheduling takes this over later. */
+(function(){
+    var img=document.getElementById('bill-scene');
+    if(!img)return;
+    var DAY=['/static/img/bill-scene-day.jpg','/static/img/bill-scene-ai.jpg',
+             '/static/img/bill-scene-alt1.jpg','/static/img/bill-scene-alt2.jpg'];
+    var NIGHT='/static/img/bill-scene-aurora.jpg';
+    var now=new Date(),h=now.getHours();
+    var dusk=[17,17,18,19,20,21,21,20,19,18,17,17][now.getMonth()];
+    var dawn=[8,8,7,6,6,5,5,5,6,7,7,8][now.getMonth()];
+    if(h>=dusk||h<dawn){img.src=NIGHT;return;}
+    var doy=Math.floor((now-new Date(now.getFullYear(),0,0))/864e5);
+    img.src=DAY[doy%DAY.length];
+})();
+</script>
+
+<header class="topbar">
+    <a class="brand" href="/">Semptify</a>
+    <nav>
+        <a href="/bill" class="here">The Bill</a>
+        <a href="/bill/live">Live draft</a>
+        <a href="/bill/research">The numbers</a>
+        <a href="/your-voice">Your Voice</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <p class="kicker">The Minnesota Rent Assurance Bill</p>
+    <h1>Written in public,<br>on the water, at first light.</h1>
+    <p class="sub">Renters deserve a fair shot when things go wrong at home — a deposit
+    that comes back, a repair that gets made, a record that counts. This proposal is
+    being written where everyone can watch, and everyone can check the work.</p>
+    <a class="scrollcue" href="#deck">Read on ↓</a>
 </section>
 
-<section class="section">
-    <div class="ns-lanes">
-        <div class="ns-lane">
-            <h3><a href="/bill/live">The live draft →</a></h3>
-            <p>The real working text, refreshed daily. What you see is what
-            exists right now — honest labels for what is decided, what is an
-            aim, and what is still a question.</p>
-        </div>
-        <div class="ns-lane">
-            <h3><a href="/bill/research">The numbers &amp; sources →</a></h3>
-            <p>Every figure the bill relies on, with its source and its
-            verification status. Nothing publishes that hasn't been
-            triple-checked — and unchecked figures say so.</p>
-        </div>
-        <div class="ns-lane">
-            <h3><a href="/your-voice">Your voice →</a></h3>
-            <p>Ask a question or share an opinion on the public board — no
-            names, no tracking. Invited contributors answer in the open.</p>
-        </div>
-        <div class="ns-lane">
-            <h3><a href="/what-the-bill-changes">What it would change →</a></h3>
-            <p>The plain-language case for the bill — and an honest look at
-            what it doesn't fix yet.</p>
-        </div>
-    </div>
-</section>
+<main class="deck" id="deck">
+    <section class="panel">
+        <h2><a href="/bill/live">The live draft →</a></h2>
+        <p>The real working text, refreshed daily. What you see is what exists right now —
+        honest labels for what is decided, what is an aim, and what is still a question.</p>
+        <a class="go" href="/bill/live">Read the draft</a>
+    </section>
 
-{% endblock %}
+    <div class="grid2">
+        <section class="panel">
+            <h2><a href="/bill/research">The numbers &amp; sources →</a></h2>
+            <p>Every figure the bill relies on, with its source and verification status.
+            Nothing publishes that hasn't been triple-checked — and unchecked figures say so.</p>
+            <a class="go" href="/bill/research">Check the numbers</a>
+        </section>
+        <section class="panel">
+            <h2><a href="/your-voice">Your voice →</a></h2>
+            <p>Ask a question or share an opinion on the public board — no names, no
+            tracking. Invited contributors answer in the open.</p>
+            <a class="go" href="/your-voice">Weigh in</a>
+        </section>
+        <section class="panel">
+            <h2><a href="/what-the-bill-changes">What it would change →</a></h2>
+            <p>The plain-language case for the bill — and an honest look at what it
+            doesn't fix yet.</p>
+            <a class="go" href="/what-the-bill-changes">See the case</a>
+        </section>
+        <section class="panel">
+            <h2><a href="/help">Need help now →</a></h2>
+            <p>Facing an eviction, a withheld deposit, or a repair that won't happen?
+            Guides and official channels — no account, no cost.</p>
+            <a class="go" href="/help">Get help</a>
+        </section>
+    </div>
+</main>
+
+<footer class="foot">
+    <div class="foot-flags">
+        <img src="/static/img/flag-us.svg" alt="Flag of the United States">
+        <img src="/static/img/flag-mn.svg" alt="Flag of Minnesota — the North Star flag">
+    </div>
+    <p>Semptify carries no advertising — not this page, not anywhere on the site, ever.
+    A pre-nonprofit Minnesota project. Flags of the United States and of Minnesota appear
+    unaltered per Minn. Stat. § 609.40.</p>
+</footer>
+
+</body>
+</html>

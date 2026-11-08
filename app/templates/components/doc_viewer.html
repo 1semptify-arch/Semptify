@@ -1,0 +1,265 @@
+{# Inline document viewer — ports the efile_helper DocViewer to the web.
+
+   Server renders each PDF page to PNG (GET /api/vault/{id}/preview.png), so
+   the document can be reviewed inside Semptify on any device — including
+   phones that cannot show a PDF inline. Include once per page, then:
+
+     SemptifyDocViewer.mount(element, { documentId: "...", accessToken?: "..." })
+
+   The element is emptied and becomes the viewer. Keyboard: ← → turn pages
+   while the viewer has focus. #}
+
+<style>
+.docview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+}
+.docview__bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    background: var(--zone-surface-2);
+    padding: 0.375rem 0.5rem;
+    border-radius: var(--radius-input, 6px);
+}
+.docview__group {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+    min-width: 0;
+}
+.docview__group--trailing {
+    margin-left: auto;
+}
+.docview__btn {
+    font: inherit;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-input, 6px);
+    padding: 0.375rem 0.75rem;
+    min-height: 44px;
+    cursor: pointer;
+}
+.docview__btn:hover:not(:disabled) {
+    background: var(--zone-surface-3);
+}
+.docview__btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+.docview__page {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    padding: 0 0.375rem;
+    min-width: 7.5em;
+    text-align: center;
+}
+.docview__open {
+    font-size: 0.8125rem;
+    color: var(--color-info);
+    text-decoration: none;
+    padding: 0.375rem;
+    white-space: nowrap;
+}
+.docview__surface {
+    background: var(--zone-surface-inverse);
+    border-radius: var(--radius-input, 6px);
+    overflow: auto;
+    max-height: 70vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0.75rem;
+}
+.docview__surface:focus-visible {
+    outline: 2px solid var(--color-info);
+    outline-offset: 2px;
+}
+.docview__img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    background: var(--bg-card);
+}
+.docview__status {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+.docview__status--err {
+    color: var(--color-error-800);
+}
+.docview__empty {
+    color: var(--text-muted);
+    padding: 2rem 1rem;
+    text-align: center;
+}
+</style>
+
+<script>
+(function () {
+    'use strict';
+
+    var SCALE_MIN = 0.5, SCALE_MAX = 3.5, SCALE_STEP = 0.25;
+
+    function el(tag, cls, text) {
+        var e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text != null) e.textContent = text;
+        return e;
+    }
+
+    /* mount(host, opts) → controller
+       opts: { documentId, accessToken?, pageUrl? } */
+    function mount(host, opts) {
+        opts = opts || {};
+        var documentId = opts.documentId;
+        var state = { page: 1, pages: 0, scale: 1.5, objectUrl: null, busy: false };
+
+        var root = el('div', 'docview');
+        root.setAttribute('role', 'region');
+        root.setAttribute('aria-label', 'Document viewer');
+
+        var bar = el('div', 'docview__bar');
+        var navGroup = el('div', 'docview__group');
+        var btnPrev = el('button', 'docview__btn', '‹ Prev');
+        btnPrev.type = 'button';
+        var pageLbl = el('span', 'docview__page', 'Loading…');
+        pageLbl.setAttribute('aria-live', 'polite');
+        var btnNext = el('button', 'docview__btn', 'Next ›');
+        btnNext.type = 'button';
+        navGroup.appendChild(btnPrev);
+        navGroup.appendChild(pageLbl);
+        navGroup.appendChild(btnNext);
+
+        var trailing = el('div', 'docview__group docview__group--trailing');
+        var btnZoomOut = el('button', 'docview__btn', 'Zoom −');
+        btnZoomOut.type = 'button';
+        var btnZoomIn = el('button', 'docview__btn', 'Zoom +');
+        btnZoomIn.type = 'button';
+        var openLink = el('a', 'docview__open', 'Download file');
+        openLink.href = '/api/vault/' + encodeURIComponent(documentId) + '/download';
+        if (opts.accessToken) {
+            openLink.href += '?access_token=' + encodeURIComponent(opts.accessToken);
+        }
+        trailing.appendChild(btnZoomOut);
+        trailing.appendChild(btnZoomIn);
+        trailing.appendChild(openLink);
+
+        bar.appendChild(navGroup);
+        bar.appendChild(trailing);
+
+        var surface = el('div', 'docview__surface');
+        surface.tabIndex = 0;
+        var img = el('img', 'docview__img');
+        img.alt = 'Document page';
+        var status = el('div', 'docview__status');
+
+        root.appendChild(bar);
+        root.appendChild(surface);
+        root.appendChild(status);
+        host.innerHTML = '';
+        host.appendChild(root);
+
+        function say(msg, isErr) {
+            status.textContent = msg || '';
+            status.className = 'docview__status' + (isErr ? ' docview__status--err' : '');
+        }
+
+        function updateButtons() {
+            btnPrev.disabled = state.busy || state.page <= 1;
+            btnNext.disabled = state.busy || !state.pages || state.page >= state.pages;
+            btnZoomOut.disabled = state.busy || state.scale <= SCALE_MIN;
+            btnZoomIn.disabled = state.busy || state.scale >= SCALE_MAX;
+        }
+
+        function render() {
+            state.busy = true;
+            updateButtons();
+            pageLbl.textContent = state.pages
+                ? 'Page ' + state.page + ' of ' + state.pages
+                : 'Loading…';
+            say('Loading page…');
+
+            var url = (opts.pageUrl || ('/api/vault/' + encodeURIComponent(documentId) + '/preview.png'))
+                + '?page=' + state.page + '&scale=' + state.scale.toFixed(2);
+            if (opts.accessToken) {
+                url += '&access_token=' + encodeURIComponent(opts.accessToken);
+            }
+
+            return fetch(url, { credentials: 'include' })
+                .then(function (res) {
+                    if (!res.ok) {
+                        return res.json().catch(function () { return {}; }).then(function (body) {
+                            var detail = (body && body.detail) || ('HTTP ' + res.status);
+                            throw new Error(typeof detail === 'string' ? detail : 'Preview failed');
+                        });
+                    }
+                    var count = parseInt(res.headers.get('X-Page-Count') || '0', 10);
+                    if (count > 0) state.pages = count;
+                    return res.blob();
+                })
+                .then(function (blob) {
+                    if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+                    state.objectUrl = URL.createObjectURL(blob);
+                    img.src = state.objectUrl;
+                    img.alt = 'Page ' + state.page + (state.pages ? ' of ' + state.pages : '');
+                    if (!img.parentNode) surface.appendChild(img);
+                    pageLbl.textContent = 'Page ' + state.page + ' of ' + state.pages;
+                    say('');
+                })
+                .catch(function (e) {
+                    surface.innerHTML = '';
+                    surface.appendChild(el('p', 'docview__empty',
+                        'Could not show a preview here. You can still download the file to look at it.'));
+                    say(e && e.message ? e.message : 'Preview failed', true);
+                })
+                .finally(function () {
+                    state.busy = false;
+                    updateButtons();
+                });
+        }
+
+        btnPrev.addEventListener('click', function () {
+            if (state.page > 1) { state.page--; render(); }
+        });
+        btnNext.addEventListener('click', function () {
+            if (!state.pages || state.page < state.pages) { state.page++; render(); }
+        });
+        btnZoomOut.addEventListener('click', function () {
+            if (state.scale > SCALE_MIN) {
+                state.scale = Math.max(SCALE_MIN, state.scale - SCALE_STEP);
+                render();
+            }
+        });
+        btnZoomIn.addEventListener('click', function () {
+            if (state.scale < SCALE_MAX) {
+                state.scale = Math.min(SCALE_MAX, state.scale + SCALE_STEP);
+                render();
+            }
+        });
+        surface.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowLeft' && state.page > 1) { state.page--; render(); e.preventDefault(); }
+            if (e.key === 'ArrowRight' && (!state.pages || state.page < state.pages)) { state.page++; render(); e.preventDefault(); }
+        });
+
+        updateButtons();
+        render();
+
+        return {
+            destroy: function () {
+                if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+                root.remove();
+            },
+            refresh: render
+        };
+    }
+
+    window.SemptifyDocViewer = { mount: mount };
+})();
+</script>

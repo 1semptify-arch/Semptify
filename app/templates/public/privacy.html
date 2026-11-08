@@ -61,8 +61,8 @@
 </section>
 
 <section class="section">
-    <h2 class="section-title">5. Blockchain Timestamping</h2>
-    <p class="section-description">When you upload documents to your vault, you may optionally generate a blockchain timestamp. This creates a cryptographic proof of existence at a point in time. The timestamp does not contain the document content — only a hash (fingerprint). This is for your evidence preservation. We cannot reverse a hash to recover your document.</p>
+    <h2 class="section-title">5. Document Fingerprints and Timestamps</h2>
+    <p class="section-description">Every document you upload to your vault gets a certificate. The certificate holds a fingerprint of the file and a timestamp from an independent time-stamping service. The fingerprint is a one-way code — it does not contain your document, and nobody can turn it back into one. If the outside service is unreachable, the certificate uses a self-signed timestamp and says so. This helps you show later that a document existed at a point in time and was not changed.</p>
 </section>
 
 <section class="section">

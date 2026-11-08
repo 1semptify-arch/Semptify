@@ -1,0 +1,79 @@
+/* ============================================================================
+   ARCHETYPE: FIELD GUIDE — Advocates & organizers wing
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3)
+
+   Numbered steps, checklists, printable. Used on the go and handed out, so
+   every step must survive being printed and being read one-handed.
+   Applied via `data-arch="field-guide"` on <body>.
+   ============================================================================ */
+
+body[data-arch="field-guide"] .shell-main,
+body[data-arch="field-guide"] main {
+  max-width: 44rem;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+/* Numbered steps — each step is its own block, numbered by the accent
+   counter, never nested deeper than one level. */
+body[data-arch="field-guide"] .fg-steps {
+  counter-reset: fg-step;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+body[data-arch="field-guide"] .fg-steps > li {
+  counter-increment: fg-step;
+  position: relative;
+  padding: 0.9rem 0 0.9rem 3rem;
+  border-bottom: 1px solid var(--shell-line, var(--border-color));
+}
+body[data-arch="field-guide"] .fg-steps > li::before {
+  content: counter(fg-step);
+  position: absolute;
+  left: 0;
+  top: 0.9rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--role-tint);
+  color: var(--role-deep);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Checklists — real checkboxes, generous tap targets for field use. */
+body[data-arch="field-guide"] .fg-check {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.25rem;
+}
+body[data-arch="field-guide"] .fg-check li {
+  padding: 0.5rem 0 0.5rem 2rem;
+  position: relative;
+  min-height: 44px;
+}
+body[data-arch="field-guide"] .fg-check input[type="checkbox"] {
+  position: absolute;
+  left: 0;
+  top: 0.65rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Print — the field guide must print clean: no chrome, ink on paper. */
+@media print {
+  body[data-arch="field-guide"] .shell-side,
+  body[data-arch="field-guide"] header,
+  body[data-arch="field-guide"] footer,
+  body[data-arch="field-guide"] .narration-strip {
+    display: none;
+  }
+  body[data-arch="field-guide"] .shell-main,
+  body[data-arch="field-guide"] main {
+    max-width: none;
+    font-size: 11pt;
+  }
+}

@@ -1,0 +1,85 @@
+/* ============================================================================
+   WING BASE — the shared base rule for every audience wing
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3)
+
+   A wing = one audience. Every wing page carries `data-theme="<wing>"` on
+   <body> plus `data-arch="<archetype>"` for its layout archetype. A wing
+   theme lives in this directory as wing-<name>.css; the bill wing's theme
+   is the existing northstar.css.
+
+   THE SHARED BASE — every wing keeps these four things identical, so the
+   whole site still reads as one organization:
+
+     1. The SSOT tokens: warm paper background (--shell-paper), charcoal
+        text (--shell-ink), hairline dividers (--shell-line). A wing may
+        retint them only to stay readable against its own accent — never
+        to restyle the organization.
+     2. The same header and footer chrome (shell_base.html / Site Shell v5).
+        Wings do not touch header/footer structure or placement.
+     3. "Get help now" in the same place, wired the same way, on every page.
+     4. No emoji, and color only ever means state: green done, amber real
+        deadline, red error/overdue, blue link. Wing accents are identity
+        — never status.
+
+   THE WING CONTRACT — what a wing theme file MAY and MUST NOT do:
+
+     MAY set (the four things a wing changes):
+       --role-accent / --role-deep / --role-tint   accent identity
+       --shell-sage                                 feeds --color-accent
+       --font-head / --font-display / --font-body   type treatment
+       --wing-eyebrow-transform                     label treatment
+       (plus a light/dark palette pin — REQUIRED, see below)
+
+     MUST NOT touch:
+       --color-success / --color-warning / --color-error / --color-info /
+       --color-alarm        status semantics — reserved, always mean the
+                            same thing on every wing
+       header/footer structure, nav order, or help placement
+       --color-primary      org primary stays SSOT; wings work through
+                            the role/accent surface instead
+
+   EVERY wing file MUST end with a prefers-color-scheme:dark pin on
+   `html body.shell[data-theme="<wing>"]` — without it the global dark
+   flip in ssot-design-system.css wins and breaks the wing palette.
+   (See northstar.css for the pattern.)
+
+   WING → FILE → ARCHETYPE MAP (draft §3 table):
+
+     renters      wing-renters.css      calm-desk     sage (default look)
+     bill         northstar.css         editorial     north star (existing)
+     providers    wing-providers.css    plain-dealing slate
+     advocates    wing-advocates.css    field-guide   forest
+     legal        wing-legal.css        brief         slate-blue
+     research     wing-research.css     ledger        ocean
+     classroom    wing-classroom.css    classroom     royal
+     developers   wing-developers.css   docs          charcoal
+     supporters   wing-supporters.css   open-report   warm amber (status-safe
+                                                       use only — never alarm)
+
+   Enforced mechanically by tools/checks/wing_theme_check.py and
+   tests/module_health/test_wing_themes.py.
+   ============================================================================ */
+
+/* Wing-agnostic helpers any audience page may use. Keep these generic —
+   wing-specific values live in the wing files, layout in archetypes/. */
+
+/* The audience eyebrow line above a wing front page's title — quiet,
+   tracking-wide small caps by default; a wing may restyle via
+   --wing-eyebrow-transform (e.g. advocates use small caps labels). */
+body.shell[data-theme] .wing-eyebrow {
+  font-size: var(--type-label, 11px);
+  font-weight: var(--type-label-weight, 500);
+  letter-spacing: var(--type-label-tracking, 0.06em);
+  text-transform: var(--wing-eyebrow-transform, uppercase);
+  color: var(--role-deep);
+  margin: 0 0 0.35rem;
+}
+
+/* A source/method note — "every number shows its source" style line.
+   Neutral on every wing; uses the muted ink so it never competes with
+   body text. */
+body.shell[data-theme] .wing-source {
+  font-size: 0.85rem;
+  color: var(--shell-ink-3, var(--text-muted));
+  margin: 0;
+}

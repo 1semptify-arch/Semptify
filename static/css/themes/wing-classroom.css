@@ -1,0 +1,38 @@
+/* ============================================================================
+   WING: LAWMAKERS & STUDENTS
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3 — see wing-base.css for the contract)
+
+   Look: "Classroom". Explainers, timelines, glossary sidebars — teaching,
+   not persuading.
+     Archetype : classroom (static/css/archetypes/classroom.css)
+     Type      : serif headings + sans body
+     Accent    : royal
+     Imagery   : diagrams of how a bill moves
+   ============================================================================ */
+
+body[data-theme="classroom"] {
+  --role-accent: #4d5a8f;
+  --role-deep: #36436e;
+  --role-tint: #e7eaf3;
+  --shell-sage: #4d5a8f;
+
+  /* Serif headings over the sans body stack. */
+  --font-head: var(--font-serif);
+  --font-display: var(--font-serif);
+  --font-body: var(--font-sans);
+}
+
+body[data-theme="classroom"] h1,
+body[data-theme="classroom"] h2,
+body[data-theme="classroom"] h3 {
+  font-family: var(--font-serif);
+}
+
+@media (prefers-color-scheme: dark) {
+  html body.shell[data-theme="classroom"] {
+    --role-accent: #8b98c4;
+    --role-deep: #a9b3d4;
+    --role-tint: #2a2e3c;
+    --shell-sage: #8b98c4;
+  }
+}

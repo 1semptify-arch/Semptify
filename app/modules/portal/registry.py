@@ -74,7 +74,7 @@ class PortalRegistry:
             description_long=(
                 "Semptify is a document organizer for renters. Keep records of every "
                 "interaction with your landlord, build a timeline of your tenancy, and "
-                "store documents in your own cloud storage. Free, private, and simple."
+                "store documents in your own cloud storage. Private, simple, and at no cost."
             ),
         ),
         PortalService(
@@ -116,7 +116,7 @@ class PortalRegistry:
             name="Advocacy Group Affiliations",
             short_description="Partner with Semptify as an advocacy organization.",
             cta_label="Partner With Us",
-            cta_path="/preamble",
+            cta_path="/toolbox/partnerships",
             icon="🤝",
             category="advocate",
             order=10,
@@ -131,7 +131,7 @@ class PortalRegistry:
             name="Start an Advocacy Group",
             short_description="Resources for forming a new tenant advocacy group in your area.",
             cta_label="Learn How",
-            cta_path="/preamble",
+            cta_path="/toolbox/start_a_group",
             icon="🌱",
             category="advocate",
             order=20,
@@ -145,12 +145,12 @@ class PortalRegistry:
             id="advocate_portal",
             name="Advocate Portal",
             short_description="Manage clients, review documents, and coordinate support.",
-            cta_label="Advocate Login",
-            cta_path="/advocate",
+            cta_label="See Where It Stands",
+            cta_path="/toolbox/advocate_portal",
             icon="🏢",
             category="advocate",
             order=30,
-            requires_auth=True,
+            requires_auth=False,
             description_long=(
                 "Tools for advocates: client management, document review, annotations, "
                 "invite codes, and case coordination."
@@ -164,7 +164,7 @@ class PortalRegistry:
             name="Legal Research on Landlords",
             short_description="Research landlord records, court filings, and property history.",
             cta_label="Research Tools",
-            cta_path="/preamble",
+            cta_path="/toolbox/landlord_research",
             icon="🔍",
             category="legal",
             order=10,
@@ -178,12 +178,12 @@ class PortalRegistry:
             id="legal_portal",
             name="Legal Portal",
             short_description="Case management, court filing, discovery, and legal overlays.",
-            cta_label="Legal Login",
-            cta_path="/legal",
+            cta_label="See Where It Stands",
+            cta_path="/toolbox/legal_portal",
             icon="⚖️",
             category="legal",
             order=20,
-            requires_auth=True,
+            requires_auth=False,
             description_long=(
                 "Tools for attorneys, paralegals, clerks, and judges: matter management, "
                 "court filing, discovery prep, exhibits, and legal overlays on tenant documents."
@@ -197,7 +197,7 @@ class PortalRegistry:
             name="Agencies Connect",
             short_description="Housing agencies and partner organizations — connect with Semptify.",
             cta_label="Connect Your Agency",
-            cta_path="/preamble",
+            cta_path="/toolbox/agency_connect",
             icon="🏛️",
             category="agency",
             order=10,
@@ -233,7 +233,7 @@ class PortalRegistry:
             name="Researcher Tools",
             short_description="Advanced research tools, litigation intelligence, and data analysis.",
             cta_label="Researcher Access",
-            cta_path="/preamble",
+            cta_path="/toolbox/researcher_data",
             icon="🔬",
             category="researcher",
             order=10,
@@ -249,16 +249,18 @@ class PortalRegistry:
         PortalService(
             id="developer_sdk",
             name="Software Development",
-            short_description="External SDK, module marketplace, and contributor resources.",
+            short_description="The open codebase, the developer kit, and how to contribute.",
             cta_label="Developer Hub",
-            cta_path="/preamble",
+            cta_path="/developers",
             icon="💻",
             category="developer",
             order=10,
             requires_auth=False,
             description_long=(
-                "Resources for developers: external SDK, Forge module marketplace, "
-                "API documentation, and contribution guidelines."
+                "Resources for developers: the public codebase on GitHub, the "
+                "developer kit under app/sdk/, and how to contribute. Public API "
+                "documentation and a module marketplace are future decisions — "
+                "see the Toolbox for where each stands."
             ),
         ),
         # =====================================================================
@@ -267,16 +269,16 @@ class PortalRegistry:
         PortalService(
             id="standalone_pdf_tools",
             name="PDF Tools",
-            short_description="Merge, split, and convert PDFs. No account required.",
+            short_description="Merge, split, and convert PDFs. No setup needed.",
             cta_label="Open PDF Tools",
-            cta_path="/preamble",
+            cta_path="/toolbox/pdf_tools",
             icon="📄",
             category="standalone",
             order=10,
             requires_auth=False,
             description_long=(
                 "Standalone PDF tools: merge, split, convert, and sign PDF documents. "
-                "No account required — files processed and returned."
+                "No setup needed — files processed and returned."
             ),
         ),
         PortalService(
@@ -284,22 +286,22 @@ class PortalRegistry:
             name="Document Converter",
             short_description="Convert documents between formats (PDF, DOCX, HTML, TXT).",
             cta_label="Open Converter",
-            cta_path="/preamble",
+            cta_path="/toolbox/document_converter",
             icon="🔄",
             category="standalone",
             order=20,
             requires_auth=False,
             description_long=(
                 "Convert documents between formats: PDF to DOCX, DOCX to HTML, "
-                "HTML to PDF, and more. No account required."
+                "HTML to PDF, and more. No setup needed."
             ),
         ),
         PortalService(
             id="standalone_public_forms",
             name="Public Forms",
-            short_description="Housing-related forms and templates. No account required.",
+            short_description="Housing-related forms and templates. No setup needed.",
             cta_label="Browse Forms",
-            cta_path="/preamble",
+            cta_path="/toolbox/public_forms",
             icon="📋",
             category="standalone",
             order=30,
@@ -317,7 +319,7 @@ class PortalRegistry:
             name="Advanced Semptify Systems",
             short_description="Power-user tools, beta features, and advanced research modules.",
             cta_label="Explore Advanced",
-            cta_path="/preamble",
+            cta_path="/toolbox",
             icon="⚡",
             category="tenant",
             order=40,
@@ -369,7 +371,7 @@ class PortalRegistry:
         "standalone": {
             "label": "Standalone Tools",
             "icon": "🛠️",
-            "description": "Use individual tools without an account.",
+            "description": "Use individual tools with no setup.",
         },
     }
 
