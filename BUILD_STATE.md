@@ -125,6 +125,7 @@ All checks passed.
 One or more checks failed — see console output.
 
 ### Guardrail Engine Run — 2026-11-07T05:12:38+00:00
+### Guardrail Engine Run — 2026-11-07T15:00:59+00:00
 
 - **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
 - **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
@@ -138,6 +139,7 @@ One or more checks failed — see console output.
 All checks passed.
 
 ### Guardrail Engine Run — 2026-11-07T05:12:13+00:00
+### Guardrail Engine Run — 2026-11-07T14:59:31+00:00
 
 - **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
 - **contract_route_check**: FAIL — Contract loader failed: 146 module(s) failed to load.
@@ -16821,3 +16823,28 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - Out-of-scope logged to intake (intake-f7327e75): `funding_forge/database.py`
   and `legal_intel/app/db.py` create default pooled engines — would re-block
   scale-to-zero if ever deployed; currently unimported by the service.
+## 2026-11-07 — P10 Research (L4): calmer naming + aggregate-only contract (sorg-p10-research, feat/p10-research)
+
+- Public copy pass on the seven L4 research toolbox entries: "Litigation
+  Intelligence" → **Housing Court Patterns**, "Fraud documentation" →
+  **Pattern documentation**, "Public Exposure Suite" → **Public Records
+  Tools**. Renamed in toolbox.py entry names, donate.html feature cards /
+  module-tier tags / roadmap, legal_research.html section, and portal
+  registry/pages service copy.
+- Aggregate-only honesty: every public claim about research outputs now
+  states combined totals / trends only — never a named person or address.
+  Removed the "identifies serial evictors" and "predatory landlord
+  patterns" targeting claims on /donate (violated the L4 contract and the
+  non-adversarial voice rules).
+- Fixed a dead link: `policy_reporting` today_path pointed at
+  `/bill/research`, a route that does not exist → now `/your-voice` with a
+  note. (`housing_bill`'s `/bill` path is the same class of dead link —
+  logged to intake, not fixed here; outside P10 scope.)
+- Verified the "lit-intel graph engine build-or-remove" premise: the graph
+  engine exists and works (in-memory, BFS, PNG/SVG viz, 17 auth-gated
+  endpoints). All RESEARCH-tier modules are simply unmounted in production
+  (`_LIVE_TIERS` omits RESEARCH) — "inactive" means dormant, not missing.
+- New `docs/blueprints/public_research_outputs_blueprint.md` — the
+  aggregate-only contract (combined totals, small-cell suppression ≥5,
+  city/ZIP floor, no named parties, sourced figures, human publish gate)
+  and the keep-dormant recommendation for the graph engine. Pending Brad.

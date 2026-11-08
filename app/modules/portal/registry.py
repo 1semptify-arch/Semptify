@@ -231,7 +231,7 @@ class PortalRegistry:
         PortalService(
             id="researcher_tools",
             name="Researcher Tools",
-            short_description="Advanced research tools, litigation intelligence, and data analysis.",
+            short_description="Advanced research tools, housing court pattern research, and data analysis.",
             cta_label="Researcher Access",
             cta_path="/toolbox/researcher_data",
             icon="🔬",
@@ -239,8 +239,8 @@ class PortalRegistry:
             order=10,
             requires_auth=False,
             description_long=(
-                "Tools for legal researchers and data analysts: litigation intelligence, "
-                "landlord pattern detection, housing accountability research, and exportable datasets."
+                "Tools for legal researchers and data analysts: housing court pattern research, "
+                "landlord pattern detection, housing accountability research, and combined, anonymous datasets."
             ),
         ),
         # =====================================================================
@@ -325,8 +325,8 @@ class PortalRegistry:
             order=40,
             requires_auth=False,
             description_long=(
-                "Advanced tools for power users: litigation intelligence, housing "
-                "accountability, crawler, and beta features. Requires opt-in."
+                "Advanced tools for power users: housing court pattern research, housing "
+                "accountability, public-records crawler, and beta features. Requires opt-in."
             ),
         ),
     ]
