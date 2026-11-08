@@ -1,2137 +1,710 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Semptify — An open platform protecting tenant rights through knowledge, documentation, and community. Support the work and see where funding goes." />
-  <title>Support Semptify — Every Renter Deserves Peace at Home</title>
+{% extends "body/public_shell.html" %}
 
-  <!-- Google Fonts — Only External Dependency -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+{% block title %}Support Semptify — Every Renter Deserves Peace at Home{% endblock %}
+{% block description %}Semptify — An open platform protecting tenant rights through knowledge, documentation, and community. Support the work and see where funding goes.{% endblock %}
+{% block keywords %}donate tenant rights, github sponsors, housing nonprofit, support tenants{% endblock %}
 
-  <style>
-    /* ============================================================
-       RESET & BASE
-    ============================================================ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+{% block opengraph %}
+<meta property="og:title" content="Support Semptify — Every Renter Deserves Peace at Home">
+<meta property="og:description" content="Support Semptify via GitHub Sponsors — see the platform, the privacy architecture, and the grant funding roadmap.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://semptify.org/donate">
+{% endblock %}
 
-    :root {
-      --bg:        #0d1821;
-      --card-bg:   #141f2e;
-      --card-bg2:  #1a2840;
-      --amber:     #f5a623;
-      --amber-dim: #c4841c;
-      --teal:      #00c4a7;
-      --text:      #f0ede8;
-      --muted:     #7a8fa6;
-      --green:     #52c07a;
-      --border:    rgba(245,166,35,0.18);
-      --border2:   rgba(0,196,167,0.18);
-      --shadow:    0 8px 40px rgba(0,0,0,0.45);
-      --radius:    14px;
-      --radius-sm: 8px;
-      --trans:     all 0.35s cubic-bezier(.25,.8,.25,1);
+{% block header_title %}Support Semptify{% endblock %}
+{% block header_tagline %}Every renter deserves peace at home. An open platform protecting tenant rights through knowledge, documentation, and community — built from personal experience, offered to everyone. Tenants never pay.{% endblock %}
+{% block header_subtitle %}This page explains what Semptify is, how it works, and where support goes. Jump straight to <a href="#support">ways to support</a>.{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Donate page — SSOT tokens only, no external assets. */
+
+    .dn-eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--color-accent-strong);
+        display: block;
+        margin-bottom: 0.35rem;
     }
 
-    html { scroll-behavior: smooth; font-size: 16px; }
+    /* Stat strip + stat cards (zone separation, no card borders) */
+    .dn-statgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.85rem; }
+    .dn-stat { background: var(--bg-card); border-radius: var(--radius-block); padding: 1.25rem 1rem; text-align: center; }
+    .dn-stat-num { font-family: var(--font-head); font-size: 1.9rem; font-weight: 700; color: var(--color-accent-strong); display: block; line-height: 1.1; }
+    .dn-stat-label { font-size: 0.82rem; color: var(--text-secondary); display: block; margin-top: 0.4rem; line-height: 1.4; }
+    .dn-stat-label a { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-weight: 400;
-      line-height: 1.7;
-      overflow-x: hidden;
-    }
+    .dn-src { display: inline-block; margin-top: 0.7rem; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.04em; color: var(--color-calm-600); }
+    .dn-src:hover { color: var(--color-accent-strong); }
 
-    ::selection { background: var(--amber); color: #000; }
+    /* Content card grids — zone separation via surface/card backgrounds */
+    .dn-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
+    .dn-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
 
-    a { color: var(--amber); text-decoration: none; transition: color 0.2s; }
-    a:hover { color: var(--teal); }
+    .dn-card { background: var(--bg-card); border-radius: var(--radius-block); padding: 1.5rem; }
+    .dn-card--tight { padding: 1.25rem; }
+    .dn-card-icon { font-size: 1.5rem; display: block; margin-bottom: 0.6rem; }
+    .dn-card h3, .dn-card h4 { color: var(--color-primary); margin-top: 0; }
+    .dn-card h3 { font-size: 1.05rem; margin-bottom: 0.45rem; }
+    .dn-card h4 { font-size: 0.95rem; margin-bottom: 0.35rem; }
+    .dn-card p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.6rem; }
+    .dn-card p:last-child { margin-bottom: 0; }
 
-    img, svg { display: block; }
+    .dn-num { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; color: var(--color-accent-strong); display: block; margin-bottom: 0.7rem; }
 
-    /* ============================================================
-       TYPOGRAPHY
-    ============================================================ */
-    .font-serif   { font-family: 'Playfair Display', Georgia, serif; }
-    .font-mono    { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+    .dn-link { display: inline-block; margin-top: 0.4rem; font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.04em; color: var(--color-accent-strong); text-decoration: none; }
+    .dn-link::after { content: " →"; }
+    .dn-link:hover { color: var(--color-calm-600); }
 
-    h1, h2, h3, h4 {
-      font-family: 'Playfair Display', Georgia, serif;
-      line-height: 1.2;
-      font-weight: 700;
-    }
-    h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); }
-    h2 { font-size: clamp(2rem, 4vw, 3rem); }
-    h3 { font-size: clamp(1.3rem, 2.5vw, 1.75rem); }
-    h4 { font-size: 1.15rem; }
+    .dn-group-title { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-calm-600); margin: 1.75rem 0 1rem; display: flex; align-items: center; gap: 1rem; }
+    .dn-group-title::after { content: ""; flex: 1; height: 1px; background: var(--border-color); }
+    .dn-group-title:first-child { margin-top: 0; }
 
-    p { margin-bottom: 1rem; }
-    p:last-child { margin-bottom: 0; }
+    /* Badges */
+    .dn-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+    .dn-badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.8rem; border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.03em; }
+    .dn-badge--accent { background: color-mix(in srgb, var(--color-accent), transparent 86%); color: var(--color-accent-strong); }
+    .dn-badge--calm { background: var(--color-calm-50); color: var(--color-calm-700); }
+    .dn-badge--good { background: var(--color-success-50); color: var(--color-success-800); }
 
-    strong { font-weight: 600; color: var(--text); }
-
-    /* ============================================================
-       LAYOUT HELPERS
-    ============================================================ */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-
-    .section {
-      padding: 6rem 0;
-      position: relative;
-    }
-
-    .section-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--amber);
-      margin-bottom: 0.75rem;
-      display: block;
-    }
-
-    .section-title {
-      margin-bottom: 1.25rem;
-    }
-
-    .section-subtitle {
-      font-size: 1.15rem;
-      color: var(--muted);
-      max-width: 640px;
-      margin-bottom: 3rem;
-      line-height: 1.65;
-    }
-
-    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
-
-    /* ============================================================
-       CARDS
-    ============================================================ */
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      padding: 2rem;
-      transition: var(--trans);
-    }
-    .card:hover {
-      border-color: rgba(245,166,35,0.4);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,166,35,0.15);
-    }
-
-    .card-teal {
-      border-color: var(--border2);
-    }
-    .card-teal:hover {
-      border-color: rgba(0,196,167,0.4);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,196,167,0.15);
-    }
-
-    /* ============================================================
-       BUTTONS
-    ============================================================ */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.85rem 2rem;
-      border-radius: 50px;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--trans);
-      text-decoration: none;
-      border: none;
-      white-space: nowrap;
-    }
-
-    .btn-primary {
-      background: var(--amber);
-      color: #0d1821;
-    }
-    .btn-primary:hover {
-      background: #ffc04a;
-      color: #0d1821;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(245,166,35,0.4);
-    }
-
-    .btn-outline {
-      background: transparent;
-      color: var(--text);
-      border: 1.5px solid rgba(240,237,232,0.3);
-    }
-    .btn-outline:hover {
-      border-color: var(--amber);
-      color: var(--amber);
-      transform: translateY(-2px);
-    }
-
-    .btn-teal {
-      background: var(--teal);
-      color: #0d1821;
-    }
-    .btn-teal:hover {
-      background: #00e6c4;
-      color: #0d1821;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,196,167,0.35);
-    }
-
-    .btn-sm {
-      padding: 0.55rem 1.25rem;
-      font-size: 0.85rem;
-    }
-
-    /* ============================================================
-       BADGE / TAG
-    ============================================================ */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.3rem 0.85rem;
-      border-radius: 50px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .badge-amber { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
-    .badge-teal  { background: rgba(0,196,167,0.12);  color: var(--teal);  border: 1px solid rgba(0,196,167,0.25); }
-    .badge-green { background: rgba(82,192,122,0.12); color: var(--green); border: 1px solid rgba(82,192,122,0.25); }
-
-    /* ============================================================
-       DIVIDER
-    ============================================================ */
-    .divider {
-      width: 60px;
-      height: 3px;
-      background: linear-gradient(90deg, var(--amber), var(--teal));
-      border-radius: 2px;
-      margin: 1.25rem 0 2rem;
-    }
-
-    /* ============================================================
-       FADE-IN ON SCROLL
-    ============================================================ */
-    .fade-in {
-      opacity: 0;
-      transform: translateY(32px);
-      transition: opacity 0.75s ease, transform 0.75s ease;
-    }
-    .fade-in.visible {
-      opacity: 1;
-      transform: none;
-    }
-    .fade-in-delay-1 { transition-delay: 0.1s; }
-    .fade-in-delay-2 { transition-delay: 0.2s; }
-    .fade-in-delay-3 { transition-delay: 0.3s; }
-    .fade-in-delay-4 { transition-delay: 0.4s; }
-    .fade-in-delay-5 { transition-delay: 0.5s; }
-    .fade-in-delay-6 { transition-delay: 0.6s; }
-
-    /* ============================================================
-       SECTION BACKGROUNDS
-    ============================================================ */
-    .bg-alt   { background: #0f1a27; }
-    .bg-alt2  { background: #0b1520; }
-    .bg-card  { background: var(--card-bg); }
-
-    /* ============================================================
-       1. NAVIGATION
-    ============================================================ */
-    #navbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 1000;
-      padding: 1.25rem 0;
-      background: transparent;
-      transition: background 0.4s ease, box-shadow 0.4s ease, padding 0.4s ease;
-    }
-    #navbar.scrolled {
-      background: rgba(13,24,33,0.96);
-      box-shadow: 0 2px 24px rgba(0,0,0,0.5);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 0.85rem 0;
-    }
-    .nav-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-    .nav-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.55rem;
-      font-weight: 900;
-      color: var(--text);
-      text-decoration: none;
-      letter-spacing: -0.01em;
-    }
-    .nav-logo span { color: var(--amber); }
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 2rem;
-      list-style: none;
-    }
-    .nav-links a {
-      color: rgba(240,237,232,0.8);
-      font-size: 0.9rem;
-      font-weight: 500;
-      text-decoration: none;
-      transition: color 0.2s;
-      letter-spacing: 0.01em;
-    }
-    .nav-links a:hover { color: var(--amber); }
-    .nav-links .nav-cta {
-      background: var(--amber);
-      color: #0d1821;
-      padding: 0.5rem 1.2rem;
-      border-radius: 50px;
-      font-weight: 700;
-    }
-    .nav-links .nav-cta:hover { background: #ffc04a; color: #0d1821; }
-    .nav-toggle { display: none; cursor: pointer; }
-    .nav-toggle span { display: block; width: 24px; height: 2px; background: var(--text); margin: 5px 0; transition: 0.3s; }
-
-    /* ============================================================
-       2. HERO
-    ============================================================ */
-    #hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-      padding: 6rem 0 0;
-    }
-
-    /* Animated background shapes */
-    .hero-bg {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    .floating-shape {
-      position: absolute;
-      opacity: 0.055;
-      animation: floatShape 14s ease-in-out infinite;
-      color: var(--amber);
-    }
-    .floating-shape:nth-child(1)  { top: 8%;  left: 7%;  animation-duration: 13s; animation-delay: 0s;   width: 80px; }
-    .floating-shape:nth-child(2)  { top: 20%; right: 8%; animation-duration: 16s; animation-delay: 2s;   width: 60px; }
-    .floating-shape:nth-child(3)  { top: 55%; left: 4%;  animation-duration: 12s; animation-delay: 1s;   width: 50px; }
-    .floating-shape:nth-child(4)  { top: 70%; right: 12%;animation-duration: 18s; animation-delay: 3s;   width: 70px; }
-    .floating-shape:nth-child(5)  { top: 35%; left: 18%; animation-duration: 15s; animation-delay: 0.5s; width: 45px; }
-    .floating-shape:nth-child(6)  { top: 80%; left: 30%; animation-duration: 11s; animation-delay: 4s;   width: 55px; }
-    .floating-shape:nth-child(7)  { top: 15%; left: 45%; animation-duration: 17s; animation-delay: 1.5s; width: 40px; }
-    .floating-shape:nth-child(8)  { top: 60%; right: 25%;animation-duration: 14s; animation-delay: 2.5s; width: 65px; }
-
-    @keyframes floatShape {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      33%       { transform: translateY(-20px) rotate(6deg); }
-      66%       { transform: translateY(-10px) rotate(-4deg); }
-    }
-
-    /* Radial glow */
-    .hero-glow {
-      position: absolute;
-      width: 800px; height: 800px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(245,166,35,0.07) 0%, transparent 70%);
-      top: -200px; right: -200px;
-      pointer-events: none;
-    }
-    .hero-glow-2 {
-      position: absolute;
-      width: 600px; height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,196,167,0.05) 0%, transparent 70%);
-      bottom: 100px; left: -150px;
-      pointer-events: none;
-    }
-
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-
-    .hero-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--amber);
-      margin-bottom: 1.5rem;
-    }
-    .hero-eyebrow::before {
-      content: '';
-      display: block;
-      width: 28px; height: 2px;
-      background: var(--amber);
-      border-radius: 1px;
-    }
-
-    .hero-title {
-      font-size: clamp(3.5rem, 9vw, 7rem);
-      font-weight: 900;
-      line-height: 1.0;
-      letter-spacing: -0.02em;
-      margin-bottom: 1.5rem;
-    }
-    .hero-title .accent { color: var(--amber); }
-    .hero-title .accent-teal { color: var(--teal); }
-
-    .hero-tagline {
-      font-size: clamp(1.3rem, 2.5vw, 1.8rem);
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      color: rgba(240,237,232,0.85);
-      margin-bottom: 1.25rem;
-      font-weight: 400;
-    }
-
-    .hero-sub {
-      font-size: 1.05rem;
-      color: var(--muted);
-      max-width: 560px;
-      line-height: 1.7;
-      margin-bottom: 2.5rem;
-    }
-
-    .hero-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 5rem;
-    }
-
-    /* Stats bar */
-    .hero-stats {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      background: rgba(20,31,46,0.85);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid var(--border);
-      margin-top: auto;
-    }
-    .hero-stats-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-    }
-    .hero-stat {
-      padding: 1.5rem 1rem;
-      text-align: center;
-      border-right: 1px solid var(--border);
-    }
-    .hero-stat:last-child { border-right: none; }
-    .hero-stat-num {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--amber);
-      display: block;
-      line-height: 1.1;
-    }
-    .hero-stat-label {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 0.3rem;
-      display: block;
-    }
-
-    /* ============================================================
-       3. THE PROBLEM
-    ============================================================ */
-    .problem-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-      margin-bottom: 4rem;
-    }
-    .stat-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2.5rem 2rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--amber), var(--teal));
-    }
-    .stat-card-num {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2.8rem, 5vw, 4rem);
-      font-weight: 900;
-      color: var(--amber);
-      display: block;
-      line-height: 1.0;
-      margin-bottom: 0.5rem;
-    }
-    .stat-card-label {
-      font-size: 1rem;
-      color: var(--text);
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-    .stat-card-desc {
-      font-size: 0.88rem;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-    .stat-src {
-      display: inline-block;
-      margin-top: 0.9rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.06em;
-      color: var(--teal);
-      text-decoration: none;
-      border-bottom: 1px solid rgba(0,196,167,0.3);
-    }
-    .stat-src:hover { color: var(--amber); border-color: var(--amber); }
-    .card-link {
-      display: inline-block;
-      margin-top: 0.9rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.08em;
-      color: var(--amber);
-      text-decoration: none;
-    }
-    .card-link::after { content: ' →'; }
-    .card-link:hover { color: var(--teal); }
-
-    .problem-secondary {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-    }
-    .problem-item {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.75rem;
-    }
-    .problem-item-icon {
-      width: 44px; height: 44px;
-      background: rgba(245,166,35,0.12);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 1rem;
-      color: var(--amber);
-    }
-    .problem-item h4 { color: var(--amber); margin-bottom: 0.5rem; font-size: 1rem; }
-    .problem-item p  { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
-
-    /* ============================================================
-       4. THE SOLUTION — 6 PILLARS
-    ============================================================ */
-    .pillars-intro {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(1.3rem, 2.5vw, 1.7rem);
-      color: rgba(240,237,232,0.85);
-      max-width: 680px;
-      margin-bottom: 3.5rem;
-      line-height: 1.55;
-      font-style: italic;
-    }
-
-    .pillars-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-    }
-
-    .pillar-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      transition: var(--trans);
-      position: relative;
-      overflow: hidden;
-    }
-    .pillar-card::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--amber), transparent);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .pillar-card:hover {
-      border-color: rgba(245,166,35,0.35);
-      transform: translateY(-4px);
-      box-shadow: var(--shadow);
-    }
-    .pillar-card:hover::after { opacity: 1; }
-
-    .pillar-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      color: var(--amber);
-      letter-spacing: 0.15em;
-      margin-bottom: 1rem;
-      display: block;
-    }
-    .pillar-icon {
-      width: 52px; height: 52px;
-      background: rgba(245,166,35,0.1);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--amber);
-      margin-bottom: 1.25rem;
-      transition: background 0.3s;
-    }
-    .pillar-card:hover .pillar-icon { background: rgba(245,166,35,0.2); }
-
-    .pillar-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 0.6rem;
-      color: var(--text);
-    }
-    .pillar-desc {
-      font-size: 0.92rem;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    /* ============================================================
-       5. PLATFORM FEATURES
-    ============================================================ */
-    .features-group {
-      margin-bottom: 4rem;
-    }
-    .features-group-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--teal);
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .features-group-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border2);
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.25rem;
-    }
-
-    .feature-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.75rem;
-      transition: var(--trans);
-    }
-    .feature-card:hover {
-      border-color: rgba(0,196,167,0.3);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-    }
-
-    .feature-icon {
-      width: 46px; height: 46px;
-      background: rgba(0,196,167,0.1);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--teal);
-      margin-bottom: 1.1rem;
-      transition: background 0.3s;
-    }
-    .feature-card:hover .feature-icon { background: rgba(0,196,167,0.2); }
-
-    .feature-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 0.45rem;
-    }
-    .feature-desc {
-      font-size: 0.86rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* ============================================================
-       6. PRIVACY-FIRST ARCHITECTURE
-    ============================================================ */
-    .privacy-diagram {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0;
-      margin: 3rem 0;
-      flex-wrap: wrap;
-    }
-    .privacy-node {
-      background: var(--card-bg);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem 2.5rem;
-      text-align: center;
-      min-width: 180px;
-      transition: var(--trans);
-    }
-    .privacy-node:hover {
-      border-color: var(--amber);
-      transform: scale(1.03);
-    }
-    .privacy-node-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.75rem;
-      display: block;
-    }
-    .privacy-node-title {
-      font-weight: 700;
-      color: var(--text);
-      font-size: 1rem;
-    }
-    .privacy-node-sub {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 0.3rem;
-    }
-    .privacy-arrow {
-      display: flex;
-      align-items: center;
-      padding: 0 1rem;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-    .privacy-arrow svg { color: var(--amber); }
-    .privacy-arrow span {
-      font-size: 0.75rem;
-      color: var(--muted);
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.08em;
-    }
-
-    .privacy-benefits {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-      margin: 3rem 0;
-    }
-    .privacy-benefit {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      text-align: center;
-    }
-    .privacy-benefit-icon {
-      font-size: 2.2rem;
-      display: block;
-      margin-bottom: 1rem;
-    }
-    .privacy-benefit h4 {
-      color: var(--amber);
-      margin-bottom: 0.5rem;
-      font-size: 1.1rem;
-    }
-    .privacy-benefit p {
-      font-size: 0.88rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
+    /* Privacy flow diagram */
+    .dn-flow { display: flex; align-items: stretch; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin: 2rem 0; }
+    .dn-node { background: var(--bg-card); border-radius: var(--radius-block); padding: 1.5rem 1.75rem; text-align: center; min-width: 170px; flex: 1; max-width: 240px; }
+    .dn-node-icon { font-size: 1.9rem; display: block; margin-bottom: 0.5rem; }
+    .dn-node-title { font-weight: 700; color: var(--text-primary); font-size: 0.98rem; }
+    .dn-node-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem; }
+    .dn-arrow { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--color-accent-strong); padding: 0 0.25rem; }
+    .dn-arrow span { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.06em; margin-top: 0.25rem; }
 
     /* Comparison table */
-    .comparison-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    .comparison-table th {
-      padding: 1.1rem 1.5rem;
-      text-align: left;
-      font-weight: 700;
-      font-size: 0.9rem;
-    }
-    .comparison-table th:first-child { color: var(--muted); background: rgba(0,0,0,0.2); }
-    .comparison-table th.col-bad  { color: #ff6b6b; background: rgba(255,107,107,0.08); }
-    .comparison-table th.col-good { color: var(--teal); background: rgba(0,196,167,0.08); }
-    .comparison-table td {
-      padding: 0.95rem 1.5rem;
-      font-size: 0.9rem;
-      border-top: 1px solid rgba(255,255,255,0.06);
-    }
-    .comparison-table td:first-child { color: var(--muted); font-size: 0.85rem; }
-    .comparison-table .bad  { color: #ff6b6b; }
-    .comparison-table .good { color: var(--green); }
+    .dn-compare-wrap { overflow-x: auto; }
+    .dn-compare { width: 100%; border-collapse: collapse; background: var(--bg-card); border-radius: var(--radius-block); overflow: hidden; }
+    .dn-compare th { padding: 0.9rem 1.25rem; text-align: left; font-size: 0.88rem; }
+    .dn-compare th:first-child { color: var(--text-muted); }
+    .dn-compare th.dn-bad { color: var(--color-error-800); background: var(--color-error-50); }
+    .dn-compare th.dn-good { color: var(--color-success-800); background: var(--color-success-50); }
+    .dn-compare td { padding: 0.8rem 1.25rem; font-size: 0.88rem; border-top: 1px solid var(--border-color); }
+    .dn-compare td:first-child { color: var(--text-muted); font-size: 0.82rem; }
+    .dn-compare td.dn-bad { color: var(--color-error); }
+    .dn-compare td.dn-good { color: var(--color-success-800); }
 
-    /* ============================================================
-       7. TECHNICAL ARCHITECTURE
-    ============================================================ */
-    .stack-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 3rem;
-    }
-    .stack-item {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 1.25rem;
-      text-align: center;
-    }
-    .stack-item-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-    .stack-item-value {
-      font-size: 0.92rem;
-      font-weight: 600;
-      color: var(--teal);
-    }
+    /* Tech stack chips + module tiers */
+    .dn-stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+    .dn-stack-item { background: var(--bg-card); border-radius: var(--radius-block); padding: 1rem; text-align: center; }
+    .dn-stack-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; display: block; margin-bottom: 0.4rem; }
+    .dn-stack-value { font-size: 0.88rem; font-weight: 600; color: var(--color-calm-700); }
 
-    .module-ecosystem {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-    }
-    .module-tier {
-      margin-bottom: 2rem;
-    }
-    .module-tier:last-child { margin-bottom: 0; }
-    .module-tier-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--amber);
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    .module-tier-title::before {
-      content: '▶';
-      font-size: 0.75rem;
-    }
-    .module-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .module-tag {
-      background: rgba(0,196,167,0.08);
-      border: 1px solid rgba(0,196,167,0.2);
-      color: var(--teal);
-      padding: 0.35rem 0.85rem;
-      border-radius: 50px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.04em;
-    }
+    .dn-ecosystem { background: var(--bg-card); border-radius: var(--radius-block); padding: 1.5rem; }
+    .dn-tier { margin-bottom: 1.5rem; }
+    .dn-tier:last-child { margin-bottom: 0; }
+    .dn-tier-title { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-accent-strong); margin-bottom: 0.75rem; }
+    .dn-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .dn-tag { background: var(--color-calm-50); color: var(--color-calm-700); padding: 0.3rem 0.8rem; border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.03em; }
 
-    /* ============================================================
-       8. IMPACT & ROADMAP
-    ============================================================ */
-    .roadmap {
-      position: relative;
-      padding-left: 2.5rem;
-    }
-    .roadmap::before {
-      content: '';
-      position: absolute;
-      left: 10px;
-      top: 0; bottom: 0;
-      width: 2px;
-      background: linear-gradient(180deg, var(--amber), var(--teal), rgba(0,196,167,0.1));
-      border-radius: 1px;
-    }
-    .roadmap-item {
-      position: relative;
-      margin-bottom: 2.5rem;
-    }
-    .roadmap-item:last-child { margin-bottom: 0; }
-    .roadmap-dot {
-      position: absolute;
-      left: -2.35rem;
-      top: 0.35rem;
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      border: 2px solid var(--amber);
-      background: var(--bg);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .roadmap-dot.done   { background: var(--amber); border-color: var(--amber); }
-    .roadmap-dot.active { background: var(--teal);  border-color: var(--teal); box-shadow: 0 0 12px rgba(0,196,167,0.5); }
-    .roadmap-dot.next   { background: var(--bg); border-color: var(--muted); }
-    .roadmap-phase {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      color: var(--amber);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 0.35rem;
-    }
-    .roadmap-title {
-      font-weight: 700;
-      color: var(--text);
-      font-size: 1.1rem;
-      margin-bottom: 0.4rem;
-    }
-    .roadmap-desc {
-      font-size: 0.9rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
+    /* Callout band — zone separation */
+    .dn-callout { background: var(--bg-surface); border-radius: var(--radius-block); padding: 1.5rem 1.75rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+    .dn-callout-icon { font-size: 1.9rem; flex-shrink: 0; }
+    .dn-callout-body { flex: 1; min-width: 200px; }
+    .dn-callout h4 { color: var(--color-primary); margin: 0 0 0.35rem; font-size: 1.05rem; }
+    .dn-callout p { font-size: 0.9rem; color: var(--text-secondary); margin: 0; line-height: 1.6; }
 
-    .who-we-serve {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 1rem;
-      margin-top: 3rem;
-    }
-    .serve-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem 1rem;
-      text-align: center;
-    }
-    .serve-icon { font-size: 1.8rem; display: block; margin-bottom: 0.6rem; }
-    .serve-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    /* Roadmap timeline */
+    .dn-roadmap { position: relative; padding-left: 2rem; }
+    .dn-roadmap::before { content: ""; position: absolute; left: 8px; top: 4px; bottom: 4px; width: 2px; background: linear-gradient(180deg, var(--color-accent), var(--color-calm-300), var(--border-color)); border-radius: 1px; }
+    .dn-roadmap-item { position: relative; margin-bottom: 1.75rem; }
+    .dn-roadmap-item:last-child { margin-bottom: 0; }
+    .dn-dot { position: absolute; left: -1.9rem; top: 0.3rem; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-color); background: var(--bg-card); }
+    .dn-dot--done { background: var(--color-accent); border-color: var(--color-accent); }
+    .dn-dot--active { background: var(--color-calm-500); border-color: var(--color-calm-500); }
+    .dn-phase { font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-accent-strong); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 0.25rem; }
+    .dn-roadmap-title { font-weight: 700; color: var(--text-primary); font-size: 1rem; margin-bottom: 0.3rem; }
+    .dn-roadmap-desc { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin: 0; }
 
-    /* ============================================================
-       10. SUPPORT
-    ============================================================ */
-    .support-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.5rem;
-    }
-    .support-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-    }
-    .support-icon { font-size: 1.8rem; display: block; margin-bottom: 1rem; }
-    .support-card h3 { font-size: 1.2rem; margin-bottom: 0.6rem; color: var(--text); }
-    .support-card p { font-size: 0.9rem; color: var(--muted); margin-bottom: 1.25rem; }
-    .support-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
+    /* Who-we-serve chips */
+    .dn-serve { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; }
+    .dn-serve-card { background: var(--bg-card); border-radius: var(--radius-block); padding: 1.1rem 0.75rem; text-align: center; }
+    .dn-serve-icon { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; }
+    .dn-serve-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
 
-    /* ============================================================
-       11. FOOTER
-    ============================================================ */
-    footer {
-      background: #080f18;
-      border-top: 1px solid var(--border);
-      padding: 4rem 0 2rem;
+    /* Buttons — sage accent is the primary action; alarm color unused here */
+    .dn-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--color-accent); color: var(--color-accent-text); padding: 0.55rem 1.3rem; font-size: 0.9rem; font-weight: 600; text-decoration: none; border-radius: var(--radius-input); }
+    .dn-btn:hover { background: var(--color-accent-hover); color: var(--color-accent-text); }
+    .dn-btn--ghost { background: transparent; color: var(--color-primary); box-shadow: inset 0 0 0 1.5px var(--border-color); }
+    .dn-btn--ghost:hover { background: var(--bg-surface); color: var(--color-accent-strong); box-shadow: inset 0 0 0 1.5px var(--color-accent); }
+    .dn-btn--calm { background: var(--color-calm-600); color: var(--color-white); }
+    .dn-btn--calm:hover { background: var(--color-calm-700); color: var(--color-white); }
+    .dn-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+    .dn-actions--center { justify-content: center; }
+
+    .dn-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
+    .dn-cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; }
+
+    @media (max-width: 640px) {
+        .dn-cols-2 { grid-template-columns: 1fr; gap: 1.75rem; }
+        .dn-flow { flex-direction: column; align-items: center; }
+        .dn-node { max-width: none; width: 100%; }
+        .dn-arrow { transform: rotate(90deg); padding: 0.25rem 0; }
+        .dn-stat-num { font-size: 1.6rem; }
     }
-    .footer-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-    .footer-top {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 3rem;
-      margin-bottom: 3rem;
-    }
-    .footer-brand .logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
-      font-weight: 900;
-      color: var(--text);
-      margin-bottom: 0.75rem;
-    }
-    .footer-brand .logo span { color: var(--amber); }
-    .footer-brand p { font-size: 0.88rem; color: var(--muted); line-height: 1.65; max-width: 280px; }
-    .footer-col h5 {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: var(--amber);
-      margin-bottom: 1rem;
-    }
-    .footer-col ul { list-style: none; }
-    .footer-col ul li { margin-bottom: 0.55rem; }
-    .footer-col ul li a { color: var(--muted); font-size: 0.88rem; transition: color 0.2s; }
-    .footer-col ul li a:hover { color: var(--text); }
-    .footer-bottom {
-      border-top: 1px solid var(--border);
-      padding-top: 2rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .footer-bottom p { font-size: 0.82rem; color: var(--muted); }
-    .footer-bottom .highlight { color: var(--text); }
-    .footer-byline {
-      font-size: 0.82rem;
-      color: var(--muted);
-      font-style: italic;
-      max-width: 520px;
-      line-height: 1.6;
-    }
+</style>
+{% endblock %}
 
-    /* ============================================================
-       RESPONSIVE
-    ============================================================ */
-    @media (max-width: 1024px) {
-      .grid-4       { grid-template-columns: repeat(2, 1fr); }
-      .stack-grid   { grid-template-columns: repeat(2, 1fr); }
-      .footer-top   { grid-template-columns: repeat(2, 1fr); }
-      .who-we-serve { grid-template-columns: repeat(3, 1fr); }
-    }
+{% block sidebar %}
+<h2>On this page</h2>
+<ul class="shell-list">
+    <li><a href="#problem">The housing crisis</a></li>
+    <li><a href="#solution">What Semptify does</a></li>
+    <li><a href="#features">Platform features</a></li>
+    <li><a href="#privacy">Your data stays yours</a></li>
+    <li><a href="#tech">How it's built</a></li>
+    <li><a href="#impact">Impact &amp; roadmap</a></li>
+    <li><a href="#support">Ways to support</a></li>
+</ul>
+<h2>Semptify</h2>
+<ul class="shell-list">
+    <li><a href="/help">Get help now</a></li>
+    <li><a href="/law-library">Know your rights</a></li>
+    <li><a href="/portal">The portal</a></li>
+    <li><a href="/about">About the organization</a></li>
+</ul>
+{% endblock %}
 
-    @media (max-width: 768px) {
-      .section { padding: 4rem 0; }
-      h1 { font-size: 2.8rem; }
-      h2 { font-size: 2rem; }
+{% block page_body %}
 
-      /* Nav */
-      .nav-links { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0;
-        background: rgba(13,24,33,0.98); padding: 1.5rem; gap: 1rem; border-top: 1px solid var(--border); }
-      .nav-links.open { display: flex; }
-      .nav-toggle { display: block; }
-
-      /* Grids */
-      .grid-2, .grid-3, .grid-4,
-      .pillars-grid, .features-grid, .privacy-benefits,
-      .problem-stats, .problem-secondary, .support-grid { grid-template-columns: 1fr; }
-      .hero-stats-inner { grid-template-columns: repeat(2, 1fr); }
-      .hero-stat:nth-child(2) { border-right: none; }
-      .hero-stat { border-bottom: 1px solid var(--border); }
-      .who-we-serve { grid-template-columns: repeat(2, 1fr); }
-      .footer-top { grid-template-columns: 1fr; gap: 2rem; }
-      .app-header { grid-template-columns: 1fr; }
-      .app-program-badge { justify-content: flex-start; }
-      .stack-grid { grid-template-columns: repeat(2, 1fr); }
-      .privacy-diagram { flex-direction: column; }
-      .privacy-arrow { flex-direction: row; transform: rotate(90deg); margin: 0 auto; }
-    }
-
-    @media (max-width: 480px) {
-      .hero-stats-inner { grid-template-columns: 1fr 1fr; }
-      .hero-title { font-size: 2.5rem; }
-      .who-we-serve { grid-template-columns: repeat(2, 1fr); }
-      .btn { padding: 0.75rem 1.5rem; font-size: 0.88rem; }
-    }
-
-    /* ============================================================
-       PRINT STYLES
-    ============================================================ */
-    @media print {
-      #navbar, .hero-bg, .hero-glow, .hero-glow-2, .hero-buttons,
-      .btn { display: none !important; }
-      body { background: #fff !important; color: #000 !important; font-size: 11pt; }
-      .section { padding: 2rem 0; page-break-inside: avoid; }
-      .card, .stat-card, .pillar-card, .feature-card { border: 1px solid #ccc; break-inside: avoid; }
-      a[href]::after { content: ' (' attr(href) ')'; font-size: 9pt; color: #555; }
-      h1, h2, h3 { color: #000; }
-      .section-label, .app-section-title, .pillar-num { color: #555; }
-      .hero-stat-num, .stat-card-num, .pillar-title, .feature-title { color: #000; }
-      .muted, .hero-sub, .feature-desc, .pillar-desc { color: #444; }
-    }
-
-    /* ============================================================
-       MISC UTILITIES
-    ============================================================ */
-    .text-amber   { color: var(--amber) !important; }
-    .text-teal    { color: var(--teal)  !important; }
-    .text-green   { color: var(--green) !important; }
-    .text-muted   { color: var(--muted) !important; }
-    .text-center  { text-align: center; }
-    .mt-1 { margin-top: 0.5rem; }
-    .mt-2 { margin-top: 1rem; }
-    .mt-3 { margin-top: 1.5rem; }
-    .mt-4 { margin-top: 2rem; }
-    .mb-2 { margin-bottom: 1rem; }
-    .mb-3 { margin-bottom: 1.5rem; }
-    .mb-4 { margin-bottom: 2rem; }
-    .block { display: block; }
-
-    .inline-code {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.82em;
-      background: rgba(255,255,255,0.07);
-      padding: 0.15em 0.45em;
-      border-radius: 4px;
-      color: var(--teal);
-    }
-
-    /* Subtle horizontal rule */
-    hr.section-hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 3rem 0;
-    }
-
-    /* Number counter animation target */
-    .count-num { font-variant-numeric: tabular-nums; }
-  </style>
-</head>
-
-<body>
-
-<!-- ============================================================
-     1. FIXED NAV BAR
-============================================================ -->
-<nav id="navbar" aria-label="Main navigation">
-  <div class="nav-inner">
-    <a href="#hero" class="nav-logo">Sempt<span>i</span>fy</a>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-    <ul class="nav-links" id="navLinks">
-      <li><a href="/">The App</a></li>
-      <li><a href="/help">Get Help</a></li>
-      <li><a href="#solution">The Platform</a></li>
-      <li><a href="#features">Features</a></li>
-      <li><a href="#impact">Impact</a></li>
-      <li><a href="#support" class="nav-cta">Support</a></li>
-    </ul>
-  </div>
-</nav>
-
-
-<!-- ============================================================
-     2. HERO
-============================================================ -->
-<section id="hero">
-  <!-- Animated background shapes -->
-  <div class="hero-bg" aria-hidden="true">
-    <!-- House -->
-    <svg class="floating-shape" viewBox="0 0 100 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="50,5 95,45 85,45 85,85 60,85 60,60 40,60 40,85 15,85 15,45 5,45"/>
-    </svg>
-    <!-- Key -->
-    <svg class="floating-shape" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="30" cy="35" r="20" fill="none" stroke="currentColor" stroke-width="8"/>
-      <rect x="45" y="30" width="50" height="10" rx="4"/>
-      <rect x="80" y="40" width="10" height="15" rx="3"/>
-      <rect x="65" y="40" width="10" height="12" rx="3"/>
-    </svg>
-    <!-- Shield -->
-    <svg class="floating-shape" viewBox="0 0 100 110" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M50,5 L90,20 L90,55 C90,78 50,105 50,105 C50,105 10,78 10,55 L10,20 Z"/>
-    </svg>
-    <!-- Document -->
-    <svg class="floating-shape" viewBox="0 0 80 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <rect x="5" y="5" width="70" height="90" rx="6" fill="none" stroke="currentColor" stroke-width="6"/>
-      <rect x="18" y="28" width="44" height="6" rx="3"/>
-      <rect x="18" y="42" width="44" height="6" rx="3"/>
-      <rect x="18" y="56" width="30" height="6" rx="3"/>
-    </svg>
-    <!-- Heart -->
-    <svg class="floating-shape" viewBox="0 0 100 90" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M50,80 C50,80 5,52 5,28 A23,23,0,0,1,50,18 A23,23,0,0,1,95,28 C95,52 50,80 50,80 Z"/>
-    </svg>
-    <!-- Leaf -->
-    <svg class="floating-shape" viewBox="0 0 80 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M40,95 C20,75 5,50 15,20 C25,5 55,5 65,20 C75,50 60,75 40,95 Z"/>
-    </svg>
-    <!-- Person silhouette -->
-    <svg class="floating-shape" viewBox="0 0 60 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="30" cy="22" r="16"/>
-      <path d="M5,100 C5,70 8,55 30,55 C52,55 55,70 55,100 Z"/>
-    </svg>
-    <!-- Star / Spark -->
-    <svg class="floating-shape" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="50,5 61,35 93,35 68,57 79,91 50,70 21,91 32,57 7,35 39,35"/>
-    </svg>
-  </div>
-  <div class="hero-glow" aria-hidden="true"></div>
-  <div class="hero-glow-2" aria-hidden="true"></div>
-
-  <div class="hero-content">
-    <div class="hero-eyebrow">Open Source · semptify.org · v5.0</div>
-    <h1 class="hero-title font-serif fade-in">
-      Sempt<span class="accent">i</span>fy
-    </h1>
-    <p class="hero-tagline fade-in fade-in-delay-1">Every renter deserves peace at home.</p>
-    <p class="hero-sub fade-in fade-in-delay-2">
-      An open platform protecting tenant rights through knowledge, documentation, and community — built from personal experience, offered to everyone.
-    </p>
-    <div class="hero-buttons fade-in fade-in-delay-3">
-      <a href="#solution" class="btn btn-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Explore the Platform
-      </a>
+<!-- Hero stat strip -->
+<div class="dn-statgrid section">
+    <div class="dn-stat">
+        <span class="dn-stat-num">3.6M</span>
+        <span class="dn-stat-label"><a href="https://evictionlab.org/national-estimates/" target="_blank" rel="noopener">eviction filings per year in the U.S. — Eviction Lab</a></span>
     </div>
-  </div>
-
-  <!-- Stats bar -->
-  <div class="hero-stats fade-in fade-in-delay-4">
-    <div class="hero-stats-inner">
-      <div class="hero-stat">
-        <span class="hero-stat-num count-num" data-count="3.6" data-suffix="M" data-decimal="1">3.6M</span>
-        <a class="hero-stat-label" href="https://evictionlab.org/national-estimates/" target="_blank" rel="noopener" style="text-decoration:underline dotted; text-underline-offset:3px;">eviction filings per year in the U.S. — Eviction Lab</a>
-      </div>
-      <div class="hero-stat">
-        <span class="hero-stat-num">90%</span>
-        <a class="hero-stat-label" href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener" style="text-decoration:underline dotted; text-underline-offset:3px;">of landlords have lawyers in many courts — NCCRC</a>
-      </div>
-      <div class="hero-stat">
-        <span class="hero-stat-num">&lt;10%</span>
-        <a class="hero-stat-label" href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener" style="text-decoration:underline dotted; text-underline-offset:3px;">of tenants have any legal help — NCCRC</a>
-      </div>
-      <div class="hero-stat">
-        <span class="hero-stat-num count-num" data-count="20" data-suffix="+">20+</span>
-        <span class="hero-stat-label">tenant-facing tools, no cost to use</span>
-      </div>
+    <div class="dn-stat">
+        <span class="dn-stat-num">90%</span>
+        <span class="dn-stat-label"><a href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener">of landlords have lawyers in many courts — NCCRC</a></span>
     </div>
-  </div>
-</section>
+    <div class="dn-stat">
+        <span class="dn-stat-num">&lt;10%</span>
+        <span class="dn-stat-label"><a href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener">of tenants have any legal help — NCCRC</a></span>
+    </div>
+    <div class="dn-stat">
+        <span class="dn-stat-num">20+</span>
+        <span class="dn-stat-label">tenant-facing tools, no cost to use</span>
+    </div>
+</div>
 
-
-<!-- ============================================================
-     3. THE PROBLEM
-============================================================ -->
-<section id="problem" class="section bg-alt">
-  <div class="container">
-    <span class="section-label fade-in">The Crisis</span>
-    <h2 class="section-title fade-in fade-in-delay-1">The Housing Crisis<br>Is a Legal Crisis</h2>
-    <div class="divider fade-in fade-in-delay-2"></div>
-    <p class="section-subtitle fade-in fade-in-delay-2">
-      Millions of American renters face housing courts, illegal evictions, and habitability violations every year — alone, uninformed, and without records. The system was never built for them.
+<!-- The Crisis -->
+<section id="problem" class="section">
+    <span class="dn-eyebrow">The Crisis</span>
+    <h2 class="section-title">The Housing Crisis Is a Legal Crisis</h2>
+    <p class="section-description">
+        Millions of American renters face housing courts, illegal evictions, and habitability violations every year — alone, uninformed, and without records. The system was never built for them.
     </p>
 
-    <div class="problem-stats">
-      <div class="stat-card fade-in fade-in-delay-1">
-        <span class="stat-card-num count-num" data-count="3.6" data-suffix="M" data-decimal="1">3.6M</span>
-        <div class="stat-card-label">Eviction Filings Per Year</div>
-        <div class="stat-card-desc">In a typical year, U.S. landlords file about 3.6 million eviction cases — one every nine seconds. Most never go to trial. Most tenants have no idea what their rights are.</div>
-        <a class="stat-src" href="https://evictionlab.org/national-estimates/" target="_blank" rel="noopener">Source: Eviction Lab, Princeton University</a>
-      </div>
-      <div class="stat-card fade-in fade-in-delay-2">
-        <span class="stat-card-num">9 in 10</span>
-        <div class="stat-card-label">Landlords Have Legal Representation</div>
-        <div class="stat-card-desc">In housing court, the power imbalance is stark. In many courts studied, 90% or more of landlords show up with an attorney — the studied average is about 84%. They know the process. They know the paperwork. They've done this a hundred times.</div>
-        <a class="stat-src" href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener">Source: NCCRC eviction representation data</a>
-      </div>
-      <div class="stat-card fade-in fade-in-delay-3">
-        <span class="stat-card-num">4%</span>
-        <div class="stat-card-label">of Tenants Have Legal Help</div>
-        <div class="stat-card-desc">In the courts studied, only about 4% of tenants facing eviction have a lawyer — in many, nearly none. The rest face legal proceedings — often with eviction or homelessness on the line — completely alone.</div>
-        <a class="stat-src" href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener">Source: NCCRC eviction representation data</a>
-      </div>
+    <div class="dn-grid-3">
+        <div class="dn-card">
+            <span class="dn-stat-num">3.6M</span>
+            <h4>Eviction Filings Per Year</h4>
+            <p>In a typical year, U.S. landlords file about 3.6 million eviction cases — one every nine seconds. Most never go to trial. Most tenants have no idea what their rights are.</p>
+            <a class="dn-src" href="https://evictionlab.org/national-estimates/" target="_blank" rel="noopener">Source: Eviction Lab, Princeton University</a>
+        </div>
+        <div class="dn-card">
+            <span class="dn-stat-num">9 in 10</span>
+            <h4>Landlords Have Legal Representation</h4>
+            <p>In housing court, the power imbalance is stark. In many courts studied, 90% or more of landlords show up with an attorney — the studied average is about 84%. They know the process. They know the paperwork. They've done this a hundred times.</p>
+            <a class="dn-src" href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener">Source: NCCRC eviction representation data</a>
+        </div>
+        <div class="dn-card">
+            <span class="dn-stat-num">4%</span>
+            <h4>of Tenants Have Legal Help</h4>
+            <p>In the courts studied, only about 4% of tenants facing eviction have a lawyer — in many, nearly none. The rest face legal proceedings — often with eviction or homelessness on the line — completely alone.</p>
+            <a class="dn-src" href="https://civilrighttocounsel.org/uploaded_files/280/Landlord_and_tenant_eviction_rep_stats__NCCRC_.pdf" target="_blank" rel="noopener">Source: NCCRC eviction representation data</a>
+        </div>
     </div>
 
-    <div class="problem-secondary">
-      <div class="problem-item fade-in fade-in-delay-1">
-        <div class="problem-item-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div class="dn-grid-3" style="margin-top:1.25rem;">
+        <div class="dn-card dn-card--tight">
+            <span class="dn-card-icon">⚠️</span>
+            <h4>Housing Cost Burden</h4>
+            <p>Half of U.S. renter households — a record 22.6 million — spend more than 30% of their income on housing, and 12.1 million spend more than half. For renters earning under $30,000, 83% are cost-burdened — leaving nothing for emergencies, legal help, or advocacy.</p>
+            <a class="dn-src" href="https://www.jchs.harvard.edu/americas-rental-housing-2024" target="_blank" rel="noopener">Source: Harvard Joint Center for Housing Studies</a>
         </div>
-        <h4>Housing Cost Burden</h4>
-        <p>Half of U.S. renter households — a record 22.6 million — spend more than 30% of their income on housing, and 12.1 million spend more than half. For renters earning under $30,000, 83% are cost-burdened — leaving nothing for emergencies, legal help, or advocacy.</p>
-        <a class="stat-src" href="https://www.jchs.harvard.edu/americas-rental-housing-2024" target="_blank" rel="noopener">Source: Harvard Joint Center for Housing Studies</a>
-      </div>
-      <div class="problem-item fade-in fade-in-delay-2">
-        <div class="problem-item-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+        <div class="dn-card dn-card--tight">
+            <span class="dn-card-icon">🏠</span>
+            <h4>Habitability Violations</h4>
+            <p>Millions of U.S. rental units have severe or moderate physical problems — mold, broken heat, pest infestations, structural hazards — and most renters don't know how to document violations, file complaints, or respond without risking eviction.</p>
+            <a class="dn-src" href="https://www.census.gov/programs-surveys/ahs.html" target="_blank" rel="noopener">Source: HUD / U.S. Census American Housing Survey</a>
         </div>
-        <h4>Habitability Violations</h4>
-        <p>Millions of U.S. rental units have severe or moderate physical problems — mold, broken heat, pest infestations, structural hazards — and most renters don't know how to document violations, file complaints, or respond without risking eviction.</p>
-        <a class="stat-src" href="https://www.census.gov/programs-surveys/ahs.html" target="_blank" rel="noopener">Source: HUD / U.S. Census American Housing Survey</a>
-      </div>
-      <div class="problem-item fade-in fade-in-delay-3">
-        <div class="problem-item-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <div class="dn-card dn-card--tight">
+            <span class="dn-card-icon">👥</span>
+            <h4>Communities Most Affected</h4>
+            <p>Eviction filings fall hardest on Black renters — especially Black women — and on immigrant, elderly, and disabled renters. Eviction is not a housing event; it's a life event with cascading consequences.</p>
+            <a class="dn-src" href="https://evictionlab.org/" target="_blank" rel="noopener">Source: Eviction Lab research</a>
         </div>
-        <h4>Communities Most Affected</h4>
-        <p>Eviction filings fall hardest on Black renters — especially Black women — and on immigrant, elderly, and disabled renters. Eviction is not a housing event; it's a life event with cascading consequences.</p>
-        <a class="stat-src" href="https://evictionlab.org/" target="_blank" rel="noopener">Source: Eviction Lab research</a>
-      </div>
     </div>
-  </div>
 </section>
 
-
-<!-- ============================================================
-     4. THE SEMPTIFY SOLUTION
-============================================================ -->
+<!-- The Solution -->
 <section id="solution" class="section">
-  <div class="container">
-    <span class="section-label fade-in">The Solution</span>
-    <h2 class="section-title fade-in fade-in-delay-1">We Built the Tools That<br>Should Have Always Existed</h2>
-    <div class="divider fade-in fade-in-delay-2"></div>
-    <p class="pillars-intro fade-in fade-in-delay-2">
-      Semptify is non-adversarial. We don't fight landlords — we give tenants the knowledge, records, and community they need to stand with composure and clarity. Six functions. One platform. Tenants never pay.
+    <span class="dn-eyebrow">The Solution</span>
+    <h2 class="section-title">We Built the Tools That Should Have Always Existed</h2>
+    <p class="section-description">
+        Semptify is non-adversarial. We don't fight landlords — we give tenants the knowledge, records, and community they need to stand with composure and clarity. Six functions. One platform. Tenants never pay.
     </p>
 
-    <div class="pillars-grid">
-      <!-- 1. Information -->
-      <div class="pillar-card fade-in fade-in-delay-1">
-        <span class="pillar-num">01 — INFORMATION</span>
-        <div class="pillar-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div class="dn-grid-3">
+        <div class="dn-card">
+            <span class="dn-num">01 — INFORMATION</span>
+            <h3>Know Your Rights Before the Dispute Starts</h3>
+            <p>Plain-language explanations of tenant rights — notice requirements, habitability standards, illegal fees, retaliation protections, and more — covering 35 states today and expanding. Accessible to everyone, not just lawyers.</p>
+            <a class="dn-link" href="/law-library">Open the Law Library</a>
         </div>
-        <div class="pillar-title">Know Your Rights Before the Dispute Starts</div>
-        <p class="pillar-desc">Plain-language explanations of tenant rights — notice requirements, habitability standards, illegal fees, retaliation protections, and more — covering 35 states today and expanding. Accessible to everyone, not just lawyers.</p>
-        <a class="card-link" href="/library">Open the Law Library</a>
-      </div>
-      <!-- 2. Research -->
-      <div class="pillar-card fade-in fade-in-delay-2">
-        <span class="pillar-num">02 — RESEARCH</span>
-        <div class="pillar-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div class="dn-card">
+            <span class="dn-num">02 — RESEARCH</span>
+            <h3>Go Deeper on Your Specific Situation</h3>
+            <p>Not every situation is the same. Semptify's research layer helps tenants explore the statutes, precedents, and agency rules relevant to their exact case — without needing to know where to look.</p>
+            <a class="dn-link" href="/legal-research">See legal research tools</a>
         </div>
-        <div class="pillar-title">Go Deeper on Your Specific Situation</div>
-        <p class="pillar-desc">Not every situation is the same. Semptify's research layer helps tenants explore the statutes, precedents, and agency rules relevant to their exact case — without needing to know where to look.</p>
-        <a class="card-link" href="/legal-research">See legal research tools</a>
-      </div>
-      <!-- 3. Documentation -->
-      <div class="pillar-card fade-in fade-in-delay-3">
-        <span class="pillar-num">03 — DOCUMENTATION</span>
-        <div class="pillar-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <div class="dn-card">
+            <span class="dn-num">03 — DOCUMENTATION</span>
+            <h3>A Paper Trail You Can Trust</h3>
+            <p>Every communication, payment, repair request, and notice — documented, timestamped, and organized. A complete paper trail stored in your own cloud, ready if you ever need it in court or with a mediator.</p>
+            <a class="dn-link" href="/portal">Start documenting</a>
         </div>
-        <div class="pillar-title">A Paper Trail You Can Trust</div>
-        <p class="pillar-desc">Every communication, payment, repair request, and notice — documented, timestamped, and organized. A complete paper trail stored in your own cloud, ready if you ever need it in court or with a mediator.</p>
-        <a class="card-link" href="/portal">Start documenting</a>
-      </div>
-      <!-- 4. Organize -->
-      <div class="pillar-card fade-in fade-in-delay-4">
-        <span class="pillar-num">04 — ORGANIZE</span>
-        <div class="pillar-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <div class="dn-card">
+            <span class="dn-num">04 — ORGANIZE</span>
+            <h3>Scattered Texts, Photos, Receipts → Coherent Record</h3>
+            <p>Most tenants have the makings of a record — it's just scattered across phone photos, email threads, text messages, and handwritten notes. Semptify organizes everything into a coherent, chronological record that tells your story clearly.</p>
+            <a class="dn-link" href="/portal">Organize your records</a>
         </div>
-        <div class="pillar-title">Scattered Texts, Photos, Receipts → Coherent Record</div>
-        <p class="pillar-desc">Most tenants have the makings of a record — it's just scattered across phone photos, email threads, text messages, and handwritten notes. Semptify organizes everything into a coherent, chronological record that tells your story clearly.</p>
-        <a class="card-link" href="/portal">Organize your records</a>
-      </div>
-      <!-- 5. Collaborate -->
-      <div class="pillar-card fade-in fade-in-delay-5">
-        <span class="pillar-num">05 — COLLABORATE</span>
-        <div class="pillar-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <div class="dn-card">
+            <span class="dn-num">05 — COLLABORATE</span>
+            <h3>Find Your Tenants Union. Build One If It Doesn't Exist.</h3>
+            <p>Tenants are stronger together. A finder of approved tenant groups is being built — for now the advocacy page helps you start one, and dialing 211 can point you to organizations in your area.</p>
+            <a class="dn-link" href="/advocacy">Advocacy &amp; organizing</a>
         </div>
-        <div class="pillar-title">Find Your Tenants Union. Build One If It Doesn't Exist.</div>
-        <p class="pillar-desc">Tenants are stronger together. Semptify connects renters with their local tenants unions, tenant advocacy organizations, and community support networks — and provides tools for organizing where nothing yet exists.</p>
-        <a class="card-link" href="/advocacy">Advocacy &amp; organizing</a>
-      </div>
-      <!-- 6. Be Heard -->
-      <div class="pillar-card fade-in fade-in-delay-6">
-        <span class="pillar-num">06 — BE HEARD</span>
-        <div class="pillar-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <div class="dn-card">
+            <span class="dn-num">06 — BE HEARD</span>
+            <h3>File Complaints. Reach Legislators. Tell Your Story.</h3>
+            <p>Semptify's Public Exposure Suite connects tenants to journalists, housing advocates, and elected officials. The Complaint Wizard guides users through HUD, state AG, and code enforcement filings — step by step, plain language, no lawyer required.</p>
+            <a class="dn-link" href="/complaints">File a complaint</a>
         </div>
-        <div class="pillar-title">File Complaints. Reach Legislators. Tell Your Story.</div>
-        <p class="pillar-desc">Semptify's Public Exposure Suite connects tenants to journalists, housing advocates, and elected officials. The Complaint Wizard guides users through HUD, state AG, and code enforcement filings — step by step, plain language, no lawyer required.</p>
-        <a class="card-link" href="/complaints">File a complaint</a>
-      </div>
     </div>
-  </div>
 </section>
 
-
-<!-- ============================================================
-     5. PLATFORM FEATURES — FULL SHOWCASE
-============================================================ -->
-<section id="features" class="section bg-alt">
-  <div class="container">
-    <span class="section-label fade-in">Platform Features</span>
-    <h2 class="section-title fade-in fade-in-delay-1">20+ Tenant Tools,<br>Built to Matter</h2>
-    <div class="divider fade-in fade-in-delay-2"></div>
-    <p class="section-subtitle fade-in fade-in-delay-2">
-      Every feature in Semptify answers a specific, real gap in the tenant experience. From the first lease signature to the last day in court.
+<!-- Platform Features -->
+<section id="features" class="section">
+    <span class="dn-eyebrow">Platform Features</span>
+    <h2 class="section-title">20+ Tenant Tools, Built to Matter</h2>
+    <p class="section-description">
+        Every feature in Semptify answers a specific, real gap in the tenant experience. From the first lease signature to the last day in court.
     </p>
 
-    <!-- Group A: Core Tenant Tools -->
-    <div class="features-group fade-in fade-in-delay-1">
-      <div class="features-group-title">Group A — Core Tenant Tools</div>
-      <div class="features-grid">
-
-        <div class="feature-card fade-in fade-in-delay-1">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-          </div>
-          <div class="feature-title">Know Your Rights Law Library</div>
-          <p class="feature-desc">Housing law in plain English for 35 states and growing. Covers notice requirements, security deposit rules, habitability standards, retaliation protections, and right-to-cure timelines. No law degree required.</p>
-          <a class="card-link" href="/library">Open the library</a>
+    <div class="dn-group-title">Group A — Core Tenant Tools</div>
+    <div class="dn-grid-3">
+        <div class="dn-card dn-card--tight">
+            <h4>Know Your Rights Law Library</h4>
+            <p>Housing law in plain English for 35 states and growing. Covers notice requirements, security deposit rules, habitability standards, retaliation protections, and right-to-cure timelines. No law degree required.</p>
+            <a class="dn-link" href="/law-library">Open the library</a>
         </div>
-
-        <div class="feature-card fade-in fade-in-delay-2">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-          </div>
-          <div class="feature-title">Document Vault</div>
-          <p class="feature-desc">Your tenant document vault lives in your own Google Drive, Dropbox, or OneDrive account — not on Semptify's servers. Lease agreements, repair photos, payment receipts, notices: all organized and owned by you.</p>
-          <a class="card-link" href="/portal">Set up your vault</a>
+        <div class="dn-card dn-card--tight">
+            <h4>Document Vault</h4>
+            <p>Your tenant document vault lives in your own Google Drive, Dropbox, or OneDrive account — not on Semptify's servers. Lease agreements, repair photos, payment receipts, notices: all organized and owned by you.</p>
+            <a class="dn-link" href="/portal">Set up your vault</a>
         </div>
-
-        <div class="feature-card fade-in fade-in-delay-3">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-          </div>
-          <div class="feature-title">Unified Timeline</div>
-          <p class="feature-desc">Every event in your tenancy — payments, notices, calls, repairs, inspections, disputes — presented as a single chronological timeline. The clearest possible picture of what happened, and when.</p>
-          <a class="card-link" href="/portal">Build your timeline</a>
+        <div class="dn-card dn-card--tight">
+            <h4>Unified Timeline</h4>
+            <p>Every event in your tenancy — payments, notices, calls, repairs, inspections, disputes — presented as a single chronological timeline. The clearest possible picture of what happened, and when.</p>
+            <a class="dn-link" href="/portal">Build your timeline</a>
         </div>
-
-        <div class="feature-card fade-in fade-in-delay-1">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-          </div>
-          <div class="feature-title">Case Builder</div>
-          <p class="feature-desc">Automated documentation from your records. Case Builder takes your vault contents and timeline, identifies the strongest documentation, and assembles it into a clear, coherent case narrative ready for legal or advocacy use.</p>
-          <a class="card-link" href="/services">See services</a>
+        <div class="dn-card dn-card--tight">
+            <h4>Case Builder</h4>
+            <p>Automated documentation from your records. Case Builder takes your vault contents and timeline, identifies the strongest documentation, and assembles it into a clear, coherent case narrative ready for legal or advocacy use.</p>
+            <a class="dn-link" href="/services">See services</a>
         </div>
-
-        <div class="feature-card fade-in fade-in-delay-2">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.01 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-          </div>
-          <div class="feature-title">Complaint Wizard</div>
-          <p class="feature-desc">Guided, step-by-step filing with HUD, state attorneys general, local housing authorities, and code enforcement agencies. The Wizard pre-fills forms from your vault data and walks you through every field in plain language.</p>
-          <a class="card-link" href="/complaints">File a complaint</a>
+        <div class="dn-card dn-card--tight">
+            <h4>Complaint Wizard</h4>
+            <p>Guided, step-by-step filing with HUD, state attorneys general, local housing authorities, and code enforcement agencies. The Wizard pre-fills forms from your vault data and walks you through every field in plain language.</p>
+            <a class="dn-link" href="/complaints">File a complaint</a>
         </div>
-
-      </div>
     </div>
 
-    <!-- Group B: Advanced / Legal Tools -->
-    <div class="features-group fade-in fade-in-delay-1">
-      <div class="features-group-title">Group B — Advanced &amp; Legal Tools</div>
-      <div class="features-grid">
-
-        <div class="feature-card fade-in fade-in-delay-1">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l3 1m0 0l-3 9a5 5 0 006.83 2.22M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5 5 0 01-6.83 2.22M18 7l-6-2m0 0v14"/></svg>
-          </div>
-          <div class="feature-title">Eviction Defense Module</div>
-          <p class="feature-desc">Step-by-step guidance through the eviction process — from notice receipt to court date. Includes state-specific court procedure guides, timeline calculators, deadline tracking, and response templates drafted in plain language.</p>
-          <a class="card-link" href="/eviction-defense">Open eviction defense</a>
+    <div class="dn-group-title">Group B — Advanced &amp; Legal Tools</div>
+    <div class="dn-grid-3">
+        <div class="dn-card dn-card--tight">
+            <h4>Eviction Defense Module</h4>
+            <p>Step-by-step guidance through the eviction process — from notice receipt to court date. Includes state-specific court procedure guides, timeline calculators, deadline tracking, and response templates drafted in plain language.</p>
+            <a class="dn-link" href="/eviction-defense">Open eviction defense</a>
         </div>
-
-        <div class="feature-card fade-in fade-in-delay-2">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><rect x="8" y="13" width="8" height="6" rx="1"/></svg>
-          </div>
-          <div class="feature-title">Court Forms System</div>
-          <p class="feature-desc">Pre-filled legal documents drawn from your vault and timeline. Generates answers to eviction summons, motions for continuance, habitability defenses, and more — with state-specific formatting and instructions for filing pro se.</p>
-          <a class="card-link" href="/tools">See tools</a>
+        <div class="dn-card dn-card--tight">
+            <h4>Court Forms System</h4>
+            <p>Pre-filled legal documents drawn from your vault and timeline. Generates answers to eviction summons, motions for continuance, habitability defenses, and more — with state-specific formatting and instructions for filing pro se.</p>
+            <a class="dn-link" href="/tools">See tools</a>
         </div>
-
-        <div class="feature-card fade-in fade-in-delay-3">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          </div>
-          <div class="feature-title">Litigation Intelligence</div>
-          <p class="feature-desc">Pattern detection across public housing court records. Identifies serial evictors, landlords with histories of retaliation or code violations, and systemic practices — giving tenants and advocates actionable intelligence to level the playing field.</p>
-          <a class="card-link" href="/legal-research">Legal research tools</a>
+        <div class="dn-card dn-card--tight">
+            <h4>Litigation Intelligence</h4>
+            <p>Pattern detection across public housing court records. Identifies serial evictors, landlords with histories of retaliation or code violations, and systemic practices — giving tenants and advocates actionable intelligence to level the playing field.</p>
+            <a class="dn-link" href="/legal-research">Legal research tools</a>
         </div>
-
-        <div class="feature-card fade-in fade-in-delay-1">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </div>
-          <div class="feature-title">Fraud Exposure</div>
-          <p class="feature-desc">Document and surface predatory landlord patterns: illegal fees, false security deposit claims, retaliatory lease terminations, habitability cover-ups, and discriminatory practices. Creates a documented record for regulatory and legal action.</p>
-          <a class="card-link" href="/legal-research">Legal research tools</a>
+        <div class="dn-card dn-card--tight">
+            <h4>Fraud Exposure</h4>
+            <p>Document and surface predatory landlord patterns: illegal fees, false security deposit claims, retaliatory lease terminations, habitability cover-ups, and discriminatory practices. Creates a documented record for regulatory and legal action.</p>
+            <a class="dn-link" href="/legal-research">Legal research tools</a>
         </div>
-
-        <div class="feature-card fade-in fade-in-delay-2">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          </div>
-          <div class="feature-title">Public Exposure Suite</div>
-          <p class="feature-desc">Bridges the gap between individual tenants and systemic change. Connects tenants with housing journalists, policy advocates, and legislators. Makes individual stories part of a larger record — with privacy controls tenants control.</p>
-          <a class="card-link" href="/advocacy">Advocacy &amp; outreach</a>
+        <div class="dn-card dn-card--tight">
+            <h4>Public Exposure Suite</h4>
+            <p>Bridges the gap between individual tenants and systemic change. Connects tenants with housing journalists, policy advocates, and legislators. Makes individual stories part of a larger record — with privacy controls tenants control.</p>
+            <a class="dn-link" href="/advocacy">Advocacy &amp; outreach</a>
         </div>
-
-        <div class="feature-card fade-in fade-in-delay-3">
-          <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-          </div>
-          <div class="feature-title">Forensic Evidence System — FEMS</div>
-          <p class="feature-desc">Advanced document processing: OCR of scanned documents and photos, automatic deduplication, SMS and chat import, metadata preservation, and chain-of-custody logging. Turns a phone's camera roll into a clear, credible record.</p>
-          <a class="card-link" href="/services">See services</a>
+        <div class="dn-card dn-card--tight">
+            <h4>Forensic Evidence System — FEMS</h4>
+            <p>Advanced document processing: OCR of scanned documents and photos, automatic deduplication, SMS and chat import, metadata preservation, and chain-of-custody logging. Turns a phone's camera roll into a clear, credible record.</p>
+            <a class="dn-link" href="/services">See services</a>
         </div>
-
-      </div>
     </div>
 
-    <!-- Mobile PWA -->
-    <div class="card fade-in" style="background: linear-gradient(135deg, rgba(245,166,35,0.08), rgba(0,196,167,0.06)); border-color: rgba(245,166,35,0.25); display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
-      <div style="width: 56px; height: 56px; background: rgba(245,166,35,0.15); border-radius: 14px; display:flex;align-items:center;justify-content:center; flex-shrink:0; color: var(--amber);">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-      </div>
-      <div>
-        <div style="font-weight:700; color: var(--text); font-size:1.1rem; margin-bottom:0.35rem;">Semptify Go — Mobile PWA <span class="badge badge-teal" style="vertical-align:middle;">In Development</span></div>
-        <p style="font-size:0.9rem; color:var(--muted); margin:0;">Full Semptify functionality in a Progressive Web App — now in active development. Document in the moment — photograph a notice, import texts, check your rights, or access your vault — anywhere, on any device. Offline-capable, installable, fast.</p>
-      </div>
-      <div style="margin-left:auto; flex-shrink:0;">
-        <span class="badge badge-teal">PWA</span>
-        <span class="badge badge-amber" style="margin-left:0.4rem;">Offline</span>
-      </div>
+    <div class="dn-callout" style="margin-top:1.5rem;">
+        <span class="dn-callout-icon">📱</span>
+        <div class="dn-callout-body">
+            <h4>Semptify Go — Mobile PWA <span class="dn-badge dn-badge--calm" style="vertical-align:middle;">In Development</span></h4>
+            <p>Full Semptify functionality in a Progressive Web App — now in active development. Document in the moment — photograph a notice, import texts, check your rights, or access your vault — anywhere, on any device. Offline-capable, installable, fast.</p>
+        </div>
+        <div class="dn-badges">
+            <span class="dn-badge dn-badge--calm">PWA</span>
+            <span class="dn-badge dn-badge--accent">Offline</span>
+        </div>
     </div>
-  </div>
 </section>
 
-
-<!-- ============================================================
-     6. PRIVACY-FIRST ARCHITECTURE
-============================================================ -->
+<!-- Privacy-First Architecture -->
 <section id="privacy" class="section">
-  <div class="container">
-    <span class="section-label fade-in">Architecture</span>
-    <h2 class="section-title fade-in fade-in-delay-1">Your Data Never<br>Touches Our Servers</h2>
-    <div class="divider fade-in fade-in-delay-2"></div>
-    <p class="section-subtitle fade-in fade-in-delay-2">
-      Semptify's storage-based authentication model is a genuine innovation in tenant-facing technology. Your cloud storage account <em>is</em> your identity. Your documents never leave your control — and our standing promise: nothing on our servers beyond what is absolutely necessary and non-identifiable. If that ever fails in production, the project doesn't deserve to run.
+    <span class="dn-eyebrow">Architecture</span>
+    <h2 class="section-title">Your Data Never Touches Our Servers</h2>
+    <p class="section-description">
+        Semptify's storage-based authentication model is a genuine innovation in tenant-facing technology. Your cloud storage account <em>is</em> your identity. Your documents never leave your control — and our standing promise: nothing on our servers beyond what is absolutely necessary and non-identifiable. If that ever fails in production, the project doesn't deserve to run.
     </p>
 
-    <!-- Architecture diagram -->
-    <div class="privacy-diagram fade-in">
-      <div class="privacy-node">
-        <span class="privacy-node-icon">☁️</span>
-        <div class="privacy-node-title">Your Cloud</div>
-        <div class="privacy-node-sub">Google Drive / Dropbox / OneDrive</div>
-        <div style="margin-top:0.75rem; display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
-          <span class="badge badge-green" style="font-size: 0.75rem;">OAuth 2.0</span>
-          <span class="badge badge-teal" style="font-size: 0.75rem;">Your Ownership</span>
+    <div class="dn-flow">
+        <div class="dn-node">
+            <span class="dn-node-icon">☁️</span>
+            <div class="dn-node-title">Your Cloud</div>
+            <div class="dn-node-sub">Google Drive / Dropbox / OneDrive</div>
+            <div class="dn-badges" style="justify-content:center;">
+                <span class="dn-badge dn-badge--good">OAuth 2.0</span>
+                <span class="dn-badge dn-badge--calm">Your Ownership</span>
+            </div>
         </div>
-      </div>
-      <div class="privacy-arrow">
-        <svg width="40" height="16" viewBox="0 0 40 16" fill="none"><path d="M0 8 L32 8 M24 2 L38 8 L24 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <span>Auth + Files</span>
-      </div>
-      <div class="privacy-node" style="border-color:rgba(245,166,35,0.35);">
-        <span class="privacy-node-icon">⚡</span>
-        <div class="privacy-node-title">Semptify</div>
-        <div class="privacy-node-sub">FastAPI · Logic Layer Only</div>
-        <div style="margin-top:0.75rem; display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
-          <span class="badge badge-amber" style="font-size: 0.75rem;">No File Storage</span>
-          <span class="badge badge-amber" style="font-size: 0.75rem;">No Passwords</span>
+        <div class="dn-arrow" aria-hidden="true">
+            <svg width="40" height="16" viewBox="0 0 40 16" fill="none"><path d="M0 8 L32 8 M24 2 L38 8 L24 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>Auth + Files</span>
         </div>
-      </div>
-      <div class="privacy-arrow">
-        <svg width="40" height="16" viewBox="0 0 40 16" fill="none"><path d="M0 8 L32 8 M24 2 L38 8 L24 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <span>Results Back</span>
-      </div>
-      <div class="privacy-node">
-        <span class="privacy-node-icon">🔒</span>
-        <div class="privacy-node-title">Back to Your Cloud</div>
-        <div class="privacy-node-sub">Organized · Searchable · Yours</div>
-        <div style="margin-top:0.75rem; display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
-          <span class="badge badge-green" style="font-size: 0.75rem;">Near-Zero Breach Risk</span>
+        <div class="dn-node">
+            <span class="dn-node-icon">⚡</span>
+            <div class="dn-node-title">Semptify</div>
+            <div class="dn-node-sub">FastAPI · Logic Layer Only</div>
+            <div class="dn-badges" style="justify-content:center;">
+                <span class="dn-badge dn-badge--accent">No File Storage</span>
+                <span class="dn-badge dn-badge--accent">No Passwords</span>
+            </div>
         </div>
-      </div>
+        <div class="dn-arrow" aria-hidden="true">
+            <svg width="40" height="16" viewBox="0 0 40 16" fill="none"><path d="M0 8 L32 8 M24 2 L38 8 L24 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>Results Back</span>
+        </div>
+        <div class="dn-node">
+            <span class="dn-node-icon">🔒</span>
+            <div class="dn-node-title">Back to Your Cloud</div>
+            <div class="dn-node-sub">Organized · Searchable · Yours</div>
+            <div class="dn-badges" style="justify-content:center;">
+                <span class="dn-badge dn-badge--good">Near-Zero Breach Risk</span>
+            </div>
+        </div>
     </div>
 
-    <!-- Three benefit cards -->
-    <div class="privacy-benefits">
-      <div class="privacy-benefit fade-in fade-in-delay-1">
-        <span class="privacy-benefit-icon">🔑</span>
-        <h4>Zero Passwords</h4>
-        <p>You connect Google Drive, Dropbox, or OneDrive. There is no Semptify password to create, store, remember, or lose. Your own cloud storage confirms it's you.</p>
-      </div>
-      <div class="privacy-benefit fade-in fade-in-delay-2">
-        <span class="privacy-benefit-icon">📁</span>
-        <h4>You Own Your Data</h4>
-        <p>Every document, timeline entry, and case record is written back to your own cloud account — timeline data included, held in your own storage. Semptify holds zero personal files. If Semptify disappeared tomorrow, your records would still be exactly where you left them.</p>
-      </div>
-      <div class="privacy-benefit fade-in fade-in-delay-3">
-        <span class="privacy-benefit-icon">🌐</span>
-        <h4>Portability</h4>
-        <p>Your identity and your records travel with your cloud account. Switch devices, reinstall the app, or share access with a lawyer — your entire tenancy record comes with you, without re-registration.</p>
-      </div>
+    <div class="dn-grid-3">
+        <div class="dn-card">
+            <span class="dn-card-icon">🔑</span>
+            <h4>Zero Passwords</h4>
+            <p>You connect Google Drive, Dropbox, or OneDrive. There is no Semptify password to create, store, remember, or lose. Your own cloud storage confirms it's you.</p>
+        </div>
+        <div class="dn-card">
+            <span class="dn-card-icon">📁</span>
+            <h4>You Own Your Data</h4>
+            <p>Every document, timeline entry, and case record is written back to your own cloud account — timeline data included, held in your own storage. Semptify holds zero personal files. If Semptify disappeared tomorrow, your records would still be exactly where you left them.</p>
+        </div>
+        <div class="dn-card">
+            <span class="dn-card-icon">🌐</span>
+            <h4>Portability</h4>
+            <p>Your identity and your records travel with your cloud account. Switch devices, reinstall the app, or share access with a lawyer — your entire tenancy record comes with you, without re-registration.</p>
+        </div>
     </div>
 
-    <!-- Comparison table -->
-    <div class="fade-in" style="overflow-x:auto;">
-      <table class="comparison-table">
-        <thead>
-          <tr>
-            <th>Category</th>
-            <th class="col-bad">Traditional Tenant App</th>
-            <th class="col-good">Semptify</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Authentication</td>
-            <td class="bad">Username + password on vendor servers</td>
-            <td class="good">OAuth 2.0 via your cloud storage provider</td>
-          </tr>
-          <tr>
-            <td>Document Storage</td>
-            <td class="bad">Vendor's database — you hope they're secure</td>
-            <td class="good">Your Google Drive / Dropbox / OneDrive</td>
-          </tr>
-          <tr>
-            <td>Data Breach Risk</td>
-            <td class="bad">High — millions of records centralized</td>
-            <td class="good">Near-zero — nothing sensitive on our servers</td>
-          </tr>
-          <tr>
-            <td>Data Portability</td>
-            <td class="bad">Export only (often PDF, often incomplete)</td>
-            <td class="good">Always native — already in your cloud</td>
-          </tr>
-          <tr>
-            <td>Access After Shutdown</td>
-            <td class="bad">Files may be inaccessible or deleted</td>
-            <td class="good">Files are in your cloud — always accessible</td>
-          </tr>
-          <tr>
-            <td>Privacy</td>
-            <td class="bad">Vendor analyzes and potentially monetizes</td>
-            <td class="good">We process; we don't store; you own</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="dn-compare-wrap" style="margin-top:1.75rem;">
+        <table class="dn-compare">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th class="dn-bad">Traditional Tenant App</th>
+                    <th class="dn-good">Semptify</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Authentication</td>
+                    <td class="dn-bad">Username + password on vendor servers</td>
+                    <td class="dn-good">OAuth 2.0 via your cloud storage provider</td>
+                </tr>
+                <tr>
+                    <td>Document Storage</td>
+                    <td class="dn-bad">Vendor's database — you hope they're secure</td>
+                    <td class="dn-good">Your Google Drive / Dropbox / OneDrive</td>
+                </tr>
+                <tr>
+                    <td>Data Breach Risk</td>
+                    <td class="dn-bad">High — millions of records centralized</td>
+                    <td class="dn-good">Near-zero — nothing sensitive on our servers</td>
+                </tr>
+                <tr>
+                    <td>Data Portability</td>
+                    <td class="dn-bad">Export only (often PDF, often incomplete)</td>
+                    <td class="dn-good">Always native — already in your cloud</td>
+                </tr>
+                <tr>
+                    <td>Access After Shutdown</td>
+                    <td class="dn-bad">Files may be inaccessible or deleted</td>
+                    <td class="dn-good">Files are in your cloud — always accessible</td>
+                </tr>
+                <tr>
+                    <td>Privacy</td>
+                    <td class="dn-bad">Vendor analyzes and potentially monetizes</td>
+                    <td class="dn-good">We process; we don't store; you own</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-  </div>
 </section>
 
-
-<!-- ============================================================
-     7. TECHNICAL ARCHITECTURE
-============================================================ -->
-<section id="tech" class="section bg-alt">
-  <div class="container">
-    <span class="section-label fade-in">Technical</span>
-    <h2 class="section-title fade-in fade-in-delay-1">Production-Ready Mechanics.<br>Built to Scale.</h2>
-    <div class="divider fade-in fade-in-delay-2"></div>
-    <p class="section-subtitle fade-in fade-in-delay-2">
-      Semptify is not a prototype. Version 5.0 is a fully async, cloud-native architecture with 20+ tenant-facing tools across multiple tiers — 130+ registered modules under the hood — deployed at <a href="/">semptify.org</a> and open source on <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener">GitHub</a>.
+<!-- Technical Architecture -->
+<section id="tech" class="section">
+    <span class="dn-eyebrow">Technical</span>
+    <h2 class="section-title">Production-Ready Mechanics. Built to Scale.</h2>
+    <p class="section-description">
+        Semptify is not a prototype. Version 5.0 is a fully async, cloud-native architecture with 20+ tenant-facing tools across multiple tiers — 130+ registered modules under the hood — deployed at <a href="/">semptify.org</a> and open source on <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener">GitHub</a>.
     </p>
 
-    <!-- Stack -->
-    <div class="stack-grid fade-in">
-      <div class="stack-item">
-        <span class="stack-item-label">Backend</span>
-        <div class="stack-item-value">FastAPI + Python 3.11.9</div>
-      </div>
-      <div class="stack-item">
-        <span class="stack-item-label">Database</span>
-        <div class="stack-item-value">PostgreSQL (Neon)</div>
-      </div>
-      <div class="stack-item">
-        <span class="stack-item-label">Storage</span>
-        <div class="stack-item-value">Cloudflare R2</div>
-      </div>
-      <div class="stack-item">
-        <span class="stack-item-label">Auth</span>
-        <div class="stack-item-value">OAuth 2.0 (Storage-Based)</div>
-      </div>
-      <div class="stack-item">
-        <span class="stack-item-label">Architecture</span>
-        <div class="stack-item-value">Async · Event-Driven</div>
-      </div>
-      <div class="stack-item">
-        <span class="stack-item-label">Mobile</span>
-        <div class="stack-item-value">PWA (Semptify Go)</div>
-      </div>
-      <div class="stack-item">
-        <span class="stack-item-label">Source</span>
-        <div class="stack-item-value">Open Source (GitHub)</div>
-      </div>
+    <div class="dn-stack">
+        <div class="dn-stack-item"><span class="dn-stack-label">Backend</span><div class="dn-stack-value">FastAPI + Python 3.11.9</div></div>
+        <div class="dn-stack-item"><span class="dn-stack-label">Database</span><div class="dn-stack-value">PostgreSQL (Neon)</div></div>
+        <div class="dn-stack-item"><span class="dn-stack-label">Storage</span><div class="dn-stack-value">Cloudflare R2</div></div>
+        <div class="dn-stack-item"><span class="dn-stack-label">Auth</span><div class="dn-stack-value">OAuth 2.0 (Storage-Based)</div></div>
+        <div class="dn-stack-item"><span class="dn-stack-label">Architecture</span><div class="dn-stack-value">Async · Event-Driven</div></div>
+        <div class="dn-stack-item"><span class="dn-stack-label">Mobile</span><div class="dn-stack-value">PWA (Semptify Go)</div></div>
+        <div class="dn-stack-item"><span class="dn-stack-label">Source</span><div class="dn-stack-value">Open Source (GitHub)</div></div>
     </div>
 
-    <!-- Module ecosystem -->
-    <h3 class="fade-in" style="margin-bottom:1.5rem; font-size:1.25rem;">Module Ecosystem</h3>
-    <div class="module-ecosystem fade-in fade-in-delay-1">
-      <div class="module-tier">
-        <div class="module-tier-title">CORE — Tenant Essentials</div>
-        <div class="module-tags">
-          <span class="module-tag">Document Vault</span>
-          <span class="module-tag">Unified Timeline</span>
-          <span class="module-tag">Case Builder</span>
-          <span class="module-tag">Storage-Based Auth</span>
-          <span class="module-tag">FEMS (Forensic Evidence)</span>
+    <h3 style="margin:1.75rem 0 1rem; font-size:1.15rem; color:var(--color-primary);">Module Ecosystem</h3>
+    <div class="dn-ecosystem">
+        <div class="dn-tier">
+            <div class="dn-tier-title">CORE — Tenant Essentials</div>
+            <div class="dn-tags">
+                <span class="dn-tag">Document Vault</span>
+                <span class="dn-tag">Unified Timeline</span>
+                <span class="dn-tag">Case Builder</span>
+                <span class="dn-tag">Storage-Based Auth</span>
+                <span class="dn-tag">FEMS (Forensic Evidence)</span>
+            </div>
         </div>
-      </div>
-      <div class="module-tier">
-        <div class="module-tier-title">EXTENDED — Rights & Legal</div>
-        <div class="module-tags">
-          <span class="module-tag">Know Your Rights Library</span>
-          <span class="module-tag">Eviction Defense Module</span>
-          <span class="module-tag">Court Forms System</span>
-          <span class="module-tag">Complaint Wizard</span>
-          <span class="module-tag">Retaliation Tracker</span>
-          <span class="module-tag">Fraud Exposure</span>
+        <div class="dn-tier">
+            <div class="dn-tier-title">EXTENDED — Rights &amp; Legal</div>
+            <div class="dn-tags">
+                <span class="dn-tag">Know Your Rights Library</span>
+                <span class="dn-tag">Eviction Defense Module</span>
+                <span class="dn-tag">Court Forms System</span>
+                <span class="dn-tag">Complaint Wizard</span>
+                <span class="dn-tag">Retaliation Tracker</span>
+                <span class="dn-tag">Fraud Exposure</span>
+            </div>
         </div>
-      </div>
-      <div class="module-tier">
-        <div class="module-tier-title">ADVOCATE — Community & Public</div>
-        <div class="module-tags">
-          <span class="module-tag">Litigation Intelligence</span>
-          <span class="module-tag">Public Exposure Suite</span>
-          <span class="module-tag">Tenant Union Tools</span>
-          <span class="module-tag">Legislator Connect</span>
-          <span class="module-tag">Journalist Bridge</span>
+        <div class="dn-tier">
+            <div class="dn-tier-title">ADVOCATE — Community &amp; Public</div>
+            <div class="dn-tags">
+                <span class="dn-tag">Litigation Intelligence</span>
+                <span class="dn-tag">Public Exposure Suite</span>
+                <span class="dn-tag">Tenant Union Tools</span>
+                <span class="dn-tag">Legislator Connect</span>
+                <span class="dn-tag">Journalist Bridge</span>
+            </div>
         </div>
-      </div>
-      <div class="module-tier">
-        <div class="module-tier-title">ADMIN / RESEARCH — Organizational</div>
-        <div class="module-tags">
-          <span class="module-tag">Multi-Role System</span>
-          <span class="module-tag">Legal Aid Portal</span>
-          <span class="module-tag">Research Exports</span>
-          <span class="module-tag">Reporting Dashboard</span>
-          <span class="module-tag">Funding Forge</span>
-          <span class="module-tag">Semptify Go (PWA)</span>
+        <div class="dn-tier">
+            <div class="dn-tier-title">ADMIN / RESEARCH — Organizational</div>
+            <div class="dn-tags">
+                <span class="dn-tag">Multi-Role System</span>
+                <span class="dn-tag">Legal Aid Portal</span>
+                <span class="dn-tag">Research Exports</span>
+                <span class="dn-tag">Reporting Dashboard</span>
+                <span class="dn-tag">Funding Forge</span>
+                <span class="dn-tag">Semptify Go (PWA)</span>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- Open source callout -->
-    <div class="card fade-in mt-4" style="background: linear-gradient(135deg, rgba(0,196,167,0.06), rgba(245,166,35,0.04)); border-color: rgba(0,196,167,0.25); display:flex; align-items:center; gap:2rem; flex-wrap:wrap;">
-      <div style="flex:1; min-width:200px;">
-        <h4 style="color:var(--teal); margin-bottom:0.4rem;">Open Source on GitHub</h4>
-        <p style="font-size:0.9rem; color:var(--muted); margin:0;">Semptify's full codebase is publicly available. Developers, housing advocates, legal aid technologists, and researchers are welcome to contribute, audit, or build on it.</p>
-      </div>
-      <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-teal btn-sm">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        github.com/1semptify-arch/Semptify
-      </a>
+    <div class="dn-callout" style="margin-top:1.5rem;">
+        <div class="dn-callout-body">
+            <h4>Open Source on GitHub</h4>
+            <p>Semptify's full codebase is publicly available. Developers, housing advocates, legal aid technologists, and researchers are welcome to contribute, audit, or build on it.</p>
+        </div>
+        <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="dn-btn dn-btn--calm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            github.com/1semptify-arch/Semptify
+        </a>
     </div>
-  </div>
 </section>
 
-
-<!-- ============================================================
-     8. IMPACT & ROADMAP
-============================================================ -->
+<!-- Impact & Roadmap -->
 <section id="impact" class="section">
-  <div class="container">
-    <span class="section-label fade-in">Impact &amp; Roadmap</span>
-    <h2 class="section-title fade-in fade-in-delay-1">From Crisis Coverage<br>to National Reach</h2>
-    <div class="divider fade-in fade-in-delay-2"></div>
-    <p class="section-subtitle fade-in fade-in-delay-2">
-      Version 5.0 is deployed and production-ready. With funding, Semptify grows from a proven tool into movement infrastructure — reaching more renters who have nowhere else to turn.
+    <span class="dn-eyebrow">Impact &amp; Roadmap</span>
+    <h2 class="section-title">From Crisis Coverage to National Reach</h2>
+    <p class="section-description">
+        Version 5.0 is deployed and production-ready. With funding, Semptify grows from a proven tool into movement infrastructure — reaching more renters who have nowhere else to turn.
     </p>
 
-    <div class="grid-2 fade-in" style="gap:3rem; align-items:start;">
-      <!-- Roadmap -->
-      <div>
-        <h3 style="margin-bottom:2rem; font-size:1.3rem;">Development Roadmap</h3>
-        <div class="roadmap">
-          <div class="roadmap-item">
-            <div class="roadmap-dot done"></div>
-            <div class="roadmap-phase">Phase 1 — Complete</div>
-            <div class="roadmap-title">Crisis Coverage Layer</div>
-            <p class="roadmap-desc">Eviction Defense Module, Document Vault, Unified Timeline, Retaliation Tracker, Case Builder, FEMS, Court Forms System, Complaint Wizard. Version 5.0 deployed at semptify.org.</p>
-          </div>
-          <div class="roadmap-item">
-            <div class="roadmap-dot active"></div>
-            <div class="roadmap-phase">Phase 2 — In Progress</div>
-            <div class="roadmap-title">Elite Information Layer</div>
-            <p class="roadmap-desc">Know Your Rights Law Library (all 50 states + DC), Litigation Intelligence, Fraud Exposure documentation system, Complaint Wizard refinement.</p>
-          </div>
-          <div class="roadmap-item">
-            <div class="roadmap-dot next"></div>
-            <div class="roadmap-phase">Phase 3 — With Funding</div>
-            <div class="roadmap-title">Public Launch + Community Scale</div>
-            <p class="roadmap-desc">Marketing and user acquisition, mobile PWA (Semptify Go) public launch, tenant union organizing tools, legal aid organization partnerships, researcher data access, multi-language support.</p>
-          </div>
-          <div class="roadmap-item">
-            <div class="roadmap-dot next"></div>
-            <div class="roadmap-phase">Phase 4 — Vision</div>
-            <div class="roadmap-title">Systems Change Infrastructure</div>
-            <p class="roadmap-desc">National housing court data aggregation, policy impact reporting, legislative tool, academic research partnerships, multi-city eviction pattern analysis, and integration with legal aid case management systems.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Who we serve + impact potential -->
-      <div>
-        <h3 style="margin-bottom:2rem; font-size:1.3rem;">Impact With Funding</h3>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:2rem;">
-          <div class="stat-card" style="padding:1.5rem;">
-            <span class="stat-card-num" style="font-size:2rem;">50</span>
-            <div class="stat-card-label" style="font-size:0.85rem;">States + DC</div>
-            <div class="stat-card-desc" style="font-size:0.78rem;">Full Know Your Rights coverage for every U.S. jurisdiction</div>
-          </div>
-          <div class="stat-card" style="padding:1.5rem;">
-            <span class="stat-card-num" style="font-size:2rem;">100K+</span>
-            <div class="stat-card-label" style="font-size:0.85rem;">Projected Users (Yr 1)</div>
-            <div class="stat-card-desc" style="font-size:0.78rem;">With targeted outreach and legal aid partnerships</div>
-          </div>
-          <div class="stat-card" style="padding:1.5rem;">
-            <span class="stat-card-num" style="font-size:2rem;">200+</span>
-            <div class="stat-card-label" style="font-size:0.85rem;">Legal Aid Partners</div>
-            <div class="stat-card-desc" style="font-size:0.78rem;">Target legal aid organizations and tenant advocacy groups</div>
-          </div>
-          <div class="stat-card" style="padding:1.5rem;">
-            <span class="stat-card-num" style="font-size:2rem;">Zero</span>
-            <div class="stat-card-label" style="font-size:0.85rem;">Cost to Tenants</div>
-            <div class="stat-card-desc" style="font-size:0.78rem;">No tenant is ever charged — mission-critical, non-negotiable</div>
-          </div>
+    <div class="dn-cols-2">
+        <div>
+            <h3 style="margin-bottom:1.5rem; font-size:1.15rem; color:var(--color-primary);">Development Roadmap</h3>
+            <div class="dn-roadmap">
+                <div class="dn-roadmap-item">
+                    <div class="dn-dot dn-dot--done"></div>
+                    <div class="dn-phase">Phase 1 — Complete</div>
+                    <div class="dn-roadmap-title">Crisis Coverage Layer</div>
+                    <p class="dn-roadmap-desc">Eviction Defense Module, Document Vault, Unified Timeline, Retaliation Tracker, Case Builder, FEMS, Court Forms System, Complaint Wizard. Version 5.0 deployed at semptify.org.</p>
+                </div>
+                <div class="dn-roadmap-item">
+                    <div class="dn-dot dn-dot--active"></div>
+                    <div class="dn-phase">Phase 2 — In Progress</div>
+                    <div class="dn-roadmap-title">Elite Information Layer</div>
+                    <p class="dn-roadmap-desc">Know Your Rights Law Library (all 50 states + DC), Litigation Intelligence, Fraud Exposure documentation system, Complaint Wizard refinement.</p>
+                </div>
+                <div class="dn-roadmap-item">
+                    <div class="dn-dot"></div>
+                    <div class="dn-phase">Phase 3 — With Funding</div>
+                    <div class="dn-roadmap-title">Public Launch + Community Scale</div>
+                    <p class="dn-roadmap-desc">Marketing and user acquisition, mobile PWA (Semptify Go) public launch, tenant union organizing tools, legal aid organization partnerships, researcher data access, multi-language support.</p>
+                </div>
+                <div class="dn-roadmap-item">
+                    <div class="dn-dot"></div>
+                    <div class="dn-phase">Phase 4 — Vision</div>
+                    <div class="dn-roadmap-title">Systems Change Infrastructure</div>
+                    <p class="dn-roadmap-desc">National housing court data aggregation, policy impact reporting, legislative tool, academic research partnerships, multi-city eviction pattern analysis, and integration with legal aid case management systems.</p>
+                </div>
+            </div>
         </div>
 
-        <div class="card" style="background:linear-gradient(135deg,rgba(245,166,35,0.07),rgba(0,196,167,0.05)); border-color:rgba(245,166,35,0.2);">
-          <h4 style="color:var(--amber); margin-bottom:0.75rem; font-size:1rem;">Founded from Personal Experience</h4>
-          <p style="font-size:0.9rem; color:rgba(240,237,232,0.8); line-height:1.7; margin:0;">Semptify was created by Bradley Crowe following a personal navigation of a housing dispute. The experience made clear that the gap between tenants and their rights was not a knowledge problem — it was an access and systems problem. Semptify exists to close that gap, for everyone who faces it after him.</p>
+        <div>
+            <h3 style="margin-bottom:1.5rem; font-size:1.15rem; color:var(--color-primary);">Impact With Funding</h3>
+            <div class="dn-statgrid" style="grid-template-columns:1fr 1fr;">
+                <div class="dn-stat">
+                    <span class="dn-stat-num" style="font-size:1.5rem;">50</span>
+                    <span class="dn-stat-label">States + DC — full Know Your Rights coverage for every U.S. jurisdiction</span>
+                </div>
+                <div class="dn-stat">
+                    <span class="dn-stat-num" style="font-size:1.5rem;">100K+</span>
+                    <span class="dn-stat-label">Projected Users (Yr 1) — with targeted outreach and legal aid partnerships</span>
+                </div>
+                <div class="dn-stat">
+                    <span class="dn-stat-num" style="font-size:1.5rem;">200+</span>
+                    <span class="dn-stat-label">Legal Aid Partners — target legal aid organizations and tenant advocacy groups</span>
+                </div>
+                <div class="dn-stat">
+                    <span class="dn-stat-num" style="font-size:1.5rem;">Zero</span>
+                    <span class="dn-stat-label">Cost to Tenants — no tenant is ever charged. Mission-critical, non-negotiable</span>
+                </div>
+            </div>
+
+            <div class="dn-callout" style="margin-top:1.5rem;">
+                <div class="dn-callout-body">
+                    <h4>Founded from Personal Experience</h4>
+                    <p>Semptify was created by Bradley Crowe following a personal navigation of a housing dispute. The experience made clear that the gap between tenants and their rights was not a knowledge problem — it was an access and systems problem. Semptify exists to close that gap, for everyone who faces it after him.</p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- Who we serve -->
-    <div class="mt-4 fade-in">
-      <h3 style="margin-bottom:1.5rem; font-size:1.25rem;">Who We Serve</h3>
-      <div class="who-we-serve">
-        <div class="serve-card">
-          <span class="serve-icon">🏠</span>
-          <div class="serve-title">Tenants</div>
-        </div>
-        <div class="serve-card">
-          <span class="serve-icon">✊</span>
-          <div class="serve-title">Advocates</div>
-        </div>
-        <div class="serve-card">
-          <span class="serve-icon">⚖️</span>
-          <div class="serve-title">Legal Aid</div>
-        </div>
-        <div class="serve-card">
-          <span class="serve-icon">🔬</span>
-          <div class="serve-title">Researchers</div>
-        </div>
-        <div class="serve-card">
-          <span class="serve-icon">🏛️</span>
-          <div class="serve-title">Government</div>
-        </div>
-      </div>
+    <h3 style="margin:1.75rem 0 1rem; font-size:1.15rem; color:var(--color-primary);">Who We Serve</h3>
+    <div class="dn-serve">
+        <div class="dn-serve-card"><span class="dn-serve-icon">🏠</span><div class="dn-serve-title">Tenants</div></div>
+        <div class="dn-serve-card"><span class="dn-serve-icon">✊</span><div class="dn-serve-title">Advocates</div></div>
+        <div class="dn-serve-card"><span class="dn-serve-icon">⚖️</span><div class="dn-serve-title">Legal Aid</div></div>
+        <div class="dn-serve-card"><span class="dn-serve-icon">🔬</span><div class="dn-serve-title">Researchers</div></div>
+        <div class="dn-serve-card"><span class="dn-serve-icon">🏛️</span><div class="dn-serve-title">Government</div></div>
     </div>
-  </div>
 </section>
 
-
-<!-- ============================================================
-     10. SUPPORT
-============================================================ -->
-<section id="support" class="section bg-alt">
-  <div class="container">
-    <span class="section-label fade-in">Get Involved</span>
-    <h2 class="section-title fade-in fade-in-delay-1">Support Semptify</h2>
-    <div class="divider fade-in fade-in-delay-2"></div>
-    <p class="section-subtitle fade-in fade-in-delay-2">
-      Semptify runs on mission, community, and the conviction that every renter deserves tools that work. Here's how you can be part of it.
+<!-- Support -->
+<section id="support" class="section">
+    <span class="dn-eyebrow">Get Involved</span>
+    <h2 class="section-title">Support Semptify</h2>
+    <p class="section-description">
+        Semptify runs on mission, community, and the conviction that every renter deserves tools that work. Here's how you can be part of it.
     </p>
 
-    <div class="support-grid">
-      <!-- Donate -->
-      <div class="support-card fade-in fade-in-delay-1">
-        <span class="support-icon">❤️</span>
-        <h3>Donate</h3>
-        <p>Tenants never pay for Semptify. But building it takes real funding. Contributions of any size fund development, legal accuracy review, infrastructure, and the time it takes to do this right.</p>
-        <div class="support-links" style="align-items:center;">
-          <a href="https://github.com/sponsors/1semptify-arch" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:0.5rem;">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="#ea4aaa" aria-hidden="true"><path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.346-.666a7.31 7.31 0 0 1-.118-.193c-.054-.093-.13-.22-.228-.385a13.5 13.5 0 0 1-1.095-1.854C4.548 9.548 3.5 7.46 2.55 6.25 1.649 5.098.891 4.262.614 3.801.326 3.321.25 2.962.25 2.75c0-.682.21-1.262.603-1.741C1.258.51 1.825.25 2.5.25c.59 0 1.115.207 1.544.56.236.193.447.416.627.66.088-.002.176-.005.264-.005h.002A.75.75 0 0 1 5.75 2.5c0 .053-.005.105-.015.156a8.4 8.4 0 0 1 2.265-.156 8.4 8.4 0 0 1 2.265.156A.76.76 0 0 1 10.25 2.5a.75.75 0 0 1 .813-1.035h.002c.088 0 .176.003.264.005.18-.244.391-.467.627-.66.429-.353.954-.56 1.544-.56.675 0 1.242.26 1.647.759.392.479.603 1.06.603 1.741 0 .212-.076.571-.364 1.051-.277.461-1.035 1.297-1.936 2.449-.95 1.21-1.998 3.298-3.318 5.568a13.5 13.5 0 0 1-1.095 1.854c-.098.164-.174.292-.228.385a7.3 7.3 0 0 1-.118.193Z"/></svg>
-            Sponsor on GitHub
-          </a>
-          <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-outline btn-sm">Star the Repo</a>
+    <div class="dn-grid-2">
+        <div class="dn-card">
+            <span class="dn-card-icon">❤️</span>
+            <h3>Donate</h3>
+            <p>Tenants never pay for Semptify. But building it takes real funding. Contributions of any size fund development, legal accuracy review, infrastructure, and the time it takes to do this right.</p>
+            <div class="dn-actions">
+                <a href="https://github.com/sponsors/1semptify-arch" target="_blank" rel="noopener" class="dn-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="#ea4aaa" aria-hidden="true"><path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.346-.666a7.31 7.31 0 0 1-.118-.193c-.054-.093-.13-.22-.228-.385a13.5 13.5 0 0 1-1.095-1.854C4.548 9.548 3.5 7.46 2.55 6.25 1.649 5.098.891 4.262.614 3.801.326 3.321.25 2.962.25 2.75c0-.682.21-1.262.603-1.741C1.258.51 1.825.25 2.5.25c.59 0 1.115.207 1.544.56.236.193.447.416.627.66.088-.002.176-.005.264-.005h.002A.75.75 0 0 1 5.75 2.5c0 .053-.005.105-.015.156a8.4 8.4 0 0 1 2.265-.156 8.4 8.4 0 0 1 2.265.156A.76.76 0 0 1 10.25 2.5a.75.75 0 0 1 .813-1.035h.002c.088 0 .176.003.264.005.18-.244.391-.467.627-.66.429-.353.954-.56 1.544-.56.675 0 1.242.26 1.647.759.392.479.603 1.06.603 1.741 0 .212-.076.571-.364 1.051-.277.461-1.035 1.297-1.936 2.449-.95 1.21-1.998 3.298-3.318 5.568a13.5 13.5 0 0 1-1.095 1.854c-.098.164-.174.292-.228.385a7.3 7.3 0 0 1-.118.193Z"/></svg>
+                    Sponsor on GitHub
+                </a>
+                <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="dn-btn dn-btn--ghost">Star the Repo</a>
+            </div>
+            <p class="dn-note">GitHub Sponsors is our donation channel — one-time or monthly, no account details shared with us beyond what GitHub shows.</p>
         </div>
-        <p style="font-size:0.8rem; color:var(--muted); margin-top:0.75rem;">GitHub Sponsors is our donation channel — one-time or monthly, no account details shared with us beyond what GitHub shows.</p>
-      </div>
 
-      <!-- Partner -->
-      <div class="support-card fade-in fade-in-delay-2">
-        <span class="support-icon">🤝</span>
-        <h3>Partner With Us</h3>
-        <p>Legal aid organizations, housing advocacy groups, universities, journalists, and government agencies — Semptify is built to work with you, not duplicate you. Let's connect.</p>
-        <div class="support-links">
-          <a href="/contact" class="btn btn-teal btn-sm">Contact Us</a>
-          <a href="/advocacy" class="btn btn-outline btn-sm">Advocacy Partnerships</a>
+        <div class="dn-card">
+            <span class="dn-card-icon">🤝</span>
+            <h3>Partner With Us</h3>
+            <p>Legal aid organizations, housing advocacy groups, universities, journalists, and government agencies — Semptify is built to work with you, not duplicate you. Let's connect.</p>
+            <div class="dn-actions">
+                <a href="/contact" class="dn-btn dn-btn--calm">Contact Us</a>
+                <a href="/advocacy" class="dn-btn dn-btn--ghost">Advocacy Partnerships</a>
+            </div>
         </div>
-      </div>
 
-      <!-- Volunteer / Contribute -->
-      <div class="support-card fade-in fade-in-delay-3">
-        <span class="support-icon">💻</span>
-        <h3>Volunteer &amp; Contribute</h3>
-        <p>Developers (Python, FastAPI, frontend), housing law experts, legal aid practitioners, translators, and UX researchers — your expertise directly improves what tenants receive. The codebase is open source and welcoming.</p>
-        <div class="support-links">
-          <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-            Contribute on GitHub
-          </a>
+        <div class="dn-card">
+            <span class="dn-card-icon">💻</span>
+            <h3>Volunteer &amp; Contribute</h3>
+            <p>Developers (Python, FastAPI, frontend), housing law experts, legal aid practitioners, translators, and UX researchers — your expertise directly improves what tenants receive. The codebase is open source and welcoming.</p>
+            <div class="dn-actions">
+                <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="dn-btn dn-btn--ghost">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    Contribute on GitHub
+                </a>
+            </div>
         </div>
-      </div>
 
-      <!-- Spread the Word -->
-      <div class="support-card fade-in fade-in-delay-4">
-        <span class="support-icon">📢</span>
-        <h3>Get the Word Out</h3>
-        <p>The most important thing you can do is make sure a renter who needs this knows it exists. Share semptify.org with tenant organizations, social workers, community groups, and anyone who works with people in housing difficulty.</p>
-        <div class="support-links">
-          <a href="/" class="btn btn-primary btn-sm">semptify.org</a>
-          <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-outline btn-sm">Star on GitHub</a>
+        <div class="dn-card">
+            <span class="dn-card-icon">📢</span>
+            <h3>Get the Word Out</h3>
+            <p>The most important thing you can do is make sure a renter who needs this knows it exists. Share semptify.org with tenant organizations, social workers, community groups, and anyone who works with people in housing difficulty.</p>
+            <div class="dn-actions">
+                <a href="/" class="dn-btn">semptify.org</a>
+                <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="dn-btn dn-btn--ghost">Star on GitHub</a>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- Contact / Links block -->
-    <div class="card fade-in mt-4" style="text-align:center; background:linear-gradient(135deg,rgba(245,166,35,0.07),rgba(0,196,167,0.05)); border-color:rgba(245,166,35,0.2);">
-      <h3 style="margin-bottom:0.5rem; font-size:1.3rem;">Connect &amp; Contact</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1.5rem; max-width:520px; margin-left:auto; margin-right:auto;">Questions, partnership inquiries, media requests, or just want to talk about housing justice and technology — reach us through any of these.</p>
-      <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
-        <a href="/contact" class="btn btn-primary btn-sm">Contact</a>
-        <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="btn btn-outline btn-sm">GitHub</a>
-        <a href="https://github.com/1semptify-arch/Semptify/tree/main/funding_forge" target="_blank" rel="noopener" class="btn btn-teal btn-sm">Funding Forge (source)</a>
-      </div>
+    <div class="cta-section">
+        <h2>Connect &amp; Contact</h2>
+        <p class="section-description" style="max-width:520px; margin:0 auto 1.25rem;">Questions, partnership inquiries, media requests, or just want to talk about housing justice and technology — reach us through any of these.</p>
+        <div class="dn-actions dn-actions--center">
+            <a href="/contact" class="dn-btn">Contact</a>
+            <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="dn-btn dn-btn--ghost">GitHub</a>
+            <a href="https://github.com/1semptify-arch/Semptify/tree/main/funding_forge" target="_blank" rel="noopener" class="dn-btn dn-btn--calm">Funding Forge (source)</a>
+        </div>
     </div>
-  </div>
 </section>
 
-
-<!-- ============================================================
-     11. FOOTER
-============================================================ -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-top">
-      <!-- Brand -->
-      <div class="footer-brand">
-        <div class="logo">Sempt<span>i</span>fy</div>
-        <p>An open-source platform protecting tenant rights through knowledge, documentation, and community. Built from personal experience. Offered to everyone.</p>
-        <div style="display:flex; gap:0.5rem; margin-top:1.25rem; flex-wrap:wrap;">
-          <span class="badge badge-amber">Tenants Never Pay</span>
-          <span class="badge badge-teal">Open Source</span>
-          <span class="badge badge-green">v5.0 Deployed</span>
-        </div>
-      </div>
-
-      <!-- Platform links -->
-      <div class="footer-col">
-        <h5>Platform</h5>
-        <ul>
-          <li><a href="#solution">The Six Pillars</a></li>
-          <li><a href="#features">All Features</a></li>
-          <li><a href="#privacy">Privacy Architecture</a></li>
-          <li><a href="#tech">Technical Docs</a></li>
-          <li><a href="/">semptify.org</a></li>
-        </ul>
-      </div>
-
-      <!-- Links -->
-      <div class="footer-col">
-        <h5>Links</h5>
-        <ul>
-          <li><a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener">GitHub (Open Source)</a></li>
-          <li><a href="https://github.com/1semptify-arch/Semptify/tree/main/funding_forge" target="_blank" rel="noopener">Funding Forge (source)</a></li>
-          <li><a href="https://github.com/sponsors/1semptify-arch" target="_blank" rel="noopener">GitHub Sponsors</a></li>
-          <li><a href="#support">Donate</a></li>
-          <li><a href="#support">Partner</a></li>
-          <li><a href="#support">Volunteer</a></li>
-        </ul>
-      </div>
-
-      <!-- Site -->
-      <div class="footer-col">
-        <h5>Site</h5>
-        <ul>
-          <li><a href="/about">About</a></li>
-          <li><a href="/services">Services</a></li>
-          <li><a href="/library">Law Library</a></li>
-          <li><a href="/help">Get Help</a></li>
-          <li><a href="/contact">Contact</a></li>
-          <li><a href="/privacy">Privacy</a></li>
-          <li><a href="/terms">Terms</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <p class="footer-byline">
-        "Built by <span class="highlight">Bradley Crowe</span> from personal experience navigating a housing dispute.<br>For every renter who deserved better."
-      </p>
-      <p style="font-size:0.82rem; color:var(--muted); text-align:right;">
-        Open source. Tenants never pay.<br>
-        <a href="/" style="color:var(--amber);">semptify.org</a>
-      </p>
-    </div>
-  </div>
-</footer>
-
-
-<!-- ============================================================
-     JAVASCRIPT
-============================================================ -->
-<script>
-(function() {
-  'use strict';
-
-  /* ===== 1. NAV TRANSPARENCY ON SCROLL ===== */
-  const navbar = document.getElementById('navbar');
-  function handleNavScroll() {
-    if (window.scrollY > 60) {
-      navbar.classList.add('scrolled');
-    } else {
-      navbar.classList.remove('scrolled');
-    }
-  }
-  window.addEventListener('scroll', handleNavScroll, { passive: true });
-  handleNavScroll(); // run once on load
-
-  /* ===== 2. MOBILE NAV TOGGLE ===== */
-  const navToggle = document.getElementById('navToggle');
-  const navLinks  = document.getElementById('navLinks');
-  if (navToggle && navLinks) {
-    navToggle.addEventListener('click', function() {
-      const open = navLinks.classList.toggle('open');
-      navToggle.setAttribute('aria-expanded', open.toString());
-    });
-    // Close nav on link click
-    navLinks.querySelectorAll('a').forEach(function(link) {
-      link.addEventListener('click', function() {
-        navLinks.classList.remove('open');
-        navToggle.setAttribute('aria-expanded', 'false');
-      });
-    });
-  }
-
-  /* ===== 3. SMOOTH SCROLL FOR NAV LINKS ===== */
-  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
-    anchor.addEventListener('click', function(e) {
-      const targetId = this.getAttribute('href');
-      if (targetId === '#') return;
-      const target = document.querySelector(targetId);
-      if (target) {
-        e.preventDefault();
-        const navH = navbar ? navbar.offsetHeight : 80;
-        const top  = target.getBoundingClientRect().top + window.scrollY - navH - 16;
-        window.scrollTo({ top: top, behavior: 'smooth' });
-      }
-    });
-  });
-
-  /* ===== 4. FADE-IN ON SCROLL (IntersectionObserver) ===== */
-  const fadeEls = document.querySelectorAll('.fade-in');
-  if ('IntersectionObserver' in window) {
-    const fadeObserver = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          fadeObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-    fadeEls.forEach(function(el) {
-      fadeObserver.observe(el);
-    });
-  } else {
-    // Fallback: show all
-    fadeEls.forEach(function(el) { el.classList.add('visible'); });
-  }
-
-  /* ===== 5. COUNTER ANIMATION ===== */
-  function animateCounter(el, target, suffix, decimals) {
-    decimals = decimals || 0;
-    suffix   = suffix   || '';
-    var start     = 0;
-    var duration  = 1800;
-    var startTime = null;
-
-    function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
-
-    function step(timestamp) {
-      if (!startTime) startTime = timestamp;
-      var elapsed  = timestamp - startTime;
-      var progress = Math.min(elapsed / duration, 1);
-      var current  = easeOut(progress) * target;
-      if (decimals > 0) {
-        el.textContent = current.toFixed(decimals) + suffix;
-      } else {
-        el.textContent = Math.round(current).toLocaleString() + suffix;
-      }
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      } else {
-        if (decimals > 0) {
-          el.textContent = target.toFixed(decimals) + suffix;
-        } else {
-          el.textContent = target.toLocaleString() + suffix;
-        }
-      }
-    }
-    requestAnimationFrame(step);
-  }
-
-  var counterEls = document.querySelectorAll('.count-num[data-count]');
-  if ('IntersectionObserver' in window && counterEls.length) {
-    var counterObserver = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          var el       = entry.target;
-          var count    = parseFloat(el.getAttribute('data-count'));
-          var suffix   = el.getAttribute('data-suffix') || '';
-          var decimal  = parseInt(el.getAttribute('data-decimal') || '0', 10);
-          animateCounter(el, count, suffix, decimal);
-          counterObserver.unobserve(el);
-        }
-      });
-    }, { threshold: 0.5 });
-    counterEls.forEach(function(el) { counterObserver.observe(el); });
-  }
-
-})();
-</script>
-
-</body>
-</html>
+{% endblock %}

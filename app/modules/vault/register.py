@@ -81,6 +81,24 @@ register_function_group(
 register_function_group(
     FunctionGroupContract(
         module="vault",
+        group_name="vault_preview_document",
+        title="Vault Preview Document (SSOT)",
+        description=(
+            "CANONICAL server-side page render of a vault PDF. Returns one page "
+            "as PNG (page + scale params) with an X-Page-Count header — powers "
+            "the in-app document viewer on devices without a native PDF "
+            "renderer. Same auth and fetch path as vault_download_document."
+        ),
+        inputs=("document_id", "user_id", "page?", "scale?"),
+        outputs=("png_bytes", "page_count"),
+        dependencies=("app.modules.vault.router",),
+        deterministic=True,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="vault",
         group_name="vault_get_certificate",
         title="Vault Get Certificate (SSOT)",
         description=(

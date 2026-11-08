@@ -1,16 +1,24 @@
 """
 Legal Trails Module - Track violations, claims, and filing deadlines
 Supports: Legal Claims Trail, Eviction Threat Trail, Broker Oversight, Late Fee Violations
+
+All records persist per-user as LEGAL_TRAIL_RECORD overlays in the tenant's
+own vault (VAULT_RECORDS_FILE). There is no shared/global store — a record is
+only ever readable by the tenant who logged it (and, through the tenant
+timeline, by a linked advocate when the relationship's share_timeline scope
+is on). Every endpoint requires an authenticated session.
 """
 
 import logging
 from datetime import date, datetime
 from enum import StrEnum
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
-from app.core.utc import utc_now
+from app.core.security import UserContext, get_current_user, require_tier
+from app.modules.legal_trails import service
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +64,7 @@ class ClaimStatus(StrEnum):
 
 class FilingDestination(StrEnum):
     MN_ATTORNEY_GENERAL = "Minnesota Attorney General"
-    MN_DEPT_COMMERCE = "Minnesota Dept of Commerce"
+    MN_DEPT_COMMERCE = "MN Dept of Commerce"
     HUD_FAIR_HOUSING = "HUD Office of Fair Housing"
     DISTRICT_COURT = "District Court"
     FEDERAL_COURT = "Federal Court"
@@ -163,16 +171,6 @@ class FilingWindow(BaseModel):
     urgency: str  # "critical", "warning", "safe"
 
 
-# ============== IN-MEMORY STORAGE ==============
-# In production, these would be in database
-
-violations_db: dict = {}
-eviction_threats_db: dict = {}
-late_fees_db: dict = {}
-broker_oversight_db: dict = {}
-legal_claims_db: dict = {}
-
-
 # ============== STATUTE OF LIMITATIONS ==============
 
 STATUTE_OF_LIMITATIONS = {
@@ -186,19 +184,211 @@ STATUTE_OF_LIMITATIONS = {
     "license_complaint": 2,
 }
 
+# Which limitation clock matters most for each logged violation type.
+# Display guidance only — the page labels these as common windows, not advice.
+_VIOLATION_TO_CLAIM = {
+    ViolationType.RETALIATION: "civil_retaliation",
+    ViolationType.EVICTION_THREAT: "civil_retaliation",
+    ViolationType.FRAUD: "civil_fraud",
+    ViolationType.COERCION: "civil_coercion",
+    ViolationType.LEASE_BREACH: "civil_breach",
+    ViolationType.HABITABILITY: "civil_breach",
+    ViolationType.HARASSMENT: "civil_coercion",
+    ViolationType.DISCRIMINATION: "hud_complaint",
+    ViolationType.FALSE_LATE_FEE: "civil_breach",
+    ViolationType.MISUSE_FEDERAL_FUNDS: "civil_fraud",
+    ViolationType.LICENSE_VIOLATION: "license_complaint",
+}
 
-# ============== ENDPOINTS ==============
+_URGENCY_ORDER = {"expired": 0, "critical": 1, "warning": 2, "safe": 3}
 
 
-@router.get("/")
-async def get_legal_trails_overview():
-    """Get overview of all legal trails"""
+def _filing_window(violation_date: date, claim_type: str, years: int) -> dict:
+    """Compute one deadline row for a violation date + claim type."""
+    from datetime import timedelta
+
+    deadline = violation_date + timedelta(days=years * 365)
+    days_remaining = (deadline - date.today()).days
+    if days_remaining < 0:
+        urgency = "expired"
+    elif days_remaining < 90:
+        urgency = "critical"
+    elif days_remaining < 365:
+        urgency = "warning"
+    else:
+        urgency = "safe"
     return {
-        "violations_count": len(violations_db),
-        "eviction_threats_count": len(eviction_threats_db),
-        "late_fee_violations_count": len(late_fees_db),
-        "broker_oversight_count": len(broker_oversight_db),
-        "legal_claims_count": len(legal_claims_db),
+        "claim_type": claim_type,
+        "violation_date": violation_date.isoformat(),
+        "limitation_years": years,
+        "deadline": deadline.isoformat(),
+        "days_remaining": max(0, days_remaining),
+        "urgency": urgency,
+    }
+
+
+def _window_for_violation(record: dict) -> dict | None:
+    """Deadline row for one logged violation record, or None if undated."""
+    raw_date = record.get("date_occurred")
+    if not raw_date:
+        return None
+    try:
+        occurred = date.fromisoformat(str(raw_date)[:10])
+    except ValueError:
+        return None
+    try:
+        vtype = ViolationType(record.get("violation_type") or "")
+    except ValueError:
+        vtype = None
+    claim_type = _VIOLATION_TO_CLAIM.get(vtype, "civil_breach")
+    window = _filing_window(occurred, claim_type, STATUTE_OF_LIMITATIONS[claim_type])
+    window["record_id"] = record.get("id")
+    window["violation_type"] = record.get("violation_type")
+    return window
+
+
+_STATUTES_INFO = {
+    "MN 504B.177": {
+        "title": "Late Fees",
+        "summary": "Late fees must be in lease and cannot exceed 8% of overdue rent",
+        "url": "https://www.revisor.mn.gov/statutes/cite/504B.177",
+    },
+    "MN 504B.285": {
+        "title": "Retaliatory Eviction",
+        "summary": "Landlords cannot evict tenants for asserting legal rights",
+        "url": "https://www.revisor.mn.gov/statutes/cite/504B.285",
+    },
+    "MN 504B.161": {
+        "title": "Covenants of Habitability",
+        "summary": "Landlords must keep rentals fit and in reasonable repair; remedies go through a rent escrow action",
+        "url": "https://www.revisor.mn.gov/statutes/cite/504B.161",
+    },
+}
+
+_DRAFT_NOTE = (
+    "Draft for review only — not a filed document and not legal advice. "
+    "An attorney or legal aid office should review it before anything is filed."
+)
+
+
+def _storage_unavailable() -> HTTPException:
+    return HTTPException(
+        status_code=503,
+        detail={
+            "error": "storage_unavailable",
+            "message": "Your records could not be saved right now. Nothing was written — try again in a moment.",
+        },
+    )
+
+
+# ============== PAGE ==============
+
+
+@router.get("/", response_class=HTMLResponse)
+async def legal_trails_page(request: Request, user: UserContext | None = Depends(get_current_user)):
+    """Serve the Legal Trails page — log violations, see records, deadlines, next steps."""
+    from app.main import templates
+
+    context: dict = {"user": user, "authed": user is not None}
+    if user is None:
+        return templates.TemplateResponse(request, "pages/legal_trails.html", context)
+
+    violations, threats, late_fees, brokers, claims = (
+        await service.list_records(user, service.KIND_VIOLATION),
+        await service.list_records(user, service.KIND_EVICTION_THREAT),
+        await service.list_records(user, service.KIND_LATE_FEE),
+        await service.list_records(user, service.KIND_BROKER_OVERSIGHT),
+        await service.list_records(user, service.KIND_CLAIM),
+    )
+
+    windows = [w for w in (_window_for_violation(v) for v in violations) if w]
+    windows.sort(key=lambda w: (_URGENCY_ORDER.get(w["urgency"], 9), w["days_remaining"]))
+
+    records = []
+    for v in violations:
+        records.append(
+            {
+                "id": v.get("id"),
+                "kind_label": "Violation",
+                "when": v.get("date_occurred"),
+                "who": " — ".join(p for p in (v.get("perpetrator"), v.get("company")) if p),
+                "summary": v.get("description"),
+            }
+        )
+    for t in threats:
+        records.append(
+            {
+                "id": t.get("id"),
+                "kind_label": "Eviction threat",
+                "when": t.get("date_threatened"),
+                "who": " — ".join(p for p in (t.get("perpetrator"), t.get("perpetrator_role")) if p),
+                "summary": t.get("threat_content"),
+            }
+        )
+    for f in late_fees:
+        over = f.get("overcharge_amount") or 0
+        records.append(
+            {
+                "id": f.get("id"),
+                "kind_label": "Late fee",
+                "when": f.get("date_charged"),
+                "who": "",
+                "summary": (
+                    f"${f.get('amount_charged', 0):.2f} charged"
+                    + (f" — ${over:.2f} over the 8% cap" if f.get("exceeds_8_percent") else " — within the 8% cap")
+                ),
+            }
+        )
+    for b in brokers:
+        records.append(
+            {
+                "id": b.get("id"),
+                "kind_label": "Broker record",
+                "when": b.get("created_at"),
+                "who": b.get("broker_name"),
+                "summary": b.get("broker_company"),
+            }
+        )
+    for c in claims:
+        records.append(
+            {
+                "id": c.get("id"),
+                "kind_label": "Claim",
+                "when": c.get("created_at"),
+                "who": c.get("title"),
+                "summary": f"{(c.get('status') or 'documenting').replace('_', ' ')} — deadline {c.get('filing_deadline') or 'not set'}",
+            }
+        )
+    records.sort(key=lambda r: str(r.get("when") or ""), reverse=True)
+
+    context.update(
+        {
+            "records": records,
+            "violations": violations,
+            "threats": threats,
+            "brokers": brokers,
+            "claims": claims,
+            "windows": windows,
+            "violation_types": [(v.value, v.name.replace("_", " ").title()) for v in ViolationType],
+            "statutes": _STATUTES_INFO,
+        }
+    )
+    return templates.TemplateResponse(request, "pages/legal_trails.html", context)
+
+
+# ============== OVERVIEW (JSON) ==============
+
+
+@router.get("/overview")
+async def get_legal_trails_overview(user: UserContext = Depends(require_tier("T2"))):
+    """Get overview of all legal trails for the current user."""
+    c = await service.counts(user)
+    return {
+        "violations_count": c[service.KIND_VIOLATION],
+        "eviction_threats_count": c[service.KIND_EVICTION_THREAT],
+        "late_fee_violations_count": c[service.KIND_LATE_FEE],
+        "broker_oversight_count": c[service.KIND_BROKER_OVERSIGHT],
+        "legal_claims_count": c[service.KIND_CLAIM],
         "modules": [
             {
                 "name": "Legal Claims Trail",
@@ -221,23 +411,7 @@ async def get_legal_trails_overview():
                 "endpoint": "/legal-trails/broker-oversight",
             },
         ],
-        "statutes": {
-            "MN 504B.177": {
-                "title": "Late Fees",
-                "summary": "Late fees must be in lease and cannot exceed 8% of overdue rent",
-                "url": "https://www.revisor.mn.gov/statutes/cite/504B.177",
-            },
-            "MN 504B.285": {
-                "title": "Retaliatory Eviction",
-                "summary": "Landlords cannot evict tenants for asserting legal rights",
-                "url": "https://www.revisor.mn.gov/statutes/cite/504B.285",
-            },
-            "MN 504B.161": {
-                "title": "Covenants of Habitability",
-                "summary": "Landlords must keep rentals fit and in reasonable repair; remedies go through a rent escrow action",
-                "url": "https://www.revisor.mn.gov/statutes/cite/504B.161",
-            },
-        },
+        "statutes": _STATUTES_INFO,
         "filing_windows": STATUTE_OF_LIMITATIONS,
     }
 
@@ -246,104 +420,117 @@ async def get_legal_trails_overview():
 
 
 @router.post("/violations")
-async def add_violation(violation: Violation):
+async def add_violation(violation: Violation, user: UserContext = Depends(require_tier("T2"))):
     """Log a new violation"""
-    from app.core.id_gen import make_id
-
-    violation.id = make_id("vio")
-    violation.created_at = utc_now()
-    violations_db[violation.id] = violation.dict()
-    return {"message": "Violation logged", "violation_id": violation.id, "violation": violation}
+    record = await service.create_record(
+        user,
+        service.KIND_VIOLATION,
+        violation.model_dump(exclude={"id", "created_at"}),
+    )
+    if record is None:
+        raise _storage_unavailable()
+    return {"message": "Violation logged", "violation_id": record["id"], "violation": record}
 
 
 @router.get("/violations")
-async def list_violations(violation_type: ViolationType | None = None, perpetrator: str | None = None):
-    """List all logged violations"""
-    results = list(violations_db.values())
+async def list_violations(
+    violation_type: ViolationType | None = None,
+    perpetrator: str | None = None,
+    user: UserContext = Depends(require_tier("T2")),
+):
+    """List the current user's logged violations"""
+    results = await service.list_records(user, service.KIND_VIOLATION)
     if violation_type:
         results = [v for v in results if v["violation_type"] == violation_type]
     if perpetrator:
-        results = [v for v in results if perpetrator.lower() in v["perpetrator"].lower()]
+        results = [v for v in results if perpetrator.lower() in (v.get("perpetrator") or "").lower()]
     return {"count": len(results), "violations": results}
 
 
 @router.get("/violations/{violation_id}")
-async def get_violation(violation_id: str):
+async def get_violation(violation_id: str, user: UserContext = Depends(require_tier("T2"))):
     """Get a specific violation"""
-    if violation_id not in violations_db:
+    record = await service.get_record(user, service.KIND_VIOLATION, violation_id)
+    if record is None:
         raise HTTPException(status_code=404, detail="Violation not found")
-    return violations_db[violation_id]
+    return record
 
 
 # ---------- EVICTION THREATS ----------
 
 
 @router.post("/eviction-threats")
-async def add_eviction_threat(threat: EvictionThreat):
+async def add_eviction_threat(threat: EvictionThreat, user: UserContext = Depends(require_tier("T2"))):
     """Log an eviction threat"""
-    from app.core.id_gen import make_id
-
-    threat.id = make_id("thr")
-    threat.created_at = utc_now()
-    eviction_threats_db[threat.id] = threat.dict()
+    record = await service.create_record(
+        user,
+        service.KIND_EVICTION_THREAT,
+        threat.model_dump(exclude={"id", "created_at"}),
+    )
+    if record is None:
+        raise _storage_unavailable()
     return {
         "message": "Eviction threat logged",
-        "threat_id": threat.id,
+        "threat_id": record["id"],
         "warning": "If this was retaliatory, you may have a claim under MN 504B.285",
         "statute_of_limitations": "6 years for civil retaliation claims",
-        "threat": threat,
+        "threat": record,
     }
 
 
 @router.get("/eviction-threats")
-async def list_eviction_threats():
-    """List all eviction threats"""
-    return {"count": len(eviction_threats_db), "threats": list(eviction_threats_db.values())}
+async def list_eviction_threats(user: UserContext = Depends(require_tier("T2"))):
+    """List the current user's eviction threats"""
+    results = await service.list_records(user, service.KIND_EVICTION_THREAT)
+    return {"count": len(results), "threats": results}
 
 
 # ---------- LATE FEE VIOLATIONS ----------
 
 
 @router.post("/late-fees")
-async def add_late_fee_violation(fee: LateFeeViolation):
+async def add_late_fee_violation(fee: LateFeeViolation, user: UserContext = Depends(require_tier("T2"))):
     """Log a late fee violation"""
-    from app.core.id_gen import make_id
-
-    fee.id = make_id("fee")
-    fee.created_at = utc_now()
-
-    # Calculate legal max (8% of rent per MN 504B.177)
-    fee.legal_max_fee = round(fee.rent_amount * 0.08, 2)
-    fee.exceeds_8_percent = fee.amount_charged > fee.legal_max_fee
-    fee.overcharge_amount = max(0, fee.amount_charged - fee.legal_max_fee)
-
-    late_fees_db[fee.id] = fee.dict()
+    legal_max = round(fee.rent_amount * 0.08, 2)
+    exceeds = fee.amount_charged > legal_max
+    fields = fee.model_dump(exclude={"id", "created_at"})
+    fields.update(
+        {
+            "legal_max_fee": legal_max,
+            "exceeds_8_percent": exceeds,
+            "overcharge_amount": max(0, round(fee.amount_charged - legal_max, 2)),
+        }
+    )
+    record = await service.create_record(user, service.KIND_LATE_FEE, fields)
+    if record is None:
+        raise _storage_unavailable()
 
     violations = []
     if not fee.lease_allows_late_fee:
         violations.append("Late fee charged without lease authorization (MN 504B.177)")
-    if fee.exceeds_8_percent:
-        violations.append(f"Late fee exceeds 8% cap by ${fee.overcharge_amount:.2f} (MN 504B.177)")
+    if exceeds:
+        violations.append(f"Late fee exceeds 8% cap by ${record['overcharge_amount']:.2f} (MN 504B.177)")
 
     return {
         "message": "Late fee violation logged",
-        "fee_id": fee.id,
-        "legal_max_fee": fee.legal_max_fee,
-        "exceeds_8_percent": fee.exceeds_8_percent,
-        "overcharge_amount": fee.overcharge_amount,
+        "fee_id": record["id"],
+        "legal_max_fee": record["legal_max_fee"],
+        "exceeds_8_percent": record["exceeds_8_percent"],
+        "overcharge_amount": record["overcharge_amount"],
         "violations_detected": violations,
-        "fee": fee,
+        "fee": record,
     }
 
 
 @router.get("/late-fees")
-async def list_late_fee_violations():
-    """List all late fee violations"""
-    total_overcharged = sum(f.get("overcharge_amount", 0) for f in late_fees_db.values())
+async def list_late_fee_violations(user: UserContext = Depends(require_tier("T2"))):
+    """List the current user's late fee violations"""
+    records = await service.list_records(user, service.KIND_LATE_FEE)
+    total_overcharged = round(sum(f.get("overcharge_amount") or 0 for f in records), 2)
     return {
-        "count": len(late_fees_db),
+        "count": len(records),
         "total_overcharged": total_overcharged,
-        "violations": list(late_fees_db.values()),
+        "violations": records,
     }
 
 
@@ -351,6 +538,7 @@ async def list_late_fee_violations():
 async def calculate_late_fee_legal_max(
     rent_amount: float = Query(..., description="Monthly rent amount"),
     days_late: int = Query(default=1, description="Days late"),
+    user: UserContext = Depends(require_tier("T2")),
 ):
     """Calculate the legal maximum late fee under MN 504B.177"""
     legal_max = round(rent_amount * 0.08, 2)
@@ -367,42 +555,60 @@ async def calculate_late_fee_legal_max(
 
 
 @router.post("/broker-oversight")
-async def add_broker_oversight(broker: BrokerOversight):
+async def add_broker_oversight(broker: BrokerOversight, user: UserContext = Depends(require_tier("T2"))):
     """Add a broker to track for oversight accountability"""
-    broker_oversight_db[broker.broker_name] = broker.dict()
+    record = await service.create_record(
+        user,
+        service.KIND_BROKER_OVERSIGHT,
+        broker.model_dump(),
+    )
+    if record is None:
+        raise _storage_unavailable()
     return {
         "message": "Broker oversight record created",
-        "broker": broker,
+        "broker": record,
         "note": "As the broker of record, this person has legal responsibility for ensuring compliance with Minnesota housing laws and ethical conduct of property managers.",
     }
 
 
 @router.get("/broker-oversight")
-async def list_broker_oversight():
-    """List all brokers being tracked"""
-    return {"count": len(broker_oversight_db), "brokers": list(broker_oversight_db.values())}
+async def list_broker_oversight(user: UserContext = Depends(require_tier("T2"))):
+    """List the current user's tracked brokers"""
+    results = await service.list_records(user, service.KIND_BROKER_OVERSIGHT)
+    return {"count": len(results), "brokers": results}
 
 
 @router.get("/broker-oversight/{broker_name}")
-async def get_broker_oversight(broker_name: str):
+async def get_broker_oversight(broker_name: str, user: UserContext = Depends(require_tier("T2"))):
     """Get broker oversight details"""
-    if broker_name not in broker_oversight_db:
+    record = await service.get_record(user, service.KIND_BROKER_OVERSIGHT, broker_name)
+    if record is None:
         raise HTTPException(status_code=404, detail="Broker not found")
-    return broker_oversight_db[broker_name]
+    return record
 
 
 @router.post("/broker-oversight/{broker_name}/link-violation")
-async def link_violation_to_broker(broker_name: str, violation_id: str):
+async def link_violation_to_broker(
+    broker_name: str, violation_id: str, user: UserContext = Depends(require_tier("T2"))
+):
     """Link a violation to a broker's oversight record"""
-    if broker_name not in broker_oversight_db:
+    broker = await service.get_record(user, service.KIND_BROKER_OVERSIGHT, broker_name)
+    if broker is None:
         raise HTTPException(status_code=404, detail="Broker not found")
-    if violation_id not in violations_db:
+    if await service.get_record(user, service.KIND_VIOLATION, violation_id) is None:
         raise HTTPException(status_code=404, detail="Violation not found")
 
-    broker_oversight_db[broker_name]["violations_under_watch"].append(violation_id)
+    watched = list(broker.get("violations_under_watch") or [])
+    if violation_id not in watched:
+        watched.append(violation_id)
+    updated = await service.update_record_payload(
+        user, service.KIND_BROKER_OVERSIGHT, broker_name, {"violations_under_watch": watched}
+    )
+    if updated is None:
+        raise _storage_unavailable()
     return {
         "message": f"Violation {violation_id} linked to broker {broker_name}",
-        "broker": broker_oversight_db[broker_name],
+        "broker": updated,
     }
 
 
@@ -410,80 +616,67 @@ async def link_violation_to_broker(broker_name: str, violation_id: str):
 
 
 @router.post("/claims")
-async def create_legal_claim(claim: LegalClaim):
+async def create_legal_claim(claim: LegalClaim, user: UserContext = Depends(require_tier("T2"))):
     """Create a formal legal claim"""
-    from app.core.id_gen import make_id
-
-    claim.id = make_id("clm")
-    claim.created_at = utc_now()
-    legal_claims_db[claim.id] = claim.dict()
-    return {"message": "Legal claim created", "claim_id": claim.id, "claim": claim}
+    record = await service.create_record(
+        user,
+        service.KIND_CLAIM,
+        claim.model_dump(exclude={"id", "created_at"}),
+    )
+    if record is None:
+        raise _storage_unavailable()
+    return {"message": "Legal claim created", "claim_id": record["id"], "claim": record}
 
 
 @router.get("/claims")
-async def list_legal_claims(status: ClaimStatus | None = None):
-    """List all legal claims"""
-    results = list(legal_claims_db.values())
+async def list_legal_claims(
+    status: ClaimStatus | None = None, user: UserContext = Depends(require_tier("T2"))
+):
+    """List the current user's legal claims"""
+    results = await service.list_records(user, service.KIND_CLAIM)
     if status:
         results = [c for c in results if c["status"] == status]
     return {"count": len(results), "claims": results}
 
 
 @router.get("/claims/{claim_id}")
-async def get_legal_claim(claim_id: str):
+async def get_legal_claim(claim_id: str, user: UserContext = Depends(require_tier("T2"))):
     """Get a specific legal claim"""
-    if claim_id not in legal_claims_db:
+    record = await service.get_record(user, service.KIND_CLAIM, claim_id)
+    if record is None:
         raise HTTPException(status_code=404, detail="Claim not found")
-    return legal_claims_db[claim_id]
+    return record
 
 
 @router.put("/claims/{claim_id}/status")
-async def update_claim_status(claim_id: str, status: ClaimStatus):
+async def update_claim_status(
+    claim_id: str, status: ClaimStatus, user: UserContext = Depends(require_tier("T2"))
+):
     """Update claim status"""
-    if claim_id not in legal_claims_db:
+    updated = await service.update_record_payload(
+        user, service.KIND_CLAIM, claim_id, {"status": status.value}
+    )
+    if updated is None:
         raise HTTPException(status_code=404, detail="Claim not found")
-    legal_claims_db[claim_id]["status"] = status
-    return {"message": f"Claim status updated to {status}", "claim": legal_claims_db[claim_id]}
+    return {"message": f"Claim status updated to {status}", "claim": updated}
 
 
 # ---------- FILING WINDOWS ----------
 
 
 @router.get("/filing-windows")
-async def calculate_filing_windows(violation_date: date = Query(..., description="Date violation occurred")):
+async def calculate_filing_windows(
+    violation_date: date = Query(..., description="Date violation occurred"),
+    user: UserContext = Depends(require_tier("T2")),
+):
     """Calculate all filing windows/deadlines for a violation date"""
-    from datetime import timedelta
-
-    windows = []
-    today = date.today()
-
-    for claim_type, years in STATUTE_OF_LIMITATIONS.items():
-        deadline = violation_date + timedelta(days=years * 365)
-        days_remaining = (deadline - today).days
-
-        if days_remaining < 0:
-            urgency = "expired"
-        elif days_remaining < 90:
-            urgency = "critical"
-        elif days_remaining < 365:
-            urgency = "warning"
-        else:
-            urgency = "safe"
-
-        windows.append(
-            FilingWindow(
-                claim_type=claim_type,
-                violation_date=violation_date,
-                limitation_years=years,
-                deadline=deadline,
-                days_remaining=max(0, days_remaining),
-                urgency=urgency,
-            )
-        )
-
+    windows = [
+        _filing_window(violation_date, claim_type, years)
+        for claim_type, years in STATUTE_OF_LIMITATIONS.items()
+    ]
     return {
         "violation_date": violation_date,
-        "windows": [w.dict() for w in sorted(windows, key=lambda x: x.days_remaining)],
+        "windows": sorted(windows, key=lambda x: x["days_remaining"]),
     }
 
 
@@ -498,13 +691,24 @@ async def generate_retaliation_complaint(
     management_company: str,
     violation_ids: list[str] = Query(default=[]),
     threat_ids: list[str] = Query(default=[]),
+    user: UserContext = Depends(require_tier("T2")),
 ):
-    """Generate a retaliation complaint document"""
-    violations = [violations_db[v] for v in violation_ids if v in violations_db]
-    threats = [eviction_threats_db[t] for t in threat_ids if t in eviction_threats_db]
+    """Generate a retaliation complaint draft from the user's own logged records"""
+    violations = []
+    for vid in violation_ids:
+        record = await service.get_record(user, service.KIND_VIOLATION, vid)
+        if record:
+            violations.append(record)
+    threats = []
+    for tid in threat_ids:
+        record = await service.get_record(user, service.KIND_EVICTION_THREAT, tid)
+        if record:
+            threats.append(record)
 
-    complaint = {
-        "title": "COMPLAINT FOR RETALIATORY EVICTION",
+    return {
+        "status": "draft",
+        "draft_note": _DRAFT_NOTE,
+        "title": "COMPLAINT FOR RETALIATORY EVICTION — DRAFT",
         "statute": "Minnesota Statute 504B.285",
         "complainant": tenant_name,
         "property": property_address,
@@ -520,16 +724,20 @@ async def generate_retaliation_complaint(
         "threats_documented": threats,
     }
 
-    return complaint
-
 
 @router.post("/generate/license-complaint")
 async def generate_license_complaint(
-    broker_name: str, license_number: str | None = None, company: str = "", violations_summary: str = ""
+    broker_name: str,
+    license_number: str | None = None,
+    company: str = "",
+    violations_summary: str = "",
+    user: UserContext = Depends(require_tier("T2")),
 ):
-    """Generate a license complaint for MN Dept of Commerce"""
+    """Generate a license complaint draft for MN Dept of Commerce"""
     return {
-        "title": "COMPLAINT TO MINNESOTA DEPARTMENT OF COMMERCE",
+        "status": "draft",
+        "draft_note": _DRAFT_NOTE,
+        "title": "COMPLAINT TO MINNESOTA DEPARTMENT OF COMMERCE — DRAFT",
         "regarding": f"Real Estate Broker License - {broker_name}",
         "license_number": license_number or "Unknown - Request Lookup",
         "company": company,
@@ -556,11 +764,18 @@ async def generate_license_complaint(
 
 @router.post("/generate/hud-complaint")
 async def generate_hud_complaint(
-    tenant_name: str, property_address: str, management_company: str, violation_type: str, description: str
+    tenant_name: str,
+    property_address: str,
+    management_company: str,
+    violation_type: str,
+    description: str,
+    user: UserContext = Depends(require_tier("T2")),
 ):
-    """Generate a HUD Fair Housing complaint"""
+    """Generate a HUD Fair Housing complaint draft"""
     return {
-        "title": "COMPLAINT TO HUD OFFICE OF FAIR HOUSING",
+        "status": "draft",
+        "draft_note": _DRAFT_NOTE,
+        "title": "COMPLAINT TO HUD OFFICE OF FAIR HOUSING — DRAFT",
         "complainant": tenant_name,
         "property": property_address,
         "respondent": management_company,
@@ -576,62 +791,57 @@ async def generate_hud_complaint(
     }
 
 
-# ---------- ATTORNEY RESOURCES ----------
+# ---------- LEGAL HELP RESOURCES ----------
 
 
 @router.get("/attorneys/minnesota")
-async def get_mn_tenant_attorneys():
-    """Get list of Minnesota tenant rights attorneys"""
+async def get_mn_tenant_attorneys(user: UserContext = Depends(require_tier("T2"))):
+    """Neutral legal-help channels for Minnesota tenants — official and
+    legal-aid resources only (Semptify never endorses private firms)."""
     return {
-        "attorneys": [
-            {
-                "name": "Madia Law LLC",
-                "specialty": "Fraud, tenant justice, trial lawyers",
-                "note": "Known for 'beating giants' - over $50M recovered",
-                "website": "https://madialaw.com",
-                "location": "Minneapolis, MN",
-            },
-            {
-                "name": "Burns & Hansen, P.A.",
-                "specialty": "Real estate litigation, tenant rights",
-                "note": "Fierce litigation in property disputes",
-                "website": "https://patrickburnslaw.com",
-                "location": "Minneapolis, MN",
-            },
-            {
-                "name": "Aaron Hall Law",
-                "specialty": "Landlord-tenant advocacy",
-                "website": "https://aaronhall.com",
-                "location": "Minnesota",
-            },
-            {
-                "name": "Wilson Law Group LLC",
-                "specialty": "Housing disputes, free consultations",
-                "phone": "612-430-8022",
-                "location": "Minneapolis, MN",
-            },
+        "legal_aid": [
             {
                 "name": "HOME Line",
-                "specialty": "Free tenant hotline and legal help",
+                "what": "Tenant hotline — talk through your situation with a housing counselor",
                 "phone": "612-728-5767",
                 "website": "https://homelinemn.org",
-                "note": "Free legal assistance for tenants",
             },
             {
-                "name": "Legal Aid - Housing",
-                "specialty": "Free legal services for low-income",
+                "name": "Legal Aid — Housing",
+                "what": "Legal services for low-income tenants",
                 "phone": "612-334-5970",
                 "website": "https://mylegalaid.org",
             },
+            {
+                "name": "LawHelpMN",
+                "what": "Legal-aid intake and self-help resources statewide",
+                "website": "https://www.lawhelpmn.org",
+            },
         ],
-        "super_lawyers": [
-            "Eric Hansen (Burns & Hansen, P.A.)",
-            "Kevin J. Dunlevy (LeVander, Gillen & Miller, P.A.)",
-            "Paul W. Anderson (Messerli | Kramer)",
+        "official_channels": [
+            {
+                "name": "Minnesota State Bar Lawyer Referral",
+                "what": "Referral to a licensed attorney for a consultation",
+                "website": "https://www.mnfindalawyer.com",
+            },
+            {
+                "name": "Minnesota Attorney General — Consumer Complaints",
+                "what": "File a consumer complaint about landlord practices",
+                "website": "https://www.ag.state.mn.us/consumer/complaint.asp",
+                "phone": "651-296-3353",
+            },
+            {
+                "name": "HUD Fair Housing Complaint",
+                "what": "Federal discrimination complaints — file within 1 year",
+                "website": "https://www.hud.gov/program_offices/fair_housing_equal_opp/online-complaint",
+                "phone": "1-800-669-9777",
+            },
+            {
+                "name": "Minnesota Department of Commerce",
+                "what": "Complaints about licensed real estate brokers",
+                "website": "https://mn.gov/commerce/consumers/file-a-complaint/",
+                "phone": "651-539-1600",
+            },
         ],
-        "directories": [
-            "https://www.superlawyers.com/minnesota/",
-            "https://www.findlaw.com/minnesota/",
-            "https://www.avvo.com/landlord-tenant-lawyer/mn.html",
-        ],
+        "statutes": _STATUTES_INFO,
     }

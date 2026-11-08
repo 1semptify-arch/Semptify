@@ -5,6 +5,7 @@ Includes connection pooling configuration for production.
 """
 
 import logging
+import os
 from collections.abc import AsyncGenerator
 
 logger = logging.getLogger(__name__)
@@ -76,7 +77,9 @@ def get_engine():
     Get or create the async engine with proper connection pooling.
 
     Pool settings:
-    - PostgreSQL: QueuePool with configurable size
+    - PostgreSQL: NullPool on Render (so an idle instance holds zero
+      connections and the Neon compute can scale to zero), QueuePool
+      elsewhere — see DB_POOL_MODE in app.core.config
     - SQLite: NullPool (SQLite doesn't support concurrent connections well)
     """
     if not SQLALCHEMY_AVAILABLE:
@@ -105,26 +108,44 @@ def get_engine():
         else:
             # PostgreSQL: use async-compatible connection pooling
             # SSL is resolved by _resolve_db_ssl (URL sslmode > DB_SSL_MODE > host heuristic)
-            pool_config = {
-                "poolclass": AsyncAdaptedQueuePool,
-                "pool_size": 5,  # Base connections
-                "max_overflow": 10,  # Extra connections under load
-                "pool_timeout": 30,  # Seconds to wait for connection
-                # Neon drops idle connections at ~300s; recycle below that so the
-                # pool proactively replaces connections before the server kills
-                # them (Render cold-start bursts post-deploy left startup-warmed
-                # connections dead by the first request).
-                "pool_recycle": 280,
-                "pool_pre_ping": True,  # Verify connections before use
-                "connect_args": {
-                    "ssl": _resolve_db_ssl(settings),
-                    # asyncpg timeouts: without these a suspended/unreachable
-                    # Postgres can hang pre-ping and queries indefinitely.
-                    "timeout": 10,  # connect timeout
-                    "command_timeout": 30,  # per-statement timeout
-                    "server_settings": {"application_name": "semptify_fastapi"},
-                },
+            connect_args = {
+                "ssl": _resolve_db_ssl(settings),
+                # asyncpg timeouts: without these a suspended/unreachable
+                # Postgres can hang pre-ping and queries indefinitely.
+                "timeout": 10,  # connect timeout (Neon resumes from suspend
+                # well inside this window)
+                "command_timeout": 30,  # per-statement timeout
+                "server_settings": {"application_name": "semptify_fastapi"},
             }
+
+            pool_mode = (settings.db_pool_mode or "auto").lower()
+            if pool_mode == "auto":
+                pool_mode = "nullpool" if os.getenv("RENDER") else "queue"
+
+            if pool_mode == "nullpool":
+                # NullPool: connections are opened per checkout and closed on
+                # return, so an idle instance holds zero open connections and
+                # Neon's autosuspend (5 min default) can scale the compute to
+                # zero. Previously the pool held 5 idle connections 24/7 —
+                # a single request kept them warm — costing ~20 CU-hrs/mo.
+                pool_config = {
+                    "poolclass": NullPool,
+                    "connect_args": connect_args,
+                }
+            else:
+                pool_config = {
+                    "poolclass": AsyncAdaptedQueuePool,
+                    "pool_size": settings.db_pool_size,  # Base connections
+                    "max_overflow": settings.db_max_overflow,  # Extra connections under load
+                    "pool_timeout": 30,  # Seconds to wait for connection
+                    # Neon drops idle connections at ~300s; recycle below that so the
+                    # pool proactively replaces connections before the server kills
+                    # them (Render cold-start bursts post-deploy left startup-warmed
+                    # connections dead by the first request).
+                    "pool_recycle": 280,
+                    "pool_pre_ping": True,  # Verify connections before use
+                    "connect_args": connect_args,
+                }
 
         _engine = create_async_engine(
             settings.database_url,

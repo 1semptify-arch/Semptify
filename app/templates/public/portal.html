@@ -1,5 +1,11 @@
 {% extends "body/public_shell.html" %}
 
+{# Wing: renters (SEMPTIFY_ORG_ARCHITECTURE_DRAFT §3) — sage theme file +
+   calm-desk layout archetype. data-theme selects the wing theme,
+   data-arch the layout archetype; both ride on the shared base rule in
+   static/css/themes/wing-base.css. #}
+{% block body_attrs %}data-theme="renters" data-arch="calm-desk"{% endblock %}
+
 {% block title %}Semptify — Tenant Rights, Documented{% endblock %}
 {% block description %}Semptify is a tenant rights organization building technology to protect and advance lawful tenant rights through documentation, education, and record-keeping.{% endblock %}
 {% block keywords %}tenant rights, tenant organizer, housing, renter rights, landlord tenant, eviction defense, habitability, security deposit, housing advocacy{% endblock %}
@@ -33,70 +39,112 @@
 </script>
 {% endblock %}
 
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/themes/wing-base.css?v=1">
+<link rel="stylesheet" href="/static/css/themes/wing-renters.css?v=1">
+<link rel="stylesheet" href="/static/css/archetypes/calm-desk.css?v=1">
+<style>
+    .portal-lede { font-size: 1.1rem; color: var(--text-secondary); max-width: 46rem; margin: 0 0 0.75rem; }
+    .portal-keep { color: var(--text-primary); margin: 0 0 1.5rem; max-width: 46rem; }
+    .portal-path { display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; list-style: none; padding: 0; margin: 0 0 1.75rem; }
+    .portal-path a { display: inline-block; padding: 0.55rem 0.9rem; min-height: 44px; background: var(--bg-muted); color: var(--text-primary); text-decoration: none; font-weight: 600; border-radius: var(--radius-input); }
+    .portal-path a:hover, .portal-path a:focus-visible { background: #4c6b4c; color: #fbfaf8; outline: 2px solid #1f1d1a; outline-offset: 2px; }
+    .pillar { background: var(--bg-surface); padding: 1.25rem 1.5rem; margin: 0 0 1.25rem; border-radius: var(--radius-block); }
+    .pillar-head { display: flex; align-items: baseline; gap: 0.75rem; margin: 0 0 0.25rem; }
+    .pillar-num { font-weight: 700; color: var(--color-primary); font-size: 1.3rem; min-width: 1.5rem; }
+    .pillar h2 { font-size: 1.3rem; color: var(--color-primary); margin: 0; font-weight: 600; }
+    .pillar-q { color: var(--text-primary); font-weight: 600; margin: 0 0 0.25rem; }
+    .pillar-blurb { color: var(--text-secondary); margin: 0 0 0.9rem; }
+    .step-facts { margin: 0 0 1rem; display: grid; gap: 0.35rem; }
+    .step-facts div { display: grid; grid-template-columns: 7.5rem 1fr; gap: 0.75rem; }
+    .step-facts dt { font-weight: 700; color: var(--text-primary); }
+    .step-facts dd { margin: 0; color: var(--text-secondary); }
+    .svc-list { list-style: none; padding: 0; margin: 0 0 0.75rem; display: grid; gap: 0.75rem; }
+    .svc { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 1rem; align-items: center; padding-top: 0.75rem; border-top: 1px solid var(--border-color); }
+    .svc:first-child { border-top: 0; padding-top: 0; }
+    .svc-name { font-weight: 700; color: var(--text-primary); margin: 0; }
+    .svc-desc { grid-column: 1; color: var(--text-secondary); margin: 0; font-size: 0.95rem; }
+    .svc-for { grid-column: 1; color: var(--text-secondary); font-size: 0.85rem; margin: 0; }
+    .svc-go { grid-column: 2; grid-row: 1 / span 3; display: inline-block; background: #4c6b4c; color: #fbfaf8; padding: 0.6rem 1rem; min-height: 44px; text-decoration: none; font-weight: 600; border-radius: var(--radius-input); }
+    .svc-go:hover, .svc-go:focus-visible { background: #3d583d; outline: 2px solid #1f1d1a; outline-offset: 2px; }
+    .pillar-flow { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+    .pillar-flow strong { color: var(--text-primary); }
+    .portal-final { text-align: center; padding: 2rem 1.5rem; background: var(--bg-surface); border-radius: var(--radius-block); }
+    .portal-final a { display: inline-block; background: #4c6b4c; color: #fbfaf8; padding: 0.8rem 2rem; min-height: 44px; font-weight: 600; text-decoration: none; border-radius: var(--radius-input); }
+    .portal-final a:hover, .portal-final a:focus-visible { background: #3d583d; outline: 2px solid #1f1d1a; outline-offset: 2px; }
+    @media (max-width: 640px) {
+        .svc { grid-template-columns: 1fr; }
+        .svc-go { grid-column: 1; grid-row: auto; justify-self: start; }
+        .step-facts div { grid-template-columns: 1fr; gap: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+{% endblock %}
+
 {% block page_body %}
 
-<!-- Mission statement -->
-<section class="section">
-    <h2 class="section-title">What Semptify does for you</h2>
-    <p style="color: var(--text-light); font-size: 1.1rem; margin-bottom: 1rem;">
-        Upload your documents. Track your deadlines. Build your case. All in one place,
-        and your documents stay in your own cloud storage — we never see your data.
+<section aria-labelledby="portal-intro">
+    <h2 class="section-title" id="portal-intro">What Semptify does for you</h2>
+    <p class="portal-lede">
+        Six things, in the order most people need them. Your documents stay in your own
+        cloud storage; Semptify never sees your data.
     </p>
-    <div class="info-banner">
-        <p>
-            <strong>Document problems as they happen.</strong> Photos, dates, and written notices
-            are the strongest documents and records if you ever need to dispute a charge, a notice, or a repair.
-        </p>
-    </div>
+    <p class="portal-keep">
+        <strong>Document problems as they happen.</strong> Photos, dates, and written notices
+        are the strongest records if you ever need to dispute a charge, a notice, or a repair.
+    </p>
+    <ol class="portal-path" aria-label="The six steps">
+        {% for pillar in pillars if pillar.number %}
+        <li><a href="#pillar-{{ pillar.id }}">{{ pillar.number }}. {{ pillar.label }}</a></li>
+        {% endfor %}
+    </ol>
 </section>
 
-<!-- Services catalog -->
-<section class="section">
-    <h2 class="section-title">Our Services</h2>
-    <p class="section-description">
-        Pick what fits your situation. No advertising, ever.
-    </p>
-
-    {% for category_id, category in categories.items() %}
-    <div class="category-section">
-        <div class="category-header">
-            <span class="category-icon">{{ category.icon }}</span>
-            <h2>{{ category.label }}</h2>
-        </div>
-        <p class="category-description">{{ category.description }}</p>
-
-        <div class="services-grid">
-            {% for service in services %}
-            {% if service.category == category_id %}
-            <div class="service-card">
-                <div class="icon">{{ service.icon }}</div>
-                <h3>{{ service.name }}</h3>
-                <p>{{ service.short_description }}</p>
-                <a href="{{ service.cta_path }}"
-                   class="cta-button {% if service.requires_auth %}secondary{% endif %}"
-                   {% if service.requires_auth %}aria-label="{{ service.cta_label }} — login required"{% endif %}>
-                    {{ service.cta_label }} →
-                </a>
-            </div>
-            {% endif %}
-            {% endfor %}
-        </div>
+{% for pillar in pillars %}
+{% set step_id = journey_by_pillar.get(pillar.id) %}
+{% set ctx = journey.get(step_id) if step_id else none %}
+<section class="pillar" id="pillar-{{ pillar.id }}" aria-labelledby="h-{{ pillar.id }}">
+    <div class="pillar-head">
+        {% if pillar.number %}<span class="pillar-num" aria-hidden="true">{{ pillar.number }}</span>{% endif %}
+        <h2 id="h-{{ pillar.id }}">{{ pillar.label }}</h2>
     </div>
-    {% endfor %}
-</section>
+    <p class="pillar-q">{{ pillar.question }}</p>
+    <p class="pillar-blurb">{{ pillar.blurb }}</p>
 
-<!-- Main CTA -->
-<section class="cta-section">
-    <h2>Ready to protect your rights?</h2>
-    <p style="margin-bottom: 1.5rem; color: var(--text-light);">
-        New or returning — we'll route you to the right place.
+    {% if ctx %}
+    <dl class="step-facts">
+        <div><dt>You need first</dt><dd>{{ ctx.step.needs_first }}</dd></div>
+        <div><dt>How</dt><dd>{{ ctx.step.how }}</dd></div>
+        <div><dt>Done when</dt><dd>{{ ctx.step.done_when }}</dd></div>
+    </dl>
+    {% endif %}
+
+    <ul class="svc-list">
+        {% for svc in pillar.services %}
+        <li class="svc">
+            <p class="svc-name">{{ svc.name }}</p>
+            <p class="svc-desc">{{ svc.short_description }}</p>
+            {% if svc.audience_labels %}<p class="svc-for">For: {{ svc.audience_labels | join(", ") }}</p>{% endif %}
+            <a class="svc-go" href="{{ svc.cta_path }}"
+               {% if svc.requires_auth %}aria-label="{{ svc.cta_label }} for {{ svc.name }} (sign-in required)"{% else %}aria-label="{{ svc.cta_label }}: {{ svc.name }}"{% endif %}>{{ svc.cta_label }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    {% if ctx and (ctx.previous or ctx.next) %}
+    <p class="pillar-flow">
+        {% if ctx.previous %}<strong>Before this:</strong> {{ ctx.previous | map(attribute="title") | join(", ") }}.{% endif %}
+        {% if ctx.next %}<strong>Next:</strong> {{ ctx.next | map(attribute="title") | join(", ") }}.{% endif %}
     </p>
-    <a href="/preamble" class="cta-button-large">
-        📓 Get Started →
-    </a>
-    <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);">
-        Free to use. Your documents stay in your control.
-    </p>
+    {% endif %}
+</section>
+{% endfor %}
+
+<section class="portal-final" aria-labelledby="h-start">
+    <h2 id="h-start" class="section-title">Ready to start?</h2>
+    <p class="portal-lede" style="margin-left:auto;margin-right:auto;">New or returning, we will route you to the right place.</p>
+    <a href="/preamble">Get started</a>
 </section>
 
 {% endblock %}

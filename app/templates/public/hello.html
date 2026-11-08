@@ -30,10 +30,30 @@
 </style>
 {% endblock %}
 
+{% block sidebar %}
+<h2>On this page</h2>
+<ul class="shell-list">
+    <li><a href="#now-open">Now open — Your Voice</a></li>
+    <li><a href="#becoming">What Semptify is becoming</a></li>
+    <li><a href="#build">Where the build stands</a></li>
+    <li><a href="#bill">The bill proposal</a></li>
+    <li><a href="#commitments">Standing commitments</a></li>
+    <li><a href="#funding">Funding the work</a></li>
+    <li><a href="#outside-views">Outside views</a></li>
+</ul>
+<h2>Semptify</h2>
+<ul class="shell-list">
+    <li><a href="/help">Get help now</a></li>
+    <li><a href="/your-voice">Your Voice — the bill</a></li>
+    <li><a href="/law-library">Know your rights</a></li>
+    <li><a href="/portal">The portal</a></li>
+</ul>
+{% endblock %}
+
 {% block page_body %}
 <div class="hello-grid">
 
-    <section class="hello-zone hello-zone--wide">
+    <section class="hello-zone hello-zone--wide" id="now-open">
         <span class="hello-label">Now open</span>
         <h2>Your Voice — a bill, written in public</h2>
         <p>
@@ -48,7 +68,7 @@
         </div>
     </section>
 
-    <section class="hello-zone">
+    <section class="hello-zone" id="becoming">
         <h2>What Semptify is becoming</h2>
         <p>
             A tenant rights advocate organization — a public utility, not a product.
@@ -59,7 +79,7 @@
         </p>
     </section>
 
-    <section class="hello-zone">
+    <section class="hello-zone" id="build">
         <h2>Where the build stands</h2>
         <p>
             We are under construction. Some tools work today; more are on the way.
@@ -72,7 +92,7 @@
         </ul>
     </section>
 
-    <section class="hello-zone hello-zone--wide">
+    <section class="hello-zone hello-zone--wide" id="bill">
         <h2>In the works: a housing bill proposal</h2>
         <p>
             We are working to put together a proposal for a bill for the housing
@@ -89,7 +109,7 @@
         <p class="hello-note">We will publish the draft and invite comment from every side as the work matures.</p>
     </section>
 
-    <section class="hello-zone">
+    <section class="hello-zone" id="commitments">
         <h2>Our standing commitments</h2>
         <ul>
             <li><strong>No cost, always.</strong> We never charge for anything.</li>
@@ -102,7 +122,7 @@
         </div>
     </section>
 
-    <section class="hello-zone">
+    <section class="hello-zone" id="funding">
         <h2>Funding the work</h2>
         <p>
             Semptify survives on donations and, we hope, grants. We are currently
@@ -115,7 +135,7 @@
         </div>
     </section>
 
-    <section class="hello-zone hello-zone--wide">
+    <section class="hello-zone hello-zone--wide" id="outside-views">
         <h2>Outside views</h2>
         <p>
             We invite outside reviews of what we're building — agree or disagree.

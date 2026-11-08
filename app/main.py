@@ -84,8 +84,6 @@ from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
 from app.core.role_surfacing import get_role_surfacing
 from app.modules.case_builder.fca_guard import require_fca_readiness
-from app.modules.context_engine.retrieval import retrieve_explanations, select_tapered_variant
-from app.modules.ui_composer.explanation import get_explanation_for_guide
 
 
 # PyInstaller frozen executable detection
@@ -197,6 +195,7 @@ templates.env.filters["format_date"] = format_date_filter
 
 # Product Manifest — replaces the 200+ line router-import block
 from app.core.contract_loader import load_all_contracts
+from app.core.lazy_routers import defer_router_registration, lazy_routers_enabled, run_deferred_registration
 from app.core.product_manifest import ProductTier, is_mvp_deploy, register_tiers
 from app.core.utc import utc_now
 
@@ -396,6 +395,15 @@ async def lifespan(_app: FastAPI):
     lifespan_logger.info("=" * 60)
 
     try:
+        # --- Lazy-router warmup kickoff ---
+        # When router registration was deferred (Render free-tier cold boot),
+        # start importing routers/contracts in a thread now so the ~60s of
+        # module imports overlap staged setup instead of blocking the port
+        # bind (uvicorn binds only after lifespan startup completes).
+        if getattr(_app.state, "routers_pending", None) is not None:
+            _app.state.warmup_task = asyncio.create_task(run_deferred_registration(_app))
+            lifespan_logger.info("   Deferred router warmup started in background")
+
         # --- STAGE 1: Verify Requirements ---
         missing_required: list[str] = []
         missing_optional: list[str] = []
@@ -587,6 +595,11 @@ async def lifespan(_app: FastAPI):
 
         # --- STAGE 3.5: Load Module Contracts ---
         async def load_contracts():
+            if getattr(_app.state, "routers_pending", None) is not None:
+                lifespan_logger.info(
+                    "   Module contracts deferred to background router warmup"
+                )
+                return
             result = load_all_contracts(enabled_tiers=_get_enabled_tiers())
             lifespan_logger.info(
                 "   Contracts: %s loaded, %s failed, %s skipped, %s total",
@@ -597,6 +610,8 @@ async def lifespan(_app: FastAPI):
             )
 
         def verify_contracts():
+            if getattr(_app.state, "routers_pending", None) is not None:
+                return True
             from app.core.module_contracts import contract_registry
 
             return len(contract_registry.list_contracts()) > 0
@@ -792,6 +807,12 @@ async def lifespan(_app: FastAPI):
     lifespan_logger.info("=" * 50)
     lifespan_logger.info("ðŸ›‘ SHUTTING DOWN GRACEFULLY...")
     lifespan_logger.info("=" * 50)
+
+    # Stop the deferred router warmup if it is still running (shutdown won;
+    # imports inside the executor thread are abandoned with the process).
+    warmup_task = getattr(_app.state, "warmup_task", None)
+    if warmup_task is not None and not warmup_task.done():
+        warmup_task.cancel()
 
     # Wait for background tasks to complete
     await task_manager.wait_for_completion(timeout=10.0)
@@ -1949,12 +1970,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
 
     enabled_tiers = _get_enabled_tiers()
-    register_tiers(fastapi_app, *enabled_tiers)
+    # Lazy router imports (Render free-tier cold boot): under DEPLOY_TARGET=
+    # render_mvp the ~50 manifest router imports are deferred to a background
+    # warmup task so uvicorn can bind the port inside the port-scan window.
+    # SEMPTIFY_LAZY_ROUTERS=0 forces the old eager path back on.
+    _lazy_routers = lazy_routers_enabled()
+    if _lazy_routers:
+        defer_router_registration(fastapi_app, enabled_tiers)
+    else:
+        register_tiers(fastapi_app, *enabled_tiers)
 
     # Document Center is a DEV-tier module that may not have been loaded above.
     # For non-MVP builds, explicitly mount /api/dc so the document-type registry
     # (including house_rules) is reachable without requiring a full development env.
-    if not is_mvp_deploy():
+    if not is_mvp_deploy() and not _lazy_routers:
         from app.modules.document_center import router as document_center_router
 
         already_mounted = any(
@@ -2057,6 +2086,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     context["services"] = catalog["services"]
                     context["categories"] = catalog["categories"]
                     context["total_services"] = catalog["total_services"]
+                if _p.id == "portal":
+                    from app.modules.portal import step_map as _step_map
+                    from app.modules.portal.registry import PortalRegistry as _PortalRegistry
+                    _steps = {s.id: s for s in _step_map.TENANT_JOURNEY}
+                    context["pillars"] = _PortalRegistry.get_pillars_with_services()
+                    context["journey"] = {
+                        s.id: _step_map.context(s.id) for s in _step_map.TENANT_JOURNEY
+                    }
+                    context["journey_by_pillar"] = {s.pillar: s.id for s in _steps.values()}
                 if _p.id == "bill_research":
                     # Published claims ledger — written by the case-side
                     # publish pipeline (sanitized, no private-party names).
@@ -2070,6 +2108,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                             context["claims"] = []
                     else:
                         context["claims"] = []
+                if _p.id == "bill_live":
+                    # Clean statute tab — derived from the same published
+                    # partial the notes tab renders verbatim, so the two
+                    # views can never drift apart. None -> template falls
+                    # back to including the working file.
+                    try:
+                        from app.modules.portal.service import bill_statute_view
+                        draft_file = BASE_PATH / "app" / "templates" / "public" / "bill_draft.html"
+                        context["bill_statute_html"] = bill_statute_view(
+                            draft_file.read_text(encoding="utf-8"))
+                    except Exception:  # pylint: disable=broad-exception-caught
+                        context["bill_statute_html"] = None
                 return templates.TemplateResponse(request, _p.template, context)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Public page template error (%s): %s", _p.template, e)
@@ -2167,6 +2217,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     css_path = BASE_PATH / "static" / "css"
     if css_path.exists():
         fastapi_app.mount("/css", StaticFiles(directory=str(css_path)), name="css_static")
+
+    # Turnbuchalla public bill platform — self-contained static parchment
+    # pages (index/comment/record/references/supporters). html=True serves
+    # index.html at /turnbuchalla and /turnbuchalla/.
+    turnbuchalla_path = BASE_PATH / "app" / "static" / "turnbuchalla"
+    if turnbuchalla_path.exists():
+        fastapi_app.mount(
+            "/turnbuchalla",
+            StaticFiles(directory=str(turnbuchalla_path), html=True),
+            name="turnbuchalla_static",
+        )
 
     # =========================================================================
     # Onboarding Redirect (before catch-all)
@@ -3262,6 +3323,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for creating a journal entry (RECORD pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.explanation import get_explanation_for_guide
         from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("journal", "journal_create")
@@ -3321,6 +3383,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.explanation import get_explanation_for_guide
         from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("intake", "intake_upload_auto")
@@ -3375,6 +3438,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for looking up a statute (KNOW pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.explanation import get_explanation_for_guide
         from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("law_library", "law_library_get_statute")
@@ -3429,6 +3493,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for looking up a case (KNOW pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.explanation import get_explanation_for_guide
         from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("law_library", "law_library_get_case")
@@ -3483,6 +3548,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for calculating eviction deadlines (ACT pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.explanation import get_explanation_for_guide
         from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("eviction_defense", "eviction_defense_calculate_deadlines")
@@ -3538,6 +3604,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """In-task guide preview for creating a timeline event (RECORD pillar)."""
         from app.core.module_contracts import contract_registry
         from app.core.module_gate import is_function_resolved
+        from app.modules.ui_composer.explanation import get_explanation_for_guide
         from app.modules.ui_composer.tapering import set_experience_token_cookie
 
         contract = contract_registry.get("timeline", "timeline_create_event")
@@ -6369,20 +6436,23 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # Load module contracts now so the post-mount audit sees them. The lifespan
     # also calls load_all_contracts, but the registry is idempotent.
-    contract_load_result = load_all_contracts(enabled_tiers=_get_enabled_tiers())
-    logger.info(
-        "Contract registry pre-audit load: %s contracts (%s modules ok, %s failed, %s skipped)",
-        contract_load_result["total_contracts"],
-        contract_load_result["loaded"],
-        contract_load_result["failed"],
-        contract_load_result["skipped"],
-    )
+    # In lazy-router mode both steps run inside the post-bind warmup task
+    # instead (app/core/lazy_routers.py) so they stay off the import path.
+    if not _lazy_routers:
+        contract_load_result = load_all_contracts(enabled_tiers=_get_enabled_tiers())
+        logger.info(
+            "Contract registry pre-audit load: %s contracts (%s modules ok, %s failed, %s skipped)",
+            contract_load_result["total_contracts"],
+            contract_load_result["loaded"],
+            contract_load_result["failed"],
+            contract_load_result["skipped"],
+        )
 
-    # Post-mount audit: flag public routes that no FunctionGroupContract covers.
-    # Non-fatal (warnings) unless ROUTE_AUDIT_STRICT=1.
-    from app.core.route_audit import scan_public_routes
+        # Post-mount audit: flag public routes that no FunctionGroupContract covers.
+        # Non-fatal (warnings) unless ROUTE_AUDIT_STRICT=1.
+        from app.core.route_audit import scan_public_routes
 
-    scan_public_routes(fastapi_app)
+        scan_public_routes(fastapi_app)
 
     return fastapi_app
 

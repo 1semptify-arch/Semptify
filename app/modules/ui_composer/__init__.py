@@ -25,6 +25,15 @@ Page intents (initial set):
     - workflow_step — single workflow step view
 """
 
-from .router import router
+
+def __getattr__(name: str):
+    # Lazy router export so importing leaf modules (explanation, tapering)
+    # at app-import time does not pull the full router chain.
+    if name == "router":
+        from .router import router
+
+        return router
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = ["router"]

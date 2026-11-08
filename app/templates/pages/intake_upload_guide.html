@@ -93,6 +93,7 @@
 
 {% block scripts %}
 {{ super() }}
+{% include "components/doc_viewer.html" %}
 <script>
   function esc(s) {
     const d = document.createElement('div');
@@ -108,8 +109,10 @@
       resultDiv.innerHTML = '<p>Choose a file first.</p>';
       return;
     }
+    const pickedFile = fileInput.files[0];
+    const isPdf = pickedFile.type === 'application/pdf' || /\.pdf$/i.test(pickedFile.name || '');
     const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
+    formData.append('file', pickedFile);
     const desc = (form.description.value || '').trim();
     if (desc) formData.append('description', desc);
     const tags = (form.tags.value || '').trim();
@@ -131,6 +134,15 @@
             '<p>Saved as: <strong>' + esc(type) + '</strong></p>' +
             (data.vault_id ? '<p class="cps__hint">Record ID: <code>' + esc(data.vault_id) + '</code></p>' : '') +
             '<p>' + esc(issues) + (issues === 1 ? ' issue' : ' issues') + ' found. ' + esc(data.message || '') + '</p>';
+          if (isPdf && data.vault_id && window.SemptifyDocViewer) {
+            const reviewWrap = document.createElement('div');
+            reviewWrap.innerHTML =
+              '<p class="cps__hint">Review what you saved — the pages show right here.</p>';
+            const viewerHost = document.createElement('div');
+            reviewWrap.appendChild(viewerHost);
+            resultDiv.appendChild(reviewWrap);
+            SemptifyDocViewer.mount(viewerHost, { documentId: data.vault_id });
+          }
           form.reset();
         });
       }

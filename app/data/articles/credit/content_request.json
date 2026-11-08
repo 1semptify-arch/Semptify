@@ -1,0 +1,18 @@
+{
+  "subject": "credit",
+  "display_name": "Credit Reporting",
+  "pillar": "know",
+  "requested_at": "2026-11-06",
+  "status": "drafted",
+  "articles": [
+    {
+      "id": "system_explainer",
+      "kind": "explainer",
+      "title": "How the credit-reporting system actually works",
+      "brief": "Mission-angle explainer: the no-consent model (reporting is voluntary, files are automatic, written consent is the exception), furnisher duties under FCRA 1681s-2, bureau reinvestigation duties under 1681i, the real remedies (statutory/punitive damages + fee-shifting under FCRA 1681n/1681o and FDCPA 1692e/1692f/1692k), the Minnesota layer (chs. 13C, 332), and why the dispute paper-trail sequence is the leverage. Case-derived: landlord-debt collectors furnish tradelines tenants must then correct.",
+      "sources_hint": ["15 USC 1681b/c/e/i/n/o/p/s-2 via govinfo.gov", "15 USC 1692e/f/k via govinfo.gov", "consumerfinance.gov Ask CFPB", "consumer.ftc.gov free credit reports", "CFPB 2012 credit-reporting white paper", "revisor.mn.gov ch. 13C / ch. 332"],
+      "upl_risk_tier": "high",
+      "status": "drafted"
+    }
+  ]
+}

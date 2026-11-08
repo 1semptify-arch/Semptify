@@ -4,162 +4,449 @@
 
 {% block styles %}
 <style>
-  .trails-page {
-    max-width: var(--space-content-max, 900px);
-    margin: 0 auto;
-    padding: var(--space-lg, 2rem);
-  }
-  .trails-header {
-    margin-bottom: var(--space-xl, 2.5rem);
-  }
-  .trails-header h1 {
-    font-size: var(--font-size-xl, 2rem);
-    color: var(--color-text-primary, var(--color-gray-900));
-    margin-bottom: var(--space-xs, 0.5rem);
-  }
-  .trails-header p {
-    font-size: var(--font-size-md, 1rem);
-    color: var(--color-text-secondary, var(--text-secondary));
-  }
-  .trails-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md, 1.5rem);
-  }
-  .trail-card {
-    background: var(--color-surface-alt, var(--bg-page));
-    padding: var(--space-md, 1.5rem);
-    border-radius: var(--radius-md, 8px);
-  }
-  .trail-card h3 {
-    font-size: var(--font-size-lg, 1.25rem);
-    color: var(--color-text-primary, var(--color-gray-900));
-    margin-bottom: var(--space-xs, 0.5rem);
-  }
-  .trail-card .description {
-    font-size: var(--font-size-sm, 0.875rem);
-    color: var(--color-text-secondary, var(--text-secondary));
-    margin-bottom: var(--space-sm, 1rem);
-  }
-  .trail-meta {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md, 1.5rem);
-    margin-bottom: var(--space-sm, 1rem);
-  }
-  .difficulty-badge {
-    font-size: var(--font-size-xs, 0.75rem);
-    padding: var(--space-xs, 0.25rem) var(--space-sm, 1rem);
-    border-radius: var(--radius-sm, 4px);
-    background: var(--color-accent-soft, var(--color-calm-50));
-    color: var(--color-accent, var(--color-info));
-  }
-  .progress-bar {
-    flex: 1;
-    height: 8px;
-    background: var(--color-border, var(--bg-footer));
-    border-radius: var(--radius-sm, 4px);
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--color-accent, var(--color-info));
-    border-radius: var(--radius-sm, 4px);
-  }
-  .progress-text {
-    font-size: var(--font-size-xs, 0.75rem);
-    color: var(--color-text-secondary, var(--text-secondary));
-  }
-  .btn-action {
-    padding: var(--space-sm, 1rem) var(--space-lg, 2rem);
-    font-size: var(--font-size-md, 1rem);
-    border-radius: var(--radius-md, 8px);
-    border: none;
-    background: var(--color-accent, var(--color-info));
-    color: var(--color-surface, var(--text-inverse));
-    cursor: pointer;
-  }
-  .btn-action:hover { background: var(--color-accent-dark, var(--color-calm-dark)); }
-  .reaction-working {
-    display: none;
-    align-items: center;
-    gap: var(--space-sm, 1rem);
-    padding: var(--space-md, 1.5rem);
-    color: var(--color-text-secondary, var(--text-secondary));
-    font-size: var(--font-size-md, 1rem);
-  }
-  .reaction-working.active { display: flex; }
-  .spinner {
-    width: 20px; height: 20px;
-    border: 3px solid var(--color-border, var(--tone-500));
-    border-top-color: var(--color-accent, var(--color-info));
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @media (max-width: 768px) {
-    .trails-page { padding: var(--space-md, 1.5rem); }
-    .trail-meta { flex-direction: column; align-items: flex-start; gap: var(--space-xs, 0.5rem); }
-    .progress-bar { width: 100%; }
+  .lt-page { max-width: var(--space-content-max, 880px); margin: 0 auto; padding: var(--space-lg, 1.5rem); }
+  .lt-zone { background: var(--zone-surface-2, var(--color-gray-50)); border-radius: var(--radius-md, 8px); padding: var(--space-lg, 1.5rem); margin-bottom: var(--space-lg, 1.5rem); }
+  .lt-zone h2 { font-size: var(--font-size-lg, 1.15rem); color: var(--color-text-primary, var(--color-gray-900)); margin-bottom: var(--space-xs, 0.5rem); }
+  .lt-zone > p { font-size: var(--font-size-md, 1rem); color: var(--color-text-secondary, var(--text-secondary)); margin-bottom: var(--space-md, 1rem); }
+  .lt-picker { display: flex; gap: var(--space-sm, 0.75rem); flex-wrap: wrap; margin-bottom: var(--space-md, 1rem); }
+  .lt-pick { padding: var(--space-sm, 0.6rem) var(--space-lg, 1.25rem); border-radius: var(--radius-md, 8px); border: none; background: var(--zone-surface-3, var(--color-gray-100)); color: var(--color-text-primary, var(--color-gray-900)); font-size: var(--font-size-md, 1rem); font-weight: 600; cursor: pointer; }
+  .lt-pick[aria-pressed="true"] { background: var(--color-accent, var(--color-info)); color: var(--color-accent-text, var(--text-inverse)); }
+  .lt-form { display: none; }
+  .lt-form.active { display: block; }
+  .lt-row { display: flex; gap: var(--space-md, 1rem); flex-wrap: wrap; }
+  .lt-row .form-group { flex: 1 1 220px; }
+  .lt-submit { padding: var(--space-sm, 0.7rem) var(--space-xl, 2rem); border: none; border-radius: var(--radius-md, 8px); background: var(--color-accent, var(--color-info)); color: var(--color-accent-text, var(--text-inverse)); font-size: var(--font-size-md, 1rem); font-weight: 700; cursor: pointer; }
+  .lt-submit:hover { background: var(--color-accent-hover, var(--color-accent)); }
+  .lt-submit[disabled] { opacity: 0.6; cursor: default; }
+  .lt-msg { margin-top: var(--space-sm, 0.75rem); font-size: var(--font-size-md, 1rem); }
+  .lt-msg.error { color: var(--color-error, #b91c1c); }
+  .lt-msg.ok { color: var(--color-success-800, #166534); }
+  .lt-records { display: flex; flex-direction: column; }
+  .lt-record { padding: var(--space-sm, 0.75rem) 0; }
+  .lt-record + .lt-record { border-top: 1px solid var(--zone-surface-3, var(--color-gray-100)); }
+  .lt-record-head { display: flex; gap: var(--space-sm, 0.75rem); flex-wrap: wrap; align-items: baseline; }
+  .lt-kind { font-weight: 700; color: var(--color-accent, var(--color-info)); font-size: var(--font-size-sm, 0.9rem); }
+  .lt-when { color: var(--color-text-secondary, var(--text-secondary)); font-size: var(--font-size-sm, 0.9rem); }
+  .lt-who { font-weight: 600; }
+  .lt-summary { color: var(--color-text-secondary, var(--text-secondary)); font-size: var(--font-size-md, 1rem); margin-top: 2px; }
+  .lt-empty { color: var(--color-text-secondary, var(--text-secondary)); font-size: var(--font-size-md, 1rem); }
+  .lt-window { display: flex; gap: var(--space-md, 1rem); align-items: baseline; padding: var(--space-xs, 0.4rem) 0; flex-wrap: wrap; }
+  .lt-window + .lt-window { border-top: 1px solid var(--zone-surface-3, var(--color-gray-100)); }
+  .lt-urg { font-weight: 700; font-size: var(--font-size-sm, 0.9rem); min-width: 5.5rem; }
+  .lt-urg.expired, .lt-urg.critical { color: var(--color-error, #b91c1c); }
+  .lt-urg.warning { color: var(--color-warning-800, #92400e); }
+  .lt-urg.safe { color: var(--color-text-secondary, var(--text-secondary)); }
+  .lt-note { font-size: var(--font-size-sm, 0.9rem); color: var(--color-text-secondary, var(--text-secondary)); margin-top: var(--space-md, 1rem); }
+  .lt-help { display: flex; flex-direction: column; gap: var(--space-sm, 0.75rem); }
+  .lt-help-item { font-size: var(--font-size-md, 1rem); }
+  .lt-help-item a { color: var(--color-accent, var(--color-info)); font-weight: 600; }
+  .lt-details { margin-top: var(--space-md, 1rem); }
+  .lt-details summary { cursor: pointer; font-weight: 600; color: var(--color-text-primary, var(--color-gray-900)); padding: var(--space-xs, 0.4rem) 0; }
+  .lt-draft-result { background: var(--zone-surface-3, var(--color-gray-100)); border-radius: var(--radius-md, 8px); padding: var(--space-md, 1rem); margin-top: var(--space-sm, 0.75rem); font-size: var(--font-size-sm, 0.95rem); white-space: pre-wrap; }
+  .lt-draft-banner { font-weight: 700; color: var(--color-warning-800, #92400e); margin-bottom: var(--space-xs, 0.5rem); }
+  @media (max-width: 640px) {
+    .lt-page { padding: var(--space-md, 1rem); }
+    .lt-picker { flex-direction: column; }
+    .lt-pick { width: 100%; text-align: left; padding: var(--space-md, 1rem); }
+    .lt-submit { width: 100%; padding: var(--space-md, 1rem); }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="trails-page">
-  <div class="trails-header">
-    <h1>Legal Trails</h1>
-    <p>Follow guided learning paths through tenant rights law.</p>
-  </div>
+<div class="lt-page">
+  <h1>Legal Trails</h1>
+  <p class="shell-lede">Keep a dated record of what happened — violations, threats, and illegal fees — so deadlines and next steps stay clear.</p>
 
-  <div class="reaction-working" id="trailsWorking">
-    <div class="spinner"></div>
-    <span>Loading trails...</span>
-  </div>
+  {% if not authed %}
+  <section class="lt-zone">
+    <h2>Connect your storage first</h2>
+    <p>Your records live in your own storage, not on our servers. Connect storage to start keeping them.</p>
+    <p><a class="lt-submit" style="display:inline-block;text-decoration:none;" href="{{ navigation.get_stage('providers').path if navigation else '/storage/providers' }}">Connect storage</a></p>
+  </section>
+  {% else %}
 
-  <div class="trails-list" id="trailsList" style="display:none;">
-    <div class="trail-card">
-      <h3>Tenant Rights Basics</h3>
-      <p class="description">Learn the fundamental rights every tenant has under state law.</p>
-      <div class="trail-meta">
-        <span class="difficulty-badge">Beginner</span>
-        <div class="progress-bar"><div class="progress-fill" style="width:60%;"></div></div>
-        <span class="progress-text">60%</span>
-      </div>
-      <button class="btn-action">Continue</button>
+  <section class="lt-zone" aria-labelledby="lt-step1">
+    <h2 id="lt-step1">1. Log what happened</h2>
+    <p>Pick the kind of thing that happened.</p>
+    <div class="lt-picker" role="group" aria-label="Record type">
+      <button type="button" class="lt-pick" aria-pressed="true" data-form="form-violation">Violation</button>
+      <button type="button" class="lt-pick" aria-pressed="false" data-form="form-threat">Eviction threat</button>
+      <button type="button" class="lt-pick" aria-pressed="false" data-form="form-fee">Late fee</button>
     </div>
-    <div class="trail-card">
-      <h3>Eviction Defense</h3>
-      <p class="description">Understand the eviction process and how to mount a legal defense.</p>
-      <div class="trail-meta">
-        <span class="difficulty-badge">Intermediate</span>
-        <div class="progress-bar"><div class="progress-fill" style="width:0%;"></div></div>
-        <span class="progress-text">0%</span>
+
+    <form class="lt-form active" id="form-violation">
+      <div class="lt-row">
+        <div class="form-group">
+          <label class="form-label form-label--required" for="v-type">What kind of violation</label>
+          <select class="form-select" id="v-type" required>
+            {% for value, label in violation_types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label form-label--required" for="v-date">When it happened</label>
+          <input class="form-input" type="date" id="v-date" required>
+        </div>
       </div>
-      <button class="btn-action">Start</button>
-    </div>
-    <div class="trail-card">
-      <h3>Habitability Standards</h3>
-      <p class="description">Explore landlord obligations to maintain safe living conditions.</p>
-      <div class="trail-meta">
-        <span class="difficulty-badge">Advanced</span>
-        <div class="progress-bar"><div class="progress-fill" style="width:25%;"></div></div>
-        <span class="progress-text">25%</span>
+      <div class="lt-row">
+        <div class="form-group">
+          <label class="form-label form-label--required" for="v-perp">Who did it</label>
+          <input class="form-input" id="v-perp" required placeholder="Name — property manager, landlord, broker">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v-company">Company</label>
+          <input class="form-input" id="v-company" placeholder="Management company">
+        </div>
       </div>
-      <button class="btn-action">Continue</button>
+      <div class="form-group">
+        <label class="form-label form-label--required" for="v-desc">What happened</label>
+        <textarea class="form-input" id="v-desc" rows="3" required placeholder="Describe it plainly, the way you'd tell it to a judge."></textarea>
+      </div>
+      <div class="lt-row">
+        <div class="form-group">
+          <label class="form-label" for="v-role">Their role</label>
+          <input class="form-input" id="v-role" placeholder="Property Manager, Broker, Landlord">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="v-amount">Amount involved, if money</label>
+          <input class="form-input" type="number" step="0.01" min="0" id="v-amount" placeholder="Optional">
+        </div>
+      </div>
+      <button type="submit" class="lt-submit">Log violation</button>
+      <p class="lt-msg" id="msg-violation" role="status"></p>
+    </form>
+
+    <form class="lt-form" id="form-threat">
+      <div class="lt-row">
+        <div class="form-group">
+          <label class="form-label form-label--required" for="t-date">When it happened</label>
+          <input class="form-input" type="date" id="t-date" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label form-label--required" for="t-method">How</label>
+          <select class="form-select" id="t-method">
+            <option value="verbal">Said out loud</option>
+            <option value="written">Written (text, email, letter)</option>
+            <option value="notice">Formal notice</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label form-label--required" for="t-content">What was said</label>
+        <textarea class="form-input" id="t-content" rows="3" required placeholder="The threat, as close to their words as you remember."></textarea>
+      </div>
+      <div class="lt-row">
+        <div class="form-group">
+          <label class="form-label form-label--required" for="t-perp">Who said it</label>
+          <input class="form-input" id="t-perp" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="t-role">Their role</label>
+          <input class="form-input" id="t-role" placeholder="Property Manager, Landlord">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label form-label--required" for="t-context">What was going on</label>
+        <input class="form-input" id="t-context" required placeholder="Had you just asked for a repair, reported something, complained?">
+      </div>
+      <button type="submit" class="lt-submit">Log threat</button>
+      <p class="lt-msg" id="msg-threat" role="status"></p>
+    </form>
+
+    <form class="lt-form" id="form-fee">
+      <div class="lt-row">
+        <div class="form-group">
+          <label class="form-label form-label--required" for="f-date">Date charged</label>
+          <input class="form-input" type="date" id="f-date" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label form-label--required" for="f-days">Days late</label>
+          <input class="form-input" type="number" min="1" id="f-days" required>
+        </div>
+      </div>
+      <div class="lt-row">
+        <div class="form-group">
+          <label class="form-label form-label--required" for="f-amount">Fee they charged</label>
+          <input class="form-input" type="number" step="0.01" min="0" id="f-amount" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label form-label--required" for="f-rent">Monthly rent</label>
+          <input class="form-input" type="number" step="0.01" min="0" id="f-rent" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-weight:400;">
+          <input type="checkbox" id="f-lease"> My lease says a late fee is allowed
+        </label>
+      </div>
+      <button type="submit" class="lt-submit">Log late fee</button>
+      <p class="lt-msg" id="msg-fee" role="status"></p>
+    </form>
+
+    <details class="lt-details">
+      <summary>More ways to document — broker record or formal claim</summary>
+
+      <form class="lt-form active" id="form-broker" style="margin-top:1rem;">
+        <div class="lt-row">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="b-name">Broker name</label>
+            <input class="form-input" id="b-name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label form-label--required" for="b-company">Broker company</label>
+            <input class="form-input" id="b-company" required>
+          </div>
+        </div>
+        <div class="lt-row">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="b-address">Company address</label>
+            <input class="form-input" id="b-address" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="b-license">License number, if known</label>
+            <input class="form-input" id="b-license">
+          </div>
+        </div>
+        <button type="submit" class="lt-submit">Track broker</button>
+        <p class="lt-msg" id="msg-broker" role="status"></p>
+      </form>
+
+      <form class="lt-form active" id="form-claim" style="margin-top:1.5rem;">
+        <div class="lt-row">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="c-title">Claim name</label>
+            <input class="form-input" id="c-title" required placeholder="e.g., Retaliation after repair request">
+          </div>
+          <div class="form-group">
+            <label class="form-label form-label--required" for="c-type">Type</label>
+            <select class="form-select" id="c-type">
+              <option value="civil">Civil</option>
+              <option value="regulatory">Regulatory</option>
+              <option value="criminal">Criminal</option>
+            </select>
+          </div>
+        </div>
+        <div class="lt-row">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="c-deadline">Filing deadline</label>
+            <input class="form-input" type="date" id="c-deadline" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label form-label--required" for="c-sol">Last date allowed by law</label>
+            <input class="form-input" type="date" id="c-sol" required>
+          </div>
+        </div>
+        <button type="submit" class="lt-submit">Track claim</button>
+        <p class="lt-msg" id="msg-claim" role="status"></p>
+      </form>
+    </details>
+  </section>
+
+  <section class="lt-zone" aria-labelledby="lt-step2">
+    <h2 id="lt-step2">2. Your records</h2>
+    {% if records %}
+    <div class="lt-records">
+      {% for r in records %}
+      <div class="lt-record">
+        <div class="lt-record-head">
+          <span class="lt-kind">{{ r.kind_label }}</span>
+          <span class="lt-when">{{ (r.when or '')[:10] }}</span>
+          {% if r.who %}<span class="lt-who">{{ r.who }}</span>{% endif %}
+        </div>
+        {% if r.summary %}<div class="lt-summary">{{ r.summary }}</div>{% endif %}
+      </div>
+      {% endfor %}
     </div>
-  </div>
+    <p class="lt-note">Records live in your own storage — share them when you're ready. Anything you write down can be part of a court case, so write it the way you'd describe it out loud.</p>
+    {% else %}
+    <p class="lt-empty">Nothing logged yet — start with step 1 above.</p>
+    {% endif %}
+  </section>
+
+  <section class="lt-zone" aria-labelledby="lt-step3">
+    <h2 id="lt-step3">3. Deadlines</h2>
+    {% if windows %}
+    <p>Common filing windows from the dates you logged. A lawyer or legal aid office can confirm the ones that apply to you.</p>
+    {% for w in windows %}
+    <div class="lt-window">
+      <span class="lt-urg {{ w.urgency }}">{{ w.urgency }}</span>
+      <span><strong>{{ w.deadline }}</strong> — {{ w.claim_type.replace('_', ' ') }}, from {{ w.violation_date }}</span>
+      <span class="lt-when">{{ w.days_remaining }} days left</span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="lt-empty">Log a violation to see the deadlines that usually go with it.</p>
+    {% endif %}
+  </section>
+
+  <section class="lt-zone" aria-labelledby="lt-step4">
+    <h2 id="lt-step4">4. Next steps</h2>
+    <div class="lt-help">
+      <div class="lt-help-item"><strong>Talk it through first.</strong> <a href="https://homelinemn.org" rel="noopener">HOME Line</a> — tenant hotline, 612-728-5767.</div>
+      <div class="lt-help-item"><strong>Legal aid.</strong> <a href="https://mylegalaid.org" rel="noopener">Legal Aid</a> helps low-income tenants, 612-334-5970 — or find your office through <a href="https://www.lawhelpmn.org" rel="noopener">LawHelpMN</a>.</div>
+      <div class="lt-help-item"><strong>Official complaints.</strong> <a href="https://www.ag.state.mn.us/consumer/complaint.asp" rel="noopener">MN Attorney General</a>, <a href="https://www.hud.gov/program_offices/fair_housing_equal_opp/online-complaint" rel="noopener">HUD Fair Housing</a>, <a href="https://mn.gov/commerce/consumers/file-a-complaint/" rel="noopener">MN Dept of Commerce</a> (brokers).</div>
+    </div>
+
+    <details class="lt-details">
+      <summary>Draft a complaint from your records</summary>
+      <p class="lt-note" style="margin-top:0.5rem;">A draft is a starting point for a lawyer or legal aid — it is not a filed document and not legal advice.</p>
+
+      <form class="lt-form active" id="form-draft-retaliation" style="margin-top:0.5rem;">
+        <div class="lt-row">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="d-name">Your name</label>
+            <input class="form-input" id="d-name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label form-label--required" for="d-address">Property address</label>
+            <input class="form-input" id="d-address" required>
+          </div>
+        </div>
+        <div class="lt-row">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="d-landlord">Landlord name</label>
+            <input class="form-input" id="d-landlord" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="d-company">Management company</label>
+            <input class="form-input" id="d-company">
+          </div>
+        </div>
+        <button type="submit" class="lt-submit">Prepare retaliation draft</button>
+        <p class="lt-msg" id="msg-draft" role="status"></p>
+        <div class="lt-draft-result" id="draft-result" hidden></div>
+      </form>
+    </details>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  var working = document.getElementById('trailsWorking');
-  var list = document.getElementById('trailsList');
-  working.classList.add('active');
-  setTimeout(function() {
-    working.classList.remove('active');
-    list.style.display = 'flex';
-  }, 800);
+(function () {
+  var picks = document.querySelectorAll('.lt-pick');
+  picks.forEach(function (b) {
+    b.addEventListener('click', function () {
+      picks.forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+      b.setAttribute('aria-pressed', 'true');
+      document.querySelectorAll('#lt-step1').forEach(function () {});
+      ['form-violation', 'form-threat', 'form-fee'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.toggle('active', id === b.dataset.form);
+      });
+    });
+  });
+
+  function msg(id, text, ok) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text || '';
+    el.className = 'lt-msg ' + (ok ? 'ok' : 'error');
+  }
+
+  async function post(url, body, msgId, then) {
+    var btn = document.activeElement;
+    if (btn && btn.tagName === 'BUTTON') btn.disabled = true;
+    try {
+      var opts = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      var resp = await fetch(url, opts);
+      if (resp.ok) { msg(msgId, 'Saved.', true); if (then) then(await resp.json()); else location.reload(); return; }
+      var detail = 'Something went wrong — nothing was saved. Try again.';
+      try { var j = await resp.json(); if (j.detail && j.detail.message) detail = j.detail.message; else if (typeof j.detail === 'string') detail = j.detail; } catch (e) {}
+      msg(msgId, detail, false);
+    } catch (e) {
+      msg(msgId, 'No connection — nothing was saved. Try again.', false);
+    } finally {
+      if (btn && btn.tagName === 'BUTTON') btn.disabled = false;
+    }
+  }
+
+  var fv = document.getElementById('form-violation');
+  if (fv) fv.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var amount = parseFloat(document.getElementById('v-amount').value);
+    post('/legal-trails/violations', {
+      violation_type: document.getElementById('v-type').value,
+      date_occurred: document.getElementById('v-date').value,
+      description: document.getElementById('v-desc').value,
+      perpetrator: document.getElementById('v-perp').value,
+      perpetrator_role: document.getElementById('v-role').value || 'Property Manager',
+      company: document.getElementById('v-company').value || 'Unknown',
+      amount_if_financial: isNaN(amount) ? null : amount
+    }, 'msg-violation');
+  });
+
+  var ft = document.getElementById('form-threat');
+  if (ft) ft.addEventListener('submit', function (e) {
+    e.preventDefault();
+    post('/legal-trails/eviction-threats', {
+      date_threatened: document.getElementById('t-date').value,
+      threat_method: document.getElementById('t-method').value,
+      threat_content: document.getElementById('t-content').value,
+      context: document.getElementById('t-context').value,
+      perpetrator: document.getElementById('t-perp').value,
+      perpetrator_role: document.getElementById('t-role').value || 'Landlord'
+    }, 'msg-threat');
+  });
+
+  var ff = document.getElementById('form-fee');
+  if (ff) ff.addEventListener('submit', function (e) {
+    e.preventDefault();
+    post('/legal-trails/late-fees', {
+      date_charged: document.getElementById('f-date').value,
+      amount_charged: parseFloat(document.getElementById('f-amount').value) || 0,
+      rent_amount: parseFloat(document.getElementById('f-rent').value) || 0,
+      days_late: parseInt(document.getElementById('f-days').value, 10) || 1,
+      lease_allows_late_fee: document.getElementById('f-lease').checked
+    }, 'msg-fee');
+  });
+
+  var fb = document.getElementById('form-broker');
+  if (fb) fb.addEventListener('submit', function (e) {
+    e.preventDefault();
+    post('/legal-trails/broker-oversight', {
+      broker_name: document.getElementById('b-name').value,
+      broker_company: document.getElementById('b-company').value,
+      company_address: document.getElementById('b-address').value,
+      broker_license: document.getElementById('b-license').value || null
+    }, 'msg-broker');
+  });
+
+  var fc = document.getElementById('form-claim');
+  if (fc) fc.addEventListener('submit', function (e) {
+    e.preventDefault();
+    post('/legal-trails/claims', {
+      title: document.getElementById('c-title').value,
+      claim_type: document.getElementById('c-type').value,
+      filing_deadline: document.getElementById('c-deadline').value,
+      statute_of_limitations_date: document.getElementById('c-sol').value,
+      defendants: []
+    }, 'msg-claim');
+  });
+
+  var fd = document.getElementById('form-draft-retaliation');
+  if (fd) fd.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var q = new URLSearchParams({
+      tenant_name: document.getElementById('d-name').value,
+      property_address: document.getElementById('d-address').value,
+      landlord_name: document.getElementById('d-landlord').value,
+      management_company: document.getElementById('d-company').value || 'Unknown'
+    });
+    post('/legal-trails/generate/retaliation-complaint?' + q.toString(), null, 'msg-draft', function (draft) {
+      var el = document.getElementById('draft-result');
+      var lines = [draft.title, '', 'Statute: ' + draft.statute, 'Complainant: ' + draft.complainant,
+        'Property: ' + draft.property, 'Respondents: ' + (draft.respondents || []).join(', '), '',
+        'Relief sought:', (draft.relief_sought || []).map(function (r) { return ' - ' + r; }).join('\n'),
+        '', 'Records referenced: ' + (draft.violations_referenced || []).length + ' violation(s), ' + (draft.threats_documented || []).length + ' threat(s)',
+        '', draft.draft_note];
+      el.innerHTML = '<p class="lt-draft-banner">DRAFT — for review with a lawyer or legal aid</p>' + lines.join('\n').replace(/</g, '&lt;');
+      el.hidden = false;
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  });
+})();
 </script>
 {% endblock %}

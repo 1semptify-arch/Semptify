@@ -31,9 +31,24 @@
 </style>
 {% endblock %}
 
+{% block sidebar %}
+<h2>On this page</h2>
+<ul class="shell-list">
+    <li><a href="#request">Ask for a tool</a></li>
+    <li><a href="#board">Requests &amp; responses</a></li>
+</ul>
+<h2>Semptify</h2>
+<ul class="shell-list">
+    <li><a href="/help">Get help now</a></li>
+    <li><a href="/tools">Existing tools</a></li>
+    <li><a href="/law-library">Know your rights</a></li>
+    <li><a href="/contact">Contact</a></li>
+</ul>
+{% endblock %}
+
 {% block page_body %}
 
-<section class="section">
+<section class="section" id="request">
     <form id="trForm" class="tr-form" onsubmit="submitToolRequest(event)">
         <label for="trMessage" style="display:block; font-weight:600; margin-bottom:0.4rem;">What tool do you need?</label>
         <textarea id="trMessage" maxlength="2000" required
@@ -51,7 +66,7 @@
     </p>
 </section>
 
-<section class="section">
+<section class="section" id="board">
     <h2 class="section-title">Public requests &amp; responses</h2>
     <p class="section-description" style="margin-bottom:0.25rem;">
         Every request lives here, with our answer. Posted after a review pass that

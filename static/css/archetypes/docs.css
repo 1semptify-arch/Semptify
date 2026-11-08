@@ -1,0 +1,66 @@
+/* ============================================================================
+   ARCHETYPE: DOCS — Developers wing
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3)
+
+   Two-pane navigation, code blocks, API reference — the standard docs
+   layout people expect. Applied via `data-arch="docs"` on <body>.
+   ============================================================================ */
+
+body[data-arch="docs"] .shell-main,
+body[data-arch="docs"] main {
+  max-width: 56rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+/* Two-pane: section nav left of content on wide screens; stacked on
+   narrow. The .shell-side rail stays the global rail — this is the
+   in-content docs nav, a different element. */
+@media (min-width: 900px) {
+  body[data-arch="docs"] .docs-layout {
+    display: grid;
+    grid-template-columns: 13rem 1fr;
+    gap: 1.75rem;
+  }
+  body[data-arch="docs"] .docs-nav {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+  }
+}
+body[data-arch="docs"] .docs-nav {
+  font-size: 0.85rem;
+}
+body[data-arch="docs"] .docs-nav a {
+  display: block;
+  padding: 0.3rem 0;
+  color: var(--shell-ink-2, var(--text-secondary));
+  text-decoration: none;
+}
+body[data-arch="docs"] .docs-nav a.is-here {
+  color: var(--role-deep);
+  font-weight: 600;
+}
+
+/* Code blocks — inset surface, horizontal scroll, never wrapped. */
+body[data-arch="docs"] pre {
+  background: var(--role-tint);
+  border-radius: var(--radius-block);
+}
+body[data-arch="docs"] code {
+  font-size: 0.9em;
+}
+
+/* Endpoint rows — method + path + one-line contract. */
+body[data-arch="docs"] .docs-endpoint {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--shell-line, var(--border-color));
+}
+body[data-arch="docs"] .docs-method {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--role-deep);
+}

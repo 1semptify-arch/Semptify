@@ -25,6 +25,9 @@
             '.se-pt--info{border-left:3px solid var(--color-info)}',
             '.se-pt--story{border-left:3px solid var(--color-warning);background:var(--color-primary-dark);border-color:var(--color-primary)}',
             '.se-pt--story .se-pt-title{color:var(--color-warning)}',
+            '.btn--loading{position:relative;color:transparent !important;pointer-events:none}',
+            '.btn--loading::after{content:"";position:absolute;top:50%;left:50%;width:20px;height:20px;margin-top:-10px;margin-left:-10px;border:2px solid color-mix(in srgb, var(--bg-card), transparent 70%);border-top-color:var(--color-accent, var(--color-info));border-radius:50%;animation:se-pt-loading-spin 1s linear infinite}',
+            '@keyframes se-pt-loading-spin{to{transform:rotate(360deg)}}',
             '@media (max-width:640px){.se-pt-container{bottom:0.75rem;right:0.75rem;left:0.75rem;max-width:none}}',
         ].join('\n');
         document.head.appendChild(style);

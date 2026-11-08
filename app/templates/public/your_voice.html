@@ -61,6 +61,18 @@
     .yv-form textarea:focus { outline: none; border-color: var(--color-accent); }
     .yv-form .btn { background: var(--color-primary); color: var(--text-inverse); border: none; padding: 0.75rem 1.75rem; border-radius: var(--radius-input); font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; }
     .yv-form .btn:hover { background: var(--color-primary-light); }
+
+    /* Primary fills become light chips in dark mode (color-primary pins
+       to shell ink) — swap the never-flipping text-inverse for the dark
+       paper token so labels stay readable. */
+    @media (prefers-color-scheme: dark) {
+        body.shell .yv-journey li.yv-here,
+        body.shell .yv-form .yv-kinds label:has(input:checked),
+        body.shell .yv-form .btn { color: var(--shell-paper); }
+    }
+    [data-theme="dark"] body.shell .yv-journey li.yv-here,
+    [data-theme="dark"] body.shell .yv-form .yv-kinds label:has(input:checked),
+    [data-theme="dark"] body.shell .yv-form .btn { color: var(--shell-paper); }
     .yv-success { display: none; background: var(--color-success-50); border: 1px solid var(--color-success); border-radius: var(--radius-block); padding: 1.25rem; color: var(--color-success-800); margin-top: 0.75rem; }
     .yv-note { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
 
@@ -81,9 +93,28 @@
 </style>
 {% endblock %}
 
+{% block sidebar %}
+<h2>On this page</h2>
+<ul class="shell-list">
+    <li><a href="#what">What this place is</a></li>
+    <li><a href="#journey">The journey a bill takes</a></li>
+    <li><a href="#draft">The live file</a></li>
+    <li><a href="#ask">Ask, or weigh in</a></li>
+    <li><a href="#board">The public board</a></li>
+    <li><a href="#pass-on">Passing it on</a></li>
+</ul>
+<h2>Semptify</h2>
+<ul class="shell-list">
+    <li><a href="/help">Get help now</a></li>
+    <li><a href="/bill">The bill section</a></li>
+    <li><a href="/law-library">Know your rights</a></li>
+    <li><a href="/donate">Support the work</a></li>
+</ul>
+{% endblock %}
+
 {% block page_body %}
 
-<section class="section">
+<section class="section" id="what">
     <div class="yv-promise">
         <p><strong>What this place is.</strong> Semptify is writing a housing bill —
         and we're doing it where you can watch. This page holds the live draft,
@@ -100,7 +131,7 @@
     </div>
 </section>
 
-<section class="section">
+<section class="section" id="journey">
     <h2 class="section-title">The journey a bill takes</h2>
     <p class="section-description">In plain language: someone has an idea. It gets
     written as a draft. Lawmakers sponsor it. A committee studies it and hears the
@@ -121,7 +152,7 @@
     </ul>
 </section>
 
-<section class="section">
+<section class="section" id="draft">
     <h2 class="section-title">The live file</h2>
     <p class="section-description">This is the real working draft — not a summary.
     When it changes, this page changes, and every change is on the public record.</p>
@@ -130,7 +161,7 @@
     </div>
 </section>
 
-<section class="section">
+<section class="section" id="ask">
     <h2 class="section-title">Ask, or weigh in</h2>
     <form id="yvForm" class="yv-form" onsubmit="submitVoicePost(event)">
         <div class="yv-kinds" role="radiogroup" aria-label="What are you posting?">
@@ -152,7 +183,7 @@
     </p>
 </section>
 
-<section class="section">
+<section class="section" id="board">
     <h2 class="section-title">The public board</h2>
     <p class="section-description" style="margin-bottom:0.25rem;">
         Every posted question and opinion lives here, with its answer. The people
@@ -165,7 +196,7 @@
     </ul>
 </section>
 
-<section class="section">
+<section class="section" id="pass-on">
     <h2 class="section-title">Passing it on</h2>
     <p class="section-description">
         This lane is also a classroom — from grade schoolers learning how laws are

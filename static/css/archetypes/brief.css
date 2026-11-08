@@ -1,0 +1,45 @@
+/* ============================================================================
+   ARCHETYPE: BRIEF — Legal aid & courts wing
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3)
+
+   Dense, citation margin, statute text verbatim — respects how lawyers
+   read. Applied via `data-arch="brief"` on <body>.
+   ============================================================================ */
+
+body[data-arch="brief"] .shell-main,
+body[data-arch="brief"] main {
+  max-width: 52rem;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+/* Verbatim statute text — block-set, indented, no paraphrase styling. */
+body[data-arch="brief"] .brf-statute {
+  margin: 1rem 0 1rem 2rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--role-accent);
+  font-family: var(--font-serif);
+}
+
+/* Citation margin — pinpoint cites hang in the left margin on wide
+   screens, inline on narrow. */
+@media (min-width: 1000px) {
+  body[data-arch="brief"] .brf-cite {
+    float: left;
+    margin-left: -9rem;
+    width: 8rem;
+    font-size: 0.85rem;
+    color: var(--shell-ink-3, var(--text-muted));
+  }
+}
+body[data-arch="brief"] .brf-cite {
+  font-family: var(--font-mono);
+}
+
+/* Footnotes / source list — compact, numbered, always at the end. */
+body[data-arch="brief"] .brf-notes {
+  font-size: 0.85rem;
+  border-top: 1px solid var(--shell-line, var(--border-color));
+  margin-top: 2rem;
+  padding-top: 0.75rem;
+}

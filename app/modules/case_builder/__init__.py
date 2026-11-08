@@ -21,6 +21,16 @@ Endpoints (under /api/case-builder):
 """
 
 from .manifest import MANIFEST
-from .router import router
+
+
+def __getattr__(name: str):
+    # Lazy router export: fca_guard is imported at app-import time by
+    # main.py; it must not drag the full case_builder router chain in.
+    if name == "router":
+        from .router import router
+
+        return router
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = ["MANIFEST", "router"]

@@ -27,11 +27,16 @@ Storage:
 import hashlib
 import json
 import logging
+import re
+import time
+from collections import OrderedDict
 from datetime import datetime
 from typing import Any
 
+import fitz  # PyMuPDF — renders vault PDF pages for the in-app viewer
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -653,25 +658,17 @@ async def list_documents(
     )
 
 
-@router.get("/{document_id}/download")
-async def download_document(
+async def _fetch_document_content(
     document_id: str,
-    access_token: str = None,
-    view: bool = False,
-    user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """
-    Download or preview a document from the user's cloud storage vault.
+    access_token: str | None,
+    user: StorageUser,
+    db: AsyncSession,
+) -> tuple[VaultIndexDB, bytes]:
+    """Look up a vault document and download its bytes from the user's provider.
 
-    Set `view=true` to display the file in the browser (inline disposition)
-    instead of forcing a download.
-
-    The authenticated session already supplies a valid access token via
-    `yellow_access`; callers do not need to pass it in the URL. The
-    query parameter remains available as an override for advanced or
-    module-to-module use.
+    Shared by the download and page-preview endpoints — one fetch path, one
+    set of errors. Raises HTTPException on missing document, token, provider,
+    or content.
     """
     real_token = access_token or user.access_token
     if not real_token:
@@ -704,7 +701,30 @@ async def download_document(
     if not file_content:
         raise HTTPException(status_code=404, detail="Document content not found")
 
-    from fastapi.responses import Response
+    return db_doc, file_content
+
+
+@router.get("/{document_id}/download")
+async def download_document(
+    document_id: str,
+    access_token: str = None,
+    view: bool = False,
+    user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    Download or preview a document from the user's cloud storage vault.
+
+    Set `view=true` to display the file in the browser (inline disposition)
+    instead of forcing a download.
+
+    The authenticated session already supplies a valid access token via
+    `yellow_access`; callers do not need to pass it in the URL. The
+    query parameter remains available as an override for advanced or
+    module-to-module use.
+    """
+    db_doc, file_content = await _fetch_document_content(document_id, access_token, user, db)
 
     disposition = "inline" if view else "attachment"
     filename = db_doc.filename or "document"
@@ -712,6 +732,109 @@ async def download_document(
         content=file_content,
         media_type=db_doc.mime_type or "application/octet-stream",
         headers={"Content-Disposition": f'{disposition}; filename="{filename}"'},
+    )
+
+
+# =============================================================================
+# In-app PDF page preview (ports the efile_helper DocViewer: page.get_pixmap →
+# PNG). Pages render server-side so documents can be reviewed inside Semptify
+# on any device — including phones with no inline PDF renderer.
+# =============================================================================
+
+# Fetched document bytes live in process memory only (short TTL, small cap) —
+# the provider round-trip is the slow part of a multi-page review, so pages
+# after the first reuse the same bytes. Nothing is written to disk.
+_PREVIEW_CACHE_TTL_S = 120.0
+_PREVIEW_CACHE_MAX_ITEMS = 8
+_preview_bytes_cache: "OrderedDict[str, tuple[float, bytes]]" = OrderedDict()
+
+
+def _preview_cached_bytes(document_id: str) -> bytes | None:
+    hit = _preview_bytes_cache.get(document_id)
+    if not hit:
+        return None
+    cached_at, content = hit
+    if time.monotonic() - cached_at > _PREVIEW_CACHE_TTL_S:
+        _preview_bytes_cache.pop(document_id, None)
+        return None
+    _preview_bytes_cache.move_to_end(document_id)
+    return content
+
+
+def _preview_store_bytes(document_id: str, content: bytes) -> None:
+    _preview_bytes_cache[document_id] = (time.monotonic(), content)
+    _preview_bytes_cache.move_to_end(document_id)
+    while len(_preview_bytes_cache) > _PREVIEW_CACHE_MAX_ITEMS:
+        _preview_bytes_cache.popitem(last=False)
+
+
+def _render_pdf_page_png(file_content: bytes, page_number: int, scale: float) -> tuple[bytes, int]:
+    """Render one page of a PDF to PNG bytes. Runs in a worker thread —
+    PyMuPDF rendering is CPU-bound and must not block the event loop."""
+    doc = fitz.open(stream=file_content, filetype="pdf")
+    try:
+        if doc.needs_pass:
+            raise ValueError("password-protected PDF")
+        page_count = len(doc)
+        if page_number > page_count:
+            raise IndexError(f"page {page_number} out of range (1-{page_count})")
+        pix = doc[page_number - 1].get_pixmap(matrix=fitz.Matrix(scale, scale))
+        return pix.tobytes("png"), page_count
+    finally:
+        doc.close()
+
+
+@router.get("/{document_id}/preview.png")
+async def preview_document_page(
+    document_id: str,
+    page: int = Query(1, ge=1),
+    scale: float = Query(1.5, ge=0.5, le=3.5),
+    access_token: str = None,
+    user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    Render one page of a vault PDF as a PNG image for the in-app viewer.
+
+    Same auth and fetch path as `/download`. `X-Page-Count` reports the total
+    pages so the viewer can label "Page N of M". Documents that cannot be
+    rendered (non-PDF, encrypted, corrupt) return 415.
+    """
+    file_content = _preview_cached_bytes(document_id)
+    if file_content is None:
+        db_doc, file_content = await _fetch_document_content(document_id, access_token, user, db)
+        _preview_store_bytes(document_id, file_content)
+    else:
+        result = await db.execute(
+            select(VaultIndexDB).where(VaultIndexDB.vault_id == document_id)
+        )
+        db_doc = result.scalar_one_or_none()
+        if not db_doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+
+    try:
+        png, page_count = await run_in_threadpool(
+            _render_pdf_page_png, file_content, page, scale
+        )
+    except IndexError as e:
+        raise HTTPException(status_code=416, detail=str(e))
+    except Exception:
+        raise HTTPException(
+            status_code=415,
+            detail="This document cannot be previewed as a PDF",
+        )
+
+    filename = re.sub(r'[^A-Za-z0-9._-]', '_', db_doc.filename or "document.pdf")
+    return Response(
+        content=png,
+        media_type="image/png",
+        headers={
+            "X-Page-Count": str(page_count),
+            "X-Page-Number": str(page),
+            "Content-Disposition": f'inline; filename="{filename}.page{page}.png"',
+            "Cache-Control": "private, no-store",
+        },
     )
 
 

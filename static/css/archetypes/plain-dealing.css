@@ -1,0 +1,49 @@
+/* ============================================================================
+   ARCHETYPE: PLAIN DEALING — Housing providers wing
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3)
+
+   Side-by-side "what changes for you" tables. Neutral, factual, symmetric:
+   what is asked on one side, what is given on the other. Applied via
+   `data-arch="plain-dealing"` on <body>.
+   ============================================================================ */
+
+body[data-arch="plain-dealing"] .shell-main,
+body[data-arch="plain-dealing"] main {
+  max-width: 60rem;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+/* The signature element: a two-column compare row. Pairs stack on mobile. */
+body[data-arch="plain-dealing"] .pd-pair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin: 0 0 1.25rem;
+}
+@media (min-width: 720px) {
+  body[data-arch="plain-dealing"] .pd-pair {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+body[data-arch="plain-dealing"] .pd-side {
+  background: var(--role-tint);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-block);
+}
+body[data-arch="plain-dealing"] .pd-side h3 {
+  margin-top: 0;
+}
+
+/* Tables read as plain ledgers — hairline rules, no card boxes. */
+body[data-arch="plain-dealing"] table {
+  width: 100%;
+  border-collapse: collapse;
+}
+body[data-arch="plain-dealing"] th,
+body[data-arch="plain-dealing"] td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--shell-line, var(--border-color));
+}

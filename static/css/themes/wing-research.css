@@ -1,0 +1,48 @@
+/* ============================================================================
+   WING: RESEARCHERS
+   (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §3 — see wing-base.css for the contract)
+
+   Look: "Ledger". Tables, figures, source column, method notes — every
+   number shows its source.
+     Archetype : ledger (static/css/archetypes/ledger.css)
+     Type      : sans + tabular numbers
+     Accent    : ocean
+     Imagery   : charts only
+   ============================================================================ */
+
+body[data-theme="research"] {
+  --role-accent: #3f6f8f;
+  --role-deep: #2b536e;
+  --role-tint: #e4ecf1;
+  --shell-sage: #3f6f8f;
+
+  --font-head: var(--font-sans);
+  --font-display: var(--font-sans);
+  --font-body: var(--font-sans);
+}
+
+body[data-theme="research"] h1,
+body[data-theme="research"] h2,
+body[data-theme="research"] h3,
+body[data-theme="research"] .shell-eyebrow {
+  font-family: var(--font-sans);
+}
+
+/* Tabular numbers anywhere a figure or table appears — columns of digits
+   must line up. */
+body[data-theme="research"] table,
+body[data-theme="research"] .figure,
+body[data-theme="research"] .stat,
+body[data-theme="research"] td,
+body[data-theme="research"] th {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-color-scheme: dark) {
+  html body.shell[data-theme="research"] {
+    --role-accent: #7ba5bf;
+    --role-deep: #9cbccf;
+    --role-tint: #25303a;
+    --shell-sage: #7ba5bf;
+  }
+}

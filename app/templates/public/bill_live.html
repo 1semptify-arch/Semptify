@@ -45,15 +45,97 @@
                    text-transform:uppercase; color:var(--text-muted); }
     .draft-status { border-top:1px solid var(--card-border); padding-top:1rem;
                     font-size:0.95rem; color:var(--text-secondary); }
+
+    /* Two views of one file: clean statute for reading, working file
+       for the drafting notes + audit trail. The tab chrome only shows
+       once JS wires it — without JS both sections stack in order. */
+    .bill-tablist { display:flex; flex-wrap:wrap; gap:0.5rem; margin:0 0 1.5rem; }
+    .bill-tablist [role="tab"] { font:inherit; font-size:0.95rem; cursor:pointer;
+        padding:0.55rem 1.15rem; border-radius:999px;
+        border:1px solid var(--card-border);
+        background:var(--card-bg); color:var(--text-secondary); }
+    .bill-tablist [role="tab"][aria-selected="true"] {
+        background:var(--ns-navy); border-color:var(--ns-navy); color:var(--ns-star); }
+    .bill-tablist [role="tab"]:focus-visible {
+        outline:2px solid var(--focus-ring); outline-offset:2px; }
+    .bill-view-title { font-size:1.15rem; margin:0 0 0.3rem; color:var(--accent-primary); }
+    .bill-view-note { font-size:0.9rem; color:var(--text-muted); margin:0 0 1.25rem;
+                      max-width:46rem; }
+    .bill-statute h4.clause-head { color:var(--ns-navy-soft); font-size:1.1rem;
+                                   margin:1.4rem 0 0.3rem; }
+    .bill-statute em { color:var(--text-secondary); }
+    .bill-statute hr.bill-rule { border:0; border-top:1px solid var(--card-border);
+                                 margin:2rem 0 0.5rem; }
+    @media (max-width: 640px) {
+        .bill-text { padding:1.25rem 1.1rem; }
+        .bill-tablist [role="tab"] { flex:1 1 auto; text-align:center; }
+    }
 </style>
 {% endblock %}
 
 {% block page_body %}
 
-<section class="section">
+<div class="bill-tabs" data-bill-tabs hidden>
+    <div class="bill-tablist" role="tablist" aria-label="Draft views">
+        <button type="button" role="tab" id="tab-statute" aria-selected="true"
+                aria-controls="panel-statute">The working statute</button>
+        <button type="button" role="tab" id="tab-notes" aria-selected="false"
+                aria-controls="panel-notes" tabindex="-1">Drafting notes &amp; change log</button>
+    </div>
+</div>
+
+<section class="section" id="panel-statute" role="tabpanel" aria-labelledby="tab-statute">
+    <h2 class="bill-view-title">The working statute</h2>
+    <p class="bill-view-note">Clean reading copy — drafting shorthand removed, clause marks kept.
+        Working draft; not filed, not before any legislature.</p>
+    <div class="bill-text bill-statute">
+        {% if bill_statute_html %}
+        {{ bill_statute_html | safe }}
+        {% else %}
+        {% include "public/bill_draft.html" %}
+        {% endif %}
+    </div>
+</section>
+
+<section class="section" id="panel-notes" role="tabpanel" aria-labelledby="tab-notes">
+    <h2 class="bill-view-title">Drafting notes &amp; change log</h2>
+    <p class="bill-view-note">The working file exactly as drafted — clause locks, open questions,
+        and the decision history stay in the open. Every change is public in the
+        <a href="https://github.com/1semptify-arch/Semptify/commits/main/app/templates/public/bill_draft.html">file history</a>.</p>
     <div class="bill-text">
         {% include "public/bill_draft.html" %}
     </div>
 </section>
+
+<script>
+(function () {
+    var root = document.querySelector("[data-bill-tabs]");
+    if (!root) return;
+    var tabs = Array.prototype.slice.call(root.querySelectorAll('[role="tab"]'));
+    var panels = tabs.map(function (t) {
+        return document.getElementById(t.getAttribute("aria-controls"));
+    });
+    function activate(tab, focus) {
+        tabs.forEach(function (t, i) {
+            var on = t === tab;
+            t.setAttribute("aria-selected", on ? "true" : "false");
+            t.tabIndex = on ? 0 : -1;
+            if (panels[i]) panels[i].hidden = !on;
+        });
+        if (focus) tab.focus();
+    }
+    tabs.forEach(function (tab, i) {
+        tab.addEventListener("click", function () { activate(tab, false); });
+        tab.addEventListener("keydown", function (e) {
+            var j = e.key === "ArrowRight" ? (i + 1) % tabs.length
+                  : e.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length
+                  : -1;
+            if (j > -1) { e.preventDefault(); activate(tabs[j], true); }
+        });
+    });
+    activate(location.hash === "#panel-notes" ? tabs[1] : tabs[0], false);
+    root.hidden = false;
+})();
+</script>
 
 {% endblock %}

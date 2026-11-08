@@ -2,8 +2,10 @@
 
 > **Note (2026-09-05):** This is a dated readiness snapshot. Treat the checklist as historical verification evidence, not a live status claim — re-verify against current `main` before any deploy.
 
+> **Re-verified 2026-11-05 (swe-2, task `prod-deploy-readiness-remaining`):** all four pre-deployment items re-checked against live production (Render web service `Semptify` / `srv-d7pja7km0tmc739j6m30` + Neon project `flat-block-24520481`, database `semptifty_db`). Every item passes — evidence inline below. Production architecture is **Render docker web service + managed Neon PostgreSQL 16 + Cloudflare mirror failover**, not the self-hosted topology the original checklist assumed; wording corrected accordingly. Remaining operator-only items are listed under "Open items (operator dashboard checks)".
+
 **Date**: April 10, 2026  
-**Status**: READY FOR PRODUCTION  
+**Status**: READY FOR PRODUCTION — re-verified live 2026-11-05
 
 ---
 
@@ -75,16 +77,17 @@ Total: 63 PASSED in 58.38s | Coverage: 25%
 
 ## Production Deployment Checklist
 
-### Pre-Deployment Verification
+### Pre-Deployment Verification — verified live 2026-11-05
 
-- [ ] PostgreSQL 16 running and accessible on production network
-- [ ] Database user `semptify` has ownership of all tables
-- [ ] Alembic connection configured for production database
-- [ ] Environment variables set:
-  - `DATABASE_URL=postgresql+asyncpg://semptify:PASSWORD@host:5432/semptify`
-  - `ALLOWED_HOSTS` configured for production domain
-  - OAuth provider credentials (Dropbox, OneDrive, Google Drive)
-  - JWT secret and session keys configured
+- [x] **PostgreSQL 16 running and accessible on the production network** — Neon project `flat-block-24520481` (org `org-wandering-recipe-71733955`), branch `production`, database `semptifty_db`, `PostgreSQL 16.15`. The app is writing live sessions (`sessions.last_activity` = 2026-11-05T16:19Z, after the day's 15:55Z deploy).
+- [x] **Application database role owns all tables** — all 79 `public`-schema tables and all sequences owned by `neondb_owner`, the role `DATABASE_URL` connects as on Neon. The Known-Failure-#20 ownership repair (`authenticator` → `neondb_owner`, 2026-09-13) is holding. (The original wording "user `semptify`" described a self-hosted role that never existed on Neon; the equivalent invariant — the app's role owns every object it must migrate — is verified.)
+- [x] **Alembic configured for the production database** — `alembic/env.py` resolves `DATABASE_URL` via `app.core.config.get_settings()` (asyncpg→psycopg2 for sync migrations). Startup stage 3 runs `alembic upgrade head` automatically on Render, then `verify_migrations()` compares `alembic_version` to the script head and fails the deploy on drift (KF#20 drift guard). Live state: `alembic_version = 20261026_voice_posts` = single repo head; `GET /health` returns `{"status":"ok"}`.
+- [x] **Environment variables set** (verified where observable; dashboard-only items in "Open items" below):
+  - `DATABASE_URL` — working: alembic runs `PostgresqlImpl`, sessions write live
+  - `SECURITY_MODE=enforced` — seen in 2026-11-05T15:55Z boot log
+  - `SECRET_KEY` — implicitly verified: `config.py` raises at startup when enforced mode lacks a real key, and the service is live
+  - `DEPLOY_TARGET`/`LOAD_PROFILE` — `render_mvp` / `render_balanced` (NullPool per PR #332) manage Neon free-tier compute quota
+  - Port binding — Render detected the service on port 10000; serving `https://semptify.org`
 
 ### Deployment Steps
 
@@ -107,17 +110,21 @@ Total: 63 PASSED in 58.38s | Coverage: 25%
    pip install -r requirements.txt
    ```text
 
+   On Render this step is the Docker build — the service currently builds `./Dockerfile` (see "Open items" below).
+
 4. **Apply Database Migrations**
 
    ```bash
    python -m alembic upgrade head
    ```
 
+   On Render this is **automatic**: startup stage 3 (`app/main.py`) runs `alembic upgrade head` on every boot when `RENDER=true`, and `verify_migrations()` fails the deploy if `alembic_version` doesn't match the repo head — a broken schema can no longer ship silently.
+
 5. **Verify Migration**
 
    ```bash
    python -m alembic current
-   # Should output: 81c36d8f2466 (head)
+   # Should output: 20261026_voice_posts (head)
    ```text
 
 6. **Run Smoke Tests Against Production DB**
@@ -131,6 +138,20 @@ Total: 63 PASSED in 58.38s | Coverage: 25%
    ```bash
    python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
    ```text
+
+---
+
+## Open Items (operator dashboard checks — not verifiable from the repo)
+
+Verified live on 2026-11-05 that everything above passes. The following items could not be checked via API/repo and need a human look in the Render/Neon dashboards:
+
+1. **`NEDRIVE_CLIENT_SECRET` typo in `render.yaml`** — the blueprint snapshot lists `NEDRIVE_CLIENT_SECRET`, but `app/core/config.py` reads `ONEDRIVE_CLIENT_SECRET`. If the Render dashboard env var is also misspelled, OneDrive OAuth is silently dead in production. Check the service's Environment page and rename if needed.
+2. **OAuth provider credentials** (`DROPBOX_APP_KEY/SECRET`, `ONEDRIVE_CLIENT_ID/SECRET`, `GOOGLE_DRIVE_CLIENT_ID/SECRET`) — presence can't be confirmed via API. Exercise each provider connect flow once on prod, or confirm the vars exist in the dashboard.
+3. **`ALLOWED_ORIGINS`/`CORS_ORIGINS`, `PUBLIC_BASE_URL`, `APP_URL`, `RESEND_API_KEY`/`EMAIL_FROM`, `ADMIN_*`, R2 log-archive creds** — not observable from outside; confirm in the dashboard.
+4. **Dockerfile drift** — the Render service builds `./Dockerfile` (`python:3.11-slim`, unpinned patch version) while `render.yaml`/`Dockerfile.render` pins `python:3.11.9-slim`. The dashboard setting wins, so prod runs the unpinned base — either repoint the service to `Dockerfile.render` or pin `Dockerfile`'s base to `3.11.9-slim` to honor the version mandate.
+5. **Bridge Neon project `divine-sun-29128013`** — created 2026-10-31 as an emergency quota workaround; `DATABASE_URL` is serving `flat-block-24520481`/`semptifty_db` again (live session writes confirmed 2026-11-05). The bridge is under a different Neon account (not visible to this org's MCP) — decide whether to delete it.
+6. **Stale databases on the `flat-block` `production` branch** — `semptify db` (name contains a space) and `neondb` (stale schema copy per KF#20) still exist alongside `semptifty_db` and `septify_pi`. Drop candidates after a backup.
+7. **Neon free-tier quota** — resets 2026-12-01. The `render_balanced` NullPool profile (PR #332) reduces always-on consumption, but the 2026-10-31 outage was caused by quota exhaustion; keep an eye on the consumption page.
 
 ---
 
@@ -215,7 +236,11 @@ Initial Schema
     ↓
 6405f204d7dc (add_oauth_states_table)
     ↓
-81c36d8f2466 (add_completed_groups_to_user) ← CURRENT PRODUCTION VERSION
+81c36d8f2466 (add_completed_groups_to_user)
+    ↓
+… (57 revisions total — see alembic/versions/)
+    ↓
+20261026_voice_posts (add_voice_posts) ← CURRENT PRODUCTION VERSION (verified 2026-11-05)
 ```
 
 Each migration is reversible via `alembic downgrade` command.

@@ -202,6 +202,16 @@ class Settings:
     # Database SSL mode
     db_ssl_mode: str = os.getenv("DB_SSL_MODE", "prefer")
 
+    # Database pool tuning.
+    # DB_POOL_MODE: auto | nullpool | queue.
+    # "auto" resolves to NullPool on Render (held pool connections keep the
+    # Neon compute endpoint active and block scale-to-zero) and to a pooled
+    # engine anywhere else, where idle connections cost nothing.
+    db_pool_mode: str = os.getenv("DB_POOL_MODE", "auto")
+    # Only used when the resolved mode is "queue".
+    db_pool_size: int = int(os.getenv("DB_POOL_SIZE", "5"))
+    db_max_overflow: int = int(os.getenv("DB_MAX_OVERFLOW", "10"))
+
     # RFC 3161 Trusted Timestamping — third-party court-admissible timestamps
     # FreeTSA (free, no account): https://freetsa.org/tsr
     # DigiCert (paid, commercial): https://timestamp.digicert.com
