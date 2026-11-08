@@ -2634,6 +2634,23 @@ body.shell--dc .shell-side {
   border-right: 1px solid var(--bg-muted);
 }
 
+/* A/B variant (`?layout=b`): same Document Center surfaces, standard
+   shell eye path — working surface LEFT, guidance rail RIGHT. Declared
+   on top of `shell--dc` so every component rule above still applies;
+   only the frame geometry and the rail hairline flip. */
+body.shell--dc-alt {
+  grid-template-columns: minmax(0, 2.2fr) minmax(19rem, 1fr);
+  grid-template-areas:
+    "header header"
+    "main side"
+    "footer footer";
+}
+
+body.shell--dc-alt .shell-side {
+  border-right: none;
+  border-left: 1px solid var(--bg-muted);
+}
+
 /* The surface is a full-height tool, not a scrolling page — internal
    regions (viewer, detail panes) manage their own overflow. ID selector
    needed to outrank the legacy #dcShell three-column grid. */

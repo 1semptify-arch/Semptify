@@ -4671,7 +4671,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         dc_template_path = BASE_PATH / "app" / "templates" / "pages" / "document_center.html"
         if dc_template_path.exists():
             try:
-                return templates.TemplateResponse(request, "pages/document_center.html")
+                # A/B layout: ?layout=b renders the standard work-left /
+                # rail-right arrangement (shell--dc-alt); default keeps the
+                # flipped guidance-first frame.
+                context = {}
+                if request.query_params.get("layout", "").lower() == "b":
+                    context["dc_layout"] = "b"
+                return templates.TemplateResponse(request, "pages/document_center.html", context)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("DC template error, falling back to documents page: %s", e)
 

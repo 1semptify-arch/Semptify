@@ -40,7 +40,7 @@ class PortalService:
     short_description: str  # one-line description for the card
     cta_label: str  # call-to-action button text
     cta_path: str  # SSOT navigation path (from navigation.get_stage)
-    icon: str = ""  # emoji or icon
+    icon: str = ""  # icon slug — no pictographs (rows, not cards)
     category: str = "tenant"  # grouping category
     order: int = 100  # sort priority within category (lower = first)
     visible: bool = True  # toggle visibility (future: tied to module flags)
@@ -67,7 +67,7 @@ class PortalRegistry:
             short_description="Document everything between you and your landlord. Build a timeline of your tenancy.",
             cta_label="Get Started",
             cta_path="/preamble",
-            icon="📓",
+            icon="",
             category="tenant",
             order=10,
             requires_auth=False,
@@ -83,7 +83,7 @@ class PortalRegistry:
             short_description="Verified statutes, cases, and court rules with official source links. Not legal advice.",
             cta_label="Browse the Library",
             cta_path="/law-library",
-            icon="📚",
+            icon="",
             category="tenant",
             order=20,
             requires_auth=False,
@@ -99,7 +99,7 @@ class PortalRegistry:
             short_description="Walk through filing a housing complaint step by step.",
             cta_label="Start a Complaint",
             cta_path="/preamble",
-            icon="📝",
+            icon="",
             category="tenant",
             order=30,
             requires_auth=False,
@@ -117,7 +117,7 @@ class PortalRegistry:
             short_description="Partner with Semptify as an advocacy organization.",
             cta_label="Partner With Us",
             cta_path="/toolbox/partnerships",
-            icon="🤝",
+            icon="",
             category="advocate",
             order=10,
             requires_auth=False,
@@ -132,7 +132,7 @@ class PortalRegistry:
             short_description="Resources for forming a new tenant advocacy group in your area.",
             cta_label="Learn How",
             cta_path="/toolbox/start_a_group",
-            icon="🌱",
+            icon="",
             category="advocate",
             order=20,
             requires_auth=False,
@@ -147,7 +147,7 @@ class PortalRegistry:
             short_description="Manage clients, review documents, and coordinate support.",
             cta_label="See Where It Stands",
             cta_path="/toolbox/advocate_portal",
-            icon="🏢",
+            icon="",
             category="advocate",
             order=30,
             requires_auth=False,
@@ -165,7 +165,7 @@ class PortalRegistry:
             short_description="Research landlord records, court filings, and property history.",
             cta_label="Research Tools",
             cta_path="/toolbox/landlord_research",
-            icon="🔍",
+            icon="",
             category="legal",
             order=10,
             requires_auth=False,
@@ -180,7 +180,7 @@ class PortalRegistry:
             short_description="Case management, court filing, discovery, and legal overlays.",
             cta_label="See Where It Stands",
             cta_path="/toolbox/legal_portal",
-            icon="⚖️",
+            icon="",
             category="legal",
             order=20,
             requires_auth=False,
@@ -198,7 +198,7 @@ class PortalRegistry:
             short_description="Housing agencies and partner organizations — connect with Semptify.",
             cta_label="Connect Your Agency",
             cta_path="/toolbox/agency_connect",
-            icon="🏛️",
+            icon="",
             category="agency",
             order=10,
             requires_auth=False,
@@ -216,7 +216,7 @@ class PortalRegistry:
             short_description="Support tenant rights — see the platform, the privacy model, and the funding roadmap.",
             cta_label="Donate",
             cta_path="/donate",
-            icon="💝",
+            icon="",
             category="donor",
             order=10,
             requires_auth=False,
@@ -231,16 +231,16 @@ class PortalRegistry:
         PortalService(
             id="researcher_tools",
             name="Researcher Tools",
-            short_description="Advanced research tools, litigation intelligence, and data analysis.",
+            short_description="Advanced research tools, housing court pattern research, and data analysis.",
             cta_label="Researcher Access",
             cta_path="/toolbox/researcher_data",
-            icon="🔬",
+            icon="",
             category="researcher",
             order=10,
             requires_auth=False,
             description_long=(
-                "Tools for legal researchers and data analysts: litigation intelligence, "
-                "landlord pattern detection, housing accountability research, and exportable datasets."
+                "Tools for legal researchers and data analysts: housing court pattern research, "
+                "landlord pattern detection, housing accountability research, and combined, anonymous datasets."
             ),
         ),
         # =====================================================================
@@ -252,7 +252,7 @@ class PortalRegistry:
             short_description="The open codebase, the developer kit, and how to contribute.",
             cta_label="Developer Hub",
             cta_path="/developers",
-            icon="💻",
+            icon="",
             category="developer",
             order=10,
             requires_auth=False,
@@ -272,7 +272,7 @@ class PortalRegistry:
             short_description="Merge, split, and convert PDFs. No setup needed.",
             cta_label="Open PDF Tools",
             cta_path="/toolbox/pdf_tools",
-            icon="📄",
+            icon="",
             category="standalone",
             order=10,
             requires_auth=False,
@@ -287,7 +287,7 @@ class PortalRegistry:
             short_description="Convert documents between formats (PDF, DOCX, HTML, TXT).",
             cta_label="Open Converter",
             cta_path="/toolbox/document_converter",
-            icon="🔄",
+            icon="",
             category="standalone",
             order=20,
             requires_auth=False,
@@ -302,7 +302,7 @@ class PortalRegistry:
             short_description="Housing-related forms and templates. No setup needed.",
             cta_label="Browse Forms",
             cta_path="/toolbox/public_forms",
-            icon="📋",
+            icon="",
             category="standalone",
             order=30,
             requires_auth=False,
@@ -320,13 +320,13 @@ class PortalRegistry:
             short_description="Power-user tools, beta features, and advanced research modules.",
             cta_label="Explore Advanced",
             cta_path="/toolbox",
-            icon="⚡",
+            icon="",
             category="tenant",
             order=40,
             requires_auth=False,
             description_long=(
-                "Advanced tools for power users: litigation intelligence, housing "
-                "accountability, crawler, and beta features. Requires opt-in."
+                "Advanced tools for power users: housing court pattern research, housing "
+                "accountability, public-records crawler, and beta features. Requires opt-in."
             ),
         ),
     ]
@@ -335,42 +335,42 @@ class PortalRegistry:
     CATEGORIES: ClassVar[dict[str, dict[str, str]]] = {
         "tenant": {
             "label": "For Tenants",
-            "icon": "🏠",
+            "icon": "",
             "description": "Document your tenancy, know your rights, and protect yourself.",
         },
         "advocate": {
             "label": "For Advocates",
-            "icon": "🤝",
+            "icon": "",
             "description": "Partner with Semptify, manage clients, and coordinate support.",
         },
         "legal": {
             "label": "For Legal Professionals",
-            "icon": "⚖️",
+            "icon": "",
             "description": "Legal research, case management, and court filing tools.",
         },
         "agency": {
             "label": "For Agencies",
-            "icon": "🏛️",
+            "icon": "",
             "description": "Housing agencies and partner organizations.",
         },
         "donor": {
             "label": "For Donors",
-            "icon": "💝",
+            "icon": "",
             "description": "Support tenant rights through anonymous donation.",
         },
         "researcher": {
             "label": "For Researchers",
-            "icon": "🔬",
+            "icon": "",
             "description": "Advanced research tools and data analysis.",
         },
         "developer": {
             "label": "For Developers",
-            "icon": "💻",
+            "icon": "",
             "description": "SDK, module marketplace, and contributor resources.",
         },
         "standalone": {
             "label": "Standalone Tools",
-            "icon": "🛠️",
+            "icon": "",
             "description": "Use individual tools with no setup.",
         },
     }

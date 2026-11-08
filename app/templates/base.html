@@ -32,18 +32,18 @@
             <nav aria-label="Primary">
                 <ul class="nav-links">
                     {% block nav %}
-                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/law-library">Library</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/office">Office</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/tools">Tools</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/help">Help</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/">{{ _("nav.home") }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/law-library">{{ _("nav.library") }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/office">{{ _("nav.office") }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/tools">{{ _("nav.tools") }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/help">{{ _("nav.help") }}</a></li>
                     {% endblock %}
                 </ul>
             </nav>
             <div class="nav-actions">
-                <a class="btn btn--accent btn--sm" href="/help">Get help now</a>
+                <a class="btn btn--accent btn--sm" href="/help">{{ _("action.get_help") }}</a>
             </div>
-            <button type="button" class="nav-toggle" aria-label="Open menu" hidden>
+            <button type="button" class="nav-toggle" aria-label="{{ _("nav.menu_aria") }}" hidden>
                 <span class="toggle-bar"></span>
                 <span class="toggle-bar"></span>
                 <span class="toggle-bar"></span>
