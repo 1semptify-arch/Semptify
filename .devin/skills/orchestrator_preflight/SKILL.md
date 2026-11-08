@@ -67,15 +67,15 @@ For `model_tier: trusted`, the Claude orchestrator dispatches the `swe-executor`
 3. Execute the scope.
 4. Run verification.
 5. Write `C:\master-repo\handoffs\<task_id>-report.md`.
-6. Mark the task `review` with usage:
+6. Report back to the dispatching agent with the report doc, verification results, and usage:
    ```powershell
-   python C:\master-repo\tools\orchestrator_mark_task.py <task_id> review --agent swe-executor --report-doc "C:\master-repo\handoffs\<task_id>-report.md" --usage '{"wall_clock_min": X, "tool_calls": Y}'
+   python C:\master-repo\tools\orchestrator_mark_task.py <task_id> in_progress --agent swe-executor --report-doc "C:\master-repo\handoffs\<task_id>-report.md" --usage '{"wall_clock_min": X, "tool_calls": Y}' --verification '{"py_compile": "pass", "guardrail": "pass", "pytest": "pass"}'
    ```
    If you hit a STOP AND REPORT trigger, mark `blocked_on_decision` instead:
    ```powershell
    python C:\master-repo\tools\orchestrator_mark_task.py <task_id> blocked_on_decision --agent swe-executor --blocked-reason "<why>"
    ```
-7. Do NOT mark `resolved` or `rejected`. Stop and let the orchestrator decide.
+7. The **dispatching agent** owns resolution: it re-verifies and marks `resolved` once checks pass (AGENTS.md §6, 2026-11-07 — the Review Desk is retired; never set `review`). `blocked_on_decision` is the only waiting state.
 
 ### Legacy Semptify tasks (agent_orchestrator_tasks.json)
 
