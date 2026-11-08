@@ -15,6 +15,7 @@ so the form still shows success to the user (no broken UX in dev).
 # All imports remain absolute since public_forms is a CORE module.
 
 import logging
+import re
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
@@ -107,6 +108,75 @@ class ContactRequest(BaseModel):
         if not v or not v.strip():
             raise ValueError("Field cannot be empty")
         return v.strip()
+
+
+# Story subjects: a short fixed set keeps anonymous posts aggregable for
+# policy work without inviting free-text that could carry personal details.
+STORY_SUBJECTS = {
+    "repairs",
+    "deposit",
+    "eviction",
+    "rent",
+    "notices",
+    "retaliation",
+    "discrimination",
+    "other",
+}
+
+
+class StoryCreate(BaseModel):
+    """Anonymous public tenant story — no name, no email, by design."""
+
+    subject: str
+    title: str
+    body: str
+    outcome: str = "avoided_court"
+    jurisdiction: str = "MN"
+
+    @field_validator("subject")
+    @classmethod
+    def subject_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if v not in STORY_SUBJECTS:
+            raise ValueError(f"Invalid subject. Must be one of: {sorted(STORY_SUBJECTS)}")
+        return v
+
+    @field_validator("title")
+    @classmethod
+    def title_valid(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Title cannot be empty")
+        if len(v) > 200:
+            raise ValueError("Title must be 200 characters or fewer")
+        return v
+
+    @field_validator("body")
+    @classmethod
+    def body_valid(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Story cannot be empty")
+        if len(v) > 8000:
+            raise ValueError("Story must be 8000 characters or fewer")
+        return v
+
+    @field_validator("outcome")
+    @classmethod
+    def outcome_valid(cls, v: str) -> str:
+        from app.modules.context_engine.stories import VALID_OUTCOMES
+
+        if v not in VALID_OUTCOMES:
+            raise ValueError(f"Invalid outcome. Must be one of: {sorted(VALID_OUTCOMES)}")
+        return v
+
+    @field_validator("jurisdiction")
+    @classmethod
+    def jurisdiction_valid(cls, v: str) -> str:
+        v = v.strip().upper()
+        if not re.fullmatch(r"[A-Z]{2}", v):
+            raise ValueError("Jurisdiction must be a two-letter state code")
+        return v
 
 
 # =============================================================================
@@ -427,6 +497,80 @@ async def list_voice_posts():
                     "date": r.created_at.date().isoformat() if r.created_at else None,
                 }
                 for r in rows
+            ],
+            "awaiting_review": pending_count,
+        }
+    )
+
+
+@router.post("/story")
+@limiter.limit("5/minute")
+async def submit_public_story(request: Request, body: StoryCreate):
+    """
+    Receive an anonymous public tenant story from /tell-your-story.
+
+    No name or email is accepted — Semptify takes no names and tracks no
+    one. The story is stored for moderation and published on
+    /tell-your-story after a review pass that removes personal details.
+    """
+    from app.modules.context_engine.stories import submit_story
+
+    await submit_story(
+        subject=body.subject,
+        title=body.title,
+        body=body.body,
+        jurisdiction=body.jurisdiction,
+        outcome=body.outcome,
+        submitted_by=None,
+    )
+
+    return JSONResponse({"status": "ok", "received": True})
+
+
+@router.get("/stories")
+async def list_stories(subject: str | None = None):
+    """
+    List published, moderated tenant stories — public, no auth.
+    Newest first, capped at 50. Optional ?subject= filter.
+    """
+    from sqlalchemy import and_, select
+
+    from app.core.database import get_db_session
+    from app.modules.context_engine.models import TenantStory
+
+    conditions = [
+        TenantStory.is_published.is_(True),
+        TenantStory.is_moderated.is_(True),
+    ]
+    if subject:
+        conditions.append(TenantStory.subject == subject.strip().lower())
+
+    async with get_db_session() as db:
+        result = await db.execute(
+            select(TenantStory)
+            .where(and_(*conditions))
+            .order_by(TenantStory.moderated_at.desc())
+            .limit(50)
+        )
+        rows = result.scalars().all()
+        pending = await db.execute(
+            select(TenantStory.id).where(TenantStory.is_moderated.is_(False))
+        )
+        pending_count = len(pending.scalars().all())
+
+    return JSONResponse(
+        {
+            "stories": [
+                {
+                    "id": s.id,
+                    "subject": s.subject,
+                    "jurisdiction": s.jurisdiction,
+                    "title": s.title,
+                    "body": s.body,
+                    "outcome": s.outcome,
+                    "date": s.moderated_at.date().isoformat() if s.moderated_at else None,
+                }
+                for s in rows
             ],
             "awaiting_review": pending_count,
         }

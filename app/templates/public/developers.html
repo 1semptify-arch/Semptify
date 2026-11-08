@@ -1,58 +1,74 @@
 {% extends "body/public_shell.html" %}
 
 {% block title %}Developer Hub — Semptify{% endblock %}
-{% block description %}Resources for developers: the open source codebase, the module SDK, the Forge pipeline, API documentation, and contribution guidelines.{% endblock %}
-{% block keywords %}semptify sdk, developer tools, api documentation, open source, contribute{% endblock %}
+{% block description %}Resources for developers: the Semptify codebase, the developer kit, and how to contribute.{% endblock %}
+{% block keywords %}semptify sdk, developer tools, open source, contribute{% endblock %}
 
-{% block header_title %}💻 Developer Hub{% endblock %}
+{% block header_title %}Developer Hub{% endblock %}
 {% block header_tagline %}Build With Semptify{% endblock %}
-{% block header_subtitle %}Open source codebase, module SDK, API docs, and contribution guidelines.{% endblock %}
+{% block header_subtitle %}The code, the developer kit, and where each piece honestly stands.{% endblock %}
 
 {% block page_body %}
 
 <section class="section">
-    <h2 class="section-title">The Module SDK</h2>
+    <h2 class="section-title">The code</h2>
     <p style="color: var(--text-light);">
-        Semptify ships a Python SDK (<code>app/sdk</code>) that modules use to work with
-        the vault, documents, timeline, and context engine. Vault operations go through
-        the canonical <code>VaultClient</code> — a tenant's files stay in their own
-        cloud storage, and the SDK never holds their credentials beyond the session.
+        All of Semptify's code is public to read, check, and build on:
+        <a href="https://github.com/1semptify-arch/Semptify">github.com/1semptify-arch/Semptify</a>.
+        To run your own copy, see
+        <a href="https://github.com/1semptify-arch/Semptify/blob/main/docs/SELF_HOST.md">docs/SELF_HOST.md</a>
+        — open mode, enforced mode, and Docker are all covered.
     </p>
 </section>
 
 <section class="section">
-    <h2 class="section-title">The Forge Pipeline</h2>
+    <h2 class="section-title">Developer kit (SDK)</h2>
     <p style="color: var(--text-light);">
-        The Forge is Semptify's module development system. Developers can build, test,
-        and promote modules through a lifecycle pipeline — from draft to tested to live.
-        Modules extend the tenant experience or add tools like the PDF toolkit.
+        A kit for building tools that work with Semptify's vault, document, and
+        timeline systems lives inside the repository under <code>app/sdk/</code>.
+        It is usable but not yet a packaged release.
+        <a href="https://github.com/1semptify-arch/Semptify/blob/main/docs/SDK_GUIDE.md">docs/SDK_GUIDE.md</a>
+        walks through each piece — the module SDK, the vault client, and the
+        least-privilege external-module clients.
     </p>
 </section>
 
 <section class="section">
-    <h2 class="section-title">API Documentation</h2>
-    <p style="color: var(--text-light); margin-bottom: 1rem;">
-        When API docs are enabled, Semptify's API is documented at:
+    <h2 class="section-title">API documentation</h2>
+    <p style="color: var(--text-light);">
+        The public API is documented live:
+        <a href="/api/docs">/api/docs</a> (Swagger UI) and
+        <a href="/api/redoc">/api/redoc</a>, generated from
+        <a href="/api/openapi.json">/api/openapi.json</a>. The schema lists only
+        the endpoints anyone can call without connecting storage — endpoints
+        that need a session are intentionally not in it.
     </p>
-    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
-        <li><code>/api/docs</code> — FastAPI auto-generated docs (Swagger UI)</li>
-        <li><code>/api/redoc</code> — ReDoc documentation</li>
-        <li><code>/api/openapi.json</code> — OpenAPI specification</li>
-    </ul>
 </section>
 
 <section class="section">
-    <h2 class="section-title">Contribution Guidelines</h2>
+    <h2 class="section-title">Module marketplace</h2>
     <p style="color: var(--text-light);">
-        Semptify is open source and built with discipline: no band-aids, no workarounds,
-        no hallucinations. Contributors should read <code>AGENTS.md</code> in the
-        repository before submitting code.
+        A shared place for community-built modules is a long-term goal, not a shipped
+        feature. The plugin-loading machinery and the Forge lifecycle do exist in
+        the code — modules are built, tested, and promoted through a documented
+        pipeline. For now, contributions go through GitHub.
+    </p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Contribute</h2>
+    <p style="color: var(--text-light);">
+        Semptify is built with discipline: no band-aids, no workarounds, no
+        hallucinations. Read <code>CONTRIBUTING.md</code> and <code>AGENTS.md</code>
+        before submitting code — and see <a href="/volunteer">Volunteer</a> for the
+        ways to give time, including ones that need no code at all.
     </p>
 </section>
 
 <section class="cta-section">
     <h2>Ready to build with Semptify?</h2>
-    <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" class="cta-button-large">See the Code →</a>
+    <a href="https://github.com/1semptify-arch/Semptify" class="cta-button-large">Read the code on GitHub →</a>
+    <p style="margin-top: 1rem;"><a href="/toolbox">See where every Semptify service stands →</a></p>
 </section>
 
 {% endblock %}

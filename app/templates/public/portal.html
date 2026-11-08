@@ -136,6 +136,17 @@
     <p class="pillar-flow">
         {% if ctx.previous %}<strong>Before this:</strong> {{ ctx.previous | map(attribute="title") | join(", ") }}.{% endif %}
         {% if ctx.next %}<strong>Next:</strong> {{ ctx.next | map(attribute="title") | join(", ") }}.{% endif %}
+<!-- Main CTA -->
+<section class="cta-section">
+    <h2>Ready to protect your rights?</h2>
+    <p style="margin-bottom: 1.5rem; color: var(--text-light);">
+        New or returning — we'll route you to the right place.
+    </p>
+    <a href="/preamble" class="cta-button-large">
+        Get Started →
+    </a>
+    <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);">
+        No cost, always. Your documents stay in your control.
     </p>
     {% endif %}
 </section>

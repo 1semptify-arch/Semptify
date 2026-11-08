@@ -251,4 +251,19 @@
   covers:
     - app/templates/public/donate.html
     - .github/FUNDING.yml
+- doc: SDK_GUIDE.md
+  covers:
+    - app/sdk
+    - app/core/external_loader.py
+    - app/core/module_resolver.py
+  category: admin
+
+- doc: SELF_HOST.md
+  covers:
+    - Dockerfile
+    - Dockerfile.render
+    - .env.template
+    - .env.example
+    - app/core/config.py
+    - requirements.txt
   category: admin

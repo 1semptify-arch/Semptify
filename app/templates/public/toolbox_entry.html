@@ -1,0 +1,59 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}{{ entry.name }} — The Toolbox — Semptify{% endblock %}
+{% block description %}{{ entry.purpose }} Status: {{ status_label[entry.status] }}.{% endblock %}
+{% block keywords %}semptify, {{ entry.name|lower }}, tenant tools{% endblock %}
+
+{% block header_title %}{{ entry.name }}{% endblock %}
+{% block header_tagline %}{{ entry.purpose }}{% endblock %}
+
+{% block page_body %}
+<p class="te-status">
+    <span class="badge {{ status_class[entry.status] }} te-pill">{{ status_label[entry.status] }}</span>
+</p>
+
+<section class="te-block" aria-labelledby="te-today">
+    <h2 class="te-title" id="te-today">What you can do today</h2>
+    <p>{{ entry.today }}</p>
+    {% if entry.today_path %}
+    <a class="cta-button-large" href="{{ entry.today_path }}"{% if entry.today_path.startswith('http') %} rel="noopener"{% endif %}>Go there</a>
+    {% endif %}
+</section>
+
+{% if entry.note %}
+<section class="te-block" aria-labelledby="te-stands">
+    <h2 class="te-title" id="te-stands">Where it stands</h2>
+    <p>{{ entry.note }}</p>
+</section>
+{% endif %}
+
+<details class="te-details">
+    <summary>Details for the curious</summary>
+    <dl>
+        <dt>Privacy level</dt><dd>{{ level_label[entry.level] }}</dd>
+        {% if entry.promised_on %}<dt>Mentioned on</dt><dd>{% for p in entry.promised_on %}<a href="{{ p }}">{{ p }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</dd>{% endif %}
+        {% if entry.backed_by %}<dt>Built from</dt><dd>{{ entry.backed_by|join(", ") }}</dd>{% endif %}
+    </dl>
+</details>
+
+<p class="te-help">Something wrong at home right now? <a href="/help">Get help now</a>. Semptify is not a law firm; for legal advice, contact a licensed attorney or your local legal aid society.</p>
+<p class="te-back"><a href="/toolbox">Back to the whole toolbox</a></p>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .te-status { margin-bottom: 1.5rem; }
+    .te-pill { letter-spacing: 0.04em; text-transform: uppercase; }
+    .te-block { margin-bottom: 1.75rem; }
+    .te-title { font-size: 1.15rem; font-weight: 600; color: var(--color-primary); margin-bottom: 0.4rem; }
+    .te-block p { line-height: 1.6; margin-bottom: 0.9rem; }
+    .te-details { border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; margin-bottom: 1.5rem; }
+    .te-details summary { cursor: pointer; font-weight: 600; }
+    .te-details dl { margin: 0.75rem 0 0; display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1rem; }
+    .te-details dt { color: var(--text-secondary); }
+    .te-details dd { margin: 0; overflow-wrap: anywhere; }
+    .te-help, .te-back { color: var(--text-secondary); }
+    @media (max-width: 640px) { .te-details dl { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}

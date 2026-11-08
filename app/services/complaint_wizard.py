@@ -8,7 +8,8 @@ Drafts persist as COMPLAINT overlays in the tenant's cloud vault
 
 import json
 import logging
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
 from enum import StrEnum
 
 from pydantic import BaseModel
@@ -20,6 +21,49 @@ from app.core.vault_paths import VAULT_RECORDS_FILE
 from app.models.unified_overlay_models import CreateOverlayRequest
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Guided wizard — step definitions
+# =============================================================================
+
+# Ordered wizard steps. Sessions are ephemeral (in-memory only): nothing
+# personal is stored server-side while a tenant walks the steps. The
+# finished complaint is what gets saved — into the tenant's own vault.
+WIZARD_STEPS: tuple[str, ...] = ("complaint_type", "situation", "agency", "details", "review")
+
+WIZARD_SESSION_TTL = timedelta(hours=4)
+
+COMPLAINT_TYPES: dict[str, dict] = {
+    "habitability": {
+        "label": "Repairs or unsafe living conditions",
+        "keywords": ["repair", "habitability", "unsafe", "heat", "water", "conditions"],
+    },
+    "discrimination": {
+        "label": "Discrimination or fair housing",
+        "keywords": ["discrimination", "fair housing", "disability", "familial", "harassment"],
+    },
+    "retaliation": {
+        "label": "Retaliation after asserting a right",
+        "keywords": ["retaliation", "eviction", "notice", "rent increase"],
+    },
+    "security_deposit": {
+        "label": "Security deposit problems",
+        "keywords": ["security deposit", "deposit", "deductions"],
+    },
+    "general": {
+        "label": "Something else",
+        "keywords": ["landlord", "property management"],
+    },
+}
+
+WIZARD_PROMPTS: dict[str, str] = {
+    "complaint_type": "What kind of problem is this about?",
+    "situation": "In a few words, what happened? For example: 'no heat', 'deposit not returned'.",
+    "agency": "These agencies handle this kind of complaint. Pick the one that fits best.",
+    "details": "Fill in the complaint details — what happened, who it involves, and what you want done.",
+    "review": "Review what you have. Finish to prepare the complaint — you file it yourself.",
+}
 
 
 class AgencyType(StrEnum):
@@ -391,6 +435,8 @@ class ComplaintWizardService:
         self.agencies = AGENCIES
         # In-memory cache for fast access (also persisted to DB)
         self._cache: dict[str, ComplaintDraft] = {}
+        # Ephemeral guided-wizard sessions — memory only, never persisted.
+        self._wizard_sessions: dict[str, dict] = {}
 
     def get_all_agencies(self, state_code: str = "MN") -> list[Agency]:
         """Get all available agencies for a state."""
@@ -904,6 +950,214 @@ class ComplaintWizardService:
         draft.confirmation_number = confirmation_number
         draft.updated_at = utc_now()
         return draft
+
+    # =========================================================================
+    # GUIDED WIZARD — step-by-step complaint preparation
+    # =========================================================================
+
+    def _sweep_wizard_sessions(self) -> None:
+        """Drop expired sessions (checked on every wizard call)."""
+        cutoff = utc_now() - WIZARD_SESSION_TTL
+        expired = [
+            sid
+            for sid, s in self._wizard_sessions.items()
+            if self._session_dt(s.get("updated_at")) < cutoff
+        ]
+        for sid in expired:
+            del self._wizard_sessions[sid]
+
+    @staticmethod
+    def _session_dt(value) -> datetime:
+        try:
+            dt = datetime.fromisoformat(str(value))
+        except (ValueError, TypeError):
+            return datetime.min
+        return dt if dt.tzinfo else dt.replace(tzinfo=utc_now().tzinfo)
+
+    def wizard_start(self, complaint_type: str) -> dict:
+        """Open a wizard session, record the complaint type, return step state."""
+        self._sweep_wizard_sessions()
+        session_id = make_id("wiz")
+        now = utc_now().isoformat()
+        self._wizard_sessions[session_id] = {
+            "id": session_id,
+            "step": 0,
+            "data": {},
+            "done": False,
+            "created_at": now,
+            "updated_at": now,
+        }
+        return self.wizard_answer(session_id, complaint_type=complaint_type)
+
+    def wizard_state(self, session_id: str) -> dict | None:
+        """Return the session's current step state, or None if unknown/expired."""
+        self._sweep_wizard_sessions()
+        session = self._wizard_sessions.get(session_id)
+        if not session:
+            return None
+        step_key = WIZARD_STEPS[session["step"]]
+        state = {
+            "session_id": session_id,
+            "step": session["step"],
+            "step_key": step_key,
+            "steps": list(WIZARD_STEPS),
+            "done": session["done"],
+            "prompt": WIZARD_PROMPTS[step_key],
+            "collected": dict(session["data"]),
+        }
+        if step_key == "complaint_type":
+            state["expects"] = ["complaint_type"]
+            state["options"] = [
+                {"id": ctype, "label": meta["label"]} for ctype, meta in COMPLAINT_TYPES.items()
+            ]
+        elif step_key == "situation":
+            state["expects"] = ["keywords or text"]
+        elif step_key == "agency":
+            state["expects"] = ["agency_id"]
+            state["options"] = self._wizard_agency_options(session["data"])
+        elif step_key == "details":
+            state["expects"] = [
+                "subject", "description", "incident_dates", "respondent_name",
+                "respondent_company", "respondent_address", "respondent_phone",
+                "relief_sought", "damages_claimed",
+            ]
+        elif step_key == "review":
+            state["expects"] = []
+            state["summary"] = self._wizard_summary(session["data"])
+            state["missing"] = self._wizard_missing(session["data"])
+        return state
+
+    def wizard_answer(self, session_id: str, **fields) -> dict:
+        """Record an answer for the current step and advance.
+
+        Raises KeyError for an unknown/expired session and ValueError when the
+        required field for the current step is missing or invalid.
+        """
+        self._sweep_wizard_sessions()
+        session = self._wizard_sessions.get(session_id)
+        if not session:
+            raise KeyError(session_id)
+        if session["done"]:
+            raise ValueError("Wizard session is already finished")
+
+        step_key = WIZARD_STEPS[session["step"]]
+        data = session["data"]
+
+        if step_key == "complaint_type":
+            ctype = str(fields.get("complaint_type") or "").strip().lower()
+            if not ctype:
+                raise ValueError("complaint_type is required")
+            data["complaint_type"] = ctype if ctype in COMPLAINT_TYPES else "general"
+            session["step"] += 1
+        elif step_key == "situation":
+            keywords = fields.get("keywords")
+            text = str(fields.get("text") or "").strip()
+            if isinstance(keywords, str):
+                keywords = [keywords]
+            if not keywords and not text:
+                raise ValueError("keywords or text is required")
+            phrases = [str(k).strip() for k in (keywords or []) if str(k).strip()]
+            if text:
+                data["situation_text"] = text
+                phrases += [p.strip() for p in re.split(r"[,;\n]", text) if p.strip()]
+            data["keywords"] = phrases
+            session["step"] += 1
+        elif step_key == "agency":
+            agency_id = str(fields.get("agency_id") or "").strip()
+            if not agency_id or agency_id not in self.agencies:
+                raise ValueError("a valid agency_id is required")
+            data["agency_id"] = agency_id
+            session["step"] += 1
+        elif step_key == "details":
+            details = fields.get("details") if isinstance(fields.get("details"), dict) else {}
+            merged = {**fields, **details}
+            for key in (
+                "subject", "description", "incident_dates", "respondent_name",
+                "respondent_company", "respondent_address", "respondent_phone",
+                "relief_sought", "damages_claimed",
+            ):
+                if merged.get(key) is not None:
+                    data[key] = merged[key]
+            session["step"] += 1
+        else:
+            raise ValueError("Wizard is ready to finish — call finish")
+
+        session["updated_at"] = utc_now().isoformat()
+        return self.wizard_state(session_id)
+
+    def wizard_finish(self, session_id: str) -> dict | None:
+        """Assemble the collected answers into a complaint payload.
+
+        Marks the session done so it cannot be answered further. Returns None
+        for an unknown/expired session.
+        """
+        self._sweep_wizard_sessions()
+        session = self._wizard_sessions.get(session_id)
+        if not session:
+            return None
+        session["done"] = True
+        session["updated_at"] = utc_now().isoformat()
+        data = session["data"]
+        return {
+            "agency_id": data.get("agency_id") or "",
+            "complaint_type": data.get("complaint_type") or "general",
+            "subject": data.get("subject") or "",
+            "description": data.get("description") or data.get("situation_text") or "",
+            "incident_dates": data.get("incident_dates") or [],
+            "respondent_name": data.get("respondent_name") or "",
+            "respondent_company": data.get("respondent_company") or "",
+            "respondent_address": data.get("respondent_address") or "",
+            "respondent_phone": data.get("respondent_phone") or "",
+            "relief_sought": data.get("relief_sought") or "",
+            "damages_claimed": data.get("damages_claimed"),
+            "keywords": data.get("keywords") or [],
+            "missing": self._wizard_missing(data),
+            "ready": not self._wizard_missing(data),
+        }
+
+    def _wizard_agency_options(self, data: dict) -> list[dict]:
+        """Agencies to offer at the agency step, best matches first."""
+        ctype = data.get("complaint_type") or "general"
+        keywords = list(data.get("keywords") or []) + list(
+            COMPLAINT_TYPES.get(ctype, {}).get("keywords", [])
+        )
+        recommended = self.get_recommended_agencies(keywords) or list(self.agencies.values())
+        return [
+            {
+                "id": a.id,
+                "name": a.name,
+                "jurisdiction": a.jurisdiction,
+                "typical_response_days": a.typical_response_days,
+                "filing_url": a.filing_url,
+            }
+            for a in recommended
+        ]
+
+    @staticmethod
+    def _wizard_missing(data: dict) -> list[str]:
+        """Fields still needed before the complaint is ready to file."""
+        missing = []
+        if not data.get("subject"):
+            missing.append("subject")
+        if not (data.get("description") or data.get("situation_text")):
+            missing.append("description")
+        if not data.get("respondent_name"):
+            missing.append("respondent_name")
+        if not data.get("agency_id"):
+            missing.append("agency_id")
+        return missing
+
+    @staticmethod
+    def _wizard_summary(data: dict) -> dict:
+        """Human-readable summary of what was collected, for the review step."""
+        agency = AGENCIES.get(data.get("agency_id") or "")
+        ctype = data.get("complaint_type") or "general"
+        return {
+            "complaint_type": COMPLAINT_TYPES.get(ctype, COMPLAINT_TYPES["general"])["label"],
+            "agency": agency.name if agency else None,
+            "subject": data.get("subject") or "",
+            "respondent": data.get("respondent_name") or "",
+        }
 
     def get_filing_checklist(self, agency_id: str) -> dict:
         """Get filing checklist for an agency."""

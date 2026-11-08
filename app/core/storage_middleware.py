@@ -83,10 +83,15 @@ PUBLIC_PATHS: set[str] = {
     "/index.html",
     "/index-simple.html",
     "/activate-vault",
-    # API docs (development only)
+    # API docs — Swagger UI, ReDoc, and the OpenAPI spec itself are public.
+    # The schema is filtered to public endpoints only (see create_app()).
     "/docs",
     "/redoc",
     "/openapi.json",
+    "/api/docs",
+    "/api/redoc",
+    "/api/openapi.json",
+    "/api/docs/oauth2-redirect",
     # GUI Navigation Hub
     "/gui",
     # Auto Mode Features
@@ -143,6 +148,18 @@ PUBLIC_PATHS: set[str] = {
     # Public landing facts and cron endpoints
     "/api/landing/facts",
     "/api/data-freshness/cron/verify-landing-claims",
+    # Public forms — anonymous submissions + public lists (public_forms router,
+    # explicitly designed "public, no auth": voice board, tool requests,
+    # contact, feedback, anonymous stories, tenant autofill)
+    "/api/feedback",
+    "/api/tool-request",
+    "/api/tool-requests",
+    "/api/voice-post",
+    "/api/voice-posts",
+    "/api/contact",
+    "/api/tenant/autofill",
+    "/api/story",
+    "/api/stories",
     # Resource directory — public list endpoint (detail routes covered by prefix)
     "/api/resources",
     # Public forms — anonymous submissions + public lists (public_forms router,
@@ -181,6 +198,8 @@ PUBLIC_PREFIXES = (
     "/onboarding-assets/",  # Onboarding static files
     "/api/law-library/",  # Law library — public education content (page is already public)
     "/api/portal/",  # Portal services catalog — public, no auth (semptify.org guest portal)
+    "/toolbox/",  # Toolbox entry detail pages — same honest status data the public
+    # list page and /api/portal/toolbox/{id} JSON already expose
     "/api/resources/",  # Resource directory — public read endpoints
     "/api/i18n/",  # i18n — public locale read/set endpoints
     "/admin/api/",  # Admin API endpoints — auth checked by route (elevation/capability)

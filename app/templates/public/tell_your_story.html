@@ -1,0 +1,198 @@
+{% extends "body/public_shell.html" %}
+
+{% block title %}Tell Your Story — Semptify{% endblock %}
+{% block description %}Share what happened in your rental, anonymously. Stories are reviewed to remove personal details, then published to inform the housing bill and public policy.{% endblock %}
+{% block keywords %}tell your story, tenant story, renter experience, housing bill, public policy, anonymous{% endblock %}
+
+{% block header_title %}Tell your story{% endblock %}
+{% block header_tagline %}What happened to you shapes what gets written.{% endblock %}
+{% block header_subtitle %}Anonymous. No names, no tracking. Every story is reviewed to remove personal details before it publishes — and stories are how public policy learns what renting is actually like.{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .ts-promise {
+        background: var(--bg-surface); border-radius: var(--radius-block);
+        padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+    }
+    .ts-promise p { margin: 0 0 0.6rem 0; }
+    .ts-promise p:last-child { margin-bottom: 0; }
+
+    .ts-form label { display: block; font-weight: 600; margin: 0 0 0.35rem; font-size: 0.95rem; }
+    .ts-form select, .ts-form input[type=text], .ts-form textarea {
+        width: 100%; padding: 0.65rem 0.85rem; margin-bottom: 0.9rem;
+        border: 1px solid var(--border-color); border-radius: var(--radius-input);
+        font-size: 0.95rem; font-family: inherit; color: var(--text-primary);
+        background: var(--bg-card);
+    }
+    .ts-form select { width: auto; min-width: 14rem; }
+    .ts-form input[type=text].ts-state { width: 5rem; text-transform: uppercase; }
+    .ts-form textarea { min-height: 200px; resize: vertical; }
+    .ts-form select:focus, .ts-form input:focus, .ts-form textarea:focus {
+        outline: none; border-color: var(--color-accent);
+    }
+    .ts-form .btn { background: var(--color-primary); color: var(--text-inverse); border: none; padding: 0.75rem 1.75rem; border-radius: var(--radius-input); font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .ts-form .btn:hover { background: var(--color-primary-light); }
+    .ts-success { display: none; background: var(--color-success-50); border: 1px solid var(--color-success); border-radius: var(--radius-block); padding: 1.25rem; color: var(--color-success-800); margin-top: 0.75rem; }
+    .ts-note { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+
+    .ts-list { list-style: none; margin: 0.75rem 0 0 0; padding: 0; }
+    .ts-list li { padding: 0.9rem 0; border-top: 1px solid var(--border-color); }
+    .ts-date { font-size: 0.8rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .ts-subject { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-accent); font-weight: 600; }
+    .ts-story-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0.2rem 0; }
+    .ts-story-body { font-size: 0.92rem; color: var(--text-secondary); margin: 0.25rem 0; white-space: pre-wrap; }
+    .ts-pending { font-size: 0.85rem; color: var(--text-muted); font-style: italic; }
+</style>
+{% endblock %}
+
+{% block page_body %}
+
+<section class="section">
+    <div class="ts-promise">
+        <p><strong>Why stories matter here.</strong> Laws get written from
+        summaries. The housing bill being drafted on this site gets written from
+        what actually happened to people — the repair that took nine months, the
+        deposit that never came back, the notice taped to the door.</p>
+        <p><strong>How it works.</strong> You write it. We read every one. Before
+        anything publishes, a review pass removes names, addresses, case numbers,
+        and anything else that could identify you. What remains is the story
+        itself — posted here and used to inform the bill and public policy.</p>
+        <p><strong>The one rule.</strong> Please don't include your name, your
+        landlord's name, property addresses, or court case numbers anywhere in
+        what you write. Keep those out and the review stays quick.</p>
+    </div>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Share what happened</h2>
+    <form id="tsForm" class="ts-form" onsubmit="submitStory(event)">
+        <label for="tsSubject">What is it mostly about?</label>
+        <select id="tsSubject" required>
+            <option value="repairs">Repairs and habitability</option>
+            <option value="deposit">Security deposit</option>
+            <option value="eviction">Eviction</option>
+            <option value="rent">Rent and fees</option>
+            <option value="notices">Notices and lease terms</option>
+            <option value="retaliation">Retaliation</option>
+            <option value="discrimination">Discrimination</option>
+            <option value="other">Something else</option>
+        </select>
+
+        <label for="tsTitle">A short title for it</label>
+        <input type="text" id="tsTitle" maxlength="200" required
+            placeholder="e.g. The winter the heat stayed off">
+
+        <label for="tsBody">Your story</label>
+        <textarea id="tsBody" maxlength="8000" required
+            placeholder="Tell it the way you'd tell a neighbor. What happened, when, and how it ended — or didn't. No names or addresses, please."></textarea>
+
+        <label for="tsOutcome">How did it turn out?</label>
+        <select id="tsOutcome">
+            <option value="avoided_court">Resolved without court</option>
+            <option value="settled">Settled</option>
+            <option value="won_court">Decided for the tenant in court</option>
+            <option value="lost_court">Decided against the tenant in court</option>
+            <option value="ongoing">Still ongoing</option>
+        </select>
+
+        <label for="tsState">State (two letters)</label>
+        <input type="text" id="tsState" class="ts-state" maxlength="2" value="MN" required>
+
+        <button type="submit" class="btn">Send it</button>
+    </form>
+    <div class="ts-success" id="tsSuccess">
+        <strong>Received.</strong> Your story will appear on this page after the
+        review pass that removes any personal details.
+    </div>
+    <p class="ts-note" style="margin-top:0.75rem;">
+        No name. No email. Nothing you send is tied to you — that's the same
+        promise as the rest of this site.
+    </p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Stories so far</h2>
+    <p class="section-description" style="margin-bottom:0.25rem;">
+        Every published story lives here. Each one passed the review that strips
+        personal details — nothing else is changed.
+    </p>
+    <p class="ts-pending" id="tsPendingCount"></p>
+    <ul class="ts-list" id="tsList">
+        <li id="tsEmpty">Nothing published yet. Yours could be the first.</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Where this goes</h2>
+    <p class="section-description">
+        Stories inform the housing bill being drafted in public on
+        <a href="/your-voice">Your Voice</a>, and they can reach the people who
+        vote on it — <a href="/reach-legislators">find your legislators</a>
+        through official channels.
+    </p>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    function submitStory(e) {
+        e.preventDefault();
+        fetch('/api/story', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                subject: document.getElementById('tsSubject').value,
+                title: document.getElementById('tsTitle').value,
+                body: document.getElementById('tsBody').value,
+                outcome: document.getElementById('tsOutcome').value,
+                jurisdiction: document.getElementById('tsState').value
+            })
+        })
+        .catch(() => {})
+        .finally(() => {
+            document.getElementById('tsForm').style.display = 'none';
+            document.getElementById('tsSuccess').style.display = 'block';
+        });
+    }
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s || '';
+        return d.innerHTML;
+    }
+
+    const outcomeLabels = {
+        avoided_court: 'resolved without court',
+        won_court: 'decided for the tenant in court',
+        settled: 'settled',
+        lost_court: 'decided against the tenant in court',
+        ongoing: 'ongoing'
+    };
+
+    fetch('/api/stories')
+        .then(r => r.json())
+        .then(data => {
+            const list = document.getElementById('tsList');
+            if (data.awaiting_review > 0) {
+                document.getElementById('tsPendingCount').textContent =
+                    data.awaiting_review + ' story/stories received and awaiting the review pass.';
+            }
+            if (data.stories && data.stories.length) {
+                list.innerHTML = data.stories.map(s =>
+                    '<li>' +
+                    '<div class="ts-date">' + esc(s.date || '') + ' · <span class="ts-subject">' + esc(s.subject) + '</span>' +
+                    (s.jurisdiction ? ' · ' + esc(s.jurisdiction) : '') +
+                    (s.outcome && outcomeLabels[s.outcome] ? ' · ' + esc(outcomeLabels[s.outcome]) : '') +
+                    '</div>' +
+                    '<p class="ts-story-title">' + esc(s.title) + '</p>' +
+                    '<p class="ts-story-body">' + esc(s.body) + '</p>' +
+                    '</li>'
+                ).join('');
+            }
+        })
+        .catch(() => {});
+</script>
+{% endblock %}

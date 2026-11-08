@@ -61,6 +61,22 @@ register_function_group(
 register_function_group(
     FunctionGroupContract(
         module="public_forms",
+        group_name="public_forms_story",
+        title="Public Forms Tenant Story (SSOT)",
+        description="CANONICAL anonymous public tenant story: submit from /tell-your-story and list published moderated stories. Public endpoints; moderation via context_engine stories service.",
+        inputs=("subject", "title", "body"),
+        outputs=("success", "stories"),
+        dependencies=(
+            "app.modules.public_forms.router",
+            "app.modules.context_engine.stories",
+        ),
+        deterministic=False,
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="public_forms",
         group_name="public_forms_contact",
         title="Public Forms Submit Contact (SSOT)",
         description="CANONICAL receive a contact form submission. Public endpoint.",
