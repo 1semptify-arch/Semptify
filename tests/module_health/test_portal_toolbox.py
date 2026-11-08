@@ -5,7 +5,7 @@ from pathlib import Path
 
 from app.modules.portal.pages import portal_pages
 from app.modules.portal.registry import portal
-from app.modules.portal.toolbox import ENGINES, LEVELS, STATUSES, toolbox
+from app.modules.portal.toolbox import ENGINES, LEVELS, SLOTS, STATUSES, WINGS, toolbox
 
 REPO = Path(__file__).resolve().parents[2]
 BANNED = re.compile(
@@ -22,6 +22,8 @@ def test_ids_unique_and_fields_valid():
         assert e.level in LEVELS, e.id
         assert e.engine in ENGINES, e.id
         assert e.group in toolbox.GROUPS, e.id
+        assert e.slot == "" or e.slot in SLOTS, e.id
+        assert e.wing in WINGS, e.id
         assert e.name and e.purpose and e.today, e.id
 
 

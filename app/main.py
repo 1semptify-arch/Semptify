@@ -2099,6 +2099,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.modules.portal.pages import portal_pages as _portal_pages
     from app.modules.portal.service import get_portal_catalog as _get_catalog
     from app.modules.portal.toolbox import toolbox as _toolbox
+    from app.modules.portal import pillars as _pillars
 
     # Paths that already have routes registered elsewhere in the app
     _existing_public_paths = {"/help", "/tools", "/library"}
@@ -2175,6 +2176,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                         context["bill_statute_html"] = None
                 if _p.id == "toolbox":
                     context.update(_toolbox.page_context())
+                if _p.id in _pillars.PAGE_IDS:
+                    context.update(_pillars.page_context(_p.id))
                 return templates.TemplateResponse(request, _p.template, context)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Public page template error (%s): %s", _p.template, e)

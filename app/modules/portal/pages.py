@@ -410,6 +410,79 @@ class PortalPageRegistry:
             footer_label="The Toolbox",
             order=6,
         ),
+        # ---------------------------------------------------------------
+        # The six pillar front pages — the doors onto the path
+        # (SEMPTIFY_ORG_ARCHITECTURE_DRAFT.md §2, §4.2). One shared template;
+        # per-pillar content comes from app/modules/portal/pillars.py.
+        # in_footer=False: the six doors belong on the front door and the
+        # toolbox, not repeated in the universal footer.
+        # ---------------------------------------------------------------
+        PortalPage(
+            id="information",
+            title="Information — know your rights — Semptify",
+            path="/path/information",
+            template="public/pillar_front.html",
+            description="Know your rights before the dispute starts. Plain-language, sourced answers about tenant rights: the law library, situation guides, state pages, and a glossary.",
+            keywords="tenant rights, know your rights, renter rights information, housing law library",
+            og_title="Information — know your rights — Semptify",
+            og_description="Plain-language, sourced answers about tenant rights and process.",
+            in_footer=False,
+        ),
+        PortalPage(
+            id="research",
+            title="Research — what applies to my situation — Semptify",
+            path="/path/research",
+            template="public/pillar_front.html",
+            description="Go deeper than the general rules: situation research, a case law reader, and a credit report guide — checked against the facts of your own situation.",
+            keywords="tenant research, housing law research, case law, credit report guide",
+            og_title="Research — Semptify",
+            og_description="Go deeper than the general rules: statutes, records, and patterns for your situation.",
+            in_footer=False,
+        ),
+        PortalPage(
+            id="documentation",
+            title="Documentation — a paper trail you can trust — Semptify",
+            path="/path/documentation",
+            template="public/pillar_front.html",
+            description="A dated record of every notice, payment, repair request, and conversation — kept in your own storage. Journal, calendar, contacts, rent ledger, quick capture, vault, and checklists.",
+            keywords="document everything, tenant records, rental documentation, paper trail, rent ledger",
+            og_title="Documentation — Semptify",
+            og_description="A dated record of every notice, payment, repair request, and conversation.",
+            in_footer=False,
+        ),
+        PortalPage(
+            id="organize",
+            title="Organize — one record a stranger can follow — Semptify",
+            path="/path/organize",
+            template="public/pillar_front.html",
+            description="Turn scattered photos, texts, and papers into one coherent record: timeline, document center, case builder, exports, and stand-alone PDF and conversion tools.",
+            keywords="organize documents, tenant timeline, case builder, pdf tools, document converter",
+            og_title="Organize — Semptify",
+            og_description="Turn scattered photos, texts, and papers into one coherent record.",
+            in_footer=False,
+        ),
+        PortalPage(
+            id="collaborate",
+            title="Collaborate — find who else is in this — Semptify",
+            path="/path/collaborate",
+            template="public/pillar_front.html",
+            description="Find a tenants association or advocate near you, or learn how to start one: group finder, a start-a-group field guide, and a group toolkit.",
+            keywords="tenant association, tenant group, tenants union, housing advocacy, organize neighbors",
+            og_title="Collaborate — Semptify",
+            og_description="Find a tenants association or advocate, or start one.",
+            in_footer=False,
+        ),
+        PortalPage(
+            id="be_heard",
+            title="Be heard — make it count — Semptify",
+            path="/path/be-heard",
+            template="public/pillar_front.html",
+            description="Put it on the record where it counts: complaint wizard, eviction defense, court forms and prep, sample letters, reaching your legislators, and telling your story.",
+            keywords="file housing complaint, eviction defense, court forms, reach legislators, tell your story",
+            og_title="Be heard — Semptify",
+            og_description="File a legitimate complaint and pass your story to whoever will listen.",
+            in_footer=False,
+        ),
     ]
 
     @classmethod
