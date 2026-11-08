@@ -33,6 +33,11 @@ register_function_group(
             "/api/redoc",
             "/api/openapi.json",
         ),
+        allowed_prefixes=(
+            "/api/docs",
+            "/api/redoc",
+            "/api/openapi.json",
+        ),
     )
 )
 
@@ -46,6 +51,7 @@ register_function_group(
         outputs=("spec",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/openapi.json",),
     )
 )
 
@@ -61,6 +67,7 @@ register_function_group(
         outputs=("collection",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/postman",),
     )
 )
 
@@ -74,6 +81,7 @@ register_function_group(
         outputs=("html",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/swagger",),
     )
 )
 
@@ -87,6 +95,7 @@ register_function_group(
         outputs=("html",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/redoc",),
     )
 )
 
@@ -102,6 +111,7 @@ register_function_group(
         outputs=("html",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/",),
     )
 )
 
@@ -118,6 +128,7 @@ register_function_group(
         outputs=("reference",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/reference",),
     )
 )
 
@@ -134,6 +145,7 @@ register_function_group(
         outputs=("reference",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/reference/{module_id}",),
     )
 )
 
@@ -149,6 +161,7 @@ register_function_group(
         outputs=("examples",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/examples",),
     )
 )
 
@@ -162,6 +175,7 @@ register_function_group(
         outputs=("example",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/examples/{example_id}",),
     )
 )
 
@@ -178,6 +192,7 @@ register_function_group(
         outputs=("sdks",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/sdks",),
     )
 )
 
@@ -191,6 +206,7 @@ register_function_group(
         outputs=("resources",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/support",),
     )
 )
 
@@ -204,6 +220,7 @@ register_function_group(
         outputs=("changelog",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/changelog",),
     )
 )
 
@@ -220,5 +237,6 @@ register_function_group(
         outputs=("statistics",),
         dependencies=("app.modules.documentation.router",),
         deterministic=True,
+        allowed_routes=("/api/docs/statistics",),
     )
 )
