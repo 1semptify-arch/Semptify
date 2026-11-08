@@ -2946,3 +2946,15 @@
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
+- id: executive_admin
+  display_name: Executive Administration (Nonprofit Office)
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.executive_admin.router
+  requires_role:
+  - admin
+  health_check: tools.module_health.check_executive_admin
+  test_suite: tests/module_health/test_executive_admin.py
+  status: unverified

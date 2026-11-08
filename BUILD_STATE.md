@@ -1,5 +1,35 @@
 ## Session — 2026-11-07 — /bill/live two-tab view: clean statute + drafting notes (swe-2)
 
+### Guardrail Engine Run — 2026-11-08T07:28:11+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-08T07:24:47+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: FAIL — 2 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+One or more checks failed — see console output.
+
 ### Guardrail Engine Run — 2026-11-08T04:24:20+00:00
 
 - **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
@@ -16863,3 +16893,49 @@ sessions); embedded images are dropped from edited exports (noted to user).
   aggregate-only contract (combined totals, small-cell suppression ≥5,
   city/ZIP floor, no named parties, sourced figures, human publish gate)
   and the keep-dormant recommendation for the graph engine. Pending Brad.
+
+## 2026-11-08 — Executive Administration module adopted + mounted (plan-20261108-nonprofit-office-module, swe-2)
+
+- **Context**: task was queued as "nonprofit_office" but Brad's 2026-11-08
+  decision ratified `executive_admin` (semptify.org private; render_mvp
+  allowlist; Cloudflare Access wall on /admin/* is infra, outside this repo).
+  A concurrent pass-1 build of the module core (knowledge/compliance/
+  governance/ledger/models/router/migration) sat uncommitted and stalled;
+  this pass adopted and completed it rather than duplicating under the old
+  name. Books home = this module (Brad 2026-11-08).
+- **Added**: package `__init__.py`; `register.py` (7 FunctionGroupContracts,
+  T1, deterministic, route allow-lists); manifest `_register` at
+  `/admin/executive` (ProductTier.DEV, lifecycle `dev_only`, requires_role
+  admin); `app.core.contract_loader` row; `get_mvp_allowed_modules()` entry
+  (Brad's render_mvp decision — still dev_only, elevation-gated);
+  `/admin/executive/health` route (module rule 10);
+  `app/templates/admin/executive_admin.html` (single-page admin UI the
+  router serves); `docs/blueprints/executive_admin_blueprint.md`;
+  `tests/test_executive_admin.py` (28 unit tests over the pure-function
+  layer); `tests/module_health/test_executive_admin.py`; registry row in
+  `tools/module_registry.yaml`; alembic migration
+  `20261108_executive_admin` (tables `exec_records`, `exec_ledger_entries`
+  — org-level only, no tenant data, no user linkage).
+- **Coverage vs done_means**: MN+federal 501(c)(3) formation roadmap +
+  cost paths (`knowledge.py` phases/steps/cost_paths, sourced + verify
+  dates); compliance calendar (renewal, 990 class, 990-T, AG report,
+  27-month window, AG $25k trigger, board cadence, payroll); governance
+  (board roster, quorum/notice checks, agendas, minutes drafts, motion
+  tallies, unanimous written actions); policies checklist with adoption
+  tracking; ledger (990 classes, restricted funds, donor acknowledgment
+  letters, CSV export, FY summary); grant-readiness checklist computed
+  from live org state.
+- **Verified**: `py_compile` clean; `pytest tests/test_executive_admin.py
+  tests/module_health/test_executive_admin.py` 29/29 pass; live HTTP on
+  port 8025 (sqlite verify DB) — `/admin/executive/health` 200,
+  unauthenticated API 404 / page 303, session-cookie-only API 404,
+  cookie+`X-Admin-Token` (MASTER_KEY) → overview, profile PUT, ledger
+  POST+FY summary (990-N), calendar, knowledge bundle, page 200 (39 KB);
+  startup log "Executive Admin router connected — /admin/executive
+  (elevation-gated)"; contract registry 148 modules ok / 0 failed;
+  route audit clean; guardrail engine all PASS after adding `/` and
+  `/health` to the overview contract's allowed_routes.
+- **Not checked**: Cloudflare Access identity wall (infrastructure outside
+  this repo — noted in dispatch, unchanged). `verify_exec.db` sqlite
+  artifact left in repo root (gitignored `*.db`; file deletion is off
+  limits per headless rules).
