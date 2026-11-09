@@ -31,7 +31,7 @@ there is never a dead end.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from typing import ClassVar
 
 STATUSES = ("live", "partial", "planned", "vision")

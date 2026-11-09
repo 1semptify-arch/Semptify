@@ -14,9 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.modules.legal_intel.models import (
-    IntelAttorney,
     IntelCase,
-    IntelDocket,
     IntelEntity,
 )
 

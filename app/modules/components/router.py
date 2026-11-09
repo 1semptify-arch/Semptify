@@ -24,7 +24,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import StorageUser, get_optional_user_id, yellow_access
-from app.core.user_id import get_role_from_user_id
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)

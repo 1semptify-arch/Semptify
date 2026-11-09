@@ -528,6 +528,7 @@ async def import_communications(
 
     [c.email for c in contacts if c.email] + [c.phone for c in contacts if c.phone]
 
+    from app.core.user_context import build_context_for_user_id
     from app.services.timeline_store import create_event
 
     user = await build_context_for_user_id(user_id)

@@ -336,7 +336,6 @@ def assess(correlation_result: dict[str, Any], *, jurisdiction: str | None = Non
     """
     protected = correlation_result.get("protected_events", [])
     adverse = correlation_result.get("adverse_events", [])
-    pairs = correlation_result.get("pairs", [])
     flagged = correlation_result.get("flagged_count", 0)
     open_windows = correlation_result.get("open_windows", [])
     presumption = correlation_result.get("presumption", {})

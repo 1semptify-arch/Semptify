@@ -25,7 +25,7 @@ import base64
 import json
 import logging
 
-from fastapi import HTTPException, Request
+from fastapi import Request
 
 from app.core.key_derivation import hmac_sign, hmac_verify
 from app.core.utc import utc_now

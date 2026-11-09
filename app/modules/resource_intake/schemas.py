@@ -5,7 +5,6 @@ Implements the Part 3 Resource Sourcing Contract for the Information Composer.
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator

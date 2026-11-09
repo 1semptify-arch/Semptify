@@ -15,7 +15,6 @@ from app.core.context_envelope import (
     Provenance,
     TemporalValidity,
     Who,
-    resolve_envelope,
 )
 from app.core.page_envelope import PageEnvelope, PageRelation, resolve_page_actions
 from app.services.vault_upload_service import VaultDocument

@@ -24,7 +24,7 @@ from sqlalchemy import func, select
 
 from app.core.database import get_db_session
 from app.core.request_utils import require_request_user_id
-from app.core.user_context import UserRole, get_role_from_user_id
+from app.core.user_context import get_role_from_user_id
 from app.core.user_id import get_provider_from_user_id
 from app.core.utc import utc_now
 from app.models.models import (

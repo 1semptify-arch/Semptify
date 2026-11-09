@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
 
 from app.core.admin_elevation import require_elevation
-from app.core.logging_service import get_log_tail, set_log_level
+from app.core.logging_service import set_log_level
 from app.core.module_registry_loader import run_sync_and_verify
 
 logger = logging.getLogger(__name__)

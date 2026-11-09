@@ -35,7 +35,7 @@ Rules for editing:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from app.core.upl_guardrails import UPL_DISCLAIMER, UPL_DISCLAIMER_LONG
 

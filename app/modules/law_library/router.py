@@ -1871,7 +1871,7 @@ TEMPLATES_DIR = _TEMPLATE_PATH.parent.parent
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 try:
-    from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, catalog_status, get_locale
+    from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, catalog_status, get_locale  # noqa: F401
 
     templates.env.globals["_"] = _jinja2_gettext
     templates.env.globals["supported_locales"] = available_locales()

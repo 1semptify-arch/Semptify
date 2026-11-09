@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import JSONResponse
 
-from app.core.i18n import SUPPORTED_LOCALES, available_locales, get_locale, i18n
+from app.core.i18n import SUPPORTED_LOCALES, available_locales, i18n
 from app.core.ssot_guard import ssot_redirect
 from app.modules.context_engine.cache import get_verified_landing_facts
 
