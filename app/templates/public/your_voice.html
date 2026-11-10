@@ -11,12 +11,13 @@
 {% block styles %}
 {{ super() }}
 <style>
-    .yv-promise {
+    .yv-promise,
+    .yv-standard {
         background: var(--bg-surface); border-radius: var(--radius-block);
         padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
     }
-    .yv-promise p { margin: 0 0 0.6rem 0; }
-    .yv-promise p:last-child { margin-bottom: 0; }
+    .yv-promise p, .yv-standard p { margin: 0 0 0.6rem 0; }
+    .yv-promise p:last-child, .yv-standard p:last-child { margin-bottom: 0; }
 
     .yv-journey { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0 0.25rem; padding: 0; }
     .yv-journey li {
@@ -181,6 +182,17 @@
         No name. No email. Posts appear publicly after a review pass — that's how
         we stay transparent without tracking anyone.
     </p>
+    <div class="yv-standard">
+        <p><strong>The review standard.</strong> Every post gets a human review
+        before it appears. Review removes only what hurts people: personal
+        details — stripped out, with the rest of the post still going up —
+        threats, harassment, hate (racism, antisemitism, bigotry of any kind),
+        spam, and anything illegal.</p>
+        <p><strong>Everything else stays.</strong> Opinions about the bill —
+        support, criticism, anything in between — are never removed for being
+        wrong or unwelcome. Disagreement is the point; it's how this gets
+        better.</p>
+    </div>
 </section>
 
 <section class="section" id="board">
