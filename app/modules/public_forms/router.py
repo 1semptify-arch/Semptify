@@ -441,7 +441,7 @@ async def list_tool_requests():
         )
         rows = result.scalars().all()
         pending = await db.execute(
-            select(ToolRequest.id).where(ToolRequest.is_published.is_(False))
+            select(ToolRequest.id).where(ToolRequest.status == "received")
         )
         pending_count = len(pending.scalars().all())
 
@@ -509,7 +509,7 @@ async def list_voice_posts():
         )
         rows = result.scalars().all()
         pending = await db.execute(
-            select(VoicePost.id).where(VoicePost.is_published.is_(False))
+            select(VoicePost.id).where(VoicePost.status == "received")
         )
         pending_count = len(pending.scalars().all())
 
