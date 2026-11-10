@@ -4,7 +4,6 @@ Run via Forge UI: POST /dev/lab/app.modules.journal.router/test
 Run locally:     python -m pytest app/modules/journal/tests/ -v
 """
 
-from datetime import UTC
 
 import pytest
 

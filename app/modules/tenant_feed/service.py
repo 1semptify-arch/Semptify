@@ -366,6 +366,8 @@ def _fetch_journal_entries_sync(user_id: str) -> list[dict[str, Any]]:
     the async fetch to completion; inside a running loop we defer to
     aggregate_feed_async() — same convention as _fetch_documents.
     """
+    import asyncio
+
     try:
         loop = asyncio.get_event_loop()
         if loop.is_running():

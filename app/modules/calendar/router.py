@@ -8,7 +8,7 @@ with DocumentHub for auto-syncing dates from uploaded documents.
 """
 
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field

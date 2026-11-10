@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Executive Administration — Semptify</title>
+<link rel="stylesheet" href="/static/css/ssot-design-system.css">
+<style>
+  :root {
+    --ea-bg: var(--bg-page, #f6f5f1);
+    --ea-ink: var(--text-primary, #24282e);
+    --ea-muted: var(--text-muted, #6b7280);
+    --ea-line: var(--color-border, #d8d5cc);
+    --ea-accent: var(--color-accent, #3d6b5a);
+    --ea-ok: var(--color-success, #2f7d4f);
+    --ea-warn: var(--color-warning, #a06a00);
+    --ea-bad: var(--color-error, #a33b3b);
+    --ea-zone1: var(--zone-bg-primary, #f6f5f1);
+    --ea-zone2: var(--zone-bg-secondary, #efede6);
+    --ea-zone3: var(--zone-bg-tertiary, #e7e4da);
+    --ea-panel: var(--bg-surface, #fffdf8);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ea-bg); color: var(--ea-ink);
+    font-family: var(--font-sans, -apple-system, "Segoe UI", Roboto, sans-serif);
+    font-size: 15px; line-height: 1.5;
+  }
+  header.top {
+    padding: 1.1rem 1.5rem 0.8rem; background: var(--ea-zone3);
+    border-bottom: 1px solid var(--ea-line);
+  }
+  header.top h1 { margin: 0; font-size: 1.25rem; font-weight: 600; }
+  header.top .sub { color: var(--ea-muted); font-size: 0.85rem; margin-top: 0.15rem; }
+  nav.tabs {
+    display: flex; flex-wrap: wrap; gap: 0;
+    background: var(--ea-zone3); border-bottom: 1px solid var(--ea-line);
+    position: sticky; top: 0; z-index: 10; padding: 0 1rem;
+  }
+  nav.tabs button {
+    appearance: none; border: none; background: none; cursor: pointer;
+    padding: 0.65rem 0.9rem; font-size: 0.88rem; color: var(--ea-muted);
+    border-bottom: 3px solid transparent;
+  }
+  nav.tabs button:hover { color: var(--ea-ink); }
+  nav.tabs button.on { color: var(--ea-ink); border-bottom-color: var(--ea-accent); font-weight: 600; }
+  main { max-width: 1080px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  section.zone { padding: 1.25rem 1.5rem; margin: 1.25rem 0; border-radius: 10px; }
+  section.zone.a { background: var(--ea-zone1); }
+  section.zone.b { background: var(--ea-zone2); }
+  h2 { font-size: 1.05rem; margin: 0 0 0.4rem; }
+  h3 { font-size: 0.95rem; margin: 1.4rem 0 0.4rem; }
+  .muted { color: var(--ea-muted); font-size: 0.85rem; }
+  .next-hero { background: var(--ea-zone2); border-left: 4px solid var(--ea-accent); padding: 1rem 1.25rem; border-radius: 6px; }
+  .next-hero .k { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ea-accent); font-weight: 700; }
+  .next-hero .t { font-size: 1.1rem; font-weight: 600; margin: 0.2rem 0; }
+  .warn-list { margin: 0.6rem 0 0; padding: 0; list-style: none; }
+  .warn-list li { color: var(--ea-warn); font-size: 0.9rem; padding: 0.15rem 0; }
+  .warn-list li.bad { color: var(--ea-bad); }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.8rem; }
+  .chip { background: var(--ea-panel); border-radius: 8px; padding: 0.55rem 0.9rem; min-width: 7.5rem; }
+  .chip .v { font-size: 1.15rem; font-weight: 700; display: block; }
+  .chip .l { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ea-muted); }
+  .progress { height: 8px; background: var(--ea-zone3); border-radius: 4px; overflow: hidden; margin-top: 0.5rem; }
+  .progress > div { height: 100%; background: var(--ea-accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ea-muted); padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--ea-line); }
+  td { padding: 0.5rem; border-bottom: 1px solid var(--ea-line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 0.12rem 0.55rem; border-radius: 999px; }
+  .pill.done, .pill.ok { background: var(--color-success-50); color: var(--ea-ok); }
+  .pill.overdue { background: var(--color-error-50); color: var(--ea-bad); }
+  .pill.due_soon { background: var(--color-warning-50); color: var(--ea-warn); }
+  .pill.upcoming, .pill.planned, .pill.not_started, .pill.drafted { background: var(--ea-zone3); color: var(--ea-muted); }
+  .pill.in_progress, .pill.held { background: var(--color-info-50); color: var(--color-info, #2b5d7a); }
+  .pill.approved, .pill.adopted { background: var(--color-success-50); color: var(--ea-ok); }
+  .pill.unverified { background: var(--color-warning-50); color: var(--ea-warn); }
+  .src { font-size: 0.78rem; }
+  .src a { color: var(--ea-accent); }
+  button.act {
+    appearance: none; border: 1px solid var(--ea-line); background: var(--ea-panel);
+    border-radius: 6px; padding: 0.35rem 0.75rem; font-size: 0.82rem; cursor: pointer; color: var(--ea-ink);
+  }
+  button.act:hover { border-color: var(--ea-accent); }
+  button.act.primary { background: var(--ea-accent); border-color: var(--ea-accent); color: var(--color-white); }
+  button.act.danger { color: var(--ea-bad); }
+  button.act:disabled { opacity: 0.5; cursor: default; }
+  input, select, textarea {
+    font: inherit; font-size: 0.88rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--ea-line); border-radius: 6px; background: var(--ea-panel); color: var(--ea-ink);
+  }
+  label.f { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.78rem; color: var(--ea-muted); }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.7rem; }
+  .form-row { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: flex-end; }
+  details { margin: 0.3rem 0; }
+  details > summary { cursor: pointer; font-size: 0.85rem; color: var(--ea-accent); }
+  .step { padding: 0.7rem 0; border-bottom: 1px solid var(--ea-line); }
+  .step:last-child { border-bottom: none; }
+  .step .head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+  .step .head .t { font-weight: 600; }
+  .step .cost { color: var(--ea-muted); font-size: 0.82rem; }
+  .step .why, .step .how { font-size: 0.86rem; margin: 0.25rem 0 0; }
+  .step .why { color: var(--ea-muted); }
+  .step form { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+  pre.plain {
+    white-space: pre-wrap; font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.82rem;
+    background: var(--ea-panel); border: 1px solid var(--ea-line); border-radius: 8px; padding: 1rem; max-height: 30rem; overflow: auto;
+  }
+  #toast { position: fixed; bottom: 1.2rem; right: 1.2rem; z-index: 50; display: flex; flex-direction: column; gap: 0.5rem; }
+  #toast div { background: var(--ea-ink); color: var(--color-white); padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.85rem; }
+  #toast div.err { background: var(--ea-bad); }
+  .empty { color: var(--ea-muted); font-size: 0.9rem; padding: 0.8rem 0; }
+  .load { color: var(--ea-muted); padding: 2rem 0; text-align: center; }
+  .ready-no { color: var(--ea-bad); font-weight: 600; }
+  .ready-yes { color: var(--ea-ok); font-weight: 600; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Executive Administration</h1>
+  <div class="sub">The organization's office — formation, compliance, board, policies, books, grants. Private. <span id="verified"></span></div>
+</header>
+<nav class="tabs" id="tabs"></nav>
+<main id="main"><div class="load">Loading the office…</div></main>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = (s, el) => (el || document).querySelector(s);
+const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
+const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = (c) => c == null ? "varies" : (c < 0 ? "-" : "") + "$" + (Math.abs(c) / 100).toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
+function toast(msg, err) {
+  const d = document.createElement("div");
+  if (err) d.className = "err";
+  d.textContent = msg;
+  $("#toast").appendChild(d);
+  setTimeout(() => d.remove(), 5000);
+}
+
+async function api(path, opts) {
+  const r = await fetch("api/" + path, Object.assign({headers: {"Content-Type": "application/json"}}, opts || {}));
+  if (r.status === 404) { toast("Not signed in at the admin level — reload after elevating.", true); throw new Error("404"); }
+  if (!r.ok) {
+    let detail = r.status + " " + r.statusText;
+    try { const j = await r.json(); if (j && j.detail) detail = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail); } catch (e) {}
+    throw new Error(detail);
+  }
+  const ct = r.headers.get("content-type") || "";
+  return ct.includes("json") ? r.json() : r.text();
+}
+
+const S = { overview: null, knowledge: null, board: [], meetings: [], actions: [], policies: [], ledger: null, readiness: null };
+
+const TABS = [
+  ["next", "Next"],
+  ["profile", "Profile"],
+  ["formation", "Formation"],
+  ["calendar", "Calendar"],
+  ["board", "Board"],
+  ["meetings", "Meetings"],
+  ["actions", "Written actions"],
+  ["policies", "Policies"],
+  ["books", "Books"],
+  ["grants", "Grants"],
+  ["sources", "Sources"],
+];
+let curTab = "next";
+
+function srcLinks(idsOrSources) {
+  const srcs = (idsOrSources || []).map(s => s.url ? s : (S.knowledge && S.knowledge.sources[s]) || null).filter(Boolean);
+  if (!srcs.length) return "";
+  return '<div class="src">' + srcs.map(s => s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>` : esc(s.label)).join(" · ") + "</div>";
+}
+const pill = (status, label) => `<span class="pill ${esc(status)}">${esc(label || status.replace(/_/g, " "))}</span>`;
+const vbadge = (item) => item && item.verified === false ? ' <span class="pill unverified">confirm on source</span>' : "";
+
+/* ============================== renderers ============================== */
+
+function renderNext() {
+  const o = S.overview;
+  const n = o.next_action || {};
+  const s = o.ledger_summary || {};
+  const att = (o.attention || []).map(a => `<li>${esc(a)}</li>`).join("");
+  const ready = (o.grant_readiness || []).filter(g => g.ready).length;
+  const total = (o.grant_readiness || []).length;
+  return `
+  <section class="zone a">
+    <h2>What needs attention first</h2>
+    <div class="muted">${esc(o.objective || "")}</div>
+    <div class="next-hero" style="margin-top:0.8rem">
+      <div class="k">Next action${n.due ? " — due " + esc(n.due) : ""}</div>
+      <div class="t">${esc(n.title || "—")}</div>
+      <div>${esc(n.detail || "")}</div>
+    </div>
+    ${att ? `<ul class="warn-list">${att}</ul>` : ""}
+  </section>
+  <section class="zone b">
+    <h2>Where it stands</h2>
+    <div>${esc(o.where_it_stands || "")}</div>
+    <div class="progress"><div style="width:${o.formation_progress && o.formation_progress.total ? Math.round(100 * o.formation_progress.done / o.formation_progress.total) : 0}%"></div></div>
+    <div class="muted">Formation ${o.formation_progress ? o.formation_progress.done + " of " + o.formation_progress.total : "—"} · Grant readiness ${ready} of ${total}</div>
+    <div class="chips">
+      <div class="chip"><span class="v">${money(s.total_revenue_cents)}</span><span class="l">Revenue FYTD</span></div>
+      <div class="chip"><span class="v">${money(s.total_expenses_cents)}</span><span class="l">Expenses FYTD</span></div>
+      <div class="chip"><span class="v">${money(s.cash_balance_cents)}</span><span class="l">Cash</span></div>
+      <div class="chip"><span class="v">${esc((s.form_990 || {}).form || "—")}</span><span class="l">990 class this year</span></div>
+      <div class="chip"><span class="v">${s.contributions_cents != null ? money(s.contributions_cents) : "—"}</span><span class="l">Contributions ($25k AG line)</span></div>
+    </div>
+  </section>
+  <section class="zone a">
+    <h2>Coming due</h2>
+    ${calTable((o.calendar || []).filter(c => c.status !== "done").slice(0, 8), false)}
+  </section>`;
+}
+
+function calTable(items, withDone) {
+  if (!items.length) return '<div class="empty">Nothing on the calendar.</div>';
+  return `<table><thead><tr><th></th><th>Obligation</th><th>Due</th><th>Cost</th><th></th></tr></thead><tbody>` +
+    items.map(c => `<tr>
+      <td>${pill(c.status)}</td>
+      <td><div>${esc(c.title)}${vbadge(c)}</div><div class="muted">${esc(c.why || "")}</div>${c.source_ids ? srcLinks(c.source_ids) : ""}</td>
+      <td>${esc(c.due || "—")}${c.done_on ? `<div class="muted">filed ${esc(c.done_on)}</div>` : ""}</td>
+      <td>${c.cost_cents != null ? money(c.cost_cents) : ""}</td>
+      <td>${withDone && c.status !== "done" ? `<button class="act" data-filed="${esc(c.id)}">Mark filed</button>` : ""}</td>
+    </tr>`).join("") + `</tbody></table>`;
+}
+
+const PROFILE_FIELDS = [
+  ["legal_name", "Legal name"], ["mn_file_number", "MN file number"], ["formation_date", "Formation date (filed)"],
+  ["fiscal_year_end", "Fiscal year end (MM-DD)"], ["ein", "EIN"], ["form_1023ez_filed_on", "1023-EZ filed on"],
+  ["determination_date", "IRS determination date"], ["public_charity_basis", "Public charity basis"],
+  ["ag_registered", "AG registered (true/false)"], ["ag_registered_on", "AG registered on"],
+  ["sales_tax_exempt", "MN sales tax exempt (true/false)"], ["has_employees", "Has employees (true/false)"],
+  ["registered_office", "Registered office"], ["president_name", "President"], ["treasurer_name", "Treasurer"],
+  ["secretary_name", "Secretary"], ["bylaws_quorum", "Bylaws quorum (number)"], ["articles_allow_less_than_unanimous_written_action", "Articles allow non-unanimous written action (true/false)"],
+  ["other_assets_cents", "Non-cash assets (cents)"], ["budget_approved_on", "Budget approved on"],
+  ["mission_written", "Mission written (true/false)"], ["fiscal_sponsor", "Fiscal sponsor (if any)"],
+];
+
+function renderProfile() {
+  const p = S.overview.profile || {};
+  return `<section class="zone a">
+    <h2>Organization profile</h2>
+    <div class="muted">These facts drive the calendar, the summaries, and the readiness checklist. Booleans are <code>true</code>/<code>false</code>.</div>
+    <form id="profileForm" class="form-grid" style="margin-top:0.8rem">
+      ${PROFILE_FIELDS.map(([k, label]) => `<label class="f">${esc(label)}<input name="${k}" value="${esc(p[k] == null ? "" : p[k])}"></label>`).join("")}
+    </form>
+    <div style="margin-top:0.9rem"><button class="act primary" id="saveProfile">Save profile</button></div>
+  </section>`;
+}
+
+function renderFormation() {
+  const roadmap = S.overview.roadmap || [];
+  const k = S.knowledge || {};
+  return `<section class="zone a">
+    <h2>Formation roadmap — Minnesota then federal</h2>
+    <div class="muted">Rules verified ${esc(k.verified_on || "")}; fees verified ${esc(k.fees_verified_on || "")}. Every step links its source.</div>
+    ${roadmap.map(ph => `
+      <h3>${esc(ph.title)} <span class="muted">— ${esc(ph.summary)}</span></h3>
+      ${ph.steps.map(s => `
+        <div class="step" data-step="${esc(s.id)}">
+          <div class="head">${pill(s.status)}<span class="t">${esc(s.title)}</span><span class="cost">${s.cost_cents != null ? money(s.cost_cents) : ""}</span>${vbadge(s)}</div>
+          <div class="why">${esc(s.why)}</div>
+          <div class="how"><strong>How:</strong> ${esc(s.how)}</div>
+          ${srcLinks(s.sources)}
+          <form class="stepForm">
+            <select name="status">${["not_started","in_progress","done","not_needed"].map(v => `<option ${v === s.status ? "selected" : ""}>${v}</option>`).join("")}</select>
+            <input type="date" name="done_on" value="${esc(s.done_on || "")}" title="Done on">
+            <input name="note" placeholder="note" value="${esc(s.note || "")}" size="22">
+            <button class="act" type="submit">Save</button>
+          </form>
+        </div>`).join("")}
+    `).join("")}
+  </section>
+  <section class="zone b">
+    <h2>Cost paths</h2>
+    ${(k.cost_paths || []).map(p => `
+      <details ${p.recommended ? "open" : ""}>
+        <summary>${esc(p.title)} — ${p.total_cents != null ? money(p.total_cents) : "varies"}${p.recommended ? " (recommended)" : ""}</summary>
+        <table><tbody>${(p.lines || []).map(l => `<tr><td>${esc(l.label)}</td><td>${l.cents != null ? money(l.cents) : "varies"}</td></tr>`).join("")}</tbody></table>
+        <div class="muted" style="margin-top:0.3rem">${esc(p.tradeoff)}</div>${srcLinks(p.sources)}
+      </details>`).join("")}
+  </section>`;
+}
+
+function renderCalendar() {
+  const items = S.overview.calendar || [];
+  return `<section class="zone a">
+    <h2>Compliance calendar</h2>
+    <div class="muted">Computed from the profile and the books. "Confirm on source" items were not re-checked on the verify date.</div>
+    <form id="deadlineForm" class="form-row" style="margin:0.8rem 0">
+      <label class="f">Add a deadline<input name="title" required placeholder="e.g. Grant report to funder"></label>
+      <label class="f">Due<input type="date" name="due" required></label>
+      <label class="f">Note<input name="note" placeholder="optional"></label>
+      <button class="act" type="submit">Add</button>
+    </form>
+    ${calTable(items, true)}
+  </section>`;
+}
+
+function renderBoard() {
+  const b = S.board;
+  const view = b.view || {members: b, directors_in_office: 0, quorum_needed: 0, size_ok: false};
+  const members = view.members || [];
+  return `<section class="zone a">
+    <h2>Board of directors ${view.size_ok ? pill("ok", "size ok") : pill("overdue", "need 3+")}</h2>
+    <div class="muted">${view.directors_in_office} director(s) in office · quorum ${view.quorum_needed} · Minnesota requires at least three directors.</div>
+    <form id="memberForm" class="form-row" style="margin:0.9rem 0">
+      <label class="f">Name<input name="name" required></label>
+      <label class="f">Office<input name="office" placeholder="president / treasurer / secretary"></label>
+      <label class="f">Term start<input type="date" name="term_start"></label>
+      <label class="f">Term end<input type="date" name="term_end"></label>
+      <label class="f">Email<input name="email"></label>
+      <label class="f">COI statement signed<input type="date" name="coi_statement_signed_on"></label>
+      <label class="f">Director?<select name="is_director"><option value="true">yes</option><option value="false">no (officer only)</option></select></label>
+      <button class="act" type="submit">Add member</button>
+    </form>
+    ${members.length ? `<table><thead><tr><th>Name</th><th>Office</th><th>Term</th><th>COI signed</th><th>Director</th><th></th></tr></thead><tbody>
+      ${members.map(m => `<tr><td>${esc(m.name)}</td><td>${esc(m.office || "")}</td><td>${esc(m.term_start || "?")} → ${esc(m.term_end || "open")}</td><td>${esc(m.coi_statement_signed_on || "—")}</td><td>${m.is_director === false ? "no" : "yes"}</td><td><button class="act danger" data-del-member="${esc(m.id)}">Remove</button></td></tr>`).join("")}
+    </tbody></table>` : '<div class="empty">No board members recorded yet.</div>'}
+  </section>`;
+}
+
+function renderMeetings() {
+  const ms = S.meetings.meetings || [];
+  const kinds = (S.knowledge.meeting_kinds || ["organizational","regular","annual","special"]);
+  return `<section class="zone a">
+    <h2>Meetings</h2>
+    <details><summary>Plan a meeting</summary>
+      <form id="meetingForm" class="form-grid" style="margin-top:0.6rem">
+        <label class="f">Date<input type="date" name="meeting_date" required></label>
+        <label class="f">Kind<select name="kind">${kinds.map(k => `<option>${k}</option>`).join("")}</select></label>
+        <label class="f">Location<input name="location" placeholder="place or remote link"></label>
+        <label class="f">Notice sent on<input type="date" name="notice_sent_on"></label>
+        <label class="f">Schedule announced earlier?<select name="schedule_announced"><option value="false">no</option><option value="true">yes</option></select></label>
+        <label class="f">Status<select name="status"><option>planned</option><option>held</option><option>approved</option></select></label>
+        <label class="f" style="grid-column:1/-1">Present (member ids, comma-separated — see Board tab)<input name="present" placeholder="member_..., member_..."></label>
+        <label class="f" style="grid-column:1/-1">Notes<textarea name="notes" rows="2"></textarea></label>
+        <label class="f">Next meeting<input name="next_meeting" placeholder="date or 'same time next quarter'"></label>
+        <div><button class="act" type="submit">Create meeting</button></div>
+      </form>
+    </details>
+    ${ms.length ? `<table><thead><tr><th>Status</th><th>Date</th><th>Kind</th><th>Quorum</th><th>Notice</th><th>Motions</th><th></th></tr></thead><tbody>
+      ${ms.map(m => {
+        const c = m.check || {};
+        return `<tr>
+          <td>${pill(m.status)}</td><td>${esc(m.meeting_date)}</td><td>${esc(m.kind)}</td>
+          <td>${c.present != null ? `${c.present}/${c.directors_in_office} — ${c.quorum_met ? "met" : '<span class="ready-no">not met</span>'}` : "—"}</td>
+          <td>${c.notice ? (c.notice.ok ? pill("ok", "ok") : pill("overdue", "short")) : "—"}</td>
+          <td>${(m.motions || []).length}</td>
+          <td>
+            <button class="act" data-agenda="${esc(m.id)}">Agenda</button>
+            <button class="act" data-minutes="${esc(m.id)}">Minutes</button>
+          </td>
+        </tr>
+        <tr class="detail" data-detail="${esc(m.id)}" style="display:none"><td colspan="7"></td></tr>`;
+      }).join("")}
+    </tbody></table>` : '<div class="empty">No meetings recorded yet.</div>'}
+  </section>`;
+}
+
+function renderActions() {
+  const acts = S.actions.actions || [];
+  return `<section class="zone a">
+    <h2>Written actions (without a meeting)</h2>
+    <div class="muted">Minnesota: every director in office must sign unless the articles allow fewer.</div>
+    <form id="actionForm" class="form-row" style="margin:0.9rem 0">
+      <label class="f" style="flex:1;min-width:280px">Action text<input name="text" required placeholder="e.g. The board approves opening a bank account at…"></label>
+      <label class="f">Date<input type="date" name="action_date"></label>
+      <label class="f">Signed by (member ids)<input name="signed_by" placeholder="member_..., member_..."></label>
+      <button class="act" type="submit">Record</button>
+    </form>
+    ${acts.length ? acts.map(a => {
+      const c = a.check || {};
+      return `<div class="step"><div class="head">${c.effective ? pill("ok", "effective") : pill("overdue", "not effective")}<span class="t">${esc(a.text)}</span></div>
+        <div class="muted">${c.signed} of ${c.needed} signed — ${esc(c.why || "")}${c.missing && c.missing.length ? " · missing: " + esc(c.missing.join(", ")) : ""}</div>
+        <div class="muted">${esc(a.action_date || "")}</div></div>`;
+    }).join("") : '<div class="empty">No written actions recorded.</div>'}
+  </section>`;
+}
+
+function renderPolicies() {
+  const ps = S.policies.policies || [];
+  return `<section class="zone a">
+    <h2>Policies</h2>
+    <div class="muted">The set Form 990 Part VI and funders ask about. Outlines are drafting checklists.</div>
+    ${ps.map(p => `
+      <div class="step">
+        <div class="head">${pill(p.status)}<span class="t">${esc(p.title)}</span>${p.adopted_on ? `<span class="muted">adopted ${esc(p.adopted_on)}</span>` : ""}</div>
+        <div class="why">${esc(p.why)} <em>${esc(p.required_by || "")}</em></div>
+        <details><summary>Outline</summary><ul>${(p.outline || []).map(o => `<li>${esc(o)}</li>`).join("")}</ul>${srcLinks(p.sources)}</details>
+        <form class="stepForm policyForm" data-policy="${esc(p.id)}">
+          <select name="status">${["not_started","drafted","adopted"].map(v => `<option ${v === p.status ? "selected" : ""}>${v}</option>`).join("")}</select>
+          <input type="date" name="adopted_on" value="${esc(p.adopted_on || "")}" title="Adopted on">
+          <input name="location" placeholder="where the adopted copy lives" value="${esc(p.location || "")}" size="24">
+          <input type="date" name="next_review" value="${esc(p.next_review || "")}" title="Next review">
+          <button class="act" type="submit">Save</button>
+        </form>
+      </div>`).join("")}
+  </section>`;
+}
+
+function renderBooks() {
+  const s = S.ledgerSummary || {};
+  const entries = (S.ledger && S.ledger.entries) || [];
+  const ack = (S.ledger && S.ledger.needs_acknowledgment) || [];
+  const inc = (S.knowledge.income_categories || {});
+  const exp = (S.knowledge.expense_categories || {});
+  const fcls = (S.knowledge.functional_classes || {});
+  return `<section class="zone a">
+    <h2>The books — fiscal year ${esc(s.fiscal_year_start || "")} → ${esc(s.fiscal_year_end || "")}</h2>
+    <div class="chips">
+      <div class="chip"><span class="v">${money(s.total_revenue_cents)}</span><span class="l">Revenue</span></div>
+      <div class="chip"><span class="v">${money(s.total_expenses_cents)}</span><span class="l">Expenses</span></div>
+      <div class="chip"><span class="v">${money(s.net_cents)}</span><span class="l">Net</span></div>
+      <div class="chip"><span class="v">${money(s.cash_balance_cents)}</span><span class="l">Cash</span></div>
+      <div class="chip"><span class="v">${s.program_share_pct != null ? s.program_share_pct + "%" : "—"}</span><span class="l">Program share</span></div>
+      <div class="chip"><span class="v">${esc((s.form_990 || {}).form || "—")}</span><span class="l">990 class</span></div>
+    </div>
+    <div class="muted" style="margin-top:0.4rem">${esc((s.form_990 || {}).why || "")} ${esc((s.form_990 || {}).note || "")}</div>
+    ${(s.fund_balances_cents && Object.keys(s.fund_balances_cents).length) ? `<div class="muted">Funds: ${Object.entries(s.fund_balances_cents).map(([f, v]) => `${esc(f)} ${money(v)}`).join(" · ")}</div>` : ""}
+    ${s.form_1023ez_check ? `<div class="muted">1023-EZ check: ${esc(s.form_1023ez_check.why)}</div>` : ""}
+    <div class="muted">${esc(s.contributions_note || "")} ${esc(s.assets_note || "")}</div>
+    <div style="margin-top:0.5rem"><a class="act" href="api/ledger/export.csv" style="text-decoration:none;display:inline-block">Export CSV</a></div>
+  </section>
+  <section class="zone b">
+    <h2>Record money</h2>
+    <form id="entryForm" class="form-grid">
+      <label class="f">Date<input type="date" name="entry_date" required value="${todayISO()}"></label>
+      <label class="f">Kind<select name="kind" id="entryKind"><option value="income">income</option><option value="expense">expense</option></select></label>
+      <label class="f">Amount ($)<input name="amount" type="number" step="0.01" min="0.01" required placeholder="0.00"></label>
+      <label class="f">Category<select name="category" id="entryCat">${Object.entries(inc).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("")}</select></label>
+      <label class="f" id="fclsWrap" style="display:none">Functional class<select name="functional_class">${Object.entries(fcls).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("")}</select></label>
+      <label class="f">Fund<input name="fund" value="unrestricted" placeholder="unrestricted or restricted:name"></label>
+      <label class="f">From / to<input name="counterparty" placeholder="donor, vendor, funder"></label>
+      <label class="f">Goods/services value ($)<input name="goods_services" type="number" step="0.01" min="0" value="0"></label>
+      <label class="f">Reference<input name="reference" placeholder="check #, receipt #"></label>
+      <label class="f" style="grid-column:1/-1">Description<input name="description" placeholder="what this was"></label>
+      <div><button class="act primary" type="submit">Record entry</button></div>
+    </form>
+    <template id="catIncome">${Object.entries(inc).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("")}</template>
+    <template id="catExpense">${Object.entries(exp).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("")}</template>
+  </section>
+  <section class="zone a">
+    <h2>Donor receipts needed ${ack.length ? pill("due_soon", ack.length) : pill("ok", "none")}</h2>
+    ${ack.length ? `<table><tbody>${ack.map(a => `<tr><td>${esc(a.entry_date)}</td><td>${esc(a.counterparty || "—")}</td><td>${money(a.amount_cents)}</td><td>${esc(a.reason)}</td><td><button class="act" data-ack="${esc(a.id)}">Letter</button></td></tr>`).join("")}</tbody></table>` : '<div class="empty">Every qualifying gift has a written acknowledgment recorded.</div>'}
+    <pre class="plain" id="ackLetter" style="display:none"></pre>
+  </section>
+  <section class="zone b">
+    <h2>Entries (${entries.length})</h2>
+    ${entries.length ? `<table><thead><tr><th>Date</th><th></th><th>Amount</th><th>Category</th><th>Fund</th><th>From/to</th><th>Description</th><th></th></tr></thead><tbody>
+      ${entries.map(e => `<tr><td>${esc(e.entry_date)}</td><td>${e.kind === "income" ? "in" : "out"}</td><td>${money(e.amount_cents)}</td><td>${esc(e.category)}${e.functional_class ? ` · ${esc(e.functional_class)}` : ""}</td><td>${esc(e.fund || "unrestricted")}</td><td>${esc(e.counterparty || "")}</td><td>${esc(e.description || "")}${e.goods_services_cents ? ` <span class="muted">(goods ${money(e.goods_services_cents)})</span>` : ""}${e.acknowledged_on ? ` <span class="muted">· acked ${esc(e.acknowledged_on)}</span>` : ""}</td><td><button class="act danger" data-del-entry="${esc(e.id)}">Delete</button></td></tr>`).join("")}
+    </tbody></table>` : '<div class="empty">No entries yet — record the first dollar in or out above.</div>'}
+  </section>`;
+}
+
+function renderGrants() {
+  const g = S.readiness || {items: [], ready: 0, total: 0, pipeline_note: ""};
+  return `<section class="zone a">
+    <h2>Grant readiness — ${g.ready} of ${g.total}</h2>
+    ${(g.items || []).map(i => `<div class="step"><div class="head">${i.ready ? '<span class="ready-yes">✓</span>' : '<span class="ready-no">✗</span>'}<span class="t">${esc(i.title)}</span></div><div class="why">${esc(i.why)}</div>${srcLinks(i.sources)}</div>`).join("")}
+    <div class="muted" style="margin-top:0.6rem">${esc(g.pipeline_note || "")}</div>
+  </section>`;
+}
+
+function renderSources() {
+  const k = S.knowledge || {};
+  return `<section class="zone a">
+    <h2>Honesty notes</h2>
+    <ul>${(k.honesty_notes || []).map(n => `<li>${esc(n)}</li>`).join("")}</ul>
+    <h3>Every source used by this module</h3>
+    <table><tbody>${Object.values(k.sources || {}).map(s => `<tr><td>${esc(s.label)}</td><td>${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a>` : "—"}</td></tr>`).join("")}</tbody></table>
+    <div class="muted">Rules verified ${esc(k.verified_on || "")} · fees verified ${esc(k.fees_verified_on || "")}. This is organizational guidance for Semptify's own entity, not legal advice.</div>
+  </section>`;
+}
+
+/* ============================== wiring ============================== */
+
+async function loadOverview() {
+  const [o, k] = await Promise.all([api("overview"), api("knowledge")]);
+  S.overview = o; S.knowledge = k;
+  $("#verified").textContent = `rules verified ${k.verified_on} · fees ${k.fees_verified_on}`;
+}
+
+async function show(tab) {
+  curTab = tab;
+  $$("nav.tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  const main = $("#main");
+  main.innerHTML = '<div class="load">Loading…</div>';
+  try {
+    if (tab === "next") main.innerHTML = renderNext();
+    else if (tab === "profile") main.innerHTML = renderProfile();
+    else if (tab === "formation") main.innerHTML = renderFormation();
+    else if (tab === "calendar") main.innerHTML = renderCalendar();
+    else if (tab === "board") { S.board = await api("board"); main.innerHTML = renderBoard(); }
+    else if (tab === "meetings") { S.meetings = await api("meetings"); main.innerHTML = renderMeetings(); }
+    else if (tab === "actions") { S.actions = await api("written-actions"); main.innerHTML = renderActions(); }
+    else if (tab === "policies") { S.policies = await api("policies"); main.innerHTML = renderPolicies(); }
+    else if (tab === "books") { const [l, sm] = await Promise.all([api("ledger"), api("ledger/summary")]); S.ledger = l; S.ledgerSummary = sm; main.innerHTML = renderBooks(); }
+    else if (tab === "grants") { S.readiness = await api("grant-readiness"); main.innerHTML = renderGrants(); }
+    else if (tab === "sources") main.innerHTML = renderSources();
+  } catch (e) {
+    main.innerHTML = `<div class="empty">Could not load: ${esc(e.message)}</div>`;
+  }
+  wire(main);
+}
+
+function wire(main) {
+  $$("nav.tabs button").forEach(b => b.onclick = () => show(b.dataset.tab));
+
+  const pf = $("#profileForm", main);
+  if (pf) $("#saveProfile", main).onclick = async () => {
+    const values = {};
+    new FormData(pf).forEach((v, k) => { if (String(v).trim() !== "") values[k] = v; });
+    try { await api("profile", {method: "PUT", body: JSON.stringify({values})}); toast("Profile saved."); await loadOverview(); show("profile"); }
+    catch (e) { toast(e.message, true); }
+  };
+
+  $$(".stepForm", main).forEach(f => {
+    const stepDiv = f.closest("[data-step]");
+    const polDiv = f.dataset.policy ? f : null;
+    f.onsubmit = async (ev) => {
+      ev.preventDefault();
+      const d = Object.fromEntries(new FormData(f).entries());
+      try {
+        if (stepDiv) {
+          await api("steps/" + stepDiv.dataset.step, {method: "PUT", body: JSON.stringify({status: d.status, done_on: d.done_on || null, note: d.note || ""})});
+          toast("Step saved."); await loadOverview(); show("formation");
+        } else if (polDiv) {
+          await api("policies/" + f.dataset.policy, {method: "PUT", body: JSON.stringify({status: d.status, adopted_on: d.adopted_on || null, location: d.location || "", next_review: d.next_review || null})});
+          toast("Policy saved."); show("policies");
+        }
+      } catch (e) { toast(e.message, true); }
+    };
+  });
+
+  const df = $("#deadlineForm", main);
+  if (df) df.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const d = Object.fromEntries(new FormData(df).entries());
+    try { await api("deadlines", {method: "POST", body: JSON.stringify(d)}); toast("Deadline added."); await loadOverview(); show("calendar"); }
+    catch (e) { toast(e.message, true); }
+  };
+  $$("[data-filed]", main).forEach(b => b.onclick = async () => {
+    try { await api("calendar/" + encodeURIComponent(b.dataset.filed) + "/done", {method: "POST", body: JSON.stringify({})}); toast("Marked filed."); await loadOverview(); show(curTab); }
+    catch (e) { toast(e.message, true); }
+  });
+
+  const mf = $("#memberForm", main);
+  if (mf) mf.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const d = Object.fromEntries(new FormData(mf).entries());
+    d.is_director = d.is_director === "true";
+    for (const k of ["term_start","term_end","coi_statement_signed_on"]) if (!d[k]) d[k] = null;
+    try { await api("board", {method: "POST", body: JSON.stringify(d)}); toast("Member added."); show("board"); }
+    catch (e) { toast(e.message, true); }
+  };
+  $$("[data-del-member]", main).forEach(b => b.onclick = async () => {
+    if (!confirm("Remove this board member?")) return;
+    try { await api("board/" + b.dataset.delMember, {method: "DELETE"}); show("board"); } catch (e) { toast(e.message, true); }
+  });
+
+  const mt = $("#meetingForm", main);
+  if (mt) mt.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const d = Object.fromEntries(new FormData(mt).entries());
+    d.schedule_announced = d.schedule_announced === "true";
+    d.present = (d.present || "").split(",").map(s => s.trim()).filter(Boolean);
+    if (!d.notice_sent_on) d.notice_sent_on = null;
+    try { await api("meetings", {method: "POST", body: JSON.stringify(d)}); toast("Meeting created."); show("meetings"); }
+    catch (e) { toast(e.message, true); }
+  };
+  $$("[data-agenda]", main).forEach(b => b.onclick = async () => {
+    const row = $(`tr.detail[data-detail="${b.dataset.agenda}"] td`, main);
+    try { const j = await api(`meetings/${b.dataset.agenda}/agenda`); row.parentElement.style.display = ""; row.innerHTML = `<ol>${(j.agenda || []).map(a => `<li>${esc(a)}</li>`).join("")}</ol>`; }
+    catch (e) { toast(e.message, true); }
+  });
+  $$("[data-minutes]", main).forEach(b => b.onclick = async () => {
+    const row = $(`tr.detail[data-detail="${b.dataset.minutes}"] td`, main);
+    try { const t = await api(`meetings/${b.dataset.minutes}/minutes`); row.parentElement.style.display = ""; row.innerHTML = `<pre class="plain">${esc(t)}</pre>`; }
+    catch (e) { toast(e.message, true); }
+  });
+
+  const af = $("#actionForm", main);
+  if (af) af.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const d = Object.fromEntries(new FormData(af).entries());
+    d.signed_by = (d.signed_by || "").split(",").map(s => s.trim()).filter(Boolean);
+    if (!d.action_date) d.action_date = null;
+    try { await api("written-actions", {method: "POST", body: JSON.stringify(d)}); toast("Action recorded."); show("actions"); }
+    catch (e) { toast(e.message, true); }
+  };
+
+  const ek = $("#entryKind", main);
+  if (ek) ek.onchange = () => {
+    const isExp = ek.value === "expense";
+    $("#entryCat", main).innerHTML = $(isExp ? "#catExpense" : "#catIncome", main).innerHTML;
+    $("#fclsWrap", main).style.display = isExp ? "" : "none";
+  };
+  const ef = $("#entryForm", main);
+  if (ef) ef.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const d = Object.fromEntries(new FormData(ef).entries());
+    const body = {
+      entry_date: d.entry_date, kind: d.kind,
+      amount_cents: Math.round(parseFloat(d.amount) * 100),
+      category: d.category,
+      functional_class: d.kind === "expense" ? d.functional_class : null,
+      fund: d.fund || "unrestricted",
+      counterparty: d.counterparty || null,
+      description: d.description || null,
+      goods_services_cents: Math.round(parseFloat(d.goods_services || "0") * 100),
+      reference: d.reference || null,
+    };
+    try { await api("ledger", {method: "POST", body: JSON.stringify(body)}); toast("Entry recorded."); show("books"); }
+    catch (e) { toast(e.message, true); }
+  };
+  $$("[data-del-entry]", main).forEach(b => b.onclick = async () => {
+    if (!confirm("Delete this ledger entry?")) return;
+    try { await api("ledger/" + b.dataset.delEntry, {method: "DELETE"}); show("books"); } catch (e) { toast(e.message, true); }
+  });
+  $$("[data-ack]", main).forEach(b => b.onclick = async () => {
+    try { const t = await api(`ledger/${b.dataset.ack}/acknowledgment`); const pre = $("#ackLetter", main); pre.style.display = ""; pre.textContent = t; }
+    catch (e) { toast(e.message, true); }
+  });
+}
+
+/* ============================== boot ============================== */
+
+$("#tabs").innerHTML = TABS.map(([id, label]) => `<button data-tab="${id}">${label}</button>`).join("");
+loadOverview()
+  .then(() => show("next"))
+  .catch(e => { $("#main").innerHTML = `<div class="empty">Could not load the office (${esc(e.message)}). If you just signed in, reload.</div>`; });
+</script>
+</body>
+</html>

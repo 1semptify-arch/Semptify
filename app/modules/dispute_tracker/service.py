@@ -19,7 +19,6 @@ fee_type/amount_cents/period/effective_date (datetime for strftime).
 import logging
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Any
 
 from app.core.id_gen import make_id
 from app.core.overlay_types import OverlayType

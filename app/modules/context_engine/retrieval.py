@@ -18,7 +18,7 @@ from sqlalchemy import Float, and_, select
 from sqlalchemy.sql.expression import bindparam
 
 from app.core.database import get_engine
-from app.modules.context_engine.embedding_model import embed_text, get_embedding_model
+from app.modules.context_engine.embedding_model import embed_text
 from app.modules.context_engine.explanation_entries import (
     ContextExplanationEntry,
     get_explanation_entries,
@@ -151,7 +151,6 @@ async def _score_with_pgvector(
     Returns ``None`` if the pgvector path cannot be used so the caller can
     fall back to the pure-Python path.
     """
-    from sqlalchemy.ext.asyncio import AsyncSession
 
     try:
         from app.core.database import get_db_session

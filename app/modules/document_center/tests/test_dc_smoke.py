@@ -142,7 +142,6 @@ def test_dc_verification_status_for_doc_emits_locked_names():
 
 
 def _mock_doc(vault_id, review_state_json="{}", registry_id=None, processed=False):
-    import json
     from unittest.mock import MagicMock
 
     doc = MagicMock()

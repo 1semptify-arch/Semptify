@@ -11,12 +11,13 @@
 {% block styles %}
 {{ super() }}
 <style>
-    .yv-promise {
+    .yv-promise,
+    .yv-standard {
         background: var(--bg-surface); border-radius: var(--radius-block);
         padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
     }
-    .yv-promise p { margin: 0 0 0.6rem 0; }
-    .yv-promise p:last-child { margin-bottom: 0; }
+    .yv-promise p, .yv-standard p { margin: 0 0 0.6rem 0; }
+    .yv-promise p:last-child, .yv-standard p:last-child { margin-bottom: 0; }
 
     .yv-journey { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0 0.25rem; padding: 0; }
     .yv-journey li {
@@ -84,6 +85,28 @@
     .yv-response { font-size: 0.9rem; color: var(--text-secondary); margin: 0.25rem 0 0 1rem; border-left: 3px solid var(--color-primary); padding-left: 0.75rem; }
     .yv-responder { font-size: 0.8rem; color: var(--text-muted); margin: 0.25rem 0 0 1rem; font-style: italic; }
     .yv-pending { font-size: 0.85rem; color: var(--text-muted); font-style: italic; }
+
+    .yv-flag { margin-top: 0.35rem; }
+    .yv-flag summary {
+        font-size: 0.78rem; color: var(--text-muted); cursor: pointer;
+        list-style: none; display: inline-block;
+        border-bottom: 1px dotted var(--border-color);
+    }
+    .yv-flag summary::-webkit-details-marker { display: none; }
+    .yv-flag summary:hover { color: var(--color-accent); }
+    .yv-flag-body { margin-top: 0.5rem; }
+    .yv-flag-why { font-size: 0.82rem; color: var(--text-secondary); margin: 0 0 0.4rem; }
+    .yv-flag-body label { display: block; font-size: 0.84rem; color: var(--text-secondary); padding: 0.15rem 0; cursor: pointer; }
+    .yv-flag-body input { margin-right: 0.4rem; accent-color: var(--color-primary); }
+    .yv-flag-send {
+        margin-top: 0.5rem; font-size: 0.82rem; font-weight: 600;
+        color: var(--color-primary); background: var(--bg-surface);
+        border: 1px solid var(--border-color); border-radius: var(--radius-input);
+        padding: 0.35rem 0.9rem; cursor: pointer; font-family: inherit;
+    }
+    .yv-flag-send:hover { border-color: var(--color-primary); }
+    .yv-flag-send:disabled { opacity: 0.6; cursor: default; }
+    .yv-flag-done { font-size: 0.8rem; color: var(--color-success-800); margin-top: 0.35rem; }
 
     @media (max-width: 640px) {
         .yv-journey { flex-direction: column; align-items: flex-start; }
@@ -181,6 +204,17 @@
         No name. No email. Posts appear publicly after a review pass — that's how
         we stay transparent without tracking anyone.
     </p>
+    <div class="yv-standard">
+        <p><strong>The review standard.</strong> Every post gets a human review
+        before it appears. Review removes only what hurts people: personal
+        details — stripped out, with the rest of the post still going up —
+        threats, harassment, hate (racism, antisemitism, bigotry of any kind),
+        spam, and anything illegal.</p>
+        <p><strong>Everything else stays.</strong> Opinions about the bill —
+        support, criticism, anything in between — are never removed for being
+        wrong or unwelcome. Disagreement is the point; it's how this gets
+        better.</p>
+    </div>
 </section>
 
 <section class="section" id="board">
@@ -264,10 +298,46 @@
                         ? '<p class="yv-response">' + esc(p.response) + '</p>' +
                           (p.responder ? '<p class="yv-responder">— ' + esc(p.responder) + '</p>' : '')
                         : '<p class="yv-pending">Awaiting an answer — questions stay visible until someone qualified responds.</p>') +
+                    '<details class="yv-flag"><summary>Report a problem</summary>' +
+                    '<div class="yv-flag-body">' +
+                    '<p class="yv-flag-why">Why does it break the review standard?</p>' +
+                    '<label><input type="radio" name="flag-' + esc(p.id) + '" value="personal_details"> Someone\u2019s personal details — a name, address, or case info</label>' +
+                    '<label><input type="radio" name="flag-' + esc(p.id) + '" value="threat"> A threat, harassment, or someone\u2019s info posted to hurt them</label>' +
+                    '<label><input type="radio" name="flag-' + esc(p.id) + '" value="hate"> Hate or bigotry aimed at a group</label>' +
+                    '<label><input type="radio" name="flag-' + esc(p.id) + '" value="spam"> Spam, advertising, or junk</label>' +
+                    '<label><input type="radio" name="flag-' + esc(p.id) + '" value="illegal"> Something illegal</label>' +
+                    '<label><input type="radio" name="flag-' + esc(p.id) + '" value="impersonation"> Pretending to be a real person or group</label>' +
+                    '<label><input type="radio" name="flag-' + esc(p.id) + '" value="other" checked> Something else</label>' +
+                    '<button class="yv-flag-send" onclick="yvFlag(this,\'' + esc(p.id) + '\')">Send report</button>' +
+                    '</div></details>' +
                     '</li>'
                 ).join('');
             }
         })
         .catch(() => {});
+
+    function yvFlag(btn, id) {
+        const box = btn.closest('.yv-flag-body');
+        const sel = box.querySelector('input[type="radio"]:checked');
+        btn.disabled = true;
+        fetch('/api/voice-posts/' + encodeURIComponent(id) + '/flag', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: sel.value })
+        })
+        .then(r => {
+            if (r.ok) {
+                btn.closest('.yv-flag').outerHTML =
+                    '<p class="yv-flag-done">Reported — a person will take another look. Thank you.</p>';
+            } else {
+                btn.disabled = false;
+                btn.textContent = 'Send report — try again';
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.textContent = 'Send report — try again';
+        });
+    }
 </script>
 {% endblock %}

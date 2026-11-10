@@ -896,7 +896,6 @@ async def dc_view_document(vault_id: str, request: Request):
     renders it directly (built-in PDF viewer, image renderer, etc.).
     Uses cookie auth — the iframe is same-origin so cookies are sent automatically.
     """
-    from fastapi.responses import Response
 
     user_id = _auth(request)
     if not user_id:

@@ -189,6 +189,9 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.legal_intel.register",
     # Info Donation: post-resolution opt-in info donation (CORE tier).
     "app.modules.info_donation.register",
+    # Executive Administration: the org's own nonprofit back office (DEV tier,
+    # admin-elevation gated at /admin/executive).
+    "app.modules.executive_admin.register",
     # Services with contracts
     "app.services.unified_overlay_manager",
     "app.services.communication_service",

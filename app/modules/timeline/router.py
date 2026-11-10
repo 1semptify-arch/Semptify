@@ -1023,9 +1023,9 @@ async def get_date_range_info(
         vault_row = vault_result.first()
 
         # Combine all
-        all_event = [evt_min] + ([vault_row[0]] if vault_row else [])
-        all_record = [vault_row[2] if vault_row else None]
-        all_entry = [doc_min, evt_min] + ([vault_row[4]] if vault_row else [])
+        all_event = [evt_min, evt_max] + (list(vault_row[0:2]) if vault_row else [])
+        all_record = list(vault_row[2:4]) if vault_row else []
+        all_entry = [doc_min, doc_max, evt_min, evt_max] + (list(vault_row[4:6]) if vault_row else [])
 
         valid_event = [d for d in all_event if d]
         valid_record = [d for d in all_record if d]

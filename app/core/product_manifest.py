@@ -1270,6 +1270,23 @@ _register(
     lifecycle="dev_only",
     dev_notes="Thin wrapper that mounts the legal_filing router from app.modules.legal_filing. 5 endpoints under /api/legal-filing.",
 )
+
+# Executive Administration — the org's own nonprofit back office (Brad,
+# 2026-11-08): MN+federal 501(c)(3) formation roadmap, compliance calendar,
+# board/meetings/minutes, policies, books of record (990 classes, restricted
+# funds, donor receipts), grant readiness. Admin-elevation gated at
+# /admin/executive; also allow-listed for DEPLOY_TARGET=render_mvp so it
+# lives privately on semptify.org behind login + the /admin/* identity wall.
+_register(
+    "app.modules.executive_admin.router",
+    prefix="/admin/executive",
+    tags=("Executive Admin",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    requires_role=("admin",),
+    dev_notes="Org-level records only (exec_ledger_entries, exec_records) — never tenant data. Page GET / redirects to /admin/login when not elevated; every /api/* route answers 404 without elevation cookie or admin token.",
+    log_message="Executive Admin router connected — /admin/executive (elevation-gated)",
+)
 # =============================================================================
 # UPL Matrix — Conceptual module registrations
 # =============================================================================
@@ -1483,13 +1500,20 @@ def get_mvp_allowed_modules() -> frozenset[str]:
     - All ProductTier.CORE router modules are included (tenant-rights essentials).
     - app.modules.intake.router is included even though it is EXTENDED, because
       Pass 1 document intake (OCR + pattern extraction) is part of MVP.
+    - app.modules.executive_admin.router is included even though it is DEV,
+      because Executive Administration lives privately on semptify.org
+      (Brad, 2026-11-08 — supersedes "keep admin off render_mvp" for this
+      module only; gated by elevation cookie/admin token + the /admin/*
+      identity wall).
     - This set is a starting point; the exact MVP feature set should be
       reviewed and tightened as the Render MVP stabilizes.
     """
     global _MVP_ALLOWED_MODULES
     if _MVP_ALLOWED_MODULES is None:
         core_paths = {e.module_path for e in MANIFEST.all() if e.tier == ProductTier.CORE}
-        _MVP_ALLOWED_MODULES = frozenset(core_paths | {"app.modules.intake.router"})
+        _MVP_ALLOWED_MODULES = frozenset(
+            core_paths | {"app.modules.intake.router", "app.modules.executive_admin.router"}
+        )
     return _MVP_ALLOWED_MODULES
 
 

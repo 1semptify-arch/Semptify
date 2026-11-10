@@ -16,7 +16,7 @@ import logging
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request, status
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.core.ssot_guard import ssot_redirect
@@ -60,7 +60,7 @@ except ImportError:
     logger.warning("navigation module not available to mndes router")
 
 try:
-    from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, catalog_status, get_locale
+    from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, catalog_status, get_locale  # noqa: F401
 
     templates.env.globals["_"] = _jinja2_gettext
     templates.env.globals["supported_locales"] = available_locales()

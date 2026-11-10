@@ -340,7 +340,6 @@ async def migrate_legacy_events(user: UserContext, limit: int = 25) -> int:
     except Exception:
         return 0
 
-    effective_id = user.get_effective_user_id()
     try:
         async with get_db_session() as db:
             result = await db.execute(

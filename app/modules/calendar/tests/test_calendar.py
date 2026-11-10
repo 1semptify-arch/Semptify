@@ -110,7 +110,6 @@ def test_event_link_keys_are_stable():
 @pytest.mark.asyncio
 async def test_sync_calendar_for_user_creates_auto_events():
     """sync_calendar_for_user creates document and rent ledger events."""
-    from datetime import datetime
     from unittest.mock import AsyncMock, MagicMock, patch
 
     from app.services.calendar_sync import sync_calendar_for_user

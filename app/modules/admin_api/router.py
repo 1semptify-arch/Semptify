@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
 
 from app.core.admin_elevation import require_elevation
-from app.core.logging_service import get_log_tail, set_log_level
+from app.core.logging_service import set_log_level
 from app.core.module_registry_loader import run_sync_and_verify
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,8 @@ async def admin_verify_api(admin_uid: str = Depends(require_elevation)):
 
 
 class VoicePostReview(BaseModel):
-    """Action on one voice post: publish, answer, decline, or unpublish."""
+    """Action on one voice post: publish, answer, decline, unpublish,
+    or dismiss — dismiss clears reader flags without changing the post."""
 
     action: str
     response_text: str | None = None
@@ -52,7 +53,7 @@ class VoicePostReview(BaseModel):
     @field_validator("action")
     @classmethod
     def action_valid(cls, v: str) -> str:
-        allowed = {"publish", "answer", "decline", "unpublish"}
+        allowed = {"publish", "answer", "decline", "unpublish", "dismiss"}
         if v not in allowed:
             raise ValueError(f"Invalid action. Must be one of: {sorted(allowed)}")
         return v
@@ -120,10 +121,11 @@ class StoryReview(BaseModel):
 @router.get("/admin/api/public-forms/pending")
 async def admin_list_pending(admin_uid: str = Depends(require_elevation)):
     """
-    Everything awaiting the review pass, plus the most recent published
+    Everything awaiting the review pass — unpublished posts and any
+    published post a reader flagged — plus the most recent published
     items per queue so they can be pulled back down if needed.
     """
-    from sqlalchemy import select
+    from sqlalchemy import or_, select
 
     from app.core.database import get_db_session
     from app.models.models import ToolRequest, VoicePost
@@ -134,8 +136,16 @@ async def admin_list_pending(admin_uid: str = Depends(require_elevation)):
             (
                 await db.execute(
                     select(VoicePost)
-                    .where(VoicePost.is_published.is_(False))
-                    .order_by(VoicePost.created_at.asc())
+                    .where(
+                        or_(
+                            VoicePost.is_published.is_(False),
+                            VoicePost.flag_count > 0,
+                        )
+                    )
+                    .order_by(
+                        (VoicePost.flag_count > 0).desc(),
+                        VoicePost.created_at.asc(),
+                    )
                     .limit(100)
                 )
             )
@@ -214,6 +224,10 @@ async def admin_list_pending(admin_uid: str = Depends(require_elevation)):
             "response": r.response_text,
             "responder": r.responder_label,
             "status": r.status,
+            "is_published": r.is_published,
+            "flag_count": r.flag_count or 0,
+            "flag_reasons": r.flag_reasons or {},
+            "flagged_at": _date(r.flagged_at),
             "date": _date(r.created_at),
         }
 
@@ -286,9 +300,17 @@ async def admin_review_voice_post(
         elif body.action == "decline":
             post.status = "declined"
             post.is_published = False
-        else:  # unpublish
+        elif body.action == "unpublish":
             post.status = "received"
             post.is_published = False
+        # dismiss: no status change — the post was looked at and stays
+        # as it is; only the flag state resets below.
+
+        # Every review action is a human re-check of the post, so reader
+        # flags resolve here regardless of which action was taken.
+        post.flag_count = 0
+        post.flag_reasons = None
+        post.flagged_at = None
 
     logger.info(
         "public-forms review: voice post %s -> %s (by %s)",

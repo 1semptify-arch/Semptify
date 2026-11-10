@@ -68,12 +68,7 @@ from app.core.admin_elevation import require_elevation
 from app.core.compliance import validate_app_compliance
 from app.core.config import get_settings
 from app.core.context_envelope import (
-    ObjectEnvelope,
-    ObjectType,
     Pillar,
-    Provenance,
-    TemporalValidity,
-    Who,
 )
 from app.core.cookie_auth import extract_user_id
 from app.core.database import close_db, get_db, init_db
@@ -115,7 +110,7 @@ templates.env.globals["subject_starters"] = _get_subject_starters()
 
 # Expose i18n `_()` helper, locale list, and current-locale resolver to all Jinja2
 # templates (Task 6 i18n).
-from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, catalog_status, get_locale, i18n
+from app.core.i18n import _jinja2_gettext, available_locales, catalog_status, get_locale
 
 templates.env.globals["_"] = _jinja2_gettext
 templates.env.globals["supported_locales"] = available_locales()
@@ -587,6 +582,15 @@ async def lifespan(_app: FastAPI):
             async with factory() as db:
                 await ensure_feature_flags_schema(db)
             lifespan_logger.info("   Feature flags schema ensured")
+
+            # voice_posts flag columns: same class of problem — Alembic
+            # auto-migration doesn't run locally, so the additive columns
+            # get an idempotent ensure step for dev databases.
+            from app.modules.public_forms.schema import ensure_voice_post_flag_columns
+
+            async with factory() as db:
+                await ensure_voice_post_flag_columns(db)
+            lifespan_logger.info("   Voice post flag columns ensured")
 
         def verify_module_overrides():
             return True
@@ -4316,8 +4320,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """Lightweight guard: storage connected + expected role for portal page."""
         from app.core.cookie_auth import extract_user_id
         from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import get_role_from_user_id
-        from app.core.workflow_engine import route_user as _route_user
 
         signed_cookie = request.cookies.get("semptify_uid", "")
         user_id = extract_user_id(request)
@@ -4350,8 +4352,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             from app.core.page_contracts import PAGE_CONTRACTS, UserRole  # noqa: F401
             from app.core.route_guards import GuardResult, guard  # noqa: F401
             from app.core.storage_middleware import is_valid_storage_user
-            from app.core.user_id import COOKIE_USER_ID, get_role_from_user_id
-            from app.core.workflow_engine import route_user as _route_user
+            from app.core.user_id import COOKIE_USER_ID, get_role_from_user_id  # noqa: F401
+            from app.core.workflow_engine import route_user as _route_user  # noqa: F401
 
             contract = PAGE_CONTRACTS.get(page_id)
             if not contract:

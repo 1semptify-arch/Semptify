@@ -110,6 +110,35 @@ class ContactRequest(BaseModel):
         return v.strip()
 
 
+# Flag reasons mirror the decline rows of the moderation standard
+# (MODERATION.md decision table). A fixed set keeps anonymous reports
+# aggregable in the review lane and leaves no room for free text that
+# could carry personal details.
+VOICE_FLAG_REASONS = {
+    "personal_details",
+    "threat",
+    "hate",
+    "spam",
+    "illegal",
+    "impersonation",
+    "other",
+}
+
+
+class VoicePostFlag(BaseModel):
+    """Anonymous report that a published board post breaks the standard."""
+
+    reason: str
+
+    @field_validator("reason")
+    @classmethod
+    def reason_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if v not in VOICE_FLAG_REASONS:
+            raise ValueError(f"Invalid reason. Must be one of: {sorted(VOICE_FLAG_REASONS)}")
+        return v
+
+
 # Story subjects: a short fixed set keeps anonymous posts aggregable for
 # policy work without inviting free-text that could carry personal details.
 STORY_SUBJECTS = {
@@ -412,7 +441,7 @@ async def list_tool_requests():
         )
         rows = result.scalars().all()
         pending = await db.execute(
-            select(ToolRequest.id).where(ToolRequest.is_published.is_(False))
+            select(ToolRequest.id).where(ToolRequest.status == "received")
         )
         pending_count = len(pending.scalars().all())
 
@@ -480,7 +509,7 @@ async def list_voice_posts():
         )
         rows = result.scalars().all()
         pending = await db.execute(
-            select(VoicePost.id).where(VoicePost.is_published.is_(False))
+            select(VoicePost.id).where(VoicePost.status == "received")
         )
         pending_count = len(pending.scalars().all())
 
@@ -501,6 +530,46 @@ async def list_voice_posts():
             "awaiting_review": pending_count,
         }
     )
+
+
+@router.post("/voice-posts/{post_id}/flag")
+@limiter.limit("5/minute")
+async def flag_voice_post(post_id: str, request: Request, body: VoicePostFlag):
+    """
+    Report a published board post that breaks the review standard.
+
+    Anonymous like the board itself — no name, no identity, just a reason
+    code. The post stays published while flagged (the bias is toward
+    hearing it); the flag surfaces it in the same /admin/public-voice
+    review queue for a deliberate human re-check.
+    """
+    from sqlalchemy import select
+
+    from app.core.database import get_db_session
+    from app.core.utc import utc_now
+    from app.models.models import VoicePost
+
+    async with get_db_session() as db:
+        result = await db.execute(select(VoicePost).where(VoicePost.id == post_id))
+        post = result.scalars().first()
+        # Only published posts are flaggable — nothing else is on the
+        # board. Missing and unpublished both 404 so existence isn't leaked.
+        if not post or not post.is_published:
+            return JSONResponse({"status": "not_found"}, status_code=404)
+
+        post.flag_count = (post.flag_count or 0) + 1
+        reasons = dict(post.flag_reasons or {})
+        reasons[body.reason] = reasons.get(body.reason, 0) + 1
+        post.flag_reasons = reasons  # reassign — JSON columns don't track in-place edits
+        post.flagged_at = utc_now()
+
+    logger.info(
+        "voice post flagged: %s reason=%s count=%s",
+        post_id[:8],
+        body.reason,
+        post.flag_count,
+    )
+    return JSONResponse({"status": "ok", "flagged": True})
 
 
 @router.post("/story")

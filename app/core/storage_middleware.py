@@ -201,6 +201,7 @@ PUBLIC_PREFIXES = (
     "/toolbox/",  # Toolbox entry detail pages — same honest status data the public
     # list page and /api/portal/toolbox/{id} JSON already expose
     "/api/resources/",  # Resource directory — public read endpoints
+    "/api/voice-posts/",  # Voice board — POST .../{id}/flag anonymous report control
     "/api/i18n/",  # i18n — public locale read/set endpoints
     "/admin/api/",  # Admin API endpoints — auth checked by route (elevation/capability)
     "/debug/",  # TEMPORARY: diagnostic endpoints (gated to SECURITY_MODE=open in routes)
