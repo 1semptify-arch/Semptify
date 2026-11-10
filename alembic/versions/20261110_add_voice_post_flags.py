@@ -15,6 +15,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "20261110_voice_post_flags"
@@ -30,7 +31,11 @@ def upgrade() -> None:
     )
     op.add_column(
         "voice_posts",
-        sa.Column("flag_reasons", sa.JSON(), nullable=True),
+        sa.Column(
+            "flag_reasons",
+            sa.JSON().with_variant(postgresql.JSONB(), "postgresql"),
+            nullable=True,
+        ),
     )
     op.add_column(
         "voice_posts",
