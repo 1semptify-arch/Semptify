@@ -169,6 +169,173 @@ class TestVoicePostReviewFlow:
             assert response.status_code == 422
 
 
+class TestVoicePostFlag:
+    """Reader flag/report control — feeds the same review queue."""
+
+    @pytest.fixture(autouse=True)
+    def _reset_rate_limiter(self):
+        """Fresh limiter window per test — the shared in-memory slowapi
+        storage would otherwise bleed hits across tests in one process."""
+        from app.core.rate_limit import limiter
+
+        storage = getattr(limiter, "_storage", None)
+        if storage is not None and hasattr(storage, "reset"):
+            storage.reset()
+        yield
+
+    async def _publish_post(self) -> str:
+        """Seed one published board post directly — the submit and publish
+        endpoints are covered elsewhere; seeding keeps the flag tests off
+        the shared /api/voice-post rate limiter."""
+        import uuid
+
+        from app.core.database import get_db_session
+        from app.models.models import VoicePost
+
+        post_id = str(uuid.uuid4())
+        async with get_db_session() as db:
+            db.add(
+                VoicePost(
+                    id=post_id,
+                    kind="opinion",
+                    post_text="The bill should go further on deposits.",
+                    status="published",
+                    is_published=True,
+                )
+            )
+        return post_id
+
+    async def _pending_post_id(self) -> str:
+        """Seed one still-unpublished post and return its id."""
+        import uuid
+
+        from app.core.database import get_db_session
+        from app.models.models import VoicePost
+
+        post_id = str(uuid.uuid4())
+        async with get_db_session() as db:
+            db.add(
+                VoicePost(
+                    id=post_id,
+                    kind="question",
+                    post_text="Unpublished post",
+                )
+            )
+        return post_id
+
+    @pytest.mark.asyncio
+    async def test_flag_published_post(self):
+        post_id = await self._publish_post()
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
+            response = await anon.post(
+                f"/api/voice-posts/{post_id}/flag",
+                json={"reason": "spam"},
+            )
+            assert response.status_code == 200
+            assert response.json()["flagged"] is True
+
+        # The flag lands in the same review queue with reason detail.
+        async with _elev_client() as admin:
+            pending = (await admin.get("/admin/api/public-forms/pending")).json()
+            flagged = [p for p in pending["voice_posts"] if p["id"] == post_id]
+            assert len(flagged) == 1
+            assert flagged[0]["flag_count"] == 1
+            assert flagged[0]["flag_reasons"] == {"spam": 1}
+            assert flagged[0]["is_published"] is True
+
+        # Flagging does not pull the post off the board — review does.
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
+            posts = (await anon.get("/api/voice-posts")).json()["posts"]
+            assert [p["id"] for p in posts] == [post_id]
+
+    @pytest.mark.asyncio
+    async def test_flag_counts_and_reasons_accumulate(self):
+        post_id = await self._publish_post()
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
+            for reason in ("spam", "other", "spam"):
+                response = await anon.post(
+                    f"/api/voice-posts/{post_id}/flag",
+                    json={"reason": reason},
+                )
+                assert response.status_code == 200
+
+        async with _elev_client() as admin:
+            pending = (await admin.get("/admin/api/public-forms/pending")).json()
+            flagged = [p for p in pending["voice_posts"] if p["id"] == post_id]
+            assert flagged[0]["flag_count"] == 3
+            assert flagged[0]["flag_reasons"] == {"spam": 2, "other": 1}
+
+    @pytest.mark.asyncio
+    async def test_flag_unpublished_post_404(self):
+        post_id = await self._pending_post_id()
+
+        # Flagging a post that isn't on the board yet — or one that
+        # doesn't exist — both 404 without leaking which is which.
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
+            response = await anon.post(
+                f"/api/voice-posts/{post_id}/flag",
+                json={"reason": "spam"},
+            )
+            assert response.status_code == 404
+            response = await anon.post(
+                "/api/voice-posts/nonexistent-id/flag",
+                json={"reason": "spam"},
+            )
+            assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_flag_rejects_bad_reason(self):
+        post_id = await self._publish_post()
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
+            response = await anon.post(
+                f"/api/voice-posts/{post_id}/flag",
+                json={"reason": "because i said so"},
+            )
+            assert response.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_dismiss_clears_flags_keeps_post(self):
+        post_id = await self._publish_post()
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
+            await anon.post(f"/api/voice-posts/{post_id}/flag", json={"reason": "hate"})
+
+        async with _elev_client() as admin:
+            pending = (await admin.get("/admin/api/public-forms/pending")).json()
+            assert any(p["id"] == post_id for p in pending["voice_posts"])
+            response = await admin.post(
+                f"/admin/api/public-forms/voice-posts/{post_id}",
+                json={"action": "dismiss"},
+            )
+            assert response.status_code == 200
+
+            # Flag resolved — post drops back out of the review queue…
+            pending = (await admin.get("/admin/api/public-forms/pending")).json()
+            assert all(p["id"] != post_id for p in pending["voice_posts"])
+
+        # …but stays published on the board.
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
+            posts = (await anon.get("/api/voice-posts")).json()["posts"]
+            assert [p["id"] for p in posts] == [post_id]
+            assert posts[0]["status"] == "published"
+
+    @pytest.mark.asyncio
+    async def test_review_action_clears_flags(self):
+        post_id = await self._publish_post()
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
+            await anon.post(f"/api/voice-posts/{post_id}/flag", json={"reason": "threat"})
+
+        async with _elev_client() as admin:
+            await admin.post(
+                f"/admin/api/public-forms/voice-posts/{post_id}",
+                json={"action": "unpublish"},
+            )
+            pending = (await admin.get("/admin/api/public-forms/pending")).json()
+            row = [p for p in pending["voice_posts"] if p["id"] == post_id]
+            assert len(row) == 1  # unpublished, so still in the queue…
+            assert row[0]["flag_count"] == 0  # …but the flag is resolved
+
+
 class TestToolRequestReviewFlow:
     @pytest.mark.asyncio
     async def test_submit_answer_publish(self):

@@ -75,5 +75,15 @@ Notes:
 
 The published standard is only half of "driven by the public." The full
 version adds a **flag/report** control on each board post so readers
-surface problems themselves, feeding the same review queue. Tracked as a
-staged feature in the master queue — app-side change, not yet built.
+surface problems themselves, feeding the same review queue.
+
+**Shipped 2026-11-10 (app side):** every published board post carries a
+quiet "Report a problem" control. Reports are anonymous — a reason code
+only, no names, no free text — via `POST /api/voice-posts/{id}/flag`.
+Reasons mirror the decline rows of the decision table. A flagged post
+**stays up** while flagged (the bias is toward hearing it) and lands in
+the same `/admin/public-voice` review queue, sorted flag-first, with its
+count and reasons shown. The reviewer can keep it ("clear flag"),
+unpublish, decline, or answer — any review action resolves the flag.
+The mirror repo's static copy of the page needs a matching control;
+tracked separately.

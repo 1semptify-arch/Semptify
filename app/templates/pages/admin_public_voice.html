@@ -30,6 +30,7 @@
     .pv-meta{display:flex;gap:0.6rem;align-items:baseline;font-size:0.78rem;color:var(--text-muted);margin-bottom:0.35rem;flex-wrap:wrap}
     .pv-kind{text-transform:uppercase;letter-spacing:0.05em;font-weight:700;color:var(--color-info)}
     .pv-status{font-weight:600}
+    .pv-flag{font-weight:700;color:var(--color-error)}
     .pv-text{font-size:0.95rem;line-height:1.55;white-space:pre-wrap;color:var(--text-primary);margin-bottom:0.5rem}
     .pv-title{font-weight:700;font-size:1rem;margin-bottom:0.25rem}
     .pv-resp{font-size:0.88rem;color:var(--text-secondary);border-left:3px solid var(--color-info);padding-left:0.7rem;margin-bottom:0.5rem;white-space:pre-wrap}
@@ -100,9 +101,15 @@ async function post(url,payload){
     return r.json();
 }
 
+function flagSummary(p){
+    if(!p.flag_count)return '';
+    const reasons=Object.entries(p.flag_reasons||{}).map(([k,v])=>esc(k)+(v>1?' \u00d7'+v:'')).join(', ');
+    return '<span class="pv-flag">\u2691 '+p.flag_count+' report(s)'+(reasons?' — '+reasons:'')+'</span>';
+}
 function voiceItem(p){
+    const flagged=p.flag_count>0;
     return '<div class="pv-item" data-id="'+esc(p.id)+'">'
-        +'<div class="pv-meta"><span class="pv-kind">'+esc(p.kind)+'</span><span>'+esc(p.date||'')+'</span><span class="pv-status">'+esc(p.status)+'</span></div>'
+        +'<div class="pv-meta"><span class="pv-kind">'+esc(p.kind)+'</span><span>'+esc(p.date||'')+'</span><span class="pv-status">'+esc(p.status)+'</span>'+flagSummary(p)+'</div>'
         +'<div class="pv-text">'+esc(p.post)+'</div>'
         +(p.response?'<div class="pv-resp">'+esc(p.response)+(p.responder?' — <em>'+esc(p.responder)+'</em>':'')+'</div>':'')
         +'<div class="pv-actions">'
@@ -113,6 +120,7 @@ function voiceItem(p){
         +'<button class="pv-btn" onclick="voiceAct(\''+esc(p.id)+'\',\'publish\',this)">Publish as-is</button>'
         +(p.is_published!==false&&p.status!=='received'&&p.status!=='declined'?'<button class="pv-btn" onclick="voiceAct(\''+esc(p.id)+'\',\'unpublish\',this)">Unpublish</button>':'')
         +(p.status==='received'||p.status==='published'?'<button class="pv-btn pv-btn--danger" onclick="voiceAct(\''+esc(p.id)+'\',\'decline\',this)">Decline</button>':'')
+        +(flagged?'<button class="pv-btn" onclick="voiceAct(\''+esc(p.id)+'\',\'dismiss\',this)">Keep it — clear flag</button>':'')
         +'</div></div></div>';
 }
 async function voiceAct(id,action,btn){

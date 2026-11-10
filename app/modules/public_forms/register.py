@@ -50,7 +50,7 @@ register_function_group(
         module="public_forms",
         group_name="public_forms_voice_post",
         title="Public Forms Voice Post (SSOT)",
-        description="CANONICAL anonymous public question/opinion on the housing bill: submit from /your-voice and list published posts with answers. Public endpoints.",
+        description="CANONICAL anonymous public question/opinion on the housing bill: submit from /your-voice, list published posts with answers, and flag a published post for re-review (POST /api/voice-posts/{id}/flag). Public endpoints.",
         inputs=("kind", "message"),
         outputs=("success", "posts"),
         dependencies=("app.modules.public_forms.router",),

@@ -1,3 +1,38 @@
+## Session — 2026-11-10 — Public flag/report control on /your-voice board posts (swe-2, task plan-20261110-public-flag-report-button)
+
+**Shipped:** the staged public-driven-review half of MODERATION.md —
+readers can now report a published board post, and the report feeds the
+same `/admin/public-voice` review queue.
+
+- `VoicePost` gains `flag_count` (int), `flag_reasons` (`{reason_code:
+  count}` JSON), `flagged_at`. Alembic `20261110_voice_post_flags`
+  covers Postgres/Render; `app/modules/public_forms/schema.py`
+  (`ensure_voice_post_flag_columns`, wired into lifespan stage 3d) heals
+  local SQLite dev DBs — same KF #20 pattern as feature_flags.
+- `POST /api/voice-posts/{id}/flag` — anonymous, `5/minute`, reason from
+  a fixed set mirroring the decision-table decline rows
+  (personal_details / threat / hate / spam / illegal / impersonation /
+  other). Published posts only; missing and unpublished both 404.
+  `/api/voice-posts/` added to PUBLIC_PREFIXES.
+- Flagged posts stay published (bias toward hearing) but sort
+  flag-first into `GET /admin/api/public-forms/pending` alongside the
+  unpublished queue, carrying flag fields. New `dismiss` review action =
+  "keep it, clear flag"; every review action clears flag state.
+- Public board: quiet "Report a problem" `<details>` control per post.
+  Admin lane: `⚑ N report(s) — reasons` badge + "Keep it — clear flag".
+- Anonymous by design: reason codes only, no free text, no identity.
+
+**Verified:** py_compile all changed files PASS; `tests/test_public_voice.py`
+21/21 (6 new flag tests); guardrail engine 10/10 PASS; module_health
+public_forms + public_exposure 2/2.
+
+**Pending:** `semptify-bill-mirror` serves a separate static
+`your-voice.html` — needs the same control added repo-side (logged to
+master intake); the flag API itself already passes through the worker
+to the origin. Admin lane still excluded from the render_mvp build
+(per MODERATION.md) — unchanged.
+
+
 ## Session — 2026-11-07 — /bill/live two-tab view: clean statute + drafting notes (swe-2)
 
 ### Guardrail Engine Run — 2026-11-08T07:28:11+00:00

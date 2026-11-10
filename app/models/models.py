@@ -2220,6 +2220,14 @@ class VoicePost(Base):
     # Public visibility gate — same review-then-post policy as tool_requests.
     is_published: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
 
+    # Public-driven review: readers flag a published post that breaks the
+    # review standard; flags feed the same /admin/public-voice queue.
+    # flag_reasons is a JSON object of {reason_code: count} since the last
+    # review action — reason codes only, never free text or identities.
+    flag_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    flag_reasons: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    flagged_at: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, index=True, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
 

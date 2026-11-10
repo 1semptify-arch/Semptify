@@ -583,6 +583,15 @@ async def lifespan(_app: FastAPI):
                 await ensure_feature_flags_schema(db)
             lifespan_logger.info("   Feature flags schema ensured")
 
+            # voice_posts flag columns: same class of problem — Alembic
+            # auto-migration doesn't run locally, so the additive columns
+            # get an idempotent ensure step for dev databases.
+            from app.modules.public_forms.schema import ensure_voice_post_flag_columns
+
+            async with factory() as db:
+                await ensure_voice_post_flag_columns(db)
+            lifespan_logger.info("   Voice post flag columns ensured")
+
         def verify_module_overrides():
             return True
 
