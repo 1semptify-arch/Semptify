@@ -16,7 +16,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,6 +26,7 @@ from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.navigation import navigation
 from app.core.security import get_admin_token_from_request, get_admin_token_store, get_rate_limiter
+from app.core.ssot_guard import ssot_redirect
 from app.core.utc import utc_now
 from app.modules.executive_admin import compliance, governance, ledger
 from app.modules.executive_admin.knowledge import (
@@ -398,7 +399,11 @@ async def executive_page(request: Request) -> Response:
         except HTTPException:
             stage = navigation.get_stage("admin_login")
             login = stage.path if stage else "/admin/login"
-            return RedirectResponse(f"{login}?next=/admin/executive/", status_code=303)
+            return ssot_redirect(
+                f"{login}?next=/admin/executive/",
+                context="executive_admin page gate",
+                status_code=303,
+            )
     return HTMLResponse(PAGE_PATH.read_text(encoding="utf-8"))
 
 
