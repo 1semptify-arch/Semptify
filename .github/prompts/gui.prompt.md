@@ -23,7 +23,7 @@ Skipping it is how the design system drifts and Known Failures repeat.
 - `.cursor/rules/01-gui-chronological-spatial.mdc` — chronological task ordering + eye-path audit. **Mandatory before marking any GUI task done.**
 - `semptify-gui-standards.md` — reconciled UI/UX architecture standard: 3-tier app structure, Guided Navigation Panel (the `.shell-side` rail) behavior, sage `#6B8E6B` primary action with `#d97706` reserved for real deadlines only.
 - `.devin/rules/10-progressive-disclosure.md` — capability revelation / Familiarity Tapering.
-- `.devin/rules/11-simplicity-first.md` — the 5-step algorithm: goal → minimum set → justify rest → subtract-first review → fewer-parts tie-break.
+- `.devin/rules/11-simplicity-first.md` (The Happiness Factor) — the 5-step algorithm: goal → minimum set → justify rest → subtract-first review → fewer-parts tie-break.
 - `.devin/rules/01-product-positioning.md` — pillars + positioning language.
 - `.devin/rules/03-ssot-redirects.md` — no hardcoded URLs anywhere (Python or templates).
 
@@ -65,7 +65,7 @@ Do not mark GUI work done on code review alone.
 2. **IronBee browser tools only** (no other browser agents): `navigation_go-to` → exercise the change (click/fill/submit — don't just look) → `content_take-screenshot` and/or `a11y_take-aria-snapshot` → `o11y_get-console-messages` for errors.
 3. Check **both viewports**: 375px (mobile-stacked-scroll) and 1280px (desktop-poster).
 4. **Eye-path audit**: trace top-left → down/right through the page. Every earlier-step control must sit above/left of later-step controls. If not, rearrange before submitting.
-5. **Simplicity pass** (`.devin/rules/11-simplicity-first.md`): state the page's one-sentence goal, confirm every section/control belongs to the minimum set or carries a stated justification, and subtract before adding. Two equal layout options → fewer parts.
+5. **Happiness Factor pass** (`.devin/rules/11-simplicity-first.md`): state the page's one-sentence goal, confirm every section/control belongs to the minimum set or carries a stated justification, and subtract before adding. Two equal layout options → fewer parts.
 6. Navigation changes: `python tests/test_ssot_architecture.py` must pass.
 
 ## Watch for

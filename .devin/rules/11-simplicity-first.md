@@ -1,10 +1,10 @@
 ---
-description: Simplicity-first directive — the 5-step algorithm for every build, design, and review decision (Brad, 2026-11-11)
+description: The Happiness Factor — simplicity-first directive, the 5-step algorithm for every build, design, and review decision (Brad, 2026-11-11)
 ---
 
-# Simplicity-First — the 5-Step Algorithm
+# The Happiness Factor — Simplicity-First, the 5-Step Algorithm
 
-*(Standing rule from Brad, 2026-11-11. Applies to every build, design, and review decision — code, UI, copy, docs, process. Companion to `CORE_CONTEXT.md` "Calm over clever" and the pre-code question "Is this the simplest possible way to do this?")*
+*(Standing rule from Brad, 2026-11-11. "The Happiness Factor" is the name of this doctrine — every part is a cost to the person on the other side, so the minimum that reaches the goal is the default. Applies to every build, design, and review decision — code, UI, copy, docs, process. Companion to `CORE_CONTEXT.md` "Calm over clever" and the pre-code question "Is this the simplest possible way to do this?")*
 
 ## Why
 

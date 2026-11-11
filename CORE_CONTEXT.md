@@ -127,7 +127,7 @@ Most users are on phones. Build mobile first. Test at 375px width. Design for th
 
 An error page that routes someone to a help line is better than a polished page that leaves them confused and alone. Build the failure states and fallbacks BEFORE the happy path. Always.
 
-### 7. Simplicity-first — run the algorithm
+### 7. The Happiness Factor — simplicity-first, run the algorithm
 
 Before building or changing anything, run this in order:
 
