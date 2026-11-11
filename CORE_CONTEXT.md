@@ -127,6 +127,18 @@ Most users are on phones. Build mobile first. Test at 375px width. Design for th
 
 An error page that routes someone to a help line is better than a polished page that leaves them confused and alone. Build the failure states and fallbacks BEFORE the happy path. Always.
 
+### 7. Simplicity-first — run the algorithm
+
+Before building or changing anything, run this in order:
+
+1. **Goal** — say it in one sentence. Can't? Stop.
+2. **Minimum set** — the smallest set of parts that reaches the goal.
+3. **Justify the rest** — every part beyond the minimum must justify itself against the goal.
+4. **Subtract-first review** — look for what to remove before what to add.
+5. **Fewer parts win ties** — equal options → take the one with fewer parts.
+
+Canonical rule: `.devin/rules/11-simplicity-first.md`.
+
 ---
 
 ## What "done" means here
