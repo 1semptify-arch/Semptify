@@ -5,7 +5,9 @@ minimum set → justify rest → subtract-first review → fewer-parts
 tie-break** — is now encoded as a standing rule across the agent
 surfaces:
 
-- New `.devin/rules/11-simplicity-first.md` — canonical rule: the
+- New `.devin/rules/11-zen-algorithms.md` (originally
+  `11-simplicity-first.md`; renamed "Zen Algorithms" 2026-11-11) —
+  canonical rule: the
   algorithm, the "not minimalism / not a gate / not incomplete" bounds,
   and where it binds (gui skill, review skill, everything else).
 - `CORE_CONTEXT.md` — new design principle 7 "Simplicity-first — run
