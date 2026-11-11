@@ -1505,6 +1505,12 @@ def get_mvp_allowed_modules() -> frozenset[str]:
       (Brad, 2026-11-08 — supersedes "keep admin off render_mvp" for this
       module only; gated by elevation cookie/admin token + the /admin/*
       identity wall).
+    - app.modules.admin_auth.router and app.modules.admin_api.router are
+      included even though they are ADMIN tier, because the public-voice
+      moderation lane (/admin/public-voice + /admin/api/public-forms/*)
+      needs working login-step1/step2 and review endpoints in production
+      (Brad, 2026-11-11). Access remains gated by AdminNetworkMiddleware
+      (ADMIN_IP_RANGES) + password/TOTP elevation.
     - This set is a starting point; the exact MVP feature set should be
       reviewed and tightened as the Render MVP stabilizes.
     """
@@ -1512,7 +1518,13 @@ def get_mvp_allowed_modules() -> frozenset[str]:
     if _MVP_ALLOWED_MODULES is None:
         core_paths = {e.module_path for e in MANIFEST.all() if e.tier == ProductTier.CORE}
         _MVP_ALLOWED_MODULES = frozenset(
-            core_paths | {"app.modules.intake.router", "app.modules.executive_admin.router"}
+            core_paths
+            | {
+                "app.modules.intake.router",
+                "app.modules.executive_admin.router",
+                "app.modules.admin_auth.router",
+                "app.modules.admin_api.router",
+            }
         )
     return _MVP_ALLOWED_MODULES
 

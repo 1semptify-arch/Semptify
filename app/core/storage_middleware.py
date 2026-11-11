@@ -75,6 +75,9 @@ PUBLIC_PATHS: set[str] = {
     "/admin/logout",
     "/admin/api/login-step1",
     "/admin/api/login-step2",
+    # Admin pages self-guard via elevation cookie — same pattern as /admin/api/
+    "/admin/public-voice",
+    "/admin/public-voice.html",
     # Welcome/setup pages
     "/welcome.html",
     "/storage_setup.html",
