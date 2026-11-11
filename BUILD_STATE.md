@@ -1,3 +1,36 @@
+## Session — 2026-11-11 — Simplicity-first directive encoded (swe-2, task plan-20261111-simplicity-first-directive-5-step-algori-0841)
+
+**Shipped (docs only):** Brad's 5-step simplicity algorithm — **goal →
+minimum set → justify rest → subtract-first review → fewer-parts
+tie-break** — is now encoded as a standing rule across the agent
+surfaces:
+
+- New `.devin/rules/11-simplicity-first.md` — canonical rule: the
+  algorithm, the "not minimalism / not a gate / not incomplete" bounds,
+  and where it binds (gui skill, review skill, everything else).
+- `CORE_CONTEXT.md` — new design principle 7 "Simplicity-first — run
+  the algorithm" with the 5 steps and a pointer to rule 11.
+- `.devin/skills/gui/SKILL.md` + `.github/prompts/gui.prompt.md` —
+  rule 11 added to the binding-rules list; new verify step 5
+  "Simplicity pass" before the navigation test.
+- `.devin/skills/review/SKILL.md` + `.github/prompts/review.prompt.md` —
+  new focus item 11: simplicity violations are findings (unjustified
+  parts beyond the minimum set, additions where subtraction serves,
+  more-parts option over an equal fewer-parts one).
+- `semptify-bill-mirror/AGENTS.md` (new, in that repo) — build/design
+  contract plus the same algorithm encoded for the public microsite.
+
+**Verified:** doc-only change — no code paths touched; all edits
+read back in place; mirrors kept in sync; committed daecfb0c (module)
++ 3ece584 (bill-mirror). py_compile/pytest/guardrail N/A — no Python
+or template logic changed.
+
+**Pending:** none for this task. Open question logged in the task
+report, not expanded here: whether the algorithm should also be encoded
+in master-repo `AGENTS.md` / global rules (outside this task's named
+scope).
+
+
 ## Session — 2026-11-10 — Public flag/report control on /your-voice board posts (swe-2, task plan-20261110-public-flag-report-button)
 
 **Shipped:** the staged public-driven-review half of MODERATION.md —

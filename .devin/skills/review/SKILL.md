@@ -22,6 +22,11 @@ Your task is to find all potential bugs and code improvements in the code change
 the task, and any use of alert(), user accounts, login/signup,
 analytics, or tracking — these are forbidden in this codebase
 regardless of whether they're "correct" code.
+11. Happiness Factor violations (`.devin/rules/11-simplicity-first.md`): parts
+beyond the minimum set with no stated justification tied to the goal;
+additions where a subtraction would serve; the more-parts option chosen
+when an equal fewer-parts option existed. Unjustified parts are
+findings, not taste calls.
 
 Make sure to:
 
