@@ -11,6 +11,7 @@ import logging
 from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
 from app.core.config import get_settings
 
 logger = logging.getLogger("semptify.admin_gating")
@@ -86,18 +87,34 @@ class AdminNetworkMiddleware(BaseHTTPMiddleware):
 
     Run this as the outermost middleware so admin routes are blocked before any
     storage or auth checks run.
+
+    Two carve-outs keep admin usable from dynamic IPs (Brad has no static IP):
+    the login surface stays reachable from anywhere — it is how a credential
+    is obtained — and any request carrying a valid elevation cookie passes,
+    since the cookie itself is the admin credential (password + TOTP issued).
     """
 
     ADMIN_PREFIX = "/admin"
 
+    _OPEN_PATHS = frozenset(
+        {"/admin/login", "/admin/api/login-step1", "/admin/api/login-step2"}
+    )
+
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
-        if path.startswith(self.ADMIN_PREFIX):
-            client_ip = _get_client_ip(request)
-            if not is_admin_network(client_ip):
-                logger.warning("Admin request blocked for IP %s", client_ip)
-                return _not_found()
-        return await call_next(request)
+        if not path.startswith(self.ADMIN_PREFIX):
+            return await call_next(request)
+
+        client_ip = _get_client_ip(request)
+        if is_admin_network(client_ip) or path.rstrip("/") in self._OPEN_PATHS:
+            return await call_next(request)
+
+        elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
+        if verify_elevation_cookie(str(elev_cookie) if elev_cookie else None):
+            return await call_next(request)
+
+        logger.warning("Admin request blocked for IP %s", client_ip)
+        return _not_found()
 
 
 def _not_found():
