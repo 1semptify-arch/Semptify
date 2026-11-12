@@ -1,3 +1,22 @@
+## Session — 2026-11-12 — Token-storage reality ADR + admin dynamic-IP fix (swe-2)
+
+**Shipped:**
+
+- `docs/adr/0010-token-storage-reality.md` — audit finding: the `sessions`
+  DB table is the live OAuth token store (verified in prod Neon); the
+  vault/`StatelessOAuthManager` path is write-only and goes stale on
+  refresh; `token_manager` is a transient cache. Public "zero-possession"
+  claim corrected to "encrypted at rest" until vault-first migration
+  lands. Migration A needs Brad's OK (touches NO-TOUCH onboarding).
+- PR #343 — `AdminNetworkMiddleware` dynamic-IP fix: login surface open
+  to any IP, other `/admin/*` requires allowlisted IP OR valid elevation
+  cookie. Verified live: Brad logged in from phone on cellular via QR.
+- `tests/test_admin_gating.py` — 8 tests for the gate policy.
+
+**Pending:** Zen structural encoding (minimum-surface in module
+contracts + CI complexity budgets) — scoped, queued for next session.
+Vault-first token migration (ADR-0010 path A) — needs Brad's decision.
+
 ## Session — 2026-11-11 — Simplicity-first directive encoded (swe-2, task plan-20261111-simplicity-first-directive-5-step-algori-0841)
 
 **Shipped (docs only):** Brad's 5-step simplicity algorithm — **goal →
