@@ -120,7 +120,7 @@ EXPANDED_LAWS = {
     "national_housing_trust_fund": {
         "id": "national_housing_trust_fund",
         "title": "National Housing Trust Fund",
-        "citation": "42 U.S.C. § 4568",
+        "citation": "12 U.S.C. § 4568",
         "category": "housing_assistance",
         "subcategory": "federal_housing_finance",
         "jurisdiction": "federal",
@@ -341,7 +341,7 @@ EXPANDED_LAWS = {
     "ucc_article_2a_leases": {
         "id": "ucc_article_2a_leases",
         "title": "Uniform Commercial Code (UCC) — Leases",
-        "citation": "Minn. Stat. § 336.2A",
+        "citation": "Minn. Stat. § 336.2A-101 et seq.",
         "category": "commerce",
         "subcategory": "ucc_leases",
         "jurisdiction": "state",
@@ -1283,11 +1283,11 @@ EXPANDED_LAWS = {
     "shelter_plus_care": {
         "id": "shelter_plus_care",
         "title": "Shelter Plus Care Program",
-        "citation": "42 U.S.C. § 11403",
+        "citation": "42 U.S.C. § 11381 et seq.",
         "category": "housing_assistance",
         "subcategory": "homeless_services",
         "jurisdiction": "federal",
-        "summary": "HUD rental assistance program that pairs housing with supportive services for homeless persons with disabilities.",
+        "summary": "HUD rental assistance program that paired housing with supportive services for homeless persons with disabilities. Shelter Plus Care was consolidated into the Continuum of Care program in 2012; that combined authority is what is cited here.",
         "key_points": [
             "Tenant-based, project-based, and sponsor-based assistance",
             "Requires matching supportive services",
@@ -1325,7 +1325,7 @@ EXPANDED_LAWS = {
     "section_236_below_market": {
         "id": "section_236_below_market",
         "title": "Section 236 Below Market Interest Rate Housing",
-        "citation": "42 U.S.C. § 1715z-1",
+        "citation": "12 U.S.C. § 1715z-1",
         "category": "housing_assistance",
         "subcategory": "federal_housing_finance",
         "jurisdiction": "federal",
@@ -1346,7 +1346,7 @@ EXPANDED_LAWS = {
     "section_221d3_below_market": {
         "id": "section_221d3_below_market",
         "title": "Section 221(d)(3) Below Market Interest Rate Housing",
-        "citation": "42 U.S.C. § 1715l",
+        "citation": "12 U.S.C. § 1715l",
         "category": "housing_assistance",
         "subcategory": "federal_housing_finance",
         "jurisdiction": "federal",

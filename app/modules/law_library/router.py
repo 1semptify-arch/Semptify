@@ -33,7 +33,8 @@ router = APIRouter(
 # =============================================================================
 LEGAL_DISCLAIMER = DISCLAIMERS["educational_info"]
 
-LAST_VERIFIED_DATE = "2025-01-01"  # Date when legal content was last verified
+# Collection-level freshness (LAST_VERIFIED_DATE) is derived from the enriched
+# records after the law_source_registry pass below — never a hand-set constant.
 
 
 # =============================================================================
@@ -1525,6 +1526,8 @@ from app.core.law_source_registry import (
 
 for _law_id, _law_entry in ALL_LAWS.items():
     enrich_law_entry(_law_entry)
+    if not _law_entry.get("official_url"):
+        logger.warning("law_library entry %r resolved no official source — citation %r", _law_id, _law_entry.get("citation"))
 
 for _case in CASE_LAW_DATABASE:
     _src = resolve_source(_case.get("citation", ""))
@@ -1533,12 +1536,26 @@ for _case in CASE_LAW_DATABASE:
         _case.setdefault("source_name", _src.source_name)
         _case.setdefault("last_verified", _src.last_verified)
         _case.setdefault("jurisdiction", _src.jurisdiction)
+    else:
+        logger.warning("law_library case %r resolved no official source — citation %r", _case.get("id"), _case.get("citation"))
 
 for _rule_id, _rule_entry in DAKOTA_COUNTY_RULES.items():
     _rule_entry.setdefault("official_url", "https://www.mncourts.gov/Find-Courts/Dakota-County.aspx")
     _rule_entry.setdefault("source_name", "Minnesota Judicial Branch - Dakota County")
     _rule_entry.setdefault("last_verified", "2026-01-15")
     _rule_entry.setdefault("jurisdiction", "state")
+
+# Collection-level freshness for the API envelopes: the oldest per-entry
+# verification date in the library. A collection is only as fresh as its
+# stalest verified source, so this is derived — never set by hand.
+LAST_VERIFIED_DATE = min(
+    (
+        entry["last_verified"]
+        for entry in (*ALL_LAWS.values(), *CASE_LAW_DATABASE, *DAKOTA_COUNTY_RULES.values())
+        if entry.get("last_verified")
+    ),
+    default=None,
+)
 
 
 # =============================================================================

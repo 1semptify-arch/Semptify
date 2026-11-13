@@ -17036,3 +17036,36 @@ sessions); embedded images are dropped from edited exports (noted to user).
   this repo — noted in dispatch, unchanged). `verify_exec.db` sqlite
   artifact left in repo root (gitignored `*.db`; file deletion is off
   limits per headless rules).
+
+## 2026-11-13 — Law-library integrity: derived freshness + verification lane (task-f84de546, swe-2)
+
+- **Hardcoded `LAST_VERIFIED_DATE = "2025-01-01"` removed.** The collection-level
+  `last_verified` on `/api/law-library/statutes`, `/statutes/{id}`, and `/links`
+  is now derived at import as the **oldest per-entry verification date** in the
+  library (a collection is only as fresh as its stalest verified source).
+- **Coverage is now 100%.** All 157 entries (119 statutes, 25 cases, 13 court
+  rules) carry `official_url` + `last_verified`, so the /law-library lede claim
+  is mechanically true. Import-time `logger.warning` fires for any future entry
+  whose citation resolves no official source.
+- **Registry fixes (root cause):** federal-appellate pattern now matches dotted
+  circuits (`D.C. Cir.`); new MN appellate docket pattern (`No. A24-0002`);
+  `_usc_url` range citations (`§ 3601-3619`) resolve to the first section while
+  suffix cites (`§ 1715z-1`) stay whole; `_mn_stat_url` handles hyphenated
+  subsections (`336.2A-101`) and section ranges (`§ 513.52-513.60`);
+  CourtListener search URLs are now URL-encoded (were malformed, spaces).
+- **Data fixes:** wrong U.S.C. titles corrected — Housing Trust Fund, Section
+  236, Section 221(d)(3) are Title 12, not 42; `shelter_plus_care` now cites the
+  current Continuum of Care authority (`42 U.S.C. § 11381 et seq.`) with a note
+  that S+C was consolidated in 2012; UCC 2A cite fixed to `§ 336.2A-101 et seq.`
+- **New tool `tools/verify_law_sources.py`** — the build-time re-verification
+  lane (learning-platform design gap #4): fetches every `official_url`, reports
+  live/blocked/dead per entry + per source, exit 1 on any failure. Report-only;
+  date bumps stay human-gated.
+- **First lane run 2026-11-13:** 105/157 links verified live; `last_verified`
+  bumped to 2026-11-13 for Minnesota Revisor, Cornell LII, eCFR, IRS.gov.
+  Remaining 52 are bot-wall 403s (CourtListener/CloudFront, mncourts and
+  municode/Cloudflare, hud.gov) — unverifiable from automation, not dead;
+  logged to intake for a human-browser pass. Suspect case citations flagged
+  separately (intake — possible fabricated reporter numbers).
+- **Verified:** py_compile clean; 8 law-library/linker module tests pass;
+  live fetch 105 OK / 0 dead / 52 bot-walled.
