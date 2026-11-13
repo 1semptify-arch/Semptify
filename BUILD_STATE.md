@@ -1,3 +1,11 @@
+## Session — 2026-11-13 — LAN Postgres semptify CREATE grant applied (swe-2, task task-ba85c946)
+
+**Done (infra, no code change):** one-time admin `GRANT ALL ON SCHEMA public TO semptify` applied on the CT103 Postgres container (via `ssh pve` → `pct exec 103`, `psql` as `postgres`) for all four `semptify_*` DBs at 10.0.0.106 — `semptify`, `semptify_app`, `semptify_local`, `semptify_pi`. All four are owned by `postgres`, which is why the `semptify` role had USAGE but not CREATE (Postgres 15+ default ACL on `public`).
+
+**Correction to the 2026-10-25 entries below:** "every semptify DB is empty" was wrong — live check found public tables in all four (semptify 11, semptify_app 66, semptify_local 28, semptify_pi 4). The "empty DBs can be dropped by an admin whenever" note is retracted — **do NOT drop those DBs without inspecting contents first**.
+
+**Verified:** `has_schema_privilege('semptify','public','CREATE')` = true in all 4 DBs; over-the-wire psycopg create+drop probe as `semptify` succeeded in all 4. `.env` LAN DATABASE_URL line still commented out — local dev remains on SQLite/Neon per the 2026-10-25 split.
+
 ## Session — 2026-11-12 — Token-storage reality ADR + admin dynamic-IP fix (swe-2)
 
 **Shipped:**
@@ -892,7 +900,7 @@ One or more checks failed — see console output.
 
 **Verified:** py_compile clean; migration verified on scratch SQLite; live boot — both pages 200, submit→store→publish→list loop works end-to-end; banned-words scan of rendered pages clean; `test_ssot_architecture.py` all pass; semptify-local-smoke.js 6/6 (first run had a cold-start timeout on `/` — unrelated to this change, clean on re-run).
 
-**Known infra issue (not introduced here):** local Postgres 10.0.0.106 — every semptify DB is empty and the `semptify` role lacks CREATE on schema public; needs a one-time admin `GRANT ALL ON SCHEMA public TO semptify;`. Parked — local dev uses SQLite, prod is Neon.
+**Known infra issue (not introduced here):** local Postgres 10.0.0.106 — every semptify DB is empty and the `semptify` role lacks CREATE on schema public; needs a one-time admin `GRANT ALL ON SCHEMA public TO semptify;`. Parked — local dev uses SQLite, prod is Neon. *(Resolved 2026-11-13 — grant applied; and the "empty" claim was wrong, see the 2026-11-13 entry at top.)*
 
 **Next session:** build the admin "review & respond" screen for tool requests; collect outside reviews for the Outside Views section; wire /hello into home-page nav if Brad wants it.
 
@@ -900,7 +908,7 @@ One or more checks failed — see console output.
 - Neon `dev` branch `br-restless-math-an5kb1wa` created off `production` — copy-on-write clone; local dev now runs against a realistic, safe-to-break DB. `.env` `DATABASE_URL` repointed (local-only file, not committed).
 - `alembic upgrade head` run on dev: 20260913_tl_tags → 20261025_tool_requests (all 8 pending migrations applied clean on Postgres).
 - `database.py` root-cause fix committed: `_resolve_db_ssl()` — URL `sslmode` > `DB_SSL_MODE` (now actually wired, was dead config) > host heuristic; self-signed LAN certs encrypt-without-verify instead of crashing.
-- LAN Postgres 10.0.0.106 = legal/private DBs only; its empty `semptify_*` DBs can be dropped by an admin whenever (intake intake-60f8fcde).
+- LAN Postgres 10.0.0.106 = legal/private DBs only; its empty `semptify_*` DBs can be dropped by an admin whenever (intake intake-60f8fcde). *(Wrong on both counts — corrected 2026-11-13: the DBs are NOT empty, do not drop; CREATE grant applied instead.)*
 - Local PC also has Postgres 16 installed but service stopped — unused, leave it.
 
 ---
