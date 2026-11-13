@@ -311,3 +311,8 @@ test_mcro.py
 scripts/add_sample_docs.py
 scripts/build_case_timeline.py
 app/modules/litigation_intelligence/moduals  to be included/
+
+# live-drill artifacts (cookies/screenshots/openapi dumps — never source)
+drill_cookies.txt
+admin-login-qr.png
+openapi_drill.json
