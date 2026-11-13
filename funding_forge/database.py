@@ -4,6 +4,7 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 from funding_forge.config import settings
 
@@ -12,10 +13,13 @@ class Base(DeclarativeBase):
     """Standalone base for Funding Forge models."""
 
 
+# NullPool: no held idle connections — an idle instance must not keep Neon
+# scale-to-zero suspended (same policy as app.core.database's nullpool mode).
 engine = create_async_engine(
     settings.database_url,
     echo=settings.debug,
     future=True,
+    poolclass=NullPool,
 )
 
 AsyncSessionLocal = async_sessionmaker(
