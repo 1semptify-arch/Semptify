@@ -191,6 +191,23 @@ def available_locales() -> dict[str, str]:
     }
 
 
+def reviewed_locales() -> dict[str, str]:
+    """Return only locales whose catalogs are marked human_reviewed.
+
+    The locale selector offers these exclusively — machine and stub catalogs
+    stay invisible until a human marks them reviewed (see
+    docs/blueprints/languages_prep_blueprint.md review rule). English is the
+    only human_reviewed catalog today, so callers should hide the selector
+    while this dict has a single entry.
+    """
+    i18n_instance = I18n()
+    return {
+        code: name
+        for code, name in SUPPORTED_LOCALES.items()
+        if i18n_instance.catalog_status(code) == "human_reviewed"
+    }
+
+
 def catalog_status(locale: str) -> str:
     """Return a catalog's review status ('human_reviewed', 'machine', 'stub')."""
     return I18n().catalog_status(locale)

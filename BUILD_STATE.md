@@ -1,3 +1,52 @@
+## Session — 2026-11-14 — locale selector hidden until a catalog is human_reviewed (swe-2, task task-5c21619e)
+
+**Context:** The footer locale selector offered 14 languages, but all 13
+non-English catalogs are `_meta.status: "machine"` covering ~23 chrome
+strings each — selecting one changed almost nothing visible (a soft dead
+end). `docs/blueprints/languages_prep_blueprint.md` decision #2
+recommended hiding the selector until the first human_reviewed catalog;
+the same blueprint's review rule says machine drafts stay invisible.
+
+**Done:**
+- `app/core/i18n.py` — new `reviewed_locales()` helper returning only
+  catalogs with `_meta.status == "human_reviewed"`.
+- `app/templates/components/locale_selector.html` — whole form guarded on
+  `reviewed_locales|length > 1`; options now iterate `reviewed_locales`
+  (only reviewed languages are ever offered); the `*` machine-note markup
+  removed (dead — machine catalogs are never listed).
+- `app/templates/components/footer.html` — the wrapper `.footer-help`
+  div guarded on the same condition so no stray empty element remains.
+- `reviewed_locales` exposed as a Jinja global alongside the existing
+  i18n globals in `app/main.py`, `app/modules/law_library/router.py`,
+  `app/modules/page_router/router.py`, `app/modules/mndes/router.py`,
+  `app/modules/role_ui/router.py`.
+- `tests/test_i18n.py` — two tests pinning `available_locales` (non-stub)
+  vs `reviewed_locales` (human_reviewed only) semantics.
+
+**Unchanged:** `available_locales()` semantics and the
+`GET /api/i18n/locale` response (still reports all non-stub locales for
+JS consumers). `POST /api/i18n/set-locale` still accepts any supported
+locale — direct POSTs and Accept-Language resolution are unaffected.
+
+**Self-unhiding:** when a translator marks any non-en catalog
+`human_reviewed`, the selector reappears on restart offering exactly the
+reviewed set — no flag to flip.
+
+**Verified:** `py_compile` clean on all touched files;
+`pytest tests/test_i18n.py` 16/16 pass. Live app on :8025 —
+`GET /components/footer` renders the complete footer with zero
+`.locale-selector` markup; `GET /` same; `/api/i18n/locale` unchanged.
+Browser check (IronBee) at 1280px + 375px: 0 `.locale-selector`
+elements, footer intact, no console errors. Jinja render checks: form
+renders with both options once a second locale is human_reviewed, and
+no empty `.footer-help` div when hidden.
+
+**Decision flag:** implements blueprint decision #2 option (a) —
+"hide until first human_reviewed page" was the documented
+recommendation; if Brad prefers option (b) (always visible), revert is
+the `{% if reviewed_locales|length > 1 %}` guard in the two templates.
+
+
 ## Session — 2026-11-14 — route_audit: app-shell docs mount exempted as infra (swe-2, task task-04f68193)
 
 **Context:** On every production startup the audit warned `GET /api/docs`,
