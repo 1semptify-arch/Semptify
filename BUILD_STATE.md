@@ -17184,3 +17184,36 @@ sessions); embedded images are dropped from edited exports (noted to user).
   present, `NEDRIVE` absent); grep confirms no unpinned `3.11-slim` base
   remains outside historical log entries. Config-only change — no Python
   compiled.
+
+## 2026-11-14 — alert() sweep on audit Tier 3-5 pages (task task-a50e9dcd, swe-2)
+
+- **All 27 `alert()` calls removed** from the 11 pages left over from
+  feedback-component-epic (intake-59efdfbb). Replaced with direct
+  `SemptifyFeedback.success/error/info(...)` calls — `feedback.js` loads via
+  `app/templates/base.html` on every Jinja page, so the `else { alert() }`
+  fallback branches were dead code (same end-state timeline.html shipped
+  earlier: "SemptifyFeedback only").
+- **`advocate_client_detail.html`** — 13 `if (window.SemptifyFeedback){...}else{alert(...)}`
+  pairs collapsed to direct calls (review, message, annotate, overlay-delete,
+  review-all paths). **`tenant_my_advocate.html`** — `notify()` helper's alert
+  fallback dropped. **`admin_agent_orchestrator.html`** — import-failure alert
+  → `SemptifyFeedback.error`. **`sticky_notes.html`** — 3 fetch-error alerts →
+  `.error`. **`law_linker_popout.html`** — 2 scratch-pad save errors → `.error`.
+  **`motions.html` / `counterclaim.html` / `roles.html` /
+  `document_delivery_inbox.html` / `document_rejection.html` /
+  `document_signature.html`** — placeholder/`window.alert` calls → `.info`
+  (success for the send-request path).
+- **Verified live** (127.0.0.1:8001, god-mode seed): 9 renderable pages HTTP
+  200 with 0 `alert(` in served HTML + `feedback.js` loaded; browser confirmed
+  `window.SemptifyFeedback` global on `/record/notes` and exercised the real
+  converted path on `/motions` (select type → generate → Download → info toast
+  "Download would begin here for: motion-to-dismiss" rendered). Console clean.
+  `advocate_client_detail` + `admin_agent_orchestrator` unreachable by design —
+  role set excludes the tenant class / `require_admin` (dormant pro surfaces,
+  PR #317); both Jinja-parse clean and inherit the same base-template include.
+- All 11 templates Jinja-parse OK; `py_compile` on `app/main.py`,
+  `app/core/navigation.py` PASS (no Python touched).
+- Out of scope, logged to intake: dead `else alert()` fallbacks in epic pages
+  `auto_mode_panel.html`/`auto_analysis_summary.html` (intake-c079d778);
+  `prompt()`/`confirm()` blocking dialogs family needing a non-blocking modal
+  decision (intake-06103684).

@@ -66,7 +66,7 @@
         return;
       }
       box.innerHTML = docs.map(d =>
-        '<div class="doc-item"><div class="doc-info"><p class="doc-subject">' + d.subject + '</p><p class="doc-meta">From: ' + d.sender + ' &middot; ' + d.date + '</p></div><span class="doc-status ' + d.status + '">' + d.status + '</span><button class="btn btn--primary btn--sm" onclick="alert(\'Opening ' + d.subject + '\')">Open</button></div>'
+        '<div class="doc-item"><div class="doc-info"><p class="doc-subject">' + d.subject + '</p><p class="doc-meta">From: ' + d.sender + ' &middot; ' + d.date + '</p></div><span class="doc-status ' + d.status + '">' + d.status + '</span><button class="btn btn--primary btn--sm" onclick="SemptifyFeedback.info(\'Opening ' + d.subject + '\')">Open</button></div>'
       ).join('');
     }, 1000);
   }

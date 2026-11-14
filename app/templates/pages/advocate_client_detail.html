@@ -535,27 +535,19 @@ document.addEventListener('click', async (e) => {
             body: JSON.stringify({ status, notes }),
         });
         if (resp.ok) {
-            if (window.SemptifyFeedback) {
-                SemptifyFeedback.success(`Document marked as ${status}`);
-            } else { alert(`Document marked as ${status}`); }
+            SemptifyFeedback.success(`Document marked as ${status}`);
             loadClientDetail();
         } else {
-            if (window.SemptifyFeedback) {
-                SemptifyFeedback.error('Failed to review document');
-            } else { alert('Failed to review document'); }
+            SemptifyFeedback.error('Failed to review document');
         }
     } catch (err) {
-        if (window.SemptifyFeedback) {
-            SemptifyFeedback.error('Error: ' + err.message);
-        } else { alert('Error: ' + err.message); }
+        SemptifyFeedback.error('Error: ' + err.message);
     }
 });
 
 // Message button (placeholder)
 document.getElementById('btn-message').addEventListener('click', () => {
-    if (window.SemptifyFeedback) {
-        SemptifyFeedback.info('Messaging feature coming soon');
-    } else { alert('Messaging feature coming soon'); }
+    SemptifyFeedback.info('Messaging feature coming soon');
 });
 
 // ============== Annotation Modal ==============
@@ -614,15 +606,12 @@ document.getElementById('annotate-submit').addEventListener('click', async () =>
         const data = await resp.json();
         if (resp.ok && data.success) {
             annotateModal.classList.remove('active');
-            if (window.SemptifyFeedback) { SemptifyFeedback.success(`${t} annotation created`); }
-            else { alert(`${t} annotation created`); }
+            SemptifyFeedback.success(`${t} annotation created`);
         } else {
-            if (window.SemptifyFeedback) { SemptifyFeedback.error(data.detail || 'Failed to create annotation'); }
-            else { alert(data.detail || 'Failed to create annotation'); }
+            SemptifyFeedback.error(data.detail || 'Failed to create annotation');
         }
     } catch (err) {
-        if (window.SemptifyFeedback) { SemptifyFeedback.error('Error: ' + err.message); }
-        else { alert('Error: ' + err.message); }
+        SemptifyFeedback.error('Error: ' + err.message);
     }
 });
 
@@ -722,16 +711,13 @@ document.addEventListener('click', async (e) => {
     try {
         const resp = await fetch(`/api/advocate/clients/${CLIENT_ID}/overlays/${overlayId}`, { method: 'DELETE' });
         if (resp.ok) {
-            if (window.SemptifyFeedback) { SemptifyFeedback.success('Annotation deleted'); }
-            else { alert('Annotation deleted'); }
+            SemptifyFeedback.success('Annotation deleted');
             btn.closest('.overlay-item').remove();
         } else {
-            if (window.SemptifyFeedback) { SemptifyFeedback.error('Failed to delete'); }
-            else { alert('Failed to delete'); }
+            SemptifyFeedback.error('Failed to delete');
         }
     } catch (err) {
-        if (window.SemptifyFeedback) { SemptifyFeedback.error('Error: ' + err.message); }
-        else { alert('Error: ' + err.message); }
+        SemptifyFeedback.error('Error: ' + err.message);
     }
 });
 
@@ -832,16 +818,12 @@ document.getElementById('view-close').addEventListener('click', () => {
 document.getElementById('btn-review-all').addEventListener('click', async () => {
     const docs = await fetchJSON(`/api/advocate/clients/${CLIENT_ID}/documents`);
     if (!docs || !docs.documents || docs.documents.length === 0) {
-        if (window.SemptifyFeedback) {
-            SemptifyFeedback.info('No documents to review');
-        } else { alert('No documents to review'); }
+        SemptifyFeedback.info('No documents to review');
         return;
     }
     const pending = docs.documents.filter(d => !d.review_status);
     if (pending.length === 0) {
-        if (window.SemptifyFeedback) {
-            SemptifyFeedback.info('All documents already reviewed');
-        } else { alert('All documents already reviewed'); }
+        SemptifyFeedback.info('All documents already reviewed');
         return;
     }
     if (!confirm(`Mark ${pending.length} pending document(s) as reviewed?`)) return;
@@ -856,9 +838,7 @@ document.getElementById('btn-review-all').addEventListener('click', async () => 
             if (resp.ok) ok++;
         } catch (err) { /* skip */ }
     }
-    if (window.SemptifyFeedback) {
-        SemptifyFeedback.success(`${ok}/${pending.length} documents reviewed`);
-    } else { alert(`${ok}/${pending.length} documents reviewed`); }
+    SemptifyFeedback.success(`${ok}/${pending.length} documents reviewed`);
     loadClientDetail();
 });
 

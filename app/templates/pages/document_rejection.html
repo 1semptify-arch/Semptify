@@ -57,7 +57,7 @@
   <!-- ACTION -->
   <div class="actions">
     <button class="btn-primary" id="request-btn" onclick="requestChanges()">Request Changes</button>
-    <button class="btn-secondary" onclick="alert('Contact form would open.')">Contact Sender</button>
+    <button class="btn-secondary" onclick="SemptifyFeedback.info('Contact form would open.')">Contact Sender</button>
   </div>
   <div class="reaction" id="reaction" style="display:none;">Processing...</div>
 </div>
@@ -74,7 +74,7 @@
     setTimeout(() => {
       rxn.style.display = 'none';
       btn.disabled = false;
-      alert('Change request sent to sender.');
+      SemptifyFeedback.success('Change request sent to sender.');
     }, 1500);
   }
 </script>

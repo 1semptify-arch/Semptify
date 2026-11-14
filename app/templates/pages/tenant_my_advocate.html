@@ -301,8 +301,7 @@ async function fetchJSON(url, opts) {
     }
 }
 function notify(kind, msg) {
-    if (window.SemptifyFeedback) SemptifyFeedback[kind](msg);
-    else alert(msg);
+    SemptifyFeedback[kind](msg);
 }
 function formatDate(iso) {
     if (!iso) return '—';

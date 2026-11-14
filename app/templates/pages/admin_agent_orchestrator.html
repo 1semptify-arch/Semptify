@@ -413,7 +413,7 @@ async function importJson(input) {
       showToast(`Imported ${payload.length} tasks`);
       await loadTasks();
     } catch (err) {
-      alert('Import failed: ' + err.message);
+      SemptifyFeedback.error('Import failed: ' + err.message);
     }
     input.value = '';
   };
