@@ -14,6 +14,8 @@ import secrets
 import string
 from datetime import timedelta
 
+from sqlalchemy import select
+
 from app.core.utc import utc_now
 from app.models.models import InviteCode
 
@@ -89,13 +91,13 @@ def create_invite_code(
     )
 
 
-def validate_invite_code(code: str, db_session) -> tuple[bool, str, InviteCode | None]:
+async def validate_invite_code(code: str, db_session) -> tuple[bool, str, InviteCode | None]:
     """
     Validate an invite code.
 
     Args:
         code: The invite code to validate
-        db_session: SQLAlchemy session
+        db_session: SQLAlchemy async session
 
     Returns:
         Tuple of (is_valid: bool, message: str, invite_code: InviteCode or None)
@@ -110,7 +112,8 @@ def validate_invite_code(code: str, db_session) -> tuple[bool, str, InviteCode |
     else:
         formatted_code = code
 
-    invite = db_session.query(InviteCode).filter_by(code=formatted_code).first()
+    result = await db_session.execute(select(InviteCode).where(InviteCode.code == formatted_code))
+    invite = result.scalars().first()
 
     if not invite:
         return False, "Invalid invite code", None
@@ -127,19 +130,19 @@ def validate_invite_code(code: str, db_session) -> tuple[bool, str, InviteCode |
     return True, "Valid invite code", invite
 
 
-def redeem_invite_code(code: str, user_id: str, db_session) -> tuple[bool, str, InviteCode | None]:
+async def redeem_invite_code(code: str, user_id: str, db_session) -> tuple[bool, str, InviteCode | None]:
     """
     Redeem an invite code for a user.
 
     Args:
         code: The invite code to redeem
         user_id: User ID redeeming the code
-        db_session: SQLAlchemy session
+        db_session: SQLAlchemy async session
 
     Returns:
         Tuple of (success: bool, message: str, invite_code: InviteCode or None)
     """
-    is_valid, message, invite = validate_invite_code(code, db_session)
+    is_valid, message, invite = await validate_invite_code(code, db_session)
 
     if not is_valid:
         return False, message, invite
@@ -150,73 +153,74 @@ def redeem_invite_code(code: str, user_id: str, db_session) -> tuple[bool, str, 
 
     # Update the invite
     invite.uses_count += 1
-    if invite.used_by is None:
-        invite.used_by = []
-    invite.used_by.append(user_id)
+    invite.used_by = [*(invite.used_by or []), user_id]
 
     # Auto-deactivate if max uses reached
     if invite.uses_count >= invite.max_uses:
         invite.is_active = False
 
-    db_session.commit()
+    await db_session.commit()
 
     return True, f"Invite code redeemed successfully. Role granted: {invite.role}", invite
 
 
-def get_organization_codes(organization_id: str, db_session, include_inactive: bool = False) -> list[InviteCode]:
+async def get_organization_codes(organization_id: str, db_session, include_inactive: bool = False) -> list[InviteCode]:
     """
     Get all invite codes for an organization.
 
     Args:
         organization_id: Organization to lookup
-        db_session: SQLAlchemy session
+        db_session: SQLAlchemy async session
         include_inactive: Whether to include deactivated/expired codes
 
     Returns:
         List of InviteCode objects
     """
-    query = db_session.query(InviteCode).filter_by(organization_id=organization_id)
+    query = select(InviteCode).where(InviteCode.organization_id == organization_id)
 
     if not include_inactive:
-        query = query.filter_by(is_active=True)
+        query = query.where(InviteCode.is_active.is_(True))
 
-    return query.order_by(InviteCode.created_at.desc()).all()
+    result = await db_session.execute(query.order_by(InviteCode.created_at.desc()))
+    return list(result.scalars().all())
 
 
-def deactivate_invite_code(code: str, db_session) -> bool:
+async def deactivate_invite_code(code: str, db_session) -> bool:
     """
     Deactivate an invite code.
 
     Args:
         code: Code to deactivate
-        db_session: SQLAlchemy session
+        db_session: SQLAlchemy async session
 
     Returns:
         True if deactivated, False if not found
     """
-    invite = db_session.query(InviteCode).filter_by(code=code.upper()).first()
+    result = await db_session.execute(select(InviteCode).where(InviteCode.code == code.upper()))
+    invite = result.scalars().first()
 
     if not invite:
         return False
 
     invite.is_active = False
-    db_session.commit()
+    await db_session.commit()
 
     return True
 
 
-def get_code_stats(code: str, db_session) -> dict | None:
+async def get_code_stats(code: str, db_session) -> dict | None:
     """
     Get statistics about an invite code.
 
     Args:
         code: Code to get stats for
-        db_session: SQLAlchemy session
+        db_session: SQLAlchemy async session
 
     Returns:
         Dict with code stats or None if not found
     """
-    invite = db_session.query(InviteCode).filter_by(code=code.upper()).first()
+    result = await db_session.execute(select(InviteCode).where(InviteCode.code == code.upper()))
+    invite = result.scalars().first()
 
     if not invite:
         return None
