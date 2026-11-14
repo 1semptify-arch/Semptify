@@ -316,3 +316,10 @@ app/modules/litigation_intelligence/moduals  to be included/
 drill_cookies.txt
 admin-login-qr.png
 openapi_drill.json
+
+# sandbox runtime artifacts (scaffolding in sandbox/ IS tracked; db/uploads/logs stay local)
+sandbox/sandbox.db*
+sandbox/uploads/
+sandbox/vault/
+sandbox/*.log
+sandbox/__pycache__/
