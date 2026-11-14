@@ -154,6 +154,15 @@
     - app/core/security_config.py
   category: admin
 
+# Process doc: the [considering] -> [evaluated] gate referenced by the
+# retired archive BACKLOG; §3 gates privacy-touching ideas.
+- doc: admin/SCOPE_EVALUATION_CHECKLIST.md
+  covers:
+    - docs/admin/PRIVACY_AND_ACCEPTABLE_USE_SSOT.md
+    - app/core/upl_guardrails.py
+    - app/core/privacy_aup.py
+  category: admin
+
 # ---------------------------------------------------------------------------
 # user docs
 # ---------------------------------------------------------------------------
