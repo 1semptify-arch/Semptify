@@ -1,4 +1,54 @@
+## Session — 2026-11-14 — route_audit: app-shell docs mount exempted as infra (swe-2, task task-04f68193)
+
+**Context:** On every production startup the audit warned `GET /api/docs`,
+`/api/redoc`, `/api/openapi.json` had no FunctionGroupContract coverage.
+The routes are FastAPI built-ins mounted under `/api/` in `create_app`
+(`docs_url`/`redoc_url`/`openapi_url`), public by the 2026-11-02 decision
+and whitelisted in `StorageRequirementMiddleware.PUBLIC_PATHS`. A
+`documentation_public_api_docs` contract already declares them, but the
+documentation module is `ProductTier.DEV`, so `load_all_contracts` skips
+it under production tiers (CORE/EXTENDED/ADVOCATE/ADMIN) while the docs
+mount exists in every tier — coverage could never reach them outside dev.
+
+**Done:** `app/core/route_audit.py` — new `_INFRA_PATHS` exact-match set
+(`"/api/docs"`, `"/api/redoc"`, `"/api/openapi.json"`,
+`"/api/docs/oauth2-redirect"`) checked alongside `_INFRA_PREFIXES` in
+`_is_actionable`. Same "public plumbing, not module surface" category as
+`/docs`, `/openapi`, `/redoc` — the audit's infra list predated the docs
+move under `/api/` and stopped matching. Exact match, NOT a `/api/docs`
+prefix: the documentation module's real router surface
+(`/api/docs/postman`, `/api/docs/reference`, ...) stays auditable via its
+own contracts in dev.
+
+**Verified against the live mounted surface** under `SEMPTIFY_ENV=production`
+tiers + `SECURITY_MODE=open` (the warning's real conditions — before this
+fix the four docs paths were flagged there): `scan_public_routes` reports
+"all actionable public routes have contract coverage", TOTAL_FLAGGED=0,
+DOCS_FLAGGED=0, both inside `create_app` and on re-scan. `py_compile`
+clean.
+
+**Not done (noted):** the `documentation_public_api_docs` contract in
+`app/modules/documentation/register.py` is now redundant for audit
+purposes (still loads in dev as surface documentation) — left in place,
+harmless.
+
+
 ## Session — 2026-11-14 — route_audit: GET-only ops-surface routes now scanned (swe-2, task task-7d44141f)
+
+### Guardrail Engine Run — 2026-11-14T06:00:40+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
 
 **Context:** `_is_actionable` treated every GET-only public route as a
 public-by-design page, so an ad-hoc GET (e.g. `/debug/data-dump`,

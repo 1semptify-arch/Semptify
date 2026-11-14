@@ -39,6 +39,21 @@ logger = logging.getLogger(__name__)
 _SKIP_METHODS = {"HEAD", "OPTIONS"}
 # Mounts and infra paths that are public plumbing, not module surface.
 _INFRA_PREFIXES = ("/static", "/assets", "/docs", "/openapi", "/redoc")
+# App-shell docs surface — FastAPI mounts Swagger UI, ReDoc, and the OpenAPI
+# schema under /api/ (docs_url/redoc_url/openapi_url in create_app), not at
+# the /docs-style roots above. Public by the 2026-11-02 decision and
+# whitelisted in StorageRequirementMiddleware.PUBLIC_PATHS; these are
+# framework plumbing, not module-router surface. Exact-match set, NOT a
+# prefix: /api/docs/* is real module surface (documentation router) that
+# stays auditable via its own FunctionGroupContracts.
+_INFRA_PATHS = frozenset(
+    {
+        "/api/docs",
+        "/api/redoc",
+        "/api/openapi.json",
+        "/api/docs/oauth2-redirect",
+    }
+)
 
 # GET-only routes are out of scope only while they read like pages. These
 # first path segments mark operational surface where a public GET can leak
@@ -95,7 +110,11 @@ def _is_sensitive_get(path: str) -> bool:
 def _is_actionable(path: str, methods: set[str]) -> bool:
     """A public route is actionable if it is an API path, does mutations,
     or is a GET-only route that reads like operational surface, not a page."""
-    if path.startswith(_INFRA_PREFIXES) or path in _SELF_GUARDED_PATHS:
+    if (
+        path.startswith(_INFRA_PREFIXES)
+        or path in _INFRA_PATHS
+        or path in _SELF_GUARDED_PATHS
+    ):
         return False
     if path.startswith("/api/"):
         return True
