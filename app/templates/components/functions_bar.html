@@ -7,7 +7,7 @@
             {# Left: Briefcase Summary #}
             <div class="functions-bar__briefcase">
                 <a href="/tenant/journal" class="functions-bar__briefcase-link" title="View your vault">
-                    <span class="functions-bar__icon">💼</span>
+                    <span class="functions-bar__icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
                     <span class="functions-bar__count">{{ briefcase.vault.total_documents if briefcase else 0 }}</span>
                     <span class="functions-bar__label">items</span>
                     {% if briefcase and briefcase.inbox.unread_count > 0 %}
@@ -32,19 +32,16 @@
 
                 {# Quick Capture #}
                 <a href="/tenant/capture" class="functions-bar__btn functions-bar__btn--secondary">
-                    <span>➕</span>
                     Capture
                 </a>
 
                 {# Quick Journal #}
                 <a href="/tenant/journal" class="functions-bar__btn functions-bar__btn--secondary">
-                    <span>📖</span>
                     Journal
                 </a>
 
                 {# Inbox (with badge if unread) #}
                 <a href="/tenant/inbox" class="functions-bar__btn functions-bar__btn--secondary {% if briefcase and briefcase.inbox.unread_count > 0 %}functions-bar__btn--alert{% endif %}">
-                    <span>🔔</span>
                     Inbox
                     {% if briefcase and briefcase.inbox.unread_count > 0 %}
                     <span class="functions-bar__btn-badge">{{ briefcase.inbox.unread_count }}</span>
@@ -55,7 +52,6 @@
             {# Right: Help #}
             <div class="functions-bar__help">
                 <a href="/tenant/help" class="functions-bar__help-link" title="Get help">
-                    <span>❓</span>
                     <span class="functions-bar__help-text">Help</span>
                 </a>
             </div>
@@ -295,7 +291,7 @@
     }
 
     .functions-bar__help-text {
-        display: none;
+        display: inline;
     }
 }
 </style>

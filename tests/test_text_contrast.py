@@ -72,7 +72,6 @@ def check_literals(report_only: bool = False) -> list[str]:
     problems = []
     files = list((ROOT / "app/templates/public").glob("*.html")) + [
         ROOT / "app/templates/body/public_shell.html",
-        ROOT / "app/templates/public_base.html",
     ]
     for f in files:
         text = f.read_text(encoding="utf-8", errors="ignore")

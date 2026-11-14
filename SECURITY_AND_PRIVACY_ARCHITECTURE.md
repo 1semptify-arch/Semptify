@@ -20,11 +20,11 @@ Semptify is built on a single uncompromising principle:
 | **User Activity Tracking** | ❌ NONE | We can't see what you do |
 | **IP Address Logging** | ❌ NONE | We don't track your location |
 | **Analytics/Tracking** | ❌ NONE | No Google Analytics, no Mixpanel |
-| **Advertisements** | ❌ NONE | Completely ad-free, 100% free |
+| **Advertisements** | ❌ NONE | Completely ad-free, no cost |
 | **Personal Data Storage** | ❌ NONE | No names, emails, phones stored |
 | **Your Documents** | ✅ YOUR CONTROL | Stored in YOUR cloud storage only |
 | **Encryption** | ✅ AES-256-GCM | Military-grade token encryption |
-| **Cost** | ✅ $0 | Forever free, no paywalls |
+| **Cost** | ✅ $0 | No cost, always — no paywalls |
 
 ---
 
@@ -486,7 +486,7 @@ or "context" field). The rule is about the data, not the column name.
 - Have premium "paid tiers"
 - Have paywalls
 
-**Reality:** 100% free, 100% ad-free, forever.
+**Reality:** no cost, 100% ad-free, always.
 
 ---
 

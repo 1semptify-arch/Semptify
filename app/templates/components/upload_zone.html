@@ -7,7 +7,7 @@
 {% set multiple = multiple if multiple is defined else true %}
 
 <div class="upload-zone" id="{{ zone_id }}">
-    <div class="upload-zone__icon">📤</div>
+    <div class="upload-zone__icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
     <p class="upload-zone__title">
         {{ title or 'Drag & drop files here or click to browse' }}
     </p>

@@ -2153,31 +2153,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                         s.id: _step_map.context(s.id) for s in _step_map.TENANT_JOURNEY
                     }
                     context["journey_by_pillar"] = {s.pillar: s.id for s in _steps.values()}
-                if _p.id == "bill_research":
-                    # Published claims ledger — written by the case-side
-                    # publish pipeline (sanitized, no private-party names).
-                    claims_file = BASE_PATH / "data" / "bill_claims_public.json"
-                    if claims_file.exists():
-                        try:
-                            import json as _json
-                            context.update(_json.loads(
-                                claims_file.read_text(encoding="utf-8")))
-                        except Exception:  # pylint: disable=broad-exception-caught
-                            context["claims"] = []
-                    else:
-                        context["claims"] = []
-                if _p.id == "bill_live":
-                    # Clean statute tab — derived from the same published
-                    # partial the notes tab renders verbatim, so the two
-                    # views can never drift apart. None -> template falls
-                    # back to including the working file.
-                    try:
-                        from app.modules.portal.service import bill_statute_view
-                        draft_file = BASE_PATH / "app" / "templates" / "public" / "bill_draft.html"
-                        context["bill_statute_html"] = bill_statute_view(
-                            draft_file.read_text(encoding="utf-8"))
-                    except Exception:  # pylint: disable=broad-exception-caught
-                        context["bill_statute_html"] = None
                 if _p.id == "toolbox":
                     context.update(_toolbox.page_context())
                 if _p.id in _pillars.PAGE_IDS:

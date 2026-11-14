@@ -307,7 +307,7 @@
         <div class="collapsible-header"><span>1. System Overview Hero</span><span class="collapsible-arrow">▼</span></div>
         <div class="collapsible-content">
           <p><strong>What it does:</strong> Displays high-level platform metrics at a glance.</p>
-          <p><strong>Metrics shown:</strong> Total users, Active cases, Documents in vaults, Pending signatures, Uptime, Security incidents, Rate limit violations, Blockchain timestamps.</p>
+          <p><strong>Metrics shown:</strong> Total users, Active cases, Documents in vaults, Pending signatures, Uptime, Security incidents, Rate limit violations, Document timestamps.</p>
           <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Monitor these metrics daily to detect anomalies. Sudden drops in uptime or spikes in rate limit violations may indicate attacks or system issues.</p></div>
           <div class="testing-box"><div class="testing-title">🧪 Testing</div><p>No switches to test. Metrics are read-only from database.</p></div>
           <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Metrics not loading:</strong> Check database connection. Verify <code>get_db_session()</code> is working.</li><li><strong>Stale data:</strong> Metrics may cache for up to 5 minutes. Refresh page.</li></ul></div>
