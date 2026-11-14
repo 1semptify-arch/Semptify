@@ -1,5 +1,20 @@
 ## Session — 2026-11-13 — LAN Postgres semptify CREATE grant applied (swe-2, task task-ba85c946)
 
+### Guardrail Engine Run — 2026-11-14T00:03:27+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
 **Done (infra, no code change):** one-time admin `GRANT ALL ON SCHEMA public TO semptify` applied on the CT103 Postgres container (via `ssh pve` → `pct exec 103`, `psql` as `postgres`) for all four `semptify_*` DBs at 10.0.0.106 — `semptify`, `semptify_app`, `semptify_local`, `semptify_pi`. All four are owned by `postgres`, which is why the `semptify` role had USAGE but not CREATE (Postgres 15+ default ACL on `public`).
 
 **Correction to the 2026-10-25 entries below:** "every semptify DB is empty" was wrong — live check found public tables in all four (semptify 11, semptify_app 66, semptify_local 28, semptify_pi 4). The "empty DBs can be dropped by an admin whenever" note is retracted — **do NOT drop those DBs without inspecting contents first**.
