@@ -80,16 +80,23 @@ DOCUMENT_STYLES = {
 
 
 class DocumentConverter:
-    """Main document converter class."""
+    """Main document converter class.
 
-    def __init__(self):
-        self.output_dir = Path("data/converted_documents")
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+    The router contract is ``DocumentConverter(style)`` followed by
+    ``convert_text_to_docx(markdown_text, output_path, metadata)`` and
+    ``convert_text_to_html(markdown_text, output_path, metadata, linked_documents)``.
+    """
 
-    def convert_to_docx(
-        self, markdown_text: str, metadata: DocumentMetadata | None = None, style: DocumentStyle | None = None
-    ) -> Path:
-        """Convert markdown text to DOCX format."""
+    def __init__(self, style: DocumentStyle | None = None):
+        self.style = style or DOCUMENT_STYLES["standard"]
+
+    def convert_text_to_docx(
+        self,
+        markdown_text: str,
+        output_path: str,
+        metadata: DocumentMetadata | None = None,
+    ) -> str:
+        """Convert markdown text to DOCX format at the given path."""
         try:
             import docx  # noqa: F401
             from docx import Document
@@ -100,8 +107,7 @@ class DocumentConverter:
 
         if metadata is None:
             metadata = DocumentMetadata()
-        if style is None:
-            style = DocumentStyle.STYLES["standard"]
+        style = self.style
 
         # Create document
         doc = Document()
@@ -155,17 +161,21 @@ class DocumentConverter:
                     doc.add_paragraph(line)
 
         # Save document
-        filename = f"document_{utc_now().strftime('%Y%m%d_%H%M%S')}.docx"
-        filepath = self.output_dir / filename
-        doc.save(filepath)
+        filepath = Path(output_path)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        doc.save(str(filepath))
 
         logger.info(f"Converted markdown to DOCX: {filepath}")
-        return filepath
+        return str(filepath)
 
-    def convert_to_html(
-        self, markdown_text: str, metadata: DocumentMetadata | None = None, style: DocumentStyle | None = None
-    ) -> Path:
-        """Convert markdown text to interactive HTML format."""
+    def convert_text_to_html(
+        self,
+        markdown_text: str,
+        output_path: str,
+        metadata: DocumentMetadata | None = None,
+        linked_documents: dict[str, str] | None = None,
+    ) -> str:
+        """Convert markdown text to interactive HTML format at the given path."""
         try:
             import markdown
         except ImportError:
@@ -173,8 +183,7 @@ class DocumentConverter:
 
         if metadata is None:
             metadata = DocumentMetadata()
-        if style is None:
-            style = DocumentStyle.STYLES["standard"]
+        style = self.style
 
         # Convert markdown to HTML
         html_content = markdown.markdown(markdown_text, extensions=["tables", "fenced_code"])
@@ -235,17 +244,29 @@ class DocumentConverter:
 
         # Add content
         html_template += f'<div class="content">{html_content}</div>'
+
+        # Add linked documents section
+        if linked_documents:
+            html_template += '<div class="linked-documents"><h2>Linked Documents</h2><ul>'
+            import html as _html
+
+            for doc_title, doc_url in linked_documents.items():
+                html_template += (
+                    f'<li><a href="{_html.escape(doc_url, quote=True)}">{_html.escape(doc_title)}</a></li>'
+                )
+            html_template += "</ul></div>"
+
         html_template += "</body></html>"
 
         # Save HTML file
-        filename = f"document_{utc_now().strftime('%Y%m%d_%H%M%S')}.html"
-        filepath = self.output_dir / filename
+        filepath = Path(output_path)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
 
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(html_template)
 
         logger.info(f"Converted markdown to HTML: {filepath}")
-        return filepath
+        return str(filepath)
 
 
 # Convenience functions
@@ -257,14 +278,16 @@ def markdown_to_docx(
     parties: str | None = None,
     author: str | None = None,
     style: str = "standard",
-) -> Path:
-    """Convert markdown to DOCX with metadata."""
+    output_dir: str = "data/converted_documents",
+) -> str:
+    """Convert markdown to DOCX with metadata. Returns the output path."""
     metadata = DocumentMetadata(title=title, case_number=case_number, court=court, parties=parties, author=author)
 
-    doc_style = DocumentStyle.STYLES.get(style, DocumentStyle.STYLES["standard"])
+    doc_style = DOCUMENT_STYLES.get(style, DOCUMENT_STYLES["standard"])
 
-    converter = DocumentConverter()
-    return converter.convert_to_docx(markdown_text, metadata, doc_style)
+    filename = f"document_{utc_now().strftime('%Y%m%d_%H%M%S')}.docx"
+    converter = DocumentConverter(doc_style)
+    return converter.convert_text_to_docx(markdown_text, str(Path(output_dir) / filename), metadata)
 
 
 def markdown_to_html(
@@ -275,11 +298,13 @@ def markdown_to_html(
     parties: str | None = None,
     author: str | None = None,
     style: str = "standard",
-) -> Path:
-    """Convert markdown to HTML with metadata."""
+    output_dir: str = "data/converted_documents",
+) -> str:
+    """Convert markdown to HTML with metadata. Returns the output path."""
     metadata = DocumentMetadata(title=title, case_number=case_number, court=court, parties=parties, author=author)
 
-    doc_style = DocumentStyle.STYLES.get(style, DocumentStyle.STYLES["standard"])
+    doc_style = DOCUMENT_STYLES.get(style, DOCUMENT_STYLES["standard"])
 
-    converter = DocumentConverter()
-    return converter.convert_to_html(markdown_text, metadata, doc_style)
+    filename = f"document_{utc_now().strftime('%Y%m%d_%H%M%S')}.html"
+    converter = DocumentConverter(doc_style)
+    return converter.convert_text_to_html(markdown_text, str(Path(output_dir) / filename), metadata)
