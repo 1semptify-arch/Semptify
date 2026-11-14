@@ -1,3 +1,40 @@
+## Session — 2026-11-14 — route_audit: GET-only ops-surface routes now scanned (swe-2, task task-7d44141f)
+
+**Context:** `_is_actionable` treated every GET-only public route as a
+public-by-design page, so an ad-hoc GET (e.g. `/debug/data-dump`,
+`/storage/db-dump`, `/r/all-tokens`) mounted under a public namespace
+evaded both the runtime audit and `tools/checks/route_audit_check.py`.
+Intake noted the GET exemption was deliberate for *pages*; the promoted
+task scopes the tightening to non-page operational surface only.
+
+**Done:** `app/core/route_audit.py` — GET-only public routes are now
+actionable when the path signals operational surface: first segment in
+`_OPS_FIRST_SEGMENTS` (debug/admin/internal/ops/dev/test/system) or any
+`-`/`_`/`.`-split path token in `_DANGER_TOKENS` (dump/export/backup/
+migrate/seed/schema/token/secret/credential/sql/db/cache/session/logs/
+config/private/passwd/password/raw). Boundaries kept: `.html` paths are
+the documented page class (client-side auth); `/admin/login`,
+`/admin/logout`, `/admin/public-voice` are `_SELF_GUARDED_PATHS` (auth
+inside the route, like `/docs` plumbing). `is_public_path` remains the
+outer gate — non-public routes are out of scope regardless.
+
+**Verified against the live mounted surface** (same env pins as
+route_audit_check): 119 public routes, 0 flags before and after — zero
+new warnings; 10 previously-invisible GET routes (3 ad-hoc `/debug/*`
+in main.py + `/admin/api/*` + `/api/docs*`) now enter the audit and pass
+via contract coverage. 25/25 synthetic-path assertions pass
+(`/storage/db-dump`, `/gui/internal-export`, `/r/all-tokens`,
+`/onboarding/sessions`, `/toolbox/schema`, `/debug/data-dump` →
+actionable; `/donate`, `/tenant/home`, `/gui/dashboard`, `/health`,
+`/status`, `.html` pages → exempt). `route_audit_check.run()` PASSED
+end-to-end; `pytest tests/module_health` 275/275; `py_compile` clean.
+
+**Not done (noted):** `/debug/data-dump` itself still passes coverage
+via the `/debug` contract prefix — the contract owns that namespace;
+tightening per-route review inside covered namespaces is a separate
+decision. `.html` paths remain unaudited by design (client-side auth).
+
+
 ## Session — 2026-11-14 — Turnbuchalla CRP rail statutory anchor consistency pass (swe-2, task task-81a93b73)
 
 **Context:** The Title II statutory draft (2026-11-07, counsel item 7) found
