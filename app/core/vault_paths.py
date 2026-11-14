@@ -137,6 +137,7 @@ VAULT_DOSSIERS = normalize_cloud_path(f"{VAULT_ROOT}/dossiers")
 
 VAULT_OVERLAYS = normalize_cloud_path(f"{VAULT_ROOT}/overlays")
 VAULT_OVERLAY_REGISTRY = normalize_cloud_path(f"{VAULT_OVERLAYS}/registry.json")
+VAULT_OVERLAY_REGISTRY_QUARANTINE = normalize_cloud_path(f"{VAULT_OVERLAYS}/registry_quarantine.json")
 VAULT_OVERLAY_DOCUMENTS = normalize_cloud_path(f"{VAULT_OVERLAYS}/documents")
 VAULT_OVERLAY_QUERIES = normalize_cloud_path(f"{VAULT_OVERLAYS}/queries")
 VAULT_OVERLAYS_FORMS = normalize_cloud_path(f"{VAULT_OVERLAYS}/forms")

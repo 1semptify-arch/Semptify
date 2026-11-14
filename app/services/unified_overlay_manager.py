@@ -46,6 +46,7 @@ from app.core.utc import utc_now
 from app.core.vault_paths import (
     VAULT_OVERLAY_DOCUMENTS,
     VAULT_OVERLAY_REGISTRY,
+    VAULT_OVERLAY_REGISTRY_QUARANTINE,
     VAULT_OVERLAYS,
 )
 from app.models.unified_overlay_models import (
@@ -57,6 +58,36 @@ from app.models.unified_overlay_models import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Top-level keys in legacy/seed registry files that are bookkeeping, not overlays.
+# The vault installer used to seed registry.json as a wrapper document
+# ({version, created_by, created_at, overlays: {}, metadata}); the canonical
+# format is a flat {overlay_id: overlay} map written by _save_registry().
+_LEGACY_REGISTRY_KEYS = frozenset(
+    {
+        "version",
+        "created_by",
+        "created_at",
+        "updated_at",
+        "last_updated",
+        "overlays",
+        "metadata",
+        "total_overlays",
+    }
+)
+
+# Legacy field names seen on pre-UnifiedOverlay entries, mapped to current names.
+_LEGACY_FIELD_ALIASES = {
+    "overlay_id": ("id",),
+    "overlay_type": ("type", "kind"),
+    "document_id": ("doc_id", "document"),
+    "vault_path": ("path", "file_path"),
+    "created_by": ("user_id", "owner"),
+    "created_at": ("created", "timestamp"),
+    "updated_at": ("updated", "modified"),
+    "payload": ("data", "overlay_data"),
+    "metadata": ("meta",),
+}
 
 
 class UnifiedOverlayManager:
@@ -375,7 +406,13 @@ class UnifiedOverlayManager:
             logger.debug(f"Folder creation skipped (may already exist): {e}")
 
     async def _load_registry(self) -> dict:
-        """Load overlay registry from cloud storage."""
+        """Load overlay registry from cloud storage.
+
+        Self-repairs legacy formats: the installer-era wrapper document and any
+        malformed/legacy entries are normalized into the canonical flat
+        {overlay_id: overlay} map and persisted back once, so warnings do not
+        recur on every read. Unrecoverable entries are quarantined, not lost.
+        """
         try:
             content = await self.storage.download_file(VAULT_OVERLAY_REGISTRY)
             if not content:
@@ -387,10 +424,117 @@ class UnifiedOverlayManager:
                     type(data).__name__,
                 )
                 return {}
-            return data
+            registry, dropped = self._normalize_registry(data)
+            if dropped or registry != data:
+                try:
+                    await self._migrate_registry(registry, dropped)
+                except Exception as e:
+                    logger.warning("Registry migration failed (will retry on next load): %s", e)
+            return registry
         except Exception as e:
             logger.debug(f"Registry load failed (creating new): {e}")
             return {}
+
+    def _normalize_registry(self, data: dict) -> tuple[dict, dict]:
+        """Normalize raw registry JSON into a flat {overlay_id: entry} map.
+
+        Returns (registry, dropped). Entries that cannot be recovered into a
+        valid UnifiedOverlay are returned in dropped for quarantine.
+        """
+        candidates: dict = {}
+
+        # Legacy wrapper format: real entries live under an "overlays" key.
+        nested = data.get("overlays")
+        if isinstance(nested, dict):
+            candidates.update(nested)
+        elif isinstance(nested, list):
+            for item in nested:
+                if isinstance(item, dict) and item.get("overlay_id"):
+                    candidates[item["overlay_id"]] = item
+
+        # Flat entries at top level (written by _update_registry) take
+        # precedence over nested ones on key conflict — they are newer.
+        for key, value in data.items():
+            if key not in _LEGACY_REGISTRY_KEYS:
+                candidates[key] = value
+
+        registry: dict = {}
+        dropped: dict = {}
+        for key, raw in candidates.items():
+            recovered = self._normalize_registry_entry(key, raw)
+            if recovered is None:
+                dropped[key] = raw
+            else:
+                overlay_id, entry = recovered
+                registry[overlay_id] = entry
+        return registry, dropped
+
+    def _normalize_registry_entry(self, key: str, raw) -> tuple[str, dict] | None:
+        """Recover one registry entry to a valid UnifiedOverlay dict, or None.
+
+        Returns (overlay_id, entry_dict). String values that are JSON-serialized
+        overlay dicts are unwrapped; legacy field names are remapped; a missing
+        overlay_id adopts its registry key.
+        """
+        entry = raw
+        if isinstance(entry, str):
+            try:
+                entry = json.loads(entry)
+            except (json.JSONDecodeError, ValueError):
+                return None
+            if not isinstance(entry, dict):
+                return None
+        if not isinstance(entry, dict):
+            return None
+
+        for candidate in (dict(entry), self._remap_legacy_fields(entry)):
+            candidate.setdefault("overlay_id", key)
+            try:
+                overlay = UnifiedOverlay(**candidate)
+                return overlay.overlay_id, candidate
+            except (ValueError, TypeError):
+                continue
+        return None
+
+    def _remap_legacy_fields(self, entry: dict) -> dict:
+        """Copy an entry with legacy field names mapped to current ones."""
+        remapped = dict(entry)
+        for canonical, aliases in _LEGACY_FIELD_ALIASES.items():
+            if canonical in remapped:
+                continue
+            for alias in aliases:
+                if alias in remapped:
+                    remapped[canonical] = remapped.pop(alias)
+                    break
+        return remapped
+
+    async def _migrate_registry(self, registry: dict, dropped: dict) -> None:
+        """Persist a normalized registry and quarantine dropped entries.
+
+        The quarantine file is written BEFORE the registry rewrite so dropped
+        raw entries survive even if the rewrite fails.
+        """
+        if dropped:
+            quarantine = {
+                "quarantined_at": utc_now().isoformat(),
+                "reason": "Unrecoverable overlay registry entries dropped by legacy-format migration",
+                "entries": dropped,
+            }
+            try:
+                await self.storage.upload_file(
+                    file_content=json.dumps(quarantine, indent=2, default=str).encode("utf-8"),
+                    destination_path=VAULT_OVERLAYS,
+                    filename=VAULT_OVERLAY_REGISTRY_QUARANTINE.rsplit("/", 1)[-1],
+                    mime_type="application/json",
+                )
+            except Exception as e:
+                logger.warning("Registry migration: quarantine write failed: %s", e)
+        await self._save_registry(registry)
+        logger.info(
+            "Migrated overlay registry to flat schema: %d entries kept, %d quarantined",
+            len(registry),
+            len(dropped),
+        )
 
     async def _update_registry(self, overlay: UnifiedOverlay) -> None:
         """Update registry with new or modified overlay."""

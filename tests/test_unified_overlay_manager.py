@@ -12,7 +12,11 @@ import pytest
 
 from app.core.overlay_types import OverlayType
 from app.core.utc import utc_now
-from app.core.vault_paths import VAULT_OVERLAY_DOCUMENTS, VAULT_OVERLAY_REGISTRY
+from app.core.vault_paths import (
+    VAULT_OVERLAY_DOCUMENTS,
+    VAULT_OVERLAY_REGISTRY,
+    VAULT_OVERLAY_REGISTRY_QUARANTINE,
+)
 from app.models.unified_overlay_models import CreateOverlayRequest
 from app.services.storage.base import StorageFile, StorageProvider
 from app.services.unified_overlay_manager import UnifiedOverlayManager
@@ -25,6 +29,7 @@ class FakeStorageProvider(StorageProvider):
         super().__init__()
         self.files: dict[str, bytes] = {}
         self.folders: set[str] = set()
+        self.upload_log: list[str] = []
 
     @property
     def provider_name(self) -> str:
@@ -42,6 +47,7 @@ class FakeStorageProvider(StorageProvider):
     ) -> StorageFile:
         path = f"{destination_path}/{filename}"
         self.files[path] = file_content
+        self.upload_log.append(path)
         return StorageFile(
             id=filename,
             name=filename,
@@ -212,6 +218,124 @@ async def test_get_overlays_skips_malformed_registry_entries(
     query = await manager.get_overlays()
     assert query.count == 1
     assert query.overlays[0].overlay_id == "good-1"
+
+
+def _valid_entry(overlay_id: str = "good-1", **overrides) -> dict:
+    entry = {
+        "overlay_id": overlay_id,
+        "overlay_type": "highlight",
+        "document_id": "doc-1",
+        "vault_path": "Semptify5.0/Vault/documents/lease.pdf",
+        "created_by": "GUtest1234",
+        "created_at": utc_now().isoformat(),
+        "updated_at": utc_now().isoformat(),
+        "payload": {},
+        "metadata": {},
+        "ephemeral": False,
+        "version": "1.0",
+    }
+    entry.update(overrides)
+    return entry
+
+
+@pytest.mark.anyio
+async def test_load_registry_migrates_installer_wrapper_format(
+    fake_storage: FakeStorageProvider,
+):
+    """Installer-seeded wrapper registry is unwrapped and persisted flat, once."""
+    fake_storage.files[VAULT_OVERLAY_REGISTRY] = json.dumps(
+        {
+            "version": "1.0",
+            "created_by": "GUtest1234",
+            "created_at": utc_now().isoformat(),
+            "overlays": {"good-1": _valid_entry("good-1")},
+            "metadata": {"total_overlays": 1},
+        }
+    ).encode("utf-8")
+
+    manager = UnifiedOverlayManager(fake_storage, "GUtest1234")
+    query = await manager.get_overlays()
+    assert query.count == 1
+    assert query.overlays[0].overlay_id == "good-1"
+
+    rewritten = json.loads(fake_storage.files[VAULT_OVERLAY_REGISTRY].decode("utf-8"))
+    assert rewritten == {"good-1": _valid_entry("good-1")}
+
+    uploads_after_first_read = len(fake_storage.upload_log)
+    await manager.get_overlays()
+    assert len(fake_storage.upload_log) == uploads_after_first_read
+
+
+@pytest.mark.anyio
+async def test_load_registry_recovers_string_and_aliased_entries(
+    fake_storage: FakeStorageProvider,
+):
+    """JSON-string entries and legacy field names are migrated, not dropped."""
+    fake_storage.files[VAULT_OVERLAY_REGISTRY] = json.dumps(
+        {
+            "ovl_str": json.dumps(_valid_entry("ovl_str")),
+            "ovl_old": {
+                "type": "highlight",
+                "doc_id": "doc-1",
+                "path": "Semptify5.0/Vault/documents/lease.pdf",
+                "user_id": "GUtest1234",
+                "data": {"color": "yellow"},
+            },
+        }
+    ).encode("utf-8")
+
+    manager = UnifiedOverlayManager(fake_storage, "GUtest1234")
+    query = await manager.get_overlays()
+    assert {o.overlay_id for o in query.overlays} == {"ovl_str", "ovl_old"}
+
+    rewritten = json.loads(fake_storage.files[VAULT_OVERLAY_REGISTRY].decode("utf-8"))
+    assert rewritten["ovl_old"]["overlay_type"] == "highlight"
+    assert "type" not in rewritten["ovl_old"]
+    assert VAULT_OVERLAY_REGISTRY_QUARANTINE not in fake_storage.files
+
+
+@pytest.mark.anyio
+async def test_load_registry_quarantines_unrecoverable_entries(
+    fake_storage: FakeStorageProvider,
+):
+    fake_storage.files[VAULT_OVERLAY_REGISTRY] = json.dumps(
+        {
+            "good-1": _valid_entry("good-1"),
+            "bad-1": "not a dict",
+            "bad-2": {"overlay_type": "invalid_type_value"},
+        },
+        default=str,
+    ).encode("utf-8")
+
+    manager = UnifiedOverlayManager(fake_storage, "GUtest1234")
+    query = await manager.get_overlays()
+    assert query.count == 1
+
+    rewritten = json.loads(fake_storage.files[VAULT_OVERLAY_REGISTRY].decode("utf-8"))
+    assert set(rewritten) == {"good-1"}
+
+    quarantine = json.loads(fake_storage.files[VAULT_OVERLAY_REGISTRY_QUARANTINE].decode("utf-8"))
+    assert set(quarantine["entries"]) == {"bad-1", "bad-2"}
+    assert quarantine["entries"]["bad-1"] == "not a dict"
+
+
+@pytest.mark.anyio
+async def test_load_registry_clean_flat_map_not_rewritten(
+    fake_storage: FakeStorageProvider,
+    sample_overlay_request: CreateOverlayRequest,
+):
+    """A registry already in canonical form is never rewritten on read."""
+    manager = UnifiedOverlayManager(fake_storage, "GUtest1234")
+    await manager.create_overlay(sample_overlay_request)
+
+    uploads_after_create = len(fake_storage.upload_log)
+    registry_bytes = fake_storage.files[VAULT_OVERLAY_REGISTRY]
+
+    await manager.get_overlays()
+    await manager.get_overlays()
+
+    assert len(fake_storage.upload_log) == uploads_after_create
+    assert fake_storage.files[VAULT_OVERLAY_REGISTRY] == registry_bytes
 
 
 @pytest.mark.anyio
