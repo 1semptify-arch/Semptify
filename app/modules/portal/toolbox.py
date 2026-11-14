@@ -248,7 +248,7 @@ class ToolboxCatalog:
             slot="p03.seal", wing="renters",
         ),
         ToolboxEntry(
-            id="fems", name="Forensic evidence system (FEMS)",
+            id="fems", name="Forensic documentation system (FEMS)",
             purpose="Organize case documents with a chain of custody.",
             group="record", status="partial", level="L1", engine="record",
             today="Use the document center for now.", today_path="/preamble",
