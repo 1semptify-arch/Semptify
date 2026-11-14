@@ -187,6 +187,16 @@ Verify methods: `API` = pytest/contract; `UI` = browser-driven live;
 
 ### G7 — Matters, filings, representation
 
+> **Status note (2026-11-14, task-b02e2f89):** G7.1–G7.3 are visibly
+> blocked, not skipped. `/api/legal/*` requires legal/advocate/admin, but
+> tenant-only identity (PR #317 — `parse_user_id` decodes every ID as
+> `tenant`) 403s every real user, and `/legal/dashboard` redirects tenants
+> home. The professional-access model is awaiting a decision: revive
+> professional identity vs. tenant-granted relationship/share gating (the
+> `advocate` module's ADVOCACY pattern) vs. defer to the pro-role add-on
+> repo. Mock content in `legal_dashboard.html` was replaced with an honest
+> dormant page in the meantime.
+
 | ID | Actor | Scenario | Pass criteria | Method |
 |---|---|---|---|---|
 | G7.1 | AT | Creates matter | Persists; appears on legal dashboard (real data, not mockup) | API+UI |
