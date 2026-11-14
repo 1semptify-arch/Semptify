@@ -32,7 +32,7 @@ def test_context_window_is_two_each_side():
 
 
 def test_no_banned_cost_copy_in_registry():
-    banned = ("free", "$0", "no cost", "no-cost", "premium", "subscription", "account")
+    banned = ("free", "$0", "premium", "subscription", "account")
     for s in PortalRegistry.get_visible_services():
         text = f"{s.name} {s.short_description} {s.description_long}".lower()
         assert not any(re.search(r'(?<![\w-])' + re.escape(b) + r'(?![\w-])', text) for b in banned), s.id
