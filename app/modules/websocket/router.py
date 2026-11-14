@@ -11,6 +11,7 @@ import logging
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
+from app.core.cookie_auth import verify_user_id
 from app.core.event_bus import EventType, event_bus
 from app.core.job_processor import get_job_processor
 from app.core.security import auth_gate, is_valid_user_storage
@@ -22,10 +23,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-def get_user_id_from_websocket(websocket: WebSocket) -> str:
-    """Get user_id from WebSocket cookies (secure approach)."""
-    user_id = websocket.cookies.get("semptify_uid", "broadcast")
-    return user_id if user_id else "broadcast"
+def get_user_id_from_websocket(websocket: WebSocket) -> str | None:
+    """Get user_id from WebSocket cookies (secure approach).
+
+    The semptify_uid cookie is HMAC-signed (<user_id>.<signature>) — verify
+    it like every HTTP cookie read does instead of trusting the raw value.
+    """
+    return verify_user_id(websocket.cookies.get("semptify_uid"))
 
 
 @router.websocket("/events")
@@ -41,8 +45,12 @@ async def websocket_events(websocket: WebSocket):
     # Get user_id from cookies (not query params - security!)
     user_id = get_user_id_from_websocket(websocket)
 
-    # Require login for websocket connections
-    if not is_valid_user_storage(user_id):
+    # Require login for websocket connections. accept() before close() so the
+    # 1008 reaches the client as a real close frame — a pre-accept close is a
+    # rejected handshake (HTTP 403), which browsers report as a console error
+    # the client cannot suppress and a 1006 close it cannot distinguish.
+    if not user_id or not is_valid_user_storage(user_id):
+        await websocket.accept()
         await websocket.close(code=1008, reason="Authentication required")
         return
 

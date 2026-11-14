@@ -17273,3 +17273,11 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - **Outcome:** `blocked_on_decision` — the delete-or-keep call and any
   deletion require Brad's login to the other Neon account's console; no
   agent-side path exists.
+
+## 2026-11-14 — /ws/events dev-server console noise + unsigned-cookie auth gap (task-5a84f297, swe-2)
+
+- **Root cause:** `websocket_events` called `websocket.close(1008)` *before* `accept()` — a rejected handshake (HTTP 403) delivers no close code, so browsers showed an unsuppressable console error and the client's `code === 1008` no-retry guard never fired (close arrives as 1006 → 5 retry attempts → spam on every page load).
+- **Fix (server, `app/modules/websocket/router.py`):** `accept()` then `close(1008)` so the close frame actually reaches the client; `get_user_id_from_websocket` now runs the cookie through `cookie_auth.verify_user_id` (HMAC) instead of trusting the raw value — previously ANY string shaped like a uid connected (unsigned `GUbGQUTpK6` verified open), and the signed blob `uid.sig` — not the uid — keyed `ws_manager`/`event_bus`/`user_jobs:` topics, silently breaking notification routing vs. raw-uid publishers.
+- **Fix (client, `static/js/core/websocket-client.js`):** `everConnected` flag — reconnects only schedule after a socket that actually opened; a refused handshake is a refused connection, not a dropped one.
+- **Verified live (127.0.0.1:8001, venv311):** probe — no-cookie/unsigned/forged/bad-sig all get clean close 1008 "Authentication required" (previously unsigned connected / 403-rejected); signed seed uid opens + receives welcome. IronBee browser — bogus-cookie reconnect path: console shows only `log`-level `[WebSocket] Connected`/`Closed 1008`, ZERO errors/warnings, `getReconnectAttempts()=0`; seeded-cookie path connects and stays open. py_compile + `node --check` pass.
+- **Intake:** `intake-34071517` — brain module `/ws` endpoint accepts connections with no auth check at all (DEV tier, dormant).

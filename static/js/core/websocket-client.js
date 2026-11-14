@@ -19,6 +19,7 @@
   let reconnectTimer = null;
   let errorLogged = false;
   let isManualClose = false;
+  let everConnected = false;
 
   // Event handlers registry
   const handlers = new Map();
@@ -41,6 +42,7 @@
         console.log('[WebSocket] Connected');
         reconnectAttempts = 0;
         errorLogged = false;
+        everConnected = true;
         emit('connected', { timestamp: new Date().toISOString() });
       };
 
@@ -59,6 +61,10 @@
         emit('disconnected', { code: event.code, wasClean: event.wasClean });
         // 1008 = server rejected auth — retrying just spams the console.
         if (event.code === 1008) return;
+        // Never opened = refused handshake (rejected auth, missing route,
+        // server down) — a refused connection isn't a dropped one, and
+        // retrying just repeats the same console failure.
+        if (!everConnected) return;
         if (!isManualClose) scheduleReconnect();
       };
 
