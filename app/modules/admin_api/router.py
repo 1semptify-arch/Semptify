@@ -121,9 +121,11 @@ class StoryReview(BaseModel):
 @router.get("/admin/api/public-forms/pending")
 async def admin_list_pending(admin_uid: str = Depends(require_elevation)):
     """
-    Everything awaiting the review pass — unpublished posts and any
-    published post a reader flagged — plus the most recent published
-    items per queue so they can be pulled back down if needed.
+    Everything awaiting the review pass — posts still in 'received'
+    status and any published post a reader flagged — plus the most
+    recent published items per queue so they can be pulled back down
+    if needed. Declined rows (status='declined') are done and never
+    reappear here.
     """
     from sqlalchemy import or_, select
 
@@ -138,7 +140,7 @@ async def admin_list_pending(admin_uid: str = Depends(require_elevation)):
                     select(VoicePost)
                     .where(
                         or_(
-                            VoicePost.is_published.is_(False),
+                            VoicePost.status == "received",
                             VoicePost.flag_count > 0,
                         )
                     )
@@ -168,7 +170,7 @@ async def admin_list_pending(admin_uid: str = Depends(require_elevation)):
             (
                 await db.execute(
                     select(ToolRequest)
-                    .where(ToolRequest.is_published.is_(False))
+                    .where(ToolRequest.status == "received")
                     .order_by(ToolRequest.created_at.asc())
                     .limit(100)
                 )
