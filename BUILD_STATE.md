@@ -1,3 +1,31 @@
+## Session — 2026-11-14 — Turnbuchalla CRP rail statutory anchor consistency pass (swe-2, task task-81a93b73)
+
+**Context:** The Title II statutory draft (2026-11-07, counsel item 7) found
+the certificate-of-rent-paid duty's statutory home moved in the 2023
+renter's-credit restructure — ordinary landlords now file under Minn. Stat.
+§ 290.0693, subd. 4; § 290A.19 covers manufactured-home park owners only.
+The live docs invoked a "CRP e-file data rail" without the anchor.
+
+**Done:**
+
+- `BILL_LIVE.md` — M1PR bullet now names § 290.0693, subd. 4 as the rail's
+  statutory home, with the § 290A.19 park-owner-only carve-out noted.
+- `BILL_V2_TITLED_2026-10-24.md` (II-3) — same anchor added; locked-marker
+  line records the 11/14 revisor.mn.gov check.
+- `index.html` — BILLDOC marker block regenerated via `build_platform.py`'s
+  `convert()` on the edited titled draft (verified byte-identical pre-edit,
+  so this repo file is the true generation source); edition line bumped to
+  "as of November 14, 2026" (outside markers, hand-maintained).
+
+**Verified:** § 290.0693 subd. 4 and § 290A.19 text pulled from
+revisor.mn.gov (2026 compilation) on 2026-11-14 — the CRP-to-commissioner
+duty sits in subd. 4(b); § 290A.19 is titled "Park owner to furnish rent
+certificate." `convert()` output diffed clean: only the II-3 fragment changed.
+
+**Not done (case-side registers, noted):** `registers/editions.jsonl` and
+`builds.jsonl` live outside this repo (case-side bill folder) — the editions
+row for this draft edit must be appended there when this change propagates.
+
 ## Session — 2026-11-14 — Admin login on prod verified live + honest unavailable state (swe-2, task task-262491a5)
 
 **Context:** intake-830ab9ec observed `/admin/api/login-step1`/`step2` returning

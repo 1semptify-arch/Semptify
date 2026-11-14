@@ -54,8 +54,11 @@ whichever member carries it.*
 - **MN Renter's Credit (M1PR)** = the ongoing renter-side share, structured
   as an **advance payment** — paid monthly to the pool, reconciled on the
   tax return (federal APTC mechanism, not a debt intercept). Enrollment
-  rides the mandatory CRP e-file *data* rail; over-cap renters pay the
-  share directly (~$6/mo) — disclosed, not hidden.
+  rides the mandatory CRP e-file *data* rail — Minn. Stat. § 290.0693,
+  subd. 4 (the landlord CRP-to-commissioner duty's post-2023 home;
+  § 290A.19 is now park-owner-only — anchor checked vs. revisor.mn.gov
+  11/14); over-cap renters pay the share directly (~$6/mo) — disclosed,
+  not hidden.
 - **Landlord matched share** = explicit third leg (per Brad 10/19 merge —
   "the other half"), PLUS the deposit float they no longer hold. Priced
   community base + experience surcharge; clean-book years earn a
