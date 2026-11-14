@@ -137,6 +137,19 @@ body.shell .rs-btn--primary {
 }
 
 .rs-head { grid-area: head; }
+
+.rs-message {
+    margin-top: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    border-left: 3px solid var(--color-accent-strong);
+    background: var(--zone-surface-2);
+    border-radius: var(--shell-radius);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    max-width: 42rem;
+    white-space: pre-wrap;
+}
+
 .rs-docs { grid-area: docs; }
 .rs-viewer { grid-area: viewer; }
 .rs-threads { grid-area: threads; }
@@ -343,6 +356,26 @@ body.shell .rs-btn--primary {
     font-size: 0.95rem;
     font-weight: 600;
     margin: 1rem 0 0.35rem;
+}
+
+.ls-warn {
+    border-left: 3px solid var(--color-accent-strong);
+    padding-left: 0.75rem;
+    max-width: 36rem;
+}
+
+.ls-note-hint {
+    margin: -0.5rem 0 0.25rem;
+    max-width: 36rem;
+}
+
+.ls-sublabel {
+    margin-top: 0.85rem;
+    font-weight: 500;
+}
+
+.ls-message {
+    max-width: 32rem;
 }
 
 .ls-doc-row {

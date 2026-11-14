@@ -13,6 +13,11 @@
       "required": true
     },
     {
+      "name": "tenant_message",
+      "type": "field",
+      "required": false
+    },
+    {
       "name": "document_ids",
       "type": "field",
       "required": true
@@ -68,6 +73,11 @@
       "input_name": "reviewer_label",
       "source": "typed",
       "note": "Tenant-chosen display name for the reviewer (e.g. 'Attorney Lee'). Not an identity — display only."
+    },
+    {
+      "input_name": "tenant_message",
+      "source": "typed",
+      "note": "Optional short note from the tenant shown at the top of the reviewer page — the 'tenant's message' half of the share surface. Stored verbatim on the CASE_SHARE payload."
     },
     {
       "input_name": "document_ids",
@@ -142,6 +152,8 @@
     "Share grants, threads, questions, and answers persist only as overlays in the tenant's vault — no server-side case-content tables.",
     "Reviewer scope is the share's explicit document id list; out-of-scope ids return document_not_shared.",
     "Revocation and expiry are enforced at the token gate on every reviewer request, not just at page load.",
-    "All thread text is authored by the party who typed it — no Semptify-generated legal content."
+    "All thread text is authored by the party who typed it — no Semptify-generated legal content.",
+    "Error responses never echo tenant data, vault paths, user ids, or document ids — static error codes and generic messages only.",
+    "Reviewer document streams emit the original bytes verbatim — including metadata embedded inside the file — plus the display filename and MIME type. Nothing is scrubbed on this path; the original is immutable and the share UI warns that hidden details travel with the file."
   ]
 }

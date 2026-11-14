@@ -132,6 +132,7 @@
                 case_id: parseInt(caseId, 10),
                 reviewer_label: label,
                 reviewer_contact: document.getElementById("lsContact").value.trim() || null,
+                tenant_message: document.getElementById("lsMessage").value.trim() || null,
                 document_ids: docIds,
                 include_notes: document.getElementById("lsIncludeNotes").checked,
                 deadline_ids: deadlineIds,

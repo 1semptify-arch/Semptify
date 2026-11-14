@@ -67,6 +67,7 @@ class ShareCreateRequest(BaseModel):
     case_id: int
     reviewer_label: str = Field(min_length=1, max_length=120)
     reviewer_contact: str | None = Field(default=None, max_length=200)
+    tenant_message: str | None = Field(default=None, max_length=2000)
     document_ids: list[str] = Field(default_factory=list, max_length=500)
     include_notes: bool = True
     deadline_ids: list[str] = Field(default_factory=list, max_length=200)
@@ -112,6 +113,7 @@ def _share_json(share, unread: int = 0) -> dict:
         "case_title": share.case_title,
         "reviewer_label": share.reviewer_label,
         "reviewer_contact": share.reviewer_contact,
+        "tenant_message": share.tenant_message,
         "documents": share.documents,
         "include_notes": share.include_notes,
         "include_summary": share.include_summary,
@@ -241,7 +243,13 @@ async def ls_create_share(
         for vid in doc_ids:
             doc = await vault_service.get_document(vid)
             if doc is None or doc.user_id != user.user_id:
-                raise HTTPException(status_code=404, detail=f"Document not found: {vid}")
+                # G5.8 — never echo vault ids or paths in error text, even to
+                # the owner. One generic message covers not-found + not-yours.
+                raise HTTPException(
+                    status_code=404,
+                    detail={"error": "document_not_found",
+                            "message": "One of the selected documents could not be found in your vault."},
+                )
             docs.append({"id": vid, "name": doc.filename or doc.safe_filename})
     except HTTPException:
         raise
@@ -273,6 +281,7 @@ async def ls_create_share(
         case_title=incident.title,
         reviewer_label=body.reviewer_label,
         reviewer_contact=body.reviewer_contact,
+        tenant_message=body.tenant_message,
         documents=docs,
         include_notes=body.include_notes,
         deadlines=deadlines,
@@ -420,6 +429,7 @@ async def rs_bundle(token: str, request: Request):
     return {
         "status": share.status,
         "reviewer_label": share.reviewer_label,
+        "message": share.tenant_message,
         "expires_at": share.expires_at.isoformat() if share.expires_at else None,
         "summary": summary,
         "documents": documents,

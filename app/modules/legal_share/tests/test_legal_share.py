@@ -62,6 +62,7 @@ async def _share(user: UserContext, **overrides) -> SimpleNamespace:
         "case_id": 7,
         "case_title": "Test case",
         "reviewer_label": "Attorney Lee",
+        "tenant_message": "These are the documents we talked about.",
         "documents": [{"id": "doc-001", "name": "lease.pdf"}, {"id": "doc-002", "name": "photos.zip"}],
         "include_notes": True,
         "deadlines": [{"id": "cal-1", "title": "Court date", "start_datetime": "2026-10-01T09:00:00+00:00"}],
@@ -88,6 +89,7 @@ async def test_create_and_resolve_share(storages, owner_ctx):
     assert share.share_token.startswith("GUalice001:")
     assert share.case_id == 7
     assert share.reviewer_label == "Attorney Lee"
+    assert share.tenant_message == "These are the documents we talked about."
     assert service.shared_document_ids(share) == {"doc-001", "doc-002"}
 
     # Owner-scoped token resolves without any server-side index
@@ -95,6 +97,7 @@ async def test_create_and_resolve_share(storages, owner_ctx):
     assert resolved is not None
     view, owner = resolved
     assert view.id == share.id
+    assert view.tenant_message == "These are the documents we talked about."
     assert owner.get_effective_user_id() == "GUalice001"
 
 
