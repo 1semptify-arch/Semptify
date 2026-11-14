@@ -453,6 +453,7 @@ class ToolboxCatalog:
             group="together", status="live", level="L4", engine="civic",
             today="Read the bill section.", today_path="/bill",
             promised_on=("/",),
+            note="/bill is a registered portal page that 301-redirects to the bill microsite at semptify.org/bill — the link is live (verified 2026-11-14), not a dead route.",
             slot="wing.bill", wing="bill",
         ),
         ToolboxEntry(
