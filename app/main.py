@@ -2409,15 +2409,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/advocate/dashboard", response_class=HTMLResponse)
     async def advocate_dashboard_page(request: Request):
         """Serve the advocate dashboard with modular components."""
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID
-
-        _raw = request.cookies.get(COOKIE_USER_ID)
-        user_id = str(_raw) if _raw is not None else None
-        if not is_valid_storage_user(user_id):
-            providers_stage = navigation.get_stage("providers")
-            providers_path = providers_stage.path if providers_stage else "/storage/providers"
-            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
+        guard_redirect = await _guard_role_page(request, {"advocate"})
+        if guard_redirect:
+            return guard_redirect
 
         advocate_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_dashboard.html"
         if advocate_dashboard_path.exists():
@@ -2436,15 +2430,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/legal/dashboard", response_class=HTMLResponse)
     async def legal_dashboard_page(request: Request):
         """Serve the legal dashboard with modular components."""
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID
-
-        _raw = request.cookies.get(COOKIE_USER_ID)
-        user_id = str(_raw) if _raw is not None else None
-        if not is_valid_storage_user(user_id):
-            providers_stage = navigation.get_stage("providers")
-            providers_path = providers_stage.path if providers_stage else "/storage/providers"
-            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
+        guard_redirect = await _guard_role_page(request, {"legal"})
+        if guard_redirect:
+            return guard_redirect
 
         legal_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "legal_dashboard.html"
         if legal_dashboard_path.exists():
@@ -4295,6 +4283,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """Lightweight guard: storage connected + expected role for portal page."""
         from app.core.cookie_auth import extract_user_id
         from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import get_role_from_user_id
+        from app.core.workflow_engine import route_user as _route_user
 
         signed_cookie = request.cookies.get("semptify_uid", "")
         user_id = extract_user_id(request)
@@ -4309,9 +4299,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             reconnect_path = reconnect_stage.path if reconnect_stage else "/storage/reconnect"
             return ssot_redirect(reconnect_path, context="document_delivery reconnect required")
 
-        # ONBOARDING SOLO: no role check — a valid authenticated tenant
-        # passes. Page-level restrictions beyond this are share-based, not
-        # role-based.
+        # ONBOARDING SOLO: every valid ID decodes as tenant, so a page whose
+        # role set excludes the tenant class (advocate/legal/manager/pro-only
+        # surfaces) is dormant — route the tenant home instead of rendering
+        # it. 'user' is the legacy alias for 'tenant' and is treated as
+        # equivalent so USER-scoped sets still admit tenants.
+        current_role = get_role_from_user_id(user_id) or ""
+        _tenant_aliases = {"tenant", "user"}
+        effective_allowed = allowed_roles | (_tenant_aliases if allowed_roles & _tenant_aliases else set())
+        if ("tenant" if current_role in _tenant_aliases else current_role) not in effective_allowed:
+            return ssot_redirect(await _route_user(user_id), context="role_page role mismatch")
         return None
 
     # =========================================================================
