@@ -657,7 +657,7 @@ class ToolboxCatalog:
             group="support", status="partial", level="L0", engine="trust",
             today="Use the feedback form, which is confirmed working.", today_path="/feedback",
             promised_on=("/contact", "/help", "/privacy", "/terms", "/disclaimer"),
-            note="Nine distinct addresses appear across public pages (hello, tech, legal, privacy, partnerships, press, support, brad, admin) — the contact page shows six of them. Whether each is a working mailbox has not been verified.",
+            note="Nine distinct addresses appear across public pages (hello, tech, legal, privacy, partnerships, press, support, brad, admin) — the contact page shows six of them. Cloudflare Email Routing has literal rules for most, but partnerships@ and press@ deliver only via the catch-all forward — they silently break if the catch-all is ever disabled (literal rules still needed, 2026-11-14).",
             slot="shared.contact", wing="shared",
         ),
         # -------------------------------------------------- PILLAR FRONTS
