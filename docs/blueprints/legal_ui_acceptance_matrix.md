@@ -384,15 +384,15 @@ cite their reports under `handoffs/`.
 | G5.9 | **BLOCKED — slice5** | Three-way co-view is the blocked co-view MVP; the third-party-presence UI can't exist without it |
 | G5.10 | PASS | Slice 4: share flow warns forwarding can waive — "treat links like handing someone the paper" |
 | G5.11 | **BLOCKED — task-b02e2f89** | Paralegal/clerk delegation requires the professional-access model |
-| G5.12 | **PENDING slice-6** | Metadata-scrub story belongs to the release path; `release_service.py` surface exists, custody slice still in flight |
+| G5.12 | **OPEN — product call** | Release path exists and carries originals verbatim (page warns "hidden details saved inside the file"); whether release offers a metadata-scrub option is a decision, not implemented |
 | G5.13 | PASS | Slice 4 copy pass: notes carry discoverability honesty; no secrecy promises |
 | G6.1–G6.7 | **BLOCKED — slice5** | Co-view MVP blocked on initiator + guest-identity decision |
 | G7.1–G7.3 | **BLOCKED — task-b02e2f89** | `/api/legal/*` 403s every real user under tenant-only identity; dashboard honestly dormant |
 | G7.4 | PASS | "Working with you since 11/14/2026" renders on tenant My-Advocate page (verified at both viewports) |
-| G7.5 | **PENDING slice-6** | Packet/legend export is the release-custody slice, in flight |
+| G7.5 | PASS | Slice 6: packet zip carries legend.json + legend.txt (PDF legend section too); custom DOCUMENT_KEY meanings verified inside the bundle |
 | G7.6 | PASS | "Semptify is not legal advice" footer + disclaimers on every legal-surface page browsed; nothing implies Semptify practices law |
 | G8.1–G8.5 | PASS | Slice 3 report (2026-11-07): legal_trails routed + wired to real APIs, filing windows, honest empty states, draft-marked complaints |
-| G9.1–G9.6 | **PENDING slice-6** | Release/custody slice in flight. Surface confirmed live: "Released copies & record of handling" zone on `/legal-share`, `/api/legal-share/release/*` endpoints answer, owner-gating present |
+| G9.1–G9.6 | PASS | Slice 6 (16/16 live checks + browser drive): gated release → NEW zip artifact with certificate+timestamp+legend+custody; on-disk sha256 identical before/after; advocate release → 403 `release_denied` + log row, stranger → 404; artifact hash/timestamp/certificate travel in the record; custody log chronological + exportable (`?download=1`) |
 | G10.1 | PASS | No-session user on `/api/unified-overlays/list` + `/api/legal-share/cases` → 401 `reconnect_required` "We're reconnecting you to your storage. Your documents are safe." + redirect URL; pages redirect to reconnect |
 | G10.2 | PASS | Every empty/error state seen had a next step: dead share link page ("ask the person who shared it to send it again" + public links), "No questions yet", "No annotations on this document yet", expired/revoked share labels, honest 404/410 JSON |
 | G10.3 | PASS | 375px complete render of `/tenant/my-advocate`, `/legal-share`, `/r/<token>` reviewer view, `reviewer_unavailable` — all controls reachable, no horizontal overflow in AX tree |
@@ -421,9 +421,9 @@ cite their reports under `handoffs/`.
 - **One real gap:** G10.8 idle session timeout is not implemented —
   intake-logged.
 - **Decision-blocked (not defects):** G1.3–G1.4, G5.11, G7.1–G7.3 await
-  task-b02e2f89; G5.9 + G6.* await slice5; G5.12, G7.5, G9.* await slice 6's
-  in-flight report. These are dormant surfaces, not failures of the
-  assembled tenant surface.
+  task-b02e2f89; G5.9 + G6.* await slice5; G5.12 needs a scrub-on-release
+  product call. G7.5 + G9.1–G9.6 were closed by slice 6 on 2026-11-14
+  (report: handoffs/legal-ui-slice6-release-custody-report-2026-11-14.md).
 
 Signed: swe-2 — legal-ui-slice7-failure-sweep, 2026-11-14
 
