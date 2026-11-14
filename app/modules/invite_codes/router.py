@@ -26,8 +26,21 @@ from app.core.invite_codes import (
     validate_invite_code,
 )
 from app.core.request_utils import require_request_user_id
+from app.core.security import get_rate_limiter
 
 router = APIRouter(prefix="/api/invite-codes", tags=["Invite Codes"])
+
+
+def _throttle_failed_guess(request: Request) -> None:
+    """Count failed invite-code lookups per source IP and cut off guessing."""
+    ip = request.client.host if request.client else "unknown"
+    allowed, retry_after = get_rate_limiter().check(f"invite_guess:{ip}", 60, 20)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many attempts. Please wait and try again.",
+            headers={"Retry-After": str(retry_after)},
+        )
 
 
 # =============================================================================
@@ -105,6 +118,9 @@ async def validate_code(
     async with get_db_session() as db:
         is_valid, message, invite = await validate_invite_code(body.code, db)
 
+        if not is_valid:
+            _throttle_failed_guess(request)
+
         return ValidateCodeResponse(
             valid=is_valid,
             message=message,
@@ -130,6 +146,7 @@ async def redeem_code(
         success, message, invite = await redeem_invite_code(body.code, user_id, db)
 
         if not success:
+            _throttle_failed_guess(request)
             raise HTTPException(status_code=400, detail=message)
 
         return RedeemCodeResponse(

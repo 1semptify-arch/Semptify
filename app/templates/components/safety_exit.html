@@ -1,0 +1,20 @@
+{# Safety exit — discreet quick-swap to a neutral page.
+   Rendered by pages on sensitive surfaces via `{% block safety_exit %}`.
+   A plain link (works without JS) plus an Esc-key shortcut that ignores
+   keystrokes while the user is typing in a field. #}
+<a class="safety-exit" href="https://en.wikipedia.org" rel="noopener noreferrer"
+   aria-label="Leave this page quickly">exit</a>
+<style>
+.safety-exit{position:fixed;top:10px;right:10px;z-index:9999;font-size:12px;line-height:1;
+padding:6px 10px;border-radius:4px;border:1px solid #c8c8c8;background:#fafafa;color:#777;
+text-decoration:none;opacity:.55}
+.safety-exit:hover{opacity:1}
+</style>
+<script>
+addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    var ae = document.activeElement;
+    if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
+    location.replace('https://en.wikipedia.org');
+});
+</script>

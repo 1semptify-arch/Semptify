@@ -243,6 +243,9 @@
 .ck-legend { padding: 0.75rem 1rem; border-radius: var(--radius-block); margin-bottom: 0.75rem; background: var(--bg-muted); }
 .ck-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem; }
 .ck-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.84rem; padding: 0.15rem 0; }
+button.ck-row { width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+button.ck-row:hover { text-decoration: underline; }
+mark.ck-flash { outline: 2px solid var(--text-primary); outline-offset: 1px; }
 .ov-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
 .ov-hl q { color: var(--text-primary); font-style: italic; }
 .ov-sub { font-size: 0.76rem; color: var(--text-muted); margin-top: 0.15rem; }
@@ -657,8 +660,9 @@ function renderOverlaysModal(overlays) {
         html += '<div class="ck-legend"><div class="ck-title">◆ Color key' +
             (keyOv.is_mine ? ' (set by you)' : ' (set by client)') + '</div>' +
             Object.entries(keyOv.payload.colors).map(([c, m]) =>
-                '<div class="ck-row"><span class="ov-swatch" style="background:' + esc(OVERLAY_COLORS[c] || 'var(--text-muted)') + '"></span>' +
-                '<strong>' + esc(c) + '</strong>&nbsp;=&nbsp;' + esc(m) + '</div>'
+                '<button type="button" class="ck-row" data-ck-color="' + esc(c) + '">' +
+                '<span class="ov-swatch" style="background:' + esc(OVERLAY_COLORS[c] || 'var(--text-muted)') + '"></span>' +
+                '<strong>' + esc(c) + '</strong>&nbsp;=&nbsp;' + esc(m) + '</button>'
             ).join('') + '</div>';
     }
 
@@ -727,7 +731,7 @@ document.addEventListener('click', async (e) => {
 const viewModal = document.getElementById('view-modal');
 let viewPlayer = null;
 
-function paintMarkIn(root, quote, color, footnote) {
+function paintMarkIn(root, quote, color, footnote, colorName) {
     if (!quote) return false;
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node;
@@ -738,6 +742,7 @@ function paintMarkIn(root, quote, color, footnote) {
         after.splitText(quote.length);
         const mark = document.createElement('mark');
         mark.style.background = color;
+        if (colorName) mark.dataset.ovColor = colorName;
         mark.style.padding = '0 1px';
         mark.textContent = quote;
         if (footnote) {
@@ -756,7 +761,7 @@ function paintOverlayOnView(root, o) {
     const p = o.payload || {};
     const quote = p.range && p.range.text;
     if (o.overlay_type === 'HIGHLIGHT' && quote) {
-        paintMarkIn(root, quote, OVERLAY_COLORS[p.color] || '#f5d90a', null);
+        paintMarkIn(root, quote, OVERLAY_COLORS[p.color] || '#f5d90a', null, p.color);
     } else if (o.overlay_type === 'FOOTNOTE' && quote) {
         paintMarkIn(root, quote, 'rgba(62,99,221,0.25)', p.number);
     }
@@ -806,6 +811,20 @@ document.addEventListener('click', async (e) => {
     } else {
         side.innerHTML = '<div class="empty-state">Notes could not be loaded.</div>';
     }
+});
+
+// Color-key legend: clicking a row jumps to + flashes that color's marks
+// (same as the tenant experience).
+document.addEventListener('click', (e) => {
+    const row = e.target.closest('[data-ck-color]');
+    if (!row) return;
+    const color = row.getAttribute('data-ck-color');
+    const marks = document.querySelectorAll('#view-body mark[data-ov-color="' + CSS.escape(color) + '"]');
+    marks.forEach(m => {
+        m.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        m.classList.add('ck-flash');
+        setTimeout(() => m.classList.remove('ck-flash'), 1600);
+    });
 });
 
 document.getElementById('view-close').addEventListener('click', () => {

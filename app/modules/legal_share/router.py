@@ -41,7 +41,7 @@ from app.core.capabilities import grant_capability
 from app.core.database import get_db
 from app.core.event_bus import EventType, event_bus
 from app.core.request_utils import get_request_user_id
-from app.core.security import StorageUser, yellow_access
+from app.core.security import StorageUser, get_rate_limiter, yellow_access
 from app.core.utc import utc_now
 from app.modules.case_review import service as case_review_service
 from app.modules.legal_share import service
@@ -93,16 +93,33 @@ class MessageRequest(BaseModel):
 
 
 async def _gate(request: Request) -> tuple:
-    """Resolve path token → (share view, owner context). Raises for inactive."""
+    """Resolve path token → (share view, owner context). Raises for inactive.
+
+    Failed-token lookups are throttled per source IP: the token lives in the
+    URL path, so path-keyed limits could never throttle guessing. Successful
+    resolutions are not counted.
+    """
     token = request.path_params.get("token", "")
     resolved = await service.resolve_share_with_owner(token)
+    err = None
     if not resolved:
-        raise HTTPException(status_code=404, detail={"error": "share_not_found"})
-    share, owner = resolved
-    if share.status == service.STATUS_REVOKED:
-        raise HTTPException(status_code=410, detail={"error": "share_revoked"})
-    if share.status == service.STATUS_EXPIRED:
-        raise HTTPException(status_code=410, detail={"error": "share_expired"})
+        err = (404, "share_not_found")
+    else:
+        share, owner = resolved
+        if share.status == service.STATUS_REVOKED:
+            err = (410, "share_revoked")
+        elif share.status == service.STATUS_EXPIRED:
+            err = (410, "share_expired")
+    if err is not None:
+        ip = request.client.host if request.client else "unknown"
+        allowed, retry_after = get_rate_limiter().check(f"share_guess:{ip}", 60, 30)
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail={"error": "rate_limited"},
+                headers={"Retry-After": str(retry_after)},
+            )
+        raise HTTPException(status_code=err[0], detail={"error": err[1]})
     return share, owner
 
 
