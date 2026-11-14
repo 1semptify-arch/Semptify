@@ -17281,3 +17281,27 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - **Fix (client, `static/js/core/websocket-client.js`):** `everConnected` flag — reconnects only schedule after a socket that actually opened; a refused handshake is a refused connection, not a dropped one.
 - **Verified live (127.0.0.1:8001, venv311):** probe — no-cookie/unsigned/forged/bad-sig all get clean close 1008 "Authentication required" (previously unsigned connected / 403-rejected); signed seed uid opens + receives welcome. IronBee browser — bogus-cookie reconnect path: console shows only `log`-level `[WebSocket] Connected`/`Closed 1008`, ZERO errors/warnings, `getReconnectAttempts()=0`; seeded-cookie path connects and stays open. py_compile + `node --check` pass.
 - **Intake:** `intake-34071517` — brain module `/ws` endpoint accepts connections with no auth check at all (DEV tier, dormant).
+
+## 2026-11-14 — Duplicate FastAPI operation IDs on every /api/dc route (task-59df41bf, swe-2)
+
+- **Root cause:** FastAPI 0.141 made `include_router` lazy — `app.routes` holds
+  `_IncludedRouter` proxy nodes, not materialized APIRoutes, so the
+  `already_mounted` guard in `create_app()` (which scanned `route.path` for
+  "/api/dc") could never see the manifest's `/api/dc` mount and re-included
+  the Document Center router a second time. All 15 `dc_*` endpoints emitted
+  "Duplicate Operation ID" warnings on every openapi schema build.
+- **Fix (`app/main.py`):** `_router_already_included()` helper matches the
+  included router object + mount prefix via `include_context`
+  (`included_router`/`prefix`) for lazy nodes, keeping the `.path` scan as
+  fallback for materialized routes. Applied to both the `/api/dc` and
+  `/api/dc/intake` mount guards.
+- **Verified:** before — 15 `dc_*` duplicate-op warnings on `app.openapi()`;
+  after — zero. Exactly one `_IncludedRouter` each at `/api/dc` and
+  `/api/dc/intake`. `py_compile` pass; 30/30 `test_dc_smoke.py` pass
+  (module pytest exits 1 only on the repo-wide 30% coverage floor for a
+  subset run — unrelated).
+- **Intake:** `intake-9f21aa42` — same duplicate-op-ID class on
+  `law_library_page` (page route, low); `intake-c3324e71` —
+  `/api/dc/intake/*` never mounted under `render_mvp`/lazy-routers deploys
+  (intake_router absent from product_manifest; mount block skipped when
+  lazy, medium).

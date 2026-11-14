@@ -2038,12 +2038,27 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if not is_mvp_deploy() and not _lazy_routers:
         from app.modules.document_center import router as document_center_router
 
-        already_mounted = any(
-            getattr(r, "path", "").startswith("/api/dc")
-            for r in fastapi_app.routes
-            if hasattr(r, "path")
-        )
-        if not already_mounted:
+        def _router_already_included(router_obj, prefix: str) -> bool:
+            """Whether ``router_obj`` is already included under ``prefix``.
+
+            FastAPI 0.141+ makes ``include_router`` lazy: ``app.routes`` holds
+            ``_IncludedRouter`` proxy nodes (identified by ``include_context``),
+            not materialized APIRoutes — a ``route.path`` scan can never see
+            them and would always report the router as not mounted.
+            """
+            for r in fastapi_app.routes:
+                ctx = getattr(r, "include_context", None)
+                if ctx is not None:
+                    if (
+                        getattr(ctx, "included_router", None) is router_obj
+                        and getattr(ctx, "prefix", "") == prefix
+                    ):
+                        return True
+                elif getattr(r, "path", "").startswith(prefix):
+                    return True
+            return False
+
+        if not _router_already_included(document_center_router, "/api/dc"):
             fastapi_app.include_router(
                 document_center_router,
                 prefix="/api/dc",
@@ -2051,11 +2066,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             )
         from app.modules.document_center import intake_router
 
-        if not any(
-            getattr(r, "path", "").startswith("/api/dc/intake")
-            for r in fastapi_app.routes
-            if hasattr(r, "path")
-        ):
+        if not _router_already_included(intake_router.router, "/api/dc/intake"):
             fastapi_app.include_router(
                 intake_router.router,
                 prefix="/api/dc/intake",
