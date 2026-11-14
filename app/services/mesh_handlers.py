@@ -830,26 +830,32 @@ def register_all_mesh_handlers():
     async def legal_trails_log_violation(payload: dict) -> dict:
         """Log a violation through the mesh."""
         try:
-            from app.core.id_gen import make_id
-            from app.routers.legal_trails import violations_db
+            from app.core.user_context import build_context_for_user_id
+            from app.modules.legal_trails import service as legal_trails_service
 
-            violation_id = make_id("vio")
-            violation_data = {
-                "id": violation_id,
-                "violation_type": payload.get("violation_type"),
-                "date_occurred": payload.get("date_occurred"),
-                "description": payload.get("description"),
-                "perpetrator": payload.get("perpetrator"),
-                "perpetrator_role": payload.get("perpetrator_role"),
-                "company": payload.get("company"),
-                "amount_if_financial": payload.get("amount_if_financial"),
-                "statutes_violated": payload.get("statutes_violated", []),
-                "evidence_ids": payload.get("evidence_ids", []),
-                "witnesses": payload.get("witnesses", []),
-                "created_at": utc_now().isoformat(),
-            }
-            violations_db[violation_id] = violation_data
-            return {"success": True, "violation_id": violation_id}
+            user = await build_context_for_user_id(payload.get("user_id") or "")
+            if user is None:
+                return {"error": "valid user_id required to log a violation"}
+
+            record = await legal_trails_service.create_record(
+                user,
+                legal_trails_service.KIND_VIOLATION,
+                {
+                    "violation_type": payload.get("violation_type"),
+                    "date_occurred": payload.get("date_occurred"),
+                    "description": payload.get("description"),
+                    "perpetrator": payload.get("perpetrator"),
+                    "perpetrator_role": payload.get("perpetrator_role"),
+                    "company": payload.get("company"),
+                    "amount_if_financial": payload.get("amount_if_financial"),
+                    "statutes_violated": payload.get("statutes_violated", []),
+                    "evidence_ids": payload.get("evidence_ids", []),
+                    "witnesses": payload.get("witnesses", []),
+                },
+            )
+            if record is None:
+                return {"error": "violation record could not be stored"}
+            return {"success": True, "violation_id": record["id"]}
         except Exception as e:
             return {"error": str(e)}
 
@@ -919,13 +925,26 @@ def register_all_mesh_handlers():
     async def legal_trails_contribute(context: dict, goal: str) -> dict:
         """Contribute legal trails data to collaborative workflows."""
         if goal == "build_defense":
-            from app.routers.legal_trails import eviction_threats_db, late_fees_db, violations_db
+            from app.core.user_context import build_context_for_user_id
+            from app.modules.legal_trails import service as legal_trails_service
+
+            record_counts = {
+                legal_trails_service.KIND_VIOLATION: 0,
+                legal_trails_service.KIND_EVICTION_THREAT: 0,
+                legal_trails_service.KIND_LATE_FEE: 0,
+            }
+            user = await build_context_for_user_id(context.get("user_id") or "")
+            if user is not None:
+                try:
+                    record_counts = await legal_trails_service.counts(user)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"Legal trails mesh counts failed: {e}")
 
             return {
                 "legal_trails": {
-                    "violations_count": len(violations_db),
-                    "threats_count": len(eviction_threats_db),
-                    "late_fees_count": len(late_fees_db),
+                    "violations_count": record_counts.get(legal_trails_service.KIND_VIOLATION, 0),
+                    "threats_count": record_counts.get(legal_trails_service.KIND_EVICTION_THREAT, 0),
+                    "late_fees_count": record_counts.get(legal_trails_service.KIND_LATE_FEE, 0),
                     "statutes": ["MN 504B.177", "MN 504B.285", "MN 504B.161"],
                     "filing_windows": {"civil": "6 years", "hud": "1 year", "license": "2 years"},
                 }
