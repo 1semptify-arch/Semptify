@@ -25,13 +25,20 @@ def run(repo_root: Path) -> CheckResult:
             summary="tools/stub_detector.py not found — skipped (nothing to check).",
         )
 
-    result = subprocess.run(
-        [sys.executable, str(detector_path)],
-        cwd=str(repo_root),
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
+    try:
+        result = subprocess.run(
+            [sys.executable, str(detector_path)],
+            cwd=str(repo_root),
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return CheckResult(
+            name="stub_check",
+            passed=False,
+            summary="stub_detector.py timed out after 300s — likely an oversized unscanned dir in the tree (e.g. a stray venv copy). Detector prunes known skip dirs during its walk, so a timeout means something new is bloating the scan root.",
+        )
 
     output = (result.stdout or "") + (result.stderr or "")
 
