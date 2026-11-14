@@ -1,3 +1,37 @@
+## Session — 2026-11-14 — Admin login on prod verified live + honest unavailable state (swe-2, task task-262491a5)
+
+**Context:** intake-830ab9ec observed `/admin/api/login-step1`/`step2` returning
+404 on prod while `/admin/login` rendered a working form. That observation was
+against deploy `be3026ec` (2026-11-05) — it predates PR #340 (`6c5407b0`,
+Brad's 2026-11-11 decision), which allow-listed `admin_auth` + `admin_api`
+routers in the `render_mvp` build.
+
+**Verified live (Render MCP + HTTP probes):** prod currently runs deploy
+`dep-dbqtf6gn` / commit `28fa1f7` (PR #343), which includes #340.
+`POST /admin/api/login-step1` → 401 "Invalid credentials" (mounted, not 404);
+`POST /admin/api/login-step2` → 401; `GET semptify.org/admin/login` → 200 form.
+The backend-unreachable item is resolved on prod — no deploy or env change needed.
+
+**Shipped (residual bug — the "functional-looking form" half):**
+
+- `app/core/admin_gating.py` — new `admin_login_api_mounted(app)` helper
+  (`url_path_for("admin_login_step1")`; works through FastAPI 0.141 lazy
+  `_IncludedRouter` nodes).
+- `app/main.py` `admin_login_page` — when the admin login API is not mounted
+  (allowlist exclusion or skipped optional import), the page now renders an
+  honest 503 "Admin access is not available on this deployment" + link home
+  instead of a form that can only 404 on submit.
+- `tests/test_admin_mvp_mount.py` — 4 tests: MVP allowlist membership,
+  `register_tiers` under `DEPLOY_TARGET=render_mvp` mounts both login
+  endpoints, the mount-check helper, and the real app still serving the form.
+
+**Verified:** py_compile clean; `pytest tests/test_admin_mvp_mount.py
+tests/test_admin_gating.py` 12/12 PASS.
+
+**Not fixed (noted, out of scope):** June-era admin-login checklist items in
+`AI_HANDOFF_PACKET.md` remain stale (elevation flow + render_mvp postdate
+them) — docs-only cleanup, logged via this entry.
+
 ## Session — 2026-11-13 — LAN Postgres semptify CREATE grant applied (swe-2, task task-ba85c946)
 
 ### Guardrail Engine Run — 2026-11-14T00:34:43+00:00

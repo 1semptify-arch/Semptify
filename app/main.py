@@ -2461,9 +2461,41 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def admin_login_page(request: Request):
         """Admin elevation prompt — requires existing OAuth session."""
         from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
+        from app.core.admin_gating import admin_login_api_mounted
         from app.core.cookie_auth import extract_user_id
 
         logger.info("=== ADMIN ELEVATION PAGE REQUESTED ===")
+
+        # Never show a working-looking form when the admin login API isn't
+        # mounted on this deployment (allowlist exclusion or skipped optional
+        # import) — submitting it could only 404. Show the honest state.
+        if not admin_login_api_mounted(request.app):
+            return HTMLResponse(
+                status_code=503,
+                content="""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Access</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .box { background: #1e293b; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; }
+        h1 { margin-bottom: 1rem; color: #94a3b8; font-size: 1rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; }
+        p { color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.25rem; }
+        a { color: #93c5fd; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Secure Access</h1>
+        <p>Admin access is not available on this deployment.</p>
+        <a href="/">Return home</a>
+    </div>
+</body>
+</html>""",
+            )
 
         admin_dashboard_stage = navigation.get_stage("admin_dashboard")
         admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"

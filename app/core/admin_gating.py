@@ -10,11 +10,27 @@ import logging
 
 from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.routing import NoMatchFound
 
 from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
 from app.core.config import get_settings
 
 logger = logging.getLogger("semptify.admin_gating")
+
+
+def admin_login_api_mounted(app) -> bool:
+    """True when the admin_auth login endpoints are mounted on this app.
+
+    admin_auth.router is an optional manifest entry — a build where it is
+    excluded from the deploy allowlist or fails to import still serves
+    /admin/login, which would otherwise render a working-looking form that
+    can only 404 on submit.
+    """
+    try:
+        app.url_path_for("admin_login_step1")
+    except NoMatchFound:
+        return False
+    return True
 
 
 def _parse_networks(raw: str) -> list[ipaddress.ip_network]:
