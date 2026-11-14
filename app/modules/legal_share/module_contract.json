@@ -1,6 +1,6 @@
 {
   "module_name": "Legal Share",
-  "layout": "app/modules/legal_share/ — service.py (CASE_SHARE + REVIEW_THREAD overlay stores), router.py (APIRouter at /api/legal-share + pages_router at root for /legal-share and /r/{token}), register.py (5 function groups), module_contract.json, tests/. Tenant page: /legal-share renders pages/legal_share.html. Reviewer page: /r/{token} renders pages/reviewer_share.html (or reviewer_unavailable.html for expired/revoked/unknown tokens).",
+  "layout": "app/modules/legal_share/ — service.py (CASE_SHARE + REVIEW_THREAD overlay stores), release_service.py (gated release + chain-of-custody — DocRef resolver across vault_index/documents identity spaces, zip bundle builder, RELEASE_RECORD overlay store, chronological custody assembler), router.py (APIRouter at /api/legal-share + pages_router at root for /legal-share and /r/{token}), register.py (6 function groups), module_contract.json, tests/. Tenant page: /legal-share renders pages/legal_share.html. Reviewer page: /r/{token} renders pages/reviewer_share.html (or reviewer_unavailable.html for expired/revoked/unknown tokens).",
   "inputs": [
     {
       "name": "case_id",
@@ -61,6 +61,21 @@
       "name": "user_id",
       "type": "field",
       "required": true
+    },
+    {
+      "name": "doc_id",
+      "type": "field",
+      "required": true
+    },
+    {
+      "name": "release_id",
+      "type": "field",
+      "required": false
+    },
+    {
+      "name": "download",
+      "type": "field",
+      "required": false
     }
   ],
   "input_audit": [
@@ -122,7 +137,22 @@
     {
       "input_name": "user_id",
       "source": "auto_detect",
-      "note": "yellow_access cookie/session for tenant routes. Reviewer routes take no user_id — the token is the credential."
+      "note": "yellow_access cookie/session for tenant routes. Reviewer routes take no user_id — the token is the credential. Release routes use get_current_user (UserContext) so the linked-advocate deny path is reachable and logged."
+    },
+    {
+      "input_name": "doc_id",
+      "source": "dropdown",
+      "note": "Document the tenant picked for integrity/release/custody. Resolves either identity space: vault_index.vault_id or documents.id (correlated on file_path == storage_path)."
+    },
+    {
+      "input_name": "release_id",
+      "source": "auto_detect",
+      "note": "RELEASE_RECORD payload release_id — identifies one released bundle for download."
+    },
+    {
+      "input_name": "download",
+      "source": "dropdown",
+      "note": "Boolean query flag — custody-log returns a JSON attachment when true."
     }
   ],
   "preview_state": "Reviewer sees the shared slice only: case summary, selected documents (metadata + read-only byte stream), evidence notes, deadlines, and this share's threads. Expired/revoked/unknown tokens render a calm 'not available' page.",
@@ -154,6 +184,10 @@
     "Revocation and expiry are enforced at the token gate on every reviewer request, not just at page load.",
     "All thread text is authored by the party who typed it — no Semptify-generated legal content.",
     "Error responses never echo tenant data, vault paths, user ids, or document ids — static error codes and generic messages only.",
-    "Reviewer document streams emit the original bytes verbatim — including metadata embedded inside the file — plus the display filename and MIME type. Nothing is scrubbed on this path; the original is immutable and the share UI warns that hidden details travel with the file."
+    "Reviewer document streams emit the original bytes verbatim — including metadata embedded inside the file — plus the display filename and MIME type. Nothing is scrubbed on this path; the original is immutable and the share UI warns that hidden details travel with the file.",
+    "A release is the only way a changed document comes into existence, and it is always a NEW artifact under Vault/releases/{doc_id}/ — the original file is never opened for write anywhere in this module.",
+    "A linked advocate's release attempt returns 403 release_denied and writes a release_denied row to document_access_logs — never silent, never implicitly delegated.",
+    "Released-artifact hash, release timestamp, and the DocumentProof certificate travel together: inside the bundle (certificate.json + release.json) and in the RELEASE_RECORD overlay payload.",
+    "The custody log is per-document, chronological, and exportable — intake, access rows (view/annotate/review/denied), share grants, and releases, merged and sorted by timestamp."
   ]
 }

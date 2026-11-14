@@ -120,6 +120,11 @@ VAULT_EXTERNAL_FILE = normalize_cloud_path(f"{VAULT_EXTERNAL}/mappings.json")
 VAULT_CASE_REVIEW = normalize_cloud_path(f"{VAULT_ROOT}/case_review")
 VAULT_CASE_REVIEW_FILE = normalize_cloud_path(f"{VAULT_CASE_REVIEW}/index.json")
 
+# Per-user gated-release artifacts. Each release writes a new bundle file under
+# releases/{document_id}/ — the original document is never touched. The
+# RELEASE_RECORD overlay (anchored to the document id) carries the manifest.
+VAULT_RELEASES = normalize_cloud_path(f"{VAULT_ROOT}/releases")
+
 # =============================================================================
 # Role-specific folders (direct children of Vault/)
 # =============================================================================

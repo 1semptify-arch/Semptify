@@ -243,12 +243,13 @@ async def test_load_registry_migrates_installer_wrapper_format(
     fake_storage: FakeStorageProvider,
 ):
     """Installer-seeded wrapper registry is unwrapped and persisted flat, once."""
+    seeded = _valid_entry("good-1")
     fake_storage.files[VAULT_OVERLAY_REGISTRY] = json.dumps(
         {
             "version": "1.0",
             "created_by": "GUtest1234",
             "created_at": utc_now().isoformat(),
-            "overlays": {"good-1": _valid_entry("good-1")},
+            "overlays": {"good-1": seeded},
             "metadata": {"total_overlays": 1},
         }
     ).encode("utf-8")
@@ -259,7 +260,7 @@ async def test_load_registry_migrates_installer_wrapper_format(
     assert query.overlays[0].overlay_id == "good-1"
 
     rewritten = json.loads(fake_storage.files[VAULT_OVERLAY_REGISTRY].decode("utf-8"))
-    assert rewritten == {"good-1": _valid_entry("good-1")}
+    assert rewritten == {"good-1": seeded}
 
     uploads_after_first_read = len(fake_storage.upload_log)
     await manager.get_overlays()

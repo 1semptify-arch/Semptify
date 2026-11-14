@@ -174,20 +174,36 @@ async def _fetch_document_overlays(
     include_notes: bool,
     include_footnotes: bool,
 ) -> dict[str, list[Any]]:
-    """Fetch and filter overlays for a single document."""
-    if overlay_manager is None:
-        return {"annotations": [], "metadata": []}
+    """Fetch and filter overlays for a single document.
 
-    try:
-        response = await overlay_manager.get_overlays(document_id=doc.safe_filename)
-    except Exception as exc:
-        logger.warning("Failed to fetch overlays for %s: %s", doc.safe_filename, exc)
-        return {"annotations": [], "metadata": []}
+    Queries both anchor conventions (safe_filename and vault_id) so legends
+    and annotations travel regardless of which id the writer chose."""
+    if overlay_manager is None:
+        return {"annotations": [], "metadata": [], "legend": []}
+
+    raw: list[Any] = []
+    seen: set[str] = set()
+    for anchor in (doc.safe_filename, getattr(doc, "vault_id", None)):
+        if not anchor:
+            continue
+        try:
+            response = await overlay_manager.get_overlays(document_id=anchor)
+        except Exception as exc:
+            logger.warning("Failed to fetch overlays for %s: %s", anchor, exc)
+            continue
+        for overlay in response.overlays:
+            if overlay.overlay_id not in seen:
+                seen.add(overlay.overlay_id)
+                raw.append(overlay)
 
     annotations: list[Any] = []
     metadata: list[Any] = []
-    for overlay in response.overlays:
+    legend: list[Any] = []
+    for overlay in raw:
         overlay_type = overlay.overlay_type
+        if overlay_type == OverlayType.DOCUMENT_KEY:
+            legend.append(overlay)
+            continue
         if overlay_type in (
             OverlayType.VAULT_UPLOAD_MANIFEST,
             OverlayType.DOCUMENT_EXTRACTION,
@@ -206,7 +222,7 @@ async def _fetch_document_overlays(
         ):
             annotations.append(overlay)
 
-    return {"annotations": annotations, "metadata": metadata}
+    return {"annotations": annotations, "metadata": metadata, "legend": legend}
 
 
 def _build_packet_spec(
@@ -323,6 +339,63 @@ async def _get_document_bytes(user_id: str, doc: Any) -> bytes | None:
     return None
 
 
+# Default DOCUMENT_KEY palette — mirrors the canonical table in
+# app/modules/unified_overlays/router.py so a packet decodes offline even
+# when no DOCUMENT_KEY overlay was ever stored.
+_DEFAULT_LEGEND: dict[str, str] = {
+    "yellow": "Key evidence",
+    "red": "Contradiction",
+    "blue": "Date or deadline",
+    "green": "Money",
+    "orange": "Notice or warning",
+    "purple": "Personal note",
+}
+
+
+def _packet_legend(spec: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Per-document color legend for this packet — each document's stored
+    DOCUMENT_KEY meanings merged over the default palette. The legend is
+    what lets highlights and annotation sidecars decode offline (G7.5).
+
+    Returns ``{label: {"colors": {...}, "is_default": bool}}``.
+    """
+    out: dict[str, dict[str, Any]] = {}
+    overlays_list = spec.get("document_overlays", [])
+    for index, doc_spec in enumerate(spec.get("documents", [])):
+        label = doc_spec.get("label", f"doc_{index + 1}")
+        colors = dict(_DEFAULT_LEGEND)
+        found = False
+        doc_overlays = overlays_list[index] if index < len(overlays_list) else {}
+        for legend_overlay in doc_overlays.get("legend", []) or []:
+            payload = legend_overlay.get("payload", {}) or {}
+            stored = payload.get("colors")
+            if isinstance(stored, dict):
+                found = True
+                for key, value in stored.items():
+                    if key in _DEFAULT_LEGEND and str(value).strip():
+                        colors[key] = str(value).strip()
+        out[label] = {"colors": colors, "is_default": not found}
+    return out
+
+
+def _legend_text(legend: dict[str, dict[str, Any]]) -> str:
+    """Plain-text legend page — decodes every highlight color offline."""
+    lines = [
+        "Color legend",
+        "=" * 60,
+        "What each highlight color means in this packet.",
+        "Documents without a saved legend use the standard meanings below.",
+        "",
+    ]
+    for label, entry in legend.items():
+        suffix = "" if entry.get("is_default") else " (custom meanings)"
+        lines.append(f"{label}{suffix}:")
+        for color, meaning in entry.get("colors", {}).items():
+            lines.append(f"  {color}: {meaning}")
+        lines.append("")
+    return "\n".join(lines)
+
+
 def _annotation_text(annotation: dict[str, Any]) -> str:
     """Render an annotation dict as a short human-readable string."""
     payload = annotation.get("payload", {}) or {}
@@ -429,6 +502,43 @@ def _render_summary_pdf(spec: dict[str, Any]) -> bytes:
         story.append(Paragraph("No documents.", styles["Normal"]))
     story.append(Spacer(1, 0.2 * inch))
 
+    # Legend page — every document's highlight-color meanings so the
+    # annotations below decode offline.
+    legend = _packet_legend(spec)
+    if legend:
+        story.append(Paragraph("Color legend", styles["Heading2"]))
+        story.append(
+            Paragraph(
+                "What each highlight color means in this packet. "
+                "Documents without a saved legend use the standard meanings.",
+                styles["Normal"],
+            )
+        )
+        for label, entry in legend.items():
+            suffix = "" if entry.get("is_default") else " — custom meanings"
+            story.append(Paragraph(f"{_safe_text(label)}{_safe_text(suffix)}", styles["Heading4"]))
+            legend_rows = [["Color", "Meaning"]]
+            for color_name, meaning in entry.get("colors", {}).items():
+                legend_rows.append([_safe_text(color_name), _safe_text(meaning)])
+            legend_table = Table(legend_rows, colWidths=[1.2 * inch, 5.3 * inch])
+            legend_table.setStyle(
+                TableStyle(
+                    [
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, -1), 9),
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                        ("TOPPADDING", (0, 0), (-1, -1), 4),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                    ]
+                )
+            )
+            story.append(legend_table)
+        story.append(Spacer(1, 0.2 * inch))
+
     for index, doc_spec in enumerate(spec.get("documents", [])):
         label = doc_spec.get("label", f"doc_{index + 1}")
         overlays = spec.get("document_overlays", [])[index] if index < len(spec.get("document_overlays", [])) else {}
@@ -505,6 +615,10 @@ def _build_index_text(spec: dict[str, Any]) -> str:
         f"Documents: {len(spec.get('documents', []))}",
         "",
     ]
+    legend = _packet_legend(spec)
+    if legend:
+        lines.append(_legend_text(legend))
+        lines.append("")
     for index, doc_spec in enumerate(spec.get("documents", [])):
         label = doc_spec.get("label", f"doc_{index + 1}")
         overlays = spec.get("document_overlays", [])[index] if index < len(spec.get("document_overlays", [])) else {}
@@ -535,6 +649,15 @@ async def _build_zip(spec: dict[str, Any], mode: str) -> bytes:
             "packet.json",
             (json.dumps(spec, indent=2, ensure_ascii=False, default=str) + "\n").encode("utf-8"),
         )
+
+        # Legend travels in both modes — it's what makes the annotation
+        # sidecars decode offline (G7.5).
+        legend = _packet_legend(spec)
+        zip_file.writestr(
+            "legend.json",
+            (json.dumps({"documents": legend}, indent=2, ensure_ascii=False, default=str) + "\n").encode("utf-8"),
+        )
+        zip_file.writestr("legend.txt", _legend_text(legend).encode("utf-8"))
 
         for index, doc_spec in enumerate(spec.get("documents", [])):
             doc = await vault_service.get_document(doc_spec["vault_id"])
@@ -594,6 +717,7 @@ async def build_packet(
             {
                 "annotations": [_overlay_to_dict(o) for o in overlays["annotations"]],
                 "metadata": [_overlay_to_dict(o) for o in overlays["metadata"]],
+                "legend": [_overlay_to_dict(o) for o in overlays["legend"]],
             }
         )
 

@@ -13,7 +13,7 @@
 {% block main_class %}shell-main shell-main--top{% endblock %}
 {% block styles %}
 {{ super() }}
-<link rel="stylesheet" href="/static/css/legal-share.css?v=20261114-01">
+<link rel="stylesheet" href="/static/css/legal-share.css?v=20261114-02">
 {% endblock %}
 
 {% block content %}
@@ -94,6 +94,30 @@
     <div id="lsQuestionList"></div>
     <p id="lsQuestionsEmpty" class="rs-hint" hidden>No questions yet. When a reviewer asks about a document, it lands here.</p>
 </section>
+
+<!-- Released copies & handling record — the deliberate, separate release act
+     (matrix G9). Sits last: the lowest-frequency, most consequential action
+     on the page, after all the everyday sharing work. -->
+<section class="ls-zone" id="lsReleaseZone" aria-label="Released copies and record of handling">
+    <h2 class="rs-section-head">Released copies &amp; record of handling</h2>
+    <p class="rs-hint">Your original files never change. Marks and notes sit on top of them, like writing on a clear sheet — they only exist on screen. A <strong>released copy</strong> is a separate, new file made only when you ask for one: it bundles the original, what your highlight colors mean, a tamper-check with a timestamp, and a record of who did what with the document — for handing to a court or an attorney.</p>
+    <div class="ls-step">
+        <label class="rs-label" for="lsReleaseDoc">Choose a document</label>
+        <select id="lsReleaseDoc" class="rs-input">
+            <option value="">— choose a document —</option>
+        </select>
+        <div id="lsReleaseInfo" class="ls-release-info" hidden>
+            <p id="lsReleaseHash" class="rs-hint"></p>
+            <div class="ls-release-actions">
+                <button type="button" id="lsReleaseBtn" class="rs-btn">Release a copy</button>
+                <a id="lsCustodyBtn" class="rs-btn" href="#">Download the handling record</a>
+            </div>
+        </div>
+        <p id="lsReleaseMsg" class="rs-hint" role="status"></p>
+    </div>
+    <div id="lsReleaseList"></div>
+    <p id="lsReleasesEmpty" class="rs-hint" hidden>No released copies of this document yet.</p>
+</section>
 {% endblock %}
 
 {% block sidebar %}
@@ -102,6 +126,7 @@
     <li><span class="rs-side-note">The link shows only what you select. Your originals never change — reviewers can only read and ask questions.</span></li>
     <li><span class="rs-side-note">Documents open exactly as they sit in your vault — including hidden details saved inside the file, like an author's name. Check anything sensitive before you share.</span></li>
     <li><span class="rs-side-note">You can turn a link off anytime. Nothing is sent automatically — you choose who gets the link.</span></li>
+    <li><span class="rs-side-note">A released copy is a new file — your original stays untouched, and the copy carries its own timestamp and tamper-check.</span></li>
 </ul>
 <h2 style="margin-top:1.5rem">Related</h2>
 <ul class="shell-list">
@@ -112,5 +137,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/legal_share.js?v=20261114-01"></script>
+<script src="/static/js/legal_share.js?v=20261114-02"></script>
 {% endblock %}

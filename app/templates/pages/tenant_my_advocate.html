@@ -487,6 +487,9 @@ async function loadAdvocates() {
             ? '<span class="badge badge--pending">Waiting for them to accept</span>'
             : `<span class="badge ${a.initiated_by === 'tenant' ? 'badge--tenant' : 'badge--other'}">${who}</span>`;
         const last = a.last_access ? `Last opened ${formatWhen(a.last_access)}` : 'Never opened anything';
+        const since = a.status === 'active' && a.linked_at
+            ? `<strong>Working with you since ${formatDate(a.linked_at)}</strong> · `
+            : '';
         const actions = a.status === 'pending_outgoing'
             ? `<button class="btn btn--secondary btn--sm" data-revoke="${esc(a.advocate_user_id)}">Cancel request</button>`
             : `<button class="btn btn--secondary btn--sm" data-scope-edit="${esc(a.advocate_user_id)}">Change access</button>
@@ -496,7 +499,7 @@ async function loadAdvocates() {
                 <div class="advocate-avatar">${avatarInitials(a.advocate_user_id)}</div>
                 <div class="advocate-info">
                     <div class="advocate-name">${esc(a.advocate_user_id)}${badge}</div>
-                    <div class="advocate-meta">${esc(scopeLabel(a))}${a.scope ? ' · ' : ''}${last}</div>
+                    <div class="advocate-meta">${since}${esc(scopeLabel(a))}${a.scope ? ' · ' : ''}${last}</div>
                 </div>
                 <div class="advocate-actions">${actions}</div>
             </div>`;

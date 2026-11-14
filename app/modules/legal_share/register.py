@@ -115,3 +115,33 @@ register_function_group(
         deterministic=False,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="legal_share",
+        group_name="ls_release",
+        title="Gated Release + Custody (SSOT)",
+        description=(
+            "CANONICAL gated release — the one way marked-up state becomes a concrete artifact. "
+            "POST /release/documents/{id}/release is owner-only and produces a NEW zip bundle "
+            "under Vault/releases/ (original bytes verbatim, DocumentProof certificate, color-key "
+            "legend, overlay snapshot, custody log); the original file is never written. "
+            "A linked advocate's attempt is explicitly denied and logged to document_access_logs "
+            "(release_denied) — never silent. GET integrity returns intake hash + live recomputed "
+            "hash + releases; GET custody-log returns the chronological per-document record "
+            "(intake, access rows, share grants, releases, denied attempts), downloadable as a "
+            "JSON attachment. Both document identity spaces resolve to one DocRef — vault_index "
+            "vault_id and documents.id are correlated on file_path == storage_path."
+        ),
+        inputs=("user_id", "doc_id", "release_id", "download"),
+        outputs=("documents", "release", "releases", "integrity", "custody_log"),
+        dependencies=(
+            "app.modules.legal_share.router",
+            "app.modules.legal_share.release_service",
+            "app.services.storage.legal_integrity",
+            "app.services.unified_overlay_manager",
+            "app.services.vault_upload_service",
+        ),
+        deterministic=False,
+    )
+)

@@ -528,3 +528,15 @@ body.shell .rs-btn--primary {
         height: 50vh;
     }
 }
+
+/* Released copies — integrity line + action row */
+.ls-release-info {
+    margin-top: 0.9rem;
+}
+
+.ls-release-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+}
