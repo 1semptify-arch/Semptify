@@ -17006,6 +17006,15 @@ sessions); embedded images are dropped from edited exports (noted to user).
   `bill-scene-aurora` (night + stone fire ring — campfire belongs to the night
   scene per Brad), `bill-scene-ai`, `bill-scene-alt1/2`. Swap = 1-line `<img>` change.
   Rotation plan logged: `plan-20261031-...-d683` (day/night scheduled swap).
+- **Authenticity audit 2026-11-14** (task-950071e5, checked against the rules
+  below): `bill-scene-alt1` **FAILS** — deer stands mid-lake IN the water.
+  `bill-scene-ai` **FAILS** — deer wades at the shoreline with legs in the
+  water, and a campfire burns directly beside the cabin at porch level (not a
+  stone fire ring on the beach). `bill-scene-alt2` passes (loon dark bill +
+  red eye; fire on beach). `bill-scene-aurora` passes (no deer; fire glow on
+  shoreline, partially cropped at frame edge). `bill-scene-day` stays lead —
+  already Brad-approved. Do NOT wire alt1 or ai into any rotation until
+  regenerated/fixed; that is scene-owner work pending Brad's call.
 - **Brad's authenticity rules learned**: deer drink AT the water's edge on dry
   land, never standing in water; campfires burn in a stone fire ring on the
   beach — never on a porch; loons = dark bill + RED EYES (red bill = merganser,
