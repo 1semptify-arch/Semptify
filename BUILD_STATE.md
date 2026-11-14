@@ -17254,3 +17254,22 @@ sessions); embedded images are dropped from edited exports (noted to user).
   `auto_mode_panel.html`/`auto_analysis_summary.html` (intake-c079d778);
   `prompt()`/`confirm()` blocking dialogs family needing a non-blocking modal
   decision (intake-06103684).
+
+## 2026-11-14 — Bridge Neon divine-sun-29128013 cleanup investigated (task-1bfa44b8, swe-2)
+
+- **Verified live:** org Neon MCP (`org-wandering-recipe-71733955`) lists only
+  `flat-block-24520481` — `divine-sun-29128013` confirmed absent (different
+  account; the org MCP cannot see or manage it). Live DB unchanged:
+  `semptifty_db` sessions still writing (`sessions.last_activity` 2026-11-12),
+  `alembic_version = 20261110_voice_post_flags` = single repo head.
+- **No repo references:** nothing in code, `render.yaml`, or local `.env`
+  points at the bridge — only historical doc mentions. Local `.env`
+  DATABASE_URL still commented out (sqlite dev fallback).
+- **DEPLOYMENT_READINESS.md updated:** 11-14 re-check note added, open item 5
+  rewritten with the verification evidence + a pre-delete check (scan the
+  bridge DB for 10-31-window writes — chiefly `voice_posts` — before
+  deletion), stale `20261026_voice_posts` "current version" pointers bumped
+  to `20261110_voice_post_flags`.
+- **Outcome:** `blocked_on_decision` — the delete-or-keep call and any
+  deletion require Brad's login to the other Neon account's console; no
+  agent-side path exists.

@@ -3,6 +3,8 @@
 > **Note (2026-09-05):** This is a dated readiness snapshot. Treat the checklist as historical verification evidence, not a live status claim — re-verify against current `main` before any deploy.
 
 > **Re-verified 2026-11-05 (swe-2, task `prod-deploy-readiness-remaining`):** all four pre-deployment items re-checked against live production (Render web service `Semptify` / `srv-d7pja7km0tmc739j6m30` + Neon project `flat-block-24520481`, database `semptifty_db`). Every item passes — evidence inline below. Production architecture is **Render docker web service + managed Neon PostgreSQL 16 + Cloudflare mirror failover**, not the self-hosted topology the original checklist assumed; wording corrected accordingly. Remaining operator-only items are listed under "Open items (operator dashboard checks)".
+>
+> **Re-checked 2026-11-14 (swe-2, task `task-1bfa44b8`):** org Neon MCP (`org-wandering-recipe-71733955`) still lists only `flat-block-24520481` — bridge project `divine-sun-29128013` confirmed absent from this org (different account; see open item 5). Live DB still `semptifty_db` on `flat-block` (`sessions.last_activity` = 2026-11-12). `alembic_version` is now `20261110_voice_post_flags` = single repo head — supersedes the `20261026_voice_posts` version refs in the 11-05 evidence below.
 
 **Date**: April 10, 2026  
 **Status**: READY FOR PRODUCTION — re-verified live 2026-11-05
@@ -124,7 +126,7 @@ Total: 63 PASSED in 58.38s | Coverage: 25%
 
    ```bash
    python -m alembic current
-   # Should output: 20261026_voice_posts (head)
+   # Should output: 20261110_voice_post_flags (head)   # re-verified 2026-11-14
    ```text
 
 6. **Run Smoke Tests Against Production DB**
@@ -149,7 +151,7 @@ Verified live on 2026-11-05 that everything above passes. The following items co
 2. **OAuth provider credentials** (`DROPBOX_APP_KEY/SECRET`, `ONEDRIVE_CLIENT_ID/SECRET`, `GOOGLE_DRIVE_CLIENT_ID/SECRET`) — presence can't be confirmed via API. Exercise each provider connect flow once on prod, or confirm the vars exist in the dashboard.
 3. **`ALLOWED_ORIGINS`/`CORS_ORIGINS`, `PUBLIC_BASE_URL`, `APP_URL`, `RESEND_API_KEY`/`EMAIL_FROM`, `ADMIN_*`, R2 log-archive creds** — not observable from outside; confirm in the dashboard.
 4. **Dockerfile drift** — the Render service builds `./Dockerfile` (`python:3.11-slim`, unpinned patch version) while `render.yaml`/`Dockerfile.render` pins `python:3.11.9-slim`. The dashboard setting wins, so prod runs the unpinned base — either repoint the service to `Dockerfile.render` or pin `Dockerfile`'s base to `3.11.9-slim` to honor the version mandate.
-5. **Bridge Neon project `divine-sun-29128013`** — created 2026-10-31 as an emergency quota workaround; `DATABASE_URL` is serving `flat-block-24520481`/`semptifty_db` again (live session writes confirmed 2026-11-05). The bridge is under a different Neon account (not visible to this org's MCP) — decide whether to delete it.
+5. **Bridge Neon project `divine-sun-29128013`** — created 2026-10-31 as an emergency quota workaround; `DATABASE_URL` is serving `flat-block-24520481`/`semptifty_db` again (live session writes re-confirmed 2026-11-14: `sessions.last_activity` = 2026-11-12). Re-verified 2026-11-14: the project is absent from org `org-wandering-recipe-71733955`'s project list — it lives under a different Neon account, so the org MCP cannot see or manage it — and nothing in the repo, `render.yaml`, or local `.env` still references it. The delete-or-keep decision and any deletion must happen in the other account's Neon console. **Before deleting:** check the bridge DB for rows written while it was the live target on 2026-10-31 — chiefly `voice_posts` (anonymous public submissions would be stranded; `sessions` are disposable). If it only holds a stamped-empty schema, deletion is safe and frees a project slot on that account's quota.
 6. **Stale databases on the `flat-block` `production` branch** — `semptify db` (name contains a space) and `neondb` (stale schema copy per KF#20) still exist alongside `semptifty_db` and `septify_pi`. Drop candidates after a backup.
 7. **Neon free-tier quota** — resets 2026-12-01. The `render_balanced` NullPool profile (PR #332) reduces always-on consumption, but the 2026-10-31 outage was caused by quota exhaustion; keep an eye on the consumption page.
 
@@ -240,7 +242,9 @@ Initial Schema
     ↓
 … (57 revisions total — see alembic/versions/)
     ↓
-20261026_voice_posts (add_voice_posts) ← CURRENT PRODUCTION VERSION (verified 2026-11-05)
+20261026_voice_posts (add_voice_posts)
+    ↓
+20261108_executive_admin → 20261110_voice_post_flags (add_voice_post_flags) ← CURRENT PRODUCTION VERSION (re-verified 2026-11-14)
 ```
 
 Each migration is reversible via `alembic downgrade` command.
