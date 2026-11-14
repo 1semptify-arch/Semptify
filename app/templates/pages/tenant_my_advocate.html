@@ -317,9 +317,13 @@ function esc(s) {
 }
 
 // ---- My ID ----
+// semptify_uid holds "<user_id>.<hmac>" — strip the signature for display.
 function getCurrentUserId() {
-    const match = document.cookie.match(/(?:^|;)\s*semptify_user_id=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : null;
+    const match = document.cookie.match(/(?:^|;)\s*semptify_uid=([^;]+)/);
+    if (!match) return null;
+    const val = decodeURIComponent(match[1]);
+    const dot = val.lastIndexOf('.');
+    return dot > 0 ? val.substring(0, dot) : val;
 }
 const myId = getCurrentUserId();
 document.getElementById('my-user-id').textContent = myId || 'Not signed in';

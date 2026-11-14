@@ -1,5 +1,20 @@
 ## Session — 2026-11-14 — locale selector hidden until a catalog is human_reviewed (swe-2, task task-5c21619e)
 
+### Guardrail Engine Run — 2026-11-14T06:39:26+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
 **Context:** The footer locale selector offered 14 languages, but all 13
 non-English catalogs are `_meta.status: "machine"` covering ~23 chrome
 strings each — selecting one changed almost nothing visible (a soft dead
@@ -17413,3 +17428,34 @@ sessions); embedded images are dropped from edited exports (noted to user).
   `/api/dc/intake/*` never mounted under `render_mvp`/lazy-routers deploys
   (intake_router absent from product_manifest; mount block skipped when
   lazy, medium).
+
+## 2026-11-14 — Legal-UI slice 2: invite/consent + revocation verified live (task legal-ui-slice2-invite-consent, swe-2)
+
+- **Every actionable matrix row verified PASS live** on `127.0.0.1:8010`
+  (sqlite dev instance, seeded tenant `GUbGQUTpK6` + helper `GUAdvSlice02`):
+  G1.1–G1.2, G2.1–G2.8, G3.3 (API half), G3.9. Row-by-row evidence:
+  `C:\master-repo\handoffs\legal-ui-slice2-invite-consent-report.md`.
+- **Bug fixed (in scope — invite flow):** `tenant_my_advocate.html`
+  `getCurrentUserId()` read cookie `semptify_user_id`, which does not exist —
+  the auth cookie is `semptify_uid` and holds `<uid>.<hmac>`. "Share Your ID"
+  always showed "Not signed in", breaking the tenant→advocate hand-off step.
+  Now reads `semptify_uid` and strips the signature for display.
+- **invite_codes 500s (intake-1332cbb8):** already fixed at commit aaabdea6 —
+  confirmed live: `/api/invite-codes/validate` + `/redeem` return clean
+  200/400 results for valid, expired, spent, bogus, and double-redeem cases;
+  zero 500s. Org-side management endpoints (`/create`, `/list`, `/{code}/stats`,
+  DELETE) correctly 403 for all real users — manager/admin roles don't exist
+  under solo identity (dormant with the rest of the pro-role surface).
+- **UI verified at 1280px + 375px** (IronBee): scope picker + per-document
+  picker with privileged flags, bogus-ID error toast, pending row with
+  cancel, advocate-side Approve/Decline on the same page (solo identity
+  serves both directions), access log in plain language, console clean.
+- **Pytest:** `tests/test_advocate_sharing.py` 11/11 PASS (~9 min — conftest
+  rebuilds app+DB per test, not a hang).
+- **Dormant-gated, reported not failed:** G2.5 (non-advocate rejection is
+  moot under solo identity — every user can hold a share; consent sits with
+  the recipient) and G3.3 page-degrade half + advocate-side client pages
+  (pending task-b02e2f89; page routes redirect tenants home).
+- **Intake:** `intake-0a2b4733` — `invite_codes` custom_code stored verbatim
+  but normalized differently at validate; non-canonical custom codes are
+  unredeemable (low).
