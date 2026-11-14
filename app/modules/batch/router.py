@@ -185,32 +185,6 @@ async def cancel_batch_operation_endpoint(
         raise HTTPException(status_code=500, detail="Failed to cancel batch operation")
 
 
-@router.get("/{operation_id}")
-async def get_batch_operation_endpoint(
-    operation_id: str, user: StorageUser = Depends(red_access), _=Depends(require_capability("admin_batch_ops"))
-):
-    """
-    Get details of a batch operation.
-    """
-    try:
-        # Get operation
-        operation = get_batch_operation(operation_id)
-        if not operation:
-            raise HTTPException(status_code=404, detail="Batch operation not found")
-
-        # Check ownership
-        if operation["user_id"] != user.user_id:
-            raise HTTPException(status_code=403, detail="Access denied")
-
-        return operation
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Get batch operation failed: {e}")
-        raise HTTPException(status_code=500, detail="Failed to get batch operation")
-
-
 @router.get("/")
 async def get_user_batch_operations_endpoint(
     status: str | None = Query(None, description="Filter by status"),
@@ -560,3 +534,33 @@ async def get_supported_operations():
             },
         ]
     }
+
+
+# Declared LAST: FastAPI matches routes in declaration order, so this
+# parameterized route must come after every literal GET ("/statistics",
+# "/supported-operations") or it shadows them — /statistics previously
+# returned 404 "Batch operation not found" for every user.
+@router.get("/{operation_id}")
+async def get_batch_operation_endpoint(
+    operation_id: str, user: StorageUser = Depends(red_access), _=Depends(require_capability("admin_batch_ops"))
+):
+    """
+    Get details of a batch operation.
+    """
+    try:
+        # Get operation
+        operation = get_batch_operation(operation_id)
+        if not operation:
+            raise HTTPException(status_code=404, detail="Batch operation not found")
+
+        # Check ownership
+        if operation["user_id"] != user.user_id:
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        return operation
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get batch operation failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get batch operation")
