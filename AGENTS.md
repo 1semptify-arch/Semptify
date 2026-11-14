@@ -22,7 +22,7 @@ If you edit a skill, update both copies.
 - **Do NOT introduce any dependency that requires Python 3.12, 3.13, 3.14, or any other version.**
 - **Do NOT suggest upgrading Python. Until further notice, 3.11.9 is the locked version.**
 - **Local dev:** Use `venv311` (`.\\venv311\\Scripts\\Activate.ps1` on Windows)
-- **Production:** `Dockerfile` uses `python:3.11-slim`, `runtime.txt` pins `3.11.9`
+- **Production:** `Dockerfile` uses `python:3.11.9-slim`, `runtime.txt` pins `3.11.9`
 - **Before adding ANY new package:** Confirm it supports Python 3.11.9
 
 If a proposed library only works on 3.12+, **reject it and find an alternative.**

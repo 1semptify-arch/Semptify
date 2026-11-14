@@ -17099,3 +17099,26 @@ sessions); embedded images are dropped from edited exports (noted to user).
   separately (intake — possible fabricated reporter numbers).
 - **Verified:** py_compile clean; 8 law-library/linker module tests pass;
   live fetch 105 OK / 0 dead / 52 bot-walled.
+
+## 2026-11-14 — Render build config drift: Dockerfile pinned + OneDrive env-name fix (task-0bf9280e, swe-2)
+
+- **`Dockerfile` base pinned to `python:3.11.9-slim`** (both `FROM` stages).
+  The Render dashboard builds `./Dockerfile`, which was unpinned
+  `python:3.11-slim` while `Dockerfile.render`/`render.yaml` pinned
+  `3.11.9-slim` — prod ran a floating base. Now whichever file the service
+  builds, the base satisfies the 3.11.9 mandate. Residual: `Dockerfile` and
+  `Dockerfile.render` still differ functionally (tesseract-ocr, fastembed
+  cache bake, `DEPLOY_TARGET` default) — dashboard repoint to
+  `Dockerfile.render` remains Brad's deploy-config call, but is no longer
+  needed for the version mandate.
+- **`NEDRIVE_CLIENT_SECRET` → `ONEDRIVE_CLIENT_SECRET`** in `render.yaml`
+  env list — the app reads `ONEDRIVE_CLIENT_SECRET`
+  (`app/core/config.py`), so the dashboard-synced secret was dead under the
+  typo'd name. NOTE: this fixes the blueprint; the live Render service env
+  var must still be renamed in the dashboard if it was set manually.
+- **Docs synced:** `AGENTS.md`, `SEMPTIFY_SYSTEM_MANIFEST.md`,
+  `docs/SELF_HOST.md` now say `3.11.9-slim`.
+- **Verified:** `render.yaml` parses (26 envVars, `ONEDRIVE_CLIENT_SECRET`
+  present, `NEDRIVE` absent); grep confirms no unpinned `3.11-slim` base
+  remains outside historical log entries. Config-only change — no Python
+  compiled.

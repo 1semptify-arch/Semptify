@@ -73,7 +73,7 @@ docker build -t semptify .
 docker run -p 8000:8000 --env-file .env semptify
 ```
 
-The included `Dockerfile` builds on `python:3.11-slim` and runs the same
+The included `Dockerfile` builds on `python:3.11.9-slim` and runs the same
 `uvicorn` command above. `.env` supplies the same settings — nothing else is
 required for open mode.
 

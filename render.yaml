@@ -53,7 +53,7 @@ services:
     sync: false
   - key: DROPBOX_APP_SECRET
     sync: false
-  - key: NEDRIVE_CLIENT_SECRET
+  - key: ONEDRIVE_CLIENT_SECRET
     sync: false
   - key: ADMIN_USERNAME
     sync: false
