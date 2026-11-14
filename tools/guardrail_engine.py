@@ -32,6 +32,18 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# Guardrail checks import app.* modules in-process for static analysis, and
+# app.core.config refuses to import without SECRET_KEY (fail-loud by design —
+# the running app must never start with a random per-process key). The engine
+# is not the app: it needs imports to succeed, not real session crypto. When
+# no key is configured, opt into the designed deterministic-key path
+# (TESTING=true in _resolve_secret_key) so contract/route checks work in any
+# environment instead of failing with import noise that looks like a code
+# regression. An explicit SECRET_KEY or TESTING setting always wins.
+if not os.environ.get("SECRET_KEY") and not os.environ.get("TESTING"):
+    os.environ["TESTING"] = "true"
+    logger.info("No SECRET_KEY configured — using deterministic test key for static checks.")
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CHECKS_DIR = Path(__file__).resolve().parent / "checks"
 BUILD_STATE_PATH = REPO_ROOT / "BUILD_STATE.md"
