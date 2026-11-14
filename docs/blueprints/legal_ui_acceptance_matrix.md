@@ -266,6 +266,19 @@ Verify methods: `API` = pytest/contract; `UI` = browser-driven live;
 | 6 | G7.4–G7.5, G9.1–G9.4 | Representation marker, packet legend, release gating |
 | 7 | G10, G11 | Full failure + adversarial sweep, persona walkthroughs, final matrix sign-off |
 
+> **Queue tracking (2026-11-14, task-6c69f780):** Epic
+> `legal-ui-epic-2026-09-23` resolved after slice 3's G8 half; the
+> remaining slices were decomposed into dispatchable queue tasks:
+> slice 1 → `legal-ui-slice1-advocate-access` (open),
+> slice 2 → `legal-ui-slice2-invite-consent` (open),
+> slice 3 G7.1–G7.3 → `task-b02e2f89` (blocked_on_decision — helper-access model),
+> slice 4 → `legal-ui-slice4-privilege-share` (open),
+> slice 5 → `legal-ui-slice5-coview-mvp` (blocked_on_decision — initiator + guest-identity),
+> slice 6 → `legal-ui-slice6-release-custody` (open; also covers G9.5–G9.6),
+> slice 7 → `legal-ui-slice7-failure-sweep` (open; also covers G1.5–G1.6,
+> G1.3–G1.4 if the pro-identity decision lands first).
+> G1.1–G1.2 ride inside slice 2.
+
 ## Research basis (external lenses consulted 2026-09-23)
 
 - **ABA Model Rule 1.6(c) + Comment 18, Formal Opinion 477R** —
