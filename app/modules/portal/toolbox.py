@@ -551,8 +551,8 @@ class ToolboxCatalog:
             purpose="Organize public-record findings about housing conduct.",
             group="research", status="partial", level="L4", engine="civic",
             today="Not available to the public yet.",
-            backed_by=("public_exposure",), promised_on=("/donate",),
-            note="The donate page called this the Public Exposure Suite — renamed to calmer wording on 2026-11-07. Public outputs are combined patterns and totals only.",
+            backed_by=("accountability_ledger",), promised_on=("/donate",),
+            note="The donate page called this the Public Exposure Suite — renamed to calmer wording on 2026-11-07. The backing module was corrected 2026-11-13 — it had pointed at the press-release generator; the organizer behind this entry is the accountability ledger. Public outputs are combined patterns and totals only.",
             slot="wing.research", wing="research",
         ),
         ToolboxEntry(
