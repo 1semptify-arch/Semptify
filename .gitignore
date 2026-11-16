@@ -203,6 +203,10 @@ CREDENTIALS_SETUP_WORKBOOK_REVEALED.html
 !docs/classification-test-fixtures/lease_01.pdf
 !docs/classification-test-fixtures/notice_01.pdf
 !docs/classification-test-fixtures/mixed_01.pdf
+
+# Public deliverable — the printable bill packet linked from semptify.org/bill.
+# Regenerate with bill-platform/build_packet.py whenever the draft ships.
+!app/static/turnbuchalla/bill-packet.pdf
 docs/classification-test-fixtures/lease_02.pdf
 
 semptify logo.png
