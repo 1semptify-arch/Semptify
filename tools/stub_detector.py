@@ -56,6 +56,7 @@ Output: a JSON list of task dicts:
 import argparse
 import ast
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -154,18 +155,41 @@ def _type_names(node):
 IMPORT_ERROR_NAMES = {"ImportError", "ModuleNotFoundError"}
 
 
-def is_skipped_path(path: Path) -> bool:
-    for part in path.parts:
-        if part in SKIP_DIR_NAMES:
-            return True
-        # Catch any venvXXX, .venvXXX, envXXX directories by prefix
-        for prefix in SKIP_DIR_PREFIXES:
-            if part.startswith(prefix) and part != prefix:
-                # Only skip if it's a venv-style name (avoid skipping e.g. "env_vars")
-                rest = part[len(prefix) :]
-                if rest == "" or rest[0] in "_-." or rest.isdigit():
-                    return True
+def is_skipped_dirname(name: str) -> bool:
+    """Return True if a single directory name should never be descended into."""
+    if name in SKIP_DIR_NAMES:
+        return True
+    # Catch any venvXXX, .venvXXX, envXXX directories by prefix. The remainder
+    # after the prefix must start with a digit or _-. so names like
+    # "venv311_partial" and "env3_tmp" are caught while real dirs like
+    # "environment" are not. (name != prefix guarantees rest is non-empty.)
+    for prefix in SKIP_DIR_PREFIXES:
+        if name.startswith(prefix) and name != prefix:
+            rest = name[len(prefix) :]
+            if rest[0].isdigit() or rest[0] in "_-.":
+                return True
     return False
+
+
+def is_skipped_path(path: Path) -> bool:
+    return any(is_skipped_dirname(part) for part in path.parts)
+
+
+def iter_py_files(root: Path):
+    """
+    Yield every .py file under root, pruning skip directories DURING the walk
+    (os.walk dirnames[:] in-place filter) so venvs, caches, archives, and other
+    skip dirs are never descended into at all. rglob('*.py') walks the whole
+    tree first and only filters per-path afterwards -- with a stray venv copy
+    inside the tree that means stat-ing tens of thousands of files just to
+    discard them, which is what pushed the guardrail stub_check over its
+    subprocess timeout.
+    """
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if not is_skipped_dirname(d)]
+        for filename in filenames:
+            if filename.endswith(".py"):
+                yield Path(dirpath) / filename
 
 
 def body_is_stub(body):
@@ -391,9 +415,7 @@ def main():
     all_findings = []
     all_todos = []
 
-    for path in root.rglob("*.py"):
-        if is_skipped_path(path.relative_to(root)):
-            continue
+    for path in iter_py_files(root):
         findings, todos = scan_file(path, root, list_todos=args.list_todos)
         all_findings.extend(findings)
         all_todos.extend(todos)

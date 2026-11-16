@@ -8,7 +8,10 @@ configuration management, session management, and system monitoring.
 # Migrated from app/routers/core_system.py into the core_system SDK module.
 # All imports remain absolute since core_system is a CORE module.
 
+import asyncio
 import logging
+import os
+import sys
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -16,6 +19,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from app.core.config import get_settings
+from app.core.product_manifest import get_deploy_target
+from app.core.runtime_profile import get_active_profile
 from app.core.security import get_current_user
 from app.core.utc import utc_now
 
@@ -52,6 +58,77 @@ class SessionCreateRequest(BaseModel):
     user_id: str = Field(..., description="User ID")
     ip_address: str | None = Field(None, description="IP address")
     user_agent: str | None = Field(None, description="User agent string")
+
+
+def _database_type(database_url: str) -> str:
+    """Human label for the configured database backend."""
+    url = (database_url or "").lower()
+    if "sqlite" in url:
+        return "SQLite"
+    if "postgres" in url:
+        return "PostgreSQL"
+    if "mysql" in url or "mariadb" in url:
+        return "MySQL"
+    return url.split(":", 1)[0] if url else "unknown"
+
+
+def _environment_label() -> str:
+    """Live environment label from SEMPTIFY_ENV (the same var _get_enabled_tiers
+    reads in main.py), falling back to 'testing' under the test harness and
+    'production' otherwise."""
+    env = os.getenv("SEMPTIFY_ENV", "").strip().lower()
+    if env:
+        return env
+    if os.getenv("TESTING", "").lower() in ("true", "1", "yes", "on"):
+        return "testing"
+    return "production"
+
+
+def _mounted_module_names() -> list[str]:
+    """Module names actually loaded in this process.
+
+    Walks the product manifest and keeps only entries whose module_path is in
+    sys.modules — so the list reflects the MVP allow-list, enabled tiers, and
+    skipped optional imports rather than a fixed placeholder list.
+    """
+    try:
+        from app.core.product_manifest import MANIFEST
+    except Exception:
+        return []
+    names = set()
+    for entry in MANIFEST.all():
+        if entry.module_path not in sys.modules:
+            continue
+        label = entry.module_path
+        for prefix in ("app.modules.", "app.routers."):
+            if label.startswith(prefix):
+                label = label[len(prefix) :]
+                break
+        if label.endswith(".router"):
+            label = label[: -len(".router")]
+        names.add(label)
+    return sorted(names)
+
+
+async def _probe_database() -> str:
+    """Live connectivity check: SELECT 1 against the configured engine."""
+    try:
+        from sqlalchemy import text
+
+        from app.core.database import SQLALCHEMY_AVAILABLE, get_engine
+
+        if not SQLALCHEMY_AVAILABLE:
+            return "unavailable"
+
+        async def _check():
+            async with get_engine().connect() as conn:
+                await conn.execute(text("SELECT 1"))
+
+        await asyncio.wait_for(_check(), timeout=8)
+        return "connected"
+    except Exception:
+        logger.warning("Database status probe failed", exc_info=True)
+        return "unreachable"
 
 
 # Core System Services (simplified versions for integration)
@@ -139,27 +216,21 @@ class CoreSystemService:
 
         return filtered_logs[-limit:]
 
-    def get_system_status(self) -> dict[str, Any]:
-        """Get comprehensive system status."""
+    def get_system_status(self, database_status: str = "unknown") -> dict[str, Any]:
+        """Get comprehensive system status (live config, not placeholders)."""
+        settings = get_settings()
         return {
             "application": {
-                "name": "Semptify",
-                "version": "5.0.0",
-                "environment": "development",
+                "name": settings.app_name,
+                "version": settings.app_version,
+                "environment": _environment_label(),
+                "deploy_target": get_deploy_target(),
+                "load_profile": get_active_profile().name,
                 "uptime": self._get_uptime(),
             },
-            "database": {"type": "SQLite", "status": "connected"},
-            "cache": {"type": "Memory", "status": "connected"},
-            "modules": [
-                "core",
-                "auth",
-                "storage",
-                "vault",
-                "documents",
-                "timeline",
-                "navigation",
-                "litigation_intelligence",
-            ],
+            "database": {"type": _database_type(settings.database_url), "status": database_status},
+            "cache": {"type": "Memory", "status": "in-process"},
+            "modules": _mounted_module_names(),
             "statistics": {
                 "active_sessions": len([s for s in self.session_store.values() if s["is_active"]]),
                 "total_log_entries": len(self.log_store),
@@ -180,7 +251,7 @@ async def health_check():
         health_status = {
             "status": "healthy",
             "timestamp": utc_now().isoformat(),
-            "version": "5.0.0",
+            "version": get_settings().app_version,
             "services": {"core_system": "healthy", "database": "healthy", "cache": "healthy"},
         }
 
@@ -197,7 +268,7 @@ async def health_check():
 async def system_status(current_user=Depends(get_current_user)):
     """Get detailed system status."""
     try:
-        status = core_service.get_system_status()
+        status = core_service.get_system_status(database_status=await _probe_database())
 
         return JSONResponse(content={"success": True, "status": status, "retrieved_at": utc_now().isoformat()})
 

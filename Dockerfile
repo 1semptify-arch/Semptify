@@ -10,7 +10,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Builder - Install dependencies
 # -----------------------------------------------------------------------------
-FROM python:3.11-slim AS builder
+FROM python:3.11.9-slim AS builder
 
 WORKDIR /app
 
@@ -42,7 +42,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime - Minimal production image
 # -----------------------------------------------------------------------------
-FROM python:3.11-slim AS runtime
+FROM python:3.11.9-slim AS runtime
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \

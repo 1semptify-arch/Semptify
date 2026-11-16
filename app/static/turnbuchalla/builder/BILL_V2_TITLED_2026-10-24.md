@@ -108,8 +108,10 @@ coverage, not of the claim. *(REMEDIATION H5 one-liner.)*
   from surplus. *(Locked 10/23.)*
 - Renter-side share carried by the MN Renter's Credit (M1PR) as a
   **monthly advance** reconciled on the return (federal APTC/Form 8962
-  model); enrollment via the CRP e-file data rail; over-cap renters pay
-  the share directly (~$6/mo), disclosed. *(Locked 10/23; H2/H3/H8.)*
+  model); enrollment via the CRP e-file data rail — § 290.0693, subd. 4
+  (the landlord CRP duty's post-2023 home; § 290A.19 is park-owner-only);
+  over-cap renters pay the share directly (~$6/mo), disclosed. *(Locked
+  10/23; H2/H3/H8; anchor checked vs. revisor.mn.gov 11/14.)*
 - Deposit float (Title I) as the ongoing third leg.
 - Split ratio: open pending actuarial (~$3.25 + ~$6 + ~$6 ≈ $15/mo at
   $1,300 rent, 10/23 restatement).

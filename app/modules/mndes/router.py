@@ -60,10 +60,11 @@ except ImportError:
     logger.warning("navigation module not available to mndes router")
 
 try:
-    from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, catalog_status, get_locale  # noqa: F401
+    from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, available_locales, catalog_status, get_locale, reviewed_locales  # noqa: F401
 
     templates.env.globals["_"] = _jinja2_gettext
     templates.env.globals["supported_locales"] = available_locales()
+    templates.env.globals["reviewed_locales"] = reviewed_locales()
     templates.env.globals["get_locale"] = get_locale
     templates.env.globals["catalog_status"] = catalog_status
 except ImportError:

@@ -162,7 +162,7 @@ async def check_folders(
 
         vault_client = VaultClient(
             provider=storage_provider,
-            access_token=storage_provider.access_token,
+            access_token=token,
             user_id=user.user_id,
             folder_spec=TENANT_VAULT,
         )

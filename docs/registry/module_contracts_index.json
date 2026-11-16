@@ -8,7 +8,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.actions",
@@ -17,7 +20,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.admin_api",
@@ -26,7 +32,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.admin_auth",
@@ -35,7 +44,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.admin_console",
@@ -44,7 +56,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.advanced",
@@ -53,7 +68,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.advocate",
@@ -62,7 +80,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.agent_orchestrator",
@@ -71,7 +92,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.analytics",
@@ -80,7 +104,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.auth",
@@ -89,7 +116,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.auto_mode",
@@ -98,7 +128,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.batch",
@@ -107,7 +140,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.brain",
@@ -116,7 +152,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.briefcase",
@@ -125,7 +164,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.calendar",
@@ -134,7 +176,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 3
+      "narrative_event_count": 3,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.campaign",
@@ -143,7 +188,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.capabilities",
@@ -152,7 +200,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.case_builder",
@@ -161,7 +212,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.case_review",
@@ -170,7 +224,10 @@
       "output_type": "record",
       "has_preview_state": true,
       "has_review_state": true,
-      "narrative_event_count": 1
+      "narrative_event_count": 1,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.cloud_sync",
@@ -179,7 +236,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.communication",
@@ -188,7 +248,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 2
+      "narrative_event_count": 2,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.complaints",
@@ -197,7 +260,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.components",
@@ -206,7 +272,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.contacts",
@@ -215,7 +284,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.context_engine",
@@ -224,7 +296,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.context_loop",
@@ -233,7 +308,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.core_system",
@@ -242,7 +320,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.correspondence",
@@ -251,7 +332,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.court_forms",
@@ -260,7 +344,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.court_packet",
@@ -269,7 +356,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.crawler",
@@ -278,7 +368,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.dashboard",
@@ -287,7 +380,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.data_freshness",
@@ -296,7 +392,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.debug",
@@ -305,7 +404,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.dev_lab",
@@ -314,7 +416,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.development",
@@ -323,7 +428,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.dispute_tracker",
@@ -332,7 +440,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.document_center",
@@ -341,7 +452,10 @@
       "output_type": "ui_state_change",
       "has_preview_state": true,
       "has_review_state": true,
-      "narrative_event_count": 8
+      "narrative_event_count": 8,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.document_converter",
@@ -350,7 +464,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.document_delivery",
@@ -359,7 +476,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.documentation",
@@ -368,7 +488,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.documents",
@@ -377,7 +500,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 3
+      "narrative_event_count": 3,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.emotion",
@@ -386,7 +512,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.enterprise_dashboard",
@@ -395,7 +524,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.eviction_defense",
@@ -404,7 +536,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 2
+      "narrative_event_count": 2,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.eviction_timeline",
@@ -413,7 +548,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 1
+      "narrative_event_count": 1,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.export_import",
@@ -422,7 +560,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.external_mappings",
@@ -431,7 +572,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.extraction",
@@ -440,7 +584,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.fems",
@@ -449,7 +596,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.filedored",
@@ -458,7 +608,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.form_data",
@@ -467,7 +620,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.fraud_exposure",
@@ -476,7 +632,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.free_api",
@@ -485,7 +644,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.functionx",
@@ -494,7 +656,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.funding_mgmt",
@@ -503,7 +668,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.funding_search",
@@ -512,7 +680,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.guided_intake",
@@ -521,7 +692,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.health",
@@ -530,7 +704,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": true,
+      "surface_total": 3,
+      "surface_extra_count": 6
     },
     {
       "module_path": "app.modules.housing_accountability",
@@ -539,7 +716,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.hud_funding",
@@ -548,7 +728,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.info_donation",
@@ -557,7 +740,10 @@
       "output_type": "record",
       "has_preview_state": true,
       "has_review_state": true,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.intake",
@@ -566,7 +752,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.inventory",
@@ -575,7 +764,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.invite_codes",
@@ -584,7 +776,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.journal",
@@ -593,7 +788,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 2
+      "narrative_event_count": 2,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.law_library",
@@ -602,7 +800,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.law_linker",
@@ -611,7 +812,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.legal",
@@ -620,7 +824,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.legal_analysis",
@@ -629,7 +836,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.legal_filing",
@@ -638,7 +848,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.legal_share",
@@ -647,7 +860,10 @@
       "output_type": "record",
       "has_preview_state": true,
       "has_review_state": true,
-      "narrative_event_count": 2
+      "narrative_event_count": 2,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.legal_trails",
@@ -656,7 +872,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.litigation_intelligence",
@@ -665,7 +884,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.location",
@@ -674,7 +896,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.manager",
@@ -683,7 +908,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.mesh_network",
@@ -692,7 +920,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.mndes",
@@ -701,7 +932,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.module_hub",
@@ -710,7 +944,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.packet_builder",
@@ -719,7 +956,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.page_composer",
@@ -728,7 +968,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.page_editor",
@@ -737,7 +980,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.page_index",
@@ -746,7 +992,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.page_router",
@@ -755,7 +1004,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": true,
+      "surface_total": 1,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.page_shell",
@@ -764,7 +1016,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.pdf_tools",
@@ -773,7 +1028,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.plan_maker",
@@ -782,7 +1040,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.plugins",
@@ -791,7 +1052,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.portal",
@@ -800,7 +1064,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.positronic_mesh",
@@ -809,7 +1076,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.preamble",
@@ -818,7 +1088,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.preview",
@@ -827,7 +1100,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.progress",
@@ -836,7 +1112,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.public_exposure",
@@ -845,7 +1124,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.public_forms",
@@ -854,7 +1136,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.public_surface",
@@ -863,7 +1148,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.recognition",
@@ -872,7 +1160,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.registry",
@@ -881,7 +1172,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.rent",
@@ -890,7 +1184,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.research",
@@ -899,7 +1196,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.resource_directory",
@@ -908,7 +1208,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 2
+      "narrative_event_count": 2,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.resource_intake",
@@ -917,7 +1220,10 @@
       "output_type": "file",
       "has_preview_state": true,
       "has_review_state": true,
-      "narrative_event_count": 3
+      "narrative_event_count": 3,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.risc",
@@ -926,7 +1232,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.role_ui",
@@ -935,7 +1244,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.role_upgrade",
@@ -944,7 +1256,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.run_modules",
@@ -953,7 +1268,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.search",
@@ -962,7 +1280,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.security",
@@ -971,7 +1292,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.settlement_awareness",
@@ -980,7 +1304,10 @@
       "output_type": "other",
       "has_preview_state": true,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.setup",
@@ -989,7 +1316,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.state_laws",
@@ -998,7 +1328,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.sticky_notes",
@@ -1007,7 +1340,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 1
+      "narrative_event_count": 1,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.storage",
@@ -1016,7 +1352,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.system_health",
@@ -1025,7 +1364,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.tactics",
@@ -1034,7 +1376,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.tenancy_hub",
@@ -1043,7 +1388,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.tenant_feed",
@@ -1052,7 +1400,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.testing",
@@ -1061,7 +1412,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.timeline",
@@ -1070,7 +1424,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 3
+      "narrative_event_count": 3,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.tools_api",
@@ -1079,7 +1436,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.ui_composer",
@@ -1088,7 +1448,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.unified_overlays",
@@ -1097,7 +1460,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.user",
@@ -1106,7 +1472,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.user_concerns",
@@ -1115,7 +1484,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.vault",
@@ -1124,7 +1496,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.vault_engine",
@@ -1133,7 +1508,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.voice",
@@ -1142,7 +1520,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.websocket",
@@ -1151,7 +1532,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.workflow",
@@ -1160,7 +1544,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.workflow_validator",
@@ -1169,7 +1556,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.zoom_court",
@@ -1178,7 +1568,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     },
     {
       "module_path": "app.modules.zoom_court_prep",
@@ -1187,7 +1580,10 @@
       "output_type": "other",
       "has_preview_state": false,
       "has_review_state": false,
-      "narrative_event_count": 0
+      "narrative_event_count": 0,
+      "has_minimum_surface": false,
+      "surface_total": 0,
+      "surface_extra_count": 0
     }
   ]
 }

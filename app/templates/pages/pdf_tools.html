@@ -91,8 +91,31 @@
     background: var(--color-success-bg);
     color: var(--color-success);
   }
+  .reaction.error {
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+  }
   .reaction.hidden {
     display: none;
+  }
+  .pages-input {
+    margin-bottom: var(--space-lg);
+    display: none;
+  }
+  .pages-input label {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+  .pages-input input {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-alt);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    border: none;
   }
   .download-link {
     display: inline-block;
@@ -115,26 +138,31 @@
 {% block content %}
 <div class="page-head">
   <h1>PDF Tools</h1>
-  <p>Merge, split, and convert PDF documents.</p>
+  <p>Merge, extract pages, and pull text from PDF documents.</p>
 </div>
 
 <div class="section">
   <div class="tool-grid">
     <div class="tool-option" data-tool="merge" onclick="selectTool('merge')">Merge PDFs</div>
-    <div class="tool-option" data-tool="split" onclick="selectTool('split')">Split PDF</div>
+    <div class="tool-option" data-tool="extract" onclick="selectTool('extract')">Extract pages</div>
     <div class="tool-option" data-tool="pdf_to_text" onclick="selectTool('pdf_to_text')">PDF to Text</div>
-    <div class="tool-option" data-tool="text_to_pdf" onclick="selectTool('text_to_pdf')">Text to PDF</div>
   </div>
 
   <div id="uploadArea" class="upload-area" style="display:none" onclick="document.getElementById('fileInput').click()">
     Click to select files for processing
   </div>
-  <input type="file" id="fileInput" style="display:none" multiple>
+  <input type="file" id="fileInput" style="display:none" accept=".pdf" multiple>
+
+  <div class="pages-input" id="pagesInput">
+    <label for="pagesField">Pages to pull out (e.g. 1,3,5-8)</label>
+    <input type="text" id="pagesField" placeholder="1,3,5-8">
+  </div>
 
   <button class="btn btn-primary" id="processBtn" onclick="processFiles()" disabled>Process</button>
 
   <div class="reaction working hidden" id="reactionWorking">Processing...</div>
   <div class="reaction done hidden" id="reactionDone">Done</div>
+  <div class="reaction error hidden" id="reactionError"></div>
   <a href="#" id="downloadLink" class="download-link" style="display:none">Download result</a>
 </div>
 {% endblock %}
@@ -149,43 +177,115 @@
       el.classList.toggle('selected', el.dataset.tool === tool);
     });
     document.getElementById('uploadArea').style.display = 'block';
+    document.getElementById('uploadArea').textContent =
+      tool === 'merge' ? 'Click to select 2 or more PDFs' : 'Click to select a PDF';
+    document.getElementById('pagesInput').style.display = tool === 'extract' ? 'block' : 'none';
     document.getElementById('processBtn').disabled = false;
+    resetReactions();
+  }
+
+  function resetReactions() {
     document.getElementById('reactionWorking').classList.add('hidden');
     document.getElementById('reactionDone').classList.add('hidden');
+    document.getElementById('reactionError').classList.add('hidden');
     document.getElementById('downloadLink').style.display = 'none';
+  }
+
+  function showError(msg) {
+    const err = document.getElementById('reactionError');
+    err.textContent = msg;
+    err.classList.remove('hidden');
+    document.getElementById('reactionWorking').classList.add('hidden');
+    document.getElementById('processBtn').disabled = false;
+  }
+
+  function finish(dataUrl, filename) {
+    fetch(dataUrl)
+      .then(r => r.blob())
+      .then(blob => {
+        document.getElementById('reactionWorking').classList.add('hidden');
+        document.getElementById('reactionDone').classList.remove('hidden');
+        document.getElementById('processBtn').disabled = false;
+        const link = document.getElementById('downloadLink');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.style.display = 'inline-block';
+      });
+  }
+
+  function uploadPdf(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return fetch('/api/pdf/upload', { method: 'POST', body: formData })
+      .then(r => {
+        if (!r.ok) throw new Error('upload failed (' + r.status + ')');
+        return r.json();
+      })
+      .then(data => data.pdf_id);
   }
 
   function processFiles() {
     const files = document.getElementById('fileInput').files;
     if (!files.length || !selectedTool) return;
     const btn = document.getElementById('processBtn');
-    const working = document.getElementById('reactionWorking');
-    const done = document.getElementById('reactionDone');
-    const link = document.getElementById('downloadLink');
     btn.disabled = true;
-    working.classList.remove('hidden');
-    done.classList.add('hidden');
-    link.style.display = 'none';
-    const formData = new FormData();
-    formData.append('tool', selectedTool);
-    for (let i = 0; i < files.length; i++) {
-      formData.append('files', files[i]);
+    document.getElementById('reactionWorking').classList.remove('hidden');
+    document.getElementById('reactionDone').classList.add('hidden');
+    document.getElementById('reactionError').classList.add('hidden');
+    document.getElementById('downloadLink').style.display = 'none';
+
+    if (selectedTool === 'merge') {
+      if (files.length < 2) {
+        showError('Pick at least 2 PDFs to merge.');
+        return;
+      }
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+      fetch('/api/pdf/merge', { method: 'POST', body: formData })
+        .then(r => {
+          if (!r.ok) throw new Error('merge failed (' + r.status + ')');
+          return r.json();
+        })
+        .then(data => finish(data.pdf_base64, data.filename || 'merged.pdf'))
+        .catch(e => showError(e.message));
+      return;
     }
-    fetch('/pdf-tools/process', { method: 'POST', body: formData })
-      .then(r => r.blob())
-      .then(blob => {
-        working.classList.add('hidden');
-        done.classList.remove('hidden');
-        btn.disabled = false;
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = 'result.pdf';
-        link.style.display = 'inline-block';
+
+    uploadPdf(files[0])
+      .then(pdfId => {
+        if (selectedTool === 'extract') {
+          const pages = document.getElementById('pagesField').value.trim() || '1';
+          const formData = new FormData();
+          formData.append('pdf_id', pdfId);
+          formData.append('pages', pages);
+          return fetch('/api/pdf/extract-base64', { method: 'POST', body: formData })
+            .then(r => {
+              if (!r.ok) throw new Error('extract failed (' + r.status + ')');
+              return r.json();
+            })
+            .then(data => finish(data.pdf_base64, data.filename || 'extracted.pdf'));
+        }
+        // pdf_to_text
+        return fetch('/api/pdf/text-all/' + encodeURIComponent(pdfId))
+          .then(r => {
+            if (!r.ok) throw new Error('text extraction failed (' + r.status + ')');
+            return r.json();
+          })
+          .then(data => {
+            const text = data.pages.map(p => '--- Page ' + p.page_number + ' ---\n' + p.text).join('\n\n');
+            const blob = new Blob([text], { type: 'text/plain' });
+            document.getElementById('reactionWorking').classList.add('hidden');
+            document.getElementById('reactionDone').classList.remove('hidden');
+            btn.disabled = false;
+            const link = document.getElementById('downloadLink');
+            link.href = URL.createObjectURL(blob);
+            link.download = (data.filename || 'document').replace(/\.pdf$/i, '') + '.txt';
+            link.style.display = 'inline-block';
+          });
       })
-      .catch(() => {
-        working.classList.add('hidden');
-        btn.disabled = false;
-      });
+      .catch(e => showError(e.message));
   }
 </script>
 {% endblock %}

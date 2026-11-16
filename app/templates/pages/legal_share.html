@@ -9,10 +9,11 @@
 #}
 {% block title %}Share your case file — Semptify{% endblock %}
 {% block body_class %}shell legal-share{% endblock %}
+{% block safety_exit %}{% include "components/safety_exit.html" %}{% endblock %}
 {% block main_class %}shell-main shell-main--top{% endblock %}
 {% block styles %}
 {{ super() }}
-<link rel="stylesheet" href="/static/css/legal-share.css?v=20260928-03">
+<link rel="stylesheet" href="/static/css/legal-share.css?v=20261114-02">
 {% endblock %}
 
 {% block content %}
@@ -32,21 +33,26 @@
         <li class="ls-step" id="lsItemsStep" hidden>
             <span class="rs-label">2. Choose what to include</span>
             <p class="rs-hint">Checked items are the ones your reviewer will see. Filed documents, exhibits, and messages with your landlord start checked; drafts and account material stay unchecked.</p>
+            <p class="rs-hint ls-warn">If a lawyer sent you any of these first, ask them before sharing it — passing it on can undo the confidentiality that protects lawyer-client work.</p>
             <div id="lsItems"></div>
             <div id="lsDeadlinePick" hidden>
                 <h3 class="ls-sub">Dates to include</h3>
                 <div id="lsDeadlines"></div>
             </div>
             <label class="ls-check"><input type="checkbox" id="lsIncludeNotes" checked> Include my case notes</label>
+            <p class="rs-hint ls-note-hint">Anything you write down — here or anywhere else — can be asked for in a court case. Write what you'd be comfortable with a judge reading.</p>
             <label class="ls-check"><input type="checkbox" id="lsIncludeSummary" checked> Include the case summary (title and status)</label>
         </li>
         <li class="ls-step" id="lsReviewerStep" hidden>
             <label class="rs-label" for="lsReviewer">3. Who is this for?</label>
             <input id="lsReviewer" class="rs-input" placeholder="e.g. Attorney Lee, legal aid intake" maxlength="120">
+            <p class="rs-hint ls-note-hint">Sharing with an attorney can stay legally confidential. Sharing with an advocate or any other helper is different — useful, but not attorney-client confidential. The link works the same either way: you choose what they see.</p>
         </li>
         <li class="ls-step" id="lsContactStep" hidden>
             <label class="rs-label" for="lsContact">4. Their email or phone (optional — just a note for yourself)</label>
             <input id="lsContact" class="rs-input" placeholder="optional" maxlength="200">
+            <label class="rs-label ls-sublabel" for="lsMessage">A short note they'll see at the top (optional)</label>
+            <textarea id="lsMessage" class="rs-textarea ls-message" rows="2" maxlength="2000" placeholder="e.g. These are the documents we talked about — the notice is the first file."></textarea>
         </li>
         <li class="ls-step" id="lsExpiryStep" hidden>
             <span class="rs-label">5. How long should the link work?</span>
@@ -57,6 +63,7 @@
             </div>
         </li>
         <li class="ls-step" id="lsCreateStep" hidden>
+            <p class="rs-hint ls-warn">Treat this link like handing someone the paper. Anyone who has it can read what you checked — including people it gets forwarded to. You can turn it off or let it expire anytime.</p>
             <button type="button" id="lsCreateBtn" class="shell-btn shell-btn--accent">6. Create the link</button>
             <span id="lsCreateMsg" class="rs-hint" role="status"></span>
         </li>
@@ -87,13 +94,39 @@
     <div id="lsQuestionList"></div>
     <p id="lsQuestionsEmpty" class="rs-hint" hidden>No questions yet. When a reviewer asks about a document, it lands here.</p>
 </section>
+
+<!-- Released copies & handling record — the deliberate, separate release act
+     (matrix G9). Sits last: the lowest-frequency, most consequential action
+     on the page, after all the everyday sharing work. -->
+<section class="ls-zone" id="lsReleaseZone" aria-label="Released copies and record of handling">
+    <h2 class="rs-section-head">Released copies &amp; record of handling</h2>
+    <p class="rs-hint">Your original files never change. Marks and notes sit on top of them, like writing on a clear sheet — they only exist on screen. A <strong>released copy</strong> is a separate, new file made only when you ask for one: it bundles the original, what your highlight colors mean, a tamper-check with a timestamp, and a record of who did what with the document — for handing to a court or an attorney.</p>
+    <div class="ls-step">
+        <label class="rs-label" for="lsReleaseDoc">Choose a document</label>
+        <select id="lsReleaseDoc" class="rs-input">
+            <option value="">— choose a document —</option>
+        </select>
+        <div id="lsReleaseInfo" class="ls-release-info" hidden>
+            <p id="lsReleaseHash" class="rs-hint"></p>
+            <div class="ls-release-actions">
+                <button type="button" id="lsReleaseBtn" class="rs-btn">Release a copy</button>
+                <a id="lsCustodyBtn" class="rs-btn" href="#">Download the handling record</a>
+            </div>
+        </div>
+        <p id="lsReleaseMsg" class="rs-hint" role="status"></p>
+    </div>
+    <div id="lsReleaseList"></div>
+    <p id="lsReleasesEmpty" class="rs-hint" hidden>No released copies of this document yet.</p>
+</section>
 {% endblock %}
 
 {% block sidebar %}
 <h2>About sharing</h2>
 <ul class="shell-list">
     <li><span class="rs-side-note">The link shows only what you select. Your originals never change — reviewers can only read and ask questions.</span></li>
+    <li><span class="rs-side-note">Documents open exactly as they sit in your vault — including hidden details saved inside the file, like an author's name. Check anything sensitive before you share.</span></li>
     <li><span class="rs-side-note">You can turn a link off anytime. Nothing is sent automatically — you choose who gets the link.</span></li>
+    <li><span class="rs-side-note">A released copy is a new file — your original stays untouched, and the copy carries its own timestamp and tamper-check.</span></li>
 </ul>
 <h2 style="margin-top:1.5rem">Related</h2>
 <ul class="shell-list">
@@ -104,5 +137,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/legal_share.js?v=20260928-01"></script>
+<script src="/static/js/legal_share.js?v=20261114-02"></script>
 {% endblock %}

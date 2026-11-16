@@ -12,16 +12,22 @@ All methods are async and return structured dicts with a "status" field:
 
 Data sources:
   - PropertyLookup    — county parcel lookups (Dakota, Ramsey, Hennepin)
-  - LandlordLookup    — MN SOS business search + HUD property/ownership
+  - LandlordLookup    — MN SOS business search + HUD eGIS (PHA codes,
+                        HUD multifamily property records)
   - CourtScraper      — MN court eviction search + CourtListener federal
-  - Violations        — city inspections + EPA ECHO + MPCA
-  - Inspections       — HUD REAC scores + local inspection records
+  - Violations        — city inspections + EPA ECHO + MPCA WIMN
+  - Inspections       — HUD inspection scores + local inspection records
   - Statutes          — MN Revisor of Statutes (504B, 504C, 580, etc.)
 
 api.data.gov integration:
   If DATA_GOV_API_KEY env var is set, EPA ECHO, FEMA, Census, USDA, and
   200+ federal datasets are unlocked. Without the key, the pack falls back
-  to the free no-key endpoints (HUD ArcGIS, CourtListener, MN Revisor).
+  to the free no-key endpoints (HUD eGIS, CourtListener, MN Revisor).
+
+CourtListener integration:
+  CourtListener REST v4 requires authentication on all endpoints (v4.3+).
+  Set COURTLISTENER_API_TOKEN to a free account token to enable live
+  federal-case search; without it, lookups return a manual-search link.
 
 All HTTP calls use httpx with a 10s timeout and a Semptify user-agent.
 HTML responses are parsed with BeautifulSoup4.
@@ -50,6 +56,14 @@ def _data_gov_key() -> str | None:
     if key:
         return key
     return os.environ.get("DATA_GOV_API_KEY")
+
+
+def _courtlistener_token() -> str | None:
+    """Return the CourtListener API token from settings/env, or None if not set."""
+    key = getattr(get_settings(), "courtlistener_api_token", "")
+    if key:
+        return key
+    return os.environ.get("COURTLISTENER_API_TOKEN")
 
 
 # =============================================================================
@@ -300,26 +314,69 @@ class LandlordLookup:
         )
 
     async def lookup_owner(self, property_id: str) -> dict[str, Any]:
-        """Lookup property owner via HUD or county records."""
+        """Lookup a housing authority or HUD multifamily property record.
+
+        Uses HUD's public eGIS ArcGIS services (no key required). Tries the
+        Public Housing Authorities layer by PARTICIPANT_CODE first (e.g.
+        "MN001"), then the Multifamily Properties layer by PROPERTY_ID.
+        """
         if not property_id or not property_id.strip():
             return _error(property_id or "", "Property ID required.", source="hud")
-        url = "https://services.hud.gov/hudcli/api/v1/ILS/LHA"
-        params = {"LHAcode": property_id}
+        safe_id = property_id.strip().replace("'", "''").upper()
+        pha_url = "https://egis.hud.gov/arcgis/rest/services/gotit/PublicHousing/MapServer/0/query"
+        mf_url = "https://egis.hud.gov/arcgis/rest/services/gotit/MultifamilyProperties/MapServer/0/query"
         async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
-            data = await _fetch_json(client, url, params=params)
-            if data is None or not data:
+            data = await _fetch_json(
+                client,
+                pha_url,
+                params={
+                    "where": f"UPPER(PARTICIPANT_CODE) = '{safe_id}'",
+                    "outFields": (
+                        "PARTICIPANT_CODE,FORMAL_PARTICIPANT_NAME,STD_ADDR,STD_CITY,"
+                        "STD_ST,STD_ZIP5,TOTAL_UNITS,ACC_UNITS,SECTION8_UNITS_CNT,"
+                        "HA_PHN_NUM,HA_EMAIL_ADDR_TEXT"
+                    ),
+                    "f": "json",
+                    "returnGeometry": "false",
+                },
+            )
+            features = data.get("features", []) if isinstance(data, dict) else []
+            if features:
                 return _ok(
                     property_id=property_id,
-                    source="County Records (manual lookup required)",
-                    source_url="https://www.hennepin.us/property",
-                    note="HUD lookup did not return data. This may be a private property — check county records.",
-                    owner=None,
+                    source="HUD Public Housing Authorities (eGIS)",
+                    source_url=pha_url,
+                    owner=features[0].get("attributes", {}),
+                )
+            data = await _fetch_json(
+                client,
+                mf_url,
+                params={
+                    "where": f"PROPERTY_ID = '{safe_id}'",
+                    "outFields": (
+                        "PROPERTY_ID,PROPERTY_NAME_TEXT,PROJECT_MANAGER_NAME_TEXT,"
+                        "MGMT_AGENT_ORG_NAME,MGMT_CONTACT_FULL_NAME,"
+                        "MGMT_CONTACT_MAIN_PHN_NBR,TOTAL_UNIT_COUNT,"
+                        "TOTAL_ASSISTED_UNIT_COUNT,STD_ADDR,STD_CITY,STD_ST,STD_ZIP5"
+                    ),
+                    "f": "json",
+                    "returnGeometry": "false",
+                },
+            )
+            features = data.get("features", []) if isinstance(data, dict) else []
+            if features:
+                return _ok(
+                    property_id=property_id,
+                    source="HUD Multifamily Properties (eGIS)",
+                    source_url=mf_url,
+                    owner=features[0].get("attributes", {}),
                 )
             return _ok(
                 property_id=property_id,
-                source="HUD Public Housing Authority Database",
-                source_url=url,
-                owner=data if isinstance(data, dict) else {"raw": data},
+                source="County Records (manual lookup required)",
+                source_url="https://www.hennepin.us/property",
+                note="HUD lookup did not return data. This may be a private property — check county records.",
+                owner=None,
             )
 
 
@@ -346,15 +403,39 @@ class CourtScraper:
         )
 
     async def fetch_federal_cases(self, query: str) -> dict[str, Any]:
-        """Search federal court cases via CourtListener API (Free Law Project)."""
+        """Search federal court cases via CourtListener API (Free Law Project).
+
+        CourtListener REST v4 requires authentication on all endpoints.
+        Set COURTLISTENER_API_TOKEN to a free account token to enable live
+        search; without it we return a manual-search link like other
+        JS/walled sources in this pack.
+        """
         if not query or not query.strip():
             return _error(query or "", "Search query required.", source="courtlistener")
+        token = _courtlistener_token()
+        if not token:
+            return _ok(
+                query=query,
+                source="CourtListener (manual lookup)",
+                source_url=f"https://www.courtlistener.com/?q={quote_plus(query)}&type=r",
+                cases=[],
+                note=(
+                    "CourtListener API requires a free account token "
+                    "(set COURTLISTENER_API_TOKEN). Click the source_url to search in your browser."
+                ),
+            )
         url = "https://www.courtlistener.com/api/rest/v4/search/"
         params = {"q": query, "type": "r", "order_by": "score desc"}
         async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
-            data = await _fetch_json(client, url, params=params)
+            data = await _fetch_json(
+                client, url, params=params, headers={"Authorization": f"Token {token}"}
+            )
             if data is None:
-                return _error(query, "CourtListener search failed.", source="courtlistener")
+                return _error(
+                    query,
+                    "CourtListener search failed. Check COURTLISTENER_API_TOKEN is valid.",
+                    source="courtlistener",
+                )
             results = data.get("results", []) if isinstance(data, dict) else []
             if not results:
                 return _no_results(query, "No federal cases found for that query.")
@@ -389,28 +470,50 @@ class Violations:
         city_lower = (city or "").strip().lower()
         async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
             if city_lower in ("minneapolis", "mpls"):
-                url = "https://inspections.minneapolismn.gov/api/v1/inspections"
-                params = {"address": address, "limit": 20}
+                # City of Minneapolis open data — CaseViolations FeatureServer
+                # (housing/fire code enforcement case violations, by address)
+                url = (
+                    "https://services.arcgis.com/afSMGVsC7QlRK1kZ/arcgis/rest/services/"
+                    "CaseViolations/FeatureServer/0/query"
+                )
+                portal_url = (
+                    "https://www.minneapolismn.gov/government/government-data/"
+                    "datasource/regulatory-services-violations-dashboard/"
+                )
+                safe_addr = address.replace("'", "''").upper()
+                params = {
+                    "where": f"UPPER(Display) LIKE '%{safe_addr}%'",
+                    "outFields": (
+                        "Display,Violation_Case_Number,Case_Group_Desc,Violation_Code,"
+                        "Violation_Code_Description,Status_Violation,Processed_Date,Resolved_Date"
+                    ),
+                    "f": "json",
+                    "resultRecordCount": 20,
+                    "returnGeometry": "false",
+                    "orderByFields": "Processed_Date DESC",
+                }
                 data = await _fetch_json(client, url, params=params)
                 if data is None:
                     return _ok(
                         city="Minneapolis",
                         address=address,
-                        source="Minneapolis Inspections Portal",
-                        source_url=f"https://inspections.minneapolismn.gov/?address={quote_plus(address)}",
+                        source="Minneapolis Regulatory Services Violations (manual lookup)",
+                        source_url=portal_url,
                         inspections=[],
                         note="API returned no data. Visit the portal link for manual lookup.",
                     )
                 inspections = (
-                    data.get("results", []) if isinstance(data, dict) else data if isinstance(data, list) else []
+                    [f.get("attributes", {}) for f in data.get("features", [])]
+                    if isinstance(data, dict)
+                    else []
                 )
                 if not inspections:
                     return _no_results(f"{city}/{address}", "No inspection records for that address.")
                 return _ok(
                     city="Minneapolis",
                     address=address,
-                    source="Minneapolis Inspections Portal",
-                    source_url=f"https://inspections.minneapolismn.gov/?address={quote_plus(address)}",
+                    source="Minneapolis CaseViolations (open data)",
+                    source_url=portal_url,
                     inspections=inspections[:20],
                 )
             if city_lower in ("st paul", "saint paul", "stpaul"):
@@ -503,17 +606,36 @@ class Violations:
             )
 
     async def _mpca_lookup(self, client: httpx.AsyncClient, facility: str) -> dict[str, Any]:
-        """Fallback MPCA lookup when EPA ECHO returns no results."""
-        url = "https://www.pca.state.mn.us/api/v1/facilities"
-        params = {"q": facility, "limit": 10}
+        """Fallback MPCA lookup when EPA ECHO returns no results.
+
+        Uses MPCA's public "What's in My Neighborhood" (WIMN) ArcGIS map
+        service — a searchable inventory of contaminated sites and
+        permitted/registered facilities, no key required.
+        """
+        url = "https://pca-gis02.pca.state.mn.us/arcgis/rest/services/WIMN/wimn_tempo/MapServer/1/query"
+        safe_name = facility.replace("'", "''").upper()
+        params = {
+            "where": f"UPPER(name) LIKE '%{safe_name}%'",
+            "outFields": (
+                "name,site_id,site_url,activity_list,program_name_list,"
+                "address_street,city,county,address_zip"
+            ),
+            "f": "json",
+            "resultRecordCount": 10,
+            "returnGeometry": "false",
+        }
         data = await _fetch_json(client, url, params=params)
-        if data is None or not data:
+        results = (
+            [f.get("attributes", {}) for f in data.get("features", [])]
+            if isinstance(data, dict)
+            else []
+        )
+        if not results:
             return _no_results(facility, "No environmental violations found in EPA ECHO or MPCA.")
-        results = data.get("results", []) if isinstance(data, dict) else data if isinstance(data, list) else []
         return _ok(
             query=facility,
-            source="MPCA (Minnesota Pollution Control Agency)",
-            source_url=f"https://www.pca.state.mn.us/business-and-communities/search-for-environmental-information?search={quote_plus(facility)}",
+            source="MPCA What's in My Neighborhood (WIMN)",
+            source_url="https://webapp.pca.state.mn.us/wimn/",
             facilities=results[:10],
         )
 
@@ -522,27 +644,22 @@ class Inspections:
     """HUD REAC scores + local inspection endpoints."""
 
     async def hud_reac(self, property_id: str) -> dict[str, Any]:
-        """Lookup HUD REAC inspection scores for a property."""
+        """Lookup HUD physical inspection (REAC/NSPIRE) scores for a property.
+
+        HUD does not publish a free, no-key REST endpoint for inspection
+        scores — the data ships as downloadable datasets on HUD User. We
+        return the dataset page for manual lookup like other walled
+        sources in this pack.
+        """
         if not property_id or not property_id.strip():
             return _error(property_id or "", "Property ID required.", source="hud_reac")
-        url = f"https://services.hud.gov/hudcli/api/v1/REAC/Property/{quote_plus(property_id)}"
-        async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
-            data = await _fetch_json(client, url)
-            if data is None or not data:
-                return _ok(
-                    property_id=property_id,
-                    source="HUD REAC Inspection Database",
-                    source_url=f"https://www.huduser.gov/portal/datasets/reac.html?property_id={quote_plus(property_id)}",
-                    scores=[],
-                    note="API returned no data. Visit the REAC database link for manual lookup.",
-                )
-            scores = data if isinstance(data, list) else [data] if isinstance(data, dict) else []
-            return _ok(
-                property_id=property_id,
-                source="HUD REAC Inspection Database",
-                source_url=url,
-                scores=scores[:10],
-            )
+        return _ok(
+            property_id=property_id,
+            source="HUD Physical Inspection Scores (manual lookup)",
+            source_url="https://www.huduser.gov/portal/datasets/pis_public.html",
+            scores=[],
+            note="HUD inspection scores are published as downloadable datasets, not a lookup API. Visit the link to search.",
+        )
 
     async def local_inspections(self, city: str, address: str) -> dict[str, Any]:
         """Lookup local inspection records for an address.

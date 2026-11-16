@@ -12,7 +12,7 @@
 ## 1. Who We Are and What We Stand For
 
 Semptify exists to protect the rights of tenants facing housing insecurity.
-We give tenants the same tools that well-funded landlords take for granted — for free, forever.
+We give tenants the same tools that well-funded landlords take for granted — at no cost, always.
 
 **We are on the side of tenants. Always.**
 
@@ -22,7 +22,7 @@ These are not preferences. Every module, plugin, and add-on must honor them with
 
 | Mandate | Rule |
 |---|---|
-| **Free Forever** | No paywalls, no subscriptions, no freemium gates. Every feature is free. |
+| **No Cost, Always** | No paywalls, no subscriptions, no freemium gates. Every feature is no cost. |
 | **No Advertising. Ever.** | No ad networks, no sponsored content, no affiliate links. Not now, not later. |
 | **No Tracking** | No analytics pixels, no third-party tracking scripts, no behavioral profiling. |
 | **Privacy by Design** | Documents stay in the tenant's own cloud storage. We never hold documents on our servers unless a specific operation requires it. |

@@ -200,6 +200,15 @@ class OverlayType(str, Enum):
     Anchored to ``document_id="legal_trails:{user_id}"``;
     ``payload["kind"]`` discriminates the record family."""
 
+    RELEASE_RECORD = "release_record"
+    """Gated release record — one per certified release of a document.
+    Anchored to the released document's id (vault_id when the doc lives in
+    vault_index, else the documents-table id). Payload carries the full
+    release manifest: release_id, artifact vault path + sha256, original
+    sha256, release timestamp, the DocumentProof certificate, a legend
+    snapshot, and released_by. The released artifact itself is a NEW vault
+    file under VAULT_RELEASES — the original document is never modified."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -275,6 +284,7 @@ RECORD_OVERLAYS: set[OverlayType] = {
     OverlayType.AGENCY_MAPPING,
     OverlayType.MNDES_PACKAGE,
     OverlayType.LEGAL_TRAIL_RECORD,
+    OverlayType.RELEASE_RECORD,
 }
 
 # All overlay types (for validation)

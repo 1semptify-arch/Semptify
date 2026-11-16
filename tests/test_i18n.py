@@ -4,7 +4,16 @@ import json
 
 import pytest
 
-from app.core.i18n import SUPPORTED_LOCALES, I18n, _jinja2_gettext, get_locale, gettext, ngettext
+from app.core.i18n import (
+    SUPPORTED_LOCALES,
+    I18n,
+    _jinja2_gettext,
+    available_locales,
+    get_locale,
+    gettext,
+    ngettext,
+    reviewed_locales,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -139,6 +148,33 @@ def test_module_level_helpers_use_singleton(tmp_path):
     assert gettext("welcome.cta") == "Get Started"
     assert get_locale() == "en"
     assert ngettext("one", "many", 2) == "many"
+
+
+def test_available_locales_excludes_stub_catalogs(tmp_path):
+    _make_i18n(
+        tmp_path,
+        {
+            "en": {"_meta": {"status": "human_reviewed"}},
+            "es": {"_meta": {"status": "machine"}},
+            "so": {"_meta": {"status": "stub"}},
+        },
+    )
+    available = available_locales()
+    assert "en" in available
+    assert "es" in available
+    assert "so" not in available
+
+
+def test_reviewed_locales_only_includes_human_reviewed(tmp_path):
+    _make_i18n(
+        tmp_path,
+        {
+            "en": {"_meta": {"status": "human_reviewed"}},
+            "es": {"_meta": {"status": "machine"}},
+            "hmn": {"_meta": {"status": "stub"}},
+        },
+    )
+    assert reviewed_locales() == {"en": "English"}
 
 
 @pytest.mark.anyio

@@ -21,6 +21,8 @@
     .tr-form .btn { background: var(--color-primary); color: var(--text-inverse); border: none; padding: 0.75rem 1.75rem; border-radius: var(--radius-input); font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; }
     .tr-form .btn:hover { background: var(--color-primary-light); }
     .tr-success { display: none; background: var(--color-success-50); border: 1px solid var(--color-success); border-radius: var(--radius-block); padding: 1.25rem; color: var(--color-success-800); margin-top: 0.75rem; }
+    .tr-error { display: none; background: var(--color-error-50); border: 1px solid var(--color-error); border-radius: var(--radius-block); padding: 1.25rem; color: var(--color-error-800); margin-top: 0.75rem; }
+    .tr-form .btn:disabled { opacity: 0.6; cursor: default; }
     .tr-note { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
     .tr-list { list-style: none; margin: 0.75rem 0 0 0; padding: 0; }
     .tr-list li { padding: 0.9rem 0; border-top: 1px solid var(--border-color); }
@@ -59,6 +61,10 @@
         <strong>Received.</strong> Your request will appear on this page with our
         response after a quick review to remove any personal details.
     </div>
+    <div class="tr-error" id="trError">
+        <strong>That didn't go through.</strong> Your request may not have reached
+        us — please try sending it again.
+    </div>
     <p class="tr-note" style="margin-top:0.75rem;">
         Prefer email? You can write to us through the <a href="/contact">contact page</a> —
         but know that the request itself will still be posted here publicly, without
@@ -85,16 +91,23 @@
 <script>
     function submitToolRequest(e) {
         e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        document.getElementById('trError').style.display = 'none';
+        btn.disabled = true;
         const message = document.getElementById('trMessage').value;
         fetch('/api/tool-request', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message })
         })
-        .catch(() => {})
-        .finally(() => {
+        .then(r => {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
             document.getElementById('trForm').style.display = 'none';
             document.getElementById('trSuccess').style.display = 'block';
+        })
+        .catch(() => {
+            document.getElementById('trError').style.display = 'block';
+            btn.disabled = false;
         });
     }
 

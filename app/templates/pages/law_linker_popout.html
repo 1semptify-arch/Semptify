@@ -147,10 +147,10 @@ document.getElementById('saveToScratch').addEventListener('click', async functio
             this.disabled = true;
         } else {
             const data = await res.json().catch(() => ({}));
-            alert(data.detail || 'Could not save to scratch pad.');
+            SemptifyFeedback.error(data.detail || 'Could not save to scratch pad.');
         }
     } catch (e) {
-        alert('Could not save to scratch pad.');
+        SemptifyFeedback.error('Could not save to scratch pad.');
     }
 });
 

@@ -74,10 +74,15 @@ def scan_directory(base_path: Path, rel_prefix: str = "") -> list[FileInfo]:
     if not base_path.exists():
         return files
 
+    # Resolve once so rglob yields absolute paths — relative base paths
+    # otherwise produce relative items that can't be relativized to cwd.
+    base_path = base_path.resolve()
+    root = Path.cwd().resolve()
+
     for item in base_path.rglob("*"):
         if item.is_file() and item.suffix in editable_extensions:
             # Calculate relative path from project root
-            rel_path = str(item.relative_to(Path.cwd()))
+            rel_path = str(item.relative_to(root))
 
             # Determine folder for grouping
             try:

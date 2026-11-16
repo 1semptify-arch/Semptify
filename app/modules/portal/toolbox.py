@@ -248,7 +248,7 @@ class ToolboxCatalog:
             slot="p03.seal", wing="renters",
         ),
         ToolboxEntry(
-            id="fems", name="Forensic evidence system (FEMS)",
+            id="fems", name="Forensic documentation system (FEMS)",
             purpose="Organize case documents with a chain of custody.",
             group="record", status="partial", level="L1", engine="record",
             today="Use the document center for now.", today_path="/preamble",
@@ -453,6 +453,7 @@ class ToolboxCatalog:
             group="together", status="live", level="L4", engine="civic",
             today="Read the bill section.", today_path="/bill",
             promised_on=("/",),
+            note="/bill is a registered portal page that 301-redirects to the bill microsite at semptify.org/bill — the link is live (verified 2026-11-14), not a dead route.",
             slot="wing.bill", wing="bill",
         ),
         ToolboxEntry(
@@ -551,8 +552,8 @@ class ToolboxCatalog:
             purpose="Organize public-record findings about housing conduct.",
             group="research", status="partial", level="L4", engine="civic",
             today="Not available to the public yet.",
-            backed_by=("public_exposure",), promised_on=("/donate",),
-            note="The donate page called this the Public Exposure Suite — renamed to calmer wording on 2026-11-07. Public outputs are combined patterns and totals only.",
+            backed_by=("accountability_ledger",), promised_on=("/donate",),
+            note="The donate page called this the Public Exposure Suite — renamed to calmer wording on 2026-11-07. The backing module was corrected 2026-11-13 — it had pointed at the press-release generator; the organizer behind this entry is the accountability ledger. Public outputs are combined patterns and totals only.",
             slot="wing.research", wing="research",
         ),
         ToolboxEntry(
@@ -657,7 +658,7 @@ class ToolboxCatalog:
             group="support", status="partial", level="L0", engine="trust",
             today="Use the feedback form, which is confirmed working.", today_path="/feedback",
             promised_on=("/contact", "/help", "/privacy", "/terms", "/disclaimer"),
-            note="Nine distinct addresses appear across public pages (hello, tech, legal, privacy, partnerships, press, support, brad, admin) — the contact page shows six of them. Whether each is a working mailbox has not been verified.",
+            note="Nine distinct addresses appear across public pages (hello, tech, legal, privacy, partnerships, press, support, brad, admin) — the contact page shows six of them. Cloudflare Email Routing has literal rules for most, but partnerships@ and press@ deliver only via the catch-all forward — they silently break if the catch-all is ever disabled (literal rules still needed, 2026-11-14).",
             slot="shared.contact", wing="shared",
         ),
         # -------------------------------------------------- PILLAR FRONTS

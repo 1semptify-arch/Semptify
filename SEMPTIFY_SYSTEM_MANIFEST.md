@@ -38,7 +38,7 @@ This is required reading before touching any module or router (per `REQUIRED_REA
 | Static Files | `static/` |
 | Uploads | `uploads/vault/` |
 | Document storage | **User's own cloud** (Google Drive / Dropbox / OneDrive via OAuth) — Semptify holds no tenant documents |
-| Hosting | Render (Docker runtime, `python:3.11-slim`), public at `semptify.org` via Cloudflare tunnel |
+| Hosting | Render (Docker runtime, `python:3.11.9-slim`), public at `semptify.org` via Cloudflare tunnel |
 
 ---
 

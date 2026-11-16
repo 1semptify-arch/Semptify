@@ -43,6 +43,7 @@ Where the two overlap (`inputs`, `outputs`, dependencies), `module_contract.json
 | `process_description` | Plain description of what the module does | Yes |
 | `process_context` | Trigger condition / precondition — when and why this runs | Yes |
 | `narrative_events` | List of narrator event slots this module emits during execution (see Part 2) | **Optional until the Part 2 narrator runtime ships; required after [AMENDED]** |
+| `minimum_surface` | Zen structural declaration (`.devin/rules/11-zen-algorithms.md`): `goal` — one sentence the module exists to serve; `pages`/`endpoints`/`nav` — the minimum set of surface elements that reaches that goal; `extras` — anything beyond the minimum, each carrying a spoken `justification` tied to the goal. When the block is declared, at least one of `pages`/`endpoints`/`nav` must be non-empty (an empty minimum is a shortfall) and no `extras` entry may duplicate a declared minimum item. | Optional per the retroactivity rule; when declared, all sub-rules apply. The generated index reports `has_minimum_surface`, `surface_total`, and `surface_extra_count` so coverage and extras load are visible at review |
 
 ---
 

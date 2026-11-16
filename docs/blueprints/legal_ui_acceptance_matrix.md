@@ -187,6 +187,16 @@ Verify methods: `API` = pytest/contract; `UI` = browser-driven live;
 
 ### G7 — Matters, filings, representation
 
+> **Status note (2026-11-14, task-b02e2f89):** G7.1–G7.3 are visibly
+> blocked, not skipped. `/api/legal/*` requires legal/advocate/admin, but
+> tenant-only identity (PR #317 — `parse_user_id` decodes every ID as
+> `tenant`) 403s every real user, and `/legal/dashboard` redirects tenants
+> home. The professional-access model is awaiting a decision: revive
+> professional identity vs. tenant-granted relationship/share gating (the
+> `advocate` module's ADVOCACY pattern) vs. defer to the pro-role add-on
+> repo. Mock content in `legal_dashboard.html` was replaced with an honest
+> dormant page in the meantime.
+
 | ID | Actor | Scenario | Pass criteria | Method |
 |---|---|---|---|---|
 | G7.1 | AT | Creates matter | Persists; appears on legal dashboard (real data, not mockup) | API+UI |
@@ -255,6 +265,19 @@ Verify methods: `API` = pytest/contract; `UI` = browser-driven live;
 | 5 | G6.1–G6.7 | Co-view session MVP (flagged; ships only when solid) |
 | 6 | G7.4–G7.5, G9.1–G9.4 | Representation marker, packet legend, release gating |
 | 7 | G10, G11 | Full failure + adversarial sweep, persona walkthroughs, final matrix sign-off |
+
+> **Queue tracking (2026-11-14, task-6c69f780):** Epic
+> `legal-ui-epic-2026-09-23` resolved after slice 3's G8 half; the
+> remaining slices were decomposed into dispatchable queue tasks:
+> slice 1 → `legal-ui-slice1-advocate-access` (open),
+> slice 2 → `legal-ui-slice2-invite-consent` (open),
+> slice 3 G7.1–G7.3 → `task-b02e2f89` (blocked_on_decision — helper-access model),
+> slice 4 → `legal-ui-slice4-privilege-share` (open),
+> slice 5 → `legal-ui-slice5-coview-mvp` (blocked_on_decision — initiator + guest-identity),
+> slice 6 → `legal-ui-slice6-release-custody` (open; also covers G9.5–G9.6),
+> slice 7 → `legal-ui-slice7-failure-sweep` (open; also covers G1.5–G1.6,
+> G1.3–G1.4 if the pro-identity decision lands first).
+> G1.1–G1.2 ride inside slice 2.
 
 ## Research basis (external lenses consulted 2026-09-23)
 
@@ -325,3 +348,82 @@ Verify methods: `API` = pytest/contract; `UI` = browser-driven live;
   whether sessions are advocate-only or include legal; settled above as
   role-agnostic, but the *initiator* question remains)
 - Naming of the helper role ("advocate" umbrella vs. separate terms)
+
+---
+
+## FINAL SIGN-OFF — verification results (slice 7, swe-2, 2026-11-14)
+
+Live verification against the running app (`:8028`/`:8029` sandbox,
+`SECURITY_MODE=open`, seeded test data marked `TEST-SL7-*`; browser pass via
+IronBee DevTools at 1280px and 375px with console-error checks; API pass via
+`sandbox/slice7_verify.py` — 40 checks, 0 failures). "PASS" means observed on
+the running application, not code inspection. Rows verified by sibling slices
+cite their reports under `handoffs/`.
+
+| ID | Verdict | Evidence |
+|---|---|---|
+| G1.1 | PASS | Slice 2: tenant on /legal,/advocate paths → plain "not for you" + next step |
+| G1.2 | PASS | Slice 2: advocate on legal-only surfaces → server-side role check, no hidden-link reliance |
+| G1.3 | **BLOCKED — task-b02e2f89** | `legal_sub_role`/bar-number model dormant under tenant-only identity; awaiting Brad's professional-access decision |
+| G1.4 | **BLOCKED — task-b02e2f89** | Dual-role user impossible while every ID decodes as tenant |
+| G1.5 | PASS | Forged/malformed/empty-sig `semptify_uid` → 401 JSON on APIs, clean 302→`/storage/providers` on `/legal-share`; valid-sig ghost user → empty list, no crash |
+| G1.6 | PASS | 14 forged/anon probes across advocate/legal-share/overlay/doc routes + headers: zero tenant IDs, paths, tokens, or internals leaked |
+| G2.1–G2.8 | PASS | Slice 2 (browser-driven, both viewports): pre-grant preview, accept/decline, ADVOCACY row + visible grant, typo/non-advocate rejections, code expiry/uses, honest whole-case scoping, revoke→403 |
+| G3.1–G3.5 | PASS | Slice 1: relationship-scoped client list, non-client 403, mid-session revoke→403, no vault_write for A/AT, annotate creates overlay under advocate id with original untouched |
+| G3.6 | PASS | Slice 7 API: tenant-side `get_overlays` returns advocate marks with `created_by` attribution |
+| G3.7 | PASS | Slice 7 live: advocate DELETE own overlay → 200; DELETE tenant's overlay → 403 "You can only delete overlays you created" |
+| G3.8–G3.9 | PASS | Slices 1+2: every doc access lands in `document_access_logs`; tenant "Who has seen my case" renders them in plain words (verified again on this pass) |
+| G4.1 | PASS | DOCUMENT_KEY overlay persists + reloads identical (verified through two write rounds, incl. post-concurrency) |
+| G4.2 | PASS | HIGHLIGHT + FOOTNOTE overlays created; original file sha256 identical before/after |
+| G4.3–G4.4 | PASS | Slice 1: client-detail view paints tenant color key + marks; both authors' annotations rendered with "You/Client" attribution |
+| G4.5 | PASS | Tenant + advocate overlays coexist on one doc — both sets persist, both `created_by` distinguishable |
+| G4.6 | PASS | Doc row deleted → overlays still resolvable (orphaned, no crash); overlays on nonexistent doc → clean 404 "Document not found" |
+| G4.7 | PASS (code) / UI-blocked | Legend rows are now buttons that scroll+flash matching painted marks (`data-ov-color` tagging added this sweep). Advocate client-detail *page* unreachable under tenant-only identity — API half verified; browser half unblocked only by task-b02e2f89 |
+| G4.8 | PASS | `/api/dc/document/{id}/overlays` returns honest pipeline states (pending/processing/failed/needs-reprocess); doc render not gated on overlay fetch |
+| G5.1–G5.8 | PASS | Slice 4: work-product separation by vault construction, no "privileged" labels on advocate comms, share-scoped reading, expired/revoked pages with next steps, forwarding warning, overlay-only legal writes, no echo in errors |
+| G5.9 | **BLOCKED — slice5** | Three-way co-view is the blocked co-view MVP; the third-party-presence UI can't exist without it |
+| G5.10 | PASS | Slice 4: share flow warns forwarding can waive — "treat links like handing someone the paper" |
+| G5.11 | **BLOCKED — task-b02e2f89** | Paralegal/clerk delegation requires the professional-access model |
+| G5.12 | **OPEN — product call** | Release path exists and carries originals verbatim (page warns "hidden details saved inside the file"); whether release offers a metadata-scrub option is a decision, not implemented |
+| G5.13 | PASS | Slice 4 copy pass: notes carry discoverability honesty; no secrecy promises |
+| G6.1–G6.7 | **BLOCKED — slice5** | Co-view MVP blocked on initiator + guest-identity decision |
+| G7.1–G7.3 | **BLOCKED — task-b02e2f89** | `/api/legal/*` 403s every real user under tenant-only identity; dashboard honestly dormant |
+| G7.4 | PASS | "Working with you since 11/14/2026" renders on tenant My-Advocate page (verified at both viewports) |
+| G7.5 | PASS | Slice 6: packet zip carries legend.json + legend.txt (PDF legend section too); custom DOCUMENT_KEY meanings verified inside the bundle |
+| G7.6 | PASS | "Semptify is not legal advice" footer + disclaimers on every legal-surface page browsed; nothing implies Semptify practices law |
+| G8.1–G8.5 | PASS | Slice 3 report (2026-11-07): legal_trails routed + wired to real APIs, filing windows, honest empty states, draft-marked complaints |
+| G9.1–G9.6 | PASS | Slice 6 (16/16 live checks + browser drive): gated release → NEW zip artifact with certificate+timestamp+legend+custody; on-disk sha256 identical before/after; advocate release → 403 `release_denied` + log row, stranger → 404; artifact hash/timestamp/certificate travel in the record; custody log chronological + exportable (`?download=1`) |
+| G10.1 | PASS | No-session user on `/api/unified-overlays/list` + `/api/legal-share/cases` → 401 `reconnect_required` "We're reconnecting you to your storage. Your documents are safe." + redirect URL; pages redirect to reconnect |
+| G10.2 | PASS | Every empty/error state seen had a next step: dead share link page ("ask the person who shared it to send it again" + public links), "No questions yet", "No annotations on this document yet", expired/revoked share labels, honest 404/410 JSON |
+| G10.3 | PASS | 375px complete render of `/tenant/my-advocate`, `/legal-share`, `/r/<token>` reviewer view, `reviewer_unavailable` — all controls reachable, no horizontal overflow in AX tree |
+| G10.4 | PASS | Native inputs/buttons/links with accessible names, skip-link, aria-labels on regions; Escape handler live-verified; all controls keyboard-operable |
+| G10.5 | PASS | Invite flow = copy own ID OR enter their ID → pick scope → (timeline, note) → Send; share flow = numbered one-decision-at-a-time steps. Calm, short sentences throughout; completable unaided at 375px |
+| G10.6 | PASS | "Creating…" busy text during share POST; honest per-status errors ("That case couldn't be found.", "Storage needs reconnecting — nothing was released."); "Loading annotations…/notes…" states; no false instant success |
+| G10.7 | PASS | Two sequential color-key writes on one DOCUMENT_KEY → last write intact (`{'blue': 'writer-B'}`), single overlay id, no corruption |
+| G10.8 | **FAIL — real gap** | No idle-timeout enforcement: auth cookie lives 1 year, `advanced_security.SessionManager` (30-min inactivity) and `core/sessions.py` TTL store exist but are NOT wired into `get_current_user`. Logged to intake for a dedicated fix |
+| G10.9 | PASS | Tenant screens hold ≤3 decisions per region: My-Advocate = ID-copy / ask-help (3 inputs) / access lists; Legal-Share = progressive disclosure, one combobox at a time |
+| G10.10 | PASS | Implemented + verified this sweep: discreet "exit" link (fixed, low-opacity) + Esc shortcut (ignored while typing) on `tenant_my_advocate`, `legal_share`, `reviewer_share` — live test: Escape → en.wikipedia.org |
+| G11.1 | PASS | Unlinked-real client (403,49ms) vs nonexistent (403,49ms) — identical status+body+timing; malformed vs well-formed-unknown share token → identical 404 `share_not_found` |
+| G11.2 | PASS | Expired share → 410 `share_expired` on replay; revoked → 410 `share_revoked`; expired invite → 400 "has expired"; deactivated → 400; every attempt lands in the request log |
+| G11.3 | PASS | `<script>…</script><img onerror>` overlay + share-question payloads round-trip verbatim through the API and render as literal text in the reviewer page — AX tree shows the markup as text, no execution |
+| G11.4 | PASS | Advocate→unlinked tenant docs/overlays → 403; cross-user `/api/unified-overlays/overlay/{id}` → 404, payload does not leak. (Dev caveat: `local_disk` maps all vaults to one filesystem root, so the *service* layer resolves foreign overlay ids locally — the isolation boundary is the router + per-user vault, as designed) |
+| G11.5 | PASS | Credential-free probes on advocate list/revoke/overlay/share endpoints → 401/404; enforcement is server-side, UI is not the boundary |
+| G11.6 | PASS | Denied attempts logged as `access_denied` rows (18 rows observed); DELETE/PUT/PATCH on `/api/advocate/my-access-log` → 405 — append-only |
+| G11.7 | PASS after fix | Token = urlsafe-32 ≈ 256 bits. Found dead limiting: FastAPI-0.141 lazy `include_router` leaves `_IncludedRouter` proxies in `app.routes`, so slowapi's middleware can't resolve handlers → `default_limits` never engaged (proved in-process: 210 same-path hits, 0×429). Fixed: failed-token throttling (per-IP, failures only) on `legal_share._gate` (30/60s→429) and invite validate/redeem (20/60s→429) via the working `app.core.security.RateLimiter`; re-probed live: 30×404→429, 20×200→429 |
+
+### Sweep verdict
+
+- **Passed outright:** all assigned rows except G10.8 — 40/40 API checks,
+  zero console errors, zero info leaks, zero dead ends on the tested surface.
+- **Two fixes landed in this sweep:** failed-token rate limiting on the
+  share/invite guess surfaces (G11.7) and the safety-exit component +
+  legend-jump interaction (G10.10, G4.7 code path).
+- **One real gap:** G10.8 idle session timeout is not implemented —
+  intake-logged.
+- **Decision-blocked (not defects):** G1.3–G1.4, G5.11, G7.1–G7.3 await
+  task-b02e2f89; G5.9 + G6.* await slice5; G5.12 needs a scrub-on-release
+  product call. G7.5 + G9.1–G9.6 were closed by slice 6 on 2026-11-14
+  (report: handoffs/legal-ui-slice6-release-custody-report-2026-11-14.md).
+
+Signed: swe-2 — legal-ui-slice7-failure-sweep, 2026-11-14
+

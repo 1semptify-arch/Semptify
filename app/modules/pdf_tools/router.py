@@ -8,23 +8,101 @@ import base64
 import io
 import logging
 import os
+import re
+from collections import OrderedDict
 
 try:
     import fitz  # PyMuPDF
 except ImportError:
     fitz = None
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 
+from app.core.security import green_access, rate_limit_dependency
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/pdf", tags=["PDF Tools"])
+# Every endpoint requires an authenticated app user (green: valid signed
+# cookie). These were previously unauthenticated — a public CPU+memory
+# exhaustion surface (unbounded cache, CPU-bound PyMuPDF work).
+router = APIRouter(
+    prefix="/api/pdf",
+    tags=["PDF Tools"],
+    dependencies=[Depends(green_access)],
+)
 
-# Store uploaded PDFs temporarily
-pdf_cache = {}
+# Server-side bounds
+MAX_PDF_UPLOAD_BYTES = 25 * 1024 * 1024  # 25 MB per uploaded PDF
+MAX_MERGE_FILES = 10
+MAX_MERGE_TOTAL_BYTES = 100 * 1024 * 1024  # 100 MB across a merge batch
+MIN_ZOOM, MAX_ZOOM = 0.25, 4.0
+MIN_THUMB_WIDTH, MAX_THUMB_WIDTH = 32, 1024
+MAX_PAGES_PER_SPLIT = 500
+PDF_CACHE_TTL_SECONDS = 3600
+PDF_CACHE_MAX_ENTRIES = 20
+PDF_CACHE_MAX_BYTES = 150 * 1024 * 1024
+
+_SAFE_FILENAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+def _safe_filename(name: str | None, fallback: str = "document.pdf") -> str:
+    """Reduce a user-supplied filename to something safe for headers/disk."""
+    stem = os.path.basename(name or "")
+    stem = _SAFE_FILENAME_RE.sub("_", stem).strip("._-")
+    return stem[:200] or fallback
+
+
+# Store uploaded PDFs temporarily — bounded LRU with TTL. Entries expire
+# after PDF_CACHE_TTL_SECONDS and the whole cache is capped by entry count
+# and total bytes, so uploads can't grow memory without limit.
+pdf_cache: OrderedDict[str, dict] = OrderedDict()
+
+
+def _cache_prune() -> None:
+    """Drop expired entries, then evict oldest until within caps."""
+    now = utc_now()
+    expired = [
+        pid for pid, entry in pdf_cache.items() if (now - entry["stored_at"]).total_seconds() > PDF_CACHE_TTL_SECONDS
+    ]
+    for pid in expired:
+        pdf_cache.pop(pid, None)
+    total = sum(len(entry["content"]) for entry in pdf_cache.values())
+    while pdf_cache and (len(pdf_cache) > PDF_CACHE_MAX_ENTRIES or total > PDF_CACHE_MAX_BYTES):
+        _, evicted = pdf_cache.popitem(last=False)
+        total -= len(evicted["content"])
+
+
+def _cache_put(pdf_id: str, entry: dict) -> None:
+    entry["stored_at"] = utc_now()
+    pdf_cache[pdf_id] = entry
+    _cache_prune()
+
+
+def _cache_get(pdf_id: str) -> dict | None:
+    entry = pdf_cache.get(pdf_id)
+    if entry is None:
+        return None
+    if (utc_now() - entry["stored_at"]).total_seconds() > PDF_CACHE_TTL_SECONDS:
+        pdf_cache.pop(pdf_id, None)
+        return None
+    pdf_cache.move_to_end(pdf_id)
+    return entry
+
+
+def _require_cached(pdf_id: str) -> dict:
+    pdf_data = _cache_get(pdf_id)
+    if pdf_data is None:
+        raise HTTPException(status_code=404, detail="PDF not found")
+    return pdf_data
+
+
+def _check_upload_size(file: UploadFile, content: bytes) -> None:
+    """Reject oversized uploads — checked on declared size and actual bytes."""
+    declared = file.size if file.size is not None else 0
+    if declared > MAX_PDF_UPLOAD_BYTES or len(content) > MAX_PDF_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="PDF too large — limit is 25MB")
 
 
 @router.get("/test")
@@ -35,15 +113,20 @@ async def test_pdf_tools():
     return {"status": "PDF tools available", "pymupdf_version": fitz.__version__}
 
 
-@router.post("/upload")
+@router.post(
+    "/upload",
+    dependencies=[Depends(rate_limit_dependency("pdf-upload", window=60, max_requests=10))],
+)
 async def upload_pdf(file: UploadFile = File(...)):
     """Upload a PDF file for processing"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if not file.filename.lower().endswith(".pdf"):
+    filename = _safe_filename(file.filename)
+    if not filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="File must be a PDF")
 
     content = await file.read()
+    _check_upload_size(file, content)
 
     try:
         # Open and validate PDF
@@ -54,12 +137,15 @@ async def upload_pdf(file: UploadFile = File(...)):
         pdf_id = f"pdf_{utc_now().strftime('%Y%m%d_%H%M%S')}_{hash(content) & 0xFFFFFF:06x}"
 
         # Store in cache
-        pdf_cache[pdf_id] = {
-            "filename": file.filename,
-            "content": content,
-            "page_count": page_count,
-            "uploaded_at": utc_now().isoformat(),
-        }
+        _cache_put(
+            pdf_id,
+            {
+                "filename": filename,
+                "content": content,
+                "page_count": page_count,
+                "uploaded_at": utc_now().isoformat(),
+            },
+        )
 
         # Get metadata
         metadata = doc.metadata
@@ -90,10 +176,8 @@ async def get_pdf_info(pdf_id: str):
     """Get information about an uploaded PDF"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if pdf_id not in pdf_cache:
-        raise HTTPException(status_code=404, detail="PDF not found")
 
-    pdf_data = pdf_cache[pdf_id]
+    pdf_data = _require_cached(pdf_id)
     doc = fitz.open(stream=pdf_data["content"], filetype="pdf")
 
     pages_info = []
@@ -113,14 +197,12 @@ async def get_pdf_info(pdf_id: str):
 
 
 @router.get("/page/{pdf_id}/{page_num}")
-async def get_page_image(pdf_id: str, page_num: int, zoom: float = 1.5):
+async def get_page_image(pdf_id: str, page_num: int, zoom: float = Query(1.5, ge=MIN_ZOOM, le=MAX_ZOOM)):
     """Get a page as an image (PNG)"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if pdf_id not in pdf_cache:
-        raise HTTPException(status_code=404, detail="PDF not found")
 
-    pdf_data = pdf_cache[pdf_id]
+    pdf_data = _require_cached(pdf_id)
     doc = fitz.open(stream=pdf_data["content"], filetype="pdf")
 
     if page_num < 1 or page_num > len(doc):
@@ -142,14 +224,12 @@ async def get_page_image(pdf_id: str, page_num: int, zoom: float = 1.5):
 
 
 @router.get("/page-base64/{pdf_id}/{page_num}")
-async def get_page_base64(pdf_id: str, page_num: int, zoom: float = 1.5):
+async def get_page_base64(pdf_id: str, page_num: int, zoom: float = Query(1.5, ge=MIN_ZOOM, le=MAX_ZOOM)):
     """Get a page as base64-encoded PNG"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if pdf_id not in pdf_cache:
-        raise HTTPException(status_code=404, detail="PDF not found")
 
-    pdf_data = pdf_cache[pdf_id]
+    pdf_data = _require_cached(pdf_id)
     doc = fitz.open(stream=pdf_data["content"], filetype="pdf")
 
     if page_num < 1 or page_num > len(doc):
@@ -172,10 +252,8 @@ async def get_page_text(pdf_id: str, page_num: int):
     """Extract text from a specific page"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if pdf_id not in pdf_cache:
-        raise HTTPException(status_code=404, detail="PDF not found")
 
-    pdf_data = pdf_cache[pdf_id]
+    pdf_data = _require_cached(pdf_id)
     doc = fitz.open(stream=pdf_data["content"], filetype="pdf")
 
     if page_num < 1 or page_num > len(doc):
@@ -194,10 +272,8 @@ async def get_all_text(pdf_id: str):
     """Extract text from all pages"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if pdf_id not in pdf_cache:
-        raise HTTPException(status_code=404, detail="PDF not found")
 
-    pdf_data = pdf_cache[pdf_id]
+    pdf_data = _require_cached(pdf_id)
     doc = fitz.open(stream=pdf_data["content"], filetype="pdf")
 
     pages_text = []
@@ -217,10 +293,8 @@ async def extract_pages(
     """Extract specific pages into a new PDF"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if pdf_id not in pdf_cache:
-        raise HTTPException(status_code=404, detail="PDF not found")
 
-    pdf_data = pdf_cache[pdf_id]
+    pdf_data = _require_cached(pdf_id)
 
     # Parse page selection
     page_numbers = parse_page_selection(pages, pdf_data["page_count"])
@@ -243,9 +317,11 @@ async def extract_pages(
     new_doc.close()
     src_doc.close()
 
-    # Generate filename
-    original_name = os.path.splitext(pdf_data["filename"])[0]
-    new_filename = f"{original_name}_pages_{pages.replace(',', '-').replace(' ', '')}.pdf"
+    # Generate filename — sanitize; both inputs are user-controlled and this
+    # string lands in a Content-Disposition header.
+    original_name = os.path.splitext(_safe_filename(pdf_data["filename"]))[0]
+    safe_pages = re.sub(r"[^0-9-]", "-", pages).strip("-")[:50]
+    new_filename = f"{original_name}_pages_{safe_pages}.pdf"
 
     return StreamingResponse(
         output, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename={new_filename}"}
@@ -257,10 +333,8 @@ async def extract_pages_base64(pdf_id: str = Form(...), pages: str = Form(...)):
     """Extract specific pages and return as base64"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if pdf_id not in pdf_cache:
-        raise HTTPException(status_code=404, detail="PDF not found")
 
-    pdf_data = pdf_cache[pdf_id]
+    pdf_data = _require_cached(pdf_id)
 
     # Parse page selection
     page_numbers = parse_page_selection(pages, pdf_data["page_count"])
@@ -282,8 +356,9 @@ async def extract_pages_base64(pdf_id: str = Form(...), pages: str = Form(...)):
     new_doc.close()
     src_doc.close()
 
-    original_name = os.path.splitext(pdf_data["filename"])[0]
-    new_filename = f"{original_name}_pages_{pages.replace(',', '-').replace(' ', '')}.pdf"
+    original_name = os.path.splitext(_safe_filename(pdf_data["filename"]))[0]
+    safe_pages = re.sub(r"[^0-9-]", "-", pages).strip("-")[:50]
+    new_filename = f"{original_name}_pages_{safe_pages}.pdf"
 
     return {
         "filename": new_filename,
@@ -296,7 +371,7 @@ async def extract_pages_base64(pdf_id: str = Form(...), pages: str = Form(...)):
 @router.delete("/{pdf_id}")
 async def delete_pdf(pdf_id: str):
     """Remove a PDF from cache"""
-    if pdf_id not in pdf_cache:
+    if _cache_get(pdf_id) is None:
         raise HTTPException(status_code=404, detail="PDF not found")
 
     del pdf_cache[pdf_id]
@@ -304,14 +379,12 @@ async def delete_pdf(pdf_id: str):
 
 
 @router.get("/thumbnails/{pdf_id}")
-async def get_thumbnails(pdf_id: str, max_width: int = 150):
+async def get_thumbnails(pdf_id: str, max_width: int = Query(150, ge=MIN_THUMB_WIDTH, le=MAX_THUMB_WIDTH)):
     """Get thumbnails of all pages"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if pdf_id not in pdf_cache:
-        raise HTTPException(status_code=404, detail="PDF not found")
 
-    pdf_data = pdf_cache[pdf_id]
+    pdf_data = _require_cached(pdf_id)
     doc = fitz.open(stream=pdf_data["content"], filetype="pdf")
 
     thumbnails = []
@@ -372,14 +445,14 @@ async def split_pdf(pdf_id: str = Form(...), pages_per_file: int = Form(default=
     """Split PDF into multiple files"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if pdf_id not in pdf_cache:
-        raise HTTPException(status_code=404, detail="PDF not found")
+    if pages_per_file < 1 or pages_per_file > MAX_PAGES_PER_SPLIT:
+        raise HTTPException(status_code=400, detail=f"pages_per_file must be 1-{MAX_PAGES_PER_SPLIT}")
 
-    pdf_data = pdf_cache[pdf_id]
+    pdf_data = _require_cached(pdf_id)
     src_doc = fitz.open(stream=pdf_data["content"], filetype="pdf")
 
     total_pages = len(src_doc)
-    original_name = os.path.splitext(pdf_data["filename"])[0]
+    original_name = os.path.splitext(_safe_filename(pdf_data["filename"]))[0]
 
     splits = []
     for start in range(0, total_pages, pages_per_file):
@@ -413,21 +486,32 @@ async def split_pdf(pdf_id: str = Form(...), pages_per_file: int = Form(default=
     }
 
 
-@router.post("/merge")
+@router.post(
+    "/merge",
+    dependencies=[Depends(rate_limit_dependency("pdf-merge", window=60, max_requests=10))],
+)
 async def merge_pdfs(files: list[UploadFile] = File(...)):
     """Merge multiple PDFs into one"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
     if len(files) < 2:
         raise HTTPException(status_code=400, detail="Need at least 2 PDFs to merge")
+    if len(files) > MAX_MERGE_FILES:
+        raise HTTPException(status_code=400, detail=f"Too many files — limit is {MAX_MERGE_FILES} per merge")
 
     merged_doc = fitz.open()
+    total_bytes = 0
 
     for file in files:
-        if not file.filename.lower().endswith(".pdf"):
+        if not file.filename or not file.filename.lower().endswith(".pdf"):
             continue
 
         content = await file.read()
+        _check_upload_size(file, content)
+        total_bytes += len(content)
+        if total_bytes > MAX_MERGE_TOTAL_BYTES:
+            merged_doc.close()
+            raise HTTPException(status_code=413, detail="Merge batch too large — limit is 100MB total")
         try:
             doc = fitz.open(stream=content, filetype="pdf")
             merged_doc.insert_pdf(doc)
@@ -436,15 +520,17 @@ async def merge_pdfs(files: list[UploadFile] = File(...)):
             continue
 
     if len(merged_doc) == 0:
+        merged_doc.close()
         raise HTTPException(status_code=400, detail="No valid PDFs to merge")
 
+    merged_page_count = len(merged_doc)
     pdf_bytes = merged_doc.tobytes()
     base64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
     merged_doc.close()
 
     return {
         "filename": "merged.pdf",
-        "page_count": len(merged_doc),
+        "page_count": merged_page_count,
         "pdf_base64": f"data:application/pdf;base64,{base64_pdf}",
     }
 
@@ -458,13 +544,11 @@ async def rotate_pages(
     """Rotate specific pages"""
     if fitz is None:
         raise RuntimeError("PyMuPDF (fitz) is not installed")
-    if pdf_id not in pdf_cache:
-        raise HTTPException(status_code=404, detail="PDF not found")
 
     if rotation not in [90, 180, 270, -90]:
         raise HTTPException(status_code=400, detail="Rotation must be 90, 180, 270, or -90")
 
-    pdf_data = pdf_cache[pdf_id]
+    pdf_data = _require_cached(pdf_id)
     page_numbers = parse_page_selection(pages, pdf_data["page_count"])
 
     doc = fitz.open(stream=pdf_data["content"], filetype="pdf")
@@ -478,6 +562,7 @@ async def rotate_pages(
 
     # Update cache
     pdf_cache[pdf_id]["content"] = pdf_bytes
+    pdf_cache[pdf_id]["stored_at"] = utc_now()
 
     doc.close()
 

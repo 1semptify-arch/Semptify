@@ -132,6 +132,7 @@
                 case_id: parseInt(caseId, 10),
                 reviewer_label: label,
                 reviewer_contact: document.getElementById("lsContact").value.trim() || null,
+                tenant_message: document.getElementById("lsMessage").value.trim() || null,
                 document_ids: docIds,
                 include_notes: document.getElementById("lsIncludeNotes").checked,
                 deadline_ids: deadlineIds,
@@ -283,4 +284,98 @@
 
     loadShares();
     loadQuestions();
+
+    /* --- released copies & handling record (G9) ------------------------------- */
+    /* Originals never change; a released copy is a new file made on demand.
+       The picker loads once; integrity + past releases refresh per document. */
+
+    var releaseDoc = document.getElementById("lsReleaseDoc");
+
+    function shortHash(h) {
+        return h ? String(h).slice(0, 16) + "…" : "—";
+    }
+
+    function renderReleases(releases, docId) {
+        var host = document.getElementById("lsReleaseList");
+        host.innerHTML = "";
+        document.getElementById("lsReleasesEmpty").hidden = releases.length > 0;
+        releases.forEach(function (r) {
+            var box = document.createElement("div");
+            box.className = "ls-share";
+            var dlUrl = API + "/release/documents/" + encodeURIComponent(docId) +
+                "/releases/" + encodeURIComponent(r.release_id) + "/download";
+            box.innerHTML =
+                '<div class="ls-share-head"><h3 class="rs-section-head">Released ' + esc(fmtDate(r.released_at)) + "</h3></div>" +
+                '<p class="ls-share-meta">Copy fingerprint ' + esc(shortHash(r.artifact_sha256)) +
+                " · original " + esc(shortHash(r.original_sha256)) +
+                " · includes timestamped proof, color legend, and the handling record</p>" +
+                '<div class="ls-share-actions"><a class="rs-btn" href="' + esc(dlUrl) + '">Download the copy</a></div>';
+            host.appendChild(box);
+        });
+    }
+
+    function loadReleaseDoc(docId) {
+        var info = document.getElementById("lsReleaseInfo");
+        var msg = document.getElementById("lsReleaseMsg");
+        var custody = document.getElementById("lsCustodyBtn");
+        info.hidden = !docId;
+        msg.textContent = "";
+        document.getElementById("lsReleaseList").innerHTML = "";
+        document.getElementById("lsReleasesEmpty").hidden = true;
+        if (!docId) return;
+        custody.href = API + "/release/documents/" + encodeURIComponent(docId) + "/custody-log?download=1";
+        api(API + "/release/documents/" + encodeURIComponent(docId) + "/integrity").then(function (data) {
+            var hashLine = document.getElementById("lsReleaseHash");
+            if (data.matches_intake === true) {
+                hashLine.textContent = "Tamper-check matches the fingerprint recorded when this file arrived: " + shortHash(data.intake_sha256);
+            } else if (data.matches_intake === false) {
+                hashLine.textContent = "Heads up — this file's current fingerprint does not match the one recorded at intake. Worth a look before releasing.";
+            } else {
+                hashLine.textContent = "Fingerprint on record: " + shortHash(data.intake_sha256 || data.recomputed_sha256);
+            }
+            renderReleases(data.releases || [], docId);
+        }).catch(function () {
+            document.getElementById("lsReleaseHash").textContent = "Couldn't read this document's record right now.";
+        });
+    }
+
+    api(API + "/release/documents").then(function (data) {
+        (data.documents || []).forEach(function (d) {
+            var opt = document.createElement("option");
+            opt.value = d.id;
+            opt.textContent = d.name || d.id;
+            releaseDoc.appendChild(opt);
+        });
+    }).catch(function () {});
+
+    releaseDoc.addEventListener("change", function () {
+        loadReleaseDoc(releaseDoc.value);
+    });
+
+    document.getElementById("lsReleaseBtn").addEventListener("click", function () {
+        var docId = releaseDoc.value;
+        var msg = document.getElementById("lsReleaseMsg");
+        if (!docId) return;
+        var name = releaseDoc.options[releaseDoc.selectedIndex].textContent;
+        if (!window.confirm(
+            "Release a copy of \"" + name + "\"?\n\n" +
+            "A new file is made — your original stays untouched. The copy bundles the document, " +
+            "what your highlight colors mean, a timestamped tamper-check, and the record of who did what."
+        )) return;
+        msg.textContent = "Releasing…";
+        api(API + "/release/documents/" + encodeURIComponent(docId) + "/release", { method: "POST" })
+            .then(function (data) {
+                var r = data.release || {};
+                msg.textContent = r.original_intact_after_release
+                    ? "Released. Your original is untouched — the copy is a separate new file."
+                    : "Released — but the original check didn't come back clean. Look at this document before relying on the copy.";
+                loadReleaseDoc(docId);
+            })
+            .catch(function (e) {
+                msg.textContent = e.status === 403 ? "Only you can release your own documents." :
+                    e.status === 503 ? "Storage needs reconnecting — nothing was released." :
+                    e.status === 502 ? "The file couldn't be read just now — nothing was released." :
+                    "Couldn't release a copy — try again in a moment.";
+            });
+    });
 })();

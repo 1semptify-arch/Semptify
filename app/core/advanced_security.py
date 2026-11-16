@@ -720,6 +720,12 @@ def validate_secure_session(session_id: str, ip_address: str = None) -> UserSess
     return manager.validate_secure_session(session_id, ip_address)
 
 
+def revoke_session(session_id: str, reason: str = "user_logout") -> bool:
+    """Revoke a secure session."""
+    manager = get_advanced_security_manager()
+    return manager.revoke_session(session_id, reason)
+
+
 def get_security_status(user_id: str) -> dict[str, Any]:
     """Get comprehensive security status."""
     manager = get_advanced_security_manager()

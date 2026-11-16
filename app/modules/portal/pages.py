@@ -7,7 +7,7 @@ Design:
 - Additive — new pages are added, not inserted into existing pages
 - SSOT — this registry is the only place public pages are defined
 - SEO-ready — each page has title, description, keywords for meta tags
-- Mobile-first — each template extends public_base.html
+- Mobile-first — each template extends body/public_shell.html
 """
 
 from __future__ import annotations

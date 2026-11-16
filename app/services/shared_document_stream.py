@@ -4,6 +4,20 @@ Extracted from app.modules.document_center.router so both DOCUMENT_SHARE
 recipients and CASE_SHARE reviewers stream vault documents through one path.
 Originals are immutable: this module only reads. The caller is responsible
 for share/token scope checks before streaming.
+
+What this path emits (metadata handling, matrix G5.12):
+  - The document's original bytes, verbatim — including any metadata embedded
+    inside the file itself (author/owner fields, creation timestamps, edit
+    history, EXIF data, hidden Office document properties). Nothing is
+    scrubbed: the original is immutable, and altering the stream would break
+    the byte-for-byte identity the share is built on.
+  - The display filename in Content-Disposition (inline, or attachment with
+    ?download=1) — the tenant's own filename for the shared document.
+  - The stored MIME type. No tenant ids, vault paths, user ids, or share
+    internals are ever emitted in headers or the body.
+  A tenant who needs metadata removed must remove it in the file itself
+  before sharing — the share UI warns that hidden details travel with the
+  file.
 """
 
 import logging

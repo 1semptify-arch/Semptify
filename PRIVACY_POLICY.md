@@ -10,9 +10,9 @@
 
 **Semptify does not store user logs, personal information, or track user activity.** We are designed with privacy-first architecture where your data remains under YOUR control.
 
-### 100% Free
+### No Cost, Always
 
-**Semptify is completely free to use.** There are:
+**Semptify is no cost to use.** There are:
 
 - No subscription fees
 - No premium tiers
@@ -147,9 +147,9 @@ We do **not** use:
 - Amplitude
 - Any other tracking service
 
-### 5.3 No Advertising - 100% Free
+### 5.3 No Advertising - No Cost
 
-**Semptify is completely free and ad-free.** We do **not**:
+**Semptify is no cost and ad-free.** We do **not**:
 
 - Display any advertisements
 - Charge subscription fees
@@ -286,7 +286,7 @@ If you have questions about this Privacy Policy:
 | Do you sell my data? | **No** |
 | Do you share my data? | **No** |
 | Do you show ads? | **No - completely ad-free** |
-| Is it free? | **Yes - 100% free, donations accepted** |
+| Does it cost anything? | **No - no cost, donations accepted** |
 | Where is my data stored? | **Your cloud storage account** |
 | Can I delete everything? | **Yes, anytime** |
 | Do you use analytics? | **No** |
@@ -296,4 +296,4 @@ If you have questions about this Privacy Policy:
 
 ### Semptify is built for privacy. Your case data is YOUR data
 
-### 100% Free. No Ads. No Tracking. Donations Welcome
+### No Cost. No Ads. No Tracking. Donations Welcome

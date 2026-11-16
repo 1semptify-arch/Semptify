@@ -15,7 +15,7 @@ from sqlalchemy import select
 
 from app.core.database import get_db_session
 from app.core.event_bus import EventType, event_bus
-from app.core.utc import utc_now
+from app.core.utc import parse_iso, utc_now
 from app.models.models import Document
 
 logger = logging.getLogger(__name__)
@@ -238,7 +238,7 @@ class FormDataService:
         # Calculate answer deadline if we have summons date
         if self.form_data.case.summons_date:
             try:
-                summons = datetime.fromisoformat(self.form_data.case.summons_date)
+                summons = parse_iso(self.form_data.case.summons_date)
                 deadline = summons + timedelta(days=7)
                 self.form_data.case.answer_deadline = deadline.strftime("%Y-%m-%d")
             except ValueError:
@@ -379,13 +379,13 @@ class FormDataService:
         case = self.form_data.case
 
         if case.hearing_date:
-            hearing = datetime.fromisoformat(case.hearing_date)
+            hearing = parse_iso(case.hearing_date)
             if hearing < utc_now():
                 case.stage = CaseStage.HEARING_COMPLETE
             else:
                 case.stage = CaseStage.HEARING_SCHEDULED
         elif case.answer_deadline:
-            deadline = datetime.fromisoformat(case.answer_deadline)
+            deadline = parse_iso(case.answer_deadline)
             if deadline < utc_now():
                 case.stage = CaseStage.ANSWER_FILED  # Assume filed if past
             else:
@@ -528,7 +528,7 @@ class FormDataService:
         days_to_hearing = None
         if case.hearing_date:
             try:
-                hearing = datetime.fromisoformat(case.hearing_date)
+                hearing = parse_iso(case.hearing_date)
                 days_to_hearing = (hearing - utc_now()).days
             except ValueError:
                 pass
