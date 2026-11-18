@@ -244,6 +244,14 @@
     - app/core/audit_logger.py
   category: adr
 
+- doc: adr/0011-user-data-oauth-storage-link-layer.md
+  covers:
+    - app/services/storage
+    - app/services/storage/local_disk.py
+    - app/core/storage_middleware.py
+    - app/modules/storage
+  category: adr
+
 - doc: planning/B_SIDE_DISPLAY_WINDOW_MAP.md
   covers:
     - app/core/navigation.py

@@ -26,7 +26,7 @@
 | --- | --- | --- |
 | 6 | `docs/admin/MOTIVATIONS.md` | Foundational motivations, language rules, Information Integrity Standards |
 | 7 | `docs/AI_TEAM_OPERATING_PROTOCOL.md` | Three-way collaboration protocol, decision authority matrix, batching rules |
-| 8 | `docs/adr/` — all ADRs (currently 0001–0009) | Permanent dated decisions (storage, navigation, attraction, banned motivations, language, open access, OCR privacy, information orchestrator, fact-check freshness) — never edited |
+| 8 | `docs/adr/` — all ADRs (currently 0001–0011) | Permanent dated decisions (storage, navigation, attraction, banned motivations, language, open access, OCR privacy, information orchestrator, fact-check freshness, token storage, OAuth user-data storage) — never edited |
 | 9 | `SEMPTIFY_SYSTEM_MANIFEST.md` | Module registry: active/disabled modules, tier map, golden rules — **required before touching any module or router** |
 
 ## TIER 3 — Read when touching that domain
