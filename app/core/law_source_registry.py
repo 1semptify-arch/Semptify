@@ -182,6 +182,13 @@ def _mn_docket_url(citation: str) -> str:
     return _courtlistener_search(m.group(0) if m else citation)
 
 
+def _state_case_url(citation: str) -> str:
+    """Build a CourtListener search URL for non-MN state reporter citations
+    (e.g. '144 Vt. 150, 478 A.2d 202 (1984)' -> searches '144 Vt. 150')."""
+    m = re.search(r"\d+\s*[A-Z][\w.]*\s+\d+", citation)
+    return _courtlistener_search(m.group(0) if m else citation)
+
+
 # =============================================================================
 # County Code Registry — jurisdiction-aware county/ordinance URLs
 # =============================================================================
@@ -347,6 +354,12 @@ REGISTRY: list[tuple[re.Pattern, LawSource]] = [
     (
         re.compile(r"\bA\d{2}-\d{4}\b"),
         LawSource("CourtListener (MN Cases)", _mn_docket_url, "2026-01-15", "state"),
+    ),
+    # Other state reporters — Atlantic / Vermont reporter (e.g. "144 Vt. 150,
+    # 478 A.2d 202 (1984)"). Keep scoped: unlisted reporters log a warning.
+    (
+        re.compile(r"\d+\s*Vt\.?\s*\d+|\d+\s*A\.\dd\s*\d+", re.IGNORECASE),
+        LawSource("CourtListener (State Cases)", _state_case_url, "2026-11-18", "state"),
     ),
     # HUD / FHEO guidance notices (e.g. "HUD FHEO Notice 2020-01")
     (

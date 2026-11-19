@@ -1365,6 +1365,8 @@ DAKOTA_COUNTY_RULES = {
 }
 DAKOTA_COUNTY_RULES.update(EXPANDED_RULES)
 
+# Entries that failed the 2026-11-18 citation audit are quarantined in
+# expanded_laws.py::QUARANTINED_CASE_LAW — never served by this API.
 CASE_LAW_DATABASE = [
     {
         "id": "fritz_v_warthen",
@@ -1377,19 +1379,6 @@ CASE_LAW_DATABASE = [
         "relevance": "Foundational case for habitability claims in Minnesota.",
         "key_quotes": [
             "The tenant's obligation to pay rent is dependent upon the landlord's performance of the implied warranty of habitability."
-        ],
-    },
-    {
-        "id": "johnson_v_property_management",
-        "case_name": "Johnson v. ABC Property Management",
-        "citation": "456 N.W.2d 123 (Minn. Ct. App. 1990)",
-        "court": "Minnesota Court of Appeals",
-        "date_decided": "1990-05-15",
-        "summary": "Clarified tenant's right to cure nonpayment before trial.",
-        "holding": "Tenant has the right to cure a nonpayment eviction by paying all amounts due before trial.",
-        "relevance": "Important for understanding cure rights in nonpayment cases.",
-        "key_quotes": [
-            "The purpose of the eviction statute is not to punish tenants but to provide landlords a remedy for continued nonpayment."
         ],
     },
     # Federal Fair Housing Cases

@@ -1383,9 +1383,9 @@ EXPANDED_CASES = [
     {
         "id": "hilder_v_st_peter",
         "case_name": "Hilder v. St. Peter",
-        "citation": "478 N.W.2d 705 (Minn. Ct. App. 1991)",
-        "court": "Minnesota Court of Appeals",
-        "date_decided": "1991-10-29",
+        "citation": "144 Vt. 150, 478 A.2d 202 (1984)",
+        "court": "Vermont Supreme Court",
+        "date_decided": "1984-02-03",
         "summary": "Clarified damages for breach of the implied warranty of habitability.",
         "holding": "A tenant can recover damages for breach of the implied warranty of habitability measured by the difference between the value of the premises as warranted and as received.",
         "relevance": "Important for habitability damages and rent abatement claims.",
@@ -1404,97 +1404,6 @@ EXPANDED_CASES = [
         "relevance": "Fair housing plaintiffs can seek jury trials and damages.",
         "key_quotes": [
             "The right to jury trial in actions for damages under the Fair Housing Act is preserved."
-        ],
-    },
-    {
-        "id": "doggett_v_civil_rights",
-        "case_name": "Doggett v. Civil Rights Commission",
-        "citation": "2014 WL 4782034 (Mich. Ct. App. 2014)",
-        "court": "Michigan Court of Appeals",
-        "date_decided": "2014-09-25",
-        "summary": "Example case upholding a landlord's obligation to accommodate an assistance animal under the Fair Housing Act.",
-        "holding": "A landlord must consider a reasonable-accommodation request for an assistance animal even with a no-pet policy.",
-        "relevance": "Assistance animal reasonable accommodation in state fair housing proceedings.",
-        "key_quotes": [
-            "The accommodation must be necessary to afford the tenant equal opportunity to use and enjoy the dwelling."
-        ],
-    },
-    {
-        "id": "roche_v_raimondo",
-        "case_name": "Roche v. Raimondo",
-        "citation": "856 F.3d 522 (7th Cir. 2017)",
-        "court": "U.S. Court of Appeals, Seventh Circuit",
-        "date_decided": "2017-04-25",
-        "summary": "Held that local nuisance ordinances can violate the Fair Housing Act if they have a disparate impact on victims of domestic violence.",
-        "holding": "Nuisance ordinances that penalize tenants for police calls related to domestic violence can violate the FHA.",
-        "relevance": "Challenging local ordinances that harm victims of domestic violence.",
-        "key_quotes": [
-            "The ordinance's effects fall more heavily on women and domestic violence survivors."
-        ],
-    },
-    {
-        "id": "overlook_twin_v_l_l",
-        "case_name": "Overlook Terrace Management v. Fox",
-        "citation": "303 F. Supp. 3d 419 (D. Md. 2018)",
-        "court": "U.S. District Court, District of Maryland",
-        "date_decided": "2018-03-30",
-        "summary": "Addressed whether emotional support animal documentation from a reliable third party is sufficient under the FHA.",
-        "holding": "Housing providers must accept reliable documentation of disability-related need for an assistance animal; internet-only certificates are not per se sufficient.",
-        "relevance": "Common reasonable-accommodation dispute over documentation.",
-        "key_quotes": [
-            "The determination of reasonableness is fact-specific and requires meaningful review."
-        ],
-    },
-    {
-        "id": "williams_v_manchester_housing",
-        "case_name": "Williams v. Manchester Housing Authority",
-        "citation": "918 F.3d 1 (1st Cir. 2019)",
-        "court": "U.S. Court of Appeals, First Circuit",
-        "date_decided": "2019-03-15",
-        "summary": "Found that a housing authority's failure to accommodate a tenant with mental health disabilities could violate the Fair Housing Act.",
-        "holding": "Reasonable accommodations must be individualized; blanket policies may violate the FHA.",
-        "relevance": "Mental health-related reasonable accommodations in public housing.",
-        "key_quotes": [
-            "A housing provider must engage in an interactive process when a reasonable accommodation is requested."
-        ],
-    },
-    {
-        "id": "lincoln_v_mirage",
-        "case_name": "Lincoln v. Mirage Holdings",
-        "citation": "2018 WL 4567890 (D. Kan. 2018)",
-        "court": "U.S. District Court, District of Kansas",
-        "date_decided": "2018-09-21",
-        "summary": "Case upholding that a tenant's request to keep an emotional support animal in a no-pet building was a reasonable accommodation.",
-        "holding": "Refusing an emotional support animal as a reasonable accommodation without good reason violates the FHA.",
-        "relevance": "Emotional support animal rights in multi-family housing.",
-        "key_quotes": [
-            "An emotional support animal can be a reasonable accommodation for a person with a disability."
-        ],
-    },
-    {
-        "id": "minnesota_v_andersen",
-        "case_name": "Minnesota v. Andersen",
-        "citation": "773 N.W.2d 463 (Minn. 2009)",
-        "court": "Minnesota Supreme Court",
-        "date_decided": "2009-05-21",
-        "summary": "Clarified that criminal restitution may be ordered for damages caused to rental property, including restoration costs.",
-        "holding": "Restitution for property damage may include reasonable repair and restoration costs.",
-        "relevance": "Relevant to landlord-tenant damage claims and restitution in criminal proceedings.",
-        "key_quotes": [
-            "Restitution is intended to restore the victim to the position occupied before the offense."
-        ],
-    },
-    {
-        "id": "baker_v_commodore",
-        "case_name": "Baker v. Commodore Properties",
-        "citation": "586 N.W.2d 313 (Minn. Ct. App. 1998)",
-        "court": "Minnesota Court of Appeals",
-        "date_decided": "1998-07-28",
-        "summary": "Addressed whether a lease provision requiring a tenant to pay landlord's attorney fees was enforceable.",
-        "holding": "An attorney-fee clause in a residential lease must be reciprocal to be enforceable.",
-        "relevance": "Important for evaluating lease attorney-fee provisions.",
-        "key_quotes": [
-            "A one-sided attorney fee provision in a residential lease is unconscionable and unenforceable."
         ],
     },
     # Retaliation Cases
@@ -1548,6 +1457,146 @@ EXPANDED_CASES = [
         "relevance": "Recent Minnesota example showing the defense must be proven — courts weigh the landlord's stated reasons against timing. Nonprecedential but instructive.",
         "key_quotes": [],
     }
+]
+
+# =============================================================================
+# QUARANTINED CASE LAW — 2026-11-18 audit
+# =============================================================================
+# Entries below failed citation verification (CourtListener check, law_linker
+# VERDICTS). They are kept here as an audit record ONLY — they must never be
+# served by the API, linked, or cited in a filing. Do not move them back into
+# EXPANDED_CASES / CASE_LAW_DATABASE without re-verifying the citation against
+# a primary source. audit_status values: "fabricated" (no such case / cite),
+# "wrong-cite" (reporter cite exists but belongs to a different case).
+QUARANTINED_CASE_LAW = [
+    {
+        "id": "johnson_v_property_management",
+        "case_name": "Johnson v. ABC Property Management",
+        "citation": "456 N.W.2d 123 (Minn. Ct. App. 1990)",
+        "court": "Minnesota Court of Appeals",
+        "date_decided": "1990-05-15",
+        "summary": "Clarified tenant's right to cure nonpayment before trial.",
+        "holding": "Tenant has the right to cure a nonpayment eviction by paying all amounts due before trial.",
+        "relevance": "Important for understanding cure rights in nonpayment cases.",
+        "key_quotes": [
+            "The purpose of the eviction statute is not to punish tenants but to provide landlords a remedy for continued nonpayment."
+        ],
+        "audit_status": "fabricated",
+        "audit_note": "CourtListener: 0 hits — sequential vol/page, no such case.",
+        "audit_date": "2026-11-18",
+    },
+    {
+        "id": "doggett_v_civil_rights",
+        "case_name": "Doggett v. Civil Rights Commission",
+        "citation": "2014 WL 4782034 (Mich. Ct. App. 2014)",
+        "court": "Michigan Court of Appeals",
+        "date_decided": "2014-09-25",
+        "summary": "Example case upholding a landlord's obligation to accommodate an assistance animal under the Fair Housing Act.",
+        "holding": "A landlord must consider a reasonable-accommodation request for an assistance animal even with a no-pet policy.",
+        "relevance": "Assistance animal reasonable accommodation in state fair housing proceedings.",
+        "key_quotes": [
+            "The accommodation must be necessary to afford the tenant equal opportunity to use and enjoy the dwelling."
+        ],
+        "audit_status": "fabricated",
+        "audit_note": "CourtListener: no such case.",
+        "audit_date": "2026-11-18",
+    },
+    {
+        "id": "roche_v_raimondo",
+        "case_name": "Roche v. Raimondo",
+        "citation": "856 F.3d 522 (7th Cir. 2017)",
+        "court": "U.S. Court of Appeals, Seventh Circuit",
+        "date_decided": "2017-04-25",
+        "summary": "Held that local nuisance ordinances can violate the Fair Housing Act if they have a disparate impact on victims of domestic violence.",
+        "holding": "Nuisance ordinances that penalize tenants for police calls related to domestic violence can violate the FHA.",
+        "relevance": "Challenging local ordinances that harm victims of domestic violence.",
+        "key_quotes": [
+            "The ordinance's effects fall more heavily on women and domestic violence survivors."
+        ],
+        "audit_status": "fabricated",
+        "audit_note": "CourtListener: 0 hits.",
+        "audit_date": "2026-11-18",
+    },
+    {
+        "id": "overlook_twin_v_l_l",
+        "case_name": "Overlook Terrace Management v. Fox",
+        "citation": "303 F. Supp. 3d 419 (D. Md. 2018)",
+        "court": "U.S. District Court, District of Maryland",
+        "date_decided": "2018-03-30",
+        "summary": "Addressed whether emotional support animal documentation from a reliable third party is sufficient under the FHA.",
+        "holding": "Housing providers must accept reliable documentation of disability-related need for an assistance animal; internet-only certificates are not per se sufficient.",
+        "relevance": "Common reasonable-accommodation dispute over documentation.",
+        "key_quotes": [
+            "The determination of reasonableness is fact-specific and requires meaningful review."
+        ],
+        "audit_status": "fabricated",
+        "audit_note": "CourtListener: 0 hits — name borrowed from the NJ rent-control line of cases; no D. Md. decision.",
+        "audit_date": "2026-11-18",
+    },
+    {
+        "id": "williams_v_manchester_housing",
+        "case_name": "Williams v. Manchester Housing Authority",
+        "citation": "918 F.3d 1 (1st Cir. 2019)",
+        "court": "U.S. Court of Appeals, First Circuit",
+        "date_decided": "2019-03-15",
+        "summary": "Found that a housing authority's failure to accommodate a tenant with mental health disabilities could violate the Fair Housing Act.",
+        "holding": "Reasonable accommodations must be individualized; blanket policies may violate the FHA.",
+        "relevance": "Mental health-related reasonable accommodations in public housing.",
+        "key_quotes": [
+            "A housing provider must engage in an interactive process when a reasonable accommodation is requested."
+        ],
+        "audit_status": "wrong-cite",
+        "audit_note": "918 F.3d 1 is real but belongs to U.S. v. Tanguay (1st Cir.) — the named housing case is unverified.",
+        "audit_date": "2026-11-18",
+    },
+    {
+        "id": "lincoln_v_mirage",
+        "case_name": "Lincoln v. Mirage Holdings",
+        "citation": "2018 WL 4567890 (D. Kan. 2018)",
+        "court": "U.S. District Court, District of Kansas",
+        "date_decided": "2018-09-21",
+        "summary": "Case upholding that a tenant's request to keep an emotional support animal in a no-pet building was a reasonable accommodation.",
+        "holding": "Refusing an emotional support animal as a reasonable accommodation without good reason violates the FHA.",
+        "relevance": "Emotional support animal rights in multi-family housing.",
+        "key_quotes": [
+            "An emotional support animal can be a reasonable accommodation for a person with a disability."
+        ],
+        "audit_status": "fabricated",
+        "audit_note": "Sequential WL digits; no such case.",
+        "audit_date": "2026-11-18",
+    },
+    {
+        "id": "minnesota_v_andersen",
+        "case_name": "Minnesota v. Andersen",
+        "citation": "773 N.W.2d 463 (Minn. 2009)",
+        "court": "Minnesota Supreme Court",
+        "date_decided": "2009-05-21",
+        "summary": "Clarified that criminal restitution may be ordered for damages caused to rental property, including restoration costs.",
+        "holding": "Restitution for property damage may include reasonable repair and restoration costs.",
+        "relevance": "Relevant to landlord-tenant damage claims and restitution in criminal proceedings.",
+        "key_quotes": [
+            "Restitution is intended to restore the victim to the position occupied before the offense."
+        ],
+        "audit_status": "wrong-cite",
+        "audit_note": "773 N.W.2d 463 is real but belongs to State v. Lammers (Wis. App. 2009) — the named Minnesota case is unverified.",
+        "audit_date": "2026-11-18",
+    },
+    {
+        "id": "baker_v_commodore",
+        "case_name": "Baker v. Commodore Properties",
+        "citation": "586 N.W.2d 313 (Minn. Ct. App. 1998)",
+        "court": "Minnesota Court of Appeals",
+        "date_decided": "1998-07-28",
+        "summary": "Addressed whether a lease provision requiring a tenant to pay landlord's attorney fees was enforceable.",
+        "holding": "An attorney-fee clause in a residential lease must be reciprocal to be enforceable.",
+        "relevance": "Important for evaluating lease attorney-fee provisions.",
+        "key_quotes": [
+            "A one-sided attorney fee provision in a residential lease is unconscionable and unenforceable."
+        ],
+        "audit_status": "fabricated",
+        "audit_note": "CourtListener: 0 hits.",
+        "audit_date": "2026-11-18",
+    },
 ]
 
 EXPANDED_RULES = {
