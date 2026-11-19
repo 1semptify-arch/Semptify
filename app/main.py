@@ -182,6 +182,11 @@ def _register_bill_platform_proxy(app: FastAPI):
     serves every static read from the GitHub snapshot; it forwards only live
     traffic (POSTs, steward cookies, non-auto modes, API) to this origin.
 
+    Implemented as the OUTERMOST middleware (added here, after every other
+    add_middleware call, so it runs first): portal pages own the same exact
+    paths and the checkpoint middleware would gate them to /preamble — a route
+    loses on ordering, middleware does not.
+
     Active only when BILL_UPSTREAM is set — unset means this is a normal
     Semptify deploy and the portal redirect pages keep owning these paths.
     """
@@ -193,14 +198,15 @@ def _register_bill_platform_proxy(app: FastAPI):
 
     client = httpx.AsyncClient(base_url=upstream, timeout=httpx.Timeout(30.0))
     prefixes = ("/bill", "/your-voice", "/what-the-bill-changes")
-    methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
     drop_req = {"host", "content-length", "transfer-encoding", "connection"}
-    drop_resp = {"content-length", "transfer-encoding", "connection", "content-encoding"}
+    drop_resp = {"transfer-encoding", "connection", "content-encoding"}
 
-    async def _proxy(request: Request):
-        target = request.url.path
-        if request.url.query:
-            target += "?" + request.url.query
+    @app.middleware("http")
+    async def bill_platform_proxy(request: Request, call_next):
+        path = request.url.path
+        if not any(path == p or path.startswith(p + "/") for p in prefixes):
+            return await call_next(request)
+        target = path + ("?" + request.url.query if request.url.query else "")
         headers = [(k, v) for k, v in request.headers.raw if k.decode().lower() not in drop_req]
         try:
             resp = await client.request(
@@ -219,10 +225,6 @@ def _register_bill_platform_proxy(app: FastAPI):
             (k, v) for k, v in resp.headers.raw if k.decode().lower() not in drop_resp
         ]
         return out
-
-    for prefix in prefixes:
-        app.add_api_route(prefix, _proxy, methods=methods, include_in_schema=False)
-        app.add_api_route(prefix + "/{rest:path}", _proxy, methods=methods, include_in_schema=False)
 
 
 # Add custom Jinja2 filters
