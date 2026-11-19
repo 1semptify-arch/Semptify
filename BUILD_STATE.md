@@ -1,3 +1,50 @@
+## Session — 2026-11-19 — G10.8 idle session timeout implemented (swe-2, task task-b182ac7a)
+
+**Context:** Acceptance matrix row G10.8 failed the slice-7 sweep — the
+`semptify_uid` auth cookie lives 1 year with zero inactivity enforcement.
+`advanced_security.SessionManager.inactive_timeout` is dead config
+(`validate_session` never compares it) and `core/sessions.py` defaults to
+in-memory storage — wiped on every Render spin-down, which would mass-logout
+users on each deploy.
+
+**Done:**
+- `app/core/session_idle.py` (new) — G10.8 SSOT: HMAC-signed `semptify_idle`
+  marker cookie (`<user_id>:<unix_ts>.<hmac>`, domain `"idle"` so a
+  `semptify_uid` sig can't be replayed), role-tiered windows (30 min
+  legal/professional: admin/manager/advocate/legal/judge/agency/developer;
+  60 min tenant-side), `verify_idle_marker` verdicts
+  (ok/missing/expired/invalid), and `IdleActivityMiddleware` — relays the
+  refreshed marker onto the outgoing response (required because
+  dependency-injected Response headers never reach the browser on routes
+  returning `Response` objects directly — FastAPI routing.py:711) AND
+  intercepts `/storage/reconnect` for idle-expired users, forcing the
+  provider picker → OAuth handshake so a live DB session row can't
+  silently resurrect a timed-out session (also breaks a stale-marker
+  reconnect loop).
+- `app/core/security.py` — `get_current_user` runs `_idle_gate` on both auth
+  paths (StoredSession and `semptify_uid`). Fresh/missing → refresh flag set
+  (missing = graceful migration for pre-feature 1-yr cookies); expired →
+  unauthenticated + StoredSession invalidated; invalid → unauthenticated,
+  session untouched. Gate short-circuits before `ensure_valid_token`.
+- `app/core/cookie_auth.py` — `set_auth_cookie` issues the idle marker
+  atomically (every session starts armed; re-auth after timeout re-arms
+  both); `clear_auth_cookie` deletes it.
+- `app/main.py` — `IdleActivityMiddleware` registered with the other
+  security middleware.
+
+**Verified:** `py_compile` all touched files; marker unit tests (verdicts,
+role windows, domain-separation replay rejection); `get_current_user`
+integration (fresh→auth+flag, stale→401-path, missing→migrate, tampered→
+denied); middleware relay sets the cookie on HTML + redirect responses;
+existing `authenticated_client` fixture (uid-only cookie) unaffected —
+missing marker migrates to a fresh window instead of hard-expiring.
+
+**Re-entry:** a timed-out user is routed to `/storage/providers` → OAuth
+handshake → `set_auth_cookie` re-arms the marker on success. Reconnect's
+silent session-valid path does NOT rescue idle-expired markers (enforced by
+the middleware intercept). No half-state.
+
+
 ## Session — 2026-11-14 — locale selector hidden until a catalog is human_reviewed (swe-2, task task-5c21619e)
 
 ### Guardrail Engine Run — 2026-11-14T06:39:26+00:00
@@ -17481,3 +17528,25 @@ sessions); embedded images are dropped from edited exports (noted to user).
   stale at 0010).
 - **Intake:** doc-map.yaml is missing entries for ADRs 0008/0009/0010
   (staleness check never sees them).
+
+## 2026-11-19 — brain /ws websocket auth gate (task task-2780b090, swe-2)
+
+- **Fixed:** `app/modules/brain/router.py` `@router.websocket("/ws")`
+  accepted connections with zero auth — any client could connect and
+  receive all brain events, push state updates, and trigger workflows.
+  Now gated identically to `/ws/events` (`app/modules/websocket/router.py`):
+  `verify_user_id(semptify_uid)` HMAC check + `is_valid_user_storage`,
+  else `accept()` + `close(1008)` (accept-first so the 1008 reaches the
+  client as a real close frame, not a rejected handshake).
+- **Context:** brain router is dormant — its `_register()` in
+  `product_manifest.py` is commented out (deprecated 2026-07-04), so the
+  hole was latent, not live. Fix prevents it becoming a live
+  unauthenticated WS surface if the module is ever re-registered.
+- **Tests:** `tests/test_websocket.py` `TestBrainWebSocket` — existing 5
+  tests now authenticate via `sign_user_id("GUBRAIN12345")` (helper
+  `_authed_ws()`); added `test_brain_websocket_requires_auth` asserting
+  cookieless connections close 1008 with no state sent. 6 passed,
+  2 skipped (disabled REST endpoints).
+- **Intake:** `intake-370dde1d` — brain REST endpoints also have zero
+  auth_gate (medium, dormant); `intake-00b783ad` — `TestWebSocketEvents`
+  tests stale, unsigned cookies vs `verify_user_id` (low, pre-existing).
