@@ -1,3 +1,31 @@
+## Session — 2026-11-19 — /api/dc/intake/* mounts via product_manifest in all deploy modes (swe-2, task task-5f475242)
+
+**Context:** `/api/dc/intake/*` (OCR-first intake confirm loop) 404'd on
+render_mvp deploys and under `SEMPTIFY_LAZY_ROUTERS=1`: the router was only
+mounted by an explicit `create_app` block gated on
+`not is_mvp_deploy() and not _lazy_routers`, and it had no product_manifest
+entry — so in the two modes where that block was skipped, nothing mounted it.
+
+**Done:**
+- `app/core/product_manifest.py` — registered
+  `app.modules.document_center.intake_router` as a CORE entry
+  (`prefix="/api/dc/intake"`, lifecycle stable, requires_role ()). CORE is
+  inside the render_mvp allow-list, so `register_tiers` now mounts it in
+  every mode — eager, deferred lazy warmup, and render_mvp.
+- `app/main.py` — removed the now-dead explicit mount block: it could only
+  run in the one mode where `register_tiers` had already mounted both DC
+  routers, so the manifest is now the single mount path.
+
+**Verified:** `py_compile` clean; `register_tiers` mounts
+`/api/dc/intake` under all three modes (render_mvp allow-list,
+SEMPTIFY_LAZY_ROUTERS=1, eager dev — verified via include_context prefix);
+end-to-end `app.main` eager import logs "Document Center intake router
+connected at /api/dc/intake" (139 routers, 0 errors); end-to-end lazy run
+(create_app deferred → run_deferred_registration) flips
+`routers_ready=True` with intake mounted and route audit reporting 0
+uncovered public routes; 30/30 `test_dc_smoke.py` pass.
+
+
 ## Session — 2026-11-19 — G10.8 idle session timeout implemented (swe-2, task task-b182ac7a)
 
 **Context:** Acceptance matrix row G10.8 failed the slice-7 sweep — the

@@ -2100,46 +2100,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     else:
         register_tiers(fastapi_app, *enabled_tiers)
 
-    # Document Center is a DEV-tier module that may not have been loaded above.
-    # For non-MVP builds, explicitly mount /api/dc so the document-type registry
-    # (including house_rules) is reachable without requiring a full development env.
-    if not is_mvp_deploy() and not _lazy_routers:
-        from app.modules.document_center import router as document_center_router
-
-        def _router_already_included(router_obj, prefix: str) -> bool:
-            """Whether ``router_obj`` is already included under ``prefix``.
-
-            FastAPI 0.141+ makes ``include_router`` lazy: ``app.routes`` holds
-            ``_IncludedRouter`` proxy nodes (identified by ``include_context``),
-            not materialized APIRoutes — a ``route.path`` scan can never see
-            them and would always report the router as not mounted.
-            """
-            for r in fastapi_app.routes:
-                ctx = getattr(r, "include_context", None)
-                if ctx is not None:
-                    if (
-                        getattr(ctx, "included_router", None) is router_obj
-                        and getattr(ctx, "prefix", "") == prefix
-                    ):
-                        return True
-                elif getattr(r, "path", "").startswith(prefix):
-                    return True
-            return False
-
-        if not _router_already_included(document_center_router, "/api/dc"):
-            fastapi_app.include_router(
-                document_center_router,
-                prefix="/api/dc",
-                tags=["Document Center"],
-            )
-        from app.modules.document_center import intake_router
-
-        if not _router_already_included(intake_router.router, "/api/dc/intake"):
-            fastapi_app.include_router(
-                intake_router.router,
-                prefix="/api/dc/intake",
-                tags=["Document Center Intake"],
-            )
+    # Document Center (both routers) mounts via product_manifest CORE entries:
+    # document_center.router at /api/dc and document_center.intake_router at
+    # /api/dc/intake. Manifest registration is the single mount path — an
+    # explicit non-MVP/non-lazy mount block used to live here, but it skipped
+    # /api/dc/intake entirely under DEPLOY_TARGET=render_mvp and
+    # SEMPTIFY_LAZY_ROUTERS=1, so those routes 404'd on Render (task-5f475242).
 
     # Static asset mount used by public pages (unrelated to the root route below).
     app_static_path = BASE_PATH / "app" / "static"
