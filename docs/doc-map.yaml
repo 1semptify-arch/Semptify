@@ -95,6 +95,13 @@
     - AGENTS.md
   category: admin
 
+- doc: admin/SEMPTIFY_MAILBOXES.md
+  covers:
+    - app/services/email_service.py
+    - app/core/config.py
+    - .env.example
+  category: admin
+
 - doc: admin/Semptify_Site_GUI_Framework.md
   covers:
     - app/templates
