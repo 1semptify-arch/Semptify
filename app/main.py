@@ -172,6 +172,59 @@ def register_stateless_routes(app: FastAPI):
         return templates.TemplateResponse(request, "components/footer.html", {"year": utc_now().year})
 
 
+def _register_bill_platform_proxy(app: FastAPI):
+    """Reverse-proxy the embedded Bill Platform (BILL_UPSTREAM) into this service.
+
+    The bill platform is a separate stdlib-only repo (1semptify-arch/bill-platform)
+    that Render's Dockerfile.render clones and starts on 127.0.0.1:8093 inside the
+    same container, so ONE Render free service carries both apps inside the shared
+    750 free-hours/month pool. The Cloudflare bill-platform-proxy worker still
+    serves every static read from the GitHub snapshot; it forwards only live
+    traffic (POSTs, steward cookies, non-auto modes, API) to this origin.
+
+    Active only when BILL_UPSTREAM is set — unset means this is a normal
+    Semptify deploy and the portal redirect pages keep owning these paths.
+    """
+    upstream = os.environ.get("BILL_UPSTREAM", "").rstrip("/")
+    if not upstream:
+        return
+
+    import httpx
+
+    client = httpx.AsyncClient(base_url=upstream, timeout=httpx.Timeout(30.0))
+    prefixes = ("/bill", "/your-voice", "/what-the-bill-changes")
+    methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
+    drop_req = {"host", "content-length", "transfer-encoding", "connection"}
+    drop_resp = {"content-length", "transfer-encoding", "connection", "content-encoding"}
+
+    async def _proxy(request: Request):
+        target = request.url.path
+        if request.url.query:
+            target += "?" + request.url.query
+        headers = [(k, v) for k, v in request.headers.raw if k.decode().lower() not in drop_req]
+        try:
+            resp = await client.request(
+                request.method,
+                target,
+                content=await request.body(),
+                headers=headers,
+                follow_redirects=False,
+            )
+        except httpx.HTTPError:
+            return Response("bill platform unavailable", status_code=503)
+        # raw append, not dict(): multiple Set-Cookie headers must survive
+        # (steward unlock sets session cookies).
+        out = Response(content=resp.content, status_code=resp.status_code)
+        out.raw_headers = [
+            (k, v) for k, v in resp.headers.raw if k.decode().lower() not in drop_resp
+        ]
+        return out
+
+    for prefix in prefixes:
+        app.add_api_route(prefix, _proxy, methods=methods, include_in_schema=False)
+        app.add_api_route(prefix + "/{rest:path}", _proxy, methods=methods, include_in_schema=False)
+
+
 # Add custom Jinja2 filters
 def format_date_filter(value):
     """Format datetime for display in templates."""
@@ -6538,6 +6591,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.utc import utc_now
 
         return {"status": "ok", "ts": utc_now().isoformat()}
+
+    _register_bill_platform_proxy(fastapi_app)
 
     register_stateless_routes(fastapi_app)
 

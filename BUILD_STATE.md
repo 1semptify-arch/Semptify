@@ -17459,3 +17459,25 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - **Intake:** `intake-0a2b4733` — `invite_codes` custom_code stored verbatim
   but normalized differently at validate; non-canonical custom codes are
   unredeemable (low).
+
+## 2026-11-18 — ADR-0011: user data lives in the user's OAuth storage (task plan-20261118-architecture-semptify-user-data-lives-in-a2f8, swe-2)
+
+- **Recorded Brad's architecture decision as `docs/adr/0011-user-data-oauth-storage-link-layer.md`:**
+  Semptify user data lives in each user's OAuth storage — for
+  browser/standalone modules the contract is Drive `appDataFolder` +
+  `semptify.<module>.<collection>.json` (one JSON array per file), and the
+  user's own Drive is the linking layer between modules.
+  `modules/app-crm/src/lib/driveStore.ts` + `docs/OAUTH-STORAGE.md` is the
+  reference implementation; Brad's setup stays god-mode/local
+  (`dev-godmode-token` → `LocalDiskProvider`) as declared carve-out.
+- **Relationship recorded in the ADR:** complements ADR-0001 (provider-split
+  `Semptify5.0` vault stays the document pipeline) and ADR-0010 (token
+  storage unchanged — this ADR covers user data, not tokens).
+- **Verified:** `driveStore.ts` is the only `appDataFolder`/`drive.appdata`
+  implementation across `modules/` + `semptify-bill-mirror/` (repo-wide
+  grep) — ADR is descriptive for app-crm, prescriptive for future modules.
+- **Also updated:** `docs/doc-map.yaml` (adr entry for 0011),
+  `REQUIRED_READING.md` (ADR range 0001–0009 → 0001–0011 — was already
+  stale at 0010).
+- **Intake:** doc-map.yaml is missing entries for ADRs 0008/0009/0010
+  (staleness check never sees them).

@@ -76,6 +76,27 @@ COPY --chown=semptify:semptify . .
 RUN mkdir -p uploads uploads/vault logs security data data/inventory && \
     chown -R semptify:semptify /app
 
+# -----------------------------------------------------------------------------
+# Bill Platform — embedded, so ONE Render service carries both apps inside the
+# workspace's shared 750 free-instance-hours/month pool. Separate public repo
+# (1semptify-arch/bill-platform — stdlib-only Python), baked in at build time.
+# BILL_UPSTREAM switches on the FastAPI proxy routes for /bill*, /your-voice*,
+# /what-the-bill-changes* in app/main.py. Its SQLite stays durable via the same
+# Litestream→R2 setup the standalone bill-platform Render service uses (env
+# vars LITESTREAM_ACCESS_KEY_ID / LITESTREAM_SECRET_ACCESS_KEY / R2_BUCKET /
+# R2_ENDPOINT set on the Semptify service in the Render dashboard).
+# -----------------------------------------------------------------------------
+ARG BILL_REPO_REF=main
+RUN curl -fsSL "https://codeload.github.com/1semptify-arch/bill-platform/tar.gz/refs/heads/${BILL_REPO_REF}" \
+      | tar xz -C /opt \
+    && mv "/opt/bill-platform-${BILL_REPO_REF}" /opt/bill-platform \
+    && curl -fsSL "https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.tar.gz" \
+      | tar xz -C /opt/bill-platform \
+    && chown -R semptify:semptify /opt/bill-platform
+
+ENV BILL_MOUNT=/bill \
+    BILL_UPSTREAM=http://127.0.0.1:8093
+
 # Switch to non-root user
 USER semptify
 
@@ -92,8 +113,11 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:${PORT}/health || exit 1
 
 # Start command - uses $PORT env var for Render compatibility
+# The embedded bill platform starts first in a background subshell (Litestream
+# restore+replicate when R2 keys are present, plain server.py otherwise), bound
+# to loopback only — it is reachable exclusively through the FastAPI proxy.
 # --proxy-headers + --forwarded-allow-ips: all Render traffic arrives via their
 # edge proxy; without these uvicorn sees http/<proxy-IP> instead of https/<client-IP>.
 # The app already trusts X-Forwarded-For for rate limiting and jurisdiction, so
 # trusting it at the ASGI layer changes no security assumption.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips '*'"]
+CMD ["sh", "-c", "(cd /opt/bill-platform && mkdir -p data && if [ -n \"$LITESTREAM_ACCESS_KEY_ID\" ]; then ./litestream restore -if-replica-exists -config litestream.yml ./data/platform.db; ./litestream replicate -config litestream.yml -exec 'python server.py --host 127.0.0.1 --port 8093'; else python server.py --host 127.0.0.1 --port 8093; fi) & exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips '*'"]
