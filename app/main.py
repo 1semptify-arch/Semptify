@@ -2005,6 +2005,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         enable_hsts=is_production,  # HSTS only in production
     )
 
+    # G10.8 idle-timeout marker refresh — relays the refreshed semptify_idle
+    # cookie that get_current_user flags on request.state (sliding window).
+    from app.core.session_idle import IdleActivityMiddleware
+
+    fastapi_app.add_middleware(IdleActivityMiddleware)
+
     # Request timeout (prevents hung requests)
     from app.core.timeout import TimeoutMiddleware
 

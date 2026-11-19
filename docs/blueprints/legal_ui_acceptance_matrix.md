@@ -400,7 +400,7 @@ cite their reports under `handoffs/`.
 | G10.5 | PASS | Invite flow = copy own ID OR enter their ID → pick scope → (timeline, note) → Send; share flow = numbered one-decision-at-a-time steps. Calm, short sentences throughout; completable unaided at 375px |
 | G10.6 | PASS | "Creating…" busy text during share POST; honest per-status errors ("That case couldn't be found.", "Storage needs reconnecting — nothing was released."); "Loading annotations…/notes…" states; no false instant success |
 | G10.7 | PASS | Two sequential color-key writes on one DOCUMENT_KEY → last write intact (`{'blue': 'writer-B'}`), single overlay id, no corruption |
-| G10.8 | **FAIL — real gap** | No idle-timeout enforcement: auth cookie lives 1 year, `advanced_security.SessionManager` (30-min inactivity) and `core/sessions.py` TTL store exist but are NOT wired into `get_current_user`. Logged to intake for a dedicated fix |
+| G10.8 | **FIXED — pending re-verify** | Implemented 2026-11-19 (task-b182ac7a): signed `semptify_idle` marker enforced in `get_current_user` (30 min legal/professional, 60 min tenant), sliding window via `IdleActivityMiddleware`, issued atomically by `set_auth_cookie`, re-entry via `/storage/reconnect`. See `app/core/session_idle.py` + BUILD_STATE |
 | G10.9 | PASS | Tenant screens hold ≤3 decisions per region: My-Advocate = ID-copy / ask-help (3 inputs) / access lists; Legal-Share = progressive disclosure, one combobox at a time |
 | G10.10 | PASS | Implemented + verified this sweep: discreet "exit" link (fixed, low-opacity) + Esc shortcut (ignored while typing) on `tenant_my_advocate`, `legal_share`, `reviewer_share` — live test: Escape → en.wikipedia.org |
 | G11.1 | PASS | Unlinked-real client (403,49ms) vs nonexistent (403,49ms) — identical status+body+timing; malformed vs well-formed-unknown share token → identical 404 `share_not_found` |
@@ -418,8 +418,9 @@ cite their reports under `handoffs/`.
 - **Two fixes landed in this sweep:** failed-token rate limiting on the
   share/invite guess surfaces (G11.7) and the safety-exit component +
   legend-jump interaction (G10.10, G4.7 code path).
-- **One real gap:** G10.8 idle session timeout is not implemented —
-  intake-logged.
+- **One real gap:** G10.8 idle session timeout — implemented 2026-11-19
+  (task-b182ac7a, `app/core/session_idle.py`); marked pending re-verify
+  in the row table.
 - **Decision-blocked (not defects):** G1.3–G1.4, G5.11, G7.1–G7.3 await
   task-b02e2f89; G5.9 + G6.* await slice5; G5.12 needs a scrub-on-release
   product call. G7.5 + G9.1–G9.6 were closed by slice 6 on 2026-11-14
