@@ -1703,13 +1703,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Rate Limiting
     # =========================================================================
     from slowapi.errors import RateLimitExceeded
-    from slowapi.middleware import SlowAPIMiddleware
 
-    from app.core.rate_limit import limiter, rate_limit_exceeded_handler
+    from app.core.rate_limit import (
+        LazyRouterSlowAPIMiddleware,
+        limiter,
+        rate_limit_exceeded_handler,
+    )
 
     fastapi_app.state.limiter = limiter
     fastapi_app.state.load_profile = load_profile
-    fastapi_app.add_middleware(SlowAPIMiddleware)
+    # LazyRouterSlowAPIMiddleware: stock SlowAPIMiddleware cannot resolve
+    # endpoints behind FastAPI 0.141 lazy _IncludedRouter proxies, so
+    # default_limits silently skipped every lazily-included router.
+    fastapi_app.add_middleware(LazyRouterSlowAPIMiddleware)
     fastapi_app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
     # =========================================================================
